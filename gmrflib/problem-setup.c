@@ -28,24 +28,10 @@
  *
  */
 
-/*!
-  \file problem-setup.c
-  \brief Sampling etc from a GMRF
-  
-  Sampling, whether unconditionally or conditionally, from a GMRF on a general graph, is performed
-  using one function, \ref GMRFLib_sample().  Similarly, \ref GMRFLib_evaluate() computes the
-  log-density for a sample from a GMRF and \ref GMRFLib_Qinv() computes elements in the inverse of
-  the precision matrix.  The functions operate on a data structure, \ref GMRFLib_problem_, holding
-  all external and internal information needed by the sampling and evaluation algorithms. This data
-  structure is initialised by \ref GMRFLib_init_problem().
-
-*/
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: problem-setup.c,v 1.166 2010/02/18 13:45:00 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -126,89 +112,6 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 	return val;
 }
 
-/*! \brief Initializes and specifies a \c GMRFLib_problem_tp -object holding all 
-  information needed for sampling from a GMRF and evaluating the log-density 
-  of such a sample.
-
-  \param[in,out] problem At output, <em>(*problem)</em> is a pointer to a 
-  \c GMRFLib_problem_tp -object, initialised and defined according to the problem 
-  specification. The required value of <em>(*problem)</em> at input depends on the 
-  argument \a keep. If \a keep = 0, <em>(*problem)</em> is allocated within the 
-  routine, and thus expected to be \c NULL at input. If \a keep > 0, 
-  <em>(*problem)</em> is assumed to be an already initialised \c GMRFLib_problem_tp 
-  -pointer at input.
-  See also \a keep and Remarks.
-  \param[in] x  A length \em n array, where \em n is the number of nodes in 
-  the graph, of initial values of the GMRF. If \em x = \c NULL then all elements
-  are taken to be zero.  If \a fixed_value \f$ \neq \f$ \c NULL, the elements of 
-  <em>\b x</em> corresponding to \a fixed_value=1 are the fixed values in a
-  conditional simulation. The remaining elements of <em>\b x</em> are not used, 
-  and can take arbitrary values. If \a fixed_value = \c NULL, all values can be
-  arbitrary.
-  \param[in] b If <tt>!NULL</tt>, a length \em n array holding the elements of 
-  the vector <em>\b b</em> in the general expression of the density if a GMRF, 
-  as given in <b>(GMRF-2)</b> in \ref description.
-  \param[in] c If <tt>!NULL</tt>, a length \em n array of elements to add to 
-  the diagonal of the precision matrix defined by the function \a Qfunc. The 
-  argument \a c should hold the elements of the vector <em>\b c</em> in 
-  <b>(GMRF-2)</b>.
-  \param[in] mean If <tt>!NULL</tt>, a length \em n array holding the elements 
-  of the vector \f$ \mbox{\boldmath $\mu$} \f$ in <b>(GMRF-2)</b>.  
-  If <em>\b b</em> = 0, \a mean is the mean of the GMRF.
-  \param[in] graph The graph on which the GMRF is defined.
-  \param[in] Qfunc A pointer to a user-defined function defining the
-  precision matrix <em>\b Q</em> of a GMRF <em>\b x</em>.
-  \param[in] Qfunc_args The arguments to the function \a Qfunc defining the 
-  precision matrix.
-  \param[in] fixed_value If <tt>!NULL</tt>, the sampling is done conditionally 
-  on fixed values. The elements of this array, of length \em n, should take 
-  the value 0 or 1. The conditional mean and covariance matrix of 
-  \f$ \{x_i:\mbox{\small\tt fixed\_value}[i]=0\} \f$ given 
-  \f$ \{x_i:\mbox{\small\tt fixed\_value}[i]=1\} \f$ are computed, and by 
-  sampling using \c GMRFLib_sample(), elements of the GMRF <em>\b x</em>
-  corresponding to <tt>fixed_value = 1</tt>, are kept fixed at the 
-  corresponding values specified in the argument \a x.
-  \param[in] constr If <tt>!NULL</tt>, a pointer to a \c GMRFLib_constr_tp
-  -variable holding information about a linear (deterministic or stochastic) 
-  constraint. If \c NULL, the sampling is unconstrained.
-  \param keep If 0, <em>(*problem)</em> is allocated within the routine, and thus 
-  expected to be \c NULL} at input. If >0, the <em>(*problem)</em>-pointer is 
-  supposed to be already initialised, pointing at a problem specification 
-  object, of which parts of the problem specification is to be kept unchanged. 
-  Which parts to keep fixed, are defined by the actual value of \a keep. 
-  See Remarks below.
-
-  \remarks This function is to be called prior to sampling and evaluation of 
-  the log-density. If \a keep = 0 (or \c GMRFLib_NEW_PROBLEM()), the 
-  \c GMRFLib_problem_tp -pointer <em>(*problem)</em> is dynamically allocated 
-  within the function. If \a keep > 0, <em>(*problem)</em> is required to be
-  non- \c NULL, and is not allocated within the routine. One or more of the 
-  members <em>(*problem)</em> is to be kept fixed and not be re-allocated. 
-  What parts of the problem specification to keep fixed during sampling, is 
-  specified by the value of \a keep. It should take one out of four predefined 
-  macro values, or combinations of these. The choices are 
-  \n - \c GMRFLib_KEEP_mean : Keep the computed conditional mean value 
-  \n - \c GMRFLib_KEEP_graph : Keep the specified graph  
-  \n - \c GMRFLib_KEEP_chol : Keep the Cholesky factorization of the 
-  <em>\b Q</em>-matrix.  
-  \n - \c GMRFLib_KEEP_constr : Keep the constraints \n
-  Two or more of the \a keep-values are combined by letting
-  keep = \f$ \mbox{\small\tt val1}|\mbox{\small\tt val2}|\ldots \f$
-  The allocated memory of a \c GMRFLib_problem_tp -pointer is freed using the 
-  function \c GMRFLib_free_problem().  Letting \a fixed_value \f$ \neq \f$ 
-  \c NULL, the problem is defined to be a conditional sampling problem, 
-  conditioning on elements for which \a fixed_value = 1. With \a constraint
-  \f$ \neq \f$ \c NULL, sampling will be done conditionally on a linear 
-  constraint. If both \a fixed_value and \a constraint are \c NULL, 
-  unconditional samples will be generated by \c GMRFLib_sample().  
-  The arguments \a problem, \a x, \a graph and \a Qfunc are all required 
-  to be <tt>!NULL</tt> at input.
-
-  \par Example:
-  See \ref ex_problem-setup,\n \ref ex_wa and\n \ref ex_blockupdate.
-
-  \sa GMRFLib_Qfunc_tp, GMRFLib_sample, GMRFLib_evaluate, GMRFLib_free_problem.
-*/
 int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
 			 double *x,
 			 double *b,
@@ -326,7 +229,6 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 	}
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       double *x,
@@ -925,10 +827,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				/*
 				 * compute chol(aqat_m), recall that GMRFLib_comp_chol_general returns a new malloced L 
 				 */
-				retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
+				retval =
+				    GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
 				if (retval != GMRFLib_SUCCESS) {
-					GMRFLib_ensure_spd(aqat_m, nc, 1.0); /* yes, use tol=1 */
-					GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
+					GMRFLib_ensure_spd(aqat_m, nc, 1.0);	/* yes, use tol=1 */
+					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
+						       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 				}
 				Free(aqat_m);
 
@@ -1061,45 +965,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Samples one realization of the elements of a GMRF <em>\b x</em>.
-
-  Whether the sampling is constrained or unconstrained, or should be done 
-  conditionally on fixed values, is defined by the \c GMRFLib_problem_tp -argument.
-
-  \param[in,out] problem At input \a problem should contain the problem 
-  specification, as defined by a call to \c GMRFLib_init_problem(). At output, 
-  a sample of the GMRF has been generated, and is stored in the \a sample
-  member of the data structure \a problem. Also, the log-density of the sample 
-  is computed, and stored in the \a sub_logdens member. If \a problem
-  = \c NULL, nothing is done, and the routine returns 0.
-
-  \remark To sample one realization from a GMRF <em>\b x</em>, first invoke
-  \c GMRFLib_init_problem() generating the problem specification by initializing 
-  a \c GMRFLib_problem_tp -object \a problem, and then call \c GMRFLib_sample() 
-  using \a problem as an argument. Repeated samples are generated by 
-  repeated calls to \c GMRFLib_sample(), using the same problem specification 
-  object. There is no need to call \c GMRFLib_init_problem() more than once for 
-  each sampling problem. The log-density of the sample is computed within the 
-  sampling routine, but can also be computed explicitly for a 
-  \c GMRFLib_problem_tp -object by calling the routine \c GMRFLib_evaluate(). \n
-  Prior to sampling, the built-in random number generator has to be initialised. 
-  This is done by calling the function (<tt>*GMRFLib_uniform_init</tt>), taking 
-  one integer argument, specifying the seed of the generator. The user might 
-  replace the default random generator by another, see globals.h
-  for details. \n
-  At output, the sampling results are stored in the \c GMRFLib_problem_tp
-  -object. No functions are provided for extracting the results of the 
-  sampling, so the results are retrieved by explicitly accessing the members 
-  of \a problem after running the routine. The sampled values are stored in 
-  <tt>problem->sample</tt> and the corresponding log-density in 
-  <tt>problem->sub_logdens</tt>. The fixed values are copied into the 
-  corresponding elements in \a sample.
-
-  \par Example:
-  See \ref ex_problem-setup and \n \ref ex_wa.
-  \sa GMRFLib_init_problem, GMRFLib_evaluate.
-*/
 int GMRFLib_sample(GMRFLib_problem_tp * problem)
 {
 	int i, n;
@@ -1169,23 +1034,6 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-/*! \brief Evaluates the log-density of a sample.
-
-  Just compute the part from the sample in the log-likelihood, the constants 
-  are already computed. \c GMRFLib_evaluate() is called from within the sampling 
-  routine \c GMRFLib_sample(), see also \ref log_dens.
-
-  \param[in,out] problem At input \a problem should contain the problem 
-  specification and a sample, as defined by a call to \c GMRFLib_init_problem() 
-  followed by one or more calls to \c GMRFLib_sample(). At output, the log-density
-  of the current sample has been computed, and is stored in the member
-  \a sub_logdens of \a problem.
-
-  \remark To extract the value of the log-density, the user should access the 
-  member \a sub_logdens of \a problem directly.
-
-  \sa GMRFLib_init_problem, GMRFLib_sample
-*/
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -1193,6 +1041,7 @@ int GMRFLib_evaluate(GMRFLib_problem_tp * problem)
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 {
 	/*
@@ -1275,9 +1124,6 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Free all malloced stuff in 'problem'
-*/
 int GMRFLib_free_problem(GMRFLib_problem_tp * problem)
 {
 	/*
@@ -1329,16 +1175,6 @@ int GMRFLib_free_Qinv(GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Free storage \c store which holds temporary calculations which can be reused
-  
-  \param[in] store  The pointer to the (malloced) \c GMRFLib_store_tp object
-
-  \sa GMRFLib_blockupdate, GMRFLib_init_problem, GMRFLib_optimize, GMRFLib_init_problem_hidden,
-  GMRFLib_init_GMRF_approximation
-
-  \note \a store itself also free'ed.
-*/
 int GMRFLib_free_store(GMRFLib_store_tp * store)
 {
 	/*
@@ -1395,49 +1231,6 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Compute elements in the inverse of Q
-
-  \param[in,out] problem Compute elements in the inverse of the Qmatrix defined in the \ref
-  GMRFLib_problem_tp object \c problem, and store the result in \c problem. Hard and soft
-  constraints are taken into account. Use repeatedly the function \ref GMRFLib_Qinv_get() to
-  retrieve elements of the inverse of Q.
-
-  \param[in] storage The user can decide how many of the terms in the inverse computed that are stored, and how they are
-  computed. The options are
-  
-  - \c GMRFLib_QINV_ALL    Store all elements (default)
-  - \c GMRFLib_QINV_NEIGB  Store elements (i,j) such that i=j or i~j
-  - \c GMRFLib_QINV_DIAG   Store only the diagonal
-  - \c GMRFLib_QINV_NO_CHECK Disable checking for ``complete'' \c L. Can be OR'ed with any of the
-                           first three options and has only effect for the TAUCS-solver.
-  - \c GMRFLib_QINV_CHECK_ONCE Check once only  for ``complete'' \c L. Can be OR'ed with any of the
-                           first three options and has only effect for the TAUCS-solver.
-
-  \note There are EXTRA CPU COST related to reduced storage, as all elements corresponding to \c
-  GMRFLib_QINV_ALL must be computed in any case.
-
-  \note For the TAUCS-solver only: There is reduced CPU cost using \c GMRFLib_QINV_NO_CHECK or \c GMRFLib_QINV_CHECK_ONCE, but a
-  small error (usually) (less for \c GMRFLib_CHECK_ONCE) can be introduced in some of the covariances. The error is most notable
-  for those ``far away'' but this is not always the case. The default behaviour is to check until a complete \c L is found, and
-  this approach is without error.
-
-  \note For the BAND-solver: The complete \c L is always used. 
-
-  \note Example
-  \verbatim
-   GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
-   for(i=0;i<graph->n;i++)
-   {
-       double *val = NULL;
-       val = GMRFLib_Qinv_get(problem, i, i);
-       printf("Marginal variance for x[%1d] = %f\n", i, *val);
-   }
-   \endverbatim
-
-   \sa GMRFLib_Qinv_get()
-
-*/
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
 {
 	if (problem) {
@@ -1446,18 +1239,6 @@ int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Get entry (i,j) in the computed Qinv.
-
-  \param[in] problem  The \c problem for which \c Qinv is stored.
-  \param[in] i Index
-  \param[in] j Index
-
-  This function returns a pointer to the values of \c Qinv(i,j) and \c NULL if (i,j) is illegal, not
-  computed or not stored. All entries corresponding to non-zero entries in \c L are computed.
-
-  \note Se \ref GMRFLib_Qinv() for an example.
-*/
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j)
 {
 	int *ii = NULL, *jj = NULL;
@@ -1477,19 +1258,6 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j)
 	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(*ii, *jj)], IMAX(*ii, *jj));
 }
 
-/*! \brief Create an empty \c GMRFLib_constr_tp -object.
-
-  \param[in,out] constr A pointer to an \c GMRFLib_constr_tp object. At output, \a constr points to
-  an empty \c GMRFLib_constr_tp -object. The internal pointer member \a intern points to an empty \c
-  GMRFLib_constr__intern_tp -object, the other members are uninitialized.
-  
-  \remarks This functions allocates the memory needed by the \c GMRFLib_constr_tp -object and the \c
-  GMRFLib_constr__intern_tp -object. To initialize the members of <em>(*constr)</em>, allocate \a
-  a_matrix and \a e_vector directly, using \c calloc, define \em nc and call \c
-  GMRFLib_prepare_constr().
-  
-  \sa GMRFLib_free_constr, GMRFLib_prepare_constr.
- */
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
 {
 	if (constr) {
@@ -1498,19 +1266,6 @@ int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
 	return GMRFLib_SUCCESS;
 }
 
-/*! \brief Free the memory held by a \c GMRFLib_constr_tp -object. 
-
-  \note To ensure safe memory handling, this function should only be applied 
-  to pointers allocated by using the library routines \c GMRFLib_make_empty_constr() 
-  and \c GMRFLib_prepare_constr(). Also, as long as \em nc > 0, the arrays 
-  \a a_matrix and \a e_vector should both be <tt>!NULL</tt>, and should have
-  been dynamically allocated (using \c calloc).
-
-  \param[in,out] constr A pointer to a \c GMRFLib_constr_tp -object. At output, 
-  the pointer \a constr and it's member pointers are deallocated.
-
-  \sa GMRFLib_make_empty_constr
-*/
 int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 {
 	if (constr) {
@@ -1523,15 +1278,6 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 	return GMRFLib_SUCCESS;
 }
 
-/*! \brief Prints the available information on a constraint held by an
-  \c GMRFLib_constr_tp -object.
-
-  \param fp The \c FILE* on which to print the constraints.
-  \param[in] constr A pointer to a \c GMRFLib_constr_tp -object.
-  \param[in] graph The graph on which the constraints are defined.
-
-  \sa GMRFLib_make_empty_constr
-*/
 int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 {
 	int i, j;
@@ -1557,27 +1303,6 @@ int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
-/*! \brief Prepare a constraint by computing the information in the \em intern 
-  object, if needed.
-
-  \param[in,out] constr At input, a pointer to a \c GMRFLib_constr_tp -object, 
-  created by \c GMRFLib_make_empty_constr().  At output, internal information needed
-  by the sampling routines is computed and added to the object.
-  \param[in] graph The graph on which the constraint is defined.
-  \param scale_constr If TRUE, then scale the constraint so that
-  \f$ \max_j A_{ij}=1 \f$ for each \em i, and correct the right hand 
-  side/covaraince accordingly. This is only needed for numerical
-  reasons in some cases. If FALSE, do not scale.
-
-  \remarks The function computes the Cholesky factorization and the log of 
-  the determinant of the covariance matrix 
-  \f$ \mbox{\boldmath $\Sigma$}_{\epsilon} \f$.  The matrix <em>\b A</em> and 
-  the vector <em>\b e</em> of the constraint <em>\b Ax = \b e</em> should be
-  allocated and initialised explicitly. This can be done before or after 
-  calling \c GMRFLib_prepare_constr().
-  
-  \sa GMRFLib_make_empty_constr, GMRFLib_free_constr
- */
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr)
 {
 	/*
@@ -1689,27 +1414,6 @@ int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph
 	return GMRFLib_SUCCESS;
 }
 
-
-
-
-/*! \brief Evaluates the expressions 
-  \f$ \mbox{\boldmath $Ax-e$} \f$ and 
-  \f$ (\mbox{\boldmath $Ax-e$})^T\mbox{\boldmath $Q$}(\mbox{\boldmath $Ax-e$}) \f$ 
-  for a given value of the GMRF <em>\b x</em>.
-
-  \param[out] value A length <tt>constr->nc</tt> array holding the values of 
-  <em>\b Ax - \b e</em>. If \c NULL, <em>\b Ax - \b e</em> is not evaluated.
-  \param[out] sqr_value A length <tt>constr->nc</tt> array holding the value of 
-  \f$ (\mbox{\boldmath $Ax-e$})^T\mbox{\boldmath $Q$}(\mbox{\boldmath $Ax-e$}) \f$
-  If \c NULL,
-  \f$ (\mbox{\boldmath $Ax-e$})^T\mbox{\boldmath $Q$}(\mbox{\boldmath $Ax-e$}) \f$
-  is not evaluated.
-  \param[in] x The instance of the GMRF, <em>\b x</em>, for which to compute 
-  the constraints.
-  \param[in] constr A pointer to a \c GMRFLib_constr_tp -object holding the 
-  information on the type of linear constraint.
-  \param[in] graph The graph on which the GMRF and the constraint are defined.
-*/
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -1746,6 +1450,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 {
 	if (constr) {
@@ -1757,6 +1462,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp 
 		return GMRFLib_SUCCESS;
 	}
 }
+
 int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x,
 			  double *b_add, char *mask, GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph)
 {
@@ -1862,6 +1568,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem)
 {
 	if (problem) {
@@ -1869,6 +1576,7 @@ int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_fact_info_report(FILE * fp, GMRFLib_sm_fact_tp * sm_fact)
 {
 	GMRFLib_fact_info_tp f;
@@ -2180,6 +1888,7 @@ size_t GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 
 	return siz;
 }
+
 size_t GMRFLib_sizeof_store(GMRFLib_store_tp * store)
 {
 	/*
@@ -2285,6 +1994,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 #undef COPY
 	return new_store;
 }
+
 double GMRFLib_Qfunc_generic(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2299,13 +2009,7 @@ double GMRFLib_Qfunc_generic(int i, int j, double *UNUSED(values), void *arg)
 	}
 }
 
-/*!
-  \brief Set \c GMRFLib_reorder to the best reordering found for a given graph
-
-  This functions factorise a precision matrix (symbolically) using several different reorderings techniques and chose the one with fewest fillins. If sizeof_L is
-  non-NULL, then the sizeof_L in bytes, is returned.
-*/
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn)
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use_global, GMRFLib_global_node_tp * gn)
 {
 	if (!graph) {
 		if (nnz_opt)
@@ -2481,105 +2185,3 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *us
 	}
 	return GMRFLib_SUCCESS;
 }
-
-
-/*
-
-
-
-  Example for manual
- */
-
-/*! \page ex_problem-setup Sampling from a GMRF
-
-  In the example below, unconditional and conditional sampling from a
-  GMRF <em>\b x</em> are illustrated. Th unconditional density of the GMRF is
-  given by the general expression in <b>(GMRF-2)</b>, re-stated
-  below for convenience:
-  \f[\pi(\mbox{\boldmath $x$}) \propto \exp\left( -\frac{1}{2} 
-  (\mbox{\boldmath $x$}-\mbox{\boldmath $\mu$})^T
-  (\mbox{\boldmath $Q$} + \mbox{diag}(\mbox{\boldmath $c$}))
-  (\mbox{\boldmath $x$}-\mbox{\boldmath $\mu$}) + 
-  \mbox{\boldmath $b$}^T\mbox{\boldmath $x$}
-  \right). \f]
-
-  For all sampling methods illustrated in the example, we define the
-  graph to be a lattice graph on a 6*6 lattice, using a 3*3 neighbourhood. 
-  The <em>\b Q</em>-matrix is defined by
-  \f[ \mbox{\boldmath $Q$} = \kappa \left( \begin{array}{cccccc}
-  nnbs[1] & -1 & 0 & 0 & \cdots & 0 \\ 
-  -1 & nnbs[2] & -1 & 0 & \cdots & 0 \\
-  0 & -1 & nnbs[3] & -1 & \cdots & 0 \\
-  \vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
-  0 & 0 & 0 & 0 & \cdots &  nnbs[6]\\
-  \end{array} \right), \f]
-
-  where <em>nnbs[i]</em> is the number of neighbours of node \em i.
-  This matrix is singular, but the singularity is resolved either by
-  adding elements to the diagonal, or conditioning on fixed values.
-  In the example, we use \f$ \kappa=1 \f$.
-
-  Four sampling methods are implemented in the example. These are
-  - <em>Unconditional sampling</em>. In this case, we generate samples
-    from <b>(GMRF-2)</b>.  The remaining parameters are set to
-    \f$ \mbox{\boldmath $b$}=\mbox{\boldmath $0$}, 
-    \mbox{\boldmath $\mu$} = \mbox{\boldmath $0$} \mbox{ and }
-    \mbox{\boldmath $c$} = \mbox{\boldmath $1$}_n \f$. The
-    initial values of the GMRF (that are not used in this case) are
-    set to <em>\b x = \b 0</em>.
-  - <em>Conditioning on fixed values</em>. We sample from
-    \f$ \mbox{\boldmath $x$}_{-\mathcal{F}}|
-    \mbox{\boldmath $x$}_{\mathcal{F}} \f$, where \f$ \mathcal{F} \f$
-    is the set of indices \em i for which \em x_i is fixed. In the example
-    we let 
-    \f$ \mathcal{F} = \{i:i\mbox{2} = 0\}, \mbox{ and } x[i] =
-    \mbox{Unif}(0,1);\; i=0,\ldots,n-1 \f$.  
-    The remaining parameters are assigned the values 
-    \f$ \mbox{\boldmath $b$}=\mbox{\boldmath $0$}, 
-    \mbox{\boldmath $\mu$} = \mbox{\boldmath $0$} \mbox{ and }
-    \mbox{\boldmath $c$} = \mbox{\boldmath $0$} \f$.
-  - <em>Conditioning on a deterministic linear constraint</em>,
-    sampling from 
-    \f$ \pi(\mbox{\boldmath $x$}|\mbox{\boldmath $Ax$} = 
-    \mbox{\boldmath $e$}) \f$.  
-    In the example, we use the constraints \f$ \sum_i x_i = 0 \mbox{ and }
-    x_0 + 2 x_1 = 1 \f$, which correspond to
-    \f[ \mbox{\boldmath $A$} = \left( \begin{array}{ccccc}
-    1 & 1 & 1 & \cdots & 1 \\ 1 & 2 & 0 & \cdots & 0 \\ 
-    \end{array} \right), \mbox{ and  } 
-    \mbox{\boldmath $e$} = \left( \begin{array}{c} 0 \\ 1 \\ 
-    \end{array} \right). \f]
-    Also, we condition on fixed values, fixing the same elements of
-    \f$ \mbox{\boldmath $x$} \f$ as for method 2. The values of the 
-    GMRF are 
-    \f$ \mbox{\boldmath $x$} = \mbox{Unif}(0,1);\; i=0,\ldots,n-1 \f$. 
-    The remaining parameters are set to 
-    \f$ \mbox{\boldmath $b$}=\mbox{Unif}(0,1), 
-    \mbox{\boldmath $\mu$} = \mbox{\boldmath $0$} \mbox{ and }
-    \mbox{\boldmath $c$} = \mbox{\boldmath $1$}_n \f$.
-  - <em>Conditioning on a stochastic linear constraint</em>, sampling
-    from 
-    \f$ \pi(\mbox{\boldmath $x$}|\mbox{\boldmath $Ax$} = 
-    \mbox{\boldmath $e$} + \mbox{\boldmath $\epsilon$}) \f$. 
-    This is equivalent to sampling unconditionally from
-    <b>(GMRF-11)</b> in \ref sampling. We use the constraint 
-    \f$ \sum_i x_i = 0 \f$ and assume that 
-    \f$ \epsilon \sim N(0, \sigma^2) \f$, where \f$ \sigma^2 = 1 \f$. 
-    This corresponds to
-    \f[ \mbox{\boldmath $A$} = \left( \begin{array}{cccc}
-    1 & 1  & \cdots & 1 \\ \end{array} \right), \quad
-    \mbox{\boldmath $e$} = e = 0 \mbox{  and  } 
-    \mbox{\boldmath $\Sigma$}_{\epsilon} =  \sigma^2. \f]
-    The other parameters are assign values equal to the values used
-    for method 3, but we do not condition on fixed values in this
-    case.
-
-  \par Program code:
-
-  \verbinclude example-doxygen-sample.txt
-
-  \par Output: for <tt> method = 3 </tt>
-
-  \verbinclude doxygen_problem_2.txt
-
-*/
