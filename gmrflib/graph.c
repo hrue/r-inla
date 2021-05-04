@@ -1,7 +1,7 @@
 
 /* graph.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,46 +28,6 @@
  *
  */
 
-/*!
-  \file graph.c
-  \brief Functions for creating and handling general and regular graphs
-  
-  There are two ways of specifying a general graph.
-
-  - <em> Reading from a file.</em>
-  The simplest way to specify a general
-  graph is to read the graph specifications from a file, using the
-  function \c GMRFLib_graph_read_ascii(). This function allocates
-  and initializes the members based on the information given on the
-  input file, and customizes the graph for use in other library
-  functions.
-  - <em> Explicitly creating a \c GMRFLib_graph_tp - object.</em> 
-  The user can create a general graph by allocating and
-  initializing a variable of type \c GMRFLib_graph_tp, and then 
-  (IMPORTANT!) calling the function \c GMRFLib_graph_prepare() to customize 
-  the graph and check that the graph is consistently defined.  The user 
-  should specify the the members \em n, \em nnbs and \em nbs in 
-  \c GMRFLib_graph_tp. The member \em mothergraph_idx is initialized, 
-  and needed, only if the graph is generated as a subgraph of another graph, 
-  using \c GMRFLib_graph_comp_subgraph().
-
-  In addition to the functions for specifying general graphs, the library
-  provides two separate functions for the specification of
-  two-dimensional lattice graphs and one-dimensional linear graphs, and
-  a separate setup for the generation of graphs for a weighted average
-  model (see wa.c).
-
-  - <em> A lattice graph:</em> A two-dimensional graph on a lattice is
-  most easily specified using the function \c GMRFLib_graph_mk_lattice(), 
-  specifying the grid sizes \f$ n_{row} \f$  and
-  \f$ n_{col} \f$ and the parameters \f$ m_{row} \f$ and \f$ m_{col} \f$, 
-  defining the neighbourhood  \f$ (2 m_{row} + 1)\times (2 m_{col} + 1) \f$.
-  - <em> A linear graph:</em> To specify a one-dimensional linear graph,
-  i.e. an autoregressive AR(\em p)-model, use the function 
-  \c GMRFLib_graph_mk_linear(), specifying the number of nodes
-  and the size of the neighbourhood.
-*/
-
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -90,7 +50,6 @@ static map_strvp graph_store;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
-
 int GMRFLib_init_graph_store(void)
 {
 	if (graph_store_use) {
@@ -106,21 +65,6 @@ int GMRFLib_init_graph_store(void)
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Creates an empty graph
-  \param[in,out] graph A pointer to a \c GMRFLib_graph_tp pointer. 
-  At output, \em graph points to an empty graph.
-  \par Example:
-  <tt> main(int argc, char* argv[])\n
-  {\n
-  ::::::::\n
-  GMRFLib_graph_tp *graph;\n
-  GMRFLib_graph_mk_empty(&graph);\n
-  ::::::::\n
-  }
-  </tt>
-*/
 int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 {
 	/*
@@ -146,34 +90,6 @@ int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Reads a graph from a file
-
-  \param[in,out] graph At output, <em>(*graph)</em> has been initialized 
-  by using the information on the file \em filename. 
-
-  \param[in] filename The name of the file, formatted as described 
-  below, containing the specification of the graph.
-
-  \remarks The file is assumed to be of the format
-  \verbinclude doxygen_file_format.txt
-  Here, \em n, \em nbs and \em nnbs refer to the members of 
-  \c GMRFLib_graph_tp, and <em>nn[i]</em> is the node number
-  of the node with index \em i, running from \em 0 to <em>n-1</em>.  
-  In words, the first row contains the number of nodes, \em n, and the
-  successive rows, rows <em>i = 2,...,n+1</em>, list the node number,
-  <em>nn[i]</em>, the number of neighbours, <em>nnbs[i]</em>, and
-  the node numbers, <em>nbs[i][j]</em>, for the neighbours of each
-  node \em i of the graph. The number of neighbours <em>nnbs[i]</em>
-  might be zero.\n\n
-  The function calls \c GMRFLib_graph_prepare() to
-  customize the graph for further computations.
-
-  \par Example:
-  See \ref ex_graph
-
-  \sa GMRFLib_graph_prepare, GMRFLib_graph_printf
-*/
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename)
 {
 	GMRFLib_graph_read_binary(graph, filename);
@@ -183,6 +99,7 @@ int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename)
 		return GMRFLib_graph_read_ascii(graph, filename);
 	}
 }
+
 int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 {
 #define TO_INT(_ix, _x) \
@@ -324,13 +241,6 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Prints the specification of a graph to standard
-    output or a file
-  \param[out] fp The \em FILE* on which to print the graph.
-  \param[in] graph The graph to be printed.
-  \sa GMRFLib_graph_read
- */
 int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph)
 {
 	int i, j;
@@ -362,13 +272,6 @@ int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Write a graph to file in ascii format
-  \param[in] filename The name of the file to store the graph in
-    ascii format.
-  \param[in] graph The graph to be written.
-  \sa GMRFLib_graph_read.
- */
 int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -394,6 +297,7 @@ int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph)
 {
 	int i, j;
@@ -409,12 +313,6 @@ int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Write a graph in binary format
-  \param[in] filename The name of the file
-  \param[in] graph The graph to be written
-  \sa GMRFLib_graph_read_binary()
- */
 int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -452,12 +350,6 @@ int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Read a graph from file written by \c GMRFLib_graph_write_b()
-  \param[in] filename The name of the file
-  \param[in] graph The graph 
-  \sa GMRFLib_graph_write_b()
- */
 int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 {
 	int i, j, ii, idx, tag = 0;
@@ -548,18 +440,6 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Free a graph read or generated by GMRFLib
-
-  Frees the memory held by a \c GMRFLib_graph_tp -variable.  NOTE: To ensure safe memory handling, this function should only be
-  applied to graphs read or generated by the graph-generating routines of the library, and NOT to user-specified graphs.
-
-  \param[in,out] graph  A graph generated by a graph-generating
-  library routine. At output, the graph and it's array members are
-  all deallocated.
-  \sa GMRFLib_graph_read, GMRFLib_graph_mk_linear, 
-  GMRFLib_graph_mk_lattice, GMRFLib_graph_prepare, GMRFLib_graph_read_binary, etc...
- */
 int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 {
 	/*
@@ -603,11 +483,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Compute the number of non-zero elements in Q.
-  \param[out] nelm Return the number of non-zero elements in Q in \a *nelm
-  \param[in] graph The graph.
- */
 int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -623,9 +498,6 @@ int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Return bit-number BITNO, bitno = 0, 1, 2, ..., 7.
- */
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno)
 {
 	/*
@@ -636,9 +508,6 @@ int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno)
 	return (int) ((c >> bitno) & ~(~zero << 1));
 }
 
-/*!
-  \brief Set bitno 0, 1, 2, ..., or 7, to TRUE.
- */
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno)
 {
 	/*
@@ -651,9 +520,6 @@ int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Print all the bits in \c c to \c fp
- */
 int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
 {
 	/*
@@ -672,15 +538,6 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Checks whether two nodes \em i and \em j are neighbours.
-  \param[in] node, nnode The nodes \em i and \em j to be checked.
-  \param[in] graph The graph to be checked.
-  \return Returns \c GMRFLib_TRUE if the nodes \em node and \em nnode are neighbours, 
-          otherwise it returns \c GMRFLib_FALSE.
-  \par Example:
-  \verbinclude doxygen_is_neighbour.txt
- */
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -723,22 +580,6 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	return GMRFLib_FALSE;
 }
 
-/*!
-  \brief Prepare the graph by sort the vertices in increasing orders and setup lnbs
-
-  Post-processes a user-specified \c GMRFLib_graph_tp object, such that 
-  the resulting graph is of the format required by the library functions 
-  operating on graphs.
-
-  \param[in,out] graph  A graph explicitly specified by the user
-  by creating and initializing a \c GMRFLib_graph_tp -object.  
-  At output, the graph is customized.
-
-  \note If the user spesify its own graph, then this function MUST used to prepare internal
-  structures and ensure that they are correct, otherwise, strange errors can occure.
-
-  \sa GMRFLib_graph_read
- */
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1)
 {
 	/*
@@ -841,6 +682,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap)
 {
 	int bw = 0, i, j, node;
@@ -855,6 +697,7 @@ int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value)
 {
 	int i;
@@ -869,17 +712,6 @@ int GMRFLib_find_idx(int *idx, int n, int *iarray, int value)
 	return GMRFLib_EINDEX;
 }
 
-/*!
-  \brief Validates the graph by checking that the members of a \c GMRFLib_graph_tp -object are defined consistently.
-
-  \param[out] fp If \c !NULL, the function will write error messages stating the type of validation
-  error on this file, in addition to the default standard output error message issued by
-  GMRFLib_error_handler().  If \c NULL, only the default error message is issued.
-
-  \param[in] graph The graph to be validated.
-
-  \sa GMRFLib_error_handler
- */
 int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph)
 {
 
@@ -945,6 +777,7 @@ int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap)
 {
 	/*
@@ -1003,8 +836,6 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 
 	return GMRFLib_SUCCESS;
 }
-
-
 
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
 {
@@ -1111,19 +942,6 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	return siz;
 }
 
-/*!
-  \brief Computes a subgraph of a graph by removing the nodes indicated by the \em remove_flag argument.
-
-  \param[out] subgraph The subgraph generated by removing the nodes for which \em remove_flag is 1
-    from the graph \em graph.
-  \param[in] graph The graph from which to compute the subgraph.
-  \param[in] remove_flag An array of length \em n, the number of nodes in \em graph, specifying
-    which nodes to be removed creating the subgraphs. The nodes for which \em remove_flags is \em 0,
-    IS included in the subgraph.
-
-  \par Example:
-  See \ref ex_graph
- */
 int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag)
 {
 	/*
@@ -1249,6 +1067,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap)
 {
 	/*
@@ -1270,6 +1089,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap)
 {
 	/*
@@ -1293,28 +1113,11 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief  Compute \f$ \mbox{\boldmath $Q$}\mbox{\boldmath $x$} \f$.
-  
-  Computes \f$ \mbox{\boldmath $Q$} \mbox{\boldmath $x$} \f$, the matrix-vector product of the
-  precision matrix <em>\b Q</em> and an array <em>\b x</em>. The elements of <em>\b x</em> should be
-  in the original ordering of the nodes of the graph.
-
-  \param[out] result At output, the length \em n array \em result contains 
-  the value of the product  \f$ \mbox{\boldmath $Q$}\times \mbox{\boldmath $x$} \f$.
-  \param[in] x The array <em>\b x</em>, as a length \em n array.
-  \param[in] graph The graph on which <em>\b x</em> is defined.
-  \param[in] Qfunc The function defining the precision matrix <em>\b Q</em>.
-  \param[in] Qfunc_arg A \em void -pointer defining the
-    address of a variable or data structure holding the arguments to
-    the function \em Qfunc.
-
-  \sa GMRFLib_Qfunc_tp, GMRFLib_xQx
- */
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	return (GMRFLib_Qx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
 }
+
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag)
 {
 	/*
@@ -1356,6 +1159,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	int i, j, jj;
@@ -1373,23 +1177,6 @@ int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * 
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief  Compute \f$ \mbox{\boldmath $x^TQx$} \f$.
-  
-  Compute \f$ \mbox{\boldmath $x^TQx$} \f$: the scalar product of <em>\b x</em>, and the matrix-vector product of the precision
-  matrix <em>\b Q</em> and an array <em>\b x</em>. The elements of <em>\b x</em> should be in the original ordering of the nodes
-  of the graph.
-
-  \param[out] result The result is returned as \a *result.
-  \param[in] x The array <em>\b x</em>, as a length \em n array.
-  \param[in] graph The graph on which <em>\b x</em> is defined.
-  \param[in] Qfunc The function defining the precision matrix <em>\b Q</em>.
-  \param[in] Qfunc_arg A \em void -pointer defining the
-    address of a variable or data structure holding the arguments to
-    the function \em Qfunc.
-
-  \sa GMRFLib_xQx
- */
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	return (GMRFLib_xQx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
@@ -1412,24 +1199,6 @@ int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qf
 	return GMRFLib_SUCCESS;
 }
 
-/*!  \brief Creates a graph on a lattice, customizing the graph for use in other library functions.
-
-  \param[out] graph At output, <em>(*graph)</em> contains
-  the specification of the lattice graph, customized for use in
-  other library routines.
-  \param[in] nrow, ncol The number of rows ( \f$ n_{row} \f$ ) and columns
-  ( \f$ n_{col} \f$ ) in the \f$ n_{row}\times n_{col} \f$ lattice.
-  \param[in] nb_row, nb_col Specification of the parameters \f$ nb_{row} \f$ 
-  and \f$ nb_{col} \f$ of the \f$ (2 nb_{row}+1)\times(2 nb_{col}+1) \f$
-  -neighbourhood of the lattice.
-  \param[in] cyclic_flag If this argument is <em>>0</em>, the graph is made
-  cyclic.
-
-  \par Example:
-  See \ref ex_graph
-
-  \sa GMRFLib_lattice2node, GMRFLib_node2lattice
- */
 int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag)
 {
 	/*
@@ -1492,26 +1261,6 @@ int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int 
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief  Return the node number of a point in a lattice.
-
-  In the case of a rectangular neighbourhood, the ordering of the
-  nodes will be the one minimizing the bandwidth of the precision
-  matrix of a GMRF on the graph.
-  
-  \param[out] node The node index \f$ (\in [0,n_{row}\times n_{col}-1]) \f$
-    corresponding to the row and column indices of the graph.
-  \param[in] irow Row index \f$ (\in [0,n_{row}-1]) \f$.
-  \param[in] icol Column index \f$ (\in [0,n_{col}-1]) \f$.
-  \param[in] nrow The number of rows of the lattice.
-  \param[in] ncol The number of columns of the lattice.
-
-  \remarks The node index \c node is computed as follows: <em>node = icol + irow*ncol</em>, so column-wise storage is used.
-
-  \par Example:
-  See \ref ex_graph
-  \sa GMRFLib_node2lattice, GMRFLib_graph_mk_lattice
- */
 int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int UNUSED(ncol))
 {
 	// *node = icol + irow * ncol;
@@ -1519,22 +1268,6 @@ int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int UNUSED(nco
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief  Compute the lattice indices of a node
-  
-  \param[in] node The node index \f$ (\in [0,n_{row}\times n_{col}-1]) \f$
-    corresponding to the row and column indices of the graph.
-  \param[out] irow Row index \f$ (\in [0,n_{row}-1]) \f$ corresponding
-  to node number \em node in the graph.
-  \param[out] icol Column index \f$ (\in [0,n_{col}-1]) \f$ corresponding
-  to node number \em node in the graph.
-  \param[in] nrow The number of rows of the lattice.
-  \param[in] ncol The number of columns of the lattice.
-
-  \par Example:
-  See \ref ex_graph
-  \sa GMRFLib_lattice2node, GMRFLib_graph_mk_lattice
- */
 int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int UNUSED(ncol))
 {
 	// *irow = node / ncol;
@@ -1546,23 +1279,6 @@ int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int UNUSED(nc
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-
-  \brief Returns a new graph which is a copy of graph but where entries where the elements of the
-  precision matrix <em>Q(i,j)=0, i~j,</em> are removed.
-
-  \param[out] new_graph A \c GMRFLib_graph_tp -object. At
-  output, it contains a copy of \em graph but all entries
-  where <em>Q(i,j)=0</em> are removed.
-  \param[in] graph At output, <em>(*graph)</em> has been initialized 
-  by using the information on the file \em filename. 
-  \param[in] Qfunc A function defining the elements of the \em \b Q -matrix.
-  \param[in] Qfunc_arg A \em void -pointer defining the
-  address of a variable or data structure holding the arguments to
-  the function \em Qfunc.
-
-  \sa GMRFLib_init_wa_problem, GMRFLib_init_nwa_problem.
- */
 int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 
@@ -1632,24 +1348,6 @@ int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph,
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Creates a linear graph, corresponding to an autoregressive AR(\em p)-model
-
-  Make an linear graph, with nodes from <em>0...n-1</em>, and \em bw neighbours in each
-  direction. hence, <em>bw = p</em>, makes the graph for an auto-regressive process or order \em
-  p. if `cyclic_flag`, then make the graph cyclic.
-
-  \param graph At output, (*graph) contains the specifications of the 
-  linear graph, customized for use in other library routines.
-  \param n The number of nodes in the graph.
-  \param bw Specifies the bandwidth of the graph, such that each node 
-  has \em bw neighbours in each direction. A bandwidth of \em bw 
-  corresponds to an AR(\em bw)-model.
-  \param cyclic_flag If this argument is > 0, the graph is made cyclic.
-
-  \par Example:
-  See \ref ex_graph
- */
 int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag)
 {
 	int i, j, k, *hold = NULL;
@@ -1700,27 +1398,6 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic
 }
 
 
-/* NOT DOCUMENTED
-   
-  \brief Internal function in \c GMRFLib_graph_nfold().
-
-  Returns a new graph created by expanding one graph \em g with another 
-  graph \em  gg. The two graphs must have the same number of nodes.
-
-  \param[out] ng The new expanded graph. The pointer <em>(*ng)</em> will be 
-  allocated within the routine.
-  \param[in] g, gg The graphs to be combined.
-
-  \remarks Given two graphs \em g and \em gg, the new graph \em ng is 
-  created by expanding the neighbourhood of \em g by the neighbourhood 
-  of \em gg. That is, for each neighbour \f$ j_g \f$ of a node \f$ i_g \f$ 
-  of \em g, a node \f$ k_{gg} \f$ in \em gg is included in the 
-  neighbourhood of node \f$ i_g \f$ in \em g if \f$ k_{gg} \f$ and 
-  \f$ j_g \f$ are neighbours in \em gg. The new graph \em ng is equal to the
-  expanded version of of \em g.
-
-  \sa GMRFLib_graph_nfold
- */
 int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg)
 {
 	/*
@@ -1814,34 +1491,6 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Returns a new graph created by multiple expanding of one graph by itself.
-
-  <tt>nfold = 0: ng = I \n
-  nfold = 1: ng = og \n
-  nfold = 2: ng = og*og \n
-  nfold = 3: ng = og*og*og \n
-  etc </tt>
-
-  \param[out] ng The new expanded graph. The pointer <em>(*ng)</em> will be 
-  allocated within the routine.
-  \param[in] og The graph to be expanded.
-  \param[in] nfold The number of times to expand the graph.
-
-  \remarks Given the old graph \em og, the new graph \em ng is created 
-  by expanding the neighbours of \em og by it's own neighbourhood 
-  <em>nfold-1</em> times. The function GMRFLib_graph_fold is called 
-  successively <em>nfold-1</em> times, the first time using 
-  <em>g = gg = og</em>, and in successive runs letting <em>g = gprev</em> 
-  and <em>gg = og</em>, where \em gprev is the resulting graph of 
-  the previous run.  For completeness, <em>nfold = 0</em> is allowed for, 
-  meaning that a graph with \em n independent nodes is returned as 
-  \em ng, where \em n is the number of nodes in the old graph \em og. If
-  <em>nfold = 1</em>, the new graph is a copy of the old graph.
-
-  \par Example
-  See \ref ex_graph
- */
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold)
 {
 	/*
@@ -1877,12 +1526,6 @@ int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold
 	return GMRFLib_SUCCESS;
 }
 
-/*! 
-  \brief Return a new graph which is the union of n_graphs graphs.
-
-  <em>i~j</em> in union_graph, if <em>i~j</em> in
-  <em>graph_array[0]...graph_array[n_graphs-1]</em> \n\n
-*/
 int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
 {
 	/*
@@ -1957,17 +1600,6 @@ int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Add missing neighbours to a uncomplete or malformed graph; if <em>i~j</em> but <em>j!~i</em>, then add <em>j~i</em>.
-
-  \param[out] n_graph A pointer to a new completed graph, buildt
-    from \em graph.
-  \param[in] graph The incomplete graph.
-
-  \note If \em graph is ok in the sense that <em>i~j</em>
-    then <em>j~i</em>, then this routine just returns a copy of the
-    graph, allthough it will be a bit slow.
- */
 int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -2050,6 +1682,7 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -2092,6 +1725,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 
 	return GMRFLib_SUCCESS;
 }
+
 double GMRFLib_offset_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
@@ -2108,6 +1742,7 @@ double GMRFLib_offset_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 
 	return (*a->Qfunc) (node - a->offset, nnode - a->offset, NULL, a->Qfunc_arg);
 }
+
 int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	/*
@@ -2133,6 +1768,7 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 
 	return GMRFLib_SUCCESS;
 }
+
 int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
 {
 	/*
@@ -2162,6 +1798,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
 
 	return cc;
 }
+
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc)
 {
 	if (visited[node]) {				       /* I don't need this but include it for clarity */
