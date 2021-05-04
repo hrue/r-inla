@@ -30,8 +30,10 @@ There exist packages to work directly with multinomial data, like mlogit (@mlogi
 The tutorial is organized in two main part: the first one is theoretical and talks about the multinomial logit model and the Poisson trick. The second part is more practical and talks about the parameters specification and the different models that we can implement in INLA. This part has the purpose of laying the foundations of a long-lasting friendship between the reader and INLA. All the steps needed to be friends are retraced: from the first sight (simplest model) to help each other in struggling situations (continuous space models, here INLA really helps us). The section on multinomial logit model and the multinomial data is taken by (@croissant) given the clarity and elegance of his illustration.
 To make the explanation as clear as possible and to convince the reader of the effectiveness of this approach we will use simulated data. In this way, the true value of the parameters is known and we can check how well we are able to retrieve it. The code is provided and explained as well. In the end, we will report the results of our technique on the famous Yogurt Data. 
 
-## Theoretical part    
-###On the Multinomial logit model
+## Theoretical part
+
+### On the Multinomial logit model
+
 The multinomial logit model arises naturally when we have to model discrete choices. The sample unit has to make a choice between mutually exclusive alternatives. Let see how to build this kind of models. Suppose a customer has to choose between three brands of a certain good. We can define an index of satisfaction $V_{ij}$ for customer $i$ with respect to brand $j$. Assume that $V_{ij}$ is a linear function of some covariates. The situation for $i$-th customer is:
 \newline
 
