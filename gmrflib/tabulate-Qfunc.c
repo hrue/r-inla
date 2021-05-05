@@ -1,7 +1,7 @@
 
 /* tabulate-Qfunc.c
  * 
- * Copyright (C) 2004-2020 Havard Rue
+ * Copyright (C) 2004-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,43 +28,6 @@
  *
  */
 
-/*!
-  \file tabulate-Qfunc.c
-  \brief Tabulate a Qfunction. Useful for speeding up costly Qfunctions.
-
-  These functions provide a tool for tabulate a Qfunction to gain speeup. On partiuclar example are those computed with \c
-  GMRFLib_init_wa_problem(), which provides a convenient way to compute Qfunctions, but can sometimes be slow if the elements,
-  perhaps apart from a common prec (in real or log_prec), does not change. For these cases then \c GMRFLib_tabulate_Qfunc
-  can provide a large speedup.
-
-  The functions are
-  - \c GMRFLib_tabulate_Qfunc()  tabulate a Qfunction and return a \c GMRFLib_tabulate_Qfunc_tp object
-  - \c GMRFLib_free_tabulate_Qfunc()  free's a \c GMRFLib_tabulate_Qfunc_tp object
-
-  Example:
-  \verbatim
-
-  double prec;
-  GMRFLib_wa_problem_tp *wa_problem = NULL;
-  GMRFLib_tabulate_Qfunc_tp *tab = NULL;
-  
-  GMRFLib_init_wa_problem(&wa_problem, wagraph, waQfunc, NULL); // init the wa-problem, here prec=1
-  GMRFLib_tabulate_Qfunc(&tab, wa_problem->graph, wa_problem->Qfunc, wa_problem->Qfunc_arg, &prec,NULL);
-
-  prec = 2.0;					  
-  for(i=0;i<wa_problem->graph->n;i++)
-  {
-      for(jj=0;jj<wa_problem->graph->nnbs[i];jj++)
-      {
-          j = wa_problem->graph->nbs[i][jj];
-	  printf("Qfunc(%d,%d) = (wa) %f (tabulated) %f\n", i, j,
-	       (*wa_problem->Qfunc)(i, j, wa_problem->Qfunc_arg), (*tab->Qfunc)(i, j, tab->Qfunc_arg)/prec);
-       }
-   }
-
-  \endverbatim
-*/
-
 #include <stdio.h>
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -75,8 +38,6 @@
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: tabulate-Qfunc.c,v 1.59 2009/12/15 12:26:03 hrue Exp $ */
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -143,34 +104,12 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 {
 	TAB_FUNC_CORE(1);
 }
+
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
 	TAB_FUNC_CORE(0);
 }
 
-/*!
-  \brief Tabulate a Qfunction to gain speedup.
-
-  \param[out] tabulate_Qfunc At output, \a tabulate_Qfunc is allocated as a pointer to a \c
-  GMRFLib_tabulate_Qfunc_tp, holding a pointer to the Qfunction (GMRFLib_tabulate_Qfunc_tp::Qfunc)
-  and its argument (GMRFLib_tabulate_Qfunc_tp::Qfunc_arg) which evaluate the tabulate Qfunction.
-
-  \param[in] graph The graph
-
-  \param[in] Qfunc  The Qfunction to be tabulate
-
-  \param[in] Qfunc_arg The argument to the Qfunction to the tabulate
-
-  \param[in] prec An optional argument which scales the Qfunction (the `precision'). If \c prec is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times *prec. If \c prec is \c NULL, then \c log_prec is tried.
-
-  \param[in] log_prec An optional argument which scales the Qfunction. If \c log_prec is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times * exp(log_prec). If \c log_prec is \c NULL, then \c log_prec_omp is tried.
-
-  \param[in] log_prec_omp An optional argument which precs the Qfunction. If \c log_prec_omp is not \c NULL, then GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc
-  times * exp(log_prec_omp[GMRFLib_thread_id]).  If \c log_prec_omp is \c NULL, then prec is set to 1.0.
-
-*/
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
 {
@@ -206,7 +145,8 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	// checking/rewrite.
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
-		if (!(arg->Q->a[0] > 0.0)) P(arg->Q->a[0]);
+		if (!(arg->Q->a[0] > 0.0))
+			P(arg->Q->a[0]);
 		assert(arg->Q->a[0] > 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
 
@@ -259,34 +199,6 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Read a tabulated Qfunction from a file.
-
-  This function reads a tabulated Qfunction from a ascii file, and setup a Qfunction and its arguments which return these elements. A further argument can scale
-  each element, just like a precision. It also computes the corresponding graph. The indexing can be either zero or one-based. If one-based, then its converted to
-  zero-based.
-
-  \param[out] tabulate_Qfunc \a tabulate_Qfunc is a ** of type \a GMRFLib_tabulate_Qfunc_arg_tp, see
-  the example.
-
-  \param[out] graph The graph-object computed
-
-  \param[in] filename The name of the file. The format of the file is ascii, consisting of triplets "i j Q(i,j)". Comment-lines starts with a "#".  If the same
-  element (i,j,Qij) is given more than once, then the last element is used.
-
-  \param[in] prec An optional argument which scales the Qfunction (the `precision'). If \c prec is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times *prec. If \c prec is \c NULL, then \c log_prec is tried.
-
-  \param[in] log_prec An optional argument which scales the Qfunction. If \c log_prec is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times * exp(log_prec). If \c log_prec is \c NULL, then \c log_prec_omp is tried.
-
-  \param[in] log_prec_omp An optional argument which precs the Qfunction. If \c log_prec_omp is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times * exp(log_prec_omp[GMRFLib_thread_id]).  If \c log_prec_omp is \c
-  NULL, then prec is set to 1.0.
-
-
-*/
 int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
 				     int dim, double *prec, double *log_prec, double **log_prec_omp)
 {
@@ -549,40 +461,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Tabulate a Qfunction defined in a list of (i, j, Qij)
-
-  This function tabulate a Qfunction defined in a list of (i,j,Qij), and setup a Qfunction and its arguments which return these elements. A further argument can
-  scale each element, just like a precision. It also computes the corresponding graph. This function is similar to \c GMRFLib_tabulate_Qfunc_from_file() but the
-  triplets are now given as arguments in the call to the function instead of defined in a file. Entries not given in the list, have default value zero. If the same
-  element (i,j,Qij) is given more than once, then the last element is used.  The indexing can be either zero or one-based. If one-based, then its converted to
-  zero-based.
-
-  \param[out] tabulate_Qfunc \a tabulate_Qfunc is a ** of type \a GMRFLib_tabulate_Qfunc_arg_tp, see
-  the example.
-
-  \param[out] graph The graph-object computed
-
-  \param[in] ntriples Number of triples of (i,j,Qij)
-
-  \param[in] ilist Vector of i-indices of length \c ntriples
-
-  \param[in] jlist Vector of j-indices of length \c ntriples
-
-  \param[in] Qijlist Vector of Qij-values of length \c ntriples
-
-  \param[in] prec An optional argument which scales the Qfunction (the `precision'). If \c prec is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times *prec. If \c prec is \c NULL, then \c log_prec is tried.
-
-  \param[in] log_prec An optional argument which scales the Qfunction. If \c log_prec is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times * exp(log_prec). If \c log_prec is \c NULL, then \c log_prec_omp is tried.
-
-  \param[in] log_prec_omp An optional argument which precs the Qfunction. If \c log_prec_omp is not \c NULL, then
-  GMRFLib_tabulate_Qfunc_tp::Qfunc returns \c Qfunc times * exp(log_prec_omp[GMRFLib_thread_id]).  If \c log_prec_omp is \c
-  NULL, then prec is set to 1.0.
-
-
-*/
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
 				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
 				     double **log_prec_omp)
@@ -755,12 +633,6 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Free a tabulate_Qfunc-object
-
-  \param[in] tabulate_Qfunc The object of type \c GMRFLib_tabulate_Qfunc_tp to be freed.
-*/
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 {
 	if (!tabulate_Qfunc)

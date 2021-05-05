@@ -1,7 +1,7 @@
 
 /* design.c
  * 
- * Copyright (C) 2006-2020 Havard Rue
+ * Copyright (C) 2006-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,6 @@
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: design.c,v 1.18 2008/04/17 08:24:33 hrue Exp $ */
 
 #include <stddef.h>
 #include <float.h>
@@ -102,6 +100,7 @@ int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale)
 {
 	/*
@@ -133,6 +132,7 @@ int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int 
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_free_design(GMRFLib_design_tp * design)
 {
 	if (design) {

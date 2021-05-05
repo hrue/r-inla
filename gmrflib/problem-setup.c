@@ -57,7 +57,6 @@ static map_strd constr_store;
 static int constr_store_must_init = 1;
 static int constr_store_debug = 0;
 
-
 int GMRFLib_init_constr_store(void)
 {
 	if (constr_store_use) {
@@ -145,7 +144,6 @@ int validate_constr1(GMRFLib_constr_tp * constr, int n)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_tp * constr)
 {

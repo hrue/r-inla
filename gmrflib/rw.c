@@ -1,7 +1,7 @@
 
 /* rw.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,34 +28,14 @@
  *
  */
 
-/*!
-  \file rw.c
-  \brief Handy functions when using RW1, RW2, CRW1, CRW2 and approximate CRW2 models.
-*/
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: rw.c,v 1.62 2010/03/10 18:18:08 hrue Exp $ */
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix
-  for the RW defined in \c rwdef.
-
-  This function allows also arguments ij that are not neighbours and can therefore also be used for
-  pruning (using \ref GMRFLib_graph_prune()).
-
-  \param[in] node   First node
-  \param[in] nnode  Second node
-  \param[in] def  The definition of the RW1 or RW2
-
-  \sa \ref GMRFLib_rwdef_tp, \ref GMRFLib_make_rw_graph, \ref GMRFLib_graph_prune
-*/
 double GMRFLib_rw(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
@@ -174,19 +154,6 @@ double GMRFLib_rw(int node, int nnode, double *UNUSED(values), void *def)
 	return 0.0;
 }
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for
-  the CRW defined in \c crwdef.
- 
-  This function allows also arguments ij that are not neighbours and can therefore also be used for
-  pruning (using \ref GMRFLib_graph_prune()).
- 
-  \param[in]  node  First node
-  \param[in] nnode  Second node
-  \param[in] def The definition of the CRW1 or CRW2
- 
-  \sa \ref GMRFLib_crwdef_tp,  \ref GMRFLib_make_crw_graph,  \ref GMRFLib_graph_prune
-*/
 double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
@@ -561,19 +528,6 @@ double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 #undef TP_VEL
 }
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for
-  the RW on a 2D lattice defined in \c rw2ddef.
-
-  Currently only order=2 is supported, however, it does incorporate correct boundary conditions for
-  the non-cyclic case.
- 
-  \param[in]  node  First node
-  \param[in] nnode  Second node
-  \param[in] def The definition of the RW on the 2D lattice
- 
-  \sa \ref GMRFLib_rw2ddef_tp,  \ref GMRFLib_make_rw2d_graph
-*/
 double GMRFLib_rw2d(int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
@@ -764,43 +718,12 @@ double GMRFLib_rw2d(int node, int nnode, double *UNUSED(values), void *def)
 	return 0.0;
 }
 
-/*!
-  \brief Make the graph suitable to the RW1 or RW2 model with regular locations defined in def.
-
-  \param[out] graph  The graph for the RW1 or RW2 model with regular locations
-
-  \param[in] def The definition of the RW1 or RW2 model with regular locations
-
-  \remark \c GMRFLib_make_rw_graph() is to be used in connection with \c GMRFLib_rw() both using the
-  RW1 or RW2 model defined using \c GMRFLib_rwdef_tp.
-
-  \remark There is an alternative set of tools for the case where the locations are irregular, see
-  \c GMRFLib_make_crw_graph(), \c GMRFLib_crw() and \c GMRFLib_crwdef_tp.
-
-  \sa GMRFLib_rw, GMRFLib_rwdef_tp
-*/
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def)
 {
 	GMRFLib_graph_mk_linear(graph, def->n, def->order, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Make the graph suitable to the (C)RW1 or CRW2 model with irregular locations defined in def.
-  
-  \param[out] graph  The graph for the (C)RW1 or CRW2 model with irregular locations
-  
-  \param[in] def The definition of the (C)RW1 or CRW2 model with irregular locations
-  
-  \remark \c GMRFLib_make_crw_graph() is to be used in connection with \c GMRFLib_crw() both using
-  the (C)RW1 or CRW2 model defined using \c GMRFLib_crwdef_tp.
-    
-  \remark There is an alternative set of tools for the case where the locations are regular, see \c
-  GMRFLib_make_rw_graph(), \c GMRFLib_rw() and \c GMRFLib_rwdef_tp.
-
-  \sa GMRFLib_crw(), GMRFLib_crwdef_tp
-*/
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 {
 	int i, *hold = NULL, n;
@@ -874,21 +797,6 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Makes the graph suitable to the RW model on a 2D lattice in \c def.
-  
-  This function creates a lattice graph for the RW model on a 2D lattice as defined in \c
-  def. Currently only order=2 is supported. The dimention of the lattice must be at least, 5 x
-  5. The mapping of the nodes to pixel indices, is defined similar to the \ref
-  GMRFLib_graph_mk_lattice(), ie using the functions \ref GMRFLib_node2lattice() and \ref
-  GMRFLib_lattice2node().
-
-  \param[out] graph  The graph for the RW model on a 2D lattice
-  
-  \param[in] def The definition of the RW model on a 2D lattice
-  
-  \sa GMRFLib_rw2d(), GMRFLib_rw2ddef_tp, GMRFLib_node2lattice(), GMRFLib_lattice2node()
-*/
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 {
 	GMRFLib_graph_tp *g = NULL;
@@ -900,7 +808,6 @@ int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_crw_scale(void *def)
 {
@@ -1282,17 +1189,3 @@ int GMRFLib_rw2d_scale(void *def)
 
 	return GMRFLib_SUCCESS;
 }
-
-/*
-  Example for manual
- */
-
-/*! \page ex_rw A worked out example smoothing a time-series data, using the routines in rw.c
-  
-Solve the same problem as in \ref ex_wa, now using the routines in rw.c
-
-\par Program code:
-
-\verbinclude example-doxygen-rw.txt
-
-*/

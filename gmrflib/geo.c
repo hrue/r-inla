@@ -261,10 +261,10 @@ int GMRFLib_revise_geo_problem(GMRFLib_geo_problem_tp * geo_problem, int name, d
 }
 double GMRFLib_geoQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0){
-                return NAN;
-        }
- 
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
 	int idx;
 	GMRFLib_geoQfunc_arg_tp *geo_arg = (GMRFLib_geoQfunc_arg_tp *) arg;
 

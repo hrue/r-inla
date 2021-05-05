@@ -83,14 +83,14 @@
 // hrue
 // see https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c
 #ifdef __GNUC__
-#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
-#  define UNUSED(x) UNUSED_ ## x
+#define UNUSED(x) UNUSED_ ## x
 #endif
 #ifdef __GNUC__
-#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
 #else
-#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 #include "GMRFLib/GMRFLib.h"
 #ifndef GITCOMMIT
@@ -199,8 +199,8 @@ static void cut_region(region * R, region * R2)
 typedef struct rule_s {
 	unsigned dim;					       /* the dimensionality */
 	unsigned num_points;				       /* number of evaluation points */
-	unsigned (*evalError) (struct rule_s * r, integrand f, void *fdata, const hypercube * h, esterr * ee);
-	void (*destroy) (struct rule_s * r);
+	unsigned (*evalError)(struct rule_s * r, integrand f, void *fdata, const hypercube * h, esterr * ee);
+	void (*destroy)(struct rule_s * r);
 } rule;
 
 static void destroy_rule(rule * r)

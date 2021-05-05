@@ -1,7 +1,7 @@
 
 /* openmp.c
  * 
- * Copyright (C) 2007-2020 Havard Rue
+ * Copyright (C) 2007-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,29 +33,12 @@
 #endif
 //static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: openmp.c,v 1.7 2007/07/17 05:55:02 hrue Exp $ */
-
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-
-/**
- *  \file openmp.c
- *  \brief This file contains some OpenMP support files for GMRFLib.
- *
- *  The #GMRFLib_rng object containing the RNG-structure, is safe to use in any threaded environment. Its contents is
- *  threadprivate (one object for each thread), and is automatically initialised in each thread. If a spesific seed is required
- *  (\c GMRFLib_rng_init()), then this must be done for each thread. The used seed, is still available by \c GMRFLib_rng_seed,
- *  which is threadprivate.
- *
- */
-
-/* 
-   just implement dummy functions for a serial version without openmp-support.
- */
 
 #ifndef _OPENMP
 
@@ -118,7 +101,6 @@ double omp_get_wtick(void)
 #endif
 
 #if defined(INLA_LINK_WITH_MKL) || defined(INLA_LINK_WITH_OPENBLAS)
-//
 // this is a workaround for the new OPENMP5 standard, where set/get_nested
 // is depreciated and we get this annoying warning message using MKL.
 // OMP_NESTED=TRUE must be defined...
@@ -128,7 +110,6 @@ double omp_get_wtick(void)
 //#define omp_get_nested() (omp_get_max_active_levels() > 0 ? 1 : 0)
 //#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? GMRFLib_MAX_THREADS : 0))
 #endif
-
 
 int GMRFLib_set_blas_num_threads(int threads)
 {

@@ -1,7 +1,7 @@
 
 /* bitmap.c
  * 
- * Copyright (C) 2004-2020 Havard Rue
+ * Copyright (C) 2004-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,41 +28,6 @@
  *
  */
 
-/*!
-  \file bitmap.c
-  \brief Functions to create bitmaps of precision matrices and Cholesky triangles.
-
-  This file contains functions to create bitmaps (in the  pbm - portable bitmap file format) of
-  - the precision matrix (or graph),
-  - the reordered precision matrix (or graph)
-  - and the Cholesky triangle.
-
-  The main function is \c  GMRFLib_bitmap_problem() which provides a simple interface to create
-  a bitmap of the precision matrix, the reordered precision matrix and the Cholesky triangle for
-  a given <em> problem </em>.
-
-  \sa GMRFLib_init_problem
-
-  \par Example:
-  \verbinclude example-doxygen-bitmap.txt
-
-  which produce the following bitmaps
-  \htmlonly
-  <table>
-  <tr><td align="center">
-    <table>
-    <tr>
-    <td width="250" align="center"><img src="figs/example.gif" width="200" height="200"></td>
-    <td width="250" align="center"><img src="figs/example-reordered.gif" width="200" height="200"></td>
-    <td width="250" align="center"><img src="figs/example_L.gif" width="200" height="200"></td>
-    </tr>
-    </table></td></tr>
-  </table>
-  \endhtmlonly
-  showing the precision matrix, the reordered precision matrix and the Cholesky triangle of the reordered precision matrix.
-
-*/
-
 #include <stdio.h>
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -76,9 +41,6 @@
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: bitmap.c,v 1.23 2008/12/28 19:43:43 hrue Exp $ */
-
 
 int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar * image, int nx, int ny)
 {
@@ -150,26 +112,6 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename,
 	return err;
 }
 
-/*!
-  \brief Create bitmaps of the original and reordered precision matrix (or the graph) in the pbm
-  (portable bitmap) file format.
-
-  \param[in] filename_body The body of the filename to store the original and reordered precision
-  matrix (or the graph). The files are <em>filename_body</em>.pbm and
-  <em>filename_body</em>-reordered.pbm
-
-  \param[in] remap The reordering of the indices, so the new position of node <em>i</em> is
-    <em>remap[i]</em>
-
-  \param[in] graph The graph
-    
-  \remarks If <em>filename_body</em> is \em NULL, then the name \em graph is used.
-    
-  \remarks Normal usage is to use the \c GMRFLib_bitmap_problem() instead of \c
-  GMRFLib_bitmap_graph()
-    
-  \sa GMRFLib_bitmap_problem
-*/
 int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp * graph)
 {
 	int i, *mapping;
@@ -194,22 +136,6 @@ int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
-/*!  \brief Create bitmaps of the precision matrix (or graph), the reordered precision matrix (or
-  graph) and the Cholesky triangle, for a <em>problem</em>
-
-  \param[in] filename_body The body of the filename to store the orignal and reordered precision
-  matrix (or the graph). The files are <em>filename_body</em>.pbm,
-  <em>filename_body</em>-reordered.pbm and <em>filename_body</em>_L.pbm
-  
-  \param[in] problem A pointer to the \em problem
-  
-  \par Example:
-  
-  The call <tt>GMRFLib_bitmap_problem("Q", problem);</tt> will create the bitmaps <em>Q.pbm</em>,
-  <em>Q-reordered.pbm</em> and <em>Q_L.pbm</em>
-  
-  \sa GMRFLib_init_problem
-*/
 int GMRFLib_bitmap_problem(const char *filename_body, GMRFLib_problem_tp * problem)
 {
 	GMRFLib_EWRAP0(GMRFLib_bitmap_graph(filename_body, problem->sub_sm_fact.remap, problem->sub_graph));

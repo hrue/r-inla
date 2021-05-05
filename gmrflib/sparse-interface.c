@@ -580,7 +580,7 @@ int GMRFLib_compute_Qinv(void *problem, int storage)
 {
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	switch (p->sub_sm_fact.smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p, storage));
@@ -659,7 +659,7 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
  */
 int GMRFLib_reorder_id(const char *name)
 {
-	if (!strcasecmp(name, "default") || !strcasecmp(name, "auto")) 
+	if (!strcasecmp(name, "default") || !strcasecmp(name, "auto"))
 		return GMRFLib_REORDER_DEFAULT;
 	else if (!strcasecmp(name, "identity"))
 		return GMRFLib_REORDER_IDENTITY;

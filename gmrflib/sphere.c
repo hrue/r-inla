@@ -1,7 +1,7 @@
 
 /* sphere.c
  * 
- * Copyright (C) 2005-2020 Havard Rue
+ * Copyright (C) 2005-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,18 +28,10 @@
  *
  */
 
-/*!
-  \file sphere.c
-  \brief Functions for defining spherical IGMRFs
-
-*/
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: sphere.c,v 1.29 2008/09/10 09:07:08 hrue Exp $ */
 
 #include <string.h>
 #include <stdio.h>
@@ -51,37 +43,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/*!
-
-\brief This function defines a spherical IGMRF of a given resoultion
-   
-This function defines a spherical IGMRF of a given \c resoultion and scaling \c scale. The
-resolution must be 0, 1, 2, 3, 4, 5 or 6, giving a IGMRF with size 12, 42, 162, 642, 2562, 10242 or
-40962, respectively. The argument \c scale, gives a pointer to a possible scaling of the elements in
-the precision matrix. If \c scale is \c NULL, then the scaling is 1.
-
-\param[in,out] sphere At output, <em>(*sphere)</em> is a pointer to a \c GMRFLib_sphere_tp -object,
-  initialised and defined according to the problem specification.
-  
-\param[in] resolution The resolution of the spherical IGMRF: either 0, 1, 2, 3, 4, 5 or 6.
-
-\param[in] scale A pointer to the scaling of the precision matrix. If \c scale is \c NULL, then \c log_scale is used. 
-
-\param[in] log_scale A pointer to the log of the scaling of the precision matrix. If \c log_scale is \c NULL, then \c log_scale_omp is used.
-
-\param[in] log_scale_omp A ppointer to the log of the scaling of the precision matrix. If \c scale and \c log_scale is \c NULL, then \c
-log_scale_omp[GMRFLib_thread_id] is used, otherwise the \c scale is set to 1.
-
-  \par Example
-
-  Here is an example using spherical IGMRFs using \c GMRFLib_make_spherical_igmrf()
-  
-  \par Program code:
-
-  \verbinclude example-doxygen-sphere.txt
-
-*/
-int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, double *UNUSED(scale), double *UNUSED(log_scale), double **UNUSED(log_scale_omp))
+int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, double *UNUSED(scale), double *UNUSED(log_scale),
+				 double **UNUSED(log_scale_omp))
 {
 	char *fnm = NULL, *p;
 	int i, n;
@@ -117,8 +80,8 @@ int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, do
 	 */
 	FIXME("FIX THIS");
 	abort();
-	
-	//GMRFLib_EWRAP0(GMRFLib_tabulate_Qfunc_from_file_OLD(&tab, (*sphere)->graph, p, scale, log_scale, log_scale_omp));
+
+	// GMRFLib_EWRAP0(GMRFLib_tabulate_Qfunc_from_file_OLD(&tab, (*sphere)->graph, p, scale, log_scale, log_scale_omp));
 	Free(fnm);
 	Free(p);
 
@@ -165,12 +128,6 @@ int GMRFLib_make_spherical_igmrf(GMRFLib_sphere_tp ** sphere, int resolution, do
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Free a spherical iGMRF
-
-  This function will free an \c GMRFLib_sphere_tp object, created by \c
-  GMRFLib_make_spherical_igmrf()
-*/
 int GMRFLib_free_spherical_igmrf(GMRFLib_sphere_tp * sphere)
 {
 	GMRFLib_tabulate_Qfunc_tp *tab;

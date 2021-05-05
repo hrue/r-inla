@@ -165,7 +165,7 @@ int GMRFLib_graph_read_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char
 		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0, 0));	       /* prepare the graph for computations */
+	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph, 0, 0));   /* prepare the graph for computations */
 	return GMRFLib_SUCCESS;
 #undef READ_ERROR
 }
@@ -201,12 +201,15 @@ int GMRFLib_graph_write_b_EXPERIMENTAL(const char *filename, GMRFLib_graph_tp * 
 	ret = fwrite(&(graph->n), sizeof(int), 1, fp);
 	for (i = 0; i < graph->n; i++) {
 		ret = fwrite(&i, sizeof(int), 1, fp);
-		if (ret == 0) assert(0 == 1);
+		if (ret == 0)
+			assert(0 == 1);
 		ret = fwrite(&(graph->nnbs[i]), sizeof(int), 1, fp);
-		if (ret == 0) assert(0 == 1);
+		if (ret == 0)
+			assert(0 == 1);
 		if (graph->nnbs[i]) {
 			ret = fwrite(graph->nbs[i], sizeof(int), (unsigned int) graph->nnbs[i], fp);
-			if (ret == 0) assert(0 == 1);
+			if (ret == 0)
+				assert(0 == 1);
 		}
 	}
 	fclose(fp);

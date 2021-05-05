@@ -83,7 +83,6 @@ GMRFLib_static_pardiso_tp S = {
 	NULL
 };
 
-
 #define PSTORES_NUM (16384)
 
 int GMRFLib_pardiso_set_parallel_reordering(int value)
@@ -341,7 +340,6 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
 	return GMRFLib_SUCCESS;
 }
 
-
 int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr)
 {
 	int i, j, k, jj, nnb;
@@ -429,10 +427,10 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[33] = 1;			       /* want identical solutions */
 
 	// options for METIS5; see manual. Pays off to do a good reordering
-	s->iparm_default[57] = 2;		       /* default 1 */
-	s->iparm_default[60] = 200; 		       /* default */
-	s->iparm_default[61] = 5;		       /* default 1 */
-	
+	s->iparm_default[57] = 2;			       /* default 1 */
+	s->iparm_default[60] = 200;			       /* default */
+	s->iparm_default[61] = 5;			       /* default 1 */
+
 	if (error != 0) {
 		if (error == NOLIB_ECODE) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_NO_LIBRARY);
@@ -622,10 +620,12 @@ int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store)
 {
 	return GMRFLib_pardiso_perm_core(x, m, store, 1);
 }
+
 int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store)
 {
 	return GMRFLib_pardiso_perm_core(x, m, store, 0);
 }
+
 int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction)
 {
 	int i, j, k, n, *permutation;
@@ -648,6 +648,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
 {
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -1145,19 +1146,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
-
-
-
-// **********************************************************************
-// **********************************************************************
-// **********************************************************************
-// *** 
-// *** test-programs
-// *** 
-// **********************************************************************
-// **********************************************************************
-// **********************************************************************
-
 
 double my_pardiso_test_Q(int i, int j, double *UNUSED(values), void *arg)
 {

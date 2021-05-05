@@ -39,8 +39,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: ghq.c,v 1.20 2007/05/27 13:38:44 hrue Exp $ */
-
 #include <math.h>
 #include <stdio.h>
 #if !defined(__FreeBSD__)
@@ -115,14 +113,17 @@ int GMRFLib_ghq__intern(double *x, double *w, int n)
 	}
 	return 0;
 }
+
 int GMRFLib_ghq_abscissas(double **xp, int n)
 {
 	return GMRFLib_ghq(xp, NULL, n);
 }
+
 int GMRFLib_ghq_weights(double **wp, int n)
 {
 	return GMRFLib_ghq(NULL, wp, n);
 }
+
 int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 {
 	// the same for a given mean and stdev. Allocated new memory for xp and wp
@@ -138,6 +139,7 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_ghq(double **xp, double **wp, int n)
 {
 	/*
@@ -264,15 +266,15 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	// double wfff[] = { 1.0 / 8.0, -1.0, 13.0 / 8.0, 0.0, -13.0 / 8.0, 1.0, -1.0 / 8.0 };
 	double wf[] = { 1.0 / 280.0, -4.0 / 105.0, 1.0 / 5.0, -4.0 / 5.0, 0.0, 4.0 / 5.0, -1.0 / 5.0, 4.0 / 105.0, -1.0 / 280.0 };
 	double wff[] = { -1.0 / 560.0, 8.0 / 315.0, -1.0 / 5.0, 8.0 / 5.0, -205.0 / 72.0, 8.0 / 5.0, -1.0 / 5.0, 8.0 / 315.0, -1.0 / 560.0 };
-	//double wfff[] = { -7.0 / 240.0, 3.0 / 10.0, -169.0 / 120.0, 61.0 / 30.0, 0.0, -61.0 / 30.0, 169.0 / 120.0, -3.0 / 10.0, 7.0 / 240.0 };
+	// double wfff[] = { -7.0 / 240.0, 3.0 / 10.0, -169.0 / 120.0, 61.0 / 30.0, 0.0, -61.0 / 30.0, 169.0 / 120.0, -3.0 / 10.0, 7.0 / 240.0 };
 
-	double skew3s[ sizeof(wf)/sizeof(double) ], s;
+	double skew3s[sizeof(wf) / sizeof(double)], s;
 
 	double ds = GMRFLib_eps(1.0 / 3.9134);		       // ds=1.0e-4 
 	double **ww = NULL;
 	int ns = sizeof(skew3s) / sizeof(double);
 	int n2 = ns / 2;
-	
+
 	ww = Calloc(ns, double *);
 	ww[0] = Calloc(ns * n, double);
 	for (j = 1; j < ns; j++) {
@@ -290,7 +292,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 		alpha = delta / sqrt(1.0 - SQR(delta));
 		omega = sqrt(1.0 / (1.0 - c2 * SQR(delta)));
 		xi = 0.0 - omega * delta / c1;
-		
+
 		for (i = 0; i < n; i++) {
 			ww[j][i] = wwp[i] * RATIO(xxp[i]);
 		}
@@ -300,7 +302,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 		w[i] = ww[n2][i];
 		w_grad[i] = 0.0;
 		w_hess[i] = 0.0;
-		for(j = 0; j < ns; j++) {
+		for (j = 0; j < ns; j++) {
 			w_grad[i] += wf[j] * ww[j][i];
 			w_hess[i] += wff[j] * ww[j][i];
 		}
@@ -326,8 +328,8 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	snq->skew3 = skew3;
 	snq->nodes = Calloc(4 * snq->n, double);
 	snq->w = snq->nodes + snq->n;
-	snq->w_grad = snq->nodes + 2*snq->n;
-	snq->w_hess = snq->nodes + 3*snq->n;
+	snq->w_grad = snq->nodes + 2 * snq->n;
+	snq->w_hess = snq->nodes + 3 * snq->n;
 
 	memcpy(snq->nodes, nodes, snq->n * sizeof(double));
 	memcpy(snq->w, w, snq->n * sizeof(double));
@@ -335,11 +337,11 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	memcpy(snq->w_hess, w_hess, snq->n * sizeof(double));
 
 	double tmp = 0.0;
-	for(i = 0; i < snq->n; i++) {
+	for (i = 0; i < snq->n; i++) {
 		tmp += snq->w[i];
 	}
-	tmp = 1.0/tmp;
-	for(i = 0; i < snq->n; i++) {
+	tmp = 1.0 / tmp;
+	for (i = 0; i < snq->n; i++) {
 		snq->w[i] *= tmp;
 		snq->w_grad[i] *= tmp;
 		snq->w_hess[i] *= tmp;

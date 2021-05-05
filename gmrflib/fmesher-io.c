@@ -1,7 +1,7 @@
 
 /* fmesher-io.c
  * 
- * Copyright (C) 2010-2020 Havard Rue
+ * Copyright (C) 2010-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -377,6 +377,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	return (M);
 }
+
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence)
 {
 	/*
@@ -482,6 +483,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 #undef WRITE
 	return (0);
 }
+
 int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 {
 	/*
@@ -607,6 +609,7 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 	}
 	return diag;
 }
+
 double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 {
 	/*
@@ -630,6 +633,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 		return (M->A ? M->A[idx] : (double) M->iA[idx]);
 	}
 }
+
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 {
 	/*
@@ -669,6 +673,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 {
 	if (M) {
@@ -705,6 +710,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 	}
 	return (0);
 }
+
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 {
 	/*
@@ -733,6 +739,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		return NULL;
 	}
 }
+
 int GMRFLib_file_exists(const char *filename, const char *mode)
 {
 	/*
@@ -747,6 +754,7 @@ int GMRFLib_file_exists(const char *filename, const char *mode)
 		return !GMRFLib_SUCCESS;
 	}
 }
+
 GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 {
 	/*

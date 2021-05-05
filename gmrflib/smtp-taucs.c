@@ -54,25 +54,9 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $ */
-
-/* 
-   if TRUE, then we use my modified routine to convert from supernodal_factor to ccs, which preserves zeros in L. this gives
-   speedup for the computations in Qinv. So far I have tested this works fine and is correct. So there two instances in the code
-   where we make use of this; see below. 
- */
 static int include_zeros_in_L = GMRFLib_TRUE;
-
-/* 
-   how large should `nset' be before doing `memset' instead of a `for' loop.
-*/
 #define GMRFLib_NSET_LIMIT(nset, size, n)  IMAX(10, (n)/10/(size))
 
-/* 
-   First some modified code from the TAUCS library. Checked to be ok version 2.0 and 2.2
-
-   taucs_datatype is set to double in GMRFLib/taucs.h
-*/
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 {
 	/*
@@ -163,9 +147,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	return C;
 }
 
-/* 
-   copy a supernodal_factor_matrix
-*/
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
 #define DUPLICATE(name,len,type) if (1) {					\
@@ -407,9 +388,6 @@ size_t GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
 	return siz;
 }
 
-/* 
-   make a copy of a ccs-matrix
-*/
 taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 {
 	/*
@@ -517,7 +495,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	}
 	if (simple) {
 		int *imap = NULL;
-		if (graph->n >= 0) imap = Calloc(graph->n, int);
+		if (graph->n >= 0)
+			imap = Calloc(graph->n, int);
 
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;
