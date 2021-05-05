@@ -1,7 +1,7 @@
 
 /* optimize.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: optimize.c,v 1.65 2010/04/08 03:18:30 hrue Exp $ */
-
 #include <stdio.h>
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -52,56 +50,11 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/* 
-   to flag various 'store' options for the use in the optimize-routines.
-
-   i think these can be merged into the optimize routine, //fix later
-*/
 static int store_store_sub_graph = 0, store_use_sub_graph = 0, store_store_remap = 0, store_use_remap = 0, store_store_symb_fact =
     0, store_use_symb_fact = 0, store_smtp = 0;
 
 #pragma omp threadprivate (store_store_sub_graph, store_use_sub_graph, store_store_remap, store_use_remap, store_store_symb_fact, store_use_symb_fact, store_smtp)
 
-/*!
-  \brief Creates a \c GMRFLib_optimize_param_tp -object holding the default settings.
-
-  \param[out] optpar A pointer to a \c GMRFLib_optimize_param_tp pointer. 
-  At output the \c GMRFLib_optimize_param_tp -object contains the default values.
-
-  \par Description of elements in \c GMRFLib_optimize_param_tp -object:
-  \n \em fp: A file for printing output from the optimizer. \n
-  <b>Default value: \c NULL</b> \n\n
-  \em opt_type: The type of optimizer to be used. Four methods are available.\n
-  <b>Default value: #GMRFLib_OPTTYPE_SAFENR</b> \n\n
-  \em nsearch_dir: Indicates the number of previously search gradient directions 
-  on which the current search direction should be orthogonal (using the conjugate
-  gradient (CG) method). \n
-  <b>Default value: 1</b> \n\n
-  \n \em nr_step_factor: Use reduced step-len in the Newton-Raphson iterations, where the step-length
-  for iteration i, is MIN(1, (i+1)*nr_step_factor).\n
-  <b>Default value: 1.0</b> \n\n
-  \em restart_interval: If <em>restart_interval = r </em>,
-  the CG search will be restarted every <em>r</em>'th iteration. \n
-  <b>Default value: 10</b> \n\n
-  \em max_iter:  The maximum number of iterations. \n
-  <b>Default value: 200</b> \n\n
-  \em fixed_iter: If > 0, then this fix the number of iterations, whatever 
-  all other stopping-options. \n
-  <b>Default value: 0</b> \n\n
-  \em max_linesearch_iter: The maximum number of iterations within each search 
-  direction (CG). \n
-  <b>Default value: 200</b> \n\n
-  \em step_len: Step length in the computation of a Taylor expansion or second 
-  order approximation of the log-likelihood around a point 
-  <em> \b x_0</em> (CG and NR). \n
-  <b>Default value: 1.0e-4</b> \n\n
-  \em abserr_func: The absolute error tolerance for the value of the function 
-  to be optimized (CG and NR). \n
-  <b>Default value: 0.5e-3</b> \n\n
-  \em abserr_step: The absolute error tolerance, relative to the number of nodes, 
-  for the size of one step of the optimizer (CG and NR). \n
-  <b>Default value: 0.5e-3</b> \n
- */
 int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
 {
 
@@ -166,19 +119,6 @@ int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief The optimizer.
-
-  The optimizer will use one out of four methods (given by \a optpar)
-    - #GMRFLib_OPTTYPE_CG The conjugate gradient method
-    - #GMRFLib_OPTTYPE_NR The Newton-Raphson method
-    - #GMRFLib_OPTTYPE_SAFECG A two-step conjugate gradient method
-    - #GMRFLib_OPTTYPE_SAFENR A two-step Newton-Raphson method
-
-  The first two are the ordinary conjugate gradient (CG) and Newton-Raphson (NR) methods, while the
-  last two are expected to be safer, doing the optimization in two steps: First finding the optimum
-  using a diagonal precision matrix <em>\b Q</em>, an then adjusting for the correlations.\n\n
- */
 int GMRFLib_optimize(double *mode, double *b, double *c, double *mean,
 		     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 		     char *fixed_value, GMRFLib_constr_tp * constr, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
@@ -190,6 +130,7 @@ int GMRFLib_optimize(double *mode, double *b, double *c, double *mean,
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 			   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 			   char *fixed_value, GMRFLib_constr_tp * constr,
@@ -665,6 +606,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 
 	return (fail ? GMRFLib_EOPTCG : GMRFLib_SUCCESS);
 }
+
 int GMRFLib_Qadjust(double *dir, double *odir, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	/*
@@ -692,6 +634,7 @@ int GMRFLib_Qadjust(double *dir, double *odir, GMRFLib_graph_tp * graph, GMRFLib
 	Free(v);
 	return GMRFLib_SUCCESS;
 }
+
 double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_problem_tp * opt_problem)
 {
 	int i, sub_n, id;
@@ -752,6 +695,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 
 	return fval;
 }
+
 int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir)
 {
 	int i, sub_n, iter = 0, fail, id;

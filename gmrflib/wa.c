@@ -1,7 +1,7 @@
 
 /* wa.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,34 +28,6 @@
  *
  */
 
-/*!
-  \file wa.c
-  \brief Setup for the generation of graphs for a weighted average model.
-
-  <em>The wa-graph</em>: The neighbourhood-structure of the graph of on which a GMRF <em>\b x</em>
-  is defined, is specified indirectly by specifying the weights, \f$ w_{ij} \f$, and the graph
-  corresponding to these weights, and then \em GMRFLib will compute the graph of <em>\b x</em>. The
-  graph is specified in three steps:
-
-  - Create a function \em wafunc, say, returning the weights \f$ w_{ij};\; i=1,\ldots,n;\;
-  j=1,\ldots,n \f$ for each pair of nodes \em i and \em j. The function should be of the same format
-  as the function computing the elements of <em>\b Q</em> of a general graph, that is, of type \c
-  GMRFLib_Qfunc_tp().
-  
-  - Specify the graph of the weights \f$ w_{ij} \f$, creating a \c GMRFLib_graph_tp -object.
-
-  - Call \c GMRFLib_init_wa_problem(), creating the graph and the <em>\b Q</em> -function of the
-  GMRF <em>\b x</em> corresponding to the user-defined weight function. This function returns an
-  object of type \c GMRFLib_wa_problem_tp, holding the graph and the <em>\b Q</em> -function needed
-  for sampling and evaluation.\n The members of the data structure can then be used just as the
-  graph and the <em>\b Q</em> -function and it's arguments for a general graph.\n\n \c
-  GMRFLib_init_nwa_problem() returns an object of type \c GMRFLib_nwa_problem_tp, holding the graph
-  and the <em>\b Q</em> -function needed for sampling and evaluation. \n The members of the data
-  structure can then be used just as the graph and the <em>\b Q</em> -function and it's arguments
-  for a general graph.
-
-*/
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,20 +45,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: wa.c,v 1.23 2008/08/26 07:07:13 hrue Exp $ */
-
-/*!
-  \brief Deallocates a \c GMRFLib_wa_problem_tp -object and it's members, allocated by 
-  \c GMRFLib_init_wa_problem.
-
-  \param[in,out] wa_problem A \c GMRFLib_wa_problem_tp -object, allocated by \c
-  GMRFLib_init_wa_problem(). At output, \a wa_problem and it's members have been deallocated.
-
-  \note DO NOT USE \c GMRFLib_free_wa_problem() to deallocate a wa-problem created by \c
-  GMRFLib_init_nwa_problem(), as the internal data structures are different.
-
-  \sa GMRFLib_init_wa_problem
- */
 int GMRFLib_free_wa_problem(GMRFLib_wa_problem_tp * wa_problem)
 {
 	if (wa_problem) {
@@ -116,56 +74,6 @@ int GMRFLib_free_wa_problem(GMRFLib_wa_problem_tp * wa_problem)
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-
-  \brief Computes the graph corresponding to the precision matrix <em>\b Q</em> based on the weight
-  function.
-
-  This function converts a graph definition on the weights \f$ w_{ij} \f$ of a weighted average GMRF
-  model, as defined by <b>(GMRF-8)</b> in \ref specification, to the graph defining the precision
-  matrix <em>\b Q</em> of the GMRF <em>\b x</em>.
-
-  \param[out] wa_problem At output, \a wa_problem is allocated as a pointer to a \c
-  GMRFLib_wa_problem_tp, holding the graph of the GMRF <em>\b x</em>, the function defining the
-  <em>\b Q</em> -matrix and a \em void -pointer holding the address of the variable or data
-  structure holding it's arguments.
-
-  \param[in] wagraph The graph of the weights \f$ {w_{ij}} \f$ in the density function of <em>\b
-  x</em>, of the form <b>(GMRF-8)</b>.
-
-  \param[in] wafunc A pointer to a function returning the weights \f$ w_{ij} \f$. The function is to
-  be of the same format as the function defining the elements of the <em>\b Q</em> -matrix of a
-  general GMRF, such that the argument list and return value should be the same as for the template
-  \c GMRFLib_Qfunc_tp().  The arguments should be the indices \em i and \em j and a \em void
-  -pointer referring to additional arguments to the function. If \f$ w_{ij}=0 \f$ initially, it is
-  required to be kept unchanged.
-
-  \param[in] wafunc_arg A \em void -pointer holding the address of a variable or data structure
-  defining additional arguments to the function \a wafunc.
-
-  \remarks Based on the weight function, defining the weights in <b>(GMRF-8)</b>, the routine
-  computes the graph corresponding to the precision matrix <em>\b Q</em> of the GMRF \em x. Also,
-  the function defining the elements of <em>\b Q</em> and the set of arguments (in addition to the
-  indices \em i and \em j) are generated. These are returned as members of the \c
-  GMRFLib_wa_problem_tp -object <em>(*problem)</em>.
-
-  \note The weights \f$ w_{ij} \f$ that are initially defined to be 0, should be kept fixed. The
-  function \c GMRFLib_graph_prune() is called on the resulting graph of the GMRF <em>\b x</em>,
-  removing elements of the graph corresponding to <em>\b Q (i,j) = 0</em>.  Re-setting the zero
-  weights, for example by letting the weights depend on parameters that might change while running
-  the programs, will invalidate this graph reduction.\n This routine will in most cases compute
-  <em>\b Q (i,j)</em> less efficiently using more memory than a tailored implementation, but may
-  save you for a lot of work!!! \n There is a global variable \c GMRFLib_use_wa_table_lookup() which
-  controls the internal behaviour: if it is \c #GMRFLib_TRUE (default value) then internal
-  lookup-tables are build that (can really) speed up the computation, and if it is \c
-  #GMRFLib_FALSE, then it does not use internal lookup-tables.  The storage requirement is \f$
-  {\mathcal O}(n^{3/2}) \f$.
-
-  \par Example:
-  See \ref ex_wa
-  
-  \sa GMRFLib_free_wa_problem, GMRFLib_graph_prune.
- */
 int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_tp * wagraph, GMRFLib_Qfunc_tp * wafunc, void *wafunc_arg)
 {
 	/*
@@ -307,7 +215,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	wa_arg->waQgraph = graph;
 	wa_arg->waQfunc = wafunc;
 	wa_arg->waQfunc_arg = wafunc_arg;
-	GMRFLib_graph_duplicate(&(wa_arg->wagraph), wagraph);       /* yes, make a copy! */
+	GMRFLib_graph_duplicate(&(wa_arg->wagraph), wagraph);  /* yes, make a copy! */
 
 	if (GMRFLib_use_wa_table_lookup) {
 		/*
@@ -350,32 +258,12 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	return GMRFLib_SUCCESS;
 }
 
-/*
-  NOT DOCUMENTED...
-  
-  \brief Returns the value Q(node,nnode), that is, the element of the precision matrix corresponding to
-  nodes node and nnode.
-
-  Starting with the expression \f[ (*) \sum_i (w_{ii} x_i - \sum_{j~i} w_{ij} x_j)^2, \f] for given
-  weights \f$ w_{ij} \f$, this function returns \f$ Q_{ij} \f$, <em>i = node, j = nnode</em>, so
-  that \f[ (*) = x^T Q x \f] for *graph*, and where the function <em>wa_func(i,j)</em> return the
-  weight \f$ w_{ij} \f$. Note that <em>wa_func(i,j) != wa_func(j,i)</em> in general and the graph
-  defining <em>\b Q</em> is \em graph and not \em wagraph. \em graph can be found from \em wagraph
-  using \c GMRFLib_wagraph2graph().
-  
-  \param[in] node,nnode The nodes of the graph for which to compute the precision.  \param[in] arg
-  Must be of type \c GMRFLib_waQfunc_arg_tp, containing \em graph, \em wagraph and \em wa_func.
-
-  \note There is potential great speedup in this routine by storing all neighbour-relations to
-  reduce all the lookups. This is now implemented and controlled by the global varable
-  GMRFLib_use_wa_table_lookup.
-*/
 double GMRFLib_waQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	int j, jj, k, count, idx;
 	double val, tmp, *ptr = NULL;
 	GMRFLib_waQfunc_arg_tp *args = NULL;
@@ -498,63 +386,6 @@ double GMRFLib_waQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 
 }
 
-/*!
-  \brief This function is a generalization of \c GMRFLib_init_wa_problem().
-
-  This function is a generalization of GMRFLib_init_wa_problem() and compuate the equivalent graph
-  and Q-function for
-  \f[ \pi(\mbox{\boldmath $x$}) \propto \mbox{exp}\left(-\frac{1}{2}\sum_{s=0}^{n_{wa}-1}
-  \sum_{i}\left(w_{ii,s} x_i - \sum_{j\sim_s i} w_{ij,s} x_{j}\right)^2\right) \times
-  \mbox{exp}\left(-\frac{1}{2}\sum_{s=0}^{n_{g}-1} \mbox{\boldmath $x$}^T\mbox{\boldmath
-  $Q$}_s\mbox{\boldmath $x$}\right) \hspace{1cm} (*) \f] allowing for a sum of weighted avarages and
-  sum of "ordinary" terms \f$ \mbox{\boldmath $x$}^T\mbox{\boldmath $Q$}\mbox{\boldmath $x$} \f$.
-
-  \param[out] nwa_problem At output, \a nwa_problem is allocated as a pointer to a \c
-  GMRFLib_nwa_problem_tp, holding the graph of the GMRF <em>\b x</em>, the function defining the
-  <em>\b Q</em> -matrix and a \em void -pointer holding the address of the variable or data
-  structure holding it's arguments.
-
-  \param[in] n_wa Number of weighted terms (\f$ n_{wa} \f$ in <b>(*)</b>).
-
-  \param[in] wagraph An array with length \a n_wa of pointers to graphs, where <em>wa_graph[s]</em>
-  corresponds to term \em s in <b>(*)</b>.
-
-  \param[in] wafunc An array with length \a n_wa of pointers to a function returning the weights \f$
-  w_{ij,s} \f$. The function is to be of the same format as the function defining the elements of
-  the <em>\b Q</em> -matrix of a general GMRF, such that the argument list and return value should
-  be the same as for the template \c GMRFLib_Qfunc_tp(). The arguments should be the indices \em i
-  and \em j and a \em void -pointer referring to additional arguments to the function. If \f$
-  w_{ij,s}=0 \f$ initially, it is required to be kept unchanged.
-
-  \param[in] wafunc_arg An array with length \a n_wa of \em void-pointers holding the address
-  of a variable or data structure defining additional arguments to the function \a wafunc.
-
-  \param[in] n_g Number of ordinary terms (\f$ n_{wa} \f$ in <b>(*)</b>).
-
-  \param[in] graph An array with length \a n_g of pointers to graphs, where <em>graph[s]</em>
-  corresponds to term \em s in <b>(*)</b>).
-
-  \param[in] Qfunc An array with length \a n_g of pointers to a function returning \f$ Q_{ij,s} \f$.
-
-  \param[in] Qfunc_arg An array with length \a n_g of \em void-pointers holding the address of
-  a variable or data structure defining additional arguments to the function \a Qfunc.
-  
-  \remarks Based on the input arguments the routine computes the graph corresponding to the
-  precision matrix <em>\b Q</em> of the GMRF <em>\b x</em>. Also, the function defining the elements
-  of <em>\b Q</em> and the set of arguments (in addition to the indices \em i and \em j ) are
-  generated. These are returned as members of the \c GMRFLib_nwa_problem_tp -object
-  <em>(*problem)</em>.
-
-  \note The weights \f$ w_{ij,s} \f$ that are initially defined to be 0, should be kept fixed. The
-  function \c GMRFLib_graph_prune() is called on the resulting graph of the GMRF <em>\b x</em>,
-  removing elements of the graph corresponding to <em>\b Q (i,j)=0</em>. Re-setting the zero
-  weights, for example by letting the weights depend on parameters that might change while running
-  the programs, will invalidate this graph reduction. \n This routine will in most cases compute
-  <em>\b Q (i,j)</em> less efficiently than a tailored implementation, but may save you for a lot of
-  work!
-
-  \sa GMRFLib_free_nwa_problem, GMRFLib_graph_prune.
- */
 int GMRFLib_init_nwa_problem(GMRFLib_nwa_problem_tp ** nwa_problem,
 			     int n_wa, GMRFLib_graph_tp ** wagraph, GMRFLib_Qfunc_tp ** wafunc, void **wafunc_arg,
 			     int n_g, GMRFLib_graph_tp ** graph, GMRFLib_Qfunc_tp ** Qfunc, void **Qfunc_arg)
@@ -623,17 +454,6 @@ int GMRFLib_init_nwa_problem(GMRFLib_nwa_problem_tp ** nwa_problem,
 	return GMRFLib_SUCCESS;
 }
 
-/*!  \brief Deallocates a \c GMRFLib_nwa_problem_tp -object and it's members, allocated by \c
-  GMRFLib_init_nwa_problem().
-
-  \param[in,out] nwa_problem A \c GMRFLib_nwa_problem_tp -object, allocated by \c
-  GMRFLib_init_nwa_problem(). At output, \a nwa_problem and it's members have been deallocated.
-
-  \note DO NOT USE \c GMRFLib_free_nwa_problem() to deallocate a wa-problem created by \c
-  GMRFLib_init_wa_problem(), as the internal data structures are different.
-
-  \sa GMRFLib_init_nwa_problem
- */
 int GMRFLib_free_nwa_problem(GMRFLib_nwa_problem_tp * nwa_problem)
 {
 	/*
@@ -674,12 +494,13 @@ int GMRFLib_free_nwa_problem(GMRFLib_nwa_problem_tp * nwa_problem)
 
 	return GMRFLib_SUCCESS;
 }
+
 double GMRFLib_nwaQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	int k, equal;
 	double val = 0.0;
 	GMRFLib_nwa_problem_tp **nwa = NULL;
@@ -692,44 +513,3 @@ double GMRFLib_nwaQfunc(int node, int nnode, double *UNUSED(values), void *arg)
 
 	return val;
 }
-
-/*
-  Example for manual
- */
-
-/*! \page ex_wa A worked out example smoothing a time-series data, using the wa_problem feature
-  
-  In this example, we will illustrate the \em wa_problem feature, which is quite useful in situations like the following.
-  Consider the time-series data <em>\b y</em> in Fig..., which we assume to be observed according to the model \f[ y_i = x_i +
-  \epsilon_i,\f] where <em>\b x</em> is a hidden smooth curve and \f$ \bf\epsilon \f$ is \em iid Gaussian noise with zero mean
-  and variance \f$ 0.25^2 \f$ .
-
-  As a prior, or a smoothing-prior, for <em>\b x</em>, we will consider two models: a first order model \f[\pi(\bf{x}) \propto
-  \exp\left(-\frac{h}{2} \sum_{i=2}^n (x_i-x_{i-1})^2\right) \hspace{2cm} (wa-1) \f] and a second order model \f[ \pi(\bf{x})
-  \propto \exp\left(-\frac{h}{2} \sum_{i=3}^n (x_i-2x_{i-1}+x_{i-2})^2\right). \hspace{2cm} (wa-2) \f] The quantities of
-  interest are the posterior mean for <em>\b x|y</em> and samples from the posterior \f[ \pi(\bf{x}|\bf{y}) \propto
-  \exp\left(-\frac{h}{2} \sum_{i=2}^n (x_i-x_{i-1})^2+ \sum_{i=1}^n (y_ix_i/\sigma^{2}+x_i^2/\sigma^{2}) \right). \hspace{2cm}
-  (wa-3) \f] A similar expression can be obtained for the second order model.
-
-  To implement Equation <b>(wa-3)</b>, we observe that the prior is of the \em wa_problem form <b>(GMRF-8)</b> in \ref
-  specification, for which we use the function \c GMRFLib_init_wa_problem() to convert the prior into the standard <em>\b
-  x'Qx</em>-form. The data will define the <em>\b b</em> and <em>\b c</em> vector in \c GMRFLib_init_problem().
-
-  \par Program code:
-
-  \verbinclude example-doxygen-wa.txt
-
-  The program provides the output in the figures below, for order=1 and <em>h=50</em>, and order=2
-  and <em>h=100</em>.
-
-  \htmlonly
-  <table>
-  <td><img src="figs/order1.gif" width="400"> </td>
-  <td><img src="figs/order2.gif" width="400"> </td>
-  </table> 
-  The observed and smoothed time-series, order=1 and <em>h=50</em>
-  to the left, and order=2 and <em>h=100</em> to the right. The figures
-  display the observed data, the posterior mean and 10 iid
-  samples from the posterior.
-  \endhtmlonly
-*/

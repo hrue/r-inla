@@ -1,7 +1,7 @@
 
 /* version.c
  * 
- * Copyright (C) 2007-2020 Havard Rue
+ * Copyright (C) 2007-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,6 @@
 #define GITCOMMIT
 #endif
 //static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: version.c,v 1.5 2007/03/01 23:46:00 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <stddef.h>

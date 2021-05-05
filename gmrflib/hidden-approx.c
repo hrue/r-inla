@@ -469,7 +469,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	for (i = 0; i < sub_n; i++) {
 		double cmin = 0;
 		if ((*hidden_problem)->sub_d[i]) {
-			GMRFLib_2order_approx(&args->acoof[i], &args->bcoof[i], &args->ccoof[i], NULL, 
+			GMRFLib_2order_approx(&args->acoof[i], &args->bcoof[i], &args->ccoof[i], NULL,
 					      (*hidden_problem)->sub_d[i], (*hidden_problem)->sub_mean[i],
 					      (*hidden_problem)->map[i], (*hidden_problem)->x_vec,
 					      loglFunc, loglFunc_arg, &((*hidden_problem)->hidden_par->step_len),
@@ -500,7 +500,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	switch ((*hidden_problem)->hidden_par->neightype) {
 	case GMRFLib_NEIGHTYPE_LINEAR:
 		GMRFLib_EWRAP1(GMRFLib_graph_mk_linear(&((*hidden_problem)->hidden_par->ngraph),
-							 (*hidden_problem)->sub_graph->n, (*hidden_problem)->hidden_par->neighpar, 0));
+						       (*hidden_problem)->sub_graph->n, (*hidden_problem)->hidden_par->neighpar, 0));
 		break;
 	case GMRFLib_NEIGHTYPE_GRAPH:
 		GMRFLib_EWRAP1(GMRFLib_graph_nfold(&((*hidden_problem)->hidden_par->ngraph),

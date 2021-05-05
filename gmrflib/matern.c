@@ -1,7 +1,7 @@
 
 /* matern.c
  * 
- * Copyright (C) 2008-2020 Havard Rue
+ * Copyright (C) 2008-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,27 +38,15 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: matern.c,v 1.10 2008/11/11 18:46:46 hrue Exp $ */
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/*!
-  \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for the Matern defined in \c def, which is of type \c
-  GMRFLib_matern2ddef_tp.
-
-  \param[in] node First node
-  \param[in] nnode Second node
-  \param[in] def The definition of the Matern-model (2d and regular lattice)
-
-  \sa \ref GMRFLib_matern2ddef_tp, \ref GMRFLib_make_matern2d_graph
-*/
 double GMRFLib_matern2d(int node, int nnode, double *UNUSED(values), void *def)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	double prec, range, kappa, std_variance, a, val = 0;
 	GMRFLib_matern2ddef_tp *arg = NULL;
 
@@ -199,14 +187,6 @@ double GMRFLib_matern2d(int node, int nnode, double *UNUSED(values), void *def)
 	return val * prec * std_variance;
 }
 
-/*!
-  \brief Creates the graph for the Martern 2d model in \c def
-
-  \param[out] graph   The ppointer to the graph
-  \param[in] def  The definition of the Matern-model (2d and regular lattice)
-
-  \sa  \ref GMRFLib_matern2d, \ref GMRFLib_matern2ddef_tp
-*/
 int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_tp * def)
 {
 	GMRFLib_graph_tp *g = NULL;
@@ -217,17 +197,3 @@ int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_t
 
 	return GMRFLib_SUCCESS;
 }
-
-/*
-  Example for manual
- */
-
-/*!
-
-  \page ex_matern A simple example of a Matern-2d model
-  
-\par Program code:
-
-\verbinclude example-doxygen-matern2d.txt
-
-*/

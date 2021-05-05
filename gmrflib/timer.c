@@ -28,18 +28,6 @@
  *
  */
 
-/*!
-  \file timer.c
-  \brief Functions to measure (CPU) time and display statistics on the time spent in various
-  routines and number times they are called.
- 
-  The normal usage is to use \c GMRFLib_cpu() to get the CPU time used since a fixed reference,
-  and \c GMRFLib_timer_full_report() to display statistics of the most computational demanding
-  routines in \c GMRFLib (if  \c GMRFLib_collect_timer_statistics = \c TRUE).
- 
-  \sa GMRFLib_collect_timer_statistics
-*/
-
 #include <stddef.h>
 #include <math.h>
 #include <assert.h>
@@ -59,8 +47,6 @@
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: timer.c,v 1.58 2010/03/16 22:39:25 hrue Exp $ */
 
 static map_strvp *GMRFLib_timer_hashtable;
 
@@ -87,6 +73,7 @@ double GMRFLib_cpu_default(void)
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
+
 double GMRFLib_cpu_default(void)
 {
 	if (1) {
@@ -104,7 +91,7 @@ double GMRFLib_cpu_default(void)
 		struct rusage a;
 		double time;
 		static double ref = 0.0;
-		
+
 		getrusage(RUSAGE_SELF, &a);
 		time = (double) ((a.ru_utime).tv_sec + (a.ru_stime).tv_sec) + (double) ((a.ru_utime).tv_usec + (a.ru_stime).tv_usec) * 1.0e-6;
 		if (!ref) {
@@ -113,8 +100,10 @@ double GMRFLib_cpu_default(void)
 		return (time - ref);
 	}
 }
+
 #else
 #include <time.h>
+
 double GMRFLib_cpu_default(void)
 {
 	static clock_t ref = 0;
@@ -123,12 +112,10 @@ double GMRFLib_cpu_default(void)
 	}
 	return (double) (clock() - ref) / (double) CLOCKS_PER_SEC;
 }
+
 #endif							       /* if defined(__linux__)... */
 #endif							       /* if defined(_OPENMP)... */
 
-/*
-  here are functions for storing and reporting timing information
-*/
 int GMRFLib_timer_compare(const void *a, const void *b)
 {
 	const GMRFLib_timer_hashval_tp *aa, *bb;
@@ -151,10 +138,12 @@ int GMRFLib_timer_compare(const void *a, const void *b)
 		return 1;
 	return (aa->ctime_acc > bb->ctime_acc ? -1 : 1);
 }
-int GMRFLib_timer_init(void) 
+
+int GMRFLib_timer_init(void)
 {
 	return GMRFLib_timer_enter(NULL);
 }
+
 int GMRFLib_timer_enter(const char *name)
 {
 	GMRFLib_timer_hashval_tp *p;
@@ -166,7 +155,7 @@ int GMRFLib_timer_enter(const char *name)
 		if (!GMRFLib_timer_hashtable) {
 			int i;
 			map_strvp *tmp;
-				
+
 			tmp = Calloc(GMRFLib_MAX_THREADS, map_strvp);
 			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 				map_strvp_init_hint(&tmp[i], 30);	/* about the number of elmements in the hash-table */
@@ -198,6 +187,7 @@ int GMRFLib_timer_enter(const char *name)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_timer_leave(const char *name)
 {
 //#pragma omp critical
@@ -246,6 +236,7 @@ int GMRFLib_timer_leave(const char *name)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 const char *GMRFLib_timer_strip_store(const char *name)
 {
 	/*
@@ -280,6 +271,7 @@ const char *GMRFLib_timer_strip_store(const char *name)
 	}
 #undef STRLEN
 }
+
 const char *GMRFLib_timer_strip__intern(const char *name)
 {
 	/*
@@ -314,6 +306,7 @@ const char *GMRFLib_timer_strip__intern(const char *name)
 	}
 #undef STRLEN
 }
+
 const char *GMRFLib_timer_strip(const char *name)
 {
 	const char *nm;
@@ -330,23 +323,13 @@ int GMRFLib_timer_print_entry(FILE * ffp, GMRFLib_timer_hashval_tp * p, double t
 	char *nm = (strncmp(p->name, "GMRFLib_", (size_t) 8L) == 0 ? p->name + 8L : p->name);
 
 	fprintf(ffp, "%-39s %10.1f %4.1f%% %10d %6.2f %6.2f %6.2f %6.2f\n",
-		nm, p->ctime_acc, (total_time > 0.0 ? p->ctime_acc / total_time * 100.0 : 0.0), 
+		nm, p->ctime_acc, (total_time > 0.0 ? p->ctime_acc / total_time * 100.0 : 0.0),
 		(int) p->ntimes, (p->ntimes ? p->ctime_acc / p->ntimes : 0.0),
-		(p->ntimes ? sqrt(DMAX(0.0, p->ctime_acc2 / p->ntimes - SQR(p->ctime_acc / p->ntimes))) : 0.0),
-		p->ctime_min, p->ctime_max);
+		(p->ntimes ? sqrt(DMAX(0.0, p->ctime_acc2 / p->ntimes - SQR(p->ctime_acc / p->ntimes))) : 0.0), p->ctime_min, p->ctime_max);
 
 	return GMRFLib_SUCCESS;
 }
 
-/*!
-  \brief Write statistics collected for the function named \c name to \c fp.
-                                                                                                                  
-  \param[in] fp Pointer to (an already open) file the report is written to.
-  \param[in] name The name of the function for which statistics is to be reported. If \c name =
-  \c NULL, then the statistics for all functions are displayed
-                                                                                                                  
-  \sa GMRFLib_timer_full_report
-*/
 int GMRFLib_timer_report_OLD(FILE * fp)
 {
 	FILE *ffp;
@@ -390,15 +373,15 @@ int GMRFLib_timer_report(FILE * fp)
 	GMRFLib_timer_hashval_tp *val;
 	map_strvp_element *all;
 	mapkit_size_t count, i;
-	
+
 	namelist = Calloc(namelist_len_max, char *);
 	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
-		
+
 		map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
 		if (all) {
 			for (i = 0; i < count; i++) {
 				val = (GMRFLib_timer_hashval_tp *) (all[i].value);
-				for(j = found = 0; j < namelist_len; j++) {
+				for (j = found = 0; j < namelist_len; j++) {
 					if (!strcmp(namelist[j], val->name)) {
 						found = 1;
 						break;
@@ -415,10 +398,10 @@ int GMRFLib_timer_report(FILE * fp)
 	}
 
 	map_strvp *total = Calloc(1, map_strvp);
-	map_strvp_init_hint(total, namelist_len);	
+	map_strvp_init_hint(total, namelist_len);
 
 	double total_acc_time = 0.0;
-	for(int ilist = 0; ilist < namelist_len; ilist++) {
+	for (int ilist = 0; ilist < namelist_len; ilist++) {
 		char *nm = namelist[ilist];
 		GMRFLib_timer_hashval_tp *value = Calloc(1, GMRFLib_timer_hashval_tp);
 
@@ -426,7 +409,7 @@ int GMRFLib_timer_report(FILE * fp)
 		for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
 			map_strvp_element *all;
 			mapkit_size_t count, i;
-		
+
 			map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
 			if (all) {
 				for (i = 0, found = 0; i < count && !found; i++) {
@@ -449,33 +432,21 @@ int GMRFLib_timer_report(FILE * fp)
 
 	const char *sep = "-----------------------------------------------------------------------------------------------";
 
-	fprintf(fp, "\n%-42s   %11s %10s %6s %6s %6s %6s\n%s\n",
-		"Function", "Total(s) %", "N", "Mean", "Stdev", "Min", "Max", sep);
-	
+	fprintf(fp, "\n%-42s   %11s %10s %6s %6s %6s %6s\n%s\n", "Function", "Total(s) %", "N", "Mean", "Stdev", "Min", "Max", sep);
+
 	map_strvp_getall(total, &all, &count);
 	qsort(all, (size_t) count, sizeof(map_strvp_element), GMRFLib_timer_compare);
 	for (i = 0; i < count; i++) {
 		GMRFLib_timer_print_entry(fp, (GMRFLib_timer_hashval_tp *) (all[i].value), total_acc_time);
 	}
 	fprintf(fp, "%s\n", sep);
-	
+
 	Free(namelist);
 	Free(total);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Write  statistics collected for all functions to \c fp.
-                                                                                                                  
-  This is the routine to use to print internal statistics of number of times each routine is called
-  and its CPU usage.
-                                                                                                                  
-  \remark This function is simply a wrapper for \c GMRFLib_timer_report(fp,NULL).
-                                                                                                                  
-  \sa  GMRFLib_collect_timer_statistics
-*/
 int GMRFLib_timer_full_report(FILE * fp)
 {
 	if (!GMRFLib_timer_hashtable) {
@@ -483,6 +454,7 @@ int GMRFLib_timer_full_report(FILE * fp)
 	}
 	return GMRFLib_timer_report(fp);
 }
+
 void GMRFLib_timer_report__signal(int UNUSED(sig))
 {
 	/*

@@ -1,7 +1,7 @@
 
 /* seasonal.c
  * 
- * Copyright (C) 2007-2020 Havard Rue
+ * Copyright (C) 2007-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +33,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: seasonal.c,v 1.13 2008/10/26 03:21:48 hrue Exp $ */
-
 #include <time.h>
 #include <strings.h>
 #if !defined(__FreeBSD__)
@@ -44,29 +42,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-/*!
- *  \file seasonal.c
- *  \brief This file contains support for a seasonal component in a time-series model.
- */
-
-
-/*!
- * \brief This function returns element Q(i,j), with i=node and j=nnode, of the precision matrix for the seasonal component
- * defined in \c def.
-
- \param[in] node First node
- \param[in] nnode Second node
- \param[in] def The definition of the seasonal component
-
- \sa \ref GMRFLib_seasonaldef_tp, \ref GMRFLib_make_seasonal_graph
- */
-
 double GMRFLib_seasonal(int node, int nnode, double *UNUSED(values), void *def)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	int imax, imin, diff;
 	double prec, val = 0.0;
 	GMRFLib_seasonaldef_tp *sdef = (GMRFLib_seasonaldef_tp *) def;
@@ -102,8 +83,7 @@ double GMRFLib_seasonal(int node, int nnode, double *UNUSED(values), void *def)
 	prec *= (sdef->prec_scale ? sdef->prec_scale[0] : 1.0);
 
 	return val * prec;
-};
-
+}
 
 int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 {
@@ -200,16 +180,6 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-
-/*!
-  \brief Make the graph suitable to the seasonal model defined in \c def.
-
-  \param[out] graph  The graph for the seasonal model.
-
-  \param[in] def The definition of the seasonal model
-
-  \sa GMRFLib_seasonal(), GMRFLib_seasonaldef_tp
-*/
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def)
 {
 	GMRFLib_graph_mk_linear(graph, def->n, def->s - 1, def->cyclic);

@@ -1,7 +1,7 @@
 
 /* domin-interface.c
  * 
- * Copyright (C) 2006-2020 Havard Rue
+ * Copyright (C) 2006-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,7 +73,6 @@ static fncall_timing_tp fncall_timing = {
 	0.0, 0
 };
 
-
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 		      char *compute,
@@ -130,6 +129,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	return GMRFLib_SUCCESS;
 
 }
+
 int GMRFLib_opt_exit(void)
 {
 	Free(G.f_count);
@@ -149,6 +149,7 @@ int GMRFLib_opt_exit(void)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
@@ -161,6 +162,7 @@ int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **
 	GMRFLib_opt_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 {
 	/*
@@ -212,6 +214,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
@@ -332,6 +335,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr)
 {
 	int val;
@@ -340,6 +344,7 @@ int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr)
 
 	return val;
 }
+
 int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 {
 	/*
@@ -538,6 +543,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count)
 {
 	/*
@@ -872,6 +878,7 @@ int GMRFLib_opt_get_f_count(void)
 		return 0;
 	}
 }
+
 double GMRFLib_gsl_f(const gsl_vector * v, void *UNUSED(params))
 {
 	/*
@@ -891,6 +898,7 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *UNUSED(params))
 
 	return fx;
 }
+
 void GMRFLib_gsl_df(const gsl_vector * v, void *UNUSED(params), gsl_vector * df)
 {
 	/*
@@ -914,6 +922,7 @@ void GMRFLib_gsl_df(const gsl_vector * v, void *UNUSED(params), gsl_vector * df)
 	Free(x);
 	Free(gradx);
 }
+
 void GMRFLib_gsl_fdf(const gsl_vector * v, void *UNUSED(params), double *f, gsl_vector * df)
 {
 	/*
@@ -940,6 +949,7 @@ void GMRFLib_gsl_fdf(const gsl_vector * v, void *UNUSED(params), double *f, gsl_
 	Free(x);
 	Free(gradx);
 }
+
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode)
 {
 	memcpy(theta_mode, G.solution, G.nhyper * sizeof(double));

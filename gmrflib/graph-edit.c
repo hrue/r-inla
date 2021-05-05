@@ -1,7 +1,7 @@
 
 /* graph-edit.c
  * 
- * Copyright (C) 2006-2020 Havard Rue
+ * Copyright (C) 2006-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,107 +28,11 @@
  *
  */
 
-/**
-  \file graph-edit.c
-  \brief Functions to edit graphs
-
-  This set of functions makes it easy (or at least easier) to edit graphs in GMRFLib, for example by adding or removing nodes in
-  a graph. The available functions are
-
-  - GMRFLib_ged_init()  which from an (optional) graph, create an editable graph-object.
-
-  This editable graph-object, can then be edited by by issuing a sequence of the following commands
-
-  - GMRFLib_ged_add() Add an arbitrary new node or edge. By convention, if an edge between \a i and \a j is
-    added, the node \a i and \a j is created at the same time.
-  - GMRFLib_ged_append_graph() Append a graph to the end of the editable graph-object.
-  - GMRFLib_ged_insert_graph() Insert a graph into the editable graph-object.
-  - GMRFLib_ged_insert_graph2() Insert a graph into the editable graph-object.
-  - GMRFLib_ged_append_node() Append a new node to the end of the editable graph-object and (optionally) tag it; See \c
-    GMRFLib_ged_tag() 
-  - GMRFLib_ged_remove()  Remove a node from the editable graph-object
-
-  - GMRFLib_ged_tag() Tag a node with a special property. Current properties are GMRFLib_ged_tag_tp:GMRFLib_GED_TAG_NORMAL which
-  is the default, GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_GLOBAL which denote that this node is a neighbour of all other nodes that
-  are present, and GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_INDEP which says that this node is has no neighbours.  By convention,
-  GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_INDEP take precedence over GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_GLOBAL.
-
-  After the series of editing command, we can build a new \c GMRFLib_graph_tp -object, by issuing
-
-  - GMRFLib_ged_build()
-
-  If some nodes are removed, then the mapping between the nodes in the create graph and the nodes in the editable graph-object, is
-  given in GMRFLib_graph_tp::mothergraph_idx, as usual.
-
-  We can free the editable graph by
-
-  - GMRFLib_ged_free()
-
-  \par Example:
-
-  In this small example, we add 2 global nodes to an simple linear graph
-
-  \verbatim
-    GMRFLib_graph_tp *new_graph, *g;
-    GMRFLib_ged_tp *ged;
-
-    GMRFLib_graph_mk_linear(&g, n, 1, 0); // Create a linear graph
-
-    GMRFLib_ged_init(&ged, g);  
-    GMRFLib_ged_append_node(ged, GMRFLib_GED_TAG_GLOBAL);
-    GMRFLib_ged_append_node(ged, GMRFLib_GED_TAG_GLOBAL);
-    GMRFLib_ged_build(&new_graph, ged);    //  new_graph is the new graph
-    
-    GMRFLib_ged_free(ged);
-  \endverbatim
-  
-  Using the \a _append_ -functions adds the node to the editable graph. Alternatively, we can specify node-numbers directly as
-  in the following example
-
-  \verbatim
-    GMRFLib_graph_tp *new_graph, *g;
-    GMRFLib_ged_tp *ged;
-
-    GMRFLib_graph_mk_linear(&g, n, 1, 0); // Create a linear graph
-
-    GMRFLib_ged_init(&ged, g);  
-    GMRFLib_ged_add(ged, n, n);
-    GMRFLib_ged_add(ged, n+1, n+1);
-    GMRFlib_ged_tag(ged, n, GMRFLib_GED_TAG_GLOBAL);
-    GMRFlib_ged_tag(ged, n+1, GMRFLib_GED_TAG_GLOBAL);
-    GMRFLib_ged_build(&new_graph, ged);    //  new_graph is the new graph
-    
-    GMRFLib_ged_free(ged);
-  \endverbatim
-  Only nodes that are added to the graph will be used, so we achieve the same new-graph by using
-  \verbatim
-    GMRFLib_graph_tp *new_graph, *g;
-    GMRFLib_ged_tp *ged;
-
-    GMRFLib_graph_mk_linear(&g, n, 1, 0); // Create a linear graph
-
-    GMRFLib_ged_init(&ged, g);  
-    GMRFLib_ged_add(ged, n+1, n+1);
-    GMRFLib_ged_add(ged, n+2, n+2);
-    GMRFlib_ged_tag(ged, n+1, GMRFLib_GED_TAG_GLOBAL);
-    GMRFlib_ged_tag(ged, n+2, GMRFLib_GED_TAG_GLOBAL);
-    GMRFLib_ged_build(&new_graph, ged);    //  new_graph is the new graph
-    
-    GMRFLib_ged_free(ged);
-  \endverbatim
-  as node \a n will be empty  and removed when `building' the new graph using GMRFLib_ged_build().
-
-  \par Yet another example:
-  \verbinclude example-doxygen-graph-edit.txt
-
-*/
 
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: graph-edit.c,v 1.41 2009/11/04 18:24:31 hrue Exp $ */
 
 #include <float.h>
 #include <math.h>
@@ -144,14 +48,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-/**
-  \brief Create an editable graph starting with (optionally) a \a graph.
-
-  \param[out] ged  A editable graph (of type GMRFLib_ged_tp) is returned in \a *ged
-  \param[in] graph An optional graph to initialise the editable graph object with
-
-  \sa GMRFLib_ged_build(), GMRFLib_ged_free()
-*/
 int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -169,19 +65,6 @@ int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/**
-  \brief Remove a node or an edge from an editable graph-object
-
-  \param[in,out] ged The editable graph-object.
-  \param[in] node First node
-  \param[in] nnode Second node
-
-  If \a node is different from \a nnode, then remove the edge between \a node and \a nnode. If \a node equals \a nnode, then
-  remove node \a node itself. Note that if node \a node is removed, then so are all edges where \a node is a part of. 
-
-  \sa GMRFLib_ged_add(), GMRFLib_ged_append_graph(), GMRFLib_ged_append_node()
-
-*/
 int GMRFLib_ged_remove(GMRFLib_ged_tp * ged, int node, int nnode)
 {
 	/*
@@ -192,19 +75,6 @@ int GMRFLib_ged_remove(GMRFLib_ged_tp * ged, int node, int nnode)
 	return GMRFLib_SUCCESS;
 }
 
-/**
-  \brief Add a node or an edge from an editable graph-object
-
-  \param[in,out] ged The editable graph-object.
-  \param[in] node First node
-  \param[in] nnode Second node
-
-  If \a node is different from \a nnode, then add the edge between \a node and \a nnode, and create node \a node and node \a
-  nnode if they do not exists.  If \a node equals \a nnode, then add node \a node itself.
-
-  \sa GMRFLib_ged_remove(), GMRFLib_ged_append_node(), GMRFLib_ged_append_graph()
-
-*/
 int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 {
 	/*
@@ -232,17 +102,6 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	return GMRFLib_SUCCESS;
 }
 
-/**
-  \brief Append a graph to an editable graph-object
-
-  \param[in,out] ged the editable graph-object
-  \param[in] graph The graph to be appended to the editable graph-object.
-
-  The first node in \a graph will have node-number GMRFLib_ged_tp::max_node+1 where \a max_node is the maximum node number in
-  the editable graph-object.
-
-  \sa GMRFLib_ged_max_node(), GMRFLib_ged_append_node()
-*/
 int GMRFLib_ged_append_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph)
 {
 	GMRFLib_ged_insert_graph(ged, graph, ged->max_node + 1);
@@ -250,30 +109,11 @@ int GMRFLib_ged_append_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-/**
-  \brief Insert a graph into an editable graph-object: version 1
-
-  \param[in,out] ged the editable graph-object
-  \param[in] graph The graph to be appended to the editable graph-object.
-  \param[in] at_node The node where the graph will be inserted
-  
-  \sa GMRFLib_ged_append_graph(), GMRFLib_ged_insert_graph2()
-*/
 int GMRFLib_ged_insert_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_node)
 {
 	return GMRFLib_ged_insert_graph2(ged, graph, at_node, at_node);
 }
 
-/**
-  \brief Insert a graph into an editable graph-object: version 2
-
-  \param[in,out] ged the editable graph-object
-  \param[in] graph The graph to be appended to the editable graph-object.
-  \param[in] at_i_node The first node where the graph will be inserted
-  \param[in] at_j_node The second node where the graph will be inserted
-  
-  \sa GMRFLib_ged_append_graph(), GMRFLib_ged_insert_graph()
-*/
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_i_node, int at_j_node)
 {
 	/*
@@ -294,25 +134,6 @@ int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, in
 	return GMRFLib_SUCCESS;
 }
 
-/**
-  \brief Tag a node in the editable graph-object
-
-  \param[in,out] ged The editable graph-object.
-  \param[in] node The node number
-  \param[in] tag The tag (one of GMRFLib_ged_tag_tp)
-
-  Tag a node in the editable graph-object as either
-  - GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_NORMAL (this is default and usually not needed)
-  - GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_GLOBAL Tag node \a node as a global node, i.e. it is neigbour to all other nodes in the
-  graph. 
-  - GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_INDEP  Tag node \a node as a singelton node, i.e. it is not neigbour to any other nodes
-  in the graph. 
-  
-  By convention, GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_INDEP take precedence over GMRFLib_ged_tag_tp::GMRFLib_GED_TAG_GLOBAL
-
-  \sa GMRFLib_ged_node_add()
-
-*/
 int GMRFLib_ged_tag(GMRFLib_ged_tp * ged, int node, GMRFLib_ged_tag_tp tag)
 {
 	/*
@@ -326,16 +147,6 @@ int GMRFLib_ged_tag(GMRFLib_ged_tp * ged, int node, GMRFLib_ged_tag_tp tag)
 	return GMRFLib_SUCCESS;
 }
 
-/**
-  \brief  Append a new node to the editable graph-object
-
-  \param[in,out] ged The editable graph-object
-  \param[in] tag The tag (one of GMRFLib_ged_tag_tp)
-
-  Append a new node to the editable graph-object. The new node will have node-number GMRFLib_ged_tp::max_node + 1.
-
-  \sa GMRFLib_ged_max_node(), GMRFLib_ged_add()
-*/
 int GMRFLib_ged_append_node(GMRFLib_ged_tp * ged, GMRFLib_ged_tag_tp tag)
 {
 	/*
@@ -344,43 +155,11 @@ int GMRFLib_ged_append_node(GMRFLib_ged_tp * ged, GMRFLib_ged_tag_tp tag)
 	return GMRFLib_ged_tag(ged, ged->max_node + 1, tag);
 }
 
-/**
-  \brief Return the maximum node-number in the editable graph-object
-
-  \param[in] ged The editable graph-object
-
-  This function returns the current maximum node-number in the editable graph-object, for example
-
-  \par Example:
-  \verbatim
-    GMRFLib_graph_mk_linear(&g, 3, 1, 0);
-    GMRFLib_ged_init(&ged, g);
-    GMRFLib_ged_remove(ged, 2, 2);
-    printf("max_node before append %d\n", GMRFLib_ged_max_node(ged));
-    GMRFLib_ged_append_node(ged, GMRFLib_GED_TAG_GLOBAL);
-    printf("max_node after append %d\n", GMRFLib_ged_max_node(ged));
- \endverbatim
- will output
- \verbatim
-    max_node before append 2
-    max_node after append 3
- \endverbatim
- Note that 'removing a node' just tag is as 'to be removed'. The actual removal is done when building the graph issuing
-  GMRFLib_ged_build(). 
-*/
 int GMRFLib_ged_max_node(GMRFLib_ged_tp * ged)
 {
 	return ged->max_node;
 }
 
-/**
-  \brief Build a graph of type GMRFLib_graph_tp from the editable graph-object
-
-  \param[out] graph The graph of type GMRFLib_graph_tp is returned as \a *graph
-  \param[in]  ged   The editable graph-object
-
-  \sa GMRFLib_graph_tp
-*/
 int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 {
 #define NOMAP (-1)
@@ -549,13 +328,6 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 #undef NOMAP
 }
 
-/**
-  \brief Free a editable graph-object
-
-  \param[in] ged The editable graph-object to be free'd.
-
-  \sa GMRFLib_ged_init()
- */
 int GMRFLib_ged_free(GMRFLib_ged_tp * ged)
 {
 	spmatrix_free(&(ged->Q));

@@ -1,9 +1,5 @@
 
 /* bfgs3.c
- *
- * EXPERIMENTAL ONLY!!!
- *
- *
  *  This is a modified version of the VECTOR_BFGS2 optimiser in GSL 
  */
 
@@ -11,9 +7,6 @@
 #define GITCOMMIT
 #endif
 //static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: bfgs3.c,v 1.8 2009/12/15 12:26:03 hrue Exp $ */
-
 
 /* multimin/vector_bfgs2.c
  * 

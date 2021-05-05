@@ -1,7 +1,7 @@
 
 /* hgmrfm.c
  * 
- * Copyright (C) 2007-2020 Havard Rue
+ * Copyright (C) 2007-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: hgmrfm.c,v 1.73 2009/05/23 06:16:16 hrue Exp $ */
 #include <time.h>
 #include <strings.h>
 #if !defined(__FreeBSD__)
@@ -41,89 +40,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-/**
- *  \file hgmrfm.c
- *  \brief This file contains support for an often used hierarchical GMRF model.
- *
- * This routine supports the hierarchical GMRF model of the following type
- * \f[ y_i \;\sim\; \pi(y_i | \eta_i), \qquad i=0, \ldots, n-1 \f]
- * \f[ \eta_i \mid \ldots \;\sim\; N\left(\sum_{k=0}^{n_f-1} f_{j c_{ji}} + \sum_{m=0}^{n_b-1}
- * z_{mi}\beta_m, \; 1/\lambda_{\eta}\right), \quad i=0, \ldots, n-1 \f]
- * where
- * - \f$\{c_{jl}\}\f$ are covariate-indices,
- * - \f$f_0, \ldots, f_{n_f-1}\f$ are GMRFs of any size,
- * - \f$\{z_{mi}\}\f$ are fixed covariates, and
- * - \f$\beta_0, \ldots, \beta_{n_b-1}\f$ are independent zero-mean Gaussians with fixed precision.
- *
- * Given the graphs, the Q-functions and the arguments for the Qfunctions for the GMRFs,
- * \f$f_0, \ldots, f_{n_f-1}\f$, then \c GMRFLib_init_hgmrfm() will:
- *
- * - Compute the graph for the full latent GMRF \f[ x = ( \eta_0, \ldots, \eta_{n-1}, f_{0}^T, \ldots, f_{n_f-1}^T,
- *     \beta_0, \ldots, \beta_{n_b-1})\f],
- * - Provide a Qfunction and its argument so that \f[x^T Q x = \lambda_{\eta} \sum_{i=0}^{n-1} \left(\eta
- *     -\left(\sum_{k=0}^{n_f-1} f_{j c_{ji}} w_{ji} + \sum_{m=0}^{n_b-1}z_{ji}\beta_j\right)\right)^2\f]
- * \f[ + \sum_{k=0}^{n_f-1} f_{k}^T Q_{f_k} f_k + \sum_{m=0}^{n_b-1} \tau_{m} \beta_m^2 \f]
- * - Additionally, it can also construct a linear constraint such that some of the \f$f_k\f$'s
- *     sums to zero.
- * - Additionally, we can also introduce interactions beteen \f$f_{i,k}\f$ and \f$f_{j,k}\f$ (for the same index \f$k\f$!)
- * - Some additional linear combinations can also be constructed among the \f$f_k\f$'s or \f$\beta\f$'s or \f$\eta\f$.
- *
- * The new routine \c GMRFLib_init_hgmrfm(), avoids the users a previously big hassle: constructing the graph of \f$x\f$ and its
- * Qfunction manually. It becomes then quite easy to construct and modify hierarchical GMRF models of this type.
- *
- * \c GMRFLib_free_hgmrfm() will free a \c GMRFLib_hgmrfm_tp -object. 
- *
- * Two examples will demonstrate the use of \c GMRFLib_init_hgmrfm().  Here we implement the Log-Gaussian Cox-process described
- * in section 5.5 in Rue, Martino and Chopin (2007). In the first example, we use linear covariates. In the second example, we
- * replace two of the linear covariates with smooth functions.
- * 
- *  \verbinclude example-doxygen-hgmrfm-1.txt
- *
- *  \verbinclude example-doxygen-hgmrfm-2.txt
- */
-
-/**
- * \brief Initialise a hierarchical GMRF model-object.
- *
- * \param[out] hgmrfm A pointer to the \c GMRFLib_hgmrfm_tp-object to be created.
- * \param[in] n The dimension  of \f$\eta\f$
- * \param[in] n_ext The dimension  of the extended \f$\eta\f$
- * \param[in] eta_sumzero  An optional int vector of length \c n, where all entries of equal value different from zero defines a sum-to-zero constraint. This applies to the total linear predictor of length n + n_ext. 
- * \param[in] logprec_unstruct A pointer to the log of the precision for \f$\eta\f$, i.e. \f$\log(\lambda_{\eta})\f$
- * \param[in] logprec_unstruct_omp A ppointer to the log of the precision for \f$\eta\f$, i.e. \f$\log(\lambda_{\eta})\f$, one
- * for each thread
- * \param[in] nf Number of f-fields, \f$n_f\f$
- * \param[in] c A pointer to the covariate-indices, so that c[k][i] is the element of \f$f_k\f$ appearing with \f$\eta_i\f$. If
- *              c[k][i] is not in the range \f$0, \ldots, n-1\f$, it is not used. 
- * \param[in] w A pointer to the (fixed) weights, so that w[k][i] is the weight for  \f$f_k\f$ appearing with \f$\eta_i\f$. If
- *              \c w is \c NULL, then all weights are set to 1. If \c w[k] is \c NULL for some \c k, then all \c w[k][i] are set
- *              to 1.0.
- * \param[in] f_graph A pointer to the graphs for the \f$f_k\f$'s, so that f_graph[k] is the graph for \f$f_k\f$.
- * \param[in] f_Qfunc A pointer to the Qfunctions, so that f_Qfunc[k] is the Qfunction for \f$f_k\f$
- * \param[in] f_Qfunc_arg A pointer to the arguments of the Qfunctions, so that f_Qfunc_arg[k] is the argument to
- *            f_Qfunc[k]. If f_Qfunc_arg is NULL, then all f_Qfunc_arg[k]'s are taken to be NULL.
- * \param[in] f_sumzero An optional array defining linear constraints. If f_sumzero[k] is TRUE, then a sum-to-zero constraint is
- *            constructed for \f$f_k\f$.
- * \param[in] f_constr An optional additional linear (deterministic) constraints. if f_constr[k] is TRUE, this this defines an
- *            additional linear constraint for \f$f_k\f$.
- * \param[in] ff_Qfunc An (optional) 2d-array of interaction functions between the f-fields with the same index. (EXPERT USE ONLY)
- * \param[in] ff_Qfunc_arg An (optional) 2d-array of arguments to the interaction functions between the f-fields with the same index. (EXPERT USE ONLY)
- * \param[in] nbeta The number of covariates \f$n_n\f$.
- * \param[in] covariate The covariates, such that covariate[m][i] is the covariate for \f$\beta_m\f$ appearing with
- * \f$\eta_i\f$.
- * \param[in] prior_precision The prior precisions for \f$\beta\f$, such that prior_precision[m] is the prior precision for
- * \f$\beta_m\f$. If prior_precision is NULL, then all precisions are taken to be zero.
- * \param[in] nlc Number of (additional) linear combinations of the latent field that is to be monitored. NOTE: The dimension
- * of each linear combinations is the dimension of the \f$\eta\f$ plus the dimensions of the \f$f_k\f$'s plus the dimension of
- * the \f$\beta\f$'s.
- * \param[in] lc_w  The weights of each \c nlc linear combinations, where \f$ \sum_j lc\_w[i][j] x_j\f$ is the i'th linear
- * combination.
- * \param[in] lc_precision The (artificial) precision for each linear combination. This is a high value (default to 1.0E09).
- * \param[in] ai_par Optional parameters of type \c GMRFLib_ai_param_tp.
- *
- * \sa \c GMRFLib_free_hgmrfm()
- */
 
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
@@ -869,6 +785,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 	return GMRFLib_SUCCESS;
 }
+
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a)
 {
 	int i;
@@ -899,6 +816,7 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 	}
 	return t;
 }
+
 double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
@@ -999,11 +917,6 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	return value;
 }
 
-/**
- * \brief Free a \c GMRFLib_hgmrfm_tp -object.
- *
- * This function frees a \c GMRFLib_hgmrfm_tp -object allocated by \c GMRFLib_init_hgmrfm()
- */
 int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm)
 {
 	if (!hgmrfm) {
