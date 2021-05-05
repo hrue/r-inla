@@ -47,7 +47,7 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	GMRFLib-fortran.o optimize.o blockupdate.o gdens.o hidden-approx.o \
 	distributions.o globals.o wa.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o sparse-interface.o rw.o \
-	bitmap.o tabulate-Qfunc.o sphere.o io.o approx-inference.o ghq.o \
+	bitmap.o tabulate-Qfunc.o io.o approx-inference.o ghq.o \
 	utils.o experimental.o graph-edit.o domin-interface.o auxvar.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
 	bfgs3.o fmesher-io.o smtp-pardiso.o interpol.o
@@ -56,7 +56,7 @@ HEADERS = blockupdate.h GMRFLib.h  hidden-approx.h optimize.h hash.h \
 	problem-setup.h error-handler.h globals.h graph.h wa.h random.h \
 	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
 	bitmap.h hashP.h compatibility.h taucs.h taucs_private.h ghq.h \
-	tabulate-Qfunc.h sphere.h io.h \
+	tabulate-Qfunc.h io.h \
 	approx-inference.h density.h utils.h experimental.h graph-edit.h \
 	domin-interface.h auxvar.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h fmesher-io.h smtp-pardiso.h \
@@ -67,7 +67,7 @@ EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-wa.c examples/germany.data examples/germany.graph \
 	examples/graph1.dat examples/wa-example.dat examples/example-rw.c \
 	examples/example-qinv.c \
-	examples/example-sphere.c examples/example-rng.c \
+	examples/example-rng.c \
 	examples/example-error-handler.c examples/example-graph-edit.c \
 	examples/example-bitmap.c examples/example-auxvar.c \
 	examples/example-approx-1.c examples/example-approx-2.c \
@@ -142,12 +142,11 @@ doc:
 install: $(ALL)
 	 @umask 022;\
 	 mode=644;\
-	 for dir in  " " lib include include/GMRFLib doc doc/GMRFLib doc/GMRFLib/examples doc/GMRFLib/tutorial doc/GMRFLib/data; do \
+	 for dir in  " " lib include include/GMRFLib doc doc/GMRFLib doc/GMRFLib/examples doc/GMRFLib/tutorial; do \
 	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
 	 done; \
 	 $(INSTALL) -m$$mode $(LIBNAME) $(PREFIX)/lib; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/GMRFLib; \
-	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete sphere/* $(PREFIX)/doc/GMRFLib/data; \
 	 for header in $(HEADERS); do \
 	    $(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib; \
 	 done; \

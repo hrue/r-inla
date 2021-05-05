@@ -124,8 +124,6 @@ __BEGIN_DECLS
 #include "GMRFLib/smtp-band.h"
 #include "GMRFLib/smtp-taucs.h"
 #include "GMRFLib/bitmap.h"				       /* needs both graph and problem and sparse */
-#include "GMRFLib/geo.h"
-#include "GMRFLib/sphere.h"
 #include "GMRFLib/ghq.h"
 #include "GMRFLib/design.h"
 #include "GMRFLib/approx-inference.h"
