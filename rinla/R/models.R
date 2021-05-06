@@ -7952,10 +7952,10 @@
                             hyperid = 105101,
                             name = "shape",
                             short.name = "alpha",
-                            initial = 0,
+                            initial = -20,
                             fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(0.001, 0.001),
+                            prior = "normal",
+                            param = c(-20, 0.01),
                             ## the 'sc' constant is defined in inla.h, and must be the same.
                             ## I know, this is hard-coded for the moment. Should be a generic
                             ## way of doing this...
@@ -7977,10 +7977,10 @@
                             hyperid = 106101,
                             name = "shape",
                             short.name = "alpha",
-                            initial = 0,
+                            initial = -20,
                             fixed = FALSE,
-                            prior = "loggamma",
-                            param = c(0.001, 0.001),
+                            prior = "normal",
+                            param = c(-20, 0.01),
                             ## the 'sc' constant is defined in inla.h, and must be the same.
                             ## I know, this is hard-coded for the moment. Should be a generic
                             ## way of doing this...

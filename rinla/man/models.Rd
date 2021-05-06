@@ -9428,10 +9428,10 @@ inla.models()
 							\item{hyperid = }{`105101'}
 							\item{name = }{`shape'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`-20'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.001 0.001'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-20 0.01'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
@@ -9457,10 +9457,10 @@ inla.models()
 							\item{hyperid = }{`106101'}
 							\item{name = }{`shape'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`-20'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.001 0.001'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-20 0.01'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
