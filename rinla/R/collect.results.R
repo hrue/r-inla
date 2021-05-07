@@ -1182,16 +1182,14 @@ inla.internal.experimental.mode <- FALSE
     my.read.pnm <- function(...) {
         args <- list(...)
         filename <- args[[1]]
-        if (file.exists(filename) && inla.require("pixmap")) {
+        inla.require("pixmap", stop.on.error = TRUE)
+        if (file.exists(filename)) {
             ## disable warnings
             warn <- getOption("warn")
             options(warn = -1L) ## disable...
             ret <- pixmap::read.pnm(...)
             do.call("options", args = list(warn = warn))
         } else {
-            if (file.exists(filename)) {
-                warning("You need to install 'pixmap' to read bitmap files.")
-            }
             ret <- NULL
         }
         return(ret)

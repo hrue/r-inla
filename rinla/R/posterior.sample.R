@@ -224,7 +224,7 @@ inla.create.sn.cache <- function() {
 
     ## This code section will run only once in order to create the local object 'sn.cache'
     envir <- inla.get.inlaEnv()
-    stopifnot(inla.require("sn"))
+    inla.require("sn", stop.on.error = TRUE)
 
     ## The following quantities can be changed and affect the whole code
     dig <- 2 # skewness precision (better keep this one for fast computations)

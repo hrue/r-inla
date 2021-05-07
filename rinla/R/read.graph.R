@@ -425,7 +425,7 @@
         ## a neigbour-graph from spdep with class="nb".
         ## this can replace spdep::nb2INLA.
         ## call spdep::nb2listw and use spdep coercion.
-        inla.require("spdep")
+        inla.require("spdep", stop.on.error = TRUE)
         Q <- spdep::nb2listw(graph, style = "B", zero.policy = TRUE)
         Q <- inla.as.sparse(as(Q, "symmetricMatrix"))
         return(inla.matrix2graph.internal(Q, size.only = size.only))
@@ -499,8 +499,8 @@
     inla.eval.dots(...)
 
     ## I add here some tools to view and summarize a such graphs...
-    inla.require("Rgraphviz") || stop("Need library 'Rgraphviz' from Bioconductor: see https://www.bioconductor.org")
-    inla.require("graph") || stop("Need library 'graph' from Bioconductor: see https://www.bioconductor.org")
+    inla.require("Rgraphviz", stop.on.error = TRUE)
+    inla.require("graph", stop.on.error = TRUE)
 
     filter <- match.arg(filter, filter.args)
     if (is.null(attrs)) {

@@ -50,9 +50,7 @@
     parent.env(env) <- .GlobalEnv
     environment(fun) <- env
 
-    inla.require("compiler")
-    fun.c <- compiler::cmpfun(fun, options = list(optimize = 3L, suppressUndefined = TRUE))
-
+    fun.c <- inla.cmpfun(fun)
     rjp <- list(model = fun.c) ## maybe we need something additional later
     class(rjp) <- "inla.jp"
 

@@ -1125,8 +1125,8 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
     }
 
     my.pcfgnh <- function(theta, param, log = FALSE) {
-        ## we compute the PC-prior on the fly using these two packages. Its somewhat quick.
-        inla.require("HKprocess")
+        ## needed to compute the PC-prior on the fly.
+        inla.require("HKprocess", stop.on.error = TRUE)
 
         to.theta <- inla.models()$latent$fgn$hyper$theta2$to.theta
         from.theta <- inla.models()$latent$fgn$hyper$theta2$from.theta

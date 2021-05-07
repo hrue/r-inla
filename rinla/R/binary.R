@@ -82,11 +82,6 @@
         ii <- seq.int(inds[m], length.out = nps[m], by = 2L)
         return(cbind(xx[ii], xx[ii + 1L]))
     }
-    if (FALSE) {
-        if (inla.require("compiler")) {
-            fun <- compiler::cmpfun(fun, options = list(optimize = 3L))
-        }
-    }
     res <- lapply(1L:count, fun, xx, inds, nps)
 
     if (debug) {

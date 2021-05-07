@@ -231,7 +231,7 @@
 }
 
 `summary.inla.jmarginal` <- function(object) {
-    stopifnot(inla.require("sn"))
+    inla.require("sn", stop.on.error = TRUE)
     mode.sn <- function(xi, omega, alpha) {
         med <- sn::qsn(0.5, xi, omega, alpha)
         res <- optimize(
@@ -271,8 +271,8 @@
 }
 
 `inla.tjmarginal` <- function(jmarginal, A) {
-    stopifnot(inla.require("mpoly"))
-    stopifnot(inla.require("symmoments"))
+    inla.require("mpoly", stop.on.error = TRUE)
+    inla.require("symmoments", stop.on.error = TRUE)
 
     if (inherits(jmarginal, "inla")) {
         jmarginal <- jmarginal$selection
@@ -396,7 +396,7 @@
 }
 
 `inla.1djmarginal` <- function(jmarginal) {
-    stopifnot(inla.require("sn"))
+    inla.require("sn", stop.on.error = TRUE)
     if (inherits(jmarginal, "inla")) {
         jmarginal <- jmarginal$selection
     } else if (inherits(jmarginal, "inla.jmarginal")) {

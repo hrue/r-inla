@@ -144,13 +144,13 @@ inla.sens <- function(inlaObj, lambda = 0.3, nThreads = NULL, seed = NULL,
     ## Calculate distance between original marginal posterior and
     ## posterior with uncertainty added in each conditional density
     ## x_i | \theta, y
-    inla.require("doParallel")
+    inla.require("doParallel", stop.on.error = TRUE)
     if (is.null(nThreads)) {
         doParallel::registerDoParallel()
     } else {
         doParallel::registerDoParallel(nThreads)
     }
-    inla.require("foreach")
+    inla.require("foreach", stop.on.error = TRUE)
     nWorkers <- foreach::getDoParWorkers()
     breaks <- floor(seq(1, nLatent + 1, length.out = nWorkers + 1))
     ds <- foreach::foreach(idxW = 1:nWorkers, .combine = "c") %dopar% {
@@ -293,7 +293,7 @@ inla.sens.distance <- function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, ext
 }
 
 inla.sens.distance.skew <- function(muMarg, sdMarg, skMarg, prob, robMarg, nGrid, extraLen = 20) {
-    inla.require("sn")
+    inla.require("sn", stop.on.error = TRUE)
     ## Estimate required integration grid
     sdMax <- max(sdMarg)
     xs <- seq(-1, 1, length.out = nGrid) * sdMax * extraLen + mean(muMarg)

@@ -207,7 +207,7 @@
 }
 
 `inla.link.sn` <- function(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE) {
-    stopifnot(inla.require("sn"))
+    inla.require("sn", stop.on.error = TRUE)
 
     if (is.null(a)) {
         cache <- inla.pc.sn.cache()
