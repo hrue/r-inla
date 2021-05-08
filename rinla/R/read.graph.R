@@ -498,9 +498,12 @@
     ## we evaluate them here,  as they are set in '...'
     inla.eval.dots(...)
 
-    ## I add here some tools to view and summarize a such graphs...
-    inla.require("Rgraphviz", stop.on.error = TRUE)
-    inla.require("graph", stop.on.error = TRUE)
+    if (!inla.require("Rgraphviz")) {
+        stop("Package 'Rgraphiviz' is required but not installed. Please install from 'https://www.bioconductor.org'.")
+    }
+    if (!inla.require("graph")) {
+        stop("Package 'graph' is required but not installed. Please install from 'https://www.bioconductor.org'.")
+    }
 
     filter <- match.arg(filter, filter.args)
     if (is.null(attrs)) {
@@ -511,7 +514,7 @@
     } else {
         node.names <- as.character(1:x$n)
     }
-    g <- new("graphNEL", nodes = node.names, edgemode = "undirected")
+    g <- graph::graphNEL(nodes = node.names, edgemode = "undirected")
     for (i in 1L:x$n) {
         if (x$nnbs[i] > 0L) {
             j <- x$nbs[[i]]
