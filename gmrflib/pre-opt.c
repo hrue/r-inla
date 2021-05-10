@@ -42,9 +42,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 
 
-int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
-			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
-			const char *Aext_fnm, double Aext_precision,
+int GMRFLib_preopt_init(GMRFLib_preoptm_tp ** preoptm, int n, 
+			double *logprec_unstruct, double **logprec_unstruct_omp,
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
@@ -52,21 +51,6 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			int nbeta, double **covariate, double *prior_precision, 
 			GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
-	/*
-	 * define a HGMRF-model, of the form
-	 * 
-	 * \y_i ~ f(eta_i)
-	 * 
-	 * and
-	 * 
-	 * \eta_i | ... ~ N( \sum_k f_kc_k(i) + \sum_m z_mi\beta_m, 1/\lambda_unstruct)
-	 *
-	 *
-	 * About the interaction terms: ThHe ff_Qfunc is a 2d array [0...nf-1] x [0...nf-1] of interaction functions, which adds interaction terms between f[i][k]
-	 * and f[j][k], for i!=j and k = 0...MIN(f_graph[i]->n, f_graph[j]->n). Yes, it's a bit weird, but with this feature we can circumwent the requirement that
-	 * one field is only allowed to be present once in the predictor. This feature is for internal use only, really...
-	 */
-
 #define SET_ELEMENT(i_, j_, Qij_, id_) SET_ELEMENT_ADV(i_, j_, Qij_, 0, id_)
 #define SET_ELEMENT_FORCE(i_, j_, Qij_, id_) SET_ELEMENT_ADV(i_, j_, Qij_, 1, id_)
 #define SET_ELEMENT_ADV(i_, j_, Qij_, test, id_) \
@@ -83,41 +67,22 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		ntriples[id_]++;					\
 	}
 
-#define SET_ELEMENT_LC(i_, j_, Qij_) SET_ELEMENT_ADV_LC(i_, j_, Qij_, 0)
-#define SET_ELEMENT_FORCE_LC(i_, j_, Qij_) SET_ELEMENT_ADV_LC(i_, j_, Qij_, 1)
-#define SET_ELEMENT_ADV_LC(i_, j_, Qij_, test) if (Qij_ || (test)) {	\
-		if (ntriples_lc >= ntriples_max_lc) {			\
-			ntriples_max_lc += n;				\
-			ilist_lc = Realloc(ilist_lc, ntriples_max_lc, int); \
-			jlist_lc = Realloc(jlist_lc, ntriples_max_lc, int); \
-			Qijlist_lc = Realloc(Qijlist_lc, ntriples_max_lc, double); \
-		}							\
-		if(0)printf("set_element_lc %d %d %g\n", i_, j_, Qij_);	\
-		ilist_lc[ntriples_lc] = i_;				\
-		jlist_lc[ntriples_lc] = j_;				\
-		Qijlist_lc[ntriples_lc] = Qij_;				\
-		ntriples_lc++;						\
-	}
-
-	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL, *idxs = NULL,
-	    idx_map_eta = 0, *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx =
+	int i, ii, j, k, l, m, N, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL,
+	    *idx_map_f = NULL, *idx_map_beta = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx =
 	    NULL, fidx_add = 5;
-	int nu = 0, *uniq = NULL;
 	double **Qijlist = NULL, value, **ww = NULL;
-	float *weight;
-	GMRFLib_hgmrfm_arg_tp *arg = NULL;
+	GMRFLib_preoptm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 
-	if (!hgmrfm) {
+	if (!preoptm) {
 		return GMRFLib_SUCCESS;
 	}
 
-	*hgmrfm = Calloc(1, GMRFLib_hgmrfm_tp);
-	arg = Calloc(1, GMRFLib_hgmrfm_arg_tp);
+	*preoptm = Calloc(1, GMRFLib_preoptm_tp);
+	arg = Calloc(1, GMRFLib_preoptm_arg_tp);
 	n = IMAX(0, n);
 	nbeta = IMAX(0, nbeta);
 	nf = IMAX(0, nf);
-	arg->n = n;
 	arg->nf = nf;
 	arg->f_Qfunc = f_Qfunc;
 	arg->f_Qfunc_arg = f_Qfunc_arg;
@@ -165,29 +130,10 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	}
 
 	/*
-	 * need to read the Aext matrix, which is required. Allocate a new copy of precision, as we need to make it persistent. 
-	 */
-	if (Aext_fnm) {
-		double *pr = Calloc(1, double);
-
-		*pr = Aext_precision;
-		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, pr, NULL, NULL);
-		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
-		arg->n_ext = n_ext;
-		// GMRFLib_graph_printf(stdout, arg->eta_ext_graph);
-	} else {
-		arg->eta_ext_Q = NULL;
-		arg->eta_ext_graph = NULL;
-		arg->n_ext = 0;
-	}
-
-	/*
 	 * Our first job, is to go through the model and compute all interactions etc that are defined through the \eta-model. 
 	 * define the index-mapping. The outline of x is (eta, f[0], ..., beta[0], ...)
 	 */
-	idx_map_eta = offset = arg->n_ext;		       /* starting for 'eta' (not eta_ext) */
-	offset += n;					       /* including eta */
-
+	offset = 0;
 	if (nf) {
 		idx_map_f = Calloc(nf + 1, int);
 		for (i = 0; i < nf; i++) {
@@ -204,7 +150,6 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 		idx_map_beta[nbeta] = offset;
 	}
-	n_short = offset;
 
 	/*
 	 * we need to make sure that all nodes are present in the eta-graph. We do this by adding just zero's. This is not checked for when
@@ -224,22 +169,6 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	 */
 	N = offset;					       /* N is the grand-total. */
 	SET_ELEMENT_FORCE(N - 1, N - 1, 0.0, 0);
-
-	/*
-	 * Ensure also that eta_ext elements are set to zero, so we produce the joint graph. yes, we need the hole graph!!!! 
-	 */
-	if (idx_map_eta > 0) {
-		assert(arg->eta_ext_graph);
-
-		GMRFLib_graph_tp *g = arg->eta_ext_graph;
-		for (i = 0; i < g->n; i++) {
-			SET_ELEMENT_FORCE(i, i, 0.0, 0);
-			for (j = 0; j < g->nnbs[i]; j++) {
-				jj = g->nbs[i][j];
-				SET_ELEMENT_FORCE(i, jj, 0.0, 0);
-			}
-		}
-	}
 
 	/*
 	 * If we have cross-terms, make sure to mark these cross-terms as neigbours; just fill them with zero's. If they are connected in the data, then this value
@@ -292,57 +221,9 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 	}
 
-	int max_threads = IMIN(5, GMRFLib_openmp->max_threads_outer);
+	int max_threads = IMIN(2, GMRFLib_openmp->max_threads_outer);
 #pragma omp parallel sections num_threads(max_threads)
 	{
-#pragma omp section
-		{
-			/*
-			 * \eta_i^2 = 1 
-			 */
-			int thread = omp_get_thread_num();
-			int it;
-
-			for (it = 0; it < n; it++) {
-				SET_ELEMENT(idx_map_eta + it, idx_map_eta + it, 1.0, thread);
-			}
-		}
-#pragma omp section
-		{
-			/*
-			 * \eta_i f_jk = - 1_{c_j(i) = k} 
-			 */
-			if (nf) {
-				int thread = omp_get_thread_num();
-				int jt, kt, iit, it;
-
-				for (jt = 0; jt < nf; jt++) {
-					for (kt = 0; kt < f_graph[jt]->n; kt++) {
-						for (iit = 0; iit < nfidx[jt][kt]; iit++) {
-							it = fidx[jt][kt][iit];
-							SET_ELEMENT(idx_map_eta + it, idx_map_f[jt] + kt, -ww[jt][it], thread);
-						}
-					}
-				}
-			}
-		}
-
-#pragma omp section
-		{
-			/*
-			 * \eta_i \beta_j 
-			 */
-			if (nbeta) {
-				int thread = omp_get_thread_num();
-				int jt, it;
-
-				for (jt = 0; jt < nbeta; jt++) {
-					for (it = 0; it < n; it++) {
-						SET_ELEMENT(idx_map_eta + it, idx_map_beta[jt], -covariate[jt][it], thread);
-					}
-				}
-			}
-		}
 #pragma omp section
 		{
 			/*
@@ -392,10 +273,6 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	}						       /* END of parallel sections */
 
 	/*
-	 * this one could be heavy... 
-	 */
-
-	/*
 	 * f_jk f_ml = \sum 1_{i : c_j(i) == k && c_m(i) == l } 
 	 */
 	if (nf) {
@@ -414,88 +291,34 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-		/*
-		 * try go get better load-balancing moving the parallell into an inner loop (NEW) instead of making the first loop parallel (OLD) 
-		 */
-		if (1) {
-			/*
-			 * NEW VERSION, parallel inner loop 
-			 */
-
-			// FIXME("************************NEW");
-
-			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
-				j = j_idx[jm_idx];
-				m = m_idx[jm_idx];
+		for (jm_idx = 0; jm_idx < jm; jm_idx++) {
+			j = j_idx[jm_idx];
+			m = m_idx[jm_idx];
 
 #pragma omp parallel for private(k, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
-				for (k = 0; k < f_graph[j]->n; k++) {
-					int thread = omp_get_thread_num();
-					for (l = 0; l < f_graph[m]->n; l++) {
-						value = 0.0;
-						if (nfidx[j][k] < nfidx[m][l]) {
-							for (ii = 0; ii < nfidx[j][k]; ii++) {
-								i = fidx[j][k][ii];
-								if (c[m][i] == l) {
-									value += ww[j][i] * ww[m][i];
-								}
-							}
-						} else {
-							for (ii = 0; ii < nfidx[m][l]; ii++) {
-								i = fidx[m][l][ii];
-								if (c[j][i] == k) {
-									value += ww[j][i] * ww[m][i];
-								}
-							}
-						}
-						SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
-					}
-				}
-			}
-		} else {
-			/*
-			 * OLD VERSION, parallel outher loop 
-			 */
-
-			// FIXME("*****************OLD");
-
-#pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
-			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
+			for (k = 0; k < f_graph[j]->n; k++) {
 				int thread = omp_get_thread_num();
-
-				j = j_idx[jm_idx];
-				m = m_idx[jm_idx];
-
-				for (k = 0; k < f_graph[j]->n; k++) {
-					for (l = 0; l < f_graph[m]->n; l++) {
-						value = 0.0;
-						if (nfidx[j][k] < nfidx[m][l]) {
-							for (ii = 0; ii < nfidx[j][k]; ii++) {
-								i = fidx[j][k][ii];
-								if (c[m][i] == l) {
-									value += ww[j][i] * ww[m][i];
-								}
-							}
-						} else {
-							for (ii = 0; ii < nfidx[m][l]; ii++) {
-								i = fidx[m][l][ii];
-								if (c[j][i] == k) {
-									value += ww[j][i] * ww[m][i];
-								}
+				for (l = 0; l < f_graph[m]->n; l++) {
+					value = 0.0;
+					if (nfidx[j][k] < nfidx[m][l]) {
+						for (ii = 0; ii < nfidx[j][k]; ii++) {
+							i = fidx[j][k][ii];
+							if (c[m][i] == l) {
+								value += ww[j][i] * ww[m][i];
 							}
 						}
-						SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
+					} else {
+						for (ii = 0; ii < nfidx[m][l]; ii++) {
+							i = fidx[m][l][ii];
+							if (c[j][i] == k) {
+								value += ww[j][i] * ww[m][i];
+							}
+						}
 					}
+					SET_ELEMENT(idx_map_f[j] + k, idx_map_f[m] + l, value, thread);
 				}
 			}
-		}
-	}
-
-	if (0) {
-		for (k = 0; k < tmax; k++)
-			for (i = 0; i < ntriples[k]; i++) {
-				printf("QQ %d %d %d %g\n", k, ilist[k][i], jlist[k][i], Qijlist[k][i]);
-			}
+		}  
 	}
 
 	/*
@@ -509,12 +332,6 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	nntriples = 0;
 	for (i = 0; i < tmax; i++) {
 		nntriples += ntriples[i];
-	}
-
-	if (0) {
-		for (i = 0; i < tmax; i++) {
-			printf("i %d ntriples %d\n", i, ntriples[i]);
-		}
 	}
 
 	iilist = Calloc(nntriples, int);
@@ -532,12 +349,8 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 	}
 
-	if (0) {
-		for (i = 0; i < nntriples; i++) {
-			printf("ALL %d %d %g\n", iilist[i], jjlist[i], QQijlist[i]);
-		}
-	}
-	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct,
+	GMRFLib_tabulate_Qfunc_from_list(&(arg->latent_Qtab), 
+					 &(arg->latent_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct,
 					 logprec_unstruct_omp);
 	/*
 	 * cleanup already here, as we do not need them anymore 
@@ -561,16 +374,16 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	 * now it is time to create the full graph by inserting the ones from the ffields.
 	 */
 	GMRFLib_ged_tp *ged = NULL;
-	GMRFLib_ged_init(&ged, arg->eta_graph);
+	GMRFLib_ged_init(&ged, arg->latent_graph);
 	if (nf) {
 		for (j = 0; j < nf; j++) {
 			GMRFLib_ged_insert_graph(ged, f_graph[j], idx_map_f[j]);
 		}
 	}
-	GMRFLib_ged_build(&((*hgmrfm)->graph), ged);
+	GMRFLib_ged_build(&((*preoptm)->graph), ged);
 	GMRFLib_ged_free(ged);
-	(*hgmrfm)->Qfunc = GMRFLib_hgmrfm_Qfunc;
-	(*hgmrfm)->Qfunc_arg = (void *) arg;
+	(*preoptm)->Qfunc = GMRFLib_preoptm_Qfunc;
+	(*preoptm)->Qfunc_arg = (void *) arg;
 
 	/*
 	 * build the constraint, if any. Only simple sum-to-zero constraints are supported.
@@ -581,9 +394,6 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			nconstr += (f_sumzero[k] ? 1 : 0);
 		}
 	}
-
-	GMRFLib_iuniques(&nu, &uniq, eta_sumzero, n + n_ext);
-	nconstr += nu;
 
 	if (nf && f_constr) {
 		for (k = 0; k < nf; k++) {
@@ -597,7 +407,7 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_constr_tp *constr = NULL;
 		int constr_no;
 		GMRFLib_make_empty_constr(&constr);
-		constr->a_matrix = Calloc((*hgmrfm)->graph->n * nconstr, double);
+		constr->a_matrix = Calloc((*preoptm)->graph->n * nconstr, double);
 		constr->e_vector = Calloc(nconstr, double);
 		constr->nc = nconstr;
 		constr_no = 0;
@@ -627,34 +437,20 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-		if (nu) {
-			for (k = 0; k < nu; k++) {
-				ii = uniq[k];
-				for (i = 0; i < n + n_ext; i++) {
-					constr->a_matrix[i * constr->nc + constr_no] = (eta_sumzero[i] == ii ? 1.0 : 0.0);
-				}
-				constr->e_vector[constr_no] = 0.0;
-				constr_no++;
-			}
-		}
-
 		GMRFLib_ASSERT(constr_no == constr->nc, GMRFLib_ESNH);
-		GMRFLib_prepare_constr(constr, (*hgmrfm)->graph, 0);
-		(*hgmrfm)->constr = constr;
+		GMRFLib_prepare_constr(constr, (*preoptm)->graph, 0);
+		(*preoptm)->constr = constr;
 	} else {
-		(*hgmrfm)->constr = NULL;
+		(*preoptm)->constr = NULL;
 	}
 	arg->idx_map_f = idx_map_f;
 	arg->idx_map_beta = idx_map_beta;
-	arg->idx_map_lc = idx_map_lc;
-	arg->N = (*hgmrfm)->graph->n;
-	GMRFLib_ASSERT(arg->N == N, GMRFLib_ESNH);
-	arg->what_type = Calloc(N, GMRFLib_hgmrfm_type_tp);
+	arg->n = (*preoptm)->graph->n;
+	arg->what_type = Calloc(N, GMRFLib_preoptm_type_tp);
 	for (i = 0; i < N; i++) {
-		arg->what_type[i] = GMRFLib_hgmrfm_what_type(i, arg);
+		arg->what_type[i] = GMRFLib_preoptm_what_type(i, arg);
 	}
 
-	Free(uniq);
 	if (nf) {
 		for (k = 0; k < nf; k++) {
 			for (m = 0; m < f_graph[k]->n; m++) {
@@ -673,48 +469,19 @@ int GMRFLib_preopt_init(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		Free(ww);
 	}
 #undef SET_ELEMENT
-#undef SET_ELEMENT_LC
 #undef SET_ELEMENT_FORCE
-#undef SET_ELEMENT_FORCE_LC
 #undef SET_ELEMENT_ADV
-#undef SET_ELEMENT_ADV_LC
-
-	if (0) {
-		GMRFLib_hgmrfm_tp *h = *hgmrfm;
-
-		printf("view hgmrf\n");
-		GMRFLib_graph_printf(stdout, h->graph);
-
-		int nn = h->graph->n;
-		if (h->constr && h->constr->nc) {
-			for (j = 0; j < h->constr->nc; j++) {
-				printf("constr %d\n", j);
-
-				for (i = 0; i < nn; i++) {
-					printf("%.1f ", h->constr->a_matrix[i * h->constr->nc + j]);
-				}
-				printf("| %.f\n", h->constr->e_vector[j]);
-			}
-		}
-
-		GMRFLib_Qfunc_print(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
-	}
-
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_hgmrfm_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_hgmrfm_arg_tp * a)
+GMRFLib_preoptm_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preoptm_arg_tp * a)
 {
 	int i;
-	GMRFLib_hgmrfm_type_tp t = { GMRFLib_HGMRFM_TP___VOID, -1, -1 };
-	if (node < a->n + a->n_ext) {
-		t.tp = GMRFLib_HGMRFM_TP_ETA;
-		t.idx = node;
-		t.tp_idx = 0;
-	} else if (a->nf && node < a->idx_map_f[a->nf]) {
-		t.tp = GMRFLib_HGMRFM_TP_F;
+	GMRFLib_preoptm_type_tp t = { GMRFLib_PREOPTM_TP___VOID, -1, -1 };
+	if (a->nf && node < a->idx_map_f[a->nf]) {
+		t.tp = GMRFLib_PREOPTM_TP_F;
 		for (i = 0; i < a->nf; i++) {
 			if (node < a->idx_map_f[i + 1]) {
 				t.tp_idx = i;
@@ -723,7 +490,7 @@ GMRFLib_hgmrfm_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 			}
 		}
 	} else if (a->nbeta && node < a->idx_map_beta[a->nbeta]) {
-		t.tp = GMRFLib_HGMRFM_TP_BETA;
+		t.tp = GMRFLib_PREOPTM_TP_BETA;
 		t.tp_idx = node - a->idx_map_beta[0];
 		t.idx = 0;
 	} else {
@@ -739,46 +506,25 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	}
 
 	/*
-	 * this is Qfunction for the hgmrfm-function 
+	 * this is Qfunction for the preoptm-function 
 	 */
-	GMRFLib_hgmrfm_arg_tp *a = NULL;
+	GMRFLib_preoptm_arg_tp *a = NULL;
 	int ii, jj;
 	double value = 0.0;
-	GMRFLib_hgmrfm_type_tp it, jt;
+	GMRFLib_preoptm_type_tp it, jt;
 
-	a = (GMRFLib_hgmrfm_arg_tp *) arg;
+	a = (GMRFLib_preoptm_arg_tp *) arg;
 	ii = IMIN(node, nnode);
 	jj = IMAX(node, nnode);
 
-	// old non-caching code: it = GMRFLib_hgmrfm_what_type(ii, a); jt = GMRFLib_hgmrfm_what_type(jj, a);
+	// old non-caching code: it = GMRFLib_preoptm_what_type(ii, a); jt = GMRFLib_preoptm_what_type(jj, a);
 	it = a->what_type[ii];
 	jt = a->what_type[jj];
 
-	if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_graph)) {
-		value += a->eta_Q->Qfunc(ii, jj, NULL, a->eta_Q->Qfunc_arg);
-	}
-	if (a->lc_Q && ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->lc_graph))) {
-		value += a->lc_Q->Qfunc(ii, jj, NULL, a->lc_Q->Qfunc_arg);
-	}
 	switch (it.tp) {
-	case GMRFLib_HGMRFM_TP_ETA:
+	case GMRFLib_PREOPTM_TP_F:
 		switch (jt.tp) {
-		case GMRFLib_HGMRFM_TP_ETA:
-			if (a->eta_ext_graph) {
-				if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_ext_graph)) {
-					value += a->eta_ext_Q->Qfunc(ii, jj, NULL, a->eta_ext_Q->Qfunc_arg);
-				}
-			}
-			return value;
-		default:
-			return value;
-		}
-		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
-		break;
-
-	case GMRFLib_HGMRFM_TP_F:
-		switch (jt.tp) {
-		case GMRFLib_HGMRFM_TP_F:
+		case GMRFLib_PREOPTM_TP_F:
 			if (it.tp_idx == jt.tp_idx) {
 				if ((it.idx == jt.idx) || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
 					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, NULL, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
@@ -795,9 +541,7 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 				}
 			}
 			return value;
-		case GMRFLib_HGMRFM_TP_BETA:
-			return value;
-		case GMRFLib_HGMRFM_TP_LC:
+		case GMRFLib_PREOPTM_TP_BETA:
 			return value;
 		default:
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
@@ -805,23 +549,17 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		break;
 
-	case GMRFLib_HGMRFM_TP_BETA:
+	case GMRFLib_PREOPTM_TP_BETA:
 		switch (jt.tp) {
-		case GMRFLib_HGMRFM_TP_BETA:
+		case GMRFLib_PREOPTM_TP_BETA:
 			if (it.tp_idx == jt.tp_idx) {
 				value += (a->prior_precision ? a->prior_precision[it.tp_idx] : 0.0);
 			}
 			return value;
-		case GMRFLib_HGMRFM_TP_LC:
-			return value;
 		default:
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
-		break;
-
-	case GMRFLib_HGMRFM_TP_LC:
-		return value;
 		break;
 
 	default:
@@ -832,25 +570,24 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	return value;
 }
 
-int GMRFLib_free_preopt(GMRFLib_hgmrfm_tp * hgmrfm)
+int GMRFLib_free_preopt(GMRFLib_preoptm_tp * preoptm)
 {
-	if (!hgmrfm) {
+	if (!preoptm) {
 		return GMRFLib_SUCCESS;
 	}
-	GMRFLib_hgmrfm_arg_tp *a = (GMRFLib_hgmrfm_arg_tp *) hgmrfm->Qfunc_arg;
+	GMRFLib_preoptm_arg_tp *a = (GMRFLib_preoptm_arg_tp *) preoptm->Qfunc_arg;
 
-	GMRFLib_graph_free(hgmrfm->graph);
-	GMRFLib_free_constr(hgmrfm->constr);
-	GMRFLib_free_tabulate_Qfunc(a->eta_Q);
-	GMRFLib_graph_free(a->eta_graph);
-	GMRFLib_free_tabulate_Qfunc(a->lc_Q);
-	GMRFLib_graph_free(a->lc_graph);
+	GMRFLib_graph_free(preoptm->graph);
+	GMRFLib_free_constr(preoptm->constr);
+
+	GMRFLib_free_tabulate_Qfunc(a->latent_Qtab);
+	GMRFLib_free_graph(a->latent_graph);
 	Free(a->idx_map_f);
 	Free(a->idx_map_beta);
-	Free(a->idx_map_lc);
 	Free(a->what_type);
+
 	Free(a);
-	Free(hgmrfm);
+	Free(preoptm);
 
 	return GMRFLib_SUCCESS;
 }
