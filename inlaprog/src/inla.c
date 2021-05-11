@@ -30301,8 +30301,9 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_preopt_tp *preopt = NULL;
 		
 		FIXME("enter preopt");
-		GMRFLib_preopt_init(&preopt, mb->nf, mb->f_graph,
-				    mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
+		GMRFLib_preopt_init(&preopt, 
+				    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights, 
+				    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 				    mb->ff_Qfunc, mb->ff_Qfunc_arg,
 				    mb->nlinear, mb->linear_covariate, mb->linear_precision,
 				    mb->ai_par);

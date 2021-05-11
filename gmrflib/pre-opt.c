@@ -43,7 +43,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, 
-			int nf, 
+			int n, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
@@ -53,6 +53,23 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 	int i, ii, j, k, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset; 
 	GMRFLib_preopt_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
+
+	if (1) {
+		
+		printf("\tn %1d nf %1d nbeta %1d\n", n, nf, nbeta);
+
+		for(i = 0; i < n; i++) {
+			printf("data %1d\n", i);
+
+			for(j = 0; j < nf; j++) {
+				printf("\t\tf[%1d]  index %1d  weight %.6f\n", j, c[j][i], (w && w[j] ? w[j][i] : 1.0)); 
+			}
+			for(j = 0; j < nbeta; j++) {
+				printf("\t\tbeta[%1d]  x %.6f\n", j, covariate[j][i]); 
+			}
+		}
+	}
+
 
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
