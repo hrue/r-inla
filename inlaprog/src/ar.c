@@ -158,7 +158,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	if (debug) {
 		printf("A\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, A, NULL);
+		GMRFLib_printf_gsl_matrix(stdout, A, NULL);
 	}
 
 	int s;
@@ -183,7 +183,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	if (debug) {
 		printf("Sigma\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, Sigma, NULL);
+		GMRFLib_printf_gsl_matrix(stdout, Sigma, NULL);
 	}
 
 	gsl_linalg_LU_decomp(Sigma, perm, &s);
@@ -409,7 +409,7 @@ int ar_test1()
 		}
 
 		GMRFLib_graph_mk_linear(&g, def.n, def.p, 0);
-		GMRFLib_Qfunc_print(stdout, g, Qfunc_ar, &def);
+		GMRFLib_printf_Qfunc(stdout, g, Qfunc_ar, &def);
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");

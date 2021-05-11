@@ -926,7 +926,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
+int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 {
 	// A is m x n matrix
 #pragma omp critical
@@ -945,7 +945,7 @@ int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
 }
 
 
-int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format)
+int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format)
 {
 	size_t i, j;
 
@@ -958,7 +958,7 @@ int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *forma
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_vector_fprintf(FILE * fp, gsl_vector * vector, const char *format)
+int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format)
 {
 	size_t i;
 

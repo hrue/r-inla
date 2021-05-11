@@ -114,7 +114,7 @@ static const char GitID[] = GITCOMMIT;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0, 0};
 
 char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
@@ -2417,7 +2417,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 	if (0) {
 		FILE *fp = fopen("g.dat", "w");
-		GMRFLib_graph_printf(fp, new_graph[0]);
+		GMRFLib_printf_graph(fp, new_graph[0]);
 		fclose(fp);
 	}
 
@@ -2770,7 +2770,7 @@ double Qfunc_dmatern(int i, int j, double *UNUSED(values), void *arg)
 			}
 			if (0) {
 				FILE *fp = fopen("Q.dat", "w");
-				GMRFLib_gsl_matrix_fprintf(fp, a->Q[id], "%.16f ");
+				GMRFLib_printf_gsl_matrix(fp, a->Q[id], "%.16f ");
 				fclose(fp);
 			}
 			GMRFLib_gsl_spd_inverse(a->Q[id]);
@@ -3083,7 +3083,7 @@ double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 			for (i = 0; i < n_theta; i++)
 				printf("vec[%1d] = %.12f\n", i, vec[i]);
 			FIXME("hold->Q");
-			GMRFLib_gsl_matrix_fprintf(stdout, hold->Q, " %.12f");
+			GMRFLib_printf_gsl_matrix(stdout, hold->Q, " %.12f");
 		}
 
 		GMRFLib_gsl_spd_inverse(hold->Q);
@@ -4137,9 +4137,9 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 		}							\
 		assert(k == n_x);					\
 		if (debug) printf("Covmatrix:\n");			\
-		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q_, NULL); \
+		if (debug) GMRFLib_printf_gsl_matrix(stdout, Q_, NULL); \
 		if (debug) printf("Precision:\n");			\
-		if (debug) GMRFLib_gsl_matrix_fprintf(stdout, Q_, NULL); \
+		if (debug) GMRFLib_printf_gsl_matrix(stdout, Q_, NULL); \
 		GMRFLib_gsl_spd_inverse(Q_);				\
 	}
 
@@ -18205,7 +18205,7 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 	GMRFLib_graph_free(g);
 
 	if (0) {
-		GMRFLib_graph_printf(stdout, *graph);
+		GMRFLib_printf_graph(stdout, *graph);
 		GMRFLib_graph_write("GRAPH", *graph);
 	}
 
@@ -23514,7 +23514,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_BESAG;
 
 		// arg->log_prec[0][0] = 0;
-		// GMRFLib_Qfunc_print(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
+		// GMRFLib_printf_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
 		break;
 	}
 
@@ -25450,7 +25450,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				Free(mb->f_constr[mb->nf]);
 				mb->f_constr[mb->nf] = c;
 			}
-			// GMRFLib_print_constr(stdout, c, mb->f_graph[mb->nf]);
+			// GMRFLib_constr_printf(stdout, c, mb->f_graph[mb->nf]);
 
 			if (mb->f_bfunc2[mb->nf]) {
 				/*
@@ -30296,6 +30296,22 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+
+	if (G.preopt_mode) {
+		GMRFLib_preopt_tp *preopt = NULL;
+		
+		FIXME("enter preopt");
+		GMRFLib_preopt_init(&preopt, mb->nf, mb->f_graph,
+				    mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
+				    mb->ff_Qfunc, mb->ff_Qfunc_arg,
+				    mb->nlinear, mb->linear_covariate, mb->linear_precision,
+				    mb->ai_par);
+		GMRFLib_preopt_test(preopt);
+		GMRFLib_free_preopt(preopt);
+		exit(0);
+	}
+
+
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
@@ -34274,7 +34290,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_graph_tp *g;
 		inla_make_fgn_graph(&g, arg);
-		GMRFLib_graph_printf(stdout, g);
+		GMRFLib_printf_graph(stdout, g);
 		exit(0);
 	}
 		break;
@@ -34493,10 +34509,10 @@ int testit(int argc, char **argv)
 		gsl_matrix_view m = gsl_matrix_view_array(a_data, 4, 4);
 		gsl_matrix *A = GMRFLib_gsl_duplicate_matrix(&m.matrix);
 
-		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
+		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 		printf("\n");
 		GMRFLib_gsl_ginv(A, GMRFLib_eps(0.5), -1);
-		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.12f");
+		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 
 		exit(EXIT_SUCCESS);
 	}
@@ -35024,10 +35040,10 @@ int testit(int argc, char **argv)
 		gsl_matrix_set(A, 1, 2, 0.0);
 		gsl_matrix_set(A, 2, 2, 1.0);
 
-		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.4f");
+		GMRFLib_printf_gsl_matrix(stdout, A, " %.4f");
 		GMRFLib_gsl_mgs(A);
 		printf("\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, A, " %.4f");
+		GMRFLib_printf_gsl_matrix(stdout, A, " %.4f");
 	}
 		break;
 
@@ -35113,11 +35129,11 @@ int testit(int argc, char **argv)
 			gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
 			gsl_eigen_symmv(Q, val, vec, work);
 
-			GMRFLib_gsl_matrix_fprintf(stdout, Q, " %8.4f");
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %8.4f");
 			printf("\n");
-			GMRFLib_gsl_matrix_fprintf(stdout, vec, " %8.4f");
+			GMRFLib_printf_gsl_matrix(stdout, vec, " %8.4f");
 			printf("\n");
-			GMRFLib_gsl_vector_fprintf(stdout, val, " %8.4f");
+			GMRFLib_printf_gsl_vector(stdout, val, " %8.4f");
 		}
 	}
 		break;
@@ -35446,8 +35462,12 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cpL")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cpLP")) != -1) {
 		switch (opt) {
+		case 'P':
+			G.preopt_mode = 1;
+			break;
+			
 		case 'b':
 			G.binary = 1;
 			break;

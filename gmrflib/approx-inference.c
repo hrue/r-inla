@@ -1296,7 +1296,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 
 	if (0) {
 		FILE *fffp = fopen("constr.dat", "w");
-		GMRFLib_print_constr(fffp, constr, graph);
+		GMRFLib_printf_constr(fffp, constr, graph);
 		exit(0);
 	}
 
@@ -3618,7 +3618,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Eigenvectors of the Hessian\n");
-			GMRFLib_gsl_matrix_fprintf(ai_par->fp_log, eigen_vectors, "\t%7.3f");
+			GMRFLib_printf_gsl_matrix(ai_par->fp_log, eigen_vectors, "\t%7.3f");
 			fprintf(ai_par->fp_log, "Eigenvalues of the Hessian\n");
 			gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%12.3f");
 		}
@@ -5958,7 +5958,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		mo->configs[id]->graph = g;
 		if (debug) {
 			printf("remapped graph\n");
-			GMRFLib_graph_printf(stdout, g);
+			GMRFLib_printf_graph(stdout, g);
 		}
 
 		int nelm;				       /* number of elements in Q; double conting */
@@ -5977,7 +5977,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 
 		if (debug) {
 			printf("constraints\n");
-			GMRFLib_print_constr(stdout, c, gmrf_approx->sub_graph);
+			GMRFLib_printf_constr(stdout, c, gmrf_approx->sub_graph);
 		}
 
 		int *i, *j, ii, jj, k, kk;

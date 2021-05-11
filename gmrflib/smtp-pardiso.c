@@ -1184,12 +1184,12 @@ int my_pardiso_test1(void)
 	// GMRFLib_csr_print(stdout, csr2);
 
 	GMRFLib_csr2Q(&Qtab, &g, csr2);
-	// GMRFLib_Qfunc_print(stdout, g, Qtab->Qfunc, Qtab->Qfunc_arg);
+	// GMRFLib_printf_Qfunc(stdout, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
 	int *perm = NULL;
 	int i, k, nrhs;
 
-	// GMRFLib_graph_printf(stdout, g);
+	// GMRFLib_printf_graph(stdout, g);
 	GMRFLib_pardiso_store_tp *store = NULL;
 	GMRFLib_pardiso_init(&store);
 	GMRFLib_pardiso_reorder(store, g);
@@ -1352,7 +1352,7 @@ int my_pardiso_test3(void)
 	GMRFLib_csr_print(stdout, csr);
 	P(csr->n);
 
-	// GMRFLib_graph_printf(stdout, g);
+	// GMRFLib_printf_graph(stdout, g);
 	GMRFLib_pardiso_store_tp *store = NULL;
 	GMRFLib_pardiso_init(&store);
 	GMRFLib_pardiso_reorder(store, g);

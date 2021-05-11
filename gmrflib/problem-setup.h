@@ -127,7 +127,7 @@ __BEGIN_DECLS
 
   Two other operations on constraints are available:
   - To print the contents of the \c GMRFLib_constr_tp -object, call 
-  \c GMRFLib_print_constr().
+  \c GMRFLib_printf_constr().
   - To evaluate the expressions 
   \f$ \mbox{\boldmath $Ax-e$} \f$ and \f$ (\mbox{\boldmath $Ax-e$})^T\mbox{\boldmath
   $Q$}(\mbox{\boldmath $Ax-e$}) \f$ for a given value of the GMRF <em>\b x</em>, call \c
@@ -490,7 +490,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double 
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
 int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
-int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem);
 int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x, double *b_add,
 			  char *mask, GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);

@@ -241,7 +241,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph)
 {
 	int i, j;
 	FILE *fpp = NULL;
@@ -1160,7 +1160,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	int i, j, jj;
 
@@ -1168,10 +1168,10 @@ int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * 
 		fp = stdout;
 	}
 	for (i = 0; i < graph->n; i++) {
-		fprintf(fp, "Q[ %1d , %1d ] = %.12f\n", i, i, Qfunc(i, i, NULL, Qfunc_arg));
+		fprintf(fp, "Q[ %1d , %1d ] = %.10f\n", i, i, Qfunc(i, i, NULL, Qfunc_arg));
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			jj = graph->nbs[i][j];
-			fprintf(fp, "\tQ[ %1d , %1d ] = %.12f\n", i, jj, Qfunc(i, jj, NULL, Qfunc_arg));
+			fprintf(fp, "\tQ[ %1d , %1d ] = %.10f\n", i, jj, Qfunc(i, jj, NULL, Qfunc_arg));
 		}
 	}
 	return GMRFLib_SUCCESS;

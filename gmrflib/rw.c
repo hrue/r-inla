@@ -893,7 +893,7 @@ int GMRFLib_crw_scale(void *def)
 	}
 
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
-	// GMRFLib_print_constr(stdout, constr, graph);
+	// GMRFLib_printf_constr(stdout, constr, graph);
 
 	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
 	GMRFLib_problem_tp *problem = NULL;

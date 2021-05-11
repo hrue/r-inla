@@ -174,7 +174,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, pr, NULL, NULL);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
 		arg->n_ext = n_ext;
-		// GMRFLib_graph_printf(stdout, arg->eta_ext_graph);
+		// GMRFLib_printf_graph(stdout, arg->eta_ext_graph);
 	} else {
 		arg->eta_ext_Q = NULL;
 		arg->eta_ext_graph = NULL;
@@ -764,7 +764,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		GMRFLib_hgmrfm_tp *h = *hgmrfm;
 
 		printf("view hgmrf\n");
-		GMRFLib_graph_printf(stdout, h->graph);
+		GMRFLib_printf_graph(stdout, h->graph);
 
 		int nn = h->graph->n;
 		if (h->constr && h->constr->nc) {
@@ -778,7 +778,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-		GMRFLib_Qfunc_print(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
+		GMRFLib_printf_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);

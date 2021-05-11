@@ -1141,7 +1141,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 						printf("\t  dir%.2zu", j + 1);
 					}
 					printf("\n");
-					GMRFLib_gsl_matrix_fprintf(G.ai_par->fp_log, A, "\t %6.3f");
+					GMRFLib_printf_gsl_matrix(G.ai_par->fp_log, A, "\t %6.3f");
 				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
 				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);

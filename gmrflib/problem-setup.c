@@ -748,7 +748,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 							GMRFLib_prepare_constr((*problem)->sub_constr, (*problem)->sub_graph, GMRFLib_FALSE);
 
 							if (debug) {
-								GMRFLib_print_constr(stdout, (*problem)->sub_constr, (*problem)->sub_graph);
+								GMRFLib_printf_constr(stdout, (*problem)->sub_constr, (*problem)->sub_graph);
 							}
 						}
 						Free(map);
@@ -1276,7 +1276,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
+int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 {
 	int i, j;
 	FILE *fpp = NULL;
@@ -1356,7 +1356,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		Free(scale);
 		if (debug) {
 			printf("scaled constr\n");
-			GMRFLib_print_constr(stdout, constr, graph);
+			GMRFLib_printf_constr(stdout, constr, graph);
 		}
 	}
 
@@ -1645,7 +1645,7 @@ int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem)
 	GMRFLib_print_darray(fpp, &(problem->log_normc), 1, "log_normc");
 	GMRFLib_print_darray(fpp, &(problem->exp_corr), 1, "exp_corr");
 
-	GMRFLib_print_constr(fpp, problem->sub_constr, problem->sub_graph);
+	GMRFLib_printf_constr(fpp, problem->sub_constr, problem->sub_graph);
 
 	fflush(fpp);
 	return GMRFLib_SUCCESS;

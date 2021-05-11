@@ -1940,6 +1940,7 @@ typedef struct {
 	int reorder;					       /* reorder strategy: -1 for optimize */
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
+	int preopt_mode;				       /* enable pre-opt. this is temporary option */
 } G_tp;
 
 

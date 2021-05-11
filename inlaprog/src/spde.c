@@ -360,7 +360,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 		FIXME("write graph to file spde-graph.dat");
 		fp = fopen("spde-graph.dat", "w");
-		GMRFLib_graph_printf(fp, model->graph);
+		GMRFLib_printf_graph(fp, model->graph);
 		fclose(fp);
 	}
 

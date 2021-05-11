@@ -183,7 +183,7 @@ typedef struct {
 size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg);
 int *GMRFLib_graph_cc(GMRFLib_graph_tp * g);
-int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
 int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph);
@@ -208,7 +208,7 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold);
 int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1);
-int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph);
+int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename);
