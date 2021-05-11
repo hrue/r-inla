@@ -44,6 +44,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
+#define IDX_ALLOC_ADD 64L
+
 /* 
  *  compile with -DGMRFLib_MEMCHECK to enable the internal memcheck utility. Do not work with OPENMP. compile with -DGMRFLib_MEMINFO to enable the meminfo utility.
  *  compute with -DGMRFLib_TRACE_MEMORY to view memory allocation
@@ -1249,10 +1251,9 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
-	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx_tp);
-	(*hold)->idx = Calloc(alloc_add, int);
-	(*hold)->n_alloc = alloc_add;
+	(*hold)->idx = Calloc(IDX_ALLOC_ADD, int);
+	(*hold)->n_alloc = IDX_ALLOC_ADD;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
@@ -1260,12 +1261,11 @@ int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 
 int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 {
-	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx2_tp);
 	(*hold)->idx = Calloc(2, int *);
-	(*hold)->idx[0] = Calloc(alloc_add, int);
-	(*hold)->idx[1] = Calloc(alloc_add, int);
-	(*hold)->n_alloc = alloc_add;
+	(*hold)->idx[0] = Calloc(IDX_ALLOC_ADD, int);
+	(*hold)->idx[1] = Calloc(IDX_ALLOC_ADD, int);
+	(*hold)->n_alloc = IDX_ALLOC_ADD;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
@@ -1273,13 +1273,11 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 {
-	int alloc_add = 32L;
 	if (*hold == NULL) {
 		GMRFLib_idx_create(hold);
 	}
-	assert((*hold)->n <= (*hold)->n_alloc);
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(alloc_add, (*hold)->n / 12L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
 	}
 	(*hold)->idx[(*hold)->n] = idx;
@@ -1290,13 +1288,11 @@ int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 
 int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 {
-	int alloc_add = 32L;
 	if (*hold == NULL) {
 		GMRFLib_idx2_create(hold);
 	}
-	assert((*hold)->n <= (*hold)->n_alloc);
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(alloc_add, (*hold)->n / 12L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
 		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
 		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
 	}
@@ -1304,6 +1300,25 @@ int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 	(*hold)->idx[1][(*hold)->n] = idx1;
 	(*hold)->n++;
 
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
+{
+	if (hold) {
+		hold->idx = Realloc(hold->idx, IMAX(1, hold->n), int);
+		hold->n_alloc = hold->n;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
+{
+	if (hold) {
+		hold->idx[0] = Realloc(hold->idx[0], IMAX(1, hold->n), int);
+		hold->idx[1] = Realloc(hold->idx[1], IMAX(1, hold->n), int);
+		hold->n_alloc = hold->n;
+	}
 	return GMRFLib_SUCCESS;
 }
 
@@ -1350,3 +1365,4 @@ int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 }
 
 #undef MEMINFO
+#undef IDX_ALLOC_ADD
