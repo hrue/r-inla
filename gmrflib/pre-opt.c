@@ -53,7 +53,7 @@ int GMRFLib_preopt_init(GMRFLib_preoptm_tp ** preoptm, int n,
 {
 #define SET_ELEMENT(i_, j_, Qij_, id_) SET_ELEMENT_ADV(i_, j_, Qij_, 0, id_)
 #define SET_ELEMENT_FORCE(i_, j_, Qij_, id_) SET_ELEMENT_ADV(i_, j_, Qij_, 1, id_)
-#define SET_ELEMENT_ADV(i_, j_, Qij_, test, id_) \
+#define SET_ELEMENT_ADV(i_, j_, Qij_, test, id_)			\
 	if (Qij_ || (test)) {						\
 		if (ntriples[id_] >= ntriples_max[id_]) {		\
 			ntriples_max[id_] += n;				\
@@ -68,8 +68,8 @@ int GMRFLib_preopt_init(GMRFLib_preoptm_tp ** preoptm, int n,
 	}
 
 	int i, ii, j, k, l, m, N, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL,
-	    *idx_map_f = NULL, *idx_map_beta = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx =
-	    NULL, fidx_add = 5;
+		*idx_map_f = NULL, *idx_map_beta = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx =
+		NULL, fidx_add = 5;
 	double **Qijlist = NULL, value, **ww = NULL;
 	GMRFLib_preoptm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
@@ -80,7 +80,6 @@ int GMRFLib_preopt_init(GMRFLib_preoptm_tp ** preoptm, int n,
 
 	*preoptm = Calloc(1, GMRFLib_preoptm_tp);
 	arg = Calloc(1, GMRFLib_preoptm_arg_tp);
-	n = IMAX(0, n);
 	nbeta = IMAX(0, nbeta);
 	nf = IMAX(0, nf);
 	arg->nf = nf;
@@ -480,6 +479,7 @@ GMRFLib_preoptm_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preoptm_arg_t
 {
 	int i;
 	GMRFLib_preoptm_type_tp t = { GMRFLib_PREOPTM_TP___VOID, -1, -1 };
+
 	if (a->nf && node < a->idx_map_f[a->nf]) {
 		t.tp = GMRFLib_PREOPTM_TP_F;
 		for (i = 0; i < a->nf; i++) {
@@ -496,6 +496,7 @@ GMRFLib_preoptm_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preoptm_arg_t
 	} else {
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, t);
 	}
+
 	return t;
 }
 
