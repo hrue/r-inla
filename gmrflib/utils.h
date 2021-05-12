@@ -77,6 +77,13 @@ typedef struct
 }
 	GMRFLib_idx2_tp;
 
+typedef struct
+{
+	int n;
+	int n_alloc;
+	double *val;
+}
+	GMRFLib_val_tp;
 
 /*
  */
@@ -107,13 +114,18 @@ int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1);
 int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold);
 int GMRFLib_idx2_free(GMRFLib_idx2_tp *hold);
-int GMRFLib_idx2_print(FILE *fp, GMRFLib_idx2_tp *hold, char *msg);
+int GMRFLib_idx2_printf(FILE *fp, GMRFLib_idx2_tp *hold, char *msg);
 int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold);
 int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx);
 int GMRFLib_idx_create(GMRFLib_idx_tp **hold);
 int GMRFLib_idx_free(GMRFLib_idx_tp *hold);
-int GMRFLib_idx_print(FILE *fp, GMRFLib_idx_tp *hold, char *msg);
+int GMRFLib_idx_printf(FILE *fp, GMRFLib_idx_tp *hold, char *msg);
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
+int GMRFLib_val_add(GMRFLib_val_tp **hold, double val);
+int GMRFLib_val_create(GMRFLib_val_tp **hold);
+int GMRFLib_val_free(GMRFLib_val_tp *hold);
+int GMRFLib_val_printf(FILE *fp, GMRFLib_val_tp *hold, char *msg);
+int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);

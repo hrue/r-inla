@@ -81,11 +81,15 @@ typedef struct {
 } GMRFLib_preopt_arg_tp;
 
 typedef struct {
-
 	GMRFLib_graph_tp *latent_graph;
 	GMRFLib_Qfunc_tp *latent_Qfunc;
 	void *latent_Qfunc_arg;
 	GMRFLib_constr_tp *latent_constr;
+
+	GMRFLib_graph_tp *likelihood_graph;
+	GMRFLib_Qfunc_tp *likelihood_Qfunc;
+	void *likelihood_Qfunc_arg;
+
 } GMRFLib_preopt_tp;
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, 

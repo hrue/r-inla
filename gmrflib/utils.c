@@ -1271,6 +1271,16 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_val_create(GMRFLib_val_tp ** hold)
+{
+	*hold = Calloc(1, GMRFLib_val_tp);
+	(*hold)->val = Calloc(IDX_ALLOC_ADD, double);
+	(*hold)->n_alloc = IDX_ALLOC_ADD;
+	(*hold)->n = 0;
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 {
 	if (*hold == NULL) {
@@ -1303,6 +1313,21 @@ int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
+{
+	if (*hold == NULL) {
+		GMRFLib_val_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+	}
+	(*hold)->val[(*hold)->n] = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
@@ -1322,7 +1347,16 @@ int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_print(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
+int GMRFLib_val_prune(GMRFLib_val_tp * hold)
+{
+	if (hold) {
+		hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
+		hold->n_alloc = hold->n;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -1333,12 +1367,23 @@ int GMRFLib_idx_print(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx2_print(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
 		for (int i = 0; i < hold->n; i++) {
 			fprintf(fp, "\tidx[][%1d] = %1d %1d\n", i, hold->idx[0][i], hold->idx[1][i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tval[%1d] = %g\n", i, hold->val[i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -1359,6 +1404,15 @@ int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 		Free(hold->idx[0]);
 		Free(hold->idx[1]);
 		Free(hold->idx);
+		Free(hold);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_val_free(GMRFLib_val_tp * hold)
+{
+	if (hold) {
+		Free(hold->val);
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;

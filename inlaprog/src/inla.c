@@ -34792,7 +34792,7 @@ int testit(int argc, char **argv)
 		for (i = 0; i < 10; i++)
 			GMRFLib_idx_add(&h, i);
 		GMRFLib_idx_prune(h);
-		GMRFLib_idx_print(stdout, h, "IDX-test");
+		GMRFLib_idx_printf(stdout, h, "IDX-test");
 		GMRFLib_idx_free(h);
 
 		GMRFLib_idx2_tp *h2 = NULL;
@@ -34800,8 +34800,15 @@ int testit(int argc, char **argv)
 		for (i = 0; i < 10; i++)
 			GMRFLib_idx2_add(&h2, i, -i);
 		GMRFLib_idx2_prune(h2);
-		GMRFLib_idx2_print(stdout, h2, "IDX2-test");
+		GMRFLib_idx2_printf(stdout, h2, "IDX2-test");
 		GMRFLib_idx2_free(h2);
+
+		GMRFLib_val_tp *hh = NULL;
+		for (i = 0; i < 10; i++)
+			GMRFLib_val_add(&hh, (double)i);
+		GMRFLib_val_prune(hh);
+		GMRFLib_val_printf(stdout, hh, "VAL-test");
+		GMRFLib_val_free(hh);
 
 		break;
 	}
