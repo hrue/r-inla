@@ -85,6 +85,20 @@ typedef struct
 }
 	GMRFLib_val_tp;
 
+typedef struct 
+{
+	int idx;
+	double val;
+}
+	GMRFLib_idxval_elm_tp;
+
+typedef struct
+{
+	int n;
+	int n_alloc;
+	GMRFLib_idxval_elm_tp *store;
+}
+	GMRFLib_idxval_tp;
 /*
  */
 
@@ -101,6 +115,7 @@ double GMRFLib_log_apbex(double a, double b);
 double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_signed_pow(double x, double power);
+
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
@@ -108,35 +123,40 @@ int GMRFLib_dcmp_abs(const void *a, const void *b);
 int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
-int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format);
-int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
 int GMRFLib_icmp(const void *a, const void *b);
-int GMRFLib_idx2_add(GMRFLib_idx2_tp **hold, int idx0, int idx1);
-int GMRFLib_idx2_create(GMRFLib_idx2_tp **hold);
-int GMRFLib_idx2_free(GMRFLib_idx2_tp *hold);
-int GMRFLib_idx2_printf(FILE *fp, GMRFLib_idx2_tp *hold, char *msg);
+int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1);
+int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold);
+int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold);
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg);
 int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold);
-int GMRFLib_idx_add(GMRFLib_idx_tp **hold, int idx);
-int GMRFLib_idx_create(GMRFLib_idx_tp **hold);
-int GMRFLib_idx_free(GMRFLib_idx_tp *hold);
-int GMRFLib_idx_printf(FILE *fp, GMRFLib_idx_tp *hold, char *msg);
+int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx);
+int GMRFLib_idx_create(GMRFLib_idx_tp ** hold);
+int GMRFLib_idx_free(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg);
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
-int GMRFLib_val_add(GMRFLib_val_tp **hold, double val);
-int GMRFLib_val_create(GMRFLib_val_tp **hold);
-int GMRFLib_val_free(GMRFLib_val_tp *hold);
-int GMRFLib_val_printf(FILE *fp, GMRFLib_val_tp *hold, char *msg);
-int GMRFLib_val_prune(GMRFLib_val_tp * hold);
+int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
+int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
+int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
+int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_iwhich_sorted(int val, int *ix, int len);
-int GMRFLib_printf_matrix(FILE *fp, double *A, int m, int n);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
+int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format);
+int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
+int GMRFLib_printf_matrix(FILE *fp, double *A, int m, int n);
+int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val);
+int GMRFLib_val_create(GMRFLib_val_tp ** hold);
+int GMRFLib_val_free(GMRFLib_val_tp * hold);
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg);
+int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z,
 		   int (*compar) (const void *, const void *));

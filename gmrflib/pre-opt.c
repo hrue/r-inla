@@ -51,6 +51,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 			GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
 	int i, ii, j, jj, k, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset; 
+	int debug = 1;
 	GMRFLib_preopt_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 
@@ -111,8 +112,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 		idx_map_beta[nbeta] = offset;
 	}
 	N = offset;					       /* N is the grand-total. */
-	P(N);
-	
+
 	/*
 	 * If we have cross-terms, make sure to mark these cross-terms as neigbours; just fill them with zero's.
 	 * If they are connected in the data, then this value
@@ -217,12 +217,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 	}
 
 
-	if (1) {
+	if (debug) {
 		printf("\tn %1d nf %1d nbeta %1d\n", n, nf, nbeta);
-
 		for(i = 0; i < n; i++) {
 			printf("data %1d\n", i);
-
 			for(j = 0; j < nf; j++) {
 				printf("\t\tf[%1d]  index %1d  weight %.6f\n", j, c[j][i], ww[j][i]);
 			}
@@ -262,60 +260,40 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 
 	GMRFLib_ged_build(&((*preopt)->likelihood_graph), ged);
 	GMRFLib_ged_free(ged);
-	GMRFLib_printf_graph(stdout, (*preopt)->likelihood_graph);
-
-	GMRFLib_graph_tp *g =  (*preopt)->likelihood_graph;
-	GMRFLib_val_tp ***AtA_val = NULL;
-	GMRFLib_idx_tp ***AtA_idx = NULL;
-	AtA_val = Calloc(N, GMRFLib_val_tp **);
-	AtA_idx = Calloc(N, GMRFLib_idx_tp **);
-
-
-	if (0) {
-		for(i = 0; i < g->n; i++){
-			for(jj = 0; jj < g->lnnbs[i]; jj++){
-				j = g->lnbs[i][jj];
-				printf("i j %d %d\n", i, j);
-			}
-		}
-		GMRFLib_printf_graph(stdout, g);
+	if (debug) {
+		GMRFLib_printf_graph(stdout, (*preopt)->likelihood_graph);
 	}
 
+	GMRFLib_graph_tp *g =  (*preopt)->likelihood_graph;
+	GMRFLib_idxval_tp ***AtA_idxval = NULL;
+
 	assert(g->n == N);
+	AtA_idxval = Calloc(N, GMRFLib_idxval_tp **);
+
 	for(i = 0; i < g->n; i++) {
-		if (g->lnnbs[i]) {
-			AtA_val[i] = Calloc(1 + g->lnnbs[i], GMRFLib_val_tp *);
-			AtA_idx[i] = Calloc(1 + g->lnnbs[i], GMRFLib_idx_tp *);
-			GMRFLib_idx_add(&(AtA_idx[i][0]), i);
-			GMRFLib_val_add(&(AtA_val[i][0]), 0.0);
-		} else {
-			AtA_val[i] = Calloc(1, GMRFLib_val_tp *);
-			AtA_idx[i] = Calloc(1, GMRFLib_idx_tp *);
-		}
+		AtA_idxval[i] = Calloc(1 + g->lnnbs[i], GMRFLib_idxval_tp *);
+		GMRFLib_idxval_add(&(AtA_idxval[i][0]), i, 0.0);
 	}
 
 	for(i = 0; i < n; i++) {
-		GMRFLib_idx_tp *idx = NULL;
-		GMRFLib_val_tp *val = NULL;
+		GMRFLib_idxval_tp *idxval = NULL;
 
 		for(jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
-				GMRFLib_idx_add(&idx, c[jj][i] + idx_map_f[jj]);
-				GMRFLib_val_add(&val, ww[jj][i]);
+				GMRFLib_idxval_add(&idxval, c[jj][i] + idx_map_f[jj], ww[jj][i]);
 			}
 		}
 		for(jj = 0; jj < nbeta; jj++) {
 			if (covariate[jj][i]) {
-				GMRFLib_idx_add(&idx, idx_map_beta[jj]);
-				GMRFLib_val_add(&val, covariate[jj][i]);
+				GMRFLib_idxval_add(&idxval, idx_map_beta[jj], covariate[jj][i]);
 			}
 		}
 
-		for(j = 0; j < idx->n; j++) {
-			for(jj = j; jj < idx->n; jj++) {
+		for(j = 0; j < idxval->n; j++) {
+			for(jj = j; jj < idxval->n; jj++) {
 				int imin, imax, index;
-				imin = IMIN(idx->idx[j], idx->idx[jj]);
-				imax = IMAX(idx->idx[j], idx->idx[jj]);
+				imin = IMIN(idxval->store[j].idx, idxval->store[jj].idx);
+				imax = IMAX(idxval->store[j].idx, idxval->store[jj].idx);
 
 				if (imin == imax) {
 					index = 0;
@@ -323,73 +301,61 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 					index = 1 + GMRFLib_iwhich_sorted(imax, g->lnbs[imin], g->lnnbs[imin]);
 					assert(index > 0);
 				}
-				P(imin);
-				P(index);
-				GMRFLib_idx_add(&(AtA_idx[imin][index]), i);
-				GMRFLib_val_add(&(AtA_val[imin][index]), val->val[j] * val->val[jj]);
-
-				printf("add to imin= %d index= %d i= %d val= %g\n", imin, index, i, val->val[j] * val->val[jj]);
+				GMRFLib_idxval_add(&(AtA_idxval[imin][index]), i, idxval->store[j].val * idxval->store[jj].val);
+				if (debug) {
+					printf("add to imin= %d index= %d i= %d val= %g\n",
+					       imin, index, i, idxval->store[j].val * idxval->store[jj].val);
+				}
 			}
 		}
-		GMRFLib_idx_free(idx);
-		GMRFLib_val_free(val);
+		GMRFLib_idxval_free(idxval);
 	}
+
+	for(i = 0; i < g->n; i++) {
+		GMRFLib_idxval_prune(AtA_idxval[i][0]);
+		for(jj = 0; jj < g->lnnbs[i]; jj++) {
+			GMRFLib_idxval_prune(AtA_idxval[i][1 + jj]);
+		}
+	}
+
+	if (debug) {
+		for(i = 0; i < g->n; i++) {
+			for(j = 0; j < g->n; j++) {
+				int kk, imin, imax;
+				double value = 0.0;
+
+				imin = IMIN(i, j);
+				imax = IMAX(i, j);
+
+				if (imin == imax) {
+					for(kk = 0; kk < AtA_idxval[imin][0]->n; kk++) {
+						value += AtA_idxval[imin][0]->store[kk].val;
+					}
+				} else {
+					k = 1 + GMRFLib_iwhich_sorted(imax, g->lnbs[imin], g->lnnbs[imin]);
+					if (k > 0) {
+						for(kk = 0; kk < AtA_idxval[imin][k]->n; kk++) {
+							value += AtA_idxval[imin][k]->store[kk].val;
+						}
+					} else {
+						assert(k > 0);
+					}
+				}
+				if (ISZERO(value))
+					printf("  .   ");
+				else				
+					printf("%5.2f ", value);
+			}
+			printf("\n");
+		}
+	}
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	for(i = 0; i < nf; i++) {
 		Free(ww[i]);
 	}
 	Free(ww);
 
-	for(i = 0; i < g->n; i++) {
-		if (AtA_idx[i] && AtA_idx[i][0]) {
-			// diag
-			for(k = 0; k < AtA_idx[i][0]->n; k++) {
-				printf("%d %d %g %d\n", i, i, AtA_val[i][0]->val[k], AtA_idx[i][0]->idx[k]);
-			}
-			for(jj = 0; jj < g->lnnbs[i]; jj++) {
-				j = g->lnbs[i][jj];
-				for(k = 0; k < AtA_idx[i][1+jj]->n; k++) {
-					printf("%d %d %g %d\n", i, j, AtA_val[i][1+jj]->val[k], AtA_idx[i][1+jj]->idx[k]);
-				}
-			}
-		}
-	}
-
-
-	for(i = 0; i < g->n; i++) {
-		for(j = 0; j < g->n; j++) {
-			int kk, imin, imax;
-			double value = 0.0;
-
-			imin = IMIN(i, j);
-			imax = IMAX(i, j);
-
-			if (AtA_idx[imin] && AtA_idx[imin][0]) {
-				if (imin == imax) {
-					for(kk = 0; kk < AtA_idx[imin][0]->n; kk++) {
-						value += AtA_val[imin][0]->val[kk];
-					}
-				} else {
-					k = GMRFLib_iwhich_sorted(imax, g->lnbs[imin], g->lnnbs[imin]);
-					if (k >= 0) {
-						for(kk = 0; kk < AtA_idx[imin][1+k]->n; kk++) {
-							value += AtA_val[imin][1+k]->val[kk];
-						}
-					}
-				}
-			}
-			if (ISZERO(value))
-				printf("  .   ");
-			else				
-				printf("%5.2f ", value);
-		}
-		printf("\n");
-	}
-
-
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-	exit(0);
-	
 	return GMRFLib_SUCCESS;
 }
 

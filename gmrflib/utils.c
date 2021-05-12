@@ -1281,6 +1281,16 @@ int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
+{
+	*hold = Calloc(1, GMRFLib_idxval_tp);
+	(*hold)->store = Calloc(IDX_ALLOC_ADD, GMRFLib_idxval_elm_tp);
+	(*hold)->n_alloc = IDX_ALLOC_ADD;
+	(*hold)->n = 0;
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 {
 	if (*hold == NULL) {
@@ -1328,6 +1338,22 @@ int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
+{
+	if (*hold == NULL) {
+		GMRFLib_idxval_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+	}
+	(*hold)->store[(*hold)->n].idx = idx; 
+	(*hold)->store[(*hold)->n].val = val; 
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
@@ -1351,6 +1377,15 @@ int GMRFLib_val_prune(GMRFLib_val_tp * hold)
 {
 	if (hold) {
 		hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
+		hold->n_alloc = hold->n;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
+{
+	if (hold) {
+		hold->store = Realloc(hold->store, IMAX(1, hold->n), GMRFLib_idxval_elm_tp);
 		hold->n_alloc = hold->n;
 	}
 	return GMRFLib_SUCCESS;
@@ -1389,6 +1424,17 @@ int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->store[i].idx, hold->store[i].val);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
@@ -1413,6 +1459,15 @@ int GMRFLib_val_free(GMRFLib_val_tp * hold)
 {
 	if (hold) {
 		Free(hold->val);
+		Free(hold);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
+{
+	if (hold) {
+		Free(hold->store);
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;

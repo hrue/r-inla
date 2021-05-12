@@ -34810,6 +34810,13 @@ int testit(int argc, char **argv)
 		GMRFLib_val_printf(stdout, hh, "VAL-test");
 		GMRFLib_val_free(hh);
 
+		GMRFLib_idxval_tp *h3 = NULL;
+		for (i = 0; i < 10; i++)
+			GMRFLib_idxval_add(&h3, i, (double)i);
+		GMRFLib_idxval_prune(h3);
+		GMRFLib_idxval_printf(stdout, h3, "VAL-test");
+		GMRFLib_idxval_free(h3);
+
 		break;
 	}
 
