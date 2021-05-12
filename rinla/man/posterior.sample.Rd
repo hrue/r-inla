@@ -72,10 +72,10 @@
               The hyperparameters are defined as \code{theta},  no matter if they are in the
               internal scale or not. The function \code{fun} can also return a vector.
               To simplify usage, \code{fun} can also be a vector character's. In this case
-              \code{fun} it is interpreted as variable
-              names or subsets thereof, and a function is created that return these variables:
+              \code{fun} it is interpreted as (strict) variable
+              names, and a function is created that return these variables:
               if argument \code{fun} equals \code{c("Intercept", "a[1:2]")},  then this is equivalent to
-              pass \code{function() return(c(Intercept, a[1:2]))}.}
+              pass \code{function() return(c(get('Intercept'), get('a[1:2]')))}.}
    \item{samples}{\code{samples} is the output from \code{inla.posterior.sample()}}
    \item{return.matrix}{Logical. If \code{TRUE},  then return the samples of \code{fun}
                          as matrix,  otherwise,  as a list.}
@@ -202,6 +202,11 @@
      }), sam)
  print(round(dig = 4, rowMeans(sam.extract)))
  
+ ## a simpler form can also be used here, and in the examples below
+ sam.extract <- inla.posterior.sample.eval(
+                c("Intercept", "X[, 1]", "X[, 2]", "X[, 1]:X[, 2]"), sam)
+ print(round(dig = 4, rowMeans(sam.extract)))
+
  r <- inla(y ~ x + xx + xxx,
            data = list(y = y, x = x, xx = xx, xxx = xxx), 
            control.compute = list(config = TRUE))
@@ -212,7 +217,10 @@
          return(c(Intercept, x, xx, xxx))
      }), sam)
  print(round(dig = 4, rowMeans(sam.extract)))
- 
+
+ sam.extract <- inla.posterior.sample.eval(c("Intercept", "x", "xx", "xxx"), sam)
+ print(round(dig = 4, rowMeans(sam.extract)))
+
  r <- inla(y ~ x*xx,
            data = list(y = y, x = x, xx = xx), 
            control.compute = list(config = TRUE))
@@ -222,5 +230,8 @@
      (function(...) {
          return(c(Intercept, x, xx, get("x:xx")))
      }), sam)
+ print(round(dig = 4, rowMeans(sam.extract)))
+
+ sam.extract <- inla.posterior.sample.eval(c("Intercept", "x", "xx", "x:xx"), sam)
  print(round(dig = 4, rowMeans(sam.extract)))
  }
