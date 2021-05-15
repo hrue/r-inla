@@ -74,14 +74,14 @@ typedef struct {
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interaction */
 	GMRFLib_Qfunc_tp **f_Qfunc;
 	GMRFLib_graph_tp **f_graph;
-	GMRFLib_graph_tp *latent_graph;			       /* copt of the pointer, see below */
+	GMRFLib_graph_tp *latent_graph;		
 	GMRFLib_preopt_type_tp *what_type;
 	void ***ff_Qfunc_arg;
 	void **f_Qfunc_arg;
 
 	GMRFLib_idxval_tp **At_idxval;
 	GMRFLib_idxval_tp ***AtA_idxval;
-	GMRFLib_graph_tp *like_graph;			       /* copy of the pointer, see below */
+	GMRFLib_graph_tp *like_graph;		
 
 	double **like_c;
 	double **like_b;

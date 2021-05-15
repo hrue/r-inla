@@ -141,10 +141,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
-	GMRFLib_ged_build(&((*preopt)->latent_graph), ged);
+	GMRFLib_ged_build(&(arg->latent_graph), ged);
 	GMRFLib_ged_free(ged);
 
-	arg->latent_graph = (*preopt)->latent_graph;	       /* just a copy */
+	(*preopt)->latent_graph = arg->latent_graph;	       /* just a copy */
 	(*preopt)->latent_Qfunc = GMRFLib_preopt_latent_Qfunc;
 	(*preopt)->latent_Qfunc_arg = (void *) arg;
 
@@ -346,7 +346,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		arg->total_b[i] = Calloc(N, double);
 	}
 
-	(*preopt)->like_graph = g;
+	(*preopt)->like_graph = arg->like_graph;
 	(*preopt)->like_Qfunc_arg = (void *) arg;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
 	(*preopt)->bfunc = bfunc;
@@ -578,9 +578,9 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * ar
 	for (int i = 0; i < arg->n; i++) {
 		if (a->At_idxval[i]) {
 			for (int jj = 0; jj < a->At_idxval[i]->n; jj++) {
-				int j = a->At_idxval[i]->store[jj].idx;
+				int idx = a->At_idxval[i]->store[jj].idx;
 				double val = a->At_idxval[i]->store[jj].val;
-				bnew[i] += blike[j] * val;
+				bnew[i] += blike[idx] * val;
 			}
 		}
 	}
@@ -591,8 +591,6 @@ int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *li
 {
 	int id = GMRFLib_thread_id;
 	double constant = 0.0;
-
-	printf("set like_c[%1d]\n", id);
 
 	preopt->like_c[id] = like_c;
 	preopt->like_b[id] = like_b;
@@ -661,17 +659,15 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 #pragma omp parallel for private(k)
 	for (k = 0; k < 100; k++) {
 		GMRFLib_thread_id = omp_get_thread_num();
-		printf("omp id= %d\n", GMRFLib_thread_id);
 
 		double *bb = Calloc(preopt->nlike, double);
 		double *cc = Calloc(preopt->nlike, double);
 		for (int i = 0; i < preopt->nlike; i++) {
 			cc[i] = exp(GMRFLib_uniform());
-			bb[i] = exp(GMRFLib_uniform());
+			bb[i] = GMRFLib_uniform();
 		}
 
 		GMRFLib_preopt_update(preopt, bb, cc);
-		P(preopt->total_const[GMRFLib_thread_id]);
 		Free(bb);
 		Free(cc);
 	}
