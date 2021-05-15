@@ -229,8 +229,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	// build up structure for the likelihood part
 
-	GMRFLib_idxval_tp **At_idxval = NULL;
-	At_idxval = Calloc(N, GMRFLib_idxval_tp *);
+	GMRFLib_idxval_tp **A_idxval = Calloc(nlike, GMRFLib_idxval_tp *);
+	GMRFLib_idxval_tp **At_idxval = Calloc(N, GMRFLib_idxval_tp *);
+	arg->A_idxval = A_idxval;
 	arg->At_idxval = At_idxval;
 
 	for (i = 0; i < nlike; i++) {
@@ -242,6 +243,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				idx = c[jj][i] + idx_map_f[jj];
 				val = ww[jj][i];
 				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
+				GMRFLib_idxval_add(&(A_idxval[i]), idx, val); 
 			}
 		}
 		for (jj = 0; jj < nbeta; jj++) {
@@ -249,6 +251,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				idx = idx_map_beta[jj];
 				val = covariate[jj][i];
 				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
+				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
 	}
@@ -581,6 +584,25 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * ar
 				int idx = a->At_idxval[i]->store[jj].idx;
 				double val = a->At_idxval[i]->store[jj].val;
 				bnew[i] += blike[idx] * val;
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt)
+{
+	// compute eta = A %*% x
+	
+	GMRFLib_preopt_arg_tp *a = (GMRFLib_preopt_arg_tp *) (preopt->like_Qfunc_arg);
+
+	memset(predictor, 0, preopt->nlike * sizeof(double));
+	for (int i = 0; i < preopt->nlike; i++) {
+		if (a->A_idxval[i]) {
+			for (int jj = 0; jj < a->A_idxval[i]->n; jj++) {
+				int idx = a->A_idxval[i]->store[jj].idx;
+				double val = a->A_idxval[i]->store[jj].val;
+				predictor[i] += val * latent[idx];
 			}
 		}
 	}

@@ -79,6 +79,7 @@ typedef struct {
 	void ***ff_Qfunc_arg;
 	void **f_Qfunc_arg;
 
+	GMRFLib_idxval_tp **A_idxval;
 	GMRFLib_idxval_tp **At_idxval;
 	GMRFLib_idxval_tp ***AtA_idxval;
 	GMRFLib_graph_tp *like_graph;		
@@ -115,22 +116,23 @@ typedef struct {
 	double *total_const;				       /* point to arg->total_const */
 } GMRFLib_preopt_tp;
 
-int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
-			int n, int nf, int **c, double **w,
-			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
-			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
-			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par));
+
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_arg_tp * a);
+double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg);
 double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *values, void *arg);
-double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg);
 int GMRFLib_free_preopt(GMRFLib_preopt_tp * preopt);
-int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
-
 int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew_latent(double *bnew, double *constant, int n, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg);
+int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, double **w,
+			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
+			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
+			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
+			int nbeta, double **covariate, double *prior_precision,
+			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par));
+int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
+int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
 
 __END_DECLS
 #endif
