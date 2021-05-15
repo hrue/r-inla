@@ -6088,7 +6088,10 @@ int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfun
 	double *bb = Calloc(n, double);
 	double con = 0.0, con_add = 0.0;
 
-	memcpy((void *) bb, (void *) b, n * sizeof(double));
+	if (b) {
+		memcpy((void *) bb, (void *) b, n * sizeof(double));
+	}
+	
 	if (bfunc) {
 		for (i = 0; i < n; i++) {
 			if (bfunc[i]) {

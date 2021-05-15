@@ -30300,13 +30300,30 @@ int inla_INLA(inla_tp * mb)
 	if (G.preopt_mode) {
 		GMRFLib_preopt_tp *preopt = NULL;
 		
+		N = mb->nlinear;
+		for (i = 0; i < mb->nf; i++) {
+			N += mb->f_graph[i]->n;
+		}
+		bfunc = Calloc(N, GMRFLib_bfunc_tp *);
+
+		for (count = 0, i = 0; i < mb->nf; i++) {
+			if (mb->f_bfunc2[i]) {
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					bfunc[count + j] = Calloc(1, GMRFLib_bfunc_tp);
+					bfunc[count + j]->bdef = mb->f_bfunc2[i];
+					bfunc[count + j]->idx = j;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+
 		FIXME("enter preopt");
 		GMRFLib_preopt_init(&preopt, 
 				    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights, 
 				    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 				    mb->ff_Qfunc, mb->ff_Qfunc_arg,
 				    mb->nlinear, mb->linear_covariate, mb->linear_precision,
-				    mb->ai_par);
+				    bfunc, mb->ai_par);
 		GMRFLib_preopt_test(preopt);
 		GMRFLib_free_preopt(preopt);
 		exit(0);

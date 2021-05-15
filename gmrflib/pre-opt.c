@@ -43,11 +43,12 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, 
-			int n, int nf, int **c, double **w,
+			int nlike, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, 
+			GMRFLib_bfunc_tp ** bfunc, 
 			GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
 	int i, ii, j, jj, k, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset; 
@@ -62,19 +63,18 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 	double **ww = NULL;
 	ww = Calloc(nf, double *);
 	for(i = 0; i < nf; i++) {
-		ww[i] = Calloc(n, double);
-		for(j = 0; j < n; j++) {
+		ww[i] = Calloc(nlike, double);
+		for(j = 0; j < nlike; j++) {
 			ww[i][j] = 1.0;
 		}
 	}
 	if (w) {
 		for(i = 0; i < nf; i++) {
 			if (w[i]) {
-				memcpy(ww[i], w[i], n * sizeof(double));
+				memcpy(ww[i], w[i], nlike * sizeof(double));
 			}
 		}
 	}
-
 
 	*preopt = Calloc(1, GMRFLib_preopt_tp);
 	arg = Calloc(1, GMRFLib_preopt_arg_tp);
@@ -146,8 +146,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 	GMRFLib_ged_build(&((*preopt)->latent_graph), ged);
 	GMRFLib_ged_free(ged);
 
-	(*preopt)->latent_Qfunc = GMRFLib_preopt_Qfunc;
+	arg->latent_graph = (*preopt)->latent_graph;	       /* just a copy */
+	(*preopt)->latent_Qfunc = GMRFLib_preopt_latent_Qfunc;
 	(*preopt)->latent_Qfunc_arg = (void *) arg;
+	(*preopt)->n = (*preopt)->latent_graph->n;
 
 	/*
 	 * build the constraint, if any. Only simple sum-to-zero constraints are supported.
@@ -210,7 +212,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 
 	arg->idx_map_f = idx_map_f;
 	arg->idx_map_beta = idx_map_beta;
-	arg->n = (*preopt)->latent_graph->n;
+	arg->nlatent = (*preopt)->latent_graph->n;
 	arg->what_type = Calloc(N, GMRFLib_preopt_type_tp);
 	for (i = 0; i < N; i++) {
 		arg->what_type[i] = GMRFLib_preopt_what_type(i, arg);
@@ -218,8 +220,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 
 
 	if (debug) {
-		printf("\tn %1d nf %1d nbeta %1d\n", n, nf, nbeta);
-		for(i = 0; i < n; i++) {
+		printf("\tndata %1d nf %1d nbeta %1d\n", nlike, nf, nbeta);
+		for(i = 0; i < nlike; i++) {
 			printf("data %1d\n", i);
 			for(j = 0; j < nf; j++) {
 				printf("\t\tf[%1d]  index %1d  weight %.6f\n", j, c[j][i], ww[j][i]);
@@ -232,13 +234,37 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 
 	// build up structure for the likelihood part
 
+	GMRFLib_idxval_tp **At_idxval = NULL;
+	At_idxval = Calloc(N, GMRFLib_idxval_tp *);
+	arg->At_idxval = At_idxval;
+	
+	for(i = 0; i < nlike; i++){
+		int idx;
+		double val;
+		
+		for(jj = 0; jj < nf; jj++) {
+			if (c[jj][i] >= 0 && ww[jj][i]) {
+				idx = c[jj][i] + idx_map_f[jj];
+				val = ww[jj][i];
+				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
+			}
+		}
+		for(jj = 0; jj < nbeta; jj++) {
+			if (covariate[jj][i]) {
+				idx = idx_map_beta[jj];
+				val = covariate[jj][i];
+				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
+			}
+		}
+	}
+
 	ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
 	for(i = 0; i < N; i++) {
 		GMRFLib_ged_add(ged, i, i);
 	}
 	
-	for(i = 0; i < n; i++) {
+	for(i = 0; i < nlike; i++) {
 		GMRFLib_idx_tp *idx = NULL;
 		for(jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
@@ -258,16 +284,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 		GMRFLib_idx_free(idx);
 	}
 
-	GMRFLib_ged_build(&((*preopt)->likelihood_graph), ged);
+	GMRFLib_graph_tp *g = NULL;
+	GMRFLib_ged_build(&g, ged);
 	GMRFLib_ged_free(ged);
-	if (debug) {
-		GMRFLib_printf_graph(stdout, (*preopt)->likelihood_graph);
-	}
-
-	GMRFLib_graph_tp *g =  (*preopt)->likelihood_graph;
-	GMRFLib_idxval_tp ***AtA_idxval = NULL;
-
 	assert(g->n == N);
+
+	GMRFLib_idxval_tp ***AtA_idxval = NULL;
 	AtA_idxval = Calloc(N, GMRFLib_idxval_tp **);
 
 	for(i = 0; i < g->n; i++) {
@@ -275,7 +297,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 		GMRFLib_idxval_add(&(AtA_idxval[i][0]), i, 0.0);
 	}
 
-	for(i = 0; i < n; i++) {
+	for(i = 0; i < nlike; i++) {
 		GMRFLib_idxval_tp *idxval = NULL;
 
 		for(jj = 0; jj < nf; jj++) {
@@ -318,37 +340,22 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 		}
 	}
 
-	if (debug) {
-		for(i = 0; i < g->n; i++) {
-			for(j = 0; j < g->n; j++) {
-				int kk, imin, imax;
-				double value = 0.0;
+	arg->AtA_idxval = AtA_idxval;
+	arg->nlike = nlike;
+	arg->like_graph = g;
+	(*preopt)->like_graph = g;
+	(*preopt)->like_Qfunc_arg = (void *) arg;
+	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
+	(*preopt)->bfunc = bfunc;
+	
+	GMRFLib_graph_tp *g_arr[2];
+	g_arr[0] = arg->latent_graph;
+	g_arr[1] = arg->like_graph;
+	GMRFLib_graph_union(&((*preopt)->preopt_graph), g_arr, 2);
+	
+	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
+	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 
-				imin = IMIN(i, j);
-				imax = IMAX(i, j);
-
-				if (imin == imax) {
-					for(kk = 0; kk < AtA_idxval[imin][0]->n; kk++) {
-						value += AtA_idxval[imin][0]->store[kk].val;
-					}
-				} else {
-					k = 1 + GMRFLib_iwhich_sorted(imax, g->lnbs[imin], g->lnnbs[imin]);
-					if (k > 0) {
-						for(kk = 0; kk < AtA_idxval[imin][k]->n; kk++) {
-							value += AtA_idxval[imin][k]->store[kk].val;
-						}
-					} else {
-						assert(k > 0);
-					}
-				}
-				if (ISZERO(value))
-					printf("  .   ");
-				else				
-					printf("%5.2f ", value);
-			}
-			printf("\n");
-		}
-	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	for(i = 0; i < nf; i++) {
@@ -384,7 +391,7 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_arg_tp 
 	return t;
 }
 
-double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -455,21 +462,142 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	return value;
 }
 
+double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+{
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	/*
+	 * this is Qfunction for the likelihood part in preopt
+	 */
+
+	GMRFLib_preopt_arg_tp *a = (GMRFLib_preopt_arg_tp *) arg;
+
+	int k, kk, imin, imax;
+	double value = 0.0;
+	
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	
+	if (imin == imax) {
+		for(kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
+			value += a->AtA_idxval[imin][0]->store[kk].val;
+		}
+	} else {
+		k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
+		if (k > 0) {
+			for(kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
+				value += a->AtA_idxval[imin][k]->store[kk].val;
+			}
+		} else {
+			assert(k > 0);
+		}
+	}
+
+	return value;
+}
+
+double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg) 
+{
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	double value = 0.0;
+	int imin, imax, diag;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
+		value += a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
+	}
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
+		value += a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);
+	}
+
+	return value;
+}
+
+int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp *preopt) 
+{
+	// just add to 'b'.
+
+	int i;
+	double *blike = Calloc(preopt->n, double);
+
+	// just to have something
+	for(i = 0; i < preopt->n; i++) blike[i] = 1.0;
+	
+	GMRFLib_preopt_bnew_latent(b, constant, preopt->n, preopt->bfunc);
+	GMRFLib_preopt_bnew_like(b, blike, preopt);
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_preopt_bnew_latent(double *bnew, double *constant, int n, GMRFLib_bfunc_tp **bfunc)
+{
+	// this is just copy of GMRFLib_bnew(...) without the alloc
+	
+	double con = 0.0, con_add = 0.0;
+	if (bfunc) {
+		for (int i = 0; i < n; i++) {
+			if (bfunc[i]) {
+				bnew[i] += GMRFLib_bfunc_eval(&con_add, bfunc[i]);
+				con += con_add;
+			}
+		}
+	}
+	*constant = -con / 2.0;
+
+	return GMRFLib_SUCCESS;
+}
+	
+int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *arg) 
+{
+	GMRFLib_preopt_arg_tp *a =  (GMRFLib_preopt_arg_tp *) (arg->like_Qfunc_arg);
+
+	for(int i = 0; i < arg->n; i++) {
+		if (a->At_idxval[i]) {
+			for(int jj = 0; jj < a->At_idxval[i]->n; jj++) {
+				int j = a->At_idxval[i]->store[jj].idx;
+				double val = a->At_idxval[i]->store[jj].val;
+				bnew[i] += blike[j] * val;
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_free_preopt(GMRFLib_preopt_tp * preopt)
 {
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
+
+	int i, jj;
 	GMRFLib_preopt_arg_tp *a = (GMRFLib_preopt_arg_tp *) preopt->latent_Qfunc_arg;
 
-	GMRFLib_graph_free(preopt->latent_graph);
-	GMRFLib_free_constr(preopt->latent_constr);
-
+	for(i = 0; i < preopt->n; i++) {
+		GMRFLib_idxval_free(a->AtA_idxval[i][0]);
+		for(jj = 0; jj < a->like_graph->lnnbs[i]; jj++){
+			GMRFLib_idxval_free(a->AtA_idxval[i][1 + jj]);
+		}
+	}
+	Free(a->AtA_idxval);
+			
 	Free(a->idx_map_f);
 	Free(a->idx_map_beta);
 	Free(a->what_type);
-
 	Free(a);
+
+	GMRFLib_graph_free(preopt->preopt_graph);
+	GMRFLib_graph_free(preopt->like_graph);
+	GMRFLib_graph_free(preopt->latent_graph);
+	GMRFLib_free_constr(preopt->latent_constr);
 	Free(preopt);
 
 	return GMRFLib_SUCCESS;
@@ -481,9 +609,33 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp *preopt)
 		return GMRFLib_SUCCESS;
 	}
 
+	FIXME("LATENT");
 	GMRFLib_printf_graph(stdout, preopt->latent_graph);
-	GMRFLib_printf_Qfunc(stdout, preopt->latent_graph, preopt->latent_Qfunc, preopt->latent_Qfunc_arg);
+	//GMRFLib_printf_Qfunc(stdout, preopt->latent_graph, preopt->latent_Qfunc, preopt->latent_Qfunc_arg);
+	GMRFLib_printf_Qfunc2(stdout, preopt->latent_graph, preopt->latent_Qfunc, preopt->latent_Qfunc_arg);
 	GMRFLib_printf_constr(stdout, preopt->latent_constr, preopt->latent_graph); 
+
+	FIXME("LIKE");
+	GMRFLib_printf_graph(stdout, preopt->like_graph);
+	//GMRFLib_printf_Qfunc(stdout, preopt->like_graph, preopt->like_Qfunc, preopt->like_Qfunc_arg);
+	GMRFLib_printf_Qfunc2(stdout, preopt->like_graph, preopt->like_Qfunc, preopt->like_Qfunc_arg);
+
+	FIXME("JOINT");
+	GMRFLib_printf_graph(stdout, preopt->preopt_graph);
+	//GMRFLib_printf_Qfunc(stdout, preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
+	GMRFLib_printf_Qfunc2(stdout, preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
+
+	double *b = Calloc(preopt->n, double);
+	double constant = 0.0;
+
+	GMRFLib_preopt_bnew(b, &constant, preopt);
+
+	P(constant);
+	for(int i = 0; i < preopt->n; i++) {
+		printf("b[%1d] = %f\n", i, b[i]);
+	}
+	Free(b);
+
 	return GMRFLib_SUCCESS;
 }
 
