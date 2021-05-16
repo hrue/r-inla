@@ -1013,7 +1013,6 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
 {
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
-
 	int debug = S.debug, failsafe_mode = 0;
 	if (old == NULL) {
 		*new = NULL;
@@ -1021,7 +1020,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	}
 
 	if (failsafe_mode) {
-		FIXME("-->duplicate by creating a new one each time");
+		// FIXME("-->duplicate by creating a new one each time");
 		GMRFLib_pardiso_init(new);
 		GMRFLib_pardiso_reorder(*new, old->graph);
 		return GMRFLib_SUCCESS;
@@ -1310,7 +1309,7 @@ int my_pardiso_test2(void)
 		mean[i] = GMRFLib_uniform();
 	}
 
-	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_pardiso_test_Q, (void *) graph, NULL, constr, GMRFLib_NEW_PROBLEM);
+	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_pardiso_test_Q, (void *) graph, constr);
 	GMRFLib_evaluate(problem);
 	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
 

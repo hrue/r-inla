@@ -137,8 +137,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph,
-					      GMRFLib_seasonal, (void *) sdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_seasonal, (void *) sdef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < n; i++) {

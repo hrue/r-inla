@@ -111,20 +111,6 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 	return val;
 }
 
-int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
-			 double *x,
-			 double *b,
-			 double *c,
-			 double *mean,
-			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value,
-			 GMRFLib_constr_tp * constr, unsigned int keep)
-{
-	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, constr, keep, NULL));
-	GMRFLib_LEAVE_ROUTINE;
-	return GMRFLib_SUCCESS;
-}
-
 int validate_constr1(GMRFLib_constr_tp * constr, int n)
 {
 	GMRFLib_constr_tp *new = NULL;
@@ -228,17 +214,27 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
+			 double *x,
+			 double *b,
+			 double *c, double *mean, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constr)
+{
+	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, b, c, mean, graph, Qfunc, Qfunc_args, constr, NULL));
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			       double *x,
 			       double *b,
 			       double *c,
 			       double *mean,
 			       GMRFLib_graph_tp * graph,
-			       GMRFLib_Qfunc_tp * Qfunc,
-			       void *Qfunc_args, char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store)
+			       GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constr, GMRFLib_store_tp * store)
 {
 	double *bb = NULL;
-	int i, j, sub_n, node, nnode, free_x = 0, id, retval;
+	int i, j, sub_n, free_x = 0, retval;
 	GMRFLib_smtp_tp smtp;
 
 	int store_store_sub_graph = 0, store_use_sub_graph = 0;
@@ -250,47 +246,28 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	id = GMRFLib_thread_id;
 	GMRFLib_ASSERT(problem, GMRFLib_EINVARG);
 	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
 	GMRFLib_ASSERT(Qfunc, GMRFLib_EINVARG);
 
-	if (keep == GMRFLib_NEW_PROBLEM) {
-		*problem = Calloc(1, GMRFLib_problem_tp);
-	}
-
-	/*
-	 * whatever to be stored, the Qinv is no longer valid. 
-	 */
-	if (keep != GMRFLib_NEW_PROBLEM) {
-		GMRFLib_free_Qinv(*problem);
-	}
-
-	/*
-	 * define the events, 'create a store', 'use a store'. these are possible if and only if 'keep==NEW_PROBLEM'.
-	 * 
-	 * NOTE, 'keep' has priority over 'store'. 
-	 */
-
-	if ((keep == GMRFLib_NEW_PROBLEM) && store) {
-		/*
-		 * create logicals 
-		 */
+	if (store) {
 		store_store_sub_graph = (store->sub_graph ? 0 : 1);
 		store_use_sub_graph = !store_store_sub_graph;
 		store_store_remap = (store->remap ? 0 : 1);
 		store_use_remap = !store_store_remap;
+	}
 
-		/*
-		 * if the smtp is defined in the store, we use that one. otherwise, we use the default one. 
-		 */
-		if (GMRFLib_valid_smtp((int) store->smtp) == GMRFLib_TRUE) {
-			smtp = store->smtp;
-		} else {
-			smtp = GMRFLib_smtp;
-		}
+	/*
+	 * if the smtp is defined in the store, we use that one. otherwise, we use the default one. 
+	 */
+	if (store && GMRFLib_valid_smtp((int) store->smtp) == GMRFLib_TRUE) {
+		smtp = store->smtp;
+	} else {
+		smtp = GMRFLib_smtp;
+	}
+	if (store) {
 		if (smtp == GMRFLib_SMTP_TAUCS) {
-			store_store_symb_fact = (store->TAUCS_symb_fact ? 0 : 1);
+			store_store_symb_fact = (store && store->TAUCS_symb_fact ? 0 : 1);
 			store_use_symb_fact = !store_store_symb_fact;
 		} else if (smtp == GMRFLib_SMTP_PARDISO) {
 			store_store_symb_fact = 0;
@@ -299,37 +276,19 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			store_store_symb_fact = 0;
 			store_use_symb_fact = 0;
 		}
-	} else {
-		if (!(keep == GMRFLib_NEW_PROBLEM)) {
-			/*
-			 * we use an old problem 
-			 */
-			smtp = (*problem)->sub_sm_fact.smtp;
-		} else {
-			/*
-			 * use the default one 
-			 */
-			smtp = GMRFLib_smtp;
-		}
 	}
+
 
 	/*
 	 * if x = NULL, make it zeros 
 	 */
 	if (!x) {
 		x = Calloc(graph->n, double);
-
 		free_x = 1;
 	}
 
-	/*
-	 * create new problem or reuse the old one 
-	 */
-	if (keep) {
-		GMRFLib_ASSERT(*problem, GMRFLib_EPTR);
-	} else {
-		*problem = Calloc(1, GMRFLib_problem_tp);
-	}
+	*problem = Calloc(1, GMRFLib_problem_tp);
+
 
 	/*
 	 * this is the sparse-matrix method 
@@ -343,32 +302,25 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		GMRFLib_EWRAP1(GMRFLib_prepare_constr(constr, graph, 0));
 	}
 
-	/*
-	 * first, define the new graph (ok if fixed_value = NULL) 
-	 */
-	if (!(keep & GMRFLib_KEEP_graph)) {
-		// if (keep && (*problem)->sub_graph)
-		GMRFLib_graph_free((*problem)->sub_graph);     /* free old sub_graph */
+	if (store_use_sub_graph) {
+		/*
+		 * copy from store 
+		 */
+		GMRFLib_graph_duplicate(&((*problem)->sub_graph), store->sub_graph);
+	} else {
+		/*
+		 * compute it 
+		 */
+		GMRFLib_graph_comp_subgraph(&((*problem)->sub_graph), graph, NULL);
 
-		if (store_use_sub_graph) {
-			/*
-			 * copy from store 
-			 */
-			GMRFLib_graph_duplicate(&((*problem)->sub_graph), store->sub_graph);
-		} else {
-			/*
-			 * compute it 
-			 */
-			GMRFLib_graph_comp_subgraph(&((*problem)->sub_graph), graph, fixed_value);
-
-			/*
-			 * store a copy, if requested 
-			 */
-			if (store_store_sub_graph) {
-				GMRFLib_graph_duplicate(&(store->sub_graph), (*problem)->sub_graph);
-			}
+		/*
+		 * store a copy, if requested 
+		 */
+		if (store_store_sub_graph) {
+			GMRFLib_graph_duplicate(&(store->sub_graph), (*problem)->sub_graph);
 		}
 	}
+
 	sub_n = (*problem)->sub_graph->n;
 	if (sub_n == 0) {				       /* fast return if there is nothing todo */
 		GMRFLib_graph_free((*problem)->sub_graph);
@@ -388,39 +340,33 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	/*
 	 * compute the reordering which is stored in sub_sm_fact 
 	 */
-	if (!(keep & (GMRFLib_KEEP_chol | GMRFLib_KEEP_graph))) {
+	if (store_use_remap) {
 		/*
-		 * it's ok to try to free the reordering if this is a new problem, it this case remap=NULL. 
+		 * use the reordering in store 
 		 */
-		GMRFLib_free_reordering(&((*problem)->sub_sm_fact));
-		if (store_use_remap) {
-			/*
-			 * use the reordering in store 
-			 */
-			(*problem)->sub_sm_fact.remap = Calloc(sub_n, int);
-			memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * sizeof(int));
-			if (smtp == GMRFLib_SMTP_BAND) {
-				(*problem)->sub_sm_fact.bandwidth = store->bandwidth;
-			}
-		} else {
-			/*
-			 * compute it 
-			 */
-			GMRFLib_EWRAP1(GMRFLib_compute_reordering(&((*problem)->sub_sm_fact), (*problem)->sub_graph, NULL));
+		(*problem)->sub_sm_fact.remap = Calloc(sub_n, int);
+		memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * sizeof(int));
+		if (smtp == GMRFLib_SMTP_BAND) {
+			(*problem)->sub_sm_fact.bandwidth = store->bandwidth;
+		}
+	} else {
+		/*
+		 * compute it 
+		 */
+		GMRFLib_EWRAP1(GMRFLib_compute_reordering(&((*problem)->sub_sm_fact), (*problem)->sub_graph, NULL));
 
-			/*
-			 * store a copy, if requested 
-			 */
-			if (store_store_remap) {
-				if ((*problem)->sub_sm_fact.remap != NULL) {
-					store->remap = Calloc(sub_n, int);
-					memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
-					if (smtp == GMRFLib_SMTP_BAND) {
-						store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
-					}
-				} else {
-					store->remap = NULL;
+		/*
+		 * store a copy, if requested 
+		 */
+		if (store_store_remap) {
+			if ((*problem)->sub_sm_fact.remap != NULL) {
+				store->remap = Calloc(sub_n, int);
+				memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
+				if (smtp == GMRFLib_SMTP_BAND) {
+					store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
 				}
+			} else {
+				store->remap = NULL;
 			}
 		}
 	}
@@ -428,23 +374,14 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	/*
 	 * setup space 
 	 */
-	if (!keep) {
-		(*problem)->sample = Calloc(graph->n, double);
-		(*problem)->mean = Calloc(graph->n, double);
-		(*problem)->mean_constr = Calloc(graph->n, double);
-		(*problem)->sub_sample = Calloc(sub_n, double);
-		(*problem)->sub_mean = Calloc(sub_n, double);
-		(*problem)->sub_mean_constr = Calloc(sub_n, double);
+	(*problem)->n = graph->n;
+	(*problem)->sample = Calloc(graph->n, double);
+	(*problem)->mean = Calloc(graph->n, double);
+	(*problem)->mean_constr = Calloc(graph->n, double);
+	(*problem)->sub_sample = Calloc(sub_n, double);
+	(*problem)->sub_mean = Calloc(sub_n, double);
+	(*problem)->sub_mean_constr = Calloc(sub_n, double);
 
-		(*problem)->n = graph->n;		       /* for internal use only */
-	} else {
-		GMRFLib_ASSERT((*problem)->sample, GMRFLib_EPTR);
-		GMRFLib_ASSERT((*problem)->mean, GMRFLib_EPTR);
-		GMRFLib_ASSERT((*problem)->mean_constr, GMRFLib_EPTR);
-		GMRFLib_ASSERT((*problem)->sub_sample, GMRFLib_EPTR);
-		GMRFLib_ASSERT((*problem)->sub_mean, GMRFLib_EPTR);
-		GMRFLib_ASSERT((*problem)->sub_mean_constr, GMRFLib_EPTR);
-	}
 	memcpy((*problem)->sample, x, graph->n * sizeof(double));
 	memcpy((*problem)->mean, x, graph->n * sizeof(double));
 	memcpy((*problem)->mean_constr, x, graph->n * sizeof(double));
@@ -452,108 +389,54 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	/*
 	 * tabulate the Qfunc on the sub_graph. first, make the Qfunc, then tabulate it. 
 	 */
-	if (keep & GMRFLib_KEEP_chol) {
-		/*
-		 * use stored tab 
-		 */
-		GMRFLib_ASSERT((*problem)->tab, GMRFLib_EPTR);
-	} else {
-		if (keep) {
-			GMRFLib_free_tabulate_Qfunc((*problem)->tab);
+
+	sub_Qfunc = GMRFLib_Qfunc_wrapper;
+	sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
+	sub_Qfunc_arg->map = (*problem)->map;		       /* yes, this ptr is needed */
+	sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
+	sub_Qfunc_arg->graph = (*problem)->sub_graph;
+
+	if (c) {
+		for (i = 0; i < sub_n; i++) {
+			sub_Qfunc_arg->diagonal_adds[i] = c[(*problem)->map[i]];
 		}
+	}
+	sub_Qfunc_arg->user_Qfunc = Qfunc;
+	sub_Qfunc_arg->user_Qfunc_args = Qfunc_args;
+	GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc(&((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL, NULL, NULL));
 
-		sub_Qfunc = GMRFLib_Qfunc_wrapper;
-		sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
-		sub_Qfunc_arg->map = (*problem)->map;	       /* yes, this ptr is needed */
-		sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
-		sub_Qfunc_arg->graph = (*problem)->sub_graph;
+	Free(sub_Qfunc_arg->diagonal_adds);
+	Free(sub_Qfunc_arg);
 
-		if (c) {
-			for (i = 0; i < sub_n; i++) {
-				sub_Qfunc_arg->diagonal_adds[i] = c[(*problem)->map[i]];
-			}
+
+
+	/*
+	 * now compute the new 'effective' b, and then the mean 
+	 */
+
+	/*
+	 * i use bb as name, pointing to the same storage as sub_mean. this to avoid yet another arraw. but i assume
+	 * that sub_mean[] is zero, which is the case for !keep, but NOT the case otherwise. hence, i have to set it to 
+	 * zero unless it already is so. [this was a nasty bug...] 
+	 */
+	bb = (*problem)->sub_mean;
+
+	if (b) {
+		for (i = 0; i < sub_n; i++) {
+			bb[i] = b[(*problem)->map[i]];
 		}
-		sub_Qfunc_arg->user_Qfunc = Qfunc;
-		sub_Qfunc_arg->user_Qfunc_args = Qfunc_args;
-		GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc
-			       (&((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL, NULL, NULL));
-
-		Free(sub_Qfunc_arg->diagonal_adds);
-		Free(sub_Qfunc_arg);
 	}
 
-	if (!(keep & GMRFLib_KEEP_mean)) {
-		/*
-		 * now compute the new 'effective' b, and then the mean 
-		 */
+	if (mean) {
+		double *tmp = NULL;
 
-		/*
-		 * i use bb as name, pointing to the same storage as sub_mean. this to avoid yet another arraw. but i assume
-		 * that sub_mean[] is zero, which is the case for !keep, but NOT the case otherwise. hence, i have to set it to 
-		 * zero unless it already is so. [this was a nasty bug...] 
-		 */
-		bb = (*problem)->sub_mean;
-		if (keep) {
-			memset(bb, 0, sub_n * sizeof(double));
+		tmp = Calloc(sub_n, double);
+
+		GMRFLib_Qx(tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
+		for (i = 0; i < sub_n; i++) {
+			bb[i] += tmp[i];
 		}
-
-		if (b) {
-			for (i = 0; i < sub_n; i++) {
-				bb[i] = b[(*problem)->map[i]];
-			}
-		}
-
-		if (!fixed_value) {			       /* then sub_graph = graph */
-			if (mean) {
-				double *tmp = NULL;
-
-				tmp = Calloc(sub_n, double);
-
-				GMRFLib_Qx(tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
-				for (i = 0; i < sub_n; i++) {
-					bb[i] += tmp[i];
-				}
-				Free(tmp);
-			}
-		} else {
-			/*
-			 * x=(x1,x2), then x1|x2 has b = Q11 \mu1 - Q12(x2-\mu2) 
-			 */
-#pragma omp parallel for private(i, j, node, nnode)
-			for (i = 0; i < sub_n; i++) {	       /* loop over all sub_nodes */
-				GMRFLib_thread_id = id;
-				node = (*problem)->map[i];
-				if (mean) {
-					bb[i] += (*((*problem)->tab->Qfunc)) (i, i, NULL, (*problem)->tab->Qfunc_arg) * mean[node];
-				}
-
-				for (j = 0; j < graph->nnbs[node]; j++) {	/* then over all neighbors */
-					double qvalue;
-
-					nnode = graph->nbs[node][j];
-					qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
-
-					if (fixed_value[nnode]) {
-						/*
-						 * nnode is fixed 
-						 */
-						if (mean) {
-							bb[i] -= qvalue * (x[nnode] - mean[nnode]);
-						} else {
-							bb[i] -= qvalue * x[nnode];
-						}
-					} else {
-						/*
-						 * nnone is not fixed 
-						 */
-						if (mean) {
-							bb[i] += qvalue * mean[nnode];
-						}
-					}
-				}
-			}
-			GMRFLib_thread_id = id;
-		}
+		Free(tmp);
 	}
 
 	/*
@@ -561,385 +444,234 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	 * 
 	 * solve to obtain the mean (recall that bb=(*problem)->sub_mean) later! 
 	 */
-	if (!(keep & GMRFLib_KEEP_chol)) {
-		/*
-		 * 13/5/2005. the next is a small hack, to be fixed properly later, well, it is not decided (yet,) if this is
-		 * really needed.
-		 * 
-		 * in the case where graph is fixed and we're using TAUCS, we can reuse the symbolic factorisation. the
-		 * symbolic, is roughly, about 10% of the costs of the numeric factorisation for large problems. however, the
-		 * 'free_fact_sparse_...' does free both, and there is currently no options to free only the numerical one. so
-		 * therefore i do this here. 
-		 */
-		if ((keep & GMRFLib_KEEP_graph) && (smtp == GMRFLib_SMTP_TAUCS)) {
-			void *hold = NULL;
+	/*
+	 * 13/5/2005. the next is a small hack, to be fixed properly later, well, it is not decided (yet,) if this is
+	 * really needed.
+	 * 
+	 * in the case where graph is fixed and we're using TAUCS, we can reuse the symbolic factorisation. the
+	 * symbolic, is roughly, about 10% of the costs of the numeric factorisation for large problems. however, the
+	 * 'free_fact_sparse_...' does free both, and there is currently no options to free only the numerical one. so
+	 * therefore i do this here. 
+	 */
 
-			hold = (void *) ((*problem)->sub_sm_fact.TAUCS_symb_fact);
-			(*problem)->sub_sm_fact.TAUCS_symb_fact = NULL;
-
-			GMRFLib_free_fact_sparse_matrix(&((*problem)->sub_sm_fact));
-			(*problem)->sub_sm_fact.TAUCS_symb_fact = (supernodal_factor_matrix *) hold;
-		} else {
-			GMRFLib_free_fact_sparse_matrix(&((*problem)->sub_sm_fact));
-		}
-
-		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
-			(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
-		}
-
-		if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
-			// FIXME1("ADDED NEW EXPERIMENTAL CODE");
-			GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
-			s->graph = (*problem)->sub_graph;
-			// use the internal cached storage
-			GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE);
-			Free(s);
-		}
-
-		int ret;
-		ret = GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
-						  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph);
-		if (ret != GMRFLib_SUCCESS) {
-			return ret;
-		}
-
-		ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph);
-		if (ret != GMRFLib_SUCCESS) {
-			return ret;
-		}
-
-		if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
-			store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
-		}
+	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
+		(*problem)->sub_sm_fact.TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS(store->TAUCS_symb_fact);
 	}
+
+	if (store_use_symb_fact && (smtp == GMRFLib_SMTP_PARDISO)) {
+		// FIXME1("ADDED NEW EXPERIMENTAL CODE");
+		GMRFLib_pardiso_store_tp *s = Calloc(1, GMRFLib_pardiso_store_tp);
+		s->graph = (*problem)->sub_graph;
+		// use the internal cached storage
+		GMRFLib_duplicate_pardiso_store(&((*problem)->sub_sm_fact.PARDISO_fact), s, GMRFLib_FALSE, GMRFLib_FALSE);
+		Free(s);
+	}
+
+	int ret;
+	ret = GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
+					  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph);
+	if (ret != GMRFLib_SUCCESS) {
+		return ret;
+	}
+
+	ret = GMRFLib_factorise_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+	if (ret != GMRFLib_SUCCESS) {
+		return ret;
+	}
+
+	if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
+		store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
+	}
+
 
 	/*
 	 * the next step is to initialize the constraints and take that part into account. 
 	 */
-	if (!(keep & GMRFLib_KEEP_constr)) {
-		int fail = 1;
+	if (constr && constr->nc > 0) {
+		int nc, k, kk;
+		double *aat_m, alpha, beta, *b_add = NULL, *aqat_m;
 
 		/*
-		 * free the old stuff from an old problem, if it exists 
+		 * first make new constraints on the subgraph. ok to call this function if fixed_values is NULL, then
+		 * we just get a copy of constr back. 
 		 */
-		if (keep) {
-			GMRFLib_free_constr((*problem)->sub_constr);
-			Free((*problem)->constr_m);
-			Free((*problem)->l_aqat_m);
+		b_add = Calloc((*problem)->sub_graph->n, double);
 
-			/*
-			 * this is very special. if this flag is on, then we should reuse this vector if its exists. 
-			 */
-			if (!(keep & GMRFLib_UPDATE_constr)) {
-				Free((*problem)->qi_at_m);
-			}
+		GMRFLib_EWRAP1(GMRFLib_recomp_constr(&((*problem)->sub_constr), constr, x, b_add, NULL, graph, (*problem)->sub_graph));
+		/*
+		 * if we should keep the mean, then do not add the correction-terms 
+		 */
+		for (k = 0; k < (*problem)->sub_graph->n; k++) {
+			(*problem)->sub_mean[k] += b_add[k];
 		}
+		Free(b_add);
 
-		if (constr && constr->nc > 0) {
-			int nc, k, kk;
-			double *aat_m, alpha, beta, *b_add = NULL, *aqat_m;
+		if ((*problem)->sub_constr && (*problem)->sub_constr->nc > 0) {
+			/*
+			 * go further only if the constraint is still there: it might go away!!! 
+			 */
+			nc = (*problem)->sub_constr->nc;       /* shortname */
+
+			// we assume this is ok for INLA so we turn this off.
+
+			double *qi_at_m_store = NULL;	       /* possible reuse old results */
+
+			(*problem)->qi_at_m = Calloc(nc * sub_n, double);
+
+			if (qi_at_m_store == NULL) {
+				/*
+				 * compute it as usual 
+				 */
+				for (k = 0; k < nc; k++) {
+					kk = k * sub_n;
+					for (i = 0; i < sub_n; i++) {
+						(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+					}
+				}
+				GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
+			} else {
+				/*
+				 * reuse 
+				 */
+				memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
+				for (k = nc - 1; k < nc; k++) {
+					kk = k * sub_n;
+					for (i = 0; i < sub_n; i++) {
+						(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
+					}
+				}
+				GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
+								&((*problem)->sub_sm_fact), (*problem)->sub_graph);
+			}
+			Free(qi_at_m_store);
 
 			/*
-			 * first make new constraints on the subgraph. ok to call this function if fixed_values is NULL, then
-			 * we just get a copy of constr back. 
+			 * compute l_aqat_m = chol(AQ^{-1}A^T)^{-1}) = chol(A qi_at_m)^{-1}, size = nc x nc 
 			 */
-			b_add = Calloc((*problem)->sub_graph->n, double);
+			aqat_m = Calloc(nc * nc, double);
+			alpha = 1.0;
+			beta = 0.0;
+			if (GMRFLib_faster_constr) {
+				dgemm_special(nc, sub_n, aqat_m, (*problem)->sub_constr->a_matrix, (*problem)->qi_at_m, (*problem)->sub_constr);
+			} else {
+				dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
+				       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, F_ONE, F_ONE);
+			}
 
-			GMRFLib_EWRAP1(GMRFLib_recomp_constr
-				       (&((*problem)->sub_constr), constr, x, b_add, fixed_value, graph, (*problem)->sub_graph));
-			/*
-			 * if we should keep the mean, then do not add the correction-terms 
-			 */
-			if (!(keep & GMRFLib_KEEP_mean)) {
-				for (k = 0; k < (*problem)->sub_graph->n; k++) {
-					(*problem)->sub_mean[k] += b_add[k];
+			if (GMRFLib_aqat_m_diag_add > 0.0) {
+				for (i = 0; i < nc; i++) {
+					aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
 				}
 			}
-			Free(b_add);
 
-			if ((*problem)->sub_constr && (*problem)->sub_constr->nc > 0) {
-				/*
-				 * go further only if the constraint is still there: it might go away!!! 
-				 */
-				nc = (*problem)->sub_constr->nc;	/* shortname */
+			/*
+			 * compute chol(aqat_m), recall that GMRFLib_comp_chol_general returns a new malloced L 
+			 */
+			retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
+			if (retval != GMRFLib_SUCCESS) {
+				GMRFLib_ensure_spd(aqat_m, nc, 1.0);	/* yes, use tol=1 */
+				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
+					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
+			}
+			Free(aqat_m);
 
-				// we assume this is ok for INLA so we turn this off.
-				if (0) {
-					/*
-					 * this is for deterministic constraints only. the stochastic version will most likely
-					 * be ok. 
-					 */
+			/*
+			 * ...and the constr-matrix Q^-1A^T inv(AQ^{-1}A^T + Sigma) 
+			 */
+			(*problem)->constr_m = Calloc(sub_n * nc, double);
+			double *tmp_vector = Calloc(sub_n * nc, double);
 
-					do {
-						/*
-						 * check that the constaints are not singular, if so, remove them 
-						 */
-						int debug = 0;
-						int *map = NULL, rank = 0, ii, jj;
-						double *a = NULL, *e = NULL, eps = GMRFLib_eps(1. / 2.);
-
-						nc = (*problem)->sub_constr->nc;
-						if (debug) {
-							printf("enter check with nc = %d\n", nc);
-						}
-
-						FIXME1("NOT ADDED CONSTR STORE HERE");
-						/*
-						 * compute |A*A'| 
-						 */
-						alpha = 1.0;
-						beta = 0.0;
-						aat_m = Calloc(nc * nc, double);
-
-						if (GMRFLib_faster_constr) {
-							dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
-						} else {
-							dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-							       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, F_ONE, F_ONE);
-						}
-						GMRFLib_EWRAP1(GMRFLib_comp_chol_semidef
-							       (NULL, &map, &rank, aat_m, nc, &((*problem)->logdet_aat), eps));
-						GMRFLib_ASSERT(rank != 0, GMRFLib_EPARAMETER);
-
-						if (rank == nc) {
-							/*
-							 * ok, the reduced constraints are fine 
-							 */
-							fail = 0;
-							// det_computed = 1; /* flag that (*problem)->logdet_aat is computed */
-						} else {
-							/*
-							 * oops, the reduced constraints are singular. this have to be fixed 
-							 */
-
-							fail = 1;
-
-							if (debug) {
-								printf("rank is estimated to be %d < nc=%d\n", rank, nc);
-								for (ii = 0; ii < rank; ii++) {
-									printf("map[%1d] = %1d\n", ii, map[ii]);
-								}
-							}
-
-							/*
-							 * now we need to store only the 'non-singular' columns 
-							 */
-							a = Calloc(sub_n * rank, double);
-							e = Calloc(rank, double);
-
-							for (jj = 0; jj < rank; jj++) {
-								kk = map[jj];
-								for (ii = 0; ii < sub_n; ii++) {
-									a[ii * rank + jj] = (*problem)->sub_constr->a_matrix[ii * nc + kk];
-								}
-								e[jj] = (*problem)->sub_constr->e_vector[kk];
-							}
-
-							/*
-							 * free the terms and then copy the reduced ones 
-							 */
-							Free((*problem)->sub_constr->a_matrix);
-							(*problem)->sub_constr->a_matrix = a;
-							Free((*problem)->sub_constr->e_vector);
-							(*problem)->sub_constr->e_vector = e;
-							(*problem)->sub_constr->nc = rank;
-							Free((*problem)->sub_constr->jfirst);
-							Free((*problem)->sub_constr->jlen);
-							GMRFLib_prepare_constr((*problem)->sub_constr, (*problem)->sub_graph, GMRFLib_FALSE);
-
-							if (debug) {
-								GMRFLib_printf_constr(stdout, (*problem)->sub_constr, (*problem)->sub_graph);
-							}
-						}
-						Free(map);
-						Free(aat_m);   /* free temp storage */
-					}
-					while (fail);
+			for (i = 0, k = 0; i < sub_n; i++) {
+				for (j = 0; j < nc; j++) {
+					tmp_vector[k++] = (*problem)->qi_at_m[i + j * sub_n];
 				}
+			}
+			GMRFLib_EWRAP1(GMRFLib_solveAxb_posdef(tmp_vector, (*problem)->l_aqat_m, tmp_vector, nc, sub_n));
+			for (i = 0, k = 0; i < sub_n; i++) {
+				for (j = 0; j < nc; j++) {
+					(*problem)->constr_m[i + j * sub_n] = tmp_vector[k++];
+				}
+			}
+			Free(tmp_vector);
 
-				/*
-				 * then compute the important constr_matrix 
-				 */
+			GMRFLib_constr_tp *con = (*problem)->sub_constr;
+			double *p = NULL;
 
-				double *qi_at_m_store = NULL;  /* possible reuse old results */
-
-				if ((keep & GMRFLib_UPDATE_constr)) {
-					if (nc == 1) {
-						Free((*problem)->qi_at_m);
+			if (con->sha1 && constr_store_use) {
+				p = map_strd_ptr(&constr_store, (char *) con->sha1);
+				if (p) {
+					(*problem)->logdet_aat = *p;
+				}
+				if (constr_store_debug) {
+					if (p) {
+						printf("constr_store: constr found in store= %f\n", *p);
 					} else {
-						if ((*problem)->qi_at_m) {
-							qi_at_m_store = (*problem)->qi_at_m;
-							(*problem)->qi_at_m = NULL;
-						}
+						printf("constr_store: constr not found in store\n");
 					}
 				}
-
-				(*problem)->qi_at_m = Calloc(nc * sub_n, double);
-				if (qi_at_m_store == NULL) {
-					/*
-					 * compute it as usual 
-					 */
-					for (k = 0; k < nc; k++) {
-						kk = k * sub_n;
-						for (i = 0; i < sub_n; i++) {
-							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
-						}
-					}
-					GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph);
-				} else {
-					/*
-					 * reuse 
-					 */
-					memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
-					for (k = nc - 1; k < nc; k++) {
-						kk = k * sub_n;
-						for (i = 0; i < sub_n; i++) {
-							(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
-						}
-					}
-					GMRFLib_solve_llt_sparse_matrix(&((*problem)->qi_at_m[(nc - 1) * sub_n]), 1,
-									&((*problem)->sub_sm_fact), (*problem)->sub_graph);
-				}
-				Free(qi_at_m_store);
-
+			}
+			if (!p) {
 				/*
-				 * compute l_aqat_m = chol(AQ^{-1}A^T)^{-1}) = chol(A qi_at_m)^{-1}, size = nc x nc 
+				 * compute |A*A'| 
 				 */
-				aqat_m = Calloc(nc * nc, double);
 				alpha = 1.0;
 				beta = 0.0;
+				aat_m = Calloc(nc * nc, double);
+
 				if (GMRFLib_faster_constr) {
-					dgemm_special(nc, sub_n, aqat_m, (*problem)->sub_constr->a_matrix,
-						      (*problem)->qi_at_m, (*problem)->sub_constr);
+					dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
 				} else {
-					dgemm_("N", "N", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix, &nc,
-					       (*problem)->qi_at_m, &sub_n, &beta, aqat_m, &nc, F_ONE, F_ONE);
+					dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
+					       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, F_ONE, F_ONE);
 				}
-
-				if (GMRFLib_aqat_m_diag_add > 0.0) {
-					for (i = 0; i < nc; i++) {
-						aqat_m[i + i * nc] += GMRFLib_aqat_m_diag_add;
-					}
-				}
-
-				/*
-				 * compute chol(aqat_m), recall that GMRFLib_comp_chol_general returns a new malloced L 
-				 */
-				retval =
-				    GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
-				if (retval != GMRFLib_SUCCESS) {
-					GMRFLib_ensure_spd(aqat_m, nc, 1.0);	/* yes, use tol=1 */
-					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
-						       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
-				}
-				Free(aqat_m);
-
-				/*
-				 * ...and the constr-matrix Q^-1A^T inv(AQ^{-1}A^T + Sigma) 
-				 */
-				(*problem)->constr_m = Calloc(sub_n * nc, double);
-				double *tmp_vector = Calloc(sub_n * nc, double);
-
-				for (i = 0, k = 0; i < sub_n; i++) {
-					for (j = 0; j < nc; j++) {
-						tmp_vector[k++] = (*problem)->qi_at_m[i + j * sub_n];
-					}
-				}
-				GMRFLib_EWRAP1(GMRFLib_solveAxb_posdef(tmp_vector, (*problem)->l_aqat_m, tmp_vector, nc, sub_n));
-				for (i = 0, k = 0; i < sub_n; i++) {
-					for (j = 0; j < nc; j++) {
-						(*problem)->constr_m[i + j * sub_n] = tmp_vector[k++];
-					}
-				}
+				tmp_vector = NULL;
+				GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2));
+				Free(aat_m);
 				Free(tmp_vector);
 
-				GMRFLib_constr_tp *con = (*problem)->sub_constr;
-				double *p = NULL;
-
 				if (con->sha1 && constr_store_use) {
-					p = map_strd_ptr(&constr_store, (char *) con->sha1);
-					if (p) {
-						(*problem)->logdet_aat = *p;
-					}
 					if (constr_store_debug) {
-						if (p) {
-							printf("constr_store: constr found in store= %f\n", *p);
-						} else {
-							printf("constr_store: constr not found in store\n");
-						}
+						printf("constr_store: store value %f\n", (*problem)->logdet_aat);
 					}
-				}
-				if (!p) {
-					/*
-					 * compute |A*A'| 
-					 */
-					alpha = 1.0;
-					beta = 0.0;
-					aat_m = Calloc(nc * nc, double);
-
-					if (GMRFLib_faster_constr) {
-						dgemm_special2(nc, aat_m, (*problem)->sub_constr->a_matrix, (*problem)->sub_constr);
-					} else {
-						dgemm_("N", "T", &nc, &nc, &sub_n, &alpha, (*problem)->sub_constr->a_matrix,
-						       &nc, (*problem)->sub_constr->a_matrix, &nc, &beta, aat_m, &nc, F_ONE, F_ONE);
-					}
-					tmp_vector = NULL;
-					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
-						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2));
-					Free(aat_m);
-					Free(tmp_vector);
-
-					if (con->sha1 && constr_store_use) {
-						if (constr_store_debug) {
-							printf("constr_store: store value %f\n", (*problem)->logdet_aat);
-						}
 #pragma omp critical
-						map_strd_set(&constr_store, (char *) con->sha1, (*problem)->logdet_aat);
-					}
-					if (!(con->sha1) && constr_store_use) {
-						if (constr_store_debug) {
-							printf("constr_store: value computed %f, but not set\n", (*problem)->logdet_aat);
-						}
+					map_strd_set(&constr_store, (char *) con->sha1, (*problem)->logdet_aat);
+				}
+				if (!(con->sha1) && constr_store_use) {
+					if (constr_store_debug) {
+						printf("constr_store: value computed %f, but not set\n", (*problem)->logdet_aat);
 					}
 				}
 			}
 		}
 	}
 
-	if (!(keep & GMRFLib_KEEP_mean)) {
-		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
-		if (!((*problem)->sub_mean_constr)) {
-			(*problem)->sub_mean_constr = Calloc(sub_n, double);
-		}
-		memcpy((*problem)->sub_mean_constr, (*problem)->sub_mean, sub_n * sizeof(double));
+
+	GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+	if (!((*problem)->sub_mean_constr)) {
+		(*problem)->sub_mean_constr = Calloc(sub_n, double);
 	}
+	memcpy((*problem)->sub_mean_constr, (*problem)->sub_mean, sub_n * sizeof(double));
+
 
 	if (((*problem)->sub_constr && (*problem)->sub_constr->nc > 0)) {
-		if (((keep & GMRFLib_KEEP_constr)) && ((keep & GMRFLib_KEEP_mean))) {
-			/*
-			 * do nothing 
-			 */
-		} else {
-			/*
-			 * compute the mean after correcting for the constraint. this is the same as if the sample itself is
-			 * sub_mean! i have copied parts of code from GMRFLib_sample into here...
-			 */
-			int nc = constr->nc, inc = 1;
-			double alpha, beta, *t_vector;
+		/*
+		 * compute the mean after correcting for the constraint. this is the same as if the sample itself is
+		 * sub_mean! i have copied parts of code from GMRFLib_sample into here...
+		 */
+		int nc = constr->nc, inc = 1;
+		double alpha, beta, *t_vector;
 
-			Free((*problem)->sub_constr_value);
-			(*problem)->sub_constr_value = t_vector = Calloc(nc, double);
+		Free((*problem)->sub_constr_value);
+		(*problem)->sub_constr_value = t_vector = Calloc(nc, double);
 
-			GMRFLib_EWRAP1(GMRFLib_eval_constr(t_vector, NULL, (*problem)->sub_mean, (*problem)->sub_constr, (*problem)->sub_graph));
+		GMRFLib_EWRAP1(GMRFLib_eval_constr(t_vector, NULL, (*problem)->sub_mean, (*problem)->sub_constr, (*problem)->sub_graph));
 
-			/*
-			 * sub_mean_constr is pr.default equal to sub_mean 
-			 */
-			alpha = -1.0;
-			beta = 1.0;			       /* mean_constr = mean - cond_m*t_vector */
-			dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr,
-			       &inc, F_ONE);
-		}
+		/*
+		 * sub_mean_constr is pr.default equal to sub_mean 
+		 */
+		alpha = -1.0;
+		beta = 1.0;				       /* mean_constr = mean - cond_m*t_vector */
+		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, F_ONE);
 	}
 
 	/*

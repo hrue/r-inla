@@ -221,14 +221,13 @@ int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x
 int GMRFLib_init_problem_hidden(GMRFLib_hidden_problem_tp ** hidden_problem,
 				double *x, double *b, double *c, double *mean,
 				GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-				char *fixed_value,
 				double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar,
 				GMRFLib_hidden_param_tp * hidden_par)
 {
 	int retval;
 
 	GMRFLib_ENTER_ROUTINE;
-	retval = GMRFLib_init_problem_hidden_store(hidden_problem, x, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value,
+	retval = GMRFLib_init_problem_hidden_store(hidden_problem, x, b, c, mean, graph, Qfunc, Qfunc_args,
 						   d, loglFunc, loglFunc_arg, optpar, hidden_par, NULL);
 	GMRFLib_LEAVE_ROUTINE;
 	return retval;
@@ -236,11 +235,10 @@ int GMRFLib_init_problem_hidden(GMRFLib_hidden_problem_tp ** hidden_problem,
 int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_problem,
 				      double *x, double *b, double *c, double *mean,
 				      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-				      char *fixed_value,
 				      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				      GMRFLib_optimize_param_tp * optpar, GMRFLib_hidden_param_tp * hidden_par, GMRFLib_store_tp * store)
 {
-	int sub_n, i, j, node, nnode, free_fixed_value = 0, free_x = 0, *inv_remap;
+	int sub_n, i, j, node, nnode, free_x = 0, *inv_remap;
 	double *mode, *cc;
 	GMRFLib_sm_fact_tp tmp_fact;
 	GMRFLib_graph_tp *tmp_graph = NULL;
@@ -254,11 +252,6 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	if (store)
 		FIXME("store-functionality is not yet implemented.");
 
-	if (!fixed_value) {
-		fixed_value = Calloc(graph->n, char);
-
-		free_fixed_value = 1;
-	}
 	if (!x) {
 		x = Calloc(graph->n, double);
 
@@ -282,7 +275,7 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	mode = Calloc(graph->n, double);
 	memcpy(mode, x, graph->n * sizeof(double));
 	if ((*hidden_problem)->hidden_par->modeoption == GMRFLib_MODEOPTION_MODE) {
-		GMRFLib_EWRAP1(GMRFLib_optimize(mode, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, NULL, d, loglFunc, loglFunc_arg, optpar));
+		GMRFLib_EWRAP1(GMRFLib_optimize(mode, b, c, mean, graph, Qfunc, Qfunc_args, NULL, d, loglFunc, loglFunc_arg, optpar));
 	}
 
 	/*
@@ -294,14 +287,12 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	/*
 	 * define the new graph (ok if fixed_value = NULL) 
 	 */
-	GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&tmp_graph, graph, fixed_value));
+	GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&tmp_graph, graph, NULL));
 	sub_n = tmp_graph->n;
 	if (sub_n == 0) {				       /* fast return if there is nothing todo */
 		Free((*hidden_problem));
 		GMRFLib_graph_free(tmp_graph);
 
-		if (free_fixed_value)
-			Free(fixed_value);
 		if (free_x)
 			Free(x);
 
@@ -428,20 +419,8 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 			nnode = graph->nbs[node][j];
 			qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
 
-			if (fixed_value[nnode]) {
-				/*
-				 * nnode is fixed 
-				 */
-				if (mean)
-					(*hidden_problem)->sub_b[i] -= qvalue * (mode[nnode] - mean[nnode]);
-				else
-					(*hidden_problem)->sub_b[i] -= qvalue * mode[nnode];
-			} else {
-				/*
-				 * nnone is not fixed 
-				 */
-				if (mean)
-					(*hidden_problem)->sub_b[i] += qvalue * mean[nnode];
+			if (mean) {
+				(*hidden_problem)->sub_b[i] += qvalue * mean[nnode];
 			}
 		}
 	}
@@ -509,8 +488,6 @@ int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_proble
 	}
 
 	Free(mode);
-	if (free_fixed_value)
-		Free(fixed_value);
 	if (free_x)
 		Free(x);
 

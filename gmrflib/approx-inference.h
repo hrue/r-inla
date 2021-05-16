@@ -1006,34 +1006,34 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** aipar);
 int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_marginal_hyperparam(double *logdens,
 				   double *x, double *b, double *c, double *mean, double *d,
-				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 				   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * aipar, GMRFLib_ai_store_tp * store);
 int GMRFLib_ai_log_posterior(double *logdens,
 			     double *x, double *b, double *c, double *mean, double *d,
-			     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+			     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 			     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_constr_tp * constr);
 int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *x_mode, double *x_gradient, double delta, double *b,
 					    double *c, double *mean, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					    char *fixed_value, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+					    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					    GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mode, double *x_gradient, double delta, double *b,
 					double *c, double *mean, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					char *fixed_value, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp ** cpo_density,
 			       int lookup_tables, 
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
-			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store);
-int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x, double *mean, char *fixed_value,
+int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x, double *mean, 
 				       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp * constr, double *bbb, double *ccc, double **covariances, int idx);
 int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * problem, int idx, double evalue, double **covariances);
 int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-						  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+						  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *aa, double *bb, double *cc,
@@ -1047,7 +1047,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
 		    char *compute, double ***hyperparam, int nhyper, GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 		    double *x, double *b, double *c, double *mean, GMRFLib_bfunc_tp ** bfunc, double *d,
-		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);

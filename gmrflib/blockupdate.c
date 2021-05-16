@@ -68,7 +68,6 @@ int GMRFLib_blockupdate(double *laccept,
 			double *d_new, double *d_old,
 			GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
 			GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
-			char *fixed_value,
 			GMRFLib_graph_tp * graph,
 			GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
 			GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
@@ -80,7 +79,7 @@ int GMRFLib_blockupdate(double *laccept,
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_EWRAP1(GMRFLib_blockupdate_store
 		       (laccept, x_new, x_old, b_new, b_old, c_new, c_old, mean_new, mean_old, d_new, d_old, loglFunc_new,
-			loglFunc_arg_new, loglFunc_old, loglFunc_arg_old, fixed_value, graph, Qfunc_new, Qfunc_arg_new,
+			loglFunc_arg_new, loglFunc_old, loglFunc_arg_old, graph, Qfunc_new, Qfunc_arg_new,
 			Qfunc_old, Qfunc_arg_old, Qfunc_old2new, Qfunc_arg_old2new, Qfunc_new2old, Qfunc_arg_new2old,
 			constr_new, constr_old, optpar, blockupdate_par, NULL));
 	GMRFLib_LEAVE_ROUTINE;
@@ -95,7 +94,6 @@ int GMRFLib_blockupdate_store(double *laccept,
 			      double *d_new, double *d_old,
 			      GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
 			      GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
-			      char *fixed_value,
 			      GMRFLib_graph_tp * graph,
 			      GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
 			      GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
@@ -226,7 +224,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b_new, c_new, mean_new, graph,
 							      (constr_new ? Qfunc_old2new : Qfunc_new),
 							      (constr_new ? Qfunc_arg_old2new : Qfunc_arg_new),
-							      fixed_value, constr_new, d_new, loglFunc_new, loglFunc_arg_new, optpar, store));
+							      constr_new, d_new, loglFunc_new, loglFunc_arg_new, optpar, store));
 		}
 
 		/*
@@ -237,7 +235,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			for (i = 0; i < n; i++) {
 				double cmin = 0.0;
 				GMRFLib_thread_id = id;
-				if (d_new[i] && (!fixed_value || !fixed_value[i])) {
+				if (d_new[i]) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d_new[i], mode[i], i,
 							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len), &(blockpar->stencil),
 							      &cmin);
@@ -274,7 +272,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 		}
 
 		GMRFLib_EWRAP1(GMRFLib_init_problem_store(&problem, x_old, bb, cc, mean_new, graph,
-							  Qfunc_old2new, Qfunc_arg_old2new, fixed_value, constr_new, GMRFLib_NEW_PROBLEM, store));
+							  Qfunc_old2new, Qfunc_arg_old2new, constr_new, store));
 	}
 
 	if (problem) {
@@ -315,7 +313,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b_old, c_old, mean_old, graph,
 							      (constr_old ? Qfunc_new2old : Qfunc_old),
 							      (constr_old ? Qfunc_arg_new2old : Qfunc_arg_old),
-							      fixed_value, constr_old, d_old, loglFunc_old, loglFunc_arg_old, optpar, store));
+							      constr_old, d_old, loglFunc_old, loglFunc_arg_old, optpar, store));
 		}
 
 		memset(bb, 0, n * sizeof(double));
@@ -325,7 +323,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			for (i = 0; i < n; i++) {
 				double cmin = 0.0;
 				GMRFLib_thread_id = id;
-				if (d_old[i] && (!fixed_value || !fixed_value[i])) {
+				if (d_old[i]) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d_old[i], mode[i], i, mode,
 							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len), &(blockpar->stencil), &cmin);
 				}
@@ -361,8 +359,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 		}
 
 		GMRFLib_EWRAP1(GMRFLib_init_problem_store
-			       (&problem, x_new, bb, cc, mean_old, graph, Qfunc_new2old, Qfunc_arg_new2old, fixed_value, constr_old,
-				GMRFLib_NEW_PROBLEM, store));
+			       (&problem, x_new, bb, cc, mean_old, graph, Qfunc_new2old, Qfunc_arg_new2old, constr_old, store));
 	}
 
 	if (problem) {
@@ -520,18 +517,18 @@ int GMRFLib_blockupdate_store(double *laccept,
 
 int GMRFLib_init_GMRF_approximation(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, double *d,
 				    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				    char *fixed_value, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+				    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 				    GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par)
 {
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store(problem, x, b, c, mean, d, loglFunc, loglFunc_arg, fixed_value,
+	GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store(problem, x, b, c, mean, d, loglFunc, loglFunc_arg,
 							     graph, Qfunc, Qfunc_arg, constr, optpar, blockupdate_par, NULL));
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-					  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+					  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 					  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store)
@@ -587,10 +584,9 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 
 	memcpy(mode, x, n * sizeof(double));
 	if (blockupdate_par->modeoption == GMRFLib_MODEOPTION_MODE && d)
-		GMRFLib_EWRAP1(GMRFLib_optimize_store
-			       (mode, b, c, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, d, loglFunc, loglFunc_arg, optpar, store));
+		GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b, c, mean, graph, Qfunc, Qfunc_arg, constr, d, loglFunc, loglFunc_arg, optpar, store));
 
-	if (!fixed_value || !(store && store->sub_graph)) {
+	if (!(store && store->sub_graph)) {
 		/*
 		 * compute the terms from loglFunc 
 		 */
@@ -677,8 +673,7 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		}
 	}
 
-	GMRFLib_EWRAP1(GMRFLib_init_problem_store
-		       (problem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_NEW_PROBLEM, store));
+	GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store));
 
 	FREE_ALL;
 	GMRFLib_LEAVE_ROUTINE;
@@ -961,7 +956,6 @@ int GMRFLib_blockupdate_hidden(double *laccept,
 			       double *d_new, double *d_old,
 			       GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
 			       GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
-			       char *fixed_value,
 			       GMRFLib_graph_tp * graph,
 			       GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
 			       GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
@@ -972,7 +966,7 @@ int GMRFLib_blockupdate_hidden(double *laccept,
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_EWRAP1(GMRFLib_blockupdate_hidden_store(laccept, x_new, x_old, b_new, b_old, c_new, c_old, mean_new, mean_old,
 							d_new, d_old, loglFunc_new, loglFunc_arg_new, loglFunc_old,
-							loglFunc_arg_old, fixed_value, graph, Qfunc_new, Qfunc_arg_new,
+							loglFunc_arg_old, graph, Qfunc_new, Qfunc_arg_new,
 							Qfunc_old, Qfunc_arg_old, Qfunc_old2new, Qfunc_arg_old2new,
 							Qfunc_new2old, Qfunc_arg_new2old, optpar, hidden_par, NULL));
 	GMRFLib_LEAVE_ROUTINE;
@@ -987,7 +981,6 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 				     double *d_new, double *d_old,
 				     GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
 				     GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
-				     char *fixed_value,
 				     GMRFLib_graph_tp * graph,
 				     GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
 				     GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
@@ -1038,7 +1031,7 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 
 	GMRFLib_EWRAP1(GMRFLib_init_problem_hidden_store(&hidden_problem,
 							 x_old, b_new, c_new, mean_new, graph, Qfunc_old2new, Qfunc_arg_old2new,
-							 fixed_value, d_new, loglFunc_new, loglFunc_arg_new, optpar, hidden_par, store));
+							 d_new, loglFunc_new, loglFunc_arg_new, optpar, hidden_par, store));
 	GMRFLib_EWRAP1(GMRFLib_sample_hidden(hidden_problem));
 	old2new = hidden_problem->sub_logdens;
 	memcpy(x_new, hidden_problem->sample, n * sizeof(double));
@@ -1048,7 +1041,7 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 
 	GMRFLib_EWRAP1(GMRFLib_init_problem_hidden_store(&hidden_problem,
 							 x_new, b_old, c_old, mean_old, graph, Qfunc_new2old, Qfunc_arg_new2old,
-							 fixed_value, d_old, loglFunc_old, loglFunc_arg_old, optpar, hidden_par, store));
+							 d_old, loglFunc_old, loglFunc_arg_old, optpar, hidden_par, store));
 	memcpy(hidden_problem->sample, x_old, n * sizeof(double));
 	GMRFLib_EWRAP1(GMRFLib_evaluate_hidden(hidden_problem));
 	new2old = hidden_problem->sub_logdens;

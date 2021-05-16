@@ -1160,14 +1160,14 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg) 
+int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	// print in sparse matrix style. only for small graphs...
 	int i, j;
 	double value;
-	
-	for(i = 0; i < graph->n; i++) {
-		for(j = 0; j < graph->n; j++) {
+
+	for (i = 0; i < graph->n; i++) {
+		for (j = 0; j < graph->n; j++) {
 
 			if (i == j || GMRFLib_graph_is_nb(i, j, graph)) {
 				value = Qfunc(i, j, NULL, Qfunc_arg);
@@ -1177,14 +1177,14 @@ int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp 
 
 			if (ISZERO(value))
 				fprintf(fp, "  .   ");
-			else				
+			else
 				fprintf(fp, "%5.2f ", value);
 		}
 		fprintf(fp, "\n");
 	}
 	return GMRFLib_SUCCESS;
 }
-	
+
 int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	int i, j, jj;

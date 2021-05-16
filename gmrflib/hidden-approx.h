@@ -299,13 +299,11 @@ int GMRFLib_loglFunc_wrapper(double *logll, double *x, int m, int idx, double *x
 int GMRFLib_init_problem_hidden(GMRFLib_hidden_problem_tp ** hidden_problem,
 				double *x, double *b, double *c, double *mean,
 				GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-				char *fixed_value,
 				double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				GMRFLib_optimize_param_tp * optpar, GMRFLib_hidden_param_tp * hidden_par);
 int GMRFLib_init_problem_hidden_store(GMRFLib_hidden_problem_tp ** hidden_problem,
 				      double *x, double *b, double *c, double *mean,
 				      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-				      char *fixed_value,
 				      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				      GMRFLib_optimize_param_tp * optpar, GMRFLib_hidden_param_tp * hidden_par, GMRFLib_store_tp * store);
 int GMRFLib_free_hidden(GMRFLib_hidden_problem_tp * hidden_problem);

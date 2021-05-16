@@ -121,19 +121,17 @@ int GMRFLib_optimize_set_store_flags(GMRFLib_store_tp * store)
 
 int GMRFLib_optimize(double *mode, double *b, double *c, double *mean,
 		     GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-		     char *fixed_value, GMRFLib_constr_tp * constr, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-		     GMRFLib_optimize_param_tp * optpar)
+		     GMRFLib_constr_tp * constr, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar)
 {
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_EWRAP1(GMRFLib_optimize_store
-		       (mode, b, c, mean, graph, Qfunc, Qfunc_args, fixed_value, constr, d, loglFunc, loglFunc_arg, optpar, NULL));
+	GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b, c, mean, graph, Qfunc, Qfunc_args, constr, d, loglFunc, loglFunc_arg, optpar, NULL));
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 			   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-			   char *fixed_value, GMRFLib_constr_tp * constr,
+			   GMRFLib_constr_tp * constr,
 			   double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_optimize_param_tp * optpar, GMRFLib_store_tp * store)
 {
 	/*
@@ -144,14 +142,13 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	 * 
 	 * and linear deterministic and stochastic constaints 
 	 */
-	int sub_n, i, j, node, nnode, free_optpar, id;
+	int sub_n, i, free_optpar;
 	double *cc = NULL, *initial_value = NULL;
 	GMRFLib_store_tp *store_ptr;
 	GMRFLib_optimize_problem_tp *opt_problem = NULL;
 
 	GMRFLib_ENTER_ROUTINE;
 
-	id = GMRFLib_thread_id;
 	GMRFLib_optimize_set_store_flags(store);
 
 	/*
@@ -189,7 +186,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		/*
 		 * compute it 
 		 */
-		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&(opt_problem->sub_graph), graph, fixed_value));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&(opt_problem->sub_graph), graph, NULL));
 
 		/*
 		 * store it in store if requested 
@@ -285,55 +282,15 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	 * now compute the new 'effective' b, and then the mean. recall to add the 'c' term manually, since we're using the
 	 * original Qfunc. 
 	 */
-	if (!fixed_value) {				       /* then sub_graph = graph and map=I */
-		if (mean) {
-			double *tmp = NULL;
-			tmp = Calloc(graph->n, double);
+	if (mean) {
+		double *tmp = NULL;
+		tmp = Calloc(graph->n, double);
 
-			GMRFLib_Qx(tmp, mean, graph, Qfunc, Qfunc_args);
-			for (i = 0; i < graph->n; i++) {
-				opt_problem->b[i] += tmp[i] + cc[i] * mean[i];
-			}
-			Free(tmp);
+		GMRFLib_Qx(tmp, mean, graph, Qfunc, Qfunc_args);
+		for (i = 0; i < graph->n; i++) {
+			opt_problem->b[i] += tmp[i] + cc[i] * mean[i];
 		}
-	} else {
-		/*
-		 * x=(x1,x2), then x1|x2 has b = Q11 \mu1 - Q12(x2-\mu2) 
-		 */
-#pragma omp parallel for private(i, j, node, nnode)
-		for (i = 0; i < sub_n; i++) {		       /* loop over all sub_nodes */
-			GMRFLib_thread_id = id;
-			node = opt_problem->map[i];
-			if (mean) {
-				opt_problem->b[i] += ((*Qfunc) (node, node, NULL, Qfunc_args) + cc[i]) * mean[node];
-			}
-
-			for (j = 0; j < graph->nnbs[node]; j++) {	/* then over all neighbors */
-				double qvalue;
-
-				nnode = graph->nbs[node][j];
-				qvalue = (*Qfunc) (node, nnode, NULL, Qfunc_args);
-
-				if (fixed_value[nnode]) {
-					/*
-					 * nnode is fixed 
-					 */
-					if (mean) {
-						opt_problem->b[i] -= qvalue * (mode[nnode] - mean[nnode]);
-					} else {
-						opt_problem->b[i] -= qvalue * mode[nnode];
-					}
-				} else {
-					/*
-					 * nnone is not fixed 
-					 */
-					if (mean) {
-						opt_problem->b[i] += qvalue * mean[nnode];
-					}
-				}
-			}
-		}
-		GMRFLib_thread_id = id;
+		Free(tmp);
 	}
 
 	/*
@@ -361,7 +318,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 
 		b_add = Calloc(sub_n, double);
 
-		GMRFLib_EWRAP1(GMRFLib_recomp_constr(&(opt_problem->sub_constr), constr, mode, b_add, fixed_value, graph, opt_problem->sub_graph));
+		GMRFLib_EWRAP1(GMRFLib_recomp_constr(&(opt_problem->sub_constr), constr, mode, b_add, NULL, graph, opt_problem->sub_graph));
 
 		for (i = 0; i < sub_n; i++) {
 			opt_problem->b[i] += b_add[i];
@@ -411,22 +368,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		GMRFLib_graph_free(diag_graph);
 	}
 
-	if (store && fixed_value && !(store->sub_store)) {
-		/*
-		 * we cannot use the ordinary 'store' as optimize2/3 work on sub_graph. however, we can use the sub_store for
-		 * this purpose. prepare it if not already done. 
-		 */
-		store->sub_store = Calloc(1, GMRFLib_store_tp);
-	}
-
-	/*
-	 * which store to use, if any 
-	 */
-	if (store) {
-		store_ptr = (fixed_value ? store->sub_store : store);
-	} else {
-		store_ptr = store;
-	}
+	store_ptr = store;
 
 	switch (opt_problem->optpar->opt_type) {
 	case GMRFLib_OPTTYPE_CG:
@@ -871,10 +813,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 
 		GMRFLib_EWRAP0(GMRFLib_init_problem_store(&problem, opt_problem->mode, bb, NULL, NULL, opt_problem->sub_graph,
 							  opt_problem->sub_Qfunc, (void *) opt_problem->sub_Qfunc_arg,
-							  NULL, opt_problem->sub_constr,
-							  (unsigned int) (iter ==
-									  0 ? GMRFLib_NEW_PROBLEM : GMRFLib_KEEP_graph | GMRFLib_KEEP_constr),
-							  store));
+							  opt_problem->sub_constr, store));
 		f = DMIN(1.0, step_factor * (iter + 1));
 		if (problem->sub_constr) {
 			for (i = 0, err = 0.0; i < sub_n; i++) {

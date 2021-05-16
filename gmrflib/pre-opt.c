@@ -46,7 +46,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int ndata, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
-			double *f_diag, 
+			double *f_diag,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
@@ -144,7 +144,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_ged_build(&((*preopt)->latent_graph), ged);
 	GMRFLib_ged_free(ged);
 
-	(*preopt)->latent_graph = (*preopt)->latent_graph;	       /* just a copy */
+	(*preopt)->latent_graph = (*preopt)->latent_graph;     /* just a copy */
 	(*preopt)->latent_Qfunc = GMRFLib_preopt_latent_Qfunc;
 	(*preopt)->latent_Qfunc_arg = (void *) *preopt;
 
@@ -241,7 +241,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				idx = c[jj][i] + idx_map_f[jj];
 				val = ww[jj][i];
 				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
-				GMRFLib_idxval_add(&(A_idxval[i]), idx, val); 
+				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
 		for (jj = 0; jj < nbeta; jj++) {
@@ -429,7 +429,7 @@ double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), 
 					value += a->f_diag[it.tp_idx];
 				}
 			}
-			
+
 			/*
 			 * only for the same index and different types; used to define `interaction between fields'. this is a 'workaround' for a INLA problem.. 
 			 */
@@ -580,7 +580,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt)
 {
 	// compute eta = A %*% x
-	
+
 	memset(predictor, 0, preopt->ndata * sizeof(double));
 	for (int i = 0; i < preopt->ndata; i++) {
 		if (preopt->A_idxval[i]) {
@@ -690,29 +690,30 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 
 	double *pred = Calloc(preopt->ndata, double);
 	double *latent = Calloc(preopt->n, double);
-	
-	for(k = 0; k < preopt->n; k++) {
-		latent[k] = k+1.0;
+
+	for (k = 0; k < preopt->n; k++) {
+		latent[k] = k + 1.0;
 	}
 	GMRFLib_preopt_predictor(pred, latent, preopt);
-	for(k = 0; k < preopt->ndata; k++) {
+	for (k = 0; k < preopt->ndata; k++) {
 		printf("pred[%1d]=  %f\n", k, pred[k]);
 	}
 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem, 
-							 GMRFLib_preopt_tp *preopt, 
+int GMRFLib_preopt_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
+							 GMRFLib_preopt_tp * UNUSED(preopt),
 							 double *x, double *b, double *c, double *mean,
-						  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
-						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
-						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy, int nested)
+							 double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+							 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+							 GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
+							 GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
+							 double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy,
+							 int nested)
 {
 	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
-		0, n, id, *idxs = NULL, nidx = 0;
+	    0, n, id, *idxs = NULL, nidx = 0;
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_x) Free(x); if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
@@ -851,14 +852,12 @@ int GMRFLib_preopt_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** p
 
 		if (!lproblem) {
 			int ret;
-			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value,
-							 constr, GMRFLib_NEW_PROBLEM, store);
+			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store);
 			if (ret != GMRFLib_SUCCESS) {
 				catch_error = 1;
 			}
 		} else {
-			GMRFLib_init_problem_store
-				(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, fixed_value, constr, GMRFLib_KEEP_graph, store);
+			GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store);
 		}
 
 		if (catch_error) {
@@ -980,8 +979,8 @@ int GMRFLib_preopt_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** p
 				 */
 				int retval, kk, ntimes = 1000, stop = 0;
 				double lambda = 10000.0,       /* first value for lambda */
-					lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
-					lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
+				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
+				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
 				double *c_new = Calloc(graph->n, double);
 
 				for (kk = 0; kk < ntimes; kk++) {
@@ -995,7 +994,7 @@ int GMRFLib_preopt_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** p
 						}
 					}
 					retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
-											       loglFunc, loglFunc_arg, fixed_value,
+											       loglFunc, loglFunc_arg,
 											       graph, Qfunc, Qfunc_arg, constr,
 											       &new_optpar, blockupdate_par, store,
 											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2);

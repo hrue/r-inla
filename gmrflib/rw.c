@@ -906,8 +906,7 @@ int GMRFLib_crw_scale(void *def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval =
-		    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1040,7 +1039,7 @@ int GMRFLib_rw_scale(void *def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1145,8 +1144,7 @@ int GMRFLib_rw2d_scale(void *def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval =
-		    GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, NULL, constr, GMRFLib_NEW_PROBLEM);
+		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
