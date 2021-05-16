@@ -30321,6 +30321,7 @@ int inla_INLA(inla_tp * mb)
 		GMRFLib_preopt_init(&preopt, 
 				    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights, 
 				    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
+				    mb->f_diag, 
 				    mb->ff_Qfunc, mb->ff_Qfunc_arg,
 				    mb->nlinear, mb->linear_covariate, mb->linear_precision,
 				    bfunc, mb->ai_par);

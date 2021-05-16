@@ -93,6 +93,7 @@ typedef struct {
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interaction */
 	GMRFLib_Qfunc_tp **f_Qfunc;
 	GMRFLib_graph_tp **f_graph;
+	double *f_diag;
 	GMRFLib_preopt_type_tp *what_type;
 	void ***ff_Qfunc_arg;
 	void **f_Qfunc_arg;
@@ -115,6 +116,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * ar
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
+			double *f_diag, 
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision,
 			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par));
