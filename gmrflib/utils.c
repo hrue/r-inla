@@ -1291,6 +1291,74 @@ int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
 	return GMRFLib_SUCCESS;
 }
 
+GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n) 
+{
+	GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
+	for(int i = 0; i < n; i++) {
+		GMRFLib_idx_create(&(a[i]));
+	}
+	return a;
+}
+
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n) 
+{
+	GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+	for(int i = 0; i < n; i++) {
+		GMRFLib_idx2_create(&(a[i]));
+	}
+	return a;
+}
+
+GMRFLib_val_tp **GMRFLib_val_ncreate(int n) 
+{
+	GMRFLib_val_tp **a = Calloc(n, GMRFLib_val_tp *);
+	for(int i = 0; i < n; i++) {
+		GMRFLib_val_create(&(a[i]));
+	}
+	return a;
+}
+
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n) 
+{
+	GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
+	for(int i = 0; i < n; i++) {
+		GMRFLib_idxval_create(&(a[i]));
+	}
+	return a;
+}
+
+int GMRFLib_idx_nprune(GMRFLib_idx_tp **a, int n)
+{
+	for(int i = 0; i < n; i++) {
+		GMRFLib_idx_prune(a[i]);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx2_nprune(GMRFLib_idx2_tp **a, int n)
+{
+	for(int i = 0; i < n; i++) {
+		GMRFLib_idx2_prune(a[i]);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_val_nprune(GMRFLib_val_tp **a, int n)
+{
+	for(int i = 0; i < n; i++) {
+		GMRFLib_val_prune(a[i]);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n)
+{
+	for(int i = 0; i < n; i++) {
+		GMRFLib_idxval_prune(a[i]);
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 {
 	if (*hold == NULL) {
@@ -1358,7 +1426,7 @@ int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
 		hold->idx = Realloc(hold->idx, IMAX(1, hold->n), int);
-		hold->n_alloc = hold->n;
+		hold->n_alloc = IMAX(1, hold->n);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1368,7 +1436,7 @@ int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
 	if (hold) {
 		hold->idx[0] = Realloc(hold->idx[0], IMAX(1, hold->n), int);
 		hold->idx[1] = Realloc(hold->idx[1], IMAX(1, hold->n), int);
-		hold->n_alloc = hold->n;
+		hold->n_alloc = IMAX(1, hold->n);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1377,7 +1445,7 @@ int GMRFLib_val_prune(GMRFLib_val_tp * hold)
 {
 	if (hold) {
 		hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
-		hold->n_alloc = hold->n;
+		hold->n_alloc = IMAX(1, hold->n);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1386,7 +1454,7 @@ int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
 {
 	if (hold) {
 		hold->store = Realloc(hold->store, IMAX(1, hold->n), GMRFLib_idxval_elm_tp);
-		hold->n_alloc = hold->n;
+		hold->n_alloc = IMAX(1, hold->n);
 	}
 	return GMRFLib_SUCCESS;
 }

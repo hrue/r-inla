@@ -65,6 +65,25 @@ typedef struct {
 	int nf;
 	int nbeta;
 
+	GMRFLib_graph_tp *preopt_graph;
+	GMRFLib_Qfunc_tp *preopt_Qfunc;
+	void *preopt_Qfunc_arg;
+
+	GMRFLib_graph_tp *latent_graph;			       
+	GMRFLib_Qfunc_tp *latent_Qfunc;
+	void *latent_Qfunc_arg;
+	GMRFLib_constr_tp *latent_constr;
+
+	GMRFLib_graph_tp *like_graph;			       
+	GMRFLib_Qfunc_tp *like_Qfunc;
+	void *like_Qfunc_arg;
+
+	GMRFLib_bfunc_tp **bfunc;
+	double **like_c;	
+	double **like_b;	
+	double **total_b;	
+	double *total_const;	
+
 	int *idx_map_beta;
 	int *idx_map_f;
 
@@ -74,7 +93,6 @@ typedef struct {
 	GMRFLib_Qfunc_tp ***ff_Qfunc;			       /* interaction */
 	GMRFLib_Qfunc_tp **f_Qfunc;
 	GMRFLib_graph_tp **f_graph;
-	GMRFLib_graph_tp *latent_graph;		
 	GMRFLib_preopt_type_tp *what_type;
 	void ***ff_Qfunc_arg;
 	void **f_Qfunc_arg;
@@ -82,42 +100,11 @@ typedef struct {
 	GMRFLib_idxval_tp **A_idxval;
 	GMRFLib_idxval_tp **At_idxval;
 	GMRFLib_idxval_tp ***AtA_idxval;
-	GMRFLib_graph_tp *like_graph;		
 
-	double **like_c;
-	double **like_b;
-	double **total_b;
-	double *total_const;
-} GMRFLib_preopt_arg_tp;
-
-typedef struct {
-	int n;
-	int ndata;
-	int nf;
-	int nbeta;
-
-	GMRFLib_graph_tp *preopt_graph;
-	GMRFLib_Qfunc_tp *preopt_Qfunc;
-	void *preopt_Qfunc_arg;
-
-	GMRFLib_graph_tp *latent_graph;			       /* samt ptr as preopt_arg_tp:latent_graph */
-	GMRFLib_Qfunc_tp *latent_Qfunc;
-	void *latent_Qfunc_arg;
-	GMRFLib_constr_tp *latent_constr;
-
-	GMRFLib_graph_tp *like_graph;			       /* same ptr as preopt_arg_tp:like_graph */
-	GMRFLib_Qfunc_tp *like_Qfunc;
-	void *like_Qfunc_arg;
-
-	GMRFLib_bfunc_tp **bfunc;
-	double **like_c;				       /* point to arg->like_C */
-	double **like_b;				       /* point to arg->like_B */
-	double **total_b;				       /* point to arg->total_b */
-	double *total_const;				       /* point to arg->total_const */
 } GMRFLib_preopt_tp;
 
 
-GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_arg_tp * a);
+GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
 double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg);
 double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *values, void *arg);

@@ -127,16 +127,19 @@ int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1);
 int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold);
 int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold);
+int GMRFLib_idx2_nprune(GMRFLib_idx2_tp **a, int n);
 int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg);
 int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold);
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx);
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold);
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_nprune(GMRFLib_idx_tp **a, int n);
 int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg);
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
 int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_imax_value(int *x, int n, int *idx);
@@ -146,6 +149,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_iwhich_sorted(int val, int *ix, int len);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_printf(FILE * fp);
+int GMRFLib_val_nprune(GMRFLib_val_tp **a, int n);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
@@ -178,5 +182,11 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+
+GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
+GMRFLib_val_tp **GMRFLib_val_ncreate(int n);
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);
+
 __END_DECLS
 #endif
