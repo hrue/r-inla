@@ -43,7 +43,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
-			int nlike, int nf, int **c, double **w,
+			int ndata, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
@@ -61,15 +61,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	double **ww = NULL;
 	ww = Calloc(nf, double *);
 	for (i = 0; i < nf; i++) {
-		ww[i] = Calloc(nlike, double);
-		for (j = 0; j < nlike; j++) {
+		ww[i] = Calloc(ndata, double);
+		for (j = 0; j < ndata; j++) {
 			ww[i][j] = 1.0;
 		}
 	}
 	if (w) {
 		for (i = 0; i < nf; i++) {
 			if (w[i]) {
-				memcpy(ww[i], w[i], nlike * sizeof(double));
+				memcpy(ww[i], w[i], ndata * sizeof(double));
 			}
 		}
 	}
@@ -216,8 +216,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 
 	if (debug) {
-		printf("\tndata %1d nf %1d nbeta %1d\n", nlike, nf, nbeta);
-		for (i = 0; i < nlike; i++) {
+		printf("\tndata %1d nf %1d nbeta %1d\n", ndata, nf, nbeta);
+		for (i = 0; i < ndata; i++) {
 			printf("data %1d\n", i);
 			for (j = 0; j < nf; j++) {
 				printf("\t\tf[%1d]  index %1d  weight %.6f\n", j, c[j][i], ww[j][i]);
@@ -229,12 +229,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	// build up structure for the likelihood part
 
-	GMRFLib_idxval_tp **A_idxval = Calloc(nlike, GMRFLib_idxval_tp *);
+	GMRFLib_idxval_tp **A_idxval = Calloc(ndata, GMRFLib_idxval_tp *);
 	GMRFLib_idxval_tp **At_idxval = Calloc(N, GMRFLib_idxval_tp *);
-	arg->A_idxval = A_idxval;
-	arg->At_idxval = At_idxval;
 
-	for (i = 0; i < nlike; i++) {
+	for (i = 0; i < ndata; i++) {
 		int idx;
 		double val;
 
@@ -262,7 +260,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_ged_add(ged, i, i);
 	}
 
-	for (i = 0; i < nlike; i++) {
+	for (i = 0; i < ndata; i++) {
 		GMRFLib_idx_tp *idx = NULL;
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
@@ -295,7 +293,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_add(&(AtA_idxval[i][0]), i, 0.0);
 	}
 
-	for (i = 0; i < nlike; i++) {
+	for (i = 0; i < ndata; i++) {
 		GMRFLib_idxval_tp *idxval = NULL;
 
 		for (jj = 0; jj < nf; jj++) {
@@ -331,6 +329,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_free(idxval);
 	}
 
+	for (i = 0; i < ndata; i++) {
+		GMRFLib_idxval_prune(A_idxval[i]);
+	}
+	for (i = 0; i < N; i++) {
+		GMRFLib_idxval_prune(At_idxval[i]);
+	}
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_prune(AtA_idxval[i][0]);
 		for (jj = 0; jj < g->lnnbs[i]; jj++) {
@@ -338,8 +342,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
+	arg->A_idxval = A_idxval;
+	arg->At_idxval = At_idxval;
 	arg->AtA_idxval = AtA_idxval;
-	arg->nlike = nlike;
 	arg->like_graph = g;
 	arg->like_c = Calloc(GMRFLib_MAX_THREADS, double *);
 	arg->like_b = Calloc(GMRFLib_MAX_THREADS, double *);
@@ -359,7 +364,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->total_const = arg->total_const;	       /* yes, just a copy */
 
 	(*preopt)->n = arg->n = (*preopt)->latent_graph->n;
-	(*preopt)->nlike = arg->nlike = (*preopt)->like_graph->n;
+	(*preopt)->ndata = arg->ndata = ndata;
 	(*preopt)->nf = arg->nf = (*preopt)->n - nbeta;
 	(*preopt)->nbeta = arg->nbeta = nbeta;
 
@@ -596,8 +601,10 @@ int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_t
 	
 	GMRFLib_preopt_arg_tp *a = (GMRFLib_preopt_arg_tp *) (preopt->like_Qfunc_arg);
 
-	memset(predictor, 0, preopt->nlike * sizeof(double));
-	for (int i = 0; i < preopt->nlike; i++) {
+	memset(predictor, 0, preopt->ndata * sizeof(double));
+	for (int i = 0; i < preopt->ndata; i++) {
+		P(i);
+		assert(a->A_idxval[i]);
 		if (a->A_idxval[i]) {
 			for (int jj = 0; jj < a->A_idxval[i]->n; jj++) {
 				int idx = a->A_idxval[i]->store[jj].idx;
@@ -682,9 +689,9 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 	for (k = 0; k < 100; k++) {
 		GMRFLib_thread_id = omp_get_thread_num();
 
-		double *bb = Calloc(preopt->nlike, double);
-		double *cc = Calloc(preopt->nlike, double);
-		for (int i = 0; i < preopt->nlike; i++) {
+		double *bb = Calloc(preopt->ndata, double);
+		double *cc = Calloc(preopt->ndata, double);
+		for (int i = 0; i < preopt->ndata; i++) {
 			cc[i] = exp(GMRFLib_uniform());
 			bb[i] = GMRFLib_uniform();
 		}
@@ -692,6 +699,17 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 		GMRFLib_preopt_update(preopt, bb, cc);
 		Free(bb);
 		Free(cc);
+	}
+
+	double *pred = Calloc(preopt->ndata, double);
+	double *latent = Calloc(preopt->n, double);
+	
+	for(k = 0; k < preopt->n; k++) {
+		latent[k] = k+1.0;
+	}
+	GMRFLib_preopt_predictor(pred, latent, preopt);
+	for(k = 0; k < preopt->ndata; k++) {
+		printf("pred[%1d]=  %f\n", k, pred[k]);
 	}
 
 	return GMRFLib_SUCCESS;

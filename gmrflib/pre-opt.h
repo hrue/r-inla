@@ -61,7 +61,7 @@ typedef struct {
 
 typedef struct {
 	int n;
-	int nlike;
+	int ndata;
 	int nf;
 	int nbeta;
 
@@ -92,7 +92,7 @@ typedef struct {
 
 typedef struct {
 	int n;
-	int nlike;
+	int ndata;
 	int nf;
 	int nbeta;
 
