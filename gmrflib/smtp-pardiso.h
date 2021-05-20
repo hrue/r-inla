@@ -187,6 +187,7 @@ int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, doubl
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_exit(void);
 
 int my_pardiso_test1(void);
 int my_pardiso_test2(void);

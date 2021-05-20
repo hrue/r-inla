@@ -900,6 +900,8 @@ struct inla_tp_struct {
 	int strategy;
 	char *smtp;
 
+	GMRFLib_preopt_tp *preopt;
+
 	/*
 	 * parameters for global_nodes
 	 */
@@ -1684,6 +1686,7 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
+int inla_INLA_preopt(inla_tp * mb);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
@@ -1941,7 +1944,6 @@ typedef struct {
 	int reorder;					       /* reorder strategy: -1 for optimize */
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
-	int preopt_mode;				       /* enable pre-opt. this is temporary option */
 } G_tp;
 
 

@@ -43,7 +43,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
-			int ndata, int nf, int **c, double **w,
+			int npred, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			double *f_diag,
@@ -51,7 +51,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
 	int i, ii, j, jj, k, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset;
-	int debug = 1;
+	int debug = 0;
 	GMRFLib_constr_tp *fc = NULL;
 
 	if (!preopt) {
@@ -61,15 +61,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	double **ww = NULL;
 	ww = Calloc(nf, double *);
 	for (i = 0; i < nf; i++) {
-		ww[i] = Calloc(ndata, double);
-		for (j = 0; j < ndata; j++) {
+		ww[i] = Calloc(npred, double);
+		for (j = 0; j < npred; j++) {
 			ww[i][j] = 1.0;
 		}
 	}
 	if (w) {
 		for (i = 0; i < nf; i++) {
 			if (w[i]) {
-				memcpy(ww[i], w[i], ndata * sizeof(double));
+				memcpy(ww[i], w[i], npred * sizeof(double));
 			}
 		}
 	}
@@ -216,8 +216,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 
 	if (debug) {
-		printf("\tndata %1d nf %1d nbeta %1d\n", ndata, nf, nbeta);
-		for (i = 0; i < ndata; i++) {
+		printf("\tnpred %1d nf %1d nbeta %1d\n", npred, nf, nbeta);
+		for (i = 0; i < npred; i++) {
 			printf("data %1d\n", i);
 			for (j = 0; j < nf; j++) {
 				printf("\t\tf[%1d]  index %1d  weight %.6f\n", j, c[j][i], ww[j][i]);
@@ -229,10 +229,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	// build up structure for the likelihood part
 
-	GMRFLib_idxval_tp **A_idxval = GMRFLib_idxval_ncreate(ndata);
+	GMRFLib_idxval_tp **A_idxval = GMRFLib_idxval_ncreate(npred);
 	GMRFLib_idxval_tp **At_idxval = GMRFLib_idxval_ncreate(N);
 
-	for (i = 0; i < ndata; i++) {
+	for (i = 0; i < npred; i++) {
 		int idx;
 		double val;
 
@@ -260,7 +260,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_ged_add(ged, i, i);
 	}
 
-	for (i = 0; i < ndata; i++) {
+	for (i = 0; i < npred; i++) {
 		GMRFLib_idx_tp *idx = NULL;
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
@@ -290,7 +290,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-	for (i = 0; i < ndata; i++) {
+	for (i = 0; i < npred; i++) {
 		GMRFLib_idxval_tp *idxval = NULL;
 
 		for (jj = 0; jj < nf; jj++) {
@@ -326,7 +326,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_free(idxval);
 	}
 
-	GMRFLib_idxval_nprune(A_idxval, ndata);
+	GMRFLib_idxval_nprune(A_idxval, npred);
 	GMRFLib_idxval_nprune(At_idxval, N);
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i]);
@@ -340,15 +340,14 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS, double *);
 	(*preopt)->total_const = Calloc(GMRFLib_MAX_THREADS, double);
 	(*preopt)->total_b = Calloc(GMRFLib_MAX_THREADS, double *);
-	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
-		(*preopt)->total_b[i] = Calloc(N, double);
-	}
+
+	P(N);
 
 	(*preopt)->like_Qfunc_arg = (void *) *preopt;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
 	(*preopt)->bfunc = bfunc;
 	(*preopt)->n = (*preopt)->latent_graph->n;
-	(*preopt)->ndata = ndata;
+	(*preopt)->npred = npred;
 	(*preopt)->nf = (*preopt)->n - nbeta;
 	(*preopt)->nbeta = nbeta;
 
@@ -487,25 +486,28 @@ double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), vo
 
 	imin = IMIN(node, nnode);
 	imax = IMAX(node, nnode);
-	assert(a->like_c[id] && a->like_b[id]);
 
-	if (imin == imax) {
-		for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
-			idx = a->AtA_idxval[imin][0]->store[kk].idx;
-			val = a->AtA_idxval[imin][0]->store[kk].val;
-			value += val * a->like_c[id][idx];
-		}
-	} else {
-		k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
-		if (k > 0) {
-			for (kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
-				idx = a->AtA_idxval[imin][k]->store[kk].idx;
-				val = a->AtA_idxval[imin][k]->store[kk].val;
+	if(a->like_c[id] && a->like_b[id]) {
+		if (imin == imax) {
+			for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
+				idx = a->AtA_idxval[imin][0]->store[kk].idx;
+				val = a->AtA_idxval[imin][0]->store[kk].val;
 				value += val * a->like_c[id][idx];
 			}
 		} else {
-			assert(k > 0);
+			k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
+			if (k > 0) {
+				for (kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
+					idx = a->AtA_idxval[imin][k]->store[kk].idx;
+					val = a->AtA_idxval[imin][k]->store[kk].val;
+					value += val * a->like_c[id][idx];
+				}
+			} else {
+				assert(k > 0);
+			}
 		}
+	} else {
+		value = 0.0;
 	}
 
 	return value;
@@ -539,7 +541,9 @@ int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp * preopt)
 {
 	// just add to 'b'.
 
-	GMRFLib_preopt_bnew_latent(b, constant, preopt->n, preopt->bfunc);
+	//GMRFLib_preopt_bnew_latent(b, constant, preopt->n, preopt->bfunc);
+	*constant = 0.0;
+	
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[GMRFLib_thread_id], preopt);
 
 	return GMRFLib_SUCCESS;
@@ -547,6 +551,9 @@ int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp * preopt)
 
 int GMRFLib_preopt_bnew_latent(double *bnew, double *constant, int n, GMRFLib_bfunc_tp ** bfunc)
 {
+	FIXME("NOT IN USE");
+	abort();
+
 	// this is just copy of GMRFLib_bnew(...) without the alloc
 
 	double con = 0.0, con_add = 0.0;
@@ -565,6 +572,7 @@ int GMRFLib_preopt_bnew_latent(double *bnew, double *constant, int n, GMRFLib_bf
 
 int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * preopt)
 {
+	// add to 'bnew' the contribution from the likelihood for preopt
 	for (int i = 0; i < preopt->n; i++) {
 		if (preopt->At_idxval[i]) {
 			for (int jj = 0; jj < preopt->At_idxval[i]->n; jj++) {
@@ -581,8 +589,8 @@ int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_t
 {
 	// compute eta = A %*% x
 
-	memset(predictor, 0, preopt->ndata * sizeof(double));
-	for (int i = 0; i < preopt->ndata; i++) {
+	memset(predictor, 0, preopt->npred * sizeof(double));
+	for (int i = 0; i < preopt->npred; i++) {
 		if (preopt->A_idxval[i]) {
 			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) {
 				int idx = preopt->A_idxval[i]->store[jj].idx;
@@ -596,13 +604,21 @@ int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_t
 
 int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c)
 {
-	int id = GMRFLib_thread_id;
+	int id = GMRFLib_thread_id, np = preopt->npred;
 	double constant = 0.0;
 
-	preopt->like_c[id] = like_c;
-	preopt->like_b[id] = like_b;
+	if (!(preopt->like_b[id])) {
+		preopt->like_b[id] = Calloc(np, double);
+		preopt->like_c[id] = Calloc(np, double);
+	}
+	memcpy(preopt->like_b[id], like_b, np * sizeof(double));
+	memcpy(preopt->like_c[id], like_c, np * sizeof(double));
 
+	if (!(preopt->total_b[id])){
+		preopt->total_b[id] = Calloc(preopt->n, double);
+	}
 	memset(preopt->total_b[id], 0, preopt->n * sizeof(double));
+
 	GMRFLib_preopt_bnew(preopt->total_b[id], &constant, preopt);
 	preopt->total_const[id] = constant;
 
@@ -629,6 +645,15 @@ int GMRFLib_free_preopt(GMRFLib_preopt_tp * preopt)
 	Free(preopt->idx_map_beta);
 	Free(preopt->what_type);
 
+	for(i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		Free(preopt->like_b[i]);
+		Free(preopt->like_c[i]);
+		Free(preopt->total_b[i]);
+	}
+	Free(preopt->like_b);
+	Free(preopt->like_c);
+	Free(preopt->total_b);
+
 	GMRFLib_graph_free(preopt->preopt_graph);
 	GMRFLib_graph_free(preopt->like_graph);
 	GMRFLib_graph_free(preopt->latent_graph);
@@ -643,17 +668,6 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
-
-	GMRFLib_thread_id = omp_get_thread_num();
-
-	double *b = Calloc(preopt->ndata, double);
-	double *c = Calloc(preopt->ndata, double);
-	for (int i = 0; i < preopt->ndata; i++) {
-		c[i] = exp(GMRFLib_uniform());
-		b[i] = GMRFLib_uniform();
-	}
-	GMRFLib_preopt_update(preopt, b, c);
-
 
 	FIXME("LATENT");
 	// GMRFLib_printf_graph(stdout, preopt->latent_graph);
@@ -671,386 +685,5 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 	// GMRFLib_printf_Qfunc(stdout, preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
 	GMRFLib_printf_Qfunc2(stdout, preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
 
-	int k;
-#pragma omp parallel for private(k)
-	for (k = 0; k < 100; k++) {
-		GMRFLib_thread_id = omp_get_thread_num();
-
-		double *bb = Calloc(preopt->ndata, double);
-		double *cc = Calloc(preopt->ndata, double);
-		for (int i = 0; i < preopt->ndata; i++) {
-			cc[i] = exp(GMRFLib_uniform());
-			bb[i] = GMRFLib_uniform();
-		}
-
-		GMRFLib_preopt_update(preopt, bb, cc);
-		Free(bb);
-		Free(cc);
-	}
-
-	double *pred = Calloc(preopt->ndata, double);
-	double *latent = Calloc(preopt->n, double);
-
-	for (k = 0; k < preopt->n; k++) {
-		latent[k] = k + 1.0;
-	}
-	GMRFLib_preopt_predictor(pred, latent, preopt);
-	for (k = 0; k < preopt->ndata; k++) {
-		printf("pred[%1d]=  %f\n", k, pred[k]);
-	}
-
 	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_preopt_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
-							 GMRFLib_preopt_tp * UNUSED(preopt),
-							 double *x, double *b, double *c, double *mean,
-							 double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-							 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-							 GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
-							 GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-							 double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy,
-							 int nested)
-{
-	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
-	    0, n, id, *idxs = NULL, nidx = 0;
-	double *mode = NULL;
-
-#define FREE_ALL if (1) { if (free_x) Free(x); if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
-		if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); if (free_aa) Free(aa); if (free_bb) Free(bb); \
-		if (free_cc) Free(cc); Free(idxs); }
-
-	GMRFLib_ENTER_ROUTINE;
-
-	id = GMRFLib_thread_id;
-	n = graph->n;
-	if (n == 0) {
-		*problem = NULL;
-		return GMRFLib_SUCCESS;
-	}
-
-	if (!x) {
-		free_x = 1;
-		x = Calloc(n, double);
-	}
-	if (!b) {
-		free_b = 1;
-		b = Calloc(n, double);
-	}
-	if (!c) {
-		free_c = 1;
-		c = Calloc(n, double);
-	}
-	if (!d) {
-		free_d = 1;
-		d = Calloc(n, double);
-	}
-	if (!mean) {
-		free_mean = 1;
-		mean = Calloc(n, double);
-	}
-	if (!aa) {
-		free_aa = 1;
-		aa = Calloc(n, double);
-	}
-	if (!bb) {
-		free_bb = 1;
-		bb = Calloc(n, double);
-	}
-	if (!cc) {
-		free_cc = 1;
-		cc = Calloc(n, double);
-	}
-	mode = Calloc(n, double);
-	memcpy(mode, x, n * sizeof(double));
-
-	if (optpar && optpar->fp)
-		fprintf(optpar->fp, "\nComputing GMRF approximation\n------------------------------\n");
-	nidx = 0;
-	idxs = Calloc(n, int);
-	for (i = 0; i < n; i++) {
-		if (d[i]) {
-			idxs[nidx++] = i;
-		}
-	}
-
-	int iter, itmax = optpar->max_iter;
-
-	/*
-	 * these tricks are currently disabled 
-	 */
-	int cc_positive = 1;
-	int cc_is_negative = 0;
-	double cc_factor = 0.1;
-	double cc_factor_mult = 1.2;
-	int catch_error = 0;
-
-	GMRFLib_problem_tp *lproblem = NULL;
-	double *mode_initial = Calloc(n, double);
-	double err_previous = 0;
-
-	memcpy(mode_initial, mode, n * sizeof(double));	       /* store the starting value */
-
-	for (iter = 0; iter < itmax; iter++) {
-
-		memset(aa, 0, n * sizeof(double));
-		memcpy(bb, b, n * sizeof(double));
-		memcpy(cc, c, n * sizeof(double));
-
-		cc_is_negative = 0;
-#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nidx; i++) {
-			int idx;
-			double bcoof, ccoof;
-
-			GMRFLib_thread_id = id;
-			idx = idxs[i];
-			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
-					      &(optpar->step_len), &(optpar->stencil), &cmin);
-			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
-			if (cc_positive) {
-				if (ccoof == cmin) {
-					// then cmin is in effect
-					if (b_strategy == INLA_B_STRATEGY_SKIP) {
-						bcoof = 0.0;
-					} else if (b_strategy == INLA_B_STRATEGY_KEEP) {
-						// do nothing
-					} else {
-						assert(0 == 1);
-					}
-				}
-				bb[idx] += bcoof;
-				cc[idx] += ccoof;
-			} else {
-				// 
-				// this is not in use...
-				// 
-				if (ccoof > 0.0) {
-					bb[idx] += bcoof;
-					cc[idx] += ccoof;
-				} else {
-					bb[idx] += bcoof;
-					// bb[idx] += cc_factor*bcoof; /* what to use?? if any...*/
-					cc[idx] += cc_factor * ccoof;
-				}
-			}
-		}
-		GMRFLib_thread_id = id;
-		if (!cc_positive) {
-			cc_factor = DMIN(1.0, cc_factor * cc_factor_mult);
-		}
-
-		for (i = 0; i < n; i++) {
-			bb[i] += -c[i] * mean[i];
-		}
-
-		/*
-		 * I thought this was quicker without store, as there is just reuse and no copy... but not.  I free lproblem below and set it to NULL, so
-		 * it will always be lproblem = NULL 
-		 */
-
-
-		if (!lproblem) {
-			int ret;
-			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store);
-			if (ret != GMRFLib_SUCCESS) {
-				catch_error = 1;
-			}
-		} else {
-			GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store);
-		}
-
-		if (catch_error) {
-			lproblem = NULL;
-			break;
-		}
-
-		int flag_cycle_behaviour = 0;
-		double err = 0.0, f;
-		if (gaussian_data) {
-			f = 1.0;
-		} else {
-			f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
-		}
-
-		// if (f != 1.0) printf("%d:%d: f = %f\n", omp_get_thread_num(), GMRFLib_thread_id, f);
-
-		for (i = 0; i < n; i++) {
-			err += SQR((lproblem)->mean_constr[i] - mode[i]);
-			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
-		}
-		err = sqrt(err / n);
-
-		if (iter == 0) {
-			err_previous = err;
-		} else {
-			if ((float) (10.0 * err) == (float) (10.0 * err_previous)) {
-				/*
-				 * we're down to some rounding error and cannot get any further. this weird situation has happend. 
-				 */
-				flag_cycle_behaviour = 1;
-			}
-			if (err > 4.0 * err_previous) {
-				iter += itmax;		       /* so we can restart... */
-			}
-			err_previous = err;
-		}
-
-		if (optpar && optpar->fp)
-			fprintf(optpar->fp, "[%1d] iteration %d error %.12g\n", GMRFLib_thread_id, iter, err);
-
-		if (gaussian_data) {
-			/*
-			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are used later
-			 */
-#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
-			for (i = 0; i < nidx; i++) {
-				int idx = idxs[i];
-				GMRFLib_thread_id = id;
-				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
-						      &(optpar->step_len), &(optpar->stencil), NULL);
-			}
-			GMRFLib_thread_id = id;
-		}
-
-		if (err < optpar->abserr_step || gaussian_data || flag_cycle_behaviour) {
-			/*
-			 * we're done!  unless we have negative elements on the diagonal...
-			 */
-
-			/*
-			 * disable these cc_positive tricks now... 
-			 */
-			break;
-
-			if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
-				/*
-				 * do nothing 
-				 */
-			} else if (cc_is_negative && cc_positive) {
-				FIXME("switch to cc_positive = 0");
-				cc_positive = 0;
-			} else {
-				break;
-			}
-		}
-
-		if (gsl_isnan(err))
-			break;
-
-		GMRFLib_free_problem(lproblem);
-		lproblem = NULL;
-	}
-
-	if (iter < itmax) {
-		*problem = lproblem;
-	} else {
-		*problem = NULL;
-		GMRFLib_free_problem(lproblem);
-	}
-
-	if (!*problem) {
-		if (nested == 1) {
-			GMRFLib_ASSERT(*problem, GMRFLib_EOPTNR);
-			return GMRFLib_EOPTNR;
-		} else if (nested == 2) {
-			return GMRFLib_EOPTNR;
-		} else {
-			/*
-			 * fail to converge. restart with a reduced step_factor. 
-			 */
-			memcpy(mode, mode_initial, n * sizeof(double));	/* store the starting value */
-			Free(mode_initial);
-			FREE_ALL;
-			GMRFLib_optimize_param_tp new_optpar;
-			memcpy(&new_optpar, optpar, sizeof(GMRFLib_optimize_param_tp));
-			new_optpar.nr_step_factor *= 0.5;
-			new_optpar.max_iter *= 2;
-			if (new_optpar.fp) {
-				fprintf(new_optpar.fp,
-					"\n\n%s: Optimisation fail to converge.\n\t\t\tRetry with optpar->nr_step_factor = %g and add trust-region\n",
-					__GMRFLib_FuncName, new_optpar.nr_step_factor);
-			}
-			if (new_optpar.nr_step_factor < 1e-3) {
-				return GMRFLib_EOPTNR;
-			} else {
-				/*
-				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
-				 */
-				int retval, kk, ntimes = 1000, stop = 0;
-				double lambda = 10000.0,       /* first value for lambda */
-				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
-				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
-				double *c_new = Calloc(graph->n, double);
-
-				for (kk = 0; kk < ntimes; kk++) {
-
-					for (i = 0; i < graph->n; i++) {
-						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + (1.0 + lambda) * c[i];
-						if (ISNAN(x[i]) || ISINF(x[i])) {
-							if (!mode)
-								FIXME("MODE is NULL");
-							x[i] = mode[i];
-						}
-					}
-					retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
-											       loglFunc, loglFunc_arg,
-											       graph, Qfunc, Qfunc_arg, constr,
-											       &new_optpar, blockupdate_par, store,
-											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2);
-					if (stop && retval == GMRFLib_SUCCESS) {
-						break;
-					}
-					GMRFLib_ASSERT(lambda < 1.0 / lambda_lim, GMRFLib_EOPTNR);	/* exit if lambda is to large */
-
-					if (retval == GMRFLib_SUCCESS && lambda <= lambda_lim) {
-						/*
-						 * lambda is small enough; we're done
-						 */
-						break;
-					}
-
-					if (retval != GMRFLib_SUCCESS) {
-						/*
-						 * it means that previous lambda worked fine, but not this one, so lets retry the previous one and then exit.
-						 */
-						stop = 1;
-						lambda /= lambda_fac;
-					} else {
-						/*
-						 * we're ok, decrease lambda
-						 */
-						lambda *= lambda_fac;
-					}
-
-					if (retval == GMRFLib_SUCCESS) {
-						/*
-						 *  we're ok, restart with the obtained mode
-						 */
-						memcpy(x, (*problem)->mean_constr, graph->n * sizeof(double));
-						GMRFLib_free_problem(*problem);
-					} else {
-						*problem = NULL;
-						if (!stop) {
-							return retval;
-						}
-					}
-				}
-				if (stop) {
-					assert(stop && retval == GMRFLib_SUCCESS);
-				}
-				Free(c_new);
-			}
-		}
-	}
-
-	Free(mode_initial);
-	Free(mode);					       /* not part of 'FREE_ALL' */
-
-	FREE_ALL;
-	GMRFLib_LEAVE_ROUTINE;
-
-	return GMRFLib_SUCCESS;
-
-#undef FREE_ALL
 }

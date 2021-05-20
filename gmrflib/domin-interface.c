@@ -52,10 +52,12 @@ static int opt_setup = 0;
 typedef struct {
 	double f_best;
 	double *f_best_x;
+	double *f_best_latent;
 } Best_tp;
 
 static Best_tp B = {
 	0.0,
+	NULL,
 	NULL
 };
 
@@ -80,7 +82,8 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_bfunc_tp ** bfunc, double *d,
 		      GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
+		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
+		      GMRFLib_preopt_tp * preopt)
 {
 	double *theta;
 	int i;
@@ -107,6 +110,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.loglFunc_arg = loglFunc_arg;
 	G.graph = graph;
 	G.directions = ai_par->optimise_use_directions_m;
+	G.preopt = preopt;
 
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS, GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS, void *);
@@ -129,23 +133,20 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 }
 
+int GMRFLib_opt_get_latent(double *latent) 
+{
+	memcpy(latent, B.f_best_latent, G.graph->n * sizeof(double));
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_opt_exit(void)
 {
-	Free(G.f_count);
-	Free(G.solution);
-	Free(G.Qfunc);
-	Free(G.Qfunc_arg);
+	opt_setup = 0;
 	memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
-	B.f_best = 0.0;
-	if (B.f_best_x) {
-		Free(B.f_best_x);
-	}
-	if (Opt_dir_params.A) {
-		gsl_matrix_free(Opt_dir_params.A);
-		gsl_matrix_free(Opt_dir_params.tAinv);
-		Opt_dir_params.A = NULL;
-		Opt_dir_params.tAinv = NULL;
-	}
+	memset(&B, 0, sizeof(Best_tp));
+	memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
+	memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -243,6 +244,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
 	}
 
+	// yes, this also works with 'preopt' as tabulate_Qfunc do not tabulate but just return a ptr-copy
 	GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
 			       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);
 
@@ -258,7 +260,9 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg,
 				       G.graph,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais);
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais,
+				       G.preopt);
+	
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
@@ -309,6 +313,11 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 					B.f_best_x = Calloc(G.nhyper, double);
 				}
 				memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
+
+				if (!B.f_best_latent) {
+					B.f_best_latent = Calloc(G.graph->n, double);
+				}
+				memcpy(B.f_best_latent, ais->mode, G.graph->n * sizeof(double));
 
 				if (debug) {
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
@@ -1022,8 +1031,6 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 {
-	static int first = 1;
-
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
 	size_t i, j;
 	int status, iter = 0, iter_max = 1000;
@@ -1037,9 +1044,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	static gsl_matrix *Adir = NULL;
 	static gsl_matrix *tAinv = NULL;
 
-
 	if (G.use_directions) {
-		if (first) {
+		if (!Opt_dir_params.A) {
 			A = gsl_matrix_alloc(G.nhyper, G.nhyper);
 			Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
 			tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);
@@ -1062,7 +1068,6 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			}
 			gsl_matrix_memcpy(A, Adir);
 			gsl_matrix_memcpy(tAinv, Adir);
-			first = 0;
 		} else {
 			// all is fine
 		}

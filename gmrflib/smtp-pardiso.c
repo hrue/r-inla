@@ -926,6 +926,20 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_pardiso_exit(void) 
+{
+	if (S.static_pstores != NULL) {
+		for (int i = 0; i < PSTORES_NUM; i++) {
+			if (S.static_pstores[i]) {
+				GMRFLib_pardiso_free(&(S.static_pstores[i]));
+			}
+		}
+	}
+	Free(S.busy);
+	Free(S.static_pstores);
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 {
 	if (store == NULL || *store == NULL) {

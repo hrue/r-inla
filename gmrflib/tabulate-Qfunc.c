@@ -116,9 +116,18 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 
 	int i, j, k;
 
-	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
-
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
+
+	//
+	// this is VERY SPECIAL: with this we can reuse code with the preopt functionality
+	//
+	if (Qfunc == GMRFLib_preopt_Qfunc) {
+		(*tabulate_Qfunc)->Qfunc = Qfunc;
+		(*tabulate_Qfunc)->Qfunc_arg = Qfunc_arg;
+		return GMRFLib_SUCCESS;
+	}
+
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
@@ -637,6 +646,13 @@ int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 {
 	if (!tabulate_Qfunc)
 		return GMRFLib_SUCCESS;
+	//
+	// this is VERY SPECIAL: with this we can reuse code with the preopt functionality
+	//
+	if (tabulate_Qfunc->Qfunc == GMRFLib_preopt_Qfunc) {
+		Free(tabulate_Qfunc);
+		return GMRFLib_SUCCESS;
+	}
 
 	int i;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;

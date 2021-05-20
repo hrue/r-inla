@@ -127,6 +127,7 @@ __BEGIN_DECLS
 #include "GMRFLib/ghq.h"
 #include "GMRFLib/design.h"
 #include "GMRFLib/approx-inference.h"
+#include "GMRFLib/pre-opt.h"
 #include "GMRFLib/experimental.h"
 #include "GMRFLib/graph-edit.h"
 #include "GMRFLib/domin-interface.h"
@@ -135,7 +136,6 @@ __BEGIN_DECLS
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
-#include "GMRFLib/pre-opt.h"
 
     __END_DECLS
 #endif

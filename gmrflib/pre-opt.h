@@ -60,8 +60,8 @@ typedef struct {
 } GMRFLib_preopt_type_tp;
 
 typedef struct {
+	int npred;
 	int n;
-	int ndata;
 	int nf;
 	int nbeta;
 
@@ -102,8 +102,9 @@ typedef struct {
 	GMRFLib_idxval_tp **At_idxval;
 	GMRFLib_idxval_tp ***AtA_idxval;
 
+	double *mode_theta;
+	double *mode_x;
 } GMRFLib_preopt_tp;
-
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
 double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg);
@@ -122,6 +123,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, dou
 			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par));
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
+int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c);
 
 __END_DECLS
 #endif

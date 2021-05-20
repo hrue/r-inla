@@ -432,7 +432,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 				   double *x, double *b, double *c, double *mean, double *d,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store)
+				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
+				   GMRFLib_preopt_tp *preopt)
 {
 	/*
 	 * return the unnormalised log marginal density for the hyperparamers in `logdens'. note that we assume that 'b' and 'mean' are constants. when this is not
@@ -441,6 +442,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 
 	double ldens = 0.0;
 	int n, free_ai_par = 0;
+	int npred = (preopt ? preopt->npred : graph->n);
 
 	/*
 	 * this is a special option for _INLA(), so it works only when calling it the first time 
@@ -498,9 +500,9 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	Free(ai_store->aa);
 	Free(ai_store->bb);
 	Free(ai_store->cc);
-	ai_store->aa = Calloc(n, double);
-	ai_store->bb = Calloc(n, double);
-	ai_store->cc = Calloc(n, double);
+	ai_store->aa = Calloc(npred, double);
+	ai_store->bb = Calloc(npred, double);
+	ai_store->cc = Calloc(npred, double);
 
 	/*
 	 * first compute the GMRF-approximation 
@@ -509,12 +511,12 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, ai_store->mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc,
 				Qfunc_arg, constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0));
+				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0, preopt));
 	} else {
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern
 			       (&problem, x, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
 				constr, optpar, blockpar, ai_store->store, ai_store->aa, ai_store->bb, ai_store->cc,
-				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0));
+				ai_par->gaussian_data, ai_par->cmin, ai_par->b_strategy, 0, preopt));
 	}
 	GMRFLib_ASSERT(problem, GMRFLib_EOPTNR);
 
@@ -536,7 +538,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 
 		double A = 0;
 		int i;
-		for (i = 0; i < n; i++) {
+		for (i = 0; i < npred; i++) {
 			A += ai_store->aa[i];
 		}
 		*logdens = A - problem->sub_logdens;
@@ -559,6 +561,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	 */
 	GMRFLib_free_problem(ai_store->problem);
 	ai_store->problem = problem;
+
+
 
 	if (ai_par->correct_enable && ai_par->correct_nodes) {
 		/*
@@ -595,7 +599,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 			GMRFLib_ai_marginal_hidden(&dens[i], NULL, GMRFLib_FALSE,
 						   compute_idx[i], x, b, c, mean, d,
 						   loglFunc, loglFunc_arg, graph, Qfunc,
-						   Qfunc_arg, constr, ai_par_local, ai_store, marginal_hidden_store);
+						   Qfunc_arg, constr, ai_par_local, ai_store, marginal_hidden_store, preopt);
 		}
 		Free(ai_par_local);
 
@@ -1168,7 +1172,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store)
+			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store, GMRFLib_preopt_tp *preopt)
 {
 	/*
 	 * compute the approximation to the marginal for the hidden field at index 'idx' and return the density in *density. if
@@ -1358,7 +1362,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 									     graph, Qfunc, Qfunc_arg, constr, optpar, blockpar,
 									     ai_store->store, ai_store->aa, ai_store->bb,
 									     ai_store->cc, ai_par->gaussian_data, ai_par->cmin,
-									     ai_par->b_strategy, 0));
+									     ai_par->b_strategy, 0, preopt));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		if (ai_par->compute_nparam_eff) {
 			GMRFLib_ai_nparam_eff(&(ai_store->neff), NULL, ai_store->problem, c, Qfunc, Qfunc_arg);
@@ -2422,17 +2426,29 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store,
-						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy, int nested)
+						  double *aa, double *bb, double *cc, int gaussian_data, double cmin, int b_strategy, int nested,
+						  GMRFLib_preopt_tp *preopt)
 {
+	// this is implicitely assumed
+	assert(mean == NULL);
+	assert(x);
+	
+	if (0) {
+		FIXME("Enter with x=");
+		for(int i = 0; i < graph->n; i++) printf(" %.4f", x[i]);
+		printf("\n");
+	}
+
 	/*
 	 * This is copy of the original routine but with optional arguments 
 	 */
 
-	int i, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
+	int i, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, id, *idxs = NULL, nidx = 0;
+	int npred = (GMRFLib_preopt_mode ? preopt->npred : graph->n);
 	double *mode = NULL;
 
-#define FREE_ALL if (1) { if (free_x) Free(x); if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
+#define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
 		if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); if (free_aa) Free(aa); if (free_bb) Free(bb); \
 		if (free_cc) Free(cc); Free(idxs); }
 
@@ -2443,11 +2459,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	if (n == 0) {
 		*problem = NULL;
 		return GMRFLib_SUCCESS;
-	}
-
-	if (!x) {
-		free_x = 1;
-		x = Calloc(n, double);
 	}
 	if (!b) {
 		free_b = 1;
@@ -2467,17 +2478,18 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	}
 	if (!aa) {
 		free_aa = 1;
-		aa = Calloc(n, double);
+		aa = Calloc(npred, double);
 	}
 	if (!bb) {
 		free_bb = 1;
-		bb = Calloc(n, double);
+		bb = Calloc(npred, double);
 	}
 	if (!cc) {
 		free_cc = 1;
-		cc = Calloc(n, double);
+		cc = Calloc(npred, double);
 	}
 	mode = Calloc(n, double);
+
 	memcpy(mode, x, n * sizeof(double));
 
 	/*
@@ -2488,8 +2500,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	if (optpar && optpar->fp)
 		fprintf(optpar->fp, "\nComputing GMRF approximation\n------------------------------\n");
 	nidx = 0;
-	idxs = Calloc(n, int);
-	for (i = 0; i < n; i++) {
+	idxs = Calloc(npred, int);
+	for (i = 0; i < npred; i++) {
 		if (d[i]) {
 			idxs[nidx++] = i;
 		}
@@ -2512,57 +2524,118 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	memcpy(mode_initial, mode, n * sizeof(double));	       /* store the starting value */
 
+	double *bcoof = NULL, *ccoof = NULL, *linear_predictor = NULL;
+	int free_linear_predictor = 0;
+	
+	bcoof = Calloc(npred, double);
+	ccoof = Calloc(npred, double);
+
 	for (iter = 0; iter < itmax; iter++) {
 
-		memset(aa, 0, n * sizeof(double));
-		memcpy(bb, b, n * sizeof(double));
-		memcpy(cc, c, n * sizeof(double));
+		if (0) for(i = 0; i < n; i++) {
+			printf("i mode %d %f \n", i, mode[i]);
+		}
+
+		memset(aa, 0, npred * sizeof(double));
+		memset(bb, 0, npred * sizeof(double));
+		memset(cc, 0, npred * sizeof(double));
+
+		if (GMRFLib_preopt_mode) {
+			if (!free_linear_predictor) {
+				linear_predictor = Calloc(npred, double);
+				free_linear_predictor = 1;
+			}
+			GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
+
+			if(0)for(i = 0; i < preopt->npred; i++) {
+				printf("i predictor %d %f\n", i, linear_predictor[i]);
+			}
+
+		} else {
+			linear_predictor = mode;
+		}
 
 		cc_is_negative = 0;
+		memset(bcoof, 0, npred * sizeof(double));
+		memset(ccoof, 0, npred * sizeof(double));
+		
 #pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < nidx; i++) {
 			int idx;
-			double bcoof, ccoof;
 
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
-			GMRFLib_2order_approx(&(aa[idx]), &bcoof, &ccoof, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
+			GMRFLib_2order_approx(&(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg,
 					      &(optpar->step_len), &(optpar->stencil), &cmin);
-			cc_is_negative = (cc_is_negative || ccoof < 0.0);	/* this line IS OK! also for multithread.. */
+		}
+		
+		for (i = 0; i < nidx; i++) {
+			int idx;
+
+			idx = idxs[i];
+			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0);	/* this line IS OK! also for multithread.. */
 			if (cc_positive) {
-				if (ccoof == cmin) {
+				if (ccoof[idx] == cmin) {
 					// then cmin is in effect
 					if (b_strategy == INLA_B_STRATEGY_SKIP) {
-						bcoof = 0.0;
+						bcoof[idx] = 0.0;
 					} else if (b_strategy == INLA_B_STRATEGY_KEEP) {
 						// do nothing
 					} else {
 						assert(0 == 1);
 					}
 				}
-				bb[idx] += bcoof;
-				cc[idx] += ccoof;
+				bb[idx] += bcoof[idx];
+				cc[idx] += ccoof[idx];
 			} else {
 				// 
 				// this is not in use...
 				// 
-				if (ccoof > 0.0) {
-					bb[idx] += bcoof;
-					cc[idx] += ccoof;
+				if (ccoof[idx] > 0.0) {
+					bb[idx] += bcoof[idx];
+					cc[idx] += ccoof[idx];
 				} else {
-					bb[idx] += bcoof;
-					// bb[idx] += cc_factor*bcoof; /* what to use?? if any...*/
-					cc[idx] += cc_factor * ccoof;
+					bb[idx] += bcoof[idx];
+					// bb[idx] += cc_factor*bcoof[idx]; /* what to use?? if any...*/
+					cc[idx] += cc_factor * ccoof[idx];
 				}
 			}
 		}
+		
 		GMRFLib_thread_id = id;
-		if (!cc_positive) {
-			cc_factor = DMIN(1.0, cc_factor * cc_factor_mult);
+
+		double *bb_use = NULL, *cc_use = NULL;
+		
+		if(0)for(i = 0; i < npred; i++) {
+			printf("i bb cc %d %f %f\n", i, bb[i], cc[i]);
 		}
 
-		for (i = 0; i < n; i++) {
-			bb[i] += -c[i] * mean[i];
+		if (preopt) {
+			GMRFLib_preopt_update(preopt, bb, cc);
+			bb_use = preopt->total_b[id];
+			for(i = 0; i < n; i++) {
+				bb_use[i] += b[i];
+			}
+			cc_use = c;			       /* that what is there from before */
+			if (0) for(i = 0; i < n; i++) {
+					printf("i bb_preopt cc_preopt %d %f\n", i, preopt->total_b[id][i]);
+				}
+		} else {
+			assert(npred == n);
+			
+			for(i = 0; i < n; i++) {
+				bb[i] += b[i];
+				cc[i] += c[i];
+			}
+			bb_use = bb;
+			cc_use = cc;
+			if(0) for(i = 0; i < n; i++) {
+					printf("i bb_use cc_use %d %f %f\n", i, bb_use[i], cc_use[i]);
+				}
+		}
+		
+		if (!cc_positive) {
+			cc_factor = DMIN(1.0, cc_factor * cc_factor_mult);
 		}
 
 		/*
@@ -2570,17 +2643,26 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		 * it will always be lproblem = NULL 
 		 */
 
-
 		if (!lproblem) {
+			if (preopt)
+				assert((void *) preopt == (void *) Qfunc_arg);
+			//if (preopt) GMRFLib_preopt_test(preopt);
+			//GMRFLib_printf_Qfunc2(stdout, graph, Qfunc, Qfunc_arg);
+
 			int ret;
-			ret = GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store);
+			ret = GMRFLib_init_problem_store(&lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg, constr, store);
 			if (ret != GMRFLib_SUCCESS) {
 				catch_error = 1;
 			}
 		} else {
-			GMRFLib_init_problem_store(&lproblem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store);
+			GMRFLib_init_problem_store(&lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg, constr, store);
 		}
 
+		if (0)
+		for(i = 0; i < n; i++) {
+			printf("AAA iter i mean %d %d %f\n", iter, i, lproblem->mean_constr[i]);
+		}
+		
 		if (catch_error) {
 			lproblem = NULL;
 			break;
@@ -2602,6 +2684,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 		err = sqrt(err / n);
 
+		if (0) for(i = 0; i < n; i++) {
+			printf("mode[%1d]= %f\n", i, lproblem->mean_constr[i]);
+		}
+
 		if (iter == 0) {
 			err_previous = err;
 		} else {
@@ -2622,13 +2708,19 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		if (gaussian_data) {
 			/*
-			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are used later
+			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are/might-be used later
 			 */
+
+			if (GMRFLib_preopt_mode) {
+				GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
+			} else {
+				linear_predictor = mode;
+			}
 #pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (i = 0; i < nidx; i++) {
 				int idx = idxs[i];
 				GMRFLib_thread_id = id;
-				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, NULL, d[idx], mode[idx], idx, mode, loglFunc, loglFunc_arg,
+				GMRFLib_2order_approx(&(aa[idx]), NULL, NULL, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg,
 						      &(optpar->step_len), &(optpar->stencil), NULL);
 			}
 			GMRFLib_thread_id = id;
@@ -2663,6 +2755,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		lproblem = NULL;
 	}
 
+	Free(ccoof);
+	Free(bcoof);
+	if (free_linear_predictor)
+		Free(linear_predictor);
+	
 	if (iter < itmax) {
 		*problem = lproblem;
 	} else {
@@ -2670,6 +2767,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		GMRFLib_free_problem(lproblem);
 	}
 
+	if (0) {
+		if (*problem) {
+			FIXME("Leave with x=");
+			for(int i = 0; i < graph->n; i++) printf(" %.4f", (*problem)->sub_mean_constr[i]);
+			printf("\n");
+		}
+	}
+		
 	if (!*problem) {
 		if (nested == 1) {
 			GMRFLib_ASSERT(*problem, GMRFLib_EOPTNR);
@@ -2708,9 +2813,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 					for (i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + (1.0 + lambda) * c[i];
-						if (ISNAN(x[i]) || ISINF(x[i])) {
-							if (!mode)
-								FIXME("MODE is NULL");
+						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
 							x[i] = mode[i];
 						}
 					}
@@ -2718,7 +2821,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 											       loglFunc, loglFunc_arg,
 											       graph, Qfunc, Qfunc_arg, constr,
 											       &new_optpar, blockupdate_par, store,
-											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2);
+											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2, preopt);
 					if (stop && retval == GMRFLib_SUCCESS) {
 						break;
 					}
@@ -2852,7 +2955,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output)
+		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output,
+		    GMRFLib_preopt_tp *preopt)
 {
 	/*
 	 * 
@@ -3071,6 +3175,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	double **lin_cross = NULL;
 	GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = NULL;
 
+	if (GMRFLib_preopt_mode) assert(preopt);
+	if (!GMRFLib_preopt_mode) assert(!preopt);
+
 	if (!(mean == NULL)) {
 		FIXME("\n\n\n\nGMRFLib_INLA() I think the vb assumes mean=NULL, please check.\n");
 		abort();
@@ -3118,122 +3225,126 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		ai_par->dz = 1.0;
 	}
 
-	if (!compute) {
-		free_compute = 1;
-		compute = Calloc(graph->n, char);
-	}
-
 	nhyper = IMAX(0, nhyper);
 	dens_max = 1;
-	dens = Calloc(graph->n, GMRFLib_density_tp **);
-	dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
-	weights = Calloc(dens_max, double);
-	izs = Calloc(dens_max, double *);
-	neff = Calloc(dens_max, double);
 
-	map_strd_init_hint(&hash_table, dens_max);
-	hash_table.alwaysdefault = 0;
-
-	if ((density || gdensity) && cpo) {
-		(*cpo) = Calloc(1, GMRFLib_ai_cpo_tp);
-		(*cpo)->n = graph->n;
-		(*cpo)->value = Calloc(graph->n, double *);
-		(*cpo)->pit_value = Calloc(graph->n, double *);
-		(*cpo)->failure = Calloc(graph->n, double *);
-	} else {
-		cpo = NULL;
-	}
-	if ((density || gdensity) && po) {
-		(*po) = Calloc(1, GMRFLib_ai_po_tp);
-		(*po)->n = graph->n;
-		(*po)->value = Calloc(graph->n, double *);
-	} else {
-		po = NULL;
-	}
-	if (GMRFLib_ai_INLA_userfunc0) {
-		userfunc_values = Calloc(dens_max, double *);
-	}
-	/*
-	 * make a list of those idxs we will compute 
-	 */
-	compute_idx = Calloc(graph->n, int);
-
-	compute_n = 0;
-	for (i = 0; i < graph->n; i++) {
-		if (compute[i]) {
-			compute_idx[compute_n++] = i;
+	// do initial setup that we do not need with 'preopt'
+	if (!preopt) {
+		if (!compute) {
+			free_compute = 1;
+			compute = Calloc(graph->n, char);
 		}
-	}
 
-	/*
-	 * only one of the marginal are computed with cpo_manual is TRUE. The code depends on the this assumption I think. 
-	 */
-	if (ai_par->cpo_manual) {
-		GMRFLib_ASSERT(compute_n > 0, GMRFLib_ESNH);
-		for (i = 0; i < compute_n; i++) {
-			GMRFLib_ASSERT(d[compute_idx[i]] == 0.0, GMRFLib_ESNH);
+		dens = Calloc(graph->n, GMRFLib_density_tp **);
+		dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
+		weights = Calloc(dens_max, double);
+		izs = Calloc(dens_max, double *);
+		neff = Calloc(dens_max, double);
+
+		map_strd_init_hint(&hash_table, dens_max);
+		hash_table.alwaysdefault = 0;
+
+		if ((density || gdensity) && cpo) {
+			(*cpo) = Calloc(1, GMRFLib_ai_cpo_tp);
+			(*cpo)->n = graph->n;
+			(*cpo)->value = Calloc(graph->n, double *);
+			(*cpo)->pit_value = Calloc(graph->n, double *);
+			(*cpo)->failure = Calloc(graph->n, double *);
+		} else {
+			cpo = NULL;
 		}
-		if (dic) {				       /* meaningless to compute the DIC in this case */
-			dic = NULL;
+		if ((density || gdensity) && po) {
+			(*po) = Calloc(1, GMRFLib_ai_po_tp);
+			(*po)->n = graph->n;
+			(*po)->value = Calloc(graph->n, double *);
+		} else {
+			po = NULL;
 		}
-	}
-
-	need_Qinv = ((compute_n || ai_par->compute_nparam_eff) ? 1 : 0);
-
-	for (i = 0; i < compute_n; i++) {
-		j = compute_idx[i];
-		dens[j] = Calloc(dens_max, GMRFLib_density_tp *);	/* storage for the marginals */
-		if (tfunc && tfunc[j]) {
-			dens_transform[j] = Calloc(dens_max, GMRFLib_density_tp *);
+		if (GMRFLib_ai_INLA_userfunc0) {
+			userfunc_values = Calloc(dens_max, double *);
 		}
-	}
+		/*
+		 * make a list of those idxs we will compute 
+		 */
+		compute_idx = Calloc(graph->n, int);
 
-	if (cpo) {
-		cpo_theta = Calloc(graph->n, double *);	       /* cpo-value conditioned on theta */
-		pit_theta = Calloc(graph->n, double *);	       /* pit-value conditioned on theta */
-		failure_theta = Calloc(graph->n, double *);    /* failure indicator on theta */
-		for (i = 0; i < compute_n; i++) {
-			j = compute_idx[i];
-			if (d[j] || ai_par->cpo_manual) {
-				cpo_theta[j] = Calloc(dens_max, double);
-				pit_theta[j] = Calloc(dens_max, double);
-				failure_theta[j] = Calloc(dens_max, double);
+		compute_n = 0;
+		for (i = 0; i < graph->n; i++) {
+			if (compute[i]) {
+				compute_idx[compute_n++] = i;
 			}
 		}
-	}
-	if (po) {
-		po_theta = Calloc(graph->n, double *);	       /* po-value conditioned on theta */
-		po2_theta = Calloc(graph->n, double *);	       /* po-value conditioned on theta */
-		po3_theta = Calloc(graph->n, double *);	       /* po-value conditioned on theta */
-		for (i = 0; i < compute_n; i++) {
-			j = compute_idx[i];
-			if (d[j]) {
-				po_theta[j] = Calloc(dens_max, double);
-				po2_theta[j] = Calloc(dens_max, double);
-				po3_theta[j] = Calloc(dens_max, double);
+
+		/*
+		 * only one of the marginal are computed with cpo_manual is TRUE. The code depends on the this assumption I think. 
+		 */
+		if (ai_par->cpo_manual) {
+			GMRFLib_ASSERT(compute_n > 0, GMRFLib_ESNH);
+			for (i = 0; i < compute_n; i++) {
+				GMRFLib_ASSERT(d[compute_idx[i]] == 0.0, GMRFLib_ESNH);
+			}
+			if (dic) {				       /* meaningless to compute the DIC in this case */
+				dic = NULL;
 			}
 		}
-	}
-	if (dic) {
-		deviance_theta = Calloc(graph->n, double *);   /* mean of deviance conditioned on theta */
+
+		need_Qinv = ((compute_n || ai_par->compute_nparam_eff) ? 1 : 0);
+
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
-			if (d[j]) {
-				deviance_theta[j] = Calloc(dens_max, double);
+			dens[j] = Calloc(dens_max, GMRFLib_density_tp *);	/* storage for the marginals */
+			if (tfunc && tfunc[j]) {
+				dens_transform[j] = Calloc(dens_max, GMRFLib_density_tp *);
 			}
 		}
-	}
 
-	x_mode = Calloc(graph->n, double);
+		if (cpo) {
+			cpo_theta = Calloc(graph->n, double *);	       /* cpo-value conditioned on theta */
+			pit_theta = Calloc(graph->n, double *);	       /* pit-value conditioned on theta */
+			failure_theta = Calloc(graph->n, double *);    /* failure indicator on theta */
+			for (i = 0; i < compute_n; i++) {
+				j = compute_idx[i];
+				if (d[j] || ai_par->cpo_manual) {
+					cpo_theta[j] = Calloc(dens_max, double);
+					pit_theta[j] = Calloc(dens_max, double);
+					failure_theta[j] = Calloc(dens_max, double);
+				}
+			}
+		}
+		if (po) {
+			po_theta = Calloc(graph->n, double *);	       /* po-value conditioned on theta */
+			po2_theta = Calloc(graph->n, double *);	       /* po-value conditioned on theta */
+			po3_theta = Calloc(graph->n, double *);	       /* po-value conditioned on theta */
+			for (i = 0; i < compute_n; i++) {
+				j = compute_idx[i];
+				if (d[j]) {
+					po_theta[j] = Calloc(dens_max, double);
+					po2_theta[j] = Calloc(dens_max, double);
+					po3_theta[j] = Calloc(dens_max, double);
+				}
+			}
+		}
+		if (dic) {
+			deviance_theta = Calloc(graph->n, double *);   /* mean of deviance conditioned on theta */
+			for (i = 0; i < compute_n; i++) {
+				j = compute_idx[i];
+				if (d[j]) {
+					deviance_theta[j] = Calloc(dens_max, double);
+				}
+			}
+		}
 
-	marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
-	if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
-		marginal_hidden_store->n = graph->n;
-		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
-	} else {
-		marginal_hidden_store->n = 0;
-		marginal_hidden_store->subgraphs = NULL;
-	}
+		x_mode = Calloc(graph->n, double);
+
+		marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
+		if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
+			marginal_hidden_store->n = graph->n;
+			marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
+		} else {
+			marginal_hidden_store->n = 0;
+			marginal_hidden_store->subgraphs = NULL;
+		}
+	} /* end of: if (!preopt) */
 
 	if (timer) {
 		/*
@@ -3251,7 +3362,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * good way to get around it for the moment.
 		 */
 		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, compute, x, b, c, mean, bfunc, d, loglFunc,
-				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
 		/*
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
 		 * computing the gradient.
@@ -3332,10 +3443,33 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		SET_THETA_MODE;
 
+		if (preopt) {
+
+			// in this case, just save (x, theta), cleanup and return
+
+			preopt->mode_theta = Calloc(nhyper, double);
+			memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
+			preopt->mode_x = Calloc(preopt->npred + preopt->n, double);
+			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->npred]));
+			GMRFLib_preopt_predictor(preopt->mode_x, &(preopt->mode_x[preopt->npred]), preopt);
+
+			int debug = 0;
+			if (debug) {
+				for(i = 0; i < nhyper; i++) {
+					printf("theta[%1d]=  %f\n", i, preopt->mode_theta[i]);
+				}
+				for(i = 0; i < preopt->npred + preopt->n; i++) {
+					printf("x[%1d]=  %f\n", i, preopt->mode_x[i]);
+				}
+			}
+			GMRFLib_opt_exit();
+			return GMRFLib_SUCCESS;
+		}
+
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 
 		if (ai_par->fp_log) {
-			fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",
+			fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",              
 				(ai_par->hessian_forward_finite_difference ? "forward" : "central"),
 				ai_par->hessian_finite_difference_step_len, (ai_par->hessian_force_diagonal ? "diagonal" : "dense"));
 		}
@@ -3916,7 +4050,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 											   || ai_par->cpo_manual) ? &cpodens : NULL),
 							   GMRFLib_TRUE,
 							   ii, x, b, c, mean, d, loglFunc, loglFunc_arg, graph,
-							   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id], marginal_hidden_store);
+							   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id], marginal_hidden_store, preopt);
 				if (tfunc && tfunc[ii]) {
 					GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 				}
@@ -4120,7 +4254,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								   ii, x, bnew, c, mean, d,
 								   loglFunc, loglFunc_arg,
 								   graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-								   constr, ai_par, ai_store_id, marginal_hidden_store);
+								   constr, ai_par, ai_store_id, marginal_hidden_store, preopt);
 					if (tfunc && tfunc[ii]) {
 						GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 					}
@@ -4282,7 +4416,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 										   x, bnew, c, mean, d, loglFunc,
 										   loglFunc_arg, graph,
 										   tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-										   constr, ai_par, ai_store_id, marginal_hidden_store);
+										   constr, ai_par, ai_store_id, marginal_hidden_store, preopt);
 							if (tfunc && tfunc[ii]) {
 								GMRFLib_transform_density(&dens_local_transform[ii], dens_local[ii], tfunc[ii]);
 							}
@@ -4404,6 +4538,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		/*
 		 * this is the case for nhyper = 0 
 		 */
+
+		// we should not be here unless this is NULL
+		assert(preopt == NULL);
+
 		if (timer) {
 			timer[1] = 0.0;
 			timer[2] = GMRFLib_cpu();
@@ -4425,7 +4563,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		double *bnew = NULL, con = 0.0;
 		GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
 		GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, bnew, c, mean, d,
-					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store);
+					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
 		log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg);
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		Free(bnew);
@@ -4447,7 +4585,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 										   || ai_par->cpo_manual) ? &cpodens : NULL), GMRFLib_TRUE,
 						   ii, x, bnew, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
-						   constr, ai_par, ai_store_id[id], marginal_hidden_store);
+						   constr, ai_par, ai_store_id[id], marginal_hidden_store, preopt);
 			if (tfunc && tfunc[ii]) {
 				GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 			}

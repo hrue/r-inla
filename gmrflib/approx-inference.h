@@ -259,6 +259,8 @@ typedef enum {
  */
 typedef struct {
 
+	int preopt_mode;
+	
 	/**
 	 * \brief The stategy used to compute marginals 
 	 */
@@ -980,6 +982,9 @@ typedef struct {
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
 
+#include "GMRFLib/pre-opt.h"
+
+
 int GMRFLib_ai_pool_free(GMRFLib_ai_pool_tp * pool);
 int GMRFLib_ai_pool_get(GMRFLib_ai_pool_tp * pool, int *iz, size_t * idx);
 int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_par, int nhyper);
@@ -1008,7 +1013,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 				   double *x, double *b, double *c, double *mean, double *d,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 				   GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * aipar, GMRFLib_ai_store_tp * store);
+				   GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * aipar, GMRFLib_ai_store_tp * store,
+	                           GMRFLib_preopt_tp * preopt);
 int GMRFLib_ai_log_posterior(double *logdens,
 			     double *x, double *b, double *c, double *mean, double *d,
 			     GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
@@ -1027,7 +1033,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store);
+			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store, GMRFLib_preopt_tp *preopt);
 int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x, double *mean, 
 				       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp * constr, double *bbb, double *ccc, double **covariances, int idx);
@@ -1037,7 +1043,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 						  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 						  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store, double *aa, double *bb, double *cc,
-						  int gaussian_data, double c_min, int b_strategy, int nested);
+						  int gaussian_data, double c_min, int b_strategy, int nested, GMRFLib_preopt_tp *preopt);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
 int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdensity,
@@ -1050,7 +1056,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output);
+		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output,
+		    GMRFLib_preopt_tp *preopt);
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 			    int ntheta, double *theta, double log_posterior, double log_posterior_orig, 
 			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx, 
