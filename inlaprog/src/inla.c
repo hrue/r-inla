@@ -30622,7 +30622,6 @@ int inla_INLA_preopt(inla_tp * mb)
 	mb->preopt = preopt;
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-
 	N = preopt->n;
 	if (mb->verbose) {
 		printf("\tSize of graph............ [%d]\n", N);
@@ -30687,17 +30686,19 @@ int inla_INLA_preopt(inla_tp * mb)
 	}
 
 	double *xx = Calloc(preopt->n, double);
+	if (mb->x_file) {
+		FIXME("INIT!!!");
+		memcpy(xx, mb->x_file + preopt->npred, preopt->n * sizeof(double));
+	}
 	
 	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
 			&(mb->neffp), NULL, mb->theta, mb->ntheta, extra, (void *) mb,
 			xx, NULL, c, NULL, bfunc, mb->d, loglikelihood_inla, (void *) mb, 
 			preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,                        
 			mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt);
-
 	GMRFLib_free_ai_store(ai_store);
-	Free(xx);
 	Free(c);
-
+	Free(xx);
 	return INLA_OK;
 }
 
@@ -35909,6 +35910,9 @@ int main(int argc, char **argv)
 			if (GMRFLib_preopt_mode && mb->ntheta > 0) {
 				inla_INLA_preopt(mb);
 				GMRFLib_preopt_mode = 0;
+
+				Free(mb->theta_file);
+				Free(mb->x_file);
 				mb->theta_file = Calloc(mb->ntheta, double);
 				mb->x_file = Calloc(mb->preopt->n + mb->preopt->npred, double);
 				memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
@@ -35916,7 +35920,7 @@ int main(int argc, char **argv)
 				mb->ntheta_file = mb->ntheta;
 				mb->nx_file = mb->preopt->n + mb->preopt->npred;
 				mb->reuse_mode = GMRFLib_TRUE;
-				mb->reuse_mode_but_restart = GMRFLib_TRUE;
+				mb->reuse_mode_but_restart = GMRFLib_FALSE;
 				GMRFLib_free_preopt(mb->preopt);
 				GMRFLib_pardiso_exit();
 				inla_INLA(mb);

@@ -341,8 +341,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->total_const = Calloc(GMRFLib_MAX_THREADS, double);
 	(*preopt)->total_b = Calloc(GMRFLib_MAX_THREADS, double *);
 
-	P(N);
-
 	(*preopt)->like_Qfunc_arg = (void *) *preopt;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
 	(*preopt)->bfunc = bfunc;
@@ -487,7 +485,7 @@ double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), vo
 	imin = IMIN(node, nnode);
 	imax = IMAX(node, nnode);
 
-	if(a->like_c[id] && a->like_b[id]) {
+	if (a->like_c[id]) {
 		if (imin == imax) {
 			for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
 				idx = a->AtA_idxval[imin][0]->store[kk].idx;
@@ -541,9 +539,9 @@ int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp * preopt)
 {
 	// just add to 'b'.
 
-	//GMRFLib_preopt_bnew_latent(b, constant, preopt->n, preopt->bfunc);
+	// GMRFLib_preopt_bnew_latent(b, constant, preopt->n, preopt->bfunc);
 	*constant = 0.0;
-	
+
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[GMRFLib_thread_id], preopt);
 
 	return GMRFLib_SUCCESS;
@@ -614,7 +612,7 @@ int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *li
 	memcpy(preopt->like_b[id], like_b, np * sizeof(double));
 	memcpy(preopt->like_c[id], like_c, np * sizeof(double));
 
-	if (!(preopt->total_b[id])){
+	if (!(preopt->total_b[id])) {
 		preopt->total_b[id] = Calloc(preopt->n, double);
 	}
 	memset(preopt->total_b[id], 0, preopt->n * sizeof(double));
@@ -645,7 +643,7 @@ int GMRFLib_free_preopt(GMRFLib_preopt_tp * preopt)
 	Free(preopt->idx_map_beta);
 	Free(preopt->what_type);
 
-	for(i = 0; i < GMRFLib_MAX_THREADS; i++) {
+	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
 		Free(preopt->like_b[i]);
 		Free(preopt->like_c[i]);
 		Free(preopt->total_b[i]);
