@@ -307,7 +307,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 						index = 1 + GMRFLib_iwhich_sorted(j, gg->lnbs[i], gg->lnnbs[i]);
 						assert(index > 0);
 					}
-					GMRFLib_idxval_add(&(NEW_AtA_idxval[i][index]), j,
+					GMRFLib_idxval_add(&(NEW_AtA_idxval[i][index]), k,
 							   At_idxval[i]->store[kk].val * A_idxval[k]->store[jj].val);
 				}
 			}
@@ -315,26 +315,29 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 
 	FIXME("NEW_AtA");
-	for(i = 0; i < N; i++){
-		printf("term %d %d\n", i, i);
+	FILE *fp = fopen("NEW_ATA", "w");
+	
+	for(i = 0; i < N; i++) {
+		fprintf(fp, "term %d %d\n", i, i);
 		for(kk = 0; kk < NEW_AtA_idxval[i][0]->n; kk++){
-			printf("\tkk idx val %d %d %f\n", kk,
-			       NEW_AtA_idxval[i][0]->store[kk].idx,
-			       NEW_AtA_idxval[i][0]->store[kk].val);
+			fprintf(fp, "\tkk idx val %d %d %f\n", kk,
+				NEW_AtA_idxval[i][0]->store[kk].idx,
+				NEW_AtA_idxval[i][0]->store[kk].val);
 		}
 
 		for(jj= 0; jj < gg->lnnbs[i]; jj++){
 			j = gg->lnbs[i][jj];
-			printf("term %d %d\n", i, j);
+			fprintf(fp, "term %d %d\n", i, j);
 
 			for(kk = 0; kk < NEW_AtA_idxval[i][1+jj]->n; kk++){
-				printf("\tkk idx val %d %d %f\n", kk,
-				       NEW_AtA_idxval[i][1+jj]->store[kk].idx,
-				       NEW_AtA_idxval[i][1+jj]->store[kk].val);
+				fprintf(fp, "\tkk idx val %d %d %f\n", kk,
+					NEW_AtA_idxval[i][1+jj]->store[kk].idx,
+					NEW_AtA_idxval[i][1+jj]->store[kk].val);
 			}
 		}
 	}
-
+	fclose(fp);
+	
 
 	/////////////////////////////////////////////////////
 	
@@ -411,27 +414,29 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 
 	FIXME("AtA");
-	for(i = 0; i < N; i++){
-		printf("term %d %d\n", i, i);
+	fp = fopen("AtA", "w");
+	for(i = 0; i < N; i++) {
+		fprintf(fp, "term %d %d\n", i, i);
 		for(kk = 0; kk < AtA_idxval[i][0]->n; kk++){
-			printf("\tkk idx val %d %d %f\n", kk,
-			       AtA_idxval[i][0]->store[kk].idx,
-			       AtA_idxval[i][0]->store[kk].val);
+			fprintf(fp, "\tkk idx val %d %d %f\n", kk,
+				AtA_idxval[i][0]->store[kk].idx,
+				AtA_idxval[i][0]->store[kk].val);
 		}
 
 		for(jj= 0; jj < g->lnnbs[i]; jj++){
 			j = g->lnbs[i][jj];
-			printf("term %d %d\n", i, j);
+			fprintf(fp, "term %d %d\n", i, j);
 
 			for(kk = 0; kk < AtA_idxval[i][1+jj]->n; kk++){
-				printf("\tkk idx val %d %d %f\n", kk,
-				       AtA_idxval[i][1+jj]->store[kk].idx,
-				       AtA_idxval[i][1+jj]->store[kk].val);
+				fprintf(fp, "\tkk idx val %d %d %f\n", kk,
+					AtA_idxval[i][1+jj]->store[kk].idx,
+					AtA_idxval[i][1+jj]->store[kk].val);
 			}
 		}
 	}
-
+	fclose(fp);
 	exit(0);
+	
 
 
 	GMRFLib_idxval_nprune(A_idxval, npred);
@@ -443,7 +448,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
 	(*preopt)->AtA_idxval = AtA_idxval;
-	(*preopt)->like_graph = g;
+	(*preopt)->like_graph = gg;
 	(*preopt)->like_c = Calloc(GMRFLib_MAX_THREADS, double *);
 	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS, double *);
 	(*preopt)->total_const = Calloc(GMRFLib_MAX_THREADS, double);
