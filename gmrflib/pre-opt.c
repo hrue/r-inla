@@ -242,11 +242,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
+
 	// build up structure for the likelihood part
 
 	GMRFLib_idxval_tp **A_idxval = GMRFLib_idxval_ncreate(npred);
-	GMRFLib_idxval_tp **At_idxval = GMRFLib_idxval_ncreate(N);
-
 	for (i = 0; i < npred; i++) {
 		int idx;
 		double val;
@@ -255,7 +254,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			if (c[jj][i] >= 0 && ww[jj][i]) {
 				idx = c[jj][i] + idx_map_f[jj];
 				val = ww[jj][i];
-				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
@@ -263,25 +261,14 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			if (covariate[jj][i]) {
 				idx = idx_map_beta[jj];
 				val = covariate[jj][i];
-				GMRFLib_idxval_add(&(At_idxval[idx]), i, val);
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
 	}
 
 	GMRFLib_idxval_nsort(A_idxval, npred);
-	GMRFLib_idxval_nsort(At_idxval, N);
 
-	if (1) {
-		for(i = 0; i < npred; i++) {
-			GMRFLib_idxval_printf(stdout, A_idxval[i], "A");
-		}
-		for(i = 0; i < N; i++) {
-			GMRFLib_idxval_printf(stdout, At_idxval[i], "At");
-		}
-	}
-
-	At_idxval = GMRFLib_idxval_ncreate(N);
+	GMRFLib_idxval_tp **At_idxval = GMRFLib_idxval_ncreate(N);
 	for(i = 0; i < npred; i++){
 		for(k = 0; k < A_idxval[i]->n; k++){
 			double val;
@@ -292,15 +279,14 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 	GMRFLib_idxval_nsort(At_idxval, N);
-	for(i = 0; i < N; i++) {
-		GMRFLib_idxval_printf(stdout, At_idxval[i], "At new");
+	if (1) {
+		for(i = 0; i < npred; i++) {
+			GMRFLib_idxval_printf(stdout, A_idxval[i], "A");
+		}
+		for(i = 0; i < N; i++) {
+			GMRFLib_idxval_printf(stdout, At_idxval[i], "At");
+		}
 	}
-	
-
-	exit(0);
-	
-
-
 
 	// have to create AtA from At & A. 
 
