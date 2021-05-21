@@ -2433,7 +2433,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	assert(mean == NULL);
 	assert(x);
 	
-	if (1) {
+	if (0) {
 		FIXME("Enter with x=");
 		for(int i = 0; i < graph->n; i++) printf(" %.4f", x[i]);
 		printf("\n");
@@ -3453,8 +3453,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->npred]));
 			GMRFLib_preopt_predictor(preopt->mode_x, &(preopt->mode_x[preopt->npred]), preopt);
 
-			int debug = 0;
-			if (debug) {
+			if (0) {
 				for(i = 0; i < nhyper; i++) {
 					printf("theta[%1d]=  %f\n", i, preopt->mode_theta[i]);
 				}
