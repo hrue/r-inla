@@ -49,15 +49,29 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			double *f_diag,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
-			GMRFLib_ai_param_tp * UNUSED(ai_par))
+			GMRFLib_ai_param_tp * UNUSED(ai_par), char *predictor_At_fnm)
 {
 	int i, ii, j, jj, k, kk, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset;
-	int index;
-	int debug = 0;
+	int index, debug = 0;
+	
 	GMRFLib_constr_tp *fc = NULL;
 
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
+	}
+
+	
+	GMRFLib_matrix_tp * predictor_At = NULL;
+	if (predictor_At_fnm) {
+		predictor_At = GMRFLib_read_fmesher_file(predictor_At_fnm, (long int) 0, -1);
+
+		if (0) {
+			printf("read predictor_At from [%s]\n", predictor_At_fnm);
+			printf("\tnrow %d ncol %d nelms %d\n", predictor_At->nrow, predictor_At->ncol, predictor_At->elems);
+			for(i = 0; i < predictor_At->elems; i++){
+				printf("\ti j x %d %d %f\n", predictor_At->i[i], predictor_At->j[i], predictor_At->values[i]);
+			}
+		}
 	}
 
 	double **ww = NULL;
@@ -258,7 +272,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_idxval_nsort(A_idxval, npred);
 	GMRFLib_idxval_nsort(At_idxval, N);
 
-	if (0) {
+	if (1) {
 		for(i = 0; i < npred; i++) {
 			GMRFLib_idxval_printf(stdout, A_idxval[i], "A");
 		}
@@ -266,6 +280,27 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_printf(stdout, At_idxval[i], "At");
 		}
 	}
+
+	At_idxval = GMRFLib_idxval_ncreate(N);
+	for(i = 0; i < npred; i++){
+		for(k = 0; k < A_idxval[i]->n; k++){
+			double val;
+			
+			j = A_idxval[i]->store[k].idx;
+			val = A_idxval[i]->store[k].val;
+			GMRFLib_idxval_add(&(At_idxval[j]), i, val);
+		}
+	}
+	GMRFLib_idxval_nsort(At_idxval, N);
+	for(i = 0; i < N; i++) {
+		GMRFLib_idxval_printf(stdout, At_idxval[i], "At new");
+	}
+	
+
+	exit(0);
+	
+
+
 
 	// have to create AtA from At & A. 
 

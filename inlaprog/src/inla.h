@@ -966,8 +966,9 @@ struct inla_tp_struct {
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 	double *link_fitted_values;			       /* the index for the link function for missing observations */
 
-	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
-	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
+	char *predictor_At_fnm;				       /* filename for the Amatrix */
+	char *predictor_Aext_fnm;			       /* extension: filename for the extended Amatrix */
+	double predictor_Aext_precision;		       /* extension: precision for the extended Amatrix */
 	char *Apredictor_tag;				       /* the tag */
 
 	GMRFLib_transform_array_func_tp **transform_funcs;     /* for the fitted values */

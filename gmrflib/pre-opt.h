@@ -120,7 +120,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, dou
 			double *f_diag, 
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision,
-			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par));
+			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par),
+			char *predictor_At_fnm);
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c);
