@@ -48,7 +48,7 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-static map_strvp *GMRFLib_timer_hashtable;
+static map_strvp *GMRFLib_timer_hashtable = NULL;
 
 /* 
    if we have openmp, then use this function
@@ -463,3 +463,16 @@ void GMRFLib_timer_report__signal(int UNUSED(sig))
 	GMRFLib_timer_report(stdout);
 	return;
 }
+
+int GMRFLib_timer_exit(void) 
+{
+	if (GMRFLib_timer_hashtable) {
+		for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			map_strvp_free(&(GMRFLib_timer_hashtable[i])); 
+		}
+		Free(GMRFLib_timer_hashtable);
+		GMRFLib_timer_hashtable = NULL;
+	}
+	return GMRFLib_SUCCESS;
+}
+

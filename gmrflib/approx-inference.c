@@ -3462,7 +3462,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					printf("x[%1d]=  %f\n", i, preopt->mode_x[i]);
 				}
 			}
-			GMRFLib_opt_exit();
 			return GMRFLib_SUCCESS;
 		}
 

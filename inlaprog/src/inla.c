@@ -34157,6 +34157,17 @@ double inla_sn_intercept(double intern_quantile, double skew)
 	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
 }
 
+int inla_reset(void) 
+{
+	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode
+
+	GMRFLib_opt_exit();
+	GMRFLib_pardiso_exit();
+	GMRFLib_timer_exit();
+	
+	return GMRFLib_SUCCESS;
+}
+
 double testit_Qfunc(int i, int j, double *UNUSED(values), void *UNUSED(arg)) 
 {
 	return (i == j ? 100.0 : -1.0);
@@ -35922,7 +35933,8 @@ int main(int argc, char **argv)
 				mb->reuse_mode = GMRFLib_TRUE;
 				mb->reuse_mode_but_restart = GMRFLib_FALSE;
 				GMRFLib_free_preopt(mb->preopt);
-				GMRFLib_pardiso_exit();
+
+				inla_reset();
 				inla_INLA(mb);
 			} else {
 				inla_INLA(mb);

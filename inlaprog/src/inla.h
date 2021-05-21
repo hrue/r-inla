@@ -1925,6 +1925,7 @@ int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
 void inla_signal(int sig);
 int inla_testit_timer(void);
+int inla_reset(void);
 
 double testit_Qfunc(int i, int j, double *values, void *arg);
 
