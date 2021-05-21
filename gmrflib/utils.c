@@ -1503,6 +1503,32 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idxval_cmp(const void *a, const void *b) 
+{
+	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
+	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
+
+	return ((aa->idx > bb->idx) ? 1 : ((aa->idx < bb->idx) ? -1 : 0));
+}
+	
+int GMRFLib_idxval_sort(GMRFLib_idxval_tp *hold) 
+{
+	if (hold) {
+		qsort((void *) hold->store, (size_t) hold->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n)
+{
+	for(int i = 0; i < n; i++) {
+		if (hold[i] && hold[i]->n > 1) {
+			qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
 	if (hold) {

@@ -34164,7 +34164,8 @@ int inla_reset(void)
 	GMRFLib_opt_exit();
 	GMRFLib_pardiso_exit();
 	GMRFLib_timer_exit();
-	
+	R_rgeneric_cputime = 0.0;
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -35469,8 +35470,8 @@ int main(int argc, char **argv)
 	int blas_num_threads_set = 0;
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
-	double time_used[3];
-	clock_t atime_used[3];
+	double time_used[4] = {-1, -1, -1, -1};
+	clock_t atime_used[4];
 	inla_tp *mb = NULL;
 
 	int host_max_threads = omp_get_max_threads();
@@ -35491,8 +35492,8 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
 
-	GMRFLib_init_constr_store();
-	GMRFLib_init_graph_store();
+	GMRFLib_init_constr_store();			       /* no need to reset this with preopt */
+	GMRFLib_init_graph_store();			       /* no need to reset this with pretop */
 	GMRFLib_pardiso_set_nrhs(1);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_preopt_mode = 0;
@@ -35919,9 +35920,16 @@ int main(int argc, char **argv)
 			atime_used[1] = clock();
 
 			if (GMRFLib_preopt_mode && mb->ntheta > 0) {
+				time_used[3] = GMRFLib_cpu();
 				inla_INLA_preopt(mb);
+				time_used[3] = GMRFLib_cpu() - time_used[3];
+				if (!silent) {
+					printf("\tPreopt_mode     : %7.3f seconds\n", time_used[3]);
+					fflush(stdout);
+				}
 				GMRFLib_preopt_mode = 0;
 
+				// we need to transfer the mode to the next step
 				Free(mb->theta_file);
 				Free(mb->x_file);
 				mb->theta_file = Calloc(mb->ntheta, double);
@@ -35932,9 +35940,11 @@ int main(int argc, char **argv)
 				mb->nx_file = mb->preopt->n + mb->preopt->npred;
 				mb->reuse_mode = GMRFLib_TRUE;
 				mb->reuse_mode_but_restart = GMRFLib_FALSE;
-				GMRFLib_free_preopt(mb->preopt);
 
 				inla_reset();
+				GMRFLib_free_preopt(mb->preopt);
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+
 				inla_INLA(mb);
 			} else {
 				inla_INLA(mb);
@@ -35942,7 +35952,7 @@ int main(int argc, char **argv)
 			time_used[1] = GMRFLib_cpu() - time_used[1];
 			atime_used[1] = clock() - atime_used[1];
 			if (!silent) {
-				printf("\tApprox inference: %7.3f seconds\n", time_used[1]);
+				printf("\tApprox inference: %7.3f seconds in total\n", time_used[1]);
 				fflush(stdout);
 			}
 			time_used[2] = GMRFLib_cpu();
@@ -35992,6 +36002,7 @@ int main(int argc, char **argv)
 					       R_rgeneric_cputime,
 					       R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc), R_rgeneric_cputime / time_used[1] * 100.0);
 				}
+				printf("!!! With preopt, then timing pr function is not correct\n");
 #if !defined(WINDOWS)
 				PEFF_OUTPUT;
 #endif
