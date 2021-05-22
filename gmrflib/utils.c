@@ -1330,8 +1330,10 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 
 int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
 {
-	for (int i = 0; i < n; i++) {
-		GMRFLib_idx_prune(a[i]);
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idx_prune(a[i]);
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1346,9 +1348,11 @@ int GMRFLib_idx_sort(GMRFLib_idx_tp *hold)
 
 int GMRFLib_idx_nsort(GMRFLib_idx_tp **a, int n)
 {
-	for(int i = 0; i < n; i++) {
-		if (a[i] && a[i]->n > 1) {
-			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp);
+	if (a) {
+		for(int i = 0; i < n; i++) {
+			if (a[i] && a[i]->n > 1) {
+				qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp);
+			}
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -1372,32 +1376,40 @@ int GMRFLib_idx_uniq(GMRFLib_idx_tp *hold)
 
 int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n)
 {
-	for (int i = 0; i < n; i++) {
-		GMRFLib_idx_uniq(a[i]);
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idx_uniq(a[i]);
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n)
 {
-	for (int i = 0; i < n; i++) {
-		GMRFLib_idx2_prune(a[i]);
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idx2_prune(a[i]);
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n)
 {
-	for (int i = 0; i < n; i++) {
-		GMRFLib_val_prune(a[i]);
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_val_prune(a[i]);
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n)
 {
-	for (int i = 0; i < n; i++) {
-		GMRFLib_idxval_prune(a[i]);
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxval_prune(a[i]);
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1603,9 +1615,11 @@ int GMRFLib_idxval_sort(GMRFLib_idxval_tp *hold)
 
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n)
 {
-	for(int i = 0; i < n; i++) {
-		if (hold[i] && hold[i]->n > 1) {
-			qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
+	if (hold) {
+		for(int i = 0; i < n; i++) {
+			if (hold[i] && hold[i]->n > 1) {
+				qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
+			}
 		}
 	}
 	return GMRFLib_SUCCESS;

@@ -30614,6 +30614,7 @@ int inla_INLA_preopt(inla_tp * mb)
 		count += mb->f_Ntotal[i];
 	}
 
+	double tref = GMRFLib_cpu();
 	GMRFLib_preopt_init(&preopt, 
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights, 
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
@@ -30621,6 +30622,9 @@ int inla_INLA_preopt(inla_tp * mb)
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision,
 			    bfunc, mb->ai_par, mb->predictor_A_fnm);
+	if (mb->verbose) {
+		printf("\tPreOpt-mode setup ....... [%.2fs]\n", GMRFLib_cpu() - tref);
+	}
 	mb->preopt = preopt;
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
@@ -30687,18 +30691,28 @@ int inla_INLA_preopt(inla_tp * mb)
 		mb->ai_par->gaussian_data = mb->gaussian_data;
 	}
 
+	double step_g = mb->ai_par->gradient_finite_difference_step_len;
+	double step_h = mb->ai_par->hessian_finite_difference_step_len;
+	double step_len_fac = 1.0;
+
+	// can we afford having slightly smaller step-length? does not seem to improve...
+	mb->ai_par->gradient_finite_difference_step_len /= step_len_fac;
+	mb->ai_par->hessian_finite_difference_step_len /= sqrt(step_len_fac);
+
 	double *xx = Calloc(preopt->n, double);
 	if (mb->x_file) {
 		memcpy(xx, mb->x_file + preopt->mnpred, preopt->n * sizeof(double));
 	}
 	
-	FIXME("ENTER");
 	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
 			&(mb->neffp), NULL, mb->theta, mb->ntheta, extra, (void *) mb,
 			xx, NULL, c, NULL, bfunc, mb->d, loglikelihood_inla, (void *) mb, 
 			preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,                        
 			mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt);
-	FIXME("LEAVE");
+
+	// and we set it back here
+	mb->ai_par->gradient_finite_difference_step_len = step_g; 
+	mb->ai_par->hessian_finite_difference_step_len = step_h;
 
 	GMRFLib_free_ai_store(ai_store);
 	Free(c);

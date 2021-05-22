@@ -51,6 +51,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
+	if (!preopt) {
+		return GMRFLib_SUCCESS;
+	}
+	
+	GMRFLib_ENTER_ROUTINE;
+	
 	int i, ii, j, jj, k, kk, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
 	int debug = 0, nrow = 0, ncol = 0;
 	double val;
@@ -61,10 +67,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	GMRFLib_constr_tp *fc = NULL;
 
-	if (!preopt) {
-		return GMRFLib_SUCCESS;
-	}
-	
 	GMRFLib_matrix_tp * pA = NULL;
 
 	double **ww = NULL;
@@ -548,6 +550,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	Free(ww);
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

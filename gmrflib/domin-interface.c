@@ -144,7 +144,8 @@ int GMRFLib_opt_exit(void)
 	opt_setup = 0;
 	memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
 	memset(&B, 0, sizeof(Best_tp));
-	memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
+	// we want to keep the directions. if the dimension changes then we reset... see below
+	if (0) memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
 	memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
 
 	return GMRFLib_SUCCESS;
@@ -1045,7 +1046,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	static gsl_matrix *tAinv = NULL;
 
 	if (G.use_directions) {
-		if (!Opt_dir_params.A) {
+		if (!Opt_dir_params.A || (Opt_dir_params.A && Opt_dir_params.A->size1 != G.nhyper)) {
 			A = gsl_matrix_alloc(G.nhyper, G.nhyper);
 			Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
 			tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);
@@ -1069,7 +1070,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			gsl_matrix_memcpy(A, Adir);
 			gsl_matrix_memcpy(tAinv, Adir);
 		} else {
-			// all is fine
+			// ok
 		}
 	}
 

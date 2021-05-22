@@ -5241,7 +5241,7 @@
                             hyperid = 53001,
                             name = "log precision",
                             short.name = "prec",
-                            initial = 12,
+                            initial = log(1/0.001^2),
                             ## do not change
                             fixed = TRUE, 
                             prior = "loggamma",
