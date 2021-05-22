@@ -30689,18 +30689,21 @@ int inla_INLA_preopt(inla_tp * mb)
 
 	double *xx = Calloc(preopt->n, double);
 	if (mb->x_file) {
-		FIXME("INIT!!!");
-		memcpy(xx, mb->x_file + preopt->npred, preopt->n * sizeof(double));
+		memcpy(xx, mb->x_file + preopt->mnpred, preopt->n * sizeof(double));
 	}
 	
+	FIXME("ENTER");
 	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
 			&(mb->neffp), NULL, mb->theta, mb->ntheta, extra, (void *) mb,
 			xx, NULL, c, NULL, bfunc, mb->d, loglikelihood_inla, (void *) mb, 
 			preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,                        
 			mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt);
+	FIXME("LEAVE");
+
 	GMRFLib_free_ai_store(ai_store);
 	Free(c);
 	Free(xx);
+
 	return INLA_OK;
 }
 
@@ -35931,23 +35934,20 @@ int main(int argc, char **argv)
 				}
 				GMRFLib_preopt_mode = 0;
 
-				FIXME("NEED TO FIX THIS");
-				exit(1);
-
 				// we need to transfer the mode to the next step
 				Free(mb->theta_file);
 				Free(mb->x_file);
 				mb->theta_file = Calloc(mb->ntheta, double);
-				mb->x_file = Calloc(mb->preopt->n + mb->preopt->npred, double);
+				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
 				memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
-				memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->npred) * sizeof(double));
+				memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
 				mb->ntheta_file = mb->ntheta;
-				mb->nx_file = mb->preopt->n + mb->preopt->npred;
+				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
 				mb->reuse_mode = GMRFLib_TRUE;
 				mb->reuse_mode_but_restart = GMRFLib_FALSE;
 
 				inla_reset();
-				GMRFLib_free_preopt(mb->preopt);
+				GMRFLib_preopt_free(mb->preopt);
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 				inla_INLA(mb);

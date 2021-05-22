@@ -3444,23 +3444,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		SET_THETA_MODE;
 
 		if (preopt) {
-
 			// in this case, just save (x, theta), cleanup and return
-
-			FIXME("NEED TO FIX THIS");
-			exit(1);
-			
 			preopt->mode_theta = Calloc(nhyper, double);
 			memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
-			preopt->mode_x = Calloc(preopt->Npred + preopt->n, double);
-			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->Npred]));
-			GMRFLib_preopt_predictor(preopt->mode_x, &(preopt->mode_x[preopt->Npred]), preopt);
+			preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
+			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
+			GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
 
 			if (0) {
 				for(i = 0; i < nhyper; i++) {
 					printf("theta[%1d]=  %f\n", i, preopt->mode_theta[i]);
 				}
-				for(i = 0; i < preopt->Npred + preopt->n; i++) {
+				for(i = 0; i < preopt->mnpred + preopt->n; i++) {
 					printf("x[%1d]=  %f\n", i, preopt->mode_x[i]);
 				}
 			}
