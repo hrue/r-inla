@@ -802,7 +802,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c)
 {
 	int id = GMRFLib_thread_id, np = preopt->Npred;
-	double constant = 0.0;
 
 	if (!(preopt->like_b[id])) {
 		preopt->like_b[id] = Calloc(np, double);

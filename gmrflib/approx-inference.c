@@ -200,12 +200,6 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->vb_max_correct = 1.0;
 	(*ai_par)->vb_nodes = NULL;
 
-	(*ai_par)->correct_enable = 0;
-	(*ai_par)->correct_nodes = NULL;
-	(*ai_par)->correct_factor = 1.0;		       /* set but is default not used */
-	(*ai_par)->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
-	(*ai_par)->correct_verbose = GMRFLib_FALSE;
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -412,17 +406,6 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
 
-	if (ai_par->correct_enable) {
-		fprintf(fp, "\tLaplace-correction is Enabled with correction factor[%.3f]\n", ai_par->correct_factor);
-		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN ||
-		    ai_par->correct_strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
-			fprintf(fp, "\t\tstrategy = [simplified.laplace]\n");
-		if (ai_par->correct_strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN)
-			fprintf(fp, "\t\tstrategy = [laplace]\n");
-		fprintf(fp, "\t\tverbose = [%s]\n", (ai_par->correct_verbose ? "TRUE" : "FALSE"));
-	} else {
-		fprintf(fp, "\tLaplace-correction is Disabled.\n");
-	}
 	fprintf(fp, "\n");
 
 	return GMRFLib_SUCCESS;
@@ -561,122 +544,6 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	 */
 	GMRFLib_free_problem(ai_store->problem);
 	ai_store->problem = problem;
-
-
-
-	if (ai_par->correct_enable && ai_par->correct_nodes) {
-		/*
-		 * compute the correction to the LA
-		 */
-		int i, j, compute_n = 0, *compute_idx = NULL;
-		for (i = 0; i < n; i++) {
-			compute_n += (int) ai_par->correct_nodes[i];
-		}
-		assert(compute_n > 0);
-
-		compute_idx = Calloc(compute_n, int);
-		for (i = j = 0; i < n; i++) {
-			if (ai_par->correct_nodes[i]) {
-				compute_idx[j++] = i;
-			}
-		}
-		assert(j == compute_n);
-
-		GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
-		GMRFLib_density_tp **dens = Calloc(compute_n, GMRFLib_density_tp *);
-		GMRFLib_ai_param_tp *ai_par_local = Calloc(1, GMRFLib_ai_param_tp);
-		marginal_hidden_store->n = graph->n;
-		marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
-
-		memcpy(ai_par_local, ai_par, sizeof(GMRFLib_ai_param_tp));
-		ai_par_local->strategy = ai_par->correct_strategy;
-		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-
-		if (ai_par->correct_verbose) {
-			printf("\tCorrect: Compute marginals for %d nodes\n", compute_n);
-		}
-		for (i = 0; i < compute_n; i++) {
-			GMRFLib_ai_marginal_hidden(&dens[i], NULL, GMRFLib_FALSE,
-						   compute_idx[i], x, b, c, mean, d,
-						   loglFunc, loglFunc_arg, graph, Qfunc,
-						   Qfunc_arg, constr, ai_par_local, ai_store, marginal_hidden_store, preopt);
-		}
-		Free(ai_par_local);
-
-		GMRFLib_lc_tp **Alin = Calloc(compute_n, GMRFLib_lc_tp *);
-		for (i = 0; i < compute_n; i++) {
-			Alin[i] = Calloc(1, GMRFLib_lc_tp);
-			Alin[i]->n = 1;
-			Alin[i]->idx = Calloc(1, int);
-			Alin[i]->idx[0] = compute_idx[i];
-			Alin[i]->weight = Calloc(1, float);
-			Alin[i]->weight[0] = 1.0;
-			Alin[i]->tinfo = Calloc(GMRFLib_CACHE_LEN, GMRFLib_lc_tinfo_tp);
-			for (j = 0; j < GMRFLib_CACHE_LEN; j++) {
-				Alin[i]->tinfo[j].first_nonzero = -1;
-				Alin[i]->tinfo[j].last_nonzero = -1;
-				Alin[i]->tinfo[j].first_nonzero_mapped = -1;
-				Alin[i]->tinfo[j].last_nonzero_mapped = -1;
-			}
-		}
-
-		double *improved_mean = Calloc(n, double);     /* just with zeros as we do not care about the mean... */
-		GMRFLib_density_tp **lin_dens = Calloc(compute_n, GMRFLib_density_tp *);
-		double *cov = NULL;
-
-		if (ai_par->correct_verbose) {
-			printf("\tCorrect: Compute the covariance for the %d nodes\n", compute_n);
-		}
-		GMRFLib_ai_compute_lincomb(&lin_dens, &cov, compute_n, Alin, ai_store, improved_mean);
-		if (ai_par->correct_verbose) {
-			printf("\t\tCovariance matrix:\n");
-			for (i = 0; i < compute_n; i++) {
-				printf("\t\t");
-				for (j = 0; j < compute_n; j++) {
-					printf("%10.5f ", cov[i + j * compute_n]);
-				}
-				printf("\n");
-			}
-			printf("\t\tDifference in the mean:\n");
-			for (i = 0; i < compute_n; i++) {
-				printf("\t\t%10.5f\n", dens[i]->std_mean - dens[i]->user_mean);
-			}
-		}
-
-		double corr = 0.0, *icov = cov;
-		GMRFLib_comp_posdef_inverse(cov, compute_n);
-		for (i = 0; i < compute_n; i++) {
-			for (j = 0; j < compute_n; j++) {
-				corr += (dens[i]->std_mean - dens[i]->user_mean)
-				    * icov[i + j * compute_n]
-				    * (dens[j]->std_mean - dens[j]->user_mean);
-			}
-		}
-
-#define FUNCORR(_x)  (2.0/(1+exp(-2.0 * (_x))) -1.0)	       // makes the derivative in 0 eq to 1
-		double upper = compute_n * ai_par->correct_factor;
-		*logdens += 0.5 * upper * FUNCORR(corr / upper);
-		if (ai_par->correct_verbose) {
-			printf("\t\tCorrect: correction: raw = %.6f adjusted = %.6f\n", 0.5 * corr, 0.5 * upper * FUNCORR(corr / upper));
-		}
-#undef FUNCORR
-
-		GMRFLib_free_marginal_hidden_store(marginal_hidden_store);
-		Free(improved_mean);
-		for (i = 0; i < compute_n; i++) {
-			GMRFLib_free_density(lin_dens[i]);
-			GMRFLib_free_density(dens[i]);
-			Free(Alin[i]->idx);
-			Free(Alin[i]->weight);
-			Free(Alin[i]->tinfo);
-		}
-		Free(lin_dens);
-		Free(dens);
-		Free(Alin);
-		Free(cov);
-		Free(compute_idx);
-	}
-
 
 	/*
 	 * cleanup 

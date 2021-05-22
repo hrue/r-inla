@@ -555,31 +555,6 @@ typedef struct {
 	 */
 	char *vb_nodes;
 
-	/**
-	 * \brief Enable correction for LA?
-	 */
-	int correct_enable;
-
-	/**
-	 * \brief List of nodes to correct LA for, if any.
-	 */
-	char *correct_nodes;
-
-	/**
-	 * \brief Ajustment-factor if we use correction
-	 */
-	double correct_factor;
-
-	/**
-	 * \brief Strategy to use computing the correction
-	 */
-	double correct_strategy;
-
-	/**
-	 * \brief Be verbose about the correction?
-	 */
-	int correct_verbose;
-	
 	/** 
 	 * Try to be smart when optimizing in INLA?   
 	 */

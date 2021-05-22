@@ -26,7 +26,6 @@
 ## Export: control.fixed
 ## Export: control.inla
 ## Export: control.vb
-## Export: control.correct
 ## Export: control.predictor
 ## Export: control.results
 ## Export: control.mode
@@ -548,9 +547,6 @@
             ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} Logical Use this feature? \code{strategy} Charactor What to correct, one of "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. \code{refinement} Integer Number of extra refinement iterations. \code{max.correct} Numerical Bound the allowed correction (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). \code{hyperpar.correct} Logical Correct the marginal posterior for the hyperparameters?
             control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE),
 
-            ## :ARGUMENT: control.correct List of control arguments for correction for the Laplace approximation: \code{enable} Logical Use this feature? \code{factor} Numerical Factor used in adjusting the correction factor (default=10) if \code{correct=TRUE}. \code{strategy}  Character The strategy used to compute the correction; one of 'simplified.laplace' (default) or 'laplace'. \code{verbose}  Logical Be verbose when computing the correction? (default \code{FALSE})
-            control.correct = list(enable = FALSE, factor = 10.0, strategy = "simplified.laplace", verbose = FALSE),
-
             ## :ARGUMENT: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
             num.gradient = "central",
 
@@ -803,7 +799,6 @@ control.family <- inla.make.completion.function(names(inla.set.control.family.de
 control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.default()))
 control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
 control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
-control.correct <- inla.make.completion.function(names(inla.set.control.inla.default()$control.correct))
 control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
 control.results <- inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))

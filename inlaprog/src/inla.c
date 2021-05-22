@@ -26307,21 +26307,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		}
 	}
 
-	mb->ai_par->correct_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.ENABLE"), 0);
-	mb->ai_par->correct_nodes = (mb->ai_par->correct_enable ? Calloc(1, char) : NULL);
-	mb->ai_par->correct_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.CORRECT.VERBOSE"), mb->ai_par->correct_verbose);
-	mb->ai_par->correct_factor = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.CORRECT.FACTOR"), mb->ai_par->correct_factor);
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.CORRECT.STRATEGY"), NULL));
-	if (opt) {
-		if (!strcasecmp(opt, "SIMPLIFIED.LAPLACE")) {
-			mb->ai_par->correct_strategy = GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN;
-		} else if (!strcasecmp(opt, "LAPLACE")) {
-			mb->ai_par->correct_strategy = GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN;
-		} else {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.correct.strategy", opt);
-		}
-	}
-
 	// default value is set in main()
 	GMRFLib_aqat_m_diag_add = iniparser_getdouble(ini, inla_string_join(secname, "CONSTR.MARGINAL.DIAGONAL"), GMRFLib_aqat_m_diag_add);
 	assert(GMRFLib_aqat_m_diag_add >= 0.0);
@@ -30274,35 +30259,6 @@ int inla_INLA(inla_tp * mb)
 		}
 	}
 
-	// correct using fixed effects only
-	char *correct = NULL;
-	local_count = 0;
-	if (mb->ai_par->correct_enable) {
-		correct = Calloc(N, char);
-		count = mb->predictor_n + mb->predictor_m;
-		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_correct[i] < 0 && mb->f_Ntotal[i] == 1) || mb->f_correct[i] > 0) {
-				/*
-				 * add also random effects with size 1
-				 */
-				for (j = 0; j < mb->f_Ntotal[i]; j++) {
-					correct[count + j] = (char) 1;
-					local_count++;
-				}
-			}
-			count += mb->f_Ntotal[i];
-		}
-		for (i = 0; i < mb->nlinear; i++) {
-			correct[count++] = (char) 1;
-			local_count++;
-		}
-		if (local_count == 0) {			       /* then there is nothting to correct for */
-			Free(correct);
-			correct = NULL;
-		}
-	}
-	mb->ai_par->correct_nodes = correct;
-
 	// VB correct 
 	char *vb_nodes = NULL;
 	local_count = 0;
@@ -30630,8 +30586,6 @@ int inla_INLA_preopt(inla_tp * mb)
 
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	count = 0;
-
-	mb->ai_par->correct_nodes = NULL;
 
 	if (G.reorder < 0) {
 		size_t nnz = 0;

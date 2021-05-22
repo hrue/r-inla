@@ -971,16 +971,6 @@
     cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
     cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
 
-    inla.write.boolean.field("control.correct.enable", inla.spec$control.correct$enable, file)
-    inla.write.boolean.field("control.correct.verbose", inla.spec$control.correct$verbose, file)
-    if (!is.null(inla.spec$control.correct$factor)) {
-        stopifnot(inla.spec$control.correct$factor > 0)
-        cat("control.correct.factor = ", inla.spec$control.correct$factor, "\n", file = file, append = TRUE)
-    }
-    if (!is.null(inla.spec$control.correct$strategy)) {
-        cat("control.correct.strategy = ", inla.spec$control.correct$strategy, "\n", sep = " ", file = file, append = TRUE)
-    }
-
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
     optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("plain", "smart"))
