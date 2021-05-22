@@ -62,25 +62,21 @@ typedef struct {
 typedef struct {
 
 	/*
-	  eta* = B %*% eta    length(eta*) = mpred 
-	  eta  = A %*% x      length(eta)  = npred 
-
-	  B = mpred x npred   might be given, this is pA...
-	  A = npred x n       this matrix is constructed online
-	  
-	  mnpred = mpred + npred  total length for transfering mode_x etc
-
-	  length of data is Npred:
-	      - Npred = mpred if mpred > 0
-	      - Npred = npred if mpred = 0
-
-          the AtA matrix is the matrix that goes into the likelihood, and its either buildt from t(A)A or t(BA)BA
-
-	*/
-	int mpred;					       
-	int npred;					       
-	int mnpred;					       
-	int Npred;					       
+	 * eta* = B %*% eta length(eta*) = mpred eta = A %*% x length(eta) = npred
+	 * 
+	 * B = mpred x npred might be given, this is pA... A = npred x n this matrix is constructed online
+	 * 
+	 * mnpred = mpred + npred total length for transfering mode_x etc
+	 * 
+	 * length of data is Npred: - Npred = mpred if mpred > 0 - Npred = npred if mpred = 0
+	 * 
+	 * the AtA matrix is the matrix that goes into the likelihood, and its either buildt from t(A)A or t(BA)BA
+	 * 
+	 */
+	int mpred;
+	int npred;
+	int mnpred;
+	int Npred;
 	int n;
 	int nf;
 	int nbeta;
@@ -89,20 +85,20 @@ typedef struct {
 	GMRFLib_Qfunc_tp *preopt_Qfunc;
 	void *preopt_Qfunc_arg;
 
-	GMRFLib_graph_tp *latent_graph;			       
+	GMRFLib_graph_tp *latent_graph;
 	GMRFLib_Qfunc_tp *latent_Qfunc;
 	void *latent_Qfunc_arg;
 	GMRFLib_constr_tp *latent_constr;
 
-	GMRFLib_graph_tp *like_graph;			       
+	GMRFLib_graph_tp *like_graph;
 	GMRFLib_Qfunc_tp *like_Qfunc;
 	void *like_Qfunc_arg;
 
 	GMRFLib_bfunc_tp **bfunc;
-	double **like_c;	
-	double **like_b;	
-	double **total_b;	
-	double *total_const;	
+	double **like_c;
+	double **like_b;
+	double **total_b;
+	double *total_const;
 
 	int *idx_map_beta;
 	int *idx_map_f;
@@ -133,17 +129,15 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *values, void *arg);
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt);
-int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp * preopt);
-int GMRFLib_preopt_bnew_latent(double *bnew, double *constant, int n, GMRFLib_bfunc_tp ** bfunc);
+int GMRFLib_preopt_bnew(double *b, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg);
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
-			double *f_diag, 
+			double *f_diag,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision,
-			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par),
-			char *predictor_pA_fnm);
+			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par), char *predictor_pA_fnm);
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp * preopt, int likelihood_only);

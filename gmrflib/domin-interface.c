@@ -1046,7 +1046,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	static gsl_matrix *tAinv = NULL;
 
 	if (G.use_directions) {
-		if (!Opt_dir_params.A || (Opt_dir_params.A && Opt_dir_params.A->size1 != G.nhyper)) {
+		if (!Opt_dir_params.A || (Opt_dir_params.A && Opt_dir_params.A->size1 != (size_t) G.nhyper)) {
 			A = gsl_matrix_alloc(G.nhyper, G.nhyper);
 			Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
 			tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);

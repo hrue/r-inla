@@ -54,22 +54,24 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	int i, ii, j, jj, k, kk, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
 	int debug = 0, nrow = 0, ncol = 0;
 	double val;
 
-	GMRFLib_idxval_tp **pA_idxval = NULL;
+	double **ww = NULL;
+	GMRFLib_constr_tp *fc = NULL;
+	GMRFLib_idx_tp **pAA_pattern = NULL;
+	GMRFLib_idxval_tp **A_idxval = NULL;
+	GMRFLib_idxval_tp ***AtA_idxval = NULL;
+	GMRFLib_idxval_tp **At_idxval = NULL;
 	GMRFLib_idxval_tp **pAA_idxval = NULL;
 	GMRFLib_idxval_tp **pAAt_idxval = NULL;
+	GMRFLib_idxval_tp **pA_idxval = NULL;
+	GMRFLib_matrix_tp *pA = NULL;
 
-	GMRFLib_constr_tp *fc = NULL;
-
-	GMRFLib_matrix_tp * pA = NULL;
-
-	double **ww = NULL;
 	ww = Calloc(nf, double *);
 	for (i = 0; i < nf; i++) {
 		ww[i] = Calloc(npred, double);
@@ -120,7 +122,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		idx_map_beta[nbeta] = offset;
 	}
-	N = offset;					       /* N is the grand-total. */
+	N = offset;					       /* N is the size of the latent (no predictors) */
 
 	/*
 	 * If we have cross-terms, make sure to mark these cross-terms as neigbours; just fill them with zero's.
@@ -145,7 +147,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
-
 	if (nbeta) {
 		for (i = 0; i < nbeta; i++) {
 			GMRFLib_ged_add(ged, idx_map_beta[i], idx_map_beta[i]);
@@ -155,12 +156,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_ged_build(&((*preopt)->latent_graph), ged);
 	GMRFLib_ged_free(ged);
 
-	(*preopt)->latent_graph = (*preopt)->latent_graph;     /* just a copy */
 	(*preopt)->latent_Qfunc = GMRFLib_preopt_latent_Qfunc;
 	(*preopt)->latent_Qfunc_arg = (void *) *preopt;
 
 	/*
-	 * build the constraint, if any. Only simple sum-to-zero constraints are supported.
+	 * build the constraint, if any. 
 	 */
 	int nconstr = 0;
 	if (nf && f_sumzero) {
@@ -210,7 +210,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				}
 			}
 		}
-
 		GMRFLib_ASSERT(constr_no == constr->nc, GMRFLib_ESNH);
 		GMRFLib_prepare_constr(constr, (*preopt)->latent_graph, 0);
 		(*preopt)->latent_constr = constr;
@@ -240,10 +239,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	// build up structure for the likelihood part
 
-	GMRFLib_idxval_tp **A_idxval = GMRFLib_idxval_ncreate(npred);
+	A_idxval = GMRFLib_idxval_ncreate(npred);
 	for (i = 0; i < npred; i++) {
 		int idx;
-
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
 				idx = c[jj][i] + idx_map_f[jj];
@@ -262,9 +260,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_idxval_nsort(A_idxval, npred);
 
 	// need also At_.. below, if (pA)
-	GMRFLib_idxval_tp **At_idxval = GMRFLib_idxval_ncreate(N);
-	for(i = 0; i < npred; i++){
-		for(k = 0; k < A_idxval[i]->n; k++){
+	At_idxval = GMRFLib_idxval_ncreate(N);
+	for (i = 0; i < npred; i++) {
+		for (k = 0; k < A_idxval[i]->n; k++) {
 			j = A_idxval[i]->store[k].idx;
 			val = A_idxval[i]->store[k].val;
 			GMRFLib_idxval_add(&(At_idxval[j]), i, val);
@@ -273,9 +271,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_idxval_nsort(At_idxval, N);
 
 	if (debug) {
-		for(i = 0; i < npred; i++)
+		for (i = 0; i < npred; i++)
 			GMRFLib_idxval_printf(stdout, A_idxval[i], "A_idxval");
-		for(i = 0; i < N; i++)
+		for (i = 0; i < N; i++)
 			GMRFLib_idxval_printf(stdout, At_idxval[i], "At_idxval");
 	}
 
@@ -283,13 +281,13 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		pA = GMRFLib_read_fmesher_file(pA_fnm, (long int) 0, -1);
 		assert(pA);
 
-		//if (debug) {
-		//printf("read pA from [%s]\n", pA_fnm);
-		//	printf("\tnrow %d ncol %d nelms %d\n", pA->nrow, pA->ncol, pA->elems);
-		//for(i = 0; i < pA->elems; i++){
-		//printf("\ti j x %d %d %f\n", pA->i[i], pA->j[i], pA->values[i]);
-		//}
-		//}
+		if (debug) {
+			printf("read pA from [%s]\n", pA_fnm);
+			printf("\tnrow %d ncol %d nelms %d\n", pA->nrow, pA->ncol, pA->elems);
+			for(i = 0; i < pA->elems; i++) {
+				printf("\ti j x %d %d %f\n", pA->i[i], pA->j[i], pA->values[i]);
+			}
+		}
 
 		nrow = pA->nrow;
 		ncol = pA->ncol;
@@ -297,7 +295,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		// this is need to compute the linear predictor later
 		pA_idxval = GMRFLib_idxval_ncreate(nrow);
-		for(k = 0; k < pA->elems; k++){
+		for (k = 0; k < pA->elems; k++) {
 			i = pA->i[k];
 			j = pA->j[k];
 			val = pA->values[k];
@@ -305,13 +303,13 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		GMRFLib_idxval_nsort(pA_idxval, nrow);
 
-		GMRFLib_idx_tp **pAA_pattern = GMRFLib_idx_ncreate(nrow);
+		pAA_pattern = GMRFLib_idx_ncreate(nrow); 
 		double *row = Calloc(ncol, double);
 
-		for(i = 0; i < nrow; i++){
+		for (i = 0; i < nrow; i++) {
 			GMRFLib_matrix_get_row(row, i, pA);
-			for(k = 0; k < N; k++) {
-				for(jj = 0; jj < At_idxval[k]->n; jj++){
+			for (k = 0; k < N; k++) {
+				for (jj = 0; jj < At_idxval[k]->n; jj++) {
 					j = At_idxval[k]->store[jj].idx;
 					if (row[j]) {
 						GMRFLib_idx_add(&(pAA_pattern[i]), k);
@@ -322,13 +320,13 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idx_nuniq(pAA_pattern, nrow);	       /* this also sorts idx's */
 
 		if (debug) {
-			char * crow = Calloc(N+1, char);
+			char *crow = Calloc(N + 1, char);
 			crow[N] = '\0';
-			for(i = 0; i < nrow; i++){
+			for (i = 0; i < nrow; i++) {
 				memset(crow, ' ', N * sizeof(char));
-				for(k = 0; k < pAA_pattern[i]->n; k++){
+				for (k = 0; k < pAA_pattern[i]->n; k++) {
 					j = pAA_pattern[i]->idx[k];
-					//printf("Add crow i j %d %d\n", i, j);
+					// printf("Add crow i j %d %d\n", i, j);
 					crow[j] = '.';
 				}
 				printf("pA%2d [%s]\n", i, crow);
@@ -337,19 +335,20 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 
 		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
-		
+
 		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
-		for(i = 0; i < nrow; i++){
-			for(k = 0; k < pAA_pattern[i]->n; k++){
+		for (i = 0; i < nrow; i++) {
+			for (k = 0; k < pAA_pattern[i]->n; k++) {
 				j = pAA_pattern[i]->idx[k];
 				GMRFLib_idxval_add(&(pAA_idxval[i]), j, 0.0);
 			}
 		}
+
 		// then add and accumate terms using '..._addto'
-		for(i = 0; i < nrow; i++){
+		for (i = 0; i < nrow; i++) {
 			GMRFLib_matrix_get_row(row, i, pA);
-			for(k = 0; k < N; k++) {
-				for(jj = 0; jj < At_idxval[k]->n; jj++){
+			for (k = 0; k < N; k++) {
+				for (jj = 0; jj < At_idxval[k]->n; jj++) {
 					j = At_idxval[k]->store[jj].idx;
 					val = At_idxval[k]->store[jj].val;
 					if (row[j]) {
@@ -360,8 +359,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
-		for(i = 0; i < nrow; i++){
-			for(k = 0; k < pAA_idxval[i]->n; k++){
+		for (i = 0; i < nrow; i++) {
+			for (k = 0; k < pAA_idxval[i]->n; k++) {
 				j = pAA_idxval[i]->store[k].idx;
 				val = pAA_idxval[i]->store[k].val;
 				GMRFLib_idxval_add(&(pAAt_idxval[j]), i, val);
@@ -370,26 +369,25 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_nsort(pAAt_idxval, N);
 
 		if (debug) {
-			for(i = 0; i < nrow; i++){
+			for (i = 0; i < nrow; i++) {
 				P(i);
 				GMRFLib_idxval_printf(stdout, pAA_idxval[i], "pAA");
 			}
-			for(i = 0; i < N; i++){
+			for (i = 0; i < N; i++) {
 				P(i);
 				GMRFLib_idxval_printf(stdout, pAAt_idxval[i], "pAAt");
 			}
 		}
 
-
-		for(i = 0; i < nrow; i++) {
+		for (i = 0; i < nrow; i++) {
 			GMRFLib_idx_free(pAA_pattern[i]);
 		}
 		Free(pAA_pattern);
 		Free(row);
 		GMRFLib_matrix_free(pA);
 	}
-
-	// setup dimensions, see pre-opt.h for details
+	
+	// setup dimensions, see pre-opt.h for the details
 	if (pA_fnm) {
 		(*preopt)->mpred = nrow;
 		(*preopt)->npred = npred;
@@ -403,7 +401,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		(*preopt)->Npred = npred;
 		(*preopt)->n = N;
 	}
-	
+
 	if (debug) {
 		P((*preopt)->mpred);
 		P((*preopt)->npred);
@@ -412,13 +410,13 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		P((*preopt)->n);
 	}
 
-	// have to create AtA from "At" & "A". the matrix 'AtA' is for the likelihood only and is either "At %*% A", or "pAAt %*% pAA",
+	// we have to create AtA from "At" & "A". the matrix 'AtA' is for the likelihood only and is either "At %*% A", or "pAAt %*% pAA",
 	// depending if "pA" is there or not
 
-	GMRFLib_idxval_tp ** gen_At;
-	GMRFLib_idxval_tp ** gen_A;
-	int gen_len_At;
-	
+	GMRFLib_idxval_tp **gen_At = NULL;
+	GMRFLib_idxval_tp **gen_A = NULL;
+	int gen_len_At = -1;
+
 	if (pA_fnm) {
 		gen_A = pAA_idxval;
 		gen_At = pAAt_idxval;
@@ -435,10 +433,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_ged_add(ged, k, k);
 	}
 
-	for(i = 0; i < gen_len_At; i++){
-		for (kk = 0;  kk < gen_At[i]->n; kk++) {
+	for (i = 0; i < gen_len_At; i++) {
+		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
-			for(jj = 0; jj < gen_A[k]->n; jj++){
+			for (jj = 0; jj < gen_A[k]->n; jj++) {
 				j = gen_A[k]->store[jj].idx;
 				GMRFLib_ged_add(ged, i, j);
 			}
@@ -449,15 +447,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
 
-	GMRFLib_idxval_tp ***AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
+	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (i = 0; i < g->n; i++) {
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-	for(i = 0; i < gen_len_At; i++) {
-		for (kk = 0;  kk < gen_At[i]->n; kk++) {
+	for (i = 0; i < gen_len_At; i++) {
+		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
-			for(jj = 0; jj < gen_A[k]->n; jj++){
+			for (jj = 0; jj < gen_A[k]->n; jj++) {
 				j = gen_A[k]->store[jj].idx;
 				if (j >= i) {
 					if (i == j) {
@@ -466,8 +464,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 						index = 1 + GMRFLib_iwhich_sorted(j, g->lnbs[i], g->lnnbs[i]);
 						assert(index > 0);
 					}
-					GMRFLib_idxval_add(&(AtA_idxval[i][index]), k,
-							   gen_At[i]->store[kk].val * gen_A[k]->store[jj].val);
+					GMRFLib_idxval_add(&(AtA_idxval[i][index]), k, gen_At[i]->store[kk].val * gen_A[k]->store[jj].val);
 				}
 			}
 		}
@@ -475,33 +472,28 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	if (debug) {
 		FIXME("AtA");
-		for(i = 0; i < N; i++) {
+		for (i = 0; i < N; i++) {
 			double sum = 0.0;
-			
 			printf("term %d %d\n", i, i);
-			for(kk = 0; kk < AtA_idxval[i][0]->n; kk++){
-				printf("\tkk idx val %d %d %f\n", kk,
-					AtA_idxval[i][0]->store[kk].idx,
-					AtA_idxval[i][0]->store[kk].val);
+			for (kk = 0; kk < AtA_idxval[i][0]->n; kk++) {
+				printf("\tkk idx val %d %d %f\n", kk, AtA_idxval[i][0]->store[kk].idx, AtA_idxval[i][0]->store[kk].val);
 				sum += AtA_idxval[i][0]->store[kk].val;
 			}
 			printf("\tsum %g\n", sum);
-
-			for(jj= 0; jj < g->lnnbs[i]; jj++){
+			for (jj = 0; jj < g->lnnbs[i]; jj++) {
 				j = g->lnbs[i][jj];
 				printf("term %d %d\n", i, j);
 				sum = 0.0;
-				for(kk = 0; kk < AtA_idxval[i][1+jj]->n; kk++){
+				for (kk = 0; kk < AtA_idxval[i][1 + jj]->n; kk++) {
 					printf("\tkk idx val %d %d %f\n", kk,
-						AtA_idxval[i][1+jj]->store[kk].idx,
-						AtA_idxval[i][1+jj]->store[kk].val);
-					sum += AtA_idxval[i][1+jj]->store[kk].val;
+					       AtA_idxval[i][1 + jj]->store[kk].idx, AtA_idxval[i][1 + jj]->store[kk].val);
+					sum += AtA_idxval[i][1 + jj]->store[kk].val;
 				}
 				printf("\tsum %g\n", sum);
 			}
 		}
 	}
-	
+
 	GMRFLib_idxval_nprune(pA_idxval, nrow);
 	GMRFLib_idxval_nprune(pAAt_idxval, N);
 	GMRFLib_idxval_nprune(A_idxval, npred);
@@ -520,7 +512,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->like_c = Calloc(GMRFLib_MAX_THREADS, double *);
 	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS, double *);
 	(*preopt)->total_b = Calloc(GMRFLib_MAX_THREADS, double *);
-	(*preopt)->total_const = Calloc(GMRFLib_MAX_THREADS, double);
 
 	(*preopt)->like_Qfunc_arg = (void *) *preopt;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
@@ -536,19 +527,18 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-
 	if (pAA_idxval) {
-		for(i = 0; i < nrow; i++) {
+		for (i = 0; i < nrow; i++) {
 			GMRFLib_idxval_free(pAA_idxval[i]);
 		}
 		Free(pAA_idxval);
 	}
-
 	for (i = 0; i < nf; i++) {
 		Free(ww[i]);
 	}
 	Free(ww);
+
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -589,15 +579,13 @@ double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), 
 	 * this is Qfunction for the preopt-function 
 	 */
 	GMRFLib_preopt_tp *a = NULL;
+	GMRFLib_preopt_type_tp it, jt;
 	int ii, jj;
 	double value = 0.0;
-	GMRFLib_preopt_type_tp it, jt;
 
 	a = (GMRFLib_preopt_tp *) arg;
 	ii = IMIN(node, nnode);
 	jj = IMAX(node, nnode);
-
-	// old non-caching code: it = GMRFLib_preopt_what_type(ii, a); jt = GMRFLib_preopt_what_type(jj, a);
 	it = a->what_type[ii];
 	jt = a->what_type[jj];
 
@@ -665,7 +653,6 @@ double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), vo
 	 */
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
-
 	int id = GMRFLib_thread_id, idx, k, kk, imin, imax;
 	double value = 0.0, val;
 
@@ -722,35 +709,10 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	return value;
 }
 
-int GMRFLib_preopt_bnew(double *b, double *constant, GMRFLib_preopt_tp * preopt)
+int GMRFLib_preopt_bnew(double *b, GMRFLib_preopt_tp * preopt)
 {
 	// just add to 'b'.
-
-	// GMRFLib_preopt_bnew_latent(b, constant, preopt->n, preopt->bfunc);
-	*constant = 0.0;
-
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[GMRFLib_thread_id], preopt);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_preopt_bnew_latent(double *bnew, double *constant, int n, GMRFLib_bfunc_tp ** bfunc)
-{
-	FIXME("NOT IN USE");
-	abort();
-
-	// this is just copy of GMRFLib_bnew(...) without the alloc
-
-	double con = 0.0, con_add = 0.0;
-	if (bfunc) {
-		for (int i = 0; i < n; i++) {
-			if (bfunc[i]) {
-				bnew[i] += GMRFLib_bfunc_eval(&con_add, bfunc[i]);
-				con += con_add;
-			}
-		}
-	}
-	*constant = -con / 2.0;
 
 	return GMRFLib_SUCCESS;
 }
@@ -765,7 +727,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		assert(preopt->mpred > 0);
 	} else {
 		A = preopt->At_idxval;
-  		assert(preopt->mpred == 0);
+		assert(preopt->mpred == 0);
 	}
 
 	for (int i = 0; i < preopt->n; i++) {
@@ -782,7 +744,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt) 
+int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt)
 {
 	return GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1);
 }
@@ -792,8 +754,7 @@ int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0);
 }
 
-int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp * preopt,
-				  int likelihood_only)
+int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp * preopt, int likelihood_only)
 {
 	// if likelihood_only, only compute the part that is needed for the likelihood.
 
@@ -806,7 +767,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		offset = preopt->mpred;
 		assert(preopt->mpred > 0);
 	} else {
-  		assert(preopt->mpred == 0);
+		assert(preopt->mpred == 0);
 	}
 
 	for (int i = 0; i < preopt->npred; i++) {
@@ -854,9 +815,7 @@ int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *li
 		preopt->total_b[id] = Calloc(preopt->n, double);
 	}
 	memset(preopt->total_b[id], 0, preopt->n * sizeof(double));
-
-	GMRFLib_preopt_bnew(preopt->total_b[id], &constant, preopt);
-	preopt->total_const[id] = constant;
+	GMRFLib_preopt_bnew(preopt->total_b[id], preopt);
 
 	return GMRFLib_SUCCESS;
 }
@@ -878,17 +837,17 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	Free(preopt->AtA_idxval);
 
 	if (preopt->pA_idxval) {
-		for(i = 0; i < preopt->mpred; i++) {
+		for (i = 0; i < preopt->mpred; i++) {
 			GMRFLib_idxval_free(preopt->pA_idxval[i]);
 		}
-		for(i = 0; i < preopt->n; i++) {
+		for (i = 0; i < preopt->n; i++) {
 			GMRFLib_idxval_free(preopt->pAAt_idxval[i]);
 		}
 	}
-	for(i = 0; i < preopt->npred; i++) {
+	for (i = 0; i < preopt->npred; i++) {
 		GMRFLib_idxval_free(preopt->A_idxval[i]);
 	}
-	for(i = 0; i < preopt->n; i++) {
+	for (i = 0; i < preopt->n; i++) {
 		GMRFLib_idxval_free(preopt->At_idxval[i]);
 	}
 

@@ -114,7 +114,7 @@ static const char GitID[] = GITCOMMIT;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0};
+G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
 char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
@@ -7990,9 +7990,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -26779,7 +26779,7 @@ double extra(double *theta, int ntheta, void *argument)
 		if (!mb->predictor_fixed) {
 			val += PRIOR_EVAL(mb->predictor_prior, &log_precision);
 		}
-	
+
 		/*
 		 * this is for the A-matrix
 		 */
@@ -27958,18 +27958,17 @@ double extra(double *theta, int ntheta, void *argument)
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde->graph->n, double);
-			
+
 			if (mb->f_diag[i]) {
 				int ii;
 				for (ii = 0; ii < spde->graph->n; ii++) {
 					cc_add[ii] = mb->f_diag[i];
 				}
 			}
-			
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-							      spde->graph, spde->Qfunc, spde->Qfunc_arg, 
-							      mb->f_constr_orig[i]);
+							      spde->graph, spde->Qfunc, spde->Qfunc_arg, mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28052,25 +28051,24 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			_SET_GROUP_RHO(spde2->ntheta);
 
-				/*
-				 * do a check for numerical not pos def matrix here, as its so close to being singular 
-				 */
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde2->graph->n, double);
-			
+
 			if (mb->f_diag[i]) {
 				int ii;
 				for (ii = 0; ii < spde2->graph->n; ii++) {
 					cc_add[ii] = mb->f_diag[i];
 				}
 			}
-			
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, 
-							      mb->f_constr_orig[i]);
+							      spde2->graph, spde2->Qfunc, spde2->Qfunc_arg, mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28154,25 +28152,24 @@ double extra(double *theta, int ntheta, void *argument)
 			}
 			_SET_GROUP_RHO(spde3_ntheta);
 
-				/*
-				 * do a check for numerical not pos def matrix here, as its so close to being singular 
-				 */
+			/*
+			 * do a check for numerical not pos def matrix here, as its so close to being singular 
+			 */
 			GMRFLib_problem_tp *problem = NULL;
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(spde3->graph->n, double);
-			
+
 			if (mb->f_diag[i]) {
-					int ii;
-					for (ii = 0; ii < spde3->graph->n; ii++) {
-						cc_add[ii] = mb->f_diag[i];
-					}
+				int ii;
+				for (ii = 0; ii < spde3->graph->n; ii++) {
+					cc_add[ii] = mb->f_diag[i];
 				}
+			}
 
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-							      spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, 
-							      mb->f_constr_orig[i]);
+							      spde3->graph, spde3->Qfunc, spde3->Qfunc_arg, mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28402,12 +28399,11 @@ double extra(double *theta, int ntheta, void *argument)
 					cc_add[ii] = mb->f_diag[i];
 				}
 			}
-			
+
 			while (!ok) {
 				retval =
-					GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							     mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], 
-							     mb->f_constr_orig[i]);
+				    GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28486,7 +28482,7 @@ double extra(double *theta, int ntheta, void *argument)
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(n, double);
-			
+
 			if (mb->f_diag[i]) {
 				int ii;
 				for (ii = 0; ii < n; ii++) {
@@ -28496,9 +28492,8 @@ double extra(double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval =
-					GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							     mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], 
-							     mb->f_constr_orig[i]);
+				    GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28564,7 +28559,7 @@ double extra(double *theta, int ntheta, void *argument)
 			double *cc_add = Calloc(arg->n + arg->m, double);
 
 			assert(mb->f_graph_orig[i]->n == arg->n + arg->m);
-			
+
 			if (mb->f_diag[i]) {
 				int ii;
 				for (ii = 0; ii < arg->n + arg->m; ii++) {
@@ -28574,9 +28569,8 @@ double extra(double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval =
-					GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
-							     mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], 
-							     mb->f_constr_orig[i]);
+				    GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL, mb->f_graph_orig[i],
+							 mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28646,7 +28640,7 @@ double extra(double *theta, int ntheta, void *argument)
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 			double *cc_add = Calloc(a->n, double);
-			
+
 			if (mb->f_diag[i]) {
 				int ii;
 				for (ii = 0; ii < a->n; ii++) {
@@ -28656,9 +28650,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-							      mb->f_graph_orig[i],
-							      mb->f_Qfunc_orig[i],
-							      (void *) a, mb->f_constr_orig[i]);
+							      mb->f_graph_orig[i], mb->f_Qfunc_orig[i], (void *) a, mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -28754,12 +28746,11 @@ double extra(double *theta, int ntheta, void *argument)
 					cc_add[ii] = mb->f_diag[i];
 				}
 			}
-			
+
 			while (!ok) {
 				retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
 							      mb->f_graph_orig[i],
-							      mb->f_Qfunc_orig[i],
-							      mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
+							      mb->f_Qfunc_orig[i], mb->f_Qfunc_arg_orig[i], mb->f_constr_orig[i]);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -29005,8 +28996,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 				while (!ok) {
 					retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
-								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, 
-								      mb->f_constr_orig[i]);
+								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i]);
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
@@ -29628,7 +29618,7 @@ double extra(double *theta, int ntheta, void *argument)
 			h->matern2ddef->log_prec_omp = NULL;
 			h->matern2ddef->log_range = NULL;
 			h->matern2ddef->log_range_omp = NULL;
-			
+
 
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
@@ -29656,7 +29646,7 @@ double extra(double *theta, int ntheta, void *argument)
 				P(h->problem->sub_logdens);
 			}
 			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
-	
+
 			Free(h->c);
 			Free(h->matern2ddef);
 			GMRFLib_free_problem(h->problem);
@@ -30525,7 +30515,7 @@ int inla_INLA(inla_tp * mb)
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
 			x, b, c, NULL, bfunc, mb->d,
-			loglikelihood_inla, (void *) mb, 
+			loglikelihood_inla, (void *) mb,
 			mb->hgmrfm->graph, mb->hgmrfm->Qfunc, mb->hgmrfm->Qfunc_arg, mb->hgmrfm->constr, mb->ai_par, ai_store,
 			mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, NULL);
 
@@ -30585,8 +30575,7 @@ int inla_INLA_preopt(inla_tp * mb)
 		printf("\tPreOpt-mode.............. \n");
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0],
-		       GMRFLib_openmp->max_threads_nested[1]);
+		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
 			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
 		}
@@ -30615,13 +30604,12 @@ int inla_INLA_preopt(inla_tp * mb)
 	}
 
 	double tref = GMRFLib_cpu();
-	GMRFLib_preopt_init(&preopt, 
-			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights, 
+	GMRFLib_preopt_init(&preopt,
+			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
-			    mb->f_diag, 
+			    mb->f_diag,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
-			    mb->nlinear, mb->linear_covariate, mb->linear_precision,
-			    bfunc, mb->ai_par, mb->predictor_A_fnm);
+			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
 	if (mb->verbose) {
 		printf("\tPreOpt-mode setup ....... [%.2fs]\n", GMRFLib_cpu() - tref);
 	}
@@ -30631,7 +30619,7 @@ int inla_INLA_preopt(inla_tp * mb)
 	N = preopt->n;
 	if (mb->verbose) {
 		printf("\tSize of graph............ [%d]\n", N);
-		printf("\tNumber of constraints.... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0)); 
+		printf("\tNumber of constraints.... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 	}
 
 	c = Calloc(N, double);
@@ -30703,15 +30691,15 @@ int inla_INLA_preopt(inla_tp * mb)
 	if (mb->x_file) {
 		memcpy(xx, mb->x_file + preopt->mnpred, preopt->n * sizeof(double));
 	}
-	
-	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
+
+	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 			&(mb->neffp), NULL, mb->theta, mb->ntheta, extra, (void *) mb,
-			xx, NULL, c, NULL, bfunc, mb->d, loglikelihood_inla, (void *) mb, 
-			preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,                        
+			xx, NULL, c, NULL, bfunc, mb->d, loglikelihood_inla, (void *) mb,
+			preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 			mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt);
 
 	// and we set it back here
-	mb->ai_par->gradient_finite_difference_step_len = step_g; 
+	mb->ai_par->gradient_finite_difference_step_len = step_g;
 	mb->ai_par->hessian_finite_difference_step_len = step_h;
 
 	GMRFLib_free_ai_store(ai_store);
@@ -33621,8 +33609,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		fprintf(stderr, "inla_qsample: start prepare the model...\n");
 	}
 
-	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, 
-			     constr);
+	GMRFLib_init_problem(&problem, NULL, (b ? b->A : NULL), NULL, (mu ? mu->A : NULL), graph, tab->Qfunc, tab->Qfunc_arg, constr);
 
 	if (verbose) {
 		fprintf(stderr, "inla_qsample: end prepare the model %.2fs\n", GMRFLib_cpu() - t_ref);
@@ -33948,8 +33935,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 			}
 
 			while (!ok) {
-				retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph,
-							      Qfunc_besag, (void *) def, constr);
+				retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, def->graph, Qfunc_besag, (void *) def, constr);
 				switch (retval) {
 				case GMRFLib_EPOSDEF:
 				{
@@ -34176,7 +34162,7 @@ double inla_sn_intercept(double intern_quantile, double skew)
 	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
 }
 
-int inla_reset(void) 
+int inla_reset(void)
 {
 	// reset static variables various places as need need to call _ai_INLA() twice in preopt_mode
 
@@ -34188,7 +34174,7 @@ int inla_reset(void)
 	return GMRFLib_SUCCESS;
 }
 
-double testit_Qfunc(int i, int j, double *UNUSED(values), void *UNUSED(arg)) 
+double testit_Qfunc(int i, int j, double *UNUSED(values), void *UNUSED(arg))
 {
 	return (i == j ? 100.0 : -1.0);
 }
@@ -34840,14 +34826,14 @@ int testit(int argc, char **argv)
 
 		GMRFLib_val_tp *hh = NULL;
 		for (i = 0; i < 10; i++)
-			GMRFLib_val_add(&hh, (double)i);
+			GMRFLib_val_add(&hh, (double) i);
 		GMRFLib_val_prune(hh);
 		GMRFLib_val_printf(stdout, hh, "VAL-test");
 		GMRFLib_val_free(hh);
 
 		GMRFLib_idxval_tp *h3 = NULL;
 		for (i = 0; i < 10; i++)
-			GMRFLib_idxval_add(&h3, i, (double)i);
+			GMRFLib_idxval_add(&h3, i, (double) i);
 		GMRFLib_idxval_prune(h3);
 		GMRFLib_idxval_printf(stdout, h3, "VAL-test");
 		GMRFLib_idxval_free(h3);
@@ -35400,7 +35386,7 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 59: 
+	case 59:
 	{
 		double x = GMRFLib_uniform();
 
@@ -35411,40 +35397,37 @@ int testit(int argc, char **argv)
 		printf("erfinv = %.12f\n", GMRFLib_erf_inv(x));
 		printf("erfc = %.12f\n", GMRFLib_erfc(x));
 		printf("erfcinv = %.12f\n", GMRFLib_erfc_inv(x));
-		
+
 		printf("%s%.12f%s%s\n", "R --vanilla --quiet -e 'library(pracma);x=",
-		       x, ";print(x); print(pnorm(x)); print(qnorm(x)); print(erf(x));",
-		       "print(erfinv(x)); print(erfc(x)); print(erfcinv(x))'\n");
+		       x, ";print(x); print(pnorm(x)); print(qnorm(x)); print(erf(x));", "print(erfinv(x)); print(erfc(x)); print(erfcinv(x))'\n");
 
 		break;
 	}
 
-	case 60: 
+	case 60:
 	{
 		double x = GMRFLib_uniform();
-		double a = GMRFLib_uniform()-0.5;
-		
+		double a = GMRFLib_uniform() - 0.5;
+
 		printf("x= %.12f\n", x);
 		printf("a= %.12f\n", a);
 		printf("sn_inv= %.12f\n", GMRFLib_sn_Pinv(x, a));
-		
-		printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);x=",
-		       x, "; a=", a, "; print(qsn(x,alpha=a))'\n");
+
+		printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);x=", x, "; a=", a, "; print(qsn(x,alpha=a))'\n");
 		break;
 	}
 
-	case 61: 
+	case 61:
 	{
 		GMRFLib_problem_tp *problem;
 		GMRFLib_graph_tp *g;
 		GMRFLib_graph_mk_linear(&g, 5, 5, 0);
 
-		GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, g,
-				     testit_Qfunc, NULL, NULL);
+		GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, g, testit_Qfunc, NULL, NULL);
 		GMRFLib_evaluate(problem);
 		GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
 
-		for(int i = 0; i < g->n; i++) {
+		for (int i = 0; i < g->n; i++) {
 			printf("Qinv[%1d]=  %f\n", i, *GMRFLib_Qinv_get(problem, i, i));
 		}
 		break;
@@ -35489,7 +35472,7 @@ int main(int argc, char **argv)
 	int blas_num_threads_set = 0;
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
-	double time_used[4] = {-1, -1, -1, -1};
+	double time_used[4] = { -1, -1, -1, -1 };
 	clock_t atime_used[4];
 	inla_tp *mb = NULL;
 
@@ -35516,7 +35499,7 @@ int main(int argc, char **argv)
 	GMRFLib_pardiso_set_nrhs(1);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_preopt_mode = 0;
-	
+
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
 	 */
@@ -35537,7 +35520,7 @@ int main(int argc, char **argv)
 		case 'P':
 			GMRFLib_preopt_mode = 1;
 			break;
-			
+
 		case 'b':
 			G.binary = 1;
 			break;
@@ -35764,14 +35747,14 @@ int main(int argc, char **argv)
 			}
 #endif
 		}
-		        break;
+			break;
 
 		case 'L':
 		{
 			// link with vecLib on Mac. this is just dummy option
 		}
-		        break;
-		
+			break;
+
 		default:
 			_USAGE;
 			exit(EXIT_FAILURE);
