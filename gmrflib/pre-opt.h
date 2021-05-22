@@ -60,7 +60,27 @@ typedef struct {
 } GMRFLib_preopt_type_tp;
 
 typedef struct {
-	int npred;
+
+	/*
+	  eta* = B %*% eta    length(eta*) = mpred 
+	  eta  = A %*% x      length(eta)  = npred 
+
+	  B = mpred x npred   might be given, this is pA...
+	  A = npred x n       this matrix is constructed online
+	  
+	  mnpred = mpred + npred  total length for transfering mode_x etc
+
+	  length of data is Npred:
+	      - Npred = mpred if mpred > 0
+	      - Npred = npred if mpred = 0
+
+          the AtA matrix is the matrix that goes into the likelihood, and its either buildt from t(A)A or t(BA)BA
+
+	*/
+	int mpred;					       
+	int npred;					       
+	int mnpred;					       
+	int Npred;					       
 	int n;
 	int nf;
 	int nbeta;
@@ -98,9 +118,10 @@ typedef struct {
 	void ***ff_Qfunc_arg;
 	void **f_Qfunc_arg;
 
+	GMRFLib_idxval_tp **pA_idxval;
 	GMRFLib_idxval_tp **A_idxval;
 	GMRFLib_idxval_tp **At_idxval;
-	GMRFLib_idxval_tp ***AtA_idxval;
+	GMRFLib_idxval_tp ***AtA_idxval;		       /* this is the total (pA%*%A)^T%*%(pA%*%A) */
 
 	double *mode_theta;
 	double *mode_x;
@@ -121,7 +142,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, dou
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision,
 			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par),
-			char *predictor_At_fnm);
+			char *predictor_pA_fnm);
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c);

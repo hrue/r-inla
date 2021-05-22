@@ -11932,12 +11932,12 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * these are for the extended observational model. only valid if predictor_m > 0.
 	 */
-	mb->predictor_At_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "At"), NULL));
+	mb->predictor_A_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "A"), NULL));
 	mb->predictor_Aext_fnm = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "AEXT"), NULL));
 	mb->predictor_Aext_precision = iniparser_getdouble(ini, inla_string_join(secname, "AEXTPRECISION"), 1.0e8);
 
 	if (mb->verbose) {
-		printf("\t\tAt=[%s]\n", mb->predictor_At_fnm);
+		printf("\t\tA=[%s]\n", mb->predictor_A_fnm);
 		printf("\t\tAext=[%s]\n", mb->predictor_Aext_fnm);
 		printf("\t\tAextPrecision=[%.4g]\n", mb->predictor_Aext_precision);
 	}
@@ -30620,7 +30620,7 @@ int inla_INLA_preopt(inla_tp * mb)
 			    mb->f_diag, 
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision,
-			    bfunc, mb->ai_par, mb->predictor_At_fnm);
+			    bfunc, mb->ai_par, mb->predictor_A_fnm);
 	mb->preopt = preopt;
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
@@ -35930,6 +35930,9 @@ int main(int argc, char **argv)
 					fflush(stdout);
 				}
 				GMRFLib_preopt_mode = 0;
+
+				FIXME("NEED TO FIX THIS");
+				exit(1);
 
 				// we need to transfer the mode to the next step
 				Free(mb->theta_file);

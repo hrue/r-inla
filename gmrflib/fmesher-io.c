@@ -646,15 +646,18 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 		/*
 		 * sparse-matrix 
 		 */
+		double *d;
 
-		for (j = 0; j < M->ncol; j++) {
-			double *d;
-			if (M->htable_column_order) {
+		if (M->htable_column_order) {
+			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
-			} else {
-				d = map_id_ptr(M->htable[i], j);
+				values[j] = (d ? *d : 0.0);
 			}
-			values[j] = (d ? *d : 0.0);
+		} else {
+			for (j = 0; j < M->ncol; j++) {
+				d = map_id_ptr(M->htable[i], j);
+				values[j] = (d ? *d : 0.0);
+			}
 		}
 	} else {
 		int idx = i;

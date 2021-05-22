@@ -1072,12 +1072,12 @@
         ## replace NA's with zeros. (This is now done already in inla.R)
         ## A[ is.na(A) ] = 0.0
 
-        Atij <- list(i = 1+A@j, j = 1+A@i, values = A@x) ## zero-based indexing of t(A) (yes)
-        file.Atij <- inla.tempfile(tmpdir = data.dir)
-        inla.write.fmesher.file(Atij, filename = file.Atij)
-        file.Atij <- gsub(data.dir, "$inladatadir", file.Atij, fixed = TRUE)
-        cat("At = ", file.Atij, "\n", append = TRUE, sep = " ", file = file)
-        Atij <- NULL
+        Aij <- list(i = 1+A@i, j = 1+A@j, values = A@x) ## based on zero-based indexing of A
+        file.Aij <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(Aij, filename = file.Aij)
+        file.Aij <- gsub(data.dir, "$inladatadir", file.Aij, fixed = TRUE)
+        cat("A = ", file.Aij, "\n", append = TRUE, sep = " ", file = file)
+        Aij <- NULL
 
         ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
         Aext <- rbind(cbind(Diagonal(m), -A), cbind(-t(A), t(A) %*% A))

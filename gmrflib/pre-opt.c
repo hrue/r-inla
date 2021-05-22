@@ -49,30 +49,23 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			double *f_diag,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
-			GMRFLib_ai_param_tp * UNUSED(ai_par), char *predictor_At_fnm)
+			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
 	int i, ii, j, jj, k, kk, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset;
-	int index, debug = 0;
-	
+	int index, debug = 1, nrow = 0, ncol = 0;
+	double val;
+
+	GMRFLib_idxval_tp **pA_idxval = NULL;
+	GMRFLib_idxval_tp **pAA_idxval = NULL;
+	GMRFLib_idxval_tp **pAAt_idxval = NULL;
+
 	GMRFLib_constr_tp *fc = NULL;
 
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
-
 	
-	GMRFLib_matrix_tp * predictor_At = NULL;
-	if (predictor_At_fnm) {
-		predictor_At = GMRFLib_read_fmesher_file(predictor_At_fnm, (long int) 0, -1);
-
-		if (0) {
-			printf("read predictor_At from [%s]\n", predictor_At_fnm);
-			printf("\tnrow %d ncol %d nelms %d\n", predictor_At->nrow, predictor_At->ncol, predictor_At->elems);
-			for(i = 0; i < predictor_At->elems; i++){
-				printf("\ti j x %d %d %f\n", predictor_At->i[i], predictor_At->j[i], predictor_At->values[i]);
-			}
-		}
-	}
+	GMRFLib_matrix_tp * pA = NULL;
 
 	double **ww = NULL;
 	ww = Calloc(nf, double *);
@@ -248,7 +241,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_idxval_tp **A_idxval = GMRFLib_idxval_ncreate(npred);
 	for (i = 0; i < npred; i++) {
 		int idx;
-		double val;
 
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
@@ -265,30 +257,167 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
-
 	GMRFLib_idxval_nsort(A_idxval, npred);
 
+	// need also At_.. below, if (pA)
 	GMRFLib_idxval_tp **At_idxval = GMRFLib_idxval_ncreate(N);
 	for(i = 0; i < npred; i++){
 		for(k = 0; k < A_idxval[i]->n; k++){
-			double val;
-			
 			j = A_idxval[i]->store[k].idx;
 			val = A_idxval[i]->store[k].val;
 			GMRFLib_idxval_add(&(At_idxval[j]), i, val);
 		}
 	}
 	GMRFLib_idxval_nsort(At_idxval, N);
-	if (1) {
-		for(i = 0; i < npred; i++) {
-			GMRFLib_idxval_printf(stdout, A_idxval[i], "A");
-		}
-		for(i = 0; i < N; i++) {
-			GMRFLib_idxval_printf(stdout, At_idxval[i], "At");
-		}
+
+	if (debug) {
+		for(i = 0; i < npred; i++)
+			GMRFLib_idxval_printf(stdout, A_idxval[i], "A_idxval");
+		for(i = 0; i < N; i++)
+			GMRFLib_idxval_printf(stdout, At_idxval[i], "At_idxval");
 	}
 
-	// have to create AtA from At & A. 
+	if (pA_fnm) {
+		pA = GMRFLib_read_fmesher_file(pA_fnm, (long int) 0, -1);
+		assert(pA);
+		
+		if (0) {
+			printf("read pA from [%s]\n", pA_fnm);
+			printf("\tnrow %d ncol %d nelms %d\n", pA->nrow, pA->ncol, pA->elems);
+			for(i = 0; i < pA->elems; i++){
+				printf("\ti j x %d %d %f\n", pA->i[i], pA->j[i], pA->values[i]);
+			}
+		}
+
+		nrow = pA->nrow;
+		ncol = pA->ncol;
+		assert(ncol == npred);
+
+		// this is need to compute the linear predictor later
+		pA_idxval = GMRFLib_idxval_ncreate(nrow);
+		for(k = 0; k < pA->elems; k++){
+			i = pA->i[k];
+			j = pA->j[k];
+			val = pA->values[k];
+			GMRFLib_idxval_add(&(pA_idxval[i]), j, val);
+		}
+		GMRFLib_idxval_nsort(pA_idxval, nrow);
+
+		GMRFLib_idx_tp **pAA_pattern = GMRFLib_idx_ncreate(nrow);
+		double *row = Calloc(ncol, double);
+
+		for(i = 0; i < nrow; i++){
+			GMRFLib_matrix_get_row(row, i, pA);
+			for(k = 0; k < N; k++) {
+				for(jj = 0; jj < At_idxval[k]->n; jj++){
+					j = At_idxval[k]->store[jj].idx;
+					if (row[j]) {
+						GMRFLib_idx_add(&(pAA_pattern[i]), k);
+					}
+				}
+			}
+		}
+		GMRFLib_idx_nuniq(pAA_pattern, nrow);	       /* this also sorts idx's */
+
+		if (debug) {
+			char * crow = Calloc(N+1, char);
+			crow[N] = '\0';
+			for(i = 0; i < nrow; i++){
+				memset(crow, ' ', N * sizeof(char));
+				for(k = 0; k < pAA_pattern[i]->n; k++){
+					j = pAA_pattern[i]->idx[k];
+					//printf("Add crow i j %d %d\n", i, j);
+					crow[j] = '.';
+				}
+				printf("pA%2d [%s]\n", i, crow);
+			}
+			Free(crow);
+		}
+
+		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
+		
+		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
+		for(i = 0; i < nrow; i++){
+			for(k = 0; k < pAA_pattern[i]->n; k++){
+				j = pAA_pattern[i]->idx[k];
+				GMRFLib_idxval_add(&(pAA_idxval[i]), j, 0.0);
+			}
+		}
+		// then add and accumate terms using '..._addto'
+		for(i = 0; i < nrow; i++){
+			GMRFLib_matrix_get_row(row, i, pA);
+			for(k = 0; k < N; k++) {
+				for(jj = 0; jj < At_idxval[k]->n; jj++){
+					j = At_idxval[k]->store[jj].idx;
+					val = At_idxval[k]->store[jj].val;
+					if (row[j]) {
+						GMRFLib_idxval_addto(&(pAA_idxval[i]), k, row[j] * val);
+					}
+				}
+			}
+		}
+
+		pAAt_idxval = GMRFLib_idxval_ncreate(N);
+		for(i = 0; i < nrow; i++){
+			for(k = 0; k < pAA_idxval[i]->n; k++){
+				j = pAA_idxval[i]->store[k].idx;
+				val = pAA_idxval[i]->store[k].val;
+				GMRFLib_idxval_add(&(pAAt_idxval[j]), i, val);
+			}
+		}
+		GMRFLib_idxval_nsort(pAAt_idxval, N);
+
+		if (debug) {
+			for(i = 0; i < nrow; i++){
+				P(i);
+				GMRFLib_idxval_printf(stdout, pAA_idxval[i], "pAA");
+			}
+			for(i = 0; i < N; i++){
+				P(i);
+				GMRFLib_idxval_printf(stdout, pAAt_idxval[i], "pAAt");
+			}
+		}
+
+
+		for(i = 0; i < nrow; i++) {
+			GMRFLib_idx_free(pAA_pattern[i]);
+		}
+		Free(pAA_pattern);
+		Free(row);
+		GMRFLib_matrix_free(pA);
+	}
+
+	// setup dimensions, see pre-opt.h for details
+	if (pA_fnm) {
+		(*preopt)->mpred = nrow;
+		(*preopt)->npred = npred;
+		(*preopt)->mnpred = npred + nrow;
+		(*preopt)->Npred = nrow;
+		(*preopt)->n = N;
+	} else {
+		(*preopt)->mpred = 0;
+		(*preopt)->npred = npred;
+		(*preopt)->mnpred = npred;
+		(*preopt)->Npred = npred;
+		(*preopt)->n = N;
+	}
+	
+	// have to create AtA from "At" & "A". the matrix 'AtA' is for the likelihood only and is either "At %*% A", or "pAAt %*% pAA",
+	// depending if "pA" is there or not
+
+	GMRFLib_idxval_tp ** gen_At;
+	GMRFLib_idxval_tp ** gen_A;
+	int gen_len_At;
+	
+	if (pA_fnm) {
+		gen_A = pAA_idxval;
+		gen_At = pAAt_idxval;
+		gen_len_At = (*preopt)->n;
+	} else {
+		gen_A = A_idxval;
+		gen_At = At_idxval;
+		gen_len_At = (*preopt)->n;
+	}
 
 	ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
@@ -296,11 +425,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_ged_add(ged, k, k);
 	}
 
-	for(i = 0; i < N; i++){
-		for (kk = 0;  kk < At_idxval[i]->n; kk++) {
-			k = At_idxval[i]->store[kk].idx;
-			for(jj = 0; jj < A_idxval[k]->n; jj++){
-				j = A_idxval[k]->store[jj].idx;
+	for(i = 0; i < gen_len_At; i++){
+		for (kk = 0;  kk < gen_At[i]->n; kk++) {
+			k = gen_At[i]->store[kk].idx;
+			for(jj = 0; jj < gen_A[k]->n; jj++){
+				j = gen_A[k]->store[jj].idx;
 				GMRFLib_ged_add(ged, i, j);
 			}
 		}
@@ -308,18 +437,18 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_graph_tp *g = NULL;
 	GMRFLib_ged_build(&g, ged);
 	GMRFLib_ged_free(ged);
-	assert(g->n == N);
+	assert(g->n == gen_len_At);
 
-	GMRFLib_idxval_tp ***AtA_idxval = Calloc(N, GMRFLib_idxval_tp **);
+	GMRFLib_idxval_tp ***AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (i = 0; i < g->n; i++) {
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-	for(i = 0; i < N; i++){
-		for (kk = 0;  kk < At_idxval[i]->n; kk++) {
-			k = At_idxval[i]->store[kk].idx;
-			for(jj = 0; jj < A_idxval[k]->n; jj++){
-				j = A_idxval[k]->store[jj].idx;
+	for(i = 0; i < gen_len_At; i++) {
+		for (kk = 0;  kk < gen_At[i]->n; kk++) {
+			k = gen_At[i]->store[kk].idx;
+			for(jj = 0; jj < gen_A[k]->n; jj++){
+				j = gen_A[k]->store[jj].idx;
 				if (j >= i) {
 					if (i == j) {
 						index = 0;
@@ -328,37 +457,45 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 						assert(index > 0);
 					}
 					GMRFLib_idxval_add(&(AtA_idxval[i][index]), k,
-							   At_idxval[i]->store[kk].val * A_idxval[k]->store[jj].val);
+							   gen_At[i]->store[kk].val * gen_A[k]->store[jj].val);
 				}
 			}
 		}
 	}
 
-	if (0) {
+	if (debug) {
 		FIXME("AtA");
 		FILE *fp = stdout;
 	
 		for(i = 0; i < N; i++) {
+			double sum = 0.0;
+			
 			fprintf(fp, "term %d %d\n", i, i);
 			for(kk = 0; kk < AtA_idxval[i][0]->n; kk++){
 				fprintf(fp, "\tkk idx val %d %d %f\n", kk,
 					AtA_idxval[i][0]->store[kk].idx,
 					AtA_idxval[i][0]->store[kk].val);
+				sum += AtA_idxval[i][0]->store[kk].val;
 			}
+			printf("\tsum %g\n", sum);
+
 			for(jj= 0; jj < g->lnnbs[i]; jj++){
 				j = g->lnbs[i][jj];
 				fprintf(fp, "term %d %d\n", i, j);
-
+				sum = 0.0;
 				for(kk = 0; kk < AtA_idxval[i][1+jj]->n; kk++){
 					fprintf(fp, "\tkk idx val %d %d %f\n", kk,
 						AtA_idxval[i][1+jj]->store[kk].idx,
 						AtA_idxval[i][1+jj]->store[kk].val);
+					sum += AtA_idxval[i][1+jj]->store[kk].val;
 				}
+				printf("\tsum %g\n", sum);
 			}
 		}
 		fclose(fp);
 	}
 	
+	GMRFLib_idxval_nprune(pA_idxval, nrow);
 	GMRFLib_idxval_nprune(A_idxval, npred);
 	GMRFLib_idxval_nprune(At_idxval, N);
 	for (i = 0; i < g->n; i++) {
@@ -367,7 +504,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
+	(*preopt)->pA_idxval = pA_idxval;
 	(*preopt)->AtA_idxval = AtA_idxval;
+
 	(*preopt)->like_graph = g;
 	(*preopt)->like_c = Calloc(GMRFLib_MAX_THREADS, double *);
 	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS, double *);
@@ -377,8 +516,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->like_Qfunc_arg = (void *) *preopt;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
 	(*preopt)->bfunc = bfunc;
-	(*preopt)->n = (*preopt)->latent_graph->n;
-	(*preopt)->npred = npred;
 	(*preopt)->nf = (*preopt)->n - nbeta;
 	(*preopt)->nbeta = nbeta;
 

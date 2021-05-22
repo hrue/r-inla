@@ -1287,6 +1287,7 @@ int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
 	(*hold)->store = Calloc(IDX_ALLOC_ADD, GMRFLib_idxval_elm_tp);
 	(*hold)->n_alloc = IDX_ALLOC_ADD;
 	(*hold)->n = 0;
+	(*hold)->iaddto = 0;
 
 	return GMRFLib_SUCCESS;
 }
@@ -1331,6 +1332,48 @@ int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
 {
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idx_prune(a[i]);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_sort(GMRFLib_idx_tp *hold) 
+{
+	if (hold) {
+		qsort((void *) hold->idx, (size_t) hold->n,  sizeof(int), GMRFLib_icmp);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_nsort(GMRFLib_idx_tp **a, int n)
+{
+	for(int i = 0; i < n; i++) {
+		if (a[i] && a[i]->n > 1) {
+			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_uniq(GMRFLib_idx_tp *hold) 
+{
+	if (hold && hold->n > 1) {
+		int i, j;
+
+		GMRFLib_idx_sort(hold);
+		for(j = 0, i = 0; i < hold->n; i++) {
+			if (hold->idx[j] != hold->idx[i]){
+				hold->idx[++j] = hold->idx[i];
+			}
+		}
+		hold->n = j+1;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n)
+{
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idx_uniq(a[i]);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1422,6 +1465,45 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
+{
+	// if idx exists before, add val to value , otherwise just 'add'.
+	// if there are two entries of 'idx', then only the first is used.
+	
+	if (*hold == NULL) {
+		GMRFLib_idxval_create(hold);
+	}
+
+	int i;
+	
+	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
+	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
+	for(i = (*hold)->iaddto; i < (*hold)->n; i++) {
+		if ((*hold)->store[i].idx == idx) {
+			(*hold)->store[i].val += val;
+			(*hold)->iaddto = i;
+			return GMRFLib_SUCCESS;
+		}
+	}
+	for(i = 0; i < (*hold)->iaddto; i++) {
+		if ((*hold)->store[i].idx == idx) {
+			(*hold)->store[i].val += val;
+			(*hold)->iaddto = i;
+			return GMRFLib_SUCCESS;
+		}
+	}
+
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+	}
+	(*hold)->store[(*hold)->n].idx = idx;
+	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
@@ -1495,7 +1577,7 @@ int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 {
 	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
 		for (int i = 0; i < hold->n; i++) {
 			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->store[i].idx, hold->store[i].val);
 		}
@@ -1528,6 +1610,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+
 
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {

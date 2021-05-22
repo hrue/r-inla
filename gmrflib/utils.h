@@ -96,6 +96,7 @@ typedef struct
 {
 	int n;
 	int n_alloc;
+	int iaddto;
 	GMRFLib_idxval_elm_tp *store;
 }
 	GMRFLib_idxval_tp;
@@ -136,7 +137,10 @@ int GMRFLib_idx_free(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_nprune(GMRFLib_idx_tp **a, int n);
 int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg);
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
+int GMRFLib_idx_uniq(GMRFLib_idx_tp *hold);
+int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n);
 int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
+int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n);

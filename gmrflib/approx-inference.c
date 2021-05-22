@@ -442,7 +442,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 
 	double ldens = 0.0;
 	int n, free_ai_par = 0;
-	int npred = (preopt ? preopt->npred : graph->n);
+	int Npred = (preopt ? preopt->Npred : graph->n);
 
 	/*
 	 * this is a special option for _INLA(), so it works only when calling it the first time 
@@ -500,9 +500,9 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	Free(ai_store->aa);
 	Free(ai_store->bb);
 	Free(ai_store->cc);
-	ai_store->aa = Calloc(npred, double);
-	ai_store->bb = Calloc(npred, double);
-	ai_store->cc = Calloc(npred, double);
+	ai_store->aa = Calloc(Npred, double);
+	ai_store->bb = Calloc(Npred, double);
+	ai_store->cc = Calloc(Npred, double);
 
 	/*
 	 * first compute the GMRF-approximation 
@@ -538,7 +538,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 
 		double A = 0;
 		int i;
-		for (i = 0; i < npred; i++) {
+		for (i = 0; i < Npred; i++) {
 			A += ai_store->aa[i];
 		}
 		*logdens = A - problem->sub_logdens;
@@ -2445,7 +2445,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	int i, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, id, *idxs = NULL, nidx = 0;
-	int npred = (GMRFLib_preopt_mode ? preopt->npred : graph->n);
+	int Npred = (GMRFLib_preopt_mode ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
@@ -2478,15 +2478,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	}
 	if (!aa) {
 		free_aa = 1;
-		aa = Calloc(npred, double);
+		aa = Calloc(Npred, double);
 	}
 	if (!bb) {
 		free_bb = 1;
-		bb = Calloc(npred, double);
+		bb = Calloc(Npred, double);
 	}
 	if (!cc) {
 		free_cc = 1;
-		cc = Calloc(npred, double);
+		cc = Calloc(Npred, double);
 	}
 	mode = Calloc(n, double);
 
@@ -2500,8 +2500,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	if (optpar && optpar->fp)
 		fprintf(optpar->fp, "\nComputing GMRF approximation\n------------------------------\n");
 	nidx = 0;
-	idxs = Calloc(npred, int);
-	for (i = 0; i < npred; i++) {
+	idxs = Calloc(Npred, int);
+	for (i = 0; i < Npred; i++) {
 		if (d[i]) {
 			idxs[nidx++] = i;
 		}
@@ -2527,8 +2527,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	double *bcoof = NULL, *ccoof = NULL, *linear_predictor = NULL;
 	int free_linear_predictor = 0;
 	
-	bcoof = Calloc(npred, double);
-	ccoof = Calloc(npred, double);
+	bcoof = Calloc(Npred, double);
+	ccoof = Calloc(Npred, double);
 
 	for (iter = 0; iter < itmax; iter++) {
 
@@ -2536,18 +2536,18 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			printf("i mode %d %f \n", i, mode[i]);
 		}
 
-		memset(aa, 0, npred * sizeof(double));
-		memset(bb, 0, npred * sizeof(double));
-		memset(cc, 0, npred * sizeof(double));
+		memset(aa, 0, Npred * sizeof(double));
+		memset(bb, 0, Npred * sizeof(double));
+		memset(cc, 0, Npred * sizeof(double));
 
 		if (GMRFLib_preopt_mode) {
 			if (!free_linear_predictor) {
-				linear_predictor = Calloc(npred, double);
+				linear_predictor = Calloc(Npred, double);
 				free_linear_predictor = 1;
 			}
 			GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 
-			if(0)for(i = 0; i < preopt->npred; i++) {
+			if(0)for(i = 0; i < preopt->Npred; i++) {
 				printf("i predictor %d %f\n", i, linear_predictor[i]);
 			}
 
@@ -2556,8 +2556,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 
 		cc_is_negative = 0;
-		memset(bcoof, 0, npred * sizeof(double));
-		memset(ccoof, 0, npred * sizeof(double));
+		memset(bcoof, 0, Npred * sizeof(double));
+		memset(ccoof, 0, Npred * sizeof(double));
 		
 #pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < nidx; i++) {
@@ -2606,7 +2606,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		double *bb_use = NULL, *cc_use = NULL;
 		
-		if(0)for(i = 0; i < npred; i++) {
+		if(0)for(i = 0; i < Npred; i++) {
 			printf("i bb cc %d %f %f\n", i, bb[i], cc[i]);
 		}
 
@@ -2621,7 +2621,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					printf("i bb_preopt cc_preopt %d %f\n", i, preopt->total_b[id][i]);
 				}
 		} else {
-			assert(npred == n);
+			assert(Npred == n);
 			
 			for(i = 0; i < n; i++) {
 				bb[i] += b[i];
@@ -3447,17 +3447,20 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 			// in this case, just save (x, theta), cleanup and return
 
+			FIXME("NEED TO FIX THIS");
+			exit(1);
+			
 			preopt->mode_theta = Calloc(nhyper, double);
 			memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
-			preopt->mode_x = Calloc(preopt->npred + preopt->n, double);
-			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->npred]));
-			GMRFLib_preopt_predictor(preopt->mode_x, &(preopt->mode_x[preopt->npred]), preopt);
+			preopt->mode_x = Calloc(preopt->Npred + preopt->n, double);
+			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->Npred]));
+			GMRFLib_preopt_predictor(preopt->mode_x, &(preopt->mode_x[preopt->Npred]), preopt);
 
 			if (0) {
 				for(i = 0; i < nhyper; i++) {
 					printf("theta[%1d]=  %f\n", i, preopt->mode_theta[i]);
 				}
-				for(i = 0; i < preopt->npred + preopt->n; i++) {
+				for(i = 0; i < preopt->Npred + preopt->n; i++) {
 					printf("x[%1d]=  %f\n", i, preopt->mode_x[i]);
 				}
 			}
