@@ -250,12 +250,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	int nt = -1;
 	int nt2 = -1;
 	if (omp_in_parallel()) {
-		nt = GMRFLib_openmp->max_threads_inner;
+		nt = nt2 = GMRFLib_openmp->max_threads_inner;
 	} else {
-		nt = GMRFLib_openmp->max_threads_outer;
+		nt = nt2 = GMRFLib_openmp->max_threads_outer;
 	}
 	nt = IMIN(LOCAL_NUM_THREAD_MAX, nt);		       /* just worse of going to high */
-	nt2 = IMIN(2 * LOCAL_NUM_THREAD_MAX, nt);	       /* just worse of going to high */
+	nt2 = IMIN(2 * nt, nt2);
 
 	P(nt);
 	P(nt2);
