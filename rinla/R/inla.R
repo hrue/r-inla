@@ -2058,7 +2058,7 @@
     }
     inla.mode.section(file = file.ini, cont.mode, data.dir)
 
-    ## create expert section
+    ## create expert section. the 'preopt' option is processed here and not in the expert.section
     cont.expert <- inla.set.control.expert.default()
     cont.expert[names(control.expert)] <- control.expert
     inla.expert.section(file = file.ini, cont.expert, data.dir = data.dir)
@@ -2114,8 +2114,14 @@
         arg.vecLib <- ""
     }
 
+    if (cont.expert$preopt) {
+        arg.P <- "-P"
+    } else {
+        arg.P <- ""
+    }
+
     ## collect all. we might add '-p' later if inla.call="submit"
-    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, sep = " ")
+    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
 
     ## define some environment variables for remote computing
     vars <- list(

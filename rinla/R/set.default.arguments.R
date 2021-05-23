@@ -200,7 +200,10 @@
             disable.gaussian.check = FALSE,
 
             ## :ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
-            jp = NULL
+            jp = NULL,
+
+            ## :ARGUMENT: preopt Logical. Use the pre-optimizer (work in progress)
+            preopt = FALSE
         )
 
         ## :SEEALSO: inla
