@@ -80,25 +80,23 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	/*
 	 * add edge between node and nnode. add 'node' or 'nnode' to the set if not already present 
 	 */
+	int failsafe = 0;				       /* don't know why this was = 1 in the code before */
+	
 	if (node == nnode) {
 		if (!spmatrix_value(&(ged->Q), node, node)) {
 			spmatrix_set(&(ged->Q), node, node, 1.0);
-			/*
-			 * workaround for internal ``bug'' in hash.c 
-			 */
-			spmatrix_value(&(ged->Q), node, node);
+			if (failsafe) spmatrix_value(&(ged->Q), node, node);
 		}
 	} else {
 		if (!spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode))) {
 			spmatrix_set(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode), 1.0);
-			spmatrix_set(&(ged->Q), node, node, 1.0);
-			spmatrix_set(&(ged->Q), nnode, nnode, 1.0);
-			/*
-			 * workaround for internal ``bug'' in hash.c 
-			 */
-			spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode));
-			spmatrix_value(&(ged->Q), node, node);
-			spmatrix_value(&(ged->Q), nnode, nnode);
+			if (failsafe) {
+				spmatrix_set(&(ged->Q), node, node, 1.0);
+				spmatrix_set(&(ged->Q), nnode, nnode, 1.0);
+				spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode));
+				spmatrix_value(&(ged->Q), node, node);
+				spmatrix_value(&(ged->Q), nnode, nnode);
+			}
 		}
 	}
 	ged->max_node = IMAX(ged->max_node, IMAX(node, nnode));
@@ -271,7 +269,6 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	for (i = 0; i < n; i++) {
 		if (nnbs[i]) {
 			nbs[i] = Calloc(nnbs[i], int);
-
 			for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(hash[i], iptr)) != NULL;) {
 				nbs[i][j++] = iptr->key;
 			}
@@ -299,14 +296,6 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	g->mothergraph_idx = imap;			       /* preserve the mapping */
 
 	GMRFLib_graph_duplicate(graph, g);
-
-	if (0) {
-		/*
-		 * validate the graph? this should not be needed, as this function will ensurethe graph should be always be consistent. 
-		 * In any case, enable this for the moment until these tools are sufficiently validated. 
-		 */
-		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
-	}
 
 	/*
 	 * cleanup 

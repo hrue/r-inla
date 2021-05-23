@@ -41,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define LOCAL_NUM_THREAD_MAX 4				       /* we have relative simple loops, just slow to go to high */
+#define LOCAL_THREAD_MAX 4				       /* we have relative simple loops, just slow to go to high */
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
@@ -52,17 +52,22 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
-	double tref = GMRFLib_cpu();
-	
+#define SHOW_TIME(_msg)							\
+	if (show_time) {						\
+		printf("\tGMRFLib_preopt_init: %-16s %7.3fs\n", _msg, GMRFLib_cpu() - tref); \
+		tref =  GMRFLib_cpu();					\
+	}
+
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
-
 	GMRFLib_ENTER_ROUTINE;
 
 	int i, ii, j, jj, k, kk, N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
-	int debug = 0, nrow = 0, ncol = 0, do_prune = 1;
+	int nrow = 0, ncol = 0;
+	int debug = 0, show_time = 0;
 
+	double tref = GMRFLib_cpu();
 	double **ww = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 	GMRFLib_idx_tp **pAA_pattern = NULL;
@@ -103,8 +108,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->covariate = covariate;
 	(*preopt)->prior_precision = prior_precision;
 
-	printf("TIME: setup %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
+	SHOW_TIME("setup1");
 
 	/*
 	 * Our first job, is to go through the model and compute all interactions etc that are defined through the \eta-model. 
@@ -160,7 +164,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	GMRFLib_ged_build(&((*preopt)->latent_graph), ged);
 	GMRFLib_ged_free(ged);
-
 	(*preopt)->latent_Qfunc = GMRFLib_preopt_latent_Qfunc;
 	(*preopt)->latent_Qfunc_arg = (void *) *preopt;
 
@@ -242,23 +245,17 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
-	printf("TIME: setup part2 %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
+	SHOW_TIME("setup2");
 
 	// build up structure for the likelihood part
 
 	int nt = -1;
-	int nt2 = -1;
 	if (omp_in_parallel()) {
-		nt = nt2 = GMRFLib_openmp->max_threads_inner;
+		nt = GMRFLib_openmp->max_threads_inner;
 	} else {
-		nt = nt2 = GMRFLib_openmp->max_threads_outer;
+		nt = GMRFLib_openmp->max_threads_outer;
 	}
-	nt = IMIN(LOCAL_NUM_THREAD_MAX, nt);		       /* just worse of going to high */
-	nt2 = IMIN(2 * nt, nt2);
-
-	P(nt);
-	P(nt2);
+	nt = IMIN(LOCAL_THREAD_MAX, nt);		       /* just worse of going to high */
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
 #pragma omp parallel for private (i, jj) num_threads(nt) schedule(static)
@@ -283,8 +280,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_sort(A_idxval[i]);
 	}
 
-	printf("TIME: A_idxval %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
+	SHOW_TIME("A_idxval");
 	
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
@@ -299,9 +295,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	GMRFLib_idxval_nsort(At_idxval, N, nt);
 
-	printf("TIME: At_idxval %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
-
+	SHOW_TIME("At_idxval");
 	if (debug) {
 		for (i = 0; i < npred; i++)
 			GMRFLib_idxval_printf(stdout, A_idxval[i], "A_idxval");
@@ -324,7 +318,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		nrow = pA->nrow;
 		ncol = pA->ncol;
 		assert(ncol == npred);
-
+		SHOW_TIME("read pA");
+		
 		// this is need to compute the linear predictor later
 		pA_idxval = GMRFLib_idxval_ncreate(nrow);
 		for (k = 0; k < pA->elems; k++) {
@@ -335,10 +330,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_nsort(pA_idxval, nrow, nt);
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
+		double *rows = Calloc(nt * ncol, double);      /* SAME _THREADS! */
 #pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
 		for (i = 0; i < nrow; i++) {
-			double *row = Calloc(ncol, double);
-
+			double *row = &(rows[omp_get_thread_num() * ncol]);
 			GMRFLib_matrix_get_row(row, i, pA);
 			for (k = 0; k < N; k++) {
 				for (jj = 0; jj < At_idxval[k]->n; jj++) {
@@ -348,12 +343,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					}
 				}
 			}
-			
 			GMRFLib_idx_uniq(pAA_pattern[i]);
-			Free(row);
 		}
+		Free(rows);
 
-
+		SHOW_TIME("pAA_pattern");
 		if (debug) {
 			char *crow = Calloc(N + 1, char);
 			crow[N] = '\0';
@@ -369,9 +363,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			Free(crow);
 		}
 
-		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
-
 		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
+		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
 		for (i = 0; i < nrow; i++) {
 			for (k = 0; k < pAA_pattern[i]->n; k++) {
 				j = pAA_pattern[i]->idx[k];
@@ -380,10 +373,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 
 		// then add and accumate terms using '..._addto'
+		rows = Calloc(nt * nrow, double);	       /* SAME _THREADS! */
 #pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
 		for (i = 0; i < nrow; i++) {
 			double val;
-			double *row = Calloc(ncol, double);
+			double *row = &(rows[omp_get_thread_num() * nrow]);
 
 			GMRFLib_matrix_get_row(row, i, pA);
 			for (k = 0; k < N; k++) {
@@ -395,9 +389,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					}
 				}
 			}
-			Free(row);
 		}
-
+		Free(rows);
+		SHOW_TIME("pAA_idxval");
+		
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
 		for (i = 0; i < nrow; i++) {
 			double val;
@@ -410,6 +405,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		GMRFLib_idxval_nsort(pAAt_idxval, N, 0);       /* as N is typical small */
 
+		SHOW_TIME("pAAt_idval");
 		if (debug) {
 			for (i = 0; i < nrow; i++) {
 				P(i);
@@ -468,8 +464,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		gen_len_At = (*preopt)->n;
 	}
 
-	printf("TIME: admin1 %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
+	SHOW_TIME("admin1");
 
 	ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
@@ -488,18 +483,17 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	GMRFLib_graph_tp *g = NULL;
 	GMRFLib_ged_build(&g, ged);
+	SHOW_TIME("build graph");
+
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
-
-	printf("TIME: build graph g %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
 
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (i = 0; i < g->n; i++) {
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt2) schedule(static)
+#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt) schedule(static)
 	for (i = 0; i < gen_len_At; i++) {
 		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
@@ -517,7 +511,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
-
+	SHOW_TIME("AtA_idxval");
 	if (debug) {
 		FIXME("AtA");
 		for (i = 0; i < N; i++) {
@@ -542,26 +536,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
-	printf("TIME: AtA %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
-
-	if (do_prune) {
-		GMRFLib_idxval_nprune(A_idxval, npred, nt);
-		GMRFLib_idxval_nprune(At_idxval, N, nt);
-		GMRFLib_idxval_nprune(pAAt_idxval, N, nt);
-		GMRFLib_idxval_nprune(pA_idxval, nrow, nt);
-	}
-
-#pragma omp parallel for private (i) num_threads(nt2) schedule(static)
+#pragma omp parallel for private (i) num_threads(nt) schedule(static)
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_nsort(AtA_idxval[i], 1 + g->lnnbs[i], 0);
-		if (do_prune) {
-			GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 0);
-		}
 	}
-
-	printf("TIME: prune %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
+	SHOW_TIME("sort AtA_idxval");
 
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
@@ -588,9 +567,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 
-	printf("TIME: final part %f\n", GMRFLib_cpu() - tref);
-	tref =  GMRFLib_cpu();
-
 	if (pAA_idxval) {
 		for (i = 0; i < nrow; i++) {
 			GMRFLib_idxval_free(pAA_idxval[i]);
@@ -603,6 +579,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	Free(ww);
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+
+	SHOW_TIME("admin2");
+#undef  SHOW_TIME
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -800,7 +779,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
 	}
-	nt = IMIN(nt, LOCAL_NUM_THREAD_MAX);
+	nt = IMIN(nt, LOCAL_THREAD_MAX);
 
 #pragma omp parallel for num_threads(nt) schedule(static)
 	for (int i = 0; i < preopt->n; i++) {
@@ -969,3 +948,5 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 
 	return GMRFLib_SUCCESS;
 }
+
+#undef LOCAL_THREAD_MAX
