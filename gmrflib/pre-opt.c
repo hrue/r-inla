@@ -257,6 +257,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	nt = IMIN(LOCAL_NUM_THREAD_MAX, nt);		       /* just worse of going to high */
 	nt2 = IMIN(2 * LOCAL_NUM_THREAD_MAX, nt);	       /* just worse of going to high */
 
+	P(nt);
+	P(nt2);
+
 	A_idxval = GMRFLib_idxval_ncreate(npred);
 #pragma omp parallel for private (i, jj) num_threads(nt) schedule(static)
 	for (i = 0; i < npred; i++) {
