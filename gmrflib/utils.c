@@ -1338,49 +1338,69 @@ int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_sort(GMRFLib_idx_tp *hold) 
+int GMRFLib_idx_sort(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
-		qsort((void *) hold->idx, (size_t) hold->n,  sizeof(int), GMRFLib_icmp);
+		qsort((void *) hold->idx, (size_t) hold->n, sizeof(int), GMRFLib_icmp);
 	}
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_nsort(GMRFLib_idx_tp **a, int n)
+int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
 {
+#define CODE_BLOCK							\
+	for(int i = 0; i < n; i++) {					\
+		if (a[i] && a[i]->n > 1) {				\
+			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp); \
+		}							\
+	}
+
 	if (a) {
-		for(int i = 0; i < n; i++) {
-			if (a[i] && a[i]->n > 1) {
-				qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp);
-			}
+		if (nt > 0) {
+#pragma omp parallel for num_threads(nt) schedule(static)
+			CODE_BLOCK;
+		} else {
+			CODE_BLOCK;
 		}
 	}
+#undef CODE_BLOCK
+
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_uniq(GMRFLib_idx_tp *hold) 
+int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold)
 {
 	if (hold && hold->n > 1) {
 		int i, j;
 
 		GMRFLib_idx_sort(hold);
-		for(j = 0, i = 0; i < hold->n; i++) {
-			if (hold->idx[j] != hold->idx[i]){
+		for (j = 0, i = 0; i < hold->n; i++) {
+			if (hold->idx[j] != hold->idx[i]) {
 				hold->idx[++j] = hold->idx[i];
 			}
 		}
-		hold->n = j+1;
+		hold->n = j + 1;
 	}
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n)
+int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
 {
+#define CODE_BLOCK				\
+	for (int i = 0; i < n; i++) {		\
+		GMRFLib_idx_uniq(a[i]);		\
+	}
+
 	if (a) {
-		for (int i = 0; i < n; i++) {
-			GMRFLib_idx_uniq(a[i]);
+		if (nt > 0) {
+#pragma omp parallel for num_threads(nt) schedule(static)
+			CODE_BLOCK;
+		} else {
+			CODE_BLOCK;
 		}
 	}
+#undef CODE_BLOCK
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1481,23 +1501,23 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 {
 	// if idx exists before, add val to value , otherwise just 'add'.
 	// if there are two entries of 'idx', then only the first is used.
-	
+
 	if (*hold == NULL) {
 		GMRFLib_idxval_create(hold);
 	}
 
 	int i;
-	
+
 	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
 	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
-	for(i = (*hold)->iaddto; i < (*hold)->n; i++) {
+	for (i = (*hold)->iaddto; i < (*hold)->n; i++) {
 		if ((*hold)->store[i].idx == idx) {
 			(*hold)->store[i].val += val;
 			(*hold)->iaddto = i;
 			return GMRFLib_SUCCESS;
 		}
 	}
-	for(i = 0; i < (*hold)->iaddto; i++) {
+	for (i = 0; i < (*hold)->iaddto; i++) {
 		if ((*hold)->store[i].idx == idx) {
 			(*hold)->store[i].val += val;
 			(*hold)->iaddto = i;
@@ -1597,35 +1617,43 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxval_cmp(const void *a, const void *b) 
+int GMRFLib_idxval_cmp(const void *a, const void *b)
 {
 	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
 	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
 
 	return ((aa->idx > bb->idx) ? 1 : ((aa->idx < bb->idx) ? -1 : 0));
 }
-	
-int GMRFLib_idxval_sort(GMRFLib_idxval_tp *hold) 
+
+int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 {
 	if (hold) {
-		qsort((void *) hold->store, (size_t) hold->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
+		qsort((void *) hold->store, (size_t) hold->n, sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
 	}
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n)
+int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
+#define CODE_BLOCK							\
+	for(int i = 0; i < n; i++) {					\
+		if (hold[i] && hold[i]->n > 1) {			\
+			qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
+		}							\
+	}
+
 	if (hold) {
-		for(int i = 0; i < n; i++) {
-			if (hold[i] && hold[i]->n > 1) {
-				qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
-			}
+		if (nt > 0) {
+#pragma omp parallel for num_threads(nt) schedule(static)
+			CODE_BLOCK;
+		} else {
+			CODE_BLOCK;
 		}
 	}
+#undef CODE_BLOCK
+
 	return GMRFLib_SUCCESS;
 }
-
-
 
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
