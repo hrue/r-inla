@@ -542,15 +542,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	printf("TIME: AtA %f\n", GMRFLib_cpu() - tref);
 	tref =  GMRFLib_cpu();
 
-	GMRFLib_idxval_nprune(A_idxval, npred);
-	GMRFLib_idxval_nprune(At_idxval, N);
-	GMRFLib_idxval_nprune(pAAt_idxval, N);
-	GMRFLib_idxval_nprune(pA_idxval, nrow);
+	GMRFLib_idxval_nprune(A_idxval, npred, nt);
+	GMRFLib_idxval_nprune(At_idxval, N, nt);
+	GMRFLib_idxval_nprune(pAAt_idxval, N, nt);
+	GMRFLib_idxval_nprune(pA_idxval, nrow, nt);
 
 #pragma omp parallel for private (i) num_threads(nt) schedule(static)
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_nsort(AtA_idxval[i], 1 + g->lnnbs[i], 0);
-		GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i]);
+		GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i], 0);
 	}
 
 	printf("TIME: prune %f\n", GMRFLib_cpu() - tref);

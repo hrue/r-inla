@@ -144,7 +144,7 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
-int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n);
+int GMRFLib_idxval_nprune(GMRFLib_idxval_tp **a, int n, int nt);
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp **hold, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
