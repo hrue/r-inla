@@ -60,7 +60,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, ii, j, jj, k, kk, N, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
+	int i, ii, j, jj, k, kk, N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
 	int debug = 0, nrow = 0, ncol = 0;
 
 	double **ww = NULL;
@@ -248,12 +248,14 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	// build up structure for the likelihood part
 
 	int nt = -1;
+	int nt2 = -1;
 	if (omp_in_parallel()) {
 		nt = GMRFLib_openmp->max_threads_inner;
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
 	}
 	nt = IMIN(LOCAL_NUM_THREAD_MAX, nt);		       /* just worse of going to high */
+	nt2 = IMIN(2 * LOCAL_NUM_THREAD_MAX, nt);	       /* just worse of going to high */
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
 #pragma omp parallel for private (i, jj) num_threads(nt) schedule(static)
@@ -463,6 +465,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		gen_len_At = (*preopt)->n;
 	}
 
+	printf("TIME: admin1 %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
+
 	ged = NULL;
 	GMRFLib_ged_init(&ged, NULL);
 	for (k = 0; k < N; k++) {
@@ -483,7 +488,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
 
-	printf("TIME: gen_At %f\n", GMRFLib_cpu() - tref);
+	printf("TIME: build graph g %f\n", GMRFLib_cpu() - tref);
 	tref =  GMRFLib_cpu();
 
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
@@ -491,7 +496,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt2) schedule(static)
 	for (i = 0; i < gen_len_At; i++) {
 		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
@@ -547,6 +552,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_nsort(AtA_idxval[i], 1 + g->lnnbs[i], 0);
 		GMRFLib_idxval_nprune(AtA_idxval[i], 1 + g->lnnbs[i]);
 	}
+
+	printf("TIME: prune %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
 
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
