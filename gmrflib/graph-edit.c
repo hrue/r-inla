@@ -80,23 +80,14 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	/*
 	 * add edge between node and nnode. add 'node' or 'nnode' to the set if not already present 
 	 */
-	int failsafe = 0;				       /* don't know why this was = 1 in the code before */
 	if (node == nnode) {
-		if (!spmatrix_value(&(ged->Q), node, node)) {
-			spmatrix_set(&(ged->Q), node, node, 1.0);
-			if (failsafe) spmatrix_value(&(ged->Q), node, node);
-		}
+		spmatrix_set(&(ged->Q), node, node, 1.0);
+		spmatrix_value(&(ged->Q), node, node);
 	} else {
-		if (!spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode))) {
-			spmatrix_set(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode), 1.0);
-			if (failsafe) {
-				spmatrix_set(&(ged->Q), node, node, 1.0);
-				spmatrix_set(&(ged->Q), nnode, nnode, 1.0);
-				spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode));
-				spmatrix_value(&(ged->Q), node, node);
-				spmatrix_value(&(ged->Q), nnode, nnode);
-			}
-		}
+		spmatrix_set(&(ged->Q), node, nnode, 1.0);
+		spmatrix_set(&(ged->Q), nnode, node, 1.0);
+		spmatrix_value(&(ged->Q), node, node);
+		spmatrix_value(&(ged->Q), nnode, nnode);
 	}
 	ged->max_node = IMAX(ged->max_node, IMAX(node, nnode));
 

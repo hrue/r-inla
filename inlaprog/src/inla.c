@@ -30150,6 +30150,12 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * add the diagonal, if any 
 	 */
+
+	P(N);
+	P(mb->predictor_ndata);
+	P(mb->predictor_n);
+	P(mb->predictor_m);
+
 	c = Calloc(N, double);
 	count = mb->predictor_n + mb->predictor_m;
 	for (i = 0; i < mb->nf; i++) {
@@ -30226,6 +30232,7 @@ int inla_INLA(inla_tp * mb)
 		/*
 		 * as before 
 		 */
+		P(count);
 		for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 			compute[count++] = (char) mb->predictor_compute;
 		}
@@ -30241,11 +30248,13 @@ int inla_INLA(inla_tp * mb)
 				compute[count] = (char) mb->f_compute[i];
 				count++;
 			}
+			P(count);
 		}
 		for (i = 0; i < mb->nlinear; i++) {
 			compute[count] = (char) mb->linear_compute[i];
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
+			P(count);
 		}
 		if (!mb->lc_derived_only) {
 			for (i = 0; i < mb->nlc; i++) {
