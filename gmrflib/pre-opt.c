@@ -61,7 +61,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_ENTER_ROUTINE;
 
 	int i, ii, j, jj, k, kk, N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
-	int debug = 0, nrow = 0, ncol = 0, do_prune = 0;
+	int debug = 0, nrow = 0, ncol = 0, do_prune = 1;
 
 	double **ww = NULL;
 	GMRFLib_constr_tp *fc = NULL;
@@ -549,7 +549,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_nprune(pA_idxval, nrow, nt);
 	}
 
-#pragma omp parallel for private (i) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i) num_threads(nt2) schedule(static)
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_nsort(AtA_idxval[i], 1 + g->lnnbs[i], 0);
 		if (do_prune) {
