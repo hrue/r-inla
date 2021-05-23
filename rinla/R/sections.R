@@ -764,11 +764,6 @@
         random.spec$vb.correct <- -1L ## code for ``make the default choice''
     }
     cat("vb.correct = ", as.numeric(random.spec$vb.correct), "\n", append = TRUE, sep = "", file = file)
-
-    if (is.null(random.spec$correct)) {
-        random.spec$correct <- -1L ## code for ``make the default choice''
-    }
-    cat("correct = ", as.numeric(random.spec$correct), "\n", append = TRUE, sep = "", file = file)
     cat("\n", sep = " ", file = file, append = TRUE)
 
     ## need to store the updated one
