@@ -81,13 +81,15 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	 * add edge between node and nnode. add 'node' or 'nnode' to the set if not already present 
 	 */
 	if (node == nnode) {
-		spmatrix_set(&(ged->Q), node, node, 1.0);
-		/*
-		 * workaround for internal ``bug'' in hash.c 
-		 */
-		spmatrix_value(&(ged->Q), node, node);
+		if (!spmatrix_value(&(ged->Q), node, node)) {
+			spmatrix_set(&(ged->Q), node, node, 1.0);
+			/*
+			 * workaround for internal ``bug'' in hash.c 
+			 */
+			spmatrix_value(&(ged->Q), node, node);
+		}
 	} else {
-		if (!spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode))){
+		if (!spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode))) {
 			spmatrix_set(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode), 1.0);
 			spmatrix_set(&(ged->Q), node, node, 1.0);
 			spmatrix_set(&(ged->Q), nnode, nnode, 1.0);
