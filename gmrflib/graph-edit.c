@@ -81,7 +81,6 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	 * add edge between node and nnode. add 'node' or 'nnode' to the set if not already present 
 	 */
 	int failsafe = 0;				       /* don't know why this was = 1 in the code before */
-	
 	if (node == nnode) {
 		if (!spmatrix_value(&(ged->Q), node, node)) {
 			spmatrix_set(&(ged->Q), node, node, 1.0);
