@@ -44,7 +44,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-#define IDX_ALLOC_ADD 64L
+#define IDX_ALLOC_INITIAL 8L
+#define IDX_ALLOC_ADD     64L
 
 /* 
  *  compile with -DGMRFLib_MEMCHECK to enable the internal memcheck utility. Do not work with OPENMP. compile with -DGMRFLib_MEMINFO to enable the meminfo utility.
@@ -1252,8 +1253,8 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_idx_tp);
-	(*hold)->idx = Calloc(IDX_ALLOC_ADD, int);
-	(*hold)->n_alloc = IDX_ALLOC_ADD;
+	(*hold)->idx = Calloc(IDX_ALLOC_INITIAL, int);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
@@ -1263,9 +1264,9 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_idx2_tp);
 	(*hold)->idx = Calloc(2, int *);
-	(*hold)->idx[0] = Calloc(IDX_ALLOC_ADD, int);
-	(*hold)->idx[1] = Calloc(IDX_ALLOC_ADD, int);
-	(*hold)->n_alloc = IDX_ALLOC_ADD;
+	(*hold)->idx[0] = Calloc(IDX_ALLOC_INITIAL, int);
+	(*hold)->idx[1] = Calloc(IDX_ALLOC_INITIAL, int);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
@@ -1274,8 +1275,8 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_val_tp);
-	(*hold)->val = Calloc(IDX_ALLOC_ADD, double);
-	(*hold)->n_alloc = IDX_ALLOC_ADD;
+	(*hold)->val = Calloc(IDX_ALLOC_INITIAL, double);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
@@ -1284,8 +1285,8 @@ int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_idxval_tp);
-	(*hold)->store = Calloc(IDX_ALLOC_ADD, GMRFLib_idxval_elm_tp);
-	(*hold)->n_alloc = IDX_ALLOC_ADD;
+	(*hold)->store = Calloc(IDX_ALLOC_INITIAL, GMRFLib_idxval_elm_tp);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 	(*hold)->iaddto = 0;
 
@@ -1450,7 +1451,7 @@ int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 		GMRFLib_idx_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
 		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
 	}
 	(*hold)->idx[(*hold)->n] = idx;
@@ -1465,7 +1466,7 @@ int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 		GMRFLib_idx2_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
 		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
 		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
 	}
@@ -1482,7 +1483,7 @@ int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
 		GMRFLib_val_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
 		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
 	}
 	(*hold)->val[(*hold)->n] = val;
@@ -1497,7 +1498,7 @@ int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
 		GMRFLib_idxval_create(hold);
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
 		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
 	}
 	(*hold)->store[(*hold)->n].idx = idx;
@@ -1536,7 +1537,7 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 	}
 
 	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 8L);
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
 		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
 	}
 	(*hold)->store[(*hold)->n].idx = idx;
@@ -1705,3 +1706,4 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 
 #undef MEMINFO
 #undef IDX_ALLOC_ADD
+#undef IDX_ALLOC_INITIAL
