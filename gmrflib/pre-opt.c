@@ -52,6 +52,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
+	double tref = GMRFLib_cpu();
+	
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
@@ -100,6 +102,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->nbeta = nbeta;
 	(*preopt)->covariate = covariate;
 	(*preopt)->prior_precision = prior_precision;
+
+	printf("TIME: setup %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
 
 	/*
 	 * Our first job, is to go through the model and compute all interactions etc that are defined through the \eta-model. 
@@ -237,6 +242,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
+	printf("TIME: setup part2 %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
+
 	// build up structure for the likelihood part
 
 	int nt = -1;
@@ -267,9 +275,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
+		GMRFLib_idxval_sort(A_idxval[i]);
 	}
-	GMRFLib_idxval_nsort(A_idxval, npred, nt);
 
+	printf("TIME: A_idxval %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
+	
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
 	for (i = 0; i < npred; i++) {
@@ -282,6 +293,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 	GMRFLib_idxval_nsort(At_idxval, N, nt);
+
+	printf("TIME: At_idxval %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
 
 	if (debug) {
 		for (i = 0; i < npred; i++)
@@ -313,6 +327,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			j = pA->j[k];
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
+		GMRFLib_idxval_nsort(pA_idxval, nrow, nt);
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
 #pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
@@ -328,11 +343,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					}
 				}
 			}
+			
+			GMRFLib_idx_uniq(pAA_pattern[i]);
 			Free(row);
 		}
 
-		GMRFLib_idxval_nsort(pA_idxval, nrow, nt);
-		GMRFLib_idx_nuniq(pAA_pattern, nrow, nt);      /* this also sorts idx's */
 
 		if (debug) {
 			char *crow = Calloc(N + 1, char);
@@ -468,6 +483,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
 
+	printf("TIME: gen_At %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
+
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (i = 0; i < g->n; i++) {
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
@@ -516,6 +534,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
+	printf("TIME: AtA %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
+
 	GMRFLib_idxval_nprune(A_idxval, npred);
 	GMRFLib_idxval_nprune(At_idxval, N);
 	GMRFLib_idxval_nprune(pAAt_idxval, N);
@@ -551,6 +572,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
+
+	printf("TIME: final part %f\n", GMRFLib_cpu() - tref);
+	tref =  GMRFLib_cpu();
 
 	if (pAA_idxval) {
 		for (i = 0; i < nrow; i++) {

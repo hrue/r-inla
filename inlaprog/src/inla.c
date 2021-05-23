@@ -35599,7 +35599,7 @@ int main(int argc, char **argv)
 					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
-				GMRFLib_openmp->max_threads = ntt[0] * ntt[1];
+				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS, ntt[0] * ntt[1]);
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
 				fprintf(stderr, "Will continue with '2:1'\n");
