@@ -181,7 +181,7 @@
 
 `inla.set.f.default` <-
     function(...) {
-        list(diagonal = .Machine$double.eps^0.319) ## almost 1e-5 on my computer
+        list(diagonal = 1.0E-4)
     }
 
 
