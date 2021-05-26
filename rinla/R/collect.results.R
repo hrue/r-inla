@@ -210,7 +210,9 @@
 
     ## add the names of the theta's here, as they are available.
     if (!is.null(misc) && !is.null(joint.hyper)) {
-        colnames(joint.hyper) <- c(misc$theta.tags, "Log posterior density")
+        colnames(joint.hyper) <- c(misc$theta.tags,
+                                   "Log posterior density",
+                                   "Total integration weight (log.dens included)")
     }
 
     names(theta.mode) <- theta.tags

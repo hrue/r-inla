@@ -5198,7 +5198,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					for (kk = 0; kk < nhyper; kk++) {
 						fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
 					}
-					fprintf(ai_par->fp_hyperparam, " %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian);
+					fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
+						adj_weights[k]);
 				}
 				fflush(ai_par->fp_hyperparam);
 				Free(theta_tmp);
