@@ -53,6 +53,9 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+static unsigned long int GMRFLib_rng_seed;
+#pragma omp threadprivate(GMRFLib_rng_seed)
+
 int GMRFLib_rng_set_default_seed(void)
 {
 	unsigned long int seed_default = (unsigned long int) time(NULL);

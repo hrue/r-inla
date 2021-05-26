@@ -130,9 +130,6 @@ extern int GMRFLib_verify_graph_read_from_disc;
 extern gsl_rng *GMRFLib_rng_ptr;
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
-extern unsigned long int GMRFLib_rng_seed;
-#pragma omp threadprivate(GMRFLib_rng_seed)
-
 /*!
   \brief Define the function of type GMRFLib_uniform_tp
 */
@@ -161,14 +158,6 @@ extern GMRFLib_uniform_setstate_tp *GMRFLib_uniform_setstate;
   \sa globals.c
 */
 extern GMRFLib_cpu_tp *GMRFLib_cpu;
-
-/*!
-  \brief Holds a copy of the (last) seed used to initialise the RNG-routines.
-  \sa random.c
-*/
-extern unsigned long int GMRFLib_rng_seed;
-
-#pragma omp threadprivate(GMRFLib_rng_seed)
 
 /* 
    define types for a user-defined function; compute E_{\theta|y} userfunc
