@@ -128,8 +128,10 @@ extern int GMRFLib_use_wa_table_lookup;
 extern int GMRFLib_verify_graph_read_from_disc;
 
 extern gsl_rng *GMRFLib_rng_ptr;
-
 #pragma omp threadprivate(GMRFLib_rng_ptr)
+
+extern unsigned long int GMRFLib_rng_seed;
+#pragma omp threadprivate(GMRFLib_rng_seed)
 
 /*!
   \brief Define the function of type GMRFLib_uniform_tp
