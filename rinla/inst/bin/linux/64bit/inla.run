@@ -5,14 +5,15 @@ DIR=$(readlink -e $(dirname "$cmd"))
 tmp=$(basename "$0")
 prog=${tmp%%.run}
 
-D=""
+DR=""
 if [ ! -z ${R_HOME+x} ]; then 
     d="$R_HOME/lib"
     if [ -d "$d" ]; then
-	D=$d
+	DR=$d
     fi
 fi
 
+D=""
 for d in {,/usr}/lib64 /usr/lib64/R/lib {,/usr}/lib/x86_64-linux-gnu {,/usr}/lib; do
     if [ -d "$d" ]; then
 	if [ -z "$D" ]; then
@@ -35,8 +36,8 @@ if [ -n "${INLA_NATIVE_LD_LIBRARY_PATH}" ]; then
     export LD_LIBRARY_PATH="$DIR/first:$D:$DIR:$LD_LIBRARY_PATH"
 else
     ## this is the new default, is that we use the libs used when we
-    ## build
-    export LD_LIBRARY_PATH="$DIR/first:$DIR:$D:$LD_LIBRARY_PATH"
+    ## build. Try to use libR from system by default
+    export LD_LIBRARY_PATH="$DIR/first:$DR:$DIR:$D:$LD_LIBRARY_PATH"
 fi
 export PARDISOLICMESSAGE=1
 export OMP_NESTED=TRUE
