@@ -1032,7 +1032,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output,
-		    GMRFLib_preopt_tp *preopt);
+		    GMRFLib_preopt_tp *preopt, GMRFLib_preopt_res_tp *rpreopt);
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 			    int ntheta, double *theta, double log_posterior, double log_posterior_orig, 
 			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx, 

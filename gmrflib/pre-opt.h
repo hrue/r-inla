@@ -47,6 +47,14 @@ __BEGIN_DECLS
 /* 
  * 
  */
+
+typedef enum {
+	GMRFLib_PREOPT_NONE = 0,
+	GMRFLib_PREOPT_STAGE1 = 1,
+	GMRFLib_PREOPT_STAGE2 = 2
+}
+	GRMFLib_preopt_stage_tp;
+	
     typedef enum {
 	GMRFLib_PREOPT_TP_F = 1,
 	GMRFLib_PREOPT_TP_BETA,
@@ -58,6 +66,18 @@ typedef struct {
 	int idx;
 	int tp_idx;
 } GMRFLib_preopt_type_tp;
+
+typedef struct 
+{
+	GMRFLib_matrix_tp *int_design;
+	double *hessian;
+	double *inverse_hessian;
+	gsl_matrix *H;
+	gsl_matrix *eigen_vectors;
+	gsl_vector *eigen_values;
+	gsl_vector *sqrt_eigen_values;
+}
+	GMRFLib_preopt_res_tp;
 
 typedef struct {
 

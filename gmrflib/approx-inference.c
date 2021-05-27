@@ -2313,7 +2313,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	int i, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, id, *idxs = NULL, nidx = 0;
-	int Npred = (GMRFLib_preopt_mode ? preopt->Npred : graph->n);
+	int Npred = (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1 ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
@@ -2409,7 +2409,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		memset(bb, 0, Npred * sizeof(double));
 		memset(cc, 0, Npred * sizeof(double));
 
-		if (GMRFLib_preopt_mode) {
+		if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 			if (!free_linear_predictor) {
 				linear_predictor = Calloc(Npred, double);
 				free_linear_predictor = 1;
@@ -2585,7 +2585,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are/might-be used later
 			 */
 
-			if (GMRFLib_preopt_mode) {
+			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 				GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 			} else {
 				linear_predictor = mode;
@@ -2832,7 +2832,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output,
-		    GMRFLib_preopt_tp * preopt)
+		    GMRFLib_preopt_tp * preopt, GMRFLib_preopt_res_tp *rpreopt)
 {
 	/*
 	 * 
@@ -2850,7 +2850,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
 		for(_i = 0; _i<graph->n; _i++) {			\
-			if (dens[_i] && dens[_i][dens_count]){		\
+			if (dens && dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
 			} else {					\
 				_improved_mean[_i] = ai_store->problem->mean_constr[_i]; \
@@ -2867,7 +2867,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		double *_skewness = Calloc(graph->n, double);		\
 		for(_i = 0; _i<graph->n; _i++) {			\
 			_skewness[_i] = NAN;				\
-			if (dens[_i] && dens[_i][dens_count]){		\
+			if (dens && dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
 				_skewness[_i] = dens[_i][dens_count]->skewness;	\
 			} else {					\
@@ -2915,12 +2915,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		neff = Realloc(neff, dens_max, double);			\
 		for (kk_ = 0; kk_ < compute_n; kk_++) {			\
 			ii_ = compute_idx[kk_];				\
-			if (dens[ii_]){					\
+			if (dens && dens[ii_]){					\
 				dens[ii_] = Realloc(dens[ii_], dens_max, GMRFLib_density_tp *); \
 				for(jj_ = old_dens_max; jj_ < dens_max; jj_++) \
 					dens[ii_][jj_] = NULL;		\
 			}						\
-			if (dens_transform[ii_]){			\
+			if (dens_transform && dens_transform[ii_]){			\
 				dens_transform[ii_] = Realloc(dens_transform[ii_], dens_max, GMRFLib_density_tp *); \
 				for(jj_ = old_dens_max; jj_ < dens_max; jj_++) \
 					dens_transform[ii_][jj_] = NULL; \
@@ -3051,10 +3051,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	double **lin_cross = NULL;
 	GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = NULL;
 
-	if (GMRFLib_preopt_mode)
-		assert(preopt);
-	if (!GMRFLib_preopt_mode)
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
 		assert(!preopt);
+		assert(!rpreopt);
+	}
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+		assert(preopt);
+		assert(rpreopt);
+	}
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) {
+		assert(!preopt);
+		assert(rpreopt);
+	}
 
 	if (!(mean == NULL)) {
 		FIXME("\n\n\n\nGMRFLib_INLA() I think the vb assumes mean=NULL, please check.\n");
@@ -3107,20 +3115,31 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	dens_max = 1;
 
 	// do initial setup that we do not need with 'preopt'
-	if (!preopt) {
-		if (!compute) {
-			free_compute = 1;
-			compute = Calloc(graph->n, char);
-		}
+	weights = Calloc(dens_max, double);
+	izs = Calloc(dens_max, double *);
+	neff = Calloc(dens_max, double);
 
+	if (!compute) {
+		free_compute = 1;
+		compute = Calloc(graph->n, char);
+	}
+	compute_idx = Calloc(graph->n, int);
+	compute_n = 0;
+	for (i = 0; i < graph->n; i++) {
+		if (compute[i]) {
+			compute_idx[compute_n++] = i;
+		}
+	}
+	x_mode = Calloc(graph->n, double);
+	map_strd_init_hint(&hash_table, dens_max);
+	hash_table.alwaysdefault = 0;
+	
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) {
 		dens = Calloc(graph->n, GMRFLib_density_tp **);
 		dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
 		weights = Calloc(dens_max, double);
 		izs = Calloc(dens_max, double *);
 		neff = Calloc(dens_max, double);
-
-		map_strd_init_hint(&hash_table, dens_max);
-		hash_table.alwaysdefault = 0;
 
 		if ((density || gdensity) && cpo) {
 			(*cpo) = Calloc(1, GMRFLib_ai_cpo_tp);
@@ -3141,18 +3160,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values = Calloc(dens_max, double *);
 		}
-		/*
-		 * make a list of those idxs we will compute 
-		 */
-		compute_idx = Calloc(graph->n, int);
-
-		compute_n = 0;
-		for (i = 0; i < graph->n; i++) {
-			if (compute[i]) {
-				compute_idx[compute_n++] = i;
-			}
-		}
-
 		/*
 		 * only one of the marginal are computed with cpo_manual is TRUE. The code depends on the this assumption I think. 
 		 */
@@ -3211,8 +3218,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 		}
-
-		x_mode = Calloc(graph->n, double);
 
 		marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
 		if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
@@ -3321,102 +3326,174 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		SET_THETA_MODE;
 
-		if (preopt) {
-			// in this case, just save (x, theta), cleanup and return
-			preopt->mode_theta = Calloc(nhyper, double);
-			memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
-			preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
-			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
-			GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
-
-			if (0) {
-				for (i = 0; i < nhyper; i++) {
-					printf("theta[%1d]=  %f\n", i, preopt->mode_theta[i]);
-				}
-				for (i = 0; i < preopt->mnpred + preopt->n; i++) {
-					printf("x[%1d]=  %f\n", i, preopt->mode_x[i]);
-				}
-			}
-			return GMRFLib_SUCCESS;
-		}
-
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 
-		if (ai_par->fp_log) {
-			fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",
-				(ai_par->hessian_forward_finite_difference ? "forward" : "central"),
-				ai_par->hessian_finite_difference_step_len, (ai_par->hessian_force_diagonal ? "diagonal" : "dense"));
-		}
-
-		/*
-		 * The parameters for the adaptive hessian estimation is set in ai_par (hence G.ai_par in opt-interface.c).
-		 */
-		double log_dens_mode_save = log_dens_mode;
-		int stupid_mode_iter = 0, smart_success = 0;
-		int fd_save = ai_par->hessian_forward_finite_difference;
-
-		hessian = Calloc(ISQR(nhyper), double);
-
-		// SMART MODE: we try to be smart. do a prerun using forward differences. if its ok, keep it.
-		if (ai_par->optimise_smart) {
-			ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
-			smart_success = 1;
+		if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Smart optimise part III: estimate Hessian using forward differences\n");
+				fprintf(ai_par->fp_log, "Compute the Hessian using %s differences and step_size[%g]. Matrix-type [%s]\n",
+					(ai_par->hessian_forward_finite_difference ? "forward" : "central"),
+					ai_par->hessian_finite_difference_step_len, (ai_par->hessian_force_diagonal ? "diagonal" : "dense"));
 			}
-			while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
-				smart_success = 0;
-				if (!stupid_mode_iter) {
-					if (ai_par->fp_log)
-						fprintf(ai_par->fp_log,
-							"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
-				}
-				stupid_mode_iter++;
 
-				if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
-					if (ai_par->fp_log) {
-						fprintf(stderr,
-							"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
-					}
-					break;
-				}
-				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
-				log_dens_mode_save = log_dens_mode;
+			/*
+			 * The parameters for the adaptive hessian estimation is set in ai_par (hence G.ai_par in opt-interface.c).
+			 */
+			double log_dens_mode_save = log_dens_mode;
+			int stupid_mode_iter = 0, smart_success = 0;
+			int fd_save = ai_par->hessian_forward_finite_difference;
 
-				if (GMRFLib_request_optimiser_to_stop) {
-					fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-					break;
-				}
-				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
-					fprintf(stderr,
-						"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
-					fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "\n\n");
-					break;
-					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
-				}
+			hessian = Calloc(ISQR(nhyper), double);
+
+			// SMART MODE: we try to be smart. do a prerun using forward differences. if its ok, keep it.
+			if (ai_par->optimise_smart) {
+				ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
 				smart_success = 1;
-			}
-			ai_par->hessian_forward_finite_difference = fd_save;
-
-			if (smart_success) {
-				// check if the hessian is valid. if its ok, we accept, otherwise, we retry with central differences
-				double *chol_tmp = NULL;
-				int ecode = 99, ret_ecode;
-
-				ret_ecode = GMRFLib_comp_chol_general(&chol_tmp, hessian, nhyper, NULL, ecode);
-				Free(chol_tmp);
-				if (ret_ecode == ecode) {
-					// we failed, at least one eigenvalue is negative...
+				if (ai_par->fp_log) {
+					fprintf(ai_par->fp_log, "Smart optimise part III: estimate Hessian using forward differences\n");
+				}
+				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
 					smart_success = 0;
+					if (!stupid_mode_iter) {
+						if (ai_par->fp_log)
+							fprintf(ai_par->fp_log,
+								"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+					}
+					stupid_mode_iter++;
+
+					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
+						if (ai_par->fp_log) {
+							fprintf(stderr,
+								"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+						}
+						break;
+					}
+					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
+					log_dens_mode_save = log_dens_mode;
+
+					if (GMRFLib_request_optimiser_to_stop) {
+						fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
+						break;
+					}
+					if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
+						fprintf(stderr, "\n\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
+						fprintf(stderr,
+							"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+						fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "\n\n");
+						break;
+						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+					}
+					smart_success = 1;
+				}
+				ai_par->hessian_forward_finite_difference = fd_save;
+
+				if (smart_success) {
+					// check if the hessian is valid. if its ok, we accept, otherwise, we retry with central differences
+					double *chol_tmp = NULL;
+					int ecode = 99, ret_ecode;
+
+					ret_ecode = GMRFLib_comp_chol_general(&chol_tmp, hessian, nhyper, NULL, ecode);
+					Free(chol_tmp);
+					if (ret_ecode == ecode) {
+						// we failed, at least one eigenvalue is negative...
+						smart_success = 0;
+					}
+				}
+
+				/*
+				 * do this again to get the ai_store set correctly.
+				 */
+				SET_THETA_MODE;
+				if (x_mode) {
+					memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+				}
+
+				if (stupid_mode_iter) {
+					// FIXME("------------> do one function call");
+					for (i = 0; i < nhyper; i++) {
+						theta_mode[i] = hyperparam[i][0][0];
+					}
+					GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+					log_dens_mode *= -1.0;
+					SET_THETA_MODE;
+					if (x_mode) {
+						memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+					}
+				}
+
+				if (ai_par->fp_log) {
+					if (ai_par->optimise_smart) {
+						if (smart_success) {
+							fprintf(ai_par->fp_log, "Smart optimise part III: Hessian seems fine, keep it\n");
+						} else {
+							fprintf(ai_par->fp_log, "Smart optimise part III: detected trouble with the Hessian...\n");
+							fprintf(ai_par->fp_log, "Smart optimise part III: try a restart before trying again.\n");
+						}
+					}
+				}
+
+				if (!smart_success) {
+					// we'll try to compute the Hessian again, but before that, lets restart the optimizer
+					GMRFLib_gsl_optimize(ai_par);  /* restart */
+					GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				}
 			}
+
+			stupid_mode_iter = 0;			       /* reset it */
+			if (!(ai_par->optimise_smart) || !smart_success) {
+
+				if (ai_par->optimise_smart) {
+					ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
+					if (ai_par->fp_log) {
+						fprintf(ai_par->fp_log, "Smart optimise part IV: re-estimate Hessian using central differences\n");
+					}
+				}
+
+				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
+					if (!stupid_mode_iter) {
+						if (ai_par->fp_log)
+							fprintf(ai_par->fp_log,
+								"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+					}
+					stupid_mode_iter++;
+
+					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
+						if (ai_par->fp_log) {
+							fprintf(stderr,
+								"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+						}
+						break;
+					}
+					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
+					log_dens_mode_save = log_dens_mode;
+
+					if (GMRFLib_request_optimiser_to_stop) {
+						fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
+						break;
+					}
+					if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
+						fprintf(stderr, "\n\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
+						fprintf(stderr,
+							"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+						fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "\n\n");
+						break;
+						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+					}
+				}
+			}
+
+			ai_par->hessian_forward_finite_difference = fd_save;
 
 			/*
 			 * do this again to get the ai_store set correctly.
@@ -3440,271 +3517,214 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 
 			if (ai_par->fp_log) {
-				if (ai_par->optimise_smart) {
-					if (smart_success) {
-						fprintf(ai_par->fp_log, "Smart optimise part III: Hessian seems fine, keep it\n");
-					} else {
-						fprintf(ai_par->fp_log, "Smart optimise part III: detected trouble with the Hessian...\n");
-						fprintf(ai_par->fp_log, "Smart optimise part III: try a restart before trying again.\n");
+				for (i = 0; i < nhyper; i++) {
+					for (j = 0; j < nhyper; j++) {
+						fprintf(ai_par->fp_log, " %10.3f", hessian[i + j * nhyper]);
 					}
+					fprintf(ai_par->fp_log, "\n");
 				}
 			}
 
-			if (!smart_success) {
-				// we'll try to compute the Hessian again, but before that, lets restart the optimizer
-				GMRFLib_gsl_optimize(ai_par);  /* restart */
-				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
-			}
-		}
-
-		stupid_mode_iter = 0;			       /* reset it */
-		if (!(ai_par->optimise_smart) || !smart_success) {
-
-			if (ai_par->optimise_smart) {
-				ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
-				if (ai_par->fp_log) {
-					fprintf(ai_par->fp_log, "Smart optimise part IV: re-estimate Hessian using central differences\n");
-				}
-			}
-
-			while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
-				if (!stupid_mode_iter) {
-					if (ai_par->fp_log)
-						fprintf(ai_par->fp_log,
-							"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
-				}
-				stupid_mode_iter++;
-
-				if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
-					if (ai_par->fp_log) {
-						fprintf(stderr,
-							"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
-					}
-					break;
-				}
-				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
-				log_dens_mode_save = log_dens_mode;
-
-				if (GMRFLib_request_optimiser_to_stop) {
-					fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-					break;
-				}
-				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
-					fprintf(stderr,
-						"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
-					fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "\n\n");
-					break;
-					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
-				}
-			}
-		}
-
-		ai_par->hessian_forward_finite_difference = fd_save;
-
-		/*
-		 * do this again to get the ai_store set correctly.
-		 */
-		SET_THETA_MODE;
-		if (x_mode) {
-			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-		}
-
-		if (stupid_mode_iter) {
-			// FIXME("------------> do one function call");
-			for (i = 0; i < nhyper; i++) {
-				theta_mode[i] = hyperparam[i][0][0];
-			}
-			GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
-			log_dens_mode *= -1.0;
-			SET_THETA_MODE;
-			if (x_mode) {
-				memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-			}
-		}
-
-		if (ai_par->fp_log) {
+			H = gsl_matrix_calloc((size_t) nhyper, (size_t) nhyper);
 			for (i = 0; i < nhyper; i++) {
 				for (j = 0; j < nhyper; j++) {
-					fprintf(ai_par->fp_log, " %10.3f", hessian[i + j * nhyper]);
+					gsl_matrix_set(H, (size_t) i, (size_t) j, hessian[i + nhyper * j]);
 				}
-				fprintf(ai_par->fp_log, "\n");
 			}
-		}
+			work = gsl_eigen_symmv_alloc((size_t) nhyper);
+			eigen_vectors = gsl_matrix_calloc((size_t) nhyper, (size_t) nhyper);
+			eigen_values = gsl_vector_calloc((size_t) nhyper);
+			gsl_eigen_symmv(H, eigen_values, eigen_vectors, work);
+			gsl_eigen_symmv_free(work);
 
-		H = gsl_matrix_calloc((size_t) nhyper, (size_t) nhyper);
-		for (i = 0; i < nhyper; i++) {
-			for (j = 0; j < nhyper; j++) {
-				gsl_matrix_set(H, (size_t) i, (size_t) j, hessian[i + nhyper * j]);
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "Eigenvectors of the Hessian\n");
+				GMRFLib_printf_gsl_matrix(ai_par->fp_log, eigen_vectors, "\t%7.3f");
+				fprintf(ai_par->fp_log, "Eigenvalues of the Hessian\n");
+				gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%12.3f");
 			}
-		}
-		work = gsl_eigen_symmv_alloc((size_t) nhyper);
-		eigen_vectors = gsl_matrix_calloc((size_t) nhyper, (size_t) nhyper);
-		eigen_values = gsl_vector_calloc((size_t) nhyper);
-		gsl_eigen_symmv(H, eigen_values, eigen_vectors, work);
-		gsl_eigen_symmv_free(work);
 
-		if (ai_par->fp_log) {
-			fprintf(ai_par->fp_log, "Eigenvectors of the Hessian\n");
-			GMRFLib_printf_gsl_matrix(ai_par->fp_log, eigen_vectors, "\t%7.3f");
-			fprintf(ai_par->fp_log, "Eigenvalues of the Hessian\n");
-			gsl_vector_fprintf(ai_par->fp_log, eigen_values, "\t%12.3f");
-		}
-
-		/*
-		 * check that the hessian is positive definite 
-		 */
-		double min_pos_eigenvalue = DBL_MAX;
-		for (i = 0; i < nhyper; i++) {
-			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
-
-			if (eigv > 0.0) {
-				min_pos_eigenvalue = DMIN(min_pos_eigenvalue, eigv);
-			}
-		}
-		if (min_pos_eigenvalue == DBL_MAX) {
-			min_pos_eigenvalue = 1.0;	       /* if all are negative, zero included */
-		}
-		int a_change = 0, all_negative = 1;
-
-		for (i = 0; i < nhyper; i++) {
-			double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
-
-			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
-			if (eigv < 0.0) {
-				fprintf(stderr, "\n");
-				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
-				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
-				fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
-				fprintf(stderr, "\n");
-
-				gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
-				a_change += 1000;
-			}
-		}
-
-		if (a_change) {
-			if (misc_output) {
-				misc_output->mode_status += a_change;	/* not a 'good mode'... */
-			}
-		}
-
-		sqrt_eigen_values = gsl_vector_alloc((unsigned int) nhyper);
-		for (i = 0; i < nhyper; i++) {
-			gsl_vector_set(sqrt_eigen_values, (unsigned int) i, sqrt(gsl_vector_get(eigen_values, (unsigned int) i)));
-		}
-
-		if (a_change) {
 			/*
-			 * rebuild the Hessian using the new eigenvalues. I should have used matrix-multiplication routines, but I had this code already from
-			 * af-program.c ;-) In any case, the matrix is small...
+			 * check that the hessian is positive definite 
 			 */
-			if (all_negative) {
+			double min_pos_eigenvalue = DBL_MAX;
+			for (i = 0; i < nhyper; i++) {
+				double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
+
+				if (eigv > 0.0) {
+					min_pos_eigenvalue = DMIN(min_pos_eigenvalue, eigv);
+				}
+			}
+			if (min_pos_eigenvalue == DBL_MAX) {
+				min_pos_eigenvalue = 1.0;	       /* if all are negative, zero included */
+			}
+			int a_change = 0, all_negative = 1;
+
+			for (i = 0; i < nhyper; i++) {
+				double eigv = gsl_vector_get(eigen_values, (unsigned int) i);
+
+				all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
+				if (eigv < 0.0) {
+					fprintf(stderr, "\n");
+					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
+					fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
+					fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
+					fprintf(stderr, "\n");
+
+					gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
+					a_change += 1000;
+				}
+			}
+
+			if (a_change) {
+				if (misc_output) {
+					misc_output->mode_status += a_change;	/* not a 'good mode'... */
+				}
+			}
+
+			sqrt_eigen_values = gsl_vector_alloc((unsigned int) nhyper);
+			for (i = 0; i < nhyper; i++) {
+				gsl_vector_set(sqrt_eigen_values, (unsigned int) i, sqrt(gsl_vector_get(eigen_values, (unsigned int) i)));
+			}
+
+			if (a_change) {
 				/*
-				 * if all eigenvalues are negative, just set the Hessian to a diagonal matrix, and go on... 
+				 * rebuild the Hessian using the new eigenvalues. I should have used matrix-multiplication routines, but I had this code already from
+				 * af-program.c ;-) In any case, the matrix is small...
 				 */
+				if (all_negative) {
+					/*
+					 * if all eigenvalues are negative, just set the Hessian to a diagonal matrix, and go on... 
+					 */
 
-				fprintf(stderr,
-					"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
-				memset(hessian, 0, ISQR(nhyper) * sizeof(double));
-				for (i = 0; i < nhyper; i++)
-					hessian[i + i * nhyper] = 1.0;
-			} else {
-				// I have changed my mind. It is better to knock of all off-diagonal terms and just use the
-				// diagonal, we do not control anything about negative eigenvalue(s).
-				if (1) {
-					// new. revert back to a diagonal hessian
-					for (i = 0; i < nhyper; i++) {
-						hessian[i + i * nhyper] = DMAX(DBL_EPSILON, hessian[i + i * nhyper]);
-						for (j = i + 1; j < nhyper; j++) {
-							hessian[i + j * nhyper] = hessian[j + i * nhyper] = 0.0;
-						}
-					}
-					// need the new eigenvalues/vectors for futher calculations. its easy, we just compute
-					// them again.
-					for (i = 0; i < nhyper; i++) {
-						for (j = 0; j < nhyper; j++) {
-							gsl_matrix_set(H, (size_t) i, (size_t) j, hessian[i + nhyper * j]);
-						}
-					}
-					work = gsl_eigen_symmv_alloc((size_t) nhyper);
-					gsl_eigen_symmv(H, eigen_values, eigen_vectors, work);
-					gsl_eigen_symmv_free(work);
+					fprintf(stderr,
+						"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
+					memset(hessian, 0, ISQR(nhyper) * sizeof(double));
+					for (i = 0; i < nhyper; i++)
+						hessian[i + i * nhyper] = 1.0;
 				} else {
-					// old 
-					for (i = 0; i < nhyper; i++) {
-						for (j = i; j < nhyper; j++) {
-							double sum = 0.0;
-							for (k = 0; k < nhyper; k++) {
-								sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
-								    * gsl_vector_get(eigen_values, k);
+					// I have changed my mind. It is better to knock of all off-diagonal terms and just use the
+					// diagonal, we do not control anything about negative eigenvalue(s).
+					if (1) {
+						// new. revert back to a diagonal hessian
+						for (i = 0; i < nhyper; i++) {
+							hessian[i + i * nhyper] = DMAX(DBL_EPSILON, hessian[i + i * nhyper]);
+							for (j = i + 1; j < nhyper; j++) {
+								hessian[i + j * nhyper] = hessian[j + i * nhyper] = 0.0;
 							}
-							hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
 						}
-					}
-				}
-			}
-		}
-
-		/*
-		 * compute the inverse hessian, for scaling purposes 
-		 */
-		inverse_hessian = Calloc(ISQR(nhyper), double);
-		memcpy(inverse_hessian, hessian, ISQR(nhyper) * sizeof(double));
-		GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
-
-		if (misc_output) {
-			misc_output->nhyper = nhyper;
-			misc_output->cov_m = Calloc(ISQR(nhyper), double);
-			memcpy(misc_output->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
-			misc_output->log_posterior_mode = log_dens_mode;
-
-			/*
-			 * I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...). 
-			 */
-			misc_output->eigenvalues = Calloc(nhyper, double);
-			for (i = 0; i < nhyper; i++) {
-				misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the cov.mat not
-													 * hessian */
-			}
-			misc_output->eigenvectors = Calloc(ISQR(nhyper), double);
-			for (i = 0; i < nhyper; i++) {
-				for (j = 0; j < nhyper; j++) {
-					misc_output->eigenvectors[i + j * nhyper] = gsl_matrix_get(eigen_vectors, i, j);
-				}
-			}
-		}
-
-		if (ai_par->fp_log) {
-			/*
-			 * print the stdev/correlation matrix: stdevs on the diagonal and the correlations on the off-diagonal.
-			 */
-			int ii, jj;
-			double val;
-
-			fprintf(ai_par->fp_log, "StDev/Correlation matrix (scaled inverse Hessian)\n");
-			for (ii = 0; ii < nhyper; ii++) {
-				for (jj = 0; jj < nhyper; jj++) {
-					if (jj >= ii) {
-						if (ii == jj) {
-							val = sqrt(inverse_hessian[ii + jj * nhyper]);
-						} else {
-							val = inverse_hessian[ii + jj * nhyper] /
-							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
+						// need the new eigenvalues/vectors for futher calculations. its easy, we just compute
+						// them again.
+						for (i = 0; i < nhyper; i++) {
+							for (j = 0; j < nhyper; j++) {
+								gsl_matrix_set(H, (size_t) i, (size_t) j, hessian[i + nhyper * j]);
+							}
 						}
-						fprintf(ai_par->fp_log, " %7.3f", val);
+						work = gsl_eigen_symmv_alloc((size_t) nhyper);
+						gsl_eigen_symmv(H, eigen_values, eigen_vectors, work);
+						gsl_eigen_symmv_free(work);
 					} else {
-						fprintf(ai_par->fp_log, " %7s", "");
+						// old 
+						for (i = 0; i < nhyper; i++) {
+							for (j = i; j < nhyper; j++) {
+								double sum = 0.0;
+								for (k = 0; k < nhyper; k++) {
+									sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
+										* gsl_vector_get(eigen_values, k);
+								}
+								hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
+							}
+						}
 					}
 				}
-				fprintf(ai_par->fp_log, "\n");
 			}
+
+			/*
+			 * compute the inverse hessian, for scaling purposes 
+			 */
+			inverse_hessian = Calloc(ISQR(nhyper), double);
+			memcpy(inverse_hessian, hessian, ISQR(nhyper) * sizeof(double));
+			GMRFLib_comp_posdef_inverse(inverse_hessian, nhyper);
+
+			if (misc_output) {
+				misc_output->nhyper = nhyper;
+				misc_output->cov_m = Calloc(ISQR(nhyper), double);
+				memcpy(misc_output->cov_m, inverse_hessian, ISQR(nhyper) * sizeof(double));
+				misc_output->log_posterior_mode = log_dens_mode;
+
+				/*
+				 * I need these as well, as the correction terms needs it (and we need also the sign of the eigenvectors...). 
+				 */
+				misc_output->eigenvalues = Calloc(nhyper, double);
+				for (i = 0; i < nhyper; i++) {
+					misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the cov.mat not
+														 * hessian */
+				}
+				misc_output->eigenvectors = Calloc(ISQR(nhyper), double);
+				for (i = 0; i < nhyper; i++) {
+					for (j = 0; j < nhyper; j++) {
+						misc_output->eigenvectors[i + j * nhyper] = gsl_matrix_get(eigen_vectors, i, j);
+					}
+				}
+			}
+
+			if (ai_par->fp_log) {
+				/*
+				 * print the stdev/correlation matrix: stdevs on the diagonal and the correlations on the off-diagonal.
+				 */
+				int ii, jj;
+				double val;
+
+				fprintf(ai_par->fp_log, "StDev/Correlation matrix (scaled inverse Hessian)\n");
+				for (ii = 0; ii < nhyper; ii++) {
+					for (jj = 0; jj < nhyper; jj++) {
+						if (jj >= ii) {
+							if (ii == jj) {
+								val = sqrt(inverse_hessian[ii + jj * nhyper]);
+							} else {
+								val = inverse_hessian[ii + jj * nhyper] /
+									sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
+							}
+							fprintf(ai_par->fp_log, " %7.3f", val);
+						} else {
+							fprintf(ai_par->fp_log, " %7s", "");
+						}
+					}
+					fprintf(ai_par->fp_log, "\n");
+				}
+			}
+
+			// we need to save what we need from this section....
+			//
+			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+				assert(rpreopt);
+				rpreopt->hessian = hessian;
+				rpreopt->inverse_hessian = inverse_hessian;
+				rpreopt->H = H;
+				rpreopt->eigen_vectors = eigen_vectors;
+				rpreopt->eigen_values = eigen_values;
+				rpreopt->sqrt_eigen_values = sqrt_eigen_values;
+			}
+		} else {
+			//... and pick it up here
+			//
+			assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2);
+			assert(rpreopt);
+			hessian = rpreopt->hessian;
+			inverse_hessian = rpreopt->inverse_hessian;
+			H = rpreopt->H;
+			eigen_vectors = rpreopt->eigen_vectors; 
+			eigen_values = rpreopt->eigen_values;
+			sqrt_eigen_values = rpreopt->sqrt_eigen_values; 
+		}
+
+		if (preopt) {
+			// in this case, just save (x, theta) adding the predictors
+			preopt->mode_theta = Calloc(nhyper, double);
+			memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
+			preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
+			GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
+			GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
 		}
 
 		/*
@@ -5185,6 +5205,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				 */
 				double *theta_tmp = Calloc(nhyper, double), log_jacobian = 0.0;
 
+#define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * hyper_count])
+				if (rpreopt) {
+					rpreopt->int_design = Calloc(1, GMRFLib_matrix_tp);
+					rpreopt->int_design->nrow = hyper_count;
+					rpreopt->int_design->ncol = nhyper + 1;
+					rpreopt->int_design->A= Calloc(hyper_count * (nhyper + 1), double);
+				} 
+
 				if (eigen_values) {
 					for (k = 0; k < nhyper; k++) {
 						log_jacobian -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) k));
@@ -5200,7 +5228,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					}
 					fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
 						adj_weights[k]);
+
+					if (rpreopt) {
+						for (kk = 0; kk < nhyper; kk++) {
+							Amat(k, kk) = theta_tmp[kk];
+						}
+						Amat(k, nhyper) = adj_weights[k];
+					}
 				}
+#undef Amat
 				fflush(ai_par->fp_hyperparam);
 				Free(theta_tmp);
 			}
@@ -5328,9 +5364,24 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 	}
 
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
+		Free(hessian);
+		Free(inverse_hessian);
+		if (H) {
+			gsl_matrix_free(H);
+		}
+		if (eigen_vectors) {
+			gsl_matrix_free(eigen_vectors);
+		}
+		if (eigen_values) {
+			gsl_vector_free(eigen_values);
+		}
+		if (sqrt_eigen_values) {
+			gsl_vector_free(sqrt_eigen_values);
+		}
+	}
+	
 	Free(adj_weights);
-	Free(hessian);
-	Free(inverse_hessian);
 	Free(iz);
 	Free(iz_axes);
 	Free(izz);
@@ -5404,22 +5455,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	if (free_compute) {
 		Free(compute);
 	}
-	if (H) {
-		gsl_matrix_free(H);
-	}
-	if (eigen_vectors) {
-		gsl_matrix_free(eigen_vectors);
-	}
-	if (eigen_values) {
-		gsl_vector_free(eigen_values);
-	}
-	if (sqrt_eigen_values) {
-		gsl_vector_free(sqrt_eigen_values);
-	}
 	for (k = -1; (k = (int) map_strd_next(&hash_table, k)) != -1;) {
 		Free(hash_table.contents[k].key);	       /* the keys are alloced... */
 	}
-
 	map_strd_free(&hash_table);
 
 	Free(hyper_z);
