@@ -442,7 +442,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	GMRFLib_ASSERT(ai_store, GMRFLib_EPARAMETER);	       /* this is required */
 
 	GMRFLib_default_optimize_param(&optpar);
-	GMRFLib_default_blockupdate_param(&blockpar);
+	GMRFLib_default_blockupdate_param(&blockpar);	GMRFLib_default_blockupdate_param(&blockpar);
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
 		free_ai_par = 1;

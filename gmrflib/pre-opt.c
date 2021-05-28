@@ -558,6 +558,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->bfunc = bfunc;
 	(*preopt)->nf = (*preopt)->n - nbeta;
 	(*preopt)->nbeta = nbeta;
+	(*preopt)->initial_predictor = NULL;		       /* DISABLED: initial value can be set remotely through this ptr */
 
 	GMRFLib_graph_tp *g_arr[2];
 	g_arr[0] = (*preopt)->latent_graph;
@@ -822,12 +823,32 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		assert(preopt->mpred == 0);
 	}
 
-	for (int i = 0; i < preopt->npred; i++) {
-		if (preopt->A_idxval[i]) {
-			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) {
-				int idx = preopt->A_idxval[i]->store[jj].idx;
-				double val = preopt->A_idxval[i]->store[jj].val;
-				pred[offset + i] += val * latent[idx];
+	// DISABLE THIS
+	int all_zero = 0;
+	if (all_zero && preopt->initial_predictor) {
+		for (int i = 0; i < preopt->n; i++) {
+			if (latent[i]) {
+				all_zero = 0;
+				break;
+			}
+		}
+	} else {
+		all_zero = 0;
+	}
+	
+	if (all_zero && preopt->initial_predictor) {
+		// disabled
+		assert(0 == 1);
+		printf("\n\t-->override linear_predictor with initial values\n\n");
+		memcpy(pred + offset, preopt->initial_predictor, preopt->npred * sizeof(double));
+	} else {
+		for (int i = 0; i < preopt->npred; i++) {
+			if (preopt->A_idxval[i]) {
+				for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) {
+					int idx = preopt->A_idxval[i]->store[jj].idx;
+					double val = preopt->A_idxval[i]->store[jj].val;
+					pred[offset + i] += val * latent[idx];
+				}
 			}
 		}
 	}
@@ -920,7 +941,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	GMRFLib_graph_free(preopt->latent_graph);
 	GMRFLib_free_constr(preopt->latent_constr);
 	Free(preopt);
-
+	
 	return GMRFLib_SUCCESS;
 }
 

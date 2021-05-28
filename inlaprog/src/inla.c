@@ -30369,6 +30369,7 @@ int inla_INLA(inla_tp * mb)
 			inla_error_general(msg);
 		}
 		memcpy(x, mb->x_file, N * sizeof(double));
+
 		/*
 		 * subtract the offset 
 		 */
@@ -30576,7 +30577,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	assert(preopt->latent_graph->n == N);
 	
 	if (mb->verbose) {
-		printf("\tPreOpt: setup ........... [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tStage1 setup ............ [%.2fs]\n", GMRFLib_cpu() - tref);
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -30632,6 +30633,20 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	x = Calloc(N, double);
 
+	if (0) {
+		// we can set initial values here, which gives data-driven values to do the expansion around. these values are GMRFLib_thread_id
+		// spesific and only used once.
+		preopt->initial_predictor = Calloc(mb->predictor_ndata, double);
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (mb->d[i]) {
+				preopt->initial_predictor[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
+			} else {
+				preopt->initial_predictor[i] = 0.0;
+			}
+		}
+	}
+	
 	/*
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
@@ -30728,6 +30743,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	if (mb->verbose) {
+		printf("\tStage2................... \n");
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
