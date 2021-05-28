@@ -2376,7 +2376,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	}
 
 	int iter, itmax = optpar->max_iter;
-
 	/*
 	 * these tricks are currently disabled 
 	 */

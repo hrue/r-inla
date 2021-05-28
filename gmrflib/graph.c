@@ -586,10 +586,11 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
 	if (!is_sorted) {
-		GMRFLib_graph_sort(graph);
+		GMRFLib_graph_sort(graph); 		       /* must be before lnbs */
 	}
-	GMRFLib_add_lnbs_info(graph);			       /* must be the last one */
+	GMRFLib_add_lnbs_info(graph);			       /* must be before sha1 */
 	GMRFLib_graph_add_sha1(graph, skip_sha1);
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1553,6 +1554,21 @@ int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold
 
 int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
 {
+	GMRFLib_ged_tp *ged = NULL;
+
+	GMRFLib_ged_init(&ged, NULL);
+	for(int i = 0; i < n_graphs; i++){
+		GMRFLib_ged_insert_graph(ged, graph_array[i], 0);
+	}
+	GMRFLib_ged_build(union_graph, ged);
+	GMRFLib_graph_prepare(*union_graph, 0, 0);
+	GMRFLib_ged_free(ged);
+
+	return GMRFLib_SUCCESS;
+}
+	
+int GMRFLib_graph_union_OLD(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
+{
 	/*
 	 * return a new graph which is the union of n_graphs graphs: i~j in union_graph, if i~j in
 	 * graph_array[0]...graph_array[n_graphs-1] 
@@ -1851,8 +1867,7 @@ int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 		return GMRFLib_SUCCESS;
 	}
 #define LEN 64L
-#define IUPDATE(_x, _len) if ((_len) > 0 && (_x))			\
-	{								\
+#define IUPDATE(_x, _len) if ((_len) > 0 && (_x)) {			\
 		size_t len = (_len) * sizeof(int);			\
 		size_t n = (size_t) len / LEN;				\
 		size_t m = len - n * LEN;				\
@@ -1872,8 +1887,14 @@ int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 
 	IUPDATE(&(g->n), 1);
 	IUPDATE(g->nnbs, g->n);
-	for (int i = 0; i < g->n; i++) {
-		IUPDATE(g->nbs[i], g->nnbs[i]);
+	if (g->lnnbs) {
+		for (int i = 0; i < g->n; i++) {
+			IUPDATE(g->lnbs[i], g->lnnbs[i]);
+		}
+	} else {
+		for (int i = 0; i < g->n; i++) {
+			IUPDATE(g->nbs[i], g->nnbs[i]);
+		}
 	}
 	IUPDATE(g->mothergraph_idx, g->n);
 	SHA1_Final(md, &c);

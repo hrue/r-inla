@@ -189,6 +189,9 @@
 
     inla.only.for.developers(msg = "inla.my.update", strict = TRUE)
 
+    a <- inla.models()
+    rm(a)
+        
     if (Sys.getenv("USER") %in% "hrue") {
         dir.default <- "~/p/inla/r-inla/rinla/R"
         bin.default <- "~/bin"

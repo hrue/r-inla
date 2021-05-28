@@ -217,6 +217,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_graph_sort(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs);
+int GMRFLib_graph_union_OLD(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs);
 int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph);
