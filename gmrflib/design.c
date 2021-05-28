@@ -55,7 +55,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "designP.h"					       /* define the designs */
 
-int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors)
+int GMRFLib_design_get(GMRFLib_design_tp ** design, int nfactors)
 {
 	/*
 	 * return the CCD design with nfactors in design.  the the design computed as described in: Sanchez, S. M. and
@@ -101,7 +101,7 @@ int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale)
+int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale)
 {
 	/*
 	 * read the design from D
@@ -133,7 +133,7 @@ int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_free_design(GMRFLib_design_tp * design)
+int GMRFLib_design_free(GMRFLib_design_tp * design)
 {
 	if (design) {
 		int i;
@@ -149,7 +149,7 @@ int GMRFLib_free_design(GMRFLib_design_tp * design)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_print_design(FILE * fp, GMRFLib_design_tp * design)
+int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design)
 {
 	int i, j;
 
@@ -169,12 +169,80 @@ int GMRFLib_print_design(FILE * fp, GMRFLib_design_tp * design)
 	fprintf(fp, " weight\n");
 
 	for (i = 0; i < design->nexperiments; i++) {
-		fprintf(fp, "\t\t");
+		fprintf(fp, "\t%-.3d\t", i);
 		for (j = 0; j < design->nfactors; j++) {
 			fprintf(fp, " %6.3f", design->experiment[i][j]);
 		}
 		fprintf(fp, " %6.4f\n", design->int_weight[i]);
 	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
+{
+	if (!design) {
+		return GMRFLib_SUCCESS;
+	}
+
+	int i, debug = 0, *idx = NULL;
+	double *w= NULL, sumw = 0.0;
+
+	w = Calloc(design->nexperiments, double);
+	idx = Calloc(design->nexperiments, int);
+
+	int n = design->nexperiments, m;
+	
+	for (i = 0; i < n; i++) {
+		idx[i] = i;
+		w[i] = design->int_weight[i];
+		sumw += w[i];
+	}
+	for (i = 0; i < n; i++) {
+		w[i] /= sumw;
+	}
+
+	GMRFLib_qsorts(w, n, sizeof(double), idx, sizeof(int), NULL, 0, GMRFLib_dcmp_r);
+
+	sumw = 0.0;
+	for (i = 0; i < n; i++) {
+		sumw += w[i];
+		if (debug) {
+			printf("GMRFLib_design_prune: i idx w accw %d %d %f %f\n", i, idx[i], w[i], sumw);
+		}
+		if (sumw > prob) {
+			break;
+		}
+	}
+	m = i + 1;
+
+	double *ww = Calloc(m, double);
+	double **ex = Calloc(m, double *);
+	for(i = 0; i < m; i++){
+		ex[i] = Calloc(design->nfactors, double);
+	}
+
+	for(i = 0; i < m; i++) {
+		memcpy(ex[i], design->experiment[idx[i]], design->nfactors * sizeof(double));
+		ww[i] = design->int_weight[idx[i]];
+	}
+
+	sumw = 0;
+	for(i = 0; i < m; i++) {
+		sumw += ww[i];
+	}
+	for(i = 0; i < m; i++) {
+		ww[i] /= sumw;
+	}
+
+	for (i = 0; i < design->nexperiments; i++) {
+		Free(design->experiment[i]);
+	}
+	Free(design->int_weight);
+
+	design->experiment = ex;
+	design->int_weight = ww;
+	design->nexperiments = m;
 
 	return GMRFLib_SUCCESS;
 }

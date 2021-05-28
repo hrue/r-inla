@@ -69,10 +69,11 @@ typedef struct {
 								* is the normal case */
 } GMRFLib_design_tp;
 
-int GMRFLib_get_design(GMRFLib_design_tp ** design, int nfactors);
-int GMRFLib_read_design(GMRFLib_design_tp ** design, GMRFLib_matrix_tp *D, int std_scale);
-int GMRFLib_free_design(GMRFLib_design_tp * design);
-int GMRFLib_print_design(FILE * fp, GMRFLib_design_tp * design);
+int GMRFLib_design_get(GMRFLib_design_tp ** design, int nfactors);
+int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp *D, int std_scale);
+int GMRFLib_design_free(GMRFLib_design_tp * design);
+int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design);
+int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob);
 
 __END_DECLS
 #endif

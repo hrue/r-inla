@@ -342,7 +342,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 		fprintf(fp, "Use user-defined expert integration points and weights\n");
 	}
-	GMRFLib_print_design(fp, ai_par->int_design);
+	GMRFLib_design_print(fp, ai_par->int_design);
 
 	fprintf(fp, "\t\tf0 (CCD only):\t %.3f\n", ai_par->f0);
 	fprintf(fp, "\t\tdz (GRID only):\t %.3f\n", ai_par->dz);
@@ -4009,7 +4009,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			GMRFLib_design_tp *design = NULL;
 
 			if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
-				GMRFLib_get_design(&design, nhyper);
+				GMRFLib_design_get(&design, nhyper);
 			} else {
 				design = ai_par->int_design;
 			}
@@ -5224,12 +5224,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 */
 			double *theta_tmp = Calloc(nhyper, double), log_jacobian = 0.0;
 			
-#define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * hyper_count])
-			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+#define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * (rpreopt->int_design->nrow)])
+			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1 && nhyper > 0) {
 				rpreopt->int_design = Calloc(1, GMRFLib_matrix_tp);
-				rpreopt->int_design->nrow = hyper_count;
+				rpreopt->int_design->nrow = IMAX(1, hyper_count);
 				rpreopt->int_design->ncol = nhyper + 1;
-				rpreopt->int_design->A= Calloc(hyper_count * (nhyper + 1), double);
+				rpreopt->int_design->A = Calloc(rpreopt->int_design->nrow * rpreopt->int_design->ncol, double);
 			} 
 
 			if (eigen_values) {
@@ -5238,22 +5238,31 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 			
-			for (k = 0; k < hyper_count; k++) {
-				int kk;
-
-				GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
-				if (ai_par->fp_hyperparam) {
-					for (kk = 0; kk < nhyper; kk++) {
-						fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
-					}
-					fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
-						adj_weights[k]);
-				}
+			if (nhyper > 0 && hyper_count == 0) {
 				if (rpreopt) {
-					for (kk = 0; kk < nhyper; kk++) {
-						Amat(k, kk) = theta_tmp[kk];
+					for (int kk = 0; kk < nhyper; kk++) {
+						Amat(0, kk) = theta_mode[kk];
 					}
-					Amat(k, nhyper) = adj_weights[k];
+					Amat(0, nhyper) = 1.0;
+				}
+			} else {
+				for (k = 0; k < hyper_count; k++) {
+					int kk;
+					
+					GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
+					if (ai_par->fp_hyperparam) {
+						for (kk = 0; kk < nhyper; kk++) {
+							fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
+						}
+						fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
+							adj_weights[k]);
+					}
+					if (rpreopt) {
+						for (kk = 0; kk < nhyper; kk++) {
+							Amat(k, kk) = theta_tmp[kk];
+						}
+						Amat(k, nhyper) = adj_weights[k];
+					}
 				}
 			}
 #undef Amat

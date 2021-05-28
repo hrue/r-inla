@@ -26080,7 +26080,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		if (my_file_exists(filename) != INLA_OK)
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "int.design", filename);
 		D = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
-		GMRFLib_read_design(&(mb->ai_par->int_design), D, (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ? 1 : 0));
+		GMRFLib_design_read(&(mb->ai_par->int_design), D, (mb->ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ? 1 : 0));
 		GMRFLib_matrix_free(D);
 	} else {
 		// Just mark it as read
@@ -30550,10 +30550,6 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	GMRFLib_density_storage_strategy = storage_scheme;
 	GMRFLib_openmp->strategy = mb->strategy;
 
-	if (mb->verbose) {
-		printf("\tPreOpt: stage 1..........\n");
-	}
-
 	compute = Calloc(N, char);
 	b = Calloc(N, double);
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
@@ -30662,8 +30658,15 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	if (rpreopt->int_design) {
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_EXPERT;
 		GMRFLib_design_tp *design = NULL;
-		GMRFLib_read_design(&design, rpreopt->int_design, 0);
-		GMRFLib_print_design(stdout, design);
+		GMRFLib_design_read(&design, rpreopt->int_design, 0);
+		if (mb->verbose) {
+			GMRFLib_design_print(stdout, design);
+			printf("\nPrune design with prob=0.95\n");
+		}
+		GMRFLib_design_prune(design, 0.95);
+		if (mb->verbose) {
+			GMRFLib_design_print(stdout, design);
+		}
 		mb->ai_par->int_design = design;
 	}
 
@@ -31274,8 +31277,8 @@ int inla_INLA_preopt(inla_tp * mb)
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_EXPERT;
 
 		GMRFLib_design_tp *design = NULL;
-		GMRFLib_read_design(&design, rpreopt->int_design, 0);
-		GMRFLib_print_design(stdout, design);
+		GMRFLib_design_read(&design, rpreopt->int_design, 0);
+		GMRFLib_design_print(stdout, design);
 		mb->ai_par->int_design = design;
 		exit(88);
 	}
@@ -35564,8 +35567,8 @@ int testit(int argc, char **argv)
 		GMRFLib_design_tp *design = Calloc(1, GMRFLib_design_tp);
 		int nf = atoi(args[0]);
 
-		GMRFLib_get_design(&design, nf);
-		GMRFLib_print_design(stdout, design);
+		GMRFLib_design_get(&design, nf);
+		GMRFLib_design_print(stdout, design);
 		break;
 	}
 
@@ -36056,7 +36059,7 @@ int main(int argc, char **argv)
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
 	double eff_nt;
-	clock_t atime_used[4];
+	clock_t atime_used[4] = {0, 0, 0, 0};
 	inla_tp *mb = NULL;
 
 	int host_max_threads = omp_get_max_threads();
@@ -36549,8 +36552,8 @@ int main(int argc, char **argv)
 					printf("\tApprox inference         : %7.3f seconds\n", time_used[1]);
 				} else {
 					printf("\tApprox inference (stage1): %7.3f seconds\n", time_used[3]);
-					printf("\tApprox inference (stage2): %7.3f seconds\n", time_used[1]);
-					printf("\tApprox inference (total) : %7.3f seconds\n", time_used[1] + time_used[3]);
+					printf("\tApprox inference (stage2): %7.3f seconds\n", time_used[1] - time_used[3]);
+					printf("\tApprox inference (total) : %7.3f seconds\n", time_used[1]);
 				}
 				fflush(stdout);
 			}
@@ -36574,7 +36577,7 @@ int main(int argc, char **argv)
 				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
 				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
 				printf("Stage2:");			\
-				eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
+				eff_nt = ((double)(atime_used[0] + atime_used[1] - atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1] - time_used[3]); \
 				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
 				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
 				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
@@ -36599,8 +36602,8 @@ int main(int argc, char **argv)
 					printf("\tApprox inference         : %7.3f seconds\n", time_used[1]);
 				} else {
 					printf("\tApprox inference (stage1): %7.3f seconds\n", time_used[3]);
-					printf("\tApprox inference (stage2): %7.3f seconds\n", time_used[1]);
-					printf("\tApprox inference (total) : %7.3f seconds\n", time_used[1] + time_used[3]);
+					printf("\tApprox inference (stage2): %7.3f seconds\n", time_used[1] - time_used[3]);
+					printf("\tApprox inference (total) : %7.3f seconds\n", time_used[1]);
 				}
 				printf("\tOutput                   : %7.3f seconds\n", time_used[2]);
 				printf("\t------------------------------------------\n");
@@ -36627,7 +36630,7 @@ int main(int argc, char **argv)
 					if (rgeneric_cpu[1] > 0.0) {
 						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
 						       rgeneric_cpu[1], 
-						       rgeneric_cpu[1] / IMAX(1, nfunc[1]), rgeneric_cpu[1] / time_used[1] * 100.0);
+						       rgeneric_cpu[1] / IMAX(1, nfunc[1]), rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
 					
