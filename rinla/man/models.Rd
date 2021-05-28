@@ -7443,7 +7443,7 @@ inla.models()
 							\item{hyperid = }{`79001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0.1'}
+							\item{initial = }{`-2'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
@@ -7471,7 +7471,7 @@ inla.models()
 							\item{hyperid = }{`79101'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0.1'}
+							\item{initial = }{`-2'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
