@@ -3756,144 +3756,163 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			nlin = 0;
 		}
 
-		/*
-		 * compute the corrected scalings/stdevs, if required. 
-		 */
-		if ((ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD)
-		    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper &&
-			(ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE))
-		    // as the scalings are used for the inla.sample.hyper() function... and they do not take much time in any case
-		    || 1) {
-			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper, NULL);
-
-			stdev_corr_pos = Calloc(nhyper, double);
-			stdev_corr_neg = Calloc(nhyper, double);
-
+		if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 			/*
-			 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
+			 * compute the corrected scalings/stdevs, if required. 
 			 */
-			if (omp_get_max_threads() > nhyper) {
+			if ((ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD)
+			    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper &&
+				(ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE))
+			    // as the scalings are used for the inla.sample.hyper() function... and they do not take much time in any case
+			    || 1) {
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper, NULL);
+
+				stdev_corr_pos = Calloc(nhyper, double);
+				stdev_corr_neg = Calloc(nhyper, double);
+
+				/*
+				 * two versions: 1. a nhyper loop, 2. a 2*nhyper loop. 
+				 */
+				if (omp_get_max_threads() > nhyper) {
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
-				for (k = 0; k < 2 * nhyper; k++) {
+					for (k = 0; k < 2 * nhyper; k++) {
 
-					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
-					int kk, opt;
-					GMRFLib_ai_store_tp *s = NULL;
+						double f0, *zz = NULL, *ttheta = NULL, llog_dens;
+						int kk, opt;
+						GMRFLib_ai_store_tp *s = NULL;
 
-					if (k < nhyper) {
-						kk = k;
-						opt = 0;
-					} else {
-						kk = k - nhyper;
-						opt = 1;
-					}
-					zz = Calloc(nhyper, double);
-					ttheta = Calloc(nhyper, double);
-					memset(zz, 0, nhyper * sizeof(double));
-					GMRFLib_thread_id = omp_get_thread_num();
-
-					if (omp_in_parallel()) {
-						if (!ais[GMRFLib_thread_id]) {
-							ais[GMRFLib_thread_id] =
-							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						if (k < nhyper) {
+							kk = k;
+							opt = 0;
+						} else {
+							kk = k - nhyper;
+							opt = 1;
 						}
-						s = ais[GMRFLib_thread_id];
-					} else {
-						s = ai_store;  /* the common one */
-					}
+						zz = Calloc(nhyper, double);
+						ttheta = Calloc(nhyper, double);
+						memset(zz, 0, nhyper * sizeof(double));
+						GMRFLib_thread_id = omp_get_thread_num();
 
-					if (opt == 0) {
-						zz[kk] = 2.0;
+						if (omp_in_parallel()) {
+							if (!ais[GMRFLib_thread_id]) {
+								ais[GMRFLib_thread_id] =
+									GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+							}
+							s = ais[GMRFLib_thread_id];
+						} else {
+							s = ai_store;  /* the common one */
+						}
+
+						if (opt == 0) {
+							zz[kk] = 2.0;
+							GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
+							GMRFLib_opt_f_intern(ttheta, &llog_dens, &ierr, s, NULL, NULL);
+							llog_dens *= -1.0;
+							f0 = log_dens_mode - llog_dens;
+							stdev_corr_pos[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+						} else {
+							zz[kk] = -2.0;
+							GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
+							GMRFLib_opt_f_intern(ttheta, &llog_dens, &ierr, s, NULL, NULL);
+							llog_dens *= -1.0;
+							f0 = log_dens_mode - llog_dens;
+							stdev_corr_neg[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+						}
+
+						Free(zz);
+						Free(ttheta);
+					}
+				} else {
+#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
+					for (k = 0; k < nhyper; k++) {
+
+						double f0, *zz = NULL, *ttheta = NULL, llog_dens;
+						GMRFLib_ai_store_tp *s = NULL;
+
+						zz = Calloc(nhyper, double);
+						ttheta = Calloc(nhyper, double);
+						memset(zz, 0, nhyper * sizeof(double));
+						GMRFLib_thread_id = omp_get_thread_num();
+
+						if (omp_in_parallel()) {
+							if (!ais[GMRFLib_thread_id]) {
+								ais[GMRFLib_thread_id] =
+									GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+							}
+							s = ais[GMRFLib_thread_id];
+						} else {
+							s = ai_store;  /* the common one */
+						}
+
+						zz[k] = 2.0;
 						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 						GMRFLib_opt_f_intern(ttheta, &llog_dens, &ierr, s, NULL, NULL);
 						llog_dens *= -1.0;
 						f0 = log_dens_mode - llog_dens;
-						stdev_corr_pos[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
-					} else {
-						zz[kk] = -2.0;
+						stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+
+						zz[k] = -2.0;
 						GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 						GMRFLib_opt_f_intern(ttheta, &llog_dens, &ierr, s, NULL, NULL);
 						llog_dens *= -1.0;
 						f0 = log_dens_mode - llog_dens;
-						stdev_corr_neg[kk] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
-					}
+						stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
 
-					Free(zz);
-					Free(ttheta);
+						Free(zz);
+						Free(ttheta);
+					}
+				}
+
+				if (misc_output) {
+					misc_output->stdev_corr_pos = Calloc(nhyper, double);
+					memcpy(misc_output->stdev_corr_pos, stdev_corr_pos, nhyper * sizeof(double));
+					misc_output->stdev_corr_neg = Calloc(nhyper, double);
+					memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
 				}
 			} else {
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
-				for (k = 0; k < nhyper; k++) {
-
-					double f0, *zz = NULL, *ttheta = NULL, llog_dens;
-					GMRFLib_ai_store_tp *s = NULL;
-
-					zz = Calloc(nhyper, double);
-					ttheta = Calloc(nhyper, double);
-					memset(zz, 0, nhyper * sizeof(double));
-					GMRFLib_thread_id = omp_get_thread_num();
-
-					if (omp_in_parallel()) {
-						if (!ais[GMRFLib_thread_id]) {
-							ais[GMRFLib_thread_id] =
-							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
-						}
-						s = ais[GMRFLib_thread_id];
-					} else {
-						s = ai_store;  /* the common one */
+				// just fill with 1's
+				if (misc_output) {
+					// these are now computed, hence we use the Gaussian approximation
+					misc_output->stdev_corr_pos = Calloc(nhyper, double);
+					misc_output->stdev_corr_neg = Calloc(nhyper, double);
+					stdev_corr_pos = Calloc(nhyper, double);
+					stdev_corr_neg = Calloc(nhyper, double);
+					for (k = 0; k < nhyper; k++) {
+						stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] =
+							misc_output->stdev_corr_neg[k] = 1.0;
 					}
-
-					zz[k] = 2.0;
-					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-					GMRFLib_opt_f_intern(ttheta, &llog_dens, &ierr, s, NULL, NULL);
-					llog_dens *= -1.0;
-					f0 = log_dens_mode - llog_dens;
-					stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
-
-					zz[k] = -2.0;
-					GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-					GMRFLib_opt_f_intern(ttheta, &llog_dens, &ierr, s, NULL, NULL);
-					llog_dens *= -1.0;
-					f0 = log_dens_mode - llog_dens;
-					stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
-
-					Free(zz);
-					Free(ttheta);
+				} else {
+					stdev_corr_pos = Calloc(nhyper, double);
+					stdev_corr_neg = Calloc(nhyper, double);
+					for (k = 0; k < nhyper; k++) {
+						stdev_corr_pos[k] = stdev_corr_neg[k] = 1.0;
+					}
 				}
-			}
-
-			for (k = 0; k < nhyper; k++) {
-				if (ai_par->fp_log) {
-					fprintf(ai_par->fp_log,
-						"Compute corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n", k,
-						stdev_corr_neg[k], stdev_corr_pos[k]);
-				}
-			}
-
-			if (misc_output) {
-				misc_output->stdev_corr_pos = Calloc(nhyper, double);
-				memcpy(misc_output->stdev_corr_pos, stdev_corr_pos, nhyper * sizeof(double));
-				misc_output->stdev_corr_neg = Calloc(nhyper, double);
-				memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
 			}
 		} else {
-			// just fill with 1's
-			if (misc_output) {
-				// these are now computed, hence we use the Gaussian approximation
+			assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2);
+		}
+		
+		if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+			rpreopt->stdev_corr_neg = stdev_corr_neg;
+			rpreopt->stdev_corr_pos = stdev_corr_pos;
+		} else if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) {
+			stdev_corr_neg = rpreopt->stdev_corr_neg;
+			stdev_corr_pos = rpreopt->stdev_corr_pos;
+			if (misc_output && !(misc_output->stdev_corr_pos)) {
 				misc_output->stdev_corr_pos = Calloc(nhyper, double);
 				misc_output->stdev_corr_neg = Calloc(nhyper, double);
-				stdev_corr_pos = Calloc(nhyper, double);
-				stdev_corr_neg = Calloc(nhyper, double);
-				for (k = 0; k < nhyper; k++) {
-					stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] =
-					    misc_output->stdev_corr_neg[k] = 1.0;
-				}
-			} else {
-				stdev_corr_pos = Calloc(nhyper, double);
-				stdev_corr_neg = Calloc(nhyper, double);
-				for (k = 0; k < nhyper; k++) {
-					stdev_corr_pos[k] = stdev_corr_neg[k] = 1.0;
-				}
+				memcpy(misc_output->stdev_corr_pos, stdev_corr_pos, nhyper * sizeof(double));
+				memcpy(misc_output->stdev_corr_neg, stdev_corr_neg, nhyper * sizeof(double));
+			}
+		}
+
+		for (k = 0; k < nhyper; k++) {
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log,
+					"%s corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n", 
+					(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2 ? "Retrive" : "Compute"), 
+					k, stdev_corr_neg[k], stdev_corr_pos[k]);
 			}
 		}
 
@@ -3907,6 +3926,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 		}
+
 		// need to reset this, as ai_store is not set correctly
 		if (x_mode) {
 			memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
@@ -5199,47 +5219,49 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				std_stdev_theta[k] = sqrt(inverse_hessian[k + nhyper * k]);
 			}
 
-			if (ai_par->fp_hyperparam) {
-				/*
-				 * write out the hole set 
-				 */
-				double *theta_tmp = Calloc(nhyper, double), log_jacobian = 0.0;
-
+			/*
+			 * write out the hole set 
+			 */
+			double *theta_tmp = Calloc(nhyper, double), log_jacobian = 0.0;
+			
 #define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * hyper_count])
-				if (rpreopt) {
-					rpreopt->int_design = Calloc(1, GMRFLib_matrix_tp);
-					rpreopt->int_design->nrow = hyper_count;
-					rpreopt->int_design->ncol = nhyper + 1;
-					rpreopt->int_design->A= Calloc(hyper_count * (nhyper + 1), double);
-				} 
+			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+				rpreopt->int_design = Calloc(1, GMRFLib_matrix_tp);
+				rpreopt->int_design->nrow = hyper_count;
+				rpreopt->int_design->ncol = nhyper + 1;
+				rpreopt->int_design->A= Calloc(hyper_count * (nhyper + 1), double);
+			} 
 
-				if (eigen_values) {
-					for (k = 0; k < nhyper; k++) {
-						log_jacobian -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) k));
-					}
+			if (eigen_values) {
+				for (k = 0; k < nhyper; k++) {
+					log_jacobian -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) k));
 				}
-				for (k = 0; k < hyper_count; k++) {
-					int kk;
+			}
+			
+			for (k = 0; k < hyper_count; k++) {
+				int kk;
 
-					GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
-					// fprintf(ai_par->fp_hyperparam, "%s: ", __GMRFLib_FuncName);
+				GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
+				if (ai_par->fp_hyperparam) {
 					for (kk = 0; kk < nhyper; kk++) {
 						fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
 					}
 					fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
 						adj_weights[k]);
-
-					if (rpreopt) {
-						for (kk = 0; kk < nhyper; kk++) {
-							Amat(k, kk) = theta_tmp[kk];
-						}
-						Amat(k, nhyper) = adj_weights[k];
-					}
 				}
-#undef Amat
-				fflush(ai_par->fp_hyperparam);
-				Free(theta_tmp);
+				if (rpreopt) {
+					for (kk = 0; kk < nhyper; kk++) {
+						Amat(k, kk) = theta_tmp[kk];
+					}
+					Amat(k, nhyper) = adj_weights[k];
+				}
 			}
+#undef Amat
+			if (ai_par->fp_hyperparam) {
+				fflush(ai_par->fp_hyperparam);
+			}
+			Free(theta_tmp);
+
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log,
 					"\tCompute the marginal for theta[%1d] to theta[%1d] using numerical integration...\n", 0, nhyper - 1);
@@ -5365,6 +5387,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	}
 
 	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
+		Free(stdev_corr_neg);
+		Free(stdev_corr_pos);
 		Free(hessian);
 		Free(inverse_hessian);
 		if (H) {
@@ -5390,8 +5414,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	Free(k_min);
 	Free(k_minn);
 	Free(len);
-	Free(stdev_corr_neg);
-	Free(stdev_corr_pos);
 	Free(theta);
 	Free(theta_mode);
 	Free(userfunc_values);

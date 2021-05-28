@@ -72,6 +72,8 @@ typedef struct
 	GMRFLib_matrix_tp *int_design;
 	double *hessian;
 	double *inverse_hessian;
+	double *stdev_corr_neg;
+	double *stdev_corr_pos;
 	gsl_matrix *H;
 	gsl_matrix *eigen_vectors;
 	gsl_vector *eigen_values;
