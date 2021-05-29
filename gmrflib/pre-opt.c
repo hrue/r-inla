@@ -739,6 +739,18 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	double value = 0.0;
 	int imin, imax, diag;
 
+	double dadd = 1000.0;
+	static int first_time = 1;
+	static int *dadd_done = NULL;
+
+	if (first_time) {
+#pragma omp critical
+		if (first_time) {
+			dadd_done = Calloc(GMRFLib_MAX_THREADS, int);
+			first_time = 0;
+		}
+	}
+
 	imin = IMIN(node, nnode);
 	imax = IMAX(node, nnode);
 	diag = (imin == imax);
@@ -748,6 +760,12 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	}
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
 		value += a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);
+	}
+
+	if (diag && !dadd_done[GMRFLib_thread_id]) {
+		value += dadd;
+		dadd_done[GMRFLib_thread_id] = 1;
+		printf("done with id %d\n", GMRFLib_thread_id);
 	}
 
 	return value;
