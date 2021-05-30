@@ -144,7 +144,6 @@ typedef struct {
 
 	double *mode_theta;
 	double *mode_x;
-	double *initial_predictor;
 } GMRFLib_preopt_tp;
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);

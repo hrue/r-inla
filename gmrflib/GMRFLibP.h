@@ -287,6 +287,22 @@ typedef enum {
 					 (omp_get_thread_num() + GMRFLib_MAX_THREADS * GMRFLib_thread_id)); \
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
+
+#define RUN_CODE_BLOCK(thread_max_) if (1) {				\
+		int id__ = GMRFLib_thread_id;				\
+		int nt__ = (omp_in_parallel() ? GMRFLib_openmp->max_threads_inner :  GMRFLib_openmp->max_threads_outer); \
+		int tmax__ = thread_max_;				\
+		nt__ = IMIN(nt__, tmax__);				\
+		if (nt__ > 1) {						\
+			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
+				CODE_BLOCK;				\
+		} else {						\
+			CODE_BLOCK;					\
+		}							\
+		GMRFLib_thread_id = id__;				\
+        }
+
+
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 
    Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the

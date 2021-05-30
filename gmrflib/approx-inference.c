@@ -2428,19 +2428,21 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		memset(bcoof, 0, Npred * sizeof(double));
 		memset(ccoof, 0, Npred * sizeof(double));
 
-#pragma omp parallel for private(i) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nidx; i++) {
-			int idx;
-
-			GMRFLib_thread_id = id;
-			idx = idxs[i];
-			GMRFLib_2order_approx(&(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
-					      loglFunc_arg, &(optpar->step_len), &(optpar->stencil), &cmin);
+#define CODE_BLOCK							\
+		for (i = 0; i < nidx; i++) {				\
+			int idx;					\
+			GMRFLib_thread_id = id;				\
+			idx = idxs[i];					\
+			GMRFLib_2order_approx(&(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
-
+		
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS);
+#undef CODE_BLOCK
+		
 		for (i = 0; i < nidx; i++) {
 			int idx;
-
 			idx = idxs[i];
 			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0);	/* this line IS OK! also for multithread.. */
 			if (cc_positive) {
@@ -5726,15 +5728,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			}						\
 		}
 
-		if (omp_in_parallel()) {
-			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i, ii) num_threads(GMRFLib_openmp->max_threads_inner)
-			CODE_BLOCK;
-		} else {
-#pragma omp parallel for private(i, ii) num_threads(GMRFLib_openmp->max_threads_outer)
-			CODE_BLOCK;
-		}
-		GMRFLib_thread_id = id;
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS);
 #undef CODE_BLOCK
 
 		double *c_diag = Calloc(graph->n, double);
@@ -5786,15 +5780,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			}						\
 			Free(local_work); }
 
-		if (omp_in_parallel()) {
-			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_inner)
-			CODE_BLOCK;
-		} else {
-#pragma omp parallel for private(i, j) num_threads(GMRFLib_openmp->max_threads_outer)
-			CODE_BLOCK;
-		}
-		GMRFLib_thread_id = id;
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS);
 #undef CODE_BLOCK
 
 		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);

@@ -41,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define LOCAL_THREAD_MAX 4				       /* we have relative simple loops, just slow to go to high */
+#define LOCAL_MAX_THREADS 4				       /* we have relative simple loops, just slow to go to high */
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
@@ -255,7 +255,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
 	}
-	nt = IMIN(LOCAL_THREAD_MAX, nt);		       /* just worse of going to high */
+	nt = IMIN(LOCAL_MAX_THREADS, nt);		       /* just worse of going to high */
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
 #pragma omp parallel for private (i, jj) num_threads(nt) schedule(static)
@@ -558,7 +558,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->bfunc = bfunc;
 	(*preopt)->nf = (*preopt)->n - nbeta;
 	(*preopt)->nbeta = nbeta;
-	(*preopt)->initial_predictor = NULL;		       /* DISABLED: initial value can be set remotely through this ptr */
 
 	GMRFLib_graph_tp *g_arr[2];
 	g_arr[0] = (*preopt)->latent_graph;
@@ -739,18 +738,6 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	double value = 0.0;
 	int imin, imax, diag;
 
-	double dadd = 1000.0;
-	static int first_time = 1;
-	static int *dadd_done = NULL;
-
-	if (first_time) {
-#pragma omp critical
-		if (first_time) {
-			dadd_done = Calloc(GMRFLib_MAX_THREADS, int);
-			first_time = 0;
-		}
-	}
-
 	imin = IMIN(node, nnode);
 	imax = IMAX(node, nnode);
 	diag = (imin == imax);
@@ -760,12 +747,6 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	}
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
 		value += a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);
-	}
-
-	if (diag && !dadd_done[GMRFLib_thread_id]) {
-		value += dadd;
-		dadd_done[GMRFLib_thread_id] = 1;
-		printf("done with id %d\n", GMRFLib_thread_id);
 	}
 
 	return value;
@@ -792,26 +773,22 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		assert(preopt->mpred == 0);
 	}
 
-	int nt = -1;
-	if (omp_in_parallel()) {
-		nt = GMRFLib_openmp->max_threads_inner;
-	} else {
-		nt = GMRFLib_openmp->max_threads_outer;
+#define CODE_BLOCK						\
+	for (int i = 0; i < preopt->n; i++) {			\
+		double val;					\
+		int idx;					\
+		if (A[i]) {					\
+			for (int jj = 0; jj < A[i]->n; jj++) {	\
+				idx = A[i]->store[jj].idx;	\
+				val = A[i]->store[jj].val;	\
+				bnew[i] += blike[idx] * val;	\
+			}					\
+		}						\
 	}
-	nt = IMIN(nt, LOCAL_THREAD_MAX);
 
-#pragma omp parallel for num_threads(nt) schedule(static)
-	for (int i = 0; i < preopt->n; i++) {
-		double val;
-		int idx;
-		if (A[i]) {
-			for (int jj = 0; jj < A[i]->n; jj++) {
-				idx = A[i]->store[jj].idx;
-				val = A[i]->store[jj].val;
-				bnew[i] += blike[idx] * val;
-			}
-		}
-	}
+	RUN_CODE_BLOCK(LOCAL_MAX_THREADS);
+#undef CODE_BLOCK
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -841,32 +818,12 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		assert(preopt->mpred == 0);
 	}
 
-	// DISABLE THIS
-	int all_zero = 0;
-	if (all_zero && preopt->initial_predictor) {
-		for (int i = 0; i < preopt->n; i++) {
-			if (latent[i]) {
-				all_zero = 0;
-				break;
-			}
-		}
-	} else {
-		all_zero = 0;
-	}
-	
-	if (all_zero && preopt->initial_predictor) {
-		// disabled
-		assert(0 == 1);
-		printf("\n\t-->override linear_predictor with initial values\n\n");
-		memcpy(pred + offset, preopt->initial_predictor, preopt->npred * sizeof(double));
-	} else {
-		for (int i = 0; i < preopt->npred; i++) {
-			if (preopt->A_idxval[i]) {
-				for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) {
-					int idx = preopt->A_idxval[i]->store[jj].idx;
-					double val = preopt->A_idxval[i]->store[jj].val;
-					pred[offset + i] += val * latent[idx];
-				}
+	for (int i = 0; i < preopt->npred; i++) {
+		if (preopt->A_idxval[i]) {
+			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) {
+				int idx = preopt->A_idxval[i]->store[jj].idx;
+				double val = preopt->A_idxval[i]->store[jj].val;
+				pred[offset + i] += val * latent[idx];
 			}
 		}
 	}
@@ -988,4 +945,4 @@ int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
 	return GMRFLib_SUCCESS;
 }
 
-#undef LOCAL_THREAD_MAX
+#undef LOCAL_MAX_THREADS

@@ -30635,20 +30635,6 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 
 	if (mb->reuse_mode && mb->x_file) {
 		memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
-	} else {
-		if (0) {
-			// we can set initial values here, which gives data-driven values to do the expansion around. these values are GMRFLib_thread_id
-			// spesific and only used once.
-			preopt->initial_predictor = Calloc(mb->predictor_ndata, double);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-			for (i = 0; i < mb->predictor_ndata; i++) {
-				if (mb->d[i]) {
-					preopt->initial_predictor[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
-				} else {
-					preopt->initial_predictor[i] = 0.0;
-				}
-			}
-		}
 	}
 	
 	/*
