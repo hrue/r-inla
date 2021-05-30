@@ -30666,7 +30666,9 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 		GMRFLib_design_read(&design, rpreopt->int_design, 0);
 		if (mb->verbose) {
 			GMRFLib_design_print(stdout, design);
-			printf("\nPrune design with prob=0.95\n");
+		}
+		if (mb->verbose) {
+			printf("\tPrune design: prob=0.95\n");
 		}
 		GMRFLib_design_prune(design, 0.95);
 		if (mb->verbose) {

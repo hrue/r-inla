@@ -1862,7 +1862,8 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 
 int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 {
-	if (skip_sha1) {
+	if (skip_sha1 || g->n == 0) {
+		Free(g->sha1);
 		g->sha1 = NULL;
 		return GMRFLib_SUCCESS;
 	}
@@ -1899,6 +1900,7 @@ int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 	IUPDATE(g->mothergraph_idx, g->n);
 	SHA1_Final(md, &c);
 	md[SHA_DIGEST_LENGTH] = '\0';
+	Free(g->sha1);
 	g->sha1 = md;
 #undef IUPDATE
 	return GMRFLib_SUCCESS;

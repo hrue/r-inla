@@ -629,16 +629,17 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				Free(aat_m);
 				Free(tmp_vector);
 
-				if (con->sha1 && constr_store_use) {
-					if (constr_store_debug) {
-						printf("constr_store: store value %f\n", (*problem)->logdet_aat);
-					}
+				if (constr_store_use) {
+					if (!(con->sha1)) {
+						if (constr_store_debug) {
+							printf("constr_store: value computed %f, but not set\n", (*problem)->logdet_aat);
+						}
+					} else if (con->sha1) {
+						if (constr_store_debug) {
+							printf("constr_store: store value %f\n", (*problem)->logdet_aat);
+						}
 #pragma omp critical
-					map_strd_set(&constr_store, (char *) con->sha1, (*problem)->logdet_aat);
-				}
-				if (!(con->sha1) && constr_store_use) {
-					if (constr_store_debug) {
-						printf("constr_store: value computed %f, but not set\n", (*problem)->logdet_aat);
+						map_strd_set(&constr_store, GMRFLib_strdup((char *) con->sha1), (*problem)->logdet_aat);
 					}
 				}
 			}
@@ -1003,6 +1004,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 		Free(constr->e_vector);
 		Free(constr->jfirst);
 		Free(constr->jlen);
+		Free(constr->sha1);
 		Free(constr);
 	}
 	return GMRFLib_SUCCESS;
@@ -1092,6 +1094,8 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
+	Free(constr->jfirst);
+	Free(constr->jlen);
 	constr->jfirst = Calloc(nc, int);
 	constr->jlen = Calloc(nc, int);
 	for (i = 0; i < nc; i++) {
@@ -1139,6 +1143,7 @@ int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph
 	DUPDATE(constr->e_vector, constr->nc);
 	SHA1_Final(md, &c);
 	md[SHA_DIGEST_LENGTH] = '\0';
+	Free(constr->sha1);
 	constr->sha1 = md;
 #undef DUPDATE
 	return GMRFLib_SUCCESS;
