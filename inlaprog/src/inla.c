@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT "current developer version"
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #if defined(__sun__)
 #include <stdlib.h>
@@ -74,6 +73,8 @@ static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(INLA_TAG)
 #define INLA_TAG "devel"
@@ -20821,7 +20822,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_n[mb->nf] = mb->f_N[mb->nf] = nn;
 		}
 
-		int ntheta;
+		int ntheta = 0;
 		double *initial = NULL;
 
 		ntheta = (int) x_out[0];

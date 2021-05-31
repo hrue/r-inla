@@ -31,8 +31,6 @@
 #define GITCOMMIT
 #endif
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <string.h>
 #include <stdio.h>
 #if !defined(__FreeBSD__)
@@ -48,6 +46,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "my-fix.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
+
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 
 int my_file_exists(const char *filename)
 {

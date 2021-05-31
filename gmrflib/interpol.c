@@ -30,10 +30,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {

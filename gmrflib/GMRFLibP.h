@@ -198,19 +198,20 @@ typedef enum {
 	}
 
 /* 
-   some useful macros
+   for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
-#if 1
+#define GMRFLib_ALLOC_SAFE_SIZE(n_) ((size_t)(n_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)0)
+#if 0
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
-#define Calloc(n, type)         (type *)GMRFLib_calloc((size_t)(n),sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Malloc(n, type)         (type *)GMRFLib_malloc((size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, (size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type)), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
 #define Free(ptr)               {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__, GitID); ptr=NULL;}
 #else
 #undef  GMRFLib_TRACE_MEMORY
-#define Calloc(n, type)         (type *)calloc((size_t)(n),sizeof(type))
-#define Malloc(n, type)         (type *)malloc((size_t)(n)*sizeof(type))
-#define Realloc(ptr, n, type)   (type *)realloc((void *)ptr, (size_t)(n)*sizeof(type))
+#define Calloc(n, type)         (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n), sizeof(type))
+#define Malloc(n, type)         (type *)malloc(GMRFLib_ALLOC_SAFE_SIZE(n)*sizeof(type))
+#define Realloc(ptr, n, type)   (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type)))
 #define Free(ptr)               {free((void *)(ptr)); ptr=NULL;}
 #endif
 

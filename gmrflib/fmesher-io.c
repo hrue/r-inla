@@ -495,6 +495,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	}
 
 	int i, j, k;
+	int nhold = 0, *hold = NULL, offset = 0;
 	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
 
 	g->n = M->nrow;
@@ -506,9 +507,10 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 			g->nnbs[M->i[k]]++;
 		}
 	}
-	int nhold = M->elems;
-	int *hold = Calloc(nhold, int), offset = 0;
 
+	nhold = M->elems;
+	hold = Calloc(nhold, int);
+	offset = 0;
 	for (k = 0; k < M->nrow; k++) {
 		if (g->nnbs[k] == 0) {
 			g->nbs[k] = NULL;

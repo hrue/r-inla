@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include <math.h>
 #include <strings.h>
@@ -45,6 +44,8 @@ static const char GitID[] = GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "tweedie.h"
+
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 
 // the 'dtweedie'-code is inspired from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz package of Wayne Zhang
 // <actuary_zhang@hotmail.com>, but got largly rewritten to incorporate caching and interpolation and other optimization

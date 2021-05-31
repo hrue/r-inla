@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: spde.c,v 1.41 2010/03/01 17:43:07 hrue Exp $ */
 
@@ -44,7 +43,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "inla.h"
 #include "spde.h"
 
-
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
 /* 

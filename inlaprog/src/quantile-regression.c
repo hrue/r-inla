@@ -30,14 +30,14 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "rmath.h"
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-#include "GMRFLib/density.h"
 
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+
+#include "GMRFLib/density.h"
 #include "quantile-regression.h"
 
 double inla_pcontpois(double y, double lambda)

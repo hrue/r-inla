@@ -81,10 +81,7 @@ int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 	(*graph)->lnbs = NULL;
 	(*graph)->nnbs = NULL;
 	(*graph)->lnnbs = NULL;
-
-	/*
-	 * private variables 
-	 */
+	(*graph)->sha1 = NULL;
 	(*graph)->mothergraph_idx = NULL;
 
 	return GMRFLib_SUCCESS;

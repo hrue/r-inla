@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -44,6 +43,9 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <muParser/muParserDLL.h>
 
 #include "GMRFLib/GMRFLib.h"
+
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
+
 #include "inla.h"
 #include "eval.h"
 

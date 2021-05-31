@@ -30,11 +30,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 #include "ar.h"
 #include "inla.h"
 
