@@ -947,3 +947,193 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double *dd, doub
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_blockupdate_hidden(double *laccept,
+			       double *x_new, double *x_old,
+			       double *b_new, double *b_old,
+			       double *c_new, double *c_old,
+			       double *mean_new, double *mean_old,
+			       double *d_new, double *d_old,
+			       GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
+			       GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
+			       GMRFLib_graph_tp * graph,
+			       GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
+			       GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
+			       GMRFLib_Qfunc_tp * Qfunc_old2new, void *Qfunc_arg_old2new,
+			       GMRFLib_Qfunc_tp * Qfunc_new2old, void *Qfunc_arg_new2old, GMRFLib_optimize_param_tp * optpar,
+			       GMRFLib_hidden_param_tp * hidden_par)
+{
+	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_EWRAP1(GMRFLib_blockupdate_hidden_store(laccept, x_new, x_old, b_new, b_old, c_new, c_old, mean_new, mean_old,
+							d_new, d_old, loglFunc_new, loglFunc_arg_new, loglFunc_old,
+							loglFunc_arg_old, graph, Qfunc_new, Qfunc_arg_new,
+							Qfunc_old, Qfunc_arg_old, Qfunc_old2new, Qfunc_arg_old2new,
+							Qfunc_new2old, Qfunc_arg_new2old, optpar, hidden_par, NULL));
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_blockupdate_hidden_store(double *laccept,
+				     double *x_new, double *x_old,
+				     double *b_new, double *b_old,
+				     double *c_new, double *c_old,
+				     double *mean_new, double *mean_old,
+				     double *d_new, double *d_old,
+				     GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
+				     GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
+				     GMRFLib_graph_tp * graph,
+				     GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
+				     GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
+				     GMRFLib_Qfunc_tp * Qfunc_old2new, void *Qfunc_arg_old2new,
+				     GMRFLib_Qfunc_tp * Qfunc_new2old, void *Qfunc_arg_new2old,
+				     GMRFLib_optimize_param_tp * optpar, GMRFLib_hidden_param_tp * hidden_par, GMRFLib_store_tp * store)
+{
+	/*
+	 * do a blockupdate, and return the proposed new state in 'x' and the corresponding log-acceptrate in 'laccept'
+	 * 
+	 * the density is
+	 * 
+	 * exp[ -1/2 (x-mean)'(Q+diag(c))(x-mean) + b'x + \sum d_i f(x_i) ]
+	 * 
+	 * where values are fixed if fixed_value[i] are true, and where a constraint, Ax=b can be spesified in 'constr'
+	 * 
+	 */
+
+	int n, i;
+	double *mode = NULL, old2new, new2old, old, neww, *xx = NULL, *yy = NULL, logll;
+	GMRFLib_hidden_problem_tp *hidden_problem = NULL;
+
+	GMRFLib_ASSERT(laccept, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(x_new, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(Qfunc_new, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(Qfunc_old, GMRFLib_EINVARG);
+
+	GMRFLib_ENTER_ROUTINE;
+
+	if (!Qfunc_old2new) {
+		Qfunc_old2new = Qfunc_new;
+	}
+	if (!Qfunc_arg_old2new) {
+		Qfunc_arg_old2new = Qfunc_arg_new;
+	}
+	if (!Qfunc_new2old) {
+		Qfunc_new2old = Qfunc_old;
+	}
+	if (!Qfunc_arg_new2old) {
+		Qfunc_arg_new2old = Qfunc_arg_old;
+	}
+
+	n = graph->n;
+	mode = Calloc(n, double);
+	xx = Calloc(n, double);				       /* two names for the same storage */
+	yy = Calloc(n, double);				       /* two names for the same storage */
+
+	GMRFLib_EWRAP1(GMRFLib_init_problem_hidden_store(&hidden_problem,
+							 x_old, b_new, c_new, mean_new, graph, Qfunc_old2new, Qfunc_arg_old2new,
+							 d_new, loglFunc_new, loglFunc_arg_new, optpar, hidden_par, store));
+	GMRFLib_EWRAP1(GMRFLib_sample_hidden(hidden_problem));
+	old2new = hidden_problem->sub_logdens;
+	memcpy(x_new, hidden_problem->sample, n * sizeof(double));
+
+	GMRFLib_free_hidden(hidden_problem);
+	hidden_problem = NULL;
+
+	GMRFLib_EWRAP1(GMRFLib_init_problem_hidden_store(&hidden_problem,
+							 x_new, b_old, c_old, mean_old, graph, Qfunc_new2old, Qfunc_arg_new2old,
+							 d_old, loglFunc_old, loglFunc_arg_old, optpar, hidden_par, store));
+	memcpy(hidden_problem->sample, x_old, n * sizeof(double));
+	GMRFLib_EWRAP1(GMRFLib_evaluate_hidden(hidden_problem));
+	new2old = hidden_problem->sub_logdens;
+	GMRFLib_free_hidden(hidden_problem);
+	hidden_problem = NULL;
+
+	/*
+	 * compute the density at x and x_old.
+	 * 
+	 * FIXME: here i do not use subgraph, but that require big tests to see if the results would be the same. is it worth
+	 * it really? 
+	 */
+	neww = 0.0;
+	if (mean_new) {
+		for (i = 0; i < n; i++) {
+			xx[i] = x_new[i] - mean_new[i];
+		}
+	} else {
+		memcpy(xx, x_new, n * sizeof(double));
+	}
+	GMRFLib_Qx(yy, xx, graph, Qfunc_new, Qfunc_arg_new);
+	if (c_new) {
+		for (i = 0; i < n; i++) {
+			neww += yy[i] * xx[i] + c_new[i] * SQR(xx[i]);
+		}
+	} else {
+		for (i = 0; i < n; i++) {
+			neww += yy[i] * xx[i];
+		}
+	}
+	neww *= -0.5;
+	if (b_new) {
+		for (i = 0; i < n; i++) {
+			neww += b_new[i] * x_new[i];
+		}
+	}
+	if (d_new) {
+		for (i = 0; i < n; i++) {
+			if (d_new[i]) {
+				loglFunc_new(&logll, &x_new[i], 1, i, x_new, NULL, loglFunc_arg_new);
+				neww += d_new[i] * logll;
+			}
+		}
+	}
+
+	old = 0.0;
+	if (mean_old) {
+		for (i = 0; i < n; i++) {
+			xx[i] = x_old[i] - mean_old[i];
+		}
+	} else {
+		memcpy(xx, x_old, n * sizeof(double));
+	}
+	GMRFLib_Qx(yy, xx, graph, Qfunc_old, Qfunc_arg_old);
+	if (c_old) {
+		for (i = 0; i < n; i++) {
+			old += yy[i] * xx[i] + c_old[i] * SQR(xx[i]);
+		}
+	} else {
+		for (i = 0; i < n; i++) {
+			old += yy[i] * xx[i];
+		}
+	}
+	old *= -0.5;
+	if (b_old) {
+		for (i = 0; i < n; i++) {
+			old += b_old[i] * x_old[i];
+		}
+	}
+	if (d_old) {
+		for (i = 0; i < n; i++) {
+			if (d_old[i]) {
+				loglFunc_old(&logll, &x_old[i], 1, i, x_old, NULL, loglFunc_arg_old);
+				old += d_old[i] * logll;
+			}
+		}
+	}
+
+	*laccept = neww + new2old - (old + old2new);
+
+	if (0) {					       /* FIXME */
+		fprintf(stdout, "\n%s: laccept %f\n", __GMRFLib_FuncName, *laccept);
+		fprintf(stdout, "\tnew_ldens %12.6f\n", neww);
+		fprintf(stdout, "\told_ldens %12.6f\n", old);
+		fprintf(stdout, "\tnew2old   %12.6f\n", new2old);
+		fprintf(stdout, "\told2new   %12.6f\n", old2new);
+	}
+
+	Free(xx);
+	Free(yy);
+	Free(mode);
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
