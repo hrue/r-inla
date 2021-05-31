@@ -373,6 +373,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 
 		// then add and accumate terms using '..._addto'
+
+		int new_strategy = 1;
 		rows = Calloc(nt * nrow, double);	       /* SAME _THREADS! */
 #pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
 		for (i = 0; i < nrow; i++) {
@@ -385,9 +387,16 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					j = At_idxval[k]->store[jj].idx;
 					val = At_idxval[k]->store[jj].val;
 					if (row[j]) {
-						GMRFLib_idxval_addto(&(pAA_idxval[i]), k, row[j] * val);
+						if (new_strategy) {
+							GMRFLib_idxval_add(&(pAA_idxval[i]), k, row[j] * val);
+						} else {
+							GMRFLib_idxval_addto(&(pAA_idxval[i]), k, row[j] * val);
+						}
 					}
 				}
+			}
+			if (new_strategy) {
+				GMRFLib_idxval_uniq(&(pAA_idxval[i]));
 			}
 		}
 		Free(rows);

@@ -1420,6 +1420,41 @@ int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
+{
+#define CODE_BLOCK					\
+	for (int i = 0; i < n; i++) {			\
+		GMRFLib_idxval_uniq(a[i]);		\
+	}
+	RUN_CODE_BLOCK(nt);
+#undef CODE_BLOCK
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
+{
+	// sort idx, and accumulate values and then prune
+	if (hold && hold->n > 1) {
+		int i, j;
+
+		GMRFLib_idxval_sort(hold);
+		for (j = 0, i = 0; i < hold->n; i++) {
+			if (hold->store[j].idx == hold->store[i].idx) {
+				if (i > j) {
+					hold->store[j].val += hold->store[i].val;
+				}
+			} else {
+				j++;
+				hold->store[j].idx = hold->store[i].idx;
+				hold->store[j].val = hold->store[i].val;
+			}
+		}
+		hold->n = j + 1;
+		GMRFLib_idxval_prune(hold);
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK					\

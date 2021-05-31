@@ -140,6 +140,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold);
+int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
