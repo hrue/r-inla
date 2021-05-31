@@ -652,11 +652,13 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 		double *d;
 
 		if (M->htable_column_order) {
+			FIXME("COLUMN ORDER BAD");
 			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
 				values[j] = (d ? *d : 0.0);
 			}
 		} else {
+			FIXME("ROW ORDER GOOD!");
 			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[i], j);
 				values[j] = (d ? *d : 0.0);
