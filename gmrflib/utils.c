@@ -44,7 +44,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-#define IDX_ALLOC_INITIAL 8L
+#define IDX_ALLOC_INITIAL 64L
 #define IDX_ALLOC_ADD     64L
 
 /* 
@@ -1542,10 +1542,17 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 	}
 
 	int i;
+	
+	// hopefully this is it.
+	i = (*hold)->iaddto; 
+	if ((*hold)->store[i].idx == idx) {
+		(*hold)->store[i].val += val;
+		return GMRFLib_SUCCESS;
+	}
 
 	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
 	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
-	for (i = (*hold)->iaddto; i < (*hold)->n; i++) {
+	for (i = (*hold)->iaddto + 1; i < (*hold)->n; i++) {
 		if ((*hold)->store[i].idx == idx) {
 			(*hold)->store[i].val += val;
 			(*hold)->iaddto = i;

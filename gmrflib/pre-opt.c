@@ -334,6 +334,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		double *rows = Calloc(nt * ncol, double);      /* SAME _THREADS! */
 #pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
 		for (i = 0; i < nrow; i++) {
+
+			if (omp_get_thread_num() == 0) printf("%d ", i);
+
 			double *row = &(rows[omp_get_thread_num() * ncol]);
 			GMRFLib_matrix_get_row(row, i, pA);
 			for (k = 0; k < N; k++) {
@@ -373,8 +376,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 
-		// then add and accumate terms using '..._addto'
+		SHOW_TIME("create pAA_idxval with zero values");
 
+		// then add and accumate terms using '..._addto'
 		int new_strategy = 0;
 		rows = Calloc(nt * nrow, double);	       /* SAME _THREADS! */
 #pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
@@ -389,6 +393,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				for (jj = 0; jj < At_idxval[k]->n; jj++) {
 					j = At_idxval[k]->store[jj].idx;
 					val = At_idxval[k]->store[jj].val;
+
+					printf("i k iaddto %d %d %d\n", i, k, pAA_idxval[i]->iaddto);
+
 					if (row[j]) {
 						if (new_strategy) {
 							GMRFLib_idxval_add(&(pAA_idxval[i]), k, row[j] * val);
