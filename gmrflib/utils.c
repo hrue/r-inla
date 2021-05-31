@@ -559,6 +559,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	assert(nmemb * size < PTRDIFF_MAX);
 	MEMINFO(nmemb * size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
@@ -589,6 +590,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	assert(size < PTRDIFF_MAX);
 	MEMINFO(size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
@@ -619,6 +621,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	assert(size < PTRDIFF_MAX);
 	MEMINFO(size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
