@@ -339,15 +339,23 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 			double *row = &(rows[omp_get_thread_num() * ncol]);
 			GMRFLib_matrix_get_row(row, i, pA);
-			for (k = 0; k < N; k++) {
+			int ik_set = 0;
+			for (k = 0; k < N && !ik_set; k++) {
 				for (jj = 0; jj < At_idxval[k]->n; jj++) {
 					j = At_idxval[k]->store[jj].idx;
 					if (row[j]) {
 						GMRFLib_idx_add(&(pAA_pattern[i]), k);
+						ik_set = 1;
+						break;
 					}
 				}
 			}
-			GMRFLib_idx_uniq(pAA_pattern[i]);
+
+			if (0) {
+				int nn = pAA_pattern[i]->n;
+				GMRFLib_idx_uniq(pAA_pattern[i]);
+				assert(nn == pAA_pattern[i]->n);
+			}
 		}
 		Free(rows);
 		SHOW_TIME("pAA_pattern");
