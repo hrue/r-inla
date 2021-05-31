@@ -256,7 +256,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		}
 		{
 			opt_problem->x_vec = Calloc(graph->n, double);
-			memcpy(opt_problem->x_vec, mode, graph->n * sizeof(double));
+			Memcpy(opt_problem->x_vec, mode, graph->n * sizeof(double));
 		}
 	}
 
@@ -297,7 +297,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	 * save initial value and return that unchanged if fail to converge 
 	 */
 	initial_value = Calloc(sub_n, double);
-	memcpy(initial_value, opt_problem->mode, sub_n * sizeof(double));
+	Memcpy(initial_value, opt_problem->mode, sub_n * sizeof(double));
 
 	GMRFLib_ASSERT(opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_CG ||
 		       opt_problem->optpar->opt_type == GMRFLib_OPTTYPE_NR ||
@@ -375,7 +375,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	case GMRFLib_OPTTYPE_SAFECG:
 		GMRFLib_EWRAP1(GMRFLib_optimize2(opt_problem, store_ptr));
 		if (0) {				       /* FIXME: if (fail) then do as follows */
-			memcpy(opt_problem->mode, initial_value, sub_n * sizeof(double));
+			Memcpy(opt_problem->mode, initial_value, sub_n * sizeof(double));
 			Free(initial_value);
 			GMRFLib_ERROR(GMRFLib_EOPTCG);
 		}
@@ -385,7 +385,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	case GMRFLib_OPTTYPE_SAFENR:
 		GMRFLib_EWRAP1(GMRFLib_optimize3(opt_problem, store_ptr));
 		if (0) {				       /* FIXME: if (fail) then do as follows */
-			memcpy(opt_problem->mode, initial_value, sub_n * sizeof(double));
+			Memcpy(opt_problem->mode, initial_value, sub_n * sizeof(double));
 			Free(initial_value);
 			GMRFLib_ERROR(GMRFLib_EOPTNR);
 		}
@@ -441,7 +441,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 	omode = Calloc(sub_n, double);
 	c_orig = Calloc(sub_n, double);
 
-	memcpy(c_orig, opt_problem->sub_Qfunc_arg->diagonal_adds, sub_n * sizeof(double));
+	Memcpy(c_orig, opt_problem->sub_Qfunc_arg->diagonal_adds, sub_n * sizeof(double));
 
 	sdir = Calloc(nsdir, double *);
 
@@ -460,7 +460,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			fprintf(opt_problem->optpar->fp, "%6d", iter);
 		}
 
-		memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
+		Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
 
 		/*
 		 * first compute the gradient, -Qx + b 
@@ -506,13 +506,13 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 				memset(sdir[i], 0, sub_n * sizeof(double));
 			}
 		}
-		memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));	/* go back to original */
-		memcpy(sdir[sdir_indx], grad, sub_n * sizeof(double));
+		Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));	/* go back to original */
+		Memcpy(sdir[sdir_indx], grad, sub_n * sizeof(double));
 
 		/*
 		 * we got a search-direction, do a line-search in that direction and update 'mode' 
 		 */
-		memcpy(omode, opt_problem->mode, sub_n * sizeof(double));
+		Memcpy(omode, opt_problem->mode, sub_n * sizeof(double));
 		GMRFLib_EWRAP0(GMRFLib_linesearch(opt_problem, sdir[sdir_indx]));
 
 		for (i = 0, err = 0.0; i < sub_n; i++) {
@@ -536,7 +536,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		}
 	}
 
-	memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
+	Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
 
 	for (i = 0; i < nsdir; i++) {
 		Free(sdir[i]);
@@ -592,7 +592,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 			u[i] = opt_problem->mode[i] + length * dir[i];
 		}
 	} else {
-		memcpy(u, opt_problem->mode, sub_n * sizeof(double));
+		Memcpy(u, opt_problem->mode, sub_n * sizeof(double));
 	}
 	GMRFLib_Qx(v, u, opt_problem->sub_graph, opt_problem->sub_Qfunc, (void *) (opt_problem->sub_Qfunc_arg));
 
@@ -759,7 +759,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		step_factor = 1.0;
 	}
 
-	memcpy(c_orig, opt_problem->sub_Qfunc_arg->diagonal_adds, sub_n * sizeof(double));
+	Memcpy(c_orig, opt_problem->sub_Qfunc_arg->diagonal_adds, sub_n * sizeof(double));
 
 	if (opt_problem->optpar->fp) {
 		fprintf(opt_problem->optpar->fp, "\n%6s%22s%22s\n", "Iter", "Value", "StepLength");
@@ -770,7 +770,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		if (opt_problem->optpar->fp) {
 			fprintf(opt_problem->optpar->fp, "%6d", iter);
 		}
-		memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
+		Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
 
 		/*
 		 * compute contribution from the loglFunc 
@@ -829,7 +829,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 
 		err = sqrt(DMAX(0.0, err) / sub_n);
 		if (opt_problem->optpar->fp) {
-			memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
+			Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
 			fprintf(opt_problem->optpar->fp, "%22.10e%22.10e\n", GMRFLib_linesearch_func(0.0, NULL, opt_problem), err);
 		}
 
@@ -846,7 +846,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		}
 	}
 
-	memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
+	Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));
 
 	GMRFLib_free_problem(problem);
 	Free(bb);

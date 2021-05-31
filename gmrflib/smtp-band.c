@@ -384,7 +384,7 @@ int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *
 	 * 
 	 * example: approach 1,2,3 are equivalent (old style!)
 	 * 
-	 * (*GMRFLib_uniform_init)(seed); set_stdgauss(x); memcpy(z, x, graph->n*sizeof(double));
+	 * (*GMRFLib_uniform_init)(seed); set_stdgauss(x); Memcpy(z, x, graph->n*sizeof(double));
 	 * 
 	 * a1: gmrf_g_solve(x, bchol, graph);
 	 * 

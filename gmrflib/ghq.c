@@ -255,8 +255,8 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	double *w_hess = work + 3 * n;
 
 	GMRFLib_ghq(&xxp, &wwp, n);
-	memcpy(nodes, xxp, n * sizeof(double));
-	memcpy(w, wwp, n * sizeof(double));
+	Memcpy(nodes, xxp, n * sizeof(double));
+	Memcpy(w, wwp, n * sizeof(double));
 
 	// stencil for the first and second derivative. degree 5, 7 and 9
 	// double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
@@ -331,10 +331,10 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	snq->w_grad = snq->nodes + 2 * snq->n;
 	snq->w_hess = snq->nodes + 3 * snq->n;
 
-	memcpy(snq->nodes, nodes, snq->n * sizeof(double));
-	memcpy(snq->w, w, snq->n * sizeof(double));
-	memcpy(snq->w_grad, w_grad, snq->n * sizeof(double));
-	memcpy(snq->w_hess, w_hess, snq->n * sizeof(double));
+	Memcpy(snq->nodes, nodes, snq->n * sizeof(double));
+	Memcpy(snq->w, w, snq->n * sizeof(double));
+	Memcpy(snq->w_grad, w_grad, snq->n * sizeof(double));
+	Memcpy(snq->w_hess, w_hess, snq->n * sizeof(double));
 
 	double tmp = 0.0;
 	for (i = 0; i < snq->n; i++) {

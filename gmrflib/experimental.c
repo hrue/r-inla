@@ -153,7 +153,7 @@ int GMRFLib_graph_read_binary_EXPERIMENTAL(GMRFLib_graph_tp ** graph, const char
 	storage_indx = 0;
 	for (i = 0; i < (*graph)->n; i++)
 		if ((*graph)->nnbs[i]) {
-			memcpy(&storage[storage_indx], (*graph)->nbs[i], sizeof(int) * (*graph)->nnbs[i]);
+			Memcpy(&storage[storage_indx], (*graph)->nbs[i], sizeof(int) * (*graph)->nnbs[i]);
 			Free((*graph)->nbs[i]);
 			(*graph)->nbs[i] = &storage[storage_indx];
 			storage_indx += (*graph)->nnbs[i];

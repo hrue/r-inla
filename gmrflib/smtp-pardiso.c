@@ -148,16 +148,16 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	(*csr_to)->copy_only = csr_from->copy_only;
 
 	(*csr_to)->ia = Calloc(csr_from->n + 1, int);
-	memcpy((void *) ((*csr_to)->ia), (void *) (csr_from->ia), (size_t) (csr_from->n + 1) * sizeof(int));
+	Memcpy((void *) ((*csr_to)->ia), (void *) (csr_from->ia), (size_t) (csr_from->n + 1) * sizeof(int));
 
 	(*csr_to)->ja = Calloc(csr_from->na, int);
-	memcpy((void *) ((*csr_to)->ja), (void *) (csr_from->ja), (size_t) (csr_from->na) * sizeof(int));
+	Memcpy((void *) ((*csr_to)->ja), (void *) (csr_from->ja), (size_t) (csr_from->na) * sizeof(int));
 
 	if (csr_from->copy_only) {
 		(*csr_to)->a = csr_from->a;
 	} else {
 		(*csr_to)->a = Calloc(csr_from->na, double);
-		memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->na) * sizeof(double));
+		Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->na) * sizeof(double));
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -237,7 +237,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	for (i = k = 0; i < n; i++) {
 		M->ja[k++] = i;
 		if (graph->lnnbs[i]) {
-			memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
 			k += graph->lnnbs[i];
 		}
 		M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
@@ -453,8 +453,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store)
 {
 	assert(store->done_with_init == GMRFLib_TRUE);
-	memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
-	memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
+	Memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
+	Memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
 
 	store->pstore->nrhs = 0;
 	store->pstore->err_code = 0;
@@ -633,7 +633,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 
 	n = store->graph->n;
 	xx = Calloc(n * m, double);
-	memcpy(xx, x, n * m * sizeof(double));
+	Memcpy(xx, x, n * m * sizeof(double));
 	permutation = (direction ? store->pstore->perm : store->pstore->iperm);
 	assert(permutation);
 	assert(m > 0);
@@ -767,7 +767,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	nblock = d.quot;
 	reminder = (d.rem != 0);
 	bb = Calloc(nrhs * n, double);
-	memcpy((void *) bb, (void *) b, n * nrhs * sizeof(double));
+	Memcpy((void *) bb, (void *) b, n * nrhs * sizeof(double));
 
 	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is
 	// thread-safe
@@ -1049,7 +1049,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 #define CPv(_what, type, len)						\
 		if (old->pstore->_what) {				\
 			dup->pstore->_what = Calloc(len, type);		\
-			memcpy((void *) (dup->pstore->_what), (void *) (old->pstore->_what), (len) * sizeof(type)); \
+			Memcpy((void *) (dup->pstore->_what), (void *) (old->pstore->_what), (len) * sizeof(type)); \
 		} else {						\
 			dup->pstore->_what = NULL;			\
 		}							\
@@ -1549,8 +1549,8 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 		int *iparm = Calloc(GMRFLib_PARDISO_PLEN, int);
 		double *dparm = Calloc(GMRFLib_PARDISO_PLEN, double);
 
-		memcpy(iparm, pardiso_store->iparm_default, GMRFLib_PARDISO_PLEN * sizeof(int));
-		memcpy(dparm, pardiso_store->dparm_default, GMRFLib_PARDISO_PLEN * sizeof(double));
+		Memcpy(iparm, pardiso_store->iparm_default, GMRFLib_PARDISO_PLEN * sizeof(int));
+		Memcpy(dparm, pardiso_store->dparm_default, GMRFLib_PARDISO_PLEN * sizeof(double));
 
 		iparm[7] = 0;
 		iparm[25] = 0;

@@ -214,6 +214,8 @@ typedef enum {
 #define Realloc(ptr, n, type)   (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
 #define Free(ptr)               {free((void *)(ptr)); ptr=NULL;}
 #endif
+#define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
+
 
 /* 
    ABS is for double, IABS is for int, and so on.

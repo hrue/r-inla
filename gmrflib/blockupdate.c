@@ -219,7 +219,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 		 * 
 		 * this step is always performed, not matter store->use_more 
 		 */
-		memcpy(mode, x_old, n * sizeof(double));
+		Memcpy(mode, x_old, n * sizeof(double));
 		if (blockpar->modeoption == GMRFLib_MODEOPTION_MODE && d_new) {
 			GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b_new, c_new, mean_new, graph,
 							      (constr_new ? Qfunc_old2new : Qfunc_new),
@@ -278,7 +278,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 	if (problem) {
 		GMRFLib_EWRAP1(GMRFLib_sample(problem));
 		old2new = problem->sub_logdens;
-		memcpy(x_new, problem->sample, n * sizeof(double));
+		Memcpy(x_new, problem->sample, n * sizeof(double));
 
 		if (store && store->store_problems) {
 			store->problem_old2new = problem;
@@ -291,7 +291,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 		 * nothing to do really, just make sure that the x_new equals x_old 
 		 */
 		old2new = 0.0;
-		memcpy(x_new, x_old, n * sizeof(double));
+		Memcpy(x_new, x_old, n * sizeof(double));
 	}
 
 	/*
@@ -308,7 +308,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 		 */
 		problem = store->problem_new2old;
 	} else {
-		memcpy(mode, x_new, n * sizeof(double));
+		Memcpy(mode, x_new, n * sizeof(double));
 		if (blockpar->modeoption == GMRFLib_MODEOPTION_MODE && d_old) {
 			GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b_old, c_old, mean_old, graph,
 							      (constr_old ? Qfunc_new2old : Qfunc_old),
@@ -363,7 +363,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 	}
 
 	if (problem) {
-		memcpy(problem->sample, x_old, n * sizeof(double));
+		Memcpy(problem->sample, x_old, n * sizeof(double));
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));
 		new2old = problem->sub_logdens;
 
@@ -395,7 +395,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 			xx[i] = x_new[i] - mean_new[i];
 		}
 	} else {
-		memcpy(xx, x_new, n * sizeof(double));
+		Memcpy(xx, x_new, n * sizeof(double));
 	}
 	GMRFLib_Qx(yy, xx, graph, Qfunc_new, Qfunc_arg_new);
 	if (c_new) {
@@ -447,7 +447,7 @@ int GMRFLib_blockupdate_store(double *laccept,
 				xx[i] = x_old[i] - mean_old[i];
 			}
 		} else {
-			memcpy(xx, x_old, n * sizeof(double));
+			Memcpy(xx, x_old, n * sizeof(double));
 		}
 		GMRFLib_Qx(yy, xx, graph, Qfunc_old, Qfunc_arg_old);
 		if (c_old) {
@@ -582,7 +582,7 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		free_blockpar = 1;
 	}
 
-	memcpy(mode, x, n * sizeof(double));
+	Memcpy(mode, x, n * sizeof(double));
 	if (blockupdate_par->modeoption == GMRFLib_MODEOPTION_MODE && d)
 		GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b, c, mean, graph, Qfunc, Qfunc_arg, constr, d, loglFunc, loglFunc_arg, optpar, store));
 

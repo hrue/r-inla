@@ -223,7 +223,7 @@ int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
 	}
 
 	for (i = 0; i < m; i++) {
-		memcpy(ex[i], design->experiment[idx[i]], design->nfactors * sizeof(double));
+		Memcpy(ex[i], design->experiment[idx[i]], design->nfactors * sizeof(double));
 		ww[i] = design->int_weight[idx[i]];
 	}
 

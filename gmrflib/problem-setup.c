@@ -345,7 +345,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		 * use the reordering in store 
 		 */
 		(*problem)->sub_sm_fact.remap = Calloc(sub_n, int);
-		memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * sizeof(int));
+		Memcpy((*problem)->sub_sm_fact.remap, store->remap, sub_n * sizeof(int));
 		if (smtp == GMRFLib_SMTP_BAND) {
 			(*problem)->sub_sm_fact.bandwidth = store->bandwidth;
 		}
@@ -361,7 +361,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		if (store_store_remap) {
 			if ((*problem)->sub_sm_fact.remap != NULL) {
 				store->remap = Calloc(sub_n, int);
-				memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
+				Memcpy(store->remap, (*problem)->sub_sm_fact.remap, sub_n * sizeof(int));
 				if (smtp == GMRFLib_SMTP_BAND) {
 					store->bandwidth = (*problem)->sub_sm_fact.bandwidth;
 				}
@@ -382,9 +382,9 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	(*problem)->sub_mean = Calloc(sub_n, double);
 	(*problem)->sub_mean_constr = Calloc(sub_n, double);
 
-	memcpy((*problem)->sample, x, graph->n * sizeof(double));
-	memcpy((*problem)->mean, x, graph->n * sizeof(double));
-	memcpy((*problem)->mean_constr, x, graph->n * sizeof(double));
+	Memcpy((*problem)->sample, x, graph->n * sizeof(double));
+	Memcpy((*problem)->mean, x, graph->n * sizeof(double));
+	Memcpy((*problem)->mean_constr, x, graph->n * sizeof(double));
 
 	/*
 	 * tabulate the Qfunc on the sub_graph. first, make the Qfunc, then tabulate it. 
@@ -533,7 +533,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				/*
 				 * reuse 
 				 */
-				memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
+				Memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 				for (k = nc - 1; k < nc; k++) {
 					kk = k * sub_n;
 					for (i = 0; i < sub_n; i++) {
@@ -651,7 +651,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	if (!((*problem)->sub_mean_constr)) {
 		(*problem)->sub_mean_constr = Calloc(sub_n, double);
 	}
-	memcpy((*problem)->sub_mean_constr, (*problem)->sub_mean, sub_n * sizeof(double));
+	Memcpy((*problem)->sub_mean_constr, (*problem)->sub_mean, sub_n * sizeof(double));
 
 
 	if (((*problem)->sub_constr && (*problem)->sub_constr->nc > 0)) {
@@ -748,7 +748,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		t_vector = Calloc(nc, double);		       /* t_vector = Ax-e */
 
 		GMRFLib_EWRAP1(GMRFLib_eval_constr(problem->sub_constr_value, NULL, problem->sub_sample, problem->sub_constr, problem->sub_graph));
-		memcpy(t_vector, problem->sub_constr_value, nc * sizeof(double));
+		Memcpy(t_vector, problem->sub_constr_value, nc * sizeof(double));
 
 		alpha = -1.0;
 		beta = 1.0;				       /* sample := sample - cond_m*t_vector */
@@ -1162,7 +1162,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	nc = constr->nc;
 	t_vector = Calloc(2 * nc, double);
 	res = t_vector + nc;
-	memcpy(t_vector, constr->e_vector, nc * sizeof(double));
+	Memcpy(t_vector, constr->e_vector, nc * sizeof(double));
 	alpha = 1.0;
 	beta = -1.0;
 
@@ -1176,7 +1176,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	}
 
 	if (value) {
-		memcpy(value, t_vector, nc * sizeof(double));
+		Memcpy(value, t_vector, nc * sizeof(double));
 	}
 	if (sqr_value) {
 		*sqr_value = 0.0;
@@ -1228,10 +1228,10 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		(*new_constr)->nc = constr->nc;
 
 		(*new_constr)->a_matrix = Calloc(graph->n * constr->nc, double);
-		memcpy((*new_constr)->a_matrix, constr->a_matrix, graph->n * constr->nc * sizeof(double));
+		Memcpy((*new_constr)->a_matrix, constr->a_matrix, graph->n * constr->nc * sizeof(double));
 
 		(*new_constr)->e_vector = Calloc(constr->nc, double);
-		memcpy((*new_constr)->e_vector, constr->e_vector, constr->nc * sizeof(double));
+		Memcpy((*new_constr)->e_vector, constr->e_vector, constr->nc * sizeof(double));
 
 		// this will add jfirst and jlen
 		GMRFLib_prepare_constr(*new_constr, graph, 0);
@@ -1398,7 +1398,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	if (1) {							\
 		if (problem->name && ((len)>0) && !skeleton_){		\
 			np->name = Calloc((len), tp);			\
-			memcpy(np->name, problem->name, (len)*sizeof(tp)); \
+			Memcpy(np->name, problem->name, (len)*sizeof(tp)); \
 		} else {						\
 			np->name = NULL;				\
 		}							\
@@ -1664,7 +1664,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	if (1) {							\
 		if (store->name && ((len)>0) && !skeleton_){		\
 			new_store->name = Calloc((len), tp);		\
-			memcpy(new_store->name, store->name, (len)*sizeof(tp)); \
+			Memcpy(new_store->name, store->name, (len)*sizeof(tp)); \
 		} else {						\
 			new_store->name = NULL;				\
 		}							\
@@ -1815,9 +1815,9 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use
 
 			GMRFLib_global_node_tp lgn;
 			if (gn) {
-				memcpy((void *) &lgn, (void *) gn, sizeof(GMRFLib_global_node_tp));
+				Memcpy((void *) &lgn, (void *) gn, sizeof(GMRFLib_global_node_tp));
 			} else {
-				memcpy((void *) &lgn, (void *) &GMRFLib_global_node, sizeof(GMRFLib_global_node_tp));
+				Memcpy((void *) &lgn, (void *) &GMRFLib_global_node, sizeof(GMRFLib_global_node_tp));
 			}
 
 			/*
@@ -1896,11 +1896,11 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use
 				/*
 				 * if so, copy the result over there as well
 				 */
-				memcpy((void *) gn, (void *) &g, sizeof(GMRFLib_global_node));
+				Memcpy((void *) gn, (void *) &g, sizeof(GMRFLib_global_node));
 			}
 		} else {
 			if (gn) {
-				memcpy((void *) &GMRFLib_global_node, (void *) gn, sizeof(GMRFLib_global_node));
+				Memcpy((void *) &GMRFLib_global_node, (void *) gn, sizeof(GMRFLib_global_node));
 			}
 		}
 		GMRFLib_reorder = rs[r];

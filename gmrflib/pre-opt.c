@@ -89,7 +89,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	if (w) {
 		for (i = 0; i < nf; i++) {
 			if (w[i]) {
-				memcpy(ww[i], w[i], npred * sizeof(double));
+				Memcpy(ww[i], w[i], npred * sizeof(double));
 			}
 		}
 	}
@@ -838,9 +838,9 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	}
 
 	if (likelihood_only) {
-		memcpy(predictor, pred, preopt->Npred * sizeof(double));
+		Memcpy(predictor, pred, preopt->Npred * sizeof(double));
 	} else {
-		memcpy(predictor, pred, preopt->mnpred * sizeof(double));
+		Memcpy(predictor, pred, preopt->mnpred * sizeof(double));
 	}
 	Free(pred);
 
@@ -855,8 +855,8 @@ int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *li
 		preopt->like_b[id] = Calloc(np, double);
 		preopt->like_c[id] = Calloc(np, double);
 	}
-	memcpy(preopt->like_b[id], like_b, np * sizeof(double));
-	memcpy(preopt->like_c[id], like_c, np * sizeof(double));
+	Memcpy(preopt->like_b[id], like_b, np * sizeof(double));
+	Memcpy(preopt->like_c[id], like_c, np * sizeof(double));
 
 	if (!(preopt->total_b[id])) {
 		preopt->total_b[id] = Calloc(preopt->n, double);

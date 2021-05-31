@@ -88,7 +88,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			assert(args->Q->base == 0);			\
 			j = args->Q->ia[node];				\
 			len = args->Q->ia[node + 1] - j;		\
-			memcpy(values, &(args->Q->a[j]), len * sizeof(double)); \
+			Memcpy(values, &(args->Q->a[j]), len * sizeof(double)); \
 		} else {						\
 			return NAN;					\
 		}							\

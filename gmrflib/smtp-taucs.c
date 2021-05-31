@@ -152,7 +152,7 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 #define DUPLICATE(name,len,type) if (1) {					\
 		if (L->name && ((len) > 0)) {				\
 			LL->name = (type *)Calloc((len), type);		\
-			memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
+			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
 		}							\
@@ -405,9 +405,9 @@ taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 	nnz = L->colptr[L->n];
 	LL = taucs_ccs_create(n, n, nnz, flags);
 
-	memcpy(LL->colptr, L->colptr, (n + 1) * sizeof(int));
-	memcpy(LL->rowind, L->rowind, nnz * sizeof(int));
-	memcpy(LL->values.d, L->values.d, nnz * sizeof(double));
+	Memcpy(LL->colptr, L->colptr, (n + 1) * sizeof(int));
+	Memcpy(LL->rowind, L->rowind, nnz * sizeof(int));
+	Memcpy(LL->values.d, L->values.d, nnz * sizeof(double));
 
 	return LL;
 }
@@ -607,7 +607,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		 */
 		free(perm);
 		perm = Calloc(graph->n, int);		       /* yes, need graph->n. */
-		memcpy(perm, iperm, n * sizeof(int));
+		Memcpy(perm, iperm, n * sizeof(int));
 		free(iperm);
 		iperm = perm;
 
@@ -914,7 +914,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 
 	GMRFLib_EWRAP0(GMRFLib_convert_to_mapped(rhs, NULL, graph, remap));
 	b = Calloc(graph->n, double);
-	memcpy(b, rhs, graph->n * sizeof(double));
+	Memcpy(b, rhs, graph->n * sizeof(double));
 
 	GMRFLib_my_taucs_dccs_solve_lt(L, rhs, b);
 
@@ -933,7 +933,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 		 * use TAUCS 
 		 */
 		double *b = Calloc(graph->n, double);
-		memcpy(b, rhs, graph->n * sizeof(double));
+		Memcpy(b, rhs, graph->n * sizeof(double));
 		taucs_ccs_solve_llt(L, rhs, b);
 		Free(b);
 
@@ -950,7 +950,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 		int i;
 		double *work = Malloc(graph->n, double);
 
-		memcpy(work, rhs, graph->n * sizeof(double));
+		Memcpy(work, rhs, graph->n * sizeof(double));
 		for (i = 0; i < graph->n; i++) {
 			rhs[i] = work[remap[i]];
 		}
@@ -974,7 +974,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
-	memcpy(&b[toindx], &rhs[toindx], (graph->n - toindx) * sizeof(double));	/* this can be improved */
+	Memcpy(&b[toindx], &rhs[toindx], (graph->n - toindx) * sizeof(double));	/* this can be improved */
 
 	GMRFLib_my_taucs_dccs_solve_lt_special(L, rhs, b, findx, toindx);	/* solve it */
 	if (!remapped) {
@@ -999,7 +999,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
-	memcpy(&b[findx], &rhs[findx], (toindx - findx + 1) * sizeof(double));	/* this can be improved */
+	Memcpy(&b[findx], &rhs[findx], (toindx - findx + 1) * sizeof(double));	/* this can be improved */
 	GMRFLib_my_taucs_dccs_solve_l_special(L, rhs, b, findx, toindx);	/* solve it */
 	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
@@ -1088,7 +1088,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 	/*
 	 * but also reusing y as here, helps 
 	 */
-	memcpy(y, x, n * sizeof(double));
+	Memcpy(y, x, n * sizeof(double));
 	for (i = 0; i < n; i++) {
 		x[i] = y[remap[i]];
 	}
@@ -1415,8 +1415,8 @@ taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, 
 		collen = L->colptr[j + 1] - L->colptr[j];
 		jpp = L->colptr[j];
 
-		memcpy(&(LL->rowind[jp]), &(L->rowind[jpp]), collen * sizeof(int));
-		memcpy(&(LL->values.d[jp]), &(L->values.d[jpp]), collen * sizeof(double));
+		Memcpy(&(LL->rowind[jp]), &(L->rowind[jpp]), collen * sizeof(int));
+		Memcpy(&(LL->values.d[jp]), &(L->values.d[jpp]), collen * sizeof(double));
 
 		jp += collen;
 
@@ -1813,7 +1813,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 			}
 		}
 
-		memcpy(x, y, n * sizeof(double));
+		Memcpy(x, y, n * sizeof(double));
 		Free(y);
 	}
 	return 0;

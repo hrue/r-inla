@@ -44,7 +44,7 @@ static void *mem_double(void *ptr, int size)
 	void *newptr = NULL;
 
 	newptr = calloc((size_t) (2 * size), 1);
-	memcpy(newptr, ptr, (size_t) size);
+	Memcpy(newptr, ptr, (size_t) size);
 	free(ptr);
 	return newptr;
 }

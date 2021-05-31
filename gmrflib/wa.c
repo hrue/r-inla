@@ -102,7 +102,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 		graph->nbs[i] = Calloc(memsiz[i], int);
 
 		if (graph->nnbs[i])
-			memcpy(graph->nbs[i], wagraph->nbs[i], graph->nnbs[i] * sizeof(int));
+			Memcpy(graph->nbs[i], wagraph->nbs[i], graph->nnbs[i] * sizeof(int));
 	}
 
 	/*
@@ -196,7 +196,7 @@ int GMRFLib_init_wa_problem(GMRFLib_wa_problem_tp ** wa_problem, GMRFLib_graph_t
 	}
 	for (i = 0, indx = 0; i < n; i++) {
 		if (graph->nnbs[i]) {
-			memcpy(&hold[indx], graph->nbs[i], graph->nnbs[i] * sizeof(int));
+			Memcpy(&hold[indx], graph->nbs[i], graph->nnbs[i] * sizeof(int));
 			Free(graph->nbs[i]);
 			graph->nbs[i] = &hold[indx];
 		} else

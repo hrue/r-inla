@@ -97,7 +97,7 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 	*map = Calloc(dim, int);
 	work = Calloc(dim, double);
 
-	memcpy(cchol, matrix, ISQR(dim) * sizeof(double));
+	Memcpy(cchol, matrix, ISQR(dim) * sizeof(double));
 
 	dchdc_(cchol, &dim, &dim, work, *map, &job, &info, &eps);
 	*rank = info;
@@ -146,7 +146,7 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	}
 
 	a = Calloc(ISQR(dim), double);
-	memcpy(a, matrix, ISQR(dim) * sizeof(double));
+	Memcpy(a, matrix, ISQR(dim) * sizeof(double));
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
@@ -190,7 +190,7 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 	 * solve Ax=b, where chol is lower Cholesky factor of A. 
 	 */
 	if (sol != b) {
-		memcpy(sol, b, dim * nrhs * sizeof(double));
+		Memcpy(sol, b, dim * nrhs * sizeof(double));
 	}
 	int info;
 	dpotrs_("L", &dim, &nrhs, chol, &dim, sol, &dim, &info, F_ONE);

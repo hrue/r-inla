@@ -777,13 +777,13 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 		 * sparse 
 		 */
 		N->i = Calloc(M->elems, int);
-		memcpy(N->i, M->j, M->elems * sizeof(int));
+		Memcpy(N->i, M->j, M->elems * sizeof(int));
 
 		N->j = Calloc(M->elems, int);
-		memcpy(N->j, M->i, M->elems * sizeof(int));
+		Memcpy(N->j, M->i, M->elems * sizeof(int));
 
 		N->values = Calloc(M->elems, double);
-		memcpy(N->values, M->values, M->elems * sizeof(double));
+		Memcpy(N->values, M->values, M->elems * sizeof(double));
 	} else {
 		int i, j, idx, idx_transpose;
 

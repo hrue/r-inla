@@ -394,7 +394,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			GMRFLib_matrix_get_row(row_spde2, i, model->BLC);
 			memset(row, 0, (nhyper_new + 1) * sizeof(double));
 			row[0] = row_spde2[0];
-			memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
+			Memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
 
 			/*
 			 * Sigma * a, a = row
@@ -438,7 +438,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			double *x = Calloc(nhyper_new, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
-			memcpy(xxx, xx, npoints * sizeof(double));
+			Memcpy(xxx, xx, npoints * sizeof(double));
 			xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
 			xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
 

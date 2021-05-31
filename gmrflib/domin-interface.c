@@ -134,7 +134,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 int GMRFLib_opt_get_latent(double *latent)
 {
-	memcpy(latent, B.f_best_latent, G.graph->n * sizeof(double));
+	Memcpy(latent, B.f_best_latent, G.graph->n * sizeof(double));
 	return GMRFLib_SUCCESS;
 }
 
@@ -313,12 +313,12 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 				if (!B.f_best_x) {
 					B.f_best_x = Calloc(G.nhyper, double);
 				}
-				memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
+				Memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
 
 				if (!B.f_best_latent) {
 					B.f_best_latent = Calloc(G.graph->n, double);
 				}
-				memcpy(B.f_best_latent, ais->mode, G.graph->n * sizeof(double));
+				Memcpy(B.f_best_latent, ais->mode, G.graph->n * sizeof(double));
 
 				if (debug) {
 					printf("\t%d: set: B.f_best %.12g fx %.12g\n", omp_get_thread_num(), B.f_best, fx_local);
@@ -392,7 +392,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 			GMRFLib_thread_id = omp_get_thread_num();
 			xx = Calloc(G.nhyper, double);
-			memcpy(xx, x, G.nhyper * sizeof(double));
+			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (omp_in_parallel()) {
 				if (GMRFLib_thread_id == 0) {
@@ -462,7 +462,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 			GMRFLib_thread_id = omp_get_thread_num();
 			xx = Calloc(G.nhyper, double);
-			memcpy(xx, x, G.nhyper * sizeof(double));
+			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (omp_in_parallel()) {
 				if (GMRFLib_thread_id == 0) {
@@ -571,7 +571,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		double *xx;					        \
 		int err;						\
 		xx = Calloc(G.nhyper, double);			        \
-		memcpy(xx, x, G.nhyper*sizeof(double));			\
+		Memcpy(xx, x, G.nhyper*sizeof(double));			\
 		GMRFLib_opt_dir_step(xx, idx, step);			\
 		GMRFLib_opt_f_intern(xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
@@ -582,7 +582,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			printf("] idx=%d step=%g F1 = %.12g\n", idx, step, result); \
 		}							\
 		if (x_store) {						\
-			memcpy(x_store, xx, G.nhyper*sizeof(double));	\
+			Memcpy(x_store, xx, G.nhyper*sizeof(double));	\
 		}							\
 		Free(xx);						\
 	}
@@ -593,7 +593,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		int err;						\
 		if (debug) printf("F2 idx %d %d step %g %g\n",  idx, iidx, step, sstep); \
 		xx = Calloc(G.nhyper, double);				\
-		memcpy(xx, x, G.nhyper*sizeof(double));			\
+		Memcpy(xx, x, G.nhyper*sizeof(double));			\
 		GMRFLib_opt_dir_step(xx, idx, step);			\
 		GMRFLib_opt_dir_step(xx, iidx, sstep);			\
 		GMRFLib_opt_f_intern(xx, &(result), &err, ais, NULL, NULL); \
@@ -730,7 +730,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		if (debug)
 			fprintf(stderr, "%s: (I) Mode not found sufficiently accurate %.8g %.8g\n\n", __GMRFLib_FuncName, f0, f0min);
 		f0 = f0min;
-		memcpy(x, xx_min, G.nhyper * sizeof(double));
+		Memcpy(x, xx_min, G.nhyper * sizeof(double));
 		*log_dens_mode = -f0;
 		ok = 0;
 		for (i = 0; i < n; i++) {
@@ -749,7 +749,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			printf("set B.f_best from %f to %f\n", B.f_best, f0min);
 
 		B.f_best = f0min;
-		memcpy(B.f_best_x, xx_min, G.nhyper * sizeof(double));
+		Memcpy(B.f_best_x, xx_min, G.nhyper * sizeof(double));
 
 		/*
 		 * keep for reference 
@@ -826,7 +826,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			if (debug) {
 				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f0, f0min);
 			}
-			memcpy(x, B.f_best_x, G.nhyper * sizeof(double));
+			Memcpy(x, B.f_best_x, G.nhyper * sizeof(double));
 			*log_dens_mode = -B.f_best;
 			ok = 0;
 		} else {
@@ -961,7 +961,7 @@ void GMRFLib_gsl_fdf(const gsl_vector * v, void *UNUSED(params), double *f, gsl_
 
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode)
 {
-	memcpy(theta_mode, G.solution, G.nhyper * sizeof(double));
+	Memcpy(theta_mode, G.solution, G.nhyper * sizeof(double));
 	*log_dens_mode = G.fvalue;
 
 	return GMRFLib_SUCCESS;
@@ -991,7 +991,7 @@ int GMRFLib_opt_dir_transform_gradient(double *grad)
 				g[i] += gsl_matrix_get(Opt_dir_params.tAinv, i, j) * grad[j];
 			}
 		}
-		memcpy(grad, g, n * sizeof(double));
+		Memcpy(grad, g, n * sizeof(double));
 		Free(g);
 	} else {
 		// the gradient is now ok as is.
@@ -1021,7 +1021,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 				h[i + j * n] = h[j + i * n] = tmp;
 			}
 		}
-		memcpy(hessian, h, ISQR(n) * sizeof(double));
+		Memcpy(hessian, h, ISQR(n) * sizeof(double));
 		Free(h);
 	} else {
 		// the hessian is ok as is.

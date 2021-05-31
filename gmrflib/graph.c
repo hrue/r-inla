@@ -220,7 +220,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		storage_indx = 0;
 		for (i = 0; i < (*graph)->n; i++) {
 			if ((*graph)->nnbs[i]) {
-				memcpy(&storage[storage_indx], (*graph)->nbs[i], (size_t) (sizeof(int) * (*graph)->nnbs[i]));
+				Memcpy(&storage[storage_indx], (*graph)->nbs[i], (size_t) (sizeof(int) * (*graph)->nnbs[i]));
 				Free((*graph)->nbs[i]);
 				(*graph)->nbs[i] = &storage[storage_indx];
 				storage_indx += (*graph)->nnbs[i];
@@ -822,7 +822,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 
 	for (i = 0, indx = 0; i < (*ngraph)->n; i++) {
 		if ((*ngraph)->nnbs[i]) {
-			memcpy(&hold[indx], (*ngraph)->nbs[i], (size_t) ((*ngraph)->nnbs[i] * sizeof(int)));
+			Memcpy(&hold[indx], (*ngraph)->nbs[i], (size_t) ((*ngraph)->nnbs[i] * sizeof(int)));
 			Free((*ngraph)->nbs[i]);
 			(*ngraph)->nbs[i] = &hold[indx];
 		} else {
@@ -870,7 +870,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	GMRFLib_graph_mk_empty(&g);
 	g->n = n = graph_old->n;
 	g->nnbs = Calloc(n, int);
-	memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
+	Memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
 
 	GMRFLib_graph_nnodes(&m, graph_old);
 	m = m - graph_old->n;
@@ -881,7 +881,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	for (i = hold_idx = 0; i < n; i++) {
 		if (g->nnbs[i]) {
 			g->nbs[i] = &hold[hold_idx];
-			memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
+			Memcpy(g->nbs[i], graph_old->nbs[i], (size_t) (g->nnbs[i] * sizeof(int)));
 			hold_idx += g->nnbs[i];
 
 			if (is_sorted && g->nnbs[i]) {
@@ -896,7 +896,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		if (!g->mothergraph_idx) {
 			g->mothergraph_idx = Calloc(n, int);
 		}
-		memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
+		Memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
 	}
 	*graph_new = g;
 	GMRFLib_graph_prepare(g, is_sorted, (graph_old->sha1 ? 0 : 1));
@@ -1047,7 +1047,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		storage_indx = 0;
 		for (i = 0; i < (*subgraph)->n; i++) {
 			if ((*subgraph)->nnbs[i]) {
-				memcpy(&storage[storage_indx], (*subgraph)->nbs[i], (size_t) (sizeof(int) * (*subgraph)->nnbs[i]));
+				Memcpy(&storage[storage_indx], (*subgraph)->nbs[i], (size_t) (sizeof(int) * (*subgraph)->nnbs[i]));
 				Free((*subgraph)->nbs[i]);
 				(*subgraph)->nbs[i] = &storage[storage_indx];
 				storage_indx += (*subgraph)->nnbs[i];
@@ -1079,7 +1079,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		}
 	} else {
 		double *work = Malloc(graph->n, double);
-		memcpy(work, destination, graph->n * sizeof(double));
+		Memcpy(work, destination, graph->n * sizeof(double));
 		for (i = 0; i < graph->n; i++) {
 			destination[remap[i]] = work[i];
 		}
@@ -1102,7 +1102,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 		}
 	} else {
 		double *work = Malloc(graph->n, double);
-		memcpy(work, destination, graph->n * sizeof(double));
+		Memcpy(work, destination, graph->n * sizeof(double));
 		for (i = 0; i < graph->n; i++) {
 			destination[i] = work[remap[i]];
 		}
@@ -1500,7 +1500,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 
 	for (i = 0, indx = 0; i < newg->n; i++) {
 		if (newg->nnbs[i]) {
-			memcpy(&hold[indx], newg->nbs[i], newg->nnbs[i] * sizeof(int));
+			Memcpy(&hold[indx], newg->nbs[i], newg->nnbs[i] * sizeof(int));
 			Free(newg->nbs[i]);
 			newg->nbs[i] = &hold[indx];
 		} else {
@@ -1666,7 +1666,7 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 		(*n_graph)->nbs[i] = Calloc(neigh_size[i], int);
 
 		if ((*n_graph)->nnbs[i]) {
-			memcpy((*n_graph)->nbs[i], graph->nbs[i], graph->nnbs[i] * sizeof(int));
+			Memcpy((*n_graph)->nbs[i], graph->nbs[i], graph->nnbs[i] * sizeof(int));
 		}
 	}
 
@@ -1705,7 +1705,7 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 
 		for (i = 0, storage_idx = 0; i < (*n_graph)->n; i++) {
 			if ((*n_graph)->nnbs[i]) {
-				memcpy(&storage[storage_idx], (*n_graph)->nbs[i], sizeof(int) * (*n_graph)->nnbs[i]);
+				Memcpy(&storage[storage_idx], (*n_graph)->nbs[i], sizeof(int) * (*n_graph)->nnbs[i]);
 				Free((*n_graph)->nbs[i]);
 				(*n_graph)->nbs[i] = &storage[storage_idx];
 				storage_idx += (*n_graph)->nnbs[i];

@@ -155,7 +155,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		for (k = 0; k < nf; k++) {
 			ww[k] = Calloc(n, double);
 			if (w && w[k]) {
-				memcpy(ww[k], w[k], n * sizeof(double));
+				Memcpy(ww[k], w[k], n * sizeof(double));
 			} else {
 				for (j = 0; j < n; j++) {
 					ww[k][j] = 1.0;
@@ -533,9 +533,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		int len = ntriples[i];
 
 		if (len) {
-			memcpy(&iilist[k], ilist[i], len * sizeof(int));
-			memcpy(&jjlist[k], jlist[i], len * sizeof(int));
-			memcpy(&QQijlist[k], Qijlist[i], len * sizeof(double));
+			Memcpy(&iilist[k], ilist[i], len * sizeof(int));
+			Memcpy(&jjlist[k], jlist[i], len * sizeof(int));
+			Memcpy(&QQijlist[k], Qijlist[i], len * sizeof(double));
 			k += len;
 		}
 	}

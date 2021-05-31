@@ -498,17 +498,17 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 	xyz = Calloc(nmemb * siz, char);
 
 	for (i = 0; i < nmemb; i++) {
-		memcpy((void *) &xyz[i * siz], (void *) &xx[i * size_x], size_x);
+		Memcpy((void *) &xyz[i * siz], (void *) &xx[i * size_x], size_x);
 	}
 	if (y) {
 		offset = size_x;
 		for (i = 0; i < nmemb; i++) {
-			memcpy((void *) &xyz[i * siz + offset], (void *) &yy[i * size_y], size_y);
+			Memcpy((void *) &xyz[i * siz + offset], (void *) &yy[i * size_y], size_y);
 		}
 		if (z) {
 			offset = size_x + size_y;
 			for (i = 0; i < nmemb; i++) {
-				memcpy((void *) &xyz[i * siz + offset], (void *) &zz[i * size_z], size_z);
+				Memcpy((void *) &xyz[i * siz + offset], (void *) &zz[i * size_z], size_z);
 			}
 		}
 	}
@@ -516,17 +516,17 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 	qsort((void *) xyz, nmemb, siz, compar);
 
 	for (i = 0; i < nmemb; i++) {
-		memcpy((void *) &xx[i * size_x], (void *) &xyz[i * siz], size_x);
+		Memcpy((void *) &xx[i * size_x], (void *) &xyz[i * siz], size_x);
 	}
 	if (y) {
 		offset = size_x;
 		for (i = 0; i < nmemb; i++) {
-			memcpy((void *) &yy[i * size_y], (void *) &xyz[i * siz + offset], size_y);
+			Memcpy((void *) &yy[i * size_y], (void *) &xyz[i * siz + offset], size_y);
 		}
 		if (z) {
 			offset = size_x + size_y;
 			for (i = 0; i < nmemb; i++) {
-				memcpy((void *) &zz[i * size_z], (void *) &xyz[i * siz + offset], size_z);
+				Memcpy((void *) &zz[i * size_z], (void *) &xyz[i * siz + offset], size_z);
 			}
 		}
 	}
@@ -1219,7 +1219,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	}
 
 	ixx = Calloc(nx, int);
-	memcpy(ixx, ix, nx * sizeof(int));
+	Memcpy(ixx, ix, nx * sizeof(int));
 	qsort((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
 
 	for (j = nu = i = 0; i < nx; i++) {

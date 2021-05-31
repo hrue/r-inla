@@ -2701,7 +2701,7 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 				Free(x_out);
 
 				if (a->param[id]) {
-					memcpy(a->param[id], a_tmp, a->ntheta * sizeof(double));
+					Memcpy(a->param[id], a_tmp, a->ntheta * sizeof(double));
 					Free(a_tmp);
 				} else {
 					a->param[id] = a_tmp;
@@ -2836,7 +2836,7 @@ double mfunc_rgeneric(int i, void *arg)
 			if (n > 0) {
 				assert(n == a->n);
 				a->mu[id] = Calloc(n, double);
-				memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
+				Memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
 				a->mu_zero = 0;
 			} else {
 				// a->mu[id] = Calloc(a->n, double);
@@ -3088,7 +3088,7 @@ double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 		}
 
 		GMRFLib_gsl_spd_inverse(hold->Q);
-		memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
+		Memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
 	}
 
 	Free(vec);
@@ -7877,7 +7877,7 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg)
 	for (i = 0; i < np; i++) {
 		(*x)[i] = sd * lcache->x[i];
 	}
-	memcpy(*w, lcache->w, np * sizeof(double));
+	Memcpy(*w, lcache->w, np * sizeof(double));
 	*n = np;
 
 #undef DENS
@@ -7956,8 +7956,8 @@ int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg)
 	*n = lcache->np;
 	*x = Calloc(*n, double);
 	*w = Calloc(*n, double);
-	memcpy(*x, lcache->x, *n * sizeof(double));
-	memcpy(*w, lcache->w, *n * sizeof(double));
+	Memcpy(*x, lcache->x, *n * sizeof(double));
+	Memcpy(*w, lcache->w, *n * sizeof(double));
 
 #undef DENS
 	return GMRFLib_SUCCESS;
@@ -10394,7 +10394,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 		tmp = Calloc(nparam + 1, double);
 		tmp[0] = dim;
-		memcpy(&(tmp[1]), prior->parameters, nparam * sizeof(double));
+		Memcpy(&(tmp[1]), prior->parameters, nparam * sizeof(double));
 		Free(prior->parameters);
 		prior->parameters = tmp;
 	} else if (!strcasecmp(prior->name, "PCSPDEGA")) {
@@ -18035,8 +18035,8 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * 
 		c->nc = nc;
 		c->a_matrix = Calloc(nc * n, double);
 		c->e_vector = Calloc(nc, double);
-		memcpy(c->a_matrix, constr->a_matrix, n * nc * sizeof(double));
-		memcpy(c->e_vector, constr->e_vector, nc * sizeof(double));
+		Memcpy(c->a_matrix, constr->a_matrix, n * nc * sizeof(double));
+		Memcpy(c->e_vector, constr->e_vector, nc * sizeof(double));
 	} else {
 		assert(sumzero && constr);
 
@@ -19724,7 +19724,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_data_all(&(mb->f_locations[mb->nf]), &nlocations, filename, NULL);
 		if (mb->f_N[mb->nf] > nlocations) {
 			double *t = Calloc(mb->f_N[mb->nf], double);
-			memcpy(t, mb->f_locations[mb->nf], nlocations * sizeof(double));
+			Memcpy(t, mb->f_locations[mb->nf], nlocations * sizeof(double));
 			Free(mb->f_locations[mb->nf]);
 			mb->f_locations[mb->nf] = t;
 			for (i = nlocations; i < mb->f_N[mb->nf]; i++) {
@@ -20171,8 +20171,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		spde2_model_orig->ntheta_used = spde2_model->ntheta_used;
 		spde2_model_orig->fixed = Calloc(ntheta, int);
 		spde2_model_orig->fixed_values = Calloc(ntheta, double);
-		memcpy(spde2_model_orig->fixed, spde2_model->fixed, ntheta * sizeof(int));
-		memcpy(spde2_model_orig->fixed_values, spde2_model->fixed_values, ntheta * sizeof(double));
+		Memcpy(spde2_model_orig->fixed, spde2_model->fixed, ntheta * sizeof(int));
+		Memcpy(spde2_model_orig->fixed_values, spde2_model->fixed_values, ntheta * sizeof(double));
 
 		if (mb->f_prior[mb->nf][0].id == P_MVNORM) {
 			if ((int) mb->f_prior[mb->nf][0].parameters[0] != ntheta_used) {
@@ -20828,7 +20828,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		ntheta = (int) x_out[0];
 		if (ntheta) {
 			initial = Calloc(ntheta, double);
-			memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
+			Memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
 		}
 
 		Free(x_out);
@@ -23870,7 +23870,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		HYPER_NEW(log_prec_orig, log_prec[0][0]);
 		arg_orig = Calloc(1, inla_z_arg_tp);
-		memcpy(arg_orig, arg, sizeof(inla_z_arg_tp));
+		Memcpy(arg_orig, arg, sizeof(inla_z_arg_tp));
 		arg_orig->log_prec = log_prec_orig;
 
 		mb->f_Qfunc[mb->nf] = Qfunc_z;
@@ -23929,7 +23929,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		HYPER_NEW(log_prec_orig, log_prec[0][0]);
 		HYPER_NEW(logit_rho_orig, rho_intern[0][0]);
 		arg_orig = Calloc(1, inla_slm_arg_tp);
-		memcpy(arg_orig, arg, sizeof(inla_slm_arg_tp));
+		Memcpy(arg_orig, arg, sizeof(inla_slm_arg_tp));
 		arg_orig->log_prec = log_prec_orig;
 		arg_orig->logit_rho = logit_rho_orig;
 
@@ -24126,7 +24126,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// must make a copy... (realloc)
 		def->scale = Calloc(mb->predictor_n, double);
 		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
-		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
+		Memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 
 		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
 		mb->f_Qfunc[mb->nf] = Qfunc_mec;
@@ -24177,7 +24177,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->x = mb->f_locations[mb->nf];
 		// must make a copy... (realloc)
 		def->scale = Calloc(mb->predictor_n, double);
-		memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
+		Memcpy(def->scale, mb->f_scale[mb->nf], mb->predictor_n * sizeof(double));
 		def->map_beta_arg = mb->f_theta_map_arg[mb->nf][0];
 
 		GMRFLib_graph_mk_linear(&(mb->f_graph[mb->nf]), mb->f_n[mb->nf], 0, 0);
@@ -24319,8 +24319,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);
 		def_orig->jlist = Calloc(def_orig->len_list, int);
-		memcpy(def_orig->ilist, def->ilist, def->len_list * sizeof(int));
-		memcpy(def_orig->jlist, def->jlist, def->len_list * sizeof(int));
+		Memcpy(def_orig->ilist, def->ilist, def->len_list * sizeof(int));
+		Memcpy(def_orig->jlist, def->jlist, def->len_list * sizeof(int));
 
 		GMRFLib_graph_duplicate(&ggraph, graph);
 		def_orig->graph = graph;
@@ -24361,8 +24361,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		if (mb->f_locations[mb->nf]) {
 			double *t = Calloc((def->k + 1) * mb->f_n[mb->nf], double);
-			memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
-			memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+			Memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+			Memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
 
 			double start = floor(GMRFLib_max_value(t, mb->f_n[mb->nf], NULL) + 1.0);
 			for (int ii = 0; ii < def->k * mb->f_n[mb->nf]; ii++) {
@@ -24414,8 +24414,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		if (mb->f_locations[mb->nf]) {
 			double *t = Calloc((def->k + 1) * mb->f_n[mb->nf], double);
-			memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
-			memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+			Memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+			Memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
 
 			double start = floor(GMRFLib_max_value(t, mb->f_n[mb->nf], NULL) + 1.0);
 			for (int ii = 0; ii < def->k * mb->f_n[mb->nf]; ii++) {
@@ -24584,7 +24584,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * need this one later to get 'n'. a copy of the original contents is ok. 
 		 */
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) Calloc(1, inla_ou_arg_tp);
-		memcpy(mb->f_Qfunc_arg_orig[mb->nf], mb->f_Qfunc_arg[mb->nf], sizeof(inla_ou_arg_tp));
+		Memcpy(mb->f_Qfunc_arg_orig[mb->nf], mb->f_Qfunc_arg[mb->nf], sizeof(inla_ou_arg_tp));
 
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
@@ -24612,7 +24612,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		GMRFLib_matern2ddef_tp *arg_orig = NULL;
 		arg_orig = Calloc(1, GMRFLib_matern2ddef_tp);
-		memcpy(arg_orig, arg, sizeof(GMRFLib_matern2ddef_tp));
+		Memcpy(arg_orig, arg, sizeof(GMRFLib_matern2ddef_tp));
 
 		mb->f_Qfunc[mb->nf] = GMRFLib_matern2d;
 		mb->f_Qfunc_orig[mb->nf] = GMRFLib_matern2d;
@@ -24650,7 +24650,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->log_range = range_intern;
 		arg->log_prec = log_prec;
 		arg->log_nu = nu_intern;
-		memcpy(arg_orig, arg, sizeof(dmatern_arg_tp));
+		Memcpy(arg_orig, arg, sizeof(dmatern_arg_tp));
 
 		mb->f_Qfunc[mb->nf] = Qfunc_dmatern;
 		mb->f_Qfunc_orig[mb->nf] = Qfunc_dmatern;
@@ -24828,8 +24828,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				 */
 				if (mb->f_locations[mb->nf]) {
 					double *t = Calloc(2 * mb->f_n[mb->nf], double);
-					memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
-					memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+					Memcpy(&t[0], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
+					Memcpy(&t[mb->f_n[mb->nf]], mb->f_locations[mb->nf], mb->f_n[mb->nf] * sizeof(double));
 
 					int ii;
 					for (ii = mb->f_n[mb->nf]; ii < 2 * mb->f_n[mb->nf]; ii++) {
@@ -26246,7 +26246,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		printf("\t\tglobal_node.degree = %.1d\n", GMRFLib_global_node.degree);
 	}
 
-	memcpy((void *) &(mb->gn), (void *) &GMRFLib_global_node, sizeof(GMRFLib_global_node_tp));
+	Memcpy((void *) &(mb->gn), (void *) &GMRFLib_global_node, sizeof(GMRFLib_global_node_tp));
 
 	r = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "REORDERING"), NULL));
 	if (mb->verbose) {
@@ -28610,7 +28610,7 @@ double extra(double *theta, int ntheta, void *argument)
 			inla_generic3_tp *a;
 
 			a = Calloc(1, inla_generic3_tp);
-			memcpy((void *) a, (void *) mb->f_Qfunc_arg_orig[i], sizeof(inla_generic3_tp));
+			Memcpy((void *) a, (void *) mb->f_Qfunc_arg_orig[i], sizeof(inla_generic3_tp));
 			a->log_prec = Calloc(GENERIC3_MAXTHETA, double **);
 			for (k = 0; k < GENERIC3_MAXTHETA; k++) {
 				if (_NOT_FIXED(f_fixed[i][k])) {
@@ -29596,7 +29596,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 			q = (GMRFLib_matern2ddef_tp *) mb->f_Qfunc_arg_orig[i];
 			h->matern2ddef = Calloc(1, GMRFLib_matern2ddef_tp);
-			memcpy(h->matern2ddef, q, sizeof(GMRFLib_matern2ddef_tp));
+			Memcpy(h->matern2ddef, q, sizeof(GMRFLib_matern2ddef_tp));
 			h->matern2ddef->prec = &h->precision;
 			h->matern2ddef->range = &h->range;
 
@@ -29753,7 +29753,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 
 				h->def = Calloc(1, inla_besag_proper_Qfunc_arg_tp);
-				memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper_Qfunc_arg_tp));
+				Memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper_Qfunc_arg_tp));
 				h->def->log_prec = h->log_prec;
 				h->def->log_diag = h->log_diag;
 			} else {
@@ -29843,7 +29843,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 
 				h->def = Calloc(1, inla_besag_proper2_Qfunc_arg_tp);
-				memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper2_Qfunc_arg_tp));
+				Memcpy(h->def, mb->f_Qfunc_arg_orig[i], sizeof(inla_besag_proper2_Qfunc_arg_tp));
 				h->def->log_prec = h->log_prec;
 				h->def->logit_lambda = h->logit_lambda;
 			} else {
@@ -30369,7 +30369,7 @@ int inla_INLA(inla_tp * mb)
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
 			inla_error_general(msg);
 		}
-		memcpy(x, mb->x_file, N * sizeof(double));
+		Memcpy(x, mb->x_file, N * sizeof(double));
 
 		/*
 		 * subtract the offset 
@@ -30635,7 +30635,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	x = Calloc(N, double);
 
 	if (mb->reuse_mode && mb->x_file) {
-		memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
+		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
 	/*
@@ -30995,7 +30995,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
 			inla_error_general(msg);
 		}
-		memcpy(x, mb->x_file, N * sizeof(double));
+		Memcpy(x, mb->x_file, N * sizeof(double));
 		/*
 		 * subtract the offset 
 		 */
@@ -31304,7 +31304,7 @@ int inla_INLA_preopt(inla_tp * mb)
 
 	double *xx = Calloc(preopt->n, double);
 	if (mb->x_file) {
-		memcpy(xx, mb->x_file + preopt->mnpred, preopt->n * sizeof(double));
+		Memcpy(xx, mb->x_file + preopt->mnpred, preopt->n * sizeof(double));
 	}
 
 	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -31386,12 +31386,12 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->nquantiles = mb->output->nquantiles;
 		if (mb->output->nquantiles) {
 			(*out)->quantiles = Calloc(mb->output->nquantiles, double);
-			memcpy((*out)->quantiles, mb->output->quantiles, (size_t) mb->output->nquantiles * sizeof(double));
+			Memcpy((*out)->quantiles, mb->output->quantiles, (size_t) mb->output->nquantiles * sizeof(double));
 		}
 		(*out)->ncdf = mb->output->ncdf;
 		if (mb->output->ncdf) {
 			(*out)->cdf = Calloc(mb->output->ncdf, double);
-			memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
+			Memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
 		}
 	}
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
@@ -31562,7 +31562,7 @@ int inla_output_matrix(const char *dir, const char *sdir, const char *filename, 
 	M->elems = ISQR(n);
 	M->A = Calloc(ISQR(n), double);
 	if (order == NULL) {
-		memcpy(M->A, matrix, ISQR(n) * sizeof(double));
+		Memcpy(M->A, matrix, ISQR(n) * sizeof(double));
 	} else {
 		int i, j;
 		for (i = 0; i < n; i++) {
@@ -32255,7 +32255,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 #define _PAD_WITH_NA(xx)							\
 	if (1) {							\
 		tmp = Calloc(len_family_idx, double);			\
-		memcpy(tmp, xx, dic->n_deviance*sizeof(double));	\
+		Memcpy(tmp, xx, dic->n_deviance*sizeof(double));	\
 		int i;							\
 		for(i = dic->n_deviance; i < len_family_idx; i++){	\
 			tmp[i] = NAN;					\
@@ -32515,7 +32515,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
 		M->A = Calloc(mo->nhyper, double);
-		memcpy(M->A, mo->stdev_corr_pos, mo->nhyper * sizeof(double));
+		Memcpy(M->A, mo->stdev_corr_pos, mo->nhyper * sizeof(double));
 		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
 		GMRFLib_matrix_free(M);
 	}
@@ -32527,7 +32527,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
 		M->A = Calloc(mo->nhyper, double);
-		memcpy(M->A, mo->stdev_corr_neg, mo->nhyper * sizeof(double));
+		Memcpy(M->A, mo->stdev_corr_neg, mo->nhyper * sizeof(double));
 		GMRFLib_write_fmesher_file(M, nndir, 0L, -1);
 		GMRFLib_matrix_free(M);
 	}
@@ -32627,7 +32627,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 			if (mo->configs[id]) {
 				double *off = Calloc(mo->configs[id]->n, double);
-				memcpy(off, &(OFFSET3(0)), (mb->predictor_n + mb->predictor_m) * sizeof(double));
+				Memcpy(off, &(OFFSET3(0)), (mb->predictor_n + mb->predictor_m) * sizeof(double));
 
 				for (i = 0; i < mo->configs[id]->nconfig; i++) {
 					fwrite((void *) &(mo->configs[id]->config[i]->log_posterior), sizeof(double), (size_t) 1, fp);
@@ -34259,12 +34259,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			if (!S) {
 				GMRFLib_sample(problem);
 			} else {
-				memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
+				Memcpy(problem->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problem);
 
 			if (!selection) {
-				memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
+				Memcpy(&(M->A[i * M->nrow]), problem->sample, graph->n * sizeof(double));
 			} else {
 				for (int ii = 0; ii < selection->nrow; ii++) {
 					M->A[i * M->nrow + ii] = problem->sample[(int) selection->A[ii]];
@@ -34288,12 +34288,12 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 			if (!S) {
 				GMRFLib_sample(problems[thread]);
 			} else {
-				memcpy(problems[thread]->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
+				Memcpy(problems[thread]->sample, &(S->A[i * S->nrow]), S->nrow * sizeof(double));
 			}
 			GMRFLib_evaluate(problems[thread]);
 
 			if (!selection) {
-				memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, graph->n * sizeof(double));
+				Memcpy(&(M->A[i * M->nrow]), problems[thread]->sample, graph->n * sizeof(double));
 			} else {
 				for (int ii = 0; ii < selection->nrow; ii++) {
 					M->A[i * M->nrow + ii] = problems[thread]->sample[(int) selection->A[ii]];
@@ -34319,7 +34319,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	CM->elems = CM->ncol * CM->nrow;
 	CM->A = Calloc(CM->nrow * CM->ncol, double);
 	if (!selection) {
-		memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
+		Memcpy(CM->A, problem->mean_constr, graph->n * sizeof(double));
 	} else {
 		for (int ii = 0; ii < selection->nrow; ii++) {
 			CM->A[ii] = problem->mean_constr[(int) selection->A[ii]];
@@ -35770,7 +35770,7 @@ int testit(int argc, char **argv)
 		for (i = 0; i < n; i++)
 			printf("constr i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
 		if (rw->order > 1) {
-			memcpy(null, rw->position, n * sizeof(double));
+			Memcpy(null, rw->position, n * sizeof(double));
 			GMRFLib_Qx(res, null, g, GMRFLib_crw, (void *) rw);
 			for (i = 0; i < n; i++)
 				printf("linear i %1d  x %f null %f Qnull %f\n", i, rw->position[i], null[i], res[i]);
@@ -36565,8 +36565,8 @@ int main(int argc, char **argv)
 				Free(mb->x_file);
 				mb->theta_file = Calloc(mb->ntheta, double);
 				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
-				memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
-				memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
+				Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
+				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
 				mb->ntheta_file = mb->ntheta;
 				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
 				mb->reuse_mode = GMRFLib_TRUE;

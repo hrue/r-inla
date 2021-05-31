@@ -61,7 +61,7 @@ int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
 	double w_sum = 0.0;
 	double *ww = Calloc(n, double);
 
-	memcpy(ww, weights, n * sizeof(double));
+	Memcpy(ww, weights, n * sizeof(double));
 	for (i = 0, w_sum = 0.0; i < n; i++) {
 		w_sum += ww[i];
 	}
@@ -1180,12 +1180,12 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
 
 		GMRFLib_ghq_abscissas(&ptr, n_points);
-		memcpy(x_points, ptr, n_points * sizeof(double));
-		memcpy(x_points + n_points, f, nf * sizeof(double));
+		Memcpy(x_points, ptr, n_points * sizeof(double));
+		Memcpy(x_points + n_points, f, nf * sizeof(double));
 		np = np_max;
 		if (gdensity) {
-			memcpy(x_points_g, ptr, n_points * sizeof(double));
-			memcpy(x_points_g + n_points, f, nf * sizeof(double));
+			Memcpy(x_points_g, ptr, n_points * sizeof(double));
+			Memcpy(x_points_g + n_points, f, nf * sizeof(double));
 			np_g = np_max;
 		} else {
 			np_g = 0;
@@ -1206,16 +1206,16 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 		x_points_tmp = Calloc(np, double);
 		np_tmp = np;
-		memcpy(x_points_tmp, x_points, np * sizeof(double));
+		Memcpy(x_points_tmp, x_points, np * sizeof(double));
 		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
 		if (np_tmp >= minp) {			       /* then its ok */
 			np = np_tmp;
-			memcpy(x_points, x_points_tmp, np * sizeof(double));
+			Memcpy(x_points, x_points_tmp, np * sizeof(double));
 		} else {
 			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
 			if (np_tmp >= minp) {		       /* then its ok */
 				np = np_tmp;
-				memcpy(x_points, x_points_tmp, np * sizeof(double));
+				Memcpy(x_points, x_points_tmp, np * sizeof(double));
 			}
 		}
 		Free(x_points_tmp);
@@ -1223,16 +1223,16 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		if (gdensity) {
 			x_points_tmp = Calloc(np_g, double);
 			np_tmp = np_g;
-			memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
+			Memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
 			GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
 			if (np_tmp >= minp) {		       /* then its ok */
 				np_g = np_tmp;
-				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				Memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 			} else {
 				GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
 				if (np_tmp >= minp) {	       /* then its ok */
 					np_g = np_tmp;
-					memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+					Memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 				}
 			}
 			Free(x_points_tmp);
@@ -1249,9 +1249,9 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		x_points_g = (gdensity ? Calloc(np_max, double) : NULL);
 
 		GMRFLib_ghq_abscissas(&ptr, n_points);
-		memcpy(x_points, ptr, n_points * sizeof(double));
+		Memcpy(x_points, ptr, n_points * sizeof(double));
 		if (gdensity) {
-			memcpy(x_points_g, ptr, n_points * sizeof(double));
+			Memcpy(x_points_g, ptr, n_points * sizeof(double));
 		}
 
 		/*
@@ -1300,16 +1300,16 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 		x_points_tmp = Calloc(np, double);
 		np_tmp = np;
-		memcpy(x_points_tmp, x_points, np * sizeof(double));
+		Memcpy(x_points_tmp, x_points, np * sizeof(double));
 		GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
 		if (np_tmp >= minp) {			       /* then its ok */
 			np = np_tmp;
-			memcpy(x_points, x_points_tmp, np * sizeof(double));
+			Memcpy(x_points, x_points_tmp, np * sizeof(double));
 		} else {
 			GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
 			if (np_tmp >= minp) {		       /* then its ok */
 				np = np_tmp;
-				memcpy(x_points, x_points_tmp, np * sizeof(double));
+				Memcpy(x_points, x_points_tmp, np * sizeof(double));
 			}
 		}
 		Free(x_points_tmp);
@@ -1317,16 +1317,16 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		if (gdensity) {
 			x_points_tmp = Calloc(np_g, double);
 			np_tmp = np_g;
-			memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
+			Memcpy(x_points_tmp, x_points_g, np_g * sizeof(double));
 			GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
 			if (np_tmp >= minp) {		       /* then its ok */
 				np_g = np_tmp;
-				memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+				Memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 			} else {
 				GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
 				if (np_tmp >= minp) {	       /* then its ok */
 					np_g = np_tmp;
-					memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
+					Memcpy(x_points_g, x_points_tmp, np_g * sizeof(double));
 				}
 			}
 			Free(x_points_tmp);
@@ -1426,7 +1426,7 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 	(*density)->std_mean = std_mean;
 	(*density)->std_stdev = std_stdev;
 	(*density)->sn_param = Calloc(1, GMRFLib_sn_param_tp);
-	memcpy((void *) (*density)->sn_param, (const void *) &sn_param, sizeof(GMRFLib_sn_param_tp));
+	Memcpy((void *) (*density)->sn_param, (const void *) &sn_param, sizeof(GMRFLib_sn_param_tp));
 
 	GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
 
@@ -1465,8 +1465,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 
 	xx = Calloc(n, double);
 	ldens = Calloc(n, double);
-	memcpy(xx, x, (size_t) n * sizeof(double));
-	memcpy(ldens, logdens, (size_t) n * sizeof(double));
+	Memcpy(xx, x, (size_t) n * sizeof(double));
+	Memcpy(ldens, logdens, (size_t) n * sizeof(double));
 
 	/*
 	 * sort xx and remove ties

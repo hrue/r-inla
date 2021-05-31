@@ -139,7 +139,7 @@ void *GMRFLib_rng_getstate(size_t *siz)
 	n = gsl_rng_size(GMRFLib_rng);
 	pp = Calloc(n, char);
 
-	memcpy(pp, p, n);
+	Memcpy(pp, p, n);
 	if (siz) {
 		*siz = n;
 	}
@@ -155,7 +155,7 @@ int GMRFLib_rng_setstate(void *saved_state)
 
 		p = gsl_rng_state(GMRFLib_rng);
 		n = gsl_rng_size(GMRFLib_rng);
-		memcpy(p, saved_state, n);
+		Memcpy(p, saved_state, n);
 	}
 	return GMRFLib_SUCCESS;
 }

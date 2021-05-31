@@ -68,7 +68,7 @@ static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 #define REV(x, n) \
 	if (1){						\
 		double *_tmp = Calloc(n, double);	\
-		memcpy(_tmp, (x), (n)*sizeof(double));	\
+		Memcpy(_tmp, (x), (n)*sizeof(double));	\
 		int ii;					\
 		for(ii=0; ii < (n); ii++){		\
 			(x)[ii] = _tmp[(n)-1-ii];	\
@@ -182,7 +182,7 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		if (debug) {
 			printf("Have already %.12f %.12f --> %.12f %.12f\n", pin[id][0], pin[id][1], pout[id][0], pout[id][1]);
 		}
-		memcpy(pout_tmp, pout[id], sizeof(pout_tmp));
+		Memcpy(pout_tmp, pout[id], sizeof(pout_tmp));
 	} else if (!skew && !kurt) {
 		pout_tmp[0] = 0.0;			       /* epsilon */
 		pout_tmp[1] = log(1.0);			       /* log delta */
@@ -261,8 +261,8 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 
 	if (use_lookup) {
 		perr[id] = err;
-		memcpy(pin[id], npin, sizeof(npin));
-		memcpy(pout[id], pout_tmp, sizeof(pout_tmp));
+		Memcpy(pin[id], npin, sizeof(npin));
+		Memcpy(pout[id], pout_tmp, sizeof(pout_tmp));
 	}
 
 	return (err ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
@@ -909,8 +909,8 @@ int re_join_contourLines(re_contour_tp * c)
 			printf("jmin %d (%g %g)\n", i, c->x[jmin][i], c->y[jmin][i]);
 	}
 
-	memcpy(&(c->x[imin][c->ns[imin] + 1]), &(c->x[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
-	memcpy(&(c->y[imin][c->ns[imin] + 1]), &(c->y[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
+	Memcpy(&(c->x[imin][c->ns[imin] + 1]), &(c->x[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
+	Memcpy(&(c->y[imin][c->ns[imin] + 1]), &(c->y[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
 	c->ns[imin] = c->ns[imin] + c->ns[jmin] + 1;
 
 	if (debug) {
