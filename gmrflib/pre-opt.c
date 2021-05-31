@@ -328,6 +328,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
 		GMRFLib_idxval_nsort(pA_idxval, nrow, nt);
+		SHOW_TIME("create pA_idxval");
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
 		double *rows = Calloc(nt * ncol, double);      /* SAME _THREADS! */
@@ -346,8 +347,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idx_uniq(pAA_pattern[i]);
 		}
 		Free(rows);
-
 		SHOW_TIME("pAA_pattern");
+
 		if (debug) {
 			char *crow = Calloc(N + 1, char);
 			crow[N] = '\0';
