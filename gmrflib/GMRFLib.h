@@ -136,6 +136,5 @@ __BEGIN_DECLS
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
-
     __END_DECLS
 #endif

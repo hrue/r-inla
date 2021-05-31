@@ -57,7 +57,7 @@ __BEGIN_DECLS
 /* 
    dummy comment
  */
-typedef double (*integrand) (unsigned ndim, const double *x, void *);
+typedef double (*integrand)(unsigned ndim, const double *x, void *);
 
 /* Integrate the function f from xmin[dim] to xmax[dim], with at most maxEval function evaluations (0 for no limit), until the
    given absolute or relative error is achieved.  val returns the integral, and err returns the estimate for the absolute error

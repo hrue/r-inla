@@ -165,9 +165,9 @@ __BEGIN_DECLS
 	int *remap;					       /* force to use this remap n */
 	int stop_idx;					       /* sample/evalutate the marginal x_from n-1 to stop_idx, in the permuted world. */
 	GMRFLib_gdens_tp **marginal_density;		       /* if not NULL, then store the LAST marginal as (*marginal) instead of FREE'ing it. */
-	double *marginal_mean, *marginal_stdev;		       /* the density stored in `marginal' is adjusted for the marginal mean. hence to evaluate the density 
-							        * in 'x' then marginal density must be evaluated at 'x-marginal_mean'. the marginal_stdev is
-							        * returned [optionally] for convenice. */
+	double *marginal_mean, *marginal_stdev;		       /* the density stored in `marginal' is adjusted for the marginal mean. hence to
+							        * evaluate the density in 'x' then marginal density must be evaluated at
+							        * 'x-marginal_mean'. the marginal_stdev is returned [optionally] for convenice. */
 } GMRFLib_hidden_param_tp;
 
 /*!

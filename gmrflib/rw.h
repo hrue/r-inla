@@ -54,7 +54,6 @@
 
 __BEGIN_DECLS
 
-
 /*!
   \struct GMRFLib_rwdef_tp rw.h
   \brief The typedef used to define RW1 and RW2 models with regular locations.
@@ -229,7 +228,7 @@ typedef struct {
 	 */
 	double *scale0;
 
-	/* 
+	/*
 	 * scale the prec: for any order. 
 	 */
 	double *prec_scale;

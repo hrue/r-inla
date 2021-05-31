@@ -44,7 +44,6 @@ __BEGIN_DECLS
 /*
  *
  */
-
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *dirname);
 int my_setenv(char *str, int prefix);

@@ -233,12 +233,12 @@ extern int GMRFLib_meminfo_thread_id;
 /* 
    define global nodes
  */
-extern GMRFLib_global_node_tp GMRFLib_global_node; 
+extern GMRFLib_global_node_tp GMRFLib_global_node;
 
 /* 
    storage strategy for density
  */
-extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy; 
+extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy;
 
 /* 
    internal use only; for debugging

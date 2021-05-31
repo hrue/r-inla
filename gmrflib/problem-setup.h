@@ -65,7 +65,6 @@ __BEGIN_DECLS
   $\Sigma$}_{\epsilon}\f$
 */
 
-
 /*! 
   \struct GMRFLib_constr_tp problem-setup.h
 
@@ -102,7 +101,7 @@ __BEGIN_DECLS
   $Q$}(\mbox{\boldmath $Ax-e$}) \f$ for a given value of the GMRF <em>\b x</em>, call \c
   GMRFLib_eval_constr().
 */
-typedef struct {
+    typedef struct {
 
 	unsigned char *sha1;
 
@@ -438,7 +437,7 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
-int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp *graph);
+int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
@@ -451,13 +450,12 @@ int GMRFLib_free_store(GMRFLib_store_tp * store);
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
 int GMRFLib_init_constr_store(void);
 int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, 
-			 GMRFLib_constr_tp * constraint);
+			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint);
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 			       GMRFLib_constr_tp * constr, GMRFLib_store_tp * store);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
 int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem);

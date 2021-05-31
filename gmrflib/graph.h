@@ -56,8 +56,6 @@
 #endif
 
 __BEGIN_DECLS
-
-
 #define GMRFLib_BINARY_GRAPH_FILE_MAGIC (-1)		       /* the first sizeof(int) bytes of the binary graph file */
 
 /*
@@ -187,12 +185,12 @@ int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp *
 int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph);
+int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph);
 int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value);
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno);
-int GMRFLib_graph_add_sha1(GMRFLib_graph_tp *g, int skip_sha1);
+int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1);
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag);

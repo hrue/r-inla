@@ -1,3 +1,4 @@
+
 /* rmath.h
  * 
  * Copyright (C) 2019 Havard Rue
@@ -41,13 +42,11 @@
 #endif
 
 __BEGIN_DECLS
-
 #define MATHLIB_STANDALONE
 #define MATHLIB_FUN(_fun) _fun
 #include <Rmath.h>
 #ifdef ISNAN
 #undef ISNAN
 #endif
-
-__END_DECLS
+    __END_DECLS
 #endif

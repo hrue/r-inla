@@ -120,7 +120,8 @@ static double cubic(double c0, double c1, double c2, double c3, double z);
 static void check_extremum(double c0, double c1, double c2, double c3, double z, double *zmin, double *fminn);
 static double interp_cubic(double f0, double fp0, double f1, double fp1, double zl, double zh);
 static double interpolate(double a, double fa, double fpa, double b, double fb, double fpb, double xmin, double xmax, int order);
-static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1, double *alpha_new);
+static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
+		    double *alpha_new);
 static void moveto(double alpha, wrapper_t * w);
 static double slope(wrapper_t * w);
 static double wrap_f(double alpha, void *params);
@@ -131,7 +132,8 @@ static void prepare_wrapper(wrapper_t * w, gsl_multimin_function_fdf * fdf,
 static void update_position(wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g);
 static void change_direction(wrapper_t * w);
 static int vector_bfgs3_alloc(void *vstate, size_t n);
-static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size, double tol);
+static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size,
+			    double tol);
 static void vector_bfgs3_free(void *vstate);
 static int vector_bfgs3_restart(void *vstate);
 static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf * fdf, gsl_vector * x, double *f, gsl_vector * gradient, gsl_vector * dx);

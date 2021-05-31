@@ -43,17 +43,15 @@ __BEGIN_DECLS
 /* 
  *
  */
-
 #define GMRFLib_SN_SKEWMAX (0.988)
-
-typedef struct {
+    typedef struct {
 	double xmin;
 	double xmax;
 	gsl_interp_accel *accel;
 	gsl_spline *spline;
 } GMRFLib_spline_tp;
 
-GMRFLib_spline_tp * GMRFLib_spline_create(double *x, double *y, int n);
+GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n);
 GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M);
 double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s);

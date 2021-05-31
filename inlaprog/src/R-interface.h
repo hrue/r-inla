@@ -55,7 +55,7 @@ int inla_R_library(const char *library);
 int inla_R_load(const char *filename);
 int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
 int inla_R_source(const char *filename);
-void *inla_R_vector_of_strings(int n, char ** s);
+void *inla_R_vector_of_strings(int n, char **s);
 void inla_R_exit(void);
 
 __END_DECLS

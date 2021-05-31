@@ -169,7 +169,7 @@ int GMRFLib_init_GMRF_approximation(GMRFLib_problem_tp ** problem, double *x, do
 				    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_constr_tp * constr,
 				    GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par);
 int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, double *d,
-					  GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
+					  GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
 					  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store);

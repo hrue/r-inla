@@ -104,7 +104,7 @@ __BEGIN_DECLS
 
 double GMRFLib_seasonal(int node, int nnode, double *values, void *seasonal_def);
 int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def);
-int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp *def);
+int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def);
 
 __END_DECLS
 #endif

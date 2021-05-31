@@ -177,7 +177,7 @@ typedef struct {
 	double *E;
 	double *cen_low;				       /* cenpoisson2 */
 	double *cen_high;				       /* cenpoisson2 */
-	
+
 	/*
 	 * y ~ Binomial(nb, p(x))
 	 */
@@ -425,7 +425,7 @@ typedef struct {
 	 */
 	GMRFLib_spline_tp **qcontpoisson_func;
 
-	/* 
+	/*
 	 * Aggregated Gaussian  
 	 */
 	double **agaussian;
@@ -561,13 +561,13 @@ typedef enum {
 	L_POISSON_SPECIAL1,
 	L_GAMMAJW,
 	L_GAMMAJWSURV,
-	L_TWEEDIE, 
-	L_FMRI, 
-	L_FMRISURV, 
+	L_TWEEDIE,
+	L_FMRI,
+	L_FMRISURV,
 	L_AGAUSSIAN,					       /* likelihood-models */
-	L_GOMPERTZ, 
-	L_GOMPERTZSURV, 
-	L_STOCHVOL_SN, 
+	L_GOMPERTZ,
+	L_GOMPERTZSURV,
+	L_STOCHVOL_SN,
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
@@ -1566,7 +1566,7 @@ double inla_lgamma_fast(double x);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
-double inla_poisson_interval(double lambda, int y_from,  int y_to);
+double inla_poisson_interval(double lambda, int y_from, int y_to);
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
@@ -1688,8 +1688,8 @@ int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
 int inla_INLA_preopt(inla_tp * mb);
-int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt);
-int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt);
+int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
+int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
@@ -1875,7 +1875,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

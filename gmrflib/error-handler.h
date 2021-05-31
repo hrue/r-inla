@@ -83,13 +83,12 @@ __BEGIN_DECLS
 #define  GMRFLib_ESNH        (21)			       /* This should not happen */
 #define  GMRFLib_EWRITE      (22)			       /* Error writing to file */
 #define  GMRFLib_EMISC       (23)			       /* Misc error */
-#define  GMRFLib_EPARDISO_LICENSE_NOTFOUND (24)		       /*  */
-#define  GMRFLib_EPARDISO_LICENSE_EXPIRED  (25)		       /*  */
-#define  GMRFLib_EPARDISO_LICENSE_ERR_USERNAME  (26)	       /*  */
-#define  GMRFLib_EPARDISO_INTERNAL_ERROR  (27)		       /*  */
-#define  GMRFLib_EPARDISO_NO_LIBRARY  (28)		       /*  */
+#define  GMRFLib_EPARDISO_LICENSE_NOTFOUND (24)		       /* */
+#define  GMRFLib_EPARDISO_LICENSE_EXPIRED  (25)		       /* */
+#define  GMRFLib_EPARDISO_LICENSE_ERR_USERNAME  (26)	       /* */
+#define  GMRFLib_EPARDISO_INTERNAL_ERROR  (27)		       /* */
+#define  GMRFLib_EPARDISO_NO_LIBRARY  (28)		       /* */
 #define  GMRFLib_ESINGCONSTR2 (29)			       /* Singular constraints: Matrix AA' is singular (input error) */
-
 
 /**
   \brief A template function declaration for specifying error-handling functions.
@@ -106,7 +105,8 @@ __BEGIN_DECLS
   \return The function is to return the error number \a errorno.
   \sa GMRFLib_error_handler, GMRFLib_set_error_handler.
  */
-typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const char *function, int line, const char *id, int errorno, const char *msg);
+typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const char *function, int line, const char *id, int errorno,
+				     const char *msg);
 
 const char *GMRFLib_error_reason(int errorno);
 

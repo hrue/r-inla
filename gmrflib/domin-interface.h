@@ -86,18 +86,16 @@ typedef struct {
 	GMRFLib_logl_tp *loglFunc;
 	gsl_matrix *directions;
 	GMRFLib_preopt_tp *preopt;
-}
- GMRFLib_opt_arg_tp;
+} GMRFLib_opt_arg_tp;
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 		      char *compute,
 		      double *x, double *b, double *c, double *mean,
 		      GMRFLib_bfunc_tp ** bfunc,
-		      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, 
+		      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		      GMRFLib_preopt_tp * preopt);
+		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt);
 int GMRFLib_opt_exit(void);
 int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
 int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
