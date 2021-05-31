@@ -1445,8 +1445,9 @@ int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
 				}
 			} else {
 				j++;
-				hold->store[j].idx = hold->store[i].idx;
-				hold->store[j].val = hold->store[i].val;
+				//hold->store[j].idx = hold->store[i].idx;
+				//hold->store[j].val = hold->store[i].val;
+				hold->store[j] = hold->store[i];
 			}
 		}
 		hold->n = j + 1;
