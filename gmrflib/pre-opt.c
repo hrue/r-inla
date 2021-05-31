@@ -41,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define LOCAL_MAX_THREADS 4				       /* we have relative simple loops, just slow to go to high */
+#define LOCAL_MAX_THREADS GMRFLib_MAX_THREADS		       /* we have relative simple loops, just slow to go to high */
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
@@ -65,7 +65,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	int i, ii, j, jj, k, kk, N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
 	int nrow = 0, ncol = 0;
-	int debug = 0, show_time = 0;
+	int debug = 0, show_time = 1;
 
 	double tref = GMRFLib_cpu();
 	double **ww = NULL;
