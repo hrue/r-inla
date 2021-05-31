@@ -1094,8 +1094,8 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
-	Free(constr->jfirst);
-	Free(constr->jlen);
+	//Free(constr->jfirst);
+	//Free(constr->jlen);
 	constr->jfirst = Calloc(nc, int);
 	constr->jlen = Calloc(nc, int);
 	for (i = 0; i < nc; i++) {
@@ -1143,7 +1143,6 @@ int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph
 	DUPDATE(constr->e_vector, constr->nc);
 	SHA1_Final(md, &c);
 	md[SHA_DIGEST_LENGTH] = '\0';
-	Free(constr->sha1);
 	constr->sha1 = md;
 #undef DUPDATE
 	return GMRFLib_SUCCESS;

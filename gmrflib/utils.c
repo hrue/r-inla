@@ -554,6 +554,13 @@ double GMRFLib_log_apbex(double a, double b)
 	}
 }
 
+void *GMRFLib_memcpy(void *dest, const void *src, size_t n) 
+{
+	assert(n < PTRDIFF_MAX);
+	memcpy(dest, src, n);
+	return NULL;
+}
+
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *ptr = NULL;

@@ -179,6 +179,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_memcpy(void *dest, const void *src, size_t n);
 
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
