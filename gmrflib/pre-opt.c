@@ -381,6 +381,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			double val;
 			double *row = &(rows[omp_get_thread_num() * nrow]);
 
+			if (omp_get_thread_num() == 0) printf("%d ", i);
+			
 			GMRFLib_matrix_get_row(row, i, pA);
 			for (k = 0; k < N; k++) {
 				for (jj = 0; jj < At_idxval[k]->n; jj++) {
@@ -396,6 +398,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				}
 			}
 			if (new_strategy) {
+				// this sorts, add vals for uniq idxs
 				GMRFLib_idxval_uniq(pAA_idxval[i]);
 			}
 		}
