@@ -258,7 +258,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	nt = IMIN(LOCAL_MAX_THREADS, nt);		       /* just worse of going to high */
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
-#pragma omp parallel for private (i, jj) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i, jj) num_threads(nt) 
 	for (i = 0; i < npred; i++) {
 		int idx;
 		double val;
@@ -332,7 +332,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
 		double *rows = Calloc(nt * ncol, double);      /* SAME _THREADS! */
-#pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i, k, j, jj) num_threads(nt) 
 		for (i = 0; i < nrow; i++) {
 
 			if (omp_get_thread_num() == 0) printf("%d ", i);
@@ -389,7 +389,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		// then add and accumate terms using '..._addto'
 		int new_strategy = 0;
 		rows = Calloc(nt * nrow, double);	       /* SAME _THREADS! */
-#pragma omp parallel for private (i, k, j, jj) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i, k, j, jj) num_threads(nt) 
 		for (i = 0; i < nrow; i++) {
 			double val;
 			double *row = &(rows[omp_get_thread_num() * nrow]);
@@ -401,8 +401,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				for (jj = 0; jj < At_idxval[k]->n; jj++) {
 					j = At_idxval[k]->store[jj].idx;
 					val = At_idxval[k]->store[jj].val;
-
-					printf("i k iaddto %d %d %d\n", i, k, pAA_idxval[i]->iaddto);
 
 					if (row[j]) {
 						if (new_strategy) {
@@ -521,7 +519,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt) 
 	for (i = 0; i < gen_len_At; i++) {
 		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
@@ -564,7 +562,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
-#pragma omp parallel for private (i) num_threads(nt) schedule(static)
+#pragma omp parallel for private (i) num_threads(nt) 
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_nsort(AtA_idxval[i], 1 + g->lnnbs[i], 0);
 	}
