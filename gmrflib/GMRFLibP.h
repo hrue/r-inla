@@ -200,7 +200,7 @@ typedef enum {
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
-#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_)*sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
+#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) * sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
