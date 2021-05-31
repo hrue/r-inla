@@ -644,7 +644,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 	int j;
 
-	memset(values, 0, M->nrow * sizeof(dobule));
+	memset(values, 0, M->nrow * sizeof(double));
 	if (M->i) {
 		/*
 		 * sparse-matrix 
