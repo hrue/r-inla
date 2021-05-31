@@ -540,7 +540,8 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	/*
 	 * build the has table for quick retrival of values. use row or column indexed hash-table?
 	 */
-	if (M->nrow >= M->ncol) {
+	if (M->nrow >= M->ncol || 1) {
+		// FORCE THIS TO HAPPEN
 		M->htable_column_order = 0;
 	} else {
 		M->htable_column_order = 1;
@@ -652,16 +653,24 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 		double *d;
 
 		if (M->htable_column_order) {
-			FIXME("COLUMN ORDER BAD");
 			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
 				values[j] = (d ? *d : 0.0);
 			}
 		} else {
-			FIXME("ROW ORDER GOOD!");
-			for (j = 0; j < M->ncol; j++) {
-				d = map_id_ptr(M->htable[i], j);
-				values[j] = (d ? *d : 0.0);
+			if (0) {
+				// old and very slow
+				for (j = 0; j < M->ncol; j++) {
+					d = map_id_ptr(M->htable[i], j);
+					values[j] = (d ? *d : 0.0);
+				}
+			} else {
+				// much better
+				map_id_storage *ptr;
+				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL; ) {
+					j = ptr->key;
+					values[j] = ptr->value;
+				}
 			}
 		}
 	} else {
