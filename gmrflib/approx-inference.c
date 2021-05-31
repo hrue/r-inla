@@ -5226,7 +5226,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			/*
 			 * write out the hole set 
 			 */
-			double *theta_tmp = Calloc(nhyper, double), log_jacobian = 0.0;
+			double *theta_tmp = NULL, log_jacobian = 0.0;
+			theta_tmp = Calloc(nhyper, double); 
 
 #define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * (rpreopt->int_design->nrow)])
 			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1 && nhyper > 0) {
