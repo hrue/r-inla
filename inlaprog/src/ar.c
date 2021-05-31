@@ -251,10 +251,10 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 
 double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	ar_def_tp *def = (ar_def_tp *) arg;
 
 	if (IABS(i - j) > def->p) {
@@ -370,7 +370,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 		Free(pacf);
 		Free(L);
 
-		return Qfunc_ar(i, j, NULL, arg);		       /* recursive call */
+		return Qfunc_ar(i, j, NULL, arg);	       /* recursive call */
 	}
 	assert(0 == 1);
 

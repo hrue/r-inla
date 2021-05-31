@@ -281,7 +281,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 
 	SHOW_TIME("A_idxval");
-	
+
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
 	for (i = 0; i < npred; i++) {
@@ -319,7 +319,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		ncol = pA->ncol;
 		assert(ncol == npred);
 		SHOW_TIME("read pA");
-		
+
 		// this is need to compute the linear predictor later
 		pA_idxval = GMRFLib_idxval_ncreate(nrow);
 		for (k = 0; k < pA->elems; k++) {
@@ -392,7 +392,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		Free(rows);
 		SHOW_TIME("pAA_idxval");
-		
+
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
 		for (i = 0; i < nrow; i++) {
 			double val;
@@ -788,7 +788,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 
 	RUN_CODE_BLOCK(LOCAL_MAX_THREADS);
 #undef CODE_BLOCK
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -916,7 +916,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	GMRFLib_graph_free(preopt->latent_graph);
 	GMRFLib_free_constr(preopt->latent_constr);
 	Free(preopt);
-	
+
 	return GMRFLib_SUCCESS;
 }
 

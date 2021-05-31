@@ -1416,7 +1416,7 @@ int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 	for (int i = 0; i < n; i++) {			\
 		GMRFLib_idxval_prune(a[i]);		\
 	}
-	
+
 	RUN_CODE_BLOCK(nt);
 #undef CODE_BLOCK
 

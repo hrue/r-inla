@@ -61,7 +61,8 @@ void srand48(long int seed)
 #endif
 
 #if defined(INLA_WINDOWS32_FIX)
-void _mm_pause(void) {
-  return;
+void _mm_pause(void)
+{
+	return;
 }
 #endif

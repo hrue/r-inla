@@ -7991,9 +7991,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -30507,7 +30507,7 @@ int inla_INLA(inla_tp * mb)
 	return INLA_OK;
 }
 
-int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
+int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, count;
@@ -30523,14 +30523,14 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	 * We need to determine the strategy if strategy is default 
 	 */
 	int storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
-	int ntot = 0; 
+	int ntot = 0;
 
 	ntot = mb->nlinear;
 	for (i = 0; i < mb->nf; i++) {
 		ntot += mb->f_graph[i]->n;
 	}
 	N = ntot;
-	
+
 	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 		/*
 		 * to determine the strategy, count the size of the model 
@@ -30576,7 +30576,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
-	
+
 	if (mb->verbose) {
 		printf("\tStage1 setup ............ [%.2fs]\n", GMRFLib_cpu() - tref);
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
@@ -30637,7 +30637,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	if (mb->reuse_mode && mb->x_file) {
 		memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
-	
+
 	/*
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
@@ -30646,14 +30646,14 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 		mb->ai_par->gaussian_data = mb->gaussian_data;
 	}
 
-	GMRFLib_ai_INLA(NULL, NULL, 
-			NULL, NULL, 
+	GMRFLib_ai_INLA(NULL, NULL,
+			NULL, NULL,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
-			NULL, 
-			NULL, 
-			NULL, 
+			NULL,
+			NULL,
+			NULL,
 			(mb->output->mlik ? &(mb->mlik) : NULL),
-			NULL, 
+			NULL,
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
 			x, b, c, NULL, bfunc, mb->d,
@@ -30684,11 +30684,11 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 	Free(c);
 	Free(compute);
 	Free(bfunc);
-	
+
 	return INLA_OK;
 }
 
-int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
+int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
@@ -31090,11 +31090,11 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 			// DISABLE THIS FEATURE NOW, IT DOES NOT WORK WELL ENOGUH
 			(0 ? &(mb->density_transform) : NULL), (0 ? mb->transform_funcs : NULL),
 			// ....
-			NULL, 
+			NULL,
 			(mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 			(mb->output->po ? &(mb->po) : NULL),
 			mb->dic,
-			NULL, 
+			NULL,
 			&(mb->neffp),
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
@@ -31129,8 +31129,8 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 		x[i] += OFFSET3(i);
 	}
 
-	/* 
-	   need to correct configs for the integration weight, as it should not be there for _orig. only ccd has integration weights
+	/*
+	 * need to correct configs for the integration weight, as it should not be there for _orig. only ccd has integration weights 
 	 */
 
 	if (mb->ntheta > 0) {
@@ -31143,7 +31143,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp *rpreopt)
 				f = DMAX(mb->ai_par->f0, 1.0) * sqrt((double) mb->ntheta);
 				w = 1.0 / ((mo->configs[id]->nconfig - 1.0) * (1.0 + exp(-0.5 * SQR(f)) * (SQR(f) / mb->ntheta - 1.0)));
 				w_origo = 1.0 - (mo->configs[id]->nconfig - 1.0) * w;
-				
+
 				for (int i = 0; i < mo->configs[id]->nconfig; i++) {
 					if (i == 0 || mo->configs[id]->config[i]->log_posterior > vmax) {
 						imax = i;
@@ -31323,7 +31323,7 @@ int inla_INLA_preopt(inla_tp * mb)
 		exit(88);
 	}
 
-        // and we set it back here
+	// and we set it back here
 	mb->ai_par->gradient_finite_difference_step_len = step_g;
 	mb->ai_par->hessian_finite_difference_step_len = step_h;
 
@@ -36099,7 +36099,7 @@ int main(int argc, char **argv)
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
 	double eff_nt;
-	clock_t atime_used[4] = {0, 0, 0, 0};
+	clock_t atime_used[4] = { 0, 0, 0, 0 };
 	inla_tp *mb = NULL;
 
 	int host_max_threads = omp_get_max_threads();
@@ -36547,9 +36547,9 @@ int main(int argc, char **argv)
 			time_used[1] = GMRFLib_cpu();
 			atime_used[1] = clock();
 
-			int nfunc[2] = {0, 0};
-			double rgeneric_cpu[2] = {0.0, 0.0};
-			
+			int nfunc[2] = { 0, 0 };
+			double rgeneric_cpu[2] = { 0.0, 0.0 };
+
 			if (GMRFLib_preopt_mode && mb->ntheta > 0) {
 				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
@@ -36648,32 +36648,34 @@ int main(int argc, char **argv)
 				printf("\tOutput                   : %7.3f seconds\n", time_used[2]);
 				printf("\t------------------------------------------\n");
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
-				
+
 				if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
 					printf("\nNumber of fn-calls= %1d with %.3f sec/fn-call\n",
 					       mb->misc_output->nfunc, time_used[1] / IMAX(1, mb->misc_output->nfunc));
 					if (R_rgeneric_cputime > 0.0) {
 						printf("rgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
 						       R_rgeneric_cputime,
-						       R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc), R_rgeneric_cputime / time_used[1] * 100.0);
+						       R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc),
+						       R_rgeneric_cputime / time_used[1] * 100.0);
 					}
 				} else {
-					printf("Stage1:");	
+					printf("Stage1:");
 					printf("\tNumber of fn-calls= %1d with %.3f sec/fn-call\n", nfunc[0], time_used[3] / IMAX(1, nfunc[0]));
 					if (rgeneric_cpu[0] > 0.0) {
 						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
-						       rgeneric_cpu[0], 
+						       rgeneric_cpu[0],
 						       rgeneric_cpu[0] / IMAX(1, nfunc[0]), rgeneric_cpu[0] / time_used[3] * 100.0);
 					}
-					printf("Stage2:");	
+					printf("Stage2:");
 					printf("\tNumber of fn-calls= %1d with %.3f sec/fn-call\n", nfunc[1], time_used[1] / IMAX(1, nfunc[1]));
 					if (rgeneric_cpu[1] > 0.0) {
 						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
-						       rgeneric_cpu[1], 
-						       rgeneric_cpu[1] / IMAX(1, nfunc[1]), rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
+						       rgeneric_cpu[1],
+						       rgeneric_cpu[1] / IMAX(1, nfunc[1]),
+						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-					
+
 #if !defined(WINDOWS)
 				if (GMRFLib_preopt_mode != GMRFLib_PREOPT_NONE) {
 					PEFF_PREOPT_OUTPUT;

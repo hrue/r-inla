@@ -1664,7 +1664,8 @@ double re_intrinsic_discrepancy_distance(double skew, double kurt)
 #define LIM (10.0)
 
 	double w[2] = { 4.0, 2.0 }, dx = (2.0 * LIM) / (N - 1.0), ldens_sas[N], integral[2] = {
-	0.0, 0.0};
+		0.0, 0.0
+	};
 	int i, k;
 
 	double x[N], ldens_norm[N];			       /* these are constants */
@@ -1735,8 +1736,7 @@ double re_sas_log_prior(double *val, double *param)
 
 double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 {
-	double output[4] = {0, 0, 0, 0}, level, length, point, ldens_uniform,
-		ldens_dist, *pri, logjac = 0.0, lambda = param[0];
+	double output[4] = { 0, 0, 0, 0 }, level, length, point, ldens_uniform, ldens_dist, *pri, logjac = 0.0, lambda = param[0];
 
 	re_find_in_sas_prior_table(output, skew, kurt);
 	level = output[0];

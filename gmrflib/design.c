@@ -186,13 +186,13 @@ int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
 	}
 
 	int i, debug = 0, *idx = NULL;
-	double *w= NULL, sumw = 0.0;
+	double *w = NULL, sumw = 0.0;
 
 	w = Calloc(design->nexperiments, double);
 	idx = Calloc(design->nexperiments, int);
 
 	int n = design->nexperiments, m;
-	
+
 	for (i = 0; i < n; i++) {
 		idx[i] = i;
 		w[i] = design->int_weight[i];
@@ -218,20 +218,20 @@ int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
 
 	double *ww = Calloc(m, double);
 	double **ex = Calloc(m, double *);
-	for(i = 0; i < m; i++){
+	for (i = 0; i < m; i++) {
 		ex[i] = Calloc(design->nfactors, double);
 	}
 
-	for(i = 0; i < m; i++) {
+	for (i = 0; i < m; i++) {
 		memcpy(ex[i], design->experiment[idx[i]], design->nfactors * sizeof(double));
 		ww[i] = design->int_weight[idx[i]];
 	}
 
 	sumw = 0;
-	for(i = 0; i < m; i++) {
+	for (i = 0; i < m; i++) {
 		sumw += ww[i];
 	}
-	for(i = 0; i < m; i++) {
+	for (i = 0; i < m; i++) {
 		ww[i] /= sumw;
 	}
 

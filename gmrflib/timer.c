@@ -464,15 +464,14 @@ void GMRFLib_timer_report__signal(int UNUSED(sig))
 	return;
 }
 
-int GMRFLib_timer_exit(void) 
+int GMRFLib_timer_exit(void)
 {
 	if (GMRFLib_timer_hashtable) {
 		for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
-			map_strvp_free(&(GMRFLib_timer_hashtable[i])); 
+			map_strvp_free(&(GMRFLib_timer_hashtable[i]));
 		}
 		Free(GMRFLib_timer_hashtable);
 		GMRFLib_timer_hashtable = NULL;
 	}
 	return GMRFLib_SUCCESS;
 }
-

@@ -2437,10 +2437,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
-		
+
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS);
 #undef CODE_BLOCK
-		
+
 		for (i = 0; i < nidx; i++) {
 			int idx;
 			idx = idxs[i];
@@ -2833,7 +2833,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		    GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 		    int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output,
-		    GMRFLib_preopt_tp * preopt, GMRFLib_preopt_res_tp *rpreopt)
+		    GMRFLib_preopt_tp * preopt, GMRFLib_preopt_res_tp * rpreopt)
 {
 	/*
 	 * 
@@ -3134,7 +3134,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	x_mode = Calloc(graph->n, double);
 	map_strd_init_hint(&hash_table, dens_max);
 	hash_table.alwaysdefault = 0;
-	
+
 	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) {
 		dens = Calloc(graph->n, GMRFLib_density_tp **);
 		dens_transform = Calloc(graph->n, GMRFLib_density_tp **);
@@ -3440,12 +3440,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 				if (!smart_success) {
 					// we'll try to compute the Hessian again, but before that, lets restart the optimizer
-					GMRFLib_gsl_optimize(ai_par);  /* restart */
+					GMRFLib_gsl_optimize(ai_par);	/* restart */
 					GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				}
 			}
 
-			stupid_mode_iter = 0;			       /* reset it */
+			stupid_mode_iter = 0;		       /* reset it */
 			if (!(ai_par->optimise_smart) || !smart_success) {
 
 				if (ai_par->optimise_smart) {
@@ -3557,7 +3557,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 			if (min_pos_eigenvalue == DBL_MAX) {
-				min_pos_eigenvalue = 1.0;	       /* if all are negative, zero included */
+				min_pos_eigenvalue = 1.0;      /* if all are negative, zero included */
 			}
 			int a_change = 0, all_negative = 1;
 
@@ -3630,8 +3630,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 							for (j = i; j < nhyper; j++) {
 								double sum = 0.0;
 								for (k = 0; k < nhyper; k++) {
-									sum += gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j, k)
-										* gsl_vector_get(eigen_values, k);
+									sum +=
+									    gsl_matrix_get(eigen_vectors, i, k) * gsl_matrix_get(eigen_vectors, j,
+																 k)
+									    * gsl_vector_get(eigen_values, k);
 								}
 								hessian[i + j * nhyper] = hessian[j + i * nhyper] = sum;
 							}
@@ -3658,8 +3660,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				 */
 				misc_output->eigenvalues = Calloc(nhyper, double);
 				for (i = 0; i < nhyper; i++) {
-					misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the cov.mat not
-														 * hessian */
+					misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the
+														 * cov.mat not hessian */
 				}
 				misc_output->eigenvectors = Calloc(ISQR(nhyper), double);
 				for (i = 0; i < nhyper; i++) {
@@ -3684,7 +3686,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 								val = sqrt(inverse_hessian[ii + jj * nhyper]);
 							} else {
 								val = inverse_hessian[ii + jj * nhyper] /
-									sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
+								    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 							}
 							fprintf(ai_par->fp_log, " %7.3f", val);
 						} else {
@@ -3696,7 +3698,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 
 			// we need to save what we need from this section....
-			//
+			// 
 			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 				assert(rpreopt);
 				rpreopt->hessian = hessian;
@@ -3707,16 +3709,16 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				rpreopt->sqrt_eigen_values = sqrt_eigen_values;
 			}
 		} else {
-			//... and pick it up here
-			//
+			// ... and pick it up here
+			// 
 			assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2);
 			assert(rpreopt);
 			hessian = rpreopt->hessian;
 			inverse_hessian = rpreopt->inverse_hessian;
 			H = rpreopt->H;
-			eigen_vectors = rpreopt->eigen_vectors; 
+			eigen_vectors = rpreopt->eigen_vectors;
 			eigen_values = rpreopt->eigen_values;
-			sqrt_eigen_values = rpreopt->sqrt_eigen_values; 
+			sqrt_eigen_values = rpreopt->sqrt_eigen_values;
 		}
 
 		if (preopt) {
@@ -3763,7 +3765,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 */
 			if ((ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD)
 			    || (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && density_hyper &&
-				(ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE))
+				(ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD
+				 || ai_par->interpolator == GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE))
 			    // as the scalings are used for the inla.sample.hyper() function... and they do not take much time in any case
 			    || 1) {
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper, NULL);
@@ -3797,11 +3800,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						if (omp_in_parallel()) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
-									GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 							}
 							s = ais[GMRFLib_thread_id];
 						} else {
-							s = ai_store;  /* the common one */
+							s = ai_store;	/* the common one */
 						}
 
 						if (opt == 0) {
@@ -3838,11 +3841,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						if (omp_in_parallel()) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
-									GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 							}
 							s = ais[GMRFLib_thread_id];
 						} else {
-							s = ai_store;  /* the common one */
+							s = ai_store;	/* the common one */
 						}
 
 						zz[k] = 2.0;
@@ -3880,7 +3883,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					stdev_corr_neg = Calloc(nhyper, double);
 					for (k = 0; k < nhyper; k++) {
 						stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] =
-							misc_output->stdev_corr_neg[k] = 1.0;
+						    misc_output->stdev_corr_neg[k] = 1.0;
 					}
 				} else {
 					stdev_corr_pos = Calloc(nhyper, double);
@@ -3893,7 +3896,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		} else {
 			assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2);
 		}
-		
+
 		if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 			rpreopt->stdev_corr_neg = stdev_corr_neg;
 			rpreopt->stdev_corr_pos = stdev_corr_pos;
@@ -3911,8 +3914,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		for (k = 0; k < nhyper; k++) {
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log,
-					"%s corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n", 
-					(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2 ? "Retrive" : "Compute"), 
+					"%s corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n",
+					(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2 ? "Retrive" : "Compute"),
 					k, stdev_corr_neg[k], stdev_corr_pos[k]);
 			}
 		}
@@ -5224,21 +5227,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * write out the hole set 
 			 */
 			double *theta_tmp = Calloc(nhyper, double), log_jacobian = 0.0;
-			
+
 #define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * (rpreopt->int_design->nrow)])
 			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1 && nhyper > 0) {
 				rpreopt->int_design = Calloc(1, GMRFLib_matrix_tp);
 				rpreopt->int_design->nrow = IMAX(1, hyper_count);
 				rpreopt->int_design->ncol = nhyper + 1;
 				rpreopt->int_design->A = Calloc(rpreopt->int_design->nrow * rpreopt->int_design->ncol, double);
-			} 
+			}
 
 			if (eigen_values) {
 				for (k = 0; k < nhyper; k++) {
 					log_jacobian -= 0.5 * log(gsl_vector_get(eigen_values, (unsigned int) k));
 				}
 			}
-			
+
 			if (nhyper > 0 && hyper_count == 0) {
 				if (rpreopt) {
 					for (int kk = 0; kk < nhyper; kk++) {
@@ -5249,7 +5252,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			} else {
 				for (k = 0; k < hyper_count; k++) {
 					int kk;
-					
+
 					GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
 					if (ai_par->fp_hyperparam) {
 						for (kk = 0; kk < nhyper; kk++) {
@@ -5414,7 +5417,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			gsl_vector_free(sqrt_eigen_values);
 		}
 	}
-	
+
 	Free(adj_weights);
 	Free(iz);
 	Free(iz_axes);

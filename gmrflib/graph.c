@@ -583,7 +583,7 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
 	if (!is_sorted) {
-		GMRFLib_graph_sort(graph); 		       /* must be before lnbs */
+		GMRFLib_graph_sort(graph);		       /* must be before lnbs */
 	}
 	GMRFLib_add_lnbs_info(graph);			       /* must be before sha1 */
 	GMRFLib_graph_add_sha1(graph, skip_sha1);
@@ -1554,7 +1554,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 	GMRFLib_ged_tp *ged = NULL;
 
 	GMRFLib_ged_init(&ged, NULL);
-	for(int i = 0; i < n_graphs; i++){
+	for (int i = 0; i < n_graphs; i++) {
 		GMRFLib_ged_insert_graph(ged, graph_array[i], 0);
 	}
 	GMRFLib_ged_build(union_graph, ged);
@@ -1563,7 +1563,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 
 	return GMRFLib_SUCCESS;
 }
-	
+
 int GMRFLib_graph_union_OLD(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
 {
 	/*

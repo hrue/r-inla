@@ -87,10 +87,10 @@ int inla_spde_free_points(inla_spde_points_tp * p)
 }
 double inla_spde_Qfunction(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	inla_spde_tp *model = (inla_spde_tp *) arg;
 	double value;
 
@@ -369,8 +369,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 			GMRFLib_problem_tp *problem;
 			GMRFLib_reorder = k;
 			// GMRFLib_optimize_reorder(model->graph, NULL);
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, 
-					     NULL);
+			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL);
 			char *nm;
 			GMRFLib_sprintf(&nm, "Qspde%1d", k);
 			GMRFLib_bitmap_problem(nm, problem);

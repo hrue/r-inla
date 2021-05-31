@@ -926,7 +926,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_exit(void) 
+int GMRFLib_pardiso_exit(void)
 {
 	if (S.static_pstores != NULL) {
 		for (int i = 0; i < PSTORES_NUM; i++) {

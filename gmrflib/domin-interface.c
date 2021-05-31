@@ -82,8 +82,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_bfunc_tp ** bfunc, double *d,
 		      GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-		      GMRFLib_preopt_tp * preopt)
+		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt)
 {
 	double *theta;
 	int i;
@@ -133,7 +132,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 }
 
-int GMRFLib_opt_get_latent(double *latent) 
+int GMRFLib_opt_get_latent(double *latent)
 {
 	memcpy(latent, B.f_best_latent, G.graph->n * sizeof(double));
 	return GMRFLib_SUCCESS;
@@ -145,7 +144,8 @@ int GMRFLib_opt_exit(void)
 	memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
 	memset(&B, 0, sizeof(Best_tp));
 	// we want to keep the directions. if the dimension changes then we reset... see below
-	if (0) memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
+	if (0)
+		memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
 	memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
 
 	return GMRFLib_SUCCESS;
@@ -263,7 +263,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
 				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais,
 				       G.preopt);
-	
+
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
