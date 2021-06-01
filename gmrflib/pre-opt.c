@@ -503,9 +503,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				k = gen_At[i]->store[kk].idx;
 				for (jj = 0; jj < gen_A[k]->n; jj++) {
 					j = gen_A[k]->store[jj].idx;
-					if (j > i) {
-						GMRFLib_idx_add(&(nbs[i]), j);
-					}
+					GMRFLib_idx_add(&(nbs[i]), j);
 				}
 			}
 		}
