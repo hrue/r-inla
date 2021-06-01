@@ -330,43 +330,22 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		SHOW_TIME("create pA_idxval");
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
-		double *rows = Calloc(nt * nrow, double);      /* SAME _THREADS! */
-		double tacc = 0.0;
-#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) reduction(+:tacc)
+#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
-			double *row = &(rows[omp_get_thread_num() * nrow]);
-			GMRFLib_matrix_get_row(row, i, pA);
+			GMRFLib_idxval_tp *row_idxval = NULL;
+			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
 
-			if (0) {
-				for (k = 0; k < N; k++) {
-					for (jj = 0; jj < At_idxval[k]->n; jj++) {
-						j = At_idxval[k]->store[jj].idx;
-						if (row[j]) {
-							GMRFLib_idx_add(&(pAA_pattern[i]), k);
-							break;
-						}
-					}
+			for(jj = 0; jj < row_idxval->n; jj++) {
+				j = row_idxval->store[jj].idx;
+				// find possible k's
+				for(kk = 0; kk <  A_idxval[j]->n; kk++){
+					k = A_idxval[j]->store[kk].idx;
+					GMRFLib_idx_add(&(pAA_pattern[i]), k);
 				}
-			} else {
-				GMRFLib_idxval_tp *row_idxval = NULL;
-				GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
-
-				for(jj = 0; jj < row_idxval->n; jj++) {
-					j = row_idxval->store[jj].idx;
-					// find possible k's
-					for(kk = 0; kk <  A_idxval[j]->n; kk++){
-						k = A_idxval[j]->store[kk].idx;
-						GMRFLib_idx_add(&(pAA_pattern[i]), k);
-					}
-				}
-				GMRFLib_idx_uniq(pAA_pattern[i]); /* also sorts */
-				GMRFLib_idxval_free(row_idxval);
 			}
+			GMRFLib_idx_uniq(pAA_pattern[i]); /* also sorts */
+			GMRFLib_idxval_free(row_idxval);
 		}
-		
-		P(tacc);
-		
-		Free(rows);
 		SHOW_TIME("pAA_pattern");
 
 		if (debug) {
@@ -402,18 +381,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_tp *row_idxval = NULL;
 			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
 			
-			// this is way to slow
-			//	for(kk = 0; kk < pAA_pattern[i]->n; kk++){ /* for(k = 0; k < N; k++) {*/
-			//k = pAA_pattern[i]->idx[kk];
-			//for (jj = 0; jj < At_idxval[k]->n; jj++) {
-			//j = At_idxval[k]->store[jj].idx;
-			//if (row[j]) {
-			//double val = At_idxval[k]->store[jj].val;
-			//GMRFLib_idxval_addto(&(pAA_idxval[i]), k, row[j] * val);
-			//}
-			//}
-
-			// this one is much better
 			for(kk = 0; kk < pAA_pattern[i]->n; kk++){ /* for(k = 0; k < N; k++) {*/
 				k = pAA_pattern[i]->idx[kk];
 				for(jj = 0; jj < row_idxval->n; jj++){
