@@ -468,7 +468,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	SHOW_TIME("admin1");
 
 	GMRFLib_graph_tp *g = NULL;
-	if (0) {
+	if (1) {
 		// this is simple but rather slow for large graphs
 		ged = NULL;
 		GMRFLib_ged_init(&ged, NULL);
