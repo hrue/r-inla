@@ -502,7 +502,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				k = gen_At[i]->store[kk].idx;
 				for (jj = 0; jj < gen_A[k]->n; jj++) {
 					j = gen_A[k]->store[jj].idx;
-					GMRFLib_idx_add(&(nbs[IMIN(i, j)]), IMAX(i, j));
+					if (j != i) {
+						GMRFLib_idx_add(&(nbs[IMIN(i, j)]), IMAX(i, j));
+					}
 				}
 			}
 		}
@@ -510,7 +512,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		int nb = 0;
 		for(i = 0; i < g->n; i++) {
-			g->nnbs[i] = nbs[i]->n;
+			g->nnbs[i] = (nbs[i] ? nbs[i]->n : 0);
 			nb += g->nnbs[i];
 		}
 
@@ -523,7 +525,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int offset = 0;
 			for(i = 0; i < g->n; i++) {
 				g->nbs[i] = work + offset;
-				Memcpy(g->nbs[i], nbs[i]->idx, g->nnbs[i] * sizeof(int));
+				if (g->nnbs[i]) {
+					Memcpy(g->nbs[i], nbs[i]->idx, g->nnbs[i] * sizeof(int));
+				}
 				offset += g->nnbs[i];
 			}
 		}
