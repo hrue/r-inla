@@ -36574,7 +36574,6 @@ int main(int argc, char **argv)
 				mb->ai_par->mode_known = GMRFLib_TRUE;
 				GMRFLib_preopt_free(mb->preopt);
 				inla_reset();
-
 				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 				GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE2;
 				inla_INLA_preopt_stage2(mb, rpreopt);
