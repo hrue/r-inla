@@ -331,23 +331,46 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
 		double *rows = Calloc(nt * nrow, double);      /* SAME _THREADS! */
-#pragma omp parallel for private (i, k, j, jj) num_threads(nt) 
+#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) 
 		for (i = 0; i < nrow; i++) {
 			double *row = &(rows[omp_get_thread_num() * nrow]);
 			GMRFLib_matrix_get_row(row, i, pA);
-			for (k = 0; k < N; k++) {
-				for (jj = 0; jj < At_idxval[k]->n; jj++) {
-					j = At_idxval[k]->store[jj].idx;
-					if (row[j]) {
-						GMRFLib_idx_add(&(pAA_pattern[i]), k);
-						break;
+
+			if (0) {
+				for (k = 0; k < N; k++) {
+					for (jj = 0; jj < At_idxval[k]->n; jj++) {
+						j = At_idxval[k]->store[jj].idx;
+						if (row[j]) {
+							GMRFLib_idx_add(&(pAA_pattern[i]), k);
+							break;
+						}
 					}
 				}
+			} else {
+				FIXME1("want to rewrite this one later");
+				GMRFLib_idx_tp *row_idx = NULL;
+				for(j = 0; j < nrow; j++) {    /* should be able to get this easier, but for now... */
+					if (row[j]) {
+						GMRFLib_idx_add(&row_idx, j);
+					}
+				}
+
+				for(jj = 0; jj < row_idx->n; jj++) {
+					j = row_idx->idx[jj];
+						
+					// find possible k's
+					for(kk = 0; kk <  A_idxval[j]->n; kk++){
+						k = A_idxval[j]->store[kk].idx;
+						GMRFLib_idx_add(&(pAA_pattern[i]), k);
+					}
+				}
+				GMRFLib_idx_uniq(pAA_pattern[i]); /* also sort */
 			}
 		}
 		
 		Free(rows);
 		SHOW_TIME("pAA_pattern");
+
 
 		if (debug) {
 			char *crow = Calloc(N + 1, char);
@@ -359,7 +382,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					// printf("Add crow i j %d %d\n", i, j);
 					crow[j] = '.';
 				}
-				printf("pA%2d [%s]\n", i, crow);
+				printf("pAA%2d [%s]\n", i, crow);
 			}
 			Free(crow);
 		}
