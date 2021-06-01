@@ -373,7 +373,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 
-		SHOW_TIME("create pAA_idxval with zero values");
+		SHOW_TIME("init pAA_idxval");
 
 		// then add and accumate terms using '..._addto'
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
@@ -467,28 +467,75 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	SHOW_TIME("admin1");
 
-	ged = NULL;
-	GMRFLib_ged_init(&ged, NULL);
-	for (k = 0; k < N; k++) {
-		GMRFLib_ged_add(ged, k, k);
-	}
+	GMRFLib_graph_tp *g = NULL;
+	if (0) {
+		// this is simple but rather slow for large graphs
+		ged = NULL;
+		GMRFLib_ged_init(&ged, NULL);
+		for (k = 0; k < N; k++) {
+			GMRFLib_ged_add(ged, k, k);
+		}
 
-	for (i = 0; i < gen_len_At; i++) {
-		for (kk = 0; kk < gen_At[i]->n; kk++) {
-			k = gen_At[i]->store[kk].idx;
-			for (jj = 0; jj < gen_A[k]->n; jj++) {
-				j = gen_A[k]->store[jj].idx;
-				GMRFLib_ged_add(ged, i, j);
+		for (i = 0; i < gen_len_At; i++) {
+			for (kk = 0; kk < gen_At[i]->n; kk++) {
+				k = gen_At[i]->store[kk].idx;
+				for (jj = 0; jj < gen_A[k]->n; jj++) {
+					j = gen_A[k]->store[jj].idx;
+					GMRFLib_ged_add(ged, i, j);
+				}
 			}
 		}
+		GMRFLib_ged_build(&g, ged);
+		GMRFLib_ged_free(ged);
+		assert(g->n == gen_len_At);
+	} else {
+		// this one is much faster for larger graphs
+		GMRFLib_graph_mk_empty(&g);
+
+		g->n = gen_len_At;
+		g->nbs = Calloc(g->n, int *);
+		g->nnbs = Calloc(g->n, int);
+
+		GMRFLib_idx_tp **nbs = GMRFLib_idx_ncreate(g->n);
+		for (i = 0; i < gen_len_At; i++) {
+			for (kk = 0; kk < gen_At[i]->n; kk++) {
+				k = gen_At[i]->store[kk].idx;
+				for (jj = 0; jj < gen_A[k]->n; jj++) {
+					j = gen_A[k]->store[jj].idx;
+					GMRFLib_idx_add(&(nbs[IMIN(i, j)]), IMAX(i, j));
+				}
+			}
+		}
+		GMRFLib_idx_nuniq(nbs, g->n, nt);	       /* also sorts */
+
+		int nb = 0;
+		for(i = 0; i < g->n; i++) {
+			g->nnbs[i] = nbs[i]->n;
+			nb += g->nnbs[i];
+		}
+
+		if (nb == 0) {
+			for(i = 0; i < g->n; i++) {
+				g->nbs[i] = NULL;
+			}
+		} else {
+			int *work = Calloc(nb, int);
+			int offset = 0;
+			for(i = 0; i < g->n; i++) {
+				g->nbs[i] = work + offset;
+				Memcpy(g->nbs[i], nbs[i]->idx, g->nnbs[i] * sizeof(int));
+				offset += g->nnbs[i];
+			}
+		}
+		GMRFLib_graph_prepare(g, 1, 0);
+
+		for(i = 0; i < g->n; i++) {
+			GMRFLib_idx_free(nbs[i]);
+		}
+		Free(nbs);
 	}
-	GMRFLib_graph_tp *g = NULL;
-	GMRFLib_ged_build(&g, ged);
 	SHOW_TIME("build graph");
-
-	GMRFLib_ged_free(ged);
-	assert(g->n == gen_len_At);
-
+		
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (i = 0; i < g->n; i++) {
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
