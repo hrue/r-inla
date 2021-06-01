@@ -36073,7 +36073,7 @@ int testit(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-#define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t MAX_THREADS] [-m MODE] FILE.INI\n", program)
+#define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t A:B] [-m MODE] FILE.INI\n", program)
 #define _USAGE _USAGE_intern(stderr)
 #define _HELP _USAGE_intern(stdout);					\
 	printf("\t\t-v\t: Verbose output.\n");				\
@@ -36267,6 +36267,25 @@ int main(int argc, char **argv)
 #if defined(WINDOWS)
 				ntt[1] = 1;
 #endif
+				if (ntt[0] * ntt[1] >  GMRFLib_MAX_THREADS) {
+					fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
+					fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS);
+
+					if (ntt[0] > GMRFLib_MAX_THREADS) {
+						ntt[0] = GMRFLib_MAX_THREADS;
+						ntt[1] = 1;
+					} else if (ntt[1] > GMRFLib_MAX_THREADS) {
+						ntt[1] = GMRFLib_MAX_THREADS;
+						ntt[0] = 1;
+					} else {
+						// something gotta give
+						while(ntt[0] * ntt[1] > GMRFLib_MAX_THREADS) {
+							ntt[1]--;
+						}
+					}
+					fprintf(stderr, "\tNumber of threads is reduced to %1d:%1d\n\n", ntt[0], ntt[1]);
+				}
+					
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
