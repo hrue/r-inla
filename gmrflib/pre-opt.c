@@ -525,9 +525,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int *work = Calloc(nb, int);
 			int offset = 0;
 			for(i = 0; i < g->n; i++) {
-				g->nbs[i] = work + offset;
 				if (g->nnbs[i]) {
+					g->nbs[i] = work + offset;
 					Memcpy(g->nbs[i], nbs[i]->idx, g->nnbs[i] * sizeof(int));
+				} else {
+					g->nbs[i] = NULL;
 				}
 				offset += g->nnbs[i];
 			}
@@ -536,7 +538,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		for(i = 0; i < g->n; i++) {
 			g->mothergraph_idx[i] = i;
 		}
-		GMRFLib_graph_prepare(g, 1, 0);
+		GMRFLib_graph_prepare(g, 0, 0);
 
 		for(i = 0; i < g->n; i++) {
 			GMRFLib_idx_free(nbs[i]);
