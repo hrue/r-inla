@@ -656,7 +656,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 			FIXME("column order should not be used");
 			assert(0 == 1);
-			
+
 			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
 				values[j] = (d ? *d : 0.0);
@@ -671,7 +671,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 			} else {
 				// much better
 				map_id_storage *ptr;
-				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL; ) {
+				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 					j = ptr->key;
 					values[j] = ptr->value;
 				}
@@ -695,7 +695,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp * M)
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M)
 {
 	/*
 	 * store values in 'row', must be NULL on entry. 
@@ -708,7 +708,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix
 			assert(0 == 1);
 		} else {
 			map_id_storage *ptr;
-			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL; ) {
+			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 				GMRFLib_idxval_add(row, ptr->key, ptr->value);
 			}
 		}

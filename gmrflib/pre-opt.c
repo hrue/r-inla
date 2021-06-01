@@ -258,7 +258,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	nt = IMIN(LOCAL_MAX_THREADS, nt);		       /* just worse of going to high */
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
-#pragma omp parallel for private (i, jj) num_threads(nt) 
+#pragma omp parallel for private (i, jj) num_threads(nt)
 	for (i = 0; i < npred; i++) {
 		int idx;
 		double val;
@@ -335,15 +335,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_tp *row_idxval = NULL;
 			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
 
-			for(jj = 0; jj < row_idxval->n; jj++) {
+			for (jj = 0; jj < row_idxval->n; jj++) {
 				j = row_idxval->store[jj].idx;
 				// find possible k's
-				for(kk = 0; kk <  A_idxval[j]->n; kk++){
+				for (kk = 0; kk < A_idxval[j]->n; kk++) {
 					k = A_idxval[j]->store[kk].idx;
 					GMRFLib_idx_add(&(pAA_pattern[i]), k);
 				}
 			}
-			GMRFLib_idx_uniq(pAA_pattern[i]); /* also sorts */
+			GMRFLib_idx_uniq(pAA_pattern[i]);      /* also sorts */
 			GMRFLib_idxval_free(row_idxval);
 		}
 		SHOW_TIME("pAA_pattern");
@@ -365,7 +365,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		// first make a empty one filled with zeros to get the pattern. since pAA_pattern is sorted, then this will be sorted as well
 		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
-#pragma omp parallel for private (i, k, j) num_threads(nt) 
+#pragma omp parallel for private (i, k, j) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
 			for (k = 0; k < pAA_pattern[i]->n; k++) {
 				j = pAA_pattern[i]->idx[k];
@@ -376,14 +376,14 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		SHOW_TIME("create pAA_idxval with zero values");
 
 		// then add and accumate terms using '..._addto'
-#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) 
+#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
 			GMRFLib_idxval_tp *row_idxval = NULL;
 			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
-			
-			for(kk = 0; kk < pAA_pattern[i]->n; kk++){ /* for(k = 0; k < N; k++) {*/
+
+			for (kk = 0; kk < pAA_pattern[i]->n; kk++) {	/* for(k = 0; k < N; k++) { */
 				k = pAA_pattern[i]->idx[kk];
-				for(jj = 0; jj < row_idxval->n; jj++){
+				for (jj = 0; jj < row_idxval->n; jj++) {
 					j = row_idxval->store[jj].idx;
 					double val = A_idxval[j]->store[kk].val;
 					double val_row = row_idxval->store[jj].val;
@@ -422,7 +422,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		Free(pAA_pattern);
 		GMRFLib_matrix_free(pA);
-		SHOW_TIME("End pA... calulations");
+		SHOW_TIME("End pA... ");
 	}
 
 	// setup dimensions, see pre-opt.h for the details
@@ -494,7 +494,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		AtA_idxval[i] = GMRFLib_idxval_ncreate(1 + g->lnnbs[i]);
 	}
 
-#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt) 
+#pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt)
 	for (i = 0; i < gen_len_At; i++) {
 		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
@@ -513,6 +513,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 	SHOW_TIME("AtA_idxval");
+
 	if (debug) {
 		FIXME("AtA");
 		for (i = 0; i < N; i++) {
@@ -537,7 +538,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 	}
 
-#pragma omp parallel for private (i) num_threads(nt) 
+#pragma omp parallel for private (i) num_threads(nt)
 	for (i = 0; i < g->n; i++) {
 		GMRFLib_idxval_nsort(AtA_idxval[i], 1 + g->lnnbs[i], 0);
 	}
