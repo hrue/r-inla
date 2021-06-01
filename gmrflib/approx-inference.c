@@ -3707,6 +3707,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				rpreopt->eigen_vectors = eigen_vectors;
 				rpreopt->eigen_values = eigen_values;
 				rpreopt->sqrt_eigen_values = sqrt_eigen_values;
+				rpreopt->cov_m = misc_output->cov_m;
 			}
 		} else {
 			// ... and pick it up here
@@ -3716,9 +3717,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			hessian = rpreopt->hessian;
 			inverse_hessian = rpreopt->inverse_hessian;
 			H = rpreopt->H;
-			eigen_vectors = rpreopt->eigen_vectors;
-			eigen_values = rpreopt->eigen_values;
+			misc_output->nhyper = nhyper;
+			misc_output->eigenvectors = eigen_vectors = rpreopt->eigen_vectors;
+			misc_output->eigenvalues = eigen_values = rpreopt->eigen_values;
 			sqrt_eigen_values = rpreopt->sqrt_eigen_values;
+			misc_output->cov_m = rpreopt->cov_m;
 		}
 
 		if (preopt) {

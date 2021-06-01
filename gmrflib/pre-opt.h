@@ -71,6 +71,7 @@ typedef struct {
 	double *inverse_hessian;
 	double *stdev_corr_neg;
 	double *stdev_corr_pos;
+	double *cov_m;
 	gsl_matrix *H;
 	gsl_matrix *eigen_vectors;
 	gsl_vector *eigen_values;
