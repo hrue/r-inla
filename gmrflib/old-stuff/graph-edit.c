@@ -55,11 +55,22 @@ int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
 	 */
 	*ged = Calloc(1, GMRFLib_ged_tp);
 	spmatrix_init_hint(&((*ged)->Q), (mapkit_size_t) (graph ? (2 * graph->n) : 1000));
+	map_ii_init(&((*ged)->tags));
 	(*ged)->max_node = -1;				       /* yes, this is correct */
 
 	if (graph) {
 		GMRFLib_ged_append_graph(*ged, graph);
 	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_ged_remove(GMRFLib_ged_tp * ged, int node, int nnode)
+{
+	/*
+	 * mark the edge between node and nnode as 'removed', or the node itself if they're equal 
+	 */
+	spmatrix_set(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode), 0.0);
 
 	return GMRFLib_SUCCESS;
 }
@@ -74,6 +85,8 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	} else {
 		if (!spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode))) {
 			spmatrix_set(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode), 1.0);
+			spmatrix_set(&(ged->Q), node, node, 1.0);
+			spmatrix_set(&(ged->Q), nnode, nnode, 1.0);
 		}
 	}
 	ged->max_node = IMAX(ged->max_node, IMAX(node, nnode));
@@ -84,6 +97,7 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 int GMRFLib_ged_append_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph)
 {
 	GMRFLib_ged_insert_graph(ged, graph, ged->max_node + 1);
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -94,6 +108,9 @@ int GMRFLib_ged_insert_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int
 
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_i_node, int at_j_node)
 {
+	/*
+	 * append graph to 'ged' 
+	 */
 	if (graph) {
 		int i, j, jj;
 
@@ -109,6 +126,27 @@ int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, in
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_ged_tag(GMRFLib_ged_tp * ged, int node, GMRFLib_ged_tag_tp tag)
+{
+	/*
+	 * tag a node. if node does not exists, add it as well. 
+	 */
+	GMRFLib_ged_add(ged, node, node);
+	if (tag != GMRFLib_GED_TAG_NORMAL) {
+		map_ii_set(&(ged->tags), node, (int) tag);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_ged_append_node(GMRFLib_ged_tp * ged, GMRFLib_ged_tag_tp tag)
+{
+	/*
+	 * append a node to 'ged' 
+	 */
+	return GMRFLib_ged_tag(ged, ged->max_node + 1, tag);
+}
+
 int GMRFLib_ged_max_node(GMRFLib_ged_tp * ged)
 {
 	return ged->max_node;
@@ -116,16 +154,62 @@ int GMRFLib_ged_max_node(GMRFLib_ged_tp * ged)
 
 int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 {
+#define NOMAP (-1)
 	/*
 	 * build the graph 
 	 */
 	GMRFLib_graph_tp *g;
-	int i, j, n, *nnbs, node = -1, nnode = -1, **nbs;
+	int i, j, jj, n, *nnbs, node = -1, nnode = -1, **nbs, *map, *imap, n_new;
+	unsigned char *node_in_use, *indep;
 	map_ii **hash;
 	spmatrix_storage *sptr;
 	map_ii_storage *iptr;
 
+	/*
+	 * number of (possible) nodes 
+	 */
 	n = ged->max_node + 1;
+
+	/*
+	 * flag nodes in use 
+	 */
+	node_in_use = Calloc(n, unsigned char);
+
+	for (sptr = NULL; (sptr = spmatrix_nextptr(&(ged->Q), sptr)) != NULL;) {
+		if (sptr->value != 0.0 && sptr->key.key1 == sptr->key.key2) {
+			node_in_use[sptr->key.key1] = 1;
+		}
+	}
+
+	/*
+	 * add global nodes (if any) 
+	 */
+	for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(&(ged->tags), iptr)) != NULL;) {
+		if (iptr->value == GMRFLib_GED_TAG_GLOBAL) {
+			i = iptr->key;
+			if (node_in_use[i]) {
+				for (jj = 0; jj < n; jj++) {
+					if (node_in_use[jj] && jj != i) {
+						GMRFLib_ged_add(ged, i, jj);
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	 * flag indep nodes (if any) 
+	 */
+	indep = Calloc(n, unsigned char);
+
+	for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(&(ged->tags), iptr)) != NULL;) {
+		if (iptr->value == GMRFLib_GED_TAG_INDEP) {
+			indep[iptr->key] = 1;
+		}
+	}
+
+	imap = Calloc(n, int);
+	map = Calloc(n, int);
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
 
@@ -135,18 +219,37 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 		map_ii_init(hash[i]);
 	}
 
-	for(i = 0; i < n; i++) {
-		GMRFLib_ged_add(ged, i, i);
+	/*
+	 * find the mapping 
+	 */
+	for (i = 0; i < n; i++) {
+		map[i] = imap[i] = NOMAP;
+	}
+	for (i = j = n_new = 0; i < n; i++) {
+		if (node_in_use[i]) {
+			map[i] = j;
+			imap[j] = i;
+			j++;
+			n_new++;
+		}
 	}
 
+	/*
+	 * find the neighbours 
+	 */
 	for (sptr = NULL; (sptr = spmatrix_nextptr(&(ged->Q), sptr)) != NULL;) {
-		if (sptr->value && sptr->key.key1 != sptr->key.key2) {
+		if (sptr->value != 0.0 && sptr->key.key1 != sptr->key.key2) {
+
 			node = IMIN(sptr->key.key1, sptr->key.key2);
 			nnode = IMAX(sptr->key.key1, sptr->key.key2);
-			map_ii_set(hash[node], nnode, 1);
-			map_ii_set(hash[nnode], node, 1);
-			nnbs[node]++;
-			nnbs[nnode]++;
+			assert(LEGAL(node, n) && LEGAL(nnode, n));
+
+			if (node_in_use[node] && node_in_use[nnode] && !indep[node] && !indep[nnode]) {
+				map_ii_set(hash[node], nnode, 1);
+				map_ii_set(hash[nnode], node, 1);
+				nnbs[node]++;
+				nnbs[nnode]++;
+			}
 		}
 	}
 
@@ -156,30 +259,56 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	for (i = 0; i < n; i++) {
 		if (nnbs[i]) {
 			nbs[i] = Calloc(nnbs[i], int);
-			for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(hash[i], iptr)) != NULL; j++) {
-				nbs[i][j] = iptr->key;
+
+			for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(hash[i], iptr)) != NULL;) {
+				nbs[i][j++] = iptr->key;
 			}
-			assert(j == nnbs[i]);
-		} else {
-			nbs[i] = NULL;
+		}
+	}
+
+	/*
+	 * make the graph-object. copy it into a new one to make the correct memory-layout 
+	 */
+	for (i = 0; i < n_new; i++) {
+		nnbs[i] = nnbs[imap[i]];		       /* ok, as imap[i] >= i */
+		nbs[i] = nbs[imap[i]];			       /* ok, as imap[i] >= i */
+	}
+
+	for (i = 0; i < n_new; i++) {
+		for (jj = 0; jj < nnbs[i]; jj++) {
+			nbs[i][jj] = map[nbs[i][jj]];	       /* map to the new nodes */
 		}
 	}
 
 	GMRFLib_graph_mk_empty(&g);
-	g->n = n;
+	g->n = n_new;
 	g->nnbs = nnbs;
 	g->nbs = nbs;
-	g->mothergraph_idx = NULL;
+	g->mothergraph_idx = imap;			       /* preserve the mapping */
 
-	GMRFLib_graph_prepare(g, 0, 0);
 	GMRFLib_graph_duplicate(graph, g);
 
-	for (i = 0; i < n; i++) {
+	if (0) {
+		/*
+		 * validate the graph? this should not be needed, as this function will ensurethe graph should be always be consistent. 
+		 * In any case, enable this for the moment until these tools are sufficiently validated. 
+		 */
+		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
+	}
+
+	/*
+	 * cleanup 
+	 */
+	for (i = 0; i < n_new; i++) {
 		Free(nbs[i]);
 	}
 	Free(nbs);
 	Free(nnbs);
+	Free(node_in_use);
+	Free(map);
+	Free(imap);
 	Free(g);
+	Free(indep);
 
 	for (i = 0; i < n; i++) {
 		map_ii_free(hash[i]);
@@ -188,11 +317,13 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	Free(hash);
 
 	return GMRFLib_SUCCESS;
+#undef NOMAP
 }
 
 int GMRFLib_ged_free(GMRFLib_ged_tp * ged)
 {
 	spmatrix_free(&(ged->Q));
+	map_ii_free(&(ged->tags));
 	Free(ged);
 
 	return GMRFLib_SUCCESS;
@@ -201,6 +332,7 @@ int GMRFLib_ged_free(GMRFLib_ged_tp * ged)
 int GMRFLib_ged_print__intern(FILE * fp, GMRFLib_ged_tp * ged)
 {
 	spmatrix_storage *sptr;
+	map_ii_storage *iptr;
 	FILE *fpp;
 
 	fpp = (fp ? fp : stdout);
@@ -209,6 +341,11 @@ int GMRFLib_ged_print__intern(FILE * fp, GMRFLib_ged_tp * ged)
 	fprintf(fpp, "\tmax_node = %1d\n", ged->max_node);
 	for (sptr = NULL; (sptr = spmatrix_nextptr(&(ged->Q), sptr)) != NULL;) {
 		fprintf(fpp, "\tQ[%1d, %1d] = %.1f\n", sptr->key.key1, sptr->key.key2, sptr->value);
+	}
+
+	for (iptr = NULL; (iptr = map_ii_nextptr(&(ged->tags), iptr)) != NULL;) {
+		fprintf(fpp, "\ttags[%1d] = %s\n", iptr->key,
+			(iptr->value == GMRFLib_GED_TAG_INDEP ? "Independent" : (iptr->value == GMRFLib_GED_TAG_GLOBAL ? "Global" : "Normal")));
 	}
 
 	fflush(fpp);

@@ -52,7 +52,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 {
 #define SHOW_TIME(_msg)							\
 	if (show_time) {						\
-		printf("\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
+		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
 		tref =  GMRFLib_cpu();					\
 	}
 

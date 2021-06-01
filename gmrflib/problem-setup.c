@@ -49,7 +49,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 int error_check_validate_constr1 = 0;
 
 #if defined(INLA_WINDOWS32)
-static int constr_store_use = 0;			       /* do not use it as the sha1 is not prepared for it */
+static int constr_store_use = 0;			       /* do not use it as the sha is not prepared for it */
 #else
 static int constr_store_use = 1;
 #endif
@@ -597,8 +597,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_constr_tp *con = (*problem)->sub_constr;
 			double *p = NULL;
 
-			if (con->sha1 && constr_store_use) {
-				p = map_strd_ptr(&constr_store, (char *) con->sha1);
+			if (con->sha && constr_store_use) {
+				p = map_strd_ptr(&constr_store, (char *) con->sha);
 				if (p) {
 					(*problem)->logdet_aat = *p;
 				}
@@ -630,16 +630,16 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				Free(tmp_vector);
 
 				if (constr_store_use) {
-					if (!(con->sha1)) {
+					if (!(con->sha)) {
 						if (constr_store_debug) {
 							printf("constr_store: value computed %f, but not set\n", (*problem)->logdet_aat);
 						}
-					} else if (con->sha1) {
+					} else if (con->sha) {
 						if (constr_store_debug) {
 							printf("constr_store: store value %f\n", (*problem)->logdet_aat);
 						}
 #pragma omp critical
-						map_strd_set(&constr_store, GMRFLib_strdup((char *) con->sha1), (*problem)->logdet_aat);
+						map_strd_set(&constr_store, GMRFLib_strdup((char *) con->sha), (*problem)->logdet_aat);
 					}
 				}
 			}
@@ -1004,7 +1004,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 		Free(constr->e_vector);
 		Free(constr->jfirst);
 		Free(constr->jlen);
-		Free(constr->sha1);
+		Free(constr->sha);
 		Free(constr);
 	}
 	return GMRFLib_SUCCESS;
@@ -1113,38 +1113,25 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
-	GMRFLib_constr_add_sha1(constr, graph);
+	GMRFLib_constr_add_sha(constr, graph);
 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
+int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 {
-#define LEN 64L
-#define DUPDATE(_x, _len) if ((_len) > 0 && (_x))			\
-	{								\
-		size_t len = (_len) * sizeof(double);			\
-		size_t n = (size_t) len / LEN;				\
-		size_t m = len - n * LEN;				\
-		for(size_t i = 0; i < n; i++) {				\
-			SHA1_Update(&c, &(((unsigned char *) (_x))[i * LEN]), (unsigned long) LEN); \
-		}							\
-		if (m) SHA1_Update(&c, &(((unsigned char *) (_x))[n * LEN]), (unsigned long) m); \
-	}
+	GMRFLib_SHA_TP c;
+	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 
-	// add the SHA1 hash to the constr
-	SHA_CTX c;
-	unsigned char *md = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
+	memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
+	GMRFLib_SHA_Init(&c);
 
-	memset(md, 0, SHA_DIGEST_LENGTH + 1);
-	SHA1_Init(&c);
+	GMRFLib_SHA_DUPDATE(constr->a_matrix, graph->n * constr->nc);
+	GMRFLib_SHA_DUPDATE(constr->e_vector, constr->nc);
+	GMRFLib_SHA_Final(md, &c);
+	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
+	constr->sha = md;
 
-	DUPDATE(constr->a_matrix, graph->n);
-	DUPDATE(constr->e_vector, constr->nc);
-	SHA1_Final(md, &c);
-	md[SHA_DIGEST_LENGTH] = '\0';
-	constr->sha1 = md;
-#undef DUPDATE
 	return GMRFLib_SUCCESS;
 }
 

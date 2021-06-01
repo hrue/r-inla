@@ -72,16 +72,12 @@ int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 	 */
 
 	*graph = Calloc(1, GMRFLib_graph_tp);
-
-	/*
-	 * user variables 
-	 */
 	(*graph)->n = 0;
 	(*graph)->nbs = NULL;
 	(*graph)->lnbs = NULL;
 	(*graph)->nnbs = NULL;
 	(*graph)->lnnbs = NULL;
-	(*graph)->sha1 = NULL;
+	(*graph)->sha = NULL;
 	(*graph)->mothergraph_idx = NULL;
 
 	return GMRFLib_SUCCESS;
@@ -448,9 +444,9 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 		return GMRFLib_SUCCESS;
 	}
 
-	if (graph_store_use && graph->sha1) {
+	if (graph_store_use && graph->sha) {
 		void *p;
-		p = map_strvp_ptr(&graph_store, (char *) graph->sha1);
+		p = map_strvp_ptr(&graph_store, (char *) graph->sha);
 		if (graph_store_debug) {
 			if (p) {
 				printf("graph_store: graph is found in store: do not free.\n");
@@ -473,7 +469,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	Free(graph->nnbs);
 	Free(graph->lnbs);
 	Free(graph->lnnbs);
-	Free(graph->sha1);
+	Free(graph->sha);
 	Free(graph->mothergraph_idx);
 	Free(graph);
 
@@ -577,7 +573,7 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	return GMRFLib_FALSE;
 }
 
-int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1)
+int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha)
 {
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
@@ -585,8 +581,8 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1
 	if (!is_sorted) {
 		GMRFLib_graph_sort(graph);		       /* must be before lnbs */
 	}
-	GMRFLib_add_lnbs_info(graph);			       /* must be before sha1 */
-	GMRFLib_graph_add_sha1(graph, skip_sha1);
+	GMRFLib_add_lnbs_info(graph);			       /* must be before sha */
+	GMRFLib_graph_add_sha(graph, skip_sha);
 
 	return GMRFLib_SUCCESS;
 }
@@ -850,9 +846,9 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		return GMRFLib_SUCCESS;
 	}
 
-	if (graph_store_use && graph_old->sha1) {
+	if (graph_store_use && graph_old->sha) {
 		void **p;
-		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha1);
+		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha);
 		if (graph_store_debug) {
 			if (p) {
 				printf("graph_store: graph is found in store: do not duplicate.\n");
@@ -899,14 +895,14 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		Memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
 	}
 	*graph_new = g;
-	GMRFLib_graph_prepare(g, is_sorted, (graph_old->sha1 ? 0 : 1));
+	GMRFLib_graph_prepare(g, is_sorted, (graph_old->sha ? 0 : 1));
 
-	if (graph_store_use && graph_old->sha1) {
+	if (graph_store_use && graph_old->sha) {
 		if (graph_store_debug) {
 			printf("graph_store: store graph 0x%p\n", (void *) g);
 		}
 #pragma omp critical
-		map_strvp_set(&graph_store, (char *) g->sha1, (void *) g);
+		map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
@@ -1857,52 +1853,37 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
+int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g, int skip_sha)
 {
-	if (skip_sha1 || g->n == 0) {
-		Free(g->sha1);
-		g->sha1 = NULL;
+	if (skip_sha || g->n == 0) {
+		g->sha = NULL;
 		return GMRFLib_SUCCESS;
 	}
-#define LEN 64L
-#define IUPDATE(_x, _len) if ((_len) > 0 && (_x)) {			\
-		size_t len = (_len) * sizeof(int);			\
-		size_t n = (size_t) len / LEN;				\
-		size_t m = len - n * LEN;				\
-		for(size_t i = 0; i < n; i++) {				\
-			SHA1_Update(&c, &(((unsigned char *) (_x))[i * LEN]), (unsigned long) LEN); \
-		}							\
-		if (m) SHA1_Update(&c, &(((unsigned char *) (_x))[n * LEN]), (unsigned long) m); \
-	}
 
+	GMRFLib_SHA_TP c;
+	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 
-	// add the SHA1 hash to the graph
-	SHA_CTX c;
-	unsigned char *md = Calloc(SHA_DIGEST_LENGTH + 1, unsigned char);
+	memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
+	GMRFLib_SHA_Init(&c);
 
-	memset(md, 0, SHA_DIGEST_LENGTH + 1);
-	SHA1_Init(&c);
-
-	IUPDATE(&(g->n), 1);
-	IUPDATE(g->nnbs, g->n);
+	GMRFLib_SHA_IUPDATE(&(g->n), 1);
+	GMRFLib_SHA_IUPDATE(g->nnbs, g->n);
 	if (g->lnnbs) {
 		for (int i = 0; i < g->n; i++) {
-			if (g->lnnbs[i]) {
-				IUPDATE(g->lnbs[i], g->lnnbs[i]);
-			}
+			GMRFLib_SHA_IUPDATE(g->lnbs[i], g->lnnbs[i]);
 		}
 	} else {
 		for (int i = 0; i < g->n; i++) {
-			if (g->nnbs[i]) {
-				IUPDATE(g->nbs[i], g->nnbs[i]);
-			}
+			GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i]);
 		}
 	}
-	IUPDATE(g->mothergraph_idx, g->n);
-	SHA1_Final(md, &c);
-	md[SHA_DIGEST_LENGTH] = '\0';
-	Free(g->sha1);
-	g->sha1 = md;
-#undef IUPDATE
+	
+	if (g->mothergraph_idx) {
+		GMRFLib_SHA_IUPDATE(g->mothergraph_idx, g->n);
+	}
+	GMRFLib_SHA_Final(md, &c);
+	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
+	g->sha = md;
+
 	return GMRFLib_SUCCESS;
 }
