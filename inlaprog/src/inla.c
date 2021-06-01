@@ -36102,10 +36102,10 @@ int main(int argc, char **argv)
 	clock_t atime_used[4] = { 0, 0, 0, 0 };
 	inla_tp *mb = NULL;
 
-	int host_max_threads = omp_get_max_threads();
+	int host_max_threads = IMAX(omp_get_max_threads(), omp_get_num_procs());
 
 	GMRFLib_openmp = Calloc(1, GMRFLib_openmp_tp);
-	GMRFLib_openmp->max_threads = omp_get_max_threads();
+	GMRFLib_openmp->max_threads = host_max_threads;
 	GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
 	GMRFLib_openmp->max_threads_nested = Calloc(2, int);
 	GMRFLib_openmp->max_threads_nested[0] = GMRFLib_openmp->max_threads;
@@ -36293,8 +36293,8 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS, ntt[0] * ntt[1]);
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
-				fprintf(stderr, "Will continue with '2:1'\n");
-				ntt[0] = 2;
+				fprintf(stderr, "Will continue with '4:1'\n");
+				ntt[0] = 4;
 				ntt[1] = 1;
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMIN(GMRFLib_openmp->max_threads, IMAX(1, ntt[i]));
