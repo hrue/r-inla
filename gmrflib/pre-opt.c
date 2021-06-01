@@ -538,7 +538,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		for(i = 0; i < g->n; i++) {
 			g->mothergraph_idx[i] = i;
 		}
-		GMRFLib_graph_prepare(g, 0, 0);
+
+		GMRFLib_graph_tp *gg;
+		GMRFLib_graph_duplicate(&gg, g);
+		GMRFLib_graph_free(g);
+		g = gg;
 
 		for(i = 0; i < g->n; i++) {
 			GMRFLib_idx_free(nbs[i]);
