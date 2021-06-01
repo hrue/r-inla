@@ -695,6 +695,31 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp * M)
+{
+	/*
+	 * store values in 'row', must be NULL on entry. 
+	 */
+
+	assert(*row == NULL);
+	if (M->i) {
+		if (M->htable_column_order) {
+			FIXME("column order should not be used");
+			assert(0 == 1);
+		} else {
+			map_id_storage *ptr;
+			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL; ) {
+				GMRFLib_idxval_add(row, ptr->key, ptr->value);
+			}
+		}
+	} else {
+		FIXME("NOT IMPLEMENTED");
+		assert(0 == 1);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 {
 	if (M) {
