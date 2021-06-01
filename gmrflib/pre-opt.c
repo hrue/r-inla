@@ -497,7 +497,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		g->nnbs = Calloc(g->n, int);
 
 		GMRFLib_idx_tp **nbs = GMRFLib_idx_ncreate(g->n);
-#pragma omp parallel for private(i, kk, k, jj, j) num_threads(nt)
+//#pragma omp parallel for private(i, kk, k, jj, j) num_threads(nt)
 		for (i = 0; i < gen_len_At; i++) {
 			for (kk = 0; kk < gen_At[i]->n; kk++) {
 				k = gen_At[i]->store[kk].idx;
@@ -505,6 +505,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					j = gen_A[k]->store[jj].idx;
 					if (j != i) {
 						GMRFLib_idx_add(&(nbs[i]), j);
+						GMRFLib_idx_add(&(nbs[j]), i);
 					}
 				}
 			}
@@ -528,10 +529,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				if (g->nnbs[i]) {
 					g->nbs[i] = work + offset;
 					Memcpy(g->nbs[i], nbs[i]->idx, g->nnbs[i] * sizeof(int));
+					offset += g->nnbs[i];
 				} else {
 					g->nbs[i] = NULL;
 				}
-				offset += g->nnbs[i];
 			}
 		}
 		g->mothergraph_idx = Calloc(g->n, int);
@@ -539,10 +540,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			g->mothergraph_idx[i] = i;
 		}
 
-		GMRFLib_graph_tp *gg;
-		GMRFLib_graph_duplicate(&gg, g);
-		GMRFLib_graph_free(g);
-		g = gg;
+		GMRFLib_graph_prepare(g, 0, 0);
 
 		for(i = 0; i < g->n; i++) {
 			GMRFLib_idx_free(nbs[i]);

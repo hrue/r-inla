@@ -1887,11 +1887,15 @@ int GMRFLib_graph_add_sha1(GMRFLib_graph_tp * g, int skip_sha1)
 	IUPDATE(g->nnbs, g->n);
 	if (g->lnnbs) {
 		for (int i = 0; i < g->n; i++) {
-			IUPDATE(g->lnbs[i], g->lnnbs[i]);
+			if (g->lnnbs[i]) {
+				IUPDATE(g->lnbs[i], g->lnnbs[i]);
+			}
 		}
 	} else {
 		for (int i = 0; i < g->n; i++) {
-			IUPDATE(g->nbs[i], g->nnbs[i]);
+			if (g->nnbs[i]) {
+				IUPDATE(g->nbs[i], g->nnbs[i]);
+			}
 		}
 	}
 	IUPDATE(g->mothergraph_idx, g->n);
