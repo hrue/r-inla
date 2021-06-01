@@ -332,7 +332,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
 		double *rows = Calloc(nt * nrow, double);      /* SAME _THREADS! */
 		double tacc = 0.0;
-#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) 
+#pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) reduction(+:tacc)
 		for (i = 0; i < nrow; i++) {
 			double *row = &(rows[omp_get_thread_num() * nrow]);
 			GMRFLib_matrix_get_row(row, i, pA);
@@ -348,7 +348,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					}
 				}
 			} else {
-				FIXME1("want to rewrite this one later");
+				FIXME1("want to rewrite this one later. BEGIN");
 				GMRFLib_idx_tp *row_idx = NULL;
 				double tt = GMRFLib_cpu();
 				for(j = 0; j < nrow; j++) {    /* should be able to get this easier, but for now... */
@@ -356,10 +356,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 						GMRFLib_idx_add(&row_idx, j);
 					}
 				}
-				tt = GMRFLib_cpu() - tt;
-#pragma omp atomic
-				tacc += tt;
-				
+				tacc += GMRFLib_cpu() - tt;
 
 				for(jj = 0; jj < row_idx->n; jj++) {
 					j = row_idx->idx[jj];
