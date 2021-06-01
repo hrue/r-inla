@@ -331,6 +331,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
 		double *rows = Calloc(nt * nrow, double);      /* SAME _THREADS! */
+		double tacc = 0.0;
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) 
 		for (i = 0; i < nrow; i++) {
 			double *row = &(rows[omp_get_thread_num() * nrow]);
@@ -349,11 +350,16 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			} else {
 				FIXME1("want to rewrite this one later");
 				GMRFLib_idx_tp *row_idx = NULL;
+				double tt = GMRFLib_cpu();
 				for(j = 0; j < nrow; j++) {    /* should be able to get this easier, but for now... */
 					if (row[j]) {
 						GMRFLib_idx_add(&row_idx, j);
 					}
 				}
+				tt = GMRFLib_cpu() - tt;
+#pragma omp atomic
+				tacc += tt;
+				
 
 				for(jj = 0; jj < row_idx->n; jj++) {
 					j = row_idx->idx[jj];
@@ -367,6 +373,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				GMRFLib_idx_free(row_idx);
 			}
 		}
+		
+		P(tacc);
 		
 		Free(rows);
 		SHOW_TIME("pAA_pattern");
@@ -403,9 +411,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt) 
 		for (i = 0; i < nrow; i++) {
 			double *row = &(rows[omp_get_thread_num() * nrow]);
-			
-			if (omp_get_thread_num() == 0) printf("%d ", i);
-			
+
 			GMRFLib_matrix_get_row(row, i, pA);
 			FIXME1("want to rewrite this one later");
 			GMRFLib_idx_tp *row_idx = NULL;
@@ -416,6 +422,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 
 			if (0) {
+				// this is way to slow
 				for(kk = 0; kk < pAA_pattern[i]->n; kk++){ /* for(k = 0; k < N; k++) {*/
 					k = pAA_pattern[i]->idx[kk];
 					for (jj = 0; jj < At_idxval[k]->n; jj++) {
@@ -427,6 +434,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					}
 				}
 			} else {
+				// this one is much better
 				for(kk = 0; kk < pAA_pattern[i]->n; kk++){ /* for(k = 0; k < N; k++) {*/
 					k = pAA_pattern[i]->idx[kk];
 					for(jj = 0; jj < row_idx->n; jj++){
