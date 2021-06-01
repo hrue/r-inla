@@ -497,13 +497,14 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		g->nnbs = Calloc(g->n, int);
 
 		GMRFLib_idx_tp **nbs = GMRFLib_idx_ncreate(g->n);
+#pragma omp parallel for private(i, kk, k, jj, j) num_threads(nt)
 		for (i = 0; i < gen_len_At; i++) {
 			for (kk = 0; kk < gen_At[i]->n; kk++) {
 				k = gen_At[i]->store[kk].idx;
 				for (jj = 0; jj < gen_A[k]->n; jj++) {
 					j = gen_A[k]->store[jj].idx;
-					if (j != i) {
-						GMRFLib_idx_add(&(nbs[IMIN(i, j)]), IMAX(i, j));
+					if (j > i) {
+						GMRFLib_idx_add(&(nbs[i]), j);
 					}
 				}
 			}
@@ -531,6 +532,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				offset += g->nnbs[i];
 			}
 		}
+		g->mothergraph_idx = Calloc(g->n, int);
+		for(i = 0; i < g->n; i++) {
+			g->mothergraph_idx[i] = i;
+		}
 		GMRFLib_graph_prepare(g, 1, 0);
 
 		for(i = 0; i < g->n; i++) {
@@ -538,6 +543,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		Free(nbs);
 	}
+	//GMRFLib_printf_graph(stdout, g);
 	SHOW_TIME("build graph");
 		
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
