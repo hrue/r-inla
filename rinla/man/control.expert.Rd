@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
 inla.set.control.expert.default(...)
-control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp, preopt)
+control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -20,7 +20,6 @@ control.expert(cpo.idx, cpo.manual, disable.gaussian.check, jp, preopt)
 \item{cpo.idx}{   The index/indices of the data point(s) to remove. (EXPERT OPTION: DO NOT USE)}
 \item{disable.gaussian.check}{   Disable the check for fast computations with a Gaussian likelihood and identity link (default \code{FALSE})}
 \item{jp}{   An object of class \code{inla.jp} defining a joint prior}
-\item{preopt}{   Logical. Use the pre-optimizer (work in progress)}
 }
 \value{
   

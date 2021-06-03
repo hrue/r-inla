@@ -164,7 +164,6 @@ Collate:
     'sandbox.R'
     'scale.model.R'
     'sections.R'
-    'sensitivity.R'
     'set.default.arguments.R'
     'sm.R'
     'spde.common.R'

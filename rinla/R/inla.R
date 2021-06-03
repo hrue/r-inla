@@ -46,10 +46,10 @@
 ## !    keep = inla.getOption("keep"),
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
+## !    twostage = FALSE, 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = parent.frame()
 ## !    )
-## !
 ## ! }
 ## ! \arguments{
 ## ! \item{formula}{ A \code{inla} formula like \code{y
@@ -214,6 +214,9 @@
 ## ! \code{inla}-program would be ``silent''. If equal to
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
+
+## ! \item{twostage}{Logical Do inference using the new twostage-approach (if \code{TRUE}) or
+## !                 the classical approach (if \code{FALSE}). Default \code{FALSE}.}
 
 ## ! \item{debug}{ If \code{TRUE}, then enable some debug
 ## ! output.  }
@@ -602,6 +605,7 @@
             keep = keep,
             working.directory = working.directory,
             silent = silent,
+            twostage = twostage, 
             debug = debug
         )
 
@@ -1084,6 +1088,7 @@
     mf$control.compute <- NULL
     mf$control.predictor <- NULL
     mf$silent <- NULL
+    mf$twostage <- NULL
     mf$control.hazard <- NULL
     mf$control.family <- NULL
     mf$control.update <- NULL
@@ -2114,11 +2119,7 @@
         arg.vecLib <- ""
     }
 
-    if (cont.expert$preopt) {
-        arg.P <- "-P"
-    } else {
-        arg.P <- ""
-    }
+    arg.P <- if (twostage) "-P" else ""
 
     ## collect all. we might add '-p' later if inla.call="submit"
     all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")

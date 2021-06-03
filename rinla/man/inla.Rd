@@ -48,10 +48,10 @@
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
+    twostage = FALSE, 
     debug = inla.getOption("debug"),
     .parent.frame = parent.frame()
     )
-
  }
  \arguments{
  \item{formula}{ A \code{inla} formula like \code{y
@@ -182,6 +182,8 @@
  \code{inla}-program would be ``silent''. If equal to
  2L, then supress also error messages from the
  \code{inla}-program.}
+ \item{twostage}{Logical Do inference using the new twostage-approach (if \code{TRUE}) or
+                 the classical approach (if \code{FALSE}). Default \code{FALSE}.}
  \item{debug}{ If \code{TRUE}, then enable some debug
  output.  }
  \item{.parent.frame}{Internal use only}
