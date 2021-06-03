@@ -124,6 +124,8 @@
             mkl <- ""
         }
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep = ""), package = "INLA")
+    } else if (inla.os("mac.arm64")) {
+        fnm <- system.file("bin/mac.arm64/inla.run", package = "INLA")
     } else if (inla.os("linux")) {
         fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep = ""), package = "INLA")
     } else if (inla.os("windows")) {
@@ -151,7 +153,10 @@
 
 `inla.fmesher.call.builtin` <- function() {
     if (inla.os("mac")) {
-        fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher.run", sep = ""), package = "INLA")
+        fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/fmesher.run", sep = ""),
+                           package = "INLA")
+    } else if (inla.os("mac.arm64")) {
+        fnm <- system.file("bin/mac.arm64/fmesher.run", package = "INLA")
     } else if (inla.os("linux")) {
         fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/fmesher.run", sep = ""), package = "INLA")
     } else if (inla.os("windows")) {

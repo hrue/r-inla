@@ -1,7 +1,7 @@
 ## nothing to export
 
 
-`inla.os` <- function(type = c("linux", "mac", "windows", "else")) {
+`inla.os` <- function(type = c("linux", "mac", "mac.arm64", "windows", "else")) {
     if (missing(type)) {
         stop("Type of OS is required.")
     }
@@ -9,6 +9,13 @@
 
     if (type == "windows") {
         return(.Platform$OS.type == "windows")
+    } else if (type == "mac.arm64") {
+        result <- (file.info("/Library")$isdir && file.info("/Applications")$isdir)
+        if (is.na(result)) {
+            result <- FALSE
+        }
+        result <- result && (Sys.info()[["machine"]] == "arm64")
+        return(result)
     } else if (type == "mac") {
         result <- (file.info("/Library")$isdir && file.info("/Applications")$isdir)
         if (is.na(result)) {
@@ -19,7 +26,7 @@
             s <- system("sw_vers -productVersion", intern = T)
             vers <- as.integer(strsplit(s, ".", fixed = TRUE)[[1]])
             ver <- vers[1] + vers[2] / 10
-            s.req <- 10.10 ## @@@HARDCODED@@@
+            s.req <- 10.15 ## @@@HARDCODED@@@
             if (ver < s.req) {
                 stop("Your version, ", s, ", of MacOSX is to old for R-INLA. Update MacOSX to at least version ",
                     as.character(s.req),
@@ -29,7 +36,7 @@
         }
         return(result)
     } else if (type == "linux") {
-        return((.Platform$OS.type == "unix") && !inla.os("mac"))
+        return((.Platform$OS.type == "unix") && !inla.os("mac") && !inla.os("mac.arm64"))
     } else if (type == "else") {
         return(TRUE)
     } else {
@@ -37,7 +44,7 @@
     }
 }
 `inla.os.type` <- function() {
-    for (os in c("windows", "mac", "linux", "else")) {
+    for (os in c("windows", "mac", "mac.arm64", "linux", "else")) {
         if (inla.os(os)) {
             return(os)
         }

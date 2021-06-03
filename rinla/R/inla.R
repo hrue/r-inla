@@ -417,6 +417,7 @@
                    keep = inla.getOption("keep"),
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
+                   twostage = NULL, 
                    debug = inla.getOption("debug"),
                    .parent.frame = parent.frame()) {
 
