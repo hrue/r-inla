@@ -56,7 +56,10 @@ A=$(Xfun $A)
 {
     echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : 
     
-    ## need special treatment
-    echo $HOME/builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
-} | sort | uniq
+    if uname -a|grep -q ARM64 ; then    
+	echo builds/arm64/local/lib/libpardiso720-MACOS-M1-X86-64-RINLA-May23-2021.dylib
+    else
+	echo builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
+    fi
+} | sort | awk '{gsub(/\.\//,"");print}' | uniq
 
