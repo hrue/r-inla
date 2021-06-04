@@ -169,6 +169,8 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
 int GMRFLib_unique_relative(int *n, double *x, double eps);
 int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps);
 int GMRFLib_which(double val, double *array, int len);
+int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec);
+int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat);
 map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);

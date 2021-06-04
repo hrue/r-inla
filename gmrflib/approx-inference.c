@@ -3663,12 +3663,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the
 														 * cov.mat not hessian */
 				}
-				misc_output->eigenvectors = Calloc(ISQR(nhyper), double);
-				for (i = 0; i < nhyper; i++) {
-					for (j = 0; j < nhyper; j++) {
-						misc_output->eigenvectors[i + j * nhyper] = gsl_matrix_get(eigen_vectors, i, j);
-					}
-				}
+				GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), eigen_vectors);
 			}
 
 			if (ai_par->fp_log) {
@@ -3718,8 +3713,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			inverse_hessian = rpreopt->inverse_hessian;
 			H = rpreopt->H;
 			misc_output->nhyper = nhyper;
-			misc_output->eigenvectors = eigen_vectors = rpreopt->eigen_vectors;
-			misc_output->eigenvalues = eigen_values = rpreopt->eigen_values;
+			eigen_vectors = rpreopt->eigen_vectors;
+			eigen_values = rpreopt->eigen_values;
+			GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), eigen_vectors);
+			GMRFLib_gsl_vec2plain(&(misc_output->eigenvalues), eigen_values);
 			sqrt_eigen_values = rpreopt->sqrt_eigen_values;
 			misc_output->cov_m = rpreopt->cov_m;
 		}

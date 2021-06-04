@@ -41,6 +41,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#define GMRFLib_MAX_THREADS_LOCAL IMIN(4, GMRFLib_MAX_THREADS)
+
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
@@ -253,7 +255,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
 	}
-	nt = IMIN(GMRFLib_MAX_THREADS, nt);
+	nt = IMIN(GMRFLib_MAX_THREADS_LOCAL, nt);
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
 #pragma omp parallel for private (i, jj) num_threads(nt)
@@ -781,7 +783,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		}						\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;

@@ -1260,6 +1260,35 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec) 
+{
+	if (!vec || vec->size == 0) {
+		*out = NULL;
+	} else {
+		*out = Calloc(vec->size, double);
+		for(size_t i = 0; i < vec->size; i++){
+			(*out)[i] = gsl_vector_get(vec, i);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat) 
+{
+	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
+		*out = NULL;
+	} else {
+		*out = Calloc(mat->size1 * mat->size2, double);
+		for(size_t j = 0; j < mat->size2; j++) {
+			size_t off = j * mat->size1;
+			for(size_t i = 0; i < mat->size1; i++){
+				(*out)[i + off] = gsl_matrix_get(mat, i, j);
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_idx_tp);
