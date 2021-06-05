@@ -780,15 +780,16 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 	 */
 
 	int i, n;
-	double sqrterm, *xx = NULL, *yy = NULL;
+	double sqrterm, *xx = NULL, *yy = NULL, *work = NULL;
 
 	if (!problem) {
 		return GMRFLib_SUCCESS;
 	}
 
 	n = problem->sub_graph->n;
-	xx = Calloc(n, double);
-	yy = Calloc(n, double);
+	work = Calloc(2*n, double);
+	xx = work;
+	yy = work + n;
 
 	/*
 	 * user has altered the 'sample', put the correct subset into sub_sample and compute (x-\mu)^TQ(x-\mu)
@@ -802,8 +803,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 		sqrterm += yy[i] * xx[i];
 	}
 
-	Free(xx);
-	Free(yy);
+	Free(work);
 
 	/*
 	 * evaluate the normalization constant and add up 
@@ -1142,12 +1142,13 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	 * 
 	 * if value, *value = Ax-e if sqr_value, *sqr_value = (Ax-e)'Q(Ax-e) 
 	 */
-	double *t_vector, alpha, beta, *res;
+	double *t_vector, alpha, beta, *res, *work = NULL;
 	int inc = 1, nc, i;
 
 	nc = constr->nc;
-	t_vector = Calloc(2 * nc, double);
-	res = t_vector + nc;
+	work = Calloc(2 * nc, double);
+	t_vector = work;
+	res = work + nc;
 	Memcpy(t_vector, constr->e_vector, nc * sizeof(double));
 	alpha = 1.0;
 	beta = -1.0;
@@ -1167,7 +1168,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	if (sqr_value) {
 		*sqr_value = 0.0;
 	}
-	Free(t_vector);
+	Free(work);
 
 	return GMRFLib_SUCCESS;
 }

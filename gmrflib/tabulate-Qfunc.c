@@ -186,7 +186,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		id = GMRFLib_thread_id;
 		mem_id = GMRFLib_meminfo_thread_id;
 		arg->values = Calloc(graph->n, map_id *);
-
+		
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
