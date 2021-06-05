@@ -453,7 +453,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 						       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 			} else {
 				// return a point-mass
-				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON);
+				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON, GMRFLib_TRUE);
 			}
 			Free(Sigma_a);
 			Free(x);
@@ -479,7 +479,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 				}
 			}
 			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean,
-						      (var > 0 ? sqrt(var) : DBL_EPSILON));
+						      (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE);
 		}
 	}
 

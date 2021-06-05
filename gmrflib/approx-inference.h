@@ -1042,7 +1042,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c);
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,
-			       double *improved_mean);
+			       double *improved_mean, int lookup_tables);
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
 size_t GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);

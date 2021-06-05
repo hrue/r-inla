@@ -285,21 +285,21 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
 	for (i = 0; i < npred; i++) {
+		GMRFLib_idxval_elm_tp *elm = A_idxval[i]->store;
 		for (k = 0; k < A_idxval[i]->n; k++) {
-			double val;
-			val = A_idxval[i]->store[k].val;
-			j = A_idxval[i]->store[k].idx;
-			GMRFLib_idxval_add(&(At_idxval[j]), i, val);
+			GMRFLib_idxval_add(&(At_idxval[elm[k].idx]), i, elm[k].val);
 		}
 	}
 	GMRFLib_idxval_nsort(At_idxval, N, nt);
 
 	SHOW_TIME("At_idxval");
 	if (debug) {
-		for (i = 0; i < npred; i++)
+		for (i = 0; i < npred; i++) {
 			GMRFLib_idxval_printf(stdout, A_idxval[i], "A_idxval");
-		for (i = 0; i < N; i++)
+		}
+		for (i = 0; i < N; i++) {
 			GMRFLib_idxval_printf(stdout, At_idxval[i], "At_idxval");
+		}
 	}
 
 	if (pA_fnm) {
@@ -366,9 +366,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		pAA_idxval = GMRFLib_idxval_ncreate(nrow);
 #pragma omp parallel for private (i, k, j) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
+			int *idx = pAA_pattern[i]->idx;
 			for (k = 0; k < pAA_pattern[i]->n; k++) {
-				j = pAA_pattern[i]->idx[k];
-				GMRFLib_idxval_add(&(pAA_idxval[i]), j, 0.0);
+				GMRFLib_idxval_add(&(pAA_idxval[i]), idx[k], 0.0);
 			}
 		}
 
@@ -395,11 +395,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
 		for (i = 0; i < nrow; i++) {
+			GMRFLib_idxval_elm_tp *elm = pAA_idxval[i]->store;
 			for (k = 0; k < pAA_idxval[i]->n; k++) {
-				double val;
-				val = pAA_idxval[i]->store[k].val;
-				j = pAA_idxval[i]->store[k].idx;
-				GMRFLib_idxval_add(&(pAAt_idxval[j]), i, val);
+				GMRFLib_idxval_add(&(pAAt_idxval[elm[k].idx]), i, elm[k].val);
 			}
 		}
 		GMRFLib_idxval_nsort(pAAt_idxval, N, 0);       /* as N is typical small */
@@ -688,31 +686,32 @@ double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), vo
 		return NAN;
 	}
 
+	// as this one is always called through preopt_Qfunc
+	assert(nnode >= node);
+	
 	/*
 	 * this is Qfunction for the likelihood part in preopt
 	 */
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
-	int id = GMRFLib_thread_id, idx, k, kk, imin, imax;
-	double value = 0.0, val;
+	int id = GMRFLib_thread_id, k, kk, imin, imax;
+	double value = 0.0;
 
-	imin = IMIN(node, nnode);
-	imax = IMAX(node, nnode);
+	imin = node;
+	imax = nnode;
 
 	if (a->like_c[id]) {
 		if (imin == imax) {
 			for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
-				idx = a->AtA_idxval[imin][0]->store[kk].idx;
-				val = a->AtA_idxval[imin][0]->store[kk].val;
-				value += val * a->like_c[id][idx];
+				GMRFLib_idxval_elm_tp *elm = a->AtA_idxval[imin][0]->store;
+				value += elm[kk].val * a->like_c[id][elm[kk].idx];
 			}
 		} else {
 			k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
 			if (k > 0) {
 				for (kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
-					idx = a->AtA_idxval[imin][k]->store[kk].idx;
-					val = a->AtA_idxval[imin][k]->store[kk].val;
-					value += val * a->like_c[id][idx];
+					GMRFLib_idxval_elm_tp *elm = a->AtA_idxval[imin][k]->store;
+					value += elm[kk].val * a->like_c[id][elm[kk].idx];
 				}
 			} else {
 				assert(k > 0);
@@ -770,19 +769,15 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		assert(preopt->mpred == 0);
 	}
 
-#define CODE_BLOCK						\
-	for (int i = 0; i < preopt->n; i++) {			\
-		double val;					\
-		int idx;					\
-		if (A[i]) {					\
-			for (int jj = 0; jj < A[i]->n; jj++) {	\
-				idx = A[i]->store[jj].idx;	\
-				val = A[i]->store[jj].val;	\
-				bnew[i] += blike[idx] * val;	\
-			}					\
-		}						\
+#define CODE_BLOCK							\
+	for (int i = 0; i < preopt->n; i++) {				\
+		if (A[i]) {						\
+			GMRFLib_idxval_elm_tp *elm = A[i]->store;	\
+			for (int jj = 0; jj < A[i]->n; jj++) {		\
+				bnew[i] += blike[elm[jj].idx] * elm[jj].val; \
+			}						\
+		}							\
 	}
-
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
 #undef CODE_BLOCK
 
@@ -815,12 +810,12 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		assert(preopt->mpred == 0);
 	}
 
-#define CODE_BLOCK for (int i = 0; i < preopt->npred; i++) {		\
+#define CODE_BLOCK							\
+	for (int i = 0; i < preopt->npred; i++) {			\
 		if (preopt->A_idxval[i]) {				\
+			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) { \
-				int idx = preopt->A_idxval[i]->store[jj].idx; \
-				double val = preopt->A_idxval[i]->store[jj].val; \
-				pred[offset + i] += val * latent[idx];	\
+				pred[offset + i] += elm[jj].val * latent[elm[jj].idx]; \
 			}						\
 		}							\
 	}
@@ -828,12 +823,12 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 #undef CODE_BLOCK	
 
 	if (preopt->mpred) {
-#define CODE_BLOCK for (int i = 0; i < preopt->mpred; i++) {		\
+#define CODE_BLOCK							\
+		for (int i = 0; i < preopt->mpred; i++) {		\
 			if (preopt->pA_idxval[i]) {			\
+				GMRFLib_idxval_elm_tp *elm = preopt->pA_idxval[i]->store; \
 				for (int jj = 0; jj < preopt->pA_idxval[i]->n; jj++) { \
-					int idx = preopt->pA_idxval[i]->store[jj].idx; \
-					double val = preopt->pA_idxval[i]->store[jj].val; \
-					pred[i] += val * pred[offset + idx]; \
+					pred[i] += elm[jj].val * pred[offset + elm[jj].idx]; \
 				}					\
 			}						\
 		}
@@ -877,55 +872,53 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 		return GMRFLib_SUCCESS;
 	}
 
-#pragma omp parallel
+#pragma omp parallel sections
 	{
-#pragma omp sections
+#pragma omp section
 		{
-#pragma omp section
-			{
 				
-				for (int i = 0; i < preopt->n; i++) {
-					GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
-					for (int jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
-						GMRFLib_idxval_free(preopt->AtA_idxval[i][1 + jj]);
-					}
-				}
-				Free(preopt->AtA_idxval);
-				if (preopt->pA_idxval) {
-					for (int i = 0; i < preopt->mpred; i++) {
-						GMRFLib_idxval_free(preopt->pA_idxval[i]);
-					}
-					for (int i = 0; i < preopt->n; i++) {
-						GMRFLib_idxval_free(preopt->pAAt_idxval[i]);
-					}
-				}
-				for (int i = 0; i < preopt->npred; i++) {
-					GMRFLib_idxval_free(preopt->A_idxval[i]);
-				}
-				for (int i = 0; i < preopt->n; i++) {
-					GMRFLib_idxval_free(preopt->At_idxval[i]);
+			for (int i = 0; i < preopt->n; i++) {
+				GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
+				for (int jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
+					GMRFLib_idxval_free(preopt->AtA_idxval[i][1 + jj]);
 				}
 			}
-#pragma omp section
-			{
-				Free(preopt->idx_map_f);
-				Free(preopt->idx_map_beta);
-				Free(preopt->what_type);
-				
-				for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
-					Free(preopt->like_b[i]);
-					Free(preopt->like_c[i]);
-					Free(preopt->total_b[i]);
+			Free(preopt->AtA_idxval);
+			if (preopt->pA_idxval) {
+				for (int i = 0; i < preopt->mpred; i++) {
+					GMRFLib_idxval_free(preopt->pA_idxval[i]);
 				}
-				Free(preopt->like_b);
-				Free(preopt->like_c);
-				Free(preopt->total_b);
-				
-				GMRFLib_graph_free(preopt->preopt_graph);
-				GMRFLib_graph_free(preopt->like_graph);
-				GMRFLib_graph_free(preopt->latent_graph);
-				GMRFLib_free_constr(preopt->latent_constr);
+				for (int i = 0; i < preopt->n; i++) {
+					GMRFLib_idxval_free(preopt->pAAt_idxval[i]);
+				}
 			}
+			for (int i = 0; i < preopt->npred; i++) {
+				GMRFLib_idxval_free(preopt->A_idxval[i]);
+			}
+			for (int i = 0; i < preopt->n; i++) {
+				GMRFLib_idxval_free(preopt->At_idxval[i]);
+			}
+		}
+
+#pragma omp section
+		{
+			Free(preopt->idx_map_f);
+			Free(preopt->idx_map_beta);
+			Free(preopt->what_type);
+				
+			for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+				Free(preopt->like_b[i]);
+				Free(preopt->like_c[i]);
+				Free(preopt->total_b[i]);
+			}
+			Free(preopt->like_b);
+			Free(preopt->like_c);
+			Free(preopt->total_b);
+				
+			GMRFLib_graph_free(preopt->preopt_graph);
+			GMRFLib_graph_free(preopt->like_graph);
+			GMRFLib_graph_free(preopt->latent_graph);
+			GMRFLib_free_constr(preopt->latent_constr);
 		}
 	}
 	Free(preopt);

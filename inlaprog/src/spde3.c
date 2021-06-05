@@ -539,7 +539,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 				}
 			}
 			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc3_density[number][i]), 0.0, 1.0, mean,
-						      (var > 0 ? sqrt(var) : DBL_EPSILON));
+						      (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE);
 		}
 	}
 

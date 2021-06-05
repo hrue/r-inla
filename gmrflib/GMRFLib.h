@@ -94,6 +94,7 @@ __BEGIN_DECLS
  * include all the include-files in GMRFLib
  */
 #include "GMRFLib/init.h"
+#include "GMRFLib/error-handler.h"
 #include "GMRFLib/utils.h"
 #include "GMRFLib/timer.h"
 #include "GMRFLib/io.h"
@@ -112,7 +113,6 @@ __BEGIN_DECLS
 #include "GMRFLib/interpol.h"
 #include "GMRFLib/density.h"
 #include "GMRFLib/globals.h"
-#include "GMRFLib/error-handler.h"
 #include "GMRFLib/hash.h"
 #include "GMRFLib/lapack-interface.h"
 #include "GMRFLib/optimize.h"

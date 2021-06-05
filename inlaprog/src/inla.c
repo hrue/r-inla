@@ -31879,7 +31879,8 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < dim; ii++) {
 					GMRFLib_density_create_normal(&(gd[ii]), 0.0, 1.0,
 								      GMRFLib_ai_INLA_userfunc0_density[ii]->user_mean,
-								      GMRFLib_ai_INLA_userfunc0_density[ii]->user_stdev);
+								      GMRFLib_ai_INLA_userfunc0_density[ii]->user_stdev,
+						GMRFLib_TRUE);
 				}
 				sdir = GMRFLib_strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, gd, NULL,
@@ -31902,7 +31903,8 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < dim; ii++) {
 					GMRFLib_density_create_normal(&(gd[ii]), 0.0, 1.0,
 								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_mean,
-								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_stdev);
+								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_stdev,
+						GMRFLib_TRUE);
 				}
 				sdir = GMRFLib_strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, gd, NULL,
@@ -31930,7 +31932,7 @@ int inla_output(inla_tp * mb)
 						GMRFLib_density_create_normal(&(gd[jj]), 0.0, 1.0,
 									      GMRFLib_ai_INLA_userfunc2_density[ii][jj]->user_mean,
 									      GMRFLib_ai_INLA_userfunc2_density[ii]
-									      [jj]->user_stdev);
+									      [jj]->user_stdev, GMRFLib_TRUE);
 					}
 					GMRFLib_sprintf(&sdir, "spde2.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc2_tag[ii]);
@@ -31961,7 +31963,7 @@ int inla_output(inla_tp * mb)
 						GMRFLib_density_create_normal(&(gd[jj]), 0.0, 1.0,
 									      GMRFLib_ai_INLA_userfunc3_density[ii][jj]->user_mean,
 									      GMRFLib_ai_INLA_userfunc3_density[ii]
-									      [jj]->user_stdev);
+									      [jj]->user_stdev, GMRFLib_TRUE);
 					}
 					GMRFLib_sprintf(&sdir, "spde3.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc3_tag[ii]);
@@ -33460,7 +33462,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 				GMRFLib_density_tp *gd = NULL;
 				if (density[i]) {
 					double kld;
-					GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean, density[i]->std_stdev);
+					GMRFLib_density_create_normal(&gd, 0.0, 1.0, density[i]->std_mean, density[i]->std_stdev, GMRFLib_FALSE);
 
 					if (G.fast_mode) {
 						GMRFLib_mkld_sym(&kld, gd, density[i]);

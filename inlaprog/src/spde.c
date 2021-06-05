@@ -419,8 +419,7 @@ double *inla_spde_userfunc1(double *UNUSED(theta), int nhyper, double *covmat)
 				covmat[ (i + where_to_start + offset_theta) + (j + where_to_start + offset_theta) * nhyper ]; \
 		}							\
 	}								\
-	GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc1_density[idx+offset]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON))
-
+	GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc1_density[idx+offset]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE)
 
 	if (!covmat) {
 		return NULL;

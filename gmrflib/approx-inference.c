@@ -1138,7 +1138,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 
 	GMRFLib_ENTER_ROUTINE;
 
-
 	if (0) {
 		FILE *fffp = fopen("constr.dat", "w");
 		GMRFLib_printf_constr(fffp, constr, graph);
@@ -1270,7 +1269,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		/*
 		 * build the density-object 
 		 */
-		GMRFLib_density_create_normal(density, 0.0, 1.0, x_mean, x_sd);
+		GMRFLib_density_create_normal(density, 0.0, 1.0, x_mean, x_sd, lookup_tables);
 		fixed_mode = ai_store->problem->mean_constr;
 
 		COMPUTE_CPO_DENSITY;
@@ -1595,7 +1594,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	GMRFLib_free_store(store);
 
 	if (strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN) {
-		GMRFLib_density_create_normal(density, -deriv_log_dens_cond, 1.0, x_mean, x_sd);
+		GMRFLib_density_create_normal(density, -deriv_log_dens_cond, 1.0, x_mean, x_sd, lookup_tables);
 	} else if (strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN) {
 		int np = 11, err, fail = 0;
 		double *ld = NULL, *xp = NULL, xx, low, high, third_order_derivative, a_sigma, cc, sol1, aa, tmp;
@@ -2845,7 +2844,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	 * 
 	 */
 
-#define COMPUTE_LINDENS(_store)						\
+#define COMPUTE_LINDENS(_store, _lookup_tables)				\
 	if (nlin) {							\
 		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
@@ -2856,7 +2855,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				_improved_mean[_i] = ai_store->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL), nlin, Alin, _store, _improved_mean); \
+		GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL), nlin, Alin, _store, _improved_mean, _lookup_tables); \
 		Free(_improved_mean);					\
 	}
 
@@ -3988,7 +3987,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (GMRFLib_ai_INLA_userfunc0) {
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 			}
-			COMPUTE_LINDENS(ai_store);
+			COMPUTE_LINDENS(ai_store, GMRFLib_TRUE);
 			ADD_CONFIG(ai_store, theta_mode, 0.0, 0.0);
 
 			izs[dens_count] = Calloc(nhyper, double);
@@ -4189,7 +4188,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				if (GMRFLib_ai_INLA_userfunc0) {
 					userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 				}
-				COMPUTE_LINDENS(ai_store_id);
+				COMPUTE_LINDENS(ai_store_id, GMRFLib_FALSE);
 				ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens_orig);
 				tu = GMRFLib_cpu() - tref;
 				if (ai_par->fp_log) {
@@ -4387,7 +4386,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 									dens_transform[ii][dens_count] = dens_local_transform[ii];
 								}
 							}
-							COMPUTE_LINDENS(ai_store_id);
+							COMPUTE_LINDENS(ai_store_id, GMRFLib_FALSE);
 							ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens);
 							if (cpo) {
 								for (i = 0; i < compute_n; i++) {
@@ -4539,7 +4538,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 		}
-		COMPUTE_LINDENS(ai_store);
+		COMPUTE_LINDENS(ai_store, GMRFLib_TRUE);
 		ADD_CONFIG(ai_store, NULL, log_dens_mode, log_dens_mode);
 		weights[dens_count] = 0.0;
 		dens_count++;
@@ -5057,7 +5056,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			mmean = val / wsum;
 			vvar = DMAX(DBL_EPSILON, val2 / wsum - SQR(mmean));
 			ssd = sqrt(vvar);
-			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc0_density[j]), 0.0, 1.0, mmean, ssd);
+			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc0_density[j]), 0.0, 1.0, mmean, ssd, GMRFLib_TRUE);
 
 			// The densities are to ``unstable'' to fit...
 			// GMRFLib_density_create(&(GMRFLib_ai_INLA_userfunc0_density[j]), GMRFLib_DENSITY_TYPE_SCGAUSSIAN,
@@ -5132,7 +5131,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 */
 			for (k = 0; k < nhyper; k++) {
 				GMRFLib_density_create_normal(&((*density_hyper)[k]), 0.0, 1.0, theta_mode[k],
-							      sqrt(inverse_hessian[k + nhyper * k]));
+							      sqrt(inverse_hessian[k + nhyper * k]), GMRFLib_TRUE);
 			}
 		} else {
 			if (ai_par->fp_log) {
@@ -6111,7 +6110,7 @@ int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m)
 }
 
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin,
-			       GMRFLib_ai_store_tp * ai_store, double *improved_mean)
+			       GMRFLib_ai_store_tp * ai_store, double *improved_mean, int lookup_tables)
 {
 	/*
 	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
@@ -6293,7 +6292,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			imean += weight * improved_mean[k];
 		}
 		var = DMAX(DBL_EPSILON, var - var_corr);
-		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var));
+		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var), lookup_tables);
 		Free(a);
 	}
 
@@ -7008,7 +7007,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
 			int thread = omp_get_thread_num();
-
+			
 			if (i < npoints) {
 				arg[thread]->theta_fixed = theta_min_all[idx] + i * (theta_max_all[idx] - theta_min_all[idx]) / (npoints - 1.0);
 				points[i] = (arg[thread]->theta_fixed - theta_mode[idx]) / sd;
