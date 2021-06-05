@@ -65,8 +65,8 @@ forceinline int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skew
 	c2 = 0.79788456080286535588;			       // sqrt(2.0/M_PI)
 	c3 = 0.4292036732051033808;			       // (4 - M_PI)/2.0
 
-	//*stdev = p->omega * sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
-	//*skewness = (4.0 - M_PI) / 2.0 * pow(delta * sqrt(2.0 / M_PI), 3.0) / pow(1.0 - 2 * SQR(delta) / M_PI, 3.0 / 2.0);
+	// *stdev = p->omega * sqrt(1.0 - 2.0 * SQR(delta) / M_PI);
+	// *skewness = (4.0 - M_PI) / 2.0 * pow(delta * sqrt(2.0 / M_PI), 3.0) / pow(1.0 - 2 * SQR(delta) / M_PI, 3.0 / 2.0);
 
 	*mean = p->xi + p->omega * c2 * delta;
 	*stdev = p->omega * sqrt(c1);
@@ -506,7 +506,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	 */
 	int i, k, debug = 0, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np;
 	double result = 0.0, error, tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
-		NULL, *ldm = NULL, *xp = NULL, integral, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
+	    NULL, *ldm = NULL, *xp = NULL, integral, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
@@ -519,16 +519,16 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 	} else if (density->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
-			/*
-			 * for the skew-normal we know the moments 
-			 */
-			double mom[3] = { 0, 0, 0 };	       /* as we have params in 'float' */
-			GMRFLib_sn_par2moments(&mom[0], &mom[1], &mom[2], density->sn_param);
-			density->mean = mom[0];
-			density->stdev = mom[1];
-			density->skewness = mom[2];
-			density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
-			density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+		/*
+		 * for the skew-normal we know the moments 
+		 */
+		double mom[3] = { 0, 0, 0 };		       /* as we have params in 'float' */
+		GMRFLib_sn_par2moments(&mom[0], &mom[1], &mom[2], density->sn_param);
+		density->mean = mom[0];
+		density->stdev = mom[1];
+		density->skewness = mom[2];
+		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 	} else {
 		GMRFLib_ASSERT(density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN, GMRFLib_ESNH);
 
@@ -561,7 +561,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			}
 
 			ldmax = GMRFLib_max_value(ldm, npm, NULL);
-			GMRFLib_adjust_vector(ldm, npm);	/* so its well-behaved... */
+			GMRFLib_adjust_vector(ldm, npm);       /* so its well-behaved... */
 
 			integral = exp(ldm[0]) + exp(ldm[npm - 1]);
 			for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
@@ -698,7 +698,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		int imax;
 		GMRFLib_max_value(ldm, npm - 1, &imax);
 		density->user_mode = density->std_mean + density->std_stdev *
-			(xpm[imax] - (((ldm[imax + 1] - ldm[imax - 1]) / (2.0 * dx)) / ((ldm[imax + 1] - 2.0 * ldm[imax] + ldm[imax - 1]) / SQR(dx))));
+		    (xpm[imax] - (((ldm[imax + 1] - ldm[imax - 1]) / (2.0 * dx)) / ((ldm[imax + 1] - 2.0 * ldm[imax] + ldm[imax - 1]) / SQR(dx))));
 
 		work = Calloc(4 * np, double);
 		dens = work;
@@ -770,7 +770,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		double c2 = -0.5 / SQR(density->stdev);
 		double m = density->mean;
 		for (i = 0; i < n; i++) {
-			//logdens[i] = log_norm_const_gaussian - log(density->stdev) - 0.5 * SQR(x[i] - density->mean) / SQR(density->stdev);
+			// logdens[i] = log_norm_const_gaussian - log(density->stdev) - 0.5 * SQR(x[i] - density->mean) / SQR(density->stdev);
 			logdens[i] = c1 + c2 * SQR(x[i] - m);
 		}
 	}
@@ -2407,4 +2407,3 @@ double GMRFLib_sn_d3_to_skew(double d3)
 
 	return (skew);
 }
-

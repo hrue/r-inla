@@ -5225,7 +5225,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 * write out the hole set 
 			 */
 			double *theta_tmp = NULL, log_jacobian = 0.0;
-			theta_tmp = Calloc((int)IMAX(0, nhyper), double); 
+			theta_tmp = Calloc((int) IMAX(0, nhyper), double);
 
 #define Amat(i_, j_) (rpreopt->int_design->A[ (i_) + (j_) * (rpreopt->int_design->nrow)])
 			if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1 && nhyper > 0) {
@@ -7007,7 +7007,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 			int retval;
 			double abs_err = ai_par->numint_abs_err, rel_err = ai_par->numint_rel_err, value, err;
 			int thread = omp_get_thread_num();
-			
+
 			if (i < npoints) {
 				arg[thread]->theta_fixed = theta_min_all[idx] + i * (theta_max_all[idx] - theta_min_all[idx]) / (npoints - 1.0);
 				points[i] = (arg[thread]->theta_fixed - theta_mode[idx]) / sd;

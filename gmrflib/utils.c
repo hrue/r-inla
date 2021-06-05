@@ -415,7 +415,7 @@ double GMRFLib_log_apbex(double a, double b)
 	}
 }
 
-void *GMRFLib_memcpy(void *dest, const void *src, size_t n) 
+void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
 {
 	assert(n < PTRDIFF_MAX);
 	memcpy(dest, src, n);
@@ -1099,12 +1099,10 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 			j = i;
 		}
 	}
-	// printf("nu %d\n", nu);
 	un = Calloc(nu, int);
 
 	for (j = nu = i = 0; i < nx; i++) {
 		if (ixx[i] && (!i || ixx[i] != ixx[j])) {
-			// printf("\t un[%1d] = %d\n", nu, ixx[i]);
 			un[nu++] = ixx[i];
 			j = i;
 		}
@@ -1121,28 +1119,28 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec) 
+int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec)
 {
 	if (!vec || vec->size == 0) {
 		*out = NULL;
 	} else {
 		*out = Calloc(vec->size, double);
-		for(size_t i = 0; i < vec->size; i++){
+		for (size_t i = 0; i < vec->size; i++) {
 			(*out)[i] = gsl_vector_get(vec, i);
 		}
 	}
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat) 
+int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat)
 {
 	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
 		*out = NULL;
 	} else {
 		*out = Calloc(mat->size1 * mat->size2, double);
-		for(size_t j = 0; j < mat->size2; j++) {
+		for (size_t j = 0; j < mat->size2; j++) {
 			size_t off = j * mat->size1;
-			for(size_t i = 0; i < mat->size1; i++){
+			for (size_t i = 0; i < mat->size1; i++) {
 				(*out)[i + off] = gsl_matrix_get(mat, i, j);
 			}
 		}
@@ -1335,8 +1333,6 @@ int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
 				}
 			} else {
 				j++;
-				//hold->store[j].idx = hold->store[i].idx;
-				//hold->store[j].val = hold->store[i].val;
 				hold->store[j] = hold->store[i];
 			}
 		}
@@ -1432,14 +1428,13 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 	}
 
 	int i;
-	
+
 	// hopefully this is it.
-	i = (*hold)->iaddto; 
+	i = (*hold)->iaddto;
 	if ((*hold)->store[i].idx == idx) {
 		(*hold)->store[i].val += val;
 		return GMRFLib_SUCCESS;
 	}
-
 	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
 	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
 	for (i = (*hold)->iaddto + 1; i < (*hold)->n; i++) {

@@ -685,10 +685,9 @@ double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), vo
 	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-
 	// as this one is always called through preopt_Qfunc
 	assert(nnode >= node);
-	
+
 	/*
 	 * this is Qfunction for the likelihood part in preopt
 	 */
@@ -820,7 +819,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		}							\
 	}
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
-#undef CODE_BLOCK	
+#undef CODE_BLOCK
 
 	if (preopt->mpred) {
 #define CODE_BLOCK							\
@@ -833,9 +832,9 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			}						\
 		}
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
-#undef CODE_BLOCK	
+#undef CODE_BLOCK
 	}
-	
+
 	if (likelihood_only) {
 		Memcpy(predictor, pred, preopt->Npred * sizeof(double));
 	} else {
@@ -871,12 +870,11 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}
-
 #pragma omp parallel sections
 	{
 #pragma omp section
 		{
-				
+
 			for (int i = 0; i < preopt->n; i++) {
 				GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
 				for (int jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
@@ -905,7 +903,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 			Free(preopt->idx_map_f);
 			Free(preopt->idx_map_beta);
 			Free(preopt->what_type);
-				
+
 			for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
 				Free(preopt->like_b[i]);
 				Free(preopt->like_c[i]);
@@ -914,7 +912,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 			Free(preopt->like_b);
 			Free(preopt->like_c);
 			Free(preopt->total_b);
-				
+
 			GMRFLib_graph_free(preopt->preopt_graph);
 			GMRFLib_graph_free(preopt->like_graph);
 			GMRFLib_graph_free(preopt->latent_graph);
