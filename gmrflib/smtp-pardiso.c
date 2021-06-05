@@ -233,17 +233,38 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->ja = Calloc(na, int);
 	M->ia = Calloc(n + 1, int);
 
-	M->ia[0] = 0;
-	for (i = k = 0; i < n; i++) {
-		M->ja[k++] = i;
-		if (graph->lnnbs[i]) {
-			Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-			k += graph->lnnbs[i];
+	if (0) {
+		// old code. the issue is that this loop does not parallelize
+		M->ia[0] = 0;
+		for (i = k = 0; i < n; i++) {
+			M->ja[k++] = i;
+			if (graph->lnnbs[i]) {
+				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+				k += graph->lnnbs[i];
+			}
+			M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 		}
-		M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
+		assert(M->ia[n] == na);
+	} else {
+		// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
+		int *k_arr = Calloc(n, int);
+		M->ia[0] = 0;
+		for (i = k = 0; i < n; i++) {
+			M->ja[k++] = i;
+			k_arr[i] = k;
+			k += graph->lnnbs[i];
+			M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
+		}
+		assert(M->ia[n] == na);
+#pragma omp parallel for private(i, k) num_threads(GMRFLib_openmp->max_threads_inner)
+		for (i = 0; i < n; i++) {
+			if (graph->lnnbs[i]) {
+				k = k_arr[i];
+				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
+			}
+		}
+		Free(k_arr);
 	}
-	assert(M->ia[n] == na);
-
 	// when this is true, we can just copy the pointer to the matrix.
 	int used_fast_tab = 0;
 	if (Qfunc == GMRFLib_tabulate_Qfunction) {
