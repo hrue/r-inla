@@ -2520,7 +2520,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		if (!lproblem) {
 			if (preopt)
 				assert((void *) preopt == (void *) Qfunc_arg);
-			// if (preopt) GMRFLib_preopt_test(preopt);
 			// GMRFLib_printf_Qfunc2(stdout, graph, Qfunc, Qfunc_arg);
 
 			int ret;

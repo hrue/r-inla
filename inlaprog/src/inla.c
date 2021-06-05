@@ -6178,9 +6178,10 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *UNUS
 
 	LINK_INIT;
 	if (m > 0) {
+		double ylEmn = y * _logE(E) - normc;
 		for (i = 0; i < m; i++) {
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = y * (log(lambda) + _logE(E)) - E * lambda - normc;
+			logll[i] = y * log(lambda) + ylEmn - E * lambda;
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);

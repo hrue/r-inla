@@ -815,25 +815,32 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		assert(preopt->mpred == 0);
 	}
 
-	for (int i = 0; i < preopt->npred; i++) {
-		if (preopt->A_idxval[i]) {
-			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) {
-				int idx = preopt->A_idxval[i]->store[jj].idx;
-				double val = preopt->A_idxval[i]->store[jj].val;
-				pred[offset + i] += val * latent[idx];
-			}
-		}
+#define CODE_BLOCK for (int i = 0; i < preopt->npred; i++) {		\
+		if (preopt->A_idxval[i]) {				\
+			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) { \
+				int idx = preopt->A_idxval[i]->store[jj].idx; \
+				double val = preopt->A_idxval[i]->store[jj].val; \
+				pred[offset + i] += val * latent[idx];	\
+			}						\
+		}							\
 	}
-	for (int i = 0; i < preopt->mpred; i++) {
-		if (preopt->pA_idxval[i]) {
-			for (int jj = 0; jj < preopt->pA_idxval[i]->n; jj++) {
-				int idx = preopt->pA_idxval[i]->store[jj].idx;
-				double val = preopt->pA_idxval[i]->store[jj].val;
-				pred[i] += val * pred[offset + idx];
-			}
-		}
-	}
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+#undef CODE_BLOCK	
 
+	if (preopt->mpred) {
+#define CODE_BLOCK for (int i = 0; i < preopt->mpred; i++) {		\
+			if (preopt->pA_idxval[i]) {			\
+				for (int jj = 0; jj < preopt->pA_idxval[i]->n; jj++) { \
+					int idx = preopt->pA_idxval[i]->store[jj].idx; \
+					double val = preopt->pA_idxval[i]->store[jj].val; \
+					pred[i] += val * pred[offset + idx]; \
+				}					\
+			}						\
+		}
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+#undef CODE_BLOCK	
+	}
+	
 	if (likelihood_only) {
 		Memcpy(predictor, pred, preopt->Npred * sizeof(double));
 	} else {
@@ -870,74 +877,58 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, jj;
-
-	for (i = 0; i < preopt->n; i++) {
-		GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
-		for (jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
-			GMRFLib_idxval_free(preopt->AtA_idxval[i][1 + jj]);
+#pragma omp parallel
+	{
+#pragma omp sections
+		{
+#pragma omp section
+			{
+				
+				for (int i = 0; i < preopt->n; i++) {
+					GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
+					for (int jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
+						GMRFLib_idxval_free(preopt->AtA_idxval[i][1 + jj]);
+					}
+				}
+				Free(preopt->AtA_idxval);
+				if (preopt->pA_idxval) {
+					for (int i = 0; i < preopt->mpred; i++) {
+						GMRFLib_idxval_free(preopt->pA_idxval[i]);
+					}
+					for (int i = 0; i < preopt->n; i++) {
+						GMRFLib_idxval_free(preopt->pAAt_idxval[i]);
+					}
+				}
+				for (int i = 0; i < preopt->npred; i++) {
+					GMRFLib_idxval_free(preopt->A_idxval[i]);
+				}
+				for (int i = 0; i < preopt->n; i++) {
+					GMRFLib_idxval_free(preopt->At_idxval[i]);
+				}
+			}
+#pragma omp section
+			{
+				Free(preopt->idx_map_f);
+				Free(preopt->idx_map_beta);
+				Free(preopt->what_type);
+				
+				for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+					Free(preopt->like_b[i]);
+					Free(preopt->like_c[i]);
+					Free(preopt->total_b[i]);
+				}
+				Free(preopt->like_b);
+				Free(preopt->like_c);
+				Free(preopt->total_b);
+				
+				GMRFLib_graph_free(preopt->preopt_graph);
+				GMRFLib_graph_free(preopt->like_graph);
+				GMRFLib_graph_free(preopt->latent_graph);
+				GMRFLib_free_constr(preopt->latent_constr);
+			}
 		}
 	}
-	Free(preopt->AtA_idxval);
-
-	if (preopt->pA_idxval) {
-		for (i = 0; i < preopt->mpred; i++) {
-			GMRFLib_idxval_free(preopt->pA_idxval[i]);
-		}
-		for (i = 0; i < preopt->n; i++) {
-			GMRFLib_idxval_free(preopt->pAAt_idxval[i]);
-		}
-	}
-	for (i = 0; i < preopt->npred; i++) {
-		GMRFLib_idxval_free(preopt->A_idxval[i]);
-	}
-	for (i = 0; i < preopt->n; i++) {
-		GMRFLib_idxval_free(preopt->At_idxval[i]);
-	}
-
-	Free(preopt->idx_map_f);
-	Free(preopt->idx_map_beta);
-	Free(preopt->what_type);
-
-	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
-		Free(preopt->like_b[i]);
-		Free(preopt->like_c[i]);
-		Free(preopt->total_b[i]);
-	}
-	Free(preopt->like_b);
-	Free(preopt->like_c);
-	Free(preopt->total_b);
-
-	GMRFLib_graph_free(preopt->preopt_graph);
-	GMRFLib_graph_free(preopt->like_graph);
-	GMRFLib_graph_free(preopt->latent_graph);
-	GMRFLib_free_constr(preopt->latent_constr);
 	Free(preopt);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt)
-{
-	if (!preopt) {
-		return GMRFLib_SUCCESS;
-	}
-
-	FIXME("LATENT");
-	// GMRFLib_printf_graph(stdout, preopt->latent_graph);
-	// GMRFLib_printf_Qfunc(stdout, preopt->latent_graph, preopt->latent_Qfunc, preopt->latent_Qfunc_arg);
-	GMRFLib_printf_Qfunc2(stdout, preopt->latent_graph, preopt->latent_Qfunc, preopt->latent_Qfunc_arg);
-	// GMRFLib_printf_constr(stdout, preopt->latent_constr, preopt->latent_graph); 
-
-	FIXME("LIKE");
-	// GMRFLib_printf_graph(stdout, preopt->like_graph);
-	// GMRFLib_printf_Qfunc(stdout, preopt->like_graph, preopt->like_Qfunc, preopt->like_Qfunc_arg);
-	GMRFLib_printf_Qfunc2(stdout, preopt->like_graph, preopt->like_Qfunc, preopt->like_Qfunc_arg);
-
-	FIXME("JOINT");
-	// GMRFLib_printf_graph(stdout, preopt->preopt_graph);
-	// GMRFLib_printf_Qfunc(stdout, preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
-	GMRFLib_printf_Qfunc2(stdout, preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
 
 	return GMRFLib_SUCCESS;
 }
