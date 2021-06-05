@@ -158,41 +158,22 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 			P(arg->Q->a[0]);
 		assert(arg->Q->a[0] > 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
-
-		// I disable this for now, seems to take more time than it save? 
-		if (0) {
-			arg->Q_idx = Calloc(graph->n, map_ii *);
-			int idx = 0;
-
-			for (i = 0; i < graph->n; i++) {
-				arg->Q_idx[i] = Calloc(1, map_ii);
-				map_ii_init_hint(arg->Q_idx[i], graph->lnnbs[i] + 1);
-				arg->Q_idx[i]->defaultvalue = -2;
-				map_ii_set(arg->Q_idx[i], i, idx);
-				idx++;
-
-				for (j = 0; j < graph->lnnbs[i]; j++) {
-					k = graph->lnbs[i][j];
-					map_ii_set(arg->Q_idx[i], k, idx);
-					idx++;
-				}
-			}
-			assert(idx == arg->Q->na);
-		}
-
 	} else {
 		int id, mem_id;
 
 		id = GMRFLib_thread_id;
 		mem_id = GMRFLib_meminfo_thread_id;
 		arg->values = Calloc(graph->n, map_id *);
-		
+		map_id *work = Calloc(graph->n, map_id);
+		for(i = 0; i < graph->n; i++){
+			arg->values[i] = work + i;
+		}
+
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
 			GMRFLib_thread_id = id;
 			GMRFLib_meminfo_thread_id = mem_id;
-			arg->values[i] = Calloc(1, map_id);
 			map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 			map_id_set(arg->values[i], i, (*Qfunc) (i, i, NULL, Qfunc_arg));	/* diagonal */
 
@@ -384,8 +365,11 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	/*
 	 * allocate hash-table with the *correct* number of elements
 	 */
+	map_id *work = Calloc((*graph)->n, map_id);
+	for(i = 0; i < (*graph)->n; i++){
+		arg->values[i] = work + i;
+	}
 	for (i = 0; i < (*graph)->n; i++) {
-		arg->values[i] = Calloc(1, map_id);
 		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
 	}
 
@@ -543,11 +527,14 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	/*
 	 * allocate hash-table with the *correct* number of elements
 	 */
+	map_id *work = Calloc((*graph)->n, map_id);
+	for(i = 0; i < (*graph)->n; i++){
+		arg->values[i] = work + i;
+	}
+
 #pragma omp parallel for private(i)
 	for (i = 0; i < (*graph)->n; i++) {
 		int j, jj;
-
-		arg->values[i] = Calloc(1, map_id);
 		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);
 		for (jj = 0; jj < (*graph)->lnnbs[i]; jj++) {
@@ -614,11 +601,13 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 	/*
 	 * allocate hash-table with the *correct* number of elements
 	 */
-//#pragma omp parallel for private(i)
+	map_id *work = Calloc(graph->n, map_id);
+	for(i = 0; i < graph->n; i++){
+		arg->values[i] = work + i;
+	}
 	for (i = 0; i < graph->n; i++) {
 		int j, jj;
 
-		arg->values[i] = Calloc(1, map_id);
 		map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);
 		for (jj = 0; jj < graph->lnnbs[i]; jj++) {
@@ -675,8 +664,8 @@ int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 		if (arg->values) {
 			for (i = 0; i < arg->n; i++) {
 				map_id_free(arg->values[i]);
-				Free(arg->values[i]);
 			}
+			Free(arg->values[0]);
 			Free(arg->values);
 		}
 
