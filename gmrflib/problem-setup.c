@@ -787,7 +787,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 	}
 
 	n = problem->sub_graph->n;
-	work = Calloc(2*n, double);
+	work = Calloc(2 * n, double);
 	xx = work;
 	yy = work + n;
 
@@ -1094,8 +1094,8 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
-	//Free(constr->jfirst);
-	//Free(constr->jlen);
+	// Free(constr->jfirst);
+	// Free(constr->jlen);
 	constr->jfirst = Calloc(nc, int);
 	constr->jlen = Calloc(nc, int);
 	for (i = 0; i < nc; i++) {

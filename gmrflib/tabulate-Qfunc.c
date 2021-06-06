@@ -165,7 +165,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 		mem_id = GMRFLib_meminfo_thread_id;
 		arg->values = Calloc(graph->n, map_id *);
 		map_id *work = Calloc(graph->n, map_id);
-		for(i = 0; i < graph->n; i++){
+		for (i = 0; i < graph->n; i++) {
 			arg->values[i] = work + i;
 		}
 
@@ -360,7 +360,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc((*graph)->n, map_id);
-	for(i = 0; i < (*graph)->n; i++){
+	for (i = 0; i < (*graph)->n; i++) {
 		arg->values[i] = work + i;
 	}
 	for (i = 0; i < (*graph)->n; i++) {
@@ -516,7 +516,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc((*graph)->n, map_id);
-	for(i = 0; i < (*graph)->n; i++){
+	for (i = 0; i < (*graph)->n; i++) {
 		arg->values[i] = work + i;
 	}
 
@@ -590,7 +590,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 	 * allocate hash-table with the *correct* number of elements
 	 */
 	map_id *work = Calloc(graph->n, map_id);
-	for(i = 0; i < graph->n; i++){
+	for (i = 0; i < graph->n; i++) {
 		arg->values[i] = work + i;
 	}
 	for (i = 0; i < graph->n; i++) {

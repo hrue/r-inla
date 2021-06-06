@@ -2556,7 +2556,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 		err = sqrt(err / n);
 
-		if (iter >  0) {
+		if (iter > 0) {
 			if ((float) (10.0 * err) == (float) (10.0 * err_previous)) {
 				/*
 				 * we're down to some rounding error and cannot get any further. this weird situation has happend. 
@@ -2591,12 +2591,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			GMRFLib_thread_id = id;
 		}
 
-
 		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
 		// this assumes err_i = m * (err_{i-1})^2
 		double m = err / SQR(err_previous);
 		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
-				    (m <= 1.0) && (m * SQR(err) <  0.1 * optpar->abserr_step));
+				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
 		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
 			/*

@@ -1877,7 +1877,7 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g, int skip_sha)
 			GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i]);
 		}
 	}
-	
+
 	if (g->mothergraph_idx) {
 		GMRFLib_SHA_IUPDATE(g->mothergraph_idx, g->n);
 	}

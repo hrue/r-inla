@@ -7986,9 +7986,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -31873,8 +31873,7 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < dim; ii++) {
 					GMRFLib_density_create_normal(&(gd[ii]), 0.0, 1.0,
 								      GMRFLib_ai_INLA_userfunc0_density[ii]->user_mean,
-								      GMRFLib_ai_INLA_userfunc0_density[ii]->user_stdev,
-						GMRFLib_TRUE);
+								      GMRFLib_ai_INLA_userfunc0_density[ii]->user_stdev, GMRFLib_TRUE);
 				}
 				sdir = GMRFLib_strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, gd, NULL,
@@ -31897,8 +31896,7 @@ int inla_output(inla_tp * mb)
 				for (ii = 0; ii < dim; ii++) {
 					GMRFLib_density_create_normal(&(gd[ii]), 0.0, 1.0,
 								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_mean,
-								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_stdev,
-						GMRFLib_TRUE);
+								      GMRFLib_ai_INLA_userfunc1_density[ii]->user_stdev, GMRFLib_TRUE);
 				}
 				sdir = GMRFLib_strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, gd, NULL,
@@ -36057,16 +36055,16 @@ int testit(int argc, char **argv)
 
 	case 62:
 	{
-		double mom[3] = {1.123, 0.123, -0.213};
-		GMRFLib_sn_param_tp  p;
+		double mom[3] = { 1.123, 0.123, -0.213 };
+		GMRFLib_sn_param_tp p;
 
 		printf("mom %f %f %f\n", mom[0], mom[1], mom[2]);
-		GMRFLib_sn_moments2par(&p, mom, mom+1, mom+2);
-		GMRFLib_sn_par2moments(mom, mom+1, mom+2, &p);
-		printf("sn  %f %f %f\n", p.xi,  p.omega, p.alpha);
+		GMRFLib_sn_moments2par(&p, mom, mom + 1, mom + 2);
+		GMRFLib_sn_par2moments(mom, mom + 1, mom + 2, &p);
+		printf("sn  %f %f %f\n", p.xi, p.omega, p.alpha);
 		printf("mom %f %f %f\n", mom[0], mom[1], mom[2]);
 	}
-	break;
+		break;
 
 	case 999:
 	{
@@ -36277,7 +36275,7 @@ int main(int argc, char **argv)
 #if defined(WINDOWS)
 				ntt[1] = 1;
 #endif
-				if (ntt[0] * ntt[1] >  GMRFLib_MAX_THREADS) {
+				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS) {
 					fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
 					fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS);
 
@@ -36289,13 +36287,13 @@ int main(int argc, char **argv)
 						ntt[0] = 1;
 					} else {
 						// something gotta give
-						while(ntt[0] * ntt[1] > GMRFLib_MAX_THREADS) {
+						while (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS) {
 							ntt[1]--;
 						}
 					}
 					fprintf(stderr, "\tNumber of threads is reduced to %1d:%1d\n\n", ntt[0], ntt[1]);
 				}
-					
+
 				for (i = 0; i < 2; i++) {
 					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];

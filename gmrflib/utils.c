@@ -1672,7 +1672,7 @@ double GMRFLib_min_value(double *x, int n, int *idx)
 	if (idx) {
 		*idx = imin;
 	}
-	
+
 	return min_val;
 }
 
