@@ -246,19 +246,12 @@ int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc)
 
 int GMRFLib_icmp(const void *a, const void *b)
 {
-	const int *ia = NULL, *ib = NULL;
+	const int *ia, *ib;
 
 	ia = (const int *) a;
 	ib = (const int *) b;
 
-	if (*ia > *ib) {
-		return 1;
-	}
-	if (*ia < *ib) {
-		return -1;
-	}
-
-	return 0;
+	return (*ia - *ib);
 }
 
 int GMRFLib_dcmp(const void *a, const void *b)
@@ -1442,7 +1435,7 @@ int GMRFLib_idxval_cmp(const void *a, const void *b)
 	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
 	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
 
-	return ((aa->idx > bb->idx) ? 1 : ((aa->idx < bb->idx) ? -1 : 0));
+	return (aa->idx > bb->idx);
 }
 
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
