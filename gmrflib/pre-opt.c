@@ -603,35 +603,35 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * pr
 	return t;
 }
 
-double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
-		return NAN;
-	}
+	// as this one is always called through preopt_Qfunc
+	// assert(nnode >= node);
+	// if (node >= 0 && nnode < 0) return NAN;
 
 	/*
 	 * this is Qfunction for the preopt-function 
 	 */
 	GMRFLib_preopt_tp *a = NULL;
 	GMRFLib_preopt_type_tp it, jt;
-	int ii, jj;
 	double value = 0.0;
+	int same_tp, same_idx;
 
 	a = (GMRFLib_preopt_tp *) arg;
-	ii = IMIN(node, nnode);
-	jj = IMAX(node, nnode);
-	it = a->what_type[ii];
-	jt = a->what_type[jj];
+	it = a->what_type[node];
+	jt = a->what_type[nnode];
+	same_tp = (it.tp_idx == jt.tp_idx);
+	same_idx = (it.idx == jt.idx);
 
 	switch (it.tp) {
 	case GMRFLib_PREOPT_TP_F:
 		switch (jt.tp) {
 		case GMRFLib_PREOPT_TP_F:
-			if (it.tp_idx == jt.tp_idx) {
-				if ((it.idx == jt.idx) || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
+			if (same_tp) {
+				if (same_idx || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
 					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, NULL, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
 				}
-				if (it.idx == jt.idx) {
+				if (same_idx) {
 					value += a->f_diag[it.tp_idx];
 				}
 			}
@@ -640,10 +640,9 @@ double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), 
 			 * only for the same index and different types; used to define `interaction between fields'. this is a 'workaround' for a INLA problem.. 
 			 */
 			if (a->ff_Qfunc) {
-				if ((it.idx == jt.idx) && (it.tp_idx != jt.tp_idx) && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
-					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
-									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+				if (same_idx && !same_tp && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
+					value += a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
+										    (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -658,7 +657,7 @@ double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), 
 	case GMRFLib_PREOPT_TP_BETA:
 		switch (jt.tp) {
 		case GMRFLib_PREOPT_TP_BETA:
-			if (it.tp_idx == jt.tp_idx) {
+			if (same_tp) {
 				value += (a->prior_precision ? a->prior_precision[it.tp_idx] : 0.0);
 			}
 			return value;
@@ -676,13 +675,11 @@ double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), 
 	return value;
 }
 
-double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
-		return NAN;
-	}
 	// as this one is always called through preopt_Qfunc
-	assert(nnode >= node);
+	// assert(nnode >= node);
+	// if (node >= 0 && nnode < 0) return NAN;
 
 	/*
 	 * this is Qfunction for the likelihood part in preopt
