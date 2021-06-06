@@ -2561,9 +2561,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				printf("mode[%1d]= %f\n", i, lproblem->mean_constr[i]);
 			}
 
-		if (iter == 0) {
-			err_previous = err;
-		} else {
+		if (iter >  0) {
 			if ((float) (10.0 * err) == (float) (10.0 * err_previous)) {
 				/*
 				 * we're down to some rounding error and cannot get any further. this weird situation has happend. 
@@ -2573,7 +2571,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			if (err > 4.0 * err_previous) {
 				iter += itmax;		       /* so we can restart... */
 			}
-			err_previous = err;
 		}
 
 		if (optpar && optpar->fp)
@@ -2599,16 +2596,19 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			GMRFLib_thread_id = id;
 		}
 
-		if (err < optpar->abserr_step || gaussian_data || flag_cycle_behaviour) {
+
+		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
+
+		if (gaussian_data
+		    || err < optpar->abserr_step
+		    || (err < SQR(err_previous) && err_previous < 0.1 * pow(optpar->abserr_step, 1.0/4.0) && f >= 1.0)
+		    || flag_cycle_behaviour) {
 			/*
 			 * we're done!  unless we have negative elements on the diagonal...
 			 */
-
-			/*
-			 * disable these cc_positive tricks now... 
-			 */
 			break;
 
+			// NOT IN USE
 			if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
 				/*
 				 * do nothing 
@@ -2626,6 +2626,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
+
+		err_previous = err;
 	}
 
 	Free(ccoof);

@@ -48,17 +48,30 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
+#define GED_INIT 64
+#define GED_GROW 1024
+
+int GMRFLib_ged_init2(GMRFLib_ged_tp ** ged, int n)
+{
+	*ged = Calloc(1, GMRFLib_ged_tp);
+	(*ged)->n = 0;
+	(*ged)->n_alloc = (IMAX(0, n) / GED_GROW + 1) * GED_GROW;
+	(*ged)->Q = Calloc((*ged)->n_alloc, map_ii);
+	for (int i = 0; i < (*ged)->n_alloc; i++) {
+		map_ii_init_hint(&((*ged)->Q[i]), (size_t) GED_INIT);
+	}
+	if (n > 0) {
+		GMRFLib_ged_add(*ged, n - 1, n - 1);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
 {
-	/*
-	 * initialise the 'ged' object starting with graph. graph can of'course be NULL. 
-	 */
-	*ged = Calloc(1, GMRFLib_ged_tp);
-	spmatrix_init_hint(&((*ged)->Q), (mapkit_size_t) (graph ? (2 * graph->n) : 1000));
-	(*ged)->max_node = -1;				       /* yes, this is correct */
-
+	GMRFLib_ged_init2(ged, (graph ? graph->n : 0));
 	if (graph) {
-		GMRFLib_ged_append_graph(*ged, graph);
+		GMRFLib_ged_insert_graph(*ged, graph, 0);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -66,24 +79,30 @@ int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
 
 int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 {
-	/*
-	 * add edge between node and nnode. add 'node' or 'nnode' to the set if not already present 
-	 */
-	if (node == nnode) {
-		spmatrix_set(&(ged->Q), node, node, 1.0);
-	} else {
-		if (!spmatrix_value(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode))) {
-			spmatrix_set(&(ged->Q), IMIN(node, nnode), IMAX(node, nnode), 1.0);
+	int imax = IMAX(node, nnode);
+	int imin = IMIN(node, nnode);
+
+	if (imax >= ged->n_alloc) {
+		int np = ged->n_alloc;
+		ged->n_alloc += (IMAX(1, imax + 1 - ged->n_alloc) / GED_GROW + 1) * GED_GROW;
+		ged->Q = Realloc(ged->Q, ged->n_alloc, map_ii);
+		for (int i = np; i < ged->n_alloc; i++) {
+			map_ii_init_hint(&(ged->Q[i]), (size_t) GED_INIT);
 		}
 	}
-	ged->max_node = IMAX(ged->max_node, IMAX(node, nnode));
+
+	if (imin != imax) {
+		map_ii_set(&(ged->Q[imin]), imax, 1);
+		map_ii_set(&(ged->Q[imax]), imin, 1);
+	}
+	ged->n = IMAX(ged->n, imax + 1);
 
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_ged_append_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph)
 {
-	GMRFLib_ged_insert_graph(ged, graph, ged->max_node + 1);
+	GMRFLib_ged_insert_graph(ged, graph, ged->n);
 	return GMRFLib_SUCCESS;
 }
 
@@ -109,55 +128,28 @@ int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, in
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_max_node(GMRFLib_ged_tp * ged)
-{
-	return ged->max_node;
-}
-
 int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 {
-	/*
-	 * build the graph 
-	 */
 	GMRFLib_graph_tp *g;
-	int i, j, n, *nnbs, node = -1, nnode = -1, **nbs;
-	map_ii **hash;
-	spmatrix_storage *sptr;
-	map_ii_storage *iptr;
+	int i, j, n, *nnbs, **nbs;
+	map_ii_storage *p;
 
-	n = ged->max_node + 1;
+	n = ged->n;
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
 
-	hash = Calloc(n, map_ii *);
 	for (i = 0; i < n; i++) {
-		hash[i] = Calloc(1, map_ii);
-		map_ii_init(hash[i]);
-	}
-
-	for(i = 0; i < n; i++) {
-		GMRFLib_ged_add(ged, i, i);
-	}
-
-	for (sptr = NULL; (sptr = spmatrix_nextptr(&(ged->Q), sptr)) != NULL;) {
-		if (sptr->value && sptr->key.key1 != sptr->key.key2) {
-			node = IMIN(sptr->key.key1, sptr->key.key2);
-			nnode = IMAX(sptr->key.key1, sptr->key.key2);
-			map_ii_set(hash[node], nnode, 1);
-			map_ii_set(hash[nnode], node, 1);
-			nnbs[node]++;
-			nnbs[nnode]++;
+		for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {
+			j++;
 		}
+		nnbs[i] = j;
 	}
 
-	/*
-	 * make the nbs-array 
-	 */
 	for (i = 0; i < n; i++) {
 		if (nnbs[i]) {
 			nbs[i] = Calloc(nnbs[i], int);
-			for (j = 0, iptr = NULL; (iptr = map_ii_nextptr(hash[i], iptr)) != NULL; j++) {
-				nbs[i][j] = iptr->key;
+			for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL; j++) {
+				nbs[i][j] = p->key;
 			}
 			assert(j == nnbs[i]);
 		} else {
@@ -181,37 +173,16 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	Free(nnbs);
 	Free(g);
 
-	for (i = 0; i < n; i++) {
-		map_ii_free(hash[i]);
-		Free(hash[i]);
-	}
-	Free(hash);
-
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_ged_free(GMRFLib_ged_tp * ged)
 {
-	spmatrix_free(&(ged->Q));
-	Free(ged);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_ged_print__intern(FILE * fp, GMRFLib_ged_tp * ged)
-{
-	spmatrix_storage *sptr;
-	FILE *fpp;
-
-	fpp = (fp ? fp : stdout);
-
-	fprintf(fpp, "Contents of ged=0x%" PRIxPTR "\n", (uintptr_t) ged);
-	fprintf(fpp, "\tmax_node = %1d\n", ged->max_node);
-	for (sptr = NULL; (sptr = spmatrix_nextptr(&(ged->Q), sptr)) != NULL;) {
-		fprintf(fpp, "\tQ[%1d, %1d] = %.1f\n", sptr->key.key1, sptr->key.key2, sptr->value);
+	for (int i = 0; i < ged->n; i++) {
+		map_ii_free(&(ged->Q[i]));
 	}
-
-	fflush(fpp);
+	Free(ged->Q);
+	Free(ged);
 
 	return GMRFLib_SUCCESS;
 }

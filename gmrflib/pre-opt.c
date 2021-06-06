@@ -139,8 +139,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	 * will be overrided and this is how it should be.
 	 */
 	GMRFLib_ged_tp *ged = NULL;
-	GMRFLib_ged_init(&ged, NULL);
-	GMRFLib_ged_add(ged, N - 1, N - 1);
+	GMRFLib_ged_init2(&ged, N);
 
 	if (nf) {
 		for (j = 0; j < nf; j++) {
@@ -465,10 +464,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_graph_tp *g = NULL;
 
 	ged = NULL;
-	GMRFLib_ged_init(&ged, NULL);
-	for (k = 0; k < N; k++) {
-		GMRFLib_ged_add(ged, k, k);
-	}
+	GMRFLib_ged_init2(&ged, N);
 	for (i = 0; i < gen_len_At; i++) {
 		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;

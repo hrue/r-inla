@@ -331,12 +331,6 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_EWRAP0(GMRFLib_io_close(io));
 	}
 
-	/*
-	 * make sure to add all nodes inbetween 
-	 */
-	for (i = 0; i < GMRFLib_ged_max_node(ged); i++) {
-		GMRFLib_ged_add(ged, i, i);
-	}
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_ged_free(ged);
 
@@ -494,12 +488,6 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		GMRFLib_ged_add(ged, ilist[i] - off, jlist[i] - off);
 	}
 
-	/*
-	 * make sure to add all nodes inbetween 
-	 */
-	for (i = 0; i < GMRFLib_ged_max_node(ged); i++) {
-		GMRFLib_ged_add(ged, i, i);
-	}
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_graph_prepare(*graph, 0, 0);
 	GMRFLib_ged_free(ged);

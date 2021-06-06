@@ -1997,7 +1997,7 @@ int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp * def)
 			GMRFLib_ged_add(ged, i, def->n + j);
 		}
 	}
-	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
+	assert(ged->n == def->N);
 	GMRFLib_ged_build(graph_out, ged);
 	GMRFLib_ged_free(ged);
 
@@ -2074,10 +2074,7 @@ int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 
 	n = def->nrow * def->ncol;
 	GMRFLib_make_rw2d_graph(&g, def);
-	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < n; i++) {
-		GMRFLib_ged_add(ged, i, i);
-	}
+	GMRFLib_ged_init2(&ged, n);
 	GMRFLib_ged_append_graph(ged, g);
 	for (i = 0; i < n; i++) {
 		GMRFLib_ged_add(ged, i, i + n);
@@ -2097,10 +2094,7 @@ int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 	int n = graph->n;
 	GMRFLib_ged_tp *ged = NULL;
 
-	GMRFLib_ged_init(&ged, NULL);
-	for (i = 0; i < n; i++) {
-		GMRFLib_ged_add(ged, i, i);
-	}
+	GMRFLib_ged_init2(&ged, n);
 	GMRFLib_ged_append_graph(ged, graph);
 	for (i = 0; i < n; i++) {
 		GMRFLib_ged_add(ged, i, i + n);
@@ -2333,7 +2327,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		P(ngroup);
 		P(graph->n);
 		P(group_graph->n);
-		P((GMRFLib_ged_max_node(ged)));
+		P(ged->n);
 		P(n * ngroup - 1);
 	}
 
@@ -2422,7 +2416,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		fclose(fp);
 	}
 
-	assert(GMRFLib_ged_max_node(ged) == n * ngroup - 1);
+	assert(ged->n == n * ngroup);
 	GMRFLib_ged_build(new_graph, ged);
 	GMRFLib_ged_free(ged);
 
@@ -36060,6 +36054,19 @@ int testit(int argc, char **argv)
 		}
 		break;
 	}
+
+	case 62:
+	{
+		double mom[3] = {1.123, 0.123, -0.213};
+		GMRFLib_sn_param_tp  p;
+
+		printf("mom %f %f %f\n", mom[0], mom[1], mom[2]);
+		GMRFLib_sn_moments2par(&p, mom, mom+1, mom+2);
+		GMRFLib_sn_par2moments(mom, mom+1, mom+2, &p);
+		printf("sn  %f %f %f\n", p.xi,  p.omega, p.alpha);
+		printf("mom %f %f %f\n", mom[0], mom[1], mom[2]);
+	}
+	break;
 
 	case 999:
 	{

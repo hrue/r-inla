@@ -44,9 +44,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-#define IDX_ALLOC_INITIAL 64L
-#define IDX_ALLOC_ADD     64L
-
 /* 
  *  compile with -DGMRFLib_MEMCHECK to enable the internal memcheck utility. Do not work with OPENMP. compile with -DGMRFLib_MEMINFO to enable the meminfo utility.
  *  compute with -DGMRFLib_TRACE_MEMORY to view memory allocation
@@ -86,6 +83,9 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 #else
 #define MEMINFO(_size) if (0) {}
 #endif
+
+#define IDX_ALLOC_INITIAL 64
+#define IDX_ALLOC_ADD     64
 
 char *GMRFLib_rindex(const char *p, int ch)
 {
@@ -1227,6 +1227,51 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 	return a;
 }
 
+
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tidx[%1d] = %1d\n", i, hold->idx[i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tidx[][%1d] = %1d %1d\n", i, hold->idx[0][i], hold->idx[1][i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tval[%1d] = %g\n", i, hold->val[i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->store[i].idx, hold->store[i].val);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
 {
 	if (a) {
@@ -1355,114 +1400,6 @@ int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
-{
-	if (*hold == NULL) {
-		GMRFLib_idx_create(hold);
-	}
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
-		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
-	}
-	(*hold)->idx[(*hold)->n] = idx;
-	(*hold)->n++;
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
-{
-	if (*hold == NULL) {
-		GMRFLib_idx2_create(hold);
-	}
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
-		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
-		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
-	}
-	(*hold)->idx[0][(*hold)->n] = idx0;
-	(*hold)->idx[1][(*hold)->n] = idx1;
-	(*hold)->n++;
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
-{
-	if (*hold == NULL) {
-		GMRFLib_val_create(hold);
-	}
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
-		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
-	}
-	(*hold)->val[(*hold)->n] = val;
-	(*hold)->n++;
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
-{
-	if (*hold == NULL) {
-		GMRFLib_idxval_create(hold);
-	}
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
-		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
-	}
-	(*hold)->store[(*hold)->n].idx = idx;
-	(*hold)->store[(*hold)->n].val = val;
-	(*hold)->n++;
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
-{
-	// if idx exists before, add val to value , otherwise just 'add'.
-	// if there are two entries of 'idx', then only the first is used.
-
-	if (*hold == NULL) {
-		GMRFLib_idxval_create(hold);
-	}
-
-	int i;
-
-	// hopefully this is it.
-	i = (*hold)->iaddto;
-	if ((*hold)->store[i].idx == idx) {
-		(*hold)->store[i].val += val;
-		return GMRFLib_SUCCESS;
-	}
-	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
-	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
-	for (i = (*hold)->iaddto + 1; i < (*hold)->n; i++) {
-		if ((*hold)->store[i].idx == idx) {
-			(*hold)->store[i].val += val;
-			(*hold)->iaddto = i;
-			return GMRFLib_SUCCESS;
-		}
-	}
-	for (i = 0; i < (*hold)->iaddto; i++) {
-		if ((*hold)->store[i].idx == idx) {
-			(*hold)->store[i].val += val;
-			(*hold)->iaddto = i;
-			return GMRFLib_SUCCESS;
-		}
-	}
-
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4L);
-		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
-	}
-	(*hold)->store[(*hold)->n].idx = idx;
-	(*hold)->store[(*hold)->n].val = val;
-	(*hold)->n++;
-
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
@@ -1496,50 +1433,6 @@ int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
 	if (hold) {
 		hold->store = Realloc(hold->store, IMAX(1, hold->n), GMRFLib_idxval_elm_tp);
 		hold->n_alloc = IMAX(1, hold->n);
-	}
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
-{
-	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
-		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\tidx[%1d] = %1d\n", i, hold->idx[i]);
-		}
-	}
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
-{
-	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
-		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\tidx[][%1d] = %1d %1d\n", i, hold->idx[0][i], hold->idx[1][i]);
-		}
-	}
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
-{
-	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
-		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\tval[%1d] = %g\n", i, hold->val[i]);
-		}
-	}
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
-{
-	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
-		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->store[i].idx, hold->store[i].val);
-		}
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1611,6 +1504,250 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
+{
+	if (*hold == NULL) {
+		GMRFLib_idx_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+	}
+	(*hold)->idx[(*hold)->n] = idx;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
+{
+	if (*hold == NULL) {
+		GMRFLib_idx2_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
+		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
+	}
+	(*hold)->idx[0][(*hold)->n] = idx0;
+	(*hold)->idx[1][(*hold)->n] = idx1;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
+{
+	if (*hold == NULL) {
+		GMRFLib_val_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+	}
+	(*hold)->val[(*hold)->n] = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
+{
+	if (*hold == NULL) {
+		GMRFLib_idxval_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+	}
+	(*hold)->store[(*hold)->n].idx = idx;
+	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
+{
+	// if idx exists before, add val to value , otherwise just 'add'.
+	// if there are two entries of 'idx', then only the first is used.
+
+	if (*hold == NULL) {
+		GMRFLib_idxval_create(hold);
+	}
+
+	int i;
+
+	// hopefully this is it.
+	i = (*hold)->iaddto;
+	if ((*hold)->store[i].idx == idx) {
+		(*hold)->store[i].val += val;
+		return GMRFLib_SUCCESS;
+	}
+	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
+	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
+	for (i = (*hold)->iaddto + 1; i < (*hold)->n; i++) {
+		if ((*hold)->store[i].idx == idx) {
+			(*hold)->store[i].val += val;
+			(*hold)->iaddto = i;
+			return GMRFLib_SUCCESS;
+		}
+	}
+	for (i = 0; i < (*hold)->iaddto; i++) {
+		if ((*hold)->store[i].idx == idx) {
+			(*hold)->store[i].val += val;
+			(*hold)->iaddto = i;
+			return GMRFLib_SUCCESS;
+		}
+	}
+
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+	}
+	(*hold)->store[(*hold)->n].idx = idx;
+	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+/////////////////////////////////////////////////////////////////////////
+
+int GMRFLib_adjust_vector(double *x, int n)
+{
+	/*
+	 * x := x - max(x[]) 
+	 */
+	int i;
+	double max_value;
+
+	if (n <= 0 || !x) {
+		return GMRFLib_SUCCESS;
+	}
+
+	max_value = GMRFLib_max_value(x, n, NULL);
+	for (i = 0; i < n; i++) {
+		x[i] -= max_value;
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_scale_vector(double *x, int n)
+{
+	/*
+	 * x := x/max(x)
+	 */
+	int i;
+	double scale;
+
+	if (n <= 0 || !x) {
+		return GMRFLib_SUCCESS;
+	}
+
+	scale = GMRFLib_max_value(x, n, NULL);
+	if (!ISZERO(scale)) {
+		scale = 1.0 / scale;
+		for (i = 0; i < n; i++) {
+			x[i] *= scale;
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+double GMRFLib_min_value(double *x, int n, int *idx)
+{
+	/*
+	 * return the MIN(x[]) 
+	 */
+	int i, imin;
+	double min_val;
+
+	min_val = x[0];
+	imin = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] < min_val) {
+			min_val = x[i];
+			imin = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imin;
+	}
+	
+	return min_val;
+}
+
+int GMRFLib_imin_value(int *x, int n, int *idx)
+{
+	/*
+	 * return the IMIN(x[]) 
+	 */
+	int i, imin, min_val;
+
+	min_val = x[0];
+	imin = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] < min_val) {
+			min_val = x[i];
+			imin = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imin;
+	}
+	return min_val;
+}
+
+double GMRFLib_max_value(double *x, int n, int *idx)
+{
+	/*
+	 * return the MAX(x[]), optional idx
+	 */
+	int i, imax;
+	double max_val;
+
+	max_val = x[0];
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] > max_val) {
+			max_val = x[i];
+			imax = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
+}
+
+int GMRFLib_imax_value(int *x, int n, int *idx)
+{
+	/*
+	 * return IMAX(x[]) 
+	 */
+	int i, imax, max_val;
+
+	max_val = x[0];
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] > max_val) {
+			max_val = x[i];
+			imax = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
 }
 
 #undef MEMINFO

@@ -107,14 +107,11 @@ double GMRFLib_eps(double power);
 double GMRFLib_eps1(void);
 double GMRFLib_eps2(void);
 double GMRFLib_log_apbex(double a, double b);
+double GMRFLib_max_value(double *x, int n, int *idx);
+double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_signed_pow(double x, double power);
-forceinline double GMRFLib_max_value(double *x, int n, int *idx);
-forceinline double GMRFLib_min_value(double *x, int n, int *idx);
-forceinline int GMRFLib_adjust_vector(double *x, int n);
-forceinline int GMRFLib_imax_value(int *x, int n, int *idx);
-forceinline int GMRFLib_imin_value(int *x, int n, int *idx);
-forceinline int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c);
+int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
 int GMRFLib_dcmp_abs(const void *a, const void *b);
 int GMRFLib_dcmp_r(const void *a, const void *b);
@@ -149,6 +146,8 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold);
+int GMRFLib_imax_value(int *x, int n, int *idx);
+int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
 int GMRFLib_iwhich_sorted(int val, int *ix, int len);
@@ -162,6 +161,7 @@ int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format
 int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *));
+int GMRFLib_scale_vector(double *x, int n);
 int GMRFLib_unique_additive(int *n, double *x, double eps);
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
 int GMRFLib_unique_relative(int *n, double *x, double eps);
@@ -188,140 +188,6 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
-
-forceinline int GMRFLib_adjust_vector(double *x, int n)
-{
-	/*
-	 * x := x - max(x[]) 
-	 */
-	int i;
-	double max_value;
-
-	if (n <= 0 || !x) {
-		return GMRFLib_SUCCESS;
-	}
-
-	max_value = GMRFLib_max_value(x, n, NULL);
-	for (i = 0; i < n; i++) {
-		x[i] -= max_value;
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
-forceinline int GMRFLib_scale_vector(double *x, int n)
-{
-	/*
-	 * x := x/max(x)
-	 */
-	int i;
-	double scale;
-
-	if (n <= 0 || !x) {
-		return GMRFLib_SUCCESS;
-	}
-
-	scale = GMRFLib_max_value(x, n, NULL);
-	if (!ISZERO(scale)) {
-		scale = 1.0 / scale;
-		for (i = 0; i < n; i++) {
-			x[i] *= scale;
-		}
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
-forceinline double GMRFLib_min_value(double *x, int n, int *idx)
-{
-	/*
-	 * return the MIN(x[]) 
-	 */
-	int i, imin;
-	double min_val;
-
-	min_val = x[0];
-	imin = 0;
-	for (i = 1; i < n; i++) {
-		if (x[i] < min_val) {
-			min_val = x[i];
-			imin = i;
-		}
-	}
-
-	if (idx) {
-		*idx = imin;
-	}
-	
-	return min_val;
-}
-
-forceinline int GMRFLib_imin_value(int *x, int n, int *idx)
-{
-	/*
-	 * return the IMIN(x[]) 
-	 */
-	int i, imin, min_val;
-
-	min_val = x[0];
-	imin = 0;
-	for (i = 1; i < n; i++) {
-		if (x[i] < min_val) {
-			min_val = x[i];
-			imin = i;
-		}
-	}
-
-	if (idx) {
-		*idx = imin;
-	}
-	return min_val;
-}
-
-forceinline double GMRFLib_max_value(double *x, int n, int *idx)
-{
-	/*
-	 * return the MAX(x[]), optional idx
-	 */
-	int i, imax;
-	double max_val;
-
-	max_val = x[0];
-	imax = 0;
-	for (i = 1; i < n; i++) {
-		if (x[i] > max_val) {
-			max_val = x[i];
-			imax = i;
-		}
-	}
-
-	if (idx) {
-		*idx = imax;
-	}
-	return max_val;
-}
-
-forceinline int GMRFLib_imax_value(int *x, int n, int *idx)
-{
-	/*
-	 * return IMAX(x[]) 
-	 */
-	int i, imax, max_val;
-
-	max_val = x[0];
-	imax = 0;
-	for (i = 1; i < n; i++) {
-		if (x[i] > max_val) {
-			max_val = x[i];
-			imax = i;
-		}
-	}
-
-	if (idx) {
-		*idx = imax;
-	}
-	return max_val;
-}
 
 __END_DECLS
 #endif
