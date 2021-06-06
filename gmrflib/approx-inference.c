@@ -2556,11 +2556,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 		err = sqrt(err / n);
 
-		if (0)
-			for (i = 0; i < n; i++) {
-				printf("mode[%1d]= %f\n", i, lproblem->mean_constr[i]);
-			}
-
 		if (iter >  0) {
 			if ((float) (10.0 * err) == (float) (10.0 * err_previous)) {
 				/*
@@ -2598,11 +2593,12 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 
 		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
+		// this assumes err_i = m * (err_{i-1})^2
+		double m = err / SQR(err_previous);
+		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
+				    (m <= 1.0) && (m * SQR(err) <  0.1 * optpar->abserr_step));
 
-		if (gaussian_data
-		    || err < optpar->abserr_step
-		    || (err < SQR(err_previous) && err_previous < 0.1 * pow(optpar->abserr_step, 1.0/4.0) && f >= 1.0)
-		    || flag_cycle_behaviour) {
+		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
 			/*
 			 * we're done!  unless we have negative elements on the diagonal...
 			 */
