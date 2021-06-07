@@ -2654,7 +2654,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			return GMRFLib_EOPTNR;
 		} else {
 			/*
-			 * fail to converge. restart with a reduced step_factor. 
+			 * fail to converge. restart with a reduced step_factor
 			 */
 			Memcpy(mode, mode_initial, n * sizeof(double));	/* store the starting value */
 			Free(mode_initial);
@@ -2670,14 +2670,82 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 			if (new_optpar.nr_step_factor < 1e-3) {
 				return GMRFLib_EOPTNR;
+			} else if (1) {
+				/*
+				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
+				 */
+				int retval, kk, ntimes = 1000, stop = 0;
+				double lambda = 100000.0,       /* first value for lambda */
+					lambda_fac = 10,	       /* decrease it with this ammount for each iteration */
+					lambda_lim = 1.0;       /* value of lambda where we exit the loop */
+				double *d_new = Calloc(graph->n, double);
+
+				for (kk = 0; kk < ntimes; kk++) {
+
+					for (i = 0; i < graph->n; i++) {
+						d_new[i] = d[i] / lambda;
+						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
+							x[i] = mode[i];
+						}
+					}
+					retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c, mean, d_new,
+											       loglFunc, loglFunc_arg,
+											       graph, Qfunc, Qfunc_arg, constr,
+											       &new_optpar, blockupdate_par, store,
+											       aa, bb, cc, gaussian_data, cmin, b_strategy, 2,
+											       preopt);
+					if (stop && retval == GMRFLib_SUCCESS) {
+						break;
+					}
+					GMRFLib_ASSERT(lambda < lambda_lim, GMRFLib_EOPTNR);	/* exit if lambda is to large */
+
+					if (retval == GMRFLib_SUCCESS && lambda <= lambda_lim) {
+						/*
+						 * lambda is small enough; we're done
+						 */
+						break;
+					}
+
+					if (retval != GMRFLib_SUCCESS) {
+						/*
+						 * it means that previous lambda worked fine, but not this one, so lets retry the previous one and then exit.
+						 */
+						stop = 1;
+						lambda *= lambda_fac;
+					} else {
+						/*
+						 * we're ok, decrease lambda
+						 */
+						lambda /= lambda_fac;
+					}
+
+					if (retval == GMRFLib_SUCCESS) {
+						/*
+						 *  we're ok, restart with the obtained mode
+						 */
+						Memcpy(x, (*problem)->mean_constr, graph->n * sizeof(double));
+						GMRFLib_free_problem(*problem);
+					} else {
+						*problem = NULL;
+						if (!stop) {
+							return retval;
+						}
+					}
+				}
+				if (stop) {
+					assert(stop && retval == GMRFLib_SUCCESS);
+				}
+				Free(d_new);
 			} else {
+				// old version
+
 				/*
 				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
 				 */
 				int retval, kk, ntimes = 1000, stop = 0;
 				double lambda = 10000.0,       /* first value for lambda */
-				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
-				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
+					lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
+					lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
 				double *c_new = Calloc(graph->n, double);
 
 				for (kk = 0; kk < ntimes; kk++) {
