@@ -4035,7 +4035,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 */
 			CHECK_DENS_STORAGE_FORCE(design->nexperiments);
 			CHECK_HYPER_STORAGE_FORCE(design->nexperiments);
-		FIXME4("4");
+		FIXME("4");
 
 #pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < design->nexperiments; k++) {
