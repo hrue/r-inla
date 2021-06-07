@@ -687,6 +687,7 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 	 */
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	GMRFLib_idxval_elm_tp *elm = NULL;
 	int id = GMRFLib_thread_id, k, kk, imin, imax;
 	double value = 0.0;
 
@@ -695,15 +696,15 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 
 	if (a->like_c[id]) {
 		if (imin == imax) {
+			elm = a->AtA_idxval[imin][0]->store;
 			for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
-				GMRFLib_idxval_elm_tp *elm = a->AtA_idxval[imin][0]->store;
 				value += elm[kk].val * a->like_c[id][elm[kk].idx];
 			}
 		} else {
 			k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
 			if (k > 0) {
+				elm = a->AtA_idxval[imin][k]->store;
 				for (kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
-					GMRFLib_idxval_elm_tp *elm = a->AtA_idxval[imin][k]->store;
 					value += elm[kk].val * a->like_c[id][elm[kk].idx];
 				}
 			} else {

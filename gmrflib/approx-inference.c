@@ -3930,6 +3930,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (x_mode) {
 			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 		GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 		log_dens_mode *= -1.0;
 		SET_THETA_MODE;
