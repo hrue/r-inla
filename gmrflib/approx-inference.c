@@ -2675,7 +2675,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
 				 */
 				int retval, kk, ntimes = 1000, stop = 0;
-				double lambda = 100000.0,       /* first value for lambda */
+				double lambda = 100.0,       /* first value for lambda */
 					lambda_fac = 10,	       /* decrease it with this ammount for each iteration */
 					lambda_lim = 1.0;       /* value of lambda where we exit the loop */
 				double *d_new = Calloc(graph->n, double);
