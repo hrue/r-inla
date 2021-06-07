@@ -2365,7 +2365,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 	 */
 
 	if (optpar && optpar->fp)
-		fprintf(optpar->fp, "\nComputing GMRF approximation\n------------------------------\n");
+		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", omp_get_thread_num());
 	nidx = 0;
 	idxs = Calloc(Npred, int);
 	for (i = 0; i < Npred; i++) {
@@ -2569,7 +2569,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 
 		if (optpar && optpar->fp)
-			fprintf(optpar->fp, "[%1d] iteration %d error %.12g\n", GMRFLib_thread_id, iter, err);
+			fprintf(optpar->fp, "[%1d] iteration %d error %.4f\n", GMRFLib_thread_id, iter, err);
 
 		if (gaussian_data) {
 			/*
