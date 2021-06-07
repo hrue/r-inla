@@ -3313,13 +3313,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 				fprintf(ai_par->fp_log, " ]\n");
 			}
-			FIXME("a");
-			GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
-			FIXME("b");
-			log_dens_mode *= -1.0;
-			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Compute mode: %10.3f\n", log_dens_mode);
+			// this is not needed as we do that below. I am not quite sure if we need this in general, but...
+			if (GMRFLib_preopt_mode != GMRFLib_PREOPT_STAGE2) {
+				GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+				log_dens_mode *= -1.0;
+				if (ai_par->fp_log) {
+					fprintf(ai_par->fp_log, "Compute mode: %10.3f\n", log_dens_mode);
+				}
 			}
+			
 		}
 
 		SET_THETA_MODE;
@@ -3929,13 +3931,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 
 		// need to reset this, as ai_store is not set correctly
-		if (x_mode) {
+		if (x_mode && ai_store->mode) {
 			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
-		FIXME("1");
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 		GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
-		FIXME("2");
 		log_dens_mode *= -1.0;
 		SET_THETA_MODE;
 		if (x_mode) {
@@ -3946,9 +3946,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			timer[1] = GMRFLib_cpu() - timer[1];
 			timer[2] = GMRFLib_cpu();
 		}
-
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
-		FIXME("3");
 
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
 			if (need_Qinv) {

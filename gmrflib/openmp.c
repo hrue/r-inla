@@ -134,7 +134,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	int nested;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
-	int debug = 1;
+	int debug = 0;
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
