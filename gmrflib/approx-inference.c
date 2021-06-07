@@ -3313,7 +3313,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 				fprintf(ai_par->fp_log, " ]\n");
 			}
+			FIXME("a");
 			GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+			FIXME("b");
 			log_dens_mode *= -1.0;
 			if (ai_par->fp_log) {
 				fprintf(ai_par->fp_log, "Compute mode: %10.3f\n", log_dens_mode);
@@ -3930,8 +3932,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		if (x_mode) {
 			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 		}
+		FIXME("1");
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 		GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+		FIXME("2");
 		log_dens_mode *= -1.0;
 		SET_THETA_MODE;
 		if (x_mode) {
@@ -3944,6 +3948,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
+		FIXME("3");
 
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
 			if (need_Qinv) {
@@ -4030,6 +4035,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			 */
 			CHECK_DENS_STORAGE_FORCE(design->nexperiments);
 			CHECK_HYPER_STORAGE_FORCE(design->nexperiments);
+		FIXME("4");
 
 #pragma omp parallel for private(k, i, log_dens, dens_count, hyper_count, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < design->nexperiments; k++) {
