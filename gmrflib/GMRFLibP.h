@@ -217,15 +217,16 @@ typedef enum {
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
 
+
 #define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
-	static size_t debug_count_ = 0;					\
+	static int debug_count_ = 0;					\
 	debug_count_++;							\
 	if (debug_ < 0)	{						\
 		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName);	\
-	}		
+	}
 
 #define GMRFLib_DEBUG_IF_TRUE (debug_)
-#define GMRFLib_DEBUG_IF      (!((debug_count_ - 1) % debug_))
+#define GMRFLib_DEBUG_IF      (debug_ > 0 && !((debug_count_ - 1) % debug_))
 
 #define GMRFLib_DEBUG(msg_)						\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
@@ -246,6 +247,7 @@ typedef enum {
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
 		printf("\t[%1d] %s:%1d (%s): %s %d %g\n", omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName, msg_, i_, d_); \
 	}
+
 
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783

@@ -1749,31 +1749,40 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 
 int GMRFLib_debug_functions(const char *name) 
 {
+	static int not_defined = 0;
+	if (not_defined) {
+		return 0;
+	}
+
 	static int first = 1;
 #pragma omp threadprivate(first)
 	
-	static map_stri defs;
+	static map_stri *defs = NULL;
 #pragma omp threadprivate(defs)
 	
-	if (first < 0) {
-		return 0;
-	}
 	
 	if (first == 1) {
 		// format FUN[:N],...
 		// GMRFLib_ and inla_ are added automatically
-		char *def = GMRFLib_strdup(getenv("INLA_TRACE"));
-		int verbose = 0;
+		char *def = getenv("INLA_TRACE");
+		int verbose = 1;
 		
+		if (def) {
+			def = GMRFLib_strdup(def);
+		}
 		if (verbose) {
 			printf("\t\tREAD %s\n", def);
 		}
 
 		if (!def) {
-			first = -1;
+			not_defined = 1;
+			first = 0;
+			return 0;
 		} else {
 			char sep1[] = ",";
-			map_stri_init_hint(&defs, 128);
+
+			defs = Calloc(1, map_stri);
+			map_stri_init_hint(defs, 128);
 			char *str = def;
 			char *s;
 					
@@ -1800,15 +1809,18 @@ int GMRFLib_debug_functions(const char *name)
 				if (!strcmp(ss, "*")) {
 					first = 2;
 				} 
-				char *nm;
-				GMRFLib_sprintf(&nm, "%s", ss);
-				map_stri_set(&defs, nm, val);
+
+				char *nm = NULL;
+				if (strlen(ss)) {
+					GMRFLib_sprintf(&nm, "%s", ss);
+					map_stri_set(defs, nm, val);
+				}
 
 				GMRFLib_sprintf(&nm, "GMRFLib_%s", ss);
-				map_stri_set(&defs, nm, val);
+				map_stri_set(defs, nm, val);
 
 				GMRFLib_sprintf(&nm, "inla_%s", ss);
-				map_stri_set(&defs, nm, val);
+				map_stri_set(defs, nm, val);
 
 				if (verbose) {
 					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
@@ -1820,10 +1832,7 @@ int GMRFLib_debug_functions(const char *name)
 		}
 	}
 
-	if (first < 0) {
-		return 0;
-	}
-	int *p = map_stri_ptr(&defs, (char *) (first == 2 ? "*" : name)) ;
+	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : name)) ;
 
 	return (p ? *p : 0);
 }

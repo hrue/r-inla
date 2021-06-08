@@ -73,7 +73,8 @@ __BEGIN_DECLS
   \brief Macro to be placed at the entry point of each routine which CPU time is be monitored.
 */
 #define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT;			\
-	GMRFLib_DEBUG_d("Enter", GMRFLib_cpu());			\
+	double debug_cpu_ = GMRFLib_cpu();				\
+	GMRFLib_DEBUG_d("Enter", debug_cpu_);				\
 	if (GMRFLib_collect_timer_statistics) {				\
 		GMRFLib_timer_enter(GMRFLib_timer_strip(__GMRFLib_FuncName)); \
 	}
@@ -83,7 +84,7 @@ __BEGIN_DECLS
 */
 #define GMRFLib_LEAVE_ROUTINE if (1)					\
 	{								\
-		GMRFLib_DEBUG_d("Leave", GMRFLib_cpu());		\
+		GMRFLib_DEBUG_d("Leave, time used", GMRFLib_cpu() - debug_cpu_); \
 		if (GMRFLib_collect_timer_statistics) {			\
 			GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName)); \
 		}							\
