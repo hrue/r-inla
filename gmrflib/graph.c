@@ -126,7 +126,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	GMRFLib_io_tp *io = NULL;
 
 	GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
-	GMRFLib_EWRAP0(GMRFLib_graph_mk_empty(graph));
+	GMRFLib_graph_mk_empty(graph);
 
 	GMRFLib_EWRAP0(GMRFLib_io_read_next(io, &tmp, "%lf"));
 	TO_INT((*graph)->n, tmp);
@@ -231,7 +231,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*graph));   /* prepare the graph for computations */
+	GMRFLib_graph_prepare(*graph);			       /* prepare the graph for computations */
 #undef TO_INT
 	return GMRFLib_SUCCESS;
 }
@@ -442,7 +442,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	 */
 	int i;
 	GMRFLib_DEBUG_INIT;
-	
+
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
@@ -626,7 +626,6 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-
 #pragma omp parallel for num_threads(2)
 	for (int i = 0; i < graph->n; i++) {
 		if (graph->nnbs[i]) {
@@ -822,7 +821,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 		}
 		indx += (*ngraph)->nnbs[i];
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*ngraph));
+	GMRFLib_graph_prepare(*ngraph);
 
 	return GMRFLib_SUCCESS;
 }
@@ -834,7 +833,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	 */
 	int m, i, n, *hold = NULL, hold_idx;
 	GMRFLib_graph_tp *g = NULL;
-	
+
 	GMRFLib_ENTER_ROUTINE;
 	if (!graph_old) {
 		*graph_new = NULL;
@@ -1041,7 +1040,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 			}
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(*subgraph));
+	GMRFLib_graph_prepare(*subgraph);
 
 	if (free_remove_flag) {
 		Free(remove_flag);			       /* if we have used our own */
@@ -1610,7 +1609,7 @@ int GMRFLib_graph_union_OLD(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp **
 			(*union_graph)->nbs[node] = NULL;
 		}
 	}
-	GMRFLib_graph_prepare(*union_graph);	/* this is required */
+	GMRFLib_graph_prepare(*union_graph);		       /* this is required */
 
 	/*
 	 * the union_graph is now (probably) to large as it acounts for multiple counts. the easiest way out of this, is to

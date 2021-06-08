@@ -217,7 +217,7 @@ int GMRFLib_timer_leave(const char *name)
 			 */
 		} else {
 			used = GMRFLib_cpu() - p->ctime_ref;
-			used = DMAX(0.0, used);	       /* yes */
+			used = DMAX(0.0, used);		       /* yes */
 			p->ctime_acc += used;
 			p->ctime_acc2 += SQR(used);
 			if (p->ntimes) {
@@ -227,7 +227,7 @@ int GMRFLib_timer_leave(const char *name)
 				p->ctime_min = p->ctime_max = used;
 			}
 
-			p->ctime_ref = -1.0;	       /* flag it specially */
+			p->ctime_ref = -1.0;		       /* flag it specially */
 			p->ntimes++;
 		}
 	}

@@ -1747,7 +1747,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
-int GMRFLib_debug_functions(const char *name) 
+int GMRFLib_debug_functions(const char *name)
 {
 	static int not_defined = 0;
 	if (not_defined) {
@@ -1756,17 +1756,17 @@ int GMRFLib_debug_functions(const char *name)
 
 	static int first = 1;
 #pragma omp threadprivate(first)
-	
+
 	static map_stri *defs = NULL;
 #pragma omp threadprivate(defs)
-	
-	
+
+
 	if (first == 1) {
 		// format FUN[:N],...
 		// GMRFLib_ and inla_ are added automatically
 		char *def = getenv("INLA_TRACE");
-		int verbose = 1;
-		
+		int verbose = 0;
+
 		if (def) {
 			def = GMRFLib_strdup(def);
 		}
@@ -1785,11 +1785,11 @@ int GMRFLib_debug_functions(const char *name)
 			map_stri_init_hint(defs, 128);
 			char *str = def;
 			char *s;
-					
+
 			first = -1;
-			while((s = strtok(str, sep1))) {
+			while ((s = strtok(str, sep1))) {
 				str = NULL;
-				
+
 				int val = 0;
 				char *s2 = strchr(s, ':');
 				char *ss;
@@ -1797,18 +1797,19 @@ int GMRFLib_debug_functions(const char *name)
 					ss = s;
 					val = 1;
 				} else {
-					int len = s2 - s + 1; 
+					int len = s2 - s + 1;
 					ss = Calloc(len + 1, char);
 					ss[len] = '\0';
-					strncpy(ss, s, len -1);
-					val = atoi(s2+1);
+					strncpy(ss, s, len - 1);
+					val = atoi(s2 + 1);
 					val = IMAX(val, 1);
 				}
 				// strip leading whitespace
-				while(!strncmp(ss, " ", 1)) ss++;
+				while (!strncmp(ss, " ", 1))
+					ss++;
 				if (!strcmp(ss, "*")) {
 					first = 2;
-				} 
+				}
 
 				char *nm = NULL;
 				if (strlen(ss)) {
@@ -1832,7 +1833,7 @@ int GMRFLib_debug_functions(const char *name)
 		}
 	}
 
-	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : name)) ;
+	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : name));
 
 	return (p ? *p : 0);
 }

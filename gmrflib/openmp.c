@@ -139,7 +139,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
-
 	// this check is done once only
 	if (GMRFLib_pardiso_ok < 0) {
 		GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);

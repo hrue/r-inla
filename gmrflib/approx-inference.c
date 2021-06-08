@@ -2590,7 +2590,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			}
 			GMRFLib_thread_id = id;
 		}
-
 		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
 		// this assumes err_i = m * (err_{i-1})^2
 		double m = err / SQR(err_previous);
@@ -3322,7 +3321,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				}
 			}
 		}
-			
+
 		SET_THETA_MODE;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 

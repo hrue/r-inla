@@ -643,8 +643,8 @@ forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUS
 			if (a->ff_Qfunc) {
 				if (same_idx && !same_tp && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value += a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
-										    (a->ff_Qfunc_arg ? a->
-										     ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+										    (a->
+										     ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -757,7 +757,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 	// add to 'bnew' the contribution from the likelihood for preopt
 
 	GMRFLib_idxval_tp **A = NULL;
-	
+
 	if (preopt->pA_idxval) {
 		A = preopt->pAAt_idxval;
 		assert(preopt->mpred > 0);
