@@ -452,9 +452,9 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 		p = map_strvp_ptr(&graph_store, (char *) graph->sha);
 		if (graph_store_debug || GMRFLib_DEBUG_IF) {
 			if (p) {
-				printf("graph_store: graph is found in store: do not free.\n");
+				printf("[%1d] graph_store: graph is found in store: do not free.\n", omp_get_thread_num());
 			} else {
-				printf("graph_store: graph is not found in store: free.\n");
+				printf("[%1d] graph_store: graph is not found in store: free.\n", omp_get_thread_num());
 			}
 		}
 		if (p) {
@@ -847,9 +847,9 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha);
 		if (graph_store_debug || GMRFLib_DEBUG_IF) {
 			if (p) {
-				printf("graph_store: graph is found in store: do not duplicate.\n");
+				printf("[%1d] graph_store: graph is found in store: do not duplicate.\n", omp_get_thread_num());
 			} else {
-				printf("graph_store: graph is not found in store: duplicate.\n");
+				printf("[%1d] graph_store: graph is not found in store: duplicate.\n", omp_get_thread_num());
 			}
 		}
 		if (p) {
@@ -888,7 +888,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 
 	if (graph_store_use && graph_old->sha) {
 		if (graph_store_debug || GMRFLib_DEBUG_IF) {
-			printf("graph_store: store graph 0x%p\n", (void *) g);
+			printf("[%1d] graph_store: store graph 0x%p\n", omp_get_thread_num(), (void *) g);
 		}
 #pragma omp critical
 		map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
