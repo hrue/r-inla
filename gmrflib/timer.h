@@ -77,7 +77,7 @@ __BEGIN_DECLS
 /*!
   \brief Macro to be placed at \em each exit point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_LEAVE_ROUTINE if (1) { GMRFLib_DEBUG_d("Leave", GMRFLib_cpu()); if (GMRFLib_collect_timer_statistics) GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName)); }
+#define GMRFLib_LEAVE_ROUTINE if (1) { if (GMRFLib_collect_timer_statistics) GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName)); }
 	
 
 
