@@ -3030,7 +3030,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	    NULL, *iz_axes = NULL, len_length, free_ai_par = 0, config_count = 0, free_compute = 0, dens_count =
 	    0, dens_max, hyper_len = 0, hyper_count = 0, *compute_idx = NULL, compute_n = 0, tmax, need_Qinv = 1;
 
-	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode, log_dens, *z = NULL, **izs =
+	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *neff = NULL, *timer,
 	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
@@ -3321,11 +3321,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					fprintf(ai_par->fp_log, "Compute mode: %10.3f\n", log_dens_mode);
 				}
 			}
-			
 		}
-
+			
 		SET_THETA_MODE;
-
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN, (void *) &nhyper, NULL);
 
 		if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
@@ -5281,7 +5279,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nhyper; k++) {
-
 				GMRFLib_ai_marginal_one_hyperparamter(&((*density_hyper)[k]), k, nhyper, hyper_count, hyper_z,
 								      hyper_ldens, theta_mode, sqrt_eigen_values, eigen_vectors,
 								      std_stdev_theta, ai_par->dz, stdev_corr_pos,
@@ -6826,10 +6823,11 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 	// 
 
 	if (interpolator == GMRFLib_AI_INTERPOLATOR_GRIDSUM) {
+
 		/*
 		 * this require that hessian_force_diagonal == TRUE, but this is verified in the call, unless the use wants it... 
 		 */
-		double *dens = NULL, *theta_tmp = NULL, *work = NULL, *npoints_j = NULL;
+		double *dens = NULL, *theta_tmp = NULL, *work = NULL, *npoints_j = NULL, ldens_max;
 
 		npoints = 0;
 		work = Calloc(5 * hyper_count + nhyper, double);
@@ -6840,21 +6838,23 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 		theta_tmp = work + 3 * hyper_count;
 		npoints_j = work + 4 * hyper_count;
 
+		ldens_max = GMRFLib_max_value(hyper_ldens, hyper_count, NULL);
 		for (i = 0; i < hyper_count; i++) {
+
 			GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[i * nhyper]), sqrt_eigen_values, eigen_vectors);
 			j = GMRFLib_which(theta_tmp[idx], points, npoints);
 			if (j >= 0) {
 				/*
 				 * point we have already 
 				 */
-				dens[j] += exp(hyper_ldens[i]);
+				dens[j] += exp(hyper_ldens[i] - ldens_max);
 				npoints_j[j]++;
 			} else {
 				/*
 				 * new point 
 				 */
 				points[npoints] = theta_tmp[idx];
-				dens[npoints] = exp(hyper_ldens[i]);
+				dens[npoints] = exp(hyper_ldens[i] - ldens_max);
 				npoints_j[npoints] = 1.0;
 				npoints++;
 			}
@@ -6876,10 +6876,13 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 		}
 
 		sd = std_stdev_theta[idx];
-
+		double ldens_min = log(GMRFLib_eps(1.0));
 		for (i = 0; i < npoints; i++) {
 			ldens_values[i] = log(dens[i]);
+			ldens_values[i] = IMAX(ldens_values[i], ldens_min);
 			points[i] = (points[i] - theta_mode[idx]) / sd;
+
+			printf("i point ldens %d %g %g\n", i, points[i], ldens_values[i]);
 		}
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, points, ldens_values,
 				       theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);
@@ -6932,7 +6935,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 				}
 			}
 			ldens_values[i] = GMRFLib_ai_integrator_func(nhyper, x, arg);
-			// printf("i %d x %g ldens %g\n", i, x[idx], ldens_values[i]);
+			printf("i %d x %g ldens %g\n", i, x[idx], ldens_values[i]);
 		}
 
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, theta_mode[idx],
