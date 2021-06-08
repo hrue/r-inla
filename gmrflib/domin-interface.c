@@ -144,8 +144,9 @@ int GMRFLib_opt_exit(void)
 	memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
 	memset(&B, 0, sizeof(Best_tp));
 	// we want to keep the directions. if the dimension changes then we reset... see below
-	if (0)
+	if (0) {
 		memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
+	}
 	memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
 
 	return GMRFLib_SUCCESS;

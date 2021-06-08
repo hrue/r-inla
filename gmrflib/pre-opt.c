@@ -756,7 +756,6 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 	// add to 'bnew' the contribution from the likelihood for preopt
 
 	GMRFLib_idxval_tp **A = NULL;
-	GMRFLib_idxval_elm_tp *elm = NULL;
 	
 	if (preopt->pA_idxval) {
 		A = preopt->pAAt_idxval;
@@ -769,7 +768,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->n; i++) {				\
 		if (A[i]) {						\
-			elm = A[i]->store;				\
+			GMRFLib_idxval_elm_tp *elm = A[i]->store;	\
 			for (int jj = 0; jj < A[i]->n; jj++) {		\
 				bnew[i] += blike[elm[jj].idx] * elm[jj].val; \
 			}						\
@@ -799,7 +798,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 	int offset = 0;
 	double *pred = Calloc(preopt->mnpred, double);
-	GMRFLib_idxval_elm_tp *elm = NULL;
 
 	if (preopt->pA_idxval) {
 		offset = preopt->mpred;
@@ -811,7 +809,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->npred; i++) {			\
 		if (preopt->A_idxval[i]) {				\
-			elm = preopt->A_idxval[i]->store;		\
+			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) { \
 				pred[offset + i] += elm[jj].val * latent[elm[jj].idx]; \
 			}						\
@@ -824,7 +822,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 #define CODE_BLOCK							\
 		for (int i = 0; i < preopt->mpred; i++) {		\
 			if (preopt->pA_idxval[i]) {			\
-				elm = preopt->pA_idxval[i]->store;	\
+				GMRFLib_idxval_elm_tp *elm = preopt->pA_idxval[i]->store; \
 				for (int jj = 0; jj < preopt->pA_idxval[i]->n; jj++) { \
 					pred[i] += elm[jj].val * pred[offset + elm[jj].idx]; \
 				}					\
