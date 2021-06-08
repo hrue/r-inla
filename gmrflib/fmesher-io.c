@@ -534,7 +534,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 		}
 	}
 
-	GMRFLib_graph_prepare(g, 0, 1);
+	GMRFLib_graph_prepare(g);
 	M->graph = g;
 
 	/*

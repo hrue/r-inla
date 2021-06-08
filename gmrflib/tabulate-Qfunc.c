@@ -489,7 +489,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	}
 
 	GMRFLib_ged_build(graph, ged);
-	GMRFLib_graph_prepare(*graph, 0, 0);
+	GMRFLib_graph_prepare(*graph);
 	GMRFLib_ged_free(ged);
 
 	/*

@@ -791,7 +791,7 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 			gg->nbs[i + n][4] = i - 1 + n;	       /* prev vel */
 		}
 	}
-	GMRFLib_EWRAP0(GMRFLib_graph_prepare(gg, 0, 0));
+	GMRFLib_graph_prepare(gg);
 	*graph = gg;
 
 	return GMRFLib_SUCCESS;
