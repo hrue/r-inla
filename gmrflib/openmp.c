@@ -128,20 +128,22 @@ int GMRFLib_set_blas_num_threads(int threads)
 
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp)
 {
+	GMRFLib_DEBUG_INIT;
+
 	int nt;
 	int ntmax = GMRFLib_MAX_THREADS;
 	int strategy = GMRFLib_openmp->strategy;
 	int nested;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
-	int debug = 0;
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
+
 	// this check is done once only
 	if (GMRFLib_pardiso_ok < 0) {
 		GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
-		if (debug) {
+		if (GMRFLib_DEBUG_IF_TRUE) {
 			printf("%s:%1d: pardiso-library installed and working? [%s]\n", __FILE__, __LINE__, (GMRFLib_pardiso_ok ? "YES" : "NO"));
 		}
 	}
@@ -153,7 +155,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	if (GMRFLib_pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-		if (debug) {
+		if (GMRFLib_DEBUG_IF_TRUE) {
 			printf("%s:%1d: Switch to strategy [%s]\n", __FILE__, __LINE__, GMRFLib_OPENMP_STRATEGY_NAME(strategy));
 		}
 	}
@@ -380,7 +382,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 	GMRFLib_set_blas_num_threads(GMRFLib_openmp->blas_num_threads);
 
-	if (debug) {
+	if (GMRFLib_DEBUG_IF_TRUE) {
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place), omp_get_nested());
 		printf("%s:%1d: max.threads[%1d] num.threads[%1d] blas.num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__,

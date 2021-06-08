@@ -1789,7 +1789,7 @@ int GMRFLib_debug_functions(const char *name)
 					val = 1;
 				} else {
 					int len = s2 - s + 1; 
-					ss = Calloc(len, char);
+					ss = Calloc(len + 1, char);
 					ss[len] = '\0';
 					strncpy(ss, s, len -1);
 					val = atoi(s2+1);
