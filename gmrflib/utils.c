@@ -1607,6 +1607,10 @@ forceinline int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double 
 	return GMRFLib_SUCCESS;
 }
 
+#undef MEMINFO
+#undef IDX_ALLOC_ADD
+#undef IDX_ALLOC_INITIAL
+
 /////////////////////////////////////////////////////////////////////////
 
 int GMRFLib_adjust_vector(double *x, int n)
@@ -1743,6 +1747,83 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
-#undef MEMINFO
-#undef IDX_ALLOC_ADD
-#undef IDX_ALLOC_INITIAL
+int GMRFLib_debug_functions(const char *name) 
+{
+	static int first = 1;
+#pragma omp threadprivate(first)
+	
+	static map_stri defs;
+#pragma omp threadprivate(defs)
+	
+	if (first < 0) {
+		return 0;
+	}
+	
+	if (first == 1) {
+		// format FUN[:N],...
+		// GMRFLib_ and inla_ are added automatically
+		char *def = GMRFLib_strdup(getenv("INLA_TRACE"));
+		int verbose = 0;
+		
+		if (verbose) {
+			printf("\t\tREAD %s\n", def);
+		}
+
+		if (!def) {
+			first = -1;
+		} else {
+			char sep1[] = ",";
+			map_stri_init_hint(&defs, 128);
+			char *str = def;
+			char *s;
+					
+			first = -1;
+			while((s = strtok(str, sep1))) {
+				str = NULL;
+				
+				int val = 0;
+				char *s2 = strchr(s, ':');
+				char *ss;
+				if (!s2) {
+					ss = s;
+					val = 1;
+				} else {
+					int len = s2 - s + 1; 
+					ss = Calloc(len, char);
+					ss[len] = '\0';
+					strncpy(ss, s, len -1);
+					val = atoi(s2+1);
+					val = IMAX(val, 1);
+				}
+				// strip leading whitespace
+				while(!strncmp(ss, " ", 1)) ss++;
+				if (!strcmp(ss, "*")) {
+					first = 2;
+				} 
+				char *nm;
+				GMRFLib_sprintf(&nm, "%s", ss);
+				map_stri_set(&defs, nm, val);
+
+				GMRFLib_sprintf(&nm, "GMRFLib_%s", ss);
+				map_stri_set(&defs, nm, val);
+
+				GMRFLib_sprintf(&nm, "inla_%s", ss);
+				map_stri_set(&defs, nm, val);
+
+				if (verbose) {
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
+				}
+				if (first != 2) {
+					first = 0;
+				}
+			}
+		}
+	}
+
+	if (first < 0) {
+		return 0;
+	}
+	int *p = map_stri_ptr(&defs, (char *) (first == 2 ? "*" : name)) ;
+
+	return (p ? *p : 0);
+}

@@ -6880,8 +6880,6 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 			ldens_values[i] = log(dens[i]);
 			ldens_values[i] = IMAX(ldens_values[i], ldens_min);
 			points[i] = (points[i] - theta_mode[idx]) / sd;
-
-			printf("i point ldens %d %g %g\n", i, points[i], ldens_values[i]);
 		}
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, points, ldens_values,
 				       theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);

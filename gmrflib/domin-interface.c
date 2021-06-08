@@ -157,11 +157,14 @@ int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **
 	/*
 	 * this function is called only for thread=0!!! 
 	 */
+	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
 	GMRFLib_opt_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
+
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -222,6 +225,9 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	/*
 	 * this version controls AI_STORE 
 	 */
+
+	GMRFLib_ENTER_ROUTINE;
+
 	int i, debug = 0;
 	double ffx, fx_local;
 	double tref = GMRFLib_cpu();
@@ -343,6 +349,7 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		}
 	}
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

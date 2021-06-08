@@ -136,7 +136,6 @@ typedef enum {
 		int rretval;				\
 		rretval = func_call;			\
 		if (rretval != GMRFLib_SUCCESS){	\
-			if (leave) GMRFLib_LEAVE_ROUTINE;	\
 			GMRFLib_ERROR(rretval);			\
 			return rretval;				\
 		}						\
@@ -147,7 +146,6 @@ typedef enum {
 		rrretval = func_call;					\
 		if (rrretval != MAPKIT_OK){				\
 			char *msg;					\
-			if (leave) GMRFLib_LEAVE_ROUTINE;		\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "Mapkit-library returned error-code [%1d]", rrretval), leave); \
 			GMRFLib_ERROR_MSG(GMRFLib_EMAPKIT, msg);	\
 			Free(msg);					\
@@ -162,7 +160,6 @@ typedef enum {
 		gsl_set_error_handler(ehandler);			\
 		if (rrretval != GSL_SUCCESS){				\
 			char *msg;					\
-			if (leave) GMRFLib_LEAVE_ROUTINE;		\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library returned error-code [%1d]", rrretval), leave); \
 			GMRFLib_ERROR_MSG(GMRFLib_EGSL, msg);		\
 			Free(msg);					\
@@ -176,7 +173,6 @@ typedef enum {
 		gsl_set_error_handler(ehandler);			\
 		if (retval_ptr == NULL){				\
 			char *msg;					\
-			if (leave) GMRFLib_LEAVE_ROUTINE;		\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library call returned NULL-pointer"), leave); \
 			GMRFLib_ERROR_MSG(GMRFLib_EMEMORY, msg);	\
 			Free(msg);					\
@@ -219,6 +215,36 @@ typedef enum {
 	_tacc += GMRFLib_cpu() - _tref;					\
 	printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n",	\
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
+	}
+
+#define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
+	static size_t debug_count_ = 0;					\
+	debug_count_++;							\
+	if (debug_ < 0)	{						\
+		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName);	\
+	}		
+
+#define GMRFLib_DEBUG_IF_TRUE (debug_)
+#define GMRFLib_DEBUG_IF      (!((debug_count_ - 1) % debug_))
+
+#define GMRFLib_DEBUG(msg_)						\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("[%1d] %s:%1d (%s): %s\n", omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName, msg_); \
+	}								\
+
+#define GMRFLib_DEBUG_i(msg_, i_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("[%1d] %s:%1d (%s): %s %d\n", omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName, msg_, _i); \
+	}
+
+#define GMRFLib_DEBUG_d(msg_, d_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("[%1d] %s:%1d (%s): %s %g\n", omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName, msg_, d_); \
+	}
+
+#define GMRFLib_DEBUG_id(msg_, i_, d_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("[%1d] %s:%1d (%s): %s %d %g\n", omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName, msg_, i_, d_); \
 	}
 
 /* 

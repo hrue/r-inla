@@ -173,6 +173,7 @@ int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
 int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 int GMRFLib_which(double val, double *array, int len);
+int GMRFLib_debug_functions(const char *name);
 map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);

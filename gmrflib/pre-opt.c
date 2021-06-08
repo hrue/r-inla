@@ -53,7 +53,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
 #define SHOW_TIME(_msg)							\
-	if (show_time) {						\
+	if (GMRFLib_DEBUG_IF_TRUE) {					\
 		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
 		tref =  GMRFLib_cpu();					\
 	}
@@ -65,7 +65,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	int i, ii, j, jj, k, kk, N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
 	int nrow = 0, ncol = 0;
-	int debug = 0, show_time = 1;
+	int debug = 0;
 
 	double tref = GMRFLib_cpu();
 	double **ww = NULL;
@@ -745,9 +745,10 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 
 int GMRFLib_preopt_bnew(double *b, GMRFLib_preopt_tp * preopt)
 {
-	// just add to 'b'.
+	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[GMRFLib_thread_id], preopt);
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -796,6 +797,8 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 	// if !likelihood_only, compute the whole likelihood
 
+	GMRFLib_ENTER_ROUTINE;
+
 	int offset = 0;
 	double *pred = Calloc(preopt->mnpred, double);
 
@@ -838,6 +841,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		Memcpy(predictor, pred, preopt->mnpred * sizeof(double));
 	}
 	Free(pred);
+	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }

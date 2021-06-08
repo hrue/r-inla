@@ -190,48 +190,45 @@ int GMRFLib_timer_enter(const char *name)
 
 int GMRFLib_timer_leave(const char *name)
 {
-//#pragma omp critical
-	{
-		GMRFLib_timer_hashval_tp *p;
-		void *vpp;
-		double used;
-		char *cname;
-		int ret = 0;
+	GMRFLib_timer_hashval_tp *p;
+	void *vpp;
+	double used;
+	char *cname;
+	int ret = 0;
 
-		cname = GMRFLib_strdup(name);
+	cname = GMRFLib_strdup(name);
 
-		if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname))) {
-			p = *((GMRFLib_timer_hashval_tp **) vpp);
-			Free(cname);
-		} else {
+	if ((vpp = map_strvp_ptr(&GMRFLib_timer_hashtable[omp_get_thread_num()], cname))) {
+		p = *((GMRFLib_timer_hashval_tp **) vpp);
+		Free(cname);
+	} else {
+		/*
+		 * this happen if _leave is executed but with no matching _enter, for example in the _EWRAP() macro. 
+		 */
+		Free(cname);
+		ret = 1;
+	}
+
+	if (!ret) {
+		if (p->ctime_ref < 0.0) {
 			/*
-			 * this happen if _leave is executed but with no matching _enter, for example in the _EWRAP() macro. 
+			 * this is an ``illegal instruction''. _timer_leave is called without a corresponding call to _timer_enter.
+			 * this happens, with purpose, with some of the `__intern' routines. 
 			 */
-			Free(cname);
-			ret = 1;
-		}
-
-		if (!ret) {
-			if (p->ctime_ref < 0.0) {
-				/*
-				 * this is an ``illegal instruction''. _timer_leave is called without a corresponding call to _timer_enter.
-				 * this happens, with purpose, with some of the `__intern' routines. 
-				 */
+		} else {
+			used = GMRFLib_cpu() - p->ctime_ref;
+			used = DMAX(0.0, used);	       /* yes */
+			p->ctime_acc += used;
+			p->ctime_acc2 += SQR(used);
+			if (p->ntimes) {
+				p->ctime_min = DMIN(p->ctime_min, used);
+				p->ctime_max = DMAX(p->ctime_max, used);
 			} else {
-				used = GMRFLib_cpu() - p->ctime_ref;
-				used = DMAX(0.0, used);	       /* yes */
-				p->ctime_acc += used;
-				p->ctime_acc2 += SQR(used);
-				if (p->ntimes) {
-					p->ctime_min = DMIN(p->ctime_min, used);
-					p->ctime_max = DMAX(p->ctime_max, used);
-				} else {
-					p->ctime_min = p->ctime_max = used;
-				}
-
-				p->ctime_ref = -1.0;	       /* flag it specially */
-				p->ntimes++;
+				p->ctime_min = p->ctime_max = used;
 			}
+
+			p->ctime_ref = -1.0;	       /* flag it specially */
+			p->ntimes++;
 		}
 	}
 	return GMRFLib_SUCCESS;
