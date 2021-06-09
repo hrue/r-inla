@@ -1747,6 +1747,18 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
+const char * GMRFLib_debug_functions_strip(const char *name) 
+{
+	char *s= name;
+	if (!strncmp("GMRFLib_", s, 8)){
+		s += 8;
+	}
+	if (!strncmp("inla_", s, 5)){
+		s += 5;
+	}
+	return s;
+}
+
 int GMRFLib_debug_functions(const char *name)
 {
 	static int not_defined = 0;
@@ -1763,7 +1775,7 @@ int GMRFLib_debug_functions(const char *name)
 
 	if (first == 1) {
 		// format FUN[:N],...
-		// GMRFLib_ and inla_ are added automatically
+		// prefix's GMRFLib_ and inla_ are removed automatically
 		char *def = getenv("INLA_TRACE");
 		int verbose = 0;
 
@@ -1807,33 +1819,29 @@ int GMRFLib_debug_functions(const char *name)
 				// strip leading whitespace
 				while (!strncmp(ss, " ", 1))
 					ss++;
+				// special option that override all others
 				if (!strcmp(ss, "*")) {
 					first = 2;
 				}
 
+				ss = GMRFLib_debug_functions_strip(ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
 					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(defs, nm, val);
 				}
-
-				GMRFLib_sprintf(&nm, "GMRFLib_%s", ss);
-				map_stri_set(defs, nm, val);
-
-				GMRFLib_sprintf(&nm, "inla_%s", ss);
-				map_stri_set(defs, nm, val);
+				if (first != 2) {
+					first = 0;
+				}
 
 				if (verbose) {
 					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
-				}
-				if (first != 2) {
-					first = 0;
 				}
 			}
 		}
 	}
 
-	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : name));
+	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : GMRFLib_debug_functions_strip(name)));
 
 	return (p ? *p : 0);
 }
