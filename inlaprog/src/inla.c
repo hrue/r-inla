@@ -30577,11 +30577,13 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	mb->dic = NULL;
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	x = Calloc(N, double);
-
 	if (mb->reuse_mode && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
+	int nparam_eff = mb->ai_par->compute_nparam_eff;
+	mb->ai_par->compute_nparam_eff = 0;
+	
 	/*
 	 * If Gaussian data, then force the strategy to be Gaussian  
 	 */
@@ -30621,6 +30623,9 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		}
 		mb->ai_par->int_design = design;
 	}
+
+	// set back
+	nparam_eff = mb->ai_par->compute_nparam_eff = nparam_eff;
 
 	GMRFLib_free_ai_store(ai_store);
 	Free(x);
@@ -36516,7 +36521,7 @@ int main(int argc, char **argv)
 			int nfunc[2] = { 0, 0 };
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
-			if (GMRFLib_preopt_mode && mb->ntheta > 0) {
+			if (GMRFLib_preopt_mode && mb->ntheta > 0 && !mb->fixed_mode) {
 				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
 				time_used[3] = GMRFLib_cpu();

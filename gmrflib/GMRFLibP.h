@@ -216,6 +216,7 @@ typedef enum {
 
 #define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
 	static int debug_count_ = 0;					\
+	_Pragma("omp threadprivate(debug_count_)")			\
 	debug_count_++;							\
 	if (debug_ < 0)	{						\
 		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
