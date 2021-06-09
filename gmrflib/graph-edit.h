@@ -62,10 +62,10 @@ __BEGIN_DECLS
 
 /*
  */
-typedef struct {
+    typedef struct {
 	int n;
 	int n_alloc;
-	map_ii * Q;
+	map_ii *Q;
 } GMRFLib_ged_tp;
 
 int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode);

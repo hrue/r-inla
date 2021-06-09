@@ -1747,13 +1747,13 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
-const char * GMRFLib_debug_functions_strip(const char *name) 
+const char *GMRFLib_debug_functions_strip(const char *name)
 {
-	char *s= name;
-	if (!strncmp("GMRFLib_", s, 8)){
+	char *s = name;
+	if (!strncmp("GMRFLib_", s, 8)) {
 		s += 8;
 	}
-	if (!strncmp("inla_", s, 5)){
+	if (!strncmp("inla_", s, 5)) {
 		s += 5;
 	}
 	return s;

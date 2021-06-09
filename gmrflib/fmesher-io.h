@@ -95,7 +95,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M);
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence);
 int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M);
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M);
-int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp * M);
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M);
 
 __END_DECLS
 #endif
