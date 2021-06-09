@@ -156,7 +156,6 @@ typedef struct {
 	map_func_tp *func;
 } map_table_tp;
 
-
 typedef struct {
 	size_t len;
 	char *contents;
@@ -250,7 +249,6 @@ typedef struct {
 	double **dof_intern_tstrata;			       /* common dof */
 	double *weight_tstrata;				       /* weight_t */
 	double *strata_tstrata;				       /* strata_t (type int) */
-
 
 	/*
 	 * stocvol
@@ -835,7 +833,6 @@ typedef struct {
 	int mix_ntheta;
 } Data_section_tp;
 
-
 typedef struct {
 	int n;
 	int dim;
@@ -865,7 +862,6 @@ typedef struct {
 	double **hold_Qmarg;				       /* dim = p */
 } ar_def_tp;
 
-
 typedef struct {
 	double precision;
 	double **beta;
@@ -890,7 +886,6 @@ typedef struct {
 	char *file;
 	char *model;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
-
 
 struct inla_tp_struct {
 	/*
@@ -1136,8 +1131,6 @@ struct inla_tp_struct {
 	inla_update_tp *update;
 };
 
-
-
 typedef struct {
 	GMRFLib_graph_tp *graph;
 	double **log_prec;
@@ -1173,7 +1166,6 @@ typedef struct {
 	double **logit_phi;
 	GMRFLib_rw2ddef_tp *rw2ddef;
 } inla_rw2diid_Qfunc_arg_tp;
-
 
 typedef struct {
 	GMRFLib_graph_tp *graph;
@@ -1228,7 +1220,6 @@ typedef struct {
 	double logdet_Qbeta;
 } inla_ar1c_arg_tp;
 
-
 typedef struct {
 	/*
 	 * 2D iid random effects. The coding is (x0,y0,x1,y1,...,xn-1,yn-1), so the total length is N=2*n. For the 2DIIDWISHART the coding is (x,y).
@@ -1281,7 +1272,6 @@ typedef struct {
 	double *vec;
 	gsl_matrix *Q;
 } inla_wishart_hold_tp;
-
 
 typedef struct {
 	/*
@@ -1338,7 +1328,6 @@ typedef struct {
 	int n;						       /* size of the original problem */
 } inla_replicate_tp;
 
-
 /* 
    constrained fixed effect
  */
@@ -1348,7 +1337,6 @@ typedef struct {
 	double *x;
 	double precision;
 } inla_clinear_tp;
-
 
 /* 
    sigmodial and reverse sigmodial and log1exp
@@ -1470,7 +1458,6 @@ typedef struct {
 	double alpha;
 } inla_sn_arg_tp;
 
-
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_MU "mu"
@@ -1500,7 +1487,6 @@ typedef struct {
 #define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
 #define IDW(a, b)  {IW(a); DW(b);}
 #define ID2W(a, b, c)  {IW(a); D2W(b, c);}
-
 
 /* 
    functions
@@ -1936,7 +1922,6 @@ double testit_Qfunc(int i, int j, double *values, void *arg);
 ***
 */
 
-
 typedef struct {
 	int binary;					       /* use binary output-files */
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
@@ -1949,7 +1934,6 @@ typedef struct {
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
-
 
 #define HYPER_NEW2(name_, initial_, n_)  {				\
 		int i_, j_;						\
@@ -1984,7 +1968,6 @@ typedef struct {
 			   (mb->f_id[idx] == F_IID3D ? 3 :		\
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
-
 
 __END_DECLS
 #endif

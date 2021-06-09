@@ -28,7 +28,6 @@
  *
  */
 
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
@@ -857,7 +856,6 @@ int GMRFLib_2order_approx_core(double *a, double *b, double *c, double *dd, doub
 			double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 			double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
 			double wfff[] = { -1.0 / 2.0, 1.0, 0.0, -1.0, 1.0 / 2.0 };
-
 
 			xx[0] = x0 - 2.0 * step;
 			xx[1] = x0 - step;

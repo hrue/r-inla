@@ -189,7 +189,6 @@ extern double R_rgeneric_cputime;
 		Free(dup_msg);					\
 	}
 
-
 #define CODE_NEEDED \
 	if (1) {							\
 		fprintf(stderr, "\n\n%s: %d  CODE NEEDED HERE!\n\n", __FILE__, __LINE__); \
@@ -197,12 +196,10 @@ extern double R_rgeneric_cputime;
 		assert(0==1);						\
 	}
 
-
 // these versions (in my.c) cache the result when the argument is integer
 #define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
 #define gsl_sf_lnfact(_x) my_gsl_sf_lnfact(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
-
 
 int inla_ncpu(void)
 {
@@ -566,7 +563,6 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 	if (debug) {
 		printf("...this gives alpha= %g, delta= %g, omega= %g, xi= %g\n", alpha, delta, omega, xi);
 	}
-
 
 	if (!ISEQUAL(alpha, table[id]->alpha)) {
 		int len = (int) (2.0 * range / dx + 0.5) + 1, llen = 0;
@@ -3030,7 +3026,6 @@ double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 		return map_precision(a->log_prec[0][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	}
 
-
 	/*
 	 * using this prevent us for using '#pragma omp critical' below, so its much quicker 
 	 */
@@ -3419,7 +3414,6 @@ double priorfunc_pc_alphaw(double *x, double *parameters)
 #undef D
 	return (ld);
 }
-
 
 double priorfunc_pc_gamma(double *x, double *parameters)
 {
@@ -3870,7 +3864,6 @@ double priorfunc_dirichlet(double *x, double *parameters)
 		P(ld);
 	}
 
-
 	Free(work);
 #undef _F
 #undef _f
@@ -4137,7 +4130,6 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 		if (debug) GMRFLib_printf_gsl_matrix(stdout, Q_, NULL); \
 		GMRFLib_gsl_spd_inverse(Q_);				\
 	}
-
 
 	COMPUTE_Q(Q);
 	val = GMRFLib_Wishart_logdens(Q, r, R) + (fail ? PENALTY : 0.0);
@@ -5038,7 +5030,6 @@ int loglikelihood_agaussian(double *logll, double *x, int m, int idx, double *UN
 	return GMRFLib_SUCCESS;
 }
 
-
 int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -5477,7 +5468,6 @@ int loglikelihood_logistic(double *logll, double *x, int m, int idx, double *UNU
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
-
 
 int loglikelihood_sn(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -5953,7 +5943,6 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *UNUS
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-
 
 	// cache the values of lg1 and lg2
 	static double lg1 = 0.0, lg2 = 0.0, dof_cache = -1.0;
@@ -6990,7 +6979,6 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
-
 
 	LINK_INIT;
 	if (m > 0) {
@@ -8080,7 +8068,6 @@ int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_v
 	return GMRFLib_SUCCESS;
 }
 
-
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -8582,7 +8569,6 @@ int loglikelihood_gammacount(double *logll, double *x, int m, int idx, double *U
 	 */
 #define _G(_alpha, _beta) gsl_cdf_gamma_P((_beta), (_alpha), 1.0)
 
-
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
@@ -8700,7 +8686,6 @@ int loglikelihood_gp(double *logll, double *x, int m, int idx, double *UNUSED(x_
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
-
 
 int loglikelihood_dgp(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -8999,7 +8984,6 @@ int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUS
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
-
 
 int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -9401,7 +9385,6 @@ int loglikelihood_weibullsurv(double *logll, double *x, int m, int idx, double *
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_weibull));
 }
 
-
 int loglikelihood_gompertz(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -9441,7 +9424,6 @@ int loglikelihood_gompertzsurv(double *logll, double *x, int m, int idx, double 
 {
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_gompertz));
 }
-
 
 int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
@@ -9608,7 +9590,6 @@ int loglikelihood_weibull_cure(double *logll, double *x, int m, int idx, double 
 	onemp = 1.0 - p;
 	podds = p / onemp;
 	LINK_INIT;
-
 
 	if (m > 0) {
 		switch (ievent) {
@@ -10856,7 +10837,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 	sec_read = Calloc(nsec, char);
 
-
 	/*
 	 * default: gaussian data is on, then its turned off... unless we chose to disable the check
 	 */
@@ -11134,7 +11114,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		Free(secname);
 		Free(sectype);
 	}
-
 
 	/*
 	 * type = lincomb
@@ -11462,7 +11441,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
 			}
 		}
-
 
 		GMRFLib_io_read(io, w, npairs * sizeof(double));
 		lc->weight = Realloc(lc->weight, lc->n + npairs, float);	/* YES! */
@@ -13721,7 +13699,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-
 	case L_GP:
 	case L_DGP:
 		/*
@@ -15119,7 +15096,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-
 	case L_ZEROINFLATEDNBINOMIAL1STRATA2:
 		/*
 		 * get options related to the zeroinflated negative binomial_0/1, strata2
@@ -15351,7 +15327,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tfixed=[%1d]\n", ds->data_fixed0);
 		}
 		inla_read_prior0(mb, ini, sec, &(ds->data_prior0), "LOGGAMMA", NULL);
-
 
 		/*
 		 * add theta 
@@ -15756,7 +15731,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-
 
 		double initial_value = 500.0;
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), initial_value);
@@ -16865,7 +16839,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-
 	default:
 		/*
 		 * nothing to do 
@@ -16873,13 +16846,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_ntheta = 0;
 	}
 
-
 	/*
 	 * setup the link-model
 	 */
 	ds->link_model = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join(secname, "LINK.MODEL"), GMRFLib_strdup("default"))));
 	inla_trim_family(ds->link_model);
-
 
 	if (!strcasecmp(ds->link_model, "IDENTITY")) {
 		ds->link_id = LINK_IDENTITY;
@@ -18053,7 +18024,6 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * 
 		c->e_vector[j] = 0.0;
 	}
 
-
 	/*
 	 * this is a stupid construction (i blame myself...): i have to pass the graph in order to pass `n'... 
 	 */
@@ -18593,7 +18563,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_fixed[mb->nf] = NULL;
 		mb->f_theta[mb->nf] = NULL;
 	}
-
 
 	/*
 	 * just allocate this here, as its needed all over 
@@ -19707,7 +19676,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			break;
 		}
 	}
-
 
 	// read locations also here if not read before
 	if (!mb->f_locations[mb->nf] && mb->f_n[mb->nf] > 0) {
@@ -20896,7 +20864,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-
 	case F_FGN:
 	case F_FGN2:
 	{
@@ -21203,7 +21170,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 	}
-
 
 	case F_SLM:
 	{
@@ -22180,7 +22146,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-
 	case F_LOG1EXP:
 	{
 		char *local_name = GMRFLib_strdup("LOG1EXP");
@@ -22448,7 +22413,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		break;
 	}
-
 
 	case F_BYM:
 	{
@@ -23206,7 +23170,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 	}
-
 
 	case F_DMATERN:
 	{
@@ -24027,7 +23990,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-
 	case F_SEASONAL:
 	{
 		GMRFLib_seasonaldef_tp *sdef = NULL;
@@ -24340,7 +24302,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-
 	case F_FGN:
 	{
 		inla_fgn_arg_tp *def = NULL, *def_orig = NULL;
@@ -24448,7 +24409,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
-
 	case F_AR1:
 	{
 		/*
@@ -24482,7 +24442,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		break;
 	}
-
 
 	case F_AR1C:
 	{
@@ -25288,7 +25247,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 			}
 
-
 			/*
 			 * make required changes.  oops, the rankdef is for the size-n model, not the size-N one! 
 			 */
@@ -25523,7 +25481,6 @@ int inla_add_copyof(inla_tp * mb)
 			printf("k= %1d tag= %s of= %s\n", k, mb->f_tag[k], mb->f_of[k]);
 		}
 	}
-
 
 	for (k = 0; k < nf; k++) {
 		if (mb->f_id[k] == F_COPY) {
@@ -26082,7 +26039,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		// Just mark it as read
 		iniparser_getstring(ini, inla_string_join(secname, "INT.DESIGN"), NULL);
 	}
-
 
 	mb->ai_par->f0 = iniparser_getdouble(ini, inla_string_join(secname, "F0"), mb->ai_par->f0);
 	tmp = iniparser_getdouble(ini, inla_string_join(secname, "DZ"), mb->ai_par->dz);
@@ -26682,7 +26638,6 @@ double extra(double *theta, int ntheta, void *argument)
 		grankdef = 0.0;						\
 		gcorr = 1.0;						\
 	}
-
 
 	mb = (inla_tp *) argument;
 
@@ -28693,7 +28648,6 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-
 		case F_SLM:
 		{
 			if (_NOT_FIXED(f_fixed[i][0])) {
@@ -29261,7 +29215,6 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-
 		case F_BYM2:
 		{
 			if (_NOT_FIXED(f_fixed[i][0])) {
@@ -29436,7 +29389,6 @@ double extra(double *theta, int ntheta, void *argument)
 			break;
 		}
 
-
 		case F_INTSLOPE:
 		{
 			// this first part is just a copy from F_IID2D
@@ -29600,8 +29552,6 @@ double extra(double *theta, int ntheta, void *argument)
 			h->matern2ddef->log_range = NULL;
 			h->matern2ddef->log_range_omp = NULL;
 
-
-
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				h->precision = map_precision(theta[count], MAP_FORWARD, NULL);
 				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
@@ -29657,7 +29607,6 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				log_nu = mb->f_theta[i][2][GMRFLib_thread_id][0];
 			}
-
 
 			dmatern_arg_tp *a = (dmatern_arg_tp *) (mb->f_Qfunc_arg_orig[i]);
 			gsl_matrix *S = gsl_matrix_calloc(a->n, a->n);
@@ -32008,7 +31957,6 @@ int inla_output(inla_tp * mb)
 		}
 	}
 	int N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
-
 
 	/*
 	 * workaround for some strange bug deteced by valgrind. ``parallel sections'' give
@@ -34885,7 +34833,6 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-
 	case 5:
 	{
 		GMRFLib_spline_tp **spline = NULL;
@@ -34937,7 +34884,6 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-
 	case 8:
 	{
 #pragma omp critical
@@ -34961,7 +34907,6 @@ int testit(int argc, char **argv)
 				printf("x[ %1d ] = %g\n", i, x_out[i]);	\
 			};						\
 			Free(x_out)
-
 
 			inla_R_rgeneric(&n_out, &x_out, "graph", _MODEL, ntheta, theta);
 			_PPP("graph");
@@ -35026,7 +34971,6 @@ int testit(int argc, char **argv)
 			sum += exp(priorfunc_pc_ar(x2, parameters));
 		}
 		P(sum * pow(dx, 1.0));
-
 
 		parameters[0] = 2.123;			       /* lambda */
 		parameters[1] = 2;			       /* p */
@@ -35113,7 +35057,6 @@ int testit(int argc, char **argv)
 		Q->nrow = Q->ncol = n;
 		Q->elems = ISQR(n);
 		Q->A = Calloc(ISQR(n), double);
-
 
 		int ntimes = 10, itim;
 
@@ -35259,7 +35202,6 @@ int testit(int argc, char **argv)
 		GMRFLib_matrix_tp *M = NULL;
 
 		int i, j, k, kk;
-
 
 		printf("read file %s\n", argv[3]);
 		M = GMRFLib_read_fmesher_file(argv[3], 0L, -1);
@@ -35705,7 +35647,6 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-
 	case 44:
 	{
 		double a, b, y;
@@ -35879,7 +35820,6 @@ int testit(int argc, char **argv)
 		P(sum);
 		P(exp(ldens));
 		P(sum + exp(ldens));
-
 
 		double lmu;
 		y = 1;
@@ -36413,7 +36353,6 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
-
 
 #if !defined(WINDOWS)
 	/*

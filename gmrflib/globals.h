@@ -207,7 +207,6 @@ extern int GMRFLib_thread_id;
 extern int GMRFLib_request_optimiser_to_stop;
 
 
-
 /* 
    Maximum dimension of bitmap; unlimited if size <= 0
  */
@@ -222,7 +221,6 @@ extern int GMRFLib_bitmap_swap;
    Holds the thread strategy
  */
 extern GMRFLib_openmp_tp *GMRFLib_openmp;
-
 
 /*
   Holds the on/off of meminfo collection
@@ -250,14 +248,11 @@ extern int GMRFLib_debug_code;
  */
 extern int GMRFLib_pardiso_ok;
 
-
 // use jfirst/jlen computing with the constraint matrix
 extern int GMRFLib_faster_constr;
 
-
 // add stability to AQ^-1A^T
 extern double GMRFLib_aqat_m_diag_add;
-
 
 extern int GMRFLib_preopt_mode;
 

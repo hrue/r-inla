@@ -28,7 +28,6 @@
  *
  */
 
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
@@ -610,7 +609,6 @@ int GMRFLib_ai_log_posterior(double *logdens,
 		}
 	}
 
-
 	if (d) {
 		/*
 		 * do not include fixed points 
@@ -710,7 +708,6 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 		 */
 		f = Calloc(ns, double);
 		g = Calloc(ns, double);
-
 
 		for (ii = 0; ii < ns; ii++) {
 			// i = subgraph->mothergraph_idx[ii];
@@ -1320,7 +1317,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		// exit(0);
 	}
 
-
 	/*
 	 * if we do not use the meancorrected gaussian and the fast-option, then locate local neigb. set the derivative to zero
 	 * for those sites that are not in the local neigb.
@@ -1407,7 +1403,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			}
 		}
 	}
-
 
 	switch (ai_par->linear_correction) {
 	case GMRFLib_AI_LINEAR_CORRECTION_OFF:
@@ -2874,7 +2869,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		Free(_skewness);					\
 	}
 
-
 #define CHECK_HYPER_STORAGE_FORCE(num_) CHECK_HYPER_STORAGE_INTERN(num_, 4)
 #define CHECK_HYPER_STORAGE CHECK_HYPER_STORAGE_INTERN(1, 0)
 #define CHECK_HYPER_STORAGE_INTERN(num_, force_)			\
@@ -2961,7 +2955,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}							\
 	}
 
-
 /* 
  * if cpo_manual, then by definition, d[ii] = 0, but the observation is still there, so we have set, temporary, d[ii] = 1.
  */
@@ -3012,7 +3005,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						ii, dens_local[ii], d[ii], loglFunc, loglFunc_arg, xx_mode); \
 		}							\
 	}
-
 
 /* 
    since all threads compute the same quantity, this is it well defined
@@ -4953,7 +4945,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			x_vec[ii] = (*density)[ii]->user_mean;
 		}
 
-
 		/*
 		 * find the min length of the data contribution that cover all data points 
 		 */
@@ -6030,7 +6021,6 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		Qinv[k] = (tmp ? *tmp : NAN);
 	}
 
-
 	if (debug) {
 		printf("i mean\n");
 		for (k = 0; k < g->n; k++) {
@@ -6120,7 +6110,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	// I disable optimatisation as there is something going on with pardiso, in _some_ cases.
 	int disable_opt = 1;
-
 
 	typedef struct {
 		double *v;
@@ -7733,7 +7722,6 @@ int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx, doub
 					}
 					printf("\n");
 				}
-
 
 				for (i = 0; i < pool->nconfig; i++) {
 					if (!pool->out[i]) {

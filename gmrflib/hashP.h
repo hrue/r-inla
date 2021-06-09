@@ -351,7 +351,6 @@ extern "C" {
 /* default initial size */
 #define MAPKIT_DEFAULT_EXPECTEDUSED (100)
 
-
 /* 
    hrue: need to make sure that the SIZE_T is the same size as a pointer!
    

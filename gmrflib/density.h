@@ -158,7 +158,6 @@ typedef struct {
 	double *log_density;				       /* log_densities */
 } GMRFLib_sn_fit_data_tp;
 
-
 /* 
    the scaling of the weight for SN-fit, stdev = exp(- log_density[i] * GMRFLib_SN_WEIGHT_SCALING )
 */
@@ -269,7 +268,6 @@ typedef enum {
 	 */
 	GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH
 } GMRFLib_density_storage_strategy_tp;
-
 
 /* 
    this object is used for computing properties of the density

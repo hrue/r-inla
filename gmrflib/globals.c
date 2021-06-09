@@ -220,13 +220,11 @@ int GMRFLib_bitmap_swap = 0;
  */
 GMRFLib_openmp_tp *GMRFLib_openmp = NULL;
 
-
 /* 
    Holds the MemInfo flag
  */
 int GMRFLib_meminfo_thread_id = 0;
 #pragma omp threadprivate(GMRFLib_meminfo_thread_id)
-
 
 /* 
    define global nodes = {factor, degree}. factor: a node is defined to be global if nneig(i) >= (n-1) *factor degree :node is define to be global if nneig(i) >=
@@ -238,7 +236,6 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
    storage strategy for density
  */
 GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
-
 
 /* 
    internal use only; for debugging

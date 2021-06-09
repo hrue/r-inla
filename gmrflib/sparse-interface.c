@@ -43,7 +43,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: sparse-interface.c,v 1.41 2010/02/27 08:32:02 hrue Exp $ */
 
-
 /*!
   \brief Compute the reordering
 */

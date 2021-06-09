@@ -82,10 +82,6 @@ typedef struct {
 	double *logjac;
 } re_sas_prior_tp;
 
-
-
-
-
 CLP *contourLines1(double *x, int nx, double *y, int ny, double *z, double zc);
 CLP ctr_newseg(double x0, double y0, double x1, double y1, CLP prev);
 CLP ctr_segupdate(double xend, double yend, int dir, int tail, CLP seglist, CLP * seg);

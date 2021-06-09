@@ -80,7 +80,6 @@ typedef struct {
 	GMRFLib_bfunc2_tp *bdef;			       /* doit like this, as many has the same 'bdef' */
 } GMRFLib_bfunc_tp;
 
-
 /** 
  * Available strategies.
  */
@@ -253,7 +252,6 @@ typedef enum {
 #define GMRFLib_AI_OPTIMISER_NAME(opt) \
 	((opt) == GMRFLib_AI_OPTIMISER_GSL ? "GSL-BFGS2" : \
 	 ((opt) == GMRFLib_AI_OPTIMISER_DEFAULT ? "DEFAULT METHOD" : "unknown!!!"))
-
 
 /**
  * \brief Parameters for doing approximate inference
@@ -443,7 +441,6 @@ typedef struct {
 	 */
 	double gsl_step_size;
 
-
 	/**
 	 * \brief Gaussian approximation optmiser parameter: abserr_func
 	 */
@@ -595,7 +592,6 @@ typedef struct {
 	double *bb;					       /* the 'bb' and 'cc' array */
 	double *cc;
 
-
 	/**
 	 *\brief Store indices for the datapoints
 	 */
@@ -722,7 +718,6 @@ typedef struct {
 	 * \brief The deviance(E) contribution (saturated)
 	 */
 	double *deviance_e_sat;
-
 
 } GMRFLib_ai_dic_tp;
 
@@ -920,7 +915,6 @@ typedef struct {
 	int j;
 } GMRFLib_lc_ij_tp;
 
-
 typedef struct {
 	double *stdev_corr_neg;
 	double *stdev_corr_pos;
@@ -955,12 +949,10 @@ typedef struct {
 	double coofs[3];
 } GMRFLib_vb_coofs_tp;
 
-
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
 
 #include "GMRFLib/pre-opt.h"
-
 
 int GMRFLib_ai_pool_free(GMRFLib_ai_pool_tp * pool);
 int GMRFLib_ai_pool_get(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx);
@@ -969,7 +961,6 @@ int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx, doub
 int GMRFLib_ai_pool_set(GMRFLib_ai_pool_tp * pool, size_t idx, double logdens);
 int GMRFLib_pool_cmp(const void *a, const void *b);
 int GMRFLib_pool_cmp1(const void *a, const void *b);
-
 
 int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx, int nhyper, int hyper_count, double *hyper_z,
 					  double *hyper_ldens, double *theta_mode, gsl_vector * sqrt_eigen_values,

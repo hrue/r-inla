@@ -90,8 +90,6 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 	return (GMRFLib_SUCCESS);
 }
 
-
-
 double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -264,7 +262,6 @@ double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
 
 	return val;
 }
-
 
 int inla_fgn_get(double *phi, double *w, double H_intern, int k)
 {

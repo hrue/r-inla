@@ -208,7 +208,6 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 
 	GMRFLib_EWRAP0(GMRFLib_io_close(io));
 
-
 	/*
 	 * map the graph to a more computational convenient memory layout! use just one long vector to store all the neighbors. 
 	 */
@@ -1403,7 +1402,6 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic
 	GMRFLib_graph_prepare(*graph);
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg)
 {

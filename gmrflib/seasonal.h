@@ -98,7 +98,6 @@ __BEGIN_DECLS
 	 */
 	double **log_prec_omp;
 
-
 	double *prec_scale;				       /* scaling of the precision for scale.model=TRUE */
 } GMRFLib_seasonaldef_tp;
 

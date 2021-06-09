@@ -59,7 +59,6 @@ __BEGIN_DECLS
 	gsl_matrix *tAinv;
 } opt_dir_params_tp;
 
-
 typedef struct {
 	int *f_count;
 	int nhyper;

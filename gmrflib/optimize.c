@@ -810,7 +810,6 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		}
 		GMRFLib_thread_id = id;
 
-
 		GMRFLib_EWRAP0(GMRFLib_init_problem_store(&problem, opt_problem->mode, bb, NULL, NULL, opt_problem->sub_graph,
 							  opt_problem->sub_Qfunc, (void *) opt_problem->sub_Qfunc_arg,
 							  opt_problem->sub_constr, store));

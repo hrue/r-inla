@@ -243,7 +243,6 @@ int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc)
 	return GMRFLib_SUCCESS;
 }
 
-
 int GMRFLib_icmp(const void *a, const void *b)
 {
 	const int *ia, *ib;
@@ -811,7 +810,6 @@ int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 	return 0;
 }
 
-
 int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format)
 {
 	size_t i, j;
@@ -1219,7 +1217,6 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 	}
 	return a;
 }
-
 
 int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 {
@@ -1749,7 +1746,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 
 const char *GMRFLib_debug_functions_strip(const char *name)
 {
-	char *s = name;
+	char *s = (char *) name;
 	if (!strncmp("GMRFLib_", s, 8)) {
 		s += 8;
 	}
@@ -1771,7 +1768,6 @@ int GMRFLib_debug_functions(const char *name)
 
 	static map_stri *defs = NULL;
 #pragma omp threadprivate(defs)
-
 
 	if (first == 1) {
 		// format FUN[:N],...
@@ -1804,7 +1800,7 @@ int GMRFLib_debug_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss;
+				char *ss, *sss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1824,10 +1820,10 @@ int GMRFLib_debug_functions(const char *name)
 					first = 2;
 				}
 
-				ss = GMRFLib_debug_functions_strip(ss);
+				sss = (char *) GMRFLib_debug_functions_strip((const char *)ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", ss);
+					GMRFLib_sprintf(&nm, "%s", sss);
 					map_stri_set(defs, nm, val);
 				}
 				if (first != 2) {
@@ -1835,7 +1831,7 @@ int GMRFLib_debug_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
 				}
 			}
 		}

@@ -28,7 +28,6 @@
  *
  */
 
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
@@ -649,7 +648,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			tmp = result - SQR(density->mean);
 			density->stdev = sqrt(DMAX(tmp, 0.0));
 
-
 			/*
 			 *  I do not care to add the skewness computations right now, as this code part is obsolete!
 			 */
@@ -903,7 +901,6 @@ int GMRFLib_free_density(GMRFLib_density_tp * density)
 			gsl_interp_accel_free(_s->accel);	\
 		Free(_s);					\
 	}
-
 
 	if (density) {
 		switch (density->type) {
@@ -1965,7 +1962,6 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
   
   Repo is https://github.com/thomasluu/sncdfinv/
 
-  
   Copyright 2015-2016 Thomas Luu
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
@@ -1976,7 +1972,6 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
   Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
   BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
-
 
   plog: Computation of the Lambert W-function by Halley's Method.
 

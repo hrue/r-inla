@@ -1444,7 +1444,6 @@ int my_pardiso_test3(void)
 			}
 		}
 
-
 		for (i = 0; i < g->n * nrhs; i++) {
 			b[i] = ISQR(i + 1);
 		}

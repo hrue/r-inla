@@ -124,7 +124,6 @@ typedef struct {
 	int adaptive;
 } GMRFLib_openmp_tp;
 
-
 #define GMRFLib_MAX_THREADS (GMRFLib_openmp ? GMRFLib_openmp->max_threads : IMIN(omp_get_max_threads(), omp_get_num_procs()))
 // Might replace `4' in the generic pardiso control statement later (if that happens)
 #define GMRFLib_PARDISO_MAX_NUM_THREADS (GMRFLib_openmp->adaptive ?	\

@@ -234,12 +234,10 @@ typedef struct {
 	double *prec_scale;
 } GMRFLib_crwdef_tp;
 
-
 typedef enum {
 	GMRFLib_BVALUE_DEFAULT = 0,			       /* do not change this */
 	GMRFLib_BVALUE_ZERO = 1
 } GMRFLib_rw2d_bvalue_tp;
-
 
 /*!
   \struct GMRFLib_rw2ddef_tp rw.h

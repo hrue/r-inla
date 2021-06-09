@@ -45,7 +45,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define BESSEL_KNU(_alpha, _x) bessel_Knu(_alpha, _x)
 //#define BESSEL_KNU(_alpha, _x) gsl_sf_bessel_Knu(_alpha, _x)
 
-
 #define Pq(_arg) (exp(0.25)/sqrt(8.0*M_PI) * (BESSEL_KNU(((_arg)+1.0)/2.0, 0.25) + BESSEL_KNU(ABS(((_arg)-1.0)/2.0), 0.25)))
 #define M1(_epsilon, _delta) (sinh((_epsilon)/(_delta))*Pq(1.0/(_delta)))
 #define M2(_epsilon, _delta) (0.5*(cosh(2.0*(_epsilon)/(_delta))*Pq(2.0/(_delta)) -1.0))
@@ -208,7 +207,6 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		f.n = n;
 		f.p = p;
 		f.params = (void *) target;
-
 
 		T = gsl_multifit_fdfsolver_lmsder;
 		s = gsl_multifit_fdfsolver_alloc(T, n, p);
@@ -1044,7 +1042,6 @@ double re_sas_table_log_integral(double *param)
 	return sum;
 }
 
-
 int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 {
 	/*
@@ -1283,7 +1280,6 @@ int re_sas_table_add_logjac(int debug)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int re_sas_table_init(double *param)
 {
@@ -1539,7 +1535,6 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 			}
 			printf("MAKE TABLE... Part 1 done\n");
 
-
 			for (j = 0; j < s->ny; j++) {
 				printf("...outer loop j = %d/%d\n", j, s->ny);
 				for (i = 0; i < s->nx; i++) {
@@ -1754,7 +1749,6 @@ double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 
 		return pri;
 	}
-
 
 	ldens_uniform = log(1 / length);
 	ldens_dist = log(lambda) - lambda * level;	       /* the prior for the distance */

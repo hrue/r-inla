@@ -564,7 +564,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	Free(ntriples);
 	Free(ntriples_max);
 
-
 	if (nlc) {
 		/*
 		 * make the graph from the linear combinations. Here the lc is from n_short to n_short+nlc. 

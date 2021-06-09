@@ -342,7 +342,6 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	}
 	CHECK_OUT;
 
-
 	return (INLA_OK);
 }
 
@@ -396,7 +395,6 @@ int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, d
 		fflush(stderr);
 	}
 	CHECK_OUT;
-
 
 	return (INLA_OK);
 }
@@ -563,7 +561,6 @@ double R_rgeneric_cputime = 0.0;
 		abort();						\
 		exit(1);						\
 	}
-
 
 void inla_R_exit(void)
 {

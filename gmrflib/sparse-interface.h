@@ -62,8 +62,6 @@ __BEGIN_DECLS
 	int degree;
 } GMRFLib_global_node_tp;
 
-
-
 typedef enum {
 
 	/**

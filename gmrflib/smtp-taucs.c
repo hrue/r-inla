@@ -218,7 +218,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	int METIS51PARDISO_NodeND(idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *);
 #endif
 
-
 	int n, nnz, i, j, ip;
 	int *xadj;
 	int *adj;
@@ -252,7 +251,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 
 	xadj = Calloc(n + 1, int);
 	adj = Calloc(2 * nnz, int);
-
 
 	if (!(*perm) || !(*invperm) || !xadj || !adj) {
 		Free(*perm);

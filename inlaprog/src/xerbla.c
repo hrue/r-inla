@@ -8,7 +8,6 @@
 // need fortran_charlen_t
 #include "GMRFLib/GMRFLibP.h"
 
-
 void xerbla_(char *srname, int *info, fortran_charlen_t len)
 {
 	// fortran version
@@ -18,7 +17,6 @@ void xerbla_(char *srname, int *info, fortran_charlen_t len)
 	fprintf(stderr, "\nxerbla: %s %d\n", name, *info);
 	exit(1);
 }
-
 
 void xerbla(char *srname, int *info)
 {

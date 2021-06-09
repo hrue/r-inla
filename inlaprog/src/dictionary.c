@@ -10,7 +10,6 @@
    This object is useful to store e.g.  informations retrieved from a
    configuration file (ini files).  */
 
-
 /*
 	$Id: dictionary.c,v 1.30 2009/03/30 16:47:04 hrue Exp $
 	$Author: hrue $

@@ -94,7 +94,6 @@ typedef struct {
 /*
  */
 
-
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);

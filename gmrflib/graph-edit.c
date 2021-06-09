@@ -28,7 +28,6 @@
  *
  */
 
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif

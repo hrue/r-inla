@@ -685,7 +685,6 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 #undef SETBIT
 #undef NBitsInByte
 
-
 #undef SETBIT
 #undef NBitsInByte
 #undef BIDX

@@ -39,7 +39,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "pc-priors.h"
 #include "inla.h"
 
-
 double inla_pc_h_default(double x, int inverse, int derivative)
 {
 	// default: h(x) = sqrt(2*x)
@@ -249,8 +248,6 @@ double inla_pc_sn_core(int code, double arg)
 	return value;
 }
 
-
-
 
 GMRFLib_spline_tp *inla_pcp_dof_create_spline(void)
 {

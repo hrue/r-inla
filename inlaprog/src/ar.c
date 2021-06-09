@@ -52,7 +52,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 		printf("\n");						\
 	}
 
-
 /* 
    functions for the AR(p) model; the pacf2phi and phi2pacf are taken from R's arima.c
  */
@@ -459,7 +458,6 @@ int ar_test1()
 			 * and its inverse 
 			 */
 			ar_phi2pacf(p, phi, pacf2);
-
 
 			printf("Result for p = %d\n", p);
 			for (i = 0; i < p; i++) {

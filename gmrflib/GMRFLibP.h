@@ -104,8 +104,6 @@ typedef int fortran_charlen_t;
 #define GMRFLib_SHA_IUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, int)
 #define GMRFLib_SHA_DUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, double)
 
-
-
 // utility functions for this are mostly in smtp-pardiso.c
 typedef struct {
 	int n;
@@ -126,7 +124,6 @@ typedef enum {
 	INLA_B_STRATEGY_SKIP = 0,
 	INLA_B_STRATEGY_KEEP = 1
 } inla_b_strategy_tp;
-
 
 /* 
    here are the wrappers for calling functions which return the error-code if it fails
@@ -217,7 +214,6 @@ typedef enum {
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
 
-
 #define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
 	static int debug_count_ = 0;					\
 	debug_count_++;							\
@@ -248,7 +244,6 @@ typedef enum {
 		printf("\t[%1d] %s:%1d (%s): %s %d %g\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_); \
 	}
 
-
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
@@ -268,7 +263,6 @@ typedef enum {
 #define Free(ptr)               {free((void *)(ptr)); ptr=NULL;}
 #define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
 #endif
-
 
 /* 
    ABS is for double, IABS is for int, and so on.
@@ -332,7 +326,6 @@ typedef enum {
 	 : (arg_->log_range ? exp(*(arg_->log_range))			\
 	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
 
-
 // This is for internal caching
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS))
 #define GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
@@ -342,7 +335,6 @@ typedef enum {
 					  GMRFLib_MAX_THREADS * GMRFLib_thread_id) : \
 					 (omp_get_thread_num() + GMRFLib_MAX_THREADS * GMRFLib_thread_id)); \
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
-
 
 #define RUN_CODE_BLOCK(thread_max_) if (1) {				\
 		int id__ = GMRFLib_thread_id;				\
@@ -357,7 +349,6 @@ typedef enum {
 		}							\
 		GMRFLib_thread_id = id__;				\
         }
-
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 

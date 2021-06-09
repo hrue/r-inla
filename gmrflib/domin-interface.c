@@ -296,7 +296,6 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		       (fx_local < B.f_best ? "BETTER!" : ""));
 	}
 
-
 	tref = GMRFLib_cpu() - tref;
 #pragma omp atomic
 	fncall_timing.time_used += tref;

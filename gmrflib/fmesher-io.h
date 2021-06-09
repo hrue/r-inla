@@ -54,7 +54,6 @@ __BEGIN_DECLS
 	int *i;
 	int *j;
 
-
 	/*
 	 * these are only defined if the matrix is sparse 
 	 */
@@ -82,7 +81,6 @@ __BEGIN_DECLS
 	int whence;					       /* whence of the file */
 	long int tell;					       /* the position where this matrix ended */
 } GMRFLib_matrix_tp;
-
 
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n);
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence);

@@ -278,7 +278,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 	}
 
-
 	/*
 	 * if x = NULL, make it zeros 
 	 */
@@ -288,7 +287,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	}
 
 	*problem = Calloc(1, GMRFLib_problem_tp);
-
 
 	/*
 	 * this is the sparse-matrix method 
@@ -408,8 +406,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	Free(sub_Qfunc_arg->diagonal_adds);
 	Free(sub_Qfunc_arg);
 
-
-
 	/*
 	 * now compute the new 'effective' b, and then the mean 
 	 */
@@ -482,7 +478,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	if (store_store_symb_fact && (smtp == GMRFLib_SMTP_TAUCS)) {
 		store->TAUCS_symb_fact = GMRFLib_sm_fact_duplicate_TAUCS((*problem)->sub_sm_fact.TAUCS_symb_fact);
 	}
-
 
 	/*
 	 * the next step is to initialize the constraints and take that part into account. 
@@ -646,13 +641,11 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		}
 	}
 
-
 	GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*problem)->sub_mean, 1, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
 	if (!((*problem)->sub_mean_constr)) {
 		(*problem)->sub_mean_constr = Calloc(sub_n, double);
 	}
 	Memcpy((*problem)->sub_mean_constr, (*problem)->sub_mean, sub_n * sizeof(double));
-
 
 	if (((*problem)->sub_constr && (*problem)->sub_constr->nc > 0)) {
 		/*
@@ -1237,7 +1230,6 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		memset(b_add, 0, sub_graph->n * sizeof(double));
 	}
 
-
 	/*
 	 * find those constrs that are in use, part I 
 	 */
@@ -1690,7 +1682,6 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	GMRFLib_meminfo_thread_id *= -1;
 	char *tmp = Calloc(1, char);
 	Free(tmp);
-
 
 	COPY(store_problems);
 	COPY(fixed_hyperparameters);
