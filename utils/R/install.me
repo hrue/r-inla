@@ -158,7 +158,7 @@ convert_to_mac_arm64_binary () {
     for f in "$@"; do
 	ff=$(basename $f)
 	scp $f $INLA_MAC_ARM64:$ff
-	ssh -x $INLA_MAC_ARM64: bin/R CMD INSTALL --build  $ff
+	ssh -x $INLA_MAC_ARM64 bin/R CMD INSTALL --build  $ff
 	scp $INLA_MAC_ARM64:$ff $f
     done
 }
