@@ -143,7 +143,7 @@
         ret <- NULL
     }
 
-    if (inla.os("linux") || inla.os("mac")) {
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         output <- system(paste(shQuote(inla.call), cmd, inla.ifelse(missing(id) || is.null(id), "NULL", id), as.numeric(remove)), intern = TRUE)
     } else {
         bat.file <- paste(tempfile(), ".BAT", sep = "")

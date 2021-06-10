@@ -2099,7 +2099,7 @@
         arg.nt <- paste0(" -t", num.threads, " -B", blas.num.threads, " ")
 
         ## due to the weird behaviour,  we will do the verbose-mode differently now
-        if (inla.os("linux") || inla.os("mac")) {
+        if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             arg.v <- inla.ifelse(verbose, "-v", "-v")
         } else {
             arg.v <- inla.ifelse(verbose, "-v", "-v")
@@ -2115,7 +2115,7 @@
         arg.b <- ""
     }
 
-    if (inla.os("mac") && inla.getOption("vecLib") && !inla.getOption("mkl")) {
+    if ((inla.os("mac") || inla.os("mac.arm64")) && inla.getOption("vecLib") && !inla.getOption("mkl")) {
         arg.vecLib <- "-L"
     } else {
         arg.vecLib <- ""
@@ -2201,7 +2201,7 @@
                 results.dir = results.dir,
                 inla.call.args = all.args
             )
-        } else if (inla.os("linux") || inla.os("mac")) {
+        } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64"))) {
             if (verbose) {
                 echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {

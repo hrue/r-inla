@@ -4,7 +4,7 @@
                                 fmesher.call = inla.getOption("fmesher.call"),
                                 all.args, prefix,
                                 timeout = inla.getOption("fmesher.timeout")) {
-    if (inla.os("linux") || inla.os("mac")) {
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         echoc <- system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)),
             timeout = ceiling(timeout)
         )

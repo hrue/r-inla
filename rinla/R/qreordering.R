@@ -50,7 +50,7 @@
     }
 
     ## smtp must be taucs
-    if (inla.os("linux") || inla.os("mac")) {
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qreordering",
             "-r", reordering, "-S", "taucs", g.file

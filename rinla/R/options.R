@@ -102,7 +102,7 @@
             blas.num.threads = 0L,
             smtp = "default",
             mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE,
-            vecLib = if (inla.os("mac")) TRUE else FALSE,
+            vecLib = FALSE, 
             vecLibPath = "", 
             pardiso.license = NULL,
             keep = FALSE,
