@@ -5,13 +5,8 @@ is_set() {
 }
 
 
-if ! $(is_set INLA_MAC); then
-    ## KAUST_MACMINI
-    export INLA_MAC=rueh@kw-16659.kaust.edu.sa
-    ##  KAUST_OFFICEMAC
-    ##export INLA_MAC=rueh@kw-15905.kaust.edu.sa
-    export INLA_MAC_ARM64=rueh@kw-18302.kaust.edu.sa
-fi
+export INLA_MAC=rueh@kw-16659.kaust.edu.sa
+export INLA_MAC_ARM64=rueh@kw-18302.kaust.edu.sa
 
 IP=0.0.0.0
 for ip in $(~/bin/my-vm-addr); do
@@ -59,7 +54,7 @@ grep -v 192.168.122.158 ~/.ssh/known_hosts  > $tt && mv -f $tt ~/.ssh/known_host
 	
 export INLA_VERSION=$(echo $INLA_TAG | awk -F_ '{print $2}')
 output INLA_MAC=$INLA_MAC
-output INLA_MAC_ARM64=$INLA_M1
+output INLA_MAC_ARM64=$INLA_MAC_ARM64
 output INLA_LINUX=$INLA_LINUX
 output INLA_WINDOWS=$INLA_WINDOWS
 output INLA_TAG=$INLA_TAG
