@@ -120,9 +120,7 @@
     mkl <- if (mkl) "mkl." else ""
 
     if (inla.os("mac")) {
-        if (nchar(mkl) > 0L && !lic) {
-            mkl <- ""
-        }
+        if (nchar(mkl) > 0L && !lic) mkl <- ""
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep = ""), package = "INLA")
     } else if (inla.os("mac.arm64")) {
         fnm <- system.file("bin/mac.arm64/inla.run", package = "INLA")

@@ -94,7 +94,7 @@
 
     out.file <- inla.tempfile(tmpdir = t.dir)
     inla.set.sparselib.env(inla.dir = t.dir)
-    if (inla.os("linux") || inla.os("mac")) {
+    if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qinv",
             "-r", reordering, "-S", smtp, paste0("-t", num.threads),
