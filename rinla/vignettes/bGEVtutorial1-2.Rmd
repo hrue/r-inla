@@ -214,10 +214,10 @@ $\alpha-$quantile, $q_\alpha$. The model we want to fit is
 
 ## Data simulation{#sec:datasim1}
 
-We start by generating $n=300$ samples from \eqref{eq:sim.model1}
+We start by generating $n=1000$ samples from \eqref{eq:sim.model1}
 
 ```{r}
-n = 300
+n = 1000
 x = rnorm(n) # we generate values for x from a N(0,1) dist.
 eta.x = 1 + 0.4*x
 ```
@@ -353,7 +353,6 @@ control.bgev = list(q.location = p.alpha,
                     # the Beta(s1, s2) mixing distribution parameters. 
                     # Hard-coded for the moment: s1=s2=5
                     beta.ab = 5)
-
 ```
 
 ## INLA fit{#sec:fit1}
@@ -400,7 +399,7 @@ r1 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     contol.fixed = list(prec=100),
+	     control.fixed = list(prec=100),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
          verbose=FALSE)
@@ -443,10 +442,10 @@ s_\beta &= \exp(0.1 + 0.3\texttt{x}_{2})\nonumber\\
 
 ## Data simulation{#sec:datasim2}
 
-As before, we start by generating $n=300$ samples from \eqref{eq:sim.model2}
+As before, we start by generating $n=1000$ samples from \eqref{eq:sim.model2}
 
 ```{r}
-n = 300
+n = 1000
 x1 = rnorm(n)
 eta.x = 1 + 0.4*x1
 ```
@@ -456,7 +455,7 @@ The spread and tail parameter can be simulated as follows
 ```{r}
 x2 = rnorm(n)
 s.x = exp(0.1 + 0.3*x2)
-x3 = runif(n,-0.5,2)
+x3 = runif(n,-0.25,1)
 t.x = 0.1 + 0.2*x3
 tail.intern = map.tail(t.x, tail.interval, inverse=TRUE) # internal xi
 ```
@@ -528,7 +527,7 @@ r2 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     contol.fixed = list(prec=100),
+	     control.fixed = list(prec=100),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
          verbose=FALSE)
@@ -577,7 +576,7 @@ There are many ways we can simulate dara to fit \eqref{eq:sim.model3}.
 One alternative is
 
 ```{r, eval = T}
-n = 300
+n = 1000
 x1 = rnorm(n)
 z1 = seq(0, 6, length.out = n)
 z2 = 1:n
@@ -585,7 +584,6 @@ p = 2 # AR order
 pacf = runif(p)
 phi = inla.ar.pacf2phi(pacf)
 eta.x = 1 + 0.4*x + sin(z1) + c(scale(arima.sim(n, model = list(ar = phi))))
-
 ```
 
 The spread and tail parameter are simulated as before:
@@ -641,8 +639,8 @@ tail.x = x3
 formula = inla.mdata(y, cbind(spread.x, spread.xx), tail.x) ~ 1 + intercept + x + 
 	f(z1, model = "rw1", scale.model=TRUE, 
 		hyper = list(prec = list(prior = "pc.prec", param = c(0.1,
-		0.001)))) +
-		f(z2, model = 'ar', order = 1)
+		0.01)))) +
+		f(z2, model = 'ar', order = 2)
 
 data.bgev = data.frame(y = y, intercept = 1, x = x, z1 = z1, z2 = z2,
                        spread.x = spread.x, spread.xx = spread.xx, tail.x = tail.x)
@@ -652,7 +650,7 @@ r3 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     contol.fixed = list(prec=100),
+	     control.fixed = list(prec=100),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
          verbose=FALSE)

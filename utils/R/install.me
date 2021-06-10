@@ -60,6 +60,7 @@ tgzINLA=${gzINLA%%.tar.gz}.tgz
 tgzINLAarm64=${gzINLA%%.tar.gz}arm64.tgz
 zipINLA=${tgzINLA%%.tgz}.zip
 cp -v $gzINLA $tgzINLA 
+cp -v $gzINLA $tgzINLAarm64 
 
 DD=$(echo ~/R/x86_64-redhat-linux-gnu-library/default)
 test -d $DD || mkdir -p $DD
@@ -75,7 +76,7 @@ mv -f $DD/$zipINLA .
 ( cd $DD; tar cvfz $gzINLA INLA; )
 mv -f $DD/$gzINLA .
 
-ls -l $tgzINLA $gzINLA $zipINLA
+ls -l $tgzINLA $tgzINLAarm64 $gzINLA $zipINLA
 
 ##
 ## remove binaries not needed
@@ -147,18 +148,18 @@ wwwR=../www/R
 convert_to_mac_binary () {
     for f in "$@"; do
 	ff=$(basename $f)
-	scp -v $f $INLA_MAC:$ff
+	scp $f $INLA_MAC:$ff
 	ssh -x $INLA_MAC /usr/local/bin/R CMD INSTALL --build  $ff
-	scp -v $INLA_MAC:$ff $f
+	scp $INLA_MAC:$ff $f
     done
 }
 
 convert_to_mac_arm64_binary () {
     for f in "$@"; do
 	ff=$(basename $f)
-	scp -v $f $INLA_MAC_ARM64:$ff
+	scp $f $INLA_MAC_ARM64:$ff
 	ssh -x $INLA_MAC_ARM64: bin/R CMD INSTALL --build  $ff
-	scp -v $INLA_MAC_ARM64:$ff $f
+	scp $INLA_MAC_ARM64:$ff $f
     done
 }
 
