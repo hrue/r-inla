@@ -13,6 +13,10 @@ vignette: >
 set.seed(123)
 library(INLA)
 set.seed(123)
+INLA:::inla.my.update()
+INLA:::inla.my.update()
+inla.setOption(inla.call="inla.mkl.work")
+
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 library(knitr)

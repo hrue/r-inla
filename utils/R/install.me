@@ -44,15 +44,15 @@ SRC=INLA-source.tgz
 tar cvfz INLA-source.tgz INLA
 
 
-if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
-    echo '*** Build OK'
-else
+##if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
+##    echo '*** Build OK'
+##else
     if R --vanilla CMD build --keep-empty-dirs --resave-data --no-build-vignettes --log INLA; then
 	echo '*** Build without rebuilding vignettes OK'
     else
 	exit 1
     fi
-fi
+##fi
 
 gzINLA=$(echo INLA_*.tar.gz)
 tgzINLA=${gzINLA%%.tar.gz}.tgz
