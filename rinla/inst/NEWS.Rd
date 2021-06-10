@@ -4,6 +4,20 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.06.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added support for Mac M1 (native build with R-4.1)
+      \item New \code{twostage} options (highly experimental)
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Massive code overhaul
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.05.02}{
   \subsection{BUG FIXES}{
     \itemize{
