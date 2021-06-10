@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 21.06.10}{
+\section{CHANGES IN VERSION 21.06.11}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Added support for Mac M1 (native build with R-4.1)
@@ -14,6 +14,7 @@
   \subsection{BUG FIXES}{
     \itemize{
       \item Massive code overhaul
+      \item Various minor fixes
     }
   }
 }
