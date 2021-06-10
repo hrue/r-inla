@@ -221,7 +221,9 @@ fi
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
-rm -f $tgzINLA 
-rm -f $gzINLA 
-rm -f $zipINLA 
-rm -f $SRC
+if false; then
+    rm -f $tgzINLA 
+    rm -f $gzINLA 
+    rm -f $zipINLA 
+    rm -f $SRC
+fi
