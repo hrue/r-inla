@@ -8,6 +8,7 @@ date=$(date)
 D=r-inla/rinla/R
 DD=INLA/R
 RVersion=$(R --vanilla --version | grep '^R version' | awk '{print $3}' | awk -F. '{print $1 "." $2}')
+RRVersion="4.1"
 
 ## We need to remove these as we change them
 for f in INLA/NAMESPACE INLA/DESCRIPTION; do
@@ -56,6 +57,7 @@ tar cvfz INLA-source.tgz INLA
 
 gzINLA=$(echo INLA_*.tar.gz)
 tgzINLA=${gzINLA%%.tar.gz}.tgz
+tgzINLAarm64=${gzINLA%%.tar.gz}arm64.tgz
 zipINLA=${tgzINLA%%.tgz}.zip
 cp -v $gzINLA $tgzINLA 
 
@@ -78,6 +80,7 @@ ls -l $tgzINLA $gzINLA $zipINLA
 ##
 ## remove binaries not needed
 ## tgzINLA is for MAC
+## tgzINLAarm64 is for MAC arm64
 ## gzINLA is for Linux
 ## zipINLA is for Windows
 ##
@@ -89,7 +92,7 @@ mkdir $TDIR
     echo " *** Make Mac binary"
     cd $TDIR
     tar xfz ../$tgzINLA
-    for d in INLA/{,inst/}bin/{linux,windows}/{32,64}bit; do 
+    for d in INLA/{,inst/}bin/{linux,windows}/{32,64}bit  INLA/{,inst/}bin/mac.arm64; do 
 	echo "    -> $d"
 	test -d $d && rm -rf $d; 
     done
@@ -98,11 +101,24 @@ mkdir $TDIR
     rm -rf INLA
 )
 
+(  
+    echo " *** Make Mac binary ARM64"
+    cd $TDIR
+    tar xfz ../$tgzINLAarm64
+    for d in INLA/{,inst/}bin/{mac,linux,windows}/{32,64}bit; do 
+	echo "    -> $d"
+	test -d $d && rm -rf $d; 
+    done
+    rm -f ../$tgzINLAarm64
+    tar cfz ../$tgzINLAarm64 INLA
+    rm -rf INLA
+)
+
 (
     echo " *** Make Linux binary"
     cd $TDIR
     tar xfz ../$gzINLA
-    for d in INLA/{,inst/}bin/{mac,windows}/{32,64}bit; do 
+    for d in INLA/{,inst/}bin/{mac,windows}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do 
 	echo "    -> $d"
 	test -d $d && rm -rf $d; 
     done
@@ -115,7 +131,7 @@ mkdir $TDIR
     echo " *** Make Windows binary"
     cd $TDIR
     unzip -q ../$zipINLA
-    for d in INLA/{,inst/}bin/{linux,mac}/{32,64}bit; do 
+    for d in INLA/{,inst/}bin/{linux,mac}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do 
 	echo "    -> $d"
 	test -d $d && rm -rf $d; 
     done
@@ -168,8 +184,8 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
 	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
-	d=$wwwR/$prefix/bin/macosx/arm64/$RVersion
-	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	d=$wwwR/$prefix/bin/macosx/arm64/contrib/$RRVersion
+	cp -v $tgzINLAarm64 $d/INLA_$INLA_VERSION.tgz
 	convert_to_mac_arm64_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
@@ -190,8 +206,8 @@ if [ $# -ge 1 -a "$1" == "2" ]; then
 	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
-	d=$wwwR/$prefix/bin/macosx/arm64/$RVersion
-	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	d=$wwwR/$prefix/bin/macosx/arm64/contrib/$RRVersion
+	cp -v $tgzINLAarm64 $d/INLA_$INLA_VERSION.tgz
 	convert_to_mac_arm64_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
