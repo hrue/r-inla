@@ -94,6 +94,7 @@ __BEGIN_DECLS
  * include all the include-files in GMRFLib
  */
 #include "GMRFLib/init.h"
+#include "GMRFLib/error-handler.h"
 #include "GMRFLib/utils.h"
 #include "GMRFLib/timer.h"
 #include "GMRFLib/io.h"
@@ -112,7 +113,6 @@ __BEGIN_DECLS
 #include "GMRFLib/interpol.h"
 #include "GMRFLib/density.h"
 #include "GMRFLib/globals.h"
-#include "GMRFLib/error-handler.h"
 #include "GMRFLib/hash.h"
 #include "GMRFLib/lapack-interface.h"
 #include "GMRFLib/optimize.h"
@@ -124,11 +124,10 @@ __BEGIN_DECLS
 #include "GMRFLib/smtp-band.h"
 #include "GMRFLib/smtp-taucs.h"
 #include "GMRFLib/bitmap.h"				       /* needs both graph and problem and sparse */
-#include "GMRFLib/geo.h"
-#include "GMRFLib/sphere.h"
 #include "GMRFLib/ghq.h"
 #include "GMRFLib/design.h"
 #include "GMRFLib/approx-inference.h"
+#include "GMRFLib/pre-opt.h"
 #include "GMRFLib/experimental.h"
 #include "GMRFLib/graph-edit.h"
 #include "GMRFLib/domin-interface.h"
@@ -137,6 +136,5 @@ __BEGIN_DECLS
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
-
     __END_DECLS
 #endif

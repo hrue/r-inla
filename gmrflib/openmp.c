@@ -1,7 +1,7 @@
 
 /* openmp.c
  * 
- * Copyright (C) 2007-2020 Havard Rue
+ * Copyright (C) 2007-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,29 +33,12 @@
 #endif
 //static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: openmp.c,v 1.7 2007/07/17 05:55:02 hrue Exp $ */
-
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
-
-/**
- *  \file openmp.c
- *  \brief This file contains some OpenMP support files for GMRFLib.
- *
- *  The #GMRFLib_rng object containing the RNG-structure, is safe to use in any threaded environment. Its contents is
- *  threadprivate (one object for each thread), and is automatically initialised in each thread. If a spesific seed is required
- *  (\c GMRFLib_rng_init()), then this must be done for each thread. The used seed, is still available by \c GMRFLib_rng_seed,
- *  which is threadprivate.
- *
- */
-
-/* 
-   just implement dummy functions for a serial version without openmp-support.
- */
 
 #ifndef _OPENMP
 
@@ -118,7 +101,6 @@ double omp_get_wtick(void)
 #endif
 
 #if defined(INLA_LINK_WITH_MKL) || defined(INLA_LINK_WITH_OPENBLAS)
-//
 // this is a workaround for the new OPENMP5 standard, where set/get_nested
 // is depreciated and we get this annoying warning message using MKL.
 // OMP_NESTED=TRUE must be defined...
@@ -128,7 +110,6 @@ double omp_get_wtick(void)
 //#define omp_get_nested() (omp_get_max_active_levels() > 0 ? 1 : 0)
 //#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? GMRFLib_MAX_THREADS : 0))
 #endif
-
 
 int GMRFLib_set_blas_num_threads(int threads)
 {
@@ -147,20 +128,21 @@ int GMRFLib_set_blas_num_threads(int threads)
 
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp)
 {
+	GMRFLib_DEBUG_INIT;
+
 	int nt;
 	int ntmax = GMRFLib_MAX_THREADS;
 	int strategy = GMRFLib_openmp->strategy;
 	int nested;
 	int *nhyper = (int *) arg;
 	int nhyper_def = 5;
-	int debug = 0;
 	if (nhyper == NULL) {
 		nhyper = &nhyper_def;
 	}
 	// this check is done once only
 	if (GMRFLib_pardiso_ok < 0) {
 		GMRFLib_pardiso_ok = (GMRFLib_pardiso_check_install(0, 1) == GMRFLib_SUCCESS ? 1 : 0);
-		if (debug) {
+		if (GMRFLib_DEBUG_IF_TRUE) {
 			printf("%s:%1d: pardiso-library installed and working? [%s]\n", __FILE__, __LINE__, (GMRFLib_pardiso_ok ? "YES" : "NO"));
 		}
 	}
@@ -172,7 +154,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	if (GMRFLib_pardiso_ok && (smtp_store == GMRFLib_SMTP_PARDISO || smtp_store == GMRFLib_SMTP_DEFAULT)) {
 		strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
-		if (debug) {
+		if (GMRFLib_DEBUG_IF_TRUE) {
 			printf("%s:%1d: Switch to strategy [%s]\n", __FILE__, __LINE__, GMRFLib_OPENMP_STRATEGY_NAME(strategy));
 		}
 	}
@@ -227,11 +209,6 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		nested = 1;
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			nt = 1;
-			nested = 0;
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
 			nt = IMIN(*nhyper + 1, ntmax);
 			GMRFLib_openmp->max_threads_outer = nt;
@@ -312,12 +289,11 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		break;
 
 	case GMRFLib_OPENMP_PLACES_HESSIAN_SCALE:
+	case GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR:
 		nested = 1;
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			nt = 1;
-			nested = 0;
-			GMRFLib_openmp->max_threads_outer = 1;
+			GMRFLib_openmp->max_threads_outer = nt;
 			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
@@ -326,39 +302,10 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 			break;
 		case GMRFLib_OPENMP_STRATEGY_LARGE:
 		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_HUGE:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
 		case GMRFLib_OPENMP_STRATEGY_PARDISO:
 			GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[0];
 			GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
-			break;
-		case GMRFLib_OPENMP_STRATEGY_NONE:
-		default:
-			assert(0 == 1);
-		}
-		break;
-
-	case GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR:
-		nested = 0;
-		nt = IMIN(ntmax, *nhyper);
-		switch (strategy) {
-		case GMRFLib_OPENMP_STRATEGY_SMALL:
-			nt = (*nhyper > 2 ? nt : 1);
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
-			break;
-		case GMRFLib_OPENMP_STRATEGY_MEDIUM:
-		case GMRFLib_OPENMP_STRATEGY_LARGE:
-		case GMRFLib_OPENMP_STRATEGY_DEFAULT:
-		case GMRFLib_OPENMP_STRATEGY_HUGE:
-		case GMRFLib_OPENMP_STRATEGY_PARDISO:
-			GMRFLib_openmp->max_threads_outer = nt;
-			GMRFLib_openmp->max_threads_inner = 1;
 			break;
 		case GMRFLib_OPENMP_STRATEGY_NONE:
 		default:
@@ -434,7 +381,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 	GMRFLib_set_blas_num_threads(GMRFLib_openmp->blas_num_threads);
 
-	if (debug) {
+	if (GMRFLib_DEBUG_IF_TRUE) {
 		printf("%s:%1d: smtp[%s] strategy[%s] place[%s] nested[%1d]\n", __FILE__, __LINE__,
 		       GMRFLib_SMTP_NAME(smtp_store), GMRFLib_OPENMP_STRATEGY_NAME(strategy), GMRFLib_OPENMP_PLACE_NAME(place), omp_get_nested());
 		printf("%s:%1d: max.threads[%1d] num.threads[%1d] blas.num.threads[%1d] max.inner[%1d] max.outer[%1d]\n", __FILE__, __LINE__,

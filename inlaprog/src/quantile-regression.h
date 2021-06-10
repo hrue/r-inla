@@ -43,10 +43,8 @@ __BEGIN_DECLS
 /* 
  *
  */
-
 #include "GMRFLib/density.h"
-
-struct inla_qgamma_cache_tp {
+    struct inla_qgamma_cache_tp {
 	double quantile;
 	GMRFLib_spline_tp **s;
 };

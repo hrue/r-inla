@@ -27,7 +27,7 @@
 #' @export inla.has_PROJ6
 #' @rdname inla.has_PROJ6
 inla.has_PROJ6 <- function() {
-    stopifnot(inla.require("rgdal"))
+    inla.require("rgdal", stop.on.error = TRUE)
     result <- tryCatch(rgdal::new_proj_and_gdal(),
         error = function(e) FALSE
     )
@@ -1162,7 +1162,7 @@ inla.CRSargs <- function(x, ...) {
     if (is.null(x)) {
         as.character(NA)
     } else {
-        stopifnot(inla.require("rgdal"))
+        inla.require("rgdal", stop.on.error = TRUE)
         rgdal::CRSargs(x)
     }
 }

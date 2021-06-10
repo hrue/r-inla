@@ -59,7 +59,6 @@ __BEGIN_DECLS
 	gsl_matrix *tAinv;
 } opt_dir_params_tp;
 
-
 typedef struct {
 	int *f_count;
 	int nhyper;
@@ -68,7 +67,6 @@ typedef struct {
 	void *log_extra_arg;
 	void *loglFunc_arg;
 	char *compute;
-	char *fixed_value;
 	double ***hyperparam;
 	double *b;
 	double *c;
@@ -86,6 +84,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 	GMRFLib_logl_tp *loglFunc;
 	gsl_matrix *directions;
+	GMRFLib_preopt_tp *preopt;
 } GMRFLib_opt_arg_tp;
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
@@ -93,9 +92,9 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      char *compute,
 		      double *x, double *b, double *c, double *mean,
 		      GMRFLib_bfunc_tp ** bfunc,
-		      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, char *fixed_value,
+		      double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store);
+		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt);
 int GMRFLib_opt_exit(void);
 int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
 int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
@@ -108,6 +107,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
 GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
+int GMRFLib_opt_get_latent(double *latent);
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_opt_dir_step(double *x, int idx, double h);
 int GMRFLib_opt_dir_transform_gradient(double *grad);

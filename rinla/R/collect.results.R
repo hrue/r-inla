@@ -210,7 +210,9 @@
 
     ## add the names of the theta's here, as they are available.
     if (!is.null(misc) && !is.null(joint.hyper)) {
-        colnames(joint.hyper) <- c(misc$theta.tags, "Log posterior density")
+        colnames(joint.hyper) <- c(misc$theta.tags,
+                                   "Log posterior density",
+                                   "Total integration weight (log.dens included)")
     }
 
     names(theta.mode) <- theta.tags
@@ -1182,16 +1184,14 @@ inla.internal.experimental.mode <- FALSE
     my.read.pnm <- function(...) {
         args <- list(...)
         filename <- args[[1]]
-        if (file.exists(filename) && inla.require("pixmap")) {
+        inla.require("pixmap", stop.on.error = TRUE)
+        if (file.exists(filename)) {
             ## disable warnings
             warn <- getOption("warn")
             options(warn = -1L) ## disable...
             ret <- pixmap::read.pnm(...)
             do.call("options", args = list(warn = warn))
         } else {
-            if (file.exists(filename)) {
-                warning("You need to install 'pixmap' to read bitmap files.")
-            }
             ret <- NULL
         }
         return(ret)

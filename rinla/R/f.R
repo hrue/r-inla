@@ -66,7 +66,6 @@
 ## !                         X = NULL, W = NULL, Q.beta = NULL),
 ## !         args.ar1c = list(Z = NULL, Q.beta = NULL),
 ## !         args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
-## !         correct = NULL,
 ## !         vb.correct = NULL,
 ## !         locations = NULL,
 ## !         debug = FALSE)
@@ -327,9 +326,6 @@
 
                 ## !\item{args.intslope}{A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details.},
                 args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
-
-                ## !\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
-                correct = NULL,
 
                 ## !\item{vb.correct}{Add this model component to the list of variables to be used for the vb corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (expert option)},
                 vb.correct = NULL,
@@ -1094,7 +1090,6 @@
         args.intslope = args.intslope,
         args.slm = args.slm,
         args.ar1c = args.ar1c,
-        correct = correct,
         vb.correct = vb.correct,
         locations = locations
     )

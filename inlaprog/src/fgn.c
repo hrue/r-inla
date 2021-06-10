@@ -30,10 +30,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "fgn.h"
 
@@ -57,7 +58,7 @@ int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 			GMRFLib_ged_insert_graph2(ged, g_I, (1 + i) * def->n, (1 + i + j) * def->n);
 		}
 	}
-	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
+	assert(ged->n == def->N);
 	GMRFLib_ged_build(graph, ged);
 
 	GMRFLib_ged_free(ged);
@@ -82,21 +83,18 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 	for (i = 0; i < def->k - 1; i++) {
 		GMRFLib_ged_insert_graph2(ged, g_ar1, i * def->n, (i + 1) * def->n);
 	}
-	assert(GMRFLib_ged_max_node(ged) == def->N - 1);
+	assert(ged->n == def->N);
 	GMRFLib_ged_build(graph, ged);
 	GMRFLib_graph_free(g_ar1);
 
 	return (GMRFLib_SUCCESS);
 }
 
-
-
 double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
 	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
 	// where each x is standard AR1
 
@@ -106,13 +104,13 @@ double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
 	if (!arg) {
 		assert(i < 0 && j < 0);			       /* safety check */
 		if (phi_cache == NULL) {
-#pragma omp critical 
+#pragma omp critical
 			{
 				if (phi_cache == NULL) {
 					phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
 					w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
 					H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
-					
+
 					for (int j = 0; j < GMRFLib_CACHE_LEN; j++) {
 						phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
 						w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
@@ -128,7 +126,7 @@ double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
 	double H_intern, prec, val = 0.0, *phi, *w, kappa;
-	int id; 
+	int id;
 
 	GMRFLib_CACHE_SET_ID(id);
 	phi = phi_cache[id];
@@ -202,10 +200,9 @@ double inla_fgn2_helper(int i, int j, int n, double phi)
 
 double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
 	// the x^i's are the scaled AR1's, and FGN is the cummulative sum of the components.
 
 	int debug = 0;
@@ -229,7 +226,7 @@ double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
 
 	inla_fgn2_arg_tp *a = (inla_fgn2_arg_tp *) arg;
 	double H_intern, prec, val = 0.0, *phi, *w;
-	int id; 
+	int id;
 
 	GMRFLib_CACHE_SET_ID(id);
 	phi = phi_cache[id];
@@ -265,7 +262,6 @@ double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
 
 	return val;
 }
-
 
 int inla_fgn_get(double *phi, double *w, double H_intern, int k)
 {

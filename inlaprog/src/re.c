@@ -30,10 +30,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "re.h"
 #include "bessel.h"
@@ -43,7 +44,6 @@ static const char GitID[] = GITCOMMIT;
  */
 #define BESSEL_KNU(_alpha, _x) bessel_Knu(_alpha, _x)
 //#define BESSEL_KNU(_alpha, _x) gsl_sf_bessel_Knu(_alpha, _x)
-
 
 #define Pq(_arg) (exp(0.25)/sqrt(8.0*M_PI) * (BESSEL_KNU(((_arg)+1.0)/2.0, 0.25) + BESSEL_KNU(ABS(((_arg)-1.0)/2.0), 0.25)))
 #define M1(_epsilon, _delta) (sinh((_epsilon)/(_delta))*Pq(1.0/(_delta)))
@@ -67,7 +67,7 @@ static const char GitID[] = GITCOMMIT;
 #define REV(x, n) \
 	if (1){						\
 		double *_tmp = Calloc(n, double);	\
-		memcpy(_tmp, (x), (n)*sizeof(double));	\
+		Memcpy(_tmp, (x), (n)*sizeof(double));	\
 		int ii;					\
 		for(ii=0; ii < (n); ii++){		\
 			(x)[ii] = _tmp[(n)-1-ii];	\
@@ -181,7 +181,7 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		if (debug) {
 			printf("Have already %.12f %.12f --> %.12f %.12f\n", pin[id][0], pin[id][1], pout[id][0], pout[id][1]);
 		}
-		memcpy(pout_tmp, pout[id], sizeof(pout_tmp));
+		Memcpy(pout_tmp, pout[id], sizeof(pout_tmp));
 	} else if (!skew && !kurt) {
 		pout_tmp[0] = 0.0;			       /* epsilon */
 		pout_tmp[1] = log(1.0);			       /* log delta */
@@ -207,7 +207,6 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 		f.n = n;
 		f.p = p;
 		f.params = (void *) target;
-
 
 		T = gsl_multifit_fdfsolver_lmsder;
 		s = gsl_multifit_fdfsolver_alloc(T, n, p);
@@ -260,8 +259,8 @@ int re_sas_fit_parameters(re_sas_param_tp * param, double *mean, double *prec, d
 
 	if (use_lookup) {
 		perr[id] = err;
-		memcpy(pin[id], npin, sizeof(npin));
-		memcpy(pout[id], pout_tmp, sizeof(pout_tmp));
+		Memcpy(pin[id], npin, sizeof(npin));
+		Memcpy(pout[id], pout_tmp, sizeof(pout_tmp));
 	}
 
 	return (err ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
@@ -908,8 +907,8 @@ int re_join_contourLines(re_contour_tp * c)
 			printf("jmin %d (%g %g)\n", i, c->x[jmin][i], c->y[jmin][i]);
 	}
 
-	memcpy(&(c->x[imin][c->ns[imin] + 1]), &(c->x[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
-	memcpy(&(c->y[imin][c->ns[imin] + 1]), &(c->y[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
+	Memcpy(&(c->x[imin][c->ns[imin] + 1]), &(c->x[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
+	Memcpy(&(c->y[imin][c->ns[imin] + 1]), &(c->y[jmin][0]), (c->ns[jmin] + 1) * sizeof(double));
 	c->ns[imin] = c->ns[imin] + c->ns[jmin] + 1;
 
 	if (debug) {
@@ -1042,7 +1041,6 @@ double re_sas_table_log_integral(double *param)
 	}
 	return sum;
 }
-
 
 int re_find_in_sas_prior_table(double *output, double skew, double kurt)
 {
@@ -1282,7 +1280,6 @@ int re_sas_table_add_logjac(int debug)
 
 	return GMRFLib_SUCCESS;
 }
-
 
 int re_sas_table_init(double *param)
 {
@@ -1538,7 +1535,6 @@ int re_sas_prior_table_core(int read_only, int add_logjac, int debug, double *pa
 			}
 			printf("MAKE TABLE... Part 1 done\n");
 
-
 			for (j = 0; j < s->ny; j++) {
 				printf("...outer loop j = %d/%d\n", j, s->ny);
 				for (i = 0; i < s->nx; i++) {
@@ -1663,7 +1659,8 @@ double re_intrinsic_discrepancy_distance(double skew, double kurt)
 #define LIM (10.0)
 
 	double w[2] = { 4.0, 2.0 }, dx = (2.0 * LIM) / (N - 1.0), ldens_sas[N], integral[2] = {
-	0.0, 0.0};
+		0.0, 0.0
+	};
 	int i, k;
 
 	double x[N], ldens_norm[N];			       /* these are constants */
@@ -1734,8 +1731,7 @@ double re_sas_log_prior(double *val, double *param)
 
 double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 {
-	double output[4] = {0, 0, 0, 0}, level, length, point, ldens_uniform,
-		ldens_dist, *pri, logjac = 0.0, lambda = param[0];
+	double output[4] = { 0, 0, 0, 0 }, level, length, point, ldens_uniform, ldens_dist, *pri, logjac = 0.0, lambda = param[0];
 
 	re_find_in_sas_prior_table(output, skew, kurt);
 	level = output[0];
@@ -1753,7 +1749,6 @@ double *re_sas_evaluate_log_prior(double skew, double kurt, double *param)
 
 		return pri;
 	}
-
 
 	ldens_uniform = log(1 / length);
 	ldens_dist = log(lambda) - lambda * level;	       /* the prior for the distance */

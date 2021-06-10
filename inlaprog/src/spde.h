@@ -60,7 +60,6 @@ typedef struct {
 	double **basis;
 } inla_spde_theta_tp;
 
-
 typedef struct {
 	int n;
 	inla_spde_points_tp *s;
@@ -84,7 +83,6 @@ typedef struct {
 	void *Qfunc_arg;
 	GMRFLib_graph_tp *graph;
 } inla_spde_tp;
-
 
 double inla_spde_KT_model_eval(inla_spde_theta_tp * theta_model, int idx);
 double inla_spde_Qfunction(int node, int nnode, double *values, void *arg);

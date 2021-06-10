@@ -11,7 +11,8 @@ build-configs :;
 
 update-inla :;
 	##-tilix --title="laptop-O2" -e "make -C /home/hrue/p/inla/builds/my-laptop-O2 update"
-	-tilix --title="mac64"     -e "ssh -x -t $$INLA_MAC   export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
+	-tilix --title="mac64"     -e "ssh -x -t $$INLA_MAC         export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
+	-tilix --title="mac_arm64" -e "ssh -x -t $$INLA_MAC_ARM64   export INLA_TAG=$$INLA_TAG\; make -C builds/arm64   update"
 	-tilix --title="$$INLA_LINUX 64"        -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; make -C builds/build64 update"
 	-tilix --title="$$INLA_LINUX windows32" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; ./builds/windows32/run.make"
 	-tilix --title="$$INLA_LINUX windows64" -e "ssh -p $$INLA_LINUX_PORT -x -t $$INLA_LINUX export INLA_TAG=$$INLA_TAG\; ./builds/windows64/run.make"

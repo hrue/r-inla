@@ -1,7 +1,7 @@
 
 /* distributions.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: distributions.c,v 1.33 2009/08/26 06:12:46 hrue Exp $ */
-
 double GMRFLib_stdnormal(void)
 {
 	/*
@@ -60,9 +58,6 @@ double GMRFLib_stdnormal(void)
 	return gsl_ran_ugaussian(GMRFLib_rng);
 }
 
-/*!
-  \brief Return a sample from a density proportional to \f$1+1/x\f$ in the range \f$[1/F,F]\f$.
-*/
 double GMRFLib_scale_proposal(double F)
 {
 	if (F <= 1.0) {
@@ -78,9 +73,6 @@ double GMRFLib_scale_proposal(double F)
 	}
 }
 
-/*!
-  \brief Compute the log-density of a Wishart density \f$\sim W_p(r, R^{-1})\f$
-*/
 double GMRFLib_Wishart_logdens(gsl_matrix * Q, double r, gsl_matrix * R)
 {
 	/*

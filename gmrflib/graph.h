@@ -56,8 +56,6 @@
 #endif
 
 __BEGIN_DECLS
-
-
 #define GMRFLib_BINARY_GRAPH_FILE_MAGIC (-1)		       /* the first sizeof(int) bytes of the binary graph file */
 
 /*
@@ -110,7 +108,7 @@ typedef double GMRFLib_Qfunc_tp(int node, int nnode, double *values, void *argum
  */
 typedef struct {
 
-	unsigned char *sha1;
+	unsigned char *sha;
 
 	/**
 	 *  \brief Number of nodes in the graph. 
@@ -183,15 +181,16 @@ typedef struct {
 size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg);
 int *GMRFLib_graph_cc(GMRFLib_graph_tp * g);
-int GMRFLib_Qfunc_print(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-int GMRFLib_add_lnbs_info(GMRFLib_graph_tp *graph);
+int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph);
 int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value);
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno);
-int GMRFLib_graph_add_sha1(GMRFLib_graph_tp *g, int skip_sha1);
+int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g);
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag);
@@ -207,8 +206,8 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic
 int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold);
 int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph);
-int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph, int is_sorted, int skip_sha1);
-int GMRFLib_graph_printf(FILE * fp, GMRFLib_graph_tp * graph);
+int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph);
+int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename);
@@ -216,6 +215,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_graph_sort(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs);
+int GMRFLib_graph_union_OLD(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs);
 int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph);

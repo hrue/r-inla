@@ -68,7 +68,6 @@
                          X = NULL, W = NULL, Q.beta = NULL),
          args.ar1c = list(Z = NULL, Q.beta = NULL),
          args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
-         correct = NULL,
          vb.correct = NULL,
          locations = NULL,
          debug = FALSE)
@@ -224,7 +223,6 @@ used for other models at the time being.}
 \item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
 \item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
 \item{args.intslope}{A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details.},
-\item{correct}{Add this model component to the list of variables to be used in the corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (This option is currently experimental.)},
 \item{vb.correct}{Add this model component to the list of variables to be used for the vb corrected Laplace approximation? If \code{NULL} use default choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE}. (expert option)},
 \item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
 \item{debug}{Enable local debug output}

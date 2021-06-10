@@ -2085,8 +2085,8 @@ meshbuilder.app <- function() {
 #' @export
 
 meshbuilder <- function() {
-    requireNamespace("fields")
-    requireNamespace("shiny")
+    inla.require("fields", stop.on.error = TRUE)
+    inla.require("shiny", stop.on.error = TRUE)
 
     if (inla.has_PROJ6()) {
         rgdal::set_thin_PROJ6_warnings(TRUE)

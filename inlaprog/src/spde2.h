@@ -68,14 +68,12 @@ typedef struct {
 	GMRFLib_matrix_tp **M;
 	GMRFLib_matrix_tp *BLC;
 
-
 	double ***theta;
 
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
 	GMRFLib_graph_tp *graph;
 } inla_spde2_tp;
-
 
 double inla_spde2_Qfunction(int node, int nnode, double *values, void *arg);
 int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform);

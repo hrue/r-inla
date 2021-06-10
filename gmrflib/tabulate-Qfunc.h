@@ -62,10 +62,6 @@ __BEGIN_DECLS
 /* 
    dummy comment
  */
-
-
-
-
     typedef struct {
 	int n;						       /* the size of the graph */
 	map_id **values;				       /* hash-table for the values */
@@ -98,7 +94,7 @@ typedef struct {
 	void *Qfunc_arg;
 } GMRFLib_tabulate_Qfunc_tp;
 
-double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values,  void *arg);
+double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg);
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg);
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulated_Qfunc);
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulated_Qfunc, GMRFLib_graph_tp * graph,

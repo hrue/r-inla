@@ -69,7 +69,6 @@ __BEGIN_DECLS
 	GMRFLib_PARDISO_FLAG_SOLVE_LLT
 } GMRFLib_pardiso_flag_tp;
 
-
 typedef struct {
 	int iparm[GMRFLib_PARDISO_PLEN];
 	double dparm[GMRFLib_PARDISO_PLEN];
@@ -106,7 +105,6 @@ typedef struct {
 
 	GMRFLib_pardiso_store_pr_thread_tp *pstore;
 } GMRFLib_pardiso_store_tp;
-
 
 #ifdef _WIN32
 #include <io.h>
@@ -149,7 +147,6 @@ typedef struct {
 		close(XX_stderrBackupFd);				\
 	}
 
-
 double GMRFLib_pardiso_Qfunc_default(int i, int j, double *values, void *arg);
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
@@ -187,6 +184,7 @@ int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, doubl
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_exit(void);
 
 int my_pardiso_test1(void);
 int my_pardiso_test2(void);

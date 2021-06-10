@@ -30,10 +30,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {
@@ -47,8 +48,8 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	work = Calloc(2 * n, double);
 	xx = work;
 	yy = work + n;
-	memcpy(xx, x, n * sizeof(double));
-	memcpy(yy, y, n * sizeof(double));
+	Memcpy(xx, x, n * sizeof(double));
+	Memcpy(yy, y, n * sizeof(double));
 
 	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
 	GMRFLib_unique_relative2(&nn, xx, yy, GMRFLib_eps(1. / 3.0));

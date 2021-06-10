@@ -31,8 +31,6 @@
 #define GITCOMMIT
 #endif
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <string.h>
 #include <stdio.h>
 #if !defined(__FreeBSD__)
@@ -48,6 +46,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "my-fix.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 int my_file_exists(const char *filename)
 {
@@ -99,7 +99,7 @@ int my_setenv(char *str, int prefix)
 	return INLA_OK;
 }
 
-double my_gsl_sf_lngamma(double x) 
+double my_gsl_sf_lngamma(double x)
 {
 	if (round(x) != x) {
 		return gsl_sf_lngamma(x);
@@ -116,8 +116,8 @@ double my_gsl_sf_lngamma(double x)
 				lng = Calloc(nmax, double);
 				lng[0] = NAN;
 				lng[1] = 0.0;
-				for(int i = 2; i < nmax; i++) {
-					lng[i] = lng[i-1] + log((double)(i-1));
+				for (int i = 2; i < nmax; i++) {
+					lng[i] = lng[i - 1] + log((double) (i - 1));
 				}
 				first = 0;
 			}
@@ -127,13 +127,13 @@ double my_gsl_sf_lngamma(double x)
 		} else {
 			return lng[(int) round(x)];
 		}
-	} 
+	}
 
 	assert(0 == 1);
 	return NAN;
 }
 
-double my_gsl_sf_lnfact(unsigned int x) 
+double my_gsl_sf_lnfact(unsigned int x)
 {
 	return my_gsl_sf_lngamma((double) x + 1.0);
 }
@@ -141,7 +141,7 @@ double my_gsl_sf_lnfact(unsigned int x)
 int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result)
 {
 	// copy of gsl_sf_lnfact_e
-	
+
 	result->val = my_gsl_sf_lnfact(n);
 	result->err = 2.0 * GSL_DBL_EPSILON * fabs(result->val);
 	return GSL_SUCCESS;
@@ -151,24 +151,23 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 {
 	// copy of gsl_sf_lnchoose_e
 
-	if(m > n) {
+	if (m > n) {
 		assert(0 == 1);
-	}
-	else if(m == n || m == 0) {
+	} else if (m == n || m == 0) {
 		result->val = 0.0;
 		result->err = 0.0;
 		return GSL_SUCCESS;
-	}
-	else {
+	} else {
 		gsl_sf_result nf;
 		gsl_sf_result mf;
 		gsl_sf_result nmmf;
-		if(m*2 > n) m = n-m;
+		if (m * 2 > n)
+			m = n - m;
 		my_gsl_sf_lnfact_e(n, &nf);
 		my_gsl_sf_lnfact_e(m, &mf);
-		my_gsl_sf_lnfact_e(n-m, &nmmf);
-		result->val  = nf.val - mf.val - nmmf.val;
-		result->err  = nf.err + mf.err + nmmf.err;
+		my_gsl_sf_lnfact_e(n - m, &nmmf);
+		result->val = nf.val - mf.val - nmmf.val;
+		result->err = nf.err + mf.err + nmmf.err;
 		result->err += 2.0 * GSL_DBL_EPSILON * fabs(result->val);
 		return GSL_SUCCESS;
 	}

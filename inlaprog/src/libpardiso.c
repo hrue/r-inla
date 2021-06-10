@@ -38,8 +38,6 @@
    Since the (pardiso modified) metis library is bundled into the libpardiso.so, I have to do the same.
  */
 
-
-
 // do not change: also GMRFLib/smtp-pardiso.c uses this code
 #define NOLIB_ECODE (270465)
 

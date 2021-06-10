@@ -156,7 +156,6 @@ typedef struct {
 	map_func_tp *func;
 } map_table_tp;
 
-
 typedef struct {
 	size_t len;
 	char *contents;
@@ -177,7 +176,7 @@ typedef struct {
 	double *E;
 	double *cen_low;				       /* cenpoisson2 */
 	double *cen_high;				       /* cenpoisson2 */
-	
+
 	/*
 	 * y ~ Binomial(nb, p(x))
 	 */
@@ -250,7 +249,6 @@ typedef struct {
 	double **dof_intern_tstrata;			       /* common dof */
 	double *weight_tstrata;				       /* weight_t */
 	double *strata_tstrata;				       /* strata_t (type int) */
-
 
 	/*
 	 * stocvol
@@ -425,7 +423,7 @@ typedef struct {
 	 */
 	GMRFLib_spline_tp **qcontpoisson_func;
 
-	/* 
+	/*
 	 * Aggregated Gaussian  
 	 */
 	double **agaussian;
@@ -561,13 +559,13 @@ typedef enum {
 	L_POISSON_SPECIAL1,
 	L_GAMMAJW,
 	L_GAMMAJWSURV,
-	L_TWEEDIE, 
-	L_FMRI, 
-	L_FMRISURV, 
+	L_TWEEDIE,
+	L_FMRI,
+	L_FMRISURV,
 	L_AGAUSSIAN,					       /* likelihood-models */
-	L_GOMPERTZ, 
-	L_GOMPERTZSURV, 
-	L_STOCHVOL_SN, 
+	L_GOMPERTZ,
+	L_GOMPERTZSURV,
+	L_STOCHVOL_SN,
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
@@ -835,7 +833,6 @@ typedef struct {
 	int mix_ntheta;
 } Data_section_tp;
 
-
 typedef struct {
 	int n;
 	int dim;
@@ -865,7 +862,6 @@ typedef struct {
 	double **hold_Qmarg;				       /* dim = p */
 } ar_def_tp;
 
-
 typedef struct {
 	double precision;
 	double **beta;
@@ -891,7 +887,6 @@ typedef struct {
 	char *model;					       /* function to be called: fun(theta) */
 } inla_jp_tp;
 
-
 struct inla_tp_struct {
 	/*
 	 * General stuff 
@@ -899,6 +894,8 @@ struct inla_tp_struct {
 	int verbose;
 	int strategy;
 	char *smtp;
+
+	GMRFLib_preopt_tp *preopt;
 
 	/*
 	 * parameters for global_nodes
@@ -964,8 +961,9 @@ struct inla_tp_struct {
 	double *offset;					       /* the offset y ~ f(eta + offset) */
 	double *link_fitted_values;			       /* the index for the link function for missing observations */
 
-	char *predictor_Aext_fnm;			       /* extension: filename for the Amatrix */
-	double predictor_Aext_precision;		       /* extension: precision for the Amatrix */
+	char *predictor_A_fnm;				       /* filename for the Amatrix */
+	char *predictor_Aext_fnm;			       /* extension: filename for the extended Amatrix */
+	double predictor_Aext_precision;		       /* extension: precision for the extended Amatrix */
 	char *Apredictor_tag;				       /* the tag */
 
 	GMRFLib_transform_array_func_tp **transform_funcs;     /* for the fitted values */
@@ -1133,8 +1131,6 @@ struct inla_tp_struct {
 	inla_update_tp *update;
 };
 
-
-
 typedef struct {
 	GMRFLib_graph_tp *graph;
 	double **log_prec;
@@ -1170,7 +1166,6 @@ typedef struct {
 	double **logit_phi;
 	GMRFLib_rw2ddef_tp *rw2ddef;
 } inla_rw2diid_Qfunc_arg_tp;
-
 
 typedef struct {
 	GMRFLib_graph_tp *graph;
@@ -1225,7 +1220,6 @@ typedef struct {
 	double logdet_Qbeta;
 } inla_ar1c_arg_tp;
 
-
 typedef struct {
 	/*
 	 * 2D iid random effects. The coding is (x0,y0,x1,y1,...,xn-1,yn-1), so the total length is N=2*n. For the 2DIIDWISHART the coding is (x,y).
@@ -1278,7 +1272,6 @@ typedef struct {
 	double *vec;
 	gsl_matrix *Q;
 } inla_wishart_hold_tp;
-
 
 typedef struct {
 	/*
@@ -1335,7 +1328,6 @@ typedef struct {
 	int n;						       /* size of the original problem */
 } inla_replicate_tp;
 
-
 /* 
    constrained fixed effect
  */
@@ -1345,7 +1337,6 @@ typedef struct {
 	double *x;
 	double precision;
 } inla_clinear_tp;
-
 
 /* 
    sigmodial and reverse sigmodial and log1exp
@@ -1467,7 +1458,6 @@ typedef struct {
 	double alpha;
 } inla_sn_arg_tp;
 
-
 #define R_GENERIC_Q "Q"
 #define R_GENERIC_GRAPH "graph"
 #define R_GENERIC_MU "mu"
@@ -1497,7 +1487,6 @@ typedef struct {
 #define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
 #define IDW(a, b)  {IW(a); DW(b);}
 #define ID2W(a, b, c)  {IW(a); D2W(b, c);}
-
 
 /* 
    functions
@@ -1563,7 +1552,7 @@ double inla_lgamma_fast(double x);
 double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
-double inla_poisson_interval(double lambda, int y_from,  int y_to);
+double inla_poisson_interval(double lambda, int y_from, int y_to);
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
@@ -1684,6 +1673,9 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
+int inla_INLA_preopt(inla_tp * mb);
+int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
+int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
@@ -1922,12 +1914,13 @@ int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
 void inla_signal(int sig);
 int inla_testit_timer(void);
+int inla_reset(void);
 
+double testit_Qfunc(int i, int j, double *values, void *arg);
 
 /* 
 ***
 */
-
 
 typedef struct {
 	int binary;					       /* use binary output-files */
@@ -1941,7 +1934,6 @@ typedef struct {
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
-
 
 #define HYPER_NEW2(name_, initial_, n_)  {				\
 		int i_, j_;						\
@@ -1976,7 +1968,6 @@ typedef struct {
 			   (mb->f_id[idx] == F_IID3D ? 3 :		\
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
-
 
 __END_DECLS
 #endif

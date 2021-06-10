@@ -37,7 +37,6 @@ CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
 LD      = $(FC)
 INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
-LIBNAMEG = lib$(GMRFLibNAME)-geo.a
 
 RM    = rm -f
 RMR   = rm -rf
@@ -45,31 +44,30 @@ RMDIR = rmdir
 SED   = sed
 
 LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
-	GMRFLib-fortran.o optimize.o blockupdate.o gdens.o hidden-approx.o \
+	GMRFLib-fortran.o optimize.o blockupdate.o \
 	distributions.o globals.o wa.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o sparse-interface.o rw.o \
-	bitmap.o tabulate-Qfunc.o sphere.o io.o approx-inference.o ghq.o \
+	bitmap.o tabulate-Qfunc.o io.o approx-inference.o ghq.o \
 	utils.o experimental.o graph-edit.o domin-interface.o auxvar.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
-	bfgs3.o fmesher-io.o smtp-pardiso.o interpol.o
-LIBOBJG = geo.o
-HEADERS = blockupdate.h GMRFLib.h  hidden-approx.h optimize.h hash.h \
-	distributions.h gdens.h GMRFLibP.h lapack-interface.h timer.h \
+	bfgs3.o fmesher-io.o smtp-pardiso.o interpol.o pre-opt.o
+HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
+	distributions.h GMRFLibP.h lapack-interface.h timer.h \
 	problem-setup.h error-handler.h globals.h graph.h wa.h random.h \
 	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
 	bitmap.h hashP.h compatibility.h taucs.h taucs_private.h ghq.h \
-	tabulate-Qfunc.h geo.h geo-coefs2.h geo-coefs3.h sphere.h io.h \
+	tabulate-Qfunc.h io.h \
 	approx-inference.h density.h utils.h experimental.h graph-edit.h \
 	domin-interface.h auxvar.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h fmesher-io.h smtp-pardiso.h \
-	interpol.h
+	interpol.h pre-opt.h
 EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-blockupdate.c examples/example-graph1.c \
 	examples/example-graph2.c examples/example-sample.c \
 	examples/example-wa.c examples/germany.data examples/germany.graph \
 	examples/graph1.dat examples/wa-example.dat examples/example-rw.c \
-	examples/example-geo.c examples/example-qinv.c \
-	examples/example-sphere.c examples/example-rng.c \
+	examples/example-qinv.c \
+	examples/example-rng.c \
 	examples/example-error-handler.c examples/example-graph-edit.c \
 	examples/example-bitmap.c examples/example-auxvar.c \
 	examples/example-approx-1.c examples/example-approx-2.c \
@@ -78,14 +76,11 @@ EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-hgmrfm-2.c
 MAKEFILESIN = examples/Makefile.in tutorial/Makefile.in
 
-ALL = $(LIBNAME) $(LIBNAMEG) $(MAKEFILESIN)
+ALL = $(LIBNAME) $(MAKEFILESIN)
 
 all : $(ALL)
 
 $(LIBNAME): $(LIBNAME)($(LIBOBJ))
-	ranlib $@
-
-$(LIBNAMEG): $(LIBNAMEG)($(LIBOBJG))
 	ranlib $@
 
 # !!! Do not change! /FL
@@ -147,13 +142,11 @@ doc:
 install: $(ALL)
 	 @umask 022;\
 	 mode=644;\
-	 for dir in  " " lib include include/GMRFLib doc doc/GMRFLib doc/GMRFLib/examples doc/GMRFLib/tutorial doc/GMRFLib/data; do \
+	 for dir in  " " lib include include/GMRFLib doc doc/GMRFLib doc/GMRFLib/examples doc/GMRFLib/tutorial; do \
 	   test -d $(PREFIX)/$$dir || mkdir $(PREFIX)/$$dir; \
 	 done; \
 	 $(INSTALL) -m$$mode $(LIBNAME) $(PREFIX)/lib; \
-	 $(INSTALL) -m$$mode $(LIBNAMEG) $(PREFIX)/lib; \
 	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete doc/* $(PREFIX)/doc/GMRFLib; \
-	 rsync -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete sphere/* $(PREFIX)/doc/GMRFLib/data; \
 	 for header in $(HEADERS); do \
 	    $(INSTALL) -m$$mode $$header $(PREFIX)/include/GMRFLib; \
 	 done; \
@@ -165,7 +158,6 @@ install: $(ALL)
 	 done;\
 	 echo; \
 	 echo "***	$(LIBNAME) installed     in $(PREFIX)/lib"; \
-	 echo "***	$(LIBNAMEG) installed in $(PREFIX)/lib"; \
 	 echo "***	documentation is installed in $(PREFIX)/doc/GMRFLib"; \
 	 echo "***	examples are installed     in $(PREFIX)/doc/GMRFLib/examples"; \
 	 echo "***	tutorial is  installed     in $(PREFIX)/doc/GMRFLib/tutorial"; \
@@ -173,13 +165,12 @@ install: $(ALL)
 	 echo ""
 uninstall:
 	-$(RM) $(PREFIX)/lib/$(LIBNAME)
-	-$(RM) $(PREFIX)/lib/$(LIBNAMEG)
 	-$(RMR) $(PREFIX)/doc/GMRFLib
 	-for header in $(HEADERS);  do $(RM) $(PREFIX)/include/GMRFLib/$$header; done
 	-for ex     in $(EXAMPLES); do $(RM) $(PREFIX)/doc/GMRFLib/$$ex; done
 	-$(RMDIR) $(PREFIX)/include/GMRFLib
 
-clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(LIBNAMEG) $(MAKEFILESIN)
+clean:; -$(RM) $(LIBOBJ) $(LIBOBJG) $(LIBNAME) $(MAKEFILESIN)
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt

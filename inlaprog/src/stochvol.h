@@ -44,13 +44,8 @@ __BEGIN_DECLS
 /* 
  *
  */
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
-
-
-
-
-__END_DECLS
+    __END_DECLS
 #endif

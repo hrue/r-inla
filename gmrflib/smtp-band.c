@@ -41,8 +41,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: smtp-band.c,v 1.47 2010/02/26 17:55:22 hrue Exp $ */
-
 int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -61,7 +59,8 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 	}
 	if (simple) {
 		int *imap = NULL;
-		if (graph->n >= 0) imap = Calloc(graph->n, int);
+		if (graph->n >= 0)
+			imap = Calloc(graph->n, int);
 
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;
@@ -376,7 +375,6 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 	return GMRFLib_SUCCESS;
 }
 
-
 int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp * graph,
 				  int *remap, int bandwidth)
 {
@@ -386,7 +384,7 @@ int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *
 	 * 
 	 * example: approach 1,2,3 are equivalent (old style!)
 	 * 
-	 * (*GMRFLib_uniform_init)(seed); set_stdgauss(x); memcpy(z, x, graph->n*sizeof(double));
+	 * (*GMRFLib_uniform_init)(seed); set_stdgauss(x); Memcpy(z, x, graph->n*sizeof(double));
 	 * 
 	 * a1: gmrf_g_solve(x, bchol, graph);
 	 * 
@@ -625,14 +623,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 #undef Cov
 	return GMRFLib_SUCCESS;
 }
-
-/* 
-   from here on: undocumented features
-*/
 
-/* 
-   from here is for internal use only. not documented
-*/
 int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp * graph, int *UNUSED(remap), int bandwidth)
 {
 #define BIDX(i,j) ((i)+(j)*ldim)			       /* band index'ing */
@@ -693,7 +684,6 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 	return GMRFLib_SUCCESS;
 #undef SETBIT
 #undef NBitsInByte
-
 
 #undef SETBIT
 #undef NBitsInByte

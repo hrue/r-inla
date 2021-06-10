@@ -43,7 +43,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: sparse-interface.c,v 1.41 2010/02/27 08:32:02 hrue Exp $ */
 
-
 /*!
   \brief Compute the reordering
 */
@@ -82,7 +81,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
+			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
 			break;
 
 		default:
@@ -99,7 +98,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
+			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
 			break;
 
 		default:
@@ -580,7 +579,7 @@ int GMRFLib_compute_Qinv(void *problem, int storage)
 {
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	switch (p->sub_sm_fact.smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p, storage));
@@ -659,7 +658,7 @@ const char *GMRFLib_reorder_name(GMRFLib_reorder_tp r)
  */
 int GMRFLib_reorder_id(const char *name)
 {
-	if (!strcasecmp(name, "default") || !strcasecmp(name, "auto")) 
+	if (!strcasecmp(name, "default") || !strcasecmp(name, "auto"))
 		return GMRFLib_REORDER_DEFAULT;
 	else if (!strcasecmp(name, "identity"))
 		return GMRFLib_REORDER_IDENTITY;

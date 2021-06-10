@@ -57,37 +57,6 @@
 
 __BEGIN_DECLS
 
-/*!
-  \brief Define a \c new problem. No previous information is avilable or used
-*/
-#define GMRFLib_NEW_PROBLEM   0x0000
-
-/*!
-  \brief Keep the \c mean
-*/
-#define GMRFLib_KEEP_mean     0x0001
-
-/*!
-  \brief Keep the \c graph (or \c subgraph)
-*/
-#define GMRFLib_KEEP_graph    0x0002
-
-/*!
-  \brief Keep the Cholesky factorisation
-*/
-#define GMRFLib_KEEP_chol     0x0004
-
-/*!
-  \brief Keep the constraint
-*/
-#define GMRFLib_KEEP_constr   0x0008
-
-/*
-  Update the constraint with one extra. WARNING: THIS IS FOR INTERNAL USE ONLY AND NOT DOCUMENTED, as very very special
-  conditions apply...
-*/
-#define GMRFLib_UPDATE_constr 0x0010
-
 /*! 
   \struct GMRFLib_constr__intern_tp problem-setup.h
 
@@ -95,7 +64,6 @@ __BEGIN_DECLS
   log of the determinant (\c logdet}) of the covariance matrix \f$ \mbox{\boldmath
   $\Sigma$}_{\epsilon}\f$
 */
-
 
 /*! 
   \struct GMRFLib_constr_tp problem-setup.h
@@ -127,15 +95,15 @@ __BEGIN_DECLS
 
   Two other operations on constraints are available:
   - To print the contents of the \c GMRFLib_constr_tp -object, call 
-  \c GMRFLib_print_constr().
+  \c GMRFLib_printf_constr().
   - To evaluate the expressions 
   \f$ \mbox{\boldmath $Ax-e$} \f$ and \f$ (\mbox{\boldmath $Ax-e$})^T\mbox{\boldmath
   $Q$}(\mbox{\boldmath $Ax-e$}) \f$ for a given value of the GMRF <em>\b x</em>, call \c
   GMRFLib_eval_constr().
 */
-typedef struct {
+    typedef struct {
 
-	unsigned char *sha1;
+	unsigned char *sha;
 
 	/**
 	 *  \brief Number of constaints, can be 0. 
@@ -469,7 +437,7 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
-int GMRFLib_constr_add_sha1(GMRFLib_constr_tp * constr, GMRFLib_graph_tp *graph);
+int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
@@ -482,15 +450,14 @@ int GMRFLib_free_store(GMRFLib_store_tp * store);
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
 int GMRFLib_init_constr_store(void);
 int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
-			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, char *fixed_value,
-			 GMRFLib_constr_tp * constraint, unsigned int keep);
+			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint);
 int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
-			       char *fixed_value, GMRFLib_constr_tp * constr, unsigned int keep, GMRFLib_store_tp * store);
+			       GMRFLib_constr_tp * constr, GMRFLib_store_tp * store);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);
-int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t * nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
+int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use_global, GMRFLib_global_node_tp * gn);
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr);
-int GMRFLib_print_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem);
 int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x, double *b_add,
 			  char *mask, GMRFLib_graph_tp * graph, GMRFLib_graph_tp * sub_graph);

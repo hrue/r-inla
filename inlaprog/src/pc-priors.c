@@ -30,14 +30,14 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+
 #include "pc-priors.h"
 #include "inla.h"
-
 
 double inla_pc_h_default(double x, int inverse, int derivative)
 {
@@ -248,8 +248,6 @@ double inla_pc_sn_core(int code, double arg)
 	return value;
 }
 
-
-
 
 GMRFLib_spline_tp *inla_pcp_dof_create_spline(void)
 {

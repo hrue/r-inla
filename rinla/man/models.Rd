@@ -6204,7 +6204,7 @@ inla.models()
 							\item{hyperid = }{`53001'}
 							\item{name = }{`log precision'}
 							\item{short.name = }{`prec'}
-							\item{initial = }{`12'}
+							\item{initial = }{`13.8155105579643'}
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`loggamma'}
 							\item{param = }{`1 1e-05'}
@@ -7443,7 +7443,7 @@ inla.models()
 							\item{hyperid = }{`79001'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0.1'}
+							\item{initial = }{`-2'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
@@ -7471,7 +7471,7 @@ inla.models()
 							\item{hyperid = }{`79101'}
 							\item{name = }{`log alpha'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0.1'}
+							\item{initial = }{`-2'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`pc.alphaw'}
 							\item{param = }{`5'}
@@ -9428,10 +9428,10 @@ inla.models()
 							\item{hyperid = }{`105101'}
 							\item{name = }{`shape'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`-20'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.001 0.001'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-20 0.01'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}
@@ -9457,10 +9457,10 @@ inla.models()
 							\item{hyperid = }{`106101'}
 							\item{name = }{`shape'}
 							\item{short.name = }{`alpha'}
-							\item{initial = }{`0'}
+							\item{initial = }{`-20'}
 							\item{fixed = }{`FALSE'}
-							\item{prior = }{`loggamma'}
-							\item{param = }{`0.001 0.001'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-20 0.01'}
 							\item{to.theta = }{`\code{function(x, sc = 0.1) log(x) / sc}'}
 							\item{from.theta = }{`\code{function(x, sc = 0.1) exp(sc * x)}'}
 							}

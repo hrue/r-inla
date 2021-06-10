@@ -10,7 +10,6 @@
    This object is useful to store e.g.  informations retrieved from a
    configuration file (ini files).  */
 
-
 /*
 	$Id: dictionary.c,v 1.30 2009/03/30 16:47:04 hrue Exp $
 	$Author: hrue $
@@ -44,7 +43,7 @@ static void *mem_double(void *ptr, int size)
 	void *newptr = NULL;
 
 	newptr = calloc((size_t) (2 * size), 1);
-	memcpy(newptr, ptr, (size_t) size);
+	Memcpy(newptr, ptr, (size_t) size);
 	free(ptr);
 	return newptr;
 }

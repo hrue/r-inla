@@ -63,6 +63,5 @@ int GMRFLib_rng_set_default_seed(void);
 int GMRFLib_rng_setstate(void *saved_state);
 void *GMRFLib_rng_getstate(size_t *siz);
 
-
 __END_DECLS
 #endif

@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-//static const char GitID[] = GITCOMMIT;
 
 #include <float.h>
 #include <math.h>
@@ -41,6 +40,9 @@
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
+
 #include "bessel.h"
 
 /*

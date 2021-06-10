@@ -30,11 +30,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "ar.h"
 #include "inla.h"
 
@@ -51,7 +51,6 @@ static const char GitID[] = GITCOMMIT;
 		}							\
 		printf("\n");						\
 	}
-
 
 /* 
    functions for the AR(p) model; the pacf2phi and phi2pacf are taken from R's arima.c
@@ -158,7 +157,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	if (debug) {
 		printf("A\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, A, NULL);
+		GMRFLib_printf_gsl_matrix(stdout, A, NULL);
 	}
 
 	int s;
@@ -183,7 +182,7 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 
 	if (debug) {
 		printf("Sigma\n");
-		GMRFLib_gsl_matrix_fprintf(stdout, Sigma, NULL);
+		GMRFLib_printf_gsl_matrix(stdout, Sigma, NULL);
 	}
 
 	gsl_linalg_LU_decomp(Sigma, perm, &s);
@@ -251,10 +250,10 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 
 double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0){
+	if (i >= 0 && j < 0) {
 		return NAN;
 	}
-	
+
 	ar_def_tp *def = (ar_def_tp *) arg;
 
 	if (IABS(i - j) > def->p) {
@@ -370,7 +369,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 		Free(pacf);
 		Free(L);
 
-		return Qfunc_ar(i, j, NULL, arg);		       /* recursive call */
+		return Qfunc_ar(i, j, NULL, arg);	       /* recursive call */
 	}
 	assert(0 == 1);
 
@@ -409,7 +408,7 @@ int ar_test1()
 		}
 
 		GMRFLib_graph_mk_linear(&g, def.n, def.p, 0);
-		GMRFLib_Qfunc_print(stdout, g, Qfunc_ar, &def);
+		GMRFLib_printf_Qfunc(stdout, g, Qfunc_ar, &def);
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");
@@ -459,7 +458,6 @@ int ar_test1()
 			 * and its inverse 
 			 */
 			ar_phi2pacf(p, phi, pacf2);
-
 
 			printf("Result for p = %d\n", p);
 			for (i = 0; i < p; i++) {

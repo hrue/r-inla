@@ -1,7 +1,7 @@
 
 /* io.c
  * 
- * Copyright (C) 2005-2020 Havard Rue
+ * Copyright (C) 2005-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: io.c,v 1.53 2009/05/23 06:16:16 hrue Exp $ */
-
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 {
 	/*
@@ -94,6 +92,7 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find)
 {
 	/*
@@ -142,6 +141,7 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 
 	return (found ? GMRFLib_SUCCESS : GMRFLib_EOPENFILE);
 }
+
 int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
 {
 	GMRFLib_ASSERT(filename, GMRFLib_EPARAMETER);
@@ -163,6 +163,7 @@ int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
 		return GMRFLib_SUCCESS;
 	}
 }
+
 int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
 {
 	/*
@@ -171,6 +172,7 @@ int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
 
 	return ((int) gzseek(io->fp, (z_off_t) offset, whence));
 }
+
 int GMRFLib_io_close(GMRFLib_io_tp * io)
 {
 	if (io) {
@@ -184,6 +186,7 @@ int GMRFLib_io_close(GMRFLib_io_tp * io)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 {
 	char *msg = NULL;
@@ -227,6 +230,7 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 
 	return ecode;
 }
+
 int GMRFLib_io_strip_blanks(char *line)
 {
 	char *ptr = NULL;
@@ -258,6 +262,7 @@ int GMRFLib_io_strip_blanks(char *line)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
 {
 	char *line = NULL;
@@ -321,6 +326,7 @@ int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 {
 	char *tok = NULL;
@@ -363,6 +369,7 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
 {
 	/*
@@ -387,6 +394,7 @@ int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
 {
 	/*
@@ -404,6 +412,7 @@ int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, size_t len)
 {
 	/*

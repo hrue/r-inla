@@ -47,6 +47,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <openssl/sha.h>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -81,6 +82,27 @@ typedef int fortran_charlen_t;
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
+#define GMRFLib_SHA_TP         SHA256_CTX
+#define GMRFLib_SHA_DIGEST_LEN SHA256_DIGEST_LENGTH
+#define GMRFLib_SHA_Init       SHA256_Init
+#define GMRFLib_SHA_Update     SHA256_Update
+#define GMRFLib_SHA_Final      SHA256_Final
+#define GMRFLib_SHA_UPDATE_LEN 64L
+#define GMRFLib_SHA_UPDATE_CORE(_x, _len, _type) \
+	if ((_len) > 0 && (_x)) {					\
+		size_t len = (_len) * sizeof(_type);			\
+		size_t n = (size_t) len / GMRFLib_SHA_UPDATE_LEN;	\
+		size_t m = len - n * GMRFLib_SHA_UPDATE_LEN;		\
+		unsigned char *xx = (unsigned char *) (_x);		\
+		for(size_t i = 0; i < n; i++) {				\
+			GMRFLib_SHA_Update(&c, (const void *) (xx + i * GMRFLib_SHA_UPDATE_LEN), (size_t) GMRFLib_SHA_UPDATE_LEN); \
+		}							\
+		if (m) {						\
+			GMRFLib_SHA_Update(&c, (const void *) (xx + n * GMRFLib_SHA_UPDATE_LEN), m); \
+		}							\
+	}
+#define GMRFLib_SHA_IUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, int)
+#define GMRFLib_SHA_DUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, double)
 
 // utility functions for this are mostly in smtp-pardiso.c
 typedef struct {
@@ -103,7 +125,6 @@ typedef enum {
 	INLA_B_STRATEGY_KEEP = 1
 } inla_b_strategy_tp;
 
-
 /* 
    here are the wrappers for calling functions which return the error-code if it fails
 */
@@ -112,7 +133,6 @@ typedef enum {
 		int rretval;				\
 		rretval = func_call;			\
 		if (rretval != GMRFLib_SUCCESS){	\
-			if (leave) GMRFLib_LEAVE_ROUTINE;	\
 			GMRFLib_ERROR(rretval);			\
 			return rretval;				\
 		}						\
@@ -123,7 +143,6 @@ typedef enum {
 		rrretval = func_call;					\
 		if (rrretval != MAPKIT_OK){				\
 			char *msg;					\
-			if (leave) GMRFLib_LEAVE_ROUTINE;		\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "Mapkit-library returned error-code [%1d]", rrretval), leave); \
 			GMRFLib_ERROR_MSG(GMRFLib_EMAPKIT, msg);	\
 			Free(msg);					\
@@ -138,7 +157,6 @@ typedef enum {
 		gsl_set_error_handler(ehandler);			\
 		if (rrretval != GSL_SUCCESS){				\
 			char *msg;					\
-			if (leave) GMRFLib_LEAVE_ROUTINE;		\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library returned error-code [%1d]", rrretval), leave); \
 			GMRFLib_ERROR_MSG(GMRFLib_EGSL, msg);		\
 			Free(msg);					\
@@ -152,7 +170,6 @@ typedef enum {
 		gsl_set_error_handler(ehandler);			\
 		if (retval_ptr == NULL){				\
 			char *msg;					\
-			if (leave) GMRFLib_LEAVE_ROUTINE;		\
 			GMRFLib_EWRAP__intern(GMRFLib_sprintf(&msg, "GSL-library call returned NULL-pointer"), leave); \
 			GMRFLib_ERROR_MSG(GMRFLib_EMEMORY, msg);	\
 			Free(msg);					\
@@ -197,21 +214,55 @@ typedef enum {
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
 
+#define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
+	static int debug_count_ = 0;					\
+	_Pragma("omp threadprivate(debug_count_)")			\
+	debug_count_++;							\
+	if (debug_ < 0)	{						\
+		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
+	}
+
+#define GMRFLib_DEBUG_IF_TRUE (debug_)
+#define GMRFLib_DEBUG_IF      (debug_ > 0 && !((debug_count_ - 1) % debug_))
+
+#define GMRFLib_DEBUG(msg_)						\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_); \
+	}								\
+
+#define GMRFLib_DEBUG_i(msg_, i_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, _i); \
+	}
+
+#define GMRFLib_DEBUG_d(msg_, d_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %g\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, d_); \
+	}
+
+#define GMRFLib_DEBUG_id(msg_, i_, d_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %g\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_); \
+	}
+
 /* 
-   some useful macros
+   for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
+#define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) * sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 1
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
-#define Calloc(n, type)         (type *)GMRFLib_calloc((size_t)(n),sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Malloc(n, type)         (type *)GMRFLib_malloc((size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, (size_t)(n)*sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
+#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
 #define Free(ptr)               {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__, GitID); ptr=NULL;}
+#define Memcpy(dest, src, n)    GMRFLib_memcpy(dest, src, n)
 #else
 #undef  GMRFLib_TRACE_MEMORY
-#define Calloc(n, type)         (type *)calloc((size_t)(n),sizeof(type))
-#define Malloc(n, type)         (type *)malloc((size_t)(n)*sizeof(type))
-#define Realloc(ptr, n, type)   (type *)realloc((void *)ptr, (size_t)(n)*sizeof(type))
+#define Calloc(n, type)         (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
+#define Malloc(n, type)         (type *)malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
+#define Realloc(ptr, n, type)   (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
 #define Free(ptr)               {free((void *)(ptr)); ptr=NULL;}
+#define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
 #endif
 
 /* 
@@ -276,7 +327,6 @@ typedef enum {
 	 : (arg_->log_range ? exp(*(arg_->log_range))			\
 	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
 
-
 // This is for internal caching
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS))
 #define GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
@@ -286,6 +336,20 @@ typedef enum {
 					  GMRFLib_MAX_THREADS * GMRFLib_thread_id) : \
 					 (omp_get_thread_num() + GMRFLib_MAX_THREADS * GMRFLib_thread_id)); \
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
+
+#define RUN_CODE_BLOCK(thread_max_) if (1) {				\
+		int id__ = GMRFLib_thread_id;				\
+		int nt__ = (omp_in_parallel() ? GMRFLib_openmp->max_threads_inner :  GMRFLib_openmp->max_threads_outer); \
+		int tmax__ = thread_max_;				\
+		nt__ = IMIN(nt__, tmax__);				\
+		if (nt__ > 1) {						\
+			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
+				CODE_BLOCK;				\
+		} else {						\
+			CODE_BLOCK;					\
+		}							\
+		GMRFLib_thread_id = id__;				\
+        }
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 
@@ -316,6 +380,21 @@ typedef enum {
 #else
 #define __GMRFLib_FuncName ((const char *) "(function-name unavailable)")
 #endif
+#endif
+
+// from https://en.wikipedia.org/wiki/Inline_function
+#ifdef _MSC_VER
+#define forceinline __forceinline
+#elif defined(__GNUC__)
+#define forceinline inline __attribute__((__always_inline__))
+#elif defined(__CLANG__)
+#if __has_attribute(__always_inline__)
+#define forceinline inline __attribute__((__always_inline__))
+#else
+#define forceinline inline
+#endif
+#else
+#define forceinline inline
 #endif
 
 /* 

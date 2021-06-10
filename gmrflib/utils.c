@@ -1,7 +1,7 @@
 
 /* utils.c
  * 
- * Copyright (C) 2006-2020 Havard Rue
+ * Copyright (C) 2006-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,17 +28,10 @@
  *
  */
 
-/*!
-  \file utils.c
-  \brief Various simple utilities.
-*/
-
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: utils.c,v 1.97 2010/02/15 08:26:40 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <stddef.h>
@@ -90,6 +83,9 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 #else
 #define MEMINFO(_size) if (0) {}
 #endif
+
+#define IDX_ALLOC_INITIAL 64
+#define IDX_ALLOC_ADD     64
 
 char *GMRFLib_rindex(const char *p, int ch)
 {
@@ -181,6 +177,7 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 
 	return -1;
 }
+
 double GMRFLib_eps2(void)
 {
 	static double eps2 = -1.0;
@@ -189,6 +186,7 @@ double GMRFLib_eps2(void)
 	}
 	return (eps2);
 }
+
 double GMRFLib_eps1(void)
 {
 	static double eps1 = -1.0;
@@ -197,6 +195,7 @@ double GMRFLib_eps1(void)
 	}
 	return (eps1);
 }
+
 double GMRFLib_eps(double power)
 {
 	/*
@@ -219,6 +218,7 @@ double GMRFLib_eps(double power)
 	}
 	return (pow(eps, power));
 }
+
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc)
 {
 	int i;
@@ -230,6 +230,7 @@ int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc)
 {
 	int i;
@@ -241,156 +242,17 @@ int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_adjust_vector(double *x, int n)
-{
-	/*
-	 * x := x - max(x[]) 
-	 */
-	int i;
-	double max_value;
 
-	if (n <= 0 || !x) {
-		return GMRFLib_SUCCESS;
-	}
-
-	max_value = GMRFLib_max_value(x, n, NULL);
-	for (i = 0; i < n; i++) {
-		x[i] -= max_value;
-	}
-
-	return GMRFLib_SUCCESS;
-}
-int GMRFLib_scale_vector(double *x, int n)
-{
-	/*
-	 * x := x/max(x)
-	 */
-	int i;
-	double scale;
-
-	if (n <= 0 || !x) {
-		return GMRFLib_SUCCESS;
-	}
-
-	scale = GMRFLib_max_value(x, n, NULL);
-	if (!ISZERO(scale)) {
-		scale = 1.0 / scale;
-		for (i = 0; i < n; i++) {
-			x[i] *= scale;
-		}
-	}
-
-	return GMRFLib_SUCCESS;
-}
-double GMRFLib_min_value(double *x, int n, int *idx)
-{
-	/*
-	 * return the MIN(x[]) 
-	 */
-	int i;
-	double min_val;
-
-	min_val = x[0];
-	if (idx) {
-		*idx = 0;
-	}
-	for (i = 1; i < n; i++) {
-		if (x[i] < min_val && !ISNAN(x[i])) {
-			min_val = x[i];
-			if (idx) {
-				*idx = i;
-			}
-		}
-	}
-
-	return min_val;
-}
-int GMRFLib_imin_value(int *x, int n, int *idx)
-{
-	/*
-	 * return the IMIN(x[]) 
-	 */
-	int i;
-	int min_val;
-
-	min_val = x[0];
-	if (idx) {
-		*idx = 0;
-	}
-	for (i = 1; i < n; i++) {
-		if (x[i] < min_val && !ISNAN(x[i])) {
-			min_val = x[i];
-			if (idx) {
-				*idx = i;
-			}
-		}
-	}
-
-	return min_val;
-}
-double GMRFLib_max_value(double *x, int n, int *idx)
-{
-	/*
-	 * return the MAX(x[]), optional idx
-	 */
-	int i;
-	double max_val;
-
-	max_val = x[0];
-	if (idx) {
-		*idx = 0;
-	}
-	for (i = 1; i < n; i++) {
-		if (x[i] > max_val && !ISNAN(x[i])) {
-			max_val = x[i];
-			if (idx) {
-				*idx = i;
-			}
-		}
-	}
-
-	return max_val;
-}
-int GMRFLib_imax_value(int *x, int n, int *idx)
-{
-	/*
-	 * return IMAX(x[]) 
-	 */
-
-	int i;
-	int max_val;
-
-	max_val = x[0];
-	if (idx) {
-		*idx = 0;
-	}
-	for (i = 1; i < n; i++) {
-		if (x[i] > max_val && !ISNAN(x[i])) {
-			max_val = x[i];
-			if (idx) {
-				*idx = i;
-			}
-		}
-	}
-
-	return max_val;
-}
 int GMRFLib_icmp(const void *a, const void *b)
 {
-	const int *ia = NULL, *ib = NULL;
+	const int *ia, *ib;
 
 	ia = (const int *) a;
 	ib = (const int *) b;
 
-	if (*ia > *ib) {
-		return 1;
-	}
-	if (*ia < *ib) {
-		return -1;
-	}
-
-	return 0;
+	return (*ia - *ib);
 }
+
 int GMRFLib_dcmp(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
@@ -407,6 +269,7 @@ int GMRFLib_dcmp(const void *a, const void *b)
 
 	return 0;
 }
+
 int GMRFLib_dcmp_r(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
@@ -423,6 +286,7 @@ int GMRFLib_dcmp_r(const void *a, const void *b)
 
 	return 0;
 }
+
 int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
@@ -455,6 +319,7 @@ int GMRFLib_dcmp_abs(const void *a, const void *b)
 	 */
 	return 0;
 }
+
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *))
 {
 	/*
@@ -486,17 +351,17 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 	xyz = Calloc(nmemb * siz, char);
 
 	for (i = 0; i < nmemb; i++) {
-		memcpy((void *) &xyz[i * siz], (void *) &xx[i * size_x], size_x);
+		Memcpy((void *) &xyz[i * siz], (void *) &xx[i * size_x], size_x);
 	}
 	if (y) {
 		offset = size_x;
 		for (i = 0; i < nmemb; i++) {
-			memcpy((void *) &xyz[i * siz + offset], (void *) &yy[i * size_y], size_y);
+			Memcpy((void *) &xyz[i * siz + offset], (void *) &yy[i * size_y], size_y);
 		}
 		if (z) {
 			offset = size_x + size_y;
 			for (i = 0; i < nmemb; i++) {
-				memcpy((void *) &xyz[i * siz + offset], (void *) &zz[i * size_z], size_z);
+				Memcpy((void *) &xyz[i * siz + offset], (void *) &zz[i * size_z], size_z);
 			}
 		}
 	}
@@ -504,17 +369,17 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 	qsort((void *) xyz, nmemb, siz, compar);
 
 	for (i = 0; i < nmemb; i++) {
-		memcpy((void *) &xx[i * size_x], (void *) &xyz[i * siz], size_x);
+		Memcpy((void *) &xx[i * size_x], (void *) &xyz[i * siz], size_x);
 	}
 	if (y) {
 		offset = size_x;
 		for (i = 0; i < nmemb; i++) {
-			memcpy((void *) &yy[i * size_y], (void *) &xyz[i * siz + offset], size_y);
+			Memcpy((void *) &yy[i * size_y], (void *) &xyz[i * siz + offset], size_y);
 		}
 		if (z) {
 			offset = size_x + size_y;
 			for (i = 0; i < nmemb; i++) {
-				memcpy((void *) &zz[i * size_z], (void *) &xyz[i * siz + offset], size_z);
+				Memcpy((void *) &zz[i * size_z], (void *) &xyz[i * siz + offset], size_z);
 			}
 		}
 	}
@@ -523,6 +388,7 @@ int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y,
 
 	return GMRFLib_SUCCESS;
 }
+
 double GMRFLib_log_apbex(double a, double b)
 {
 	/*
@@ -541,11 +407,19 @@ double GMRFLib_log_apbex(double a, double b)
 	}
 }
 
+void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
+{
+	assert(n < PTRDIFF_MAX);
+	memcpy(dest, src, n);
+	return NULL;
+}
+
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	assert(nmemb * size < PTRDIFF_MAX);
 	MEMINFO(nmemb * size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
@@ -570,11 +444,13 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 
 	return NULL;
 }
+
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	assert(size < PTRDIFF_MAX);
 	MEMINFO(size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
@@ -599,11 +475,13 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 
 	return NULL;
 }
+
 void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *ptr = NULL;
 	char *msg = NULL;
 
+	assert(size < PTRDIFF_MAX);
 	MEMINFO(size);
 
 #if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
@@ -628,6 +506,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 
 	return NULL;
 }
+
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id)
 {
 	if (ptr) {
@@ -643,6 +522,7 @@ void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno,
 		}
 	}
 }
+
 char *GMRFLib_strdup(const char *ptr)
 {
 	/*
@@ -668,6 +548,7 @@ char *GMRFLib_strdup(const char *ptr)
 	}
 #endif
 }
+
 void *GMRFLib_malloc__(size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *p = NULL;
@@ -676,6 +557,7 @@ void *GMRFLib_malloc__(size_t size, const char *file, const char *funcname, int 
 	GMRFLib_memcheck_register(p, size, file, funcname, lineno, id);
 	return p;
 }
+
 void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *p = NULL;
@@ -684,6 +566,7 @@ void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *
 	GMRFLib_memcheck_register(p, size, file, funcname, lineno, id);
 	return p;
 }
+
 void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *p = NULL;
@@ -693,6 +576,7 @@ void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char
 	GMRFLib_memcheck_register(p, size, file, funcname, lineno, id);
 	return p;
 }
+
 void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id)
 {
 	if (!ptr) {
@@ -710,6 +594,7 @@ void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int linen
 
 	return;
 }
+
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	char *tag = NULL;
@@ -719,6 +604,7 @@ char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcn
 
 	return tag;
 }
+
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id)
 {
 	printf("GMRFLib_memcheck: %s [0x%" PRIxPTR "]\n", msg, (uintptr_t) p);
@@ -726,6 +612,7 @@ int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const cha
 	abort();
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *tag = NULL;
@@ -750,6 +637,7 @@ int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id)
 {
 	void *ptr = NULL;
@@ -795,6 +683,7 @@ int GMRFLib_memcheck_printf(FILE * fp)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_unique_relative(int *n, double *x, double eps)
 {
 	/*
@@ -818,6 +707,7 @@ int GMRFLib_unique_relative(int *n, double *x, double eps)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps)
 {
 	/*
@@ -847,6 +737,7 @@ int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_unique_additive(int *n, double *x, double eps)
 {
 	/*
@@ -870,6 +761,7 @@ int GMRFLib_unique_additive(int *n, double *x, double eps)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 {
 	/*
@@ -900,7 +792,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
+int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 {
 	// A is m x n matrix
 #pragma omp critical
@@ -918,8 +810,7 @@ int GMRFLib_matrix_fprintf(FILE * fp, double *A, int m, int n)
 	return 0;
 }
 
-
-int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *format)
+int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format)
 {
 	size_t i, j;
 
@@ -931,7 +822,8 @@ int GMRFLib_gsl_matrix_fprintf(FILE * fp, gsl_matrix * matrix, const char *forma
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_gsl_vector_fprintf(FILE * fp, gsl_vector * vector, const char *format)
+
+int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format)
 {
 	size_t i;
 
@@ -941,6 +833,7 @@ int GMRFLib_gsl_vector_fprintf(FILE * fp, gsl_vector * vector, const char *forma
 	}
 	return GMRFLib_SUCCESS;
 }
+
 double GMRFLib_signed_pow(double x, double power)
 {
 	if (ISZERO(x)) {
@@ -949,6 +842,7 @@ double GMRFLib_signed_pow(double x, double power)
 		return (x > 0.0 ? 1.0 : -1.0) * pow(fabs(x), power);
 	}
 }
+
 int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double c)
 {
 	/*
@@ -1032,6 +926,7 @@ map_ii *GMRFLib_duplicate_map_ii(map_ii * hash)
 
 	return newhash;
 }
+
 size_t GMRFLib_sizeof_map_ii(map_ii * hash)
 {
 	if (!hash) {
@@ -1068,6 +963,7 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash)
 
 	return newhash;
 }
+
 size_t GMRFLib_sizeof_map_id(map_id * hash)
 {
 	if (!hash) {
@@ -1079,6 +975,7 @@ size_t GMRFLib_sizeof_map_id(map_id * hash)
 
 	return siz;
 }
+
 int GMRFLib_is_int(char *str, int *value)
 {
 	/*
@@ -1095,6 +992,7 @@ int GMRFLib_is_int(char *str, int *value)
 	}
 	return err;
 }
+
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 {
 	char *ret;
@@ -1165,6 +1063,7 @@ int GMRFLib_fpe(void)
 {
 	return fpe();
 }
+
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
 	/*
@@ -1182,7 +1081,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	}
 
 	ixx = Calloc(nx, int);
-	memcpy(ixx, ix, nx * sizeof(int));
+	Memcpy(ixx, ix, nx * sizeof(int));
 	qsort((void *) ixx, (size_t) nx, sizeof(int), GMRFLib_icmp);
 
 	for (j = nu = i = 0; i < nx; i++) {
@@ -1191,12 +1090,10 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 			j = i;
 		}
 	}
-	// printf("nu %d\n", nu);
 	un = Calloc(nu, int);
 
 	for (j = nu = i = 0; i < nx; i++) {
 		if (ixx[i] && (!i || ixx[i] != ixx[j])) {
-			// printf("\t un[%1d] = %d\n", nu, ixx[i]);
 			un[nu++] = ixx[i];
 			j = i;
 		}
@@ -1213,63 +1110,115 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec)
+{
+	if (!vec || vec->size == 0) {
+		*out = NULL;
+	} else {
+		*out = Calloc(vec->size, double);
+		for (size_t i = 0; i < vec->size; i++) {
+			(*out)[i] = gsl_vector_get(vec, i);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat)
+{
+	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
+		*out = NULL;
+	} else {
+		*out = Calloc(mat->size1 * mat->size2, double);
+		for (size_t j = 0; j < mat->size2; j++) {
+			size_t off = j * mat->size1;
+			for (size_t i = 0; i < mat->size1; i++) {
+				(*out)[i + off] = gsl_matrix_get(mat, i, j);
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
-	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx_tp);
-	(*hold)->idx = Calloc(alloc_add, int);
-	(*hold)->n_alloc = alloc_add;
+	(*hold)->idx = Calloc(IDX_ALLOC_INITIAL, int);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 {
-	int alloc_add = 32L;
 	*hold = Calloc(1, GMRFLib_idx2_tp);
 	(*hold)->idx = Calloc(2, int *);
-	(*hold)->idx[0] = Calloc(alloc_add, int);
-	(*hold)->idx[1] = Calloc(alloc_add, int);
-	(*hold)->n_alloc = alloc_add;
+	(*hold)->idx[0] = Calloc(IDX_ALLOC_INITIAL, int);
+	(*hold)->idx[1] = Calloc(IDX_ALLOC_INITIAL, int);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
 	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
+
+int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 {
-	int alloc_add = 32L;
-	if (*hold == NULL) {
-		GMRFLib_idx_create(hold);
-	}
-	assert((*hold)->n <= (*hold)->n_alloc);
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(alloc_add, (*hold)->n / 12L);
-		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
-	}
-	(*hold)->idx[(*hold)->n] = idx;
-	(*hold)->n++;
+	*hold = Calloc(1, GMRFLib_val_tp);
+	(*hold)->val = Calloc(IDX_ALLOC_INITIAL, double);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
+	(*hold)->n = 0;
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
+
+int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
 {
-	int alloc_add = 32L;
-	if (*hold == NULL) {
-		GMRFLib_idx2_create(hold);
-	}
-	assert((*hold)->n <= (*hold)->n_alloc);
-	if ((*hold)->n == (*hold)->n_alloc) {
-		(*hold)->n_alloc += IMAX(alloc_add, (*hold)->n / 12L);
-		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
-		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
-	}
-	(*hold)->idx[0][(*hold)->n] = idx0;
-	(*hold)->idx[1][(*hold)->n] = idx1;
-	(*hold)->n++;
+	*hold = Calloc(1, GMRFLib_idxval_tp);
+	(*hold)->store = Calloc(IDX_ALLOC_INITIAL, GMRFLib_idxval_elm_tp);
+	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
+	(*hold)->n = 0;
+	(*hold)->iaddto = 0;
 
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx_print(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
+
+GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
+{
+	GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idx_create(&(a[i]));
+	}
+	return a;
+}
+
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
+{
+	GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idx2_create(&(a[i]));
+	}
+	return a;
+}
+
+GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
+{
+	GMRFLib_val_tp **a = Calloc(n, GMRFLib_val_tp *);
+	for (int i = 0; i < n; i++) {
+		GMRFLib_val_create(&(a[i]));
+	}
+	return a;
+}
+
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
+{
+	GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idxval_create(&(a[i]));
+	}
+	return a;
+}
+
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -1279,7 +1228,8 @@ int GMRFLib_idx_print(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 	}
 	return GMRFLib_SUCCESS;
 }
-int GMRFLib_idx2_print(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
+
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -1289,6 +1239,225 @@ int GMRFLib_idx2_print(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tval[%1d] = %g\n", i, hold->val[i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+{
+	if (hold) {
+		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
+		for (int i = 0; i < hold->n; i++) {
+			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->store[i].idx, hold->store[i].val);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
+{
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idx_prune(a[i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_sort(GMRFLib_idx_tp * hold)
+{
+	if (hold) {
+		qsort((void *) hold->idx, (size_t) hold->n, sizeof(int), GMRFLib_icmp);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
+{
+#define CODE_BLOCK							\
+	for(int i = 0; i < n; i++) {					\
+		if (a[i] && a[i]->n > 1) {				\
+			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp); \
+		}							\
+	}
+	RUN_CODE_BLOCK(nt);
+#undef CODE_BLOCK
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold)
+{
+	if (hold && hold->n > 1) {
+		int i, j;
+
+		GMRFLib_idx_sort(hold);
+		for (j = 0, i = 0; i < hold->n; i++) {
+			if (hold->idx[j] != hold->idx[i]) {
+				hold->idx[++j] = hold->idx[i];
+			}
+		}
+		hold->n = j + 1;
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
+{
+#define CODE_BLOCK				\
+	for (int i = 0; i < n; i++) {		\
+		GMRFLib_idx_uniq(a[i]);		\
+	}
+
+	RUN_CODE_BLOCK(nt);
+#undef CODE_BLOCK
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n)
+{
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idx2_prune(a[i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n)
+{
+	if (a) {
+		for (int i = 0; i < n; i++) {
+			GMRFLib_val_prune(a[i]);
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
+{
+#define CODE_BLOCK					\
+	for (int i = 0; i < n; i++) {			\
+		GMRFLib_idxval_uniq(a[i]);		\
+	}
+	RUN_CODE_BLOCK(nt);
+#undef CODE_BLOCK
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
+{
+	// sort idx, and accumulate values and then prune
+	if (hold && hold->n > 1) {
+		int i, j;
+
+		GMRFLib_idxval_sort(hold);
+		for (j = 0, i = 0; i < hold->n; i++) {
+			if (hold->store[j].idx == hold->store[i].idx) {
+				if (i > j) {
+					hold->store[j].val += hold->store[i].val;
+				}
+			} else {
+				j++;
+				hold->store[j] = hold->store[i];
+			}
+		}
+		hold->n = j + 1;
+		GMRFLib_idxval_prune(hold);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
+{
+#define CODE_BLOCK					\
+	for (int i = 0; i < n; i++) {			\
+		GMRFLib_idxval_prune(a[i]);		\
+	}
+
+	RUN_CODE_BLOCK(nt);
+#undef CODE_BLOCK
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
+{
+	if (hold) {
+		hold->idx = Realloc(hold->idx, IMAX(1, hold->n), int);
+		hold->n_alloc = IMAX(1, hold->n);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
+{
+	if (hold) {
+		hold->idx[0] = Realloc(hold->idx[0], IMAX(1, hold->n), int);
+		hold->idx[1] = Realloc(hold->idx[1], IMAX(1, hold->n), int);
+		hold->n_alloc = IMAX(1, hold->n);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_val_prune(GMRFLib_val_tp * hold)
+{
+	if (hold) {
+		hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
+		hold->n_alloc = IMAX(1, hold->n);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
+{
+	if (hold) {
+		hold->store = Realloc(hold->store, IMAX(1, hold->n), GMRFLib_idxval_elm_tp);
+		hold->n_alloc = IMAX(1, hold->n);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_cmp(const void *a, const void *b)
+{
+	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
+	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
+
+	return (aa->idx > bb->idx);
+}
+
+int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
+{
+	if (hold) {
+		qsort((void *) hold->store, (size_t) hold->n, sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
+{
+#define CODE_BLOCK							\
+	for(int i = 0; i < n; i++) {					\
+		if (hold[i] && hold[i]->n > 1) {			\
+			qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
+		}							\
+	}
+
+	RUN_CODE_BLOCK(nt);
+#undef CODE_BLOCK
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
@@ -1297,6 +1466,7 @@ int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 {
 	if (hold) {
@@ -1308,6 +1478,366 @@ int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_val_free(GMRFLib_val_tp * hold)
+{
+	if (hold) {
+		Free(hold->val);
+		Free(hold);
+	}
+	return GMRFLib_SUCCESS;
+}
 
+int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
+{
+	if (hold) {
+		Free(hold->store);
+		Free(hold);
+	}
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
+{
+	if (*hold == NULL) {
+		GMRFLib_idx_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+	}
+	(*hold)->idx[(*hold)->n] = idx;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
+{
+	if (*hold == NULL) {
+		GMRFLib_idx2_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->idx[0] = Realloc((*hold)->idx[0], (*hold)->n_alloc, int);
+		(*hold)->idx[1] = Realloc((*hold)->idx[1], (*hold)->n_alloc, int);
+	}
+	(*hold)->idx[0][(*hold)->n] = idx0;
+	(*hold)->idx[1][(*hold)->n] = idx1;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
+{
+	if (*hold == NULL) {
+		GMRFLib_val_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
+	}
+	(*hold)->val[(*hold)->n] = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
+{
+	if (*hold == NULL) {
+		GMRFLib_idxval_create(hold);
+	}
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+	}
+	(*hold)->store[(*hold)->n].idx = idx;
+	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+forceinline int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
+{
+	// if idx exists before, add val to value , otherwise just 'add'.
+	// if there are two entries of 'idx', then only the first is used.
+
+	if (*hold == NULL) {
+		GMRFLib_idxval_create(hold);
+	}
+
+	int i;
+
+	// hopefully this is it.
+	i = (*hold)->iaddto;
+	if ((*hold)->store[i].idx == idx) {
+		(*hold)->store[i].val += val;
+		return GMRFLib_SUCCESS;
+	}
+	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
+	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
+	for (i = (*hold)->iaddto + 1; i < (*hold)->n; i++) {
+		if ((*hold)->store[i].idx == idx) {
+			(*hold)->store[i].val += val;
+			(*hold)->iaddto = i;
+			return GMRFLib_SUCCESS;
+		}
+	}
+	for (i = 0; i < (*hold)->iaddto; i++) {
+		if ((*hold)->store[i].idx == idx) {
+			(*hold)->store[i].val += val;
+			(*hold)->iaddto = i;
+			return GMRFLib_SUCCESS;
+		}
+	}
+
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
+		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+	}
+	(*hold)->store[(*hold)->n].idx = idx;
+	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->n++;
+
+	return GMRFLib_SUCCESS;
+}
 
 #undef MEMINFO
+#undef IDX_ALLOC_ADD
+#undef IDX_ALLOC_INITIAL
+
+/////////////////////////////////////////////////////////////////////////
+
+int GMRFLib_adjust_vector(double *x, int n)
+{
+	/*
+	 * x := x - max(x[]) 
+	 */
+	int i;
+	double max_value;
+
+	if (n <= 0 || !x) {
+		return GMRFLib_SUCCESS;
+	}
+
+	max_value = GMRFLib_max_value(x, n, NULL);
+	for (i = 0; i < n; i++) {
+		x[i] -= max_value;
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_scale_vector(double *x, int n)
+{
+	/*
+	 * x := x/max(x)
+	 */
+	int i;
+	double scale;
+
+	if (n <= 0 || !x) {
+		return GMRFLib_SUCCESS;
+	}
+
+	scale = GMRFLib_max_value(x, n, NULL);
+	if (!ISZERO(scale)) {
+		scale = 1.0 / scale;
+		for (i = 0; i < n; i++) {
+			x[i] *= scale;
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+double GMRFLib_min_value(double *x, int n, int *idx)
+{
+	/*
+	 * return the MIN(x[]) 
+	 */
+	int i, imin;
+	double min_val;
+
+	min_val = x[0];
+	imin = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] < min_val) {
+			min_val = x[i];
+			imin = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imin;
+	}
+
+	return min_val;
+}
+
+int GMRFLib_imin_value(int *x, int n, int *idx)
+{
+	/*
+	 * return the IMIN(x[]) 
+	 */
+	int i, imin, min_val;
+
+	min_val = x[0];
+	imin = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] < min_val) {
+			min_val = x[i];
+			imin = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imin;
+	}
+	return min_val;
+}
+
+double GMRFLib_max_value(double *x, int n, int *idx)
+{
+	/*
+	 * return the MAX(x[]), optional idx
+	 */
+	int i, imax;
+	double max_val;
+
+	max_val = x[0];
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] > max_val) {
+			max_val = x[i];
+			imax = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
+}
+
+int GMRFLib_imax_value(int *x, int n, int *idx)
+{
+	/*
+	 * return IMAX(x[]) 
+	 */
+	int i, imax, max_val;
+
+	max_val = x[0];
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] > max_val) {
+			max_val = x[i];
+			imax = i;
+		}
+	}
+
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
+}
+
+const char *GMRFLib_debug_functions_strip(const char *name)
+{
+	char *s = (char *) name;
+	if (!strncmp("GMRFLib_", s, 8)) {
+		s += 8;
+	}
+	if (!strncmp("inla_", s, 5)) {
+		s += 5;
+	}
+	return s;
+}
+
+int GMRFLib_debug_functions(const char *name)
+{
+	static int not_defined = 0;
+	if (not_defined) {
+		return 0;
+	}
+
+	static int first = 1;
+#pragma omp threadprivate(first)
+
+	static map_stri *defs = NULL;
+#pragma omp threadprivate(defs)
+
+	if (first == 1) {
+		// format FUN[:N],...
+		// prefix's GMRFLib_ and inla_ are removed automatically
+		char *def = getenv("INLA_TRACE");
+		int verbose = 0;
+
+		if (def) {
+			def = GMRFLib_strdup(def);
+		}
+		if (verbose) {
+			printf("\t\tREAD %s\n", def);
+		}
+
+		if (!def) {
+			not_defined = 1;
+			first = 0;
+			return 0;
+		} else {
+			char sep1[] = ",";
+
+			defs = Calloc(1, map_stri);
+			map_stri_init_hint(defs, 128);
+			char *str = def;
+			char *s;
+
+			first = -1;
+			while ((s = strtok(str, sep1))) {
+				str = NULL;
+
+				int val = 0;
+				char *s2 = strchr(s, ':');
+				char *ss, *sss;
+				if (!s2) {
+					ss = s;
+					val = 1;
+				} else {
+					int len = s2 - s + 1;
+					ss = Calloc(len + 1, char);
+					ss[len] = '\0';
+					strncpy(ss, s, len - 1);
+					val = atoi(s2 + 1);
+					val = IMAX(val, 1);
+				}
+				// strip leading whitespace
+				while (!strncmp(ss, " ", 1))
+					ss++;
+				// special option that override all others
+				if (!strcmp(ss, "*")) {
+					first = 2;
+				}
+
+				sss = (char *) GMRFLib_debug_functions_strip((const char *)ss);
+				char *nm = NULL;
+				if (strlen(ss)) {
+					GMRFLib_sprintf(&nm, "%s", sss);
+					map_stri_set(defs, nm, val);
+				}
+				if (first != 2) {
+					first = 0;
+				}
+
+				if (verbose) {
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+				}
+			}
+		}
+	}
+
+	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : GMRFLib_debug_functions_strip(name)));
+
+	return (p ? *p : 0);
+}

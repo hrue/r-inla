@@ -1,7 +1,7 @@
 
 /* random.c
  * 
- * Copyright (C) 2005-2020 Havard Rue
+ * Copyright (C) 2005-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,35 +31,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: random.c,v 1.28 2008/09/18 07:31:07 hrue Exp $ */
-
-/*!
-  \file random.c
-  \brief Implement the interface towards the MT19937 random generator in GSL.
-
-  The RNG-routines in GMRFLib are most easily available to the user as the following function pointers:
-
-  - GMRFLib_uniform() used to return a Uniform(0,1) variable.
-  - GMRFLib_uniform_init() to initialize the RNG
-  - GMRFLib_uniform_getstate() which returns a pointer to a alloc'ed copy of the state of the RNG
-  - GMRFLib_uniform_setstate() which set the state in the RNG
-
-  These function points points to the functions \c GMRFLib_rng_uniform(), \c GMRFLib_rng_init(), \c GMRFLib_rng_getstate() and
-  \c GMRFLib_rng_setstate() which implements the required functionality using the RNG-routines in GSL. GMRFLib use by default
-  the MT19937 random generator in GSL. (This is the same RNG-generator always used by GMRFLib, but from version >= 2.3.0 it use
-  the GSL-interface and their implementation.)
-  
-  The RNG-routines initialise itself by reading a (random) seed from \c /dev/urandom (if it exists), otherwise, it use a fixed
-  seed. The behaviour can be overrided by the user, by setting a seed with the function \c GMRFLib_uniform_init().  The global
-  variable (of type unsigned long int) \c GMRFLib_rng_seed contains the last seed used to initialise the RNG-routines.
-
-  \sa GMRFLib_uniform, GMRFLib_uniform_init, GMRFLib_uniform_getstate, GMRFLib_uniform_setstate
-  
-  Example:
-  \verbinclude example-doxygen-rng.txt
-*/
 
 #include <time.h>
 #include <stdio.h>
@@ -80,6 +51,11 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+
+static unsigned long int GMRFLib_rng_seed;
+#pragma omp threadprivate(GMRFLib_rng_seed)
 
 int GMRFLib_rng_set_default_seed(void)
 {
@@ -130,6 +106,7 @@ int GMRFLib_rng_set_default_seed(void)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_rng_init(unsigned long int seed)
 {
 	if (GMRFLib_rng_ptr) {
@@ -147,11 +124,13 @@ gsl_rng *GMRFLib_rng_init_default(void)
 	GMRFLib_rng_set_default_seed();
 	return GMRFLib_rng_ptr;
 }
+
 double GMRFLib_rng_uniform(void)
 {
 	return gsl_rng_uniform_pos(GMRFLib_rng);
 }
-void *GMRFLib_rng_getstate(size_t * siz)
+
+void *GMRFLib_rng_getstate(size_t *siz)
 {
 	size_t n;
 	void *p, *pp;
@@ -160,13 +139,14 @@ void *GMRFLib_rng_getstate(size_t * siz)
 	n = gsl_rng_size(GMRFLib_rng);
 	pp = Calloc(n, char);
 
-	memcpy(pp, p, n);
+	Memcpy(pp, p, n);
 	if (siz) {
 		*siz = n;
 	}
 
 	return pp;
 }
+
 int GMRFLib_rng_setstate(void *saved_state)
 {
 	if (saved_state) {
@@ -175,7 +155,7 @@ int GMRFLib_rng_setstate(void *saved_state)
 
 		p = gsl_rng_state(GMRFLib_rng);
 		n = gsl_rng_size(GMRFLib_rng);
-		memcpy(p, saved_state, n);
+		Memcpy(p, saved_state, n);
 	}
 	return GMRFLib_SUCCESS;
 }

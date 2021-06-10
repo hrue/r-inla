@@ -16,12 +16,8 @@
 
     ## use the image.plot-function in package fields; its much better...
     inla.squishplot(c(0, 1), c(0, 1), n[1] / n[2])
-    if (inla.require("fields")) {
-        fields::image.plot(t(y), col = col, bty = "n", xaxt = "n", yaxt = "n", ...)
-    } else {
-        warning("Please install package `fields'")
-        image(t(y), col = col, bty = "n", xaxt = "n", yaxt = "n", ...)
-    }
+    inla.require("fields", stop.on.error = TRUE)
+    fields::image.plot(t(y), col = col, bty = "n", xaxt = "n", yaxt = "n", ...)
 
     box()
     if (xaxt) {

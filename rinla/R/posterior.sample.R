@@ -70,10 +70,10 @@
 ## !              The hyperparameters are defined as \code{theta},  no matter if they are in the
 ## !              internal scale or not. The function \code{fun} can also return a vector.
 ## !              To simplify usage, \code{fun} can also be a vector character's. In this case
-## !              \code{fun} it is interpreted as variable
-## !              names or subsets thereof, and a function is created that return these variables:
+## !              \code{fun} it is interpreted as (strict) variable
+## !              names, and a function is created that return these variables:
 ## !              if argument \code{fun} equals \code{c("Intercept", "a[1:2]")},  then this is equivalent to
-## !              pass \code{function() return(c(Intercept, a[1:2]))}.}
+## !              pass \code{function() return(c(get('Intercept'), get('a[1:2]')))}.}
 ## !   \item{samples}{\code{samples} is the output from \code{inla.posterior.sample()}}
 ## !   \item{return.matrix}{Logical. If \code{TRUE},  then return the samples of \code{fun}
 ## !                         as matrix,  otherwise,  as a list.}
@@ -173,10 +173,68 @@
 ## !     xx = seq(m-4*s, m+4*s, by = s/100)
 ## !     lines(xx, dnorm(xx, mean=m, sd = s), lwd=2)
 ## ! }
-## !}
-
-
-
+## !
+## ! ## 
+## ! ## Be aware that using non-clean variable names might be a little tricky
+## ! ## 
+## ! n <- 100
+## ! X <- matrix(rnorm(n^2), n, 2)
+## ! x <- X[, 1]
+## ! xx <- X[, 2]
+## ! xxx <- x*xx
+## ! 
+## ! y <- 1 + 2*x + 3*xx + 4*xxx + rnorm(n, sd = 0.01)
+## ! 
+## ! r <- inla(y ~ X[, 1]*X[, 2],
+## !           data = list(y = y, X = X),
+## !           control.compute = list(config = TRUE))
+## ! print(round(dig = 4, r$summary.fixed[,"mean"]))
+## ! 
+## ! sam <- inla.posterior.sample(100, r)
+## ! sam.extract <- inla.posterior.sample.eval(
+## !     (function(...) {
+## !         beta.1 <- get("X[, 1]")
+## !         beta.2 <- get("X[, 2]")
+## !         beta.12 <- get("X[, 1]:X[, 2]")
+## !         return(c(Intercept, beta.1, beta.2, beta.12))
+## !     }), sam)
+## ! print(round(dig = 4, rowMeans(sam.extract)))
+## ! 
+## ! ## a simpler form can also be used here, and in the examples below
+## ! sam.extract <- inla.posterior.sample.eval(
+## !                c("Intercept", "X[, 1]", "X[, 2]", "X[, 1]:X[, 2]"), sam)
+## ! print(round(dig = 4, rowMeans(sam.extract)))
+## !
+## ! r <- inla(y ~ x + xx + xxx,
+## !           data = list(y = y, x = x, xx = xx, xxx = xxx), 
+## !           control.compute = list(config = TRUE))
+## ! 
+## ! sam <- inla.posterior.sample(100, r)
+## ! sam.extract <- inla.posterior.sample.eval(
+## !     (function(...) {
+## !         return(c(Intercept, x, xx, xxx))
+## !     }), sam)
+## ! print(round(dig = 4, rowMeans(sam.extract)))
+## !
+## ! sam.extract <- inla.posterior.sample.eval(c("Intercept", "x", "xx", "xxx"), sam)
+## ! print(round(dig = 4, rowMeans(sam.extract)))
+## !
+## ! r <- inla(y ~ x*xx,
+## !           data = list(y = y, x = x, xx = xx), 
+## !           control.compute = list(config = TRUE))
+## ! 
+## ! sam <- inla.posterior.sample(100, r)
+## ! sam.extract <- inla.posterior.sample.eval(
+## !     (function(...) {
+## !         return(c(Intercept, x, xx, get("x:xx")))
+## !     }), sam)
+## ! print(round(dig = 4, rowMeans(sam.extract)))
+## !
+## ! sam.extract <- inla.posterior.sample.eval(c("Intercept", "x", "xx", "x:xx"), sam)
+## ! print(round(dig = 4, rowMeans(sam.extract)))
+## ! }
+ 
+ 
 ## Comments to the code below (contributed by CC):
 ##
 ## In order to call the right interpolating functions related to the different skewness mapping
@@ -191,8 +249,7 @@
 ##
 ## > as.numeric(factor(rank(a)))
 ## [1] 3 2 3 3 2 3 2 1 1 2
-
-
+ 
 inla.create.sn.cache <- function() {
     ## Faster function for qsn,psn and dsn functions (using interpolations from the true ones)
     speed.fsn <- function(s, x, skew, fun.splines, deriv = 0) {
@@ -207,8 +264,8 @@ inla.create.sn.cache <- function() {
             res.fsn <- unlist(lapply(
                 seq_along(skew.unique),
                 function(i) {
-                    lapply(t(x.sample[which(r == i), ]), fun.splines[[skew.ind[i]]])
-                }
+                lapply(t(x.sample[which(r == i), ]), fun.splines[[skew.ind[i]]])
+            }
             ))
             res.fsn <- matrix(res.fsn, nrow = length(skew), ncol = ncol(x.sample), byrow = T)
             res.fsn <- res.fsn[order(ind), , drop = FALSE]
@@ -224,7 +281,7 @@ inla.create.sn.cache <- function() {
 
     ## This code section will run only once in order to create the local object 'sn.cache'
     envir <- inla.get.inlaEnv()
-    stopifnot(inla.require("sn"))
+    inla.require("sn", stop.on.error = TRUE)
 
     ## The following quantities can be changed and affect the whole code
     dig <- 2 # skewness precision (better keep this one for fast computations)
@@ -282,14 +339,14 @@ inla.create.sn.cache <- function() {
             xi.x <- s.ind$xi[i]
             omega.x <- s.ind$omega[i]
             skew.store.jac[i, ] <- sn::psn(points,
-                xi = xi.x,
-                omega = omega.x, alpha = alpha.x
-            )
+                                           xi = xi.x,
+                                           omega = omega.x, alpha = alpha.x
+                                           )
             if (s[i] >= 0) {
                 skew.store.qsn[counter, ] <- sn::qsn(pnorm(points),
-                    xi = xi.x,
-                    omega = omega.x, alpha = alpha.x
-                )
+                                                     xi = xi.x,
+                                                     omega = omega.x, alpha = alpha.x
+                                                     )
                 counter <- counter + 1
             }
         }
@@ -861,10 +918,14 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
 
     ## special shorthand feature that is very useful. if this is vector of character's, then its
     ## interpreted as a function returning these names, like ....eval(c("a", "b[1:2]"), ...)
-    ## will be converted into the function: function() return(c(a, b[1:2]))
+    ## will be converted into the function: function() return(c(get('a'), get('b[1:2]')))
 
     if (is.character(fun)) {
-        fun <- inla.eval(paste("function() return(c(", paste(fun, sep = "", collapse = ", "), "))"))
+        arg <- NULL
+        for(nm in fun) {
+            arg <- paste0(if (is.null(arg)) "" else paste0(arg, ","), "get('", nm, "')")
+        }
+        fun <- inla.eval(paste0("function() return(c(", arg, "))"))
     } else {
         fun <- match.fun(fun)
     }

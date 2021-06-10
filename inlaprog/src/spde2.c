@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -42,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "inla.h"
 #include "spde2.h"
 
-
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
 double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
@@ -395,7 +394,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			GMRFLib_matrix_get_row(row_spde2, i, model->BLC);
 			memset(row, 0, (nhyper_new + 1) * sizeof(double));
 			row[0] = row_spde2[0];
-			memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
+			Memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
 
 			/*
 			 * Sigma * a, a = row
@@ -439,7 +438,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			double *x = Calloc(nhyper_new, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
-			memcpy(xxx, xx, npoints * sizeof(double));
+			Memcpy(xxx, xx, npoints * sizeof(double));
 			xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
 			xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
 
@@ -454,7 +453,8 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 						       GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, xxx, ldens_values, mean, sqrt(var), GMRFLib_TRUE);
 			} else {
 				// return a point-mass
-				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON);
+				GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean, DBL_EPSILON,
+							      GMRFLib_TRUE);
 			}
 			Free(Sigma_a);
 			Free(x);
@@ -480,7 +480,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 				}
 			}
 			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc2_density[number][i]), 0.0, 1.0, mean,
-						      (var > 0 ? sqrt(var) : DBL_EPSILON));
+						      (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE);
 		}
 	}
 

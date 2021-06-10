@@ -13,7 +13,6 @@
 
 __BEGIN_DECLS
 // ...
-
 #if defined(INLA_WINDOWS32_FIX)
 void _mm_pause(void);
 #endif

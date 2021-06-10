@@ -54,7 +54,6 @@ __BEGIN_DECLS
 	int *i;
 	int *j;
 
-
 	/*
 	 * these are only defined if the matrix is sparse 
 	 */
@@ -83,7 +82,6 @@ __BEGIN_DECLS
 	long int tell;					       /* the position where this matrix ended */
 } GMRFLib_matrix_tp;
 
-
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n);
 GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offset, int whence);
 GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M);
@@ -95,6 +93,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M);
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence);
 int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M);
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M);
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M);
 
 __END_DECLS
 #endif

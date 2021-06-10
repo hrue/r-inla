@@ -158,7 +158,6 @@ typedef struct {
 	double *log_density;				       /* log_densities */
 } GMRFLib_sn_fit_data_tp;
 
-
 /* 
    the scaling of the weight for SN-fit, stdev = exp(- log_density[i] * GMRFLib_SN_WEIGHT_SCALING )
 */
@@ -226,11 +225,11 @@ typedef struct {
 
 	float x_min, x_max;				       /* range for the log_correction, ALSO used by the others */
 
-	///*
-	//* params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
-	//*/
-	//float mean_gaussian;  // use now mean and stdev
-	//float stdev_gaussian; // use now mean and stdev
+	// /*
+	// * params for the GMRFLib_DENSITY_TYPE_GAUSSIAN 
+	// */
+	// float mean_gaussian; // use now mean and stdev
+	// float stdev_gaussian; // use now mean and stdev
 
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
@@ -240,8 +239,7 @@ typedef struct {
 	/*
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
-	float log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised
-							        * density.  */
+	float log_norm_const;				       /* log(norm_const), divide by norm_const to get the normalised density.  */
 	GMRFLib_spline_tp *log_correction;
 	GMRFLib_spline_tp *P;
 	GMRFLib_spline_tp *Pinv;
@@ -270,7 +268,6 @@ typedef enum {
 	 */
 	GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH
 } GMRFLib_density_storage_strategy_tp;
-
 
 /* 
    this object is used for computing properties of the density
@@ -301,13 +298,11 @@ double GMRFLib_sn_d3_to_skew(double d3);
 int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
-int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities,
-			    double *weights);
+int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean,
 			   double std_stdev, int lookup_tables);
-int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev);
-int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev,
-			      int lookup_tables);
+int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev, int lookup_tables);
+int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
 int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
 int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean);

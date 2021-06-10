@@ -154,9 +154,6 @@ GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
-unsigned long int GMRFLib_rng_seed;			       /* this holds a copy of the last seed */
-#pragma omp threadprivate(GMRFLib_rng_seed)
-
 GMRFLib_uniform_tp *GMRFLib_uniform = GMRFLib_rng_uniform;
 GMRFLib_uniform_init_tp *GMRFLib_uniform_init = GMRFLib_rng_init;
 GMRFLib_uniform_getstate_tp *GMRFLib_uniform_getstate = GMRFLib_rng_getstate;
@@ -223,13 +220,11 @@ int GMRFLib_bitmap_swap = 0;
  */
 GMRFLib_openmp_tp *GMRFLib_openmp = NULL;
 
-
 /* 
    Holds the MemInfo flag
  */
 int GMRFLib_meminfo_thread_id = 0;
 #pragma omp threadprivate(GMRFLib_meminfo_thread_id)
-
 
 /* 
    define global nodes = {factor, degree}. factor: a node is defined to be global if nneig(i) >= (n-1) *factor degree :node is define to be global if nneig(i) >=
@@ -242,7 +237,6 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
  */
 GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
 
-
 /* 
    internal use only; for debugging
  */
@@ -254,6 +248,8 @@ int GMRFLib_debug_code = 0;
 int GMRFLib_pardiso_ok = -1;
 
 int GMRFLib_faster_constr = 1;
+
+int GMRFLib_preopt_mode = 0;
 
 // add stability to AQ^-1A^T
 double GMRFLib_aqat_m_diag_add = 0.0;

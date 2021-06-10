@@ -764,11 +764,6 @@
         random.spec$vb.correct <- -1L ## code for ``make the default choice''
     }
     cat("vb.correct = ", as.numeric(random.spec$vb.correct), "\n", append = TRUE, sep = "", file = file)
-
-    if (is.null(random.spec$correct)) {
-        random.spec$correct <- -1L ## code for ``make the default choice''
-    }
-    cat("correct = ", as.numeric(random.spec$correct), "\n", append = TRUE, sep = "", file = file)
     cat("\n", sep = " ", file = file, append = TRUE)
 
     ## need to store the updated one
@@ -971,16 +966,6 @@
     cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
     cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
 
-    inla.write.boolean.field("control.correct.enable", inla.spec$control.correct$enable, file)
-    inla.write.boolean.field("control.correct.verbose", inla.spec$control.correct$verbose, file)
-    if (!is.null(inla.spec$control.correct$factor)) {
-        stopifnot(inla.spec$control.correct$factor > 0)
-        cat("control.correct.factor = ", inla.spec$control.correct$factor, "\n", file = file, append = TRUE)
-    }
-    if (!is.null(inla.spec$control.correct$strategy)) {
-        cat("control.correct.strategy = ", inla.spec$control.correct$strategy, "\n", sep = " ", file = file, append = TRUE)
-    }
-
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
     optimise.strategy <- match.arg(tolower(inla.spec$optimise.strategy), c("plain", "smart"))
@@ -1051,6 +1036,7 @@
     }
 
     if (!is.null(predictor.spec$A)) {
+
         ## Now we will build the extended Matrix, which is
         ##
         ## Aextended = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
@@ -1070,6 +1056,13 @@
 
         ## replace NA's with zeros. (This is now done already in inla.R)
         ## A[ is.na(A) ] = 0.0
+
+        Aij <- list(i = 1+A@i, j = 1+A@j, values = A@x) ## based on zero-based indexing of A
+        file.Aij <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(Aij, filename = file.Aij)
+        file.Aij <- gsub(data.dir, "$inladatadir", file.Aij, fixed = TRUE)
+        cat("A = ", file.Aij, "\n", append = TRUE, sep = " ", file = file)
+        Aij <- NULL
 
         ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
         Aext <- rbind(cbind(Diagonal(m), -A), cbind(-t(A), t(A) %*% A))

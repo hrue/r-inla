@@ -46,10 +46,10 @@
 ## !    keep = inla.getOption("keep"),
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
+## !    twostage = NULL, 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = parent.frame()
 ## !    )
-## !
 ## ! }
 ## ! \arguments{
 ## ! \item{formula}{ A \code{inla} formula like \code{y
@@ -214,6 +214,10 @@
 ## ! \code{inla}-program would be ``silent''. If equal to
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
+
+## ! \item{twostage}{Do inference using the new twostage-approach (if \code{TRUE}) or
+## !                 the classical approach (if \code{FALSE}).
+## !                 If \cite{NULL}, this will be decided internally. Default \code{NULL}.}
 
 ## ! \item{debug}{ If \code{TRUE}, then enable some debug
 ## ! output.  }
@@ -413,6 +417,7 @@
                    keep = inla.getOption("keep"),
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
+                   twostage = NULL, 
                    debug = inla.getOption("debug"),
                    .parent.frame = parent.frame()) {
 
@@ -602,6 +607,7 @@
             keep = keep,
             working.directory = working.directory,
             silent = silent,
+            twostage = twostage, 
             debug = debug
         )
 
@@ -875,8 +881,6 @@
     ## because we have 'control' within a 'control', we have to process them spesifically
     cont.inla$control.vb <- cont.inla.def$control.vb
     cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
-    cont.inla$control.correct <- cont.inla.def$control.correct
-    cont.inla$control.correct[names(control.inla$control.correct)] <- control.inla$control.correct
 
     ## control predictor section
     cont.predictor <- inla.set.control.predictor.default()
@@ -1086,6 +1090,7 @@
     mf$control.compute <- NULL
     mf$control.predictor <- NULL
     mf$silent <- NULL
+    mf$twostage <- NULL
     mf$control.hazard <- NULL
     mf$control.family <- NULL
     mf$control.update <- NULL
@@ -2060,7 +2065,7 @@
     }
     inla.mode.section(file = file.ini, cont.mode, data.dir)
 
-    ## create expert section
+    ## create expert section. the 'preopt' option is processed here and not in the expert.section
     cont.expert <- inla.set.control.expert.default()
     cont.expert[names(control.expert)] <- control.expert
     inla.expert.section(file = file.ini, cont.expert, data.dir = data.dir)
@@ -2116,8 +2121,16 @@
         arg.vecLib <- ""
     }
 
+    if (is.null(twostage)) {
+        ## chose the default action here
+        arg.P <- ""
+    } else {
+        ## user-defined action
+        arg.P <- if (twostage) "-P" else ""
+    }
+
     ## collect all. we might add '-p' later if inla.call="submit"
-    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, sep = " ")
+    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
 
     ## define some environment variables for remote computing
     vars <- list(

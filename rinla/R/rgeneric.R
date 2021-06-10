@@ -360,7 +360,7 @@
                 definition = if (!compile) {
                                  model
                              } else {
-                                 inla.require("compiler")
+                                 inla.require("compiler", stop.on.error = TRUE)
                                  compiler::cmpfun(model,
                                                   options = list(optimize = 3L,
                                                                  suppressUndefined = TRUE))

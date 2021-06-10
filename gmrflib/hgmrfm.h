@@ -52,8 +52,7 @@ __BEGIN_DECLS
 /* 
  * 
  */
-
-typedef enum {
+    typedef enum {
 	GMRFLib_HGMRFM_TP_ETA = 1,
 	GMRFLib_HGMRFM_TP_F,
 	GMRFLib_HGMRFM_TP_BETA,
@@ -134,7 +133,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision, GMRFLib_ai_param_tp * ai_par);
+			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision,
+			GMRFLib_ai_param_tp * ai_par);
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a);
 double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *values, void *arg);
 int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm);

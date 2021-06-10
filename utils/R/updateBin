@@ -27,6 +27,19 @@ for m in 64; do
     mv -f -v $DIR/libjemalloc.* $DIR/first
 done
 
+for m in Something; do
+    DIR=$d/mac.arm64
+    for p in inla fmesher; do 
+	for f in $(ssh -x $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
+	    echo sync $f
+	    rsync -auvL $INLA_MAC:$f $DIR/.
+	done
+    done
+    fix-perm $DIR
+    ## those we like be be first
+    mv -f -v $DIR/libjemalloc.* $DIR/first
+done
+
 for m in 64; do
     DIR=$d/linux/${m}bit
     for p in inla inla.mkl fmesher; do 

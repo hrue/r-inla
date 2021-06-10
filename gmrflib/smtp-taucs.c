@@ -54,25 +54,9 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: smtp-taucs.c,v 1.162 2010/02/27 08:32:38 hrue Exp $ */
-
-/* 
-   if TRUE, then we use my modified routine to convert from supernodal_factor to ccs, which preserves zeros in L. this gives
-   speedup for the computations in Qinv. So far I have tested this works fine and is correct. So there two instances in the code
-   where we make use of this; see below. 
- */
 static int include_zeros_in_L = GMRFLib_TRUE;
-
-/* 
-   how large should `nset' be before doing `memset' instead of a `for' loop.
-*/
 #define GMRFLib_NSET_LIMIT(nset, size, n)  IMAX(10, (n)/10/(size))
 
-/* 
-   First some modified code from the TAUCS library. Checked to be ok version 2.0 and 2.2
-
-   taucs_datatype is set to double in GMRFLib/taucs.h
-*/
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 {
 	/*
@@ -163,15 +147,12 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	return C;
 }
 
-/* 
-   copy a supernodal_factor_matrix
-*/
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
 #define DUPLICATE(name,len,type) if (1) {					\
 		if (L->name && ((len) > 0)) {				\
 			LL->name = (type *)Calloc((len), type);		\
-			memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
+			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
 		} else {						\
 			LL->name = (type *)NULL;			\
 		}							\
@@ -237,7 +218,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	int METIS51PARDISO_NodeND(idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *);
 #endif
 
-
 	int n, nnz, i, j, ip;
 	int *xadj;
 	int *adj;
@@ -271,7 +251,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 
 	xadj = Calloc(n + 1, int);
 	adj = Calloc(2 * nnz, int);
-
 
 	if (!(*perm) || !(*invperm) || !xadj || !adj) {
 		Free(*perm);
@@ -407,9 +386,6 @@ size_t GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
 	return siz;
 }
 
-/* 
-   make a copy of a ccs-matrix
-*/
 taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 {
 	/*
@@ -427,9 +403,9 @@ taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 	nnz = L->colptr[L->n];
 	LL = taucs_ccs_create(n, n, nnz, flags);
 
-	memcpy(LL->colptr, L->colptr, (n + 1) * sizeof(int));
-	memcpy(LL->rowind, L->rowind, nnz * sizeof(int));
-	memcpy(LL->values.d, L->values.d, nnz * sizeof(double));
+	Memcpy(LL->colptr, L->colptr, (n + 1) * sizeof(int));
+	Memcpy(LL->rowind, L->rowind, nnz * sizeof(int));
+	Memcpy(LL->values.d, L->values.d, nnz * sizeof(double));
 
 	return LL;
 }
@@ -517,7 +493,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	}
 	if (simple) {
 		int *imap = NULL;
-		if (graph->n >= 0) imap = Calloc(graph->n, int);
+		if (graph->n >= 0)
+			imap = Calloc(graph->n, int);
 
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;
@@ -628,7 +605,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		 */
 		free(perm);
 		perm = Calloc(graph->n, int);		       /* yes, need graph->n. */
-		memcpy(perm, iperm, n * sizeof(int));
+		Memcpy(perm, iperm, n * sizeof(int));
 		free(iperm);
 		iperm = perm;
 
@@ -705,7 +682,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
-	int i, j, k, ic, ne, n, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
+	int i, j, k, ic, ne, n = 0, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
 
 	id = GMRFLib_thread_id;
@@ -935,7 +912,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 
 	GMRFLib_EWRAP0(GMRFLib_convert_to_mapped(rhs, NULL, graph, remap));
 	b = Calloc(graph->n, double);
-	memcpy(b, rhs, graph->n * sizeof(double));
+	Memcpy(b, rhs, graph->n * sizeof(double));
 
 	GMRFLib_my_taucs_dccs_solve_lt(L, rhs, b);
 
@@ -954,7 +931,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 		 * use TAUCS 
 		 */
 		double *b = Calloc(graph->n, double);
-		memcpy(b, rhs, graph->n * sizeof(double));
+		Memcpy(b, rhs, graph->n * sizeof(double));
 		taucs_ccs_solve_llt(L, rhs, b);
 		Free(b);
 
@@ -971,7 +948,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 		int i;
 		double *work = Malloc(graph->n, double);
 
-		memcpy(work, rhs, graph->n * sizeof(double));
+		Memcpy(work, rhs, graph->n * sizeof(double));
 		for (i = 0; i < graph->n; i++) {
 			rhs[i] = work[remap[i]];
 		}
@@ -995,7 +972,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
-	memcpy(&b[toindx], &rhs[toindx], (graph->n - toindx) * sizeof(double));	/* this can be improved */
+	Memcpy(&b[toindx], &rhs[toindx], (graph->n - toindx) * sizeof(double));	/* this can be improved */
 
 	GMRFLib_my_taucs_dccs_solve_lt_special(L, rhs, b, findx, toindx);	/* solve it */
 	if (!remapped) {
@@ -1020,7 +997,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	if (!remapped) {
 		GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	}
-	memcpy(&b[findx], &rhs[findx], (toindx - findx + 1) * sizeof(double));	/* this can be improved */
+	Memcpy(&b[findx], &rhs[findx], (toindx - findx + 1) * sizeof(double));	/* this can be improved */
 	GMRFLib_my_taucs_dccs_solve_l_special(L, rhs, b, findx, toindx);	/* solve it */
 	if (!remapped) {
 		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
@@ -1109,7 +1086,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 	/*
 	 * but also reusing y as here, helps 
 	 */
-	memcpy(y, x, n * sizeof(double));
+	Memcpy(y, x, n * sizeof(double));
 	for (i = 0; i < n; i++) {
 		x[i] = y[remap[i]];
 	}
@@ -1436,8 +1413,8 @@ taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, 
 		collen = L->colptr[j + 1] - L->colptr[j];
 		jpp = L->colptr[j];
 
-		memcpy(&(LL->rowind[jp]), &(L->rowind[jpp]), collen * sizeof(int));
-		memcpy(&(LL->values.d[jp]), &(L->values.d[jpp]), collen * sizeof(double));
+		Memcpy(&(LL->rowind[jp]), &(L->rowind[jpp]), collen * sizeof(int));
+		Memcpy(&(LL->values.d[jp]), &(L->values.d[jpp]), collen * sizeof(double));
 
 		jp += collen;
 
@@ -1834,7 +1811,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 			}
 		}
 
-		memcpy(x, y, n * sizeof(double));
+		Memcpy(x, y, n * sizeof(double));
 		Free(y);
 	}
 	return 0;

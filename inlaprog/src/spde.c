@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* Pre-hg-Id: $Id: spde.c,v 1.41 2010/03/01 17:43:07 hrue Exp $ */
 
@@ -44,7 +43,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "inla.h"
 #include "spde.h"
 
-
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
 /* 
@@ -88,10 +87,10 @@ int inla_spde_free_points(inla_spde_points_tp * p)
 }
 double inla_spde_Qfunction(int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0){
+	if (node >= 0 && nnode < 0) {
 		return NAN;
 	}
-	
+
 	inla_spde_tp *model = (inla_spde_tp *) arg;
 	double value;
 
@@ -360,7 +359,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 
 		FIXME("write graph to file spde-graph.dat");
 		fp = fopen("spde-graph.dat", "w");
-		GMRFLib_graph_printf(fp, model->graph);
+		GMRFLib_printf_graph(fp, model->graph);
 		fclose(fp);
 	}
 
@@ -370,8 +369,7 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 			GMRFLib_problem_tp *problem;
 			GMRFLib_reorder = k;
 			// GMRFLib_optimize_reorder(model->graph, NULL);
-			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL,
-					     NULL, GMRFLib_NEW_PROBLEM);
+			GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL);
 			char *nm;
 			GMRFLib_sprintf(&nm, "Qspde%1d", k);
 			GMRFLib_bitmap_problem(nm, problem);
@@ -421,8 +419,7 @@ double *inla_spde_userfunc1(double *UNUSED(theta), int nhyper, double *covmat)
 				covmat[ (i + where_to_start + offset_theta) + (j + where_to_start + offset_theta) * nhyper ]; \
 		}							\
 	}								\
-	GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc1_density[idx+offset]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON))
-
+	GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc1_density[idx+offset]), 0.0, 1.0, mean, (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE)
 
 	if (!covmat) {
 		return NULL;

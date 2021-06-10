@@ -30,7 +30,6 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -42,6 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "inla.h"
 #include "spde3.h"
 
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
 int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const char *transform)
@@ -460,7 +460,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 			 */
 			memset(row, 0, (nhyper + 1) * sizeof(double));
 			row[0] = row_spde3[0];
-			memcpy(row + idx_offset + 1, row_spde3 + 1, model->ntheta * sizeof(double));
+			Memcpy(row + idx_offset + 1, row_spde3 + 1, model->ntheta * sizeof(double));
 
 			/*
 			 * Sigma * a, a = row
@@ -504,7 +504,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 			double *x = Calloc(nhyper, double), *xx = NULL, *xxx = Calloc(npoints, double), *ldens_values = Calloc(npoints, double);
 
 			GMRFLib_ghq_abscissas(&xx, npoints);
-			memcpy(xxx, xx, npoints * sizeof(double));
+			Memcpy(xxx, xx, npoints * sizeof(double));
 			xxx[0] = DMIN(xxx[0], -GMRFLib_DENSITY_INTEGRATION_LIMIT);
 			xxx[npoints - 1] = DMAX(xxx[npoints - 1], GMRFLib_DENSITY_INTEGRATION_LIMIT);
 
@@ -539,7 +539,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 				}
 			}
 			GMRFLib_density_create_normal(&(GMRFLib_ai_INLA_userfunc3_density[number][i]), 0.0, 1.0, mean,
-						      (var > 0 ? sqrt(var) : DBL_EPSILON));
+						      (var > 0 ? sqrt(var) : DBL_EPSILON), GMRFLib_TRUE);
 		}
 	}
 

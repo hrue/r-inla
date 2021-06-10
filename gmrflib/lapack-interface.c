@@ -1,7 +1,7 @@
 
 /* lapack-interface.c
  * 
- * Copyright (C) 2001-2020 Havard Rue
+ * Copyright (C) 2001-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,6 @@
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-/* Pre-hg-Id: $Id: lapack-interface.c,v 1.23 2009/05/02 16:54:04 hrue Exp $ */
 
 #if !defined(__FreeBSD__)
 #include <malloc.h>
@@ -80,6 +78,7 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps)
 {
 	/*
@@ -98,7 +97,7 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 	*map = Calloc(dim, int);
 	work = Calloc(dim, double);
 
-	memcpy(cchol, matrix, ISQR(dim) * sizeof(double));
+	Memcpy(cchol, matrix, ISQR(dim) * sizeof(double));
 
 	dchdc_(cchol, &dim, &dim, work, *map, &job, &info, &eps);
 	*rank = info;
@@ -123,6 +122,7 @@ int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matri
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *logdet, int ecode)
 {
 	/*
@@ -146,7 +146,7 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	}
 
 	a = Calloc(ISQR(dim), double);
-	memcpy(a, matrix, ISQR(dim) * sizeof(double));
+	Memcpy(a, matrix, ISQR(dim) * sizeof(double));
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
@@ -183,13 +183,14 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 	*chol = a;
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs)
 {
 	/*
 	 * solve Ax=b, where chol is lower Cholesky factor of A. 
 	 */
 	if (sol != b) {
-		memcpy(sol, b, dim * nrhs * sizeof(double));
+		Memcpy(sol, b, dim * nrhs * sizeof(double));
 	}
 	int info;
 	dpotrs_("L", &dim, &nrhs, chol, &dim, sol, &dim, &info, F_ONE);
@@ -199,6 +200,7 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 
 	return GMRFLib_SUCCESS;
 }
+
 gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A)
 {
 	/*
@@ -213,6 +215,7 @@ gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A)
 		return (gsl_matrix *) NULL;
 	}
 }
+
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A)
 {
 	/*
@@ -234,6 +237,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix * A)
 
 	return logdet;
 }
+
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 {
 	/*
@@ -260,6 +264,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 {
 	/*
@@ -337,22 +342,22 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ensure_spd(double *A, int dim, double tol) 
+int GMRFLib_ensure_spd(double *A, int dim, double tol)
 {
 	// this just a plain interface to the GMRFLib_gsl_ensure_spd
-	
+
 	gsl_matrix *AA = gsl_matrix_alloc((size_t) dim, (size_t) dim);
 	size_t i, j;
 
-	for(i = 0; i < (size_t) dim; i++){
-		for(j = 0; j <= i; j++){
+	for (i = 0; i < (size_t) dim; i++) {
+		for (j = 0; j <= i; j++) {
 			gsl_matrix_set(AA, i, j, A[i + j * dim]);
 			gsl_matrix_set(AA, j, i, A[i + j * dim]);
 		}
 	}
 	GMRFLib_gsl_ensure_spd(AA, tol);
-	for(i = 0; i < (size_t) dim; i++){
-		for(j = 0; j <= i; j++){
+	for (i = 0; i < (size_t) dim; i++) {
+		for (j = 0; j <= i; j++) {
 			A[i + j * dim] = gsl_matrix_get(AA, i, j);
 			A[j + i * dim] = gsl_matrix_get(AA, i, j);
 		}
@@ -372,7 +377,7 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
 	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(A->size1);
-	
+
 	gsl_eigen_symmv(A, S, U, work);
 
 	size_t i;
@@ -392,7 +397,7 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 		} else {
 			gsl_matrix_set(M2, i, i, s);
 		}
-	} 
+	}
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, M2);

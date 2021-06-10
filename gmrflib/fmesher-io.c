@@ -1,7 +1,7 @@
 
 /* fmesher-io.c
  * 
- * Copyright (C) 2010-2020 Havard Rue
+ * Copyright (C) 2010-2021 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -377,6 +377,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 
 	return (M);
 }
+
 int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence)
 {
 	/*
@@ -482,6 +483,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 #undef WRITE
 	return (0);
 }
+
 int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 {
 	/*
@@ -493,6 +495,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	}
 
 	int i, j, k;
+	int nhold = 0, *hold = NULL, offset = 0;
 	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
 
 	g->n = M->nrow;
@@ -504,9 +507,10 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 			g->nnbs[M->i[k]]++;
 		}
 	}
-	int nhold = M->elems;
-	int *hold = Calloc(nhold, int), offset = 0;
 
+	nhold = M->elems;
+	hold = Calloc(nhold, int);
+	offset = 0;
 	for (k = 0; k < M->nrow; k++) {
 		if (g->nnbs[k] == 0) {
 			g->nbs[k] = NULL;
@@ -530,13 +534,14 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 		}
 	}
 
-	GMRFLib_graph_prepare(g, 0, 1);
+	GMRFLib_graph_prepare(g);
 	M->graph = g;
 
 	/*
 	 * build the has table for quick retrival of values. use row or column indexed hash-table?
 	 */
-	if (M->nrow >= M->ncol) {
+	if (M->nrow >= M->ncol || 1) {
+		// FORCE THIS TO HAPPEN
 		M->htable_column_order = 0;
 	} else {
 		M->htable_column_order = 1;
@@ -607,6 +612,7 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 	}
 	return diag;
 }
+
 double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 {
 	/*
@@ -630,6 +636,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 		return (M->A ? M->A[idx] : (double) M->iA[idx]);
 	}
 }
+
 int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 {
 	/*
@@ -638,19 +645,37 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 	int j;
 
+	memset(values, 0, M->ncol * sizeof(double));
 	if (M->i) {
 		/*
 		 * sparse-matrix 
 		 */
+		double *d;
 
-		for (j = 0; j < M->ncol; j++) {
-			double *d;
-			if (M->htable_column_order) {
+		if (M->htable_column_order) {
+
+			FIXME("column order should not be used");
+			assert(0 == 1);
+
+			for (j = 0; j < M->ncol; j++) {
 				d = map_id_ptr(M->htable[j], i);
-			} else {
-				d = map_id_ptr(M->htable[i], j);
+				values[j] = (d ? *d : 0.0);
 			}
-			values[j] = (d ? *d : 0.0);
+		} else {
+			if (0) {
+				// old and very slow
+				for (j = 0; j < M->ncol; j++) {
+					d = map_id_ptr(M->htable[i], j);
+					values[j] = (d ? *d : 0.0);
+				}
+			} else {
+				// much better
+				map_id_storage *ptr;
+				for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
+					j = ptr->key;
+					values[j] = ptr->value;
+				}
+			}
 		}
 	} else {
 		int idx = i;
@@ -669,6 +694,32 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M)
+{
+	/*
+	 * store values in 'row', must be NULL on entry. 
+	 */
+
+	assert(*row == NULL);
+	if (M->i) {
+		if (M->htable_column_order) {
+			FIXME("column order should not be used");
+			assert(0 == 1);
+		} else {
+			map_id_storage *ptr;
+			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
+				GMRFLib_idxval_add(row, ptr->key, ptr->value);
+			}
+		}
+	} else {
+		FIXME("NOT IMPLEMENTED");
+		assert(0 == 1);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 {
 	if (M) {
@@ -705,6 +756,7 @@ int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
 	}
 	return (0);
 }
+
 GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 {
 	/*
@@ -733,6 +785,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_1(int n)
 		return NULL;
 	}
 }
+
 int GMRFLib_file_exists(const char *filename, const char *mode)
 {
 	/*
@@ -747,6 +800,7 @@ int GMRFLib_file_exists(const char *filename, const char *mode)
 		return !GMRFLib_SUCCESS;
 	}
 }
+
 GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 {
 	/*
@@ -764,13 +818,13 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 		 * sparse 
 		 */
 		N->i = Calloc(M->elems, int);
-		memcpy(N->i, M->j, M->elems * sizeof(int));
+		Memcpy(N->i, M->j, M->elems * sizeof(int));
 
 		N->j = Calloc(M->elems, int);
-		memcpy(N->j, M->i, M->elems * sizeof(int));
+		Memcpy(N->j, M->i, M->elems * sizeof(int));
 
 		N->values = Calloc(M->elems, double);
-		memcpy(N->values, M->values, M->elems * sizeof(double));
+		Memcpy(N->values, M->values, M->elems * sizeof(double));
 	} else {
 		int i, j, idx, idx_transpose;
 

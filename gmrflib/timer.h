@@ -72,13 +72,29 @@ __BEGIN_DECLS
 /*!
   \brief Macro to be placed at the entry point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_ENTER_ROUTINE if (1) { if(0) printf("==>Enter [%s]\n", __GMRFLib_FuncName); if (GMRFLib_collect_timer_statistics) GMRFLib_timer_enter(GMRFLib_timer_strip(__GMRFLib_FuncName));}
+#define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT;			\
+	static double debug_cpu_acc_ = 0.0;				\
+	_Pragma("omp threadprivate(debug_cpu_acc_)")			\
+	static double debug_cpu_ = 0;					\
+	_Pragma("omp threadprivate(debug_cpu_)")			\
+	debug_cpu_ = GMRFLib_cpu();					\
+	GMRFLib_DEBUG_d("Enter", debug_cpu_);				\
+	if (GMRFLib_collect_timer_statistics) {				\
+		GMRFLib_timer_enter(GMRFLib_timer_strip(__GMRFLib_FuncName)); \
+	}
 
 /*!
   \brief Macro to be placed at \em each exit point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_LEAVE_ROUTINE if (1) { if (0) printf("==>    Leave [%s]\n", __GMRFLib_FuncName); if (GMRFLib_collect_timer_statistics) GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName));}
-
+#define GMRFLib_LEAVE_ROUTINE if (1)					\
+	{								\
+		debug_cpu_acc_ += (GMRFLib_cpu() - debug_cpu_);		\
+		GMRFLib_DEBUG_id("Leave, count cpu/count", debug_count_, debug_cpu_acc_ / (double) debug_count_); \
+		if (GMRFLib_collect_timer_statistics) {			\
+			GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName)); \
+		}							\
+	}
+
 double GMRFLib_cpu_default(void);
 int GMRFLib_timer_compare(const void *a, const void *b);
 int GMRFLib_timer_enter(const char *name);
@@ -91,6 +107,7 @@ int GMRFLib_timer_report(FILE * fp);
 int GMRFLib_timer_report_OLD(FILE * fp);
 int GMRFLib_timer_table_expand(void);
 int GMRFLib_timer_table_sort(void);
+int GMRFLib_timer_exit(void);
 const char *GMRFLib_timer_strip_store(const char *name);
 const char *GMRFLib_timer_strip__intern(const char *name);
 const char *GMRFLib_timer_strip(const char *name);

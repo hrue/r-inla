@@ -140,6 +140,5 @@ __BEGIN_DECLS
 double GMRFLib_matern2d(int node, int nnode, double *values, void *def);
 int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_tp * def);
 
-
 __END_DECLS
 #endif

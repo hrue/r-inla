@@ -213,7 +213,7 @@
     ## Requires an inla mesh to work
     stopifnot(class(mesh) == "inla.mesh")
     ## Requires rgeos for combining polygons
-    stopifnot(inla.require("rgeos"))
+    inla.require("rgeos", stop.on.error = TRUE)
 
     if (missing(barrier.triangles)) {
         ## Use Omega

@@ -128,7 +128,6 @@ extern int GMRFLib_use_wa_table_lookup;
 extern int GMRFLib_verify_graph_read_from_disc;
 
 extern gsl_rng *GMRFLib_rng_ptr;
-
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
 /*!
@@ -159,14 +158,6 @@ extern GMRFLib_uniform_setstate_tp *GMRFLib_uniform_setstate;
   \sa globals.c
 */
 extern GMRFLib_cpu_tp *GMRFLib_cpu;
-
-/*!
-  \brief Holds a copy of the (last) seed used to initialise the RNG-routines.
-  \sa random.c
-*/
-extern unsigned long int GMRFLib_rng_seed;
-
-#pragma omp threadprivate(GMRFLib_rng_seed)
 
 /* 
    define types for a user-defined function; compute E_{\theta|y} userfunc
@@ -216,7 +207,6 @@ extern int GMRFLib_thread_id;
 extern int GMRFLib_request_optimiser_to_stop;
 
 
-
 /* 
    Maximum dimension of bitmap; unlimited if size <= 0
  */
@@ -232,7 +222,6 @@ extern int GMRFLib_bitmap_swap;
  */
 extern GMRFLib_openmp_tp *GMRFLib_openmp;
 
-
 /*
   Holds the on/off of meminfo collection
 */
@@ -242,12 +231,12 @@ extern int GMRFLib_meminfo_thread_id;
 /* 
    define global nodes
  */
-extern GMRFLib_global_node_tp GMRFLib_global_node; 
+extern GMRFLib_global_node_tp GMRFLib_global_node;
 
 /* 
    storage strategy for density
  */
-extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy; 
+extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy;
 
 /* 
    internal use only; for debugging
@@ -259,13 +248,13 @@ extern int GMRFLib_debug_code;
  */
 extern int GMRFLib_pardiso_ok;
 
-
 // use jfirst/jlen computing with the constraint matrix
 extern int GMRFLib_faster_constr;
 
-
 // add stability to AQ^-1A^T
 extern double GMRFLib_aqat_m_diag_add;
+
+extern int GMRFLib_preopt_mode;
 
 #endif
 __END_DECLS

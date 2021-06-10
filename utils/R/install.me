@@ -137,6 +137,15 @@ convert_to_mac_binary () {
     done
 }
 
+convert_to_mac_arm64_binary () {
+    for f in "$@"; do
+	ff=$(basename $f)
+	scp -v $f $INLA_MAC_ARM64:$ff
+	ssh -x $INLA_MAC_ARM64: bin/R CMD INSTALL --build  $ff
+	scp -v $INLA_MAC_ARM64:$ff $f
+    done
+}
+
 updateBinaryPackages () {
     for d in "$@"; do
 	(
@@ -159,6 +168,11 @@ if [ $# -ge 1 -a "$1" == "1" ]; then
 	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
+	d=$wwwR/$prefix/bin/macosx/arm64/$RVersion
+	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_arm64_binary $d/INLA_$INLA_VERSION.tgz
+	updateBinaryPackages $d
+
 	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
 	cp -v $zipINLA $d/INLA_$INLA_VERSION.zip
 	updateBinaryPackages $d
@@ -174,6 +188,11 @@ if [ $# -ge 1 -a "$1" == "2" ]; then
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
 	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
 	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
+	updateBinaryPackages $d
+
+	d=$wwwR/$prefix/bin/macosx/arm64/$RVersion
+	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
+	convert_to_mac_arm64_binary $d/INLA_$INLA_VERSION.tgz
 	updateBinaryPackages $d
 
 	d=$wwwR/$prefix/bin/windows/contrib/$RVersion
@@ -202,7 +221,9 @@ fi
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
-rm -f $tgzINLA 
-rm -f $gzINLA 
-rm -f $zipINLA 
-rm -f $SRC
+if false; then
+    rm -f $tgzINLA 
+    rm -f $gzINLA 
+    rm -f $zipINLA 
+    rm -f $SRC
+fi
