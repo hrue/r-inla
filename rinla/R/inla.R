@@ -2201,7 +2201,7 @@
                 results.dir = results.dir,
                 inla.call.args = all.args
             )
-        } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64"))) {
+        } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
                 echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
             } else {
