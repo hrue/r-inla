@@ -32,7 +32,7 @@ for m in Something; do
     for p in inla fmesher; do 
 	for f in $(ssh -x $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
 	    echo sync $f
-	    rsync -auvL $INLA_MAC:$f $DIR/.
+	    rsync -auvL $INLA_MAC_ARM64:$f $DIR/.
 	done
     done
     fix-perm $DIR
