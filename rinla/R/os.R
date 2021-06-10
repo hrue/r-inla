@@ -28,12 +28,13 @@
             ver <- vers[1] + vers[2] / 10
             s.req <- 10.15 ## @@@HARDCODED@@@
             if (ver < s.req) {
-                stop("Your version, ", s, ", of MacOSX is to old for R-INLA. Update MacOSX to at least version ",
-                    as.character(s.req),
-                    sep = ""
-                )
+                warning(paste0("Your version, ",
+                               s,
+                               ", of MacOS might be to old for R-INLA which is built on MacOS ",
+                               as.character(s.req)))
             }
         }
+        result <- result && (Sys.info()[["machine"]] != "arm64")
         return(result)
     } else if (type == "linux") {
         return((.Platform$OS.type == "unix") && !inla.os("mac") && !inla.os("mac.arm64"))
