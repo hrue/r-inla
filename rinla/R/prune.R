@@ -34,13 +34,18 @@
     }
     bin.path <- paste0(path, "/INLA/bin")
 
-    dd <- c()
+    arm <- paste0(bin.path, "/mac.arm64")
+    dd <- arm
     for (os in c("linux", "mac", "windows")) {
         for (arch in c("32bit", "64bit", "experimental")) {
             dd <- c(dd, paste0(bin.path, "/", os, "/", arch))
         }
     }
-    native <- paste0(bin.path, "/", inla.os.type(), "/", inla.os.32or64bit(), "bit")
+    if (inla.os("mac.arm64")) {
+        native <- arm
+    } else {
+        native <- paste0(bin.path, "/", inla.os.type(), "/", inla.os.32or64bit(), "bit")
+    }
     dd <- setdiff(dd, native)
 
     size <- 0
@@ -84,13 +89,18 @@
         return(0)
     }
     bin.path <- paste0(path, "/INLA/bin")
-    dd <- c()
+    arm <- paste0(bin.path, "/mac.arm64")
+    dd <- arm
     for (os in c("linux", "mac", "windows")) {
         for (arch in c("32bit", "64bit", "experimental")) {
             dd <- c(dd, paste0(bin.path, "/", os, "/", arch))
         }
     }
-    native <- paste0(bin.path, "/", inla.os.type(), "/", inla.os.32or64bit(), "bit")
+    if (inla.os("mac.arm64")) {
+        native <- arm
+    } else {
+        native <- paste0(bin.path, "/", inla.os.type(), "/", inla.os.32or64bit(), "bit")
+    }
     dd <- setdiff(dd, native)
 
     size <- 0

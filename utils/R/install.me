@@ -45,15 +45,15 @@ SRC=INLA-source.tgz
 tar cvfz INLA-source.tgz INLA
 
 
-##if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
-##    echo '*** Build OK'
-##else
+if R --vanilla CMD build --keep-empty-dirs --resave-data --log INLA; then
+    echo '*** Build OK'
+else
     if R --vanilla CMD build --keep-empty-dirs --resave-data --no-build-vignettes --log INLA; then
 	echo '*** Build without rebuilding vignettes OK'
     else
 	exit 1
     fi
-##fi
+fi
 
 gzINLA=$(echo INLA_*.tar.gz)
 tgzINLA=${gzINLA%%.tar.gz}.tgz
@@ -238,9 +238,8 @@ fi
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
-if false; then
-    rm -f $tgzINLA 
-    rm -f $gzINLA 
-    rm -f $zipINLA 
-    rm -f $SRC
-fi
+rm -f $tgzINLA 
+rm -f $tgzINLAarm64
+rm -f $gzINLA 
+rm -f $zipINLA 
+rm -f $SRC
