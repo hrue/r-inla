@@ -2147,7 +2147,11 @@
     do.call("Sys.setenv", vars)
     inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
 
-    vars <- NULL
+    if (debug) {
+        print(paste("all.args: ", all.args))
+    }
+
+   vars <- NULL
     if (debug) {
         vars <- c(vars, INLA_DEBUG = 1)
     }

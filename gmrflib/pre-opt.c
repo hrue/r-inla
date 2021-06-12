@@ -537,6 +537,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
 	(*preopt)->pA_idxval = pA_idxval;
+	(*preopt)->pAA_idxval = pAA_idxval;
 	(*preopt)->pAAt_idxval = pAAt_idxval;
 	(*preopt)->AtA_idxval = AtA_idxval;
 
@@ -559,12 +560,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 
-	if (pAA_idxval) {
-		for (i = 0; i < nrow; i++) {
-			GMRFLib_idxval_free(pAA_idxval[i]);
-		}
-		Free(pAA_idxval);
-	}
 	for (i = 0; i < nf; i++) {
 		Free(ww[i]);
 	}
@@ -846,6 +841,64 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem) 
+{
+	// compute the marginal mean and variance for the linear predictor
+	int npred = preopt->npred;
+	int mpred = preopt->mpred;
+	int mnpred = preopt->mnpred;
+	int offset = mpred;
+	double *mm = problem->sub_mean_constr;
+
+	memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+	memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
+	
+#define CODE_BLOCK				\
+	for(int i = 0; i < mpred; i++) {	\
+		double var = 0.0, *cov;		\
+		int k, j, kk, jj;					\
+		GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
+		for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {		\
+			j = elm[k].idx;					\
+			cov = GMRFLib_Qinv_get(problem, j, j);		\
+			var += SQR(elm[k].val) * *cov;			\
+			mean[i] += elm[k].val * mm[j];			\
+			for(kk = k + 1; kk < preopt->pAA_idxval[i]->n; kk++){ \
+				jj = elm[kk].idx;			\
+				cov = GMRFLib_Qinv_get(problem, j, jj);	\
+				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
+			}						\
+		}							\
+		variance[i] = var;					\
+	}
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+#undef CODE_BLOCK
+
+#define CODE_BLOCK				\
+	for(int i = 0; i < npred; i++) {	\
+		double var = 0.0, *cov;		\
+		int k, j, kk, jj;					\
+		GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
+		for(k = 0; k < preopt->A_idxval[i]->n; k++){		\
+			j = elm[k].idx;					\
+			cov = GMRFLib_Qinv_get(problem, j, j);		\
+			var += SQR(elm[k].val) * *cov;			\
+			mean[offset + i] += elm[k].val * mm[j];		\
+			for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
+				jj = elm[kk].idx;			\
+				cov = GMRFLib_Qinv_get(problem, j, jj);	\
+				if (!cov) printf("MISSING k kk j j %d %d %d %d\n", k, kk, j, jj); \
+				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
+			}						\
+		}							\
+		variance[offset + i] = var;				\
+	}
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+#undef CODE_BLOCK
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c)
 {
 	int id = GMRFLib_thread_id, np = preopt->Npred;
@@ -876,6 +929,12 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 #pragma omp section
 		{
 
+			if (preopt->pAA_idxval) {
+				for (int i = 0; i < preopt->mpred; i++) {
+					GMRFLib_idxval_free(preopt->pAA_idxval[i]);
+				}
+				Free(preopt->pAA_idxval);
+			}
 			for (int i = 0; i < preopt->n; i++) {
 				GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
 				for (int jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
