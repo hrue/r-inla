@@ -549,6 +549,11 @@ typedef struct {
 	double vb_max_correct;
 
 	/**
+	 * \brief N-limit when to enable a f() component
+	 */
+	int vb_f_enable_limit;
+
+	/**
 	 * \brief List of nodes to VB correct for, if any.
 	 */
 	char *vb_nodes;

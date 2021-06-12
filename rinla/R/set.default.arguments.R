@@ -529,7 +529,7 @@
             ## This is an hidden option.
             step.factor = -0.1,
 
-            ## :ARGUMENT: global.node.factor Numerical The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.) (default 2.0)
+            ## :ARGUMENT: global.node.factor Numerical The factor which defines the degree ## ## required (how many neighbors), as a fraction of n-1, that is required to be ## ## classified as a global node and numbered last (whatever the reordering routine ## ## says). Here, n, is the size of the graph. (Disabled if larger than 1.) (default ## ## 2.0)
             global.node.factor = 2.0,
 
             ## :ARGUMENT: global.node.degree Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says). (default \code{.Machine$integer.max})
@@ -544,8 +544,8 @@
             ## :ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
             stupid.search.factor = 1.05,
 
-            ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} Logical Use this feature? \code{strategy} Charactor What to correct, one of "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. \code{refinement} Integer Number of extra refinement iterations. \code{max.correct} Numerical Bound the allowed correction (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). \code{hyperpar.correct} Logical Correct the marginal posterior for the hyperparameters?
-            control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE),
+            ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} ## ## Logical Use this feature? \code{strategy} Charactor What to correct, one of ## ## "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. ## ## \code{refinement} Integer Number of extra refinement iterations. ## ## \code{max.correct} Numerical Bound the allowed correction ## ## (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). ## ## \code{hyperpar.correct} Logical Correct the marginal posterior for the ## ## hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()} ## ## model component.
+            control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE, f.enable.limit = 50),
 
             ## :ARGUMENT: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
             num.gradient = "central",
