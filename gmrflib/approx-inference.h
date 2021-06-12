@@ -1069,7 +1069,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, int dens_count, G
 			       double *ldens_hyperpar_corr, double *b,
 			       double *c, double *d, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc,
-			       void *loglFunc_arg, GMRFLib_bfunc_tp ** bfunc);
+			       void *loglFunc_arg, GMRFLib_bfunc_tp ** bfunc, GMRFLib_preopt_tp *preopt);
 int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density, int dens_count, GMRFLib_density_tp ** dens_local,
 				   double *ldens_hyperpar_corr, double *b,
 				   double *c, double *d, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
@@ -1079,7 +1079,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density, int dens_c
 				      double *ldens_hyperpar_corr, double *b,
 				      double *c, double *d, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 				      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc,
-				      void *loglFunc_arg, GMRFLib_bfunc_tp ** bfunc);
+				      void *loglFunc_arg, GMRFLib_bfunc_tp ** bfunc, GMRFLib_preopt_tp *preopt);
 double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);

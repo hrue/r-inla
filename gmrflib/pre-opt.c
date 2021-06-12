@@ -559,6 +559,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
+	(*preopt)->Qfunc_prior_only = Calloc(GMRFLib_MAX_THREADS, int);
 
 	for (i = 0; i < nf; i++) {
 		Free(ww[i]);
@@ -728,8 +729,10 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	imax = IMAX(node, nnode);
 	diag = (imin == imax);
 
-	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
-		value += a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
+	if (!(a->Qfunc_prior_only[GMRFLib_thread_id])) {
+		if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
+			value += a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
+		}
 	}
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
 		value += a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);

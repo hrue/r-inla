@@ -113,20 +113,28 @@ double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void 
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
 {
+	return(GMRFLib_tabulate_Qfunc_core(tabulate_Qfunc, graph, Qfunc, Qfunc_arg, prec, log_prec, log_prec_omp, 0));
+}
+int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
+				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp,
+				int force)
+{
 
 	int i, j, k;
 
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 
-	// 
-	// this is VERY SPECIAL: with this we can reuse code with the preopt functionality
-	// 
-	if (Qfunc == GMRFLib_preopt_Qfunc) {
-		(*tabulate_Qfunc)->Qfunc = Qfunc;
-		(*tabulate_Qfunc)->Qfunc_arg = Qfunc_arg;
-		return GMRFLib_SUCCESS;
+	if (!force) {
+		// 
+		// this is VERY SPECIAL: with this we can reuse code with the preopt functionality
+		// 
+		if (Qfunc == GMRFLib_preopt_Qfunc) {
+			(*tabulate_Qfunc)->Qfunc = Qfunc;
+			(*tabulate_Qfunc)->Qfunc_arg = Qfunc_arg;
+			return GMRFLib_SUCCESS;
+		}
 	}
-
+	
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	arg = Calloc(1, GMRFLib_tabulate_Qfunc_arg_tp);
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;

@@ -99,7 +99,8 @@ typedef struct {
 	int n;
 	int nf;
 	int nbeta;
-
+	int *Qfunc_prior_only;
+	
 	GMRFLib_graph_tp *preopt_graph;
 	GMRFLib_Qfunc_tp *preopt_Qfunc;
 	void *preopt_Qfunc_arg;
