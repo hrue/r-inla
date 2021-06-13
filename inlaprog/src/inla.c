@@ -11337,7 +11337,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_tag = Realloc(mb->lc_tag, mb->nlc + 1, char *);
 	mb->lc_output = Realloc(mb->lc_output, mb->nlc + 1, Output_tp *);
 	mb->lc_dir = Realloc(mb->lc_dir, mb->nlc + 1, char *);
-	mb->lc_prec = Realloc(mb->lc_prec, mb->nlc + 1, double);
 	mb->lc_order = Realloc(mb->lc_order, mb->nlc + 1, double);
 	mb->lc_tag[mb->nlc] = secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	mb->lc_dir[mb->nlc] = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "DIR"), GMRFLib_strdup(mb->lc_tag[mb->nlc])));
@@ -11360,10 +11359,6 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	mb->lc_order[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "LINCOMB.ORDER"), -1.0);
 	assert(mb->lc_order[mb->nlc] >= 0);
 
-	mb->lc_prec[mb->nlc] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), exp(14.0));
-	if (mb->verbose) {
-		printf("\t\tprecision [%g]\n", mb->lc_prec[mb->nlc]);
-	}
 	// FORMAT:: se section.R in Rinla...
 
 	GMRFLib_io_open(&io, filename, "rb");
@@ -25815,11 +25810,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	}
 
 	inla_setup_ai_par_default(mb);			       /* most likely already done, but... */
-
-	mb->lc_derived_only = iniparser_getboolean(ini, inla_string_join(secname, "LINCOMB.DERIVED.ONLY"), 1);
-	if (mb->verbose) {
-		printf("\t\t\tlincomb.derived.only = [%s]\n", (mb->lc_derived_only ? "Yes" : "No"));
-	}
 	mb->lc_derived_correlation_matrix = iniparser_getboolean(ini, inla_string_join(secname, "LINCOMB.DERIVED.CORRELATION.MATRIX"), 0);
 	if (mb->verbose) {
 		printf("\t\t\tlincomb.derived.correlation.matrix = [%s]\n", (mb->lc_derived_correlation_matrix ? "Yes" : "No"));
@@ -26251,6 +26241,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 0);
 	mb->ai_par->vb_refinement = IMAX(0, mb->ai_par->vb_refinement);
 	mb->ai_par->vb_f_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT"), 50);
+
+	mb->ai_par->twostage_stage1only = iniparser_getint(ini, inla_string_join(secname, "CONTROL.TWOSTAGE.STAGE1ONLY"), 0);
+
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "MEAN")) {
@@ -30072,8 +30065,7 @@ int inla_INLA(inla_tp * mb)
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
-			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
-			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec, mb->ai_par);
+			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision, mb->ai_par);
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
@@ -30163,11 +30155,6 @@ int inla_INLA(inla_tp * mb)
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
 		}
-		if (!mb->lc_derived_only) {
-			for (i = 0; i < mb->nlc; i++) {
-				compute[count++] = 0;
-			}
-		}
 		assert(count == N);
 	} else {
 		/*
@@ -30193,11 +30180,6 @@ int inla_INLA(inla_tp * mb)
 			compute[count] = (char) mb->linear_compute[i];
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
-		}
-		if (!mb->lc_derived_only) {
-			for (i = 0; i < mb->nlc; i++) {
-				compute[count++] = 1;
-			}
 		}
 		if (count != N) {
 			P(count);
@@ -30497,7 +30479,6 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	GMRFLib_density_storage_strategy = storage_scheme;
 	GMRFLib_openmp->strategy = mb->strategy;
 
-	compute = Calloc(N, char);
 	b = Calloc(N, double);
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	for (count = 0, i = 0; i < mb->nf; i++) {
@@ -30610,16 +30591,9 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 
 	int nparam_eff = mb->ai_par->compute_nparam_eff;
 	mb->ai_par->compute_nparam_eff = 0;
-	
-	/*
-	 * If Gaussian data, then force the strategy to be Gaussian  
-	 */
-	if (mb->gaussian_data) {
-		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-		mb->ai_par->gaussian_data = mb->gaussian_data;
-	}
+	compute = Calloc(N, char);
 
-	GMRFLib_ai_INLA(NULL, NULL,
+	GMRFLib_ai_INLA(&(mb->density), NULL,
 			NULL, NULL,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 			NULL,
@@ -30730,8 +30704,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
-			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision,
-			    (mb->lc_derived_only ? 0 : mb->nlc), mb->lc_lc, mb->lc_prec, mb->ai_par);
+			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision, mb->ai_par);
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 	if (mb->verbose) {
@@ -30821,11 +30794,6 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
 		}
-		if (!mb->lc_derived_only) {
-			for (i = 0; i < mb->nlc; i++) {
-				compute[count++] = 0;
-			}
-		}
 		assert(count == N);
 	} else {
 		/*
@@ -30851,11 +30819,6 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			compute[count] = (char) mb->linear_compute[i];
 			b[count] = mb->linear_precision[i] * mb->linear_mean[i];
 			count++;
-		}
-		if (!mb->lc_derived_only) {
-			for (i = 0; i < mb->nlc; i++) {
-				compute[count++] = 1;
-			}
 		}
 		if (count != N) {
 			P(count);
@@ -31149,41 +31112,48 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	return INLA_OK;
 }
 
-int inla_INLA_preopt(inla_tp * mb)
+int inla_INLA_preopt_stage1only(inla_tp * mb)
 {
-	double *c = NULL;
+	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, count;
-	GMRFLib_bfunc_tp **bfunc = NULL;
+	GMRFLib_bfunc_tp **bfunc;
 	GMRFLib_preopt_tp *preopt = NULL;
-	GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
 	}
 
-	GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_LOW;
-	GMRFLib_openmp->strategy = mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
+	/*
+	 * We need to determine the strategy if strategy is default 
+	 */
+	int storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
+	int ntot = 0;
 
-	if (mb->verbose) {
-		printf("\tPreOpt-mode.............. \n");
-		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
-		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
-		}
-		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
-		printf("\tDensity-strategy......... [%s]\n",
-		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
-	}
-
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
-
-	N = mb->nlinear;
+	ntot = mb->nlinear;
 	for (i = 0; i < mb->nf; i++) {
-		N += mb->f_graph[i]->n;
+		ntot += mb->f_graph[i]->n;
+	}
+	N = ntot;
+
+	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
+		if (mb->verbose) {
+			printf("\tStrategy = [DEFAULT]\n");
+		}
+		if (ntot < 500) {
+			mb->strategy = GMRFLib_OPENMP_STRATEGY_SMALL;
+		} else if (ntot < 2000) {
+			mb->strategy = GMRFLib_OPENMP_STRATEGY_MEDIUM;
+		} else if (ntot < 50000) {
+			mb->strategy = GMRFLib_OPENMP_STRATEGY_LARGE;
+		} else {
+			mb->strategy = GMRFLib_OPENMP_STRATEGY_HUGE;
+		}
 	}
 
+	GMRFLib_density_storage_strategy = storage_scheme;
+	GMRFLib_openmp->strategy = mb->strategy;
+
+	b = Calloc(N, double);
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
@@ -31196,24 +31166,59 @@ int inla_INLA_preopt(inla_tp * mb)
 		count += mb->f_Ntotal[i];
 	}
 
+	// VB correct 
+	char *vb_nodes = NULL;
+	int local_count = 0;
+	mb->ai_par->vb_enable = GMRFLib_TRUE;
+	if (mb->ai_par->vb_enable) {
+		vb_nodes = Calloc(N, char);
+		count = 0;
+		for (i = 0; i < mb->nf; i++) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					vb_nodes[count + j] = (char) 1;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			vb_nodes[count++] = (char) 1;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(vb_nodes);
+			vb_nodes = NULL;
+		}
+	}
+	mb->ai_par->vb_nodes = vb_nodes;
+
 	double tref = GMRFLib_cpu();
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->f_diag,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
 			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
-	if (mb->verbose) {
-		printf("\tPreOpt-mode setup ....... [%.2fs]\n", GMRFLib_cpu() - tref);
-	}
 	mb->preopt = preopt;
+	assert(preopt->latent_graph->n == N);
 
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-	N = preopt->n;
 	if (mb->verbose) {
+		printf("\tStage1only setup ........ [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
+		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
+		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		if (GMRFLib_openmp->adaptive) {
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+		}
+		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		printf("\tDensity-strategy......... [%s]\n",
+		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph............ [%d]\n", N);
 		printf("\tNumber of constraints.... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 	}
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
 	c = Calloc(N, double);
 	if (mb->expert_diagonal_emergencey) {
@@ -31221,13 +31226,10 @@ int inla_INLA_preopt(inla_tp * mb)
 			c[i] += mb->expert_diagonal_emergencey;
 	}
 
-	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
-	count = 0;
-
 	if (G.reorder < 0) {
 		size_t nnz = 0;
 		int use_g = 0;
-		GMRFLib_optimize_reorder(preopt->preopt_graph, &nnz, &use_g, &(mb->gn));
+		GMRFLib_optimize_reorder(preopt->latent_graph, &nnz, &use_g, &(mb->gn));
 		if (GMRFLib_smtp != GMRFLib_SMTP_PARDISO) {
 			// ....
 		} else {
@@ -31240,6 +31242,9 @@ int inla_INLA_preopt(inla_tp * mb)
 			}
 		}
 	}
+	/*
+	 * mark those we want to compute and compute the b
+	 */
 	if (mb->verbose) {
 		if (mb->ntheta) {
 			printf("\tList of hyperparameters: \n");
@@ -31251,61 +31256,44 @@ int inla_INLA_preopt(inla_tp * mb)
 		}
 	}
 	GMRFLib_ai_store_tp *ai_store = Calloc(1, GMRFLib_ai_store_tp);
-	mb->dic = NULL;
 
-	if (mb->fixed_mode) {
-		/*
-		 * then there is a request to treat the theta's as fixed and known. This little hack do the job nicely. 
-		 */
-		mb->ntheta = 0;
-		mb->data_ntheta_all = 0;
-		mb->theta = NULL;
+	if (mb->output->dic) {
+		mb->dic = Calloc(1, GMRFLib_ai_dic_tp);
+	} else {
+		mb->dic = NULL;
 	}
 
-	/*
-	 * If Gaussian data, then force the strategy to be Gaussian  
-	 */
-	if (mb->gaussian_data) {
-		mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-		mb->ai_par->gaussian_data = mb->gaussian_data;
+	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
+	x = Calloc(N, double);
+	if (mb->reuse_mode && mb->x_file) {
+		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
 
-	double step_g = mb->ai_par->gradient_finite_difference_step_len;
-	double step_h = mb->ai_par->hessian_finite_difference_step_len;
-	double step_len_fac = 1.0;
+	mb->ai_par->compute_nparam_eff = 1;
+	mb->predictor_compute = GMRFLib_TRUE;
+	mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
+	mb->ai_par->vb_enable = (mb->gaussian_data ? GMRFLib_FALSE : GMRFLib_TRUE);
 
-	// can we afford having slightly smaller step-length? does not seem to improve...
-	mb->ai_par->gradient_finite_difference_step_len /= step_len_fac;
-	mb->ai_par->hessian_finite_difference_step_len /= sqrt(step_len_fac);
-
-	double *xx = Calloc(preopt->n, double);
-	if (mb->x_file) {
-		Memcpy(xx, mb->x_file + preopt->mnpred, preopt->n * sizeof(double));
-	}
-
-	GMRFLib_ai_INLA(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-			&(mb->neffp), NULL, mb->theta, mb->ntheta, extra, (void *) mb,
-			xx, NULL, c, NULL, bfunc, mb->d, loglikelihood_inla, (void *) mb,
-			preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
-			mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt, rpreopt);
-
-	if (rpreopt->int_design) {
-		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_EXPERT;
-
-		GMRFLib_design_tp *design = NULL;
-		GMRFLib_design_read(&design, rpreopt->int_design, 0);
-		GMRFLib_design_print(stdout, design);
-		mb->ai_par->int_design = design;
-		exit(88);
-	}
-
-	// and we set it back here
-	mb->ai_par->gradient_finite_difference_step_len = step_g;
-	mb->ai_par->hessian_finite_difference_step_len = step_h;
+	GMRFLib_ai_INLA_stage1only(&(mb->density), 
+				   NULL, NULL,
+				   (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
+				   (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
+				   (mb->output->po ? &(mb->po) : NULL),
+				   mb->dic, 
+				   (mb->output->mlik ? &(mb->mlik) : NULL),
+				   NULL,
+				   mb->theta, mb->ntheta,
+				   extra, (void *) mb,
+				   x, b, c, NULL, bfunc, mb->d,
+				   loglikelihood_inla, (void *) mb,
+				   preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
+				   mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt);
 
 	GMRFLib_free_ai_store(ai_store);
+	Free(x);
+	Free(b);
 	Free(c);
-	Free(xx);
+	Free(bfunc);
 
 	return INLA_OK;
 }
@@ -31666,7 +31654,7 @@ int inla_output(inla_tp * mb)
 	/*
 	 * compute the offset for each pack of the results 
 	 */
-	len_offsets = 1 + mb->nf + mb->nlinear + (mb->lc_derived_only ? 0 : mb->nlc);
+	len_offsets = 1 + mb->nf + mb->nlinear;
 	offsets = Calloc(len_offsets, int);
 
 	j = n = 0;
@@ -31680,14 +31668,14 @@ int inla_output(inla_tp * mb)
 		offsets[j++] = n;
 		n++;
 	}
-	if (!mb->lc_derived_only) {
-		for (i = 0; i < mb->nlc; i++) {
-			offsets[j++] = n;
-			n++;
-		}
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
+	} else {
+		assert(mb->hgmrfm->graph->n == n);
 	}
-	assert(mb->hgmrfm->graph->n == n);
+		
 	assert(j == len_offsets);
+
 	if (mb->verbose) {
 		printf("Store results in directory[%s]\n", mb->dir);
 	}
@@ -31696,13 +31684,6 @@ int inla_output(inla_tp * mb)
 	 */
 	local_verbose = 0;
 
-	/*
-	 * workaround for this strange `bug' detected by valgrind. see below for more info
-	 * 
-	 * ==24889== Conditional jump or move depends on uninitialised value(s) ==24889== at 0x402F085: (within /usr/lib/libgomp.so.1.0.0) ==24889== by 0x4030657:
-	 * GOMP_sections_next (in /usr/lib/libgomp.so.1.0.0) ==24889== by 0x805FD42: inla_output.omp_fn.1 (inla.c:4244) ==24889== by 0x805FCC4: inla_output
-	 * (inla.c:4360) ==24889== by 0x80644D2: main (inla.c:5237) 
-	 */
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 3; i++) {
 		if (i == 0) {
@@ -31783,29 +31764,6 @@ int inla_output(inla_tp * mb)
 						   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, NULL,
 						   mb->linear_tag[ii], NULL, local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
-			}
-			if (!mb->lc_derived_only) {
-				/*
-				 * is only added if the derived ones as well are there... 
-				 */
-				if (mb->density_lin) {
-					char *newtag2, *newdir2;
-
-					GMRFLib_sprintf(&newtag2, "lincombs.all");
-					GMRFLib_sprintf(&newdir2, "lincombs.all");
-
-					ii = 0;
-					int offset = offsets[mb->nf + 1 + mb->nlinear + ii];
-					inla_output_detail(mb->dir, &(mb->density[offset]),
-							   (mb->gdensity ? &(mb->gdensity[offset]) : NULL),
-							   mb->lc_order, mb->nlc, 1, mb->lc_output[ii], newdir2, NULL, NULL, NULL,
-							   newtag2, NULL, local_verbose);
-					inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
-					inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) (mb->lc_tag)), NULL);
-
-					Free(newtag2);
-					Free(newdir2);
-				}
 			}
 			if (mb->density_lin) {
 				char *newtag2, *newdir2;
@@ -31988,17 +31946,14 @@ int inla_output(inla_tp * mb)
 			}
 		}
 	}
-	int N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
 
-	/*
-	 * workaround for some strange bug deteced by valgrind. ``parallel sections'' give
-	 * 
-	 * ==24476== Conditional jump or move depends on uninitialised value(s) ==24476== at 0x402F085: (within /usr/lib/libgomp.so.1.0.0) ==24476== by 0x4030657:
-	 * GOMP_sections_next (in /usr/lib/libgomp.so.1.0.0) ==24476== by 0x805FD4A: inla_output.omp_fn.1 (inla.c:4244) ==24476== by 0x805FCC4: inla_output
-	 * (inla.c:4353) ==24476== by 0x8064485: main (inla.c:5230)
-	 * 
-	 * wheras the ``parallel for'' is ok. 
-	 */
+	int N = -1;
+	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+		N = mb->preopt->n + mb->preopt->mnpred;
+	} else {
+		N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
+	}
+
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 2; i++) {
 		if (i == 0 && mb->density) {
@@ -35576,7 +35531,10 @@ int testit(int argc, char **argv)
 		GMRFLib_design_tp *design = Calloc(1, GMRFLib_design_tp);
 		int nf = atoi(args[0]);
 
-		GMRFLib_design_get(&design, nf);
+		GMRFLib_design_ccd(&design, nf);
+		GMRFLib_design_print(stdout, design);
+
+		GMRFLib_design_eb(&design, nf);
 		GMRFLib_design_print(stdout, design);
 		break;
 	}
@@ -36548,35 +36506,66 @@ int main(int argc, char **argv)
 			int nfunc[2] = { 0, 0 };
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
-			if (GMRFLib_preopt_mode && mb->ntheta > 0 && !mb->fixed_mode) {
-				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
+			if (GMRFLib_preopt_mode) {
+ 				if (mb->ai_par->twostage_stage1only) {
+					time_used[3] = GMRFLib_cpu();
+					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
+					inla_INLA_preopt_stage1only(mb);
+					time_used[3] = GMRFLib_cpu() - time_used[1];
+					atime_used[3] = clock() - atime_used[1];
+					nfunc[0] = mb->misc_output->nfunc;
+					rgeneric_cpu[0] = R_rgeneric_cputime;
 
-				time_used[3] = GMRFLib_cpu();
-				GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
-				inla_INLA_preopt_stage1(mb, rpreopt);
-				time_used[3] = GMRFLib_cpu() - time_used[1];
-				atime_used[3] = clock() - atime_used[1];
-				nfunc[0] = mb->misc_output->nfunc;
-				rgeneric_cpu[0] = R_rgeneric_cputime;
+					Free(mb->theta_file);
+					Free(mb->x_file);
+					if (mb->preopt->mode_theta) {
+						mb->theta_file = Calloc(mb->ntheta, double);
+						Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
+					} else {
+						mb->theta_file = NULL;
+					}
+					mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
+					Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
+					mb->ntheta_file = mb->ntheta;
+					mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
+					mb->reuse_mode = GMRFLib_TRUE;
+					mb->reuse_mode_but_restart = GMRFLib_FALSE;
+					mb->ai_par->mode_known = GMRFLib_TRUE;
+					inla_reset();
+				} else {
+					GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
-				Free(mb->theta_file);
-				Free(mb->x_file);
-				mb->theta_file = Calloc(mb->ntheta, double);
-				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
-				Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
-				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
-				mb->ntheta_file = mb->ntheta;
-				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
-				mb->reuse_mode = GMRFLib_TRUE;
-				mb->reuse_mode_but_restart = GMRFLib_FALSE;
-				mb->ai_par->mode_known = GMRFLib_TRUE;
-				GMRFLib_preopt_free(mb->preopt);
-				inla_reset();
-				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-				GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE2;
-				inla_INLA_preopt_stage2(mb, rpreopt);
-				nfunc[1] = mb->misc_output->nfunc;
-				rgeneric_cpu[1] = R_rgeneric_cputime;
+					time_used[3] = GMRFLib_cpu();
+					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
+					inla_INLA_preopt_stage1(mb, rpreopt);
+					time_used[3] = GMRFLib_cpu() - time_used[1];
+					atime_used[3] = clock() - atime_used[1];
+					nfunc[0] = mb->misc_output->nfunc;
+					rgeneric_cpu[0] = R_rgeneric_cputime;
+
+					Free(mb->theta_file);
+					Free(mb->x_file);
+					if (mb->preopt->mode_theta) {
+						mb->theta_file = Calloc(mb->ntheta, double);
+						Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
+					} else {
+						mb->theta_file = NULL;
+					}
+					mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
+					Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
+					mb->ntheta_file = mb->ntheta;
+					mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
+					mb->reuse_mode = GMRFLib_TRUE;
+					mb->reuse_mode_but_restart = GMRFLib_FALSE;
+					mb->ai_par->mode_known = GMRFLib_TRUE;
+					GMRFLib_preopt_free(mb->preopt);
+					inla_reset();
+					GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE2;
+					inla_INLA_preopt_stage2(mb, rpreopt);
+					nfunc[1] = mb->misc_output->nfunc;
+					rgeneric_cpu[1] = R_rgeneric_cputime;
+				}
 			} else {
 				GMRFLib_preopt_mode = GMRFLib_PREOPT_NONE;
 				inla_INLA(mb);

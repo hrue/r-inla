@@ -881,6 +881,9 @@
     ## because we have 'control' within a 'control', we have to process them spesifically
     cont.inla$control.vb <- cont.inla.def$control.vb
     cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
+    ## because we have 'control' within a 'control', we have to process them spesifically
+    cont.inla$control.twostage <- cont.inla.def$control.twostage
+    cont.inla$control.twostage[names(control.inla$control.twostage)] <- control.inla$control.twostage
 
     ## control predictor section
     cont.predictor <- inla.set.control.predictor.default()

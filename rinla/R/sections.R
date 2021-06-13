@@ -842,11 +842,10 @@
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
     inla.write.boolean.field("adjust.weights", inla.spec$adjust.weights, file)
-    inla.write.boolean.field("lincomb.derived.only", inla.spec$lincomb.derived.only, file)
     inla.write.boolean.field("lincomb.derived.correlation.matrix", inla.spec$lincomb.derived.correlation.matrix, file)
 
-    if (inla.spec$lincomb.derived.only != TRUE) {
-        stop("Option 'control.inla$lincomb.derived.only' is disabled. Please remove.")
+    if (!is.null(inla.spec$lincomb.derived.only)) {
+        stop("Option 'control.inla$lincomb.derived.only' is disabled. Please fix.")
     }
 
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
@@ -955,6 +954,8 @@
         stopifnot(fac >= 1.0)
         cat("stupid.search.factor = ", fac, "\n", file = file, append = TRUE)
     }
+
+    inla.write.boolean.field("control.twostage.stage1only", inla.spec$control.twostage$stage1only, file)
 
     if (inla.spec$control.vb$enable) {
         inla.only.for.developers("VB correction", strict = TRUE)
@@ -1380,11 +1381,7 @@
             cat("\n", inla.secsep(secname), "\n", sep = "", file = file, append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file, append = TRUE)
             cat("lincomb.order = ", i, "\n", sep = " ", file = file, append = TRUE)
-            if (!is.null(contr$precision)) {
-                cat("precision = ", contr$precision, "\n", sep = " ", file = file, append = TRUE)
-            }
             inla.write.boolean.field("verbose", contr$verbose, file)
-
             cat("file.offset = ", as.integer(seek(fp.binary, where = NA)), "\n", sep = "", file = file, append = TRUE)
 
             ## number of entries

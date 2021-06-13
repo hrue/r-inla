@@ -66,11 +66,12 @@ __BEGIN_DECLS
 	int std_scale;					       /* if true, then the weights are on a standardized scale. this is the normal case */
 } GMRFLib_design_tp;
 
-int GMRFLib_design_get(GMRFLib_design_tp ** design, int nfactors);
-int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale);
+int GMRFLib_design_ccd(GMRFLib_design_tp ** design, int nfactors);
+int GMRFLib_design_eb(GMRFLib_design_tp ** design, int nhyper);
 int GMRFLib_design_free(GMRFLib_design_tp * design);
 int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design);
 int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob);
+int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale);
 
 __END_DECLS
 #endif

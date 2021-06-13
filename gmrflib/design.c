@@ -55,7 +55,22 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "designP.h"					       /* define the designs */
 
-int GMRFLib_design_get(GMRFLib_design_tp ** design, int nfactors)
+int GMRFLib_design_eb(GMRFLib_design_tp ** design, int nhyper)
+{
+	// create an EB design
+	*design = Calloc(1, GMRFLib_design_tp);
+	(*design)->nfactors = nhyper;
+	(*design)->nexperiments = 1;
+	(*design)->experiment = Calloc(1, double *);
+	(*design)->int_weight = Calloc(1, double);
+	(*design)->std_scale = GMRFLib_TRUE; 
+	(*design)->experiment[0] = Calloc(nhyper, double);
+	(*design)->int_weight[0] = 1.0;
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_design_ccd(GMRFLib_design_tp ** design, int nfactors)
 {
 	/*
 	 * return the CCD design with nfactors in design.  the the design computed as described in: Sanchez, S. M. and

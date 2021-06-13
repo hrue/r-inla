@@ -257,29 +257,40 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	nt = IMIN(GMRFLib_MAX_THREADS_LOCAL, nt);
 
+	// this is soooo much easier if we make A dense...
+
+	// current code only works if A is dense, and
+	// pAA below assumes A dense. 
+	// see 'test-stage1only.R'
+	
 	A_idxval = GMRFLib_idxval_ncreate(npred);
+	double *dens_rows = Calloc(N*nt, double);
+
 #pragma omp parallel for private (i, jj) num_threads(nt)
 	for (i = 0; i < npred; i++) {
 		int idx;
-		double val;
+		double val, *dens_row = dens_rows + omp_get_thread_num() * N;
 
+		memset(dens_row, 0, N * sizeof(double));
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
 				idx = c[jj][i] + idx_map_f[jj];
 				val = ww[jj][i];
-				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
+				dens_row[idx] += val;
 			}
 		}
 		for (jj = 0; jj < nbeta; jj++) {
 			if (covariate[jj][i]) {
 				idx = idx_map_beta[jj];
 				val = covariate[jj][i];
-				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
+				dens_row[idx] += val;
 			}
 		}
-		GMRFLib_idxval_sort(A_idxval[i]);
+		for(jj = 0; jj < N; jj++) {
+			GMRFLib_idxval_add(&(A_idxval[i]), jj, dens_row[jj]);
+		}
 	}
-
+	Free(dens_rows);
 	SHOW_TIME("A_idxval");
 
 	// need also At_.. below, if (pA)
@@ -374,6 +385,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		SHOW_TIME("init pAA_idxval");
 
+		// this assumes A is dense, se comment above. It it almost that in any case...
+
 		// then add and accumate terms using '..._addto'
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
@@ -391,6 +404,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 			GMRFLib_idxval_free(row_idxval);
 		}
+
 		SHOW_TIME("pAA_idxval");
 
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
@@ -844,14 +858,15 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem) 
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt,
+				     GMRFLib_problem_tp *problem, double *optional_mean) 
 {
 	// compute the marginal mean and variance for the linear predictor
 	int npred = preopt->npred;
 	int mpred = preopt->mpred;
 	int mnpred = preopt->mnpred;
 	int offset = mpred;
-	double *mm = problem->sub_mean_constr;
+	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
 
 	memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
 	memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
@@ -866,7 +881,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			cov = GMRFLib_Qinv_get(problem, j, j);		\
 			var += SQR(elm[k].val) * *cov;			\
 			mean[i] += elm[k].val * mm[j];			\
-			for(kk = k + 1; kk < preopt->pAA_idxval[i]->n; kk++){ \
+			for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\
 				cov = GMRFLib_Qinv_get(problem, j, jj);	\
 				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
@@ -890,7 +905,6 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\
 				cov = GMRFLib_Qinv_get(problem, j, jj);	\
-				if (!cov) printf("MISSING k kk j j %d %d %d %d\n", k, kk, j, jj); \
 				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
 			}						\
 		}							\

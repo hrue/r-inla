@@ -53,11 +53,8 @@
         ## :EXTRA:
         ## :NAME: control.lincomb
         list(
-            ## :ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
-            precision = 10^9,
-
             ## :ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
-            verbose = TRUE
+            verbose = FALSE
         )
 
         ## :SEEALSO: inla
@@ -500,9 +497,6 @@
             ## :ARGUMENT: stencil Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
             stencil = 5L,
 
-            ## :ARGUMENT: lincomb.derived.only Logical THIS OPTION IS NOW DISABLED (July 2021) AND WILL BE REMOVED IN A FUTURE VERSION. (If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE))
-            lincomb.derived.only = TRUE,
-
             ## :ARGUMENT: lincomb.derived.correlation.matrix Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
             lincomb.derived.correlation.matrix = FALSE,
 
@@ -563,7 +557,10 @@
             constr.marginal.diagonal = sqrt(.Machine$double.eps),
 
             ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
-            improved.simplified.laplace = FALSE
+            improved.simplified.laplace = FALSE,
+
+            ## :ARGUMENT: fast If \code{stage1only} then try to do all calculations during stage1 by ## enabling Gaussian strategy with VB correction enabled.
+            control.twostage = list(stage1only = FALSE)
         )
 
         ## :SEEALSO: inla

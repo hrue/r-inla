@@ -1432,7 +1432,7 @@ int GMRFLib_idxval_cmp(const void *a, const void *b)
 	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
 	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
 
-	return (aa->idx > bb->idx);
+	return (aa->idx - bb->idx);
 }
 
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)

@@ -1058,10 +1058,8 @@ struct inla_tp_struct {
 	 * linear combinations 
 	 */
 	int nlc;					       /* number of linear combinations */
-	int lc_derived_only;				       /* use only the derived lincombs ? */
 	int lc_derived_correlation_matrix;		       /* compute correlations ? */
 	char **lc_tag;					       /* the tags */
-	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
 	double *lc_order;
 	Output_tp **lc_output;
@@ -1673,9 +1671,9 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
-int inla_INLA_preopt(inla_tp * mb);
 int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
+int inla_INLA_preopt_stage1only(inla_tp * mb);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
