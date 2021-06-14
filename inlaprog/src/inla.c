@@ -7974,9 +7974,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -31274,12 +31274,12 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
 	mb->ai_par->vb_enable = (mb->gaussian_data ? GMRFLib_FALSE : GMRFLib_TRUE);
 
-	GMRFLib_ai_INLA_stage1only(&(mb->density), 
+	GMRFLib_ai_INLA_stage1only(&(mb->density),
 				   NULL, NULL,
 				   (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 				   (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 				   (mb->output->po ? &(mb->po) : NULL),
-				   mb->dic, 
+				   mb->dic,
 				   (mb->output->mlik ? &(mb->mlik) : NULL),
 				   NULL,
 				   mb->theta, mb->ntheta,
@@ -31673,7 +31673,7 @@ int inla_output(inla_tp * mb)
 	} else {
 		assert(mb->hgmrfm->graph->n == n);
 	}
-		
+
 	assert(j == len_offsets);
 
 	if (mb->verbose) {
@@ -31916,10 +31916,10 @@ int inla_output(inla_tp * mb)
 						 mb->lc_order, local_verbose, mb);
 			}
 
-			//if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
-			//mb->len_family_idx = mb->predictor_ndata = mb->preopt->Npred;
-			//}
-			
+			// if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+			// mb->len_family_idx = mb->predictor_ndata = mb->preopt->Npred;
+			// }
+
 			if (mb->cpo) {
 				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
 			}
@@ -36512,7 +36512,7 @@ int main(int argc, char **argv)
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
 			if (GMRFLib_preopt_mode) {
- 				if (mb->ai_par->twostage_stage1only) {
+				if (mb->ai_par->twostage_stage1only) {
 					time_used[3] = GMRFLib_cpu();
 					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
 					inla_INLA_preopt_stage1only(mb);

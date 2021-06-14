@@ -665,7 +665,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		density->user_mode = density->user_mean;
 	} else {
-		density->user_mode = NAN;			       /* yes, this is the value if its not computed */
+		density->user_mode = NAN;		       /* yes, this is the value if its not computed */
 	}
 
 	/*

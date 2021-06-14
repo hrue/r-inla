@@ -261,7 +261,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 #pragma omp parallel for private (i, jj) num_threads(nt)
 	for (i = 0; i < npred; i++) {
 		int idx;
-		double val; 
+		double val;
 
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
@@ -373,59 +373,62 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		SHOW_TIME("init pAA_idxval");
 
-		double ttref = GMRFLib_cpu();
-		int ttref_c = 0;
-
-		int step = ceil(log2((double) nrow)); 
-		step = IMAX(2, step);
-
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
-			GMRFLib_idxval_tp *row_idxval = NULL;
-			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
-			GMRFLib_idxval_elm_tp *row_elm = row_idxval->store;
-				
-			int n_row = row_idxval->n;
-			int row_max_idx = row_elm[row_idxval->n-1].idx;
 
-			for (jj = 0; jj < pAA_pattern[i]->n; jj++) {	
+			int step, s, ia;
+			int steps[] = { 262144, 32768, 4096, 512, 64, 8, 1 };
+			int nsteps = sizeof(steps) / sizeof(int);
+
+			int row_n;
+			GMRFLib_idxval_tp *row_idxval = NULL;
+			GMRFLib_idxval_elm_tp *row_elm = NULL;
+
+			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
+			row_elm = row_idxval->store;
+			row_n = row_idxval->n;
+
+			for (jj = 0; jj < pAA_pattern[i]->n; jj++) {
 				j = pAA_pattern[i]->idx[jj];
-				int irow = 0, iAt = 0;
 				GMRFLib_idxval_elm_tp *At_elm = At_idxval[j]->store;
 
-				int At_max_idx = At_elm[At_idxval[j]->n-1].idx;
-				int n_At = At_idxval[j]->n;
-				
-				while(irow < n_row && iAt < n_At) {
+				int At_n = At_idxval[j]->n, irow = 0, iAt = 0;
+				while (irow < row_n && iAt < At_n) {
+
 					k = row_elm[irow].idx;
 					kk = At_elm[iAt].idx;
+
 					if (k < kk) {
-						if (row_max_idx < kk) {
-							break;
-						} else {
-							for(ii = irow+1; row_elm[ii].idx < kk && ii < n_row; ii += step);
-							irow = IMAX(irow+1, ii - step + 1);
+						irow++;
+						for (s = 0; s < nsteps; s++) {
+							step = steps[s];
+							if (step < row_n) {
+								ia = irow + step;
+								while (ia < row_n && row_elm[ia].idx < kk)
+									ia += step;
+								irow = ia - step;
+							}
 						}
-					} else if (kk < k) {
-						if (At_max_idx < k) {
-							break;
-						} else {
-							for(ii = iAt+1; At_elm[ii].idx < k && ii < n_At; ii += step);
-							iAt = IMAX(iAt+1, ii-step + 1);
+					} else if (k > kk) {
+						iAt++;
+						for (s = 0; s < nsteps; s++) {
+							step = steps[s];
+							if (step < At_n) {
+								ia = iAt + step;
+								while (ia < At_n && At_elm[ia].idx < k)
+									ia += step;
+								iAt = ia - step;
+							}
 						}
 					} else {
-						// k == kk
-						GMRFLib_idxval_addto(&(pAA_idxval[i]), j, row_elm[irow++].val * At_elm[iAt++].val);
+						GMRFLib_idxval_addto(&(pAA_idxval[i]), j, row_elm[irow].val * At_elm[iAt].val);
+						irow++;
+						iAt++;
 					}
 				}
 			}
 			GMRFLib_idxval_free(row_idxval);
-			if (omp_get_thread_num() == 0){
-				ttref_c++;
-				if (!(ttref_c%10000)) printf(" %d time pr i %g nrow %d\n", ttref_c, (GMRFLib_cpu()-tref)/ttref_c, nrow);
-			}
 		}
-
 		SHOW_TIME("pAA_idxval");
 
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
@@ -674,8 +677,8 @@ forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUS
 			if (a->ff_Qfunc) {
 				if (same_idx && !same_tp && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value += a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
-										    (a->ff_Qfunc_arg ? a->
-										     ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+										    (a->
+										     ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -879,8 +882,8 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt,
-				     GMRFLib_problem_tp *problem, double *optional_mean) 
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp * preopt,
+				     GMRFLib_problem_tp * problem, double *optional_mean)
 {
 	// compute the marginal mean and variance for the linear predictor
 	int npred = preopt->npred;
@@ -891,7 +894,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 	memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
 	memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
-	
+
 #define CODE_BLOCK				\
 	for(int i = 0; i < mpred; i++) {	\
 		double var = 0.0, *cov;		\

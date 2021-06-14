@@ -84,7 +84,7 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 #define MEMINFO(_size) if (0) {}
 #endif
 
-#define IDX_ALLOC_INITIAL 32
+#define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     128
 
 char *GMRFLib_rindex(const char *p, int ch)
@@ -1820,7 +1820,7 @@ int GMRFLib_debug_functions(const char *name)
 					first = 2;
 				}
 
-				sss = (char *) GMRFLib_debug_functions_strip((const char *)ss);
+				sss = (char *) GMRFLib_debug_functions_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
 					GMRFLib_sprintf(&nm, "%s", sss);

@@ -711,6 +711,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matri
 			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 				GMRFLib_idxval_add(row, ptr->key, ptr->value);
 			}
+			GMRFLib_idxval_sort(*row);
 		}
 	} else {
 		FIXME("NOT IMPLEMENTED");

@@ -63,7 +63,7 @@ int GMRFLib_design_eb(GMRFLib_design_tp ** design, int nhyper)
 	(*design)->nexperiments = 1;
 	(*design)->experiment = Calloc(1, double *);
 	(*design)->int_weight = Calloc(1, double);
-	(*design)->std_scale = GMRFLib_TRUE; 
+	(*design)->std_scale = GMRFLib_TRUE;
 	(*design)->experiment[0] = Calloc(nhyper, double);
 	(*design)->int_weight[0] = 1.0;
 

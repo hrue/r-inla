@@ -262,8 +262,8 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	PP("G.graph", G.graph);
 	PP("G.Qfunc", G.Qfunc);
 	PP("G.Qfunc", G.Qfunc[GMRFLib_thread_id]);
-	
-	
+
+
 	// yes, this also works with 'preopt' as tabulate_Qfunc do not tabulate but just return a ptr-copy
 	GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
 			       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL, NULL, NULL);

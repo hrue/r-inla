@@ -3167,7 +3167,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 
-		need_Qinv = (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) && (compute_n || ai_par->compute_nparam_eff);
+		need_Qinv = (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) && (compute_n
+															     || ai_par->
+															     compute_nparam_eff);
 
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
@@ -3972,7 +3974,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			Free(ai_store_id);
 			for (i = 0; i < 1 + ai_par->vb_refinement; i++)
 				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, &log_dens_mode,
-							   b, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
+							   b, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, bfunc,
+							   preopt);
 
 			if (GMRFLib_ai_INLA_userfunc0) {
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
@@ -4535,17 +4538,17 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		 * END OF nhyper == 0 
 		 */
 	}
-	
+
 	if (preopt) {
 		// in this case, just save (x, theta) adding the predictors
 		preopt->mode_theta = Calloc(nhyper, double);
 		Memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
 		preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
-		//GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
+		// GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
 		Memcpy(&(preopt->mode_x[preopt->mnpred]), x_mode, preopt->n * sizeof(double));
 		GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
 	}
-		
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (timer) {
 		timer[2] = GMRFLib_cpu() - timer[2];
@@ -5549,7 +5552,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density, 
+int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			       GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 			       GMRFLib_density_tp *** density_hyper,
 			       GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
@@ -5563,7 +5566,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
 			       int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_density_tp *** dlin, GMRFLib_ai_misc_output_tp * misc_output,
 			       GMRFLib_preopt_tp * preopt)
-
 {
 #define SET_THETA_MODE							\
 	if (theta_mode) {						\
@@ -5576,14 +5578,13 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	int i, j, jj, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
-		NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count =
-		0, dens_max, hyper_len = 0, tmax; 
+	    NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0, tmax;
 
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
-		NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
-		NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *neff = NULL, *timer,
-		**cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
-		NULL, **failure_theta = NULL;
+	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
+	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *neff = NULL, *timer,
+	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
+	    NULL, **failure_theta = NULL;
 	gsl_matrix *H = NULL, *eigen_vectors = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
 	gsl_vector *eigen_values = NULL;
@@ -5596,7 +5597,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	double **lin_cross = NULL;
 	GMRFLib_idx_tp *d_idx = NULL;
 
-	for(i = 0; i < preopt->Npred; i++){
+	for (i = 0; i < preopt->Npred; i++) {
 		if (d[i]) {
 			GMRFLib_idx_add(&d_idx, i);
 		}
@@ -5670,13 +5671,13 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		(*cpo)->value = Calloc(preopt->Npred, double *);
 		(*cpo)->pit_value = Calloc(preopt->Npred, double *);
 		(*cpo)->failure = Calloc(preopt->Npred, double *);
-	} 
+	}
 
 	if (po) {
 		(*po) = Calloc(1, GMRFLib_ai_po_tp);
 		(*po)->n = preopt->Npred;
 		(*po)->value = Calloc(preopt->Npred, double *);
-	} 
+	}
 
 	if (GMRFLib_ai_INLA_userfunc0) {
 		userfunc_values = Calloc(dens_max, double *);
@@ -5697,9 +5698,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	if (cpo) {
-		cpo_theta = Calloc(preopt->Npred, double *);	 /* cpo-value conditioned on theta */
-		pit_theta = Calloc(preopt->Npred, double *);	 /* pit-value conditioned on theta */
-		failure_theta = Calloc(preopt->Npred, double *); /* failure indicator on theta */
+		cpo_theta = Calloc(preopt->Npred, double *);   /* cpo-value conditioned on theta */
+		pit_theta = Calloc(preopt->Npred, double *);   /* pit-value conditioned on theta */
+		failure_theta = Calloc(preopt->Npred, double *);	/* failure indicator on theta */
 
 		for (jj = 0; jj < d_idx->n; jj++) {
 			j = d_idx->idx[jj];
@@ -5709,9 +5710,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 	}
 	if (po) {
-		po_theta = Calloc(preopt->Npred, double *); /* po-value conditioned on theta */
-		po2_theta = Calloc(preopt->Npred, double *);	/* po-value conditioned on theta */
-		po3_theta = Calloc(preopt->Npred, double *);	/* po-value conditioned on theta */
+		po_theta = Calloc(preopt->Npred, double *);    /* po-value conditioned on theta */
+		po2_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
+		po3_theta = Calloc(preopt->Npred, double *);   /* po-value conditioned on theta */
 		for (jj = 0; jj < d_idx->n; jj++) {
 			j = d_idx->idx[jj];
 			po_theta[j] = Calloc(dens_max, double);
@@ -5790,7 +5791,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
 			}
-			break;
+				break;
 
 			default:
 				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
@@ -5935,7 +5936,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 			if (!smart_success) {
 				// we'll try to compute the Hessian again, but before that, lets restart the optimizer
-				GMRFLib_gsl_optimize(ai_par);	/* restart */
+				GMRFLib_gsl_optimize(ai_par);  /* restart */
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 			}
 		}
@@ -6052,7 +6053,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			}
 		}
 		if (min_pos_eigenvalue == DBL_MAX) {
-			min_pos_eigenvalue = 1.0;      /* if all are negative, zero included */
+			min_pos_eigenvalue = 1.0;	       /* if all are negative, zero included */
 		}
 		int a_change = 0, all_negative = 1;
 
@@ -6137,8 +6138,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			 */
 			misc_output->eigenvalues = Calloc(nhyper, double);
 			for (i = 0; i < nhyper; i++) {
-				misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the
-													 * cov.mat not hessian */
+				misc_output->eigenvalues[i] = 1.0 / gsl_vector_get(eigen_values, i);	/* need the eigenvalues of the cov.mat not
+													 * hessian */
 			}
 			GMRFLib_gsl_mat2plain(&(misc_output->eigenvectors), eigen_vectors);
 		}
@@ -6158,7 +6159,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 							val = sqrt(inverse_hessian[ii + jj * nhyper]);
 						} else {
 							val = inverse_hessian[ii + jj * nhyper] /
-								sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
+							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 						}
 						fprintf(ai_par->fp_log, " %7.3f", val);
 					} else {
@@ -6198,7 +6199,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper, NULL);
-		
+
 		stdev_corr_pos = Calloc(nhyper, double);
 		stdev_corr_neg = Calloc(nhyper, double);
 
@@ -6215,12 +6216,11 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 			if (omp_in_parallel()) {
 				if (!ais[GMRFLib_thread_id]) {
-					ais[GMRFLib_thread_id] =
-						GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+					ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 				}
 				s = ais[GMRFLib_thread_id];
 			} else {
-				s = ai_store;	/* the common one */
+				s = ai_store;		       /* the common one */
 			}
 
 			zz[k] = 2.0;
@@ -6256,8 +6256,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			stdev_corr_pos = Calloc(nhyper, double);
 			stdev_corr_neg = Calloc(nhyper, double);
 			for (k = 0; k < nhyper; k++) {
-				stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] =
-					misc_output->stdev_corr_neg[k] = 1.0;
+				stdev_corr_pos[k] = misc_output->stdev_corr_pos[k] = stdev_corr_neg[k] = misc_output->stdev_corr_neg[k] = 1.0;
 			}
 		} else {
 			stdev_corr_pos = Calloc(nhyper, double);
@@ -6272,11 +6271,10 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log,
 				"%s corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n",
-				(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2 ? "Retrive" : "Compute"),
-				k, stdev_corr_neg[k], stdev_corr_pos[k]);
+				(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2 ? "Retrive" : "Compute"), k, stdev_corr_neg[k], stdev_corr_pos[k]);
 		}
 	}
-	
+
 	if (misc_output) {
 		for (k = 0; k < nhyper; k++) {
 			if (ISEQUAL(misc_output->stdev_corr_pos[k], 1.0)) {
@@ -6299,7 +6297,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	if (x_mode) {
 		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 	}
-	
+
 	if (timer) {
 		timer[1] = GMRFLib_cpu() - timer[1];
 		timer[2] = GMRFLib_cpu();
@@ -6326,7 +6324,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
-	
+
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
 #pragma omp parallel for private(k, i, log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (k = 0; k < design->nexperiments; k++) {
@@ -6341,12 +6339,11 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 		if (omp_in_parallel()) {
 			if (!ais[GMRFLib_thread_id]) {
-				ais[GMRFLib_thread_id] =
-					GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
+				ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
 			ai_store_id = ais[GMRFLib_thread_id];
 		} else {
-			ai_store_id = ai_store;	/* the common one */
+			ai_store_id = ai_store;		       /* the common one */
 		}
 
 		z_local = Calloc(nhyper, double);
@@ -6355,15 +6352,14 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = f * design->experiment[k][i]
-					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = design->experiment[k][i]
-					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
-		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
-			   ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = design->experiment[k][i];
 			}
@@ -6379,7 +6375,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				// theta_local is, by request, the same as z_local
 				Memcpy(theta_local, z_local, nhyper * sizeof(double));
 			}
-		
+
 			GMRFLib_opt_f_intern(theta_local, &log_dens, &ierr, ai_store_id, &tabQfunc, &bnew);
 			log_dens *= -1.0;
 			log_dens_orig = log_dens;
@@ -6450,7 +6446,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 
 		tref = GMRFLib_cpu();
-		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);	/* add Qinv if its not there already */
+		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
 		ai_store_id->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
@@ -6464,17 +6460,17 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 		FIXME("DISABLE VB");
 		if (0)
-		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
-			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
-						   b, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
-						   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
-		}
+			for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
+							   b, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
+							   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
+			}
 
 		double *mean_corrected = Calloc(graph->n, double);
 		double *lpred_mean = Calloc(preopt->mnpred, double);
 		double *lpred_variance = Calloc(preopt->mnpred, double);
 
-		for(i = 0; i < graph->n; i++) {
+		for (i = 0; i < graph->n; i++) {
 			mean_corrected[i] = dens[i][dens_count]->user_mean;
 		}
 		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected);
@@ -6487,12 +6483,12 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		Free(lpred_mean);
 		Free(lpred_variance);
 		Free(mean_corrected);
-		
+
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 		}
 
-		if (nlin) {						
+		if (nlin) {
 			FIXME1("LINCOMB needs a check indexing");
 			GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL),
 						   nlin, Alin, ai_store_id, mean_corrected, 0);
@@ -6505,25 +6501,25 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				if (cpo) {
 					GMRFLib_density_tp *cpodens;
 					GMRFLib_compute_cpodens(&cpodens, lpred[i][dens_count], i, d[i], loglFunc, loglFunc_arg, ai_par);
-					failure_theta[i][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[i][dens_count], 
-												   &pit_theta[i][dens_count], i, cpodens, 
-												   d[i], loglFunc, loglFunc_arg, lpred_mean); 
-					if (cpodens && GMRFLib_getbit(cpodens->flags, DENSITY_FLAGS_FAILURE)) { 
-						failure_theta[i][dens_count] = 1.0; 
-					}			
+					failure_theta[i][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[i][dens_count],
+												   &pit_theta[i][dens_count], i, cpodens,
+												   d[i], loglFunc, loglFunc_arg, lpred_mean);
+					if (cpodens && GMRFLib_getbit(cpodens->flags, DENSITY_FLAGS_FAILURE)) {
+						failure_theta[i][dens_count] = 1.0;
+					}
 					GMRFLib_free_density(cpodens);
 				}
-				if (dic) {				
+				if (dic) {
 					deviance_theta[i][dens_count] = GMRFLib_ai_dic_integrate(i, lpred[i][dens_count], d[i],
-												 loglFunc, loglFunc_arg, lpred_mean); 
-				}		
-				if (po) {					
-					GMRFLib_ai_po_integrate(&po_theta[i][dens_count], &po2_theta[i][dens_count], &po3_theta[i][dens_count], 
-								i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean); 
+												 loglFunc, loglFunc_arg, lpred_mean);
+				}
+				if (po) {
+					GMRFLib_ai_po_integrate(&po_theta[i][dens_count], &po2_theta[i][dens_count], &po3_theta[i][dens_count],
+								i, lpred[i][dens_count], d[i], loglFunc, loglFunc_arg, lpred_mean);
 				}
 			}
 		}
-		
+
 		tu = GMRFLib_cpu() - tref;
 		if (ai_par->fp_log) {
 #pragma omp critical
@@ -6551,10 +6547,10 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	preopt->mode_theta = Calloc(nhyper, double);
 	Memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));
 	preopt->mode_x = Calloc(preopt->mnpred + preopt->n, double);
-	//GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
+	// GMRFLib_opt_get_latent(&(preopt->mode_x[preopt->mnpred]));
 	Memcpy(&(preopt->mode_x[preopt->mnpred]), x_mode, preopt->n * sizeof(double));
 	GMRFLib_preopt_full_predictor(preopt->mode_x, &(preopt->mode_x[preopt->mnpred]), preopt);
-		
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (timer) {
 		timer[2] = GMRFLib_cpu() - timer[2];
@@ -6735,7 +6731,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	if (cpo) {
 		double *Z = Calloc(preopt->Npred, double);
 
-		for (j = 0; j < preopt->Npred;  j++) {
+		for (j = 0; j < preopt->Npred; j++) {
 			int jj, ii;
 			ii = j;
 			if (cpo_theta[ii]) {
@@ -6894,7 +6890,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		int ndev = preopt->Npred;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-			*deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
@@ -6992,7 +6988,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			marginal_likelihood->marginal_likelihood_gaussian_approx = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 			for (i = 0; i < nhyper; i++) {
 				marginal_likelihood->marginal_likelihood_gaussian_approx -=
-					0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
+				    0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
 			}
 
 			if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
@@ -7002,8 +6998,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 				for (i = 0; i < nhyper; i++) {
 					marginal_likelihood->marginal_likelihood_integration -=
-						0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
-						       0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+					    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
+						   0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
 				}
 			} else {
 				double integral = 0.0, log_jacobian = 0.0;
@@ -7349,7 +7345,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	GMRFLib_idx_free(d_idx);
-	
+
 	GMRFLib_LEAVE_ROUTINE;
 #undef CHECK_HYPER_STORAGE
 #undef CHECK_DENS_STORAGE
@@ -7367,78 +7363,77 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density, 
+int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,
 			    int idx, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp * ai_par)
 {
 	if (!d) {
-		*cpo_density = NULL;			
+		*cpo_density = NULL;
 		return GMRFLib_SUCCESS;
 	}
 
-	double *xp = NULL, *xp_tmp = NULL,		
-		*ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; 
-	int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; 
-	double cor_eps = GMRFLib_eps(0.75), cor_max, range;	
-		
-	work = Calloc(4*np_new, double);		
-	for(itry = 0; itry < 2;	itry++)			
-	{						
-		np = np_orig;				
-		flag = 0;				
-		ld = &work[0];				
-		logcor = &work[np_new];			
-		x_user = &work[2*np_new];		
-		xp = &work[3*np_new];			
-		GMRFLib_ghq_abscissas(&xp_tmp, np);	
-		range = xp_tmp[np-1];			
-		Memcpy(xp+npx, xp_tmp, np*sizeof(double)); 
-		for(itmp = 0; itmp < npx; itmp++) {	
-			xp[itmp] = xp[npx] - range * (npx - itmp)/(double)npx; 
-			xp[np + npx + itmp] = xp[npx + np - 1]  + range * (itmp + 1.0)/(double)npx; 
-		}					
-		np = np_new;				
-		if (_debug) {				
-			if (0) 
-				for(itmp = 0; itmp < np; itmp++) 
-					printf("xp[%1d] = %.3fn", itmp, xp[itmp]); 
-			GMRFLib_density_printf(stdout, density); 
-		}					
-		GMRFLib_evaluate_nlogdensity(ld, xp, np, density); 
-		GMRFLib_density_std2user_n(x_user, xp, np, density); 
-		loglFunc(logcor, x_user, np, idx, NULL, NULL, loglFunc_arg); 
-		for(_i=0; _i < np; _i++) {		
-			logcor[_i] *= d;		
-		}					
-		if (_debug && np) {			
-			for(_i = 0; _i < np; _i++)	
+	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha = -1.0;
+	int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2 * npx;
+	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
+
+	work = Calloc(4 * np_new, double);
+	for (itry = 0; itry < 2; itry++) {
+		np = np_orig;
+		flag = 0;
+		ld = &work[0];
+		logcor = &work[np_new];
+		x_user = &work[2 * np_new];
+		xp = &work[3 * np_new];
+		GMRFLib_ghq_abscissas(&xp_tmp, np);
+		range = xp_tmp[np - 1];
+		Memcpy(xp + npx, xp_tmp, np * sizeof(double));
+		for (itmp = 0; itmp < npx; itmp++) {
+			xp[itmp] = xp[npx] - range * (npx - itmp) / (double) npx;
+			xp[np + npx + itmp] = xp[npx + np - 1] + range * (itmp + 1.0) / (double) npx;
+		}
+		np = np_new;
+		if (_debug) {
+			if (0)
+				for (itmp = 0; itmp < np; itmp++)
+					printf("xp[%1d] = %.3fn", itmp, xp[itmp]);
+			GMRFLib_density_printf(stdout, density);
+		}
+		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
+		GMRFLib_density_std2user_n(x_user, xp, np, density);
+		loglFunc(logcor, x_user, np, idx, NULL, NULL, loglFunc_arg);
+		for (_i = 0; _i < np; _i++) {
+			logcor[_i] *= d;
+		}
+		if (_debug && np) {
+			for (_i = 0; _i < np; _i++)
 				printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %gn", idx,
-				       x_user[_i], xp[_i], ld[_i], logcor[_i], ld[_i]-logcor[_i]); 
-		}					
-		if (itry == 1 && cor_eps > 0.0) {	
-			flag = 1;			
-			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL)); 
-			for(_i=0; _i < np; _i++) {	
-				ld[_i] = ld[_i] + logcor[_i] - 2.0*GMRFLib_log_apbex(cor_max, logcor[_i]); 
-			}				
-		} else {				
-			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);  /* ld = ld + logcor */ 
-		}					
-		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par); 
-		if (_debug && np) {			
-			for(_i = 0; _i < np; _i++)	
-				printf("CPO AFTER: %d %g %gn", idx, xp[_i], ld[_i]);	
-		}					
-		if (np > 4) {				
-			GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld, 
-					       density->std_mean, density->std_stdev, GMRFLib_FALSE); 
-			if (flag && cpo_density) GMRFLib_setbit(&((*cpo_density)->flags), DENSITY_FLAGS_FAILURE); 
-		} else {				
-			*cpo_density = NULL;		
-		}					
-		if (*cpo_density || itry == 1)		
-			break;				
-	}						
-	Free(work);					
+				       x_user[_i], xp[_i], ld[_i], logcor[_i], ld[_i] - logcor[_i]);
+		}
+		if (itry == 1 && cor_eps > 0.0) {
+			flag = 1;
+			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
+			for (_i = 0; _i < np; _i++) {
+				ld[_i] = ld[_i] + logcor[_i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[_i]);
+			}
+		} else {
+			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);	/* ld = ld + logcor */
+		}
+		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
+		if (_debug && np) {
+			for (_i = 0; _i < np; _i++)
+				printf("CPO AFTER: %d %g %gn", idx, xp[_i], ld[_i]);
+		}
+		if (np > 4) {
+			GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld,
+					       density->std_mean, density->std_stdev, GMRFLib_FALSE);
+			if (flag && cpo_density)
+				GMRFLib_setbit(&((*cpo_density)->flags), DENSITY_FLAGS_FAILURE);
+		} else {
+			*cpo_density = NULL;
+		}
+		if (*cpo_density || itry == 1)
+			break;
+	}
+	Free(work);
 	return GMRFLib_SUCCESS;
 }
 
@@ -7557,8 +7552,7 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			       GMRFLib_ai_store_tp * ai_store,
 			       GMRFLib_graph_tp * graph,
 			       GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-			       GMRFLib_bfunc_tp ** bfunc,
-			       GMRFLib_preopt_tp *preopt)
+			       GMRFLib_bfunc_tp ** bfunc, GMRFLib_preopt_tp * preopt)
 {
 	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
 		return GMRFLib_ai_vb_correct_mean_preopt(density, dens_count, ldens_hyperpar_corr,
@@ -7569,18 +7563,18 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 	}
 }
 
-int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density, // need two types
-			       int dens_count,
-			       GMRFLib_density_tp ** dens_local,
-			       double *ldens_hyperpar_corr,
-			       double *UNUSED(b),
-			       double *c,
-			       double *d,
-			       GMRFLib_ai_param_tp * ai_par,
-			       GMRFLib_ai_store_tp * ai_store,
-			       GMRFLib_graph_tp * graph,
-			       GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-			       GMRFLib_bfunc_tp ** UNUSED(bfunc))
+int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two types
+				   int dens_count,
+				   GMRFLib_density_tp ** dens_local,
+				   double *ldens_hyperpar_corr,
+				   double *UNUSED(b),
+				   double *c,
+				   double *d,
+				   GMRFLib_ai_param_tp * ai_par,
+				   GMRFLib_ai_store_tp * ai_store,
+				   GMRFLib_graph_tp * graph,
+				   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				   GMRFLib_bfunc_tp ** UNUSED(bfunc))
 {
 	int id = GMRFLib_thread_id;
 	int i, j;
@@ -7802,8 +7796,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 				      GMRFLib_ai_store_tp * ai_store,
 				      GMRFLib_graph_tp * graph,
 				      GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				      GMRFLib_bfunc_tp ** UNUSED(bfunc),
-				      GMRFLib_preopt_tp *preopt)
+				      GMRFLib_bfunc_tp ** UNUSED(bfunc), GMRFLib_preopt_tp * preopt)
 {
 	int id = GMRFLib_thread_id;
 	int i, j;
@@ -7843,13 +7836,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		FIXME1("This code is duplicated in the calling function, should be a way to avoid this");
 		double *pmean = Calloc(preopt->mnpred, double);
 		double *pvar = Calloc(preopt->mnpred, double);
-		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
+		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);     /* add Qinv if required */
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, NULL);
-		
+
 		FIXME1("FIX THIS");
-		GMRFLib_density_tp ** dens_local;
+		GMRFLib_density_tp **dens_local;
 		dens_local = Calloc(preopt->Npred, GMRFLib_density_tp *);
-		for(ii = 0; ii < d_idx->n; ii++) {
+		for (ii = 0; ii < d_idx->n; ii++) {
 			i = d_idx->idx[ii];
 			// fprintf(stderr, "i mean sd %4d %8.4f %8.4f\n", i, pmean[i], sqrt(pvar[i]));
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0);
@@ -7889,7 +7882,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 		double *CC = Calloc(preopt->Npred, double);
 		double *BB = Calloc(preopt->Npred, double);
-		for(ii = 0; ii < d_idx->n; ii++){
+		for (ii = 0; ii < d_idx->n; ii++) {
 			i = d_idx->idx[ii];
 			BB[i] = vb_coof[i]->coofs[1];
 			CC[i] = vb_coof[i]->coofs[2];
@@ -7962,7 +7955,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		for (i = 0; i < graph->n; i++) {
-			//GMRFLib_density_printf(stdout, density[i][dens_count]);
+			// GMRFLib_density_printf(stdout, density[i][dens_count]);
 			if (density[i][dens_count]) {
 				GMRFLib_density_new_user_mean(density[i][dens_count],
 							      density[i][dens_count]->user_mean + gsl_vector_get(delta_mu, i));
