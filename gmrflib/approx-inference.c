@@ -6457,14 +6457,11 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			}
 		}
 		neff[dens_count] = ai_store_id->neff;
-
-		FIXME("DISABLE VB");
-		if (0)
-			for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
-				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
-							   b, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
-							   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
-			}
+		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
+						   b, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
+						   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
+		}
 
 		double *mean_corrected = Calloc(graph->n, double);
 		double *lpred_mean = Calloc(preopt->mnpred, double);
