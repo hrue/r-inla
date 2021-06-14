@@ -1056,14 +1056,10 @@
         stopifnot(dim(A)[1] == m)
         stopifnot(dim(A)[2] == n)
 
-        ## replace NA's with zeros. (This is now done already in inla.R)
-        ## A[ is.na(A) ] = 0.0
-
-        Aij <- list(i = 1+A@i, j = 1+A@j, values = A@x) ## based on zero-based indexing of A
-        file.Aij <- inla.tempfile(tmpdir = data.dir)
-        inla.write.fmesher.file(Aij, filename = file.Aij)
-        file.Aij <- gsub(data.dir, "$inladatadir", file.Aij, fixed = TRUE)
-        cat("A = ", file.Aij, "\n", append = TRUE, sep = " ", file = file)
+        file.A <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(A, filename = file.A)
+        file.A <- gsub(data.dir, "$inladatadir", file.A, fixed = TRUE)
+        cat("A = ", file.A, "\n", append = TRUE, sep = " ", file = file)
         Aij <- NULL
 
         ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))

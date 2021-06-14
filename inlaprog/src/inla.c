@@ -31915,6 +31915,11 @@ int inla_output(inla_tp * mb)
 				inla_output_misc(mb->dir, mb->misc_output, mb->ntheta, mb->theta_tag, mb->theta_from, mb->theta_to,
 						 mb->lc_order, local_verbose, mb);
 			}
+
+			//if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+			//mb->len_family_idx = mb->predictor_ndata = mb->preopt->Npred;
+			//}
+			
 			if (mb->cpo) {
 				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
 			}
@@ -32182,9 +32187,9 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	FILE *fp = NULL;
 	double *tmp = NULL;
 
-#define _PAD_WITH_NA(xx)							\
+#define _PAD_WITH_NA(xx)						\
 	if (1) {							\
-		tmp = Calloc(len_family_idx, double);			\
+		tmp = Calloc(IMAX(dic->n_deviance, len_family_idx), double); \
 		Memcpy(tmp, xx, dic->n_deviance*sizeof(double));	\
 		int i;							\
 		for(i = dic->n_deviance; i < len_family_idx; i++){	\

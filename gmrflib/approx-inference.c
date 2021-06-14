@@ -5658,7 +5658,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 	dens_max = tdesign->nexperiments;
 	GMRFLib_design_free(tdesign);
-	P(dens_max);
 
 	weights = Calloc(dens_max, double);
 	izs = Calloc(dens_max, double *);
@@ -5709,7 +5708,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			failure_theta[j] = Calloc(dens_max, double);
 		}
 	}
-
 	if (po) {
 		po_theta = Calloc(preopt->Npred, double *); /* po-value conditioned on theta */
 		po2_theta = Calloc(preopt->Npred, double *);	/* po-value conditioned on theta */
@@ -5735,6 +5733,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
+	GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
+			  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
 	if (nhyper > 0) {
 		/*
 		 * the first step is to locate the mode of \pi(\theta | y). here we use the opt-optimiser routine.  NOTE that this
@@ -6429,7 +6429,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		for (i = 0; i < nhyper; i++) {
 			hyper_z[dens_count * nhyper + i] = z_local[i];
 		}
-		hyper_ldens[dens_count] = log_dens_orig - log_dens_mode;
+		if (nhyper) {
+			hyper_ldens[dens_count] = log_dens_orig - log_dens_mode;
+		}
 
 		if (nhyper > 0) {
 			if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
@@ -6500,7 +6502,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int ii = 0; ii < d_idx->n; ii++) {
 				int i = d_idx->idx[ii];
-				P(i);
 				if (cpo) {
 					GMRFLib_density_tp *cpodens;
 					GMRFLib_compute_cpodens(&cpodens, lpred[i][dens_count], i, d[i], loglFunc, loglFunc_arg, ai_par);
@@ -6890,7 +6891,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		/*
 		 * find the min length of the data contribution that cover all data points 
 		 */
-		int ndev = preopt->mnpred;
+		int ndev = preopt->Npred;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
 			*deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);

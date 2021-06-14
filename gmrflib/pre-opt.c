@@ -257,40 +257,28 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	nt = IMIN(GMRFLib_MAX_THREADS_LOCAL, nt);
 
-	// this is soooo much easier if we make A dense...
-
-	// current code only works if A is dense, and
-	// pAA below assumes A dense. 
-	// see 'test-stage1only.R'
-	
 	A_idxval = GMRFLib_idxval_ncreate(npred);
-	double *dens_rows = Calloc(N*nt, double);
-
 #pragma omp parallel for private (i, jj) num_threads(nt)
 	for (i = 0; i < npred; i++) {
 		int idx;
-		double val, *dens_row = dens_rows + omp_get_thread_num() * N;
+		double val; 
 
-		memset(dens_row, 0, N * sizeof(double));
 		for (jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
 				idx = c[jj][i] + idx_map_f[jj];
 				val = ww[jj][i];
-				dens_row[idx] += val;
+				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
 		for (jj = 0; jj < nbeta; jj++) {
 			if (covariate[jj][i]) {
 				idx = idx_map_beta[jj];
 				val = covariate[jj][i];
-				dens_row[idx] += val;
+				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
-		for(jj = 0; jj < N; jj++) {
-			GMRFLib_idxval_add(&(A_idxval[i]), jj, dens_row[jj]);
-		}
+		GMRFLib_idxval_sort(A_idxval[i]);
 	}
-	Free(dens_rows);
 	SHOW_TIME("A_idxval");
 
 	// need also At_.. below, if (pA)
@@ -385,24 +373,57 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		SHOW_TIME("init pAA_idxval");
 
-		// this assumes A is dense, se comment above. It it almost that in any case...
+		double ttref = GMRFLib_cpu();
+		int ttref_c = 0;
 
-		// then add and accumate terms using '..._addto'
+		int step = ceil(log2((double) nrow)); 
+		step = IMAX(2, step);
+
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
 			GMRFLib_idxval_tp *row_idxval = NULL;
 			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
+			GMRFLib_idxval_elm_tp *row_elm = row_idxval->store;
+				
+			int n_row = row_idxval->n;
+			int row_max_idx = row_elm[row_idxval->n-1].idx;
 
-			for (kk = 0; kk < pAA_pattern[i]->n; kk++) {	/* for(k = 0; k < N; k++) { */
-				k = pAA_pattern[i]->idx[kk];
-				for (jj = 0; jj < row_idxval->n; jj++) {
-					j = row_idxval->store[jj].idx;
-					double val = A_idxval[j]->store[kk].val;
-					double val_row = row_idxval->store[jj].val;
-					GMRFLib_idxval_addto(&(pAA_idxval[i]), k, val_row * val);
+			for (jj = 0; jj < pAA_pattern[i]->n; jj++) {	
+				j = pAA_pattern[i]->idx[jj];
+				int irow = 0, iAt = 0;
+				GMRFLib_idxval_elm_tp *At_elm = At_idxval[j]->store;
+
+				int At_max_idx = At_elm[At_idxval[j]->n-1].idx;
+				int n_At = At_idxval[j]->n;
+				
+				while(irow < n_row && iAt < n_At) {
+					k = row_elm[irow].idx;
+					kk = At_elm[iAt].idx;
+					if (k < kk) {
+						if (row_max_idx < kk) {
+							break;
+						} else {
+							for(ii = irow+1; row_elm[ii].idx < kk && ii < n_row; ii += step);
+							irow = IMAX(irow+1, ii - step + 1);
+						}
+					} else if (kk < k) {
+						if (At_max_idx < k) {
+							break;
+						} else {
+							for(ii = iAt+1; At_elm[ii].idx < k && ii < n_At; ii += step);
+							iAt = IMAX(iAt+1, ii-step + 1);
+						}
+					} else {
+						// k == kk
+						GMRFLib_idxval_addto(&(pAA_idxval[i]), j, row_elm[irow++].val * At_elm[iAt++].val);
+					}
 				}
 			}
 			GMRFLib_idxval_free(row_idxval);
+			if (omp_get_thread_num() == 0){
+				ttref_c++;
+				if (!(ttref_c%10000)) printf(" %d time pr i %g nrow %d\n", ttref_c, (GMRFLib_cpu()-tref)/ttref_c, nrow);
+			}
 		}
 
 		SHOW_TIME("pAA_idxval");
