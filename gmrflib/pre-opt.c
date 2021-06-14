@@ -41,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define GMRFLib_MAX_THREADS_LOCAL IMIN(4, GMRFLib_MAX_THREADS)
+#define GMRFLib_MAX_THREADS_LOCAL GMRFLib_MAX_THREADS
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
