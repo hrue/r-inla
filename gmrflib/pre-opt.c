@@ -804,6 +804,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->n; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		if (A[i]) {						\
 			GMRFLib_idxval_elm_tp *elm = A[i]->store;	\
 			for (int jj = 0; jj < A[i]->n; jj++) {		\
@@ -811,7 +812,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 			}						\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -847,6 +848,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->npred; i++) {			\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		if (preopt->A_idxval[i]) {				\
 			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) { \
@@ -854,7 +856,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			}						\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0);
 #undef CODE_BLOCK
 
 	if (preopt->mpred) {
@@ -867,7 +869,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}						\
 		}
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0);
 #undef CODE_BLOCK
 	}
 
@@ -897,6 +899,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 #define CODE_BLOCK				\
 	for(int i = 0; i < mpred; i++) {	\
+		CODE_BLOCK_SET_THREAD_ID;	\
 		double var = 0.0, *cov;		\
 		int k, j, kk, jj;					\
 		GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
@@ -913,11 +916,12 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		}							\
 		variance[i] = var;					\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0);
 #undef CODE_BLOCK
 
 #define CODE_BLOCK				\
 	for(int i = 0; i < npred; i++) {	\
+		CODE_BLOCK_SET_THREAD_ID;	\
 		double var = 0.0, *cov;		\
 		int k, j, kk, jj;					\
 		GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
@@ -934,7 +938,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		}							\
 		variance[offset + i] = var;				\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
