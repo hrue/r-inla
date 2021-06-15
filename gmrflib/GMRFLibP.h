@@ -370,7 +370,7 @@ typedef enum {
 #define RUN_CODE_BLOCK(thread_max_, len_work_)				\
 	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
-		int nt__ = (GMRFLib_OPENMP_IN_SERIAL ? GMRFLib_openmp->max_threads_inner : GMRFLib_openmp->max_threads_outer); \
+		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL ? GMRFLib_openmp->max_threads_inner : GMRFLib_openmp->max_threads_outer); \
 		int tmax__ = thread_max_;				\
 		int len_work__ = len_work_;				\
 		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
