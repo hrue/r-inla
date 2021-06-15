@@ -7592,7 +7592,6 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 				   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   GMRFLib_bfunc_tp ** UNUSED(bfunc))
 {
-	int id = GMRFLib_thread_id;
 	int i, j;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 
@@ -7819,7 +7818,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		_tref = GMRFLib_cpu();					\
 	}	
 	
-	int id = GMRFLib_thread_id;
 	int i, j, debug = 1;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double _tref = GMRFLib_cpu();
@@ -7892,7 +7890,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	SHOW_TIME("prepare A B C");
 
 	double *c_diag = Calloc(graph->n, double);
-	double *cmean = Calloc(graph->n, double);
 	double *tmp = Calloc(graph->n, double);
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
 	gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	// matrix with Cov()
@@ -7902,7 +7899,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	gsl_matrix_set_zero(M);
 	gsl_vector_set_zero(B);
 
-#define CODE_BLOCK 							\
+#define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
 		CODE_BLOCK_SET_THREAD_ID;				\
 		int j = vb_idx->idx[jj];				\
@@ -7910,14 +7907,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, ai_store->problem->mean_constr[j] + 1.0, NULL); \
 		for (int i = 0; i < graph->n; i++) {			\
 			double corr = (i == j ? 1.0 : sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]); \
-			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	/* yes, it is 'jj' and not 'j' */ \
+			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	\
 		}							\
 	}
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, graph->n);
 #undef CODE_BLOCK
 	SHOW_TIME("build M");
 
-	double *CC = Calloc(preopt->Npred, double);
+        double *CC = Calloc(preopt->Npred, double);
 	double *BB = Calloc(preopt->Npred, double);
 	for (ii = 0; ii < d_idx->n; ii++) {
 		i = d_idx->idx[ii];
@@ -7948,8 +7945,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 #define CODE_BLOCK							\
 	for (int j = 0; j < vb_idx->n; j++) {				\
 		CODE_BLOCK_SET_THREAD_ID;				\
-		double *local_work = CODE_BLOCK_WORK_PTR;		\
-		double *col = local_work, *res = local_work + graph->n; \
+		double *col = CODE_BLOCK_WORK_PTR, *res = col + graph->n; \
 		for (int i = 0; i < graph->n; i++) {			\
 			col[i] = gsl_matrix_get(M, i, j);		\
 		}							\
@@ -8036,7 +8032,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	Free(vb_coof);
 
 	Free(c_diag);
-	Free(cmean);
 	Free(mode);
 	Free(sd);
 	Free(tmp);
