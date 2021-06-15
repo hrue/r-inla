@@ -2437,6 +2437,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
+
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
 #undef CODE_BLOCK
 
@@ -7650,6 +7651,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 				vb_coof[i] = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, mode); \
 			}						\
 		}
+
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
 #undef CODE_BLOCK
 
@@ -7701,6 +7703,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 				gsl_matrix_set(QM, i, j, res[i]);	\
 			}						\
 		}
+
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2 * graph->n);
 #undef CODE_BLOCK
 
@@ -7888,6 +7891,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		int i = d_idx->idx[ii];					\
 		vb_coof[i] = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, mode); \
 	}
+
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
 #undef CODE_BLOCK
 	SHOW_TIME("prepare A B C");
@@ -7916,10 +7920,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, graph->n);
-#undef CODE_BLOCK
-	SHOW_TIME("build M");
 
+	RUN_CODE_BLOCK(1, graph->n);			       /* use one thread due to 'ai_store' */
+#undef CODE_BLOCK
+
+	SHOW_TIME("build M");
+	
 	double *BB, *CC;
 	BB = Calloc_get(preopt->Npred);
 	CC = Calloc_get(preopt->Npred);
@@ -7962,6 +7968,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_matrix_set(QM, i, j, res[i]);		\
 		}							\
 	}
+
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2 * graph->n);
 #undef CODE_BLOCK
 	GMRFLib_free_tabulate_Qfunc(tabQ);
