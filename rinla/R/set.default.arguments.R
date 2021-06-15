@@ -486,7 +486,7 @@
             adapt.hessian.scale = NULL,
 
             ## :ARGUMENT: adaptive.max Selecting \code{strategy="adaptive"} will chose the default strategy for all fixed effects and model components with length less or equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.
-            adaptive.max = 10L,
+            adaptive.max = 25L,
 
             ## :ARGUMENT: huge Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
             huge = FALSE,
@@ -539,7 +539,7 @@
             stupid.search.factor = 1.05,
 
             ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} ## ## Logical Use this feature? \code{strategy} Charactor What to correct, one of ## ## "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. ## ## \code{refinement} Integer Number of extra refinement iterations. ## ## \code{max.correct} Numerical Bound the allowed correction ## ## (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). ## ## \code{hyperpar.correct} Logical Correct the marginal posterior for the ## ## hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()} ## ## model component.
-            control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE, f.enable.limit = 50),
+            control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE, f.enable.limit = 25),
 
             ## :ARGUMENT: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
             num.gradient = "central",

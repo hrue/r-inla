@@ -12,11 +12,10 @@
 \description{Control variables in \code{control.lincomb} for use in \code{inla}}
 \usage{
 inla.set.control.lincomb.default(...)
-control.lincomb(precision, verbose)
+control.lincomb(verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{precision}{   The precision for the artificial tiny noise. Default 1e09.}
 \item{verbose}{   Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)}
 }
 \value{

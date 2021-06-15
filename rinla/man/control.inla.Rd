@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, b.strategy, cmin, constr.marginal.diagonal, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, improved.simplified.laplace, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, num.gradient, num.hessian, numint.abserr, numint.maxfeval, numint.relerr, optimise.strategy, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, use.directions, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, b.strategy, cmin, constr.marginal.diagonal, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, improved.simplified.laplace, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, linear.correction, mode.known, npoints, num.gradient, num.hessian, numint.abserr, numint.maxfeval, numint.relerr, optimise.strategy, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, use.directions, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -49,7 +49,6 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{huge}{   Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]}
 \item{step.len}{   Numerical The step-length used to compute numerical derivaties of the log-likelihood}
 \item{stencil}{   Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)}
-\item{lincomb.derived.only}{   Logical THIS OPTION IS NOW DISABLED (July 2021) AND WILL BE REMOVED IN A FUTURE VERSION. (If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE))}
 \item{lincomb.derived.correlation.matrix}{   Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)}
 \item{diagonal}{   Numerical Expert use only! Add a this value on the diagonal of the joint precision matrix. (default 0.0)}
 \item{numint.maxfeval}{   Numerical Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 100000.)}
@@ -70,6 +69,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{use.directions}{   THIS OPTION IS EXPERIMENTAL. Unless \code{FALSE} or \code{NULL}, use directions for computing gradient and Hessian, initialised with \code{use.directions} if a matrix.}
 \item{constr.marginal.diagonal}{   Add stability to \code{AQ^-1A^T} by adding a small diagonal term. (default \code{epsilon^0.5})}
 \item{improved.simplified.laplace}{   If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.}
+\item{fast}{   If \code{stage1only} then try to do all calculations during stage1 by   enabling Gaussian strategy with VB correction enabled.}
 }
 \value{
   
