@@ -897,10 +897,10 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
 	memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
 
-#define CODE_BLOCK				\
-	for(int i = 0; i < mpred; i++) {	\
-		CODE_BLOCK_SET_THREAD_ID;	\
-		double var = 0.0, *cov;		\
+#define CODE_BLOCK							\
+	for(int i = 0; i < mpred; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		double var = 0.0, *cov;					\
 		int k, j, kk, jj;					\
 		GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
 		for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {		\
@@ -919,10 +919,10 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0);
 #undef CODE_BLOCK
 
-#define CODE_BLOCK				\
-	for(int i = 0; i < npred; i++) {	\
-		CODE_BLOCK_SET_THREAD_ID;	\
-		double var = 0.0, *cov;		\
+#define CODE_BLOCK							\
+	for(int i = 0; i < npred; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		double var = 0.0, *cov;					\
 		int k, j, kk, jj;					\
 		GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 		for(k = 0; k < preopt->A_idxval[i]->n; k++){		\

@@ -221,7 +221,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, k, n, na, nnz, nan_error = 0;
+	int i, k, n, na, nnz, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
@@ -256,13 +256,17 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 			M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 		}
 		assert(M->ia[n] == na);
-#pragma omp parallel for private(i, k) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < n; i++) {
-			if (graph->lnnbs[i]) {
-				k = k_arr[i];
-				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-			}
+#define CODE_BLOCK					\
+		for (int i = 0; i < n; i++) {		\
+			CODE_BLOCK_SET_THREAD_ID;	\
+			if (graph->lnnbs[i]) {		\
+				int k = k_arr[i];			\
+				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
+			}						\
 		}
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+#undef CODE_BLOCK
 		Free(k_arr);
 	}
 	// when this is true, we can just copy the pointer to the matrix.
@@ -280,36 +284,40 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		M->a = Calloc(na, double);
 	}
 
-	int id_save = GMRFLib_thread_id;
 	if (!used_fast_tab) {
 		// a bit more manual work
 		double val = Qfunc(0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
-#pragma omp parallel for private(i, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
-			for (i = 0; i < n; i++) {
-				GMRFLib_thread_id = id_save;
-				for (k = M->ia[i]; k < M->ia[i + 1]; k++) {
-					j = M->ja[k];
-					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);
-				}
+#define CODE_BLOCK							\
+			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_SET_THREAD_ID;		\
+				for (int k = M->ia[i]; k < M->ia[i + 1]; k++) {	\
+					int j = M->ja[k];		\
+					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);	\
+				}					\
 			}
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+#undef CODE_BLOCK
 		} else {
-#pragma omp parallel for private(i, k) num_threads(GMRFLib_openmp->max_threads_inner)
-			for (i = 0; i < n; i++) {
-				GMRFLib_thread_id = id_save;
-				double v;
-				k = M->ia[i];
-				v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);
-				assert(!(ISNAN(v)));
-			}
+#define CODE_BLOCK							\
+			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_SET_THREAD_ID;		\
+				int k = M->ia[i];			\
+				double v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);	\
+				assert(!(ISNAN(v)));			\
+			}						
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);		
+#undef CODE_BLOCK
 		}
 	}
-	GMRFLib_thread_id = id_save;
 
 	for (i = 0; i < na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
-		if (nan_error)
+		if (nan_error) {
 			break;
+		}
 	}
 
 	if (nan_error) {
@@ -857,8 +865,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
 
 	GMRFLib_csr_tp *Qi = problem->sub_sm_fact.PARDISO_fact->pstore->Qinv;
-	int n = Qi->n, i, j, jj, k, kk;
-	double value;
+	int n = Qi->n, i, j, jj, k;
 	map_id **Qinv = Calloc(n, map_id *);
 
 	assert(Qi->base == 0);
@@ -877,17 +884,21 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	}
 
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for private(i, k, j, kk, value)
-		for (i = 0; i < n; i++) {
-			for (k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) {
-				j = Qinv[i]->contents[k].key;
-				map_id_get(Qinv[i], j, &value);
-				for (kk = 0; kk < problem->sub_constr->nc; kk++) {
-					value -= problem->constr_m[i + kk * n] * problem->qi_at_m[j + kk * n];
-				}
-				map_id_set(Qinv[i], j, value);
-			}
+#define CODE_BLOCK							\
+		for (int i = 0; i < n; i++) {				\
+			for (int k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) { \
+				double value;				\
+				int j = Qinv[i]->contents[k].key;	\
+				map_id_get(Qinv[i], j, &value);		\
+				for (int kk = 0; kk < problem->sub_constr->nc; kk++) { \
+					value -= problem->constr_m[i + kk * n] * problem->qi_at_m[j + kk * n]; \
+				}					\
+				map_id_set(Qinv[i], j, value);		\
+			}						\
 		}
+		
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+#undef CODE_BLOCK
 	}
 
 	GMRFLib_Qinv_tp *subQinv = Calloc(1, GMRFLib_Qinv_tp);
@@ -896,8 +907,6 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	subQinv->mapping = Calloc(1, map_ii);
 	map_ii_init_hint(subQinv->mapping, n);
 	for (i = 0; i < n; i++) {
-		// map_ii_set(subQinv->mapping, i, i);
-		// printf("Mapping %d %d\n", i, problem->sub_graph->mothergraph_idx[i]);
 		map_ii_set(subQinv->mapping, problem->sub_graph->mothergraph_idx[i], problem->sub_graph->mothergraph_idx[i]);
 	}
 	problem->sub_inverse = subQinv;

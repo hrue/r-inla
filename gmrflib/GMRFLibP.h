@@ -245,6 +245,27 @@ typedef enum {
 		printf("\t[%1d] %s:%1d (%s): %s %d %g\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_); \
 	}
 
+#define Calloc_init(n_)							\
+	size_t calloc_len_ = (size_t)(n_);				\
+	size_t calloc_offset_ = 0;					\
+	double *calloc_work_ = (calloc_len_ ? Calloc(calloc_len_, double) : NULL)
+#define iCalloc_init(n_)						\
+	size_t icalloc_len_ = (size_t)(n_);				\
+	size_t icalloc_offset_ = 0;					\
+	int *icalloc_work_ = (icalloc_len_ ? Calloc(icalloc_len_, int) : NULL)
+#define Calloc_get(_n)				\
+	calloc_work_ + calloc_offset_;		\
+	calloc_offset_ += (size_t)(_n)
+#define iCalloc_get(_n)				\
+	icalloc_work_ + icalloc_offset_;	\
+	icalloc_offset_ += (size_t)(_n)
+#define Calloc_free				\
+	assert(calloc_offset_ <= calloc_len_);	\
+	Free(calloc_work_)
+#define iCalloc_free					\
+	assert(icalloc_offset_ <= icalloc_len_);	\
+	Free(icalloc_work_)
+
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
@@ -339,12 +360,12 @@ typedef enum {
 
 
 // len_work_ >0 will create workspace for all threads, each of len_work_ doubles. _PTR will return the ptr to the thread spesific workspace and
-// _ZERO will zero-set it the thread spesific workspace. its free'd automatically. CODE_BLOCK_THREAD_ID can be used to set GMRFLib_thread_id in
-// the parallel loop and GMRFLib_thread_id is reset automatically
+// _ZERO will zero-set it the thread spesific workspace. its free'd automatically. CODE_BLOCK_THREAD_ID must be used to set GMRFLib_thread_id in
+// the parallel loop and GMRFLib_thread_id is reset automatically afterwards
 
 #define CODE_BLOCK_WORK_PTR (len_work__ ? work__ + (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ : NULL)
 #define CODE_BLOCK_WORK_ZERO if (len_work__) { Memset(CODE_BLOCK_WORK_PTR, 0, (size_t) len_work__ * sizeof(double)); }
-#define CODE_BLOCK_THREAD_ID (id__)
+#define CODE_BLOCK_THREAD_ID id__
 #define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = CODE_BLOCK_THREAD_ID
 #define RUN_CODE_BLOCK(thread_max_, len_work_)				\
 	if (1) {							\

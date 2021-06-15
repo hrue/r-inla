@@ -3166,8 +3166,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		}
 
 		need_Qinv = (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) && (compute_n
-															     || ai_par->
-															     compute_nparam_eff);
+															     ||
+															     ai_par->compute_nparam_eff);
 
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
@@ -6265,7 +6265,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	} else {
 		nlin = 0;
 	}
-	
+
 	for (k = 0; k < nhyper; k++) {
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log,
@@ -6322,8 +6322,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		f = w = w_origo = 1.0;
 	}
 
-	P(design->nexperiments);
-	
 	GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
@@ -6462,8 +6460,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
 			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
 						   b, c, d, ai_par, ai_store_id, graph,
-						   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, 
-						   loglFunc, loglFunc_arg, bfunc, preopt);
+						   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -6487,11 +6484,13 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		if (nlin) {
 			// we have to shift indices for the preopt format. Any indices belonging to Predictor and/or APredictor will then become
 			// negative, and we do not support that.
-			for(i = 0; i < nlin; i++){
-				for(j = 0; j < Alin[i]->n; j++) {
+			for (i = 0; i < nlin; i++) {
+				for (j = 0; j < Alin[i]->n; j++) {
 					Alin[i]->idx[j] -= preopt->mnpred;
 					if (Alin[i]->idx[j] < 0) {
-						char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+						char *s =
+						    GMRFLib_strdup
+						    ("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
 						GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 						exit(1);
 					}
@@ -6500,8 +6499,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL),
 						   nlin, Alin, ai_store_id, mean_corrected, 0);
 			// revert back as it was before
-			for(i = 0; i < nlin; i++){
-				for(j = 0; j < Alin[i]->n; j++) {
+			for (i = 0; i < nlin; i++) {
+				for (j = 0; j < Alin[i]->n; j++) {
 					Alin[i]->idx[j] += preopt->mnpred;
 				}
 			}
@@ -7387,18 +7386,19 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		return GMRFLib_SUCCESS;
 	}
 
-	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha = -1.0;
+	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, _alpha = -1.0;
 	int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2 * npx;
 	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
 
-	work = Calloc(4 * np_new, double);
+	Calloc_init(4 * np_new);
+	ld = Calloc_get(np_new);
+	logcor = Calloc_get(np_new);
+	x_user = Calloc_get(np_new);
+	xp = Calloc_get(np_new);
+	
 	for (itry = 0; itry < 2; itry++) {
 		np = np_orig;
 		flag = 0;
-		ld = &work[0];
-		logcor = &work[np_new];
-		x_user = &work[2 * np_new];
-		xp = &work[3 * np_new];
 		GMRFLib_ghq_abscissas(&xp_tmp, np);
 		range = xp_tmp[np - 1];
 		Memcpy(xp + npx, xp_tmp, np * sizeof(double));
@@ -7449,7 +7449,8 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		if (*cpo_density || itry == 1)
 			break;
 	}
-	Free(work);
+
+	Calloc_free;
 	return GMRFLib_SUCCESS;
 }
 
@@ -7700,7 +7701,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 				gsl_matrix_set(QM, i, j, res[i]);	\
 			}						\
 		}
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2*graph->n);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2 * graph->n);
 #undef CODE_BLOCK
 
 		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
@@ -7812,18 +7813,23 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 				      GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				      GMRFLib_bfunc_tp ** UNUSED(bfunc), GMRFLib_preopt_tp * preopt)
 {
+	GMRFLib_ENTER_ROUTINE;
+	Calloc_init(4 * graph->n + 2 * preopt->mnpred + 2 * preopt->Npred);
+
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
 		printf("vb_preopt: %s %.3f\n", msg_, GMRFLib_cpu()-_tref); \
 		_tref = GMRFLib_cpu();					\
-	}	
-	
-	int i, j, debug = 0;
+	}
+
+	int i, j, debug = GMRFLib_DEBUG_IF;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double _tref = GMRFLib_cpu();
-	
-	if (!(ai_par->vb_enable && ai_par->vb_nodes))
+
+	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
+		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
+	}
 
 	// need the idx's for the vb correction and the data locations
 	GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
@@ -7833,8 +7839,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			GMRFLib_idx_add(&vb_idx, i);
 		}
 	}
-
 	if (!vb_idx) {
+		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -7843,39 +7849,37 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			GMRFLib_idx_add(&d_idx, i);
 		}
 	}
-
 	SHOW_TIME("admin1");
 
-
 	int ii, jj;
-	double *sd = Calloc(graph->n, double);
+	double *sd = NULL, *mode = NULL;
+
+	sd = Calloc_get(graph->n);
+	mode = Calloc_get(graph->n);
+
 	double tref = GMRFLib_cpu();
-	double *mode = Calloc(graph->n, double);
 	GMRFLib_vb_coofs_tp **vb_coof = Calloc(preopt->Npred, GMRFLib_vb_coofs_tp *);
 
-	//GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 	for (i = 0; i < graph->n; i++) {
 		double *var = GMRFLib_Qinv_get(ai_store->problem, i, i);
 		sd[i] = (var ? sqrt(*var) : NAN);
 	}
 
-	FIXME1("This code is duplicated in the calling function, should be a way to avoid this");
-	double *pmean = Calloc(preopt->mnpred, double);
-	double *pvar = Calloc(preopt->mnpred, double);
-	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);     /* add Qinv if required */
-	GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, NULL);
+	double *pmean, *pvar;
+	pmean = Calloc_get(preopt->mnpred);
+	pvar = Calloc_get(preopt->mnpred);
 
+	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	       /* add Qinv if required */
+	GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, NULL);
 	SHOW_TIME("compute predictors");
+
 	GMRFLib_density_tp **dens_local;
 	dens_local = Calloc(preopt->Npred, GMRFLib_density_tp *);
 	for (ii = 0; ii < d_idx->n; ii++) {
 		i = d_idx->idx[ii];
-		// fprintf(stderr, "i mean sd %4d %8.4f %8.4f\n", i, pmean[i], sqrt(pvar[i]));
 		GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0);
 	}
-
 	SHOW_TIME("compute predictors densitites");
-	
 	Memcpy(mode, ai_store->mode, graph->n * sizeof(double));
 
 #define CODE_BLOCK							\
@@ -7886,13 +7890,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	}
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
 #undef CODE_BLOCK
-
 	SHOW_TIME("prepare A B C");
 
-	double *c_diag = Calloc(graph->n, double);
-	double *tmp = Calloc(graph->n, double);
+	double *c_diag, *tmp;
+
+	c_diag = Calloc_get(graph->n);
+	tmp = Calloc_get(graph->n);
+
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
-	gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	// matrix with Cov()
+	gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n); // matrix with Cov()
 	gsl_vector *B = gsl_vector_alloc(graph->n);
 
 	gsl_matrix_set_zero(QM);
@@ -7914,8 +7920,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 #undef CODE_BLOCK
 	SHOW_TIME("build M");
 
-        double *CC = Calloc(preopt->Npred, double);
-	double *BB = Calloc(preopt->Npred, double);
+	double *BB, *CC;
+	BB = Calloc_get(preopt->Npred);
+	CC = Calloc_get(preopt->Npred);
+
 	for (ii = 0; ii < d_idx->n; ii++) {
 		i = d_idx->idx[ii];
 		BB[i] = vb_coof[i]->coofs[1];
@@ -7937,11 +7945,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
 		gsl_vector_set(B, i, tmp[i]);
 	}
-
 	SHOW_TIME("compute KLD via _Qx2");
+
+	// much faster with tabulated Qfunc, as we're using it vb->idx->n times
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
-
 #define CODE_BLOCK							\
 	for (int j = 0; j < vb_idx->n; j++) {				\
 		CODE_BLOCK_SET_THREAD_ID;				\
@@ -7949,17 +7957,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		for (int i = 0; i < graph->n; i++) {			\
 			col[i] = gsl_matrix_get(M, i, j);		\
 		}							\
-		if(0)GMRFLib_Qx2(res, col, graph, Qfunc, Qfunc_arg, c_diag); \
-		if(1)GMRFLib_Qx2(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg, c_diag); \
+		GMRFLib_Qx2(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg, c_diag); \
 		for (int i = 0; i < graph->n; i++) {			\
 			gsl_matrix_set(QM, i, j, res[i]);		\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2*graph->n);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2 * graph->n);
 #undef CODE_BLOCK
-
-	SHOW_TIME("Compute QM");
 	GMRFLib_free_tabulate_Qfunc(tabQ);
+	SHOW_TIME("Compute QM");
 
 	gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
 	gsl_permutation *perm = gsl_permutation_alloc(vb_idx->n);
@@ -7984,30 +7990,25 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	if (ai_par->vb_max_correct > 0) {
 		for (i = 0; i < graph->n; i++) {
 			if (ABS(gsl_vector_get(delta_mu, i) / sd[i]) > ai_par->vb_max_correct) {
-				gsl_vector_set(delta_mu, i, ai_par->vb_max_correct * sd[i] *
-					       (gsl_vector_get(delta_mu, i) > 0.0 ? 1.0 : -1.0));
+				gsl_vector_set(delta_mu, i, ai_par->vb_max_correct * sd[i] * (gsl_vector_get(delta_mu, i) > 0.0 ? 1.0 : -1.0));
 				num_trunc++;
 			}
 		}
 	}
-
 	SHOW_TIME("solve");
 
-	// no correction for the moment
+	// no correction. that does not work...
 	if (ldens_hyperpar_corr) {
 		*ldens_hyperpar_corr = 0.0;
 	}
 
 	for (i = 0; i < graph->n; i++) {
-		// GMRFLib_density_printf(stdout, density[i][dens_count]);
 		if (density[i][dens_count]) {
-			GMRFLib_density_new_user_mean(density[i][dens_count],
-						      density[i][dens_count]->user_mean + gsl_vector_get(delta_mu, i));
+			GMRFLib_density_new_user_mean(density[i][dens_count], density[i][dens_count]->user_mean + gsl_vector_get(delta_mu, i));
 		}
 	}
-
 	SHOW_TIME("update dens");
-	
+
 	if (ai_par->vb_verbose) {
 		printf("\tVB correct with strategy [mean] in [%.3f]seconds\n", GMRFLib_cpu() - tref);
 		printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
@@ -8031,11 +8032,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 	}
 	Free(vb_coof);
-
-	Free(c_diag);
-	Free(mode);
-	Free(sd);
-	Free(tmp);
+	dens_local = Calloc(preopt->Npred, GMRFLib_density_tp *);
+	for (ii = 0; ii < d_idx->n; ii++) {
+		i = d_idx->idx[ii];
+		GMRFLib_free_density(dens_local[i]);
+	}
+	Free(dens_local);
 
 	gsl_matrix_free(M);
 	gsl_matrix_free(MM);
@@ -8048,7 +8050,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	GMRFLib_idx_free(d_idx);
 	GMRFLib_idx_free(vb_idx);
+	Calloc_free;
+
+	SHOW_TIME("cleanup");
+	GMRFLib_LEAVE_ROUTINE;
 #undef SHOW_TIME
+
 	return GMRFLib_SUCCESS;
 }
 
