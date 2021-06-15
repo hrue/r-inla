@@ -158,7 +158,7 @@ int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **
 	 * this function is called only for thread=0!!! 
 	 */
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
@@ -177,7 +177,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	int i, tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
 
-	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	err = Calloc(nx, int);
@@ -372,7 +372,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
 
-	GMRFLib_ASSERT(omp_in_parallel() == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS;
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id_save = GMRFLib_thread_id;
@@ -401,7 +401,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
-			if (omp_in_parallel()) {
+			if (GMRFLib_OPENMP_IN_PARALLEL) {
 				if (GMRFLib_thread_id == 0) {
 					ais = G.ai_store;
 				} else {
@@ -471,7 +471,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
-			if (omp_in_parallel()) {
+			if (GMRFLib_OPENMP_IN_PARALLEL) {
 				if (GMRFLib_thread_id == 0) {
 					ais = G.ai_store;
 				} else {
@@ -665,7 +665,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 
 		GMRFLib_thread_id = omp_get_thread_num();
-		if (omp_in_parallel()) {
+		if (GMRFLib_OPENMP_IN_PARALLEL) {
 			if (!ai_store[GMRFLib_thread_id]) {
 				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
@@ -797,7 +797,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				GMRFLib_ai_store_tp *ais = NULL;
 
 				GMRFLib_thread_id = omp_get_thread_num();
-				if (omp_in_parallel()) {
+				if (GMRFLib_OPENMP_IN_PARALLEL) {
 					if (!ai_store[GMRFLib_thread_id]) {
 						ai_store[GMRFLib_thread_id] =
 						    GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);

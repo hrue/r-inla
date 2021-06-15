@@ -250,7 +250,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	// build up structure for the likelihood part
 
 	int nt = -1;
-	if (omp_in_parallel()) {
+	if (GMRFLib_OPENMP_IN_PARALLEL) {
 		nt = GMRFLib_openmp->max_threads_inner;
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;

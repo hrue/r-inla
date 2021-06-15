@@ -3783,7 +3783,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						memset(zz, 0, nhyper * sizeof(double));
 						GMRFLib_thread_id = omp_get_thread_num();
 
-						if (omp_in_parallel()) {
+						if (GMRFLib_OPENMP_IN_PARALLEL) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -3824,7 +3824,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 						memset(zz, 0, nhyper * sizeof(double));
 						GMRFLib_thread_id = omp_get_thread_num();
 
-						if (omp_in_parallel()) {
+						if (GMRFLib_OPENMP_IN_PARALLEL) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -4035,7 +4035,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 				hyper_count = k;
 				GMRFLib_thread_id = omp_get_thread_num();
 
-				if (omp_in_parallel()) {
+				if (GMRFLib_OPENMP_IN_PARALLEL) {
 					if (!ais[GMRFLib_thread_id]) {
 						ais[GMRFLib_thread_id] =
 						    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -4253,7 +4253,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 					tref = GMRFLib_cpu();
 					GMRFLib_thread_id = omp_get_thread_num();
 
-					if (omp_in_parallel()) {
+					if (GMRFLib_OPENMP_IN_PARALLEL) {
 						if (!ais[GMRFLib_thread_id]) {
 							ais[GMRFLib_thread_id] =
 							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -6204,7 +6204,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			memset(zz, 0, nhyper * sizeof(double));
 			GMRFLib_thread_id = omp_get_thread_num();
 
-			if (omp_in_parallel()) {
+			if (GMRFLib_OPENMP_IN_PARALLEL) {
 				if (!ais[GMRFLib_thread_id]) {
 					ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 				}
@@ -6336,7 +6336,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		dens_count = k;
 		GMRFLib_thread_id = omp_get_thread_num();
 
-		if (omp_in_parallel()) {
+		if (GMRFLib_OPENMP_IN_PARALLEL) {
 			if (!ais[GMRFLib_thread_id]) {
 				ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
