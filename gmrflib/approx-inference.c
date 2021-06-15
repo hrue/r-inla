@@ -6460,8 +6460,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 		neff[dens_count] = ai_store_id->neff;
 
-		GMRFLib_printf_Qfunc(stdout, graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg);
-
 		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
 			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
 						   b, c, d, ai_par, ai_store_id, graph,
@@ -7999,7 +7997,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		// clean-up
-		for (i = 0; i < graph->n; i++) {
+		for (i = 0; i < preopt->Npred; i++) {
 			if (vb_coof[i]) {
 				Free(vb_coof[i]);
 			}
