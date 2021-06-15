@@ -7818,7 +7818,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		_tref = GMRFLib_cpu();					\
 	}	
 	
-	int i, j, debug = 1;
+	int i, j, debug = 0;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double _tref = GMRFLib_cpu();
 	
