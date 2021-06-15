@@ -7893,7 +7893,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	double *c_diag = Calloc(graph->n, double);
 	double *cmean = Calloc(graph->n, double);
-	double *corr = Calloc(graph->n, double);
 	double *tmp = Calloc(graph->n, double);
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
 	gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n);	// matrix with Cov()
@@ -7909,11 +7908,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		int j = vb_idx->idx[jj];				\
 		double *cmean = CODE_BLOCK_WORK_PTR;			\
 		GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, ai_store->problem->mean_constr[j] + 1.0, NULL); \
-		for (i = 0; i < graph->n; i++) {			\
-			double corr = sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]; \
-			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]); \
+		for (int i = 0; i < graph->n; i++) {			\
+			double corr = (i == j ? 1.0 : sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]); \
+			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	/* yes, it is 'jj' and not 'j' */ \
 		}							\
-		gsl_matrix_set(M, i, i, 1.0);	/* need to be exactly 1*/ \
 	}
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, graph->n);
 #undef CODE_BLOCK
@@ -8039,7 +8037,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	Free(c_diag);
 	Free(cmean);
-	Free(corr);
 	Free(mode);
 	Free(sd);
 	Free(tmp);
