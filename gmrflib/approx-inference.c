@@ -7957,6 +7957,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	}
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2*graph->n);
 #undef CODE_BLOCK
+
 	SHOW_TIME("Compute QM");
 	GMRFLib_free_tabulate_Qfunc(tabQ);
 
