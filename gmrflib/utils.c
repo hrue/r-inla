@@ -1448,7 +1448,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
 		if (hold[i] && hold[i]->n > 1) {			\
-			qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
+			qsort((void *) hold[i]->store, (size_t) hold[i]->n, sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
 		}							\
 	}
 

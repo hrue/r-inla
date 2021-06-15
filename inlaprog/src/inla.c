@@ -31287,7 +31287,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 				   x, b, c, NULL, bfunc, mb->d,
 				   loglikelihood_inla, (void *) mb,
 				   preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
-				   mb->ai_par, ai_store, 0, NULL, NULL, mb->misc_output, preopt);
+				   mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
 
 	GMRFLib_free_ai_store(ai_store);
 	Free(x);

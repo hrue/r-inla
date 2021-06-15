@@ -2430,10 +2430,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		memset(ccoof, 0, Npred * sizeof(double));
 
 #define CODE_BLOCK							\
-		for (i = 0; i < nidx; i++) {				\
-			int idx;					\
+		for (int i = 0; i < nidx; i++) {			\
 			GMRFLib_thread_id = id;				\
-			idx = idxs[i];					\
+			int idx = idxs[i];				\
 			GMRFLib_2order_approx(&(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
@@ -5650,7 +5649,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
-	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
+	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
 		GMRFLib_design_ccd(&tdesign, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES || nhyper == 0) {
 		GMRFLib_design_eb(&tdesign, nhyper);
@@ -6189,14 +6188,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		hyper_len = dens_max;
 		hyper_z = Calloc(hyper_len * nhyper, double);
 		hyper_ldens = Calloc(hyper_len, double);
-		if (nlin > 0) {
-			lin_dens = Calloc(hyper_len, GMRFLib_density_tp **);
-			if (misc_output && misc_output->compute_corr_lin) {
-				lin_cross = Calloc(hyper_len, double *);
-			}
-		} else {
-			nlin = 0;
-		}
 
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_HESSIAN_SCALE, (void *) &nhyper, NULL);
 
@@ -6267,6 +6258,15 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 	}
 
+	if (nlin > 0) {
+		lin_dens = Calloc(hyper_len, GMRFLib_density_tp **);
+		if (misc_output && misc_output->compute_corr_lin) {
+			lin_cross = Calloc(hyper_len, double *);
+		}
+	} else {
+		nlin = 0;
+	}
+	
 	for (k = 0; k < nhyper; k++) {
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log,
@@ -6305,7 +6305,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
 
 	GMRFLib_design_tp *design = NULL;
-	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
+	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
 		GMRFLib_design_ccd(&design, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES || nhyper == 0) {
 		// collect these two case into one
@@ -6323,6 +6323,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		f = w = w_origo = 1.0;
 	}
 
+	P(design->nexperiments);
+	
 	GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
@@ -6367,7 +6369,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			// nothing
 		}
 
-		if (nhyper > 0) {
+		if (nhyper > 0 || nhyper == 0) {
 			if (design->std_scale) {
 				// convert to theta_local
 				GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
@@ -6457,10 +6459,14 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			}
 		}
 		neff[dens_count] = ai_store_id->neff;
+
+		GMRFLib_printf_Qfunc(stdout, graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg);
+
 		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
 			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
-						   b, c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
-						   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
+						   b, c, d, ai_par, ai_store_id, graph,
+						   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, 
+						   loglFunc, loglFunc_arg, bfunc, preopt);
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -6477,18 +6483,31 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
 
-		Free(lpred_mean);
-		Free(lpred_variance);
-		Free(mean_corrected);
-
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 		}
 
 		if (nlin) {
-			FIXME1("LINCOMB needs a check indexing");
+			// we have to shift indices for the preopt format. Any indices belonging to Predictor and/or APredictor will then become
+			// negative, and we do not support that.
+			for(i = 0; i < nlin; i++){
+				for(j = 0; j < Alin[i]->n; j++) {
+					Alin[i]->idx[j] -= preopt->mnpred;
+					if (Alin[i]->idx[j] < 0) {
+						char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+						GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
+						exit(1);
+					}
+				}
+			}
 			GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL),
 						   nlin, Alin, ai_store_id, mean_corrected, 0);
+			// revert back as it was before
+			for(i = 0; i < nlin; i++){
+				for(j = 0; j < Alin[i]->n; j++) {
+					Alin[i]->idx[j] += preopt->mnpred;
+				}
+			}
 		}
 
 		if (cpo || dic || po) {
@@ -6538,6 +6557,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		Free(bnew);
 		Free(z_local);
 		Free(theta_local);
+		Free(lpred_mean);
+		Free(lpred_variance);
+		Free(mean_corrected);
 	}
 
 	// save (x, theta) adding the predictors
@@ -7621,9 +7643,9 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			}
 		}
 
-#define CODE_BLOCK for (ii = 0; ii < d_idx->n; ii++) {			\
+#define CODE_BLOCK for (int ii = 0; ii < d_idx->n; ii++) {		\
 			GMRFLib_thread_id = id;				\
-			i = d_idx->idx[ii];				\
+			int i = d_idx->idx[ii];				\
 			if (density) {					\
 				vb_coof[i] = GMRFLib_ai_vb_prepare(i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
 			} else {					\
@@ -7670,15 +7692,15 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			c_diag[i] += c[i] + 1E-6 * (d[i] ? ai_store->cc[i] : 1.0);
 		}
 
-#define CODE_BLOCK for (j = 0; j < vb_idx->n; j++) {			\
+#define CODE_BLOCK for (int j = 0; j < vb_idx->n; j++) {		\
 			GMRFLib_thread_id = id;				\
 			double *local_work = Calloc(2*graph->n, double); \
 			double *col = local_work, *res = local_work + graph->n;	\
-			for (i = 0; i < graph->n; i++) {		\
+			for (int i = 0; i < graph->n; i++) {		\
 				col[i] = gsl_matrix_get(M, i, j);	\
 			}						\
 			GMRFLib_Qx2(res, col, graph, Qfunc, Qfunc_arg, c_diag);	\
-			for (i = 0; i < graph->n; i++) {		\
+			for (int i = 0; i < graph->n; i++) {		\
 				gsl_matrix_set(QM, i, j, res[i]);	\
 			}						\
 			Free(local_work); }
@@ -7847,9 +7869,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 		Memcpy(mode, ai_store->mode, graph->n * sizeof(double));
 
-#define CODE_BLOCK for (ii = 0; ii < d_idx->n; ii++) {			\
+#define CODE_BLOCK for (int ii = 0; ii < d_idx->n; ii++) {		\
 			GMRFLib_thread_id = id;				\
-			i = d_idx->idx[ii];				\
+			int i = d_idx->idx[ii];				\
 			vb_coof[i] = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, mode); \
 		}
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS);
@@ -7877,6 +7899,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}
 		}
 
+		P(preopt->Npred);
 		double *CC = Calloc(preopt->Npred, double);
 		double *BB = Calloc(preopt->Npred, double);
 		for (ii = 0; ii < d_idx->n; ii++) {
@@ -7901,15 +7924,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_vector_set(B, i, tmp[i]);
 		}
 
-#define CODE_BLOCK for (j = 0; j < vb_idx->n; j++) {			\
+#define CODE_BLOCK for (int j = 0; j < vb_idx->n; j++) {		\
 			GMRFLib_thread_id = id;				\
 			double *local_work = Calloc(2*graph->n, double); \
 			double *col = local_work, *res = local_work + graph->n; \
-			for (i = 0; i < graph->n; i++) {		\
+			for (int i = 0; i < graph->n; i++) {		\
 				col[i] = gsl_matrix_get(M, i, j);	\
 			}						\
 			GMRFLib_Qx2(res, col, graph, Qfunc, Qfunc_arg, c_diag);	\
-			for (i = 0; i < graph->n; i++) {		\
+			for (int i = 0; i < graph->n; i++) {		\
 				gsl_matrix_set(QM, i, j, res[i]);	\
 			}						\
 			Free(local_work); }

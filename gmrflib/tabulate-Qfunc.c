@@ -161,8 +161,9 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 	// checking/rewrite.
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
-		if (!(arg->Q->a[0] > 0.0))
+		if (arg->Q->a[0] < 0.0) {
 			P(arg->Q->a[0]);
+		}
 		assert(arg->Q->a[0] > 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
 	} else {
