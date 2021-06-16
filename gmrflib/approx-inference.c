@@ -4442,6 +4442,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			if (ai_par->adjust_weights && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 				fprintf(ai_par->fp_log, " adjusted weight= %6.3f", adj_weights[j]);
 			}
+			fprintf(ai_par->fp_log, "\n");
 		}
 	}
 
@@ -5399,8 +5400,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 	}
 
-	P(ai_par->compute_nparam_eff);
-	
 	assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1);
 	assert(preopt);
 
