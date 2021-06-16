@@ -626,12 +626,6 @@ typedef struct {
 	double *derivative4;
 	int *correction_idx;				       /* hold the idx's for the corrections, ie those with d[i] != 0 */
 	int nidx;					       /* number of those */
-
-	/** 
-	 * \brief The effective number of parameters
-	 */
-	double neff;
-
 } GMRFLib_ai_store_tp;
 
 #define GMRFLib_AI_STORE_NEFF_NOT_COMPUTED (-1.23456789)
@@ -727,27 +721,6 @@ typedef struct {
 	double *deviance_e_sat;
 
 } GMRFLib_ai_dic_tp;
-
-/**
- * \brief Results of the `number of effective parameters' computations
- */
-typedef struct {
-
-	/**
-	 * \brief Expected number of effective parameters
-	 */
-	double mean;
-
-	/**
-	 * \brief Stdev of the number of effective parameters
-	 */
-	double stdev;
-
-	/**
-	 * \brief Number of data pr expected number of effective parameters
-	 */
-	double nrep;
-} GMRFLib_ai_neffp_tp;
 
 /**
  *\brief A template computing all terms in <b>(GMRF-35)</b> which are constant with respect to \f$\mbox{\boldmath$x$}\f$ but
@@ -1026,7 +999,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
-		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
+		    GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, 
 		    char *compute, double ***hyperparam, int nhyper, GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 		    double *x, double *b, double *c, double *mean, GMRFLib_bfunc_tp ** bfunc, double *d,
 		    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
@@ -1038,7 +1011,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			       GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 			       GMRFLib_density_tp *** density_hyper,
 			       GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
-			       GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, GMRFLib_ai_neffp_tp * neffp,
+			       GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood, 
 			       double ***hyperparam, int nhyper,
 			       GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
 			       double *x, double *b, double *c, double *mean,
@@ -1075,10 +1048,6 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store);
 int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, double **izs, int n, int nhyper, double dz);
 int GMRFLib_ai_correct_cpodens(double *dens, double *x, int *n, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_cpo_free(GMRFLib_ai_cpo_tp * cpo);
-int GMRFLib_ai_do_MC_error_check(double *statistics, GMRFLib_problem_tp * problem, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				 int nsamp);
-int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_problem_tp * problem, double *c, GMRFLib_Qfunc_tp * Qfunc,
-			  void *Qfunc_arg);
 int GMRFLib_ai_param_duplicate(GMRFLib_ai_param_tp ** ai_par_new, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_param_free(GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_po_free(GMRFLib_ai_po_tp * po);

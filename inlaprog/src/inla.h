@@ -1106,7 +1106,6 @@ struct inla_tp_struct {
 	GMRFLib_ai_po_tp *po;
 	GMRFLib_ai_dic_tp *dic;
 	GMRFLib_ai_marginal_likelihood_tp mlik;
-	GMRFLib_ai_neffp_tp neffp;
 
 	/*
 	 * index-table 
@@ -1734,7 +1733,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
-int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);

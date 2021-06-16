@@ -335,8 +335,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	 */
 	(*problem)->map = (*problem)->sub_graph->mothergraph_idx;
 
-	for(i = 0; i < sub_n; i++) P((*problem)->map[i]);
-
 	/*
 	 * compute the reordering which is stored in sub_sm_fact 
 	 */

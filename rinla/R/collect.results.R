@@ -91,14 +91,6 @@
         res.predictor <- inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
         res.spde2.blc <- inla.collect.spde2.blc(results.dir, control.results$return.marginals.random, debug)
         res.spde3.blc <- inla.collect.spde3.blc(results.dir, control.results$return.marginals.random, debug)
-
-        file <- paste(results.dir, .Platform$file.sep, "neffp", .Platform$file.sep, "neffp.dat", sep = "")
-        neffp <- matrix(inla.read.binary.file(file), 3, 1)
-        rownames(neffp) <- inla.trim(c(
-            "Expectected number of parameters",
-            "Stdev of the number of parameters",
-            "Number of equivalent replicates"
-        ))
     } else {
         res.fixed <- NULL
         res.lincomb <- NULL
@@ -111,7 +103,6 @@
         res.predictor <- NULL
         res.spde2.blc <- NULL
         res.spde3.blc <- NULL
-        neffp <- NULL
     }
     res.mlik <- inla.collect.mlik(results.dir, debug)
     res.q <- inla.collect.q(results.dir, debug)
@@ -227,7 +218,6 @@
                                     theta.tags = theta.tags, mode.status = mode.status,
                                     log.posterior.mode = misc$log.posterior.mode
                                 ),
-                 neffp = neffp,
                  joint.hyper = joint.hyper, nhyper = length(theta.mode),
                  version = list(inla.call = gitid, R.INLA = inla.version("version"))
              ),

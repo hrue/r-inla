@@ -30388,7 +30388,6 @@ int inla_INLA(inla_tp * mb)
 			(mb->output->po ? &(mb->po) : NULL),
 			mb->dic,
 			(mb->output->mlik ? &(mb->mlik) : NULL),
-			&(mb->neffp),
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
 			x, b, c, NULL, bfunc, mb->d,
@@ -30600,7 +30599,6 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			NULL,
 			NULL,
 			(mb->output->mlik ? &(mb->mlik) : NULL),
-			NULL,
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
 			x, b, c, NULL, bfunc, mb->d,
@@ -31033,8 +31031,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			(mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 			(mb->output->po ? &(mb->po) : NULL),
 			mb->dic,
-			NULL,
-			&(mb->neffp),
+			(mb->output->mlik ? &(mb->mlik) : NULL),
 			compute, mb->theta, mb->ntheta,
 			extra, (void *) mb,
 			x, b, c, NULL, bfunc, mb->d,
@@ -31282,7 +31279,6 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 				   (mb->output->po ? &(mb->po) : NULL),
 				   mb->dic,
 				   (mb->output->mlik ? &(mb->mlik) : NULL),
-				   NULL,
 				   mb->theta, mb->ntheta,
 				   extra, (void *) mb,
 				   x, b, c, NULL, bfunc, mb->d,
@@ -31929,7 +31925,6 @@ int inla_output(inla_tp * mb)
 			if (mb->output->mlik) {
 				inla_output_detail_mlik(mb->dir, &(mb->mlik), local_verbose);
 			}
-			inla_output_detail_neffp(mb->dir, &(mb->neffp), local_verbose);
 			inla_output_detail_x(mb->dir, mb->x_file, mb->nx_file);
 			inla_output_detail_theta(mb->dir, mb->theta, mb->ntheta);
 			inla_output_gitid(mb->dir);
@@ -32615,46 +32610,6 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	} else {
 		fprintf(fp, "log marginal-likelihood (integration): %g\n", mlik->marginal_likelihood_integration);
 		fprintf(fp, "log marginal-likelihood (Gaussian): %g\n", mlik->marginal_likelihood_gaussian_approx);
-	}
-	fclose(fp);
-	Free(ndir);
-	Free(nndir);
-	return INLA_OK;
-}
-
-int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int verbose)
-{
-	/*
-	 * output whatever is requested.... 
-	 */
-	char *ndir = NULL, *msg = NULL, *nndir = NULL;
-	FILE *fp = NULL;
-
-	if (!neffp) {
-		return INLA_OK;
-	}
-	GMRFLib_sprintf(&ndir, "%s/%s", dir, "neffp");
-	if (inla_mkdir(ndir) != 0) {
-		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
-		inla_error_general(msg);
-	}
-	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "neffp.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
-	if (!fp) {
-		inla_error_open_file(nndir);
-	}
-	if (verbose) {
-#pragma omp critical
-		{
-			printf("\t\tstore neffp results in[%s]\n", nndir);
-		}
-	}
-	if (G.binary) {
-		D3W(neffp->mean, neffp->stdev, neffp->nrep);
-	} else {
-		fprintf(fp, "Expectected  number of parameters: %g \n", neffp->mean);
-		fprintf(fp, "Stdev of the number of parameters: %g \n", neffp->stdev);
-		fprintf(fp, "Number of equivalent replicates  : %g \n", neffp->nrep);
 	}
 	fclose(fp);
 	Free(ndir);
