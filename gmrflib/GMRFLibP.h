@@ -255,16 +255,16 @@ typedef enum {
 	int *icalloc_work_ = (icalloc_len_ ? Calloc(icalloc_len_, int) : NULL)
 #define Calloc_get(_n)				\
 	calloc_work_ + calloc_offset_;		\
-	calloc_offset_ += (size_t)(_n)
+	calloc_offset_ += (size_t)(_n);		\
+	Calloc_check
 #define iCalloc_get(_n)				\
 	icalloc_work_ + icalloc_offset_;	\
-	icalloc_offset_ += (size_t)(_n)
-#define Calloc_free				\
-	assert(calloc_offset_ <= calloc_len_);	\
-	Free(calloc_work_)
-#define iCalloc_free					\
-	assert(icalloc_offset_ <= icalloc_len_);	\
-	Free(icalloc_work_)
+	icalloc_offset_ += (size_t)(_n);	\
+	iCalloc_check
+#define Calloc_check  if (!(calloc_offset_ <= calloc_len_)) {P(calloc_offset_); P(calloc_len_); }; assert(calloc_offset_ <= calloc_len_)
+#define iCalloc_check if (!(icalloc_offset_ <= icalloc_len_)) {P(icalloc_offset_); P(icalloc_len_); }; assert(icalloc_offset_ <= icalloc_len_)
+#define Calloc_free   Calloc_check; Free(calloc_work_)
+#define iCalloc_free  iCalloc_check; Free(icalloc_work_)
 
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783

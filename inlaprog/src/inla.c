@@ -31134,6 +31134,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 		ntot += mb->f_graph[i]->n;
 	}
 	N = ntot;
+	Calloc_init(3 * N);
 
 	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 		if (mb->verbose) {
@@ -31153,7 +31154,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	GMRFLib_density_storage_strategy = storage_scheme;
 	GMRFLib_openmp->strategy = mb->strategy;
 
-	b = Calloc(N, double);
+	b = Calloc_get(N);
 	bfunc = Calloc(N, GMRFLib_bfunc_tp *);
 	for (count = 0, i = 0; i < mb->nf; i++) {
 		if (mb->f_bfunc2[i]) {
@@ -31220,7 +31221,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
-	c = Calloc(N, double);
+	c = Calloc_get(N);
 	if (mb->expert_diagonal_emergencey) {
 		for (i = 0; i < N; i++)
 			c[i] += mb->expert_diagonal_emergencey;
@@ -31264,7 +31265,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	}
 
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
-	x = Calloc(N, double);
+	x = Calloc_get(N);
 	if (mb->reuse_mode && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
 	}
@@ -31288,13 +31289,9 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 				   loglikelihood_inla, (void *) mb,
 				   preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 				   mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
-
 	GMRFLib_free_ai_store(ai_store);
-	Free(x);
-	Free(b);
-	Free(c);
 	Free(bfunc);
-
+	Calloc_free;
 	return INLA_OK;
 }
 

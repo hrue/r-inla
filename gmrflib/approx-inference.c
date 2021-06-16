@@ -906,19 +906,17 @@ int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_pr
 	 * the values returned are the effective number of paramters, which is computed either absolute (nparam_eff) or relative
 	 * (nparam_eff_rel) 
 	 */
-
 	double correction = 0.0, *cov = NULL, n;
 	int i, j, ii, jj, sub_n;
 
 	sub_n = problem->sub_graph->n;
-
 	for (i = 0; i < sub_n; i++) {
 
 		ii = problem->map[i];
 		cov = GMRFLib_Qinv_get(problem, ii, ii);
 		GMRFLib_ASSERT(cov, GMRFLib_ESNH);
 		correction += (Qfunc(ii, ii, NULL, Qfunc_arg) + (c ? c[ii] : 0.0)) * *cov;
-
+		
 		for (j = 0; j < problem->sub_graph->nnbs[i]; j++) {
 			/*
 			 * if the graph and Q match, then all covariances needed are computed, so the check ``if (cov)'' is for odd cases
@@ -927,7 +925,12 @@ int GMRFLib_ai_nparam_eff(double *nparam_eff, double *nparam_eff_rel, GMRFLib_pr
 			jj = problem->map[problem->sub_graph->nbs[i][j]];
 			cov = GMRFLib_Qinv_get(problem, ii, jj);
 			if (cov) {
-				correction += Qfunc(ii, jj, NULL, Qfunc_arg) * *cov;
+				if (Qfunc == GMRFLib_preopt_Qfunc) {
+					GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) Qfunc_arg;
+					a->Qfunc_prior_only[GMRFLib_thread_id] = 1;
+					correction += Qfunc(ii, jj, NULL, Qfunc_arg) * *cov;
+					a->Qfunc_prior_only[GMRFLib_thread_id] = 0;
+				}
 			} else {
 				/*
 				 * do nothing 
@@ -5602,6 +5605,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 	}
 
+	P(ai_par->compute_nparam_eff);
+	
 	assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1);
 	assert(preopt);
 
@@ -5646,6 +5651,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	nhyper = IMAX(0, nhyper);
+	ais = Calloc(tmax, GMRFLib_ai_store_tp *);
 
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
@@ -5735,6 +5741,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 	GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
 			  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+
 	if (nhyper > 0) {
 		/*
 		 * the first step is to locate the mode of \pi(\theta | y). here we use the opt-optimiser routine.  NOTE that this
@@ -6170,11 +6177,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 
 		/*
-		 * setup space for storage; used for openmp 
-		 */
-		ais = Calloc(tmax, GMRFLib_ai_store_tp *);
-
-		/*
 		 * search the space. first, look at main directions and stop if the density differ more than dlog_dens from the value
 		 * at the mode, log_dens_mode. outside the main directions, only add the point if the corresponding values at the main
 		 * directions is in. 
@@ -6256,6 +6258,14 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				stdev_corr_pos[k] = stdev_corr_neg[k] = 1.0;
 			}
 		}
+
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
+		GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
+		log_dens_mode *= -1.0;
+		SET_THETA_MODE;
+		if (x_mode) {
+			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
+		}
 	}
 
 	if (nlin > 0) {
@@ -6287,14 +6297,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	if (x_mode && ai_store->mode) {
-		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-	}
-
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
-	GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
-	log_dens_mode *= -1.0;
-	SET_THETA_MODE;
-	if (x_mode) {
 		Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
 	}
 
@@ -6337,7 +6339,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		dens_count = k;
 		GMRFLib_thread_id = omp_get_thread_num();
 
-		if (GMRFLib_OPENMP_IN_PARALLEL) {
+		if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD) {
 			if (!ais[GMRFLib_thread_id]) {
 				ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
@@ -6367,7 +6369,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			// nothing
 		}
 
-		if (nhyper > 0 || nhyper == 0) {
+		if (nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD) {
 			if (design->std_scale) {
 				// convert to theta_local
 				GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
@@ -6447,7 +6449,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 		tref = GMRFLib_cpu();
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
-		ai_store_id->neff = GMRFLib_AI_STORE_NEFF_NOT_COMPUTED;
+		GMRFLib_ai_nparam_eff(&(ai_store_id->neff), NULL, ai_store_id->problem, c, (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg));
+		neff[dens_count] = ai_store_id->neff;
+		P(neff[dens_count]);
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
@@ -6456,12 +6460,12 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				GMRFLib_transform_density(&dens_transform[i][dens_count], dens[i][dens_count], tfunc[i]);
 			}
 		}
-		neff[dens_count] = ai_store_id->neff;
-
+		
 		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
 			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
 						   b, c, d, ai_par, ai_store_id, graph,
-						   tabQfunc->Qfunc, tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, bfunc, preopt);
+						   (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
+						   loglFunc, loglFunc_arg, bfunc, preopt);
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -7944,7 +7948,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	GMRFLib_tabulate_Qfunc_tp *prior = NULL;
 	a->Qfunc_prior_only[GMRFLib_thread_id] = 1;
 	GMRFLib_tabulate_Qfunc_core(&prior, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
-	preopt->Qfunc_prior_only[GMRFLib_thread_id] = 0;
+	a->Qfunc_prior_only[GMRFLib_thread_id] = 0;
 
 	GMRFLib_Qx2(tmp, mode, graph, prior->Qfunc, prior->Qfunc_arg, c);	/* mode=mean, the point we expand around */
 	for (i = 0; i < graph->n; i++) {
