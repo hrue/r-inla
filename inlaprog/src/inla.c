@@ -31167,7 +31167,6 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	// VB correct 
 	char *vb_nodes = NULL;
 	int local_count = 0;
-	mb->ai_par->vb_enable = GMRFLib_TRUE;
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		count = 0;
@@ -31270,8 +31269,9 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	mb->ai_par->compute_nparam_eff = 1;
 	mb->predictor_compute = GMRFLib_TRUE;
 	mb->ai_par->strategy = GMRFLib_AI_STRATEGY_GAUSSIAN;
-	mb->ai_par->vb_enable = (mb->gaussian_data ? GMRFLib_FALSE : GMRFLib_TRUE);
-
+	if (mb->gaussian_data) {
+		mb->ai_par->vb_enable = GMRFLib_FALSE;
+	}
 	GMRFLib_ai_INLA_stage1only(&(mb->density),
 				   NULL, NULL,
 				   (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),

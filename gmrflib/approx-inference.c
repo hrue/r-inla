@@ -6251,11 +6251,13 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			}
 		}
 		
-		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
-			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
-						   b, c, d, ai_par, ai_store_id, graph,
-						   (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-						   loglFunc, loglFunc_arg, bfunc, preopt);
+		if (ai_par->vb_enable) {
+			for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, NULL,
+							   b, c, d, ai_par, ai_store_id, graph,
+							   (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
+							   loglFunc, loglFunc_arg, bfunc, preopt);
+			}
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -6407,6 +6409,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			if (ai_par->adjust_weights && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 				fprintf(ai_par->fp_log, " adjusted weight= %6.3f", adj_weights[j]);
 			}
+			fprintf(ai_par->fp_log, "\n");
 		}
 	}
 

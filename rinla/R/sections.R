@@ -956,9 +956,9 @@
     }
 
     inla.write.boolean.field("control.twostage.stage1only", inla.spec$control.twostage$stage1only, file)
-
-    if (inla.spec$control.vb$enable) {
-        inla.only.for.developers("VB correction", strict = TRUE)
+    ## this covers ... == "auto"  (or whaterever is given)
+    if (is.character(inla.spec$control.vb$enable)) {
+        inla.spec$control.vb$enable <- inla.spec$control.twostage$stage1only
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
