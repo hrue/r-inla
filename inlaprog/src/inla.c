@@ -31287,7 +31287,8 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 				   mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
 	GMRFLib_free_ai_store(ai_store);
 	Free(bfunc);
-	Calloc_free;
+	Calloc_free();
+
 	return INLA_OK;
 }
 

@@ -52,14 +52,14 @@ static int graph_store_debug = 0;
 
 int GMRFLib_init_graph_store(void)
 {
-	GMRFLib_DEBUG_INIT;
+	GMRFLib_DEBUG_INIT();
 
 	if (graph_store_use) {
 		if (graph_store_must_init) {
 			map_strvp_init_hint(&graph_store, 128);
 			graph_store.alwaysdefault = 1;
 			graph_store_must_init = 0;
-			if (graph_store_debug || GMRFLib_DEBUG_IF_TRUE) {
+			if (graph_store_debug || GMRFLib_DEBUG_IF_TRUE()) {
 				printf("graph_store: init storage\n");
 			}
 		}
@@ -440,7 +440,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	 * free a graph build with ``GMRFLib_graph_read'' 
 	 */
 	int i;
-	GMRFLib_DEBUG_INIT;
+	GMRFLib_DEBUG_INIT();
 
 	if (!graph) {
 		return GMRFLib_SUCCESS;
@@ -449,7 +449,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	if (graph_store_use && graph->sha) {
 		void *p;
 		p = map_strvp_ptr(&graph_store, (char *) graph->sha);
-		if (graph_store_debug || GMRFLib_DEBUG_IF) {
+		if (graph_store_debug || GMRFLib_DEBUG_IF()) {
 			if (p) {
 				printf("[%1d] graph_store: graph is found in store: do not free.\n", omp_get_thread_num());
 			} else {
@@ -843,7 +843,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	if (graph_store_use && graph_old->sha) {
 		void **p;
 		p = map_strvp_ptr(&graph_store, (char *) graph_old->sha);
-		if (graph_store_debug || GMRFLib_DEBUG_IF) {
+		if (graph_store_debug || GMRFLib_DEBUG_IF()) {
 			if (p) {
 				printf("[%1d] graph_store: graph is found in store: do not duplicate.\n", omp_get_thread_num());
 			} else {
@@ -885,7 +885,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	GMRFLib_graph_prepare(g);
 
 	if (graph_store_use && graph_old->sha) {
-		if (graph_store_debug || GMRFLib_DEBUG_IF) {
+		if (graph_store_debug || GMRFLib_DEBUG_IF()) {
 			printf("[%1d] graph_store: store graph 0x%p\n", omp_get_thread_num(), (void *) g);
 		}
 #pragma omp critical

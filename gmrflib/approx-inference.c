@@ -2045,7 +2045,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	Memcpy(cond_mean, problem->sub_mean, n * sizeof(double));
 	dgemv_("N", &n, &ncc, &alpha, constr_m_new, &n, t_vec, &one, &beta, cond_mean, &one, F_ONE);
 
-	Calloc_free;
+	Calloc_free();
 	Free(constr_m_new);
 	GMRFLib_LEAVE_ROUTINE;
 
@@ -7209,7 +7209,7 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 			break;
 	}
 
-	Calloc_free;
+	Calloc_free();
 	return GMRFLib_SUCCESS;
 }
 
@@ -7583,8 +7583,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		printf("[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_cpu()-_tref); \
 		_tref = GMRFLib_cpu();					\
 	}
-
-	int i, j, debug = GMRFLib_DEBUG_IF;
+	
+	int i, j, debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double _tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
@@ -7800,7 +7800,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	GMRFLib_idx_free(d_idx);
 	GMRFLib_idx_free(vb_idx);
-	Calloc_free;
+	Calloc_free();
 
 	SHOW_TIME("cleanup");
 	GMRFLib_LEAVE_ROUTINE;

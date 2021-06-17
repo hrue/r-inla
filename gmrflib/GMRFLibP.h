@@ -201,7 +201,7 @@ typedef enum {
 		printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n", \
 		       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
-#define GMRFLib_MEASURE_CPU_BEGIN			\
+#define GMRFLib_MEASURE_CPU_BEGIN()			\
 	if (1) {					\
 		static double _tacc = 0.0;		\
 		static int _ntimes = 0;			\
@@ -214,7 +214,7 @@ typedef enum {
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
 
-#define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
+#define GMRFLib_DEBUG_INIT() static int debug_ = -1;			\
 	static int debug_count_ = 0;					\
 	_Pragma("omp threadprivate(debug_count_)")			\
 	debug_count_++;							\
@@ -222,8 +222,8 @@ typedef enum {
 		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
 	}
 
-#define GMRFLib_DEBUG_IF_TRUE (debug_)
-#define GMRFLib_DEBUG_IF      (debug_ > 0 && !((debug_count_ - 1) % debug_))
+#define GMRFLib_DEBUG_IF_TRUE() (debug_)
+#define GMRFLib_DEBUG_IF()      (debug_ > 0 && !((debug_count_ - 1) % debug_))
 
 #define GMRFLib_DEBUG(msg_)						\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
@@ -256,15 +256,15 @@ typedef enum {
 #define Calloc_get(_n)				\
 	calloc_work_ + calloc_offset_;		\
 	calloc_offset_ += (size_t)(_n);		\
-	Calloc_check
+	Calloc_check()
 #define iCalloc_get(_n)				\
 	icalloc_work_ + icalloc_offset_;	\
 	icalloc_offset_ += (size_t)(_n);	\
-	iCalloc_check
-#define Calloc_check  if (!(calloc_offset_ <= calloc_len_)) {P(calloc_offset_); P(calloc_len_); }; assert(calloc_offset_ <= calloc_len_)
-#define iCalloc_check if (!(icalloc_offset_ <= icalloc_len_)) {P(icalloc_offset_); P(icalloc_len_); }; assert(icalloc_offset_ <= icalloc_len_)
-#define Calloc_free   Calloc_check; Free(calloc_work_)
-#define iCalloc_free  iCalloc_check; Free(icalloc_work_)
+	iCalloc_check()
+#define Calloc_check()  if (!(calloc_offset_ <= calloc_len_)) { P(calloc_offset_); P(calloc_len_); }; assert(calloc_offset_ <= calloc_len_)
+#define iCalloc_check() if (!(icalloc_offset_ <= icalloc_len_)) { P(icalloc_offset_); P(icalloc_len_); }; assert(icalloc_offset_ <= icalloc_len_)
+#define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_);}
+#define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
 
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
@@ -359,9 +359,9 @@ typedef enum {
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
 
-// len_work_ >0 will create workspace for all threads, each of len_work_ doubles. _PTR will return the ptr to the thread spesific workspace and
-// _ZERO will zero-set it the thread spesific workspace. its free'd automatically. CODE_BLOCK_THREAD_ID must be used to set GMRFLib_thread_id in
-// the parallel loop and GMRFLib_thread_id is reset automatically afterwards
+// len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
+// the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
+// GMRFLib_thread_id in the parallel loop and GMRFLib_thread_id is reset automatically afterwards
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ ? (work__ + (i_work_) * len_work__ + (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__) : NULL)
 #define CODE_BLOCK_WORK_ZERO(i_work_) if (work__) { Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double)); }

@@ -72,7 +72,7 @@ __BEGIN_DECLS
 /*!
   \brief Macro to be placed at the entry point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT;			\
+#define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT();			\
 	static double debug_cpu_acc_ = 0.0;				\
 	_Pragma("omp threadprivate(debug_cpu_acc_)")			\
 	static double debug_cpu_ = 0;					\
