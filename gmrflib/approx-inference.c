@@ -7678,8 +7678,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	\
 		}							\
 	}
-							       // RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, graph->n);
-	RUN_CODE_BLOCK(1, graph->n);			       /* THIS NEEDS TO BE FIXED <<- PARDISO ISSUE */
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, graph->n);			       /* THIS NEEDS TO BE FIXED <<- PARDISO ISSUE */
+	//RUN_CODE_BLOCK(1, graph->n);	
 #undef CODE_BLOCK
 
 	SHOW_TIME("build M");
