@@ -277,6 +277,7 @@ c     erfi(x) = 1/sqrt(Pi)*int(exp(t^2),t=0..x);
       double precision x,y,u,v
       logical flag
       y=0.0
+      v=0.0
       call wofz(x,y,u,v,flag)
       erfi = exp(x**2)*v
       end
