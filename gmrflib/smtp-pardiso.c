@@ -810,8 +810,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is
 	// thread-safe
 	GMRFLib_pardiso_setparam(flag, store);
-	P(omp_get_max_threads());
-	P(tnum);
 	for (i = 0; i < nblock + reminder; i++) {
 		offset = i * n * max_nrhs;
 		local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
@@ -850,7 +848,6 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LLT, x, b, nrhs);
-
 	return res;
 }
 
@@ -862,9 +859,6 @@ double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store)
 
 int GMRFLib_pardiso_bitmap(void)
 {
-	/*
-	 * Not available for PARDISO, USE TAUCS
-	 */
 	return GMRFLib_SUCCESS;
 }
 
