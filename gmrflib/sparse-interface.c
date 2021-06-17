@@ -40,6 +40,7 @@
 #define GITCOMMIT
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+static int tref = 0;
 
 /* Pre-hg-Id: $Id: sparse-interface.c,v 1.41 2010/02/27 08:32:02 hrue Exp $ */
 
@@ -81,7 +82,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
+			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore[tref]->perm, graph->n * sizeof(int));
 			break;
 
 		default:
@@ -98,7 +99,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 			}
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 			sm_fact->remap = Calloc(graph->n, int);
-			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore->perm, graph->n * sizeof(int));
+			Memcpy((void *) sm_fact->remap, (void *) sm_fact->PARDISO_fact->pstore[tref]->perm, graph->n * sizeof(int));
 			break;
 
 		default:

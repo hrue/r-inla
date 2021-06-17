@@ -1904,11 +1904,10 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
    this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
  */
 #define IDX(i, j, n) ((i) + (j)*(n))
-#define WORK(_n) &(work[work_p]); work_p += (_n)
 
-	int i, k, n, nc, ncc, one = 1, work_p, work_size, ndiv;
+	int i, k, n, nc, ncc, one = 1, ndiv;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
-	    NULL, *work = NULL, *tmp_m = NULL, val;
+	    NULL, *tmp_m = NULL, val;
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1920,18 +1919,15 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	/*
 	 * setup workspace for small-mem's for the hole routine here. 
 	 */
-	work_size = n + ncc + (nc ? n + nc + nc + ISQR(nc) : 0);
-	work = Calloc(work_size, double);
-	work_p = 0;
-	c = WORK(n);
-	t_vec = WORK(ncc);
+	Calloc_init(n + ncc + (nc ? n + nc + nc + ISQR(nc) : 0));
+	c = Calloc_get(n);
+	t_vec = Calloc_get(ncc);
 	if (nc) {
-		z = WORK(n);
-		v = WORK(nc);
-		w = WORK(nc);
-		tmp_m = WORK(ISQR(nc));
+		z = Calloc_get(n);
+		v = Calloc_get(nc);
+		w = Calloc_get(nc);
+		tmp_m = Calloc_get(ISQR(nc));
 	}
-	assert(work_p == work_size);
 
 	c[idx] = 1.0;
 	GMRFLib_solve_llt_sparse_matrix_special(c, &(problem->sub_sm_fact), problem->sub_graph, idx);
@@ -2049,7 +2045,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	Memcpy(cond_mean, problem->sub_mean, n * sizeof(double));
 	dgemv_("N", &n, &ncc, &alpha, constr_m_new, &n, t_vec, &one, &beta, cond_mean, &one, F_ONE);
 
-	Free(work);
+	Calloc_free;
 	Free(constr_m_new);
 	GMRFLib_LEAVE_ROUTINE;
 
@@ -7682,8 +7678,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	\
 		}							\
 	}
-
-	RUN_CODE_BLOCK(1, graph->n);			       /* use one thread due to 'ai_store' */
+							       // RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_outer, graph->n);
+	RUN_CODE_BLOCK(1, graph->n);			       /* THIS NEEDS TO BE FIXED <<- PARDISO ISSUE */
 #undef CODE_BLOCK
 
 	SHOW_TIME("build M");
@@ -7718,6 +7714,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	// much faster with tabulated Qfunc, as we're using it vb->idx->n times
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
+
 #define CODE_BLOCK							\
 	for (int j = 0; j < vb_idx->n; j++) {				\
 		CODE_BLOCK_SET_THREAD_ID;				\
@@ -8065,6 +8062,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
 	int i, j, k, n, nc = 0, one = 1, id;
+	int tnum = omp_get_thread_num();
 	GMRFLib_density_tp **d;
 
 	// I disable optimatisation as there is something going on with pardiso, in _some_ cases.
@@ -8081,7 +8079,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		remap = problem->sub_sm_fact.remap;
 	} else {
 		// pardiso has a dynamic permutation...
-		remap = problem->sub_sm_fact.PARDISO_fact->pstore->perm;
+		remap = problem->sub_sm_fact.PARDISO_fact->pstore[tnum]->perm;
 	}
 
 	GMRFLib_CACHE_SET_ID(id);

@@ -869,6 +869,7 @@
 
     ## control what should be computed
     cont.compute <- inla.set.control.compute.default()
+    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
     cont.compute[names(control.compute)] <- control.compute
     if (only.hyperparam) {
         cont.compute$hyperpar <- TRUE
@@ -895,7 +896,8 @@
     )
     all.hyper$predictor$hyper <- cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
-        !is.null(cont.predictor$link) || cont.inla$control.vb$enable) {
+        !is.null(cont.predictor$link) ||
+        (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb.enable)) {
         cont.predictor$compute <- TRUE
     }
     if (only.hyperparam) {
