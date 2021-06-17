@@ -2284,7 +2284,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 
 		for (i = 0; i < nidx; i++) {
@@ -7410,7 +7410,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 
 		double *c_diag = Calloc(graph->n, double);
@@ -7452,7 +7452,8 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 #define CODE_BLOCK							\
 		for (int j = 0; j < vb_idx->n; j++) {			\
 			CODE_BLOCK_SET_THREAD_ID;			\
-			double *col = CODE_BLOCK_WORK_PTR, *res = col + graph->n; \
+			double *col = CODE_BLOCK_WORK_PTR(0);		\
+			double *res = CODE_BLOCK_WORK_PTR(1);		\
 			for (int i = 0; i < graph->n; i++) {		\
 				col[i] = gsl_matrix_get(M, i, j);	\
 			}						\
@@ -7462,7 +7463,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2 * graph->n);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
 #undef CODE_BLOCK
 
 		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
@@ -7586,6 +7587,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	int i, j, debug = GMRFLib_DEBUG_IF;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double _tref = GMRFLib_cpu();
+	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
 	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
 		GMRFLib_LEAVE_ROUTINE;
@@ -7650,12 +7652,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		vb_coof[i] = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, mode); \
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 	SHOW_TIME("prepare A B C");
 
 	double *c_diag, *tmp;
-
 	c_diag = Calloc_get(graph->n);
 	tmp = Calloc_get(graph->n);
 
@@ -7666,28 +7667,35 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	gsl_matrix_set_zero(QM);
 	gsl_matrix_set_zero(M);
 	gsl_vector_set_zero(B);
+	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
 
 #define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
 		CODE_BLOCK_SET_THREAD_ID;				\
 		int j = vb_idx->idx[jj];				\
-		double *cmean = CODE_BLOCK_WORK_PTR;			\
+		double *cmean = CODE_BLOCK_WORK_PTR(0);			\
+		double *col = CODE_BLOCK_WORK_PTR(1);			\
+		double *res = CODE_BLOCK_WORK_PTR(2);			\
 		GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, ai_store->problem->mean_constr[j] + 1.0, NULL); \
 		for (int i = 0; i < graph->n; i++) {			\
 			double corr = (i == j ? 1.0 : sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]); \
-			gsl_matrix_set(M, i, jj, corr * sd[i] * sd[j]);	\
+			col[i] = corr * sd[i] * sd[j];			\
+			gsl_matrix_set(M, i, jj, col[i]);		\
+		}							\
+		GMRFLib_Qx2(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg, c_diag); \
+		for (int i = 0; i < graph->n; i++) {			\
+			gsl_matrix_set(QM, i, jj, res[i]);		\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, graph->n);			       /* THIS NEEDS TO BE FIXED <<- PARDISO ISSUE */
-	//RUN_CODE_BLOCK(1, graph->n);	
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 3, graph->n);
 #undef CODE_BLOCK
 
+	GMRFLib_free_tabulate_Qfunc(tabQ);
 	SHOW_TIME("build M");
 	
 	double *BB, *CC;
 	BB = Calloc_get(preopt->Npred);
 	CC = Calloc_get(preopt->Npred);
-
 	for (ii = 0; ii < d_idx->n; ii++) {
 		i = d_idx->idx[ii];
 		BB[i] = vb_coof[i]->coofs[1];
@@ -7703,35 +7711,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	a->Qfunc_prior_only[GMRFLib_thread_id] = 1;
 	GMRFLib_tabulate_Qfunc_core(&prior, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
 	a->Qfunc_prior_only[GMRFLib_thread_id] = 0;
-
 	GMRFLib_Qx2(tmp, mode, graph, prior->Qfunc, prior->Qfunc_arg, c);	/* mode=mean, the point we expand around */
 	for (i = 0; i < graph->n; i++) {
 		tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
 		gsl_vector_set(B, i, tmp[i]);
 	}
 	SHOW_TIME("compute KLD via _Qx2");
-
-	// much faster with tabulated Qfunc, as we're using it vb->idx->n times
-	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
-	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
-
-#define CODE_BLOCK							\
-	for (int jj = 0; jj < vb_idx->n; jj++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
-		double *col = CODE_BLOCK_WORK_PTR, *res = col + graph->n; \
-		for (int i = 0; i < graph->n; i++) {			\
-			col[i] = gsl_matrix_get(M, i, jj);		\
-		}							\
-		GMRFLib_Qx2(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg, c_diag); \
-		for (int i = 0; i < graph->n; i++) {			\
-			gsl_matrix_set(QM, i, jj, res[i]);		\
-		}							\
-	}
-
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2 * graph->n);
-#undef CODE_BLOCK
-	GMRFLib_free_tabulate_Qfunc(tabQ);
-	SHOW_TIME("Compute QM");
 
 	gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
 	gsl_permutation *perm = gsl_permutation_alloc(vb_idx->n);
@@ -7791,7 +7776,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		printf("\t\tImplied correction for [%1d] nodes\n", graph->n - vb_idx->n);
 	}
 
-	// clean-up
 	for (i = 0; i < preopt->Npred; i++) {
 		if (vb_coof[i]) {
 			Free(vb_coof[i]);

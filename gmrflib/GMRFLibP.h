@@ -363,18 +363,18 @@ typedef enum {
 // _ZERO will zero-set it the thread spesific workspace. its free'd automatically. CODE_BLOCK_THREAD_ID must be used to set GMRFLib_thread_id in
 // the parallel loop and GMRFLib_thread_id is reset automatically afterwards
 
-#define CODE_BLOCK_WORK_PTR (len_work__ ? work__ + (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ : NULL)
-#define CODE_BLOCK_WORK_ZERO if (len_work__) { Memset(CODE_BLOCK_WORK_PTR, 0, (size_t) len_work__ * sizeof(double)); }
-#define CODE_BLOCK_THREAD_ID id__
-#define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = CODE_BLOCK_THREAD_ID
-#define RUN_CODE_BLOCK(thread_max_, len_work_)				\
+#define CODE_BLOCK_WORK_PTR(i_work_) (work__ ? (work__ + (i_work_) * len_work__ + (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__) : NULL)
+#define CODE_BLOCK_WORK_ZERO(i_work_) if (work__) { Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double)); }
+#define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = id__
+#define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
 		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL ? GMRFLib_openmp->max_threads_inner : GMRFLib_openmp->max_threads_outer); \
 		int tmax__ = thread_max_;				\
 		int len_work__ = len_work_;				\
+		int n_work__ = n_work_;					\
 		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
-		double * work__ = (len_work__ ? Calloc((len_work__) * (nt__), double) : NULL); \
+		double * work__ = ((len_work__ * n_work__) > 0 ? Calloc(len_work__ * n_work__ * nt__, double) : NULL); \
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\

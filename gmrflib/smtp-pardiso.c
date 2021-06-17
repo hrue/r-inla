@@ -266,7 +266,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 		Free(k_arr);
 	}
@@ -298,7 +298,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 		} else {
 #define CODE_BLOCK							\
@@ -309,7 +309,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 				assert(!(ISNAN(v)));			\
 			}						
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);		
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);		
 #undef CODE_BLOCK
 		}
 	}
@@ -905,7 +905,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 			}						\
 		}
 		
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 	}
 

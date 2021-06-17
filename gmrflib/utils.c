@@ -1289,7 +1289,8 @@ int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
 			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp); \
 		}							\
 	}
-	RUN_CODE_BLOCK(nt, 0);
+
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1319,7 +1320,7 @@ int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
 		GMRFLib_idx_uniq(a[i]);		\
 	}
 
-	RUN_CODE_BLOCK(nt, 0);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1352,7 +1353,8 @@ int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
 		CODE_BLOCK_SET_THREAD_ID;		\
 		GMRFLib_idxval_uniq(a[i]);		\
 	}
-	RUN_CODE_BLOCK(nt, 0);
+
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 	return GMRFLib_SUCCESS;
 }
@@ -1388,7 +1390,7 @@ int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 		GMRFLib_idxval_prune(a[i]);		\
 	}
 
-	RUN_CODE_BLOCK(nt, 0);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1457,7 +1459,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 		}							\
 	}
 
-	RUN_CODE_BLOCK(nt, 0);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
