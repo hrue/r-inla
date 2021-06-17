@@ -7579,7 +7579,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
-		printf("vb_preopt: %s %.3f\n", msg_, GMRFLib_cpu()-_tref); \
+		printf("[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_cpu()-_tref); \
 		_tref = GMRFLib_cpu();					\
 	}
 
@@ -7716,15 +7716,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
 
 #define CODE_BLOCK							\
-	for (int j = 0; j < vb_idx->n; j++) {				\
+	for (int jj = 0; jj < vb_idx->n; jj++) {			\
 		CODE_BLOCK_SET_THREAD_ID;				\
 		double *col = CODE_BLOCK_WORK_PTR, *res = col + graph->n; \
 		for (int i = 0; i < graph->n; i++) {			\
-			col[i] = gsl_matrix_get(M, i, j);		\
+			col[i] = gsl_matrix_get(M, i, jj);		\
 		}							\
 		GMRFLib_Qx2(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg, c_diag); \
 		for (int i = 0; i < graph->n; i++) {			\
-			gsl_matrix_set(QM, i, j, res[i]);		\
+			gsl_matrix_set(QM, i, jj, res[i]);		\
 		}							\
 	}
 
