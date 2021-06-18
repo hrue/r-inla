@@ -2199,6 +2199,10 @@
         cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep = "", file = file.env, append = TRUE)
     }
 
+    timeout <- inla.getOption("inla.timeout")
+    timeout <- if (is.null(timeout) || timeout < 0) 0 else ceiling(timeout)
+    timeout.used <- Sys.time()
+    
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
@@ -2212,17 +2216,19 @@
             )
         } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
-                echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
+                echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)), timeout = timeout)
             } else {
                 echoc <- system(paste(
                     shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
                     inla.ifelse(silent == 2L, " 2>/dev/null", "")
-                ))
+                ), timeout = timeout)
             }
+            timeout.used <- Sys.time() - timeout.used
+            inla.inlaprogram.timeout(timeout.used, timeout)
         } else if (inla.os("windows")) {
             if (!remote && !submit) {
                 if (verbose) {
-                    echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = "", stderr = "", wait = TRUE))
+                    echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = "", stderr = "", wait = TRUE, timeout = timeout))
                 } else {
                     if (FALSE) {
                         ## old .bat-solution
@@ -2232,13 +2238,18 @@
                             shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
                             inla.ifelse(silent == 2L, "2>NUL", "")
                         ), file = bat.file, append = TRUE)
-                        echoc <- try(system2(bat.file, wait = TRUE), silent = FALSE)
+                        echoc <- try(system2(bat.file, wait = TRUE, timeout = timeout), silent = FALSE)
                         unlink(bat.file)
                     } else {
                         ## new try
-                        echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = file.log, stderr = file.log2, wait = TRUE))
+                        echoc <- try(system2(inla.call,
+                                             args = paste(all.args, shQuote(file.ini)),
+                                             stdout = file.log, stderr = file.log2,
+                                             wait = TRUE, timeout = timeout))
                     }
                 }
+                timeout.used <- Sys.time() - timeout.used
+                inla.inlaprogram.timeout(timeout.used, timeout)
                 if (echoc != 0L) {
                     if (!verbose && (silent != 2L)) {
                         inla.inlaprogram.has.crashed()

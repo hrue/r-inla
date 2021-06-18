@@ -73,6 +73,13 @@
 ## !     short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
 ## !                     documents.
 ## !
+## !     inla.timeout : The timeout limit, in whole seconds, for calls to the
+## !       inla binary. Default is 0, meaning no timeout limit.  Set to a
+## !       positive integer to terminate inla calls if they run to long.
+## !       Fractional seconds are
+## !       rounded up to the nearest integer. This feature is EXPERIMENTAL
+## !       and might change at a later stage. 
+## !
 ## !     fmesher.timeout : The timeout limit, in whole seconds, for calls to the
 ## !       fmesher binary. Default is 0, meaning no timeout limit.  Set to a
 ## !       positive integer to terminate fmesher calls that may enter infinite
@@ -118,6 +125,7 @@
             show.warning.graph.file = TRUE,
             scale.model.default = FALSE,
             short.summary = FALSE,
+            inla.timeout = 0, 
             fmesher.timeout = 0
         )
     )
@@ -149,6 +157,7 @@
                                  "show.warning.graph.file",
                                  "scale.model.default",
                                  "short.summary",
+                                 "inla.timeout", 
                                  "fmesher.timeout"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
@@ -241,6 +250,7 @@
                                           "show.warning.graph.file",
                                           "scale.model.default",
                                           "short.summary",
+                                          "inla.timeout", 
                                           "fmesher.timeout"
                                       ), value) {
         envir <- inla.get.inlaEnv()

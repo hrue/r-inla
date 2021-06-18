@@ -75,6 +75,13 @@
      short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
                      documents.
 
+     inla.timeout : The timeout limit, in whole seconds, for calls to the
+       inla binary. Default is 0, meaning no timeout limit.  Set to a
+       positive integer to terminate inla calls if they run to long.
+       Fractional seconds are
+       rounded up to the nearest integer. This feature is EXPERIMENTAL
+       and might change at a later stage. 
+
      fmesher.timeout : The timeout limit, in whole seconds, for calls to the
        fmesher binary. Default is 0, meaning no timeout limit.  Set to a
        positive integer to terminate fmesher calls that may enter infinite
