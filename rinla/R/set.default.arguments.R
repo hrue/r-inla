@@ -560,7 +560,7 @@
             improved.simplified.laplace = FALSE,
 
             ## :ARGUMENT: fast If \code{stage1only} then try to do all calculations during stage1 by ## enabling Gaussian strategy with VB correction enabled.
-            control.twostage = list(stage1only = FALSE)
+            control.twostage = list(stage1only = TRUE)
         )
 
         ## :SEEALSO: inla
