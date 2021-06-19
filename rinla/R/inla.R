@@ -2200,7 +2200,7 @@
     }
 
     timeout <- inla.getOption("inla.timeout")
-    timeout <- if (is.null(timeout) || timeout < 0) 0 else ceiling(timeout)
+    timeout <- if (!is.numeric(timeout) || timeout < 0) 0 else ceiling(timeout)
     timeout.used <- Sys.time()
     
     my.time.used[2] <- Sys.time()
