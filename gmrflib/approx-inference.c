@@ -5338,6 +5338,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 #undef COMPUTE_NEFF
 #undef COMPUTE_NEFF2
 #undef COMPUTE_NEFF_LOCAL
+#undef SET_THETA_MODE
 
 	return GMRFLib_SUCCESS;
 }
@@ -5360,7 +5361,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 #define SET_THETA_MODE							\
 	if (theta_mode) {						\
 		int i_, j_;						\
-		for(j_=0; j_ < tmax; j_++) {				\
+		for(j_=0; j_ < GMRFLib_MAX_THREADS; j_++) {		\
 			for(i_ = 0; i_ < nhyper; i_++){			\
 				hyperparam[i_][j_][0] = theta_mode[i_]; \
 			}						\
@@ -5368,7 +5369,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	int i, j, jj, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
-	    NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0, tmax;
+	    NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0;
 
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
@@ -5396,7 +5397,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	assert(GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1);
 	assert(preopt);
 
-	tmax = GMRFLib_MAX_THREADS;
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
 		free_ai_par = 1;
@@ -5437,7 +5437,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	nhyper = IMAX(0, nhyper);
-	ais = Calloc(tmax, GMRFLib_ai_store_tp *);
+	ais = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
 
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
@@ -6234,7 +6234,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 		tref = GMRFLib_cpu();
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
-
+		
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
 			GMRFLib_density_create_normal(&dens[i][dens_count], 0.0, 1.0, ai_store_id->mode[i], ai_store_id->stdev[i], 0);
@@ -6261,6 +6261,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		for (i = 0; i < preopt->mnpred; i++) {
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
+
+		
+		GMRFLib_ai_store_config_preopt(misc_output, nhyper, theta_local, log_dens_mode, log_dens_orig, ai_store_id->problem, mean_corrected, preopt, Qfunc, Qfunc_arg);
 
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
@@ -7095,7 +7098,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	Free(dens_transform);
 
 	if (ais) {
-		for (k = 0; k < tmax; k++) {
+		for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
 			if (ais[k]) {
 				GMRFLib_free_ai_store(ais[k]);
 			}
@@ -7126,7 +7129,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 #undef COMPUTE_NEFF_LOCAL
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
-
+#undef SET_THETA_MODE
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -7322,6 +7326,8 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			       GMRFLib_preopt_tp * preopt)
 {
 	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+		// we should not go here
+		assert(0 == 1);
 		return GMRFLib_ai_vb_correct_mean_preopt(density, dens_count,
 							 c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 	} else {
@@ -7340,6 +7346,8 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 				   GMRFLib_graph_tp * graph,
 				   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg)
 {
+	// this could be improved similarly to _preopt
+
 	int i, j;
 	double one = 1.0, mone = -1.0, zero = 0.0;
 
@@ -7636,11 +7644,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) Qfunc_arg;
-	assert(a == preopt);
+	assert(a == preopt && Qfunc == GMRFLib_preopt_Qfunc);
+
 	GMRFLib_tabulate_Qfunc_tp *prior = NULL;
-	a->Qfunc_prior_only[GMRFLib_thread_id] = 1;
-	GMRFLib_tabulate_Qfunc_core(&prior, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
-	a->Qfunc_prior_only[GMRFLib_thread_id] = 0;
+	GMRFLib_tabulate_Qfunc_core(&prior, a->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, NULL, NULL, 1);
 
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
@@ -7960,6 +7967,137 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = NULL;
 	}
 	mo->configs[id]->nconfig++;
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
+				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected, 
+				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+{
+	FIXME("ADD CONFIG 1");
+	if (!mo || !(mo->configs_preopt)) {
+		return GMRFLib_SUCCESS;
+	}
+
+	FIXME("ADD CONFIG 2");
+	int id = omp_get_thread_num();
+
+	if (!(mo->configs_preopt[id])) {
+		mo->configs_preopt[id] = Calloc(1, GMRFLib_store_configs_preopt_tp);
+		GMRFLib_graph_tp *g;
+		GMRFLib_graph_duplicate(&(mo->configs_preopt[id]->graph), preopt->preopt_graph);
+		GMRFLib_graph_duplicate(&(mo->configs_preopt[id]->prior_graph), preopt->latent_graph);
+
+		int nelm;				       /* number of elements in Q; double conting */
+		mo->configs_preopt[id]->mnpred = preopt->mnpred;
+		mo->configs_preopt[id]->n = preopt->n;
+		mo->configs_preopt[id]->ntheta = ntheta;
+
+		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
+		mo->configs_preopt[id]->nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
+		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
+		mo->configs_preopt[id]->prior_nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
+
+		mo->configs_preopt[id]->A = preopt->A;
+		mo->configs_preopt[id]->pA = preopt->pA;
+		GMRFLib_duplicate_constr(&(mo->configs_preopt[id]->constr), preopt->latent_constr, preopt->preopt_graph);
+
+		int *i, *j, ii, jj, k, kk;
+		i = Calloc(mo->configs_preopt[id]->nz, int);
+		j = Calloc(mo->configs_preopt[id]->nz, int);
+		g = preopt->preopt_graph;
+		for (ii = k = 0; ii < g->n; ii++) {
+			i[k] = ii;
+			j[k] = ii;
+			k++;
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				i[k] = ii;
+				j[k] = jj;
+				k++;
+			}
+		}
+		mo->configs_preopt[id]->i = i;
+		mo->configs_preopt[id]->j = j;
+
+		g = preopt->latent_graph;
+		i = Calloc(mo->configs_preopt[id]->prior_nz, int);
+		j = Calloc(mo->configs_preopt[id]->prior_nz, int);
+		for (ii = k = 0; ii < g->n; ii++) {
+			i[k] = ii;
+			j[k] = ii;
+			k++;
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				i[k] = ii;
+				j[k] = jj;
+				k++;
+			}
+		}
+		mo->configs_preopt[id]->iprior = i;
+		mo->configs_preopt[id]->jprior = j;
+
+		mo->configs_preopt[id]->nconfig = 0;
+		mo->configs_preopt[id]->config = NULL;
+	}
+
+	int nconfig = mo->configs_preopt[id]->nconfig;
+	mo->configs_preopt[id]->config = Realloc(mo->configs_preopt[id]->config, nconfig + 1, GMRFLib_store_config_preopt_tp *);
+	mo->configs_preopt[id]->config[nconfig] = Calloc(1, GMRFLib_store_config_preopt_tp);
+
+	int ii, jj, k, kk; 
+	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL; 
+	GMRFLib_graph_tp *g;
+
+	Q = Calloc(mo->configs_preopt[id]->nz, double);
+	g = problem->sub_graph;
+	for (ii = k = 0; ii < g->n; ii++) {
+		Q[k++] = Qfunc(ii, ii, NULL, Qfunc_arg);
+		for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+			jj = g->lnbs[ii][kk];
+			Q[k++] = Qfunc(ii, jj, NULL, Qfunc_arg);
+		}
+	}
+
+	Qprior = Calloc(mo->configs_preopt[id]->prior_nz, double);
+	assert(Qfunc == GMRFLib_preopt_Qfunc);
+	g = preopt->latent_graph;
+	for (ii = k = 0; ii < g->n; ii++) {
+		Qprior[k++] = GMRFLib_preopt_Qfunc_prior(ii, ii, NULL, Qfunc_arg);
+		for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+			jj = g->lnbs[ii][kk];
+			Qprior[k++] = GMRFLib_preopt_Qfunc_prior(ii, jj, NULL, Qfunc_arg);
+		}
+	}
+	
+	mean = Calloc(g->n, double);
+	imean = Calloc(g->n, double);
+	Memcpy(mean, problem->mean_constr, g->n * sizeof(double));
+	Memcpy(imean, mean_corrected, g->n * sizeof(double));
+
+	Qinv = Calloc(mo->configs_preopt[id]->nz, double);
+	for (k = 0; k < mo->configs_preopt[id]->nz; k++) {
+		double *tmp = GMRFLib_Qinv_get(problem, mo->configs_preopt[id]->i[k], mo->configs_preopt[id]->j[k]);
+		Qinv[k] = (tmp ? *tmp : NAN);
+	}
+
+	GMRFLib_store_config_preopt_tp *cfg = mo->configs_preopt[id]->config[mo->configs_preopt[id]->nconfig];
+
+	cfg->Q = Q;
+	cfg->Qinv = Qinv;
+	cfg->Qprior = Qprior;
+	cfg->mean = mean;
+	cfg->improved_mean = imean;
+	cfg->log_posterior = log_posterior;	/* may include integration weights */
+	cfg->log_posterior_orig = log_posterior_orig;	/* do NOT include integration weights */
+	if (ntheta) {
+		cfg->theta = Calloc(ntheta, double);
+		Memcpy(cfg->theta, theta, ntheta * sizeof(double));
+	} else {
+		cfg->theta = NULL;
+	}
+	mo->configs_preopt[id]->nconfig++;
 
 	return GMRFLib_SUCCESS;
 }

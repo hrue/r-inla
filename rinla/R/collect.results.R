@@ -453,6 +453,7 @@ inla.internal.experimental.mode <- FALSE
         fp <- file(fnm, "rb")
         iarr <- readBin(fp, integer(), 3)
         configs <- list(
+            .preopt = FALSE, 
             n = iarr[1],
             nz = iarr[2],
             ntheta = iarr[3]
@@ -516,6 +517,7 @@ inla.internal.experimental.mode <- FALSE
                     Qinvadd <- c()
                 }
                 configs$config[[k]] <- list(
+                    .preopt = FALSE, 
                     theta = theta,
                     log.posterior = log.post,
                     log.posterior.orig = log.post.orig,
@@ -555,6 +557,143 @@ inla.internal.experimental.mode <- FALSE
     } else {
         configs <- NULL
     }
+
+
+    fnm <- paste(d, "/config_preopt/configs.dat", sep = "")
+    if (file.exists(fnm)) {
+        fp <- file(fnm, "rb")
+        iarr <- readBin(fp, integer(), 5)
+        configs <- list(
+            .preopt = TRUE, 
+            mnpred = iarr[1], 
+            n = iarr[2], 
+            nz = iarr[3], 
+            prior_nz = iarr[4],
+            ntheta = iarr[5])
+        configs.i <- readBin(fp, integer(), configs$nz) ## 0-based
+        configs.j <- readBin(fp, integer(), configs$nz) ## 0-based
+        configs.iprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
+        configs.jprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
+        configs$nconfig <- readBin(fp, integer(), 1)
+
+        nc <- readBin(fp, integer(), 1)
+        if (nc > 0) {
+            A <- readBin(fp, numeric(), configs$n * nc)
+            e <- readBin(fp, numeric(), nc)
+            configs$constr <- list(
+                nc = nc,
+                A = matrix(A, nc, configs$n),
+                e = e
+            )
+        } else {
+            configs$constr <- NULL
+        }
+
+        theta.tag <- readLines(paste(d, "/config_preopt/theta-tag.dat", sep = ""))
+        configs$contents <- list(
+            tag = readLines(paste(d, "/config_preopt/tag.dat", sep = "")),
+            start = as.integer(readLines(paste(d, "/config_preopt/start.dat", sep = ""))) + 1L,
+            length = as.integer(readLines(paste(d, "/config_preopt/n.dat", sep = "")))
+        )
+
+        configs$A <- inla.read.fmesher.file(paste0(d, "/config_preopt/A.dat"))
+        fnm <- paste0(d, "/config_preopt/pA.dat")
+        if (file.exists(fnm)) {
+            configs$pA <- inla.read.fmesher.file(fnm)
+        } else {
+            configs$pA <- NULL
+        }
+
+        if (configs$nconfig > 0L) {
+            configs$config[[configs$nconfig]] <- list()
+            for (k in 1L:configs$nconfig) {
+                log.post <- readBin(fp, numeric(), 1)
+                log.post.orig <- readBin(fp, numeric(), 1)
+                if (configs$ntheta > 0L) {
+                    theta <- readBin(fp, numeric(), configs$ntheta)
+                    names(theta) <- theta.tag
+                } else {
+                    theta <- NULL
+                }
+                mean <- readBin(fp, numeric(), configs$n)
+                improved.mean <- readBin(fp, numeric(), configs$n)
+                offsets <- readBin(fp, numeric(), configs$mnpred)
+
+                Q <- readBin(fp, numeric(), configs$nz)
+                Qinv <- readBin(fp, numeric(), configs$nz)
+                Qprior <- readBin(fp, numeric(), configs$prior_nz)
+                dif <- which(configs$i != configs$j)
+                if (length(dif) > 0L) {
+                    iadd <- configs.j[dif] ## yes, its the transpose part
+                    jadd <- configs.i[dif] ## yes, its the transpose part
+                    Qadd <- Q[dif]
+                    Qinvadd <- Qinv[dif]
+                } else {
+                    iadd <- c()
+                    jadd <- c()
+                    Qadd <- c()
+                    Qinvadd <- c()
+                }
+                dif <- which(configs$iprior != configs$jprior)
+                if (length(dif) > 0L) {
+                    iprioradd <- configs.jprior[dif] ## yes, its the transpose part
+                    jprioradd <- configs.iprior[dif] ## yes, its the transpose part
+                    Qprioradd <- Qprior[dif]
+                } else {
+                    iprioradd <- c()
+                    jprioradd <- c()
+                    Qprioradd <- c()
+                }
+
+                configs$config[[k]] <- list(
+                    theta = theta,
+                    log.posterior = log.post,
+                    log.posterior.orig = log.post.orig,
+                    mean = mean,
+                    improved.mean = improved.mean,
+                    skewness = rep(NA, configs$n), 
+                    offsets = offsets, 
+                    Q = sparseMatrix(
+                        i = c(configs.i, iadd),
+                        j = c(configs.j, jadd),
+                        x = c(Q, Qadd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        repr = "C"
+                    ),
+                    Qinv = sparseMatrix(
+                        i = c(configs.i, iadd),
+                        j = c(configs.j, jadd),
+                        x = c(Qinv, Qinvadd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        repr = "C"
+                    ),
+                    Qprior = sparseMatrix(
+                        i = c(configs.iprior, iprioradd),
+                        j = c(configs.jprior, jprioradd),
+                        x = c(Qprior, Qprioradd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        repr = "C"
+                    )
+                )
+            }
+
+            ## rescale the log.posteriors
+            configs$max.log.posterior <- max(sapply(configs$config, function(x) x$log.posterior.orig))
+            for (k in 1L:configs$nconfig) {
+                configs$config[[k]]$log.posterior <- configs$config[[k]]$log.posterior - configs$max.log.posterior
+                configs$config[[k]]$log.posterior.orig <- configs$config[[k]]$log.posterior.orig - configs$max.log.posterior
+            }
+        } else {
+            configs$config <- NULL
+        }
+        close(fp)
+    } else {
+        configs <- NULL
+    }
+
 
     if (debug) {
         print(paste("collect misc from", d, "...done"))

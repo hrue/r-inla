@@ -397,6 +397,54 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
          'control.compute=list(config = TRUE)'.")
     }
 
+    ## THIS CAN BE IMPROVED, but its a lot of work and likely, a special version of
+    ## inla.posterior.sample, will be have to be written. for the moment, let us do a recursive
+    ## call with no rewrite on the main code, so we at least, get something that works. We just
+    ## create a fake object and add a unit diagonal matrix for the predictions and correct that
+    ## with the deterministic relationship afterwards.
+    if (result$misc$configs$.preopt) {
+        rfake <- list(misc = list(from.theta = result$misc$from.theta,
+                                  to.theta = result$misc$to.theta,
+                                  configs = result$misc$configs))
+        rfake$misc$configs$.preopt <- FALSE
+        class(rfake) <- "inla"
+        mn <- result$misc$configs$mnpred
+        d.fake <- Diagonal(mn)
+        vec.fake <- rep(0, mn)
+        for(i in 1:rfake$misc$configs$nconfig) {
+            rfake$misc$configs$config[[i]]$Q <- bdiag(d.fake, rfake$misc$configs$config[[i]]$Q)
+            rfake$misc$configs$config[[i]]$mean <- c(vec.fake, rfake$misc$configs$config[[i]]$mean)
+            rfake$misc$configs$config[[i]]$improved.mean <- c(vec.fake, rfake$misc$configs$config[[i]]$improved.mean)
+            rfake$misc$configs$config[[i]]$skewness <- c(vec.fake, rfake$misc$configs$config[[i]]$skewness)
+        }
+        if (!is.null(result$misc$configs$constr)) {
+            nc <- result$misc$configs$constr$nc
+            cmat <- matrix(0, nrow = nc, ncol = mn)
+            rfake$misc$configs$constr$A <- cbind(cmat, rfake$misc$configs$constr$A)
+        }
+        ## yes, selection is not here, but it added afterwards
+        xx <- inla.posterior.sample(n, rfake, intern = intern,
+                                    use.improved.mean = use.improved.mean,
+                                    skew.corr = skew.corr,
+                                    add.names = add.names, seed = seed,
+                                    num.threads = num.threads,
+                                    parallel.configs = parallel.configs, verbose = verbose)
+        A <- result$misc$configs$A
+        if (!is.null(result$misc$configs$pA)) {
+            A <- rbind(result$misc$configs$pA %*% A, A)
+        }
+        sel <- inla.posterior.sample.interpret.selection(selection, result)
+        for(i in 1:length(xx)) {
+            nam <- rownames(xx[[i]]$latent)
+            xx[[i]]$latent[1:mn] <- A %*% xx[[i]]$latent[-(1:mn)]
+            xx[[i]]$latent <- xx[[i]]$latent[sel]
+            if (!is.null(nam)) {
+                names(xx[[i]]$latent) <- nam[sel]
+            }
+        }
+        return(xx)
+    }
+
     if (is.null(num.threads)) {
         num.threads <- inla.getOption("num.threads")
     }

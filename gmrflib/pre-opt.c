@@ -279,8 +279,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		GMRFLib_idxval_sort(A_idxval[i]);
 	}
+	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N);
 	SHOW_TIME("A_idxval");
 
+	
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
 	for (i = 0; i < npred; i++) {
@@ -326,6 +328,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
 		GMRFLib_idxval_nsort(pA_idxval, nrow, nt);
+		(*preopt)->pA = pA;
 		SHOW_TIME("create pA_idxval");
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
@@ -456,7 +459,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idx_free(pAA_pattern[i]);
 		}
 		Free(pAA_pattern);
-		GMRFLib_matrix_free(pA);
 		SHOW_TIME("End pA... ");
 	}
 	// setup dimensions, see pre-opt.h for the details
@@ -597,7 +599,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
-	(*preopt)->Qfunc_prior_only = Calloc(GMRFLib_MAX_THREADS, int);
 
 	for (i = 0; i < nf; i++) {
 		Free(ww[i]);
@@ -762,10 +763,8 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	imax = IMAX(node, nnode);
 	diag = (imin == imax);
 
-	if (!(a->Qfunc_prior_only[GMRFLib_thread_id])) {
-		if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
-			value += a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
-		}
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
+		value += a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
 	}
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
 		value += a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);
@@ -773,6 +772,50 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 
 	return value;
 }
+
+double GMRFLib_preopt_Qfunc_like(int node, int nnode, double *UNUSED(values), void *arg) 
+{
+	// standalone function to return the likelihood part only
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	int imin, imax, diag;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
+	double value = 0.0;
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
+		value = a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
+	}
+	return value; 
+}
+
+double GMRFLib_preopt_Qfunc_prior(int node, int nnode, double *UNUSED(values), void *arg)
+{
+	// standalone function to return the prior part
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	int imin, imax, diag;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
+	double value = 0.0;
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
+		value = a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);
+	}
+
+	return value;
+}
+
 
 int GMRFLib_preopt_bnew(double *b, GMRFLib_preopt_tp * preopt)
 {
@@ -1005,6 +1048,9 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 
 #pragma omp section
 		{
+			GMRFLib_matrix_free(preopt->A);
+			GMRFLib_matrix_free(preopt->pA);
+			
 			Free(preopt->idx_map_f);
 			Free(preopt->idx_map_beta);
 			Free(preopt->what_type);
@@ -1028,3 +1074,4 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 
 	return GMRFLib_SUCCESS;
 }
+

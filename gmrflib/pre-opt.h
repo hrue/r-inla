@@ -99,7 +99,6 @@ typedef struct {
 	int n;
 	int nf;
 	int nbeta;
-	int *Qfunc_prior_only;
 	
 	GMRFLib_graph_tp *preopt_graph;
 	GMRFLib_Qfunc_tp *preopt_Qfunc;
@@ -141,12 +140,17 @@ typedef struct {
 	GMRFLib_idxval_tp **At_idxval;
 	GMRFLib_idxval_tp ***AtA_idxval;		       /* this is the total (pA%*%A)^T%*%(pA%*%A) */
 
+	GMRFLib_matrix_tp *A;				       /* the model matrix to construct Predictor */
+	GMRFLib_matrix_tp *pA;				       /* the matrix to construct APredictor from Predictor */
+	
 	double *mode_theta;
 	double *mode_x;
 } GMRFLib_preopt_tp;
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
 double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *arg);
+double GMRFLib_preopt_Qfunc_like(int node, int nnode, double *UNUSED(values), void *arg);
+double GMRFLib_preopt_Qfunc_prior(int node, int nnode, double *UNUSED(values), void *arg);
 double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *values, void *arg);
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt);

@@ -2055,7 +2055,7 @@
     }
 
     ## the inla section
-    inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir)
+    inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, twostage)
 
     ## create mode section
     cont.mode <- inla.set.control.mode.default()

@@ -31261,6 +31261,13 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	}
 
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
+	if (mb->output->config) {
+		FIXME("add configs_preopt");
+		mb->misc_output->configs_preopt = Calloc(GMRFLib_MAX_THREADS, GMRFLib_store_configs_preopt_tp *);
+	} else {
+		mb->misc_output->configs_preopt = NULL;
+	}
+
 	x = Calloc_get(N);
 	if (mb->reuse_mode && mb->x_file) {
 		Memcpy(x, mb->x_file + preopt->mnpred, N * sizeof(double));
@@ -32532,28 +32539,29 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		}
 
 		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
-			if (!header) {
-				header = 1;		       /* do this only once */
-				fwrite((void *) &(mo->configs[id]->n), sizeof(int), (size_t) 1, fp);
-				fwrite((void *) &(mo->configs[id]->nz), sizeof(int), (size_t) 1, fp);
-				fwrite((void *) &(mo->configs[id]->ntheta), sizeof(int), (size_t) 1, fp);
-				fwrite((void *) mo->configs[id]->i, sizeof(int), (size_t) mo->configs[id]->nz, fp);	/* 0-based! */
-				fwrite((void *) mo->configs[id]->j, sizeof(int), (size_t) mo->configs[id]->nz, fp);	/* 0-based! */
-				fwrite((void *) &nconfig, sizeof(int), (size_t) 1, fp);	/* yes!!! */
-
-				if (mo->configs[id]->constr) {
-					fwrite((void *) &(mo->configs[id]->constr->nc), sizeof(int), (size_t) 1, fp);
-					fwrite((void *) mo->configs[id]->constr->a_matrix, sizeof(double),
-					       (size_t) (mo->configs[id]->n * mo->configs[id]->constr->nc), fp);
-					fwrite((void *) mo->configs[id]->constr->e_vector, sizeof(double),
-					       (size_t) mo->configs[id]->constr->nc, fp);
-				} else {
-					int zero = 0;
-					fwrite((void *) &zero, sizeof(int), (size_t) 1, fp);
-				}
-			}
-
 			if (mo->configs[id]) {
+
+				if (!header) {
+					header = 1;		       /* do this only once */
+					fwrite((void *) &(mo->configs[id]->n), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs[id]->nz), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs[id]->ntheta), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) mo->configs[id]->i, sizeof(int), (size_t) mo->configs[id]->nz, fp);	/* 0-based! */
+					fwrite((void *) mo->configs[id]->j, sizeof(int), (size_t) mo->configs[id]->nz, fp);	/* 0-based! */
+					fwrite((void *) &nconfig, sizeof(int), (size_t) 1, fp);	/* yes!!! */
+
+					if (mo->configs[id]->constr) {
+						fwrite((void *) &(mo->configs[id]->constr->nc), sizeof(int), (size_t) 1, fp);
+						fwrite((void *) mo->configs[id]->constr->a_matrix, sizeof(double),
+						       (size_t) (mo->configs[id]->n * mo->configs[id]->constr->nc), fp);
+						fwrite((void *) mo->configs[id]->constr->e_vector, sizeof(double),
+						       (size_t) mo->configs[id]->constr->nc, fp);
+					} else {
+						int zero = 0;
+						fwrite((void *) &zero, sizeof(int), (size_t) 1, fp);
+					}
+				}
+
 				double *off = Calloc(mo->configs[id]->n, double);
 				Memcpy(off, &(OFFSET3(0)), (mb->predictor_n + mb->predictor_m) * sizeof(double));
 
@@ -32573,6 +32581,112 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 				Free(off);
 			}
 		}
+	}
+
+	if (mo->configs_preopt) {
+
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "config_preopt");
+		if (inla_mkdir(nndir) != 0) {
+			GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", nndir, strerror(errno));
+			inla_error_general(msg);
+		}
+
+		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "theta-tag.dat");
+		fp = fopen(nnndir, "w");
+		for (i = 0; i < mb->ntheta; i++) {
+			fprintf(fp, "%s\n", mb->theta_tag[i]);
+		}
+		fclose(fp);
+
+		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "tag.dat");
+		fp = fopen(nnndir, "w");
+		for (i = 0; i < mb->idx_tot; i++) {
+			fprintf(fp, "%s\n", mb->idx_tag[i]);
+		}
+		fclose(fp);
+
+		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "start.dat");
+		fp = fopen(nnndir, "w");
+		for (i = 0; i < mb->idx_tot; i++) {
+			fprintf(fp, "%d\n", mb->idx_start[i]);
+		}
+		fclose(fp);
+
+		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "n.dat");
+		fp = fopen(nnndir, "w");
+		for (i = 0; i < mb->idx_tot; i++) {
+			fprintf(fp, "%d\n", mb->idx_n[i]);
+		}
+		fclose(fp);
+
+		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
+		fp = fopen(nnndir, "wb");
+
+		int id, header = 0, nconfig = 0;
+
+		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
+			if (mo->configs_preopt[id]) {
+				nconfig += mo->configs_preopt[id]->nconfig;	/* need the accumulated one! */
+			}
+		}
+
+		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
+			if (mo->configs_preopt[id]) {
+
+				if (!header) {
+					header = 1;		       /* do this only once */
+					fwrite((void *) &(mo->configs_preopt[id]->mnpred), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs_preopt[id]->n), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs_preopt[id]->nz), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs_preopt[id]->prior_nz), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs_preopt[id]->ntheta), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) mo->configs_preopt[id]->i, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	/* 0-based! */
+					fwrite((void *) mo->configs_preopt[id]->j, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	/* 0-based! */
+					fwrite((void *) mo->configs_preopt[id]->iprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	/* 0-based! */
+					fwrite((void *) mo->configs_preopt[id]->jprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	/* 0-based! */
+					fwrite((void *) &nconfig, sizeof(int), (size_t) 1, fp);	/* yes!!! */
+
+					if (mo->configs_preopt[id]->constr) {
+						fwrite((void *) &(mo->configs_preopt[id]->constr->nc), sizeof(int), (size_t) 1, fp);
+						fwrite((void *) mo->configs_preopt[id]->constr->a_matrix, sizeof(double),
+						       (size_t) (mo->configs_preopt[id]->n * mo->configs_preopt[id]->constr->nc), fp);
+						fwrite((void *) mo->configs_preopt[id]->constr->e_vector, sizeof(double),
+						       (size_t) mo->configs_preopt[id]->constr->nc, fp);
+					} else {
+						int zero = 0;
+						fwrite((void *) &zero, sizeof(int), (size_t) 1, fp);
+					}
+
+
+					char *A, *pA;
+					GMRFLib_sprintf(&A, "%s/%s", nndir, "A.dat");
+					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->A, A, (long int)0, -1);
+					GMRFLib_sprintf(&pA, "%s/%s", nndir, "pA.dat");
+					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->pA, pA, (long int)0, -1);
+				}
+
+				for(int i = 0; i < mo->configs_preopt[id]->mnpred; i++) {
+					printf("OFFSET %i %f\n", i, OFFSET3(i));
+				}
+
+				double *off = Calloc(mo->configs_preopt[id]->mnpred, double);
+				Memcpy(off, &(OFFSET3(0)), mo->configs_preopt[id]->mnpred * sizeof(double));
+
+				for (i = 0; i < mo->configs_preopt[id]->nconfig; i++) {
+					fwrite((void *) &(mo->configs_preopt[id]->config[i]->log_posterior), sizeof(double), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs_preopt[id]->config[i]->log_posterior_orig), sizeof(double), (size_t) 1, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->theta, sizeof(double), (size_t) mo->configs_preopt[id]->ntheta, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->mean, sizeof(double), (size_t) mo->configs_preopt[id]->n, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->improved_mean, sizeof(double), (size_t) mo->configs_preopt[id]->n, fp);
+					fwrite((void *) off, sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->Q, sizeof(double), (size_t) mo->configs_preopt[id]->nz, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs_preopt[id]->nz, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->Qprior, sizeof(double), (size_t) mo->configs_preopt[id]->prior_nz, fp);
+				}
+				Free(off);
+			}
+		}
+
 		fclose(fp);
 	}
 

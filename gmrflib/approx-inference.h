@@ -829,6 +829,38 @@ typedef struct {
 } GMRFLib_store_configs_tp;
 
 typedef struct {
+	double log_posterior;				       /* May have been adjusted for integration weight */
+	double log_posterior_orig;			       /* Not adjusted for integration weight */
+	double *theta;					       /* */
+	double *mean;					       /* mean */
+	double *improved_mean;				       /* improved mean */
+	double *skewness;				       /* the skewness in the skew-normal=E[((x-mu)/sd)^3] */
+	double *Q;					       /* the Q_ij-values */
+	double *Qinv;					       /* the Qinv_ij-values */
+	double *Qprior;
+} GMRFLib_store_config_preopt_tp;
+
+typedef struct {
+	int mnpred;					      
+	int n;						       /* size of the graph */
+	int nz;						       /* size of the number of unique elements of Q */
+	int prior_nz;					       /* size of the number of unique elements of Q */
+	int ntheta;					       /* */
+	int *i;						       /* i-values in Qij */
+	int *j;						       /* j-values in Qij */
+	int *iprior;						       /* i-values in Qij */
+	int *jprior;						       /* j-values in Qij */
+	int nconfig;					       /* number of configurations */
+	GMRFLib_graph_tp *graph;			       /* */
+	GMRFLib_graph_tp *prior_graph;			       /* */
+	GMRFLib_constr_tp *constr;			       /* */
+	GMRFLib_store_config_preopt_tp **config;	       /* the configurations */
+	GMRFLib_matrix_tp *A;
+	GMRFLib_matrix_tp *pA;
+} GMRFLib_store_configs_preopt_tp;
+
+
+typedef struct {
 	int nhyper;
 	double *cov_m;
 
@@ -862,6 +894,7 @@ typedef struct {
 	GMRFLib_matrix_tp *opt_directions;
 
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
+	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {
@@ -1025,6 +1058,10 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 			    int ntheta, double *theta, double log_posterior, double log_posterior_orig,
 			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx,
 			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c);
+
+int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
+				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected, 
+				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 
 int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,
 			    int idx, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp * ai_par);
