@@ -723,32 +723,27 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 	GMRFLib_idxval_elm_tp *elm = NULL;
-	int id = GMRFLib_thread_id, k, kk, imin, imax;
-	double value = 0.0;
+	int id = GMRFLib_thread_id, k, kk; 
+	double *lc = a->like_c[id], value = 0.0;
 
-	imin = node;
-	imax = nnode;
+	if (!lc) {
+		return 0.0;
+	}
 
-	if (a->like_c[id]) {
-		if (imin == imax) {
-			elm = a->AtA_idxval[imin][0]->store;
-			for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
-				value += elm[kk].val * a->like_c[id][elm[kk].idx];
-			}
-		} else {
-			k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
-			if (k > 0) {
-				elm = a->AtA_idxval[imin][k]->store;
-				for (kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
-					value += elm[kk].val * a->like_c[id][elm[kk].idx];
-				}
-			} else {
-				assert(k > 0);
-			}
+        // imin = node; imax = nnode;
+	if (node == nnode) {
+		elm = a->AtA_idxval[node][0]->store;
+		for (kk = 0; kk < a->AtA_idxval[node][0]->n; kk++) {
+			value += elm[kk].val * lc[elm[kk].idx];
 		}
 	} else {
-		value = 0.0;
-	}
+		k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]);
+		assert(k > 0);
+		elm = a->AtA_idxval[node][k]->store;
+		for (kk = 0; kk < a->AtA_idxval[node][k]->n; kk++) {
+			value += elm[kk].val * lc[elm[kk].idx];
+		}
+	} 
 
 	return value;
 }
@@ -833,7 +828,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 {
 	// if likelihood_only, only compute the part that is needed for the likelihood.
 
-	// if !likelihood_only, compute the whole likelihood
+	// if !likelihood_only, compute the whole predictor
 
 	GMRFLib_ENTER_ROUTINE;
 
