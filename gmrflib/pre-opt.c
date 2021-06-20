@@ -282,7 +282,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N);
 	SHOW_TIME("A_idxval");
 
-	
+
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
 	for (i = 0; i < npred; i++) {
@@ -678,8 +678,8 @@ forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUS
 			if (a->ff_Qfunc) {
 				if (same_idx && !same_tp && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value += a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
-										    (a->
-										     ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+										    (a->ff_Qfunc_arg ? a->
+										     ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -724,14 +724,13 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 	GMRFLib_idxval_elm_tp *elm = NULL;
-	int id = GMRFLib_thread_id, k, kk; 
+	int id = GMRFLib_thread_id, k, kk;
 	double *lc = a->like_c[id], value = 0.0;
 
 	if (!lc) {
 		return 0.0;
 	}
-
-        // imin = node; imax = nnode;
+	// imin = node; imax = nnode;
 	if (node == nnode) {
 		elm = a->AtA_idxval[node][0]->store;
 		for (kk = 0; kk < a->AtA_idxval[node][0]->n; kk++) {
@@ -744,7 +743,7 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 		for (kk = 0; kk < a->AtA_idxval[node][k]->n; kk++) {
 			value += elm[kk].val * lc[elm[kk].idx];
 		}
-	} 
+	}
 
 	return value;
 }
@@ -773,7 +772,7 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	return value;
 }
 
-double GMRFLib_preopt_Qfunc_like(int node, int nnode, double *UNUSED(values), void *arg) 
+double GMRFLib_preopt_Qfunc_like(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// standalone function to return the likelihood part only
 	if (node >= 0 && nnode < 0) {
@@ -791,7 +790,7 @@ double GMRFLib_preopt_Qfunc_like(int node, int nnode, double *UNUSED(values), vo
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
 		value = a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
 	}
-	return value; 
+	return value;
 }
 
 double GMRFLib_preopt_Qfunc_prior(int node, int nnode, double *UNUSED(values), void *arg)
@@ -1050,7 +1049,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 		{
 			GMRFLib_matrix_free(preopt->A);
 			GMRFLib_matrix_free(preopt->pA);
-			
+
 			Free(preopt->idx_map_f);
 			Free(preopt->idx_map_beta);
 			Free(preopt->what_type);
@@ -1074,4 +1073,3 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 
 	return GMRFLib_SUCCESS;
 }
-

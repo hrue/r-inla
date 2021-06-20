@@ -7974,9 +7974,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -32547,7 +32547,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 			if (mo->configs[id]) {
 
 				if (!header) {
-					header = 1;		       /* do this only once */
+					header = 1;	       /* do this only once */
 					fwrite((void *) &(mo->configs[id]->n), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs[id]->nz), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs[id]->ntheta), sizeof(int), (size_t) 1, fp);
@@ -32639,16 +32639,20 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 			if (mo->configs_preopt[id]) {
 
 				if (!header) {
-					header = 1;		       /* do this only once */
+					header = 1;	       /* do this only once */
 					fwrite((void *) &(mo->configs_preopt[id]->mnpred), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->n), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->nz), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->prior_nz), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->ntheta), sizeof(int), (size_t) 1, fp);
-					fwrite((void *) mo->configs_preopt[id]->i, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	/* 0-based! */
-					fwrite((void *) mo->configs_preopt[id]->j, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	/* 0-based! */
-					fwrite((void *) mo->configs_preopt[id]->iprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	/* 0-based! */
-					fwrite((void *) mo->configs_preopt[id]->jprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	/* 0-based! */
+					fwrite((void *) mo->configs_preopt[id]->i, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	/* 0-based! 
+																		 */
+					fwrite((void *) mo->configs_preopt[id]->j, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	/* 0-based! 
+																		 */
+					fwrite((void *) mo->configs_preopt[id]->iprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	/* 0-based! 
+																			 */
+					fwrite((void *) mo->configs_preopt[id]->jprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	/* 0-based! 
+																			 */
 					fwrite((void *) &nconfig, sizeof(int), (size_t) 1, fp);	/* yes!!! */
 
 					if (mo->configs_preopt[id]->constr) {
@@ -32669,20 +32673,26 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 					char *A, *pA;
 					GMRFLib_sprintf(&A, "%s/%s", nndir, "A.dat");
-					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->A, A, (long int)0, -1);
+					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->A, A, (long int) 0, -1);
 					GMRFLib_sprintf(&pA, "%s/%s", nndir, "pA.dat");
-					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->pA, pA, (long int)0, -1);
+					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->pA, pA, (long int) 0, -1);
 				}
 
 				for (i = 0; i < mo->configs_preopt[id]->nconfig; i++) {
 					fwrite((void *) &(mo->configs_preopt[id]->config[i]->log_posterior), sizeof(double), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->config[i]->log_posterior_orig), sizeof(double), (size_t) 1, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->theta, sizeof(double), (size_t) mo->configs_preopt[id]->ntheta, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->mean, sizeof(double), (size_t) mo->configs_preopt[id]->n, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->improved_mean, sizeof(double), (size_t) mo->configs_preopt[id]->n, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->Q, sizeof(double), (size_t) mo->configs_preopt[id]->nz, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs_preopt[id]->nz, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->Qprior, sizeof(double), (size_t) mo->configs_preopt[id]->prior_nz, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->theta, sizeof(double),
+					       (size_t) mo->configs_preopt[id]->ntheta, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->mean, sizeof(double), (size_t) mo->configs_preopt[id]->n,
+					       fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->improved_mean, sizeof(double),
+					       (size_t) mo->configs_preopt[id]->n, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->Q, sizeof(double), (size_t) mo->configs_preopt[id]->nz,
+					       fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->Qinv, sizeof(double),
+					       (size_t) mo->configs_preopt[id]->nz, fp);
+					fwrite((void *) mo->configs_preopt[id]->config[i]->Qprior, sizeof(double),
+					       (size_t) mo->configs_preopt[id]->prior_nz, fp);
 				}
 			}
 		}

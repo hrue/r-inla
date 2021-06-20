@@ -861,11 +861,11 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 	return N;
 }
 
-int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol)
+int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp ** M, GMRFLib_idxval_tp ** idxval, int nrow, int ncol)
 {
 	int nelm = 0, i, j, jj, k;
 
-	for(i = 0; i < nrow; i++) {
+	for (i = 0; i < nrow; i++) {
 		nelm += idxval[i]->n;
 	}
 	*M = Calloc(1, GMRFLib_matrix_tp);
@@ -876,8 +876,8 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, 
 	(*M)->j = Calloc(nelm, int);
 	(*M)->values = Calloc(nelm, double);
 
-	for(i = k = 0; i < nrow; i++) {
-		for(jj = 0; jj < idxval[i]->n; jj++, k++){
+	for (i = k = 0; i < nrow; i++) {
+		for (jj = 0; jj < idxval[i]->n; jj++, k++) {
 			j = idxval[i]->store[jj].idx;
 			(*M)->i[k] = i;
 			(*M)->j[k] = j;

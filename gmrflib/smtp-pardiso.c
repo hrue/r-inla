@@ -307,9 +307,9 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 				int k = M->ia[i];			\
 				double v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);	\
 				assert(!(ISNAN(v)));			\
-			}						
+			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);		
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 		}
 	}
@@ -430,7 +430,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 	s->maxfct = 1;
 	s->pstore = Calloc(GMRFLib_MAX_THREADS, GMRFLib_pardiso_store_pr_thread_tp *);
-	for(int i = 0; i < GMRFLib_MAX_THREADS; i++){
+	for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
 		s->pstore[i] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 	}
 	assert(S.mtype == -2 || S.mtype == 2);
@@ -452,7 +452,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 	s->iparm_default[7] = 0;			       /* maximum number of refinement steps */
 	FIXME1("DISABLE iparm[7]");
-	//s->iparm_default[7] = 4;			       /* maximum number of refinement steps */
+	// s->iparm_default[7] = 4; /* maximum number of refinement steps */
 	s->iparm_default[10] = 0;			       /* These are the default, but... */
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
@@ -496,40 +496,40 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	store->pstore[tnum]->nrhs = 0;
 	store->pstore[tnum]->err_code = 0;
 	store->pstore[tnum]->iparm[2] = store->pstore[tnum_ref]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
-	
+
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
-		store->pstore[tnum]->phase = 11;		       // analysis
-		store->pstore[tnum]->iparm[4] = 0;		       /* 0 = compute the permutation */
-		store->pstore[tnum]->iparm[39] = 1;		       /* 1 = return the permutation */
+		store->pstore[tnum]->phase = 11;	       // analysis
+		store->pstore[tnum]->iparm[4] = 0;	       /* 0 = compute the permutation */
+		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation */
 		store->pstore[tnum]->nrhs = S.nrhs_max;	       /* this is how it is, apparently */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_CHOL:
-		store->pstore[tnum]->phase = 22;		       // numerical factorization
-		store->pstore[tnum]->iparm[32] = 1;		       /* determinant */
-		store->pstore[tnum]->iparm[39] = 1;		       /* 1 = return the permutation (does not do that anymore) */
+		store->pstore[tnum]->phase = 22;	       // numerical factorization
+		store->pstore[tnum]->iparm[32] = 1;	       /* determinant */
+		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation (does not do that anymore) */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_QINV:
 		store->pstore[tnum]->phase = -22;
-		store->pstore[tnum]->iparm[35] = 1;		       /* do not overwrite internal factor L with selected inversion */
-		store->pstore[tnum]->iparm[36] = 0;		       /* return upper triangular Qinv */
+		store->pstore[tnum]->iparm[35] = 1;	       /* do not overwrite internal factor L with selected inversion */
+		store->pstore[tnum]->iparm[36] = 0;	       /* return upper triangular Qinv */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
-		store->pstore[tnum]->phase = 33;		       // solve
+		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 1 : -12);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
-		store->pstore[tnum]->phase = 33;		       // solve
+		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 2 : -23);
 		break;
 
- 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
-		store->pstore[tnum]->phase = 33;		       // solve
+	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
+		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = 0;
 		break;
 
@@ -629,7 +629,8 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		&(store->pstore[tnum]->phase),
 		&(Q->n), Q->a, Q->ia, Q->ja, store->pstore[tnum_ref]->perm,
 		&(store->pstore[tnum]->nrhs), store->pstore[tnum]->iparm,
-		&(store->msglvl), &(store->pstore[tnum]->dummy), &(store->pstore[tnum]->dummy), &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
+		&(store->msglvl), &(store->pstore[tnum]->dummy), &(store->pstore[tnum]->dummy), &(store->pstore[tnum]->err_code),
+		store->pstore[tnum]->dparm);
 
 	// Just fill it with a dummy (identity) reordering
 	for (i = 0; i < n; i++) {
@@ -758,7 +759,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	assert(perm_min == 0 || perm_min == 1);		       /* must either be C or F... */
 	if (perm_min == 1) {
 		for (i = 0; i < n; i++) {
-			store->pstore[tnum_ref]->perm[i]--;	       /* back to C indexing */
+			store->pstore[tnum_ref]->perm[i]--;    /* back to C indexing */
 		}
 	}
 	for (i = 0; i < n; i++) {
@@ -824,7 +825,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		}
 	}
 	Free(bb);
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -904,7 +905,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 				map_id_set(Qinv[i], j, value);		\
 			}						\
 		}
-		
+
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 	}
@@ -951,7 +952,8 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
 		&(store->pstore[tnum_ref]->Qinv->n),
 		store->pstore[tnum_ref]->Qinv->a, store->pstore[tnum_ref]->Qinv->ia, store->pstore[tnum_ref]->Qinv->ja,
-		NULL, &(store->pstore[tnum]->nrhs), store->pstore[tnum]->iparm, &(store->msglvl), NULL, NULL, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
+		NULL, &(store->pstore[tnum]->nrhs), store->pstore[tnum]->iparm, &(store->msglvl), NULL, NULL, &(store->pstore[tnum]->err_code),
+		store->pstore[tnum]->dparm);
 
 	if (store->pstore[tnum]->err_code != 0) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
@@ -992,7 +994,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			FIXME("Free pardiso store with copy_pardiso_ptr = 1");
 		}
 		if ((*store)->pstore) {
-			for(int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
 				if ((*store)->pstore[i]) {
 					Free((*store)->pstore[i]->perm);
 					Free((*store)->pstore[i]->iperm);

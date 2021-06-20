@@ -3007,8 +3007,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		need_Qinv = (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) && (compute_n
 															     ||
-															     ai_par->
-															     compute_nparam_eff);
+															     ai_par->compute_nparam_eff);
 
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
@@ -6234,7 +6233,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 
 		tref = GMRFLib_cpu();
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store_id);  /* add Qinv if its not there already */
-		
+
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
 			GMRFLib_density_create_normal(&dens[i][dens_count], 0.0, 1.0, ai_store_id->mode[i], ai_store_id->stdev[i], 0);
@@ -6262,8 +6261,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
 
-		
-		GMRFLib_ai_store_config_preopt(misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem, mean_corrected, preopt, Qfunc, Qfunc_arg);
+
+		GMRFLib_ai_store_config_preopt(misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem, mean_corrected,
+					       preopt, Qfunc, Qfunc_arg);
 
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
@@ -7130,7 +7130,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 #undef ADD_LINEAR_TERM
 #undef ADD_LINEAR_TERM_LOCAL
 #undef SET_THETA_MODE
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -7971,8 +7971,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 }
 
 int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
-				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected, 
-				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
+				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -7987,7 +7987,7 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 		mo->configs_preopt[id]->mnpred = preopt->mnpred;
 		mo->configs_preopt[id]->n = preopt->n;
 		mo->configs_preopt[id]->ntheta = ntheta;
-		
+
 		int nelm;				       /* number of elements in Q; double conting */
 		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
 		mo->configs_preopt[id]->nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
@@ -8041,8 +8041,8 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 	mo->configs_preopt[id]->config = Realloc(mo->configs_preopt[id]->config, nconfig + 1, GMRFLib_store_config_preopt_tp *);
 	mo->configs_preopt[id]->config[nconfig] = Calloc(1, GMRFLib_store_config_preopt_tp);
 
-	int ii, jj, k, kk; 
-	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL; 
+	int ii, jj, k, kk;
+	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL;
 	GMRFLib_graph_tp *g;
 
 	Q = Calloc(mo->configs_preopt[id]->nz, double);
@@ -8065,7 +8065,7 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 			Qprior[k++] = GMRFLib_preopt_Qfunc_prior(ii, jj, NULL, Qfunc_arg);
 		}
 	}
-	
+
 	mean = Calloc(g->n, double);
 	imean = Calloc(g->n, double);
 	Memcpy(mean, problem->mean_constr, g->n * sizeof(double));
@@ -8084,8 +8084,8 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 	cfg->Qprior = Qprior;
 	cfg->mean = mean;
 	cfg->improved_mean = imean;
-	cfg->log_posterior = log_posterior;	/* may include integration weights */
-	cfg->log_posterior_orig = log_posterior_orig;	/* do NOT include integration weights */
+	cfg->log_posterior = log_posterior;		       /* may include integration weights */
+	cfg->log_posterior_orig = log_posterior_orig;	       /* do NOT include integration weights */
 	if (ntheta) {
 		cfg->theta = Calloc(ntheta, double);
 		Memcpy(cfg->theta, theta, ntheta * sizeof(double));
