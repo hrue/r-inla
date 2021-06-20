@@ -601,7 +601,7 @@ inla.internal.experimental.mode <- FALSE
         if (file.exists(fnm)) {
             configs$pA <- inla.read.fmesher.file(fnm)
         } else {
-            configs$pA <- NULL
+            configs$pA <- matrix(nrow = 0, ncol = nrow(configs$A))
         }
 
         if (configs$nconfig > 0L) {
@@ -690,10 +690,7 @@ inla.internal.experimental.mode <- FALSE
             configs$config <- NULL
         }
         close(fp)
-    } else {
-        configs <- NULL
     }
-
 
     if (debug) {
         print(paste("collect misc from", d, "...done"))

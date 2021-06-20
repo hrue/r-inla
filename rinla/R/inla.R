@@ -2380,7 +2380,23 @@
 
             ## note that this ordering might be different than in the selection above, which
             ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
-            sel.idx <- which(inla.posterior.sample.interpret.selection(selection, ret))
+
+            if (F) {
+                ## need to be fixed.if we use twostage and stage1only, then do something like
+                ## this
+                ct <- ret$misc$configs$contents
+                for(nm in c("APredictor", "Predictor")) {
+                    if (ct$tag[1] == nm) {
+                        ct$tag <- ct$tag[-1]
+                        ct$start <- ct$start[-1] - ct$start[2] + 1
+                        ct$length <- ct$length[-1]
+                    }
+                }
+                rfake <- list(misc = list(configs = list(contents = ct)))
+                sel.idx <- which(inla.posterior.sample.interpret.selection(selection, rfake))
+            } else {
+                sel.idx <- which(inla.posterior.sample.interpret.selection(selection, ret))
+            }
             nc <- ret$misc$configs$nconfig
             ns <- length(idx)
             m <- list()
