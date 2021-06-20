@@ -7975,12 +7975,9 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected, 
 				   GMRFLib_preopt_tp *preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
-	FIXME("ADD CONFIG 1");
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
 	}
-
-	FIXME("ADD CONFIG 2");
 	int id = omp_get_thread_num();
 
 	if (!(mo->configs_preopt[id])) {

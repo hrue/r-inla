@@ -31267,6 +31267,11 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	} else {
 		mb->misc_output->configs_preopt = NULL;
 	}
+	if (mb->lc_derived_correlation_matrix) {
+		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension */
+	} else {
+		mb->misc_output->compute_corr_lin = 0;
+	}
 
 	x = Calloc_get(N);
 	if (mb->reuse_mode && mb->x_file) {
@@ -32663,10 +32668,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->A, A, (long int)0, -1);
 					GMRFLib_sprintf(&pA, "%s/%s", nndir, "pA.dat");
 					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->pA, pA, (long int)0, -1);
-				}
-
-				for(int i = 0; i < mo->configs_preopt[id]->mnpred; i++) {
-					printf("OFFSET %i %f\n", i, OFFSET3(i));
 				}
 
 				double *off = Calloc(mo->configs_preopt[id]->mnpred, double);

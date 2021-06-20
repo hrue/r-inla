@@ -2381,9 +2381,7 @@
             ## note that this ordering might be different than in the selection above, which
             ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
 
-            if (F) {
-                ## need to be fixed.if we use twostage and stage1only, then do something like
-                ## this
+            if (cont.inla$control.twostage$stage1only && (!is.null(twostage) && twostage)) {
                 ct <- ret$misc$configs$contents
                 for(nm in c("APredictor", "Predictor")) {
                     if (ct$tag[1] == nm) {
