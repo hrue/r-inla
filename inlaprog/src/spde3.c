@@ -41,7 +41,7 @@
 #include "inla.h"
 #include "spde3.h"
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
 int inla_spde3_build_model(inla_spde3_tp ** smodel, const char *prefix, const char *transform)
