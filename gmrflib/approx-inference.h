@@ -823,7 +823,6 @@ typedef struct {
 	int *i;						       /* i-values in Qij */
 	int *j;						       /* j-values in Qij */
 	int nconfig;					       /* number of configurations */
-	GMRFLib_graph_tp *graph;			       /* */
 	GMRFLib_constr_tp *constr;			       /* */
 	GMRFLib_store_config_tp **config;		       /* the configurations */
 } GMRFLib_store_configs_tp;
@@ -851,8 +850,6 @@ typedef struct {
 	int *iprior;						       /* i-values in Qij */
 	int *jprior;						       /* j-values in Qij */
 	int nconfig;					       /* number of configurations */
-	GMRFLib_graph_tp *graph;			       /* */
-	GMRFLib_graph_tp *prior_graph;			       /* */
 	GMRFLib_constr_tp *constr;			       /* */
 	GMRFLib_store_config_preopt_tp **config;	       /* the configurations */
 	GMRFLib_matrix_tp *A;

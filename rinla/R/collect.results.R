@@ -588,6 +588,7 @@ inla.internal.experimental.mode <- FALSE
         } else {
             configs$constr <- NULL
         }
+        configs$offsets <- readBin(fp, numeric(), configs$mnpred)
 
         theta.tag <- readLines(paste(d, "/config_preopt/theta-tag.dat", sep = ""))
         configs$contents <- list(
@@ -617,7 +618,6 @@ inla.internal.experimental.mode <- FALSE
                 }
                 mean <- readBin(fp, numeric(), configs$n)
                 improved.mean <- readBin(fp, numeric(), configs$n)
-                offsets <- readBin(fp, numeric(), configs$mnpred)
 
                 Q <- readBin(fp, numeric(), configs$nz)
                 Qinv <- readBin(fp, numeric(), configs$nz)
@@ -652,7 +652,6 @@ inla.internal.experimental.mode <- FALSE
                     mean = mean,
                     improved.mean = improved.mean,
                     skewness = rep(NA, configs$n), 
-                    offsets = offsets, 
                     Q = sparseMatrix(
                         i = c(configs.i, iadd),
                         j = c(configs.j, jadd),

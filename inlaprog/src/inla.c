@@ -32662,6 +32662,10 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 						fwrite((void *) &zero, sizeof(int), (size_t) 1, fp);
 					}
 
+					double *off = Calloc(mo->configs_preopt[id]->mnpred, double);
+					Memcpy(off, &(OFFSET3(0)), mo->configs_preopt[id]->mnpred * sizeof(double));
+					fwrite((void *) off, sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
+					Free(off);
 
 					char *A, *pA;
 					GMRFLib_sprintf(&A, "%s/%s", nndir, "A.dat");
@@ -32670,21 +32674,16 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 					GMRFLib_write_fmesher_file(mo->configs_preopt[id]->pA, pA, (long int)0, -1);
 				}
 
-				double *off = Calloc(mo->configs_preopt[id]->mnpred, double);
-				Memcpy(off, &(OFFSET3(0)), mo->configs_preopt[id]->mnpred * sizeof(double));
-
 				for (i = 0; i < mo->configs_preopt[id]->nconfig; i++) {
 					fwrite((void *) &(mo->configs_preopt[id]->config[i]->log_posterior), sizeof(double), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->config[i]->log_posterior_orig), sizeof(double), (size_t) 1, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->theta, sizeof(double), (size_t) mo->configs_preopt[id]->ntheta, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->mean, sizeof(double), (size_t) mo->configs_preopt[id]->n, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->improved_mean, sizeof(double), (size_t) mo->configs_preopt[id]->n, fp);
-					fwrite((void *) off, sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->Q, sizeof(double), (size_t) mo->configs_preopt[id]->nz, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->Qinv, sizeof(double), (size_t) mo->configs_preopt[id]->nz, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->Qprior, sizeof(double), (size_t) mo->configs_preopt[id]->prior_nz, fp);
 				}
-				Free(off);
 			}
 		}
 

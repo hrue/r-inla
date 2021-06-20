@@ -432,10 +432,12 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         } else {
             pnam <- paste0("Predictor:", seq_len(nrow(result$misc$configs$A)))
         }
-        
+        attr(xx, ".contents") <- result$misc$configs$contents
+
+        off <- result$misc$configs$offsets
         for(i in seq_along(xx)) {
             nam <- rownames(xx[[i]]$latent)
-            xx[[i]]$latent <- c(as.numeric(A %*% xx[[i]]$latent), as.numeric(xx[[i]]$latent))[sel]
+            xx[[i]]$latent <- c(as.numeric(A %*% xx[[i]]$latent) + off, as.numeric(xx[[i]]$latent))[sel]
             if (!is.null(nam)) {
                 names(xx[[i]]$latent) <- c(pnam, nam)[sel]
             }
