@@ -126,6 +126,8 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
        if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
                                      (const char *)GitID, errorno,msg); }
 
+#define GMRFLib_WARNING(msg) GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_SUCCESS, msg)
+
 /* 
    short versions, no `msg'
 */

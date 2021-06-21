@@ -42,8 +42,8 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 static GMRFLib_error_handler_tp *handler = NULL;
 
 #pragma omp threadprivate(handler)
@@ -55,7 +55,7 @@ const char *GMRFLib_error_reason(int errorno)
 	 */
 #define NMSG 31
 	static const char *reasons[NMSG] = {
-		"No error, please ignore",
+		"Warning",
 		"Alloc failed",
 		"Matrix is not (numerical) positive definite",
 		"Matrix is (numerical) singular",
@@ -99,24 +99,15 @@ int GMRFLib_error_handler(const char *reason, const char *file, const char *func
 	/*
 	 * this is the default error-handler 
 	 */
-	fprintf(stderr, "\n\n\tGMRFLib version %1s, has recived error no [%1d]\n", GMRFLib_VERSION, errorno);
+	fprintf(stderr, "\n\n\tGitID: %s\n", GitID);
 	if (reason) {
-		fprintf(stderr, "\tReason    : %s\n", reason);
+		fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);
 	}
 	if (msg) {
-		fprintf(stderr, "\tMessage   : %s\n", msg);
+		fprintf(stderr, "\tMessage: %s\n", msg);
 	}
 	if (function) {
-		fprintf(stderr, "\tFunction  : %s\n", function);
-	}
-	if (file) {
-		fprintf(stderr, "\tFile      : %s\n", file);
-	}
-	if (1) {
-		fprintf(stderr, "\tLine      : %1d\n", line);
-	}
-	if (id) {
-		fprintf(stderr, "\tGitID     : %s\n", id);
+		fprintf(stderr, "\tLine:%1d Function: %s\n", line, function);
 	}
 	fprintf(stderr, "\n");
 

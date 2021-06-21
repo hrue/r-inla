@@ -390,13 +390,10 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
+	double s_min = tol * s_max;
 	for (i = 0; i < A->size1; i++) {
 		s = gsl_vector_get(S, i);
-		if (s <= 0.0) {
-			gsl_matrix_set(M2, i, i, tol * s_max);
-		} else {
-			gsl_matrix_set(M2, i, i, s);
-		}
+		gsl_matrix_set(M2, i, i, DMAX(s_min, s));
 	}
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
