@@ -837,10 +837,12 @@ typedef struct {
 	double *Q;					       /* the Q_ij-values */
 	double *Qinv;					       /* the Qinv_ij-values */
 	double *Qprior;
+	double *cpodens_moments;
 } GMRFLib_store_config_preopt_tp;
 
 typedef struct {
 	int mnpred;
+	int Npred;
 	int n;						       /* size of the graph */
 	int nz;						       /* size of the number of unique elements of Q */
 	int prior_nz;					       /* size of the number of unique elements of Q */
@@ -1058,7 +1060,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 
 int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
-				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *cpodens_moments);
 
 int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,
 			    int idx, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp * ai_par);

@@ -562,14 +562,15 @@ inla.internal.experimental.mode <- FALSE
     fnm <- paste(d, "/config_preopt/configs.dat", sep = "")
     if (file.exists(fnm)) {
         fp <- file(fnm, "rb")
-        iarr <- readBin(fp, integer(), 5)
+        iarr <- readBin(fp, integer(), 6)
         configs <- list(
             .preopt = TRUE, 
             mnpred = iarr[1], 
-            n = iarr[2], 
-            nz = iarr[3], 
-            prior_nz = iarr[4],
-            ntheta = iarr[5])
+            Npred = iarr[2], 
+            n = iarr[3], 
+            nz = iarr[4], 
+            prior_nz = iarr[5],
+            ntheta = iarr[6])
         configs.i <- readBin(fp, integer(), configs$nz) ## 0-based
         configs.j <- readBin(fp, integer(), configs$nz) ## 0-based
         configs.iprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
@@ -622,6 +623,8 @@ inla.internal.experimental.mode <- FALSE
                 Q <- readBin(fp, numeric(), configs$nz)
                 Qinv <- readBin(fp, numeric(), configs$nz)
                 Qprior <- readBin(fp, numeric(), configs$prior_nz)
+                cpodens.moments <- matrix(readBin(fp, numeric(), configs$Npred * 3), ncol = 3, byrow = TRUE)
+                colnames(cpodens.moments) <- c("mean", "variance", "skewness")
                 dif <- which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd <- configs.j[dif] ## yes, its the transpose part
@@ -675,7 +678,8 @@ inla.internal.experimental.mode <- FALSE
                         dims = c(configs$n, configs$n),
                         index1 = FALSE,
                         repr = "C"
-                    )
+                    ),
+                    cpodens.moments = cpodens.moments
                 )
             }
 

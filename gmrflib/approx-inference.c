@@ -6261,10 +6261,6 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
 
-
-		GMRFLib_ai_store_config_preopt(misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem, mean_corrected,
-					       preopt, Qfunc, Qfunc_arg);
-
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 		}
@@ -6294,13 +6290,26 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			}
 		}
 
+		double *cpodens_moments = NULL;
+		if (misc_output->configs_preopt) {
+			cpodens_moments = Calloc(3 * preopt->Npred, double);
+			for(int ii = 0; ii < 3*preopt->Npred; ii++) {
+				cpodens_moments[ii] = NAN;
+			}
+		}
+
 		if (cpo || dic || po) {
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int ii = 0; ii < d_idx->n; ii++) {
 				int i = d_idx->idx[ii];
+				GMRFLib_density_tp *cpodens = NULL;
 				if (cpo) {
-					GMRFLib_density_tp *cpodens;
 					GMRFLib_compute_cpodens(&cpodens, lpred[i][dens_count], i, d[i], loglFunc, loglFunc_arg, ai_par);
+					if (cpodens_moments) {
+						cpodens_moments[3 * i + 0] = cpodens->user_mean;
+						cpodens_moments[3 * i + 1] = SQR(cpodens->user_stdev);
+						cpodens_moments[3 * i + 2] = cpodens->skewness;
+					}
 					failure_theta[i][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[i][dens_count],
 												   &pit_theta[i][dens_count], i, cpodens,
 												   d[i], loglFunc, loglFunc_arg, lpred_mean);
@@ -6320,6 +6329,9 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			}
 		}
 
+		GMRFLib_ai_store_config_preopt(misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem, mean_corrected,
+					       preopt, Qfunc, Qfunc_arg, cpodens_moments);
+		
 		tu = GMRFLib_cpu() - tref;
 		if (ai_par->fp_log) {
 #pragma omp critical
@@ -6344,6 +6356,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		Free(lpred_mean);
 		Free(lpred_variance);
 		Free(mean_corrected);
+		// do not free cpodens_moments!!!
 	}
 
 	// save (x, theta) adding the predictors
@@ -7972,7 +7985,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 
 int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
-				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+				   double *cpodens_moments)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -7985,6 +7999,7 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 		mo->configs_preopt[id] = Calloc(1, GMRFLib_store_configs_preopt_tp);
 
 		mo->configs_preopt[id]->mnpred = preopt->mnpred;
+		mo->configs_preopt[id]->Npred = preopt->Npred;
 		mo->configs_preopt[id]->n = preopt->n;
 		mo->configs_preopt[id]->ntheta = ntheta;
 
@@ -8086,6 +8101,7 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 	cfg->improved_mean = imean;
 	cfg->log_posterior = log_posterior;		       /* may include integration weights */
 	cfg->log_posterior_orig = log_posterior_orig;	       /* do NOT include integration weights */
+	cfg->cpodens_moments = cpodens_moments;
 	if (ntheta) {
 		cfg->theta = Calloc(ntheta, double);
 		Memcpy(cfg->theta, theta, ntheta * sizeof(double));
