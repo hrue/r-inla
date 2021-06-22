@@ -114,7 +114,7 @@
 ## !graph <- sparseMatrix(rep(1:n, sapply(jj, length)),
 ## !                      unlist(jj), x=1, dims=c(n, n))
 ## !
-## !### some random data at 10 time points
+## !### some random data at 10 time point
 ## !dat <- inla.knmodels.sample(graph, m=10, tau.t=2, tau.s=2, tau.st=3)
 ## !str(dat)
 ## !sapply(dat$x, summary)
@@ -125,7 +125,7 @@
 ## !summary(dat$y)
 ## !
 ## !### fit the type 4 considering three different approaches
-## !tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=-1)
+## !tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=1)
 ## !res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
 ## !     f(space, model='bym2', graph=graph),
 ## !     data=dat, family='poisson', E=dat$E, progress=TRUE,
