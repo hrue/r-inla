@@ -100,7 +100,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);
 int GMRFLib_gsl_mgs(gsl_matrix * A);
-int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x,  double tol);
+int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol);
 
 __END_DECLS
 #endif

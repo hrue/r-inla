@@ -3007,8 +3007,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 
 		need_Qinv = (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE || GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE2) && (compute_n
 															     ||
-															     ai_par->
-															     compute_nparam_eff);
+															     ai_par->compute_nparam_eff);
 
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
