@@ -409,7 +409,7 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x,  double tol)
+int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol)
 {
 	/*
 	 * solve Ax=b, ignoring contributions from eigenvalues < tol*max(eigenval)
@@ -443,7 +443,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x,  
 		if (s < s_min) {
 			s = 0.0;
 		} else {
-			s =  1.0 / s;
+			s = 1.0 / s;
 		}
 		gsl_matrix_set(M2, i, i, s);
 	}

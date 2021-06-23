@@ -7727,7 +7727,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			for (int i = 0; i < graph->n; i++) {		\
 				col[i] = gsl_matrix_get(M, i, jj);	\
 			}						\
-			GMRFLib_Qx(res, col, graph, Qfunc, Qfunc_arg); \
+			GMRFLib_Qx(res, col, graph, Qfunc, Qfunc_arg);	\
 			for (int i = 0; i < graph->n; i++) {		\
 				gsl_matrix_set(QM, i, jj, res[i]);	\
 			}						\
