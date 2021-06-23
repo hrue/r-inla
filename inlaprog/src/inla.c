@@ -29915,7 +29915,9 @@ double extra(double *theta, int ntheta, void *argument)
 		P(ntheta);
 	}
 
-	assert((count == mb->ntheta) && (count == ntheta));    /* check... */
+	if (!(mb->fixed_mode)) {
+		assert((count == mb->ntheta) && (count == ntheta));    /* check... */
+	}
 #undef _SET_GROUP_RHO
 #undef _NOT_FIXED
 	return val;

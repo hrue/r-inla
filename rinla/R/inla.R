@@ -897,7 +897,7 @@
     all.hyper$predictor$hyper <- cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
         !is.null(cont.predictor$link) ||
-        (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb.enable)) {
+        (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb$enable)) {
         cont.predictor$compute <- TRUE
     }
     if (only.hyperparam) {

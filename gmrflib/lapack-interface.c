@@ -369,7 +369,7 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol)
 int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 {
 	/*
-	 * replace n x n matrix A with its SPD matrix, replacing negative eigenvalues with 'tol' * max(|eigenvalue|).
+	 * replace n x n matrix A with its SPD matrix, replacing small eigenvalues with 'tol' * max(|eigenvalue|).
 	 */
 
 	assert(A && (A->size1 == A->size2));
