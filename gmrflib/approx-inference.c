@@ -7739,24 +7739,21 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 
-		// need pivoting to solve the system, but also to ensure its not singular (which
-		// it can be with with intrinsic model components)
-
 		if (1) {
+			// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part
 			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(0.5));
 		} else {
+			// this is an alternative variant, but I like the previous one better as I do not control the contribution from the
+			// small eigenvalues even if they are truncated. better to do as above and invert only the 'safe' part.
 			GMRFLib_gsl_ensure_spd(MM, GMRFLib_eps(0.5));
 			gsl_linalg_pcholesky_decomp(MM, perm);
 			gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
 		}
-		GMRFLib_printf_gsl_vector(stdout, delta, "%.12f");
-
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
 		double ddx_max = 0.0;
 		for (i = 0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
-			P(dx[i]);
 			ddx_max = DMAX(ddx_max, ABS(dx[i]) / sd[i]);
 		}
 		double step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
