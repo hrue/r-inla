@@ -7241,14 +7241,15 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
 		int i;
-		int np = 15;
+		int np = 21;
 		double *xp = NULL, *wp = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
-		double *work = Calloc(3 * np, double);
-		double *x_user = work;
-		double *x_std = work + np;
-		double *loglik = work + 2 * np;
+
+		Calloc_init(3 * np);
+		double *x_user = Calloc_get(np);
+		double *x_std = Calloc_get(np);
+		double *loglik = Calloc_get(np);
 
 		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
 		for (i = 0; i < np; i++) {
@@ -7271,7 +7272,7 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 		res->coofs[1] = B;
 		res->coofs[2] = C;
 
-		Free(work);
+		Calloc_free();
 		return res;
 	} else {
 		int i, k, np = GMRFLib_faster_integration_np;
@@ -7584,7 +7585,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will
-	int keep_MM = 0;				      
+	int keep_MM = 1;				      
 
 	int niter = 1 + ai_par->vb_refinement;
 	int i, j, iter; // debug = GMRFLib_DEBUG_IF();
@@ -7787,8 +7788,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 		}
 
-		// this is RMS standardized change between the iterations (using step_len=1)
-		if (err_dx < 0.05) {
+		// this is RMS standardized change between the iterations (using step_len=1), otherwise, just run the max iterations
+		if (err_dx < 0.001) {
 			break;
 		}
 	}
