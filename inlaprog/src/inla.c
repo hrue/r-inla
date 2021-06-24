@@ -26236,11 +26236,11 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->vb_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.VERBOSE"), 0);
 	mb->ai_par->vb_hyperpar_correct = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.HYPERPAR.CORRECT"), 0);
 	mb->ai_par->vb_nodes = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
-	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 1.0);
+	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 0.25);
 	mb->ai_par->vb_max_correct = DMAX(0.0, mb->ai_par->vb_max_correct);
-	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 0);
+	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 25);
 	mb->ai_par->vb_refinement = IMAX(0, mb->ai_par->vb_refinement);
-	mb->ai_par->vb_f_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT"), 50);
+	mb->ai_par->vb_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.ENABLE.LIMIT"), 25);
 
 	mb->ai_par->twostage_stage1only = iniparser_getint(ini, inla_string_join(secname, "CONTROL.TWOSTAGE.STAGE1ONLY"), 0);
 
@@ -30209,7 +30209,7 @@ int inla_INLA(inla_tp * mb)
 		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -30500,7 +30500,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		vb_nodes = Calloc(N, char);
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -30846,7 +30846,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -31173,7 +31173,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 		vb_nodes = Calloc(N, char);
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;

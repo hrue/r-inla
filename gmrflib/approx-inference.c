@@ -195,12 +195,12 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->vb_strategy = 0;
 	(*ai_par)->vb_verbose = 0;
 	(*ai_par)->vb_hyperpar_correct = 0;
-	(*ai_par)->vb_refinement = 0;
-	(*ai_par)->vb_max_correct = 1.0;
-	(*ai_par)->vb_f_enable_limit = 50;
+	(*ai_par)->vb_refinement = 25;
+	(*ai_par)->vb_max_correct = 0.25;
+	(*ai_par)->vb_enable_limit = 25;
 	(*ai_par)->vb_nodes = NULL;
 
-	(*ai_par)->twostage_stage1only = 0;
+	(*ai_par)->twostage_stage1only = 1;
 
 	return GMRFLib_SUCCESS;
 }
@@ -404,7 +404,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\t\tcorrect hyperpar = [%s]\n", (ai_par->vb_hyperpar_correct ? "Yes" : "No"));
 		fprintf(fp, "\t\trefinement       = [%1d]\n", ai_par->vb_refinement);
 		fprintf(fp, "\t\tmax_correct      = [%.2f]\n", ai_par->vb_max_correct);
-		fprintf(fp, "\t\tf_enable_limit   = [%1d]\n", ai_par->vb_f_enable_limit);
+		fprintf(fp, "\t\tenable_limit   = [%1d]\n", ai_par->vb_enable_limit);
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
@@ -7584,12 +7584,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will
-	int keep_MM = 1;				      
+	int keep_MM = 0;				      
 
 	int niter = 1 + ai_par->vb_refinement;
-	int i, j, iter, debug = GMRFLib_DEBUG_IF();
+	int i, j, iter; // debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
-	double _tref = GMRFLib_cpu();
+	//double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
@@ -7689,7 +7689,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 #undef CODE_BLOCK
 
 	for (iter = 0; iter < niter; iter++) {
-		int update_MM = (iter == 0 || !keep_MM);
+		int update_MM = ((iter == 0) || !keep_MM);
+		double err_dx;
 		
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
@@ -7759,27 +7760,36 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
+		double step_len;
 		double ddx_max = 0.0;
-		for (i = 0; i < graph->n; i++) {
+		for (i = 0, err_dx = 0.0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
 			ddx_max = DMAX(ddx_max, ABS(dx[i]) / sd[i]);
+			err_dx += SQR(dx[i] / sd[i]);
 		}
-		double step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
+		err_dx = sqrt(err_dx/graph->n);
+		step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
+
 		for (i = 0; i < graph->n; i++) {
 			dx[i] *= step_len;
 			x_mean[i] += dx[i];
 		}
-
+		
 		if (ai_par->vb_verbose) {
 			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n",
 			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref);
-			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f]\n", (int) delta->size, step_len);
+			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f] rms(dx/sd)[%.3f]\n", (int) delta->size, step_len, err_dx);
 			for (jj = 0; jj < vb_idx->n; jj++) {
 				j = vb_idx->idx[jj];
 				printf("\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] |x-mode|/sd[%.3f]\n", j, gsl_vector_get(delta_mu, j), dx[j] / sd[j],
 				       (x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j]);
 			}
 			printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
+		}
+
+		// this is RMS standardized change between the iterations (using step_len=1)
+		if (err_dx < 0.05) {
+			break;
 		}
 	}
 

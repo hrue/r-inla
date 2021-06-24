@@ -970,7 +970,7 @@
     cat("control.vb.strategy = ", inla.spec$control.vb$strategy, "\n", file = file, append = TRUE)
     cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
     cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
-    cat("control.vb.f.enable.limit = ", inla.spec$control.vb$f.enable.limit, "\n", file = file, append = TRUE)
+    cat("control.vb.enable.limit = ", inla.spec$control.vb$enable.limit, "\n", file = file, append = TRUE)
 
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
