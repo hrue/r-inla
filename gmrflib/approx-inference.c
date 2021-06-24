@@ -7582,8 +7582,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		_tref = GMRFLib_cpu();					\
 	}
 
+	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
+	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will
+	int keep_MM = 1;				      
+
 	int niter = 1 + ai_par->vb_refinement;
-	int i, j, iter, debug = 0;			       // && GMRFLib_DEBUG_IF();
+	int i, j, iter, debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
@@ -7666,7 +7670,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	GMRFLib_tabulate_Qfunc_core(&prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, NULL, NULL, 1);
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
-	SHOW_TIME("admin1");
 
 #define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
@@ -7684,17 +7687,19 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
 #undef CODE_BLOCK
-	SHOW_TIME("build M and QM");
 
 	for (iter = 0; iter < niter; iter++) {
+		int update_MM = (iter == 0 || !keep_MM);
+		
 		gsl_vector_set_zero(B);
-		gsl_matrix_set_zero(MM);
 		gsl_vector_set_zero(MB);
 		gsl_vector_set_zero(delta);
 		gsl_vector_set_zero(delta_mu);
+		if (update_MM) {
+			gsl_matrix_set_zero(MM);
+		}
 
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
-		SHOW_TIME("compute predictors densitites");
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
@@ -7715,7 +7720,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_vector_set(B, i, tmp[i]);
 		}
 		GMRFLib_preopt_update(preopt, BB, CC);
-		SHOW_TIME("prepare A B C");
 
 #define CODE_BLOCK							\
 		for (int jj = 0; jj < vb_idx->n; jj++) {		\
@@ -7731,21 +7735,27 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+		if (update_MM) {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+		}
 #undef CODE_BLOCK
-
-		gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
+		
+		if (update_MM) {
+			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
+		}
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 
-		if (1) {
-			// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part
-			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(0.5));
+		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only
+		if (keep_MM) {
+			// in this case, keep the inv of MM through the iterations
+			if (update_MM){
+				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(0.5));
+			}
+			// hence just do inv(MM) %*% MB
+			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
-			// this is an alternative variant, but I like the previous one better as I do not control the contribution from the
-			// small eigenvalues even if they are truncated. better to do as above and invert only the 'safe' part.
-			GMRFLib_gsl_ensure_spd(MM, GMRFLib_eps(0.5));
-			gsl_linalg_pcholesky_decomp(MM, perm);
-			gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
+			// solve MM %*% delta = MB
+			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(0.5));
 		}
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
@@ -7759,10 +7769,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			dx[i] *= step_len;
 			x_mean[i] += dx[i];
 		}
-		SHOW_TIME("solve");
 
 		if (ai_par->vb_verbose) {
-			printf("\tIter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n", iter, niter, GMRFLib_cpu() - tref);
+			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n",
+			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref);
 			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f]\n", (int) delta->size, step_len);
 			for (jj = 0; jj < vb_idx->n; jj++) {
 				j = vb_idx->idx[jj];
@@ -7773,15 +7783,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 	}
 
-	// set back
 	GMRFLib_preopt_update(preopt, like_b_save, like_c_save);
-
 	for (i = 0; i < graph->n; i++) {
 		if (density[i][dens_count]) {
 			GMRFLib_density_new_user_mean(density[i][dens_count], x_mean[i]);
 		}
 	}
-	SHOW_TIME("update dens");
 
 	GMRFLib_free_tabulate_Qfunc(tabQ);
 	GMRFLib_free_tabulate_Qfunc(prior);
@@ -7805,7 +7812,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();
 
-	SHOW_TIME("cleanup");
 	GMRFLib_LEAVE_ROUTINE;
 #undef SHOW_TIME
 	return GMRFLib_SUCCESS;
