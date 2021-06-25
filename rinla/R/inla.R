@@ -1117,6 +1117,7 @@
     mf$inla.arg <- NULL
     mf$lincomb <- NULL
     mf$selection <- NULL
+    mf$inla.mode <- NULL
     mf$.parent.frame <- NULL
     mf$data <- data.same.len
 
