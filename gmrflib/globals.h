@@ -254,7 +254,7 @@ extern int GMRFLib_faster_constr;
 // add stability to AQ^-1A^T
 extern double GMRFLib_aqat_m_diag_add;
 
-extern int GMRFLib_preopt_mode;
+extern int GMRFLib_inla_mode;
 
 #endif
 __END_DECLS

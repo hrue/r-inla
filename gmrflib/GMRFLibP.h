@@ -82,6 +82,20 @@ typedef int fortran_charlen_t;
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
+typedef enum {
+	GMRFLib_MODE_CLASSIC = 1,
+	GMRFLib_MODE_TWOSTAGE, 
+	GMRFLib_MODE_TWOSTAGE_PART1, 
+	GMRFLib_MODE_TWOSTAGE_PART2,
+	GMRFLib_MODE_EXPERIMENTAL
+} GRMFLib_preopt_mode_tp;
+
+#define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
+			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
+			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
+			       (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "TwoStage Part2" : \
+				(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL ? "Experimental" : "(UNKNOWN MODE)")))))
+
 #define GMRFLib_SHA_TP         SHA256_CTX
 #define GMRFLib_SHA_DIGEST_LEN SHA256_DIGEST_LENGTH
 #define GMRFLib_SHA_Init       SHA256_Init

@@ -46,7 +46,7 @@
 ## !    keep = inla.getOption("keep"),
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
-## !    twostage = NULL, 
+## !    inla.mode = c("classic", "twostage", "experimental"), 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = parent.frame()
 ## !    )
@@ -215,9 +215,10 @@
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
 
-## ! \item{twostage}{Do inference using the new twostage-approach (if \code{TRUE}) or
-## !                 the classical approach (if \code{FALSE}).
-## !                 If \cite{NULL}, this will be decided internally. Default \code{NULL}.}
+## ! \item{inla.mode}{Run \code{inla} in \code{classic}-mode,  \code{twostage}-mode or the new \code{experimental}-mode?
+## !             Not all features are available int the \code{experimental}-mode and this mode
+## !             is really work-in-progress at the moment. Default is to run in
+## !             \code{classic}-mode. }
 
 ## ! \item{debug}{ If \code{TRUE}, then enable some debug
 ## ! output.  }
@@ -417,7 +418,7 @@
                    keep = inla.getOption("keep"),
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
-                   twostage = NULL, 
+                   inla.mode = c("classic", "twostage", "experimental"), 
                    debug = inla.getOption("debug"),
                    .parent.frame = parent.frame()) {
 
@@ -493,6 +494,8 @@
             data[[idx]] <- NULL
         }
     }
+
+    inla.mode <- match.arg(inla.mode)
 
     ## check all control.xx arguments here. do the assign as variable
     ## expansion might occur.
@@ -607,7 +610,7 @@
             keep = keep,
             working.directory = working.directory,
             silent = silent,
-            twostage = twostage, 
+            mode = mode, 
             debug = debug
         )
 
@@ -882,9 +885,6 @@
     ## because we have 'control' within a 'control', we have to process them spesifically
     cont.inla$control.vb <- cont.inla.def$control.vb
     cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
-    ## because we have 'control' within a 'control', we have to process them spesifically
-    cont.inla$control.twostage <- cont.inla.def$control.twostage
-    cont.inla$control.twostage[names(control.inla$control.twostage)] <- control.inla$control.twostage
 
     ## control predictor section
     cont.predictor <- inla.set.control.predictor.default()
@@ -1095,7 +1095,7 @@
     mf$control.compute <- NULL
     mf$control.predictor <- NULL
     mf$silent <- NULL
-    mf$twostage <- NULL
+    mf$mode <- NULL
     mf$control.hazard <- NULL
     mf$control.family <- NULL
     mf$control.update <- NULL
@@ -2055,7 +2055,7 @@
     }
 
     ## the inla section
-    inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, twostage)
+    inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, inla.mode)
 
     ## create mode section
     cont.mode <- inla.set.control.mode.default()
@@ -2063,7 +2063,7 @@
     if (!is.null(cont.mode$result)) {
         ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
         ## can/will require lots of storage. We do this by creating a stripped object with only
-        ## what is needed and pass that one along, with the expected class.
+        ## what is needed and pass that one along, with the expected classical
         cont.mode$result <- list(mode = list(x = cont.mode$result$mode$x,
                                              theta = cont.mode$result$mode$theta))
         class(cont.mode$result) <- "inla" ## in case there are checks on
@@ -2126,12 +2126,14 @@
         arg.vecLib <- ""
     }
 
-    if (is.null(twostage)) {
-        ## chose the default action here
-        arg.P <- ""
+    if (inla.mode %in% "classic") {
+        arg.P <- "-P classic"
+    } else if (inla.mode %in% "twostage") {
+        arg.P <- "-P twostage"
+    } else if (inla.mode %in% "experimental") {
+        arg.P <- "-P experimental"
     } else {
-        ## user-defined action
-        arg.P <- if (twostage) "-P" else ""
+        stop("Unknown 'inla.mode'")
     }
 
     ## collect all. we might add '-p' later if inla.call="submit"
@@ -2381,7 +2383,7 @@
             ## note that this ordering might be different than in the selection above, which
             ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
 
-            if (cont.inla$control.twostage$stage1only && (!is.null(twostage) && twostage)) {
+            if (inla.mode %in% "experimental") {
                 ct <- ret$misc$configs$contents
                 for(nm in c("APredictor", "Predictor")) {
                     if (ct$tag[1] == nm) {

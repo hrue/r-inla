@@ -47,11 +47,6 @@ __BEGIN_DECLS
 /* 
  * 
  */
-    typedef enum {
-	GMRFLib_PREOPT_NONE = 0,
-	GMRFLib_PREOPT_STAGE1 = 1,
-	GMRFLib_PREOPT_STAGE2 = 2
-} GRMFLib_preopt_stage_tp;
 
 typedef enum {
 	GMRFLib_PREOPT_TP_F = 1,

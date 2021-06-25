@@ -48,7 +48,7 @@
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
-    twostage = NULL, 
+    inla.mode = c("classic", "twostage", "experimental"), 
     debug = inla.getOption("debug"),
     .parent.frame = parent.frame()
     )
@@ -182,9 +182,10 @@
  \code{inla}-program would be ``silent''. If equal to
  2L, then supress also error messages from the
  \code{inla}-program.}
- \item{twostage}{Do inference using the new twostage-approach (if \code{TRUE}) or
-                 the classical approach (if \code{FALSE}).
-                 If \cite{NULL}, this will be decided internally. Default \code{NULL}.}
+ \item{inla.mode}{Run \code{inla} in \code{classic}-mode,  \code{twostage}-mode or the new \code{experimental}-mode?
+             Not all features are available int the \code{experimental}-mode and this mode
+             is really work-in-progress at the moment. Default is to run in
+             \code{classic}-mode. }
  \item{debug}{ If \code{TRUE}, then enable some debug
  output.  }
  \item{.parent.frame}{Internal use only}

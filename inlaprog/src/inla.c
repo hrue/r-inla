@@ -26698,7 +26698,7 @@ double extra(double *theta, int ntheta, void *argument)
 	 * this is for the linear predictor
 	 */
 
-	if (!GMRFLib_preopt_mode) {
+	if (!GMRFLib_inla_mode) {
 		if (!mb->predictor_fixed) {
 			log_precision = theta[count];
 			count++;
@@ -30050,6 +30050,7 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	if (mb->verbose) {
+		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -30531,7 +30532,8 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	assert(preopt->latent_graph->n == N);
 
 	if (mb->verbose) {
-		printf("\tStage1 setup ............ [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
+		printf("\tSetup.................... [%.2fs]\n", GMRFLib_cpu() - tref);
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -30686,7 +30688,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	if (mb->verbose) {
-		printf("\tStage2................... \n");
+		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -31204,7 +31206,8 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	assert(preopt->latent_graph->n == N);
 
 	if (mb->verbose) {
-		printf("\tStage1only setup ........ [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
+		printf("\tSetup.................... [%.2fs]\n", GMRFLib_cpu() - tref);
 		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
@@ -31676,7 +31679,7 @@ int inla_output(inla_tp * mb)
 		offsets[j++] = n;
 		n++;
 	}
-	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
 		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
 	} else {
 		assert(mb->hgmrfm->graph->n == n);
@@ -31924,7 +31927,7 @@ int inla_output(inla_tp * mb)
 						 mb->lc_order, local_verbose, mb);
 			}
 
-			// if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+			// if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
 			// mb->len_family_idx = mb->predictor_ndata = mb->preopt->Npred;
 			// }
 
@@ -31960,7 +31963,7 @@ int inla_output(inla_tp * mb)
 	}
 
 	int N = -1;
-	if (GMRFLib_preopt_mode == GMRFLib_PREOPT_STAGE1) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
 		N = mb->preopt->n + mb->preopt->mnpred;
 	} else {
 		N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
@@ -36149,7 +36152,7 @@ int main(int argc, char **argv)
 	GMRFLib_init_graph_store();			       /* no need to reset this with pretop */
 	GMRFLib_pardiso_set_nrhs(1);
 	GMRFLib_reorder = G.reorder;
-	GMRFLib_preopt_mode = GMRFLib_PREOPT_NONE;
+	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 
@@ -36166,10 +36169,18 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cpLP")) != -1) {
+	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
-			GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
+			if (!strcasecmp(optarg, "CLASSIC")) {
+				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
+			} else if (!strcasecmp(optarg, "TWOSTAGE")) {
+				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE;
+			} else if (!strcasecmp(optarg, "EXPERIMENTAL")) {
+				GMRFLib_inla_mode = GMRFLib_MODE_EXPERIMENTAL;
+			} else {
+				assert(0 == 1);
+			}
 			break;
 
 		case 'b':
@@ -36593,10 +36604,9 @@ int main(int argc, char **argv)
 			int nfunc[2] = { 0, 0 };
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
-			if (GMRFLib_preopt_mode) {
-				if (mb->ai_par->twostage_stage1only) {
+			if (GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 					time_used[3] = GMRFLib_cpu();
-					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
+					GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
 					inla_INLA_preopt_stage1only(mb);
 					time_used[3] = GMRFLib_cpu() - time_used[1];
 					atime_used[3] = clock() - atime_used[1];
@@ -36619,11 +36629,12 @@ int main(int argc, char **argv)
 					mb->reuse_mode_but_restart = GMRFLib_FALSE;
 					mb->ai_par->mode_known = GMRFLib_TRUE;
 					inla_reset();
-				} else {
+			} else if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE) {
+			
 					GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
 					time_used[3] = GMRFLib_cpu();
-					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE1;
+					GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
 					inla_INLA_preopt_stage1(mb, rpreopt);
 					time_used[3] = GMRFLib_cpu() - time_used[1];
 					atime_used[3] = clock() - atime_used[1];
@@ -36648,20 +36659,22 @@ int main(int argc, char **argv)
 					GMRFLib_preopt_free(mb->preopt);
 					inla_reset();
 					GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-					GMRFLib_preopt_mode = GMRFLib_PREOPT_STAGE2;
+					GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART2;
 					inla_INLA_preopt_stage2(mb, rpreopt);
 					nfunc[1] = mb->misc_output->nfunc;
 					rgeneric_cpu[1] = R_rgeneric_cputime;
-				}
-			} else {
-				GMRFLib_preopt_mode = GMRFLib_PREOPT_NONE;
+			} else if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 				inla_INLA(mb);
 				nfunc[0] = mb->misc_output->nfunc;
+			} else {
+				assert(0 == 1);
 			}
+			
 			time_used[1] = GMRFLib_cpu() - time_used[1];
 			atime_used[1] = clock() - atime_used[1];
 			if (!silent) {
-				if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
+				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 					printf("\tApprox inference         : %7.3f seconds\n", time_used[1]);
 				} else {
 					printf("\tApprox inference (stage1): %7.3f seconds\n", time_used[3]);
@@ -36701,7 +36714,7 @@ int main(int argc, char **argv)
 				printf("\t------------------------------------------\n");
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
 #if !defined(WINDOWS)
-				if (GMRFLib_preopt_mode != GMRFLib_PREOPT_NONE) {
+				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT;
 				}
 				PEFF_OUTPUT;
@@ -36711,7 +36724,7 @@ int main(int argc, char **argv)
 			if (verbose) {
 				printf("\nWall-clock time used on [%s]\n", argv[arg]);
 				printf("\tPreparations             : %7.3f seconds\n", time_used[0]);
-				if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
+				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 					printf("\tApprox inference         : %7.3f seconds\n", time_used[1]);
 				} else {
 					printf("\tApprox inference (stage1): %7.3f seconds\n", time_used[3]);
@@ -36722,7 +36735,7 @@ int main(int argc, char **argv)
 				printf("\t------------------------------------------\n");
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
 
-				if (GMRFLib_preopt_mode == GMRFLib_PREOPT_NONE) {
+				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 					printf("\nNumber of fn-calls= %1d with %.3f sec/fn-call\n",
 					       mb->misc_output->nfunc, time_used[1] / IMAX(1, mb->misc_output->nfunc));
 					if (R_rgeneric_cputime > 0.0) {
@@ -36750,7 +36763,7 @@ int main(int argc, char **argv)
 				}
 
 #if !defined(WINDOWS)
-				if (GMRFLib_preopt_mode != GMRFLib_PREOPT_NONE) {
+				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT;
 				}
 				PEFF_OUTPUT;

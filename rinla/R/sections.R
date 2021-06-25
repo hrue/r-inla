@@ -770,7 +770,7 @@
     return(random.spec)
 }
 
-`inla.inla.section` <- function(file, inla.spec, data.dir, twostage) {
+`inla.inla.section` <- function(file, inla.spec, data.dir, inla.mode) {
     cat(inla.secsep("INLA.Parameters"), "\n", sep = " ", file = file, append = TRUE)
     cat("type = inla\n", sep = " ", file = file, append = TRUE)
 
@@ -955,11 +955,10 @@
         cat("stupid.search.factor = ", fac, "\n", file = file, append = TRUE)
     }
 
-    inla.write.boolean.field("control.twostage.stage1only", inla.spec$control.twostage$stage1only, file)
     ## this covers ... == "auto"  (or whaterever is given)
     if (is.character(inla.spec$control.vb$enable)) {
-        if (!is.null(twostage) && twostage) {
-            inla.spec$control.vb$enable <- inla.spec$control.twostage$stage1only
+        if (inla.mode == "experimental") {
+            inla.spec$control.vb$enable <- TRUE
         } else {
             inla.spec$control.vb$enable <- FALSE
         }
