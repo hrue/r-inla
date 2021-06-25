@@ -7241,7 +7241,7 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
 		int i;
-		int np = 21;
+		int np = 15;
 		double *xp = NULL, *wp = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
@@ -7584,9 +7584,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	}
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
-	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will
-	int keep_MM = 1;				      
+	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
+	int keep_MM = 1;
 
+	// this is for robustness: scale CC[i] with 'cc_scale'
+	double cc_scale = SQR(1.0/0.95);
+	
 	int niter = 1 + ai_par->vb_refinement;
 	int i, j, iter; // debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
@@ -7632,7 +7635,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	double *pvar = Calloc_get(preopt->mnpred);
 
 	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	       /* add Qinv if required */
-
 	for (i = 0; i < graph->n; i++) {
 		if (density[i][dens_count]) {
 			x_mean[i] = density[i][dens_count]->user_mean;
@@ -7710,18 +7712,18 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
 			GMRFLib_vb_coofs_tp *vb_coof = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
 			BB[i] = vb_coof->coofs[1];			\
-			CC[i] = DMAX(0.0, vb_coof->coofs[2]);		\
-		}
+			CC[i] = DMAX(0.0, vb_coof->coofs[2] * cc_scale);     \ 
+	}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
+		GMRFLib_preopt_update(preopt, BB, CC);
 
 		GMRFLib_Qx(tmp, x_mean, preopt->latent_graph, prior->Qfunc, prior->Qfunc_arg);
 		for (i = 0; i < graph->n; i++) {
 			tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
-		GMRFLib_preopt_update(preopt, BB, CC);
 
 #define CODE_BLOCK							\
 		for (int jj = 0; jj < vb_idx->n; jj++) {		\
@@ -7751,13 +7753,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM){
-				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(0.5));
+				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0/3.0));
 			}
 			// hence just do inv(MM) %*% MB
 			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
 			// solve MM %*% delta = MB
-			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(0.5));
+			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0/3.0));
 		}
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
