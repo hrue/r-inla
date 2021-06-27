@@ -200,8 +200,6 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->vb_enable_limit = 25;
 	(*ai_par)->vb_nodes = NULL;
 
-	(*ai_par)->twostage_stage1only = 1;
-
 	return GMRFLib_SUCCESS;
 }
 
@@ -408,11 +406,6 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
-
-
-	fprintf(fp, "\ttwoStage:\n");
-	fprintf(fp, "\t\tstage1only       = [%s]\n", (ai_par->twostage_stage1only ? "Yes" : "No"));
-	fprintf(fp, "\n");
 
 	return GMRFLib_SUCCESS;
 }
@@ -1165,14 +1158,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 
 	alpha = -1.0;
 	daxpy_(&n, &alpha, fixed_mode, &one, derivative, &one);	/* derivative = derivative - fixed_mode */
-
-	if (0) {
-		P(idx);
-		P(x_mean);
-		for (i = 0; i < n; i++)
-			printf("derivative %d %.12g  fixed_mode %.12g  covariances %.12g\n", i, derivative[i], fixed_mode[i], covariances[i]);
-		// exit(0);
-	}
 
 	/*
 	 * if we do not use the meancorrected gaussian and the fast-option, then locate local neigb. set the derivative to zero
@@ -3809,12 +3794,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 			Free(ai_store_id);
 
-			if (GMRFLib_inla_mode != GMRFLib_MODE_TWOSTAGE_PART1) {
-				for (i = 0; i < 1 + ai_par->vb_refinement; i++)
-					GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL,
-								   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
+			for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL,
+							   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 			}
-
+			
 			if (GMRFLib_ai_INLA_userfunc0) {
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 			}
@@ -4305,6 +4289,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 		GMRFLib_ai_marginal_hyperparam(&tmp_logdens, x, bnew, c, mean, d,
 					       loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
 		log_dens_mode = tmp_logdens + con + log_extra(NULL, nhyper, log_extra_arg);
+
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		Free(bnew);
 
@@ -4351,8 +4336,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, GMRFLib_density_tp *** gdens
 			}
 		}
 		Free(ai_store_id);
-		Free(bnew)
-		    for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+		Free(bnew);
+
+		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
 			GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg,
 						   loglFunc, loglFunc_arg, preopt);
 		}
@@ -7342,10 +7328,8 @@ int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			       GMRFLib_preopt_tp * preopt)
 {
 	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
-		// we should not go here
-		assert(0 == 1);
-		return GMRFLib_ai_vb_correct_mean_preopt(density, dens_count,
-							 c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
+		// nothing to do here
+		return GMRFLib_SUCCESS;
 	} else {
 		return GMRFLib_ai_vb_correct_mean_std(density, dens_count, dens_local,
 						      c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg);

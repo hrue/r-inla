@@ -26242,8 +26242,6 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->vb_refinement = IMAX(0, mb->ai_par->vb_refinement);
 	mb->ai_par->vb_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.ENABLE.LIMIT"), 25);
 
-	mb->ai_par->twostage_stage1only = iniparser_getint(ini, inla_string_join(secname, "CONTROL.TWOSTAGE.STAGE1ONLY"), 0);
-
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), NULL));
 	if (opt) {
 		if (!strcasecmp(opt, "MEAN")) {
@@ -26698,7 +26696,7 @@ double extra(double *theta, int ntheta, void *argument)
 	 * this is for the linear predictor
 	 */
 
-	if (!GMRFLib_inla_mode) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC || GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2) {
 		if (!mb->predictor_fixed) {
 			log_precision = theta[count];
 			count++;

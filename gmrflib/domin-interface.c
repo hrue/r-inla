@@ -270,7 +270,6 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
 				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais,
 				       G.preopt);
-
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
@@ -286,7 +285,6 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		}
 		Free(bnew_local);
 	}
-
 	*fx += ffx;					       /* add contributions */
 	*fx *= -1.0;					       /* opt() do minimisation */
 	fx_local = *fx;

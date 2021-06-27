@@ -558,8 +558,6 @@ typedef struct {
 	 */
 	char *vb_nodes;
 
-	int twostage_stage1only;
-
 	/** 
 	 * Try to be smart when optimizing in INLA?   
 	 */
