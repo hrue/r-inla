@@ -963,7 +963,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 #define CODE_BLOCK							\
 	for(int i = 0; i < npred; i++) {				\
 		CODE_BLOCK_SET_THREAD_ID;				\
-		double var = 0.0, *cov;					\
+		double var = 0.0, zero = 0.0, *cov = NULL;		\
 		int k, j, kk, jj;					\
 		GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 		for(k = 0; k < preopt->A_idxval[i]->n; k++){		\
@@ -974,14 +974,25 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\
 				cov = GMRFLib_Qinv_get(problem, j, jj);	\
+				if (!cov) {				\
+					err_count++;			\
+					cov = &zero;			\
+				}					\
 				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
 			}						\
 		}							\
 		variance[offset + i] = var;				\
 	}
 
+	int err_count = 0;
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
 #undef CODE_BLOCK
+
+	if (err_count) {
+		char *msg = NULL;
+		GMRFLib_sprintf(&msg, "Missing %1d covariances; The A-matrix has not the proper rank. Please check.", err_count);
+		GMRFLib_ERROR_MSG(GMRFLib_EMISC, msg);
+	}
 
 	return GMRFLib_SUCCESS;
 }

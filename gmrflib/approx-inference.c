@@ -5356,13 +5356,13 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 	}
 
 	int i, j, jj, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
-	    NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0;
+		NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0;
 
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
-	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
-	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
-	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
-	    NULL, **failure_theta = NULL;
+		NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
+		NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
+		**cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
+		NULL, **failure_theta = NULL;
 	gsl_matrix *H = NULL, *eigen_vectors = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
 	gsl_vector *eigen_values = NULL;
@@ -5381,7 +5381,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 	}
 
-	assert(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1);
+	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
 	assert(preopt);
 
 	if (!ai_par) {
@@ -5569,7 +5569,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
 			}
-				break;
+			break;
 
 			default:
 				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
@@ -5937,7 +5937,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 							val = sqrt(inverse_hessian[ii + jj * nhyper]);
 						} else {
 							val = inverse_hessian[ii + jj * nhyper] /
-							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
+								sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 						}
 						fprintf(ai_par->fp_log, " %7.3f", val);
 					} else {
@@ -6053,7 +6053,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log,
 				"%s corrected stdev for theta[%1d]: negative %.3f  positive %.3f\n",
-				(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "Retrive" : "Compute"), k, stdev_corr_neg[k], stdev_corr_pos[k]);
+				"Compute", k, stdev_corr_neg[k], stdev_corr_pos[k]);
 		}
 	}
 
@@ -6126,12 +6126,12 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = f * design->experiment[k][i]
-				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = design->experiment[k][i]
-				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 			for (i = 0; i < nhyper; i++) {
@@ -6261,8 +6261,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 					Alin[i]->idx[j] -= preopt->mnpred;
 					if (Alin[i]->idx[j] < 0) {
 						char *s =
-						    GMRFLib_strdup
-						    ("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+							GMRFLib_strdup
+							("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
 						GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 						exit(1);
 					}
@@ -6662,7 +6662,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		int ndev = preopt->Npred;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
+			*deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
@@ -6760,7 +6760,7 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 			marginal_likelihood->marginal_likelihood_gaussian_approx = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 			for (i = 0; i < nhyper; i++) {
 				marginal_likelihood->marginal_likelihood_gaussian_approx -=
-				    0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
+					0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
 			}
 
 			if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
@@ -6770,8 +6770,8 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 				marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 				for (i = 0; i < nhyper; i++) {
 					marginal_likelihood->marginal_likelihood_integration -=
-					    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
-						   0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+						0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
+						       0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
 				}
 			} else {
 				double integral = 0.0, log_jacobian = 0.0;
@@ -6989,23 +6989,21 @@ int GMRFLib_ai_INLA_stage1only(GMRFLib_density_tp *** density,
 		}
 	}
 
-	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
-		Free(stdev_corr_neg);
-		Free(stdev_corr_pos);
-		Free(hessian);
-		Free(inverse_hessian);
-		if (H) {
-			gsl_matrix_free(H);
-		}
-		if (eigen_vectors) {
-			gsl_matrix_free(eigen_vectors);
-		}
-		if (eigen_values) {
-			gsl_vector_free(eigen_values);
-		}
-		if (sqrt_eigen_values) {
-			gsl_vector_free(sqrt_eigen_values);
-		}
+	Free(stdev_corr_neg);
+	Free(stdev_corr_pos);
+	Free(hessian);
+	Free(inverse_hessian);
+	if (H) {
+		gsl_matrix_free(H);
+	}
+	if (eigen_vectors) {
+		gsl_matrix_free(eigen_vectors);
+	}
+	if (eigen_values) {
+		gsl_vector_free(eigen_values);
+	}
+	if (sqrt_eigen_values) {
+		gsl_vector_free(sqrt_eigen_values);
 	}
 
 	Free(adj_weights);
@@ -7569,6 +7567,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		printf("[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_cpu()-_tref); \
 		_tref = GMRFLib_cpu();					\
 	}
+
+	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.

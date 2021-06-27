@@ -31677,7 +31677,7 @@ int inla_output(inla_tp * mb)
 		offsets[j++] = n;
 		n++;
 	}
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode ==  GMRFLib_MODE_EXPERIMENTAL) {
 		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
 	} else {
 		assert(mb->hgmrfm->graph->n == n);
@@ -31925,10 +31925,6 @@ int inla_output(inla_tp * mb)
 						 mb->lc_order, local_verbose, mb);
 			}
 
-			// if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
-			// mb->len_family_idx = mb->predictor_ndata = mb->preopt->Npred;
-			// }
-
 			if (mb->cpo) {
 				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
 			}
@@ -31961,7 +31957,7 @@ int inla_output(inla_tp * mb)
 	}
 
 	int N = -1;
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 		N = mb->preopt->n + mb->preopt->mnpred;
 	} else {
 		N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
@@ -36604,7 +36600,6 @@ int main(int argc, char **argv)
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 					time_used[3] = GMRFLib_cpu();
-					GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
 					inla_INLA_preopt_stage1only(mb);
 					time_used[3] = GMRFLib_cpu() - time_used[1];
 					atime_used[3] = clock() - atime_used[1];
