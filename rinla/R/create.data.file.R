@@ -428,34 +428,19 @@
     }
 
     file.data <- inla.tempfile(tmpdir = data.dir)
-    if (inla.getOption("internal.binary.mode")) {
-        inla.write.fmesher.file(as.matrix(response), filename = file.data, debug = debug)
-    } else {
-        file.create(file.data)
-        write(t(response), ncolumns = ncol(response), file = file.data, append = FALSE)
-    }
+    inla.write.fmesher.file(as.matrix(response), filename = file.data, debug = debug)
     file.data <- gsub(data.dir, "$inladatadir", file.data, fixed = TRUE)
 
     file.weights <- inla.tempfile(tmpdir = data.dir)
     if (!is.null(weights) && !is.function(weights)) {
-        if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(weights), filename = file.weights, debug = debug)
-        } else {
-            file.create(file.weights)
-            write(weights, ncolumns = 1, file = file.weights, append = FALSE)
-        }
+        inla.write.fmesher.file(as.matrix(weights), filename = file.weights, debug = debug)
     } else {
         file.create(file.weights)
     }
     file.weights <- gsub(data.dir, "$inladatadir", file.weights, fixed = TRUE)
 
     file.attr <- inla.tempfile(tmpdir = data.dir)
-    if (inla.getOption("internal.binary.mode")) {
-        inla.write.fmesher.file(as.matrix(y.attr, ncol = 1), filename = file.attr, debug = debug)
-    } else {
-        file.create(file.attr)
-        write(y.attr, ncolumns = 1, file = file.attr, append = FALSE)
-    }
+    inla.write.fmesher.file(as.matrix(y.attr, ncol = 1), filename = file.attr, debug = debug)
     file.attr <- gsub(data.dir, "$inladatadir", file.attr, fixed = TRUE)
 
     return(list(file.data = file.data, file.weights = file.weights, file.attr = file.attr))

@@ -1919,7 +1919,6 @@ double testit_Qfunc(int i, int j, double *values, void *arg);
 */
 
 typedef struct {
-	int binary;					       /* use binary output-files */
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
 	inla_mode_tp mode;				       /* which mode to run in */
 	double log_prec_initial;			       /* inititial value for log-precisions */

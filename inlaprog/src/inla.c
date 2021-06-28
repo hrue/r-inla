@@ -115,7 +115,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
 
-G_tp G = { 0, 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
+G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
 char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
@@ -31505,13 +31505,7 @@ int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 	if (mb->verbose) {
 		printf("\t\tstore graph in[%s]\n", fnm);
 	}
-
-	if (G.binary) {
-		GMRFLib_graph_write_b(fnm, graph);
-	} else {
-		GMRFLib_graph_write(fnm, graph);
-	}
-
+	GMRFLib_graph_write_b(fnm, graph);
 	Free(fnm);
 
 	return INLA_OK;
@@ -31587,16 +31581,11 @@ int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/size.dat", ndir);
 
-	fp = fopen(fnm, (G.binary ? "wb" : "w"));
+	fp = fopen(fnm,"wb");
 	if (!fp) {
 		inla_error_open_file(fnm);
 	}
-	if (G.binary) {
-		I5W(n, (N > 0 ? N : n), (Ntotal > 0 ? Ntotal : n), (ngroup > 0 ? ngroup : 1), (nrep > 0 ? nrep : 1));
-	} else {
-		fprintf(fp, "%d\n%d\n%d\n%d\n%d\n", n, (N > 0 ? N : n), (Ntotal > 0 ? Ntotal : n), (ngroup > 0 ? ngroup : 1),
-			(nrep > 0 ? nrep : 1));
-	}
+	I5W(n, (N > 0 ? N : n), (Ntotal > 0 ? Ntotal : n), (ngroup > 0 ? ngroup : 1), (nrep > 0 ? nrep : 1));
 	fclose(fp);
 
 	Free(fnm);
@@ -31751,16 +31740,10 @@ int inla_output(inla_tp * mb)
 				inla_mkdir(fnm);
 				Free(fnm);
 				GMRFLib_sprintf(&fnm, "%s/totaloffset/totaloffset.dat", mb->dir);
-				fp = fopen(fnm, (G.binary ? "wb" : "w"));
+				fp = fopen(fnm, "wb"); 
 				Free(fnm);
-				if (G.binary) {
-					for (ii = 0; ii < mb->predictor_n + mb->predictor_m; ii++) {
-						DW(OFFSET3(ii));
-					}
-				} else {
-					for (ii = 0; ii < mb->predictor_n + mb->predictor_m; ii++) {
-						fprintf(fp, "%1d %.12g\n", ii, OFFSET3(ii));
-					}
+				for (ii = 0; ii < mb->predictor_n + mb->predictor_m; ii++) {
+					DW(OFFSET3(ii));
 				}
 				fclose(fp);
 			}
@@ -32007,7 +31990,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cpo.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32017,30 +32000,20 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 			printf("\t\tstore cpo-results in[%s]\n", nndir);
 		}
 	}
-	if (G.binary) {
-		IW(predictor_n);
-	}
+	IW(predictor_n);
 	for (i = 0; i < n; i++) {
 		if (cpo->value[i]) {
-			if (G.binary) {
-				IDW(i, cpo->value[i][0]);
-			} else {
-				fprintf(fp, "%1d %.8g\n", i, cpo->value[i][0]);
-			}
+			IDW(i, cpo->value[i][0]);
 		} else {
 			if (add_empty) {
-				if (G.binary) {
-					IDW(i, NAN);
-				} else {
-					fprintf(fp, "%1d %.8g\n", i, NAN);
-				}
+				IDW(i, NAN);
 			}
 		}
 	}
 	fclose(fp);
 	if (cpo->pit_value) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "pit.dat");
-		fp = fopen(nndir, (G.binary ? "wb" : "w"));
+		fp = fopen(nndir, "wb"); 
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -32050,23 +32023,13 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 				printf("\t\tstore pit-results in[%s]\n", nndir);
 			}
 		}
-		if (G.binary) {
-			IW(predictor_n);
-		}
+		IW(predictor_n);
 		for (i = 0; i < n; i++) {
 			if (cpo->pit_value[i]) {
-				if (G.binary) {
-					IDW(i, cpo->pit_value[i][0]);
-				} else {
-					fprintf(fp, "%1d %.8g\n", i, cpo->pit_value[i][0]);
-				}
+				IDW(i, cpo->pit_value[i][0]);
 			} else {
 				if (add_empty) {
-					if (G.binary) {
-						IDW(i, NAN);
-					} else {
-						fprintf(fp, "%1d %.8g\n", i, NAN);
-					}
+					IDW(i, NAN);
 				}
 			}
 		}
@@ -32074,7 +32037,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	}
 	if (cpo->failure) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "failure.dat");
-		fp = fopen(nndir, (G.binary ? "wb" : "w"));
+		fp = fopen(nndir, "wb"); 
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -32087,25 +32050,17 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		IW(predictor_n);
 		for (i = 0; i < n; i++) {
 			if (cpo->failure[i]) {
-				if (G.binary) {
-					IDW(i, cpo->failure[i][0]);
-				} else {
-					fprintf(fp, "%1d %.8g\n", i, cpo->failure[i][0]);
-				}
+				IDW(i, cpo->failure[i][0]);
 			} else {
 				if (add_empty) {
-					if (G.binary) {
-						IDW(i, NAN);
-					} else {
-						fprintf(fp, "%1d %.8g\n", i, NAN);
-					}
+					IDW(i, NAN);
 				}
 			}
 		}
 		fclose(fp);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32115,14 +32070,11 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 			printf("\t\tstore summary of cpo-results in[%s]\n", nndir);
 		}
 	}
-	if (G.binary) {
-		D2W(cpo->mean_value, cpo->gmean_value);
-	} else {
-		fprintf(fp, "mean value: %g\ngeometric mean value: %g\n", cpo->mean_value, cpo->gmean_value);
-	}
+	D2W(cpo->mean_value, cpo->gmean_value);
 	fclose(fp);
 	Free(ndir);
 	Free(nndir);
+
 	return INLA_OK;
 }
 
@@ -32146,7 +32098,7 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "po.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32156,23 +32108,13 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 			printf("\t\tstore po-results in[%s]\n", nndir);
 		}
 	}
-	if (G.binary) {
-		IW(predictor_n);
-	}
+	IW(predictor_n);
 	for (i = 0; i < n; i++) {
 		if (po->value[i]) {
-			if (G.binary) {
-				ID2W(i, po->value[i][0], po->value[i][1]);
-			} else {
-				fprintf(fp, "%1d %.8g %.8g\n", i, po->value[i][0], po->value[i][1]);
-			}
+			ID2W(i, po->value[i][0], po->value[i][1]);
 		} else {
 			if (add_empty) {
-				if (G.binary) {
-					ID2W(i, NAN, NAN);
-				} else {
-					fprintf(fp, "%1d %.8g %.8g\n", i, NAN, NAN);
-				}
+				ID2W(i, NAN, NAN);
 			}
 		}
 	}
@@ -32210,7 +32152,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "dic.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32220,20 +32162,8 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 			printf("\t\tstore dic-results in[%s]\n", nndir);
 		}
 	}
-	if (G.binary) {
-		D4W(dic->mean_of_deviance, dic->deviance_of_mean, dic->p, dic->dic);
-		D4W(dic->mean_of_deviance_sat, dic->deviance_of_mean_sat, dic->p, dic->dic_sat);
-	} else {
-		fprintf(fp, "mean of the deviance: %g\n", dic->mean_of_deviance);
-		fprintf(fp, "deviance of the mean: %g\n", dic->deviance_of_mean);
-		fprintf(fp, "effective number of parameters: %g\n", dic->p);
-		fprintf(fp, "dic: %g\n", dic->dic);
-		fprintf(fp, "\n");
-		fprintf(fp, "mean of the deviance (saturated): %g\n", dic->mean_of_deviance_sat);
-		fprintf(fp, "deviance of the mean (saturated): %g\n", dic->deviance_of_mean_sat);
-		fprintf(fp, "effective number of parameters: %g\n", dic->p);
-		fprintf(fp, "dic (saturated): %g\n", dic->dic_sat);
-	}
+	D4W(dic->mean_of_deviance, dic->deviance_of_mean, dic->p, dic->dic);
+	D4W(dic->mean_of_deviance_sat, dic->deviance_of_mean_sat, dic->p, dic->dic_sat);
 	fclose(fp);
 
 	if (dic->n_deviance > 0) {
@@ -32290,7 +32220,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	 */
 	char *ndir = NULL, *msg = NULL, *nndir = NULL, *nnndir = NULL;
 	FILE *fp = NULL;
-	int i, j, any;
+	int i, any;
 
 	if (!mo) {
 		return INLA_OK;
@@ -32340,82 +32270,48 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-hyper-internal.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	if (G.binary) {
-		DW(mo->nhyper);
-		for (i = 0; i < ISQR(mo->nhyper); i++) {
-			DW(mo->cov_m[i]);
-		}
-	} else {
-		fprintf(fp, "%d\n", mo->nhyper);
-		for (i = 0; i < mo->nhyper; i++) {
-			for (j = 0; j < mo->nhyper; j++) {
-				fprintf(fp, " %.12g", mo->cov_m[i + j * mo->nhyper]);
-			}
-			fprintf(fp, "\n");
-		}
+	DW(mo->nhyper);
+	for (i = 0; i < ISQR(mo->nhyper); i++) {
+		DW(mo->cov_m[i]);
 	}
 	fclose(fp);
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvectors.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	if (G.binary) {
-		DW(mo->nhyper);
-		for (i = 0; i < ISQR(mo->nhyper); i++) {
-			DW(mo->eigenvectors[i]);
-		}
-	} else {
-		fprintf(fp, "%d\n", mo->nhyper);
-		for (i = 0; i < mo->nhyper; i++) {
-			for (j = 0; j < mo->nhyper; j++) {
-				fprintf(fp, " %.12g", mo->eigenvectors[i + j * mo->nhyper]);
-			}
-			fprintf(fp, "\n");
-		}
+	DW(mo->nhyper);
+	for (i = 0; i < ISQR(mo->nhyper); i++) {
+		DW(mo->eigenvectors[i]);
 	}
 	fclose(fp);
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvalues.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	if (G.binary) {
-		DW(mo->nhyper);
-		for (i = 0; i < mo->nhyper; i++) {
-			DW(mo->eigenvalues[i]);
-		}
-	} else {
-		fprintf(fp, "%d\n", mo->nhyper);
-		for (i = 0; i < mo->nhyper; i++) {
-			fprintf(fp, " %.12g\n", mo->eigenvalues[i]);
-		}
+	DW(mo->nhyper);
+	for (i = 0; i < mo->nhyper; i++) {
+		DW(mo->eigenvalues[i]);
 	}
 	fclose(fp);
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "reordering.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	if (G.binary) {
-		for (i = 0; i < mo->len_reordering; i++) {
-			IW(mo->reordering[i] + 1);	       /* yes, use 1-based indexing. */
-		}
-	} else {
-		fprintf(fp, "%d\n", mo->len_reordering);
-		for (i = 0; i < mo->len_reordering; i++) {
-			fprintf(fp, " %d %d\n", i, mo->reordering[i]);
-		}
+	for (i = 0; i < mo->len_reordering; i++) {
+		IW(mo->reordering[i] + 1);	       /* yes, use 1-based indexing. */
 	}
 	fclose(fp);
 	Free(nndir);
@@ -32722,7 +32618,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-likelihood.dat");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32732,12 +32628,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 			printf("\t\tstore marginal-likelihood results in[%s]\n", nndir);
 		}
 	}
-	if (G.binary) {
-		D2W(mlik->marginal_likelihood_integration, mlik->marginal_likelihood_gaussian_approx);
-	} else {
-		fprintf(fp, "log marginal-likelihood (integration): %g\n", mlik->marginal_likelihood_integration);
-		fprintf(fp, "log marginal-likelihood (Gaussian): %g\n", mlik->marginal_likelihood_gaussian_approx);
-	}
+	D2W(mlik->marginal_likelihood_integration, mlik->marginal_likelihood_gaussian_approx);
 	fclose(fp);
 	Free(ndir);
 	Free(nndir);
@@ -32885,19 +32776,13 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".theta_mode");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	if (G.binary) {
-		IW(n_theta);
-		for (i = 0; i < n_theta; i++) {
-			DW(theta[i][0][0]);
-		}
-	} else {
-		for (i = 0; i < n_theta; i++) {
-			fprintf(fp, "%.12f\n", theta[i][0][0]);
-		}
+	IW(n_theta);
+	for (i = 0; i < n_theta; i++) {
+		DW(theta[i][0][0]);
 	}
 	fclose(fp);
 	Free(nndir);
@@ -32915,19 +32800,13 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	FILE *fp = NULL;
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".x_mode");
-	fp = fopen(nndir, (G.binary ? "wb" : "w"));
+	fp = fopen(nndir, "wb"); 
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	if (G.binary) {
-		IW(n_x);
-		for (i = 0; i < n_x; i++) {
-			DW(x[i]);
-		}
-	} else {
-		for (i = 0; i < n_x; i++) {
-			fprintf(fp, "%.12f\n", x[i]);
-		}
+	IW(n_x);
+	for (i = 0; i < n_x; i++) {
+		DW(x[i]);
 	}
 	fclose(fp);
 	Free(nndir);
@@ -33133,7 +33012,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->summary) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33147,32 +33026,16 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 				if (density[i]) {
 					inla_integrate_func(&d_mean, &d_stdev, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i));
 					if (locations) {
-						if (G.binary) {
-							D3W(locations[i % ndiv], d_mean, d_stdev);
-						} else {
-							fprintf(fp, "%g %.8g %.8g\n", locations[i % ndiv], d_mean, d_stdev);
-						}
+						D3W(locations[i % ndiv], d_mean, d_stdev);
 					} else {
-						if (G.binary) {
-							ID2W(i, d_mean, d_stdev);
-						} else {
-							fprintf(fp, "%1d %.8g %.8g\n", i, d_mean, d_stdev);
-						}
+						ID2W(i, d_mean, d_stdev);
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								D3W(locations[i % ndiv], NAN, NAN);
-							} else {
-								fprintf(fp, "%g %.8g %.8g\n", locations[i % ndiv], NAN, NAN);
-							}
+							D3W(locations[i % ndiv], NAN, NAN);
 						} else {
-							if (G.binary) {
-								ID2W(i, NAN, NAN);
-							} else {
-								fprintf(fp, "%1d %.8g %.8g\n", i, NAN, NAN);
-							}
+							ID2W(i, NAN, NAN);
 						}
 					}
 				}
@@ -33182,7 +33045,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary-gaussian.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33196,32 +33059,16 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 				if (gdensity[i]) {
 					inla_integrate_func(&d_mean, &d_stdev, &g_mode[i], gdensity[i], _FUNC, _FUNC_ARG, _TFUNC(i));
 					if (locations) {
-						if (G.binary) {
-							D3W(locations[i % ndiv], d_mean, d_stdev);
-						} else {
-							fprintf(fp, "%g %.8g %.8g\n", locations[i % ndiv], d_mean, d_stdev);
-						}
+						D3W(locations[i % ndiv], d_mean, d_stdev);
 					} else {
-						if (G.binary) {
-							ID2W(i, d_mean, d_stdev);
-						} else {
-							fprintf(fp, "%1d %.8g %.8g\n", i, d_mean, d_stdev);
-						}
+						ID2W(i, d_mean, d_stdev);
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								D3W(locations[i % ndiv], NAN, NAN);
-							} else {
-								fprintf(fp, "%g %.8g %.8g\n", locations[i % ndiv], NAN, NAN);
-							}
+							D3W(locations[i % ndiv], NAN, NAN);
 						} else {
-							if (G.binary) {
-								ID2W(i, NAN, NAN);
-							} else {
-								fprintf(fp, "%1d %.8g %.8g\n", i, NAN, NAN);
-							}
+							ID2W(i, NAN, NAN);
 						}
 					}
 				}
@@ -33233,7 +33080,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33246,65 +33093,31 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (density[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
 					GMRFLib_density_layout_x(&xx, &nn, density[i]);
-					if (G.binary) {
-						IW(nn);
-					}
+					IW(nn);
 					for (ii = 0; ii < nn; ii++) {
 						x = xx[ii];
 						x_user = GMRFLib_density_std2user(x, density[i]);
 						GMRFLib_evaluate_density(&dens, x, density[i]);
 						dens_user = dens / density[i]->std_stdev;
-						if (G.binary) {
-							D2W(_MAP_X(x_user, i), _MAP_DENS(dens_user, x_user, i));
-						} else {
-							fprintf(fp, " %.6g %.6g", _MAP_X(x_user, i), _MAP_DENS(dens_user, x_user, i));
-						}
+						D2W(_MAP_X(x_user, i), _MAP_DENS(dens_user, x_user, i));
 					}
 					Free(xx);
-					if (!G.binary) {
-						fprintf(fp, "\n");
-					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
 						nn = 3;
-						if (G.binary) {
-							IW(nn);
-						}
+						IW(nn);
 						for (ii = 0; ii < nn; ii++) {
-							if (G.binary) {
-								D2W(NAN, NAN);
-							} else {
-								fprintf(fp, " %.6g %.6g", NAN, NAN);
-							}
-						}
-						if (!G.binary) {
-							fprintf(fp, "\n");
+							D2W(NAN, NAN);
 						}
 					}
 				}
@@ -33314,7 +33127,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities-gaussian.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33327,61 +33140,31 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (gdensity[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
 						fprintf(fp, "%1d ", i);
 					}
 					GMRFLib_density_layout_x(&xx, &nn, gdensity[i]);
-					if (G.binary) {
-						IW(nn);
-					}
+					IW(nn);
 					for (ii = 0; ii < nn; ii++) {
 						x = xx[ii];
 						x_user = GMRFLib_density_std2user(x, gdensity[i]);
 						GMRFLib_evaluate_density(&dens, x, gdensity[i]);
 						dens_user = dens / gdensity[i]->std_stdev;
-						if (G.binary) {
-							D2W(_MAP_X(x_user, i), _MAP_DENS(dens_user, x_user, i));
-						} else {
-							fprintf(fp, " %.6g %.6g", _MAP_X(x_user, i), _MAP_DENS(dens_user, x_user, i));
-						}
+						D2W(_MAP_X(x_user, i), _MAP_DENS(dens_user, x_user, i));
 					}
 					Free(xx);
-					if (!G.binary) {
-						fprintf(fp, "\n");
-					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
 						nn = 3;
-						if (G.binary) {
-							IW(nn);
-						}
+						IW(nn);
 						for (ii = 0; ii < nn; ii++) {
-							if (G.binary) {
-								D2W(NAN, NAN);
-							} else {
-								fprintf(fp, " %.6g %.6g", NAN, NAN);
-							}
-						}
-						if (!G.binary) {
-							fprintf(fp, "\n");
+							D2W(NAN, NAN);
 						}
 					}
 				}
@@ -33396,7 +33179,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		 */
 		if (inla_computed(density, n) && inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33416,50 +33199,26 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						GMRFLib_kld_sym(&kld, gdensity[i], density[i]);
 					}
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						DW(kld);
-					} else {
-						fprintf(fp, "%.6g\n", kld);
-					}
+					DW(kld);
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							DW(NAN);
-						} else {
-							fprintf(fp, "%.6g\n", NAN);
-						}
+						DW(NAN);
 					}
 				}
 			}
 			fclose(fp);
 		} else if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33481,43 +33240,19 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						GMRFLib_kld_sym(&kld, gd, density[i]);
 					}
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						DW(kld);
-					} else {
-						fprintf(fp, "%.6g\n", kld);
-					}
+					DW(kld);
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							DW(NAN);
-						} else {
-							fprintf(fp, "%.6g\n", NAN);
-						}
+						DW(NAN);
 					}
 				}
 				GMRFLib_free_density(gd);
@@ -33528,7 +33263,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->nquantiles) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33541,21 +33276,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (density[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						IW(output->nquantiles);
-					}
+					IW(output->nquantiles);
 					for (j = 0; j < output->nquantiles; j++) {
 						p = output->quantiles[j];
 						if (_MAP_INCREASING(i)) {
@@ -33564,42 +33289,18 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 							GMRFLib_density_Pinv(&xp, 1.0 - p, density[i]);
 						}
 						x_user = GMRFLib_density_std2user(xp, density[i]);
-						if (G.binary) {
-							D2W(p, _MAP_X(x_user, i));
-						} else {
-							fprintf(fp, " %g %g", p, _MAP_X(x_user, i));
-						}
-					}
-					if (!G.binary) {
-						fprintf(fp, "\n");
+						D2W(p, _MAP_X(x_user, i));
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							IW(output->nquantiles);
-						}
+						IW(output->nquantiles);
 						for (j = 0; j < output->nquantiles; j++) {
-							if (G.binary) {
-								D2W(NAN, NAN);
-							} else {
-								fprintf(fp, " %g %g", NAN, NAN);
-							}
-						}
-						if (!G.binary) {
-							fprintf(fp, "\n");
+							D2W(NAN, NAN);
 						}
 					}
 				}
@@ -33609,7 +33310,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles-gaussian.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33622,21 +33323,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (gdensity[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						IW(output->nquantiles);
-					}
+					IW(output->nquantiles);
 					for (j = 0; j < output->nquantiles; j++) {
 						p = output->quantiles[j];
 						if (_MAP_INCREASING(i)) {
@@ -33645,42 +33336,18 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 							GMRFLib_density_Pinv(&xp, 1.0 - p, gdensity[i]);
 						}
 						x_user = GMRFLib_density_std2user(xp, gdensity[i]);
-						if (G.binary) {
-							D2W(p, _MAP_X(x_user, i));
-						} else {
-							fprintf(fp, " %g %g", p, _MAP_X(x_user, i));
-						}
-					}
-					if (!G.binary) {
-						fprintf(fp, "\n");
+						D2W(p, _MAP_X(x_user, i));
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							IW(output->nquantiles);
-						}
+						IW(output->nquantiles);
 						for (j = 0; j < output->nquantiles; j++) {
-							if (G.binary) {
-								D2W(NAN, NAN);
-							} else {
-								fprintf(fp, " %g %g", NAN, NAN);
-							}
-						}
-						if (!G.binary) {
-							fprintf(fp, "\n");
+							D2W(NAN, NAN);
 						}
 					}
 				}
@@ -33692,7 +33359,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->mode) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33705,43 +33372,19 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (density[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						D3W(1.0, NAN, d_mode[i]);
-					} else {
-						fprintf(fp, " %g\n", d_mode[i]);
-					}
+					D3W(1.0, NAN, d_mode[i]);
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							D3W(1.0, NAN, NAN);
-						} else {
-							fprintf(fp, " %g\n", NAN);
-						}
+						D3W(1.0, NAN, NAN);
 					}
 				}
 			}
@@ -33750,7 +33393,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode-gaussian.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33763,43 +33406,19 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (gdensity[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						D2W(1.0, g_mode[i]);
-					} else {
-						fprintf(fp, " %g\n", g_mode[i]);
-					}
+					D2W(1.0, g_mode[i]);
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							D2W(1.0, NAN);
-						} else {
-							fprintf(fp, " %g\n", NAN);
-						}
+						D2W(1.0, NAN);
 					}
 				}
 			}
@@ -33810,7 +33429,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 	if (output->ncdf) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33823,21 +33442,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (density[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						IW(output->ncdf);
-					}
+					IW(output->ncdf);
 					for (j = 0; j < output->ncdf; j++) {
 						xp = output->cdf[j];
 						x = GMRFLib_density_user2std(xp, density[i]);
@@ -33845,42 +33454,18 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						if (_MAP_DECREASING(i)) {
 							p = 1.0 - p;
 						}
-						if (G.binary) {
-							D2W(_MAP_X(xp, i), p);
-						} else {
-							fprintf(fp, " %g %g", _MAP_X(xp, i), p);
-						}
-					}
-					if (!G.binary) {
-						fprintf(fp, "\n");
+						D2W(_MAP_X(xp, i), p);
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							IW(output->ncdf);
-						}
+						IW(output->ncdf);
 						for (j = 0; j < output->ncdf; j++) {
-							if (G.binary) {
-								D2W(NAN, NAN);
-							} else {
-								fprintf(fp, " %g %g", NAN, NAN);
-							}
-						}
-						if (!G.binary) {
-							fprintf(fp, "\n");
+							D2W(NAN, NAN);
 						}
 					}
 				}
@@ -33890,7 +33475,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 		}
 		if (inla_computed(gdensity, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf-gaussian.dat");
-			fp = fopen(nndir, (G.binary ? "wb" : "w"));
+			fp = fopen(nndir, "wb"); 
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33903,21 +33488,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 			for (i = 0; i < n; i++) {
 				if (gdensity[i]) {
 					if (locations) {
-						if (G.binary) {
-							DW(locations[i % ndiv]);
-						} else {
-							fprintf(fp, "%g ", locations[i % ndiv]);
-						}
+						DW(locations[i % ndiv]);
 					} else {
-						if (G.binary) {
-							IW(i);
-						} else {
-							fprintf(fp, "%1d ", i);
-						}
+						IW(i);
 					}
-					if (G.binary) {
-						IW(output->ncdf);
-					}
+					IW(output->ncdf);
 					for (j = 0; j < output->ncdf; j++) {
 						xp = output->cdf[j];
 						x = GMRFLib_density_user2std(xp, gdensity[i]);
@@ -33925,42 +33500,18 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_d
 						if (_MAP_DECREASING(i)) {
 							p = 1.0 - p;
 						}
-						if (G.binary) {
-							D2W(xp, p);
-						} else {
-							fprintf(fp, " %g %g", _MAP_X(xp, i), p);
-						}
-					}
-					if (!G.binary) {
-						fprintf(fp, "\n");
+						D2W(xp, p);
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
-							if (G.binary) {
-								DW(locations[i % ndiv]);
-							} else {
-								fprintf(fp, "%g ", locations[i % ndiv]);
-							}
+							DW(locations[i % ndiv]);
 						} else {
-							if (G.binary) {
-								IW(i);
-							} else {
-								fprintf(fp, "%1d ", i);
-							}
+							IW(i);
 						}
-						if (G.binary) {
-							IW(output->ncdf);
-						}
+						IW(output->ncdf);
 						for (j = 0; j < output->ncdf; j++) {
-							if (G.binary) {
-								D2W(NAN, NAN);
-							} else {
-								fprintf(fp, " %g %g", NAN, NAN);
-							}
-						}
-						if (!G.binary) {
-							fprintf(fp, "\n");
+							D2W(NAN, NAN);
 						}
 					}
 				}
@@ -36163,7 +35714,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "bvVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
 			if (!strcasecmp(optarg, "CLASSIC")) {
@@ -36175,10 +35726,6 @@ int main(int argc, char **argv)
 			} else {
 				assert(0 == 1);
 			}
-			break;
-
-		case 'b':
-			G.binary = 1;
 			break;
 
 		case 'v':

@@ -28,8 +28,7 @@ inla.write.graph(graph, filename = "graph.dat", mode = c("binary", "ascii"), ...
                  or a neighbours list with class \code{nb} (see \code{spdep::card} and
                  \code{spdep::poly2nb} for for details of \code{nb} and an example a function
                  returning an \code{nb} object}
-    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on
-                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
+    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary.}
     \item{object}{An \code{inla.graph} -object}
     \item{x}{An \code{inla.graph} -object}
     \item{y}{Not used}

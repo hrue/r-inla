@@ -29,8 +29,7 @@
 ## !                 or a neighbours list with class \code{nb} (see \code{spdep::card} and
 ## !                 \code{spdep::poly2nb} for for details of \code{nb} and an example a function
 ## !                 returning an \code{nb} object}
-## !    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary. Default value depends on
-## !                the inla.option \code{internal.binary.mode} which is default \code{TRUE}; see \code{inla.setOption}.}
+## !    \item{mode}{The mode of the file; ascii-file or a (gzip-compressed) binary.}
 ## !    \item{object}{An \code{inla.graph} -object}
 ## !    \item{x}{An \code{inla.graph} -object}
 ## !    \item{y}{Not used}
@@ -472,10 +471,7 @@
     ## code starts here
     ##
     if (missing(mode)) {
-        ## if nothing is giving, use the global option depending on
-        ## the internal.binary.mode. this option is default TRUE, but
-        ## can be set to FALSE to ease debugging.
-        mode <- inla.ifelse(inla.getOption("internal.binary.mode"), "binary", "ascii")
+        mode <- "ascii"
     }
     mode <- match.arg(mode)
     g <- inla.read.graph(graph, ...)
