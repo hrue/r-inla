@@ -2055,7 +2055,6 @@
         cat("Run inla...")
     }
 
-    ## inla.arg override all default arguments including `-b' !!!
     if (is.null(inla.arg)) {
         arg.arg <- ""
 
@@ -2070,13 +2069,11 @@
         }
 
         arg.s <- inla.ifelse(silent, "-s", "")
-        arg.b <- "-b"
     } else {
         arg.arg <- inla.arg
         arg.nt <- ""
         arg.v <- ""
         arg.s <- ""
-        arg.b <- ""
     }
 
     if ((inla.os("mac") || inla.os("mac.arm64")) && inla.getOption("vecLib") && !inla.getOption("mkl")) {
@@ -2096,7 +2093,7 @@
     }
 
     ## collect all. we might add '-p' later if inla.call="submit"
-    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
+    all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
 
     ## define some environment variables for remote computing
     vars <- list(
