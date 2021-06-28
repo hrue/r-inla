@@ -2145,7 +2145,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 	int i, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, id, *idxs = NULL, nidx = 0;
-	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? preopt->Npred : graph->n);
+	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
@@ -2240,7 +2240,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		memset(bb, 0, Npred * sizeof(double));
 		memset(cc, 0, Npred * sizeof(double));
 
-		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
+		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 			if (!free_linear_predictor) {
 				linear_predictor = Calloc(Npred, double);
 				free_linear_predictor = 1;
@@ -2408,7 +2408,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are/might-be used later
 			 */
 
-			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1) {
+			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 				GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 			} else {
 				linear_predictor = mode;
@@ -2870,6 +2870,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	double **lin_cross = NULL;
 	GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = NULL;
 
+	assert(GMRFLib_inla_mode != GMRFLib_MODE_EXPERIMENTAL);
 	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 		assert(!preopt);
 		assert(!rpreopt);
