@@ -4044,15 +4044,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			 * new code which parallise over configurations 
 			 */
 			GMRFLib_ai_pool_tp *pool = NULL;
-			unsigned int kk;
-
 			GMRFLib_ai_pool_init(&pool, ai_par, nhyper);
 
 			GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 			GMRFLib_ASSERT(hyper_count == 0, GMRFLib_ESNH);
 
 #pragma omp parallel for private(i, log_dens, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_outer)
-			for (int kk = 0; kk < pool->nconfig; kk++) {
+			for (size_t kk = 0; kk < pool->nconfig; kk++) {
 
 				GMRFLib_ai_store_tp *ai_store_id = NULL;
 				GMRFLib_density_tp **dens_local = NULL;

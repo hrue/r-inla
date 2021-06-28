@@ -1471,17 +1471,33 @@ typedef struct {
 /* 
    binary write macros
  */
-#define DW(a) {double da = (a); fwrite(&da, sizeof(double), (size_t)1, fp); }
-#define D2W(a, b) {DW(a); DW(b);}
-#define D3W(a, b, c) {D2W(a, b); DW(c);}
-#define D4W(a, b, c, d) {D2W(a, b); D2W(c, d);}
-#define IW(a) {double d = (double)(a); DW(d);}		       /* OOPS: write ints as double! */
-#define I2W(a, b) {IW(a); IW(b);}
-#define I3W(a, b, c) {IW(a); IW(b); IW(c);}
-#define I4W(a, b, c, d) {I2W(a, b); I2W(c, d);}
-#define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
-#define IDW(a, b)  {IW(a); DW(b);}
-#define ID2W(a, b, c)  {IW(a); D2W(b, c);}
+#define DW(a) {double da[1] = {a}; fwrite((void *)&da, sizeof(double), (size_t)1, fp); }
+#define D2W(a, b) {double da[2] = {a, b}; fwrite((void *)&da, sizeof(double), (size_t)2, fp); }
+#define D3W(a, b, c) {double da[3] = {a, b, c}; fwrite((void *)&da, sizeof(double), (size_t)3, fp); }
+#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
+#define D5W(a, b, c, d, e) {double da[5] = {a, b, c, d, e}; fwrite((void *)&da, sizeof(double), (size_t)5, fp); }
+
+//#define D2W(a, b) {DW(a); DW(b);}
+//#define D3W(a, b, c) {D2W(a, b); DW(c);}
+//#define D4W(a, b, c, d) {D2W(a, b); D2W(c, d);}
+
+//#define IW(a) {double d = (double)(a); DW(d);}		       /* OOPS: write ints as double! */
+//#define I2W(a, b) {IW(a); IW(b);}
+//#define I3W(a, b, c) {IW(a); IW(b); IW(c);}
+//#define I4W(a, b, c, d) {I2W(a, b); I2W(c, d);}
+//#define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
+
+#define IW(a) DW(a)
+#define I2W(a, b) D2W(a, b)
+#define I3W(a, b, c) D3W(a, b, c)
+#define I4W(a, b, c, d) D4W(a, b, c, d)
+#define I5W(a, b, c, d, e) D5W(a, b, c, d, 2)
+
+//#define IDW(a, b)  {IW(a); DW(b);}
+//#define ID2W(a, b, c)  {IW(a); D2W(b, c);}
+
+#define IDW(a, b) D2W(a, b)
+#define ID2W(a, b, c)  D3W(a, b, c)
 
 /* 
    functions

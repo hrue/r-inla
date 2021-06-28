@@ -31559,7 +31559,7 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 	return INLA_OK;
 }
 
-int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep)
+int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int UNUSED(nrep))
 {
 	FILE *fp;
 	char *fnm, *ndir;
@@ -35292,6 +35292,30 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 63: 
+	{
+		FILE *fp = fopen("testfile1.dat", "wb");
+		FILE *fpp = fopen("testfile2.dat", "wb");
+		int n = gsl_pow_2(1024);
+		double *x= Calloc(n, double);
+		double tref;
+		
+		for(int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+		tref = GMRFLib_cpu();
+		fwrite((void *)x, sizeof(double), (size_t) n, fp);
+		fclose(fp);
+		P(GMRFLib_cpu()-tref);
+		tref = GMRFLib_cpu();
+		for(int i = 0; i < n; i++) {
+			fwrite((void *)x+i, sizeof(double), (size_t) 1, fpp);
+		}
+		fclose(fpp);
+		P(GMRFLib_cpu()-tref);
+		break;
+	}
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
