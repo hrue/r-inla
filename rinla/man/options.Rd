@@ -56,8 +56,6 @@
      internal.binary.mode : if \code{FALSE} the (some) output are in ascii format instead of binary format.
                             Using this option,  then \code{inla.collect.results} will fail (Expert mode)
 
-     internal.experimental.mode :  Expert option
-
      cygwin : The home of the Cygwin installation (default "C:/cygwin") [Remote computing for Windows only]
 
      ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the

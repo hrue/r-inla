@@ -226,80 +226,8 @@
              ok = res.ok
              )
     class(res) <- "inla"
-
-    if (inla.getOption("internal.experimental.mode")) {
-        if (debug) {
-            print("...Fix marginals")
-        }
-
-        ## set the inla.marginal class to all the marginals, and add tag
-        ## used for plotting.  all these have two levels:
-        idxs <- grep("marginals[.](fixed|linear[.]predictor|lincomb[.]derived|lincomb|hyperpar|fitted[.]values)", names(res))
-        if (length(idxs) > 0) {
-            for (idx in idxs) {
-                if (!is.null(res[[idx]])) {
-                    name.1 <- names(res)[idx]
-                    attr(res[[idx]], "inla.tag") <- name.1
-                    class(res[[idx]]) <- "inla.marginals"
-
-                    if (length(res[[idx]]) > 0) {
-                        for (i in 1:length(res[[idx]])) {
-                            name.2 <- names(res[[idx]])[i]
-                            if (!is.null(res[[idx]][[i]])) {
-                                attr(res[[idx]][[i]], "inla.tag") <- paste(name.1, name.2)
-                                class(res[[idx]][[i]]) <- "inla.marginal"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (debug) {
-            print("...Fix marginals 1")
-        }
-
-        ## all these have three levels:
-        idxs <- grep("marginals[.]random", names(res))
-        if (length(idxs) > 0) {
-            for (idx in idxs) {
-                if (!is.null(res[[idx]])) {
-                    name.1 <- names(res)[idx]
-                    name.2 <- names(res[[idx]])
-
-                    if (length(res[[idx]]) > 0) {
-                        for (i in 1:length(res[[idx]])) {
-                            name.3 <- name.2[i]
-                            name.4 <- names(res[[idx]][[i]])
-
-                            attr(res[[idx]][[i]], "inla.tag") <- paste(name.1, name.3)
-                            class(res[[idx]][[i]]) <- "inla.marginals"
-
-                            if (length(res[[idx]][[i]]) > 0) {
-                                for (j in 1:length(res[[idx]][[i]])) {
-                                    name.5 <- name.4[j]
-                                    if (!is.null(res[[idx]][[i]][[j]])) {
-                                        attr(res[[idx]][[i]][[j]], "inla.tag") <- paste(name.1, name.3, name.5)
-                                        class(res[[idx]][[i]][[j]]) <- "inla.marginal"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (debug) {
-            print("...Fix marginals done.")
-        }
-    }
-
     return(res)
 }
-
-## disable this for the moment
-inla.internal.experimental.mode <- FALSE
 
 `inla.collect.misc` <- function(dir, debug = FALSE) 
 {
@@ -845,11 +773,6 @@ inla.internal.experimental.mode <- FALSE
                 }
                 colnames(xx) <- c("x", "y")
                 marginals.fixed[[i]] <- xx
-
-                if (inla.internal.experimental.mode) {
-                    class(marginals.fixed[[i]]) <- "inla.marginal"
-                    attr(marginals.fixed[[i]], "inla.tag") <- paste("marginal fixed", names.fixed[i])
-                }
             } else {
                 if (first.time) {
                     col.nam <- c("mean", "sd", "kld")
@@ -858,11 +781,6 @@ inla.internal.experimental.mode <- FALSE
                 xx <- cbind(c(NA, NA, NA), c(NA, NA, NA))
                 colnames(xx) <- c("x", "y")
                 marginals.fixed[[i]] <- xx
-
-                if (inla.internal.experimental.mode) {
-                    class(marginals.fixed[[i]]) <- "inla.marginal"
-                    attr(marginals.fixed[[i]], "inla.tag") <- paste("marginal fixed", names.fixed[i])
-                }
             }
         }
         rownames(summary.fixed) <- names.fixed
@@ -877,11 +795,6 @@ inla.internal.experimental.mode <- FALSE
         names.fixed <- NULL
         summary.fixed <- NULL
         marginals.fixed <- NULL
-    }
-
-    if (inla.internal.experimental.mode) {
-        class(marginals.fixed) <- "inla.marginals"
-        attr(marginals.fixed, "inla.tag", "marginals fixed")
     }
 
     ret <- list(
@@ -1022,14 +935,6 @@ inla.internal.experimental.mode <- FALSE
                     names(rr) <- paste("index.", as.character(1L:nd), sep = "")
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
-                        if (inla.internal.experimental.mode) {
-                            class(rr[[j]]) <- "inla.marginal"
-                            if (derived) {
-                                attr(rr[[j]], "inla.tag") <- paste("marginal lincomb derived", names(rr)[j])
-                            } else {
-                                attr(rr[[j]], "inla.tag") <- paste("marginal lincomb", names(rr)[j])
-                            }
-                        }
                     }
                 }
                 marginals.lincomb[[i]] <- rr
@@ -1048,17 +953,6 @@ inla.internal.experimental.mode <- FALSE
                 marginals.lincomb <- NULL
             }
             size.lincomb[[i]] <- inla.collect.size(file)
-
-            if (inla.internal.experimental.mode) {
-                if (!is.null(marginals.lincomb)) {
-                    class(marginals.lincomb[[i]]) <- "inla.marginals"
-                    if (derived) {
-                        attr(marginals.lincomb[[i]], "inla.tag") <- "marginal lincomb derived"
-                    } else {
-                        attr(marginals.lincomb[[i]], "inla.tag") <- "marginal lincomb"
-                    }
-                }
-            }
         }
         names(summary.lincomb) <- names.lincomb
 
@@ -1439,12 +1333,6 @@ inla.internal.experimental.mode <- FALSE
             if (!is.null(marg1)) {
                 colnames(marg1) <- c("x", "y")
             }
-
-            if (inla.internal.experimental.mode) {
-                class(marg1) <- "inla.marginal"
-                attr(marg1, "inla.tag") <- paste("marginal hyper", names.hyper[i])
-            }
-
             marginal.hyper[[i]] <- marg1
         }
         names(marginal.hyper) <- names.hyper
@@ -1453,13 +1341,6 @@ inla.internal.experimental.mode <- FALSE
     } else {
         marginal.hyper <- NULL
         summary.hyper <- NULL
-    }
-
-    if (inla.internal.experimental.mode) {
-        if (!is.null(marginal.hyper)) {
-            class(marginal.hyper) <- "inla.marginals"
-            attr(marginal.hyper, "inla.tag") <- "marginal hyper"
-        }
     }
 
     ## collect also the hyperparameters in the internal scale
@@ -1532,11 +1413,6 @@ inla.internal.experimental.mode <- FALSE
                 colnames(marg1) <- c("x", "y")
             }
 
-            if (inla.internal.experimental.mode) {
-                class(marg1) <- "inla.marginal"
-                attr(marg1, "inla.tag") <- paste("marginal hyper internal", names.hyper[i])
-            }
-
             internal.marginal.hyper[[i]] <- marg1
         }
         names(internal.marginal.hyper) <- names.hyper
@@ -1545,13 +1421,6 @@ inla.internal.experimental.mode <- FALSE
     } else {
         internal.summary.hyper <- NULL
         internal.marginal.hyper <- NULL
-    }
-
-    if (inla.internal.experimental.mode) {
-        if (!is.null(internal.marginal.hyper)) {
-            class(internal.marginal.hyper) <- "inla.marginals"
-            attr(internal.marginal.hyper, "inla.tag") <- "marginal hyper internal"
-        }
     }
 
     ret <- list(
@@ -1704,17 +1573,7 @@ inla.internal.experimental.mode <- FALSE
                 names.rr <- names(rr)
                 for (i in 1L:length(rr)) {
                     colnames(rr[[i]]) <- c("x", "y")
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr[[i]]) <- "inla.marginal"
-                        attr(rr[[i]], "inla.tag") <- paste("marginal linear predictor", names.rr[i])
-                    }
                 }
-            }
-
-            if (inla.internal.experimental.mode) {
-                class(rr) <- "inla.marginals"
-                attr(rr, "inla.tag") <- "marginals linear predictor"
             }
             marginals.linear.predictor <- rr
         } else {
@@ -1797,16 +1656,7 @@ inla.internal.experimental.mode <- FALSE
                     names.rr <- names(rr)
                     for (i in 1L:length(rr)) {
                         colnames(rr[[i]]) <- c("x", "y")
-                        if (inla.internal.experimental.mode) {
-                            class(rr[[i]]) <- "inla.marginal"
-                            attr(rr[[i]], "inla.tag") <- paste("marginal fitted values", names.rr[i])
-                        }
                     }
-                }
-
-                if (inla.internal.experimental.mode) {
-                    class(rr) <- "inla.marginals"
-                    attr(rr, "inla.tag") <- "marginals fitted values"
                 }
                 marginals.fitted.values <- rr
             } else {
@@ -1949,16 +1799,7 @@ inla.internal.experimental.mode <- FALSE
                         names.rr <- names(rr)
                         for (j in 1L:nd) {
                             colnames(rr[[j]]) <- c("x", "y")
-                            if (inla.internal.experimental.mode) {
-                                class(rr[[j]]) <- "inla.marginal"
-                                attr(rr[[j]], "inla.tag") <- paste("marginal random", names.random[i], names.rr[j])
-                            }
                         }
-                    }
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr) <- "inla.marginals"
-                        attr(rr, "inla.tag") <- paste("marginals random", names.random[i])
                     }
                     marginals.random[[i]] <- if (is.null(rr)) NA else rr
                 } else {
@@ -2136,16 +1977,7 @@ inla.internal.experimental.mode <- FALSE
                         names.rr <- names(rr)
                         for (j in 1L:nd) {
                             colnames(rr[[j]]) <- c("x", "y")
-                            if (inla.internal.experimental.mode) {
-                                class(rr[[j]]) <- "inla.marginal"
-                                attr(rr[[j]], "inla.tag") <- paste("marginal random", names.random[i], names.rr[j])
-                            }
                         }
-                    }
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr) <- "inla.marginals"
-                        attr(rr, "inla.tag") <- paste("marginals random", names.random[i])
                     }
                     marginals.random[[i]] <- rr
                 } else {
@@ -2298,7 +2130,6 @@ inla.internal.experimental.mode <- FALSE
                     cat("...kld done\n")
                 }
 
-
                 col.nam <- c(col.nam, "kld")
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
@@ -2313,16 +2144,7 @@ inla.internal.experimental.mode <- FALSE
                         names.rr <- names(rr)
                         for (j in 1L:nd) {
                             colnames(rr[[j]]) <- c("x", "y")
-                            if (inla.internal.experimental.mode) {
-                                class(rr[[j]]) <- "inla.marginal"
-                                attr(rr[[j]], "inla.tag") <- paste("marginal random", names.random[i], names.rr[j])
-                            }
                         }
-                    }
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr) <- "inla.marginals"
-                        attr(rr, "inla.tag") <- paste("marginals random", names.random[i])
                     }
                     marginals.random[[i]] <- rr
                 } else {

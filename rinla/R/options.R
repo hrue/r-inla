@@ -54,8 +54,6 @@
 ## !     internal.binary.mode : if \code{FALSE} the (some) output are in ascii format instead of binary format.
 ## !                            Using this option,  then \code{inla.collect.results} will fail (Expert mode)
 ## !
-## !     internal.experimental.mode :  Expert option
-## !
 ## !     cygwin : The home of the Cygwin installation (default "C:/cygwin") [Remote computing for Windows only]
 ## !
 ## !     ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
@@ -121,7 +119,6 @@
             silent = TRUE,
             debug = FALSE,
             internal.binary.mode = TRUE,
-            internal.experimental.mode = FALSE,
             cygwin = "C:/cygwin",
             cygwin.home = paste("/home/", inla.get.USER(), sep = ""),
             ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep = ""),
@@ -154,7 +151,6 @@
                                  "silent",
                                  "debug",
                                  "internal.binary.mode",
-                                 "internal.experimental.mode",
                                  "cygwin",
                                  "ssh.auth.sock",
                                  "cygwin.home",
@@ -248,7 +244,6 @@
                                           "silent",
                                           "debug",
                                           "internal.binary.mode",
-                                          "internal.experimental.mode",
                                           "cygwin",
                                           "ssh.auth.sock",
                                           "cygwin.home",
@@ -287,5 +282,9 @@
     } else {
         inla.setOption.core(...)
     }
+
+    ## add checks that nothing very wrong is set
+    dummy <- match.arg(inla.getOption("inla.mode"), c("classic", "twostage", "experimental"), several.ok = FALSE)
+
     return(invisible())
 }
