@@ -55,7 +55,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{numint.relerr}{   Numerical Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)}
 \item{numint.abserr}{   Numerical Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)}
 \item{cmin}{   Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias. (Default -Inf)}
-\item{b.strategy}{   Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"keep"}}
+\item{b.strategy}{   Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"skip"}}
 \item{step.factor}{   Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
 \item{global.node.factor}{   Numerical The factor which defines the degree     required (how many neighbors), as a fraction of n-1, that is required to be     classified as a global node and numbered last (whatever the reordering routine     says). Here, n, is the size of the graph. (Disabled if larger than 1.) (default     2.0)}
 \item{global.node.degree}{   Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says). (default \code{.Machine$integer.max})}

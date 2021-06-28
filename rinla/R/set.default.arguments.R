@@ -515,8 +515,8 @@
             ## :ARGUMENT: cmin Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias.  (Default -Inf)
             cmin = -Inf,
 
-            ## :ARGUMENT: b.strategy Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"keep"}
-            b.strategy = "keep",
+            ## :ARGUMENT: b.strategy Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"skip"}
+            b.strategy = "skip",
 
             ## :ARGUMENT: step.factor Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
             ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
