@@ -87,6 +87,10 @@
        positive integer to terminate fmesher calls that may enter infinite
        loops due to special geometry regularity. Fractional seconds are
        rounded up to the nearest integer.
+
+     inla.mode : Which mode to use in INLA? Default is \code{"classic"}. Other options are
+     (USE AT YOUR OWN RISK, THIS IS WORK IN PROGRESS!!!) options are \code{"twostage"} and
+     \code{"experimental"}.
    }
  }
 

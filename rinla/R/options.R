@@ -85,6 +85,10 @@
 ## !       positive integer to terminate fmesher calls that may enter infinite
 ## !       loops due to special geometry regularity. Fractional seconds are
 ## !       rounded up to the nearest integer.
+## !
+## !     inla.mode : Which mode to use in INLA? Default is \code{"classic"}. Other options are
+## !     (USE AT YOUR OWN RISK, THIS IS WORK IN PROGRESS!!!) options are \code{"twostage"} and
+## !     \code{"experimental"}.
 ## !   }
 ## ! }
 ## !
@@ -126,7 +130,8 @@
             scale.model.default = FALSE,
             short.summary = FALSE,
             inla.timeout = 0, 
-            fmesher.timeout = 0
+            fmesher.timeout = 0,
+            inla.mode = "classic"
         )
     )
 }
@@ -158,7 +163,8 @@
                                  "scale.model.default",
                                  "short.summary",
                                  "inla.timeout", 
-                                 "fmesher.timeout"
+                                 "fmesher.timeout",
+                                 "inla.mode"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
@@ -251,7 +257,8 @@
                                           "scale.model.default",
                                           "short.summary",
                                           "inla.timeout", 
-                                          "fmesher.timeout"
+                                          "fmesher.timeout",
+                                          "inla.mode"
                                       ), value) {
         envir <- inla.get.inlaEnv()
 

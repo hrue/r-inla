@@ -215,9 +215,12 @@
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
 
-## ! \item{inla.mode}{Run \code{inla} in \code{classic}-mode,  \code{twostage}-mode or the new \code{experimental}-mode?
+## ! \item{inla.mode}{Run \code{inla} in \code{classic}-mode,
+## !             \code{twostage}-mode or the new \code{experimental}-mode?
 ## !             Not all features are available int the \code{experimental}-mode and this mode
-## !             is really work-in-progress at the moment. Default is to run in
+## !             is really work-in-progress at the moment!!!!
+## !             Default is to use the 
+## !             mode set by \code{inla.getOption("inla.mode")} which is default
 ## !             \code{classic}-mode. }
 
 ## ! \item{debug}{ If \code{TRUE}, then enable some debug
@@ -495,6 +498,9 @@
         }
     }
 
+    if (missing(inla.mode)) {
+        inla.mode <- inla.getOption("inla.mode")
+    }
     inla.mode <- match.arg(inla.mode)
 
     ## check all control.xx arguments here. do the assign as variable
