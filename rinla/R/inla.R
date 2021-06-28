@@ -616,7 +616,7 @@
             keep = keep,
             working.directory = working.directory,
             silent = silent,
-            mode = mode, 
+            inla.mode = inla.mode, 
             debug = debug
         )
 
