@@ -1469,15 +1469,8 @@ typedef struct {
 #define INLA_BIG_ENDIAN    2
 
 /* 
-   binary write macros
+   binary write macros. Faster to cache and write in bulk. See example number 63
  */
-
-
-//#define DW(a) {double da[1] = {a}; fwrite((void *)&da, sizeof(double), (size_t)1, fp); }
-//#define D2W(a, b) {double da[2] = {a, b}; fwrite((void *)&da, sizeof(double), (size_t)2, fp); }
-//#define D3W(a, b, c) {double da[3] = {a, b, c}; fwrite((void *)&da, sizeof(double), (size_t)3, fp); }
-//#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
-
 #define GMRFLib_DW_LEN 1048576
 #define Dinit() double  *_d_store = Calloc(GMRFLib_DW_LEN+128, double); size_t _d_n = 0
 #define Dopen(filename_) FILE *_fp = fopen(filename_, "wb"); if (!_fp) { inla_error_open_file(filename_); }
