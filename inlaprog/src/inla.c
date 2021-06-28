@@ -7974,9 +7974,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -30380,7 +30380,7 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * Finally, let us do the job...
 	 */
-	GMRFLib_ai_INLA(&(mb->density), 
+	GMRFLib_ai_INLA(&(mb->density),
 			// DISABLE THIS FEATURE NOW, IT DOES NOT WORK WELL ENOGUH
 			(0 ? &(mb->density_transform) : NULL), (0 ? mb->transform_funcs : NULL),
 			// ....
@@ -30589,7 +30589,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	mb->ai_par->compute_nparam_eff = 0;
 	compute = Calloc(N, char);
 
-	GMRFLib_ai_INLA(&(mb->density), 
+	GMRFLib_ai_INLA(&(mb->density),
 			NULL, NULL,
 			(mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 			NULL,
@@ -31020,7 +31020,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	/*
 	 * Finally, let us do the job...
 	 */
-	GMRFLib_ai_INLA(&(mb->density), 
+	GMRFLib_ai_INLA(&(mb->density),
 			// DISABLE THIS FEATURE NOW, IT DOES NOT WORK WELL ENOGUH
 			(0 ? &(mb->density_transform) : NULL), (0 ? mb->transform_funcs : NULL),
 			// ....
@@ -31278,18 +31278,18 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		mb->ai_par->vb_enable = GMRFLib_FALSE;
 	}
 	GMRFLib_ai_INLA_experimental(&(mb->density),
-				   NULL, NULL,
-				   (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
-				   (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
-				   (mb->output->po ? &(mb->po) : NULL),
-				   mb->dic,
-				   (mb->output->mlik ? &(mb->mlik) : NULL),
-				   mb->theta, mb->ntheta,
-				   extra, (void *) mb,
-				   x, b, c, NULL, bfunc, mb->d,
-				   loglikelihood_inla, (void *) mb,
-				   preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
-				   mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
+				     NULL, NULL,
+				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
+				     (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
+				     (mb->output->po ? &(mb->po) : NULL),
+				     mb->dic,
+				     (mb->output->mlik ? &(mb->mlik) : NULL),
+				     mb->theta, mb->ntheta,
+				     extra, (void *) mb,
+				     x, b, c, NULL, bfunc, mb->d,
+				     loglikelihood_inla, (void *) mb,
+				     preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
+				     mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
 	GMRFLib_free_ai_store(ai_store);
 	Free(bfunc);
 	Calloc_free();
@@ -31559,24 +31559,24 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 	return INLA_OK;
 }
 
-int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int UNUSED(nrep))
+int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep)
 {
 	FILE *fp;
 	char *fnm, *ndir;
-	DINIT();
-	
+	Dinit();
+
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/size.dat", ndir);
 
-	fp = fopen(fnm,"wb");
+	fp = fopen(fnm, "wb");
 	if (!fp) {
 		inla_error_open_file(fnm);
 	}
 	I5W(n, (N > 0 ? N : n), (Ntotal > 0 ? Ntotal : n), (ngroup > 0 ? ngroup : 1), (nrep > 0 ? nrep : 1));
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
-	DFREE();
+	Dfree();
 	Free(fnm);
 	Free(ndir);
 
@@ -31636,8 +31636,8 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 int inla_output(inla_tp * mb)
 {
 	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
-	DINIT();
-	
+	Dinit();
+
 	assert(mb);
 	/*
 	 * compute the offset for each pack of the results 
@@ -31656,7 +31656,7 @@ int inla_output(inla_tp * mb)
 		offsets[j++] = n;
 		n++;
 	}
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode ==  GMRFLib_MODE_EXPERIMENTAL) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
 	} else {
 		assert(mb->hgmrfm->graph->n == n);
@@ -31675,7 +31675,7 @@ int inla_output(inla_tp * mb)
 #pragma omp parallel for num_threads(GMRFLib_MAX_THREADS)
 	for (int k = 0; k < 9; k++) {
 		int ii;
-		
+
 		if (k == 0) {
 			int offset = offsets[0];
 
@@ -31711,17 +31711,17 @@ int inla_output(inla_tp * mb)
 		} else if (k == 3) {
 			FILE *fp;
 			char *fnm;
-			
+
 			GMRFLib_sprintf(&fnm, "%s/totaloffset", mb->dir);
 			inla_mkdir(fnm);
 			Free(fnm);
 			GMRFLib_sprintf(&fnm, "%s/totaloffset/totaloffset.dat", mb->dir);
-			fp = fopen(fnm, "wb"); 
+			fp = fopen(fnm, "wb");
 			Free(fnm);
 			for (ii = 0; ii < mb->predictor_n + mb->predictor_m; ii++) {
 				DW(OFFSET3(ii));
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 		} else if (k == 4) {
 			for (ii = 0; ii < mb->nlinear; ii++) {
@@ -31781,7 +31781,7 @@ int inla_output(inla_tp * mb)
 				 */
 				char *sdir;
 				sdir = GMRFLib_strdup("random.effect.UserFunction1");
-				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, NULL, 
+				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, NULL,
 						   GMRFLib_ai_INLA_userfunc1_dim, 1, mb->output, sdir, NULL, NULL, NULL,
 						   "UserFunction1", NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, GMRFLib_ai_INLA_userfunc1_dim, -1, -1, -1, -1);
@@ -31878,7 +31878,7 @@ int inla_output(inla_tp * mb)
 		}
 	}
 
-	DFREE();
+	Dfree();
 	return INLA_OK;
 }
 
@@ -31890,8 +31890,8 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	int i, n, add_empty = 1;
-	DINIT();
-	
+	Dinit();
+
 	if (!cpo) {
 		return INLA_OK;
 	}
@@ -31904,7 +31904,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cpo.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -31924,12 +31924,12 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 			}
 		}
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
 	if (cpo->pit_value) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "pit.dat");
-		fp = fopen(nndir, "wb"); 
+		fp = fopen(nndir, "wb");
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -31949,12 +31949,12 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 				}
 			}
 		}
-		DCLOSE();
+		Dclose();
 		fclose(fp);
 	}
 	if (cpo->failure) {
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "failure.dat");
-		fp = fopen(nndir, "wb"); 
+		fp = fopen(nndir, "wb");
 		if (!fp) {
 			inla_error_open_file(nndir);
 		}
@@ -31974,11 +31974,11 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 				}
 			}
 		}
-		DCLOSE();
+		Dclose();
 		fclose(fp);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -31989,10 +31989,10 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		}
 	}
 	D2W(cpo->mean_value, cpo->gmean_value);
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
-	DFREE();
+	Dfree();
 	Free(ndir);
 	Free(nndir);
 
@@ -32007,8 +32007,8 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	int i, n, add_empty = 1;
-	DINIT();
-	
+	Dinit();
+
 	if (!po) {
 		return INLA_OK;
 	}
@@ -32020,7 +32020,7 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "po.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32040,10 +32040,10 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 			}
 		}
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
-	DFREE();
+	Dfree();
 	Free(ndir);
 	Free(nndir);
 
@@ -32058,8 +32058,8 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
 	double *tmp = NULL;
-	DINIT();
-	
+	Dinit();
+
 #define _PAD_WITH_NA(xx)						\
 	if (1) {							\
 		tmp = Calloc(IMAX(dic->n_deviance, len_family_idx), double); \
@@ -32079,7 +32079,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "dic.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32091,7 +32091,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	}
 	D4W(dic->mean_of_deviance, dic->deviance_of_mean, dic->p, dic->dic);
 	D4W(dic->mean_of_deviance_sat, dic->deviance_of_mean_sat, dic->p, dic->dic_sat);
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
 	if (dic->n_deviance > 0) {
@@ -32134,7 +32134,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		GMRFLib_matrix_free(M);
 	}
 
-	DFREE();
+	Dfree();
 	Free(ndir);
 	Free(nndir);
 #undef _PAD_WITH_NA
@@ -32151,8 +32151,8 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	char *ndir = NULL, *msg = NULL, *nndir = NULL, *nnndir = NULL;
 	FILE *fp = NULL;
 	int i, any;
-	DINIT();
-	
+	Dinit();
+
 	if (!mo) {
 		return INLA_OK;
 	}
@@ -32201,7 +32201,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-hyper-internal.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32209,12 +32209,12 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	for (i = 0; i < ISQR(mo->nhyper); i++) {
 		DW(mo->cov_m[i]);
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvectors.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32222,12 +32222,12 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	for (i = 0; i < ISQR(mo->nhyper); i++) {
 		DW(mo->eigenvectors[i]);
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "covmat-eigenvalues.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32235,19 +32235,19 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	for (i = 0; i < mo->nhyper; i++) {
 		DW(mo->eigenvalues[i]);
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 	Free(nndir);
 
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "reordering.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
 	for (i = 0; i < mo->len_reordering; i++) {
-		IW(mo->reordering[i] + 1);	       /* yes, use 1-based indexing. */
+		IW(mo->reordering[i] + 1);		       /* yes, use 1-based indexing. */
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 	Free(nndir);
 
@@ -32528,7 +32528,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		fclose(fp);
 	}
 
-	DFREE();
+	Dfree();
 	return INLA_OK;
 }
 
@@ -32539,8 +32539,8 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	 */
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
 	FILE *fp = NULL;
-	DINIT();
-	
+	Dinit();
+
 	if (!mlik) {
 		return INLA_OK;
 	}
@@ -32550,7 +32550,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 		inla_error_general(msg);
 	}
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-likelihood.dat");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32562,10 +32562,10 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	}
 	D2W(mlik->marginal_likelihood_integration, mlik->marginal_likelihood_gaussian_approx);
 
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
-	DFREE();
+	Dfree();
 	Free(ndir);
 	Free(nndir);
 
@@ -32709,10 +32709,10 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
 	int i;
 	char *nndir = NULL;
 	FILE *fp = NULL;
-	DINIT();
-	
+	Dinit();
+
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".theta_mode");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32720,10 +32720,10 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
 	for (i = 0; i < n_theta; i++) {
 		DW(theta[i][0][0]);
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
-	DFREE();
+	Dfree();
 	Free(nndir);
 
 	return INLA_OK;
@@ -32737,10 +32737,10 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	int i;
 	char *nndir = NULL;
 	FILE *fp = NULL;
-	DINIT();
-	
+	Dinit();
+
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".x_mode");
-	fp = fopen(nndir, "wb"); 
+	fp = fopen(nndir, "wb");
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
@@ -32748,10 +32748,10 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	for (i = 0; i < n_x; i++) {
 		DW(x[i]);
 	}
-	DCLOSE();
+	Dclose();
 	fclose(fp);
 
-	DFREE();
+	Dfree();
 	Free(nndir);
 
 	return INLA_OK;
@@ -32878,8 +32878,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 	return GMRFLib_SUCCESS;
 }
 
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations,
-		       int n, int nrep, Output_tp * output, const char *sdir,
+int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep, Output_tp * output, const char *sdir,
 		       // Either this
 		       map_func_tp * func, void *func_arg,
 		       // .. or this
@@ -32911,7 +32910,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	int i, ii, j, nn, ndiv;
 	int add_empty = 1;
 
-	DINIT();
+	Dinit();
 
 	assert(nrep > 0);
 	ndiv = n / nrep;
@@ -32958,7 +32957,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->summary) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-			fp = fopen(nndir, "wb"); 
+			fp = fopen(nndir, "wb");
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -32986,7 +32985,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}
 				}
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 			Free(nndir);
 		}
@@ -32994,7 +32993,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
-			fp = fopen(nndir, "wb"); 
+			fp = fopen(nndir, "wb");
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33036,7 +33035,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}
 				}
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 			Free(nndir);
 		}
@@ -33047,7 +33046,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 		 */
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
-			fp = fopen(nndir, "wb"); 
+			fp = fopen(nndir, "wb");
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33086,14 +33085,14 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 				}
 				GMRFLib_free_density(gd);
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 		}
 	}
 	if (output->nquantiles) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles.dat");
-			fp = fopen(nndir, "wb"); 
+			fp = fopen(nndir, "wb");
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33135,7 +33134,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}
 				}
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 			Free(nndir);
 		}
@@ -33143,7 +33142,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->mode) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
-			fp = fopen(nndir, "wb"); 
+			fp = fopen(nndir, "wb");
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33172,7 +33171,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}
 				}
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 			Free(nndir);
 		}
@@ -33180,7 +33179,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->ncdf) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf.dat");
-			fp = fopen(nndir, "wb"); 
+			fp = fopen(nndir, "wb");
 			if (!fp) {
 				inla_error_open_file(nndir);
 			}
@@ -33221,13 +33220,13 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}
 				}
 			}
-			DCLOSE();
+			Dclose();
 			fclose(fp);
 			Free(nndir);
 		}
 	}
 
-	DFREE();
+	Dfree();
 	Free(d_mode);
 	Free(g_mode);
 
@@ -35338,35 +35337,35 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 63: 
+	case 63:
 	{
 		FILE *fp = fopen("REMOVE_ME_1.dat", "wb");
 		FILE *fpp = fopen("REMOVE_ME_2.dat", "wb");
-		DINIT();
-		
+		Dinit();
+
 		int n = atoi(args[0]);
 		P(n);
-		double *x= Calloc(n, double);
+		double *x = Calloc(n, double);
 		double tref;
-		
-		for(int i = 0; i < n; i++) {
+
+		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 		}
 		tref = GMRFLib_cpu();
-		fwrite((void *)x, sizeof(double), (size_t) n, fpp);
+		fwrite((void *) x, sizeof(double), (size_t) n, fpp);
 		fclose(fpp);
-		P(GMRFLib_cpu()-tref);
+		P(GMRFLib_cpu() - tref);
 		tref = GMRFLib_cpu();
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			DW(x[i]);
 		}
-		DCLOSE();
+		Dclose();
 		fclose(fp);
-		P(GMRFLib_cpu()-tref);
-		DFREE();
+		P(GMRFLib_cpu() - tref);
+		Dfree();
 		break;
 	}
-	
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -35882,63 +35881,63 @@ int main(int argc, char **argv)
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
-					time_used[3] = GMRFLib_cpu();
-					inla_INLA_preopt_experimental(mb);
-					time_used[3] = GMRFLib_cpu() - time_used[1];
-					atime_used[3] = clock() - atime_used[1];
-					nfunc[0] = mb->misc_output->nfunc;
-					rgeneric_cpu[0] = R_rgeneric_cputime;
+				time_used[3] = GMRFLib_cpu();
+				inla_INLA_preopt_experimental(mb);
+				time_used[3] = GMRFLib_cpu() - time_used[1];
+				atime_used[3] = clock() - atime_used[1];
+				nfunc[0] = mb->misc_output->nfunc;
+				rgeneric_cpu[0] = R_rgeneric_cputime;
 
-					Free(mb->theta_file);
-					Free(mb->x_file);
-					if (mb->preopt->mode_theta) {
-						mb->theta_file = Calloc(mb->ntheta, double);
-						Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
-					} else {
-						mb->theta_file = NULL;
-					}
-					mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
-					Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
-					mb->ntheta_file = mb->ntheta;
-					mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
-					mb->reuse_mode = GMRFLib_TRUE;
-					mb->reuse_mode_but_restart = GMRFLib_FALSE;
-					mb->ai_par->mode_known = GMRFLib_TRUE;
-					inla_reset();
+				Free(mb->theta_file);
+				Free(mb->x_file);
+				if (mb->preopt->mode_theta) {
+					mb->theta_file = Calloc(mb->ntheta, double);
+					Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
+				} else {
+					mb->theta_file = NULL;
+				}
+				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
+				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
+				mb->ntheta_file = mb->ntheta;
+				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
+				mb->reuse_mode = GMRFLib_TRUE;
+				mb->reuse_mode_but_restart = GMRFLib_FALSE;
+				mb->ai_par->mode_known = GMRFLib_TRUE;
+				inla_reset();
 			} else if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE) {
-			
-					GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
-					time_used[3] = GMRFLib_cpu();
-					GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
-					inla_INLA_preopt_stage1(mb, rpreopt);
-					time_used[3] = GMRFLib_cpu() - time_used[1];
-					atime_used[3] = clock() - atime_used[1];
-					nfunc[0] = mb->misc_output->nfunc;
-					rgeneric_cpu[0] = R_rgeneric_cputime;
+				GMRFLib_preopt_res_tp *rpreopt = Calloc(1, GMRFLib_preopt_res_tp);
 
-					Free(mb->theta_file);
-					Free(mb->x_file);
-					if (mb->preopt->mode_theta) {
-						mb->theta_file = Calloc(mb->ntheta, double);
-						Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
-					} else {
-						mb->theta_file = NULL;
-					}
-					mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
-					Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
-					mb->ntheta_file = mb->ntheta;
-					mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
-					mb->reuse_mode = GMRFLib_TRUE;
-					mb->reuse_mode_but_restart = GMRFLib_FALSE;
-					mb->ai_par->mode_known = GMRFLib_TRUE;
-					GMRFLib_preopt_free(mb->preopt);
-					inla_reset();
-					GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
-					GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART2;
-					inla_INLA_preopt_stage2(mb, rpreopt);
-					nfunc[1] = mb->misc_output->nfunc;
-					rgeneric_cpu[1] = R_rgeneric_cputime;
+				time_used[3] = GMRFLib_cpu();
+				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART1;
+				inla_INLA_preopt_stage1(mb, rpreopt);
+				time_used[3] = GMRFLib_cpu() - time_used[1];
+				atime_used[3] = clock() - atime_used[1];
+				nfunc[0] = mb->misc_output->nfunc;
+				rgeneric_cpu[0] = R_rgeneric_cputime;
+
+				Free(mb->theta_file);
+				Free(mb->x_file);
+				if (mb->preopt->mode_theta) {
+					mb->theta_file = Calloc(mb->ntheta, double);
+					Memcpy(mb->theta_file, mb->preopt->mode_theta, mb->ntheta * sizeof(double));
+				} else {
+					mb->theta_file = NULL;
+				}
+				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
+				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
+				mb->ntheta_file = mb->ntheta;
+				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
+				mb->reuse_mode = GMRFLib_TRUE;
+				mb->reuse_mode_but_restart = GMRFLib_FALSE;
+				mb->ai_par->mode_known = GMRFLib_TRUE;
+				GMRFLib_preopt_free(mb->preopt);
+				inla_reset();
+				GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE_PART2;
+				inla_INLA_preopt_stage2(mb, rpreopt);
+				nfunc[1] = mb->misc_output->nfunc;
+				rgeneric_cpu[1] = R_rgeneric_cputime;
 			} else if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 				inla_INLA(mb);
@@ -35946,7 +35945,7 @@ int main(int argc, char **argv)
 			} else {
 				assert(0 == 1);
 			}
-			
+
 			time_used[1] = GMRFLib_cpu() - time_used[1];
 			atime_used[1] = clock() - atime_used[1];
 			if (!silent) {

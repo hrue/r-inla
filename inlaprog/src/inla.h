@@ -1479,52 +1479,31 @@ typedef struct {
 //#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
 
 #define GMRFLib_DW_LEN 1048576
-#define DINIT() double  *_d_store = Calloc(GMRFLib_DW_LEN+128, double); size_t _d_n = 0
-#define DWRITE() if (_d_n >= GMRFLib_DW_LEN) { fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0; }
-#define DCLOSE() if (_d_n) fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0
-#define DFREE() Free(_d_store)
+#define Dinit() double  *_d_store = Calloc(GMRFLib_DW_LEN+128, double); size_t _d_n = 0
+#define Dwrite() if (_d_n >= GMRFLib_DW_LEN) { fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0; }
+#define Dclose() if (_d_n) fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0
+#define Dfree() Free(_d_store)
 
-#define DADD(a) _d_store[_d_n++] = a; DWRITE()	
-#define DADD2(a, b) _d_store[_d_n++] = a; _d_store[_d_n++]= b; DWRITE()	
-#define DADD3(a, b, c) _d_store[_d_n++] = a; _d_store[_d_n++]= b; _d_store[_d_n++]= c; DWRITE()	
-#define DADD4(a, b, c, d) _d_store[_d_n++] = a; _d_store[_d_n++]= b; _d_store[_d_n++]= c; _d_store[_d_n++]= d; DWRITE()	
-#define DADD5(a, b, c, d, e) _d_store[_d_n++] = a; _d_store[_d_n++]= b; _d_store[_d_n++]= c; _d_store[_d_n++]= d; _d_store[_d_n++]= e; DWRITE()	
-	
-//#define DW(a) {double da[1] = {a}; fwrite((void *)&da, sizeof(double), (size_t)1, fp); }
-//#define D2W(a, b) {double da[2] = {a, b}; fwrite((void *)&da, sizeof(double), (size_t)2, fp); }
-//#define D3W(a, b, c) {double da[3] = {a, b, c}; fwrite((void *)&da, sizeof(double), (size_t)3, fp); }
-//#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
-//#define D5W(a, b, c, d, e) {double da[5] = {a, b, c, d, e}; fwrite((void *)&da, sizeof(double), (size_t)5, fp); }
+#define DADD(a_) _d_store[_d_n++] = a_; Dwrite()
+#define DADD2(a_, b_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
+#define DADD3(a_, b_, c_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
+#define DADD4(a_, b_, c_, d_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
+#define DADD5(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
 
-#define DW(a) DADD(a)
-#define D2W(a, b) DADD2(a, b)
-#define D3W(a, b, c) DADD3(a, b, c)
-#define D4W(a, b, c, d) DADD4(a, b, c, d)
-#define D5W(a, b, c, d, e) DADD5(a, b, c, d, e)
+#define DW(a_) DADD(a_)
+#define D2W(a_, b_) DADD2(a_, b_)
+#define D3W(a_, b_, c_) DADD3(a_, b_, c_)
+#define D4W(a_, b_, c_, d_) DADD4(a_, b_, c_, d_)
+#define D5W(a_, b_, c_, d_, e_) DADD5(a_, b_, c_, d_, e_)
 
+#define IW(a_) DW(a_)
+#define I2W(a_, b_) D2W(a_, b_)
+#define I3W(a_, b_, c_) D3W(a_, b_, c_)
+#define I4W(a_, b_, c_, d_) D4W(a_, b_, c_, d_)
+#define I5W(a_, b_, c_, d_, e_) D5W(a_, b_, c_, d_, e_)
 
-
-//#define D2W(a, b) {DW(a); DW(b);}
-//#define D3W(a, b, c) {D2W(a, b); DW(c);}
-//#define D4W(a, b, c, d) {D2W(a, b); D2W(c, d);}
-
-//#define IW(a) {double d = (double)(a); DW(d);}		       /* OOPS: write ints as double! */
-//#define I2W(a, b) {IW(a); IW(b);}
-//#define I3W(a, b, c) {IW(a); IW(b); IW(c);}
-//#define I4W(a, b, c, d) {I2W(a, b); I2W(c, d);}
-//#define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
-
-#define IW(a) DW(a)
-#define I2W(a, b) D2W(a, b)
-#define I3W(a, b, c) D3W(a, b, c)
-#define I4W(a, b, c, d) D4W(a, b, c, d)
-#define I5W(a, b, c, d, e) D5W(a, b, c, d, 2)
-
-//#define IDW(a, b)  {IW(a); DW(b);}
-//#define ID2W(a, b, c)  {IW(a); D2W(b, c);}
-
-#define IDW(a, b) D2W(a, b)
-#define ID2W(a, b, c)  D3W(a, b, c)
+#define IDW(a_, b_) D2W(a_, b_)
+#define ID2W(a_, b_, c_)  D3W(a_, b_, c_)
 
 /* 
    functions
@@ -1898,7 +1877,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
