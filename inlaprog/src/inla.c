@@ -35271,30 +35271,37 @@ int testit(int argc, char **argv)
 
 	case 63:
 	{
-		FILE *fpp = fopen("REMOVE_ME_2.dat", "wb");
-		Dinit();
-
 		int n = atoi(args[0]);
 		P(n);
 		double *x = Calloc(n, double);
 		double tref;
-
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 		}
+
 		tref = GMRFLib_cpu();
-		fwrite((void *) x, sizeof(double), (size_t) n, fpp);
-		fclose(fpp);
-		P(GMRFLib_cpu() - tref);
+		FILE *fp = fopen("REMOVE_ME_1.dat", "wb");
+		fwrite((void *) x, sizeof(double), (size_t) n, fp);
+		fclose(fp);
+		printf("Optimal %f\n",  (GMRFLib_cpu() - tref));
+
 		tref = GMRFLib_cpu();
-		Dopen("REMOVE_ME_1.dat");
+		fp = fopen("REMOVE_ME_2.dat", "wb");
+		for(int i = 0; i < n; i++) 
+			fwrite((void *) &x[i], sizeof(double), (size_t) 1, fp);
+		fclose(fp);
+		printf("One-by-one %f\n",  (GMRFLib_cpu() - tref));
+
+		tref = GMRFLib_cpu();
+		Dinit();
+		Dopen("REMOVE_ME_3.dat");
 		for (int i = 0; i < n; i++) {
 			DW(x[i]);
 		}
 		Dclose();
-		P(GMRFLib_cpu() - tref);
-		fclose(fpp);
 		Dfree();
+		printf("D-cache %f\n",  (GMRFLib_cpu() - tref));
+
 		break;
 	}
 
