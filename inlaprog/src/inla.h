@@ -1480,8 +1480,9 @@ typedef struct {
 
 #define GMRFLib_DW_LEN 1048576
 #define Dinit() double  *_d_store = Calloc(GMRFLib_DW_LEN+128, double); size_t _d_n = 0
-#define Dwrite() if (_d_n >= GMRFLib_DW_LEN) { fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0; }
-#define Dclose() if (_d_n) fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0
+#define Dopen(filename_) FILE *_fp = fopen(filename_, "wb"); if (!_fp) { inla_error_open_file(filename_); }
+#define Dwrite() if (_d_n >= GMRFLib_DW_LEN) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
+#define Dclose() if (_d_n) fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; fclose(_fp)
 #define Dfree() Free(_d_store)
 
 #define DADD(a_) _d_store[_d_n++] = a_; Dwrite()
