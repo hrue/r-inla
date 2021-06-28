@@ -31111,7 +31111,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	return INLA_OK;
 }
 
-int inla_INLA_preopt_stage1only(inla_tp * mb)
+int inla_INLA_preopt_experimental(inla_tp * mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, count;
@@ -31287,7 +31287,7 @@ int inla_INLA_preopt_stage1only(inla_tp * mb)
 	if (mb->gaussian_data) {
 		mb->ai_par->vb_enable = GMRFLib_FALSE;
 	}
-	GMRFLib_ai_INLA_stage1only(&(mb->density),
+	GMRFLib_ai_INLA_experimental(&(mb->density),
 				   NULL, NULL,
 				   (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 				   (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
@@ -36600,7 +36600,7 @@ int main(int argc, char **argv)
 
 			if (GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 					time_used[3] = GMRFLib_cpu();
-					inla_INLA_preopt_stage1only(mb);
+					inla_INLA_preopt_experimental(mb);
 					time_used[3] = GMRFLib_cpu() - time_used[1];
 					atime_used[3] = clock() - atime_used[1];
 					nfunc[0] = mb->misc_output->nfunc;

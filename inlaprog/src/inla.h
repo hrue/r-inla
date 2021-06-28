@@ -1672,7 +1672,7 @@ int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
 int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
-int inla_INLA_preopt_stage1only(inla_tp * mb);
+int inla_INLA_preopt_experimental(inla_tp * mb);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
