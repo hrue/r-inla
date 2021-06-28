@@ -1471,11 +1471,38 @@ typedef struct {
 /* 
    binary write macros
  */
-#define DW(a) {double da[1] = {a}; fwrite((void *)&da, sizeof(double), (size_t)1, fp); }
-#define D2W(a, b) {double da[2] = {a, b}; fwrite((void *)&da, sizeof(double), (size_t)2, fp); }
-#define D3W(a, b, c) {double da[3] = {a, b, c}; fwrite((void *)&da, sizeof(double), (size_t)3, fp); }
-#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
-#define D5W(a, b, c, d, e) {double da[5] = {a, b, c, d, e}; fwrite((void *)&da, sizeof(double), (size_t)5, fp); }
+
+
+//#define DW(a) {double da[1] = {a}; fwrite((void *)&da, sizeof(double), (size_t)1, fp); }
+//#define D2W(a, b) {double da[2] = {a, b}; fwrite((void *)&da, sizeof(double), (size_t)2, fp); }
+//#define D3W(a, b, c) {double da[3] = {a, b, c}; fwrite((void *)&da, sizeof(double), (size_t)3, fp); }
+//#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
+
+#define GMRFLib_DW_LEN 1048576
+#define DINIT() double  *_d_store = Calloc(GMRFLib_DW_LEN+128, double); size_t _d_n = 0
+#define DWRITE() if (_d_n >= GMRFLib_DW_LEN) { fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0; }
+#define DCLOSE() if (_d_n) fwrite((void*)_d_store, sizeof(double), _d_n, fp); _d_n = 0
+#define DFREE() Free(_d_store)
+
+#define DADD(a) _d_store[_d_n++] = a; DWRITE()	
+#define DADD2(a, b) _d_store[_d_n++] = a; _d_store[_d_n++]= b; DWRITE()	
+#define DADD3(a, b, c) _d_store[_d_n++] = a; _d_store[_d_n++]= b; _d_store[_d_n++]= c; DWRITE()	
+#define DADD4(a, b, c, d) _d_store[_d_n++] = a; _d_store[_d_n++]= b; _d_store[_d_n++]= c; _d_store[_d_n++]= d; DWRITE()	
+#define DADD5(a, b, c, d, e) _d_store[_d_n++] = a; _d_store[_d_n++]= b; _d_store[_d_n++]= c; _d_store[_d_n++]= d; _d_store[_d_n++]= e; DWRITE()	
+	
+//#define DW(a) {double da[1] = {a}; fwrite((void *)&da, sizeof(double), (size_t)1, fp); }
+//#define D2W(a, b) {double da[2] = {a, b}; fwrite((void *)&da, sizeof(double), (size_t)2, fp); }
+//#define D3W(a, b, c) {double da[3] = {a, b, c}; fwrite((void *)&da, sizeof(double), (size_t)3, fp); }
+//#define D4W(a, b, c, d) {double da[4] = {a, b, c, d}; fwrite((void *)&da, sizeof(double), (size_t)4, fp); }
+//#define D5W(a, b, c, d, e) {double da[5] = {a, b, c, d, e}; fwrite((void *)&da, sizeof(double), (size_t)5, fp); }
+
+#define DW(a) DADD(a)
+#define D2W(a, b) DADD2(a, b)
+#define D3W(a, b, c) DADD3(a, b, c)
+#define D4W(a, b, c, d) DADD4(a, b, c, d)
+#define D5W(a, b, c, d, e) DADD5(a, b, c, d, e)
+
+
 
 //#define D2W(a, b) {DW(a); DW(b);}
 //#define D3W(a, b, c) {D2W(a, b); DW(c);}
