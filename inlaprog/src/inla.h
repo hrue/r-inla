@@ -763,7 +763,6 @@ typedef struct {
 	int config;					       /* output the configurations */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
-	int gdensity;
 	int mode;
 	double *quantiles;
 	double *cdf;
@@ -1098,7 +1097,6 @@ struct inla_tp_struct {
 	 * results 
 	 */
 	GMRFLib_density_tp **density;
-	GMRFLib_density_tp **gdensity;
 	GMRFLib_density_tp **density_transform;
 	GMRFLib_density_tp **density_hyper;
 	GMRFLib_density_tp **density_lin;
@@ -1727,7 +1725,7 @@ int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep,
+int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep,
 		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
 		       const char *tag, const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);

@@ -1085,7 +1085,7 @@
         po = (cont.compute$po || cont.compute$waic),
         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
         openmp.strategy = cont.compute$openmp.strategy, graph = cont.compute$graph,
-        config = cont.compute$config, gdensity = cont.compute$gdensity
+        config = cont.compute$config
     )
 
     ## PREPARE RESPONSE AND FIXED EFFECTS

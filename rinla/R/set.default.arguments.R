@@ -243,10 +243,7 @@
             smtp = NULL,
 
             ## :ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
-            graph = FALSE,
-
-            ## :ARGUMENT: gdensity A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)
-            gdensity = FALSE
+            graph = FALSE
         )
 
         ## :SEEALSO: inla
@@ -539,7 +536,7 @@
             stupid.search.factor = 1.05,
 
             ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} ## ## ## Logical/Character Use this feature? If \code{"auto"} this will be selected ## automatically. \code{strategy} Charactor What to correct, one of ## ## "mean", ## "more.to.come.later...". \code{verbose} Logical Be verbose or not. ## ## ## \code{refinement} Integer Number of extra possible refinement iterations. ## ## \code{max.correct} Numerical Bound the allowed correction ## ## (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). ## ## \code{hyperpar.correct} Logical Correct the marginal posterior for the ## ## hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()} ## ## model component.
-            control.vb = list(enable = "auto", strategy = "mean", verbose = TRUE, refinement = 5, max.correct = 0.5, hyperpar.correct = FALSE, enable.limit = 25),
+            control.vb = list(enable = "auto", strategy = "mean", verbose = TRUE, refinement = 9, max.correct = 0.5, hyperpar.correct = FALSE, enable.limit = 25),
 
             ## :ARGUMENT: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
             num.gradient = "central",
