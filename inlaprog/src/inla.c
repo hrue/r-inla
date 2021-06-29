@@ -35313,6 +35313,19 @@ int testit(int argc, char **argv)
 			Dfree();
 			printf("D-cache short %f\n",  (GMRFLib_cpu() - tref));
 		}
+
+		tref = GMRFLib_cpu();
+		{
+			fp = fopen("REMOVE_ME_5.dat", "wb");
+			char *buff = (char *) Calloc(1048576, double);
+			setvbuf(stdout, buff, _IOFBF, 1048576 * sizeof(double));
+			for (int i = 0; i < n; i++) {
+				fwrite(x+i, sizeof(double), (size_t)1, fp);
+			}
+			fclose(fp);
+			printf("setvbuf %f\n",  (GMRFLib_cpu() - tref));
+		}
+		
 		break;
 	}
 

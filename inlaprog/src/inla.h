@@ -1471,7 +1471,7 @@ typedef struct {
 /* 
    binary write macros. Faster to cache and write in bulk. See example number 63
  */
-#define Dinit_core(n_) size_t _d_store_len = n_; double  *_d_store = Calloc(_d_store_len + 32, double); size_t _d_n = 0
+#define Dinit_core(n_) size_t _d_store_len = n_; double  *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0
 #define Dinit()   Dinit_core(1048576L)
 #define Dinit_s() Dinit_core(1024L)
 #define Dopen(filename_) FILE *_fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
