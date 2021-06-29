@@ -1471,37 +1471,18 @@ typedef struct {
 /* 
    binary write macros. Faster to cache and write in bulk. See example number 63
  */
-#define GMRFLib_DW_LEN 1048576
-#define Dinit() double  *_d_store = Calloc(GMRFLib_DW_LEN+128, double); size_t _d_n = 0
+#define Dinit_core(n_) size_t _d_store_len = n_; double  *_d_store = Calloc(_d_store_len + 32, double); size_t _d_n = 0
+#define Dinit() Dinit_core(1048576L)
+#define Dinit_s() Dinit_core(1024L)
 #define Dopen(filename_) FILE *_fp = fopen(filename_, "wb"); if (!_fp) { inla_error_open_file(filename_); }
-#define Dwrite() if (_d_n >= GMRFLib_DW_LEN) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
+#define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
 #define Dclose() if (_d_n) fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; fclose(_fp)
 #define Dfree() Free(_d_store)
-
-#define DADD(a_) _d_store[_d_n++] = a_; Dwrite()
-#define DADD2(a_, b_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
-#define DADD3(a_, b_, c_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
-#define DADD4(a_, b_, c_, d_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
-#define DADD5(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
-
-#define DW(a_) DADD(a_)
-#define D2W(a_, b_) DADD2(a_, b_)
-#define D3W(a_, b_, c_) DADD3(a_, b_, c_)
-#define D4W(a_, b_, c_, d_) DADD4(a_, b_, c_, d_)
-#define D5W(a_, b_, c_, d_, e_) DADD5(a_, b_, c_, d_, e_)
-
-#define IW(a_) DW(a_)
-#define I2W(a_, b_) D2W(a_, b_)
-#define I3W(a_, b_, c_) D3W(a_, b_, c_)
-#define I4W(a_, b_, c_, d_) D4W(a_, b_, c_, d_)
-#define I5W(a_, b_, c_, d_, e_) D5W(a_, b_, c_, d_, e_)
-
-#define IDW(a_, b_) D2W(a_, b_)
-#define ID2W(a_, b_, c_)  D3W(a_, b_, c_)
-
-/* 
-   functions
- */
+#define DW(a_) _d_store[_d_n++] = a_; Dwrite()
+#define D2W(a_, b_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
+#define D3W(a_, b_, c_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
+#define D4W(a_, b_, c_, d_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
+#define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);

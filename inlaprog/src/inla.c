@@ -31562,13 +31562,13 @@ int inla_output_names(const char *dir, const char *sdir, int n, const char **nam
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep)
 {
 	char *fnm, *ndir;
-	Dinit();
+	Dinit_s();
 
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, sdir);
 	GMRFLib_sprintf(&fnm, "%s/size.dat", ndir);
 
 	Dopen(fnm);
-	I5W(n, (N > 0 ? N : n), (Ntotal > 0 ? Ntotal : n), (ngroup > 0 ? ngroup : 1), (nrep > 0 ? nrep : 1));
+	D5W(n, (N > 0 ? N : n), (Ntotal > 0 ? Ntotal : n), (ngroup > 0 ? ngroup : 1), (nrep > 0 ? nrep : 1));
 	Dclose();
 
 	Dfree();
@@ -31631,9 +31631,8 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 int inla_output(inla_tp * mb)
 {
 	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
-	Dinit();
-
 	assert(mb);
+
 	/*
 	 * compute the offset for each pack of the results 
 	 */
@@ -31705,7 +31704,7 @@ int inla_output(inla_tp * mb)
 			}
 		} else if (k == 3) {
 			char *fnm;
-
+			Dinit();
 			GMRFLib_sprintf(&fnm, "%s/totaloffset", mb->dir);
 			inla_mkdir(fnm);
 			Free(fnm);
@@ -31716,6 +31715,7 @@ int inla_output(inla_tp * mb)
 				DW(OFFSET3(ii));
 			}
 			Dclose();
+			Dfree();
 		} else if (k == 4) {
 			for (ii = 0; ii < mb->nlinear; ii++) {
 				int offset = offsets[mb->nf + 1 + ii];
@@ -31871,7 +31871,6 @@ int inla_output(inla_tp * mb)
 		}
 	}
 
-	Dfree();
 	return INLA_OK;
 }
 
@@ -31904,13 +31903,13 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 				printf("\t\tstore cpo-results in[%s]\n", nndir);
 			}
 		}
-		IW(predictor_n);
+		DW(predictor_n);
 		for (i = 0; i < n; i++) {
 			if (cpo->value[i]) {
-				IDW(i, cpo->value[i][0]);
+				D2W(i, cpo->value[i][0]);
 			} else {
 				if (add_empty) {
-					IDW(i, NAN);
+					D2W(i, NAN);
 				}
 			}
 		}
@@ -31926,13 +31925,13 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 				printf("\t\tstore pit-results in[%s]\n", nndir);
 			}
 		}
-		IW(predictor_n);
+		DW(predictor_n);
 		for (i = 0; i < n; i++) {
 			if (cpo->pit_value[i]) {
-				IDW(i, cpo->pit_value[i][0]);
+				D2W(i, cpo->pit_value[i][0]);
 			} else {
 				if (add_empty) {
-					IDW(i, NAN);
+					D2W(i, NAN);
 				}
 			}
 		}
@@ -31947,13 +31946,13 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 				printf("\t\tstore failure-results in[%s]\n", nndir);
 			}
 		}
-		IW(predictor_n);
+		DW(predictor_n);
 		for (i = 0; i < n; i++) {
 			if (cpo->failure[i]) {
-				IDW(i, cpo->failure[i][0]);
+				D2W(i, cpo->failure[i][0]);
 			} else {
 				if (add_empty) {
-					IDW(i, NAN);
+					D2W(i, NAN);
 				}
 			}
 		}
@@ -32006,13 +32005,13 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 			printf("\t\tstore po-results in[%s]\n", nndir);
 		}
 	}
-	IW(predictor_n);
+	DW(predictor_n);
 	for (i = 0; i < n; i++) {
 		if (po->value[i]) {
-			ID2W(i, po->value[i][0], po->value[i][1]);
+			D3W(i, po->value[i][0], po->value[i][1]);
 		} else {
 			if (add_empty) {
-				ID2W(i, NAN, NAN);
+				D3W(i, NAN, NAN);
 			}
 		}
 	}
@@ -32213,7 +32212,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	{
 		Dopen(nndir);
 		for (i = 0; i < mo->len_reordering; i++) {
-			IW(mo->reordering[i] + 1);		       /* yes, use 1-based indexing. */
+			DW(mo->reordering[i] + 1);		       /* yes, use 1-based indexing. */
 		}
 		Dclose();
 	}
@@ -32514,7 +32513,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	 * output whatever is requested.... 
 	 */
 	char *ndir = NULL, *msg = NULL, *nndir = NULL;
-	Dinit();
+	Dinit_s();
 
 	if (!mlik) {
 		return INLA_OK;
@@ -32675,11 +32674,11 @@ int inla_output_detail_theta(const char *dir, double ***theta, int n_theta)
 	 */
 	int i;
 	char *nndir = NULL;
-	Dinit();
+	Dinit_s();
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".theta_mode");
 	Dopen(nndir);
-	IW(n_theta);
+	DW(n_theta);
 	for (i = 0; i < n_theta; i++) {
 		DW(theta[i][0][0]);
 	}
@@ -32702,7 +32701,7 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 
 	GMRFLib_sprintf(&nndir, "%s/%s", dir, ".x_mode");
 	Dopen(nndir);
-	IW(n_x);
+	DW(n_x);
 	for (i = 0; i < n_x; i++) {
 		DW(x[i]);
 	}
@@ -32865,7 +32864,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	double d_mean, d_stdev, *d_mode = NULL, *g_mode = NULL;
 	int i, ii, j, nn, ndiv;
 	int add_empty = 1;
-
 	Dinit();
 
 	assert(nrep > 0);
@@ -32926,14 +32924,14 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					if (locations) {
 						D3W(locations[i % ndiv], d_mean, d_stdev);
 					} else {
-						ID2W(i, d_mean, d_stdev);
+						D3W(i, d_mean, d_stdev);
 					}
 				} else {
 					if (add_empty) {
 						if (locations) {
 							D3W(locations[i % ndiv], NAN, NAN);
 						} else {
-							ID2W(i, NAN, NAN);
+							D3W(i, NAN, NAN);
 						}
 					}
 				}
@@ -32957,10 +32955,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					if (locations) {
 						DW(locations[i % ndiv]);
 					} else {
-						IW(i);
+						DW(i);
 					}
 					GMRFLib_density_layout_x(&xx, &nn, density[i]);
-					IW(nn);
+					DW(nn);
 					for (ii = 0; ii < nn; ii++) {
 						x = xx[ii];
 						x_user = GMRFLib_density_std2user(x, density[i]);
@@ -32974,10 +32972,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						if (locations) {
 							DW(locations[i % ndiv]);
 						} else {
-							IW(i);
+							DW(i);
 						}
 						nn = 3;
-						IW(nn);
+						DW(nn);
 						for (ii = 0; ii < nn; ii++) {
 							D2W(NAN, NAN);
 						}
@@ -33015,7 +33013,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					if (locations) {
 						DW(locations[i % ndiv]);
 					} else {
-						IW(i);
+						DW(i);
 					}
 					DW(kld);
 				} else {
@@ -33023,7 +33021,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						if (locations) {
 							DW(locations[i % ndiv]);
 						} else {
-							IW(i);
+							DW(i);
 						}
 						DW(NAN);
 					}
@@ -33048,9 +33046,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					if (locations) {
 						DW(locations[i % ndiv]);
 					} else {
-						IW(i);
+						DW(i);
 					}
-					IW(output->nquantiles);
+					DW(output->nquantiles);
 					for (j = 0; j < output->nquantiles; j++) {
 						p = output->quantiles[j];
 						if (_MAP_INCREASING(i)) {
@@ -33066,9 +33064,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						if (locations) {
 							DW(locations[i % ndiv]);
 						} else {
-							IW(i);
+							DW(i);
 						}
-						IW(output->nquantiles);
+						DW(output->nquantiles);
 						for (j = 0; j < output->nquantiles; j++) {
 							D2W(NAN, NAN);
 						}
@@ -33094,7 +33092,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					if (locations) {
 						DW(locations[i % ndiv]);
 					} else {
-						IW(i);
+						DW(i);
 					}
 					D3W(1.0, NAN, d_mode[i]);
 				} else {
@@ -33102,7 +33100,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						if (locations) {
 							DW(locations[i % ndiv]);
 						} else {
-							IW(i);
+							DW(i);
 						}
 						D3W(1.0, NAN, NAN);
 					}
@@ -33127,9 +33125,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					if (locations) {
 						DW(locations[i % ndiv]);
 					} else {
-						IW(i);
+						DW(i);
 					}
-					IW(output->ncdf);
+					DW(output->ncdf);
 					for (j = 0; j < output->ncdf; j++) {
 						xp = output->cdf[j];
 						x = GMRFLib_density_user2std(xp, density[i]);
@@ -33144,9 +33142,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						if (locations) {
 							DW(locations[i % ndiv]);
 						} else {
-							IW(i);
+							DW(i);
 						}
-						IW(output->ncdf);
+						DW(output->ncdf);
 						for (j = 0; j < output->ncdf; j++) {
 							D2W(NAN, NAN);
 						}
@@ -35293,15 +35291,28 @@ int testit(int argc, char **argv)
 		printf("One-by-one %f\n",  (GMRFLib_cpu() - tref));
 
 		tref = GMRFLib_cpu();
-		Dinit();
-		Dopen("REMOVE_ME_3.dat");
-		for (int i = 0; i < n; i++) {
-			DW(x[i]);
+		{
+			Dinit();
+			Dopen("REMOVE_ME_3.dat");
+			for (int i = 0; i < n; i++) {
+				DW(x[i]);
+			}
+			Dclose();
+			Dfree();
+			printf("D-cache %f\n",  (GMRFLib_cpu() - tref));
 		}
-		Dclose();
-		Dfree();
-		printf("D-cache %f\n",  (GMRFLib_cpu() - tref));
 
+		tref = GMRFLib_cpu();
+		{
+			Dinit_s();
+			Dopen("REMOVE_ME_4.dat");
+			for (int i = 0; i < n; i++) {
+				DW(x[i]);
+			}
+			Dclose();
+			Dfree();
+			printf("D-cache short %f\n",  (GMRFLib_cpu() - tref));
+		}
 		break;
 	}
 
