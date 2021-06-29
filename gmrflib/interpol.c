@@ -31,6 +31,12 @@
 #define GITCOMMIT
 #endif
 
+#include <assert.h>
+#include <stddef.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
