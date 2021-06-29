@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, smtp, waic)
+control.compute(config, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -28,7 +28,6 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 \item{config}{   A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
 \item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies \code{openmp.strategy='pardiso'}.}
 \item{graph}{   A boolean variable if the graph itself should be returned. (Default FALSE.)}
-\item{gdensity}{   A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
 }
 \value{
   
