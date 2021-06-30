@@ -32,7 +32,6 @@
     control.predictor = list(),
     control.family = list(),
     control.inla = list(),
-    control.results = list(),
     control.fixed = list(),
     control.mode = list(),
     control.expert = list(),
@@ -145,7 +144,6 @@
  \code{?control.predictor}}
  \item{control.family}{ See \code{?control.family}}
  \item{control.inla}{ See \code{?control.inla}}
- \item{control.results}{ See \code{?control.result}}
  \item{control.fixed}{ See \code{?control.fixed}}
  \item{control.mode}{ See \code{?control.mode}}
  \item{control.expert}{ See \code{?control.expert}}
@@ -205,9 +203,7 @@
  \item{summary.random}{List of matrices containing the mean and
  standard deviation (plus, possibly quantiles and cdf) of the
  the smooth or spatial effects defined through \code{f()}.}
- \item{marginals.random}{If
- \code{return.marginals.random}=\code{TRUE} in
- \code{control.results} (default), a list containing the
+ \item{marginals.random}{A list containing the
  posterior marginal densities of the random effects defined
  through \code{f}.}
  \item{summary.hyperpar}{

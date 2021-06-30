@@ -30,7 +30,6 @@
 ## !    control.predictor = list(),
 ## !    control.family = list(),
 ## !    control.inla = list(),
-## !    control.results = list(),
 ## !    control.fixed = list(),
 ## !    control.mode = list(),
 ## !    control.expert = list(),
@@ -162,8 +161,6 @@
 
 ## ! \item{control.inla}{ See \code{?control.inla}}
 
-## ! \item{control.results}{ See \code{?control.result}}
-
 ## ! \item{control.fixed}{ See \code{?control.fixed}}
 
 ## ! \item{control.mode}{ See \code{?control.mode}}
@@ -246,9 +243,7 @@
 ## ! standard deviation (plus, possibly quantiles and cdf) of the
 ## ! the smooth or spatial effects defined through \code{f()}.}
 
-## ! \item{marginals.random}{If
-## ! \code{return.marginals.random}=\code{TRUE} in
-## ! \code{control.results} (default), a list containing the
+## ! \item{marginals.random}{A list containing the
 ## ! posterior marginal densities of the random effects defined
 ## ! through \code{f}.}
 
@@ -405,7 +400,6 @@
                    control.predictor = list(),
                    control.family = list(),
                    control.inla = list(),
-                   control.results = list(),
                    control.fixed = list(),
                    control.mode = list(),
                    control.expert = list(),
@@ -513,7 +507,6 @@
     }
     ## do not check control.family here, as we need to know n.family
     control.inla <- inla.check.control(control.inla, data)
-    control.results <- inla.check.control(control.results, data)
     control.fixed <- inla.check.control(control.fixed, data)
     control.mode <- inla.check.control(control.mode, data)
     control.expert <- inla.check.control(control.expert, data)
@@ -600,7 +593,6 @@
             control.predictor = control.predictor,
             control.family = control.family,
             control.inla = control.inla,
-            control.results = control.results,
             control.fixed = control.fixed,
             control.mode = control.mode,
             control.expert = control.expert,
@@ -1012,10 +1004,6 @@
         all.hyper$family[[i.family]]$link$hyper <- cont.family[[i.family]]$control.link$hyper
     }
 
-    ## control results
-    cont.results <- inla.set.control.results.default()
-    cont.results[names(control.results)] <- control.results
-
     ## Create the directory where to store Model.ini and data.files
     ## and results.file
     if (!is.null(working.directory)) {
@@ -1107,7 +1095,6 @@
     mf$control.update <- NULL
     mf$control.pardiso <- NULL
     mf$control.inla <- NULL
-    mf$control.results <- NULL
     mf$control.fixed <- NULL
     mf$control.lincomb <- NULL
     mf$control.mode <- NULL
@@ -2238,7 +2225,6 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,
-                    control.results = cont.results, debug = debug,
                     only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2
                 ), silent = FALSE)
                 if (!is.list(ret)) {

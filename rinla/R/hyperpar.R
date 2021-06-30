@@ -109,9 +109,6 @@
         result.tmp$.args$control.inla$force.diagonal <- TRUE
         result.tmp$.args$control.inla$adjust.weights <- FALSE
 
-        result.tmp$.args$control.results$return.marginals.random <- FALSE
-        result.tmp$.args$control.results$return.marginals.predictor <- FALSE
-
         result.tmp$.args$control.mode$result <- result.tmp
         result.tmp$.args$control.mode$restart <- restart
 

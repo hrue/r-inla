@@ -9,7 +9,6 @@
 ## Export: inla.set.control.fixed.default
 ## Export: inla.set.control.inla.default
 ## Export: inla.set.control.predictor.default
-## Export: inla.set.control.results.default
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
 ## Export: inla.set.control.bgev.default
@@ -27,7 +26,6 @@
 ## Export: control.inla
 ## Export: control.vb
 ## Export: control.predictor
-## Export: control.results
 ## Export: control.mode
 ## Export: control.hazard
 ## Export: control.bgev
@@ -614,20 +612,6 @@
         ## :SEEALSO: inla
     }
 
-`inla.set.control.results.default` <-
-    function(...) {
-        ## :EXTRA:
-        ## :NAME: control.results
-        list(
-            ## :ARGUMENT: return.marginals.random A boolean variable; read the marginals for the fterms? (Default TRUE)
-            return.marginals.random = TRUE,
-
-            ## :ARGUMENT: return.marginals.predictor A boolean variable; read the marginals for the linear predictor? (Default TRUE)
-            return.marginals.predictor = TRUE
-        )
-        ## :SEEALSO: inla
-    }
-
 `inla.set.control.mode.default` <-
     function(...) {
         ## this is internal use only...
@@ -794,7 +778,6 @@ control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.defa
 control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
 control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
 control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
-control.results <- inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
 control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))

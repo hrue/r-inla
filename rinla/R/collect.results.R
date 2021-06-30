@@ -8,7 +8,6 @@
 ## ! \usage{
 ## ! inla.collect.results(
 ## !              results.dir,
-## !              control.results = inla.set.control.results.default(),
 ## !              debug=FALSE,
 ## !              only.hyperparam=FALSE,
 ## !              file.log = NULL,
@@ -20,10 +19,6 @@
     function(
              ## ! \item{results.dir}{The directory where the results of the inla run are stored}
              results.dir,
-
-             ## ! \item{control.results}{a list of parameters controlling the
-             ## ! output of the function; see \code{?control.results}}
-             control.results = inla.set.control.results.default(),
 
              ## ! \item{debug}{Logical. If \code{TRUE} some debugging information are printed}
              debug = FALSE,
@@ -66,7 +61,6 @@
                 cat(paste("inla.collect.results: retry with directory", results.dir.new, "\n"))
             }
             return(inla.collect.results(results.dir.new,
-                                        control.results = control.results,
                                         debug = debug,
                                         only.hyperparam = only.hyperparam,
                                         file.log = file.log,
@@ -87,10 +81,10 @@
         res.cpo.pit <- inla.collect.cpo(results.dir, debug)
         res.po <- inla.collect.po(results.dir, debug)
         res.waic <- inla.collect.waic(results.dir, debug)
-        res.random <- inla.collect.random(results.dir, control.results$return.marginals.random, debug)
-        res.predictor <- inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
-        res.spde2.blc <- inla.collect.spde2.blc(results.dir, control.results$return.marginals.random, debug)
-        res.spde3.blc <- inla.collect.spde3.blc(results.dir, control.results$return.marginals.random, debug)
+        res.random <- inla.collect.random(results.dir, debug)
+        res.predictor <- inla.collect.predictor(results.dir, debug)
+        res.spde2.blc <- inla.collect.spde2.blc(results.dir, debug)
+        res.spde3.blc <- inla.collect.spde3.blc(results.dir, debug)
     } else {
         res.fixed <- NULL
         res.lincomb <- NULL
@@ -1456,8 +1450,7 @@
     return(list(mlik = mlik.res))
 }
 
-`inla.collect.predictor` <- function(results.dir, return.marginals.predictor = TRUE,
-                                     debug = FALSE)
+`inla.collect.predictor` <- function(results.dir, debug = FALSE)
 {
     alldir <- dir(results.dir)
 
@@ -1683,7 +1676,7 @@
     return(res)
 }
 
-`inla.collect.random` <- function(results.dir, return.marginals.random, debug = FALSE) 
+`inla.collect.random` <- function(results.dir, debug = FALSE) 
 {
     alldir <- dir(results.dir)
     random <- alldir[grep("^random.effect", alldir)]
@@ -1859,7 +1852,7 @@
     return(res)
 }
 
-`inla.collect.spde2.blc` <- function(results.dir, return.marginals.random, debug = FALSE) 
+`inla.collect.spde2.blc` <- function(results.dir, debug = FALSE) 
 {
     ## a copy from collect.random
     alldir <- dir(results.dir)
@@ -2027,7 +2020,7 @@
     return(res)
 }
 
-`inla.collect.spde3.blc` <- function(results.dir, return.marginals.random, debug = FALSE)
+`inla.collect.spde3.blc` <- function(results.dir, debug = FALSE)
 {
     ## a copy from collect.random
     alldir <- dir(results.dir)
