@@ -1082,7 +1082,7 @@
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
-`inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, dic,
+`inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
                                    cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
@@ -1114,6 +1114,7 @@
     cat("rinla.version = ", inla.version("version"), "\n", file = file, append = TRUE)
     cat("rinla.bdate = ", inla.version("date"), "\n", file = file, append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
+    inla.write.boolean.field("return.marginals.predictor", return.marginals.predictor, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
     inla.write.boolean.field("po", po, file)

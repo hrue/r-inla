@@ -755,6 +755,7 @@ typedef struct {
 	int dic;					       /* output DIC */
 	int summary;					       /* output marginal summaries (mean, stdev, etc) */
 	int return_marginals;				       /* output detailed marginal density (even though they are computed) */
+	int return_marginals_predictor;			       /* output detailed marginal density (even though they are computed) */
 	int hyperparameters;				       /* compute also the marginal for the hyperparameters */
 	int kld;					       /* output the (symmetric) kld between marginals */
 	int mlik;					       /* compute the marginal likelihood? */
@@ -1723,7 +1724,7 @@ int inla_ncpu(void);
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep,
-		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
+		       Output_tp * output, const char *sdir, int return_marginals, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
 		       const char *tag, const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);

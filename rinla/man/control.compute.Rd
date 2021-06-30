@@ -12,13 +12,14 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, smtp, waic)
+control.compute(config, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, return.marginals.predictor, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
 \item{openmp.strategy}{   The computational strategy to use: 'small', 'medium', 'large', 'huge', 'default' and 'pardiso'.}
 \item{hyperpar}{   A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{   A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
+\item{return.marginals.predictor}{   A boolean variable if the marginals for the linear predictor should be returned (although it is computed). Default FALSE}
 \item{dic}{   A boolean variable if the DIC-value should be computed. Default FALSE.}
 \item{mlik}{   A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
 \item{cpo}{   A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}

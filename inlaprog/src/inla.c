@@ -31319,6 +31319,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->dic = 0;
 		(*out)->summary = 1;
 		(*out)->return_marginals = 1;
+		(*out)->return_marginals_predictor = 0;
 		(*out)->kld = 1;
 		(*out)->mlik = 0;
 		(*out)->q = 0;
@@ -31344,6 +31345,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->hyperparameters = mb->output->hyperparameters;
 		(*out)->mode = mb->output->mode;
 		(*out)->return_marginals = mb->output->return_marginals;
+		(*out)->return_marginals_predictor = mb->output->return_marginals_predictor;
 		(*out)->nquantiles = mb->output->nquantiles;
 		if (mb->output->nquantiles) {
 			(*out)->quantiles = Calloc(mb->output->nquantiles, double);
@@ -31360,6 +31362,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);
 	(*out)->summary = iniparser_getboolean(ini, inla_string_join(secname, "SUMMARY"), (*out)->summary);
 	(*out)->return_marginals = iniparser_getboolean(ini, inla_string_join(secname, "RETURN.MARGINALS"), (*out)->return_marginals);
+	(*out)->return_marginals_predictor = iniparser_getboolean(ini, inla_string_join(secname, "RETURN.MARGINALS.PREDICTOR"), (*out)->return_marginals_predictor);
 	(*out)->hyperparameters = iniparser_getboolean(ini, inla_string_join(secname, "HYPERPARAMETERS"), (*out)->hyperparameters);
 	(*out)->mode = iniparser_getboolean(ini, inla_string_join(secname, "MODE"), (*out)->mode);
 	(*out)->kld = iniparser_getboolean(ini, inla_string_join(secname, "KLD"), (*out)->kld);
@@ -31418,6 +31421,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		}
 		printf("\t\t\tsummary=[%1d]\n", (*out)->summary);
 		printf("\t\t\treturn.marginals=[%1d]\n", (*out)->return_marginals);
+		printf("\t\t\treturn.marginals.predictor=[%1d]\n", (*out)->return_marginals_predictor);
 		printf("\t\t\tnquantiles=[%1d]  [", (*out)->nquantiles);
 		for (i = 0; i < (*out)->nquantiles; i++) {
 			printf(" %g", (*out)->quantiles[i]);
@@ -31675,7 +31679,8 @@ int inla_output(inla_tp * mb)
 
 			inla_output_detail(mb->dir, &(mb->density[offset]),
 					   NULL, mb->predictor_n + mb->predictor_m, 1,
-					   mb->predictor_output, mb->predictor_dir, NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
+					   mb->predictor_output, mb->predictor_dir, mb->output->return_marginals_predictor, 
+					   NULL, NULL, NULL, mb->predictor_tag, NULL, local_verbose);
 			inla_output_size(mb->dir, mb->predictor_dir, mb->predictor_n, mb->predictor_n,
 					 mb->predictor_n + mb->predictor_m, -1, (mb->predictor_m == 0 ? 1 : 2));
 
@@ -31688,7 +31693,8 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]),
 						   NULL, mb->predictor_n + mb->predictor_m, 1,
-						   mb->predictor_output, sdir, NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
+						   mb->predictor_output, sdir, mb->output->return_marginals_predictor,
+						   NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 			}
 		} else if (k == 2) {
@@ -31697,7 +31703,8 @@ int inla_output(inla_tp * mb)
 				inla_output_detail(mb->dir, &(mb->density[offset]),
 						   mb->f_locations[ii],
 						   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii],
-						   mb->f_dir[ii], NULL, NULL, NULL, mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
+						   mb->f_dir[ii], mb->output->return_marginals, 
+						   NULL, NULL, NULL, mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
 				inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii],
 						 mb->f_ngroup[ii], mb->f_nrep[ii]);
 				inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
@@ -31720,7 +31727,8 @@ int inla_output(inla_tp * mb)
 			for (ii = 0; ii < mb->nlinear; ii++) {
 				int offset = offsets[mb->nf + 1 + ii];
 				inla_output_detail(mb->dir, &(mb->density[offset]),
-						   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], NULL, NULL, NULL,
+						   NULL, 1, 1, mb->linear_output[ii], mb->linear_dir[ii], mb->output->return_marginals,
+						   NULL, NULL, NULL,
 						   mb->linear_tag[ii], NULL, local_verbose);
 				inla_output_size(mb->dir, mb->linear_dir[ii], 1, -1, -1, -1, -1);
 			}
@@ -31731,7 +31739,8 @@ int inla_output(inla_tp * mb)
 				GMRFLib_sprintf(&newtag2, "lincombs.derived.all");
 				GMRFLib_sprintf(&newdir2, "lincombs.derived.all");
 				inla_output_detail(mb->dir, &(mb->density_lin[ii]), mb->lc_order, mb->nlc,
-						   1, mb->lc_output[ii], newdir2, NULL, NULL, NULL, newtag2, NULL, local_verbose);
+						   1, mb->lc_output[ii], newdir2, mb->output->return_marginals,
+						   NULL, NULL, NULL, newtag2, NULL, local_verbose);
 				inla_output_size(mb->dir, newdir2, mb->nlc, -1, -1, -1, -1);
 				inla_output_names(mb->dir, newdir2, mb->nlc, (const char **) ((void *) mb->lc_tag), NULL);
 
@@ -31744,12 +31753,14 @@ int inla_output(inla_tp * mb)
 
 					GMRFLib_sprintf(&sdir, "hyperparameter-1-%.6d-%s", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, 1, 1, mb->output, sdir,
+							   mb->output->return_marginals,
 							   NULL, NULL, NULL, mb->theta_tag[ii], NULL, local_verbose);
 					inla_output_hyperid(mb->dir, sdir, mb->theta_hyperid[ii]);
 					inla_output_size(mb->dir, sdir, 1, -1, -1, -1, -1);
 
 					GMRFLib_sprintf(&sdir, "hyperparameter-2-%.6d-%s-user-scale", ii, mb->theta_dir[ii]);
 					inla_output_detail(mb->dir, &(mb->density_hyper[ii]), NULL, 1, 1, mb->output, sdir,
+							   mb->output->return_marginals,
 							   mb->theta_map[ii], mb->theta_map_arg[ii], NULL,
 							   mb->theta_tag_userscale[ii], NULL, local_verbose);
 					inla_output_hyperid(mb->dir, sdir, mb->theta_hyperid[ii]);
@@ -31763,8 +31774,8 @@ int inla_output(inla_tp * mb)
 				char *sdir;
 				sdir = GMRFLib_strdup("random.effect.UserFunction0");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc0_density, NULL,
-						   GMRFLib_ai_INLA_userfunc0_dim, 1, mb->output, sdir, NULL, NULL, NULL,
-						   "UserFunction0", NULL, local_verbose);
+						   GMRFLib_ai_INLA_userfunc0_dim, 1, mb->output, sdir, mb->output->return_marginals,
+						   NULL, NULL, NULL, "UserFunction0", NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, GMRFLib_ai_INLA_userfunc0_dim, -1, -1, -1, -1);
 				Free(sdir);
 			}
@@ -31775,8 +31786,8 @@ int inla_output(inla_tp * mb)
 				char *sdir;
 				sdir = GMRFLib_strdup("random.effect.UserFunction1");
 				inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc1_density, NULL,
-						   GMRFLib_ai_INLA_userfunc1_dim, 1, mb->output, sdir, NULL, NULL, NULL,
-						   "UserFunction1", NULL, local_verbose);
+						   GMRFLib_ai_INLA_userfunc1_dim, 1, mb->output, sdir, mb->output->return_marginals, 
+						   NULL, NULL, NULL, "UserFunction1", NULL, local_verbose);
 				inla_output_size(mb->dir, sdir, GMRFLib_ai_INLA_userfunc1_dim, -1, -1, -1, -1);
 
 				Free(sdir);
@@ -31792,7 +31803,8 @@ int inla_output(inla_tp * mb)
 					GMRFLib_sprintf(&sdir, "spde2.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc2_tag[ii]);
 					inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc2_density[ii], NULL, dim, 1,
-							   mb->output, sdir, NULL, NULL, NULL, local_tag, NULL, local_verbose);
+							   mb->output, sdir, mb->output->return_marginals,
+							   NULL, NULL, NULL, local_tag, NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, dim, -1, -1, -1, -1);
 
 					Free(sdir);
@@ -31810,7 +31822,8 @@ int inla_output(inla_tp * mb)
 					GMRFLib_sprintf(&sdir, "spde3.blc.%6.6d", ii + 1);
 					GMRFLib_sprintf(&local_tag, "%s", GMRFLib_ai_INLA_userfunc3_tag[ii]);
 					inla_output_detail(mb->dir, GMRFLib_ai_INLA_userfunc3_density[ii], NULL, dim, 1,
-							   mb->output, sdir, NULL, NULL, NULL, local_tag, NULL, local_verbose);
+							   mb->output, sdir, mb->output->return_marginals,
+							   NULL, NULL, NULL, local_tag, NULL, local_verbose);
 					inla_output_size(mb->dir, sdir, dim, -1, -1, -1, -1);
 
 					Free(sdir);
@@ -32835,6 +32848,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 }
 
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep, Output_tp * output, const char *sdir,
+		       int return_marginals, 
 		       // Either this
 		       map_func_tp * func, void *func_arg,
 		       // .. or this
@@ -32940,7 +32954,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 			Free(nndir);
 		}
 	}
-	if (output->return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
+	if (return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
 			Dopen(nndir);

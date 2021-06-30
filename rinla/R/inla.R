@@ -899,7 +899,9 @@
         cont.predictor$compute <- TRUE
     }
     if (only.hyperparam) {
-        cont.predictor$compute <- cont.predictor$return.marginals <- FALSE
+        cont.predictor$compute <- FALSE
+        cont.predictor$return.marginals <- FALSE
+        cont.predictor$return.marginals.predictor <- FALSE
         cont.predictor$cdf <- cont.predictor$quantiles <- NULL
     }
 
@@ -1066,7 +1068,9 @@
 
     inla.problem.section(
         file = file.ini, data.dir = data.dir, result.dir = results.dir,
-        hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
+        hyperpar = cont.compute$hyperpar,
+        return.marginals = cont.compute$return.marginals,
+        return.marginals.predictor = cont.compute$return.marginals.predictor,
         dic = cont.compute$dic, mlik = cont.compute$mlik,
         cpo = cont.compute$cpo,
         ## these two are merged together as they are compute together

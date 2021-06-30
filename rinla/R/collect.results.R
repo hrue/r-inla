@@ -1546,32 +1546,28 @@
             rownames(summary.linear.predictor) <- paste("Predictor.", inla.num(1L:size.info$Ntotal), sep = "")
         }
 
-        if (return.marginals.predictor) {
-            if (debug) {
-                cat("...read marginal-densities.dat\n")
-            }
-            file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
-            xx <- inla.read.binary.file(file)
-            rr <- inla.interpret.vector.list(xx, debug = debug)
-            rm(xx)
-            if (!is.null(rr)) {
-                if (A) {
-                    names(rr) <- c(
-                        paste("APredictor.", inla.num(1L:nA), sep = ""),
-                        paste("Predictor.", inla.num(1L:n), sep = "")
-                    )
-                } else {
-                    names(rr) <- paste("Predictor.", as.character(1L:length(rr)), sep = "")
-                }
-                names.rr <- names(rr)
-                for (i in 1L:length(rr)) {
-                    colnames(rr[[i]]) <- c("x", "y")
-                }
-            }
-            marginals.linear.predictor <- rr
-        } else {
-            marginals.linear.predictor <- NULL
+        if (debug) {
+            cat("...read marginal-densities.dat\n")
         }
+        file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
+        xx <- inla.read.binary.file(file)
+        rr <- inla.interpret.vector.list(xx, debug = debug)
+        rm(xx)
+        if (!is.null(rr)) {
+            if (A) {
+                names(rr) <- c(
+                    paste("APredictor.", inla.num(1L:nA), sep = ""),
+                    paste("Predictor.", inla.num(1L:n), sep = "")
+                )
+            } else {
+                names(rr) <- paste("Predictor.", as.character(1L:length(rr)), sep = "")
+            }
+            names.rr <- names(rr)
+            for (i in 1L:length(rr)) {
+                colnames(rr[[i]]) <- c("x", "y")
+            }
+        }
+        marginals.linear.predictor <- rr
     } else {
         summary.linear.predictor <- NULL
         marginals.linear.predictor <- NULL
@@ -1632,32 +1628,25 @@
             }
             summary.fitted.values <- as.data.frame(dd)
 
-            if (return.marginals.predictor) {
-                file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
-                xx <- inla.read.binary.file(file)
-                rr <- inla.interpret.vector.list(xx, debug = debug)
-                rm(xx)
-                if (!is.null(rr)) {
-                    if (A) {
-                        names(rr) <- c(
-                            paste("fitted.APredictor.", inla.num(1L:nA), sep = ""),
-                            paste("fitted.Predictor.", inla.num(1:n), sep = "")
+            file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
+            xx <- inla.read.binary.file(file)
+            rr <- inla.interpret.vector.list(xx, debug = debug)
+            rm(xx)
+            if (!is.null(rr)) {
+                if (A) {
+                    names(rr) <- c(
+                        paste("fitted.APredictor.", inla.num(1L:nA), sep = ""),
+                        paste("fitted.Predictor.", inla.num(1:n), sep = "")
                         )
-                    } else {
-                        names(rr) <- paste("fitted.Predictor.", inla.num(1L:length(rr)), sep = "")
-                    }
-                    names.rr <- names(rr)
-                    for (i in 1L:length(rr)) {
-                        colnames(rr[[i]]) <- c("x", "y")
-                    }
+                } else {
+                    names(rr) <- paste("fitted.Predictor.", inla.num(1L:length(rr)), sep = "")
                 }
-                marginals.fitted.values <- rr
-            } else {
-                marginals.fitted.values <- NULL
+                names.rr <- names(rr)
+                for (i in 1L:length(rr)) {
+                    colnames(rr[[i]]) <- c("x", "y")
+                    }
             }
-        } else {
-            summary.fitted.values <- NULL
-            marginals.fitted.values <- NULL
+            marginals.fitted.values <- rr
         }
     } else {
         summary.fitted.values <- NULL
@@ -1709,12 +1698,8 @@
         size.random <- list()
         size.random[[n.random]] <- NA
 
-        if (return.marginals.random) {
-            marginals.random <- list()
-            marginals.random[[n.random]] <- NA
-        } else {
-            marginals.random <- NULL
-        }
+        marginals.random <- list()
+        marginals.random[[n.random]] <- NA
 
         for (i in 1L:n.random) {
             if (debug) {
@@ -1782,22 +1767,18 @@
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                if (return.marginals.random) {
-                    xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
-                    rr <- inla.interpret.vector.list(xx, debug = debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd <- length(rr)
-                        names(rr) <- paste("index.", as.character(1L:nd), sep = "")
-                        names.rr <- names(rr)
-                        for (j in 1L:nd) {
-                            colnames(rr[[j]]) <- c("x", "y")
+                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                rr <- inla.interpret.vector.list(xx, debug = debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd <- length(rr)
+                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names.rr <- names(rr)
+                    for (j in 1L:nd) {
+                        colnames(rr[[j]]) <- c("x", "y")
                         }
-                    }
-                    marginals.random[[i]] <- if (is.null(rr)) NA else rr
-                } else {
-                    stopifnot(is.null(marginals.random))
                 }
+                marginals.random[[i]] <- if (is.null(rr)) NA else rr
 
                 ## if id.names are present,  override the default names
                 id.names <- inla.readLines(paste(file, .Platform$file.sep, "id-names.dat", sep = ""))
@@ -1887,12 +1868,8 @@
         size.random <- list()
         size.random[[n.random]] <- NA
 
-        if (return.marginals.random) {
-            marginals.random <- list()
-            marginals.random[[n.random]] <- NA
-        } else {
-            marginals.random <- NULL
-        }
+        marginals.random <- list()
+        marginals.random[[n.random]] <- NA
 
         for (i in 1L:n.random) {
             if (debug) {
@@ -1960,22 +1937,18 @@
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                if (return.marginals.random) {
-                    xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
-                    rr <- inla.interpret.vector.list(xx, debug = debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd <- length(rr)
-                        names(rr) <- paste("index.", as.character(1L:nd), sep = "")
-                        names.rr <- names(rr)
-                        for (j in 1L:nd) {
-                            colnames(rr[[j]]) <- c("x", "y")
+                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                rr <- inla.interpret.vector.list(xx, debug = debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd <- length(rr)
+                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names.rr <- names(rr)
+                    for (j in 1L:nd) {
+                        colnames(rr[[j]]) <- c("x", "y")
                         }
-                    }
-                    marginals.random[[i]] <- rr
-                } else {
-                    stopifnot(is.null(marginals.random))
                 }
+                marginals.random[[i]] <- rr
             } else {
                 N.file <- paste(file, .Platform$file.sep, "N", sep = "")
                 if (!file.exists(N.file)) {
@@ -2055,12 +2028,8 @@
         size.random <- list()
         size.random[[n.random]] <- NA
 
-        if (return.marginals.random) {
-            marginals.random <- list()
-            marginals.random[[n.random]] <- NA
-        } else {
-            marginals.random <- NULL
-        }
+        marginals.random <- list()
+        marginals.random[[n.random]] <- NA
 
         for (i in 1L:n.random) {
             if (debug) {
@@ -2127,22 +2096,18 @@
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                if (return.marginals.random) {
-                    xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
-                    rr <- inla.interpret.vector.list(xx, debug = debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd <- length(rr)
-                        names(rr) <- paste("index.", as.character(1L:nd), sep = "")
-                        names.rr <- names(rr)
-                        for (j in 1L:nd) {
-                            colnames(rr[[j]]) <- c("x", "y")
+                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                rr <- inla.interpret.vector.list(xx, debug = debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd <- length(rr)
+                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names.rr <- names(rr)
+                    for (j in 1L:nd) {
+                        colnames(rr[[j]]) <- c("x", "y")
                         }
-                    }
-                    marginals.random[[i]] <- rr
-                } else {
-                    stopifnot(is.null(marginals.random))
                 }
+                marginals.random[[i]] <- rr
             } else {
                 N.file <- paste(file, .Platform$file.sep, "N", sep = "")
                 if (!file.exists(N.file)) {

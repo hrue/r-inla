@@ -201,7 +201,6 @@
         ## :SEEALSO: inla
     }
 
-
 `inla.set.control.compute.default` <-
     function(...) {
         ## :EXTRA:
@@ -215,6 +214,9 @@
 
             ## :ARGUMENT: return.marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
             return.marginals = TRUE,
+
+            ## :ARGUMENT: return.marginals.predictor A boolean variable if the marginals for the linear predictor should be returned (although it is computed). Default FALSE
+            return.marginals.predictor = FALSE,
 
             ## :ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
             dic = FALSE,
