@@ -920,19 +920,19 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	if (cpo_density) {						\
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL,		\
-				*ld = NULL, *logcor = NULL, *x_user = NULL, *work = NULL, _alpha=-1.0; \
+				*ld = NULL, *logcor = NULL, *x_user = NULL, _alpha=-1.0; \
 			int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
 			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
 									\
-			work = Calloc(4*np_new, double);		\
+			Calloc_init(4*np_new);				\
 			for(itry = 0; itry < 2;	itry++)			\
 			{						\
 				np = np_orig;				\
 				flag = 0;				\
-				ld = &work[0];				\
-				logcor = &work[np_new];			\
-				x_user = &work[2*np_new];		\
-				xp = &work[3*np_new];			\
+				ld = Calloc_get(np_new);		\
+				logcor = Calloc_get(np_new);		\
+				x_user = Calloc_get(np_new);		\
+				xp = Calloc_get(np_new);		\
 				GMRFLib_ghq_abscissas(&xp_tmp, np);	\
 				range = xp_tmp[np-1];			\
 				Memcpy(xp+npx, xp_tmp, np*sizeof(double)); \
@@ -982,7 +982,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				if (*cpo_density || itry == 1)		\
 					break;				\
 			}						\
-			Free(work);					\
+			Calloc_free();					\
 		} else {						\
 			if (ai_par->cpo_manual){			\
 				GMRFLib_density_duplicate(cpo_density, *density); \
@@ -7201,7 +7201,7 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp *coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					   double *x_vec)
 {
 	/*
@@ -7237,7 +7237,6 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 		GMRFLib_density_user2std_n(x_std, x_user, density, np);
 		loglFunc(loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
 
-		GMRFLib_vb_coofs_tp *res = Calloc(1, GMRFLib_vb_coofs_tp);
 		double A = 0.0, B = 0.0, C = 0.0;
 		double s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
 
@@ -7247,22 +7246,22 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 			C -= wp[i] * d * loglik[i] * (SQR(xp[i]) - 1.0) * s2_inv;
 		}
 
-		res->coofs[0] = A;
-		res->coofs[1] = B;
-		res->coofs[2] = C;
+		coofs->coofs[0] = A;
+		coofs->coofs[1] = B;
+		coofs->coofs[2] = C;
 
 		Calloc_free();
-		return res;
+		return GMRFLib_SUCCESS;
 	} else {
 		int i, k, np = GMRFLib_faster_integration_np;
-		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, w[2] =
+		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, w[2] =
 		    { 4.0, 2.0 }, integral_one, integral, integral_p, integral_m;
 
-		work = Calloc(4 * np, double);
-		xp = work;
-		xpi = work + np;
-		dens = work + 2 * np;
-		loglik = work + 3 * np;
+		Calloc_init(4 * np);
+		xp = Calloc_get(np);
+		xpi = Calloc_get(np);
+		dens = Calloc_get(np);
+		loglik = Calloc_get(np);
 
 		dxi = (density->x_max - density->x_min) / (np - 1.0);
 		low = GMRFLib_density_std2user(density->x_min, density);
@@ -7296,13 +7295,12 @@ GMRFLib_vb_coofs_tp *GMRFLib_ai_vb_prepare(int idx, GMRFLib_density_tp * density
 		integral_m /= (-integral_one);
 
 		// c[0] + c[1]*x + 1/2*c[2]*x^2 + c[3]*y + 1/2*c[4]*y2 + c[5]*x*y
-		GMRFLib_vb_coofs_tp *res = Calloc(1, GMRFLib_vb_coofs_tp);
-		res->coofs[0] = integral;
-		res->coofs[1] = (integral_p - integral_m) / (2.0 * dx);
-		res->coofs[2] = (integral_p - 2.0 * integral + integral_m) / SQR(dx);
+		coofs->coofs[0] = integral;
+		coofs->coofs[1] = (integral_p - integral_m) / (2.0 * dx);
+		coofs->coofs[2] = (integral_p - 2.0 * integral + integral_m) / SQR(dx);
 
-		Free(work);
-		return res;
+		Calloc_free();
+		return GMRFLib_SUCCESS;
 	}
 }
 
@@ -7365,6 +7363,9 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 		double tref = GMRFLib_cpu();
 		double *mode = Calloc(graph->n, double);
 		GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
+		for(i = 0; i < graph->n; i++) {
+			vb_coof[i] = Calloc(1, GMRFLib_vb_coofs_tp);
+		}
 
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		for (i = 0; i < graph->n; i++) {
@@ -7390,9 +7391,9 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			CODE_BLOCK_SET_THREAD_ID;			\
 			int i = d_idx->idx[ii];				\
 			if (density) {					\
-				vb_coof[i] = GMRFLib_ai_vb_prepare(i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
+				GMRFLib_ai_vb_prepare(vb_coof[i], i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
 			} else {					\
-				vb_coof[i] = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, mode); \
+				GMRFLib_ai_vb_prepare(vb_coof[i], i, dens_local[i], d[i], loglFunc, loglFunc_arg, mode); \
 			}						\
 		}
 
@@ -7689,9 +7690,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			CODE_BLOCK_SET_THREAD_ID;			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
-			GMRFLib_vb_coofs_tp *vb_coof = GMRFLib_ai_vb_prepare(i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
-			BB[i] = vb_coof->coofs[1];			\
-			CC[i] = DMAX(0.0, vb_coof->coofs[2] * cc_scale);     \
+			GMRFLib_vb_coofs_tp vb_coof;			\
+			GMRFLib_ai_vb_prepare(&vb_coof, i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
+			BB[i] = vb_coof.coofs[1];			\
+			CC[i] = DMAX(0.0, vb_coof.coofs[2] * cc_scale); \
 	}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
@@ -8501,7 +8503,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
 	int retval, compute_cpo = 1, i, k, np = GMRFLib_faster_integration_np;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, *work = NULL,
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, 
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
 	if (!cpo_density) {
@@ -8523,12 +8525,12 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
-	work = Calloc(5 * np, double);
-	xp = work;
-	xpi = work + np;
-	dens = work + 2 * np;
-	prob = work + 3 * np;
-	loglik = work + 4 * np;
+	Calloc_init(5 * np);
+	xp = Calloc_get(np);
+	xpi = Calloc_get(np);
+	dens = Calloc_get(np);
+	prob = Calloc_get(np);
+	loglik = Calloc_get(np);
 
 	dxi = (cpo_density->x_max - cpo_density->x_min) / (np - 1.0);
 	low = GMRFLib_density_std2user(cpo_density->x_min, cpo_density);
@@ -8583,7 +8585,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 		*pit = integral;
 	}
 
-	Free(work);
+	Calloc_free();
 	return fail;
 }
 
@@ -8592,7 +8594,7 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 {
 	int i, k, np = GMRFLib_faster_integration_np;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *xpi3 = NULL, *xpi4 = NULL,
-	    *dens = NULL, *work = NULL, integral2 = 0.0, integral3 = 0.0, integral4 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
+	    *dens = NULL, integral2 = 0.0, integral3 = 0.0, integral4 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
 	if (!po_density) {
 		if (po) {
@@ -8610,13 +8612,13 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 	}
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
-	work = Calloc(6 * np, double);
-	xp = work;
-	xpi = work + 1 * np;
-	dens = work + 2 * np;
-	loglik = work + 3 * np;
-	xpi3 = work + 4 * np;
-	xpi4 = work + 5 * np;
+	Calloc_init(6 * np);
+	xp = Calloc_get(np);
+	xpi = Calloc_get(np);
+	dens = Calloc_get(np);
+	loglik = Calloc_get(np);
+	xpi3 = Calloc_get(np);
+	xpi4 = Calloc_get(np);
 
 	dxi = (po_density->x_max - po_density->x_min) / (np - 1.0);
 	low = GMRFLib_density_std2user(po_density->x_min, po_density);
@@ -8669,8 +8671,8 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 	if (po3) {
 		*po3 = integral4;
 	}
-	Free(work);
 
+	Calloc_free();
 	return fail;
 }
 
@@ -8682,17 +8684,16 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	double inla_compute_saturated_loglik();
 
 	int i, k, np = GMRFLib_faster_integration_np;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, *work = NULL, integral = 0.0, w[2] =
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, integral = 0.0, w[2] =
 	    { 4.0, 2.0 }, integral_one, logl_saturated;
 
 	GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
-	work = Calloc(4 * np, double);
-
-	xp = work;
-	xpi = work + np;
-	dens = work + 2 * np;
-	loglik = work + 3 * np;
+	Calloc_init(4 * np);
+	xp = Calloc_get(np);
+	xpi = Calloc_get(np);
+	dens = Calloc_get(np);
+	loglik = Calloc_get(np);
 
 	dxi = (density->x_max - density->x_min) / (np - 1.0);
 	low = GMRFLib_density_std2user(density->x_min, density);
@@ -8734,7 +8735,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	}
 	integral = -2.0 * (integral / integral_one - logl_saturated);
 
-	Free(work);
+	Calloc_free();
 	return integral;
 }
 
@@ -8882,16 +8883,15 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 		/*
 		 * this require that hessian_force_diagonal == TRUE, but this is verified in the call, unless the use wants it... 
 		 */
-		double *dens = NULL, *theta_tmp = NULL, *work = NULL, *npoints_j = NULL, ldens_max;
+		double *dens = NULL, *theta_tmp = NULL, *npoints_j = NULL, ldens_max;
 
 		npoints = 0;
-		work = Calloc(5 * hyper_count + nhyper, double);
-
-		points = work;
-		dens = work + hyper_count;
-		ldens_values = work + 2 * hyper_count;
-		theta_tmp = work + 3 * hyper_count;
-		npoints_j = work + 4 * hyper_count;
+		Calloc_init(5 * hyper_count);
+		points = Calloc_get(hyper_count);
+		dens = Calloc_get(hyper_count);
+		ldens_values = Calloc_get(hyper_count);
+		theta_tmp = Calloc_get(hyper_count);
+		npoints_j = Calloc_get(hyper_count);
 
 		ldens_max = GMRFLib_max_value(hyper_ldens, hyper_count, NULL);
 		for (i = 0; i < hyper_count; i++) {
@@ -8939,7 +8939,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 		}
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, npoints, points, ldens_values,
 				       theta_mode[idx], std_stdev_theta[idx], GMRFLib_TRUE);
-		Free(work);
+		Calloc_free();
 	} else if (interpolator == GMRFLib_AI_INTERPOLATOR_CCD) {
 		/*
 		 * this is the new analytic approximation 
