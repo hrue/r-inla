@@ -11,6 +11,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(INLA)
+if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(smtp='taucs')
 inla.setOption(num.threads="1:1")
 knitr::opts_chunk$set(fig.path="figures/old-faq/")
@@ -294,6 +295,7 @@ formula = y ~ f(time, model="rw2", scale.model=TRUE,
 
 ## We'll get a warning since we have not defined the link argument
 result = inla(formula, family="binomial", Ntrials=n, data=Tokyo,
+	control.compute = list(return.marginals.predictor = TRUE), 
 	control.predictor=list(compute=T))
 
 ## need to recompute the fitted values for those with data[i] = NA,
