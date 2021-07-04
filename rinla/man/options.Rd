@@ -58,8 +58,6 @@
      ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
      Cygwin-shell). [Remote computing for Windows only]
 
-     enable.inla.argument.weights : if \code{TRUE} the \code{inla} accepts argument \code{weights}
-
      show.warning.graph.file : Give a warning for using the obsolete argument
                                \code{graph.file} instead of \code{graph}
 

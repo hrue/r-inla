@@ -111,13 +111,9 @@
  \item{weights}{ Fixed (optional) weights parameters of
  the likelihood, so the log-likelihood[i] is changed into
  weights[i]*log-likelihood[i]. Default value is rep(1,
- n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
- by default. You can enable this option for the rest of your \code{R} session,
- doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
+ n.data). 
  WARNING: The normalizing constant for the likelihood is NOT recomputed, so
- ALL marginals (and the marginal likelihood) must be interpreted with great care.
- Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
- and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
+ ALL marginals (and the marginal likelihood) must be interpreted with great care.}
  \item{Ntrials}{A vector containing the number of trials for the \code{binomial}
  likelihood and variantes, or the number of required successes for the
  \code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
