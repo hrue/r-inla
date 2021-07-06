@@ -929,10 +929,12 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			{						\
 				np = np_orig;				\
 				flag = 0;				\
-				ld = Calloc_get(np_new);		\
-				logcor = Calloc_get(np_new);		\
-				x_user = Calloc_get(np_new);		\
-				xp = Calloc_get(np_new);		\
+				if (!ld) {				\
+					ld = Calloc_get(np_new);	\
+					logcor = Calloc_get(np_new);	\
+					x_user = Calloc_get(np_new);	\
+					xp = Calloc_get(np_new);	\
+				}					\
 				GMRFLib_ghq_abscissas(&xp_tmp, np);	\
 				range = xp_tmp[np-1];			\
 				Memcpy(xp+npx, xp_tmp, np*sizeof(double)); \
