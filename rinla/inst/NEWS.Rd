@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 21.07.xx}{
+\section{CHANGES IN VERSION 21.07.10}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{
       
@@ -35,7 +35,6 @@
 
        \item There is a change how a (numerical) singular constraint is
        treated, hopefully this new way is more robust.
-
      }
    }
 
