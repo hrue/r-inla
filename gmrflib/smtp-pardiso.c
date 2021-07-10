@@ -451,7 +451,6 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[1] = 3;			       /* use METIS5 */
 	s->iparm_default[4] = 0;			       /* use internal reordering */
 	s->iparm_default[7] = 0;			       /* maximum number of refinement steps */
-	FIXME1("DISABLE iparm[7]");
 	// s->iparm_default[7] = 4; /* maximum number of refinement steps */
 	s->iparm_default[10] = 0;			       /* These are the default, but... */
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
