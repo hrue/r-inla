@@ -657,7 +657,7 @@ r3 = inla(formula,
 	     control.fixed = list(prec=100,prec.intercept=100),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb",cmin=0),
-         verbose=TRUE)
+         verbose=FALSE)
 ```
 
 A summary of the fitted effects and hyperparameters can be obtained as
