@@ -45,19 +45,19 @@ SED   = sed
 
 LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	GMRFLib-fortran.o optimize.o blockupdate.o \
-	distributions.o globals.o wa.o random.o timer.o hash.o density.o \
+	distributions.o globals.o random.o timer.o hash.o density.o \
 	smtp-band.o smtp-taucs.o sparse-interface.o rw.o \
 	bitmap.o tabulate-Qfunc.o io.o approx-inference.o ghq.o \
-	utils.o experimental.o graph-edit.o domin-interface.o auxvar.o \
+	utils.o graph-edit.o domin-interface.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
 	bfgs3.o fmesher-io.o smtp-pardiso.o interpol.o pre-opt.o
 HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	distributions.h GMRFLibP.h lapack-interface.h timer.h \
-	problem-setup.h error-handler.h globals.h graph.h wa.h random.h \
+	problem-setup.h error-handler.h globals.h graph.h random.h \
 	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
-	bitmap.h hashP.h compatibility.h taucs.h taucs_private.h ghq.h \
+	bitmap.h hashP.h taucs.h taucs_private.h ghq.h \
 	tabulate-Qfunc.h io.h \
-	approx-inference.h density.h utils.h experimental.h graph-edit.h \
+	approx-inference.h density.h utils.h graph-edit.h \
 	domin-interface.h auxvar.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h fmesher-io.h smtp-pardiso.h \
 	interpol.h pre-opt.h
