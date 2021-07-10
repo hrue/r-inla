@@ -4,6 +4,59 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.07.10}{
+  \subsection{USER-VISIBLE CHANGES}{
+    \itemize{
+      
+      \item If \code{control.predictor=list(compute=TRUE)} then the
+      marginal densities for the linear predictor and fitted values are
+      computed, but the new default is that only the summary statistics
+      are returned not the marginal densities. This is because the
+      storage requirement for the marginals can be substantial. The
+      marginal densities can be returned setting
+      \code{control.compute=list(return.marginals.predictor=TRUE)}
+
+      \item The argument \code{control.results} are removed as it was
+       not really in use.
+
+     \item The new default value for \code{b.strategy} is
+       \code{b.strategy="skip"}. See \code{?control.inla} for details
+       
+     }
+   }
+
+   \subsection{NEW FEATURES}{
+     \itemize{
+       \item New option \code{inla.timeout}, similar to
+       \code{fmesher.timeout}; see \code{?inla.setOption}
+
+       \item \code{CPO-marginals} are returned in when
+       \code{control.compute=list(config=TRUE)}
+
+       \item There is a change how a (numerical) singular constraint is
+       treated, hopefully this new way is more robust.
+     }
+   }
+
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item New option \code{inla.mode}, which define how to arrange the
+       internal model formulation. One of \code{"classic"},
+       \code{"twostage"} and \code{"experimental"}. The default is
+       \code{"classic"}, which is unchanged behaviour compared for
+       earlier versions. The other two are highly experimental for the
+       moment. See \code{?inla}
+     }
+   }
+
+   \subsection{BUG FIXES}{
+     \itemize{
+       \item Massive code clean-up and some minor fixes.
+     }
+   }
+ }
+
+
 \section{CHANGES IN VERSION 21.06.11}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

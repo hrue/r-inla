@@ -82,6 +82,20 @@ typedef int fortran_charlen_t;
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
+typedef enum {
+	GMRFLib_MODE_CLASSIC = 1,
+	GMRFLib_MODE_TWOSTAGE, 
+	GMRFLib_MODE_TWOSTAGE_PART1, 
+	GMRFLib_MODE_TWOSTAGE_PART2,
+	GMRFLib_MODE_EXPERIMENTAL
+} GRMFLib_preopt_mode_tp;
+
+#define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
+			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
+			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
+			       (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "TwoStage Part2" : \
+				(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL ? "Experimental" : "(UNKNOWN MODE)")))))
+
 #define GMRFLib_SHA_TP         SHA256_CTX
 #define GMRFLib_SHA_DIGEST_LEN SHA256_DIGEST_LENGTH
 #define GMRFLib_SHA_Init       SHA256_Init
@@ -201,7 +215,7 @@ typedef enum {
 		printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n", \
 		       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
-#define GMRFLib_MEASURE_CPU_BEGIN			\
+#define GMRFLib_MEASURE_CPU_BEGIN()			\
 	if (1) {					\
 		static double _tacc = 0.0;		\
 		static int _ntimes = 0;			\
@@ -214,7 +228,7 @@ typedef enum {
 	       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
 
-#define GMRFLib_DEBUG_INIT static int debug_ = -1;			\
+#define GMRFLib_DEBUG_INIT() static int debug_ = -1;			\
 	static int debug_count_ = 0;					\
 	_Pragma("omp threadprivate(debug_count_)")			\
 	debug_count_++;							\
@@ -222,8 +236,8 @@ typedef enum {
 		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
 	}
 
-#define GMRFLib_DEBUG_IF_TRUE (debug_)
-#define GMRFLib_DEBUG_IF      (debug_ > 0 && !((debug_count_ - 1) % debug_))
+#define GMRFLib_DEBUG_IF_TRUE() (debug_)
+#define GMRFLib_DEBUG_IF()      (debug_ > 0 && !((debug_count_ - 1) % debug_))
 
 #define GMRFLib_DEBUG(msg_)						\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
@@ -245,11 +259,32 @@ typedef enum {
 		printf("\t[%1d] %s:%1d (%s): %s %d %g\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_); \
 	}
 
+#define Calloc_init(n_)							\
+	size_t calloc_len_ = (size_t)(n_);				\
+	size_t calloc_offset_ = 0;					\
+	double *calloc_work_ = (calloc_len_ ? Calloc(calloc_len_, double) : NULL)
+#define iCalloc_init(n_)						\
+	size_t icalloc_len_ = (size_t)(n_);				\
+	size_t icalloc_offset_ = 0;					\
+	int *icalloc_work_ = (icalloc_len_ ? Calloc(icalloc_len_, int) : NULL)
+#define Calloc_get(_n)				\
+	calloc_work_ + calloc_offset_;		\
+	calloc_offset_ += (size_t)(_n);		\
+	Calloc_check()
+#define iCalloc_get(_n)				\
+	icalloc_work_ + icalloc_offset_;	\
+	icalloc_offset_ += (size_t)(_n);	\
+	iCalloc_check()
+#define Calloc_check()  if (!(calloc_offset_ <= calloc_len_)) { P(calloc_offset_); P(calloc_len_); }; assert(calloc_offset_ <= calloc_len_)
+#define iCalloc_check() if (!(icalloc_offset_ <= icalloc_len_)) { P(icalloc_offset_); P(icalloc_len_); }; assert(icalloc_offset_ <= icalloc_len_)
+#define Calloc_free()   if (1) { Calloc_check(); Free(calloc_work_);}
+#define iCalloc_free()  if (1) { iCalloc_check(); Free(icalloc_work_); }
+
 /* 
    for ..SAFE_SIZE see:  https://gcc.gnu.org/bugzilla//show_bug.cgi?id=85783
 */
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) * sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
-#if 1
+#if 0
 //#define GMRFLib_TRACE_MEMORY    1000000   // trace memory larger than this ammount. undefine it to disable this feature.
 #define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
 #define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
@@ -287,8 +322,8 @@ typedef enum {
 #define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = 0x%p\n", __LINE__, msg, pt); }
-#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = 0x%p\n", __LINE__, msg, pt); }
+#define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
+#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
@@ -337,18 +372,31 @@ typedef enum {
 					 (omp_get_thread_num() + GMRFLib_MAX_THREADS * GMRFLib_thread_id)); \
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
-#define RUN_CODE_BLOCK(thread_max_) if (1) {				\
+
+// len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
+// the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
+// GMRFLib_thread_id in the parallel loop and GMRFLib_thread_id is reset automatically afterwards
+
+#define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
+#define CODE_BLOCK_WORK_ZERO(i_work_) memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
+#define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = id__
+#define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
+	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
-		int nt__ = (omp_in_parallel() ? GMRFLib_openmp->max_threads_inner :  GMRFLib_openmp->max_threads_outer); \
+		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL ? GMRFLib_openmp->max_threads_inner : GMRFLib_openmp->max_threads_outer); \
 		int tmax__ = thread_max_;				\
-		nt__ = IMIN(nt__, tmax__);				\
+		int len_work__ = len_work_;				\
+		int n_work__ = n_work_;					\
+		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
+		double * work__ = ((len_work__ * n_work__) > 0 ? Calloc(len_work__ * n_work__ * nt__, double) : NULL); \
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\
 		} else {						\
 			CODE_BLOCK;					\
 		}							\
-		GMRFLib_thread_id = id__;				\
+		Free(work__);						\
+		CODE_BLOCK_SET_THREAD_ID;				\
         }
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.

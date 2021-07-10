@@ -9,7 +9,6 @@
 ## Export: inla.set.control.fixed.default
 ## Export: inla.set.control.inla.default
 ## Export: inla.set.control.predictor.default
-## Export: inla.set.control.results.default
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
 ## Export: inla.set.control.bgev.default
@@ -27,7 +26,6 @@
 ## Export: control.inla
 ## Export: control.vb
 ## Export: control.predictor
-## Export: control.results
 ## Export: control.mode
 ## Export: control.hazard
 ## Export: control.bgev
@@ -53,11 +51,8 @@
         ## :EXTRA:
         ## :NAME: control.lincomb
         list(
-            ## :ARGUMENT: precision The precision for the artificial tiny noise. Default 1e09.
-            precision = 10^9,
-
             ## :ARGUMENT: verbose Use verbose mode for linear combinations if verbose model is set globally. (Default TRUE)
-            verbose = TRUE
+            verbose = FALSE
         )
 
         ## :SEEALSO: inla
@@ -206,7 +201,6 @@
         ## :SEEALSO: inla
     }
 
-
 `inla.set.control.compute.default` <-
     function(...) {
         ## :EXTRA:
@@ -220,6 +214,9 @@
 
             ## :ARGUMENT: return.marginals A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE
             return.marginals = TRUE,
+
+            ## :ARGUMENT: return.marginals.predictor A boolean variable if the marginals for the linear predictor should be returned (although it is computed). Default FALSE
+            return.marginals.predictor = FALSE,
 
             ## :ARGUMENT: dic A boolean variable if the DIC-value should be computed. Default FALSE.
             dic = FALSE,
@@ -246,10 +243,7 @@
             smtp = NULL,
 
             ## :ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
-            graph = FALSE,
-
-            ## :ARGUMENT: gdensity A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)
-            gdensity = FALSE
+            graph = FALSE
         )
 
         ## :SEEALSO: inla
@@ -489,7 +483,7 @@
             adapt.hessian.scale = NULL,
 
             ## :ARGUMENT: adaptive.max Selecting \code{strategy="adaptive"} will chose the default strategy for all fixed effects and model components with length less or equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.
-            adaptive.max = 10L,
+            adaptive.max = 25L,
 
             ## :ARGUMENT: huge Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
             huge = FALSE,
@@ -499,9 +493,6 @@
 
             ## :ARGUMENT: stencil Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
             stencil = 5L,
-
-            ## :ARGUMENT: lincomb.derived.only Logical THIS OPTION IS NOW DISABLED (July 2021) AND WILL BE REMOVED IN A FUTURE VERSION. (If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE))
-            lincomb.derived.only = TRUE,
 
             ## :ARGUMENT: lincomb.derived.correlation.matrix Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)
             lincomb.derived.correlation.matrix = FALSE,
@@ -521,15 +512,15 @@
             ## :ARGUMENT: cmin Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias.  (Default -Inf)
             cmin = -Inf,
 
-            ## :ARGUMENT: b.strategy Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"keep"}
-            b.strategy = "keep",
+            ## :ARGUMENT: b.strategy Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"skip"}
+            b.strategy = "skip",
 
             ## :ARGUMENT: step.factor Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)
             ## YES! setting this to a negative values means = 1,  EXCEPT the first time (for each thread) where |step.factor| is used.
             ## This is an hidden option.
             step.factor = -0.1,
 
-            ## :ARGUMENT: global.node.factor Numerical The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here,  n,  is the size of the graph. (Disabled if larger than 1.) (default 2.0)
+            ## :ARGUMENT: global.node.factor Numerical The factor which defines the degree ## ## required (how many neighbors), as a fraction of n-1, that is required to be ## ## classified as a global node and numbered last (whatever the reordering routine ## ## says). Here, n, is the size of the graph. (Disabled if larger than 1.) (default ## ## 2.0)
             global.node.factor = 2.0,
 
             ## :ARGUMENT: global.node.degree Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says). (default \code{.Machine$integer.max})
@@ -544,8 +535,8 @@
             ## :ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
             stupid.search.factor = 1.05,
 
-            ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} Logical Use this feature? \code{strategy} Charactor What to correct, one of "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. \code{refinement} Integer Number of extra refinement iterations. \code{max.correct} Numerical Bound the allowed correction (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). \code{hyperpar.correct} Logical Correct the marginal posterior for the hyperparameters?
-            control.vb = list(enable = FALSE, strategy = "mean", verbose = TRUE, refinement = 0, max.correct = 1.0, hyperpar.correct = FALSE),
+            ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} ## ## ## Logical/Character Use this feature? If \code{"auto"} this will be selected ## automatically. \code{strategy} Charactor What to correct, one of ## ## "mean", ## "more.to.come.later...". \code{verbose} Logical Be verbose or not. ## ## ## \code{refinement} Integer Number of extra possible refinement iterations. ## ## \code{max.correct} Numerical Bound the allowed correction ## ## (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). ## ## \code{hyperpar.correct} Logical Correct the marginal posterior for the ## ## hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()} ## ## model component.
+            control.vb = list(enable = "auto", strategy = "mean", verbose = TRUE, refinement = 9, max.correct = 0.5, hyperpar.correct = FALSE, enable.limit = 25),
 
             ## :ARGUMENT: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
             num.gradient = "central",
@@ -563,7 +554,10 @@
             constr.marginal.diagonal = sqrt(.Machine$double.eps),
 
             ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
-            improved.simplified.laplace = FALSE
+            improved.simplified.laplace = FALSE,
+
+            ## :ARGUMENT: fast If \code{stage1only} then try to do all calculations during stage1 by ## enabling Gaussian strategy with VB correction enabled.
+            control.twostage = list(stage1only = TRUE)
         )
 
         ## :SEEALSO: inla
@@ -617,20 +611,6 @@
             vb.correct = NULL
         )
 
-        ## :SEEALSO: inla
-    }
-
-`inla.set.control.results.default` <-
-    function(...) {
-        ## :EXTRA:
-        ## :NAME: control.results
-        list(
-            ## :ARGUMENT: return.marginals.random A boolean variable; read the marginals for the fterms? (Default TRUE)
-            return.marginals.random = TRUE,
-
-            ## :ARGUMENT: return.marginals.predictor A boolean variable; read the marginals for the linear predictor? (Default TRUE)
-            return.marginals.predictor = TRUE
-        )
         ## :SEEALSO: inla
     }
 
@@ -800,7 +780,6 @@ control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.defa
 control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
 control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
 control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
-control.results <- inla.make.completion.function(names(inla.set.control.results.default()))
 control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
 control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))

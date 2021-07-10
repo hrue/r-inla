@@ -53,17 +53,10 @@
 
      debug : Run the inla-program in a debug mode?
 
-     internal.binary.mode : if \code{FALSE} the (some) output are in ascii format instead of binary format.
-                            Using this option,  then \code{inla.collect.results} will fail (Expert mode)
-
-     internal.experimental.mode :  Expert option
-
      cygwin : The home of the Cygwin installation (default "C:/cygwin") [Remote computing for Windows only]
 
      ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
      Cygwin-shell). [Remote computing for Windows only]
-
-     enable.inla.argument.weights : if \code{TRUE} the \code{inla} accepts argument \code{weights}
 
      show.warning.graph.file : Give a warning for using the obsolete argument
                                \code{graph.file} instead of \code{graph}
@@ -75,11 +68,22 @@
      short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
                      documents.
 
+     inla.timeout : The timeout limit, in whole seconds, for calls to the
+       inla binary. Default is 0, meaning no timeout limit.  Set to a
+       positive integer to terminate inla calls if they run to long.
+       Fractional seconds are
+       rounded up to the nearest integer. This feature is EXPERIMENTAL
+       and might change at a later stage. 
+
      fmesher.timeout : The timeout limit, in whole seconds, for calls to the
        fmesher binary. Default is 0, meaning no timeout limit.  Set to a
        positive integer to terminate fmesher calls that may enter infinite
        loops due to special geometry regularity. Fractional seconds are
        rounded up to the nearest integer.
+
+     inla.mode : Which mode to use in INLA? Default is \code{"classic"}. Other options are
+     (USE AT YOUR OWN RISK, THIS IS WORK IN PROGRESS!!!) options are \code{"twostage"} and
+     \code{"experimental"}.
    }
  }
 

@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, b.strategy, cmin, constr.marginal.diagonal, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, improved.simplified.laplace, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, lincomb.derived.only, linear.correction, mode.known, npoints, num.gradient, num.hessian, numint.abserr, numint.maxfeval, numint.relerr, optimise.strategy, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, use.directions, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, b.strategy, cmin, constr.marginal.diagonal, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, improved.simplified.laplace, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, linear.correction, mode.known, npoints, num.gradient, num.hessian, numint.abserr, numint.maxfeval, numint.relerr, optimise.strategy, optimiser, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, use.directions, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -49,27 +49,27 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{huge}{   Logical If TRUE then try to do some of the internal parallisations differently. Hopefully this will be of benefite for 'HUGE' models. (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]}
 \item{step.len}{   Numerical The step-length used to compute numerical derivaties of the log-likelihood}
 \item{stencil}{   Numerical Number of points in the stencil used to compute the numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)}
-\item{lincomb.derived.only}{   Logical THIS OPTION IS NOW DISABLED (July 2021) AND WILL BE REMOVED IN A FUTURE VERSION. (If TRUE the only compute the marginals for the derived linear combinations and if FALSE, the and also the linear combinations to the graph (Default TRUE))}
 \item{lincomb.derived.correlation.matrix}{   Logical If TRUE compute also the correlations for the derived linear combinations, if FALSE do not (Default FALSE)}
 \item{diagonal}{   Numerical Expert use only! Add a this value on the diagonal of the joint precision matrix. (default 0.0)}
 \item{numint.maxfeval}{   Numerical Maximum number of function evaluations in the the numerical integration for the hyperparameters. (Default 100000.)}
 \item{numint.relerr}{   Numerical Relative error requirement in the the numerical integration for the hyperparameters. (Default 1e-5)}
 \item{numint.abserr}{   Numerical Absolute error requirement in the the numerical integration for the hyperparameters. (Default 1e-6)}
 \item{cmin}{   Numerical The minimum value for the negative Hessian from the likelihood. Increasing this value will stabalise the optimisation but can introduce bias. (Default -Inf)}
-\item{b.strategy}{   Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"keep"}}
+\item{b.strategy}{   Character If \code{cmin} is used, either keep the linear term (with \code{b.strategy="keep"}) or skip the contribution by setting the linear term to zero (\code{b.strategy="skip"}). The default value is \code{"skip"}}
 \item{step.factor}{   Numerical The step factor in the Newton-Raphson algorithm saying how large step to take (Default 1.0)}
-\item{global.node.factor}{   Numerical The factor which defines the degree required (how many neighbors), as a fraction of n-1, that is required to be classified as a global node and numbered last (whatever the reordering routine says). Here, n, is the size of the graph. (Disabled if larger than 1.) (default 2.0)}
+\item{global.node.factor}{   Numerical The factor which defines the degree     required (how many neighbors), as a fraction of n-1, that is required to be     classified as a global node and numbered last (whatever the reordering routine     says). Here, n, is the size of the graph. (Disabled if larger than 1.) (default     2.0)}
 \item{global.node.degree}{   Numerical The degree required (number of neighbors) to be classified as a global node and numbered last (whatever the reordering routine says). (default \code{.Machine$integer.max})}
 \item{stupid.search}{   Logical Enable or disable the stupid-search-algorithm, if the Hessian calculations reveals that the mode is not found. (Default \code{TRUE}.)}
 \item{stupid.search.max.iter}{   Numerical Maximum number of iterations allowed for the stupid-search-algorithm. (default 1000)}
 \item{stupid.search.factor}{   Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)}
-\item{control.vb}{   List of arguments for various VB corrections. \code{enable} Logical Use this feature? \code{strategy} Charactor What to correct, one of "mean", "more.to.come.later...". \code{verbose} Logical Be verbose or not. \code{refinement} Integer Number of extra refinement iterations. \code{max.correct} Numerical Bound the allowed correction (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). \code{hyperpar.correct} Logical Correct the marginal posterior for the hyperparameters?}
+\item{control.vb}{   List of arguments for various VB corrections. \code{enable}       Logical/Character Use this feature? If \code{"auto"} this will be selected   automatically. \code{strategy} Charactor What to correct, one of     "mean",   "more.to.come.later...". \code{verbose} Logical Be verbose or not.       \code{refinement} Integer Number of extra possible refinement iterations.     \code{max.correct} Numerical Bound the allowed correction     (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}).     \code{hyperpar.correct} Logical Correct the marginal posterior for the     hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()}     model component.}
 \item{num.gradient}{   Character Set the numerical scheme to compute the gradient, one of \code{"forward"} or \code{"central"} (default).}
 \item{num.hessian}{   Character Set the numerical scheme to compute the Hessian, one of \code{"forward"} or \code{"central"} (default).}
 \item{optimise.strategy}{   Character THIS OPTION IS EXPERIMENTAL. Chose the optimiser strategy, one of \code{"plain"} or \code{"smart"} (default)}
 \item{use.directions}{   THIS OPTION IS EXPERIMENTAL. Unless \code{FALSE} or \code{NULL}, use directions for computing gradient and Hessian, initialised with \code{use.directions} if a matrix.}
 \item{constr.marginal.diagonal}{   Add stability to \code{AQ^-1A^T} by adding a small diagonal term. (default \code{epsilon^0.5})}
 \item{improved.simplified.laplace}{   If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.}
+\item{fast}{   If \code{stage1only} then try to do all calculations during stage1 by   enabling Gaussian strategy with VB correction enabled.}
 }
 \value{
   
@@ -77,6 +77,6 @@ The function \code{control.inla} is used to TAB-complete arguments and returns a
 The function \code{inla.set.control.inla.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

@@ -397,6 +397,56 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
          'control.compute=list(config = TRUE)'.")
     }
 
+    if (!is.null(result$misc$configs$.preopt) && result$misc$configs$.preopt) {
+        rfake <- list(mlik = result$mlik, 
+                      misc = list(from.theta = result$misc$from.theta,
+                                  to.theta = result$misc$to.theta,
+                                  configs = result$misc$configs))
+        rfake$misc$configs$.preopt <- FALSE
+        class(rfake) <- "inla"
+
+        ct <- result$misc$configs$contents
+        for(nm in c("APredictor", "Predictor")) {
+            if (ct$tag[1] == nm) {
+                ct$tag <- ct$tag[-1]
+                ct$start <- ct$start[-1] - ct$start[2] + 1
+                ct$length <- ct$length[-1]
+            }
+        }
+        rfake$misc$configs$contents <- ct
+
+        ## yes, selection is not an argument in this call, but we account for it afterwards
+        xx <- inla.posterior.sample(n, rfake, intern = intern,
+                                    use.improved.mean = use.improved.mean,
+                                    skew.corr = skew.corr,
+                                    add.names = add.names, seed = seed,
+                                    num.threads = num.threads,
+                                    parallel.configs = parallel.configs, verbose = verbose)
+
+        A <- rbind(result$misc$configs$pA %*% result$misc$configs$A,
+                   result$misc$configs$A)
+        sel <- inla.posterior.sample.interpret.selection(selection, result)
+
+        if (nrow(result$misc$configs$pA) > 0) {
+            pnam <- c(paste0("APredictor:", seq_len(nrow(result$misc$configs$pA))),
+                      paste0("Predictor:", seq_len(nrow(result$misc$configs$A))))
+        } else {
+            pnam <- paste0("Predictor:", seq_len(nrow(result$misc$configs$A)))
+        }
+        attr(xx, ".contents") <- result$misc$configs$contents
+
+        off <- result$misc$configs$offsets
+        for(i in seq_along(xx)) {
+            nam <- rownames(xx[[i]]$latent)
+            xx[[i]]$latent <- c(as.numeric(A %*% xx[[i]]$latent) + off, as.numeric(xx[[i]]$latent))[sel]
+            if (!is.null(nam)) {
+                names(xx[[i]]$latent) <- c(pnam, nam)[sel]
+            }
+            xx[[i]]$latent <- as.matrix(xx[[i]]$latent, ncol = 1)
+        }
+        return(xx)
+    }
+
     if (is.null(num.threads)) {
         num.threads <- inla.getOption("num.threads")
     }

@@ -711,6 +711,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matri
 			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 				GMRFLib_idxval_add(row, ptr->key, ptr->value);
 			}
+			GMRFLib_idxval_sort(*row);
 		}
 	} else {
 		FIXME("NOT IMPLEMENTED");
@@ -858,6 +859,34 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 	N->tell = M->tell;
 
 	return N;
+}
+
+int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp ** M, GMRFLib_idxval_tp ** idxval, int nrow, int ncol)
+{
+	int nelm = 0, i, j, jj, k;
+
+	for (i = 0; i < nrow; i++) {
+		nelm += idxval[i]->n;
+	}
+	*M = Calloc(1, GMRFLib_matrix_tp);
+	(*M)->nrow = nrow;
+	(*M)->ncol = ncol;
+	(*M)->elems = nelm;
+	(*M)->i = Calloc(nelm, int);
+	(*M)->j = Calloc(nelm, int);
+	(*M)->values = Calloc(nelm, double);
+
+	for (i = k = 0; i < nrow; i++) {
+		for (jj = 0; jj < idxval[i]->n; jj++, k++) {
+			j = idxval[i]->store[jj].idx;
+			(*M)->i[k] = i;
+			(*M)->j[k] = j;
+			(*M)->values[k] = idxval[i]->store[jj].val;
+		}
+	}
+	GMRFLib_matrix_add_graph_and_hash(*M);
+
+	return GMRFLib_SUCCESS;
 }
 
 #ifdef TESTME

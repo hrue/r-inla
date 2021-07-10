@@ -8,7 +8,6 @@
 ## ! \usage{
 ## ! inla.collect.results(
 ## !              results.dir,
-## !              control.results = inla.set.control.results.default(),
 ## !              debug=FALSE,
 ## !              only.hyperparam=FALSE,
 ## !              file.log = NULL,
@@ -20,10 +19,6 @@
     function(
              ## ! \item{results.dir}{The directory where the results of the inla run are stored}
              results.dir,
-
-             ## ! \item{control.results}{a list of parameters controlling the
-             ## ! output of the function; see \code{?control.results}}
-             control.results = inla.set.control.results.default(),
 
              ## ! \item{debug}{Logical. If \code{TRUE} some debugging information are printed}
              debug = FALSE,
@@ -66,7 +61,6 @@
                 cat(paste("inla.collect.results: retry with directory", results.dir.new, "\n"))
             }
             return(inla.collect.results(results.dir.new,
-                                        control.results = control.results,
                                         debug = debug,
                                         only.hyperparam = only.hyperparam,
                                         file.log = file.log,
@@ -87,18 +81,10 @@
         res.cpo.pit <- inla.collect.cpo(results.dir, debug)
         res.po <- inla.collect.po(results.dir, debug)
         res.waic <- inla.collect.waic(results.dir, debug)
-        res.random <- inla.collect.random(results.dir, control.results$return.marginals.random, debug)
-        res.predictor <- inla.collect.predictor(results.dir, control.results$return.marginals.predictor, debug)
-        res.spde2.blc <- inla.collect.spde2.blc(results.dir, control.results$return.marginals.random, debug)
-        res.spde3.blc <- inla.collect.spde3.blc(results.dir, control.results$return.marginals.random, debug)
-
-        file <- paste(results.dir, .Platform$file.sep, "neffp", .Platform$file.sep, "neffp.dat", sep = "")
-        neffp <- matrix(inla.read.binary.file(file), 3, 1)
-        rownames(neffp) <- inla.trim(c(
-            "Expectected number of parameters",
-            "Stdev of the number of parameters",
-            "Number of equivalent replicates"
-        ))
+        res.random <- inla.collect.random(results.dir, debug)
+        res.predictor <- inla.collect.predictor(results.dir, debug)
+        res.spde2.blc <- inla.collect.spde2.blc(results.dir, debug)
+        res.spde3.blc <- inla.collect.spde3.blc(results.dir, debug)
     } else {
         res.fixed <- NULL
         res.lincomb <- NULL
@@ -111,7 +97,6 @@
         res.predictor <- NULL
         res.spde2.blc <- NULL
         res.spde3.blc <- NULL
-        neffp <- NULL
     }
     res.mlik <- inla.collect.mlik(results.dir, debug)
     res.q <- inla.collect.q(results.dir, debug)
@@ -227,7 +212,6 @@
                                     theta.tags = theta.tags, mode.status = mode.status,
                                     log.posterior.mode = misc$log.posterior.mode
                                 ),
-                 neffp = neffp,
                  joint.hyper = joint.hyper, nhyper = length(theta.mode),
                  version = list(inla.call = gitid, R.INLA = inla.version("version"))
              ),
@@ -236,80 +220,8 @@
              ok = res.ok
              )
     class(res) <- "inla"
-
-    if (inla.getOption("internal.experimental.mode")) {
-        if (debug) {
-            print("...Fix marginals")
-        }
-
-        ## set the inla.marginal class to all the marginals, and add tag
-        ## used for plotting.  all these have two levels:
-        idxs <- grep("marginals[.](fixed|linear[.]predictor|lincomb[.]derived|lincomb|hyperpar|fitted[.]values)", names(res))
-        if (length(idxs) > 0) {
-            for (idx in idxs) {
-                if (!is.null(res[[idx]])) {
-                    name.1 <- names(res)[idx]
-                    attr(res[[idx]], "inla.tag") <- name.1
-                    class(res[[idx]]) <- "inla.marginals"
-
-                    if (length(res[[idx]]) > 0) {
-                        for (i in 1:length(res[[idx]])) {
-                            name.2 <- names(res[[idx]])[i]
-                            if (!is.null(res[[idx]][[i]])) {
-                                attr(res[[idx]][[i]], "inla.tag") <- paste(name.1, name.2)
-                                class(res[[idx]][[i]]) <- "inla.marginal"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (debug) {
-            print("...Fix marginals 1")
-        }
-
-        ## all these have three levels:
-        idxs <- grep("marginals[.]random", names(res))
-        if (length(idxs) > 0) {
-            for (idx in idxs) {
-                if (!is.null(res[[idx]])) {
-                    name.1 <- names(res)[idx]
-                    name.2 <- names(res[[idx]])
-
-                    if (length(res[[idx]]) > 0) {
-                        for (i in 1:length(res[[idx]])) {
-                            name.3 <- name.2[i]
-                            name.4 <- names(res[[idx]][[i]])
-
-                            attr(res[[idx]][[i]], "inla.tag") <- paste(name.1, name.3)
-                            class(res[[idx]][[i]]) <- "inla.marginals"
-
-                            if (length(res[[idx]][[i]]) > 0) {
-                                for (j in 1:length(res[[idx]][[i]])) {
-                                    name.5 <- name.4[j]
-                                    if (!is.null(res[[idx]][[i]][[j]])) {
-                                        attr(res[[idx]][[i]][[j]], "inla.tag") <- paste(name.1, name.3, name.5)
-                                        class(res[[idx]][[i]][[j]]) <- "inla.marginal"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (debug) {
-            print("...Fix marginals done.")
-        }
-    }
-
     return(res)
 }
-
-## disable this for the moment
-inla.internal.experimental.mode <- FALSE
 
 `inla.collect.misc` <- function(dir, debug = FALSE) 
 {
@@ -463,6 +375,7 @@ inla.internal.experimental.mode <- FALSE
         fp <- file(fnm, "rb")
         iarr <- readBin(fp, integer(), 3)
         configs <- list(
+            .preopt = FALSE, 
             n = iarr[1],
             nz = iarr[2],
             ntheta = iarr[3]
@@ -526,6 +439,7 @@ inla.internal.experimental.mode <- FALSE
                     Qinvadd <- c()
                 }
                 configs$config[[k]] <- list(
+                    .preopt = FALSE, 
                     theta = theta,
                     log.posterior = log.post,
                     log.posterior.orig = log.post.orig,
@@ -564,6 +478,143 @@ inla.internal.experimental.mode <- FALSE
         close(fp)
     } else {
         configs <- NULL
+    }
+
+
+    fnm <- paste(d, "/config_preopt/configs.dat", sep = "")
+    if (file.exists(fnm)) {
+        fp <- file(fnm, "rb")
+        iarr <- readBin(fp, integer(), 6)
+        configs <- list(
+            .preopt = TRUE, 
+            mnpred = iarr[1], 
+            Npred = iarr[2], 
+            n = iarr[3], 
+            nz = iarr[4], 
+            prior_nz = iarr[5],
+            ntheta = iarr[6])
+        configs.i <- readBin(fp, integer(), configs$nz) ## 0-based
+        configs.j <- readBin(fp, integer(), configs$nz) ## 0-based
+        configs.iprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
+        configs.jprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
+        configs$nconfig <- readBin(fp, integer(), 1)
+
+        nc <- readBin(fp, integer(), 1)
+        if (nc > 0) {
+            A <- readBin(fp, numeric(), configs$n * nc)
+            e <- readBin(fp, numeric(), nc)
+            configs$constr <- list(
+                nc = nc,
+                A = matrix(A, nc, configs$n),
+                e = e
+            )
+        } else {
+            configs$constr <- NULL
+        }
+        configs$offsets <- readBin(fp, numeric(), configs$mnpred)
+
+        theta.tag <- readLines(paste(d, "/config_preopt/theta-tag.dat", sep = ""))
+        configs$contents <- list(
+            tag = readLines(paste(d, "/config_preopt/tag.dat", sep = "")),
+            start = as.integer(readLines(paste(d, "/config_preopt/start.dat", sep = ""))) + 1L,
+            length = as.integer(readLines(paste(d, "/config_preopt/n.dat", sep = "")))
+        )
+
+        configs$A <- inla.read.fmesher.file(paste0(d, "/config_preopt/A.dat"))
+        fnm <- paste0(d, "/config_preopt/pA.dat")
+        if (file.exists(fnm)) {
+            configs$pA <- inla.read.fmesher.file(fnm)
+        } else {
+            configs$pA <- matrix(nrow = 0, ncol = nrow(configs$A))
+        }
+
+        if (configs$nconfig > 0L) {
+            configs$config[[configs$nconfig]] <- list()
+            for (k in 1L:configs$nconfig) {
+                log.post <- readBin(fp, numeric(), 1)
+                log.post.orig <- readBin(fp, numeric(), 1)
+                if (configs$ntheta > 0L) {
+                    theta <- readBin(fp, numeric(), configs$ntheta)
+                    names(theta) <- theta.tag
+                } else {
+                    theta <- NULL
+                }
+                mean <- readBin(fp, numeric(), configs$n)
+                improved.mean <- readBin(fp, numeric(), configs$n)
+
+                Q <- readBin(fp, numeric(), configs$nz)
+                Qinv <- readBin(fp, numeric(), configs$nz)
+                Qprior <- readBin(fp, numeric(), configs$prior_nz)
+                cpodens.moments <- matrix(readBin(fp, numeric(), configs$Npred * 3), ncol = 3, byrow = TRUE)
+                colnames(cpodens.moments) <- c("mean", "variance", "skewness")
+                dif <- which(configs$i != configs$j)
+                if (length(dif) > 0L) {
+                    iadd <- configs.j[dif] ## yes, its the transpose part
+                    jadd <- configs.i[dif] ## yes, its the transpose part
+                    Qadd <- Q[dif]
+                    Qinvadd <- Qinv[dif]
+                } else {
+                    iadd <- c()
+                    jadd <- c()
+                    Qadd <- c()
+                    Qinvadd <- c()
+                }
+                dif <- which(configs$iprior != configs$jprior)
+                if (length(dif) > 0L) {
+                    iprioradd <- configs.jprior[dif] ## yes, its the transpose part
+                    jprioradd <- configs.iprior[dif] ## yes, its the transpose part
+                    Qprioradd <- Qprior[dif]
+                } else {
+                    iprioradd <- c()
+                    jprioradd <- c()
+                    Qprioradd <- c()
+                }
+
+                configs$config[[k]] <- list(
+                    theta = theta,
+                    log.posterior = log.post,
+                    log.posterior.orig = log.post.orig,
+                    mean = mean,
+                    improved.mean = improved.mean,
+                    skewness = rep(NA, configs$n), 
+                    Q = sparseMatrix(
+                        i = c(configs.i, iadd),
+                        j = c(configs.j, jadd),
+                        x = c(Q, Qadd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        repr = "C"
+                    ),
+                    Qinv = sparseMatrix(
+                        i = c(configs.i, iadd),
+                        j = c(configs.j, jadd),
+                        x = c(Qinv, Qinvadd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        repr = "C"
+                    ),
+                    Qprior = sparseMatrix(
+                        i = c(configs.iprior, iprioradd),
+                        j = c(configs.jprior, jprioradd),
+                        x = c(Qprior, Qprioradd),
+                        dims = c(configs$n, configs$n),
+                        index1 = FALSE,
+                        repr = "C"
+                    ),
+                    cpodens.moments = cpodens.moments
+                )
+            }
+
+            ## rescale the log.posteriors
+            configs$max.log.posterior <- max(sapply(configs$config, function(x) x$log.posterior.orig))
+            for (k in 1L:configs$nconfig) {
+                configs$config[[k]]$log.posterior <- configs$config[[k]]$log.posterior - configs$max.log.posterior
+                configs$config[[k]]$log.posterior.orig <- configs$config[[k]]$log.posterior.orig - configs$max.log.posterior
+            }
+        } else {
+            configs$config <- NULL
+        }
+        close(fp)
     }
 
     if (debug) {
@@ -716,11 +767,6 @@ inla.internal.experimental.mode <- FALSE
                 }
                 colnames(xx) <- c("x", "y")
                 marginals.fixed[[i]] <- xx
-
-                if (inla.internal.experimental.mode) {
-                    class(marginals.fixed[[i]]) <- "inla.marginal"
-                    attr(marginals.fixed[[i]], "inla.tag") <- paste("marginal fixed", names.fixed[i])
-                }
             } else {
                 if (first.time) {
                     col.nam <- c("mean", "sd", "kld")
@@ -729,11 +775,6 @@ inla.internal.experimental.mode <- FALSE
                 xx <- cbind(c(NA, NA, NA), c(NA, NA, NA))
                 colnames(xx) <- c("x", "y")
                 marginals.fixed[[i]] <- xx
-
-                if (inla.internal.experimental.mode) {
-                    class(marginals.fixed[[i]]) <- "inla.marginal"
-                    attr(marginals.fixed[[i]], "inla.tag") <- paste("marginal fixed", names.fixed[i])
-                }
             }
         }
         rownames(summary.fixed) <- names.fixed
@@ -748,11 +789,6 @@ inla.internal.experimental.mode <- FALSE
         names.fixed <- NULL
         summary.fixed <- NULL
         marginals.fixed <- NULL
-    }
-
-    if (inla.internal.experimental.mode) {
-        class(marginals.fixed) <- "inla.marginals"
-        attr(marginals.fixed, "inla.tag", "marginals fixed")
     }
 
     ret <- list(
@@ -893,14 +929,6 @@ inla.internal.experimental.mode <- FALSE
                     names(rr) <- paste("index.", as.character(1L:nd), sep = "")
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
-                        if (inla.internal.experimental.mode) {
-                            class(rr[[j]]) <- "inla.marginal"
-                            if (derived) {
-                                attr(rr[[j]], "inla.tag") <- paste("marginal lincomb derived", names(rr)[j])
-                            } else {
-                                attr(rr[[j]], "inla.tag") <- paste("marginal lincomb", names(rr)[j])
-                            }
-                        }
                     }
                 }
                 marginals.lincomb[[i]] <- rr
@@ -919,17 +947,6 @@ inla.internal.experimental.mode <- FALSE
                 marginals.lincomb <- NULL
             }
             size.lincomb[[i]] <- inla.collect.size(file)
-
-            if (inla.internal.experimental.mode) {
-                if (!is.null(marginals.lincomb)) {
-                    class(marginals.lincomb[[i]]) <- "inla.marginals"
-                    if (derived) {
-                        attr(marginals.lincomb[[i]], "inla.tag") <- "marginal lincomb derived"
-                    } else {
-                        attr(marginals.lincomb[[i]], "inla.tag") <- "marginal lincomb"
-                    }
-                }
-            }
         }
         names(summary.lincomb) <- names.lincomb
 
@@ -1310,12 +1327,6 @@ inla.internal.experimental.mode <- FALSE
             if (!is.null(marg1)) {
                 colnames(marg1) <- c("x", "y")
             }
-
-            if (inla.internal.experimental.mode) {
-                class(marg1) <- "inla.marginal"
-                attr(marg1, "inla.tag") <- paste("marginal hyper", names.hyper[i])
-            }
-
             marginal.hyper[[i]] <- marg1
         }
         names(marginal.hyper) <- names.hyper
@@ -1324,13 +1335,6 @@ inla.internal.experimental.mode <- FALSE
     } else {
         marginal.hyper <- NULL
         summary.hyper <- NULL
-    }
-
-    if (inla.internal.experimental.mode) {
-        if (!is.null(marginal.hyper)) {
-            class(marginal.hyper) <- "inla.marginals"
-            attr(marginal.hyper, "inla.tag") <- "marginal hyper"
-        }
     }
 
     ## collect also the hyperparameters in the internal scale
@@ -1403,11 +1407,6 @@ inla.internal.experimental.mode <- FALSE
                 colnames(marg1) <- c("x", "y")
             }
 
-            if (inla.internal.experimental.mode) {
-                class(marg1) <- "inla.marginal"
-                attr(marg1, "inla.tag") <- paste("marginal hyper internal", names.hyper[i])
-            }
-
             internal.marginal.hyper[[i]] <- marg1
         }
         names(internal.marginal.hyper) <- names.hyper
@@ -1416,13 +1415,6 @@ inla.internal.experimental.mode <- FALSE
     } else {
         internal.summary.hyper <- NULL
         internal.marginal.hyper <- NULL
-    }
-
-    if (inla.internal.experimental.mode) {
-        if (!is.null(internal.marginal.hyper)) {
-            class(internal.marginal.hyper) <- "inla.marginals"
-            attr(internal.marginal.hyper, "inla.tag") <- "marginal hyper internal"
-        }
     }
 
     ret <- list(
@@ -1458,8 +1450,7 @@ inla.internal.experimental.mode <- FALSE
     return(list(mlik = mlik.res))
 }
 
-`inla.collect.predictor` <- function(results.dir, return.marginals.predictor = TRUE,
-                                     debug = FALSE)
+`inla.collect.predictor` <- function(results.dir, debug = FALSE)
 {
     alldir <- dir(results.dir)
 
@@ -1555,42 +1546,28 @@ inla.internal.experimental.mode <- FALSE
             rownames(summary.linear.predictor) <- paste("Predictor.", inla.num(1L:size.info$Ntotal), sep = "")
         }
 
-        if (return.marginals.predictor) {
-            if (debug) {
-                cat("...read marginal-densities.dat\n")
-            }
-            file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
-            xx <- inla.read.binary.file(file)
-            rr <- inla.interpret.vector.list(xx, debug = debug)
-            rm(xx)
-            if (!is.null(rr)) {
-                if (A) {
-                    names(rr) <- c(
-                        paste("APredictor.", inla.num(1L:nA), sep = ""),
-                        paste("Predictor.", inla.num(1L:n), sep = "")
-                    )
-                } else {
-                    names(rr) <- paste("Predictor.", as.character(1L:length(rr)), sep = "")
-                }
-                names.rr <- names(rr)
-                for (i in 1L:length(rr)) {
-                    colnames(rr[[i]]) <- c("x", "y")
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr[[i]]) <- "inla.marginal"
-                        attr(rr[[i]], "inla.tag") <- paste("marginal linear predictor", names.rr[i])
-                    }
-                }
-            }
-
-            if (inla.internal.experimental.mode) {
-                class(rr) <- "inla.marginals"
-                attr(rr, "inla.tag") <- "marginals linear predictor"
-            }
-            marginals.linear.predictor <- rr
-        } else {
-            marginals.linear.predictor <- NULL
+        if (debug) {
+            cat("...read marginal-densities.dat\n")
         }
+        file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
+        xx <- inla.read.binary.file(file)
+        rr <- inla.interpret.vector.list(xx, debug = debug)
+        rm(xx)
+        if (!is.null(rr)) {
+            if (A) {
+                names(rr) <- c(
+                    paste("APredictor.", inla.num(1L:nA), sep = ""),
+                    paste("Predictor.", inla.num(1L:n), sep = "")
+                )
+            } else {
+                names(rr) <- paste("Predictor.", as.character(1L:length(rr)), sep = "")
+            }
+            names.rr <- names(rr)
+            for (i in 1L:length(rr)) {
+                colnames(rr[[i]]) <- c("x", "y")
+            }
+        }
+        marginals.linear.predictor <- rr
     } else {
         summary.linear.predictor <- NULL
         marginals.linear.predictor <- NULL
@@ -1651,41 +1628,25 @@ inla.internal.experimental.mode <- FALSE
             }
             summary.fitted.values <- as.data.frame(dd)
 
-            if (return.marginals.predictor) {
-                file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
-                xx <- inla.read.binary.file(file)
-                rr <- inla.interpret.vector.list(xx, debug = debug)
-                rm(xx)
-                if (!is.null(rr)) {
-                    if (A) {
-                        names(rr) <- c(
-                            paste("fitted.APredictor.", inla.num(1L:nA), sep = ""),
-                            paste("fitted.Predictor.", inla.num(1:n), sep = "")
+            file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
+            xx <- inla.read.binary.file(file)
+            rr <- inla.interpret.vector.list(xx, debug = debug)
+            rm(xx)
+            if (!is.null(rr)) {
+                if (A) {
+                    names(rr) <- c(
+                        paste("fitted.APredictor.", inla.num(1L:nA), sep = ""),
+                        paste("fitted.Predictor.", inla.num(1:n), sep = "")
                         )
-                    } else {
-                        names(rr) <- paste("fitted.Predictor.", inla.num(1L:length(rr)), sep = "")
-                    }
-                    names.rr <- names(rr)
-                    for (i in 1L:length(rr)) {
-                        colnames(rr[[i]]) <- c("x", "y")
-                        if (inla.internal.experimental.mode) {
-                            class(rr[[i]]) <- "inla.marginal"
-                            attr(rr[[i]], "inla.tag") <- paste("marginal fitted values", names.rr[i])
-                        }
-                    }
+                } else {
+                    names(rr) <- paste("fitted.Predictor.", inla.num(1L:length(rr)), sep = "")
                 }
-
-                if (inla.internal.experimental.mode) {
-                    class(rr) <- "inla.marginals"
-                    attr(rr, "inla.tag") <- "marginals fitted values"
-                }
-                marginals.fitted.values <- rr
-            } else {
-                marginals.fitted.values <- NULL
+                names.rr <- names(rr)
+                for (i in 1L:length(rr)) {
+                    colnames(rr[[i]]) <- c("x", "y")
+                    }
             }
-        } else {
-            summary.fitted.values <- NULL
-            marginals.fitted.values <- NULL
+            marginals.fitted.values <- rr
         }
     } else {
         summary.fitted.values <- NULL
@@ -1704,7 +1665,7 @@ inla.internal.experimental.mode <- FALSE
     return(res)
 }
 
-`inla.collect.random` <- function(results.dir, return.marginals.random, debug = FALSE) 
+`inla.collect.random` <- function(results.dir, debug = FALSE) 
 {
     alldir <- dir(results.dir)
     random <- alldir[grep("^random.effect", alldir)]
@@ -1737,12 +1698,8 @@ inla.internal.experimental.mode <- FALSE
         size.random <- list()
         size.random[[n.random]] <- NA
 
-        if (return.marginals.random) {
-            marginals.random <- list()
-            marginals.random[[n.random]] <- NA
-        } else {
-            marginals.random <- NULL
-        }
+        marginals.random <- list()
+        marginals.random[[n.random]] <- NA
 
         for (i in 1L:n.random) {
             if (debug) {
@@ -1810,31 +1767,18 @@ inla.internal.experimental.mode <- FALSE
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                if (return.marginals.random) {
-                    xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
-                    rr <- inla.interpret.vector.list(xx, debug = debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd <- length(rr)
-                        names(rr) <- paste("index.", as.character(1L:nd), sep = "")
-                        names.rr <- names(rr)
-                        for (j in 1L:nd) {
-                            colnames(rr[[j]]) <- c("x", "y")
-                            if (inla.internal.experimental.mode) {
-                                class(rr[[j]]) <- "inla.marginal"
-                                attr(rr[[j]], "inla.tag") <- paste("marginal random", names.random[i], names.rr[j])
-                            }
+                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                rr <- inla.interpret.vector.list(xx, debug = debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd <- length(rr)
+                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names.rr <- names(rr)
+                    for (j in 1L:nd) {
+                        colnames(rr[[j]]) <- c("x", "y")
                         }
-                    }
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr) <- "inla.marginals"
-                        attr(rr, "inla.tag") <- paste("marginals random", names.random[i])
-                    }
-                    marginals.random[[i]] <- if (is.null(rr)) NA else rr
-                } else {
-                    stopifnot(is.null(marginals.random))
                 }
+                marginals.random[[i]] <- if (is.null(rr)) NA else rr
 
                 ## if id.names are present,  override the default names
                 id.names <- inla.readLines(paste(file, .Platform$file.sep, "id-names.dat", sep = ""))
@@ -1889,7 +1833,7 @@ inla.internal.experimental.mode <- FALSE
     return(res)
 }
 
-`inla.collect.spde2.blc` <- function(results.dir, return.marginals.random, debug = FALSE) 
+`inla.collect.spde2.blc` <- function(results.dir, debug = FALSE) 
 {
     ## a copy from collect.random
     alldir <- dir(results.dir)
@@ -1924,12 +1868,8 @@ inla.internal.experimental.mode <- FALSE
         size.random <- list()
         size.random[[n.random]] <- NA
 
-        if (return.marginals.random) {
-            marginals.random <- list()
-            marginals.random[[n.random]] <- NA
-        } else {
-            marginals.random <- NULL
-        }
+        marginals.random <- list()
+        marginals.random[[n.random]] <- NA
 
         for (i in 1L:n.random) {
             if (debug) {
@@ -1997,31 +1937,18 @@ inla.internal.experimental.mode <- FALSE
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                if (return.marginals.random) {
-                    xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
-                    rr <- inla.interpret.vector.list(xx, debug = debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd <- length(rr)
-                        names(rr) <- paste("index.", as.character(1L:nd), sep = "")
-                        names.rr <- names(rr)
-                        for (j in 1L:nd) {
-                            colnames(rr[[j]]) <- c("x", "y")
-                            if (inla.internal.experimental.mode) {
-                                class(rr[[j]]) <- "inla.marginal"
-                                attr(rr[[j]], "inla.tag") <- paste("marginal random", names.random[i], names.rr[j])
-                            }
+                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                rr <- inla.interpret.vector.list(xx, debug = debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd <- length(rr)
+                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names.rr <- names(rr)
+                    for (j in 1L:nd) {
+                        colnames(rr[[j]]) <- c("x", "y")
                         }
-                    }
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr) <- "inla.marginals"
-                        attr(rr, "inla.tag") <- paste("marginals random", names.random[i])
-                    }
-                    marginals.random[[i]] <- rr
-                } else {
-                    stopifnot(is.null(marginals.random))
                 }
+                marginals.random[[i]] <- rr
             } else {
                 N.file <- paste(file, .Platform$file.sep, "N", sep = "")
                 if (!file.exists(N.file)) {
@@ -2066,7 +1993,7 @@ inla.internal.experimental.mode <- FALSE
     return(res)
 }
 
-`inla.collect.spde3.blc` <- function(results.dir, return.marginals.random, debug = FALSE)
+`inla.collect.spde3.blc` <- function(results.dir, debug = FALSE)
 {
     ## a copy from collect.random
     alldir <- dir(results.dir)
@@ -2101,12 +2028,8 @@ inla.internal.experimental.mode <- FALSE
         size.random <- list()
         size.random[[n.random]] <- NA
 
-        if (return.marginals.random) {
-            marginals.random <- list()
-            marginals.random[[n.random]] <- NA
-        } else {
-            marginals.random <- NULL
-        }
+        marginals.random <- list()
+        marginals.random[[n.random]] <- NA
 
         for (i in 1L:n.random) {
             if (debug) {
@@ -2169,36 +2092,22 @@ inla.internal.experimental.mode <- FALSE
                     cat("...kld done\n")
                 }
 
-
                 col.nam <- c(col.nam, "kld")
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                if (return.marginals.random) {
-                    xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
-                    rr <- inla.interpret.vector.list(xx, debug = debug)
-                    rm(xx)
-                    if (!is.null(rr)) {
-                        nd <- length(rr)
-                        names(rr) <- paste("index.", as.character(1L:nd), sep = "")
-                        names.rr <- names(rr)
-                        for (j in 1L:nd) {
-                            colnames(rr[[j]]) <- c("x", "y")
-                            if (inla.internal.experimental.mode) {
-                                class(rr[[j]]) <- "inla.marginal"
-                                attr(rr[[j]], "inla.tag") <- paste("marginal random", names.random[i], names.rr[j])
-                            }
+                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                rr <- inla.interpret.vector.list(xx, debug = debug)
+                rm(xx)
+                if (!is.null(rr)) {
+                    nd <- length(rr)
+                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names.rr <- names(rr)
+                    for (j in 1L:nd) {
+                        colnames(rr[[j]]) <- c("x", "y")
                         }
-                    }
-
-                    if (inla.internal.experimental.mode) {
-                        class(rr) <- "inla.marginals"
-                        attr(rr, "inla.tag") <- paste("marginals random", names.random[i])
-                    }
-                    marginals.random[[i]] <- rr
-                } else {
-                    stopifnot(is.null(marginals.random))
                 }
+                marginals.random[[i]] <- rr
             } else {
                 N.file <- paste(file, .Platform$file.sep, "N", sep = "")
                 if (!file.exists(N.file)) {

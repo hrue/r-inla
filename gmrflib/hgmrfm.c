@@ -48,8 +48,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
 			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, int nlc, GMRFLib_lc_tp ** lc, double *lc_precision,
-			GMRFLib_ai_param_tp * UNUSED(ai_par))
+			int nbeta, double **covariate, double *prior_precision, GMRFLib_ai_param_tp * UNUSED(ai_par))
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -98,12 +97,11 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		ntriples_lc++;						\
 	}
 
-	int i, ii, j, jj, k, kk, l, m, nnz, N, n_short, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL, *idxs = NULL,
+	int i, ii, j, jj, k, l, m, N, **ilist = NULL, **jlist = NULL, *ntriples = NULL, *ntriples_max = NULL,
 	    idx_map_eta = 0, *idx_map_f = NULL, *idx_map_beta = NULL, *idx_map_lc = NULL, offset, ***fidx = NULL, **nfidx = NULL, **lfidx =
 	    NULL, fidx_add = 5;
 	int nu = 0, *uniq = NULL;
 	double **Qijlist = NULL, value, **ww = NULL;
-	float *weight;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 
@@ -127,7 +125,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	arg->nbeta = nbeta;
 	arg->covariate = covariate;
 	arg->prior_precision = prior_precision;
-	arg->nlc = nlc;
 
 	if (ff_Qfunc) {
 		/*
@@ -203,15 +200,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			offset++;
 		}
 		idx_map_beta[nbeta] = offset;
-	}
-	n_short = offset;
-	if (nlc) {
-		idx_map_lc = Calloc(nlc + 1, int);
-		for (i = 0; i < nlc; i++) {
-			idx_map_lc[i] = offset;
-			offset++;
-		}
-		idx_map_lc[nlc] = offset;
 	}
 
 	/*
@@ -564,76 +552,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	Free(ntriples);
 	Free(ntriples_max);
 
-	if (nlc) {
-		/*
-		 * make the graph from the linear combinations. Here the lc is from n_short to n_short+nlc. 
-		 */
-#define LC_ADDTO(i_, j_, val)						\
-		{							\
-			double old_val;					\
-			int imin = IMIN(i_, j_), imax = IMAX(i_, j_);	\
-			spmatrix_get(&s, imin, imax, &old_val);		\
-			spmatrix_set(&s, imin, imax, (val) + old_val);	\
-		}
-
-		int ntriples_lc = 0, *ilist_lc = NULL, *jlist_lc = NULL, ntriples_max_lc = 0;
-		double *Qijlist_lc = NULL;
-		spmatrix s;
-		spmatrix_storage *sptr;
-
-		spmatrix_init(&s);
-		GMRFLib_ASSERT(n_short == idx_map_lc[0], GMRFLib_ESNH);	/* just to make sure we're doing the right thing... he he */
-		GMRFLib_ASSERT(N == n_short + nlc, GMRFLib_ESNH);
-
-		for (i = 0; i < nlc; i++) {
-			GMRFLib_ASSERT(lc_precision[i] > 0.0, GMRFLib_EPARAMETER);
-			j = i + n_short;
-			SET_ELEMENT_LC(j, j, lc_precision[i]); /* lc_i ^2 */
-		}
-		/*
-		 * as n_short contains idx_map_eta, we must subtract it in the following... 
-		 */
-		for (i = 0; i < nlc; i++) {
-
-			nnz = lc[i]->n;
-			idxs = lc[i]->idx;
-			weight = lc[i]->weight;
-
-			/*
-			 * we have to do this in two steps, as some elements Qij are a sum of contributions
-			 *
-			 * OOPS: the 'idxs' are already corrected for idx_map_eta!!!!
-			 */
-			for (k = 0; k < nnz; k++) {
-				j = idxs[k];
-				LC_ADDTO(n_short + i, j, -lc_precision[i] * weight[k]);	/* lc_i x_j */
-				LC_ADDTO(j, j, lc_precision[i] * SQR(weight[k]));	/* x_j^2 */
-				for (kk = k + 1; kk < nnz; kk++) {
-					jj = idxs[kk];
-					LC_ADDTO(j, jj, lc_precision[i] * weight[k] * weight[kk]);	/* x_j x_jj */
-				}
-			}
-		}
-
-		/*
-		 * set the eta_ext to zero, including n, to prevent the 0/1-based indexing error 
-		 */
-		for (i = 0; i < idx_map_eta + n; i++) {
-			SET_ELEMENT_FORCE_LC(i, i, 0.0);
-		}
-		for (sptr = NULL; (sptr = spmatrix_nextptr(&s, sptr)) != NULL;) {
-			SET_ELEMENT_LC(sptr->key.key1, sptr->key.key2, sptr->value);
-		}
-
-		GMRFLib_tabulate_Qfunc_from_list(&(arg->lc_Q), &(arg->lc_graph), ntriples_lc, ilist_lc, jlist_lc, Qijlist_lc, -1, NULL, NULL, NULL);
-
-		Free(ilist_lc);
-		Free(jlist_lc);
-		Free(Qijlist_lc);
-		spmatrix_free(&s);
-#undef LC_ADDTO
-	}
-
 	/*
 	 * now it is time to create the full graph by inserting the ones from the ffields.
 	 */
@@ -643,9 +561,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		for (j = 0; j < nf; j++) {
 			GMRFLib_ged_insert_graph(ged, f_graph[j], idx_map_f[j]);
 		}
-	}
-	if (nlc) {
-		GMRFLib_ged_insert_graph(ged, arg->lc_graph, 0);	/* yes, it's at idx=0 */
 	}
 	GMRFLib_ged_build(&((*hgmrfm)->graph), ged);
 	GMRFLib_ged_free(ged);
@@ -805,10 +720,6 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 	} else if (a->nbeta && node < a->idx_map_beta[a->nbeta]) {
 		t.tp = GMRFLib_HGMRFM_TP_BETA;
 		t.tp_idx = node - a->idx_map_beta[0];
-		t.idx = 0;
-	} else if (a->nlc && node < a->idx_map_lc[a->nlc]) {
-		t.tp = GMRFLib_HGMRFM_TP_LC;
-		t.tp_idx = node - a->idx_map_lc[0];
 		t.idx = 0;
 	} else {
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, t);

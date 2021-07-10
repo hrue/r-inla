@@ -30,7 +30,6 @@
 ## !    control.predictor = list(),
 ## !    control.family = list(),
 ## !    control.inla = list(),
-## !    control.results = list(),
 ## !    control.fixed = list(),
 ## !    control.mode = list(),
 ## !    control.expert = list(),
@@ -46,7 +45,7 @@
 ## !    keep = inla.getOption("keep"),
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
-## !    twostage = NULL, 
+## !    inla.mode = c("classic", "twostage", "experimental"), 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = parent.frame()
 ## !    )
@@ -118,13 +117,9 @@
 ## ! \item{weights}{ Fixed (optional) weights parameters of
 ## ! the likelihood, so the log-likelihood[i] is changed into
 ## ! weights[i]*log-likelihood[i]. Default value is rep(1,
-## ! n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
-## ! by default. You can enable this option for the rest of your \code{R} session,
-## ! doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
+## ! n.data). 
 ## ! WARNING: The normalizing constant for the likelihood is NOT recomputed, so
-## ! ALL marginals (and the marginal likelihood) must be interpreted with great care.
-## ! Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
-## ! and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
+## ! ALL marginals (and the marginal likelihood) must be interpreted with great care.}
 
 ## ! \item{Ntrials}{A vector containing the number of trials for the \code{binomial}
 ## ! likelihood and variantes, or the number of required successes for the
@@ -161,8 +156,6 @@
 ## ! \item{control.family}{ See \code{?control.family}}
 
 ## ! \item{control.inla}{ See \code{?control.inla}}
-
-## ! \item{control.results}{ See \code{?control.result}}
 
 ## ! \item{control.fixed}{ See \code{?control.fixed}}
 
@@ -215,9 +208,13 @@
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
 
-## ! \item{twostage}{Do inference using the new twostage-approach (if \code{TRUE}) or
-## !                 the classical approach (if \code{FALSE}).
-## !                 If \cite{NULL}, this will be decided internally. Default \code{NULL}.}
+## ! \item{inla.mode}{Run \code{inla} in \code{classic}-mode,
+## !             \code{twostage}-mode or the new \code{experimental}-mode?
+## !             Not all features are available int the \code{experimental}-mode and this mode
+## !             is really work-in-progress at the moment!!!!
+## !             Default is to use the 
+## !             mode set by \code{inla.getOption("inla.mode")} which is default
+## !             \code{classic}-mode. }
 
 ## ! \item{debug}{ If \code{TRUE}, then enable some debug
 ## ! output.  }
@@ -242,9 +239,7 @@
 ## ! standard deviation (plus, possibly quantiles and cdf) of the
 ## ! the smooth or spatial effects defined through \code{f()}.}
 
-## ! \item{marginals.random}{If
-## ! \code{return.marginals.random}=\code{TRUE} in
-## ! \code{control.results} (default), a list containing the
+## ! \item{marginals.random}{A list containing the
 ## ! posterior marginal densities of the random effects defined
 ## ! through \code{f}.}
 
@@ -401,7 +396,6 @@
                    control.predictor = list(),
                    control.family = list(),
                    control.inla = list(),
-                   control.results = list(),
                    control.fixed = list(),
                    control.mode = list(),
                    control.expert = list(),
@@ -417,7 +411,7 @@
                    keep = inla.getOption("keep"),
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
-                   twostage = NULL, 
+                   inla.mode = c("classic", "twostage", "experimental"), 
                    debug = inla.getOption("debug"),
                    .parent.frame = parent.frame()) {
 
@@ -443,15 +437,6 @@
     }
     if (!is.data.frame(data) && !is.list(data)) {
         stop("\n\tArgument `data' must be a data.frame or a list.")
-    }
-
-    if (!missing(weights) && !is.null(weights)) {
-        if (!inla.getOption("enable.inla.argument.weights")) {
-            stop(paste(
-                "Argument 'weights' must be enabled before use due to the risk of mis-interpreting the results.\n",
-                "\tUse 'inla.setOption(\"enable.inla.argument.weights\", TRUE)' to enable it; see ?inla"
-            ))
-        }
     }
 
     ## replace alias's
@@ -494,6 +479,11 @@
         }
     }
 
+    if (missing(inla.mode)) {
+        inla.mode <- inla.getOption("inla.mode")
+    }
+    inla.mode <- match.arg(inla.mode)
+
     ## check all control.xx arguments here. do the assign as variable
     ## expansion might occur.
     control.compute <- inla.check.control(control.compute, data)
@@ -504,7 +494,6 @@
     }
     ## do not check control.family here, as we need to know n.family
     control.inla <- inla.check.control(control.inla, data)
-    control.results <- inla.check.control(control.results, data)
     control.fixed <- inla.check.control(control.fixed, data)
     control.mode <- inla.check.control(control.mode, data)
     control.expert <- inla.check.control(control.expert, data)
@@ -591,7 +580,6 @@
             control.predictor = control.predictor,
             control.family = control.family,
             control.inla = control.inla,
-            control.results = control.results,
             control.fixed = control.fixed,
             control.mode = control.mode,
             control.expert = control.expert,
@@ -607,7 +595,7 @@
             keep = keep,
             working.directory = working.directory,
             silent = silent,
-            twostage = twostage, 
+            inla.mode = inla.mode, 
             debug = debug
         )
 
@@ -869,6 +857,7 @@
 
     ## control what should be computed
     cont.compute <- inla.set.control.compute.default()
+    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
     cont.compute[names(control.compute)] <- control.compute
     if (only.hyperparam) {
         cont.compute$hyperpar <- TRUE
@@ -892,11 +881,14 @@
     )
     all.hyper$predictor$hyper <- cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
-        !is.null(cont.predictor$link) || cont.inla$control.vb$enable) {
+        !is.null(cont.predictor$link) ||
+        (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb$enable)) {
         cont.predictor$compute <- TRUE
     }
     if (only.hyperparam) {
-        cont.predictor$compute <- cont.predictor$return.marginals <- FALSE
+        cont.predictor$compute <- FALSE
+        cont.predictor$return.marginals <- FALSE
+        cont.predictor$return.marginals.predictor <- FALSE
         cont.predictor$cdf <- cont.predictor$quantiles <- NULL
     }
 
@@ -1001,10 +993,6 @@
         all.hyper$family[[i.family]]$link$hyper <- cont.family[[i.family]]$control.link$hyper
     }
 
-    ## control results
-    cont.results <- inla.set.control.results.default()
-    cont.results[names(control.results)] <- control.results
-
     ## Create the directory where to store Model.ini and data.files
     ## and results.file
     if (!is.null(working.directory)) {
@@ -1067,14 +1055,16 @@
 
     inla.problem.section(
         file = file.ini, data.dir = data.dir, result.dir = results.dir,
-        hyperpar = cont.compute$hyperpar, return.marginals = cont.compute$return.marginals,
+        hyperpar = cont.compute$hyperpar,
+        return.marginals = cont.compute$return.marginals,
+        return.marginals.predictor = cont.compute$return.marginals.predictor,
         dic = cont.compute$dic, mlik = cont.compute$mlik,
         cpo = cont.compute$cpo,
         ## these two are merged together as they are compute together
         po = (cont.compute$po || cont.compute$waic),
         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
         openmp.strategy = cont.compute$openmp.strategy, graph = cont.compute$graph,
-        config = cont.compute$config, gdensity = cont.compute$gdensity
+        config = cont.compute$config
     )
 
     ## PREPARE RESPONSE AND FIXED EFFECTS
@@ -1090,13 +1080,12 @@
     mf$control.compute <- NULL
     mf$control.predictor <- NULL
     mf$silent <- NULL
-    mf$twostage <- NULL
+    mf$mode <- NULL
     mf$control.hazard <- NULL
     mf$control.family <- NULL
     mf$control.update <- NULL
     mf$control.pardiso <- NULL
     mf$control.inla <- NULL
-    mf$control.results <- NULL
     mf$control.fixed <- NULL
     mf$control.lincomb <- NULL
     mf$control.mode <- NULL
@@ -1112,6 +1101,7 @@
     mf$inla.arg <- NULL
     mf$lincomb <- NULL
     mf$selection <- NULL
+    mf$inla.mode <- NULL
     mf$.parent.frame <- NULL
     mf$data <- data.same.len
 
@@ -1310,12 +1300,7 @@
         off <- cbind(indN, offset + offset.formula)
     }
     file.offset <- inla.tempfile(tmpdir = data.dir)
-    if (inla.getOption("internal.binary.mode")) {
-        inla.write.fmesher.file(as.matrix(off), filename = file.offset, debug = debug)
-    } else {
-        file.create(file.offset)
-        write(t(off), ncolumns = 2L, file = file.offset, append = FALSE)
-    }
+    inla.write.fmesher.file(as.matrix(off), filename = file.offset, debug = debug)
     file.offset <- gsub(data.dir, "$inladatadir", file.offset, fixed = TRUE)
 
     if (!is.null(cont.predictor$link)) {
@@ -1362,12 +1347,7 @@
             tlink <- cbind(indN, as.numeric(cont.predictor$link) - 1L)
         }
         file.link.fitted.values <- inla.tempfile(tmpdir = data.dir)
-        if (inla.getOption("internal.binary.mode")) {
-            inla.write.fmesher.file(as.matrix(tlink), filename = file.link.fitted.values, debug = debug)
-        } else {
-            file.create(file.link.fitted.values)
-            write(t(tlink), ncolumns = 2L, file = file.offset, append = FALSE)
-        }
+        inla.write.fmesher.file(as.matrix(tlink), filename = file.link.fitted.values, debug = debug)
         file.link.fitted.values <- gsub(data.dir, "$inladatadir", file.link.fitted.values, fixed = TRUE)
     } else {
         file.link.fitted.values <- NULL
@@ -1398,12 +1378,7 @@
             fixed.eff <- fixed.eff[!is.na(fixed.eff[, 2]), , drop = FALSE]
 
             file.fixed <- inla.tempfile(tmpdir = data.dir)
-            if (inla.getOption("internal.binary.mode")) {
-                inla.write.fmesher.file(as.matrix(fixed.eff), filename = file.fixed, debug = debug)
-            } else {
-                file.create(file.fixed)
-                write(t(fixed.eff), ncolumns = ncol(fixed.eff), file = file.fixed, append = FALSE)
-            }
+            inla.write.fmesher.file(as.matrix(fixed.eff), filename = file.fixed, debug = debug)
             file.fixed <- gsub(data.dir, "$inladatadir", file.fixed, fixed = TRUE)
 
             if (debug) {
@@ -1782,28 +1757,17 @@
 
                 ## create a location and covariate file
                 file.loc <- inla.tempfile(tmpdir = data.dir)
-                if (inla.getOption("internal.binary.mode")) {
-                    inla.write.fmesher.file(as.matrix(as.numeric(location[[r]]), ncol = 1), filename = file.loc, debug = debug)
-                    ## prevent some numerical instabilities for models rw1, rw2, crw2, etc...
-                    inla.check.location(location[[r]],
-                        term = gp$random.spec[[r]]$term,
-                        model = gp$random.spec[[r]]$model, section = "latent"
-                    )
-                } else {
-                    file.create(file.loc)
-                    write(as.numeric(location[[r]]), ncolumns = 1, file = file.loc, append = FALSE)
-                }
+                inla.write.fmesher.file(as.matrix(as.numeric(location[[r]]), ncol = 1), filename = file.loc, debug = debug)
+                ## prevent some numerical instabilities for models rw1, rw2, crw2, etc...
+                inla.check.location(location[[r]],
+                                    term = gp$random.spec[[r]]$term,
+                                    model = gp$random.spec[[r]]$model, section = "latent")
                 file.loc <- gsub(data.dir, "$inladatadir", file.loc, fixed = TRUE)
 
                 ## this have to match
                 stopifnot(length(covariate[[r]]) == NPredictor)
                 file.cov <- inla.tempfile(tmpdir = data.dir)
-                if (inla.getOption("internal.binary.mode")) {
-                    inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename = file.cov, debug = debug)
-                } else {
-                    file.create(file.cov)
-                    write(t(cbind(indN, covariate[[r]])), ncolumns = 2, file = file.cov, append = FALSE)
-                }
+                inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename = file.cov, debug = debug)
                 file.cov <- gsub(data.dir, "$inladatadir", file.cov, fixed = TRUE)
 
                 ## name of the 'names of the values'
@@ -1816,14 +1780,8 @@
                 }
 
                 file.cov <- inla.tempfile(tmpdir = data.dir)
-                if (inla.getOption("internal.binary.mode")) {
-                    inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename = file.cov, debug = debug)
-                } else {
-                    file.create(file.cov)
-                    write(t(cbind(indN, covariate[[r]])), ncolumns = 2, file = file.cov, append = FALSE)
-                }
+                inla.write.fmesher.file(as.matrix(cbind(indN, covariate[[r]])), filename = file.cov, debug = debug)
                 file.cov <- gsub(data.dir, "$inladatadir", file.cov, fixed = TRUE)
-
 
                 if (nrep == 1 && ngroup == 1) {
                     n <- inla.ifelse(
@@ -1957,12 +1915,7 @@
                     }
 
                     file.extraconstr <- inla.tempfile(tmpdir = data.dir)
-                    if (inla.getOption("internal.binary.mode")) {
-                        inla.write.fmesher.file(as.matrix(c(as.vector(t(A)), e), ncol = 1), filename = file.extraconstr, debug = debug)
-                    } else {
-                        file.create(file.extraconstr)
-                        write(c(as.vector(t(A)), e), ncolumns = 1, file = file.extraconstr, append = FALSE)
-                    }
+                    inla.write.fmesher.file(as.matrix(c(as.vector(t(A)), e), ncol = 1), filename = file.extraconstr, debug = debug)
                     file.extraconstr <- gsub(data.dir, "$inladatadir", file.extraconstr, fixed = TRUE)
                 } else {
                     file.extraconstr <- NULL
@@ -1977,14 +1930,8 @@
 
                     ## create a file for the weights
                     file.weights <- inla.tempfile(tmpdir = data.dir)
-                    if (inla.getOption("internal.binary.mode")) {
-                        inla.write.fmesher.file(as.matrix(cbind(indN, www)), filename = file.weights, debug = debug)
-                    } else {
-                        file.create(file.weights)
-                        write(t(cbind(indN, www)), ncolumns = 2, file = file.weights, append = FALSE)
-                    }
+                    inla.write.fmesher.file(as.matrix(cbind(indN, www)), filename = file.weights, debug = debug)
                     file.weights <- gsub(data.dir, "$inladatadir", file.weights, fixed = TRUE)
-
                     n.weights <- n.weights + 1
                 }
 
@@ -2013,12 +1960,7 @@
                 xx <- rf[, r + 1]
                 xx[is.na(xx)] <- 0
                 file.linear <- inla.tempfile(tmpdir = data.dir)
-                if (inla.getOption("internal.binary.mode")) {
-                    inla.write.fmesher.file(as.matrix(cbind(indN, xx)), filename = file.linear, debug = debug)
-                } else {
-                    file.create(file.linear)
-                    write(t(cbind(indN, xx)), ncolumns = 2, file = file.linear, append = FALSE)
-                }
+                inla.write.fmesher.file(as.matrix(cbind(indN, xx)), filename = file.linear, debug = debug)
                 file.linear <- gsub(data.dir, "$inladatadir", file.linear, fixed = TRUE)
 
                 cont <- list(
@@ -2050,7 +1992,7 @@
     }
 
     ## the inla section
-    inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir)
+    inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, inla.mode)
 
     ## create mode section
     cont.mode <- inla.set.control.mode.default()
@@ -2058,7 +2000,7 @@
     if (!is.null(cont.mode$result)) {
         ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
         ## can/will require lots of storage. We do this by creating a stripped object with only
-        ## what is needed and pass that one along, with the expected class.
+        ## what is needed and pass that one along, with the expected classical
         cont.mode$result <- list(mode = list(x = cont.mode$result$mode$x,
                                              theta = cont.mode$result$mode$theta))
         class(cont.mode$result) <- "inla" ## in case there are checks on
@@ -2091,7 +2033,6 @@
         cat("Run inla...")
     }
 
-    ## inla.arg override all default arguments including `-b' !!!
     if (is.null(inla.arg)) {
         arg.arg <- ""
 
@@ -2106,13 +2047,11 @@
         }
 
         arg.s <- inla.ifelse(silent, "-s", "")
-        arg.b <- "-b"
     } else {
         arg.arg <- inla.arg
         arg.nt <- ""
         arg.v <- ""
         arg.s <- ""
-        arg.b <- ""
     }
 
     if ((inla.os("mac") || inla.os("mac.arm64")) && inla.getOption("vecLib") && !inla.getOption("mkl")) {
@@ -2121,16 +2060,18 @@
         arg.vecLib <- ""
     }
 
-    if (is.null(twostage)) {
-        ## chose the default action here
-        arg.P <- ""
+    if (inla.mode %in% "classic") {
+        arg.P <- "-P classic"
+    } else if (inla.mode %in% "twostage") {
+        arg.P <- "-P twostage"
+    } else if (inla.mode %in% "experimental") {
+        arg.P <- "-P experimental"
     } else {
-        ## user-defined action
-        arg.P <- if (twostage) "-P" else ""
+        stop("Unknown 'inla.mode'")
     }
 
     ## collect all. we might add '-p' later if inla.call="submit"
-    all.args <- paste(arg.arg, arg.b, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
+    all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
 
     ## define some environment variables for remote computing
     vars <- list(
@@ -2147,7 +2088,11 @@
     do.call("Sys.setenv", vars)
     inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
 
-    vars <- NULL
+    if (debug) {
+        print(paste("all.args: ", all.args))
+    }
+
+   vars <- NULL
     if (debug) {
         vars <- c(vars, INLA_DEBUG = 1)
     }
@@ -2190,6 +2135,10 @@
         cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep = "", file = file.env, append = TRUE)
     }
 
+    timeout <- inla.getOption("inla.timeout")
+    timeout <- if (!is.numeric(timeout) || timeout < 0) 0 else ceiling(timeout)
+    timeout.used <- Sys.time()
+    
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
@@ -2203,17 +2152,19 @@
             )
         } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
-                echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)))
+                echoc <- system(paste(shQuote(inla.call), all.args, shQuote(file.ini)), timeout = timeout)
             } else {
                 echoc <- system(paste(
                     shQuote(inla.call), all.args, shQuote(file.ini), " > ", shQuote(file.log),
                     inla.ifelse(silent == 2L, " 2>/dev/null", "")
-                ))
+                ), timeout = timeout)
             }
+            timeout.used <- Sys.time() - timeout.used
+            inla.inlaprogram.timeout(timeout.used, timeout)
         } else if (inla.os("windows")) {
             if (!remote && !submit) {
                 if (verbose) {
-                    echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = "", stderr = "", wait = TRUE))
+                    echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = "", stderr = "", wait = TRUE, timeout = timeout))
                 } else {
                     if (FALSE) {
                         ## old .bat-solution
@@ -2223,13 +2174,18 @@
                             shQuote(inla.call), all.args, "-v", shQuote(file.ini), ">", shQuote(file.log),
                             inla.ifelse(silent == 2L, "2>NUL", "")
                         ), file = bat.file, append = TRUE)
-                        echoc <- try(system2(bat.file, wait = TRUE), silent = FALSE)
+                        echoc <- try(system2(bat.file, wait = TRUE, timeout = timeout), silent = FALSE)
                         unlink(bat.file)
                     } else {
                         ## new try
-                        echoc <- try(system2(inla.call, args = paste(all.args, shQuote(file.ini)), stdout = file.log, stderr = file.log2, wait = TRUE))
+                        echoc <- try(system2(inla.call,
+                                             args = paste(all.args, shQuote(file.ini)),
+                                             stdout = file.log, stderr = file.log2,
+                                             wait = TRUE, timeout = timeout))
                     }
                 }
+                timeout.used <- Sys.time() - timeout.used
+                inla.inlaprogram.timeout(timeout.used, timeout)
                 if (echoc != 0L) {
                     if (!verbose && (silent != 2L)) {
                         inla.inlaprogram.has.crashed()
@@ -2260,7 +2216,6 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,
-                    control.results = cont.results, debug = debug,
                     only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2
                 ), silent = FALSE)
                 if (!is.list(ret)) {
@@ -2360,7 +2315,21 @@
 
             ## note that this ordering might be different than in the selection above, which
             ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
-            sel.idx <- which(inla.posterior.sample.interpret.selection(selection, ret))
+
+            if (inla.mode %in% "experimental") {
+                ct <- ret$misc$configs$contents
+                for(nm in c("APredictor", "Predictor")) {
+                    if (ct$tag[1] == nm) {
+                        ct$tag <- ct$tag[-1]
+                        ct$start <- ct$start[-1] - ct$start[2] + 1
+                        ct$length <- ct$length[-1]
+                    }
+                }
+                rfake <- list(misc = list(configs = list(contents = ct)))
+                sel.idx <- which(inla.posterior.sample.interpret.selection(selection, rfake))
+            } else {
+                sel.idx <- which(inla.posterior.sample.interpret.selection(selection, ret))
+            }
             nc <- ret$misc$configs$nconfig
             ns <- length(idx)
             m <- list()

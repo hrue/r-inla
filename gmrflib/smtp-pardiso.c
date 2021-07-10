@@ -84,6 +84,7 @@ GMRFLib_static_pardiso_tp S = {
 };
 
 #define PSTORES_NUM (16384)
+static int tnum_ref = 0;				       /* the reference thread number to store store-spesific things */
 
 int GMRFLib_pardiso_set_parallel_reordering(int value)
 {
@@ -221,7 +222,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, j, k, n, na, nnz, nan_error = 0;
+	int i, k, n, na, nnz, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
@@ -256,13 +257,17 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 			M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 		}
 		assert(M->ia[n] == na);
-#pragma omp parallel for private(i, k) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < n; i++) {
-			if (graph->lnnbs[i]) {
-				k = k_arr[i];
-				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-			}
+#define CODE_BLOCK					\
+		for (int i = 0; i < n; i++) {		\
+			CODE_BLOCK_SET_THREAD_ID;	\
+			if (graph->lnnbs[i]) {		\
+				int k = k_arr[i];			\
+				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
+			}						\
 		}
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+#undef CODE_BLOCK
 		Free(k_arr);
 	}
 	// when this is true, we can just copy the pointer to the matrix.
@@ -280,36 +285,40 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		M->a = Calloc(na, double);
 	}
 
-	int id_save = GMRFLib_thread_id;
 	if (!used_fast_tab) {
 		// a bit more manual work
 		double val = Qfunc(0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
-#pragma omp parallel for private(i, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
-			for (i = 0; i < n; i++) {
-				GMRFLib_thread_id = id_save;
-				for (k = M->ia[i]; k < M->ia[i + 1]; k++) {
-					j = M->ja[k];
-					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);
-				}
+#define CODE_BLOCK							\
+			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_SET_THREAD_ID;		\
+				for (int k = M->ia[i]; k < M->ia[i + 1]; k++) {	\
+					int j = M->ja[k];		\
+					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);	\
+				}					\
 			}
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+#undef CODE_BLOCK
 		} else {
-#pragma omp parallel for private(i, k) num_threads(GMRFLib_openmp->max_threads_inner)
-			for (i = 0; i < n; i++) {
-				GMRFLib_thread_id = id_save;
-				double v;
-				k = M->ia[i];
-				v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);
-				assert(!(ISNAN(v)));
+#define CODE_BLOCK							\
+			for (int i = 0; i < n; i++) {			\
+				CODE_BLOCK_SET_THREAD_ID;		\
+				int k = M->ia[i];			\
+				double v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);	\
+				assert(!(ISNAN(v)));			\
 			}
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+#undef CODE_BLOCK
 		}
 	}
-	GMRFLib_thread_id = id_save;
 
 	for (i = 0; i < na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
-		if (nan_error)
+		if (nan_error) {
 			break;
+		}
 	}
 
 	if (nan_error) {
@@ -420,7 +429,10 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	}
 
 	s->maxfct = 1;
-	s->pstore = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
+	s->pstore = Calloc(GMRFLib_MAX_THREADS, GMRFLib_pardiso_store_pr_thread_tp *);
+	for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		s->pstore[i] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
+	}
 	assert(S.mtype == -2 || S.mtype == 2);
 	s->mtype = S.mtype;
 	s->msglvl = S.msglvl;
@@ -438,7 +450,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 	s->iparm_default[1] = 3;			       /* use METIS5 */
 	s->iparm_default[4] = 0;			       /* use internal reordering */
-	s->iparm_default[7] = 4;			       /* maximum number of refinement steps */
+	s->iparm_default[7] = 0;			       /* maximum number of refinement steps */
+	// s->iparm_default[7] = 4; /* maximum number of refinement steps */
 	s->iparm_default[10] = 0;			       /* These are the default, but... */
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
@@ -473,48 +486,50 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store)
 {
-	assert(store->done_with_init == GMRFLib_TRUE);
-	Memcpy((void *) (store->pstore->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
-	Memcpy((void *) (store->pstore->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
+	int tnum = omp_get_thread_num();
 
-	store->pstore->nrhs = 0;
-	store->pstore->err_code = 0;
-	store->pstore->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
+	assert(store->done_with_init == GMRFLib_TRUE);
+	Memcpy((void *) (store->pstore[tnum]->iparm), (void *) (store->iparm_default), GMRFLib_PARDISO_PLEN * sizeof(int));
+	Memcpy((void *) (store->pstore[tnum]->dparm), (void *) (store->dparm_default), GMRFLib_PARDISO_PLEN * sizeof(double));
+
+	store->pstore[tnum]->nrhs = 0;
+	store->pstore[tnum]->err_code = 0;
+	store->pstore[tnum]->iparm[2] = store->pstore[tnum_ref]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
-		store->pstore->phase = 11;		       // analysis
-		store->pstore->iparm[4] = 0;		       /* 0 = compute the permutation */
-		store->pstore->iparm[39] = 1;		       /* 1 = return the permutation */
-		store->pstore->nrhs = S.nrhs_max;	       /* this is how it is, apparently */
+		store->pstore[tnum]->phase = 11;	       // analysis
+		store->pstore[tnum]->iparm[4] = 0;	       /* 0 = compute the permutation */
+		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation */
+		store->pstore[tnum]->nrhs = S.nrhs_max;	       /* this is how it is, apparently */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_CHOL:
-		store->pstore->phase = 22;		       // numerical factorization
-		store->pstore->iparm[32] = 1;		       /* determinant */
-		store->pstore->iparm[39] = 1;		       /* 1 = return the permutation (does not do that anymore) */
+		store->pstore[tnum]->phase = 22;	       // numerical factorization
+		store->pstore[tnum]->iparm[32] = 1;	       /* determinant */
+		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation (does not do that anymore) */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_QINV:
-		store->pstore->phase = -22;
-		store->pstore->iparm[35] = 1;		       /* do not overwrite internal factor L with selected inversion */
-		store->pstore->iparm[36] = 0;		       /* return upper triangular Qinv */
+		store->pstore[tnum]->phase = -22;
+		store->pstore[tnum]->iparm[35] = 1;	       /* do not overwrite internal factor L with selected inversion */
+		store->pstore[tnum]->iparm[36] = 0;	       /* return upper triangular Qinv */
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
-		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[25] = (S.mtype == 2 ? 1 : -12);
+		store->pstore[tnum]->phase = 33;	       // solve
+		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 1 : -12);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
-		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[25] = (S.mtype == 2 ? 2 : -23);
+		store->pstore[tnum]->phase = 33;	       // solve
+		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 2 : -23);
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
-		store->pstore->phase = 33;		       // solve
-		store->pstore->iparm[25] = 0;
+		store->pstore[tnum]->phase = 33;	       // solve
+		store->pstore[tnum]->iparm[25] = 0;
 		break;
 
 	default:
@@ -569,6 +584,7 @@ double GMRFLib_pardiso_Qfunc_default(int i, int j, double *UNUSED(values), void 
 
 int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph)
 {
+	int tnum = omp_get_thread_num();
 	int debug = S.debug;
 
 	assert(store != NULL);
@@ -594,44 +610,45 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	}
 
 	n = Q->n;
-	store->pstore->perm = Calloc(n, int);
-	store->pstore->iperm = Calloc(n, int);
+	store->pstore[tnum_ref]->perm = Calloc(n, int);
+	store->pstore[tnum_ref]->iperm = Calloc(n, int);
 
 	if (S.parallel_reordering) {
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
 			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
 			// level=0.
-			omp_set_num_threads(store->pstore->iparm[2]);
+			omp_set_num_threads(store->pstore[tnum_ref]->iparm[2]);
 		} else {
 			omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-			assert(GMRFLib_openmp->max_threads_inner <= store->pstore->iparm[2]);
+			assert(GMRFLib_openmp->max_threads_inner <= store->pstore[tnum_ref]->iparm[2]);
 		}
 	}
 
 	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype),
-		&(store->pstore->phase),
-		&(Q->n), Q->a, Q->ia, Q->ja, store->pstore->perm,
-		&(store->pstore->nrhs), store->pstore->iparm,
-		&(store->msglvl), &(store->pstore->dummy), &(store->pstore->dummy), &(store->pstore->err_code), store->pstore->dparm);
+		&(store->pstore[tnum]->phase),
+		&(Q->n), Q->a, Q->ia, Q->ja, store->pstore[tnum_ref]->perm,
+		&(store->pstore[tnum]->nrhs), store->pstore[tnum]->iparm,
+		&(store->msglvl), &(store->pstore[tnum]->dummy), &(store->pstore[tnum]->dummy), &(store->pstore[tnum]->err_code),
+		store->pstore[tnum]->dparm);
 
 	// Just fill it with a dummy (identity) reordering
 	for (i = 0; i < n; i++) {
-		store->pstore->perm[i] = i;
-		store->pstore->iperm[store->pstore->perm[i]] = i;
+		store->pstore[tnum_ref]->perm[i] = i;
+		store->pstore[tnum_ref]->iperm[store->pstore[tnum_ref]->perm[i]] = i;
 	}
 
 	if (0 && debug) {
 		for (i = 0; i < n; i++) {
-			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore->perm[i], i, store->pstore->iperm[i]);
+			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore[tnum_ref]->perm[i], i, store->pstore[tnum_ref]->iperm[i]);
 		}
 	}
 
-	if (store->pstore->err_code) {
+	if (store->pstore[tnum]->err_code) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
 	}
 
 	store->done_with_reorder = GMRFLib_TRUE;
-	store->pstore->L_nnz = store->pstore->iparm[17] - 1;
+	store->pstore[tnum]->L_nnz = store->pstore[tnum]->iparm[17] - 1;
 	GMRFLib_csr_free(&Q);
 
 	return GMRFLib_SUCCESS;
@@ -655,7 +672,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	n = store->graph->n;
 	xx = Calloc(n * m, double);
 	Memcpy(xx, x, n * m * sizeof(double));
-	permutation = (direction ? store->pstore->perm : store->pstore->iperm);
+	permutation = (direction ? store->pstore[tnum_ref]->perm : store->pstore[tnum_ref]->iperm);
 	assert(permutation);
 	assert(m > 0);
 
@@ -684,99 +701,101 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
 
-	if (store->pstore->done_with_build == GMRFLib_TRUE && store->pstore->Q) {
-		GMRFLib_csr_free(&(store->pstore->Q));
+	if (store->pstore[tnum_ref]->done_with_build == GMRFLib_TRUE && store->pstore[tnum_ref]->Q) {
+		GMRFLib_csr_free(&(store->pstore[tnum_ref]->Q));
 	}
-	GMRFLib_Q2csr(&(store->pstore->Q), graph, Qfunc, (void *) Qfunc_arg);
-	GMRFLib_csr_base(1, store->pstore->Q);
+	GMRFLib_Q2csr(&(store->pstore[tnum_ref]->Q), graph, Qfunc, (void *) Qfunc_arg);
+	GMRFLib_csr_base(1, store->pstore[tnum_ref]->Q);
 
 	if (S.csr_check) {
-		GMRFLib_csr_check(store->pstore->Q);
+		GMRFLib_csr_check(store->pstore[tnum_ref]->Q);
 	}
 	if (0 && S.debug) {
-		GMRFLib_csr_print(stdout, store->pstore->Q);
+		GMRFLib_csr_print(stdout, store->pstore[tnum_ref]->Q);
 	}
 
-	store->pstore->done_with_build = GMRFLib_TRUE;
+	store->pstore[tnum_ref]->done_with_build = GMRFLib_TRUE;
 
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 {
+	int tnum = omp_get_thread_num();
 	int debug = S.debug;
 
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
-	assert(store->pstore->done_with_build == GMRFLib_TRUE);
-	assert(store->pstore->Q != NULL);
+	assert(store->pstore[tnum_ref]->done_with_build == GMRFLib_TRUE);
+	assert(store->pstore[tnum_ref]->Q != NULL);
 
-	int mnum1 = 1, n = store->pstore->Q->n, i;
+	int mnum1 = 1, n = store->pstore[tnum_ref]->Q->n, i;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store);
 
 	if (debug) {
-		printf("CHOL: level %d NUM_THREADS %d iparm[2] %d\n", omp_get_level(), omp_get_num_threads(), store->pstore->iparm[2]);
+		printf("CHOL: level %d NUM_THREADS %d iparm[2] %d\n", omp_get_level(), omp_get_num_threads(), store->pstore[tnum_ref]->iparm[2]);
 	}
 
 	if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
 		// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
 		// level=0.
-		omp_set_num_threads(store->pstore->iparm[2]);
+		omp_set_num_threads(store->pstore[tnum_ref]->iparm[2]);
 	} else {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-		assert(GMRFLib_openmp->max_threads_inner <= store->pstore->iparm[2]);
+		assert(GMRFLib_openmp->max_threads_inner <= store->pstore[tnum_ref]->iparm[2]);
 	}
 
-	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
-		&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
-		store->pstore->perm, &(store->pstore->nrhs),
-		store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
+	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
+		&n, store->pstore[tnum_ref]->Q->a, store->pstore[tnum_ref]->Q->ia, store->pstore[tnum_ref]->Q->ja,
+		store->pstore[tnum_ref]->perm, &(store->pstore[tnum]->nrhs),
+		store->pstore[tnum]->iparm, &(store->msglvl), NULL, NULL, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
 
 	if (debug) {
-		printf("Average number of non-zeros in L per row %.2f\n", store->pstore->iparm[17] / (double) n);
+		printf("Average number of non-zeros in L per row %.2f\n", store->pstore[tnum]->iparm[17] / (double) n);
 	}
 	// Have to check if we need to revert back to C indexing
-	int perm_min = GMRFLib_imin_value(store->pstore->perm, n, NULL);
+	int perm_min = GMRFLib_imin_value(store->pstore[tnum_ref]->perm, n, NULL);
 	assert(perm_min == 0 || perm_min == 1);		       /* must either be C or F... */
 	if (perm_min == 1) {
 		for (i = 0; i < n; i++) {
-			store->pstore->perm[i]--;	       /* back to C indexing */
+			store->pstore[tnum_ref]->perm[i]--;    /* back to C indexing */
 		}
 	}
 	for (i = 0; i < n; i++) {
-		store->pstore->iperm[store->pstore->perm[i]] = i;
+		store->pstore[tnum_ref]->iperm[store->pstore[tnum_ref]->perm[i]] = i;
 	}
 
 	if (0 && debug) {
 		for (i = 0; i < n; i++) {
-			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore->perm[i], i, store->pstore->iperm[i]);
+			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore[tnum_ref]->perm[i], i, store->pstore[tnum_ref]->iperm[i]);
 		}
 	}
 
-	if (store->pstore->err_code != 0 || store->pstore->iparm[22] > 0) {
-		if (store->pstore->iparm[22] > 0) {
+	if (store->pstore[tnum]->err_code != 0 || store->pstore[tnum]->iparm[22] > 0) {
+		if (store->pstore[tnum]->iparm[22] > 0) {
 			printf("\n*** PARDISO ERROR(%1d): not pos.def matrix: %1d eigenvalues are negative.\n",
-			       store->pstore->err_code, store->pstore->iparm[22]);
+			       store->pstore[tnum]->err_code, store->pstore[tnum]->iparm[22]);
 		} else {
-			printf("\n*** PARDISO ERROR(%1d): check manual.\n", store->pstore->err_code);
+			printf("\n*** PARDISO ERROR(%1d): check manual.\n", store->pstore[tnum]->err_code);
 		}
 		printf("*** PARDISO ERROR: I will try to work around the problem...\n\n");
 		return GMRFLib_EPOSDEF;
 	}
 
-	store->pstore->log_det_Q = store->pstore->dparm[32];
-	store->pstore->done_with_chol = GMRFLib_TRUE;
+	store->pstore[tnum]->log_det_Q = store->pstore[tnum]->dparm[32];
+	store->pstore[tnum_ref]->done_with_chol = GMRFLib_TRUE;
 
 	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs)
 {
+	int tnum = omp_get_thread_num();
 	assert(nrhs > 0);
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
-	assert(store->pstore->done_with_build == GMRFLib_TRUE);
-	assert(store->pstore->done_with_chol == GMRFLib_TRUE);
+	assert(store->pstore[tnum_ref]->done_with_build == GMRFLib_TRUE);
+	assert(store->pstore[tnum_ref]->done_with_chol == GMRFLib_TRUE);
 
 	// this is so that the RHS can be overwritten
 	int n = store->graph->n, mnum1 = 1, i, offset, nblock, reminder, local_nrhs, max_nrhs, idum = 0;
@@ -796,11 +815,11 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	for (i = 0; i < nblock + reminder; i++) {
 		offset = i * n * max_nrhs;
 		local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
-		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
-			&n, store->pstore->Q->a, store->pstore->Q->ia, store->pstore->Q->ja,
-			&idum, &local_nrhs, store->pstore->iparm, &(store->msglvl),
-			bb + offset, x + offset, &(store->pstore->err_code), store->pstore->dparm);
-		if (store->pstore->err_code != 0) {
+		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
+			&n, store->pstore[tnum_ref]->Q->a, store->pstore[tnum_ref]->Q->ia, store->pstore[tnum_ref]->Q->ja,
+			&idum, &local_nrhs, store->pstore[tnum]->iparm, &(store->msglvl),
+			bb + offset, x + offset, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
+		if (store->pstore[tnum]->err_code != 0) {
 			GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
 		}
 	}
@@ -831,20 +850,17 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
 {
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LLT, x, b, nrhs);
-
 	return res;
 }
 
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store)
 {
-	return (store->pstore->log_det_Q);
+	int tnum = omp_get_thread_num();
+	return (store->pstore[tnum]->log_det_Q);
 }
 
 int GMRFLib_pardiso_bitmap(void)
 {
-	/*
-	 * Not available for PARDISO, USE TAUCS
-	 */
 	return GMRFLib_SUCCESS;
 }
 
@@ -856,9 +872,8 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
 
-	GMRFLib_csr_tp *Qi = problem->sub_sm_fact.PARDISO_fact->pstore->Qinv;
-	int n = Qi->n, i, j, jj, k, kk;
-	double value;
+	GMRFLib_csr_tp *Qi = problem->sub_sm_fact.PARDISO_fact->pstore[tnum_ref]->Qinv;
+	int n = Qi->n, i, j, jj, k;
 	map_id **Qinv = Calloc(n, map_id *);
 
 	assert(Qi->base == 0);
@@ -877,17 +892,21 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	}
 
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
-#pragma omp parallel for private(i, k, j, kk, value)
-		for (i = 0; i < n; i++) {
-			for (k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) {
-				j = Qinv[i]->contents[k].key;
-				map_id_get(Qinv[i], j, &value);
-				for (kk = 0; kk < problem->sub_constr->nc; kk++) {
-					value -= problem->constr_m[i + kk * n] * problem->qi_at_m[j + kk * n];
-				}
-				map_id_set(Qinv[i], j, value);
-			}
+#define CODE_BLOCK							\
+		for (int i = 0; i < n; i++) {				\
+			for (int k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) { \
+				double value;				\
+				int j = Qinv[i]->contents[k].key;	\
+				map_id_get(Qinv[i], j, &value);		\
+				for (int kk = 0; kk < problem->sub_constr->nc; kk++) { \
+					value -= problem->constr_m[i + kk * n] * problem->qi_at_m[j + kk * n]; \
+				}					\
+				map_id_set(Qinv[i], j, value);		\
+			}						\
 		}
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+#undef CODE_BLOCK
 	}
 
 	GMRFLib_Qinv_tp *subQinv = Calloc(1, GMRFLib_Qinv_tp);
@@ -896,8 +915,6 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	subQinv->mapping = Calloc(1, map_ii);
 	map_ii_init_hint(subQinv->mapping, n);
 	for (i = 0; i < n; i++) {
-		// map_ii_set(subQinv->mapping, i, i);
-		// printf("Mapping %d %d\n", i, problem->sub_graph->mothergraph_idx[i]);
 		map_ii_set(subQinv->mapping, problem->sub_graph->mothergraph_idx[i], problem->sub_graph->mothergraph_idx[i]);
 	}
 	problem->sub_inverse = subQinv;
@@ -907,16 +924,17 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 {
+	int tnum = omp_get_thread_num();
 	assert(store->done_with_reorder == GMRFLib_TRUE);
-	assert(store->pstore->done_with_build == GMRFLib_TRUE);
-	assert(store->pstore->done_with_chol == GMRFLib_TRUE);
+	assert(store->pstore[tnum_ref]->done_with_build == GMRFLib_TRUE);
+	assert(store->pstore[tnum_ref]->done_with_chol == GMRFLib_TRUE);
 
-	if (store->pstore->Qinv) {
-		GMRFLib_csr_free(&(store->pstore->Qinv));
+	if (store->pstore[tnum_ref]->Qinv) {
+		GMRFLib_csr_free(&(store->pstore[tnum_ref]->Qinv));
 	}
 
-	GMRFLib_csr_duplicate(&(store->pstore->Qinv), store->pstore->Q);
-	GMRFLib_csr_base(1, store->pstore->Qinv);
+	GMRFLib_csr_duplicate(&(store->pstore[tnum_ref]->Qinv), store->pstore[tnum_ref]->Q);
+	GMRFLib_csr_base(1, store->pstore[tnum_ref]->Qinv);
 
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_QINV, store);
 	int mnum1 = 1;
@@ -924,24 +942,25 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 	if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
 		// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
 		// level=0.
-		omp_set_num_threads(store->pstore->iparm[2]);
+		omp_set_num_threads(store->pstore[tnum_ref]->iparm[2]);
 	} else {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-		assert(GMRFLib_openmp->max_threads_inner <= store->pstore->iparm[2]);
+		assert(GMRFLib_openmp->max_threads_inner <= store->pstore[tnum_ref]->iparm[2]);
 	}
 
-	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore->phase),
-		&(store->pstore->Qinv->n),
-		store->pstore->Qinv->a, store->pstore->Qinv->ia, store->pstore->Qinv->ja,
-		NULL, &(store->pstore->nrhs), store->pstore->iparm, &(store->msglvl), NULL, NULL, &(store->pstore->err_code), store->pstore->dparm);
+	pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
+		&(store->pstore[tnum_ref]->Qinv->n),
+		store->pstore[tnum_ref]->Qinv->a, store->pstore[tnum_ref]->Qinv->ia, store->pstore[tnum_ref]->Qinv->ja,
+		NULL, &(store->pstore[tnum]->nrhs), store->pstore[tnum]->iparm, &(store->msglvl), NULL, NULL, &(store->pstore[tnum]->err_code),
+		store->pstore[tnum]->dparm);
 
-	if (store->pstore->err_code != 0) {
+	if (store->pstore[tnum]->err_code != 0) {
 		GMRFLib_ERROR(GMRFLib_EPARDISO_INTERNAL_ERROR);
 	}
 
-	GMRFLib_csr_base(0, store->pstore->Qinv);
+	GMRFLib_csr_base(0, store->pstore[tnum_ref]->Qinv);
 	if (0 && S.debug) {
-		GMRFLib_csr_print(stdout, store->pstore->Qinv);
+		GMRFLib_csr_print(stdout, store->pstore[tnum_ref]->Qinv);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -963,6 +982,7 @@ int GMRFLib_pardiso_exit(void)
 
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 {
+	int tnum = omp_get_thread_num();
 	if (store == NULL || *store == NULL) {
 		return GMRFLib_SUCCESS;
 	}
@@ -972,8 +992,15 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 		if (S.s_verbose) {
 			FIXME("Free pardiso store with copy_pardiso_ptr = 1");
 		}
-		Free((*store)->pstore->perm);
-		Free((*store)->pstore->iperm);
+		if ((*store)->pstore) {
+			for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+				if ((*store)->pstore[i]) {
+					Free((*store)->pstore[i]->perm);
+					Free((*store)->pstore[i]->iperm);
+					Free((*store)->pstore[i]);
+				}
+			}
+		}
 		Free((*store)->pstore);
 		Free((*store));
 		*store = NULL;
@@ -1019,21 +1046,21 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			printf("==> free manually as not found\n");
 		}
 
-		if ((*store)->pstore) {
-			(*store)->pstore->phase = -1;
+		if ((*store)->pstore[tnum]) {
+			(*store)->pstore[tnum]->phase = -1;
 			int mnum1 = 1;
 			pardiso((*store)->pt, &((*store)->maxfct), &mnum1, &((*store)->mtype),
-				&((*store)->pstore->phase),
-				&((*store)->pstore->idummy),
-				&((*store)->pstore->dummy), &((*store)->pstore->idummy),
-				&((*store)->pstore->idummy),
-				&((*store)->pstore->idummy),
-				&((*store)->pstore->nrhs), (*store)->pstore->iparm, &((*store)->msglvl),
-				NULL, NULL, &((*store)->pstore->err_code), (*store)->pstore->dparm);
+				&((*store)->pstore[tnum]->phase),
+				&((*store)->pstore[tnum]->idummy),
+				&((*store)->pstore[tnum]->dummy), &((*store)->pstore[tnum]->idummy),
+				&((*store)->pstore[tnum]->idummy),
+				&((*store)->pstore[tnum]->idummy),
+				&((*store)->pstore[tnum]->nrhs), (*store)->pstore[tnum]->iparm, &((*store)->msglvl),
+				NULL, NULL, &((*store)->pstore[tnum]->err_code), (*store)->pstore[tnum]->dparm);
 
-			GMRFLib_csr_free(&((*store)->pstore->Q));
-			GMRFLib_csr_free(&((*store)->pstore->Qinv));
-			Free((*store)->pstore);
+			GMRFLib_csr_free(&((*store)->pstore[tnum_ref]->Q));
+			GMRFLib_csr_free(&((*store)->pstore[tnum_ref]->Qinv));
+			Free((*store)->pstore[tnum]);
 		}
 
 		GMRFLib_graph_free((*store)->graph);
@@ -1047,6 +1074,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 
 int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
 {
+	int tnum = omp_get_thread_num();
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
 	int debug = S.debug, failsafe_mode = 0;
 	if (old == NULL) {
@@ -1066,13 +1094,14 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		int i;
 
 #define CP(_what) dup->_what = old->_what
-#define CP2(_what) dup->pstore->_what = old->pstore->_what
-#define CPv(_what, type, len)						\
-		if (old->pstore->_what) {				\
-			dup->pstore->_what = Calloc(len, type);		\
-			Memcpy((void *) (dup->pstore->_what), (void *) (old->pstore->_what), (len) * sizeof(type)); \
+#define CP2(_what) dup->pstore[tnum]->_what = old->pstore[tnum]->_what
+#define CP2_ref(_what) dup->pstore[tnum_ref]->_what = old->pstore[tnum_ref]->_what
+#define CPv_ref(_what, type, len)					\
+		if (old->pstore[tnum_ref]->_what) {			\
+			dup->pstore[tnum_ref]->_what = Calloc(len, type); \
+			Memcpy((void *) (dup->pstore[tnum_ref]->_what), (void *) (old->pstore[tnum_ref]->_what), (len) * sizeof(type)); \
 		} else {						\
-			dup->pstore->_what = NULL;			\
+			dup->pstore[tnum_ref]->_what = NULL;		\
 		}							\
 
 		GMRFLib_pardiso_store_tp *dup = Calloc(1, GMRFLib_pardiso_store_tp);
@@ -1090,13 +1119,18 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		CP(solver);
 		CP(graph);
 
-		dup->pstore = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
+		if (!dup->pstore)
+			dup->pstore = Calloc(GMRFLib_MAX_THREADS, GMRFLib_pardiso_store_pr_thread_tp *);
+		if (!dup->pstore[tnum])
+			dup->pstore[tnum] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
+		if (!dup->pstore[tnum_ref])
+			dup->pstore[tnum_ref] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 		for (i = 0; i < GMRFLib_PARDISO_PLEN; i++) {
-			CP2(iparm[i]);
-			CP2(dparm[i]);
+			CP2_ref(iparm[i]);
+			CP2_ref(dparm[i]);
 		}
-		CP2(done_with_build);
-		CP2(done_with_chol);
+		CP2_ref(done_with_build);
+		CP2_ref(done_with_chol);
 		CP2(dummy);
 		CP2(err_code);
 		CP2(idummy);
@@ -1104,15 +1138,17 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		CP2(phase);
 		CP2(L_nnz);
 
-		CPv(perm, int, old->graph->n);		       // CP2(perm);
-		CPv(iperm, int, old->graph->n);		       // CP2(iperm);
+		CPv_ref(perm, int, old->graph->n);
+		CPv_ref(iperm, int, old->graph->n);
 
 		CP2(log_det_Q);
-		CP2(Q);
-		CP2(Qinv);
+		CP2_ref(Q);
+		CP2_ref(Qinv);
 #undef CP
 #undef CP2
+#undef CP2_ref
 #undef CPv
+#undef CPv_ref
 		*new = dup;
 		return GMRFLib_SUCCESS;
 	}
@@ -1145,16 +1181,16 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	assert(found == 1);
 	if (S.static_pstores[idx]) {
 		if (debug) {
-			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__, S.static_pstores[idx]->pstore->iparm[2]);
+			printf("%s:%1d: static_pstores...iparm[2] = %1d\n", __FILE__, __LINE__, S.static_pstores[idx]->pstore[tnum_ref]->iparm[2]);
 			printf("%s:%1d: level %d max_threads_nested = %1d\n", __FILE__, __LINE__, omp_get_level(),
 			       GMRFLib_openmp->max_threads_nested[1]);
 		}
-		ok = (S.static_pstores[idx]->pstore->iparm[2] >= GMRFLib_openmp->max_threads_nested[1]);
+		ok = (S.static_pstores[idx]->pstore[tnum_ref]->iparm[2] >= GMRFLib_openmp->max_threads_nested[1]);
 	} else {
 		ok = 1;
 	}
 	if (!ok) {
-		P(S.static_pstores[idx]->pstore->iparm[2]);
+		P(S.static_pstores[idx]->pstore[tnum_ref]->iparm[2]);
 		P(GMRFLib_openmp->max_threads_nested[1]);
 		FIXME("THIS IS NOT TRUE: iparm[2] >= threads_nested[1]");
 	}
@@ -1602,9 +1638,9 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 
 		pardiso(pardiso_store->pt, &maxfct, &mnum, &mtype, &phase, &n,
 			// not in use
-			&fake_a,			       // pardiso_store->pstore->Q->a,
-			&fake_ia,			       // pardiso_store->pstore->Q->ia,
-			&fake_ja,			       // pardiso_store->pstore->Q->ja,
+			&fake_a,			       // pardiso_store->pstore[tnum_ref]->Q->a,
+			&fake_ia,			       // pardiso_store->pstore[tnum_ref]->Q->ia,
+			&fake_ja,			       // pardiso_store->pstore[tnum_ref]->Q->ja,
 			// 
 			&idum, &one, iparm, &msglvl, b, x, &error, dparm);
 
@@ -1636,7 +1672,7 @@ int my_pardiso_test7(void)
 
 	int k;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (k = 0; k < 1000; k++) {
+	for (k = 0; k < 100; k++) {
 
 		// I do not free anything here...
 

@@ -32,7 +32,6 @@
     control.predictor = list(),
     control.family = list(),
     control.inla = list(),
-    control.results = list(),
     control.fixed = list(),
     control.mode = list(),
     control.expert = list(),
@@ -48,7 +47,7 @@
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
-    twostage = NULL, 
+    inla.mode = c("classic", "twostage", "experimental"), 
     debug = inla.getOption("debug"),
     .parent.frame = parent.frame()
     )
@@ -112,13 +111,9 @@
  \item{weights}{ Fixed (optional) weights parameters of
  the likelihood, so the log-likelihood[i] is changed into
  weights[i]*log-likelihood[i]. Default value is rep(1,
- n.data). Due to the danger of mis-interpreting the results (see below), this option is DISABLED
- by default. You can enable this option for the rest of your \code{R} session,
- doing \code{inla.setOption(enable.inla.argument.weights=TRUE)}.
+ n.data). 
  WARNING: The normalizing constant for the likelihood is NOT recomputed, so
- ALL marginals (and the marginal likelihood) must be interpreted with great care.
- Possibly, you may want to set the prior for the hyperparameters to \code{"uniform"}
- and the integration strategy to \code{"eb"} to mimic a maximum-likelihood approach.}
+ ALL marginals (and the marginal likelihood) must be interpreted with great care.}
  \item{Ntrials}{A vector containing the number of trials for the \code{binomial}
  likelihood and variantes, or the number of required successes for the
  \code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
@@ -145,7 +140,6 @@
  \code{?control.predictor}}
  \item{control.family}{ See \code{?control.family}}
  \item{control.inla}{ See \code{?control.inla}}
- \item{control.results}{ See \code{?control.result}}
  \item{control.fixed}{ See \code{?control.fixed}}
  \item{control.mode}{ See \code{?control.mode}}
  \item{control.expert}{ See \code{?control.expert}}
@@ -182,9 +176,13 @@
  \code{inla}-program would be ``silent''. If equal to
  2L, then supress also error messages from the
  \code{inla}-program.}
- \item{twostage}{Do inference using the new twostage-approach (if \code{TRUE}) or
-                 the classical approach (if \code{FALSE}).
-                 If \cite{NULL}, this will be decided internally. Default \code{NULL}.}
+ \item{inla.mode}{Run \code{inla} in \code{classic}-mode,
+             \code{twostage}-mode or the new \code{experimental}-mode?
+             Not all features are available int the \code{experimental}-mode and this mode
+             is really work-in-progress at the moment!!!!
+             Default is to use the 
+             mode set by \code{inla.getOption("inla.mode")} which is default
+             \code{classic}-mode. }
  \item{debug}{ If \code{TRUE}, then enable some debug
  output.  }
  \item{.parent.frame}{Internal use only}
@@ -201,9 +199,7 @@
  \item{summary.random}{List of matrices containing the mean and
  standard deviation (plus, possibly quantiles and cdf) of the
  the smooth or spatial effects defined through \code{f()}.}
- \item{marginals.random}{If
- \code{return.marginals.random}=\code{TRUE} in
- \code{control.results} (default), a list containing the
+ \item{marginals.random}{A list containing the
  posterior marginal densities of the random effects defined
  through \code{f}.}
  \item{summary.hyperpar}{

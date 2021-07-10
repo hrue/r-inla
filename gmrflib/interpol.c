@@ -31,6 +31,12 @@
 #define GITCOMMIT
 #endif
 
+#include <assert.h>
+#include <stddef.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -42,12 +48,12 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	 * Return a spline interpolant for {(x,y)} 
 	 */
 	int nn = n;
-	double *work, *xx, *yy;
+	double *xx, *yy;
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
-	work = Calloc(2 * n, double);
-	xx = work;
-	yy = work + n;
+	Calloc_init(2 * n);
+	xx = Calloc_get(n);
+	yy = Calloc_get(n);
 	Memcpy(xx, x, n * sizeof(double));
 	Memcpy(yy, y, n * sizeof(double));
 
@@ -60,8 +66,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	s->spline = gsl_spline_alloc(GMRFLib_density_interp_type(nn), (unsigned int) nn);
 	gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
 
-	Free(work);
-
+	Calloc_free();
 	return s;
 }
 

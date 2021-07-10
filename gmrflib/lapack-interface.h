@@ -54,15 +54,9 @@
 
 __BEGIN_DECLS
 
-/*!
-  \brief Define BLAS_LEVEL2
-*/
 #define BLAS_LEVEL2 2
-
-/*!
-  \brief Define BLAS_LEVEL3
-*/
 #define BLAS_LEVEL3 3
+
 int dpbtrf_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
 int dpbtf2_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
 int dpotrf_(const char *, int *, double *, int *, int *, fortran_charlen_t);
@@ -100,6 +94,8 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);
 int GMRFLib_gsl_mgs(gsl_matrix * A);
+int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol);
+int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol);
 
 __END_DECLS
 #endif

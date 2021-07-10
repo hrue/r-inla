@@ -85,7 +85,7 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 #endif
 
 #define IDX_ALLOC_INITIAL 64
-#define IDX_ALLOC_ADD     64
+#define IDX_ALLOC_ADD     128
 
 char *GMRFLib_rindex(const char *p, int ch)
 {
@@ -1284,11 +1284,13 @@ int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		if (a[i] && a[i]->n > 1) {				\
 			qsort((void *) a[i]->idx, (size_t) a[i]->n,  sizeof(int), GMRFLib_icmp); \
 		}							\
 	}
-	RUN_CODE_BLOCK(nt);
+
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1314,10 +1316,11 @@ int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK				\
 	for (int i = 0; i < n; i++) {		\
+		CODE_BLOCK_SET_THREAD_ID;	\
 		GMRFLib_idx_uniq(a[i]);		\
 	}
 
-	RUN_CODE_BLOCK(nt);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1347,9 +1350,11 @@ int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK					\
 	for (int i = 0; i < n; i++) {			\
+		CODE_BLOCK_SET_THREAD_ID;		\
 		GMRFLib_idxval_uniq(a[i]);		\
 	}
-	RUN_CODE_BLOCK(nt);
+
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 	return GMRFLib_SUCCESS;
 }
@@ -1381,10 +1386,11 @@ int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK					\
 	for (int i = 0; i < n; i++) {			\
+		CODE_BLOCK_SET_THREAD_ID;		\
 		GMRFLib_idxval_prune(a[i]);		\
 	}
 
-	RUN_CODE_BLOCK(nt);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1432,7 +1438,7 @@ int GMRFLib_idxval_cmp(const void *a, const void *b)
 	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
 	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
 
-	return (aa->idx > bb->idx);
+	return (aa->idx - bb->idx);
 }
 
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
@@ -1447,12 +1453,13 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		if (hold[i] && hold[i]->n > 1) {			\
-			qsort((void *) hold[i]->store, (size_t) hold[i]->n,  sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
+			qsort((void *) hold[i]->store, (size_t) hold[i]->n, sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
 		}							\
 	}
 
-	RUN_CODE_BLOCK(nt);
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1820,7 +1827,7 @@ int GMRFLib_debug_functions(const char *name)
 					first = 2;
 				}
 
-				sss = (char *) GMRFLib_debug_functions_strip((const char *)ss);
+				sss = (char *) GMRFLib_debug_functions_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
 					GMRFLib_sprintf(&nm, "%s", sss);

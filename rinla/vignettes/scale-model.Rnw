@@ -66,9 +66,6 @@
 
 
 <<echo=FALSE,eval=TRUE,message=FALSE>>= %chunk 1
-if (Sys.getenv("USER") == "sigrunnsrbye") {
-setwd("/Users/sigrunnsrbye/Dropbox/Tutorial_igmrfs")
-} 
 library(spatstat)
 library(mvtnorm)
 library(lattice)
@@ -78,6 +75,7 @@ library(numDeriv)
 library(fields)
 library(INLA)
 set.seed(123)
+if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
@@ -508,7 +506,7 @@ IGMRFs by scaling this parameter with the generalized variance, see
 
 To simplify notation let
 <<echo=TRUE,eval=F>>= %chunk 17
-hyper.prec = list(prec = list(param = c(1, 0.01)))
+hyper.prec = list(prec = list(prior = "pc.prec", param = c(0.5, 0.01)))
 @
  The formula-call at  \texttt{www.r-inla.org} is then specified by 
 <<echo=TRUE,eval=F>>= %chunk 18
@@ -530,7 +528,7 @@ formula = rent ~
 @  
 Further, the call to inla is given as 
 <<echo=TRUE,eval=F>>= %chunk 19
-mod  =  inla(formula, data = Munich)
+mod  =  inla(formula, data = Munich, control.fixed=list(prec=1))
 @                   
 
 <<echo=FALSE,eval=TRUE>>= %chunk 20
@@ -542,12 +540,12 @@ func.munich <- function(a,b,option)
     hyper.prec=list(prec=list(param=c(a,b)))
     formula= rent ~ f(location,model="besag",graph=g,initial=1, hyper=hyper.prec, scale.model=option) +
         f(year,model="rw2",values=seq(1918,2001), hyper=hyper.prec, scale.model=option) +
-            f(floor.size,model="rw2",param=c(1,0.01), hyper=hyper.prec, scale.model=option) +
+            f(floor.size,model="rw2", hyper=hyper.prec, scale.model=option) +
                 Gute.Wohnlage + Beste.Wohnlage + Keine.Wwv + Keine.Zh +
                     Kein.Badkach  + Besond.Bad + Gehobene.Kueche +
                         zim1 + zim2 + zim3 + zim4 + zim5 + zim6 -1
     
-    result =  inla(formula,data=Munich, control.inla = list(h = 0.001))
+    result = inla(formula, data=Munich, control.fixed=list(prec=1))
 }
 @
 

@@ -41,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define GMRFLib_MAX_THREADS_LOCAL IMIN(4, GMRFLib_MAX_THREADS)
+#define GMRFLib_MAX_THREADS_LOCAL GMRFLib_MAX_THREADS
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
@@ -53,7 +53,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
 #define SHOW_TIME(_msg)							\
-	if (GMRFLib_DEBUG_IF_TRUE) {					\
+	if (GMRFLib_DEBUG_IF_TRUE()) {					\
 		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
 		tref =  GMRFLib_cpu();					\
 	}
@@ -250,7 +250,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	// build up structure for the likelihood part
 
 	int nt = -1;
-	if (omp_in_parallel()) {
+	if (GMRFLib_OPENMP_IN_PARALLEL) {
 		nt = GMRFLib_openmp->max_threads_inner;
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
@@ -279,8 +279,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		GMRFLib_idxval_sort(A_idxval[i]);
 	}
-
+	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N);
 	SHOW_TIME("A_idxval");
+
 
 	// need also At_.. below, if (pA)
 	At_idxval = GMRFLib_idxval_ncreate(N);
@@ -327,6 +328,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
 		GMRFLib_idxval_nsort(pA_idxval, nrow, nt);
+		(*preopt)->pA = pA;
 		SHOW_TIME("create pA_idxval");
 
 		pAA_pattern = GMRFLib_idx_ncreate(nrow);
@@ -374,19 +376,58 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 		SHOW_TIME("init pAA_idxval");
 
-		// then add and accumate terms using '..._addto'
 #pragma omp parallel for private (i, k, kk, j, jj) num_threads(nt)
 		for (i = 0; i < nrow; i++) {
-			GMRFLib_idxval_tp *row_idxval = NULL;
-			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
 
-			for (kk = 0; kk < pAA_pattern[i]->n; kk++) {	/* for(k = 0; k < N; k++) { */
-				k = pAA_pattern[i]->idx[kk];
-				for (jj = 0; jj < row_idxval->n; jj++) {
-					j = row_idxval->store[jj].idx;
-					double val = A_idxval[j]->store[kk].val;
-					double val_row = row_idxval->store[jj].val;
-					GMRFLib_idxval_addto(&(pAA_idxval[i]), k, val_row * val);
+			int step, s, ia;
+			int steps[] = { 262144, 32768, 4096, 512, 64, 8, 1 };
+			int nsteps = sizeof(steps) / sizeof(int);
+
+			int row_n;
+			GMRFLib_idxval_tp *row_idxval = NULL;
+			GMRFLib_idxval_elm_tp *row_elm = NULL;
+
+			GMRFLib_matrix_get_row_idxval(&row_idxval, i, pA);
+			row_elm = row_idxval->store;
+			row_n = row_idxval->n;
+
+			for (jj = 0; jj < pAA_pattern[i]->n; jj++) {
+				j = pAA_pattern[i]->idx[jj];
+				GMRFLib_idxval_elm_tp *At_elm = At_idxval[j]->store;
+
+				int At_n = At_idxval[j]->n, irow = 0, iAt = 0;
+				while (irow < row_n && iAt < At_n) {
+
+					k = row_elm[irow].idx;
+					kk = At_elm[iAt].idx;
+
+					if (k < kk) {
+						irow++;
+						for (s = 0; s < nsteps; s++) {
+							step = steps[s];
+							if (step < row_n) {
+								ia = irow + step;
+								while (ia < row_n && row_elm[ia].idx < kk)
+									ia += step;
+								irow = ia - step;
+							}
+						}
+					} else if (k > kk) {
+						iAt++;
+						for (s = 0; s < nsteps; s++) {
+							step = steps[s];
+							if (step < At_n) {
+								ia = iAt + step;
+								while (ia < At_n && At_elm[ia].idx < k)
+									ia += step;
+								iAt = ia - step;
+							}
+						}
+					} else {
+						GMRFLib_idxval_addto(&(pAA_idxval[i]), j, row_elm[irow].val * At_elm[iAt].val);
+						irow++;
+						iAt++;
+					}
 				}
 			}
 			GMRFLib_idxval_free(row_idxval);
@@ -418,7 +459,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idx_free(pAA_pattern[i]);
 		}
 		Free(pAA_pattern);
-		GMRFLib_matrix_free(pA);
 		SHOW_TIME("End pA... ");
 	}
 	// setup dimensions, see pre-opt.h for the details
@@ -537,6 +577,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->A_idxval = A_idxval;
 	(*preopt)->At_idxval = At_idxval;
 	(*preopt)->pA_idxval = pA_idxval;
+	(*preopt)->pAA_idxval = pAA_idxval;
 	(*preopt)->pAAt_idxval = pAAt_idxval;
 	(*preopt)->AtA_idxval = AtA_idxval;
 
@@ -559,12 +600,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 
-	if (pAA_idxval) {
-		for (i = 0; i < nrow; i++) {
-			GMRFLib_idxval_free(pAA_idxval[i]);
-		}
-		Free(pAA_idxval);
-	}
 	for (i = 0; i < nf; i++) {
 		Free(ww[i]);
 	}
@@ -642,9 +677,9 @@ forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUS
 			 */
 			if (a->ff_Qfunc) {
 				if (same_idx && !same_tp && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
-					value += a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
-										    (a->ff_Qfunc_arg ? a->
-										     ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+					value +=
+					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
+									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
 			return value;
@@ -689,31 +724,25 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 	GMRFLib_idxval_elm_tp *elm = NULL;
-	int id = GMRFLib_thread_id, k, kk, imin, imax;
-	double value = 0.0;
+	int id = GMRFLib_thread_id, k, kk;
+	double *lc = a->like_c[id], value = 0.0;
 
-	imin = node;
-	imax = nnode;
-
-	if (a->like_c[id]) {
-		if (imin == imax) {
-			elm = a->AtA_idxval[imin][0]->store;
-			for (kk = 0; kk < a->AtA_idxval[imin][0]->n; kk++) {
-				value += elm[kk].val * a->like_c[id][elm[kk].idx];
-			}
-		} else {
-			k = 1 + GMRFLib_iwhich_sorted(imax, a->like_graph->lnbs[imin], a->like_graph->lnnbs[imin]);
-			if (k > 0) {
-				elm = a->AtA_idxval[imin][k]->store;
-				for (kk = 0; kk < a->AtA_idxval[imin][k]->n; kk++) {
-					value += elm[kk].val * a->like_c[id][elm[kk].idx];
-				}
-			} else {
-				assert(k > 0);
-			}
+	if (!lc) {
+		return 0.0;
+	}
+	// imin = node; imax = nnode;
+	if (node == nnode) {
+		elm = a->AtA_idxval[node][0]->store;
+		for (kk = 0; kk < a->AtA_idxval[node][0]->n; kk++) {
+			value += elm[kk].val * lc[elm[kk].idx];
 		}
 	} else {
-		value = 0.0;
+		k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]);
+		assert(k > 0);
+		elm = a->AtA_idxval[node][k]->store;
+		for (kk = 0; kk < a->AtA_idxval[node][k]->n; kk++) {
+			value += elm[kk].val * lc[elm[kk].idx];
+		}
 	}
 
 	return value;
@@ -743,6 +772,50 @@ double GMRFLib_preopt_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	return value;
 }
 
+double GMRFLib_preopt_Qfunc_like(int node, int nnode, double *UNUSED(values), void *arg)
+{
+	// standalone function to return the likelihood part only
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	int imin, imax, diag;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
+	double value = 0.0;
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
+		value = a->like_Qfunc(imin, imax, NULL, a->like_Qfunc_arg);
+	}
+	return value;
+}
+
+double GMRFLib_preopt_Qfunc_prior(int node, int nnode, double *UNUSED(values), void *arg)
+{
+	// standalone function to return the prior part
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	int imin, imax, diag;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
+	double value = 0.0;
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
+		value = a->latent_Qfunc(imin, imax, NULL, a->latent_Qfunc_arg);
+	}
+
+	return value;
+}
+
+
 int GMRFLib_preopt_bnew(double *b, GMRFLib_preopt_tp * preopt)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -768,6 +841,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->n; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		if (A[i]) {						\
 			GMRFLib_idxval_elm_tp *elm = A[i]->store;	\
 			for (int jj = 0; jj < A[i]->n; jj++) {		\
@@ -775,7 +849,8 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 			}						\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -795,7 +870,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 {
 	// if likelihood_only, only compute the part that is needed for the likelihood.
 
-	// if !likelihood_only, compute the whole likelihood
+	// if !likelihood_only, compute the whole predictor
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -811,6 +886,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->npred; i++) {			\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		if (preopt->A_idxval[i]) {				\
 			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) { \
@@ -818,7 +894,8 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			}						\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
 #undef CODE_BLOCK
 
 	if (preopt->mpred) {
@@ -831,7 +908,8 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}						\
 		}
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL);
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -842,6 +920,79 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	}
 	Free(pred);
 	GMRFLib_LEAVE_ROUTINE;
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp * preopt,
+				     GMRFLib_problem_tp * problem, double *optional_mean)
+{
+	// compute the marginal mean and variance for the linear predictor
+	int npred = preopt->npred;
+	int mpred = preopt->mpred;
+	int mnpred = preopt->mnpred;
+	int offset = mpred;
+	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
+
+	memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+	memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
+
+#define CODE_BLOCK							\
+	for(int i = 0; i < mpred; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		double var = 0.0, *cov;					\
+		int k, j, kk, jj;					\
+		GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
+		for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {		\
+			j = elm[k].idx;					\
+			cov = GMRFLib_Qinv_get(problem, j, j);		\
+			var += SQR(elm[k].val) * *cov;			\
+			mean[i] += elm[k].val * mm[j];			\
+			for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
+				jj = elm[kk].idx;			\
+				cov = GMRFLib_Qinv_get(problem, j, jj);	\
+				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
+			}						\
+		}							\
+		variance[i] = var;					\
+	}
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+#undef CODE_BLOCK
+
+#define CODE_BLOCK							\
+	for(int i = 0; i < npred; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		double var = 0.0, zero = 0.0, *cov = NULL;		\
+		int k, j, kk, jj;					\
+		GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
+		for(k = 0; k < preopt->A_idxval[i]->n; k++){		\
+			j = elm[k].idx;					\
+			cov = GMRFLib_Qinv_get(problem, j, j);		\
+			var += SQR(elm[k].val) * *cov;			\
+			mean[offset + i] += elm[k].val * mm[j];		\
+			for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
+				jj = elm[kk].idx;			\
+				cov = GMRFLib_Qinv_get(problem, j, jj);	\
+				if (!cov) {				\
+					err_count++;			\
+					cov = &zero;			\
+				}					\
+				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
+			}						\
+		}							\
+		variance[offset + i] = var;				\
+	}
+
+	int err_count = 0;
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+#undef CODE_BLOCK
+
+	if (err_count) {
+		char *msg = NULL;
+		GMRFLib_sprintf(&msg, "Missing %1d covariances; The A-matrix has not the proper rank. Please check.", err_count);
+		GMRFLib_ERROR_MSG(GMRFLib_EMISC, msg);
+	}
 
 	return GMRFLib_SUCCESS;
 }
@@ -876,6 +1027,12 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 #pragma omp section
 		{
 
+			if (preopt->pAA_idxval) {
+				for (int i = 0; i < preopt->mpred; i++) {
+					GMRFLib_idxval_free(preopt->pAA_idxval[i]);
+				}
+				Free(preopt->pAA_idxval);
+			}
 			for (int i = 0; i < preopt->n; i++) {
 				GMRFLib_idxval_free(preopt->AtA_idxval[i][0]);
 				for (int jj = 0; jj < preopt->like_graph->lnnbs[i]; jj++) {
@@ -901,6 +1058,9 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 
 #pragma omp section
 		{
+			GMRFLib_matrix_free(preopt->A);
+			GMRFLib_matrix_free(preopt->pA);
+
 			Free(preopt->idx_map_f);
 			Free(preopt->idx_map_beta);
 			Free(preopt->what_type);

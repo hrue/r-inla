@@ -52,7 +52,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 
 static unsigned long int GMRFLib_rng_seed;
 #pragma omp threadprivate(GMRFLib_rng_seed)

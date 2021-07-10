@@ -10,9 +10,9 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-set.seed(123)
 library(INLA)
 set.seed(123)
+if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 library(knitr)

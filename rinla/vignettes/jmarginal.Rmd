@@ -13,6 +13,7 @@ bibliography: jmarginal.bib
 ```{r setup, include=FALSE}
 set.seed(1234)
 library(INLA)
+if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 library(ggplot2)
@@ -119,6 +120,7 @@ If we pass `selection`, then we have to rerun `inla()` as
 rs = inla(y ~ 1 + x + xx,
           data = data.frame(y, x, xx), 
 	      family = "poisson",
+          control.compute = list(return.marginals.predictor = TRUE), 
 	      control.predictor = list(compute = TRUE),
 		  selection = selection)
 ```		 

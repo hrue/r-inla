@@ -298,7 +298,7 @@ double GMRFLib_sn_d3_to_skew(double d3);
 int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
-int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, int n, GMRFLib_density_tp ** densities, double *weights);
+int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean,
 			   double std_stdev, int lookup_tables);
 int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev, int lookup_tables);

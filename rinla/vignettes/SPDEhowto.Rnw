@@ -30,7 +30,6 @@ using the \textbf{\textsf{INLA}} package,
 \end{minipage}\end{center}
 
 <<setting,include=FALSE>>= 
-set.seed(1) 
 library(knitr)
 knit_hooks$set(pars = function(before, options, envir) {
     if (before) graphics::par(options$pars)
@@ -39,6 +38,7 @@ opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
                fig.path='figures/SPDEhowto/')
 library(lattice);   library(gridExtra);  library(INLA);  library(plyr) 
 set.seed(123)
+if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 lcall <- inla.getOption('inla.call')

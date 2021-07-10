@@ -828,6 +828,13 @@
     stop("The inla-program exited with an error. Unless you interupted it yourself, please rerun with verbose=TRUE and check the output carefully.\n  If this does not help, please contact the developers at <help@r-inla.org>.")
 }
 
+`inla.inlaprogram.timeout` <- function(timeused, timeout) {
+    if (timeout > 0 && timeused > timeout) {
+        stop(paste0(" *** Interupted after ", round(dig = 1, timeused),
+                    " seconds due to timeout = ", round(dig = 1, timeout), " seconds"))
+    }
+}
+
 `inla.eval.dots` <- function(..., stop.if.no.name = TRUE, allowed.names = NULL) {
     ## evaluate named argument in the parent frame. allowed.names can
     ## be a list of allowed names, or if NULL then all names are

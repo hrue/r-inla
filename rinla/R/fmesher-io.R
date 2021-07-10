@@ -263,8 +263,13 @@
         matrixtype <- 0 ## general
         storagetype <- 1 ## columnmajor
     } else if (is.list(A)) {
-        nrow <- max(A$i)
-        ncol <- max(A$j)
+        if (!is.null(A$dims)) {
+            nrow <- A$dims[1]
+            ncol <- A$dims[1]
+        } else {
+            nrow <- max(A$i)
+            ncol <- max(A$j)
+        }
         datatype <- 1 ## sparse
         valuetype <- inla.ifelse(is.integer(A$values), integer(), double())
         matrixtype <- 0 ## general

@@ -33,8 +33,9 @@ function mmp ()
 	print "\\arguments{" >> f
 	print "\\item{...}{Possible arguments}" >> f
 	next;}
-    /:ARGUMENT:/{ arg=$3; $2=""; $1="";$3=""; desc=$0;
-	print "\\item{" arg "}{" desc "}" >> f
+    /:ARGUMENT:/{ arg=$3; $2=""; $1="";$3=""; 
+	while(gsub(/##/, " "));
+	print "\\item{" arg "}{" $0 "}" >> f
 	next;}
     /:SEEALSO:/ {
 	print "}" >> f

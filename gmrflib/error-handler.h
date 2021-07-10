@@ -109,7 +109,6 @@ typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const
 				     const char *msg);
 
 const char *GMRFLib_error_reason(int errorno);
-
 int GMRFLib_error_handler(const char *reason, const char *file, const char *function, int line, const char *id, int errorno, const char *msg);
 int GMRFLib_handle_error(const char *file, const char *function, int line, const char *id, int errorno, const char *msg);
 int GMRFLib_set_error_handler(GMRFLib_error_handler_tp * new_error_handler);
@@ -125,6 +124,8 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
 #define GMRFLib_ERROR_MSG_NO_RETURN(errorno,msg) \
        if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
                                      (const char *)GitID, errorno,msg); }
+
+#define GMRFLib_WARNING(msg) GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_SUCCESS, msg)
 
 /* 
    short versions, no `msg'

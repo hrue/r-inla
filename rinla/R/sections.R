@@ -770,7 +770,7 @@
     return(random.spec)
 }
 
-`inla.inla.section` <- function(file, inla.spec, data.dir) {
+`inla.inla.section` <- function(file, inla.spec, data.dir, inla.mode) {
     cat(inla.secsep("INLA.Parameters"), "\n", sep = " ", file = file, append = TRUE)
     cat("type = inla\n", sep = " ", file = file, append = TRUE)
 
@@ -842,11 +842,10 @@
     inla.write.boolean.field("skip.configurations", inla.spec$skip.configurations, file)
     inla.write.boolean.field("mode.known", inla.spec$mode.known.conf, file)
     inla.write.boolean.field("adjust.weights", inla.spec$adjust.weights, file)
-    inla.write.boolean.field("lincomb.derived.only", inla.spec$lincomb.derived.only, file)
     inla.write.boolean.field("lincomb.derived.correlation.matrix", inla.spec$lincomb.derived.correlation.matrix, file)
 
-    if (inla.spec$lincomb.derived.only != TRUE) {
-        stop("Option 'control.inla$lincomb.derived.only' is disabled. Please remove.")
+    if (!is.null(inla.spec$lincomb.derived.only)) {
+        stop("Option 'control.inla$lincomb.derived.only' is disabled. Please fix.")
     }
 
     if (!is.null(inla.spec$restart) && inla.spec$restart >= 0) {
@@ -956,8 +955,13 @@
         cat("stupid.search.factor = ", fac, "\n", file = file, append = TRUE)
     }
 
-    if (inla.spec$control.vb$enable) {
-        inla.only.for.developers("VB correction", strict = TRUE)
+    ## this covers ... == "auto"  (or whaterever is given)
+    if (is.character(inla.spec$control.vb$enable)) {
+        if (inla.mode == "experimental") {
+            inla.spec$control.vb$enable <- TRUE
+        } else {
+            inla.spec$control.vb$enable <- FALSE
+        }
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
@@ -965,6 +969,7 @@
     cat("control.vb.strategy = ", inla.spec$control.vb$strategy, "\n", file = file, append = TRUE)
     cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
     cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
+    cat("control.vb.enable.limit = ", inla.spec$control.vb$enable.limit, "\n", file = file, append = TRUE)
 
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))
@@ -1054,14 +1059,10 @@
         stopifnot(dim(A)[1] == m)
         stopifnot(dim(A)[2] == n)
 
-        ## replace NA's with zeros. (This is now done already in inla.R)
-        ## A[ is.na(A) ] = 0.0
-
-        Aij <- list(i = 1+A@i, j = 1+A@j, values = A@x) ## based on zero-based indexing of A
-        file.Aij <- inla.tempfile(tmpdir = data.dir)
-        inla.write.fmesher.file(Aij, filename = file.Aij)
-        file.Aij <- gsub(data.dir, "$inladatadir", file.Aij, fixed = TRUE)
-        cat("A = ", file.Aij, "\n", append = TRUE, sep = " ", file = file)
+        file.A <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(A, filename = file.A)
+        file.A <- gsub(data.dir, "$inladatadir", file.A, fixed = TRUE)
+        cat("A = ", file.A, "\n", append = TRUE, sep = " ", file = file)
         Aij <- NULL
 
         ## Aext = [ I, -A; -A^T, A^T A ] ((n+m) x (n+m))
@@ -1081,8 +1082,8 @@
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
-`inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, dic,
-                                   cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, gdensity) {
+`inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
+                                   cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1113,6 +1114,7 @@
     cat("rinla.version = ", inla.version("version"), "\n", file = file, append = TRUE)
     cat("rinla.bdate = ", inla.version("date"), "\n", file = file, append = TRUE)
     inla.write.boolean.field("return.marginals", return.marginals, file)
+    inla.write.boolean.field("return.marginals.predictor", return.marginals.predictor, file)
     inla.write.boolean.field("hyperparameters", hyperpar, file)
     inla.write.boolean.field("cpo", cpo, file)
     inla.write.boolean.field("po", po, file)
@@ -1121,7 +1123,6 @@
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("config", config, file)
-    inla.write.boolean.field("gdensity", gdensity, file)
 
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp <- inla.getOption("smtp")
@@ -1379,11 +1380,7 @@
             cat("\n", inla.secsep(secname), "\n", sep = "", file = file, append = TRUE)
             cat("type = lincomb\n", sep = " ", file = file, append = TRUE)
             cat("lincomb.order = ", i, "\n", sep = " ", file = file, append = TRUE)
-            if (!is.null(contr$precision)) {
-                cat("precision = ", contr$precision, "\n", sep = " ", file = file, append = TRUE)
-            }
             inla.write.boolean.field("verbose", contr$verbose, file)
-
             cat("file.offset = ", as.integer(seek(fp.binary, where = NA)), "\n", sep = "", file = file, append = TRUE)
 
             ## number of entries

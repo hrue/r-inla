@@ -117,11 +117,6 @@
               ret <- c(ret, list(random.names = names(object$summary.random), random.model = object$model.random))
           }
 
-        neffp <- object$neffp
-        if (!is.null(neffp)) {
-            ret <- c(ret, list(neffp = round(neffp, digits = digits)))
-        }
-
         if (!is.null(object$dic)) {
             ret <- c(ret, list(dic = lapply(object$dic, round, digits = digits)))
         }
@@ -222,14 +217,6 @@
         cat("Model hyperparameters:\n")
         print(format(x$hyperpar, digits = digits, nsmall = 2), quote = FALSE)
         cat("\n")
-    }
-
-    if (inla.is.element("neffp", x)) {
-        cat("Expected number of effective parameters(stdev): ", format(x$neffp[1], digits = digits, nsmall = 2), "(",
-            format(x$neffp[2], digits = digits, nsmall = 2), ")\n",
-            sep = ""
-        )
-        cat("Number of equivalent replicates :", format(x$neffp[3], digits = digits, nsmall = 2), "\n\n")
     }
 
     if (inla.is.element("dic", x)) {

@@ -755,6 +755,7 @@ typedef struct {
 	int dic;					       /* output DIC */
 	int summary;					       /* output marginal summaries (mean, stdev, etc) */
 	int return_marginals;				       /* output detailed marginal density (even though they are computed) */
+	int return_marginals_predictor;			       /* output detailed marginal density (even though they are computed) */
 	int hyperparameters;				       /* compute also the marginal for the hyperparameters */
 	int kld;					       /* output the (symmetric) kld between marginals */
 	int mlik;					       /* compute the marginal likelihood? */
@@ -763,7 +764,6 @@ typedef struct {
 	int config;					       /* output the configurations */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
-	int gdensity;
 	int mode;
 	double *quantiles;
 	double *cdf;
@@ -1058,10 +1058,8 @@ struct inla_tp_struct {
 	 * linear combinations 
 	 */
 	int nlc;					       /* number of linear combinations */
-	int lc_derived_only;				       /* use only the derived lincombs ? */
 	int lc_derived_correlation_matrix;		       /* compute correlations ? */
 	char **lc_tag;					       /* the tags */
-	double *lc_prec;				       /* the `high' precision */
 	char **lc_dir;
 	double *lc_order;
 	Output_tp **lc_output;
@@ -1100,7 +1098,6 @@ struct inla_tp_struct {
 	 * results 
 	 */
 	GMRFLib_density_tp **density;
-	GMRFLib_density_tp **gdensity;
 	GMRFLib_density_tp **density_transform;
 	GMRFLib_density_tp **density_hyper;
 	GMRFLib_density_tp **density_lin;
@@ -1108,7 +1105,6 @@ struct inla_tp_struct {
 	GMRFLib_ai_po_tp *po;
 	GMRFLib_ai_dic_tp *dic;
 	GMRFLib_ai_marginal_likelihood_tp mlik;
-	GMRFLib_ai_neffp_tp neffp;
 
 	/*
 	 * index-table 
@@ -1474,23 +1470,20 @@ typedef struct {
 #define INLA_BIG_ENDIAN    2
 
 /* 
-   binary write macros
+   binary write macros. Faster to cache and write in bulk. See example number 63
  */
-#define DW(a) {double da = (a); fwrite(&da, sizeof(double), (size_t)1, fp); }
-#define D2W(a, b) {DW(a); DW(b);}
-#define D3W(a, b, c) {D2W(a, b); DW(c);}
-#define D4W(a, b, c, d) {D2W(a, b); D2W(c, d);}
-#define IW(a) {double d = (double)(a); DW(d);}		       /* OOPS: write ints as double! */
-#define I2W(a, b) {IW(a); IW(b);}
-#define I3W(a, b, c) {IW(a); IW(b); IW(c);}
-#define I4W(a, b, c, d) {I2W(a, b); I2W(c, d);}
-#define I5W(a, b, c, d, e) {I3W(a, b, c); I2W(d, e);}
-#define IDW(a, b)  {IW(a); DW(b);}
-#define ID2W(a, b, c)  {IW(a); D2W(b, c);}
-
-/* 
-   functions
- */
+#define Dinit_core(n_) size_t _d_store_len = n_; double  *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0
+#define Dinit()   Dinit_core(1048576L)
+#define Dinit_s() Dinit_core(1024L)
+#define Dopen(filename_) FILE *_fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
+#define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
+#define Dclose() if (_d_n && _fp) fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; if (_fp) fclose(_fp); _fp = NULL
+#define Dfree()  Free(_d_store)
+#define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
+#define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
+#define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
+#define D4W(a_, b_, c_, d_)     _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
+#define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);
@@ -1673,9 +1666,9 @@ int count_f(inla_tp * mb, inla_component_tp id);
 int find_f(inla_tp * mb, inla_component_tp id);
 int find_tag(inla_tp * mb, const char *name);
 int inla_INLA(inla_tp * mb);
-int inla_INLA_preopt(inla_tp * mb);
 int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
+int inla_INLA_preopt_experimental(inla_tp * mb);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
@@ -1730,13 +1723,12 @@ int inla_mkdir(const char *dirname);
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, GMRFLib_density_tp ** gdensity, double *locations, int n, int nrep,
-		       Output_tp * output, const char *sdir, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
+int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep,
+		       Output_tp * output, const char *sdir, int return_marginals, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
 		       const char *tag, const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
-int inla_output_detail_neffp(const char *dir, GMRFLib_ai_neffp_tp * neffp, int verbose);
 int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_theta(const char *dir, double ***theta, int n_theta);
 int inla_output_detail_x(const char *dir, double *x, int n_x);
@@ -1861,7 +1853,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -1923,7 +1915,6 @@ double testit_Qfunc(int i, int j, double *values, void *arg);
 */
 
 typedef struct {
-	int binary;					       /* use binary output-files */
 	int fast_mode;					       /* avoid detailed calculations but use ok approximations */
 	inla_mode_tp mode;				       /* which mode to run in */
 	double log_prec_initial;			       /* inititial value for log-precisions */

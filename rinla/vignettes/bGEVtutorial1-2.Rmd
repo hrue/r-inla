@@ -21,6 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, results = 'show',
 knitr::opts_chunk$set(fig.path="figures/bgev/")
 
 library(INLA)
+if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(smtp="taucs")
 inla.setOption(num.threads="1:1")
 ```
@@ -636,12 +637,15 @@ spread.xx = x4
 tail.x = x3
 # With this change of variable it is easier to keep track of the effect 
 # of the covariates in each parameter, but it is not needed.
-formula = inla.mdata(y, cbind(spread.x, spread.xx), tail.x) ~ 1 + intercept + x + 
-	f(z1, model = "rw1", scale.model=TRUE, 
-		hyper = list(prec = list(prior = "pc.prec", param = c(0.1,
-		0.01)))) +
-		f(z2, model = 'ar', order = 2)
-
+formula = inla.mdata(y, cbind(spread.x, spread.xx), tail.x) ~ -1 + intercept + x + 
+	f(z1, model = "rw1", scale.model=TRUE, constr=TRUE,
+		hyper = list(prec = list(prior = "pc.prec", 
+		param = c(0.1, 0.01)))) +
+		f(z2, model = 'ar', order = 2, 
+		   hyper=list(prec=list(prior="pc.prec", constr=TRUE,
+		                        param=c(0.1,0.01)),
+                      pacf1=list(param=c(0.5,0.8),
+                      pacf2=list(param=c(0.5,0.8)))))
 data.bgev = data.frame(y = y, intercept = 1, x = x, z1 = z1, z2 = z2,
                        spread.x = spread.x, spread.xx = spread.xx, tail.x = tail.x)
 r3 = inla(formula,
@@ -650,10 +654,10 @@ r3 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     control.fixed = list(prec=100),
+	     control.fixed = list(prec=100,prec.intercept=100),
          control.compute = list(cpo = TRUE),
-         control.inla = list(int.strategy = "eb"),
-         verbose=FALSE)
+         control.inla = list(int.strategy = "eb",cmin=0),
+         verbose=TRUE)
 ```
 
 A summary of the fitted effects and hyperparameters can be obtained as

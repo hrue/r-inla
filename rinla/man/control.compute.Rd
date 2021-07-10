@@ -12,13 +12,14 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, smtp, waic)
+control.compute(config, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, return.marginals.predictor, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
 \item{openmp.strategy}{   The computational strategy to use: 'small', 'medium', 'large', 'huge', 'default' and 'pardiso'.}
 \item{hyperpar}{   A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
 \item{return.marginals}{   A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
+\item{return.marginals.predictor}{   A boolean variable if the marginals for the linear predictor should be returned (although it is computed). Default FALSE}
 \item{dic}{   A boolean variable if the DIC-value should be computed. Default FALSE.}
 \item{mlik}{   A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
 \item{cpo}{   A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}
@@ -28,7 +29,6 @@ control.compute(config, cpo, dic, gdensity, graph, hyperpar, mlik, openmp.strate
 \item{config}{   A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
 \item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies \code{openmp.strategy='pardiso'}.}
 \item{graph}{   A boolean variable if the graph itself should be returned. (Default FALSE.)}
-\item{gdensity}{   A boolean variable if the Gaussian-densities itself should be returned. (Default FALSE.)}
 }
 \value{
   
@@ -36,6 +36,6 @@ The function \code{control.compute} is used to TAB-complete arguments and return
 The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.results}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }
