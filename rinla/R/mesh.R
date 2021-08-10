@@ -3452,6 +3452,8 @@ inla.mesh.1d <- function(loc,
 
 # 1D mesh queries ----
 
+#' @export inla.mesh.1d.bary
+#' @rdname inla.mesh.1d.A
 inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     method <- match.arg(method)
