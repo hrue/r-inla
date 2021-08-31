@@ -31233,7 +31233,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	if (mb->output->config) {
-		FIXME("add configs_preopt");
 		mb->misc_output->configs_preopt = Calloc(GMRFLib_MAX_THREADS, GMRFLib_store_configs_preopt_tp *);
 	} else {
 		mb->misc_output->configs_preopt = NULL;
