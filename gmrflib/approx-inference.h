@@ -150,7 +150,12 @@ typedef enum {
 	/**
 	 * \brief USER_EXPERT (expert option: the density and the integration weights in the real scale)
 	 */
-	GMRFLib_AI_INT_STRATEGY_USER_EXPERT
+	GMRFLib_AI_INT_STRATEGY_USER_EXPERT, 
+
+	/**
+	 * \brief USER_PART2 (expert option: this is part2 of 'twostage' for which the weights are the corrections to 'log_dens')
+	 */
+	GMRFLib_AI_INT_STRATEGY_USER_PART2
 } GMRFLib_ai_int_strategy_tp;
 
 /** 
@@ -803,6 +808,7 @@ typedef struct {
 } GMRFLib_ai_po_tp;
 
 typedef struct {
+	int dens_count;
 	double log_posterior;				       /* May have been adjusted for integration weight */
 	double log_posterior_orig;			       /* Not adjusted for integration weight */
 	double *theta;					       /* */
@@ -1054,7 +1060,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo,
 			    int ntheta, double *theta, double log_posterior, double log_posterior_orig,
 			    double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx,
-			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c);
+			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c, int dens_count);
 
 int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
