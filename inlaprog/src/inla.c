@@ -30607,6 +30607,12 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		mb->ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_USER_EXPERT;
 		GMRFLib_design_tp *design = NULL;
 		GMRFLib_design_read(&design, rpreopt->int_design, 0);
+
+		for(i = 0; i < design->nexperiments; i++) {
+			design->int_weight[i] = rpreopt->adj_weights[i];
+		}
+		mb->ai_par->adjust_weights = 0;
+		
 		if (mb->verbose) {
 			GMRFLib_design_print(stdout, design);
 		}
@@ -31060,34 +31066,6 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	/*
 	 * need to correct configs for the integration weight, as it should not be there for _orig. only ccd has integration weights 
 	 */
-
-	if (mb->ntheta > 0) {
-		GMRFLib_ai_misc_output_tp *mo = mb->misc_output;
-		for (int id = 0; id < GMRFLib_MAX_THREADS; id++) {
-			if (mo->configs && mo->configs[id]) {
-				double f, w, w_origo, vmax = 0;
-				int imax = 0;
-
-				f = DMAX(mb->ai_par->f0, 1.0) * sqrt((double) mb->ntheta);
-				w = 1.0 / ((mo->configs[id]->nconfig - 1.0) * (1.0 + exp(-0.5 * SQR(f)) * (SQR(f) / mb->ntheta - 1.0)));
-				w_origo = 1.0 - (mo->configs[id]->nconfig - 1.0) * w;
-
-				for (int i = 0; i < mo->configs[id]->nconfig; i++) {
-					if (i == 0 || mo->configs[id]->config[i]->log_posterior > vmax) {
-						imax = i;
-						vmax = mo->configs[id]->config[i]->log_posterior;
-					}
-				}
-				for (int i = 0; i < mo->configs[id]->nconfig; i++) {
-					if (i == imax) {
-						mo->configs[id]->config[i]->log_posterior_orig -= log(w_origo);
-					} else {
-						mo->configs[id]->config[i]->log_posterior_orig -= log(w);
-					}
-				}
-			}
-		}
-	}
 
 	Free(mb->x_file);				       /* yes, and then */
 	mb->x_file = x;					       /* just take over */

@@ -54,7 +54,7 @@ to define the \textbf{R}andon \textbf{F}ield (RF)
 <<locations,tidy=FALSE>>=
 n <- 200; coo <- matrix(runif(2*n), n) 
 s2u <- .5; k <- 10; r <- 2/k ## RF params.
-R <- s2u*exp(-k*as.matrix(dist(coo))) 
+R <- s2u*exp(-k*as.matrix(stats::dist(coo))) 
 @ 
 
 \textbf{Sample}: one multivariate Normal realization 

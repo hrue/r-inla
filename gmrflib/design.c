@@ -181,14 +181,16 @@ int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design)
 	for (j = 0; j < design->nfactors; j++) {
 		fprintf(fp, "     z%1d", j);
 	}
-	fprintf(fp, " weight\n");
-
+	fprintf(fp, " weight");
+	fprintf(fp, "\n");
+	
 	for (i = 0; i < design->nexperiments; i++) {
 		fprintf(fp, "\t%-.3d\t", i);
 		for (j = 0; j < design->nfactors; j++) {
 			fprintf(fp, " %6.3f", design->experiment[i][j]);
 		}
-		fprintf(fp, " %6.4f\n", design->int_weight[i]);
+		fprintf(fp, " %6.4f", design->int_weight[i]);
+		fprintf(fp, "\n");
 	}
 
 	return GMRFLib_SUCCESS;
@@ -233,11 +235,9 @@ int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
 
 	double *ww = Calloc(m, double);
 	double **ex = Calloc(m, double *);
-	for (i = 0; i < m; i++) {
-		ex[i] = Calloc(design->nfactors, double);
-	}
 
 	for (i = 0; i < m; i++) {
+		ex[i] = Calloc(design->nfactors, double);
 		Memcpy(ex[i], design->experiment[idx[i]], design->nfactors * sizeof(double));
 		ww[i] = design->int_weight[idx[i]];
 	}
@@ -254,7 +254,6 @@ int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
 		Free(design->experiment[i]);
 	}
 	Free(design->int_weight);
-
 	design->experiment = ex;
 	design->int_weight = ww;
 	design->nexperiments = m;

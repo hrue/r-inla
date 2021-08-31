@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.08.31}{
+   \subsection{BUG FIXES}{
+     \itemize{
+       \item Various bug-fixes
+     }
+   }
+ }
+
+
 \section{CHANGES IN VERSION 21.07.10}{
   \subsection{USER-VISIBLE CHANGES}{
     \itemize{

@@ -399,6 +399,8 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
 
     if (!is.null(result$misc$configs$.preopt) && result$misc$configs$.preopt) {
         rfake <- list(mlik = result$mlik, 
+                      summary.hyperpar = result$summary.hyperpar,
+                      internal.summary.hyperpar = result$internal.summary.hyperpar, 
                       misc = list(from.theta = result$misc$from.theta,
                                   to.theta = result$misc$to.theta,
                                   configs = result$misc$configs))

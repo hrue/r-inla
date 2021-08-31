@@ -62,6 +62,7 @@ typedef struct {
 
 typedef struct {
 	GMRFLib_matrix_tp *int_design;
+	double *adj_weights;
 	double *hessian;
 	double *inverse_hessian;
 	double *stdev_corr_neg;

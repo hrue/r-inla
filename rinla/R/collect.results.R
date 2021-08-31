@@ -468,8 +468,11 @@
 
             ## rescale the log.posteriors
             configs$max.log.posterior <- max(sapply(configs$config, function(x) x$log.posterior.orig))
+            max.log.posterior <- max(sapply(configs$config, function(x) x$log.posterior))
             for (k in 1L:configs$nconfig) {
-                configs$config[[k]]$log.posterior <- configs$config[[k]]$log.posterior - configs$max.log.posterior
+                ## with integration weight
+                configs$config[[k]]$log.posterior <- configs$config[[k]]$log.posterior - max.log.posterior
+                ## without integration weights
                 configs$config[[k]]$log.posterior.orig <- configs$config[[k]]$log.posterior.orig - configs$max.log.posterior
             }
         } else {

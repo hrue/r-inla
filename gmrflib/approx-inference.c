@@ -2703,7 +2703,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
 			}						\
 		}							\
-		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _log_posterior_orig, _improved_mean, _skewness, (_store)->problem, Qfunc, Qfunc_arg, c); \
+		GMRFLib_ai_store_config(misc_output, nhyper, _theta, _log_posterior, _log_posterior_orig, _improved_mean, _skewness, (_store)->problem, Qfunc, Qfunc_arg, c, dens_count); \
 		Free(_improved_mean);					\
 		Free(_skewness);					\
 	}
@@ -3751,6 +3751,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, (void *) &nhyper, NULL);
 		GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 		log_dens_mode *= -1.0;
+		misc_output->log_posterior_mode = log_dens_mode;
+		
 		SET_THETA_MODE;
 		if (x_mode) {
 			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
@@ -3806,7 +3808,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 			}
 			COMPUTE_LINDENS(ai_store, GMRFLib_TRUE);
-			ADD_CONFIG(ai_store, theta_mode, 0.0, 0.0);
+			ADD_CONFIG(ai_store, theta_mode, log_dens_mode, log_dens_mode);
 
 			izs[dens_count] = Calloc(nhyper, double);
 			for (i = 0; i < nhyper; i++) {
@@ -3937,10 +3939,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					}
 				} else {
 					// integration weights are _given_. this is the deterministic integration points
-					if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
-						log_dens += log(design->int_weight[k]);
+					if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
+						log_dens = log(design->int_weight[k]) + log_dens_mode;
 					} else {
-						// we do that later
+						log_dens += log(design->int_weight[k]);
 					}
 				}
 
@@ -4407,6 +4409,24 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		GMRFLib_ai_adjust_integration_weights(adj_weights, weights, izs, dens_count, nhyper, ai_par->dz);
 	} else {
 		Memcpy(adj_weights, weights, dens_count * sizeof(double));
+	}
+	// need to adjust the weights in configs if we have adjusted the integration weights. this is a bit unfortunate, but the adjustment
+	// needs too weights to be present before adjusting.
+	if (misc_output->configs) {
+		for(int dc = 0; dc < dens_count; dc++) {
+			int found = 0;
+			for (int id = 0; id < GMRFLib_MAX_THREADS; id++) {
+				if (misc_output->configs[id]) {
+					for (int i = 0; i < misc_output->configs[id]->nconfig; i++) {
+						if (misc_output->configs[id]->config[i]->dens_count == dc) {
+							misc_output->configs[id]->config[i]->log_posterior = log(adj_weights[dc]);
+							found++; /* for the check below */
+						}
+					}
+				}
+			}
+			assert(found == 1);		       /* just a check... */
+		}
 	}
 
 	if (ai_par->fp_log) {
@@ -5001,6 +5021,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				rpreopt->int_design->nrow = IMAX(1, hyper_count);
 				rpreopt->int_design->ncol = nhyper + 1;
 				rpreopt->int_design->A = Calloc(rpreopt->int_design->nrow * rpreopt->int_design->ncol, double);
+				rpreopt->adj_weights = Calloc(dens_count, double);
+				Memcpy(rpreopt->adj_weights, adj_weights, dens_count * sizeof(double));
 			}
 
 			if (eigen_values) {
@@ -7860,7 +7882,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 
 int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 			    double log_posterior_orig, double *improved_mean, double *skewness, GMRFLib_problem_tp * gmrf_approx,
-			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c)
+			    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c, int dens_count)
 {
 	if (!mo || !(mo->configs)) {
 		return GMRFLib_SUCCESS;
@@ -7983,6 +8005,8 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig]->skewness = skew;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;	/* may include integration weights */
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior_orig = log_posterior_orig;	/* do NOT include integration weights */
+	mo->configs[id]->config[mo->configs[id]->nconfig]->dens_count = dens_count;			
+
 	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
 		Memcpy(mo->configs[id]->config[mo->configs[id]->nconfig]->theta, theta, mo->configs[id]->ntheta * sizeof(double));
