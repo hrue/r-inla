@@ -52,23 +52,37 @@ None.
 
 
 \subsection*{Expert version}
+
 There is also an ``expert'' version were you are supposed to know what
-you are doing. Here, we allow $y$ and $n$ to be non-integers, however,
-the condition $0\le y \le n$ apply. The normalizing constant is
-computed as above using the integer part of $y$ and $n$. This is
-similar to using \verb|floor(y)| and \verb|floor(n)| in \verb|R|. The
-marginal likelihood estimate will in this case make less sense.
+you are doing. Here, we allow $y$ and $n$ to be non-integers (whatever
+that means), however, the condition $0\le y \le n$ apply. The
+normalizing constant is computed as above using the integer part of
+$y$ and $n$. This is similar to using \verb|floor(y)| and
+\verb|floor(n)| in \verb|R|. The marginal likelihood estimate will in
+this case make less sense.
 \begin{itemize}
 \item $\text{family}=\texttt{xbinomial}$
 \item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
+\item Optional argument: \texttt{scale=q}, which scales the
+    probability with $0<q\le1$ into $p'$, where
+    \begin{displaymath}
+        p' = q p(\eta).
+    \end{displaymath}
+    By default, $q=1$. Note that ``fitted values'' will still be be
+    $p(\eta)$. 
 \end{itemize}
 \input{../hyper/likelihood/xbinomial.tex}
 
-\subsection*{Example}
+\subsection*{Examples}
 
 In the following example we estimate the parameters in a simulated
 example with binomial responses.
 \verbatiminput{example-binomial.R}
+
+In the following example we estimate the parameters in a simulated
+example with binomial responses using the \texttt{scale}-argument as
+well. This require the use of the expert-version ``xbinomial''.
+\verbatiminput{example-xbinomial.R}
 
 \subsection*{Notes}
 

@@ -4515,10 +4515,15 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[1] = ds->data_observations.betabinomialnb_scale = Calloc(mb->predictor_ndata, double);
 		break;
 
+	case L_XBINOMIAL:
+		idiv = 4;
+		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.p_scale = Calloc(mb->predictor_ndata, double);
+		break;
+
 	case L_BETABINOMIAL:
 	case L_BINOMIAL:
 	case L_NBINOMIAL2:
-	case L_XBINOMIAL:
 	case L_ZEROINFLATEDBETABINOMIAL0:
 	case L_ZEROINFLATEDBETABINOMIAL1:
 	case L_ZEROINFLATEDBETABINOMIAL2:
@@ -7560,6 +7565,71 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNU
 			}
 		}
 
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_xbinomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * y ~ xBinomial(n, p)
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int status, i;
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double n = ds->data_observations.nb[idx], p;
+	double p_scale = ds->data_observations.p_scale[idx];
+	
+	/*
+	 * this is a special case that should just return 0 or 1
+	 */
+	if (ISZERO(y) && ISZERO(n)) {
+		if (m > 0) {
+			for (i = 0; i < m; i++) {
+				logll[i] = 0.0;		       /* log(1) = 0 */
+			}
+		} else {
+			for (i = 0; i < -m; i++) {
+				logll[i] = 1.0;
+			}
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	LINK_INIT;
+	if (m > 0) {
+		gsl_sf_result res;
+		if (ds->variant == 0) {
+			// binomial
+			status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		} else {
+			// neg binomial
+			status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
+		}
+		assert(status == GSL_SUCCESS);
+		for (i = 0; i < m; i++) {
+			double eta = x[i] + OFFSET(idx);
+			p = p_scale * PREDICTOR_INVERSE_LINK(eta);
+			p = DMIN(1.0 - FLT_EPSILON, p);
+			logll[i] = res.val + y * log(p) + (n - y) * log(1.0 - p);
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (i = 0; i < -m; i++) {
+			p = p_scale * PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+			p = DMIN(1.0 - FLT_EPSILON, p);
+			if (ds->variant == 0) {
+				logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+			} else {
+				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) (n - y), p, y);
+			}
+		}
 	}
 
 	LINK_END;
@@ -12077,8 +12147,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_id = L_BINOMIAL;
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "XBINOMIAL")) {
-		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_binomial;	/* yes. its the same */
-		ds->variant = 0;			       /* must be */
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_xbinomial;	
 		ds->data_id = L_XBINOMIAL;
 		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "NBINOMIAL2")) {
@@ -12774,7 +12843,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_XBINOMIAL:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL3:
 		for (i = 0; i < mb->predictor_ndata; i++) {
@@ -12787,6 +12855,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 								i, ds->data_observations.nb[i], ds->data_observations.y[i]);
 						inla_error_general(msg);
 					}
+				}
+			}
+		}
+		break;
+
+	case L_XBINOMIAL:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.nb[i] <= 0.0 ||
+				    ds->data_observations.y[i] > ds->data_observations.nb[i] || ds->data_observations.y[i] < 0.0 ||
+				    ds->data_observations.p_scale[i] <= 0.0 || ds->data_observations.p_scale[i] > 1.0) {
+					GMRFLib_sprintf(&msg, "%s: xBinomial data[%1d] (nb,p.scale,y) = (%g,%g,%g) is void\n", secname,
+							i, ds->data_observations.nb[i], ds->data_observations.p_scale[i],
+							ds->data_observations.y[i]);
+					inla_error_general(msg);
 				}
 			}
 		}
@@ -31233,7 +31316,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	if (mb->output->config) {
-		FIXME("add configs_preopt");
 		mb->misc_output->configs_preopt = Calloc(GMRFLib_MAX_THREADS, GMRFLib_store_configs_preopt_tp *);
 	} else {
 		mb->misc_output->configs_preopt = NULL;

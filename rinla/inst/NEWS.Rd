@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.09.01}{
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item Added option \code{scale} to \code{family="xbinomial"}
+     }
+   }
+ }
+
 \section{CHANGES IN VERSION 21.08.31}{
    \subsection{BUG FIXES}{
      \itemize{
