@@ -188,11 +188,28 @@
 
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
+    } else if (inla.one.of(family, c("xbinomial"))) {
+        if (is.null(scale)) {
+            scale <- rep(1.0, n.data)
+        }
+        if (length(scale) == 1L) {
+            scale <- rep(scale, n.data)
+        }
+
+        if (is.null(Ntrials)) {
+            Ntrials <- rep(1L, n.data)
+        }
+        if (length(Ntrials) == 1L) {
+            Ntrials <- rep(Ntrials, n.data)
+        }
+
+        response <- cbind(ind, Ntrials, scale, y.orig)
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
     } else if (inla.one.of(
         family,
         c(
             "binomial",
-            "xbinomial",
             "binomialtest",
             "betabinomial",
             "nbinomial2",

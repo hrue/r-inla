@@ -181,7 +181,8 @@ typedef struct {
 	 * y ~ Binomial(nb, p(x))
 	 */
 	double *nb;
-
+	double *p_scale;
+	
 	/*
 	 * y ~ BinomialRE()
 	 */
@@ -1818,6 +1819,7 @@ int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, 
 int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_betabinomialna(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_xbinomial(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg);
 int loglikelihood_cbinomial(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
