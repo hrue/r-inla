@@ -32934,7 +32934,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
-	double x, x_user, dens, dens_user, p, xp, *xx;
+	double x, x_user, dens, dens_user, p = 0.0, xp, *xx = NULL;
 	double d_mean, d_stdev, *d_mode = NULL, *g_mode = NULL;
 	int i, ii, j, nn, ndiv;
 	int add_empty = 1;

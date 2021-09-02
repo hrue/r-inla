@@ -450,8 +450,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 
 	s->iparm_default[1] = 3;			       /* use METIS5 */
 	s->iparm_default[4] = 0;			       /* use internal reordering */
-	s->iparm_default[7] = 0;			       /* maximum number of refinement steps */
-	// s->iparm_default[7] = 4; /* maximum number of refinement steps */
+	s->iparm_default[7] = 4;			       /* maximum number of refinement steps */
 	s->iparm_default[10] = 0;			       /* These are the default, but... */
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
@@ -812,6 +811,13 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is
 	// thread-safe
 	GMRFLib_pardiso_setparam(flag, store);
+
+	// this is a workaround until the issue is fixed
+	FIXME1(" *** iparm[7] workaround enabled ***");
+	if (omp_get_num_threads() > 1 && store->pstore[tnum]->iparm[2] > 1) {
+		store->pstore[tnum]->iparm[7] = 0;
+	}
+
 	for (i = 0; i < nblock + reminder; i++) {
 		offset = i * n * max_nrhs;
 		local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
