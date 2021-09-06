@@ -38,6 +38,7 @@
 ## ! \alias{inla.link.invrobit}
 ## ! \alias{inla.link.sn}
 ## ! \alias{inla.link.invsn}
+## ! \alias{inla.link.invqpoisson}
 ## !
 ## ! \title{Link functions in INLA}
 ## !
@@ -70,6 +71,7 @@
 ## ! inla.link.invsn(x, intercept=0.5, skew=0, a=0, inverse=FALSE)
 ## ! inla.link.invalid(x, inverse=FALSE)
 ## ! inla.link.invinvalid(x, inverse=FALSE)
+## ! inla.link.invqpoisson(x, inverse = FALSE, quantile = 0.5)
 ## ! }
 ## !
 ## ! \arguments{
@@ -82,6 +84,7 @@
 ## !                 Not both of \code{skew} and \code{a} can be given.}
 ## !     \item{a}{The \code{a}-paraeter in the Skew-Normal.
 ## !              Not both of \code{skew} and \code{a} can be given.}
+## !     \item{quantile}{The quantile level for quantile links}
 ## !}
 ## !
 ## ! \value{Return the values of the link-function or its inverse.}
@@ -204,6 +207,11 @@
 }
 `inla.link.invinverse` <- function(x, inverse = FALSE) {
     return(inla.link.inverse(x, inverse = !inverse))
+}
+
+`inla.link.invqpoisson` <- function(x, inverse = FALSE, quantile = 0.5) {
+    stopifnot(inverse == FALSE)
+    return (qgamma(1.0 - quantile, shape = exp(x)+1.0, rate=1))
 }
 
 `inla.link.sn` <- function(x, intercept = 0.5, skew = 0, a = NULL, inverse = FALSE) {
