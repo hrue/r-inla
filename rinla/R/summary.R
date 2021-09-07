@@ -130,12 +130,12 @@
           }
 
         if (!is.null(object$cpo$cpo) && length(object$cpo$cpo) > 0L) {
-              ret <- c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
-          }
+            ret <- c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
+        }
 
         if (!is.null(object$summary.linear.predictor)) {
-              ret <- c(ret, list(linear.predictor = round(object$summary.linear.predictor, digits = digits)))
-          }
+            ret <- c(ret, list(linear.predictor = round(object$summary.linear.predictor, digits = digits)))
+        }
 
         ret <- c(ret, list(family = object$family))
         class(ret) <- "summary.inla"
@@ -252,9 +252,8 @@
       }
 
     if (inla.is.element("linear.predictor", x)) {
-          cat(
-              "Posterior marginals for the linear predictor and\n",
-              "the fitted values are computed\n\n"
-          )
-      }
+          cat(sep = "", 
+              "Posterior summaries for the linear predictor and the fitted values are computed\n",
+              "(Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')\n\n")
+    }
 }
