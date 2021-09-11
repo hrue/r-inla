@@ -8202,7 +8202,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
 	int i, j, k, n, nc = 0, one = 1, id;
-	int tnum = omp_get_thread_num();
 	GMRFLib_density_tp **d;
 
 	// I disable optimatisation as there is something going on with pardiso, in _some_ cases.
@@ -8218,9 +8217,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		remap = problem->sub_sm_fact.remap;
 	} else {
-		// pardiso has a dynamic permutation...
-		remap = problem->sub_sm_fact.PARDISO_fact->pstore[tnum]->perm;
+		remap = problem->sub_sm_fact.PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->perm;
 	}
+	assert(remap);
 
 	GMRFLib_CACHE_SET_ID(id);
 	assert(problem != NULL);

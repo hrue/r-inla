@@ -58,6 +58,9 @@ __BEGIN_DECLS
 /* 
    
  */
+
+#define GMRFLib_PSTORE_TNUM_REF (0)			       /* the reference thread number to store store-spesific things */
+
 #define GMRFLib_PARDISO_PLEN (64)
     typedef enum {
 	GMRFLib_PARDISO_FLAG_REORDER = 1,
