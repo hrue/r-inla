@@ -4,6 +4,16 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.09.11}{
+   \subsection{BUG FIXES}{
+     \itemize{
+       \item Fixed crash when using linear combinations with
+       \code{inla.mode="experimental"}
+       \item Minor fixes
+     }
+   }
+ }
+
 \section{CHANGES IN VERSION 21.09.01}{
    \subsection{NEW EXPERIMENTAL FEATURES}{
      \itemize{
