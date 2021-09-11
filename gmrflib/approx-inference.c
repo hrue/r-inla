@@ -6115,6 +6115,23 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	GMRFLib_ASSERT(dens_count == 0, GMRFLib_ESNH);
 
+	if (nlin) {
+		// we have to shift indices for the preopt format. Any indices belonging to Predictor and/or APredictor will then become
+		// negative, and we do not support that. revert this change after the next parallel loop
+		for (i = 0; i < nlin; i++) {
+			for (j = 0; j < Alin[i]->n; j++) {
+				Alin[i]->idx[j] -= preopt->mnpred;
+				if (Alin[i]->idx[j] < 0) {
+					char *s =
+						GMRFLib_strdup
+						("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
+					exit(1);
+				}
+			}
+		}
+	}
+
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
 #pragma omp parallel for private(k, i, log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (k = 0; k < design->nexperiments; k++) {
@@ -6270,28 +6287,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 
 		if (nlin) {
-			// we have to shift indices for the preopt format. Any indices belonging to Predictor and/or APredictor will then become
-			// negative, and we do not support that.
-			for (i = 0; i < nlin; i++) {
-				for (j = 0; j < Alin[i]->n; j++) {
-					Alin[i]->idx[j] -= preopt->mnpred;
-					if (Alin[i]->idx[j] < 0) {
-						char *s =
-							GMRFLib_strdup
-							("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
-						GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
-						exit(1);
-					}
-				}
-			}
 			GMRFLib_ai_compute_lincomb(&(lin_dens[dens_count]), (lin_cross ? &(lin_cross[dens_count]) : NULL),
 						   nlin, Alin, ai_store_id, mean_corrected, 0);
-			// revert back as it was before
-			for (i = 0; i < nlin; i++) {
-				for (j = 0; j < Alin[i]->n; j++) {
-					Alin[i]->idx[j] += preopt->mnpred;
-				}
-			}
 		}
 
 		double *cpodens_moments = NULL;
@@ -6361,6 +6358,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		Free(lpred_variance);
 		Free(mean_corrected);
 		// do not free cpodens_moments!!!
+	}
+
+	if (nlin) {
+		// revert back as it was before
+		for (i = 0; i < nlin; i++) {
+			for (j = 0; j < Alin[i]->n; j++) {
+				Alin[i]->idx[j] += preopt->mnpred;
+			}
+		}
 	}
 
 	// save (x, theta) adding the predictors
@@ -8202,7 +8208,6 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
 	int i, j, k, n, nc = 0, one = 1, id;
-	int tnum = omp_get_thread_num();
 	GMRFLib_density_tp **d;
 
 	// I disable optimatisation as there is something going on with pardiso, in _some_ cases.
@@ -8218,9 +8223,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	if (GMRFLib_smtp == GMRFLib_SMTP_TAUCS || GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		remap = problem->sub_sm_fact.remap;
 	} else {
-		// pardiso has a dynamic permutation...
-		remap = problem->sub_sm_fact.PARDISO_fact->pstore[tnum]->perm;
+		remap = problem->sub_sm_fact.PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->perm;
 	}
+	assert(remap);
 
 	GMRFLib_CACHE_SET_ID(id);
 	assert(problem != NULL);
