@@ -5452,8 +5452,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		tdesign = ai_par->int_design;
 	}
 	dens_max = tdesign->nexperiments;
-	GMRFLib_design_free(tdesign);
-
 	weights = Calloc(dens_max, double);
 	izs = Calloc(dens_max, double *);
 	x_mode = Calloc(graph->n, double);
