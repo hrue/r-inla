@@ -4,6 +4,16 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.09.13}{
+   \subsection{BUG FIXES}{
+     \itemize{
+       \item Fixed crash when using \code{int.strategy="user"} with
+       \code{inla.mode="experimental"}
+       \item Minor fixes
+     }
+   }
+ }
+
 \section{CHANGES IN VERSION 21.09.11}{
    \subsection{BUG FIXES}{
      \itemize{
