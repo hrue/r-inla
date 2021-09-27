@@ -800,8 +800,7 @@
         if (!inla.divisible(n, n.div.by)) {
             stop(paste("Argument `n'", n, "is not divisible by", n.div.by))
         }
-    }
-    if ((!is.null(inla.model.properties(model, "latent")$n.div.by)
+    } else if ((!is.null(inla.model.properties(model, "latent")$n.div.by)
         && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
         if (!inla.divisible(n, inla.model.properties(model, "latent")$n.div.by)) {
             stop(paste("Argument `n'", n, "is not divisible by", inla.model.properties(model, "latent")$n.div.by))
@@ -1056,7 +1055,6 @@
         ## add an 'Id' so we know who we are
         rgeneric <- list(model = rgeneric, Id = vars[[1]], R.init = R.init)
     }
-
 
     ret <- list(
         Cmatrix = Cmatrix,
