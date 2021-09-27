@@ -4774,7 +4774,7 @@ inla.models()
 							\item{initial = }{`0'}
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`wishartkd'}
-							\item{param = }{`'}
+							\item{param = }{`100 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0'}
 							\item{to.theta = }{`\code{function(x) x}'}
 							\item{from.theta = }{`\code{function(x) x}'}
 							}

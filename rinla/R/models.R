@@ -4011,7 +4011,10 @@
                             initial = 0,
                             fixed = TRUE,
                             prior = "wishartkd",
-                            param = numeric(), 
+                            param = c(100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 
                             to.theta = function(x) x,
                             from.theta = function(x) x
                         ),
@@ -4029,6 +4032,24 @@
                         theta3 = list(
                             hyperid = 29103,
                             name = "theta3",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             short.name = "theta3",
                             initial = 0,
                             fixed = TRUE,

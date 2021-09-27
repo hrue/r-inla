@@ -2062,6 +2062,25 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 
 	return GMRFLib_SUCCESS;
 }
+int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg)
+{
+	int i, j, k, n = arg->n, dim = arg->k;
+	GMRFLib_ged_tp *ged = NULL;
+
+	GMRFLib_ged_init(&ged, NULL);
+	for (i = 0; i < n; i++) {
+		GMRFLib_ged_add(ged, i, i);
+		for (j = 0; j < dim; j++) {
+			for (k = j + 1; k < dim; k++) {
+				GMRFLib_ged_add(ged, i + j * n, i + k * n);
+			}
+		}
+	}
+	GMRFLib_ged_build(graph, ged);
+	GMRFLib_ged_free(ged);
+
+	return GMRFLib_SUCCESS;
+}
 int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 {
 	int i, n;
@@ -3081,6 +3100,64 @@ double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 	}
 
 	Free(vec);
+
+	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
+}
+double Qfunc_iid_wishartk(int node, int nnode, double *UNUSED(values), void *arg)
+{
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	inla_iid_wishartk_arg_tp *a = (inla_iid_wishartk_arg_tp *) arg;
+	int i, j, k, n_theta, dim, debug = 0, id;
+	inla_wishartk_hold_tp *hold = NULL;
+	double *vec = NULL;
+	
+	dim = a->k;
+	n_theta = a->ntheta;
+
+	GMRFLib_CACHE_SET_ID(id);
+	assert(a->hold);
+	hold = a->hold[id];
+	if (hold == NULL) {
+		a->hold[id] = Calloc(1, inla_wishartk_hold_tp);
+		a->hold[id]->vec = Calloc(n_theta, double);
+		a->hold[id]->vec[0] = GMRFLib_uniform();
+		a->hold[id]->L = gsl_matrix_calloc(a->dim, a->dim);
+		a->hold[id]->Q = gsl_matrix_calloc(a->dim, a->dim);
+		hold = a->hold[id];
+	}
+
+	vec = a->vec[id];
+	for (i = 0; i < n_theta; i++) {
+		vec[i] = a->theta[i][GMRFLib_thread_id][0];
+	}
+
+	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
+		k = 0;
+		gsl_matrix_set_zero(hold->L);
+		for (i = 0; i < dim; i++) {
+			gsl_matrix_set(hold->L, i, i, exp(vec[k++]));
+		}
+		for (j = 0; j < dim; j++) {
+			for (i = j+1; i < dim; i++) {
+				gsl_matrix_set(hold->L, i, j, vec[k++]);
+			}
+		}
+		assert(k == n_theta);
+		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, hold->L, hold->L, 0.0, hold->Q);
+		if (debug) {
+			for (i = 0; i < n_theta; i++) {
+				printf("vec[%1d] = %.12f\n", i, vec[i]);
+			}
+			FIXME("hold->L");
+			GMRFLib_printf_gsl_matrix(stdout, hold->L, " %.6f");
+			FIXME("hold->Q");
+			GMRFLib_printf_gsl_matrix(stdout, hold->Q, " %.6f");
+		}
+		Memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
+	}
 
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
@@ -18521,6 +18598,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_IID5D;
 		mb->f_ntheta[mb->nf] = inla_iid_wishart_nparam(WISHART_DIM(mb->nf));
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("IID5D model");
+	} else if (_OneOf("IIDKD")) {
+		mb->f_id[mb->nf] = F_IIDKD;
+		mb->f_order[mb->nf] = iniparser_getint(ini, inla_string_join(secname, "ORDER"), 0);
+		mb->f_ntheta[mb->nf] = INLA_WISHARTK_NTHETA(mb->f_order[mb->nf]);
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("IIDKD model");
 	} else if (_OneOf("2DIID")) {
 		mb->f_id[mb->nf] = F_2DIID;
 		mb->f_ntheta[mb->nf] = 3;
@@ -18774,6 +18856,35 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						(kk == 0 ? prifunc : "NONE"), NULL);
 		}
 
+		Free(pri);
+		Free(par);
+	}
+		break;
+
+	case F_IIDKD:
+	{
+		int dim = mb->f_order[mb->nf];
+		assert(dim >= INLA_WISHARTK_KMIN);
+		assert(dim <= INLA_WISHARTK_KMAX);
+		char *pri, *par, *to_theta, *from_theta, *prifunc, *hyperid;
+		int nt = INLA_WISHARTK_NTHETA(INLA_WISHARTK_KMAX);
+
+		GMRFLib_sprintf(&prifunc, "WISHARTKD");
+		int kk;
+		for (kk = 0; kk < nt; kk++) {
+			GMRFLib_sprintf(&pri, "PRIOR%1d", kk);
+			GMRFLib_sprintf(&par, "PARAMETERS%1d", kk);
+			GMRFLib_sprintf(&from_theta, "FROM.THETA%1d", kk);
+			GMRFLib_sprintf(&to_theta, "TO.THETA%1d", kk);
+			GMRFLib_sprintf(&hyperid, "HYPERID%1d", kk);
+			inla_read_prior_generic(mb, ini, sec, &(mb->f_prior[mb->nf][kk]), pri, par, from_theta, to_theta,
+						hyperid, (kk == 0 ? prifunc : "NONE"), NULL);
+			Free(pri);
+			Free(par);
+			Free(from_theta);
+			Free(to_theta);
+			Free(hyperid);
+		}
 		Free(pri);
 		Free(par);
 	}
@@ -19582,6 +19693,34 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			int dim = WISHART_DIM(mb->nf);
 			assert(dim > 0);
 
+			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
+			if (!ptmp) {
+				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
+			}
+			n = iniparser_getint(ini, inla_string_join(secname, "N"), 0);
+			if (n <= 0) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, "N", ptmp);
+			}
+			if (!inla_divisible(n, dim)) {
+				GMRFLib_sprintf(&msg, "%s: N=%1d is not divisible by %1d", secname, n, dim);
+				inla_error_general(msg);
+				exit(EXIT_FAILURE);
+			}
+			if (mb->verbose) {
+				printf("\t\tdim=[%1d]\n", dim);
+				printf("\t\tn=[%1d]\n", n);
+			}
+			Free(ptmp);
+			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+			break;
+		}
+
+		case F_IIDKD:
+		{
+			/*
+			 * IID_WISHART-model; need length N
+			 */
+			int dim = mb->f_order[mb->nf];
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
 			if (!ptmp) {
 				inla_error_missing_required_field(__GMRFLib_FuncName, secname, "N");
@@ -22983,6 +23122,65 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 	}
 
+	case F_IIDKD:
+	{
+		int dim = mb->f_order[mb->nf];
+		int n_theta = mb->f_ntheta[mb->nf];
+		theta_iidwishart = Calloc(n_theta, double **);
+		for (i = 0; i < n_theta; i++) {
+			HYPER_NEW(theta_iidwishart[i], 0.0);
+		}
+
+		mb->f_theta[mb->nf] = Calloc(n_theta, double **);
+		for (k = 0; k < n_theta; k++) {
+			char *init = NULL;
+			GMRFLib_sprintf(&init, "INITIAL%1d", k);
+			if (i < dim) {
+				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), G.log_prec_initial/2.0);
+			} else {
+				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), 0.0);
+			}
+			if (!mb->f_fixed[mb->nf][k] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			_SetInitial(k, tmp);
+			HYPER_INIT(theta_iidwishart[k], tmp);
+			if (mb->verbose) {
+				printf("\t\tinitialise theta%1d=[%g]\n", k + 1, tmp);
+				printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][k]);
+			}
+			mb->f_theta[mb->nf][k] = theta_iidwishart[k];
+
+			if (!mb->f_fixed[mb->nf][k]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][k].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+				GMRFLib_sprintf(&msg, "Theta%1d for %s", k+1, mb->f_tag[mb->nf]);
+				mb->theta_tag[mb->ntheta] = msg;
+				mb->theta_tag_userscale[mb->ntheta] = msg;
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], k);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][k].to_theta);
+
+				mb->theta[mb->ntheta] = theta_iidwishart[k];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+			}
+		}
+		assert(k == n_theta);
+		break;
+	}
+
 	case F_INTSLOPE:
 	{
 		int dim = 2;
@@ -24022,6 +24220,31 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->rho_intern = theta_iidwishart + dim;
 		arg->hold = Calloc(GMRFLib_CACHE_LEN, inla_wishart_hold_tp *);
 		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishart;
+		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		inla_make_iid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
+		break;
+	}
+
+	case F_IIDKD:
+	{
+		inla_iid_wishartk_arg_tp *arg = NULL;
+		int dim = mb->f_order[mb->nf];
+
+		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
+		arg = Calloc(1, inla_iid_wishartk_arg_tp);
+		arg->k = dim;
+		arg->n = mb->f_n[mb->nf] / dim;		       /* yes */
+		arg->N = mb->f_N[mb->nf];
+		arg->ntheta = INLA_WISHARTK_NTHETA(dim);
+		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
+		mb->f_rankdef[mb->nf] = 0;
+		arg->theta = theta_iidwishart;
+		arg->vec = Calloc(GMRFLib_CACHE_LEN, double);
+		for(i = 0; i < GMRFLib_CACHE_LEN; i++) {
+			arg->vec[i] = Calloc(arg->ntheta, double);
+		}
+		arg->hold = Calloc(GMRFLib_CACHE_LEN, inla_wishartk_hold_tp *);
+		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishartk;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		inla_make_iid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
 		break;

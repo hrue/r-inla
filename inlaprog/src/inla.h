@@ -78,6 +78,13 @@ __BEGIN_DECLS
  */
 #define INLA_QKUMAR_PREC_SCALE 0.10
 
+
+#define INLA_WISHARTK_KMAX (10)
+#define INLA_WISHARTK_KMIN  (2)
+#define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
+#define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
+
+
 /* 
  *
  */
@@ -615,6 +622,7 @@ typedef enum {
 	F_AR1C,
 	F_DMATERN,
 	F_INTSLOPE,
+	F_IIDKD, 
 	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
 	P_DIRICHLET,
@@ -1284,6 +1292,25 @@ typedef struct {
 } inla_iid_wishart_arg_tp;
 
 typedef struct {
+	double *vec;
+	gsl_matrix *L;
+	gsl_matrix *Q;
+} inla_wishartk_hold_tp;
+
+typedef struct 
+{
+	int n;						       /* n=k*m */
+	int N;						       
+	int k;						       /* order = k */
+	int ntheta;					       /* k*(k+1)/2 */
+	double ***theta;
+	double **vec;
+
+	inla_wishartk_hold_tp **hold;
+}
+	inla_iidkd_arg_tp;
+	
+typedef struct {
 	int n;
 	int m;
 
@@ -1711,6 +1738,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
+int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg);
 int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * arg);
 int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg);
 int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);

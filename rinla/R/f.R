@@ -571,6 +571,16 @@
         }
         stopifnot(any(order == inla.models()$latent$fgn$order.defined))
     }
+    if (inla.one.of(model, c("iidkd"))) {
+        if (is.null(order) || missing(order)) {
+            stop("Model 'iidkd' needs 'order' to be defined")
+        } else {
+            order <- as.integer(order)
+            if (!(order >= 2 && order <= 10)) {
+                stop("Model 'iidkd' needs 'order' to be in the interval 2 to 10")
+            }
+        }
+    }
 
     ## Check that the Cmatrix is defined for those models needing it, and oposite.
     if (!inla.one.of(model, "z")) {
@@ -780,13 +790,19 @@
 
     ## is N required?
     if (is.null(n) && (!is.null(inla.model.properties(model, "latent")$n.required)
-    && inla.model.properties(model, "latent")$n.required)) {
+        && inla.model.properties(model, "latent")$n.required)) {
         stop(paste("Argument `n' in f() is required for model:", model))
     }
 
     ## special N required?
+    if (inla.one.of(model, "iidkd")) {
+        n.div.by <- order
+        if (!inla.divisible(n, n.div.by)) {
+            stop(paste("Argument `n'", n, "is not divisible by", n.div.by))
+        }
+    }
     if ((!is.null(inla.model.properties(model, "latent")$n.div.by)
-    && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
+        && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
         if (!inla.divisible(n, inla.model.properties(model, "latent")$n.div.by)) {
             stop(paste("Argument `n'", n, "is not divisible by", inla.model.properties(model, "latent")$n.div.by))
         }
