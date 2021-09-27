@@ -2064,7 +2064,7 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 }
 int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg)
 {
-	int i, j, k, n = arg->n, dim = arg->k;
+	int i, j, k, n = arg->n, dim = arg->dim;
 	GMRFLib_ged_tp *ged = NULL;
 
 	GMRFLib_ged_init(&ged, NULL);
@@ -3103,6 +3103,34 @@ double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
+
+int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix *Q, gsl_matrix *L) 
+{
+	int i, j, k = 0, debug = 1, n_theta = INLA_WISHARTK_NTHETA(dim);
+	
+	gsl_matrix_set_zero(L);
+	for (i = 0; i < dim; i++) {
+		gsl_matrix_set(L, i, i, exp(theta[k++]));
+	}
+	for (j = 0; j < dim; j++) {
+		for (i = j+1; i < dim; i++) {
+			gsl_matrix_set(L, i, j, theta[k++]);
+		}
+	}
+	assert(k == n_theta);
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, L, L, 0.0, Q);
+	if (debug) {
+		for (i = 0; i < n_theta; i++) {
+			printf("theta[%1d] = %.12f\n", i, theta[i]);
+		}
+		FIXME("L");
+		GMRFLib_printf_gsl_matrix(stdout, L, " %.6f");
+		FIXME("Q");
+		GMRFLib_printf_gsl_matrix(stdout, Q, " %.6f");
+	}
+	return GMRFLib_SUCCESS;
+}
+
 double Qfunc_iid_wishartk(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
@@ -3110,11 +3138,11 @@ double Qfunc_iid_wishartk(int node, int nnode, double *UNUSED(values), void *arg
 	}
 
 	inla_iid_wishartk_arg_tp *a = (inla_iid_wishartk_arg_tp *) arg;
-	int i, j, k, n_theta, dim, debug = 0, id;
+	int i, n_theta, dim, id;
 	inla_wishartk_hold_tp *hold = NULL;
 	double *vec = NULL;
 	
-	dim = a->k;
+	dim = a->dim;
 	n_theta = a->ntheta;
 
 	GMRFLib_CACHE_SET_ID(id);
@@ -3135,27 +3163,7 @@ double Qfunc_iid_wishartk(int node, int nnode, double *UNUSED(values), void *arg
 	}
 
 	if (memcmp((void *) vec, (void *) hold->vec, n_theta * sizeof(double))) {
-		k = 0;
-		gsl_matrix_set_zero(hold->L);
-		for (i = 0; i < dim; i++) {
-			gsl_matrix_set(hold->L, i, i, exp(vec[k++]));
-		}
-		for (j = 0; j < dim; j++) {
-			for (i = j+1; i < dim; i++) {
-				gsl_matrix_set(hold->L, i, j, vec[k++]);
-			}
-		}
-		assert(k == n_theta);
-		gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, hold->L, hold->L, 0.0, hold->Q);
-		if (debug) {
-			for (i = 0; i < n_theta; i++) {
-				printf("vec[%1d] = %.12f\n", i, vec[i]);
-			}
-			FIXME("hold->L");
-			GMRFLib_printf_gsl_matrix(stdout, hold->L, " %.6f");
-			FIXME("hold->Q");
-			GMRFLib_printf_gsl_matrix(stdout, hold->Q, " %.6f");
-		}
+		inla_wishartk_build_Q(dim, vec, hold->Q, hold->L);
 		Memcpy((void *) hold->vec, (void *) vec, n_theta * sizeof(double));	/* YES! */
 	}
 
@@ -4284,6 +4292,159 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	val += logdet;
 
 #undef COMPUTE_Q
+
+	return val;
+}
+
+double priorfunc_wishartk_2d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(2, x, parameters);
+}
+double priorfunc_wishartk_3d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(3, x, parameters);
+}
+double priorfunc_wishartk_4d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(4, x, parameters);
+}
+double priorfunc_wishartk_5d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(5, x, parameters);
+}
+double priorfunc_wishartk_6d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(6, x, parameters);
+}
+double priorfunc_wishartk_7d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(7, x, parameters);
+}
+double priorfunc_wishartk_8d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(8, x, parameters);
+}
+double priorfunc_wishartk_9d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(9, x, parameters);
+}
+double priorfunc_wishartk_10d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(10, x, parameters);
+}
+double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
+{
+	/*
+	 * 
+	 * Q ~ Wishart(r, R^{-1} )
+	 * 
+	 * output is the logdensity for x!!!! 
+	 */
+	gsl_matrix *R = NULL, *Q = NULL, *QQ, *L = NULL;
+	double r, val;
+	int debug = 1;
+	size_t i, ii, j, k, dim = (size_t) idim;
+
+	size_t n_x = (size_t) INLA_WISHARTK_NTHETA(idim);
+	size_t n_param = n_x + 1;
+
+	if (debug) {
+		for (i = 0; i < n_param; i++) {
+			printf("parameters[%d] = %g\n", (int) i, parameters[i]);
+		}
+		for (i = 0; i < n_x; i++) {
+			printf("x[%d] = %g\n", (int) i, x[i]);
+		}
+	}
+
+	r = parameters[0];
+	R = gsl_matrix_calloc(dim, dim);
+	L = gsl_matrix_calloc(dim, dim);
+	Q = gsl_matrix_calloc(dim, dim);
+	QQ = gsl_matrix_calloc(dim, dim);
+
+	/*
+	 * offset of 1, since parameters[0] = r
+	 */
+	k = 1;
+	for (i = 0; i < dim; i++) {
+		gsl_matrix_set(R, i, i, parameters[k]);
+		k++;
+	}
+	for (i = 0; i < dim; i++) {
+		for (j = i + 1; j < dim; j++) {
+			gsl_matrix_set(R, i, j, parameters[k]);
+			gsl_matrix_set(R, j, i, parameters[k]);
+			k++;
+		}
+	}
+	assert(k == n_param);
+
+	inla_wishartk_build_Q(idim, x, Q, L);
+	val = GMRFLib_Wishart_logdens(Q, r, R);
+
+	gsl_matrix *J = NULL;
+	double h, save, *xx;
+
+	xx = Calloc(n_x, double);
+	Memcpy(xx, x, n_x * sizeof(double));
+
+	/*
+	 * for the numerical derivatives: compute the `population' variance: Det(Sigma), and set f = (Det(Sigma))^1/dim. 
+	 */
+	h = 1.0e-5 * pow(exp(-GMRFLib_gsl_spd_logdet(Q)), 1.0 / (double) idim);	/* Yes, its a minus... */
+	J = gsl_matrix_calloc(n_x, n_x);
+	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+	double hh[] =  {-2.0 * h, -h, h, 2.0*h };
+		
+	gsl_matrix_set_zero(QQ);
+	for (ii = 0; ii < n_x; ii++) {
+
+		for(size_t ih = 0; ih < sizeof(hh)/sizeof(double); ih++) {
+			save = xx[ii];
+			xx[ii] += hh[ih] * h;
+			inla_wishartk_build_Q(idim, xx, Q, L);
+			xx[ii] = save;
+			for(i = 0; i < dim; i++) {
+				for(j = 0; j < dim; j++) {
+					gsl_matrix_set(QQ, i, j, gsl_matrix_get(QQ, i, j) + gsl_matrix_get(Q, i, j) * wf[ih]);
+				}
+			}
+		}
+		
+		k = 0;
+		for (i = 0; i < dim; i++) {
+			gsl_matrix_set(J, ii, k, gsl_matrix_get(QQ, k, k) / SQR(h));
+			k++;
+		}
+		for (j = 0; j < dim; j++) {
+			for (i = j+1; i < dim; i++) {
+				gsl_matrix_set(J, ii, k, gsl_matrix_get(QQ, i, j) / SQR(h));
+				k++;
+			}
+		}
+		assert(k == n_x);
+	}
+
+	gsl_permutation *p;
+	int signum;
+	double logdet;
+
+	p = gsl_permutation_alloc(n_x);
+	gsl_linalg_LU_decomp(J, p, &signum);
+	logdet = gsl_linalg_LU_lndet(J);		       /* log(abs|J|) */
+	val += logdet;
+
+	if (debug) {
+		P(logdet);
+	}
+
+	gsl_matrix_free(R);
+	gsl_matrix_free(Q);
+	gsl_matrix_free(QQ);
+	gsl_matrix_free(L);
+	gsl_matrix_free(J);
+	gsl_permutation_free(p);
 
 	return val;
 }
@@ -10680,6 +10841,159 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->parameters = xx;
 		assert(nxx == inla_iid_wishart_nparam(idim) + 1);	/* this must be TRUE */
 
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART2D")) {
+		prior->id = P_WISHARTK_2D;
+		prior->priorfunc = priorfunc_wishartk_2d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 2;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART3D")) {
+		prior->id = P_WISHARTK_3D;
+		prior->priorfunc = priorfunc_wishartk_3d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 3;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART4D")) {
+		prior->id = P_WISHARTK_4D;
+		prior->priorfunc = priorfunc_wishartk_4d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 4;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART5D")) {
+		prior->id = P_WISHARTK_5D;
+		prior->priorfunc = priorfunc_wishartk_5d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 5;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART6D")) {
+		prior->id = P_WISHARTK_6D;
+		prior->priorfunc = priorfunc_wishartk_6d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 6;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART7D")) {
+		prior->id = P_WISHARTK_7D;
+		prior->priorfunc = priorfunc_wishartk_7d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 7;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART8D")) {
+		prior->id = P_WISHARTK_8D;
+		prior->priorfunc = priorfunc_wishartk_8d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 8;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART9D")) {
+		prior->id = P_WISHARTK_9D;
+		prior->priorfunc = priorfunc_wishartk_9d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 9;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHART10D")) {
+		prior->id = P_WISHARTK_10D;
+		prior->priorfunc = priorfunc_wishartk_10d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 10;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		prior->parameters = xx;
+		assert(nxx <= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
 		if (mb->verbose) {
 			int ii;
 			for (ii = 0; ii < nxx; ii++) {
@@ -18869,7 +19183,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		char *pri, *par, *to_theta, *from_theta, *prifunc, *hyperid;
 		int nt = INLA_WISHARTK_NTHETA(INLA_WISHARTK_KMAX);
 
-		GMRFLib_sprintf(&prifunc, "WISHARTKD");
+		GMRFLib_sprintf(&prifunc, "WISHART%1dD", dim);
 		int kk;
 		for (kk = 0; kk < nt; kk++) {
 			GMRFLib_sprintf(&pri, "PRIOR%1d", kk);
@@ -24232,21 +24546,21 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
 		arg = Calloc(1, inla_iid_wishartk_arg_tp);
-		arg->k = dim;
+		arg->dim = dim;
 		arg->n = mb->f_n[mb->nf] / dim;		       /* yes */
 		arg->N = mb->f_N[mb->nf];
 		arg->ntheta = INLA_WISHARTK_NTHETA(dim);
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0;
 		arg->theta = theta_iidwishart;
-		arg->vec = Calloc(GMRFLib_CACHE_LEN, double);
+		arg->vec = Calloc(GMRFLib_CACHE_LEN, double *);
 		for(i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			arg->vec[i] = Calloc(arg->ntheta, double);
 		}
 		arg->hold = Calloc(GMRFLib_CACHE_LEN, inla_wishartk_hold_tp *);
 		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishartk;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
-		inla_make_iid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
+		inla_make_iid_wishartk_graph(&(mb->f_graph[mb->nf]), arg);
 		break;
 	}
 
@@ -26811,6 +27125,7 @@ double extra(double *theta, int ntheta, void *argument)
 
 	inla_tp *mb = NULL;
 	gsl_matrix *Q = NULL;
+	gsl_matrix *L = NULL;
 
 #define _NOT_FIXED(_fx) (!mb->fixed_mode && !mb->_fx)
 #define _SET_GROUP_RHO(_nt_)						\
@@ -29684,6 +29999,44 @@ double extra(double *theta, int ntheta, void *argument)
 				 */
 				val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
 			}
+			break;
+		}
+
+		case F_IIDKD:
+		{
+			int dim = mb->f_order[i];
+			assert(dim > 1);
+			int nt = INLA_WISHARTK_NTHETA(dim);
+			double *theta_vec = Calloc(nt, double);
+
+			int k = 0;
+			nfixed = 0;
+			for (j = 0; j < nt; j++) {
+				if (_NOT_FIXED(f_fixed[i][k])) {
+					theta_vec[k] = theta[count];
+					count++;
+				} else {
+					nfixed++;
+					theta_vec[k] = mb->f_theta[i][k][GMRFLib_thread_id][0];
+				}
+			}
+			L = gsl_matrix_calloc(dim, dim);
+			Q = gsl_matrix_calloc(dim, dim);
+			inla_wishartk_build_Q(dim, theta_vec, Q, L) ;
+			GMRFLib_gsl_spd_inverse(Q);
+			logdet = GMRFLib_gsl_spd_logdet(Q);
+			gsl_matrix_free(Q);
+			gsl_matrix_free(L);
+
+			_SET_GROUP_RHO(nt);
+
+			/*
+			 * n is the small length. yes, the total length is N=dim*n
+			 */
+			double n = (double) (mb->f_n[i] / dim);	/* YES! */
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])
+								   + (n - mb->f_rankdef[i]) / 2.0 * logdet));
+			val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec); 
 			break;
 		}
 

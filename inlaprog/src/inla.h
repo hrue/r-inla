@@ -663,6 +663,15 @@ typedef enum {
 	P_WISHART5D,
 	P_PC_SN,
 	P_SN_INTERCEPT,
+	P_WISHARTK_2D,
+	P_WISHARTK_3D,
+	P_WISHARTK_4D,
+	P_WISHARTK_5D,
+	P_WISHARTK_6D,
+	P_WISHARTK_7D,
+	P_WISHARTK_8D,
+	P_WISHARTK_9D,
+	P_WISHARTK_10D,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1301,14 +1310,14 @@ typedef struct
 {
 	int n;						       /* n=k*m */
 	int N;						       
-	int k;						       /* order = k */
+	int dim;					       /* dim = order */
 	int ntheta;					       /* k*(k+1)/2 */
 	double ***theta;
 	double **vec;
 
 	inla_wishartk_hold_tp **hold;
 }
-	inla_iidkd_arg_tp;
+	inla_iid_wishartk_arg_tp;
 	
 typedef struct {
 	int n;
@@ -1682,6 +1691,16 @@ double priorfunc_wishart3d(double *x, double *parameters);
 double priorfunc_wishart4d(double *x, double *parameters);
 double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
+double priorfunc_wishartk_2d(double *x, double *parameters);
+double priorfunc_wishartk_3d(double *x, double *parameters);
+double priorfunc_wishartk_4d(double *x, double *parameters);
+double priorfunc_wishartk_5d(double *x, double *parameters);
+double priorfunc_wishartk_6d(double *x, double *parameters);
+double priorfunc_wishartk_7d(double *x, double *parameters);
+double priorfunc_wishartk_8d(double *x, double *parameters);
+double priorfunc_wishartk_9d(double *x, double *parameters);
+double priorfunc_wishartk_10d(double *x, double *parameters);
+double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
 double rgeneric_mfunc(int idx, void *arg);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
@@ -1841,6 +1860,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
+int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix *Q, gsl_matrix *L);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 int loglikelihood_agaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
