@@ -2648,7 +2648,7 @@ int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *i
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, 
+int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
@@ -3752,7 +3752,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		GMRFLib_opt_f(theta_mode, &log_dens_mode, &ierr, NULL, NULL);
 		log_dens_mode *= -1.0;
 		misc_output->log_posterior_mode = log_dens_mode;
-		
+
 		SET_THETA_MODE;
 		if (x_mode) {
 			Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
@@ -3803,7 +3803,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				GMRFLib_ai_vb_correct_mean(dens, dens_count, NULL,
 							   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 			}
-			
+
 			if (GMRFLib_ai_INLA_userfunc0) {
 				userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store->problem, theta, nhyper);
 			}
@@ -4413,14 +4413,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	// need to adjust the weights in configs if we have adjusted the integration weights. this is a bit unfortunate, but the adjustment
 	// needs too weights to be present before adjusting.
 	if (misc_output->configs) {
-		for(int dc = 0; dc < dens_count; dc++) {
+		for (int dc = 0; dc < dens_count; dc++) {
 			int found = 0;
 			for (int id = 0; id < GMRFLib_MAX_THREADS; id++) {
 				if (misc_output->configs[id]) {
 					for (int i = 0; i < misc_output->configs[id]->nconfig; i++) {
 						if (misc_output->configs[id]->config[i]->dens_count == dc) {
 							misc_output->configs[id]->config[i]->log_posterior = log(adj_weights[dc]);
-							found++; /* for the check below */
+							found++;	/* for the check below */
 						}
 					}
 				}
@@ -4470,7 +4470,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 			int ii = compute_idx[j];
 			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
-			GMRFLib_density_tp *dens_combine = NULL; 
+			GMRFLib_density_tp *dens_combine = NULL;
 			GMRFLib_density_combine(&dens_combine, dens_count, dens[ii], adj_weights);
 			if (density) {
 				(*density)[ii] = dens_combine;
@@ -5372,13 +5372,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	int i, j, jj, k, *k_max = NULL, *k_min = NULL, *k_maxx = NULL, *k_minn = NULL, ierr, *iz = NULL, *izz = NULL, *len =
-		NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0;
+	    NULL, *iz_axes = NULL, free_ai_par = 0, config_count = 0, dens_count = 0, dens_max, hyper_len = 0;
 
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
-		NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
-		NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
-		**cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
-		NULL, **failure_theta = NULL;
+	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
+	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
+	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
+	    NULL, **failure_theta = NULL;
 	gsl_matrix *H = NULL, *eigen_vectors = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
 	gsl_vector *eigen_values = NULL;
@@ -5583,7 +5583,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
 			}
-			break;
+				break;
 
 			default:
 				GMRFLib_ASSERT(0 == 1, GMRFLib_EPARAMETER);
@@ -5951,7 +5951,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 							val = sqrt(inverse_hessian[ii + jj * nhyper]);
 						} else {
 							val = inverse_hessian[ii + jj * nhyper] /
-								sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
+							    sqrt(inverse_hessian[ii + ii * nhyper] * inverse_hessian[jj + jj * nhyper]);
 						}
 						fprintf(ai_par->fp_log, " %7.3f", val);
 					} else {
@@ -6120,9 +6120,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (j = 0; j < Alin[i]->n; j++) {
 				Alin[i]->idx[j] -= preopt->mnpred;
 				if (Alin[i]->idx[j] < 0) {
-					char *s =
-						GMRFLib_strdup
-						("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+					char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
 					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 					exit(1);
 				}
@@ -6157,12 +6155,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = f * design->experiment[k][i]
-					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = design->experiment[k][i]
-					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 			for (i = 0; i < nhyper; i++) {
@@ -6682,7 +6680,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		int ndev = preopt->Npred;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-			*deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
@@ -6780,7 +6778,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			marginal_likelihood->marginal_likelihood_gaussian_approx = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 			for (i = 0; i < nhyper; i++) {
 				marginal_likelihood->marginal_likelihood_gaussian_approx -=
-					0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
+				    0.5 * log(gsl_vector_get(eigen_values, (unsigned int) i));
 			}
 
 			if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
@@ -6790,8 +6788,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				marginal_likelihood->marginal_likelihood_integration = 0.5 * nhyper * log(2.0 * M_PI) + log_dens_mode;
 				for (i = 0; i < nhyper; i++) {
 					marginal_likelihood->marginal_likelihood_integration -=
-						0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
-						       0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
+					    0.5 * (log(gsl_vector_get(eigen_values, (unsigned int) i)) +
+						   0.5 * (log(SQR(stdev_corr_pos[i])) + log(SQR(stdev_corr_neg[i]))));
 				}
 			} else {
 				double integral = 0.0, log_jacobian = 0.0;
@@ -7229,8 +7227,8 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp *coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					   double *x_vec)
+int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
+			  void *loglFunc_arg, double *x_vec)
 {
 	/*
 	 * compute the Taylor-expansion of -loglikelihood * density(x), around the mean of x
@@ -7391,7 +7389,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 		double tref = GMRFLib_cpu();
 		double *mode = Calloc(graph->n, double);
 		GMRFLib_vb_coofs_tp **vb_coof = Calloc(graph->n, GMRFLib_vb_coofs_tp *);
-		for(i = 0; i < graph->n; i++) {
+		for (i = 0; i < graph->n; i++) {
 			vb_coof[i] = Calloc(1, GMRFLib_vb_coofs_tp);
 		}
 
@@ -7596,12 +7594,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	int keep_MM = 1;
 
 	// this is for robustness: scale CC[i] with 'cc_scale'
-	double cc_scale = SQR(1.0/0.95);
-	
+	double cc_scale = SQR(1.0 / 0.95);
+
 	int niter = 1 + ai_par->vb_refinement;
-	int i, j, iter; // debug = GMRFLib_DEBUG_IF();
+	int i, j, iter;					       // debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
-	//double _tref = GMRFLib_cpu();
+	// double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
@@ -7702,7 +7700,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	for (iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
 		double err_dx;
-		
+
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
 		gsl_vector_set_zero(delta);
@@ -7752,7 +7750,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
 		}
 #undef CODE_BLOCK
-		
+
 		if (update_MM) {
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 		}
@@ -7761,14 +7759,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
-			if (update_MM){
-				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0/3.0));
+			if (update_MM) {
+				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0 / 3.0));
 			}
 			// hence just do inv(MM) %*% MB
 			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
 			// solve MM %*% delta = MB
-			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0/3.0));
+			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0 / 3.0));
 		}
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
@@ -7779,14 +7777,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			ddx_max = DMAX(ddx_max, ABS(dx[i]) / sd[i]);
 			err_dx += SQR(dx[i] / sd[i]);
 		}
-		err_dx = sqrt(err_dx/graph->n);
+		err_dx = sqrt(err_dx / graph->n);
 		step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
 
 		for (i = 0; i < graph->n; i++) {
 			dx[i] *= step_len;
 			x_mean[i] += dx[i];
 		}
-		
+
 		if (ai_par->vb_verbose) {
 			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n",
 			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref);
@@ -8009,7 +8007,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 	mo->configs[id]->config[mo->configs[id]->nconfig]->skewness = skew;
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior = log_posterior;	/* may include integration weights */
 	mo->configs[id]->config[mo->configs[id]->nconfig]->log_posterior_orig = log_posterior_orig;	/* do NOT include integration weights */
-	mo->configs[id]->config[mo->configs[id]->nconfig]->dens_count = dens_count;			
+	mo->configs[id]->config[mo->configs[id]->nconfig]->dens_count = dens_count;
 
 	if (mo->configs[id]->ntheta) {
 		mo->configs[id]->config[mo->configs[id]->nconfig]->theta = Calloc(mo->configs[id]->ntheta, double);
@@ -8532,7 +8530,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
 	int retval, compute_cpo = 1, i, k, np = GMRFLib_faster_integration_np;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, 
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
 	if (!cpo_density) {

@@ -183,7 +183,7 @@ int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design)
 	}
 	fprintf(fp, " weight");
 	fprintf(fp, "\n");
-	
+
 	for (i = 0; i < design->nexperiments; i++) {
 		fprintf(fp, "\t%-.3d\t", i);
 		for (j = 0; j < design->nfactors; j++) {
