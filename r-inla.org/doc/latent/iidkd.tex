@@ -2,6 +2,7 @@
 \usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
 \usepackage{amstext}
 \usepackage{listings}
+\usepackage{verbatim}
 \def\opening\null
 \usepackage{block}
 \begin{document}
@@ -11,13 +12,13 @@
 This model is available for dimensions $k=2$, to $10$. We describe in
 detail the case for $k=3$ as other ones are similar. This model do the
 same as models \texttt{iid2d}, \texttt{iid3d}, \texttt{iid4d},
-\texttt{iid5d}, but uses a more efficient parameterisation. 
+\texttt{iid5d}, but uses a different and more efficient parameterisation. 
 
 \subsection*{Parametrization}
 
 The $(k=3)$-dimensional Normal-Wishard model is used if one want to define
-two vectors of ``random effects'', $u$ and $v$, say, for which
-$(u_{i}, v_{i})$ are iid bivariate Normals
+three vectors of ``random effects'', $u$ and $v$ and $w$, say, for which
+$(u_{i}, v_{i}, w_i)$ are iid bivariate Normals
 \begin{displaymath}
     \left(
       \begin{array}{c}
@@ -118,12 +119,19 @@ sum-to-zero constraints
 \end{displaymath}
 
 \subsubsection*{Hyperparameter spesification and default values}
+
+(\textbf{Note:} The value ``$2468.8642$'' is just a code for ``replace
+this by the default value''. As the default value depends on
+\texttt{order}, the was the easy way out for the moment.)
+
 \input{../hyper/latent/iidkd.tex}
 
 
 \subsection*{Example}
-\begin{verbatim}
-\end{verbatim}
 
+Just simulate some data and estimate the parameters back. This is for
+\texttt{order=}$4$.
+
+{\small\verbatiminput{example-iidkd.R}}
 
 \end{document}
