@@ -4527,15 +4527,10 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 	assert(k == n_param);
 
 	inla_wishartk_build_Q(idim, x, Q, L);
-
-	// P(r);
-	// FIXME("R");
-	// GMRFLib_printf_gsl_matrix(stdout, R, " %.6f");
-
 	val = GMRFLib_Wishart_logdens(Q, r, R);
 
 	gsl_matrix *J = NULL;
-	double h, save, *xx;
+	double h, save, *xx = NULL;
 
 	xx = Calloc(n_x, double);
 	Memcpy(xx, x, n_x * sizeof(double));
@@ -20353,7 +20348,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_IIDKD:
 		{
 			/*
-			 * IID_WISHART-model; need length N
+			 * WISHART-model; need length N
 			 */
 			int dim = mb->f_order[mb->nf];
 			ptmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "N"), NULL));
