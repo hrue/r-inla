@@ -260,6 +260,7 @@ double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -292,6 +293,7 @@ double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_identity_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -326,6 +328,7 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+
 double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -358,6 +361,7 @@ double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_exp_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -391,6 +395,7 @@ double map_exp_scale(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+
 double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -423,6 +428,7 @@ double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -458,6 +464,7 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+
 double map_invrobit(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -500,10 +507,12 @@ double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
 	// param = *(skew_intern, intercept_intern)
 	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
 }
+
 double map_invsn(double arg, map_arg_tp typ, void *param)
 {
 	return (map_invsn_core(arg, typ, param, NULL));
 }
+
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
 {
 	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
@@ -752,6 +761,7 @@ double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -784,6 +794,7 @@ double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -816,6 +827,7 @@ double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -848,6 +860,7 @@ double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
@@ -916,6 +929,7 @@ double map_beta(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
+
 double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -948,6 +962,7 @@ double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -980,6 +995,7 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1012,6 +1028,7 @@ double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1044,6 +1061,7 @@ double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_phi(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1082,6 +1100,7 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 	abort();
 	return 0.0;
 }
+
 double map_rho(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1089,6 +1108,7 @@ double map_rho(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_phi(arg, typ, param);
 }
+
 double map_precision(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1096,6 +1116,7 @@ double map_precision(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_exp(arg, typ, param);
 }
+
 double map_range(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1103,6 +1124,7 @@ double map_range(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_exp(arg, typ, param);
 }
+
 double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1111,6 +1133,7 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 	double scale = INLA_WEIBULL_ALPHA_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
+
 double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1119,6 +1142,7 @@ double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
 	double scale = INLA_GOMPERTZ_ALPHA_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
+
 double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1127,6 +1151,7 @@ double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 	double scale = INLA_QKUMAR_PREC_SCALE;
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
+
 double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 {
 	/*
@@ -1134,6 +1159,7 @@ double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 	 */
 	return map_invlogit(arg, typ, param);
 }
+
 double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1157,6 +1183,7 @@ double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 	}
 	return 0.0;
 }
+
 double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1180,6 +1207,7 @@ double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 	}
 	return 0.0;
 }
+
 double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1212,6 +1240,7 @@ double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
 	abort();
 	return 0.0;
 }
+
 double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1235,6 +1264,7 @@ double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 	}
 	return 0.0;
 }
+
 double map_interval(double x, map_arg_tp typ, void *param)
 {
 	/*
@@ -1264,6 +1294,7 @@ double map_interval(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
+
 double map_group_rho(double x, map_arg_tp typ, void *param)
 {
 	/*
@@ -1289,6 +1320,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	}
 	return 0.0;
 }
+
 double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -1313,6 +1345,7 @@ double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 }
+
 double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
 {
 	/*
@@ -1322,6 +1355,7 @@ double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), voi
 	abort();
 	return 0.0;
 }
+
 double link_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1329,6 +1363,7 @@ double link_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_invprobit(x, typ, param);
 }
+
 double link_robit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1339,6 +1374,7 @@ double link_robit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 
 	return map_invrobit(x, typ, (void *) &dof_intern);
 }
+
 double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1352,10 +1388,12 @@ double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 
 	return map_invsn(x, typ, (void *) par);
 }
+
 double link_tan(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	return map_invtan(x, typ, param);
 }
+
 double link_cloglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1363,6 +1401,7 @@ double link_cloglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_invcloglog(x, typ, param);
 }
+
 double link_loglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1370,6 +1409,7 @@ double link_loglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_invloglog(x, typ, param);
 }
+
 double link_cauchit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1377,6 +1417,7 @@ double link_cauchit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_invcauchit(x, typ, param);
 }
+
 double link_log(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1384,6 +1425,7 @@ double link_log(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_exp(x, typ, param);
 }
+
 double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 #define MAP(_x) log((_x)/(1.0 - (_x)))
@@ -1493,6 +1535,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 
 	return 0.0;
 }
+
 double link_neglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1500,6 +1543,7 @@ double link_neglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_negexp(x, typ, param);
 }
+
 double link_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1507,6 +1551,7 @@ double link_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_invlogit(x, typ, param);
 }
+
 double link_identity(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1514,6 +1559,7 @@ double link_identity(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_identity(x, typ, param);
 }
+
 double link_inverse(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1521,6 +1567,7 @@ double link_inverse(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	 */
 	return map_inverse(x, typ, param);
 }
+
 double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
@@ -1561,6 +1608,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	}
 	return NAN;
 }
+
 double link_logitoffset(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
@@ -1586,6 +1634,7 @@ double link_logitoffset(double x, map_arg_tp typ, void *param, double *UNUSED(co
 	}
 	return NAN;
 }
+
 double link_sslogit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	Link_param_tp *p;
@@ -1618,6 +1667,7 @@ double link_sslogit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	}
 	return NAN;
 }
+
 double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
@@ -1658,6 +1708,7 @@ double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 	return NAN;
 
 }
+
 double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 {
 	double shape, ret = 0.0;
@@ -1711,6 +1762,7 @@ double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov)
 
 	return (ret);
 }
+
 double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
@@ -1782,6 +1834,7 @@ double link_qweibull(double x, map_arg_tp typ, void *param, double *cov)
 
 	return (ret);
 }
+
 double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
@@ -1828,6 +1881,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 
 	return (ret);
 }
+
 double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// individual link
@@ -1878,6 +1932,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 
 	return (ret);
 }
+
 double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// population link
@@ -1928,6 +1983,7 @@ double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 
 	return (ret);
 }
+
 double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
@@ -1941,6 +1997,7 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 
 	return map_exp(x - beta * cov[0], typ, param);
 }
+
 double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p;
@@ -1974,6 +2031,7 @@ double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 	abort();
 	return 0.0;
 }
+
 int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp * def)
 {
 	int i, j;
@@ -2014,6 +2072,7 @@ int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * gra
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
 {
 	int i;
@@ -2028,6 +2087,7 @@ int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
 {
 	int i;
@@ -2042,6 +2102,7 @@ int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp *
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg)
 {
 	int i, j, k, n = arg->n, dim = arg->dim;
@@ -2062,6 +2123,7 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg)
 {
 	int i, j, k, n = arg->n, dim = arg->dim;
@@ -2081,6 +2143,7 @@ int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_ar
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 {
 	int i, n;
@@ -2099,6 +2162,7 @@ int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 
 	return GMRFLib_SUCCESS;
 }
+
 int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 {
 	/*
@@ -2119,6 +2183,7 @@ int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 
 	return GMRFLib_SUCCESS;
 }
+
 double Qfunc_bym(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2157,6 +2222,7 @@ double Qfunc_bym(int i, int j, double *UNUSED(values), void *arg)
 	GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	return 0.0;
 }
+
 double Qfunc_bym2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2175,6 +2241,7 @@ double Qfunc_bym2(int i, int j, double *UNUSED(values), void *arg)
 	}
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
+
 double Qfunc_rw2diid(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2193,6 +2260,7 @@ double Qfunc_rw2diid(int i, int j, double *UNUSED(values), void *arg)
 	}
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
+
 double Qfunc_group(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2326,6 +2394,7 @@ double Qfunc_group(int i, int j, double *UNUSED(values), void *arg)
 
 	return val;
 }
+
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order,
 			  GMRFLib_graph_tp * group_graph)
 {
@@ -2437,6 +2506,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 	return GMRFLib_SUCCESS;
 }
+
 double Qfunc_generic1(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2449,6 +2519,7 @@ double Qfunc_generic1(int i, int j, double *UNUSED(values), void *arg)
 
 	return prec * ((i == j ? 1.0 : 0.0) - (beta / a->max_eigenvalue) * a->tab->Qfunc(i, j, NULL, a->tab->Qfunc_arg));
 }
+
 double Qfunc_generic2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2496,6 +2567,7 @@ double Qfunc_generic2(int i, int j, double *UNUSED(values), void *arg)
 	GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	return 0.0;
 }
+
 double Qfunc_generic3(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2517,6 +2589,7 @@ double Qfunc_generic3(int i, int j, double *UNUSED(values), void *arg)
 
 	return (val);
 }
+
 double Qfunc_replicate(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2531,6 +2604,7 @@ double Qfunc_replicate(int i, int j, double *UNUSED(values), void *arg)
 
 	return a->Qfunc(ii, jj, NULL, a->Qfunc_arg);
 }
+
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 {
 	/*
@@ -2552,6 +2626,7 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 
 	return GMRFLib_SUCCESS;
 }
+
 double Qfunc_z(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2575,6 +2650,7 @@ double Qfunc_z(int i, int j, double *UNUSED(values), void *arg)
 	}
 	return value;
 }
+
 double Qfunc_slm(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2609,6 +2685,7 @@ double Qfunc_slm(int i, int j, double *UNUSED(values), void *arg)
 
 	return value;
 }
+
 double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
@@ -2795,6 +2872,7 @@ double mfunc_ar1(int UNUSED(i), void *arg)
 	inla_ar1_arg_tp *a = (inla_ar1_arg_tp *) arg;
 	return (a->mean[GMRFLib_thread_id][0]);
 }
+
 double mfunc_rgeneric(int i, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
@@ -2862,6 +2940,7 @@ double mfunc_rgeneric(int i, void *arg)
 
 	return (a->mu[id][i]);
 }
+
 double Qfunc_clinear(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2872,6 +2951,7 @@ double Qfunc_clinear(int i, int j, double *UNUSED(values), void *arg)
 	assert(i == j);
 	return (a->precision);
 }
+
 double Qfunc_sigm(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2882,6 +2962,7 @@ double Qfunc_sigm(int i, int j, double *UNUSED(values), void *arg)
 	assert(i == j);
 	return (a->precision);
 }
+
 double Qfunc_log1exp(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2892,6 +2973,7 @@ double Qfunc_log1exp(int i, int j, double *UNUSED(values), void *arg)
 	assert(i == j);
 	return (a->precision);
 }
+
 double Qfunc_logdist(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2902,6 +2984,7 @@ double Qfunc_logdist(int i, int j, double *UNUSED(values), void *arg)
 	assert(i == j);
 	return (a->precision);
 }
+
 double mfunc_clinear(int i, void *arg)
 {
 	inla_clinear_tp *a = (inla_clinear_tp *) arg;
@@ -2909,6 +2992,7 @@ double mfunc_clinear(int i, void *arg)
 
 	return beta * a->x[i];
 }
+
 double mfunc_sigm(int i, void *arg)
 {
 	inla_sigm_tp *a = (inla_sigm_tp *) arg;
@@ -2923,6 +3007,7 @@ double mfunc_sigm(int i, void *arg)
 	xx = pow(x / halflife, shape);
 	return beta * xx / (1.0 + xx);
 }
+
 double mfunc_revsigm(int i, void *arg)
 {
 	inla_sigm_tp *a = (inla_sigm_tp *) arg;
@@ -2937,6 +3022,7 @@ double mfunc_revsigm(int i, void *arg)
 	xx = pow(x / halflife, shape);
 	return beta * 1.0 / (1.0 + xx);
 }
+
 double mfunc_log1exp(int i, void *arg)
 {
 	inla_log1exp_tp *a = (inla_log1exp_tp *) arg;
@@ -2950,6 +3036,7 @@ double mfunc_log1exp(int i, void *arg)
 
 	return beta * log(1.0 + exp(alpha - gama * x));
 }
+
 double mfunc_logdist(int i, void *arg)
 {
 	inla_logdist_tp *a = (inla_logdist_tp *) arg;
@@ -2963,6 +3050,7 @@ double mfunc_logdist(int i, void *arg)
 
 	return beta * (1.0 + exp(alpha1 * log(x) - alpha2 * x));
 }
+
 double Qfunc_mec(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -2978,6 +3066,7 @@ double Qfunc_mec(int i, int j, double *UNUSED(values), void *arg)
 	assert(i == j);
 	return (prec_x + prec_obs * scale[i]) / SQR(beta);
 }
+
 double mfunc_mec(int i, void *arg)
 {
 	inla_mec_tp *a = (inla_mec_tp *) arg;
@@ -2990,6 +3079,7 @@ double mfunc_mec(int i, void *arg)
 
 	return beta * (prec_obs * scale[i] * x_obs[i] + prec_x * mean_x) / (prec_obs * scale[i] + prec_x);
 }
+
 double Qfunc_meb(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -3005,6 +3095,7 @@ double Qfunc_meb(int i, int j, double *UNUSED(values), void *arg)
 	assert(i == j);
 	return prec * scale[i] / SQR(beta);
 }
+
 double mfunc_meb(int i, void *arg)
 {
 	inla_meb_tp *a = (inla_meb_tp *) arg;
@@ -3012,6 +3103,7 @@ double mfunc_meb(int i, void *arg)
 
 	return beta * a->x[i];
 }
+
 int inla_iid_wishart_nparam(int dim)
 {
 	/*
@@ -3019,6 +3111,7 @@ int inla_iid_wishart_nparam(int dim)
 	 */
 	return ((dim * (dim + 1)) / 2);
 }
+
 double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
@@ -4093,6 +4186,7 @@ double priorfunc_mvnorm(double *x, double *parameters)
 
 	return (-n / 2.0 * log(2 * M_PI) + 0.5 * logdet - 0.5 * q);
 }
+
 int inla_iid_wishart_adjust(int dim, double *theta)
 {
 	/*
@@ -4150,6 +4244,7 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 #undef _IDX
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
+
 double priorfunc_wishart1d(double *x, double *parameters)
 {
 	// its the same and quicker
@@ -4162,22 +4257,27 @@ double priorfunc_wishart1d(double *x, double *parameters)
 
 	return priorfunc_gamma(x, p);
 }
+
 double priorfunc_wishart2d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(2, x, parameters);
 }
+
 double priorfunc_wishart3d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(3, x, parameters);
 }
+
 double priorfunc_wishart4d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(4, x, parameters);
 }
+
 double priorfunc_wishart5d(double *x, double *parameters)
 {
 	return priorfunc_wishart_generic(5, x, parameters);
 }
+
 double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 {
 	/*
@@ -4337,38 +4437,47 @@ double priorfunc_wishartk_2d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(2, x, parameters);
 }
+
 double priorfunc_wishartk_3d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(3, x, parameters);
 }
+
 double priorfunc_wishartk_4d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(4, x, parameters);
 }
+
 double priorfunc_wishartk_5d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(5, x, parameters);
 }
+
 double priorfunc_wishartk_6d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(6, x, parameters);
 }
+
 double priorfunc_wishartk_7d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(7, x, parameters);
 }
+
 double priorfunc_wishartk_8d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(8, x, parameters);
 }
+
 double priorfunc_wishartk_9d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(9, x, parameters);
 }
+
 double priorfunc_wishartk_10d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(10, x, parameters);
 }
+
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 {
 	/*
@@ -4522,6 +4631,7 @@ double Qfunc_besag(int i, int j, double *UNUSED(values), void *arg)
 	// ``classical model''
 	return prec * (i == j ? a->graph->nnbs[i] : -1.0);
 }
+
 double Qfunc_besag2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -4550,6 +4660,7 @@ double Qfunc_besag2(int i, int j, double *UNUSED(values), void *arg)
 		return -aa->precision / SQR(a);
 	}
 }
+
 double Qfunc_besagproper(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -4568,6 +4679,7 @@ double Qfunc_besagproper(int i, int j, double *UNUSED(values), void *arg)
 		return -prec;
 	}
 }
+
 double Qfunc_besagproper2(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -4587,6 +4699,7 @@ double Qfunc_besagproper2(int i, int j, double *UNUSED(values), void *arg)
 		return -prec * lambda;
 	}
 }
+
 int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_all)
 {
 	if (ncol_data_all)
@@ -4660,6 +4773,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		return INLA_OK;
 	}
 }
+
 int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED(sec))
 {
 	/*
@@ -5021,6 +5135,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 
 	return INLA_OK;
 }
+
 int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filename, int n, int column, int n_columns, int verbose,
 			   double default_value)
 {
@@ -5078,6 +5193,7 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	}
 	return INLA_OK;
 }
+
 int loglikelihood_inla(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	inla_tp *a = (inla_tp *) arg;
@@ -5125,6 +5241,7 @@ double inla_Phi(double x)
 		return exp(inla_log_Phi(x));
 	}
 }
+
 double inla_logit_Phi(double x)
 {
 	// return log(Phi(x)/(1-Phi(x)))
@@ -5182,6 +5299,7 @@ double inla_log_Phi(double x)
 	abort();
 	return 0;
 }
+
 double inla_Phi_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
@@ -5197,6 +5315,7 @@ double inla_Phi_fast(double x)
 		return inla_Phi(x);
 	}
 }
+
 double inla_log_Phi_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
@@ -5210,6 +5329,7 @@ double inla_log_Phi_fast(double x)
 		}
 	}
 }
+
 double inla_lgamma_fast(double x)
 {
 	// this is the Gergo Nemes (2007) approximation from
@@ -5228,6 +5348,7 @@ double inla_lgamma_fast(double x)
 	}
 	return (val);
 }
+
 int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -5390,6 +5511,7 @@ int loglikelihood_simplex(double *logll, double *x, int m, int idx, double *UNUS
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
+
 int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
@@ -5441,6 +5563,7 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
+
 int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
 	/*
@@ -5484,6 +5607,7 @@ int loglikelihood_wrapped_cauchy(double *logll, double *x, int m, int idx, doubl
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
+
 int loglikelihood_stochvol(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -8312,6 +8436,7 @@ int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double 
 {
 	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_loggamma, inla_mix_int_simpson_loggamma));
 }
+
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (loglikelihood_mix_core(logll, x, m, idx, x_vec, y_cdf, arg, inla_mix_int_quadrature_mloggamma, inla_mix_int_simpson_mloggamma));
@@ -8324,9 +8449,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9555,10 +9680,12 @@ int loglikelihood_exp(double *logll, double *x, int m, int idx, double *UNUSED(x
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
+
 int loglikelihood_expsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_exp));
 }
+
 int loglikelihood_generic_surv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, GMRFLib_logl_tp * loglfun)
 {
 	// this function makes a survival likelihood out of a regression likelihood
@@ -9834,6 +9961,7 @@ int loglikelihood_loglogistic(double *logll, double *x, int m, int idx, double *
 	LINK_END;
 	return GMRFLib_SUCCESS;
 }
+
 int loglikelihood_loglogisticsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg)
 {
 	return (m == 0 ? GMRFLib_SUCCESS : loglikelihood_generic_surv(logll, x, m, idx, x_vec, y_cdf, arg, loglikelihood_loglogistic));
@@ -10249,36 +10377,42 @@ const char *inla_string_join(const char *a, const char *b)
 	GMRFLib_sprintf(&ans, "%s%c%s", (a ? a : ""), INIPARSER_SEP, (b ? b : ""));
 	return ans;
 }
+
 int inla_error_missing_required_field(const char *funcname, const char *secname, const char *field)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: section [%s]: missing required field [%s]\n\n", funcname, secname, field);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_open_file(const char *msg)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \tfail to open file[%s] for writing. Exit...\n\n", msg);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_general(const char *msg)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s\n\n", msg);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_general2(const char *msg, const char *msg2)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: %s\n\n", msg, msg2);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: section [%s]: field [%s] is void: [%s]\n\n", funcname, secname, field, value);
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_file_numelm(const char *funcname, const char *filename, int n, int idiv)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, which is not a multiple of [%1d]\n\n", funcname,
@@ -10286,6 +10420,7 @@ int inla_error_file_numelm(const char *funcname, const char *filename, int n, in
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_file_totnumelm(const char *funcname, const char *filename, int n, int total)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, which is different from [n] = [%1d]\n\n",
@@ -10293,6 +10428,7 @@ int inla_error_file_totnumelm(const char *funcname, const char *filename, int n,
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_file_error_sorted(const char *funcname, const char *filename, int n, int element_number, double val)
 {
 	fprintf(stderr,
@@ -10302,6 +10438,7 @@ int inla_error_file_error_sorted(const char *funcname, const char *filename, int
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_file_error(const char *funcname, const char *filename, int n, int element_number, double val)
 {
 	fprintf(stderr, "\n\n*** ERROR *** \t%s: file [%s] contains [%1d] elements, but element [%1d] = [%g] is void.\n\n",
@@ -10310,6 +10447,7 @@ int inla_error_file_error(const char *funcname, const char *filename, int n, int
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_error_file_error2(const char *funcname, const char *filename, int n, int element_number, double val, int element_number2, double val2)
 {
 	fprintf(stderr,
@@ -10318,6 +10456,7 @@ int inla_error_file_error2(const char *funcname, const char *filename, int n, in
 	exit(EXIT_FAILURE);
 	return INLA_OK;
 }
+
 int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME)
 {
 	char *tag = (FILENAME ? GMRFLib_strdup(FILENAME) : GMRFLib_strdup("FILENAME"));
@@ -10338,6 +10477,7 @@ int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, 
 
 	return INLA_OK;
 }
+
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file)
 {
 	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
@@ -10351,139 +10491,169 @@ int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * fil
 	}
 	return INLA_OK;
 }
+
 int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS", "FROM.THETA", "TO.THETA", "HYPERID", default_prior, args);
 }
+
 int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "MIX.PRIOR", "MIX.PARAMETERS", "MIX.FROM.THETA", "MIX.TO.THETA",
 				       "MIX.HYPERID", default_prior, args);
 }
+
 int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR", "LINK.PARAMETERS", "LINK.FROM.THETA", "LINK.TO.THETA",
 				       "LINK.HYPERID", default_prior, args);
 }
+
 int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR0", "LINK.PARAMETERS0", "LINK.FROM.THETA0", "LINK.TO.THETA0",
 				       "LINK.HYPERID0", default_prior, args);
 }
+
 int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR1", "LINK.PARAMETERS1", "LINK.FROM.THETA1", "LINK.TO.THETA1",
 				       "LINK.HYPERID1", default_prior, args);
 }
+
 int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR2", "LINK.PARAMETERS2", "LINK.FROM.THETA2", "LINK.TO.THETA2",
 				       "LINK.HYPERID2", default_prior, args);
 }
+
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR", "GROUP.PARAMETERS", "GROUP.FROM.THETA", "GROUP.TO.THETA",
 				       "GROUP.HYPERID", default_prior, args);
 }
+
 int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR0", "GROUP.PARAMETERS0", "GROUP.FROM.THETA0",
 				       "GROUP.TO.THETA0", "GROUP.HYPERID0", default_prior, args);
 }
+
 int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR1", "GROUP.PARAMETERS1", "GROUP.FROM.THETA1",
 				       "GROUP.TO.THETA1", "GROUP.HYPERID1", default_prior, args);
 }
+
 int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR2", "GROUP.PARAMETERS2", "GROUP.FROM.THETA2",
 				       "GROUP.TO.THETA2", "GROUP.HYPERID2", default_prior, args);
 }
+
 int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR3", "GROUP.PARAMETERS3", "GROUP.FROM.THETA3",
 				       "GROUP.TO.THETA3", "GROUP.HYPERID3", default_prior, args);
 }
+
 int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR4", "GROUP.PARAMETERS4", "GROUP.FROM.THETA4",
 				       "GROUP.TO.THETA4", "GROUP.HYPERID4", default_prior, args);
 }
+
 int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR5", "GROUP.PARAMETERS5", "GROUP.FROM.THETA5",
 				       "GROUP.TO.THETA5", "GROUP.HYPERID5", default_prior, args);
 }
+
 int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR6", "GROUP.PARAMETERS6", "GROUP.FROM.THETA6",
 				       "GROUP.TO.THETA6", "GROUP.HYPERID6", default_prior, args);
 }
+
 int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR7", "GROUP.PARAMETERS7", "GROUP.FROM.THETA7",
 				       "GROUP.TO.THETA7", "GROUP.HYPERID7", default_prior, args);
 }
+
 int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR8", "GROUP.PARAMETERS8", "GROUP.FROM.THETA8",
 				       "GROUP.TO.THETA8", "GROUP.HYPERID8", default_prior, args);
 }
+
 int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR9", "GROUP.PARAMETERS9", "GROUP.FROM.THETA9",
 				       "GROUP.TO.THETA9", "GROUP.HYPERID9", default_prior, args);
 }
+
 int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR10", "GROUP.PARAMETERS10", "GROUP.FROM.THETA10",
 				       "GROUP.TO.THETA10", "GROUP.HYPERID10", default_prior, args);
 }
+
 int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 0, args);
 }
+
 int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 1, args);
 }
+
 int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 2, args);
 }
+
 int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 3, args);
 }
+
 int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 4, args);
 }
+
 int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 5, args);
 }
+
 int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 6, args);
 }
+
 int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 7, args);
 }
+
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 8, args);
 }
+
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 9, args);
 }
+
 int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 10, args);
 }
+
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args)
 {
 	int val;
@@ -10505,6 +10675,7 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 
 	return val;
 }
+
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
 			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior,
 			    void *UNUSED(args))
@@ -11384,6 +11555,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 	}
 	return INLA_OK;
 }
+
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 {
 	/*
@@ -11903,6 +12075,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	iniparser_freedict(ini);
 	return mb;
 }
+
 int inla_tolower(char *string)
 {
 	if (string) {
@@ -11913,6 +12086,7 @@ int inla_tolower(char *string)
 	}
 	return GMRFLib_SUCCESS;
 }
+
 int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -12073,6 +12247,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+
 int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -12172,6 +12347,7 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+
 int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 {
 	/*
@@ -12319,6 +12495,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	inla_parse_output(mb, ini, sec, &(mb->output));
 	return INLA_OK;
 }
+
 int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -12511,6 +12688,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+
 int inla_trim_family(char *family)
 {
 	size_t i, j = 0;
@@ -12525,10 +12703,12 @@ int inla_trim_family(char *family)
 	family[j] = '\0';
 	return GMRFLib_SUCCESS;
 }
+
 char *inla_make_tag(const char *string, int ds)
 {
 	return (inla_make_tag2(string, ds, NULL));
 }
+
 char *inla_make_tag2(const char *string, int ds, const char *estr)
 {
 	char *res;
@@ -12541,6 +12721,7 @@ char *inla_make_tag2(const char *string, int ds, const char *estr)
 
 	return res;
 }
+
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -18529,6 +18710,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+
 GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 {
 	/*
@@ -18569,6 +18751,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	Free(x);
 	return c;
 }
+
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr)
 {
 	/*
@@ -18633,6 +18816,7 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * 
 
 	return c;
 }
+
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr)
 {
 	/*
@@ -26200,10 +26384,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 #undef _SetInitial
 	return INLA_OK;
 }
+
 double iid_mfunc(int idx, void *UNUSED(arg))
 {
 	return 1.0 + idx;
 }
+
 double Qfunc_copy_part00(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -26219,6 +26405,7 @@ double Qfunc_copy_part00(int i, int j, double *UNUSED(values), void *arg)
 		return a->Qfunc(i, j, NULL, a->Qfunc_arg);
 	}
 }
+
 double Qfunc_copy_part01(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -26230,6 +26417,7 @@ double Qfunc_copy_part01(int i, int j, double *UNUSED(values), void *arg)
 
 	return -a->precision * beta;
 }
+
 double Qfunc_copy_part11(int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
@@ -26240,6 +26428,7 @@ double Qfunc_copy_part11(int i, int j, double *UNUSED(values), void *arg)
 
 	return a->precision;
 }
+
 int inla_add_copyof(inla_tp * mb)
 {
 	int i, k, kk, kkk, debug = 0, nf = mb->nf;
@@ -26370,6 +26559,7 @@ int inla_add_copyof(inla_tp * mb)
 	}
 	return 0;
 }
+
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id)
 {
 	inla_iarray_tp *ia = Calloc(1, inla_iarray_tp);
@@ -26389,6 +26579,7 @@ inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id)
 
 	return ia;
 }
+
 int find_f(inla_tp * mb, inla_component_tp id)
 {
 	int i;
@@ -26399,6 +26590,7 @@ int find_f(inla_tp * mb, inla_component_tp id)
 	}
 	return -1;
 }
+
 int find_tag(inla_tp * mb, const char *name)
 {
 	int i;
@@ -26408,6 +26600,7 @@ int find_tag(inla_tp * mb, const char *name)
 	}
 	return -1;
 }
+
 int count_f(inla_tp * mb, inla_component_tp id)
 {
 	int i, n = 0;
@@ -26418,6 +26611,7 @@ int count_f(inla_tp * mb, inla_component_tp id)
 	}
 	return n;
 }
+
 int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -26485,6 +26679,7 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	mb->nlinear++;
 	return INLA_OK;
 }
+
 int inla_setup_ai_par_default(inla_tp * mb)
 {
 	/*
@@ -26567,6 +26762,7 @@ int inla_setup_ai_par_default(inla_tp * mb)
 
 	return INLA_OK;
 }
+
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
 {
 	/*
@@ -27040,6 +27236,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 
 	return INLA_OK;
 }
+
 int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
 {
 	/*
@@ -27161,6 +27358,7 @@ int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_
 
 	return INLA_OK;
 }
+
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -27227,6 +27425,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+
 int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec)
 {
 	/*
@@ -27256,6 +27455,7 @@ int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec)
 
 	return INLA_OK;
 }
+
 double inla_ar1_cyclic_logdet(int N_orig, double phi)
 {
 	double logdet = 0.0;
