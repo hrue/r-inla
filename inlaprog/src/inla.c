@@ -3239,7 +3239,6 @@ double Qfunc_iid_wishartk(int node, int nnode, double *UNUSED(values), void *arg
 	n_theta = a->ntheta;
 
 	GMRFLib_CACHE_SET_ID(id);
-	assert(a->hold);
 	hold = a->hold[id];
 	if (hold == NULL) {
 		a->hold[id] = Calloc(1, inla_wishartk_hold_tp);
