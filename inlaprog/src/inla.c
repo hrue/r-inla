@@ -4540,12 +4540,10 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 	xx = Calloc(n_x, double);
 	Memcpy(xx, x, n_x * sizeof(double));
 
-	/*
-	 * for the numerical derivatives: compute the `population' variance: Det(Sigma), and set f = (Det(Sigma))^1/dim. 
-	 */
 	h = 0.005;
 	J = gsl_matrix_calloc(n_x, n_x);
-	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
+	// do not need for h=0 as the weight is zero
+	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 2.0 / 3.0, -1.0 / 12.0 };
 	double hh[] = { -2.0 * h, -h, h, 2.0 * h };
 
 	gsl_matrix_set_zero(QQ);
@@ -4577,7 +4575,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 		assert(k == n_x);
 	}
 
-	gsl_permutation *p;
+	gsl_permutation *p = NULL;
 	int signum;
 	double logdet;
 
@@ -4590,6 +4588,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 		P(logdet);
 	}
 
+	Free(xx);
 	gsl_matrix_free(R);
 	gsl_matrix_free(Q);
 	gsl_matrix_free(QQ);
