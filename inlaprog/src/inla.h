@@ -63,6 +63,9 @@ __BEGIN_DECLS
 #define INLA_REAL_SMALL GMRFLib_eps2()
 #define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
 
+#define INLA_SPECIAL_NUMBER (1048576.0) // 2^20
+#define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
+
 /*
  * The scaling of the critical 'alpha' parameter. If this value change, it must also be changed in models.R
  *

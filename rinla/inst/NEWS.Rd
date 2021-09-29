@@ -4,6 +4,19 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.09.29-1}{
+   \subsection{BUG FIXES}{
+     \itemize{
+       \item Better special number
+     }
+   }
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item New option to \code{inla.iidkd.sample}
+     }
+   }
+ }
+
 \section{CHANGES IN VERSION 21.09.29}{
    \subsection{NEW EXPERIMENTAL FEATURES}{
      \itemize{
