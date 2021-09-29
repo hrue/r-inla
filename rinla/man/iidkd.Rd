@@ -12,15 +12,17 @@
  using more interpretable parameters
 }
 \usage{
-inla.iidkd.sample(n = 10^4, result, name)
+inla.iidkd.sample(n = 10^4, result, name, return.cov = FALSE)
 }
 
 \arguments{
-\item{n}{Number of samples to use}
-\item{result}{An object of class \code{inla}, ie a result of a call to \code{inla()}}
-\item{name}{The name of the \code{iidkd} component}
+\item{n}{Integer Number of samples to use}
+\item{result}{inla-object An object of class \code{inla}, ie a result of a call to \code{inla()}}
+\item{name}{Character The name of the \code{iidkd} component}
+\item{return.cov}{Logical Return samples of the covariance matrix instead of
+      stdev/correlation matrix described below?}
 }
-\value{A list of sampled matrices,  with correlations on the off-diagonal and
+\value{A list of sampled matrices, with (default) correlations on the off-diagonal and
 standard-deviations on the diagonal}
 \seealso{\code{inla.doc("iidkd")}}
 \author{Havard Rue \email{hrue@r-inla.org}}

@@ -10,20 +10,22 @@
 ## ! using more interpretable parameters
 ## !}
 ## !\usage{
-## !inla.iidkd.sample(n = 10^4, result, name)
+## !inla.iidkd.sample(n = 10^4, result, name, return.cov = FALSE)
 ## !}
 ## !
 ## !\arguments{
-## !\item{n}{Number of samples to use}
-## !\item{result}{An object of class \code{inla}, ie a result of a call to \code{inla()}}
-## !\item{name}{The name of the \code{iidkd} component}
+## !\item{n}{Integer Number of samples to use}
+## !\item{result}{inla-object An object of class \code{inla}, ie a result of a call to \code{inla()}}
+## !\item{name}{Character The name of the \code{iidkd} component}
+## !\item{return.cov}{Logical Return samples of the covariance matrix instead of
+## !      stdev/correlation matrix described below?}
 ## !}
-## !\value{A list of sampled matrices,  with correlations on the off-diagonal and
+## !\value{A list of sampled matrices, with (default) correlations on the off-diagonal and
 ## !standard-deviations on the diagonal}
 ## !\seealso{\code{inla.doc("iidkd")}}
 ## !\author{Havard Rue \email{hrue@r-inla.org}}
 
-`inla.iidkd.sample` <- function(n = 10^4, result, name) 
+`inla.iidkd.sample` <- function(n = 10^4, result, name, return.cov = FALSE) 
 {
     stopifnot(!missing(result))
     stopifnot(class(result) == "inla")
@@ -50,20 +52,26 @@
         stop(paste0("Cannot find correct dimension for: ", name))
     }
 
-    theta2matrix <- function(i, thetas, dim, dim2) {
+    theta2matrix <- function(i, thetas, dim, dim2, ret.cov) {
         theta <- thetas[i, ]
         L <- matrix(0, dim, dim)
         diag(L) <- exp(theta[1:dim])
         L[lower.tri(L)] <- theta[dim + 1:dim2]
         S <- solve(L %*% t(L))
-        sd <- sqrt(diag(S))
-        iSigma <- diag(1/sd)
-        Cor <- iSigma %*% S %*% iSigma
-        diag(Cor) <- sd
-        return(Cor)
+        S <- (S + t(S))/2.0 ## force matrix to be symmetric
+        if (ret.cov) {
+            return (S)
+        } else {
+            sd <- sqrt(diag(S))
+            iSigma <- diag(1/sd)
+            Cor <- iSigma %*% S %*% iSigma
+            diag(Cor) <- sd
+            return(Cor)
+        }
     }
     xx <- inla.hyperpar.sample(n, result, intern = TRUE)[, idx, drop = FALSE]
-    res <- lapply(1:n, theta2matrix, dim = k, dim2 = k*(k-1)/2, thetas = xx)
+    res <- lapply(1:n, theta2matrix, dim = k, dim2 = k*(k-1)/2, thetas = xx,
+                  ret.cov = return.cov)
 
     return (res)
 }

@@ -10674,7 +10674,6 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			    void *UNUSED(args))
 {
 	char *secname = NULL, *param = NULL;
-	double wk_special = 2468.8642;
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	prior->name = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, prior_tag), GMRFLib_strdup(default_prior)));
 
@@ -11071,7 +11070,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11097,7 +11096,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11123,7 +11122,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11149,7 +11148,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11175,7 +11174,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11201,7 +11200,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11227,7 +11226,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11253,7 +11252,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -11279,7 +11278,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
 		for (int j = 1; j < nxx; j++) {
-			if (xx[j] == wk_special) {
+			if (INLA_IS_SPECIAL(xx[j])) {
 				if (j < idim + 1) {
 					xx[j] = 1.0;
 				} else {
@@ -23753,7 +23752,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_IIDKD:
 	{
-		double special = 2468.8642;		       /* fix this better later... */
 		int dim = mb->f_order[mb->nf];
 		int n_theta = mb->f_ntheta[mb->nf];
 
@@ -23775,13 +23773,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			char *init = NULL;
 			GMRFLib_sprintf(&init, "INITIAL%1d", k);
 			if (k < dim) {
-				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), special);
-				if (tmp == special) {
+				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), INLA_SPECIAL_NUMBER);
+				if (INLA_IS_SPECIAL(tmp)) {
 					tmp = G.log_prec_initial / 2.0;
 				}
 			} else {
-				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), special);
-				if (tmp == special) {
+				tmp = iniparser_getdouble(ini, inla_string_join(secname, init), INLA_SPECIAL_NUMBER);
+				if (INLA_IS_SPECIAL(tmp)) {
 					tmp = 0.0;
 				}
 			}
