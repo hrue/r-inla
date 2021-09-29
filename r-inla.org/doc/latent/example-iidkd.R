@@ -29,7 +29,7 @@ r <- inla(y ~ f(i, model = "iidkd", order = m, n=N,
          ## fix precision as we have exact observations
          control.family = list(hyper = list(
                                    prec = list(initial = 15, fixed = TRUE))), 
-         verbose = TRUE)
+         verbose = FALSE)
 
 ## this is how the internal parameters are defined
 L <- t(chol(solve(Sigma)))
@@ -42,25 +42,12 @@ round(dig = 3, cbind(true = c(diag(L), L[lower.tri(L)]),
                      mle = c(diag(LL), LL[lower.tri(LL)]),
                      inla = r$mode$theta))
 
-## this is how to compute stdev and correlations from the internal parametes.
-## these ones are more interpretable. one have to know where the parameters
-## are in the list though, but here it is easy...
+## this gives a list of sampled matrices (stdev's and correlations)
+xx <- inla.iidkd.sample(10^4, r, "i")
+## compute the mean
+qq <- matrix(rowMeans(matrix(unlist(xx), nrow = m^2)), m, m)
 
-convert.internal <- function(theta, dim, offset = 0)
-{
-    ntheta.off.diag <- dim*(dim-1)/2L
-    L <- matrix(0, dim, dim)
-    diag(L) <- exp(theta[offset + 1:dim])
-    L[lower.tri(L)] <- theta[offset + dim + 1:ntheta.off.diag]
-    S <- solve(L %*% t(L))
-    iSigma <- 1/sqrt(diag(S))
-    Cor <- diag(iSigma) %*% S %*% diag(iSigma)
-    return(c(sqrt(diag(S)), Cor[lower.tri(Cor)]))
-}
-
-xx <- inla.hyperpar.sample(10000, r)
-qq <- rowMeans(apply(xx, 1, convert.internal, dim = m))
 iSigma <- 1/sqrt(diag(Sigma))
 Cor <- diag(iSigma) %*% Sigma %*% diag(iSigma)
-round(dig = 3, cbind(inla = c(qq),
+round(dig = 3, cbind(inla = c(diag(qq), qq[lower.tri(qq)]), 
                      true = c(sqrt(diag(Sigma)), Cor[lower.tri(Cor)])))

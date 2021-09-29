@@ -102,6 +102,7 @@ Collate:
     'hyper.R'
     'hyperpar.R'
     'idx.R'
+    'iidkd.R'
     'inla.R'
     'inlaEnv.R'
     'interpret.formula.R'
