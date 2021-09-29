@@ -1804,7 +1804,7 @@
 
                 n.div.by <- inla.model.properties(gp$random.spec[[r]]$model, "latent")$n.div.by
                 if (!is.null(n.div.by)) {
-                    if (!inla.divisible(n, by = n.div.by)) {
+                    if (!inla.one.of(gp$random.spec[[r]]$model, "iidkd") && !inla.divisible(n, by = n.div.by)) {
                         stop(paste("Model [", gp$random.spec[[r]]$model, "] require `n'", n, "divisible by", n.div.by))
                     }
                 }
@@ -1823,6 +1823,13 @@
                 if (inla.model.properties(gp$random.spec[[r]]$model, "latent")$augmented) {
                     fac <- inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor
                     con <- inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.constr
+
+                    ## this is a very special case that we need to handle here, as 'aug.constr'
+                    ## is defined for all possible model, and we need to restrict it to what we
+                    ## actually have.
+                    if (inla.one.of(gp$random.spec[[r]]$model, "iidkd")) {
+                        con <- con[1:gp$random.spec[[r]]$order]
+                    }
 
                     if (fac > 1) {
                         if ((max(con) > fac || min(con) < 1) || is.null(con)) {

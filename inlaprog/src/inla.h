@@ -77,6 +77,10 @@ __BEGIN_DECLS
  * YES, CHANGE IT MANUALLY!
  */
 #define INLA_QKUMAR_PREC_SCALE 0.10
+#define INLA_WISHARTK_KMAX (10)
+#define INLA_WISHARTK_KMIN  (2)
+#define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
+#define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
 
 /* 
  *
@@ -182,7 +186,7 @@ typedef struct {
 	 */
 	double *nb;
 	double *p_scale;
-	
+
 	/*
 	 * y ~ BinomialRE()
 	 */
@@ -615,6 +619,7 @@ typedef enum {
 	F_AR1C,
 	F_DMATERN,
 	F_INTSLOPE,
+	F_IIDKD,
 	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
 	P_DIRICHLET,
@@ -655,6 +660,15 @@ typedef enum {
 	P_WISHART5D,
 	P_PC_SN,
 	P_SN_INTERCEPT,
+	P_WISHARTK_2D,
+	P_WISHARTK_3D,
+	P_WISHARTK_4D,
+	P_WISHARTK_5D,
+	P_WISHARTK_6D,
+	P_WISHARTK_7D,
+	P_WISHARTK_8D,
+	P_WISHARTK_9D,
+	P_WISHARTK_10D,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1284,6 +1298,23 @@ typedef struct {
 } inla_iid_wishart_arg_tp;
 
 typedef struct {
+	double *vec;
+	gsl_matrix *L;
+	gsl_matrix *Q;
+} inla_wishartk_hold_tp;
+
+typedef struct {
+	int n;						       /* n=k*m */
+	int N;
+	int dim;					       /* dim = order */
+	int ntheta;					       /* k*(k+1)/2 */
+	double ***theta;
+	double **vec;
+
+	inla_wishartk_hold_tp **hold;
+} inla_iid_wishartk_arg_tp;
+
+typedef struct {
 	int n;
 	int m;
 
@@ -1655,6 +1686,16 @@ double priorfunc_wishart3d(double *x, double *parameters);
 double priorfunc_wishart4d(double *x, double *parameters);
 double priorfunc_wishart5d(double *x, double *parameters);
 double priorfunc_wishart_generic(int idim, double *x, double *parameters);
+double priorfunc_wishartk_2d(double *x, double *parameters);
+double priorfunc_wishartk_3d(double *x, double *parameters);
+double priorfunc_wishartk_4d(double *x, double *parameters);
+double priorfunc_wishartk_5d(double *x, double *parameters);
+double priorfunc_wishartk_6d(double *x, double *parameters);
+double priorfunc_wishartk_7d(double *x, double *parameters);
+double priorfunc_wishartk_8d(double *x, double *parameters);
+double priorfunc_wishartk_9d(double *x, double *parameters);
+double priorfunc_wishartk_10d(double *x, double *parameters);
+double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
 double rgeneric_mfunc(int idx, void *arg);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
@@ -1711,6 +1752,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 int inla_make_iid2d_graph(GMRFLib_graph_tp ** graph, inla_iid2d_arg_tp * arg);
 int inla_make_iid3d_graph(GMRFLib_graph_tp ** graph, inla_iid3d_arg_tp * arg);
 int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg);
+int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg);
 int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * arg);
 int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg);
 int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
@@ -1725,8 +1767,8 @@ int inla_ncpu(void);
 int inla_output(inla_tp * mb);
 int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep,
-		       Output_tp * output, const char *sdir, int return_marginals, map_func_tp * func, void *func_arg, GMRFLib_transform_array_func_tp ** tfunc,
-		       const char *tag, const char *modelname, int verbose);
+		       Output_tp * output, const char *sdir, int return_marginals, map_func_tp * func, void *func_arg,
+		       GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
@@ -1813,6 +1855,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
+int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 int loglikelihood_agaussian(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_beta(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -1855,7 +1898,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

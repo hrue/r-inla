@@ -1176,9 +1176,9 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	 */
 
 	int i, n_points = 30, np, np_max, nf, minp = 3;
-	double mean, stdev, *x_points = NULL, 
-		*log_dens = NULL, m1, m2, sum_w, *ptr = NULL, 
-		f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
+	double mean, stdev, *x_points = NULL,
+	    *log_dens = NULL, m1, m2, sum_w, *ptr = NULL,
+	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
 
 	GMRFLib_ENTER_ROUTINE;
 	nf = sizeof(f) / sizeof(double);
@@ -1231,12 +1231,12 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	np_tmp = np;
 	Memcpy(x_points_tmp, x_points, np * sizeof(double));
 	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
-	if (np_tmp >= minp) {			       /* then its ok */
+	if (np_tmp >= minp) {				       /* then its ok */
 		np = np_tmp;
 		Memcpy(x_points, x_points_tmp, np * sizeof(double));
 	} else {
 		GMRFLib_unique_relative(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 3.0));
-		if (np_tmp >= minp) {		       /* then its ok */
+		if (np_tmp >= minp) {			       /* then its ok */
 			np = np_tmp;
 			Memcpy(x_points, x_points_tmp, np * sizeof(double));
 		}

@@ -4764,6 +4764,742 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `iidkd'.}{Number of hyperparmeters are 55.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`29101'}
+							\item{name = }{`theta1'}
+							\item{short.name = }{`theta1'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`wishartkd'}
+							\item{param = }{`100 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642 2468.8642'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`29102'}
+							\item{name = }{`theta2'}
+							\item{short.name = }{`theta2'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`29103'}
+							\item{name = }{`theta3'}
+							\item{short.name = }{`theta3'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{hyperid = }{`29104'}
+							\item{name = }{`theta4'}
+							\item{short.name = }{`theta4'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{hyperid = }{`29105'}
+							\item{name = }{`theta5'}
+							\item{short.name = }{`theta5'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{hyperid = }{`29106'}
+							\item{name = }{`theta6'}
+							\item{short.name = }{`theta6'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{hyperid = }{`29107'}
+							\item{name = }{`theta7'}
+							\item{short.name = }{`theta7'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{hyperid = }{`29108'}
+							\item{name = }{`theta8'}
+							\item{short.name = }{`theta8'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{hyperid = }{`29109'}
+							\item{name = }{`theta9'}
+							\item{short.name = }{`theta9'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{hyperid = }{`29110'}
+							\item{name = }{`theta10'}
+							\item{short.name = }{`theta10'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`29111'}
+							\item{name = }{`theta11'}
+							\item{short.name = }{`theta11'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta12'}{
+							 \describe{
+							\item{hyperid = }{`29112'}
+							\item{name = }{`theta12'}
+							\item{short.name = }{`theta12'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta13'}{
+							 \describe{
+							\item{hyperid = }{`29113'}
+							\item{name = }{`theta13'}
+							\item{short.name = }{`theta13'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta14'}{
+							 \describe{
+							\item{hyperid = }{`29114'}
+							\item{name = }{`theta14'}
+							\item{short.name = }{`theta14'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta15'}{
+							 \describe{
+							\item{hyperid = }{`29115'}
+							\item{name = }{`theta15'}
+							\item{short.name = }{`theta15'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta16'}{
+							 \describe{
+							\item{hyperid = }{`29116'}
+							\item{name = }{`theta16'}
+							\item{short.name = }{`theta16'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta17'}{
+							 \describe{
+							\item{hyperid = }{`29117'}
+							\item{name = }{`theta17'}
+							\item{short.name = }{`theta17'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta18'}{
+							 \describe{
+							\item{hyperid = }{`29118'}
+							\item{name = }{`theta18'}
+							\item{short.name = }{`theta18'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta19'}{
+							 \describe{
+							\item{hyperid = }{`29119'}
+							\item{name = }{`theta19'}
+							\item{short.name = }{`theta19'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta20'}{
+							 \describe{
+							\item{hyperid = }{`29120'}
+							\item{name = }{`theta20'}
+							\item{short.name = }{`theta20'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta21'}{
+							 \describe{
+							\item{hyperid = }{`29121'}
+							\item{name = }{`theta21'}
+							\item{short.name = }{`theta21'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta22'}{
+							 \describe{
+							\item{hyperid = }{`29122'}
+							\item{name = }{`theta22'}
+							\item{short.name = }{`theta22'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta23'}{
+							 \describe{
+							\item{hyperid = }{`29123'}
+							\item{name = }{`theta23'}
+							\item{short.name = }{`theta23'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta24'}{
+							 \describe{
+							\item{hyperid = }{`29124'}
+							\item{name = }{`theta24'}
+							\item{short.name = }{`theta24'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta25'}{
+							 \describe{
+							\item{hyperid = }{`29125'}
+							\item{name = }{`theta25'}
+							\item{short.name = }{`theta25'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta26'}{
+							 \describe{
+							\item{hyperid = }{`29126'}
+							\item{name = }{`theta26'}
+							\item{short.name = }{`theta26'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta27'}{
+							 \describe{
+							\item{hyperid = }{`29127'}
+							\item{name = }{`theta27'}
+							\item{short.name = }{`theta27'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta28'}{
+							 \describe{
+							\item{hyperid = }{`29128'}
+							\item{name = }{`theta28'}
+							\item{short.name = }{`theta28'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta29'}{
+							 \describe{
+							\item{hyperid = }{`29129'}
+							\item{name = }{`theta29'}
+							\item{short.name = }{`theta29'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta30'}{
+							 \describe{
+							\item{hyperid = }{`29130'}
+							\item{name = }{`theta30'}
+							\item{short.name = }{`theta30'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta31'}{
+							 \describe{
+							\item{hyperid = }{`29131'}
+							\item{name = }{`theta31'}
+							\item{short.name = }{`theta31'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta32'}{
+							 \describe{
+							\item{hyperid = }{`29132'}
+							\item{name = }{`theta32'}
+							\item{short.name = }{`theta32'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta33'}{
+							 \describe{
+							\item{hyperid = }{`29133'}
+							\item{name = }{`theta33'}
+							\item{short.name = }{`theta33'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta34'}{
+							 \describe{
+							\item{hyperid = }{`29134'}
+							\item{name = }{`theta34'}
+							\item{short.name = }{`theta34'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta35'}{
+							 \describe{
+							\item{hyperid = }{`29135'}
+							\item{name = }{`theta35'}
+							\item{short.name = }{`theta35'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta36'}{
+							 \describe{
+							\item{hyperid = }{`29136'}
+							\item{name = }{`theta36'}
+							\item{short.name = }{`theta36'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta37'}{
+							 \describe{
+							\item{hyperid = }{`29137'}
+							\item{name = }{`theta37'}
+							\item{short.name = }{`theta37'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta38'}{
+							 \describe{
+							\item{hyperid = }{`29138'}
+							\item{name = }{`theta38'}
+							\item{short.name = }{`theta38'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta39'}{
+							 \describe{
+							\item{hyperid = }{`29139'}
+							\item{name = }{`theta39'}
+							\item{short.name = }{`theta39'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta40'}{
+							 \describe{
+							\item{hyperid = }{`29140'}
+							\item{name = }{`theta40'}
+							\item{short.name = }{`theta40'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta41'}{
+							 \describe{
+							\item{hyperid = }{`29141'}
+							\item{name = }{`theta41'}
+							\item{short.name = }{`theta41'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta42'}{
+							 \describe{
+							\item{hyperid = }{`29142'}
+							\item{name = }{`theta42'}
+							\item{short.name = }{`theta42'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta43'}{
+							 \describe{
+							\item{hyperid = }{`29143'}
+							\item{name = }{`theta43'}
+							\item{short.name = }{`theta43'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta44'}{
+							 \describe{
+							\item{hyperid = }{`29144'}
+							\item{name = }{`theta44'}
+							\item{short.name = }{`theta44'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta45'}{
+							 \describe{
+							\item{hyperid = }{`29145'}
+							\item{name = }{`theta45'}
+							\item{short.name = }{`theta45'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta46'}{
+							 \describe{
+							\item{hyperid = }{`29146'}
+							\item{name = }{`theta46'}
+							\item{short.name = }{`theta46'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta47'}{
+							 \describe{
+							\item{hyperid = }{`29147'}
+							\item{name = }{`theta47'}
+							\item{short.name = }{`theta47'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta48'}{
+							 \describe{
+							\item{hyperid = }{`29148'}
+							\item{name = }{`theta48'}
+							\item{short.name = }{`theta48'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta49'}{
+							 \describe{
+							\item{hyperid = }{`29149'}
+							\item{name = }{`theta49'}
+							\item{short.name = }{`theta49'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta50'}{
+							 \describe{
+							\item{hyperid = }{`29150'}
+							\item{name = }{`theta50'}
+							\item{short.name = }{`theta50'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta51'}{
+							 \describe{
+							\item{hyperid = }{`29151'}
+							\item{name = }{`theta51'}
+							\item{short.name = }{`theta51'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta52'}{
+							 \describe{
+							\item{hyperid = }{`29152'}
+							\item{name = }{`theta52'}
+							\item{short.name = }{`theta52'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta53'}{
+							 \describe{
+							\item{hyperid = }{`29153'}
+							\item{name = }{`theta53'}
+							\item{short.name = }{`theta53'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta54'}{
+							 \describe{
+							\item{hyperid = }{`29154'}
+							\item{name = }{`theta54'}
+							\item{short.name = }{`theta54'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta55'}{
+							 \describe{
+							\item{hyperid = }{`29155'}
+							\item{name = }{`theta55'}
+							\item{short.name = }{`theta55'}
+							\item{initial = }{`2468.8642'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Gaussian random effect in dim=k with Wishart prior'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`TRUE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`1 2 3 4 5 6 7 8 9 10'}
+								\item{n.div.by = }{`-1'}
+								\item{n.required = }{`TRUE'}
+								\item{set.default.values = }{`TRUE'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`iidkd'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `2diid'.}{Number of hyperparmeters are 3.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
@@ -9565,6 +10301,8 @@ inla.models()
 				\item{Model `pom'.}{					 Number of parameters in the prior = 0 
 				 }
 				\item{Model `jeffreystdf'.}{					 Number of parameters in the prior = 0 
+				 }
+				\item{Model `wishartkd'.}{					 Number of parameters in the prior = 56 
 				 }
 				\item{Model `expression:'.}{					 Number of parameters in the prior = -1 
 				 }

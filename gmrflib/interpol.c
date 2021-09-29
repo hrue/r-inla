@@ -48,7 +48,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	 * Return a spline interpolant for {(x,y)} 
 	 */
 	int nn = n;
-	double *xx, *yy;
+	double *xx = NULL, *yy = NULL;
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
 	Calloc_init(2 * n);

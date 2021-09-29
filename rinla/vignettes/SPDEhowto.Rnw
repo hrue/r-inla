@@ -139,6 +139,7 @@ pcprec <- list(hyper=list(theta=list(
 mf <- y ~ 0 + b0 + x + f(idx.u, model=spde) 
 res <- inla(mf, control.family=pcprec,
  data=inla.stack.data(stk.e), ## data 
+ control.compute=list(return.marginals.predictor=TRUE),
  control.predictor=list(compute=TRUE, 
   A=inla.stack.A(stk.e)))# full projector
 @ 
@@ -246,6 +247,7 @@ stk.pred <- inla.stack(tag='pred', A=list(Ap, 1), data=list(y=NA), ## response a
   effects=list(idx.u=1:spde$n.spde, data.frame(x=x0, b0=1))) ## all idx.u
 stk.full <- inla.stack(stk.e, stk.pred) ## join the data and prediction scenario
 p.res <- inla(mf, data=inla.stack.data(stk.full), ## supply the full data 
+  control.compute=list(return.marginals.predictor=TRUE),
   control.predictor=list(compute=TRUE, A=inla.stack.A(stk.full)), ## full 
   control.mode=list(theta=res$mode$theta, restart=FALSE))## use mode already found
 @ 
@@ -260,7 +262,7 @@ Collect the linear predictor PMDs to work with,
 and isualize with commands bellow
 <<ppred, tidy=FALSE, fig.width=9.9, fig.height=3.5, out.width='0.99\\textwidth', out.height='0.35\\textwidth', fig.pos='h', fig.keep='last'>>=
 ypost <- p.res$marginals.fitted.values[pred.ind]
-names(ypost) <- paste('y', seq_along(ypost), sep='_');     library(plyr) 
+names(ypost) <- paste('y', seq_along(ypost), sep='_');   
 xyplot(y~x | .id, ldply(ypost), panel='llines', xlab='y', ylab='Density')
 @ 
 

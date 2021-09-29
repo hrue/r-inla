@@ -164,7 +164,7 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 		if (arg->Q->a[0] < 0.0) {
 			P(arg->Q->a[0]);
 		}
-		assert(arg->Q->a[0] > 0.0);
+		assert(arg->Q->a[0] >= 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
 	} else {
 		int id, mem_id;

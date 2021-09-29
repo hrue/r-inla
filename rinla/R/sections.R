@@ -756,7 +756,7 @@
         rm(model) ## do not need it anymore
     }
 
-    if (inla.one.of(random.spec$model, c("ar", "fgn", "fgn2"))) {
+    if (inla.one.of(random.spec$model, c("ar", "fgn", "fgn2", "iidkd"))) {
         cat("order = ", random.spec$order, "\n", append = TRUE, sep = " ", file = file)
     }
 

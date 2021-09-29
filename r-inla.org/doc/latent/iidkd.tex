@@ -1,0 +1,137 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\def\opening\null
+\usepackage{block}
+\begin{document}
+
+\section*{Correlated random effects: \texttt{iidkd}}
+
+This model is available for dimensions $k=2$, to $10$. We describe in
+detail the case for $k=3$ as other ones are similar. This model do the
+same as models \texttt{iid2d}, \texttt{iid3d}, \texttt{iid4d},
+\texttt{iid5d}, but uses a different and more efficient parameterisation. 
+
+\subsection*{Parametrization}
+
+The $(k=3)$-dimensional Normal-Wishard model is used if one want to define
+three vectors of ``random effects'', $u$ and $v$ and $w$, say, for which
+$(u_{i}, v_{i}, w_i)$ are iid bivariate Normals
+\begin{displaymath}
+    \left(
+      \begin{array}{c}
+        u_{i}\\
+        v_{i}\\
+        w_{i}
+      \end{array}\right)
+    \sim \mathcal{N}\left(\mathbf{0}, \mathbf{W}^{-1}\right)
+\end{displaymath}
+where the  covariance matrix $\mathbf{W}^{-1}$ is parameterised as
+$\mathbf{W}=\mathbf{L}\mathbf{L}^{T}$, where
+\begin{equation}
+    \label{precision}
+    \mathbf{L} = \left(\begin{array}{ccc}
+                         \exp(\theta_1) & & \\
+                         \theta_4 & \exp(\theta_2) & \\
+                         \theta_5 & \theta_6 & \exp(\theta_3)
+      \end{array}\right)
+\end{equation}
+and $\theta_1, \theta_2, \theta_3, \theta_4, \theta_5, \theta_6$ can
+take any value. The number of hyperparameters are $k(k+1)/2$, which is
+$3$, $6$, $10$, $15$, $21$, $28$, $36$, $45$, $55$, for
+$k=2, 3, 4, 5, 6, 7, 8, 9, 10$.
+
+For these models the precision matrix $\mathbf{W}$ is Wishart
+distributed
+\begin{displaymath}
+    \mathbf{W}
+    \;\sim\;\text{Wishart}_{k}(r, \mathbf{R}^{-1}), 
+\end{displaymath}
+with density
+\begin{displaymath}
+    \pi(\mathbf{W}) = c^{-1} |\mathbf{W}|^{(r-(k+1))/2} \exp\left\{
+      -\frac{1}{2}\text{Trace}(\mathbf{W}\mathbf{R})\right\}, \quad r > k+1
+\end{displaymath}
+and
+\begin{displaymath}
+    c = 2^{(rk)/2} |\mathbf{R}|^{-r/2} \pi^{(k(k-1))/4}\prod_{j=1}^{k}
+    \Gamma((r+1-j)/2).
+\end{displaymath}
+Then,
+\begin{displaymath}
+    \text{E}(\mathbf{W}) = r\mathbf{R}^{-1}, \quad\text{and}\quad
+    \text{E}(\mathbf{W}^{-1}) = \mathbf{R}/(r-(k+1)).
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are
+$\theta_1, \theta_2, \theta_3, \theta_4, \theta_5, \theta_6$.
+
+The prior-parameters are
+\begin{displaymath}
+    (r,R_{1}, R_{2}, R_{3}, R_{4}, R_{5}, R_{6})
+\end{displaymath}
+where 
+\begin{displaymath}
+    \mathbf{R}= \left(
+      \begin{array}{ccc}
+        R_{1} & R_{4} & R_{5}\\
+        R_{4} & R_{2} & R_{6} \\
+        R_{5} & R_{6} & R_{3}
+      \end{array}\right)
+\end{displaymath}
+
+The {\tt inla} function reports posterior distribution for the
+hyperparameters $\{\theta_i\}$, and the conversion into interpretable
+quantities can be done using simulation as described below.
+
+The prior for $\theta$ is {\bf fixed} to be {\tt wishartkd}, and
+number of prior parameters required are $1 + k(k+1)/2$. By default the
+prior-parameters are
+\begin{displaymath}
+    (r=100, \underbrace{1, \ldots, 1}_{k\;\text{times}}, 0, \ldots, 0)
+\end{displaymath}
+
+
+\subsection*{Specification}
+
+The model \texttt{iidkd}
+is specified as
+\begin{verbatim}
+    y ~ f(i, model="iidkd", order=3, n = <length>) + ...
+\end{verbatim}
+where $\text{order}=k=3$, and the \texttt{iidkd} model is represented
+internally as one vector of length $n$,
+\begin{displaymath}
+    (u_{1}, u_{2} \ldots, u_{m}, v_{1}, v_{2}, \ldots, v_{m}, w_{1},
+    w_{2}, \ldots, w_{m})
+\end{displaymath}
+where $n = 3m$, and $n$ is the (required) argument in
+\texttt{f()}.
+
+For this model the argument \texttt{constr=TRUE} is interpreted as $3$
+sum-to-zero constraints
+\begin{displaymath}
+    \sum u_{i} = 0, \quad \sum v_{i} = 0 \quad\text{and}\quad \sum w_{i} = 0.
+\end{displaymath}
+
+\subsubsection*{Hyperparameter spesification and default values}
+
+(\textbf{Note:} The value ``$2468.8642$'' is just a code for ``replace
+this by the default value''. As the default value depends on
+\texttt{order}, the was the easy way out for the moment.)
+
+\input{../hyper/latent/iidkd.tex}
+
+
+\subsection*{Example}
+
+Just simulate some data and estimate the parameters back. This is for
+\texttt{order=}$4$.
+
+{\small\verbatiminput{example-iidkd.R}}
+
+\end{document}
