@@ -4,7 +4,7 @@
 ## !\alias{inla.iidkd.sample}
 ## !\alias{iidkd.sample}
 ## !
-## !\title{Provide samples from the \code{iidkd} component}
+## !\title{Provide samples from the \code{iidkd} component (experimental)}
 ## !\description{
 ## ! This function provide samples of the \code{iidkd} component 
 ## ! using more interpretable parameters
