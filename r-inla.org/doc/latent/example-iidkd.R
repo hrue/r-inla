@@ -1,3 +1,5 @@
+library(mvtnorm)
+
 n <- 300
 m <- 4
 N <- m*n
@@ -6,16 +8,15 @@ rho <- 0.8
 Sigma <- matrix(NA, m, m)
 diag(Sigma) <- (1/(1:m))^2
 for(i in 1:m) {
-    if (i+1 <= m) {
-        for (j in (i+1):m) {
-            Sigma[i, j] <- Sigma[j, i] <- rho * sqrt(Sigma[i, i]*Sigma[j, j])
+    for (j in 1:m) {
+        if (i != j) {
+            Sigma[i, j] <- rho^abs(i-j) * sqrt(Sigma[i, i] * Sigma[j, j])
         }
     }
 }
 
-library(mvtnorm)
-yy <- rmvnorm(n, sigma = Sigma)
 y <- c()
+yy <- rmvnorm(n, sigma = Sigma)
 for(i in 1:m) {
     y <- c(y, yy[, i])
 }

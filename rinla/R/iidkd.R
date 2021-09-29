@@ -30,14 +30,17 @@
     stopifnot(!missing(name))
     stopifnot(n > 0)
 
-    names <- paste0("Theta", 1:55, " for ", name)
+    k.max <- 10
+    theta.max <- (k.max * (k.max + 1L)) / 2L
+
+    names <- paste0("Theta", 1:theta.max, " for ", name)
     idx <- which(rownames(result$summary.hyperpar) %in% names)
     if (length(idx) == 0) {
         return (list())
     }
     len <- length(idx)
     k <- 0
-    for(kk in 2:10) {
+    for(kk in 2:k.max) {
         if (len == kk*(kk+1)/2) {
             k <- kk
             break
@@ -46,9 +49,6 @@
     if (k == 0) {
         stop(paste0("Cannot find correct dimension for: ", name))
     }
-    stopifnot(k > 0)
-
-    xx <- inla.hyperpar.sample(n, result, intern = TRUE)[, idx, drop = FALSE]
 
     theta2matrix <- function(i, thetas, dim, dim2) {
         theta <- thetas[i, ]
@@ -62,6 +62,8 @@
         diag(Cor) <- sd
         return(Cor)
     }
+    xx <- inla.hyperpar.sample(n, result, intern = TRUE)[, idx, drop = FALSE]
+    res <- lapply(1:n, theta2matrix, dim = k, dim2 = k*(k-1)/2, thetas = xx)
 
-    return (lapply(1:n, theta2matrix, dim = k, dim2 = k*(k-1)/2, thetas = xx))
+    return (res)
 }
