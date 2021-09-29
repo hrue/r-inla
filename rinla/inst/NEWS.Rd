@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.09.29}{
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item New latent model \code{iidkd} which use a different
+       parameterisation than \code{iid3d} and similar ones.
+     }
+   }
+ }
+
 \section{CHANGES IN VERSION 21.09.13}{
    \subsection{BUG FIXES}{
      \itemize{
