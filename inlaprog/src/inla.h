@@ -49,14 +49,13 @@ __BEGIN_DECLS
 #include "fgn.h"
 #include "stochvol.h"
 #include "quantile-regression.h"
-#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
+
+#define ONE_MINUS_EXP(_x) (-expm1(_x))				 /* 1-exp(_x) */
+#define LOG_ONE_MINUS(_x) (log1p(-(_x)))
+#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560) /* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
-#define FIFO_GET "inla-mcmc-fifo-get"
-#define FIFO_PUT "inla-mcmc-fifo-put"
-#define FIFO_GET_DATA "inla-mcmc-fifo-get-data"
-#define FIFO_PUT_DATA "inla-mcmc-fifo-put-data"
-//
+
 // just to have a big and small number to use
 #include <gsl/gsl_machine.h>
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
