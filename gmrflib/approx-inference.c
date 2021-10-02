@@ -7242,47 +7242,37 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
-	int debug = 0;
-	
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
+#define NP 15
 		int i;
-		int np = 15;
 		double *xp = NULL, *wp = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
-
-		Calloc_init(3 * np);
-		double *x_user = Calloc_get(np);
-		double *x_std = Calloc_get(np);
-		double *loglik = Calloc_get(np);
-
-		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
-		for (i = 0; i < np; i++) {
+		
+		double work[3 * NP];
+		double *x_user = work;
+		double *x_std = work + NP;
+		double *loglik = work + 2*NP;
+		
+		GMRFLib_ghq(&xp, &wp, NP);		       /* just give ptr to storage */
+		for (i = 0; i < NP; i++) {
 			x_user[i] = m + s * xp[i];
 		}
-		GMRFLib_density_user2std_n(x_std, x_user, density, np);
-		loglFunc(loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
-
-		double A = 0.0, B = 0.0, C = 0.0;
-		double s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
-
-		for (i = 0; i < np; i++) {
-			A -= wp[i] * d * loglik[i];
-			B -= wp[i] * d * loglik[i] * xp[i] * s_inv;
-			C -= wp[i] * d * loglik[i] * (SQR(xp[i]) - 1.0) * s2_inv;
-
-			if (debug) {
-				printf("[%1d] idx %1d i %1d loglik %.6f xp %.6f (A,B,C)= %.6f %.6f %.6f\n",
-				       omp_get_thread_num(), idx, i, loglik[i], xp[i], A, B, C);
-			}
+		GMRFLib_density_user2std_n(x_std, x_user, density, NP);
+		loglFunc(loglik, x_user, NP, idx, x_vec, NULL, loglFunc_arg);
+		
+		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s), tmp;
+		for (i = 0; i < NP; i++) {
+			tmp = wp[i] * d * loglik[i];
+			A -= tmp;
+			B -= tmp * xp[i] * s_inv;
+			C -= tmp * (SQR(xp[i]) - 1.0) * s2_inv;
 		}
-
 		coofs->coofs[0] = A;
 		coofs->coofs[1] = B;
 		coofs->coofs[2] = C;
-
-		Calloc_free();
+#undef NP
 		return GMRFLib_SUCCESS;
 	} else {
 		int i, k, np = GMRFLib_faster_integration_np;
