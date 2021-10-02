@@ -51,7 +51,7 @@ __BEGIN_DECLS
 #include "quantile-regression.h"
 
 #define ONE_MINUS_EXP(_x) (-expm1(_x))				 /* 1-exp(_x) */
-#define LOG_ONE_MINUS(_x) (log1p(-(_x)))
+#define LOG_ONE_MINUS(_x) (log1p(-(_x)))			 /* log(1-(_x)) */
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560) /* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
