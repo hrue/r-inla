@@ -7249,19 +7249,19 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 		double *xp = NULL, *wp = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
-		
+
 		double work[3 * NP];
 		double *x_user = work;
 		double *x_std = work + NP;
-		double *loglik = work + 2*NP;
-		
+		double *loglik = work + 2 * NP;
+
 		GMRFLib_ghq(&xp, &wp, NP);		       /* just give ptr to storage */
 		for (i = 0; i < NP; i++) {
 			x_user[i] = m + s * xp[i];
 		}
 		GMRFLib_density_user2std_n(x_std, x_user, density, NP);
 		loglFunc(loglik, x_user, NP, idx, x_vec, NULL, loglFunc_arg);
-		
+
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s), tmp;
 		for (i = 0; i < NP; i++) {
 			tmp = wp[i] * d * loglik[i];
@@ -7593,7 +7593,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	double cc_scale = SQR(1.0 / 0.95);
 
 	int niter = 1 + ai_par->vb_refinement;
-	int i, j, iter, debug = 0;					       // debug = GMRFLib_DEBUG_IF();
+	int i, j, iter, debug = 0;			       // debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	// double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
@@ -7774,7 +7774,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 				GMRFLib_printf_gsl_matrix(stdout, MM, "%.6f ");
 				GMRFLib_printf_gsl_vector(stdout, MB, "%.6f ");
 			}
-			
+
 			// hence just do inv(MM) %*% MB
 			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
