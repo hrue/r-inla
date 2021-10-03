@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.10.03}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Internal code improvement
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.09.29-1}{
    \subsection{BUG FIXES}{
      \itemize{
@@ -15,7 +23,7 @@
        \item New option to \code{inla.iidkd.sample}
      }
    }
- }
+}
 
 \section{CHANGES IN VERSION 21.09.29}{
    \subsection{NEW EXPERIMENTAL FEATURES}{
@@ -24,7 +32,7 @@
        parameterisation than \code{iid3d} and similar ones.
      }
    }
- }
+}
 
 \section{CHANGES IN VERSION 21.09.13}{
    \subsection{BUG FIXES}{

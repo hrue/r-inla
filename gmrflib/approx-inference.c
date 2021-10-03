@@ -7242,41 +7242,37 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
-
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
+#define NP 15
 		int i;
-		int np = 15;
 		double *xp = NULL, *wp = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
 
-		Calloc_init(3 * np);
-		double *x_user = Calloc_get(np);
-		double *x_std = Calloc_get(np);
-		double *loglik = Calloc_get(np);
+		double work[3 * NP];
+		double *x_user = work;
+		double *x_std = work + NP;
+		double *loglik = work + 2 * NP;
 
-		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
-		for (i = 0; i < np; i++) {
+		GMRFLib_ghq(&xp, &wp, NP);		       /* just give ptr to storage */
+		for (i = 0; i < NP; i++) {
 			x_user[i] = m + s * xp[i];
 		}
-		GMRFLib_density_user2std_n(x_std, x_user, density, np);
-		loglFunc(loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
+		GMRFLib_density_user2std_n(x_std, x_user, density, NP);
+		loglFunc(loglik, x_user, NP, idx, x_vec, NULL, loglFunc_arg);
 
-		double A = 0.0, B = 0.0, C = 0.0;
-		double s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
-
-		for (i = 0; i < np; i++) {
-			A -= wp[i] * d * loglik[i];
-			B -= wp[i] * d * loglik[i] * xp[i] * s_inv;
-			C -= wp[i] * d * loglik[i] * (SQR(xp[i]) - 1.0) * s2_inv;
+		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s), tmp;
+		for (i = 0; i < NP; i++) {
+			tmp = wp[i] * d * loglik[i];
+			A -= tmp;
+			B -= tmp * xp[i] * s_inv;
+			C -= tmp * (SQR(xp[i]) - 1.0) * s2_inv;
 		}
-
 		coofs->coofs[0] = A;
 		coofs->coofs[1] = B;
 		coofs->coofs[2] = C;
-
-		Calloc_free();
+#undef NP
 		return GMRFLib_SUCCESS;
 	} else {
 		int i, k, np = GMRFLib_faster_integration_np;
@@ -7597,7 +7593,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	double cc_scale = SQR(1.0 / 0.95);
 
 	int niter = 1 + ai_par->vb_refinement;
-	int i, j, iter;					       // debug = GMRFLib_DEBUG_IF();
+	int i, j, iter, debug = 0;			       // debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	// double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
@@ -7718,12 +7714,17 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
 			GMRFLib_vb_coofs_tp vb_coof;			\
 			GMRFLib_ai_vb_prepare(&vb_coof, i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
+			if (debug) {					\
+				printf("[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
+				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
+			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2] * cc_scale); \
 	}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
+
 		GMRFLib_preopt_update(preopt, BB, CC);
 
 		GMRFLib_Qx(tmp, x_mean, preopt->latent_graph, prior->Qfunc, prior->Qfunc_arg);
@@ -7756,12 +7757,24 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 
+		if (debug) {
+			FIXME("M");
+			GMRFLib_printf_gsl_matrix(stdout, M, "%.6f ");
+			FIXME("B");
+			GMRFLib_printf_gsl_vector(stdout, B, "%.6f ");
+		}
+
 		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
 				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0 / 3.0));
 			}
+			if (debug) {
+				GMRFLib_printf_gsl_matrix(stdout, MM, "%.6f ");
+				GMRFLib_printf_gsl_vector(stdout, MB, "%.6f ");
+			}
+
 			// hence just do inv(MM) %*% MB
 			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
