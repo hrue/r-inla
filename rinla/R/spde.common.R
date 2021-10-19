@@ -1153,13 +1153,13 @@ rbind.inla.data.stack.info <- function(...) {
         lapply(l, function(x) {
             do.call(
                 c,
-                x$names[do.call(
+                x$names[names(x$data)[do.call(
                     c,
                     lapply(
                         x$data,
                         is.factor
-                    )
-                )]
+                    ))]
+                ]
             )
         })
     for (factor.loop in seq_along(l)) {

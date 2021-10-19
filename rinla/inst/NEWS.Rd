@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.??.??}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Corrected \code{inla.stack.join} handling of factor variables that in some
+        cases converted variables to/from factors unintentionally.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.10.03}{
   \subsection{BUG FIXES}{
     \itemize{
