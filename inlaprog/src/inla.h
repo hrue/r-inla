@@ -49,20 +49,17 @@ __BEGIN_DECLS
 #include "fgn.h"
 #include "stochvol.h"
 #include "quantile-regression.h"
-
-#define ONE_MINUS_EXP(_x) (-expm1(_x))				 /* 1-exp(_x) */
-#define LOG_ONE_MINUS(_x) (log1p(-(_x)))			 /* log(1-(_x)) */
-#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560) /* -1/2 * log(2*pi) */
+#define ONE_MINUS_EXP(_x) (-expm1(_x))			       /* 1-exp(_x) */
+#define LOG_ONE_MINUS(_x) (log1p(-(_x)))		       /* log(1-(_x)) */
+#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
-
 // just to have a big and small number to use
 #include <gsl/gsl_machine.h>
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
 #define INLA_REAL_SMALL GMRFLib_eps2()
 #define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
-
-#define INLA_SPECIAL_NUMBER (1048576.0) // 2^20
+#define INLA_SPECIAL_NUMBER (1048576.0)			       // 2^20
 #define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
 
 /*
@@ -83,7 +80,6 @@ __BEGIN_DECLS
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
-
 #define INLA_LP_SCALE_MAX 52
 
 /* 
@@ -155,6 +151,7 @@ typedef enum {
 	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING,	       /* = 4 */
 	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
+
 /* 
    this is needed so we can identify each component in the model
  */
@@ -1909,7 +1906,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

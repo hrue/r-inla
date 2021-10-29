@@ -139,14 +139,14 @@ extern double R_rgeneric_cputime;
 #define OFFSET3(idx_) mb->offset[idx_]
 
 #define LINK_INIT							\
-	double *_link_covariates = NULL, lp_scale = 1.0;		\
+	double *_link_covariates = NULL;				\
 	Link_param_tp *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg[idx]; \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
 	}								\
-	assert(ds->lp_scale);						\
-	if (ds->lp_scale[idx] >= 0) {					\
+	double lp_scale = 1.0;						\
+	if (ds->lp_scale && ds->lp_scale[idx] >= 0) {					\
 		lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][GMRFLib_thread_id][0]; \
 	}
 
@@ -159,10 +159,10 @@ extern double R_rgeneric_cputime;
 	ds->predictor_invlinkfunc(lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
 #define PREDICTOR_LINK(xx_)						\
-	ds->predictor_invlinkfunc((xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+	(ds->predictor_invlinkfunc((xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)/lp_scale)
 
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
-	log(ABS(ds->predictor_invlinkfunc(xx_, MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
+	log(ABS(ds->predictor_invlinkfunc(lp_scale * (xx_), MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
 
 #define PENALTY (-100.0)				       /* wishart3d: going over limit... */
 
@@ -4725,8 +4725,6 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		*n = M->nrow * M->ncol;
 		*x = Calloc(*n, double);
 
-		P(*n);
-		
 		int i, j, k;
 		for (i = k = 0; i < M->nrow; i++) {
 			for (j = 0; j < M->ncol; j++) {
@@ -5067,13 +5065,13 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		assert(nw == mb->predictor_ndata);
 	}
 
-	double *lp_scale= NULL;
+	double *lp_scale = NULL;
 	int n_lp_scale = 0;
 	inla_read_data_all(&lp_scale, &n_lp_scale, ds->lp_scale_file.name, NULL);
 	if (n_lp_scale) {
 		assert(n_lp_scale == mb->predictor_ndata);
 	}
-	for(i = 0; i < n_lp_scale; i++) {
+	for (i = 0; i < n_lp_scale; i++) {
 		lp_scale[i] = (int) (lp_scale[i] - 1.0);
 	}
 	mb->data_sections[0].lp_scale = lp_scale;
@@ -8462,9 +8460,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -27414,7 +27412,7 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 	char *secname = NULL, *ctmp = NULL, *msg = NULL;
 	double tmp = 0.0;
 	Data_section_tp *ds = &(mb->data_sections[0]);
-	
+
 	if (mb->verbose) {
 		printf("\tinla_parse_lp_scale...\n");
 	}
@@ -27429,12 +27427,13 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 
 	ds->lp_scale_in_use = Calloc(INLA_LP_SCALE_MAX, int);
 
-	for (i = 0; i < mb->predictor_ndata; i++) {
+	for (i = 0; i < INLA_LP_SCALE_MAX; i++) {
 		ds->lp_scale_in_use[i] = 0;
 	}
 	for (i = 0; i < mb->predictor_ndata; i++) {
 		if ((k = (int) ds->lp_scale[i]) >= 0) {
 			ds->lp_scale_in_use[k] = 1;
+			GMRFLib_ASSERT(k < INLA_LP_SCALE_MAX, GMRFLib_EPARAMETER);
 		}
 	}
 	if (mb->verbose) {
@@ -27461,12 +27460,12 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 	ds->lp_scale_beta = Calloc(INLA_LP_SCALE_MAX, double **);
 	ds->lp_scale_nfixed = Calloc(INLA_LP_SCALE_MAX, int);
 	ds->lp_scale_nprior = Calloc(INLA_LP_SCALE_MAX, Prior_tp);
-	
+
 	for (k = 0; k < INLA_LP_SCALE_MAX; k++) {
 		if (ds->lp_scale_in_use[k]) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
-			
+
 			Free(ctmp);
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", k);
 			ds->lp_scale_nfixed[k] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -27512,8 +27511,8 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 			ds->lp_scale_nfixed[k] = 1;
 		}
 	}
-	
-	for(i = 1; i < mb->nds; i++) {
+
+	for (i = 1; i < mb->nds; i++) {
 		mb->data_sections[i].lp_scale = mb->data_sections[0].lp_scale;
 		mb->data_sections[i].lp_scale_in_use = mb->data_sections[0].lp_scale_in_use;
 		mb->data_sections[i].lp_scale_beta = mb->data_sections[0].lp_scale_beta;
