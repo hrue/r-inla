@@ -88,7 +88,12 @@
             cat("section=[", nm, "]", "\n", sep = "")
             for (i in seq_along(h2)) {
                 h3 <- h2[[i]]
+
                 if (is.null(h3$label)) h3$label <- h3$hyperid
+                if (nm %in% "lp.scale") {
+                    h3$label <- "lp.scale"
+                }
+
                 if (is.null(h3$hyperid)) h3$hyperid <- unlist(h3$label)
                 cat("\t", "tag=[", h3$hyperid, "] component=[", unlist(h3$label),
                     "]", "\n",
@@ -103,6 +108,8 @@
                         fixed = FALSE
                     ))
                     h4cat(h3$hyper[[1]], name = "beta")
+                } else if (nm %in% "lp.scale") {
+                    h4cat(h3, name = h3$name)
                 } else {
                     for (j in seq_along(h3$hyper)) {
                         if (count.theta >= ntheta) break

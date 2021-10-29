@@ -9,6 +9,7 @@
                                     E = NULL,
                                     Ntrials = NULL,
                                     strata = NULL,
+                                    lp.scale = NULL,
                                     event = NULL,
                                     family = NULL,
                                     data.dir = NULL,
@@ -46,6 +47,21 @@
             file.remove(data.dir)
             stop(paste("Length of 'weights' has to be the same as the length of the response:", length(weights), n.data))
         }
+    }
+
+    if (!is.null(lp.scale)) {
+        if (length(lp.scale) == 1L) {
+            lp.scale <- rep(lp.scale, n.data)
+        }
+        if (length(lp.scale) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of 'lp.scale' has to be the same as the length of the response:", length(lp.scale), n.data))
+        }
+        lp.scale <- as.numeric(lp.scale)
+        lp.scale[is.na(lp.scale)] <- 0
+        lp.scale[lp.scale < 0] <- 0
+        lp.max <- max(lp.scale)
     }
 
     if (inla.one.of(family, c(
@@ -456,9 +472,18 @@
     }
     file.weights <- gsub(data.dir, "$inladatadir", file.weights, fixed = TRUE)
 
+    file.lp.scale <- inla.tempfile(tmpdir = data.dir)
+    if (!is.null(lp.scale)) {
+        inla.write.fmesher.file(as.matrix(lp.scale), filename = file.lp.scale, debug = debug)
+    } else {
+        file.create(file.lp.scale)
+    }
+    file.lp.scale <- gsub(data.dir, "$inladatadir", file.lp.scale, fixed = TRUE)
+
     file.attr <- inla.tempfile(tmpdir = data.dir)
     inla.write.fmesher.file(as.matrix(y.attr, ncol = 1), filename = file.attr, debug = debug)
     file.attr <- gsub(data.dir, "$inladatadir", file.attr, fixed = TRUE)
 
-    return(list(file.data = file.data, file.weights = file.weights, file.attr = file.attr))
+    return(list(file.data = file.data, file.weights = file.weights, file.attr = file.attr,
+                file.lp.scale = file.lp.scale))
 }

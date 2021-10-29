@@ -26,6 +26,7 @@
 ## !    verbose = FALSE,
 ## !    lincomb = NULL,
 ## !    selection = NULL,
+## !    lp.scale = NULL,
 ## !    control.compute = list(),
 ## !    control.predictor = list(),
 ## !    control.family = list(),
@@ -36,6 +37,7 @@
 ## !    control.hazard = list(),
 ## !    control.lincomb = list(),
 ## !    control.update = list(),
+## !    control.lp.scale = list(),
 ## !    control.pardiso = list(),
 ## !    only.hyperparam = FALSE,
 ## !    inla.call = inla.getOption("inla.call"),
@@ -128,6 +130,11 @@
 ## ! \item{strata}{Fixed (optional) strata indicators
 ## ! for tstrata likelihood model.}
 
+## ! \item{lp.scale}{ A vector with same length as the predictor going into the likelihood with
+## ! either \code{NA}'s or indices indexing the scaling coefficients. \code{NA} or a index less
+## ! or equal to 0 means no scaling. The priors and properties of the scaling coefficients are
+## ! set in \code{control.lp.scale} }
+
 ## ! \item{link.covariates}{A vector or matrix with covariates for link functions}
 
 ## ! \item{verbose}{
@@ -168,6 +175,8 @@
 ## ! \item{control.lincomb}{ See \code{?control.lincomb}}
 
 ## ! \item{control.update}{ See \code{?control.update}}
+
+## ! \item{control.lp.scale}{ See \code{?control.lp.scale}}
 
 ## ! \item{control.pardiso}{ See \code{?control.pardiso}}
 
@@ -388,6 +397,7 @@
                    weights = NULL,
                    Ntrials = NULL,
                    strata = NULL,
+                   lp.scale = NULL, 
                    link.covariates = NULL,
                    verbose = FALSE,
                    lincomb = NULL,
@@ -402,6 +412,7 @@
                    control.hazard = list(),
                    control.lincomb = list(),
                    control.update = list(),
+                   control.lp.scale = list(),
                    control.pardiso = list(),
                    only.hyperparam = FALSE,
                    inla.call = inla.getOption("inla.call"),
@@ -500,6 +511,7 @@
     control.hazard <- inla.check.control(control.hazard, data)
     control.lincomb <- inla.check.control(control.lincomb, data)
     control.update <- inla.check.control(control.update, data)
+    control.lp.scale <- inla.check.control(control.lp.scale, data)
     control.pardiso <- inla.check.control(control.pardiso, data)
 
     n.family <- length(family)
@@ -568,11 +580,12 @@
             contrasts = contrasts,
             quantiles = quantiles,
             E = cph$E,
-            offset = offset,
-            scale = scale,
-            weights = weights,
+            offset = if (is.null(offset)) NULL else offset[cph$data$expand..coxph], 
+            scale = if (is.null(scale)) NULL else scale[cph$data$expand..coxph], 
+            weights = if (is.null(weights)) NULL else weights[cph$data$expand..coxph], 
             Ntrials = NULL, # Not used for the poisson
             strata = NULL, # Not used for the poisson
+            lp.scale = if (is.null(lp.scale)) NULL else lp.scale[cph$data$expand..coxph], 
             lincomb = lincomb,
             selection = selection,
             verbose = verbose,
@@ -586,6 +599,7 @@
             control.hazard = control.hazard,
             control.lincomb = control.lincomb,
             control.update = control.update,
+            control.lp.scale = control.lp.scale,
             control.pardiso = control.pardiso,
             only.hyperparam = only.hyperparam,
             inla.call = inla.call,
@@ -1084,6 +1098,7 @@
     mf$control.hazard <- NULL
     mf$control.family <- NULL
     mf$control.update <- NULL
+    mf$control.lp.scale <- NULL
     mf$control.pardiso <- NULL
     mf$control.inla <- NULL
     mf$control.fixed <- NULL
@@ -1119,7 +1134,7 @@
 
     if (gp$n.random > 0) {
         rf <- mf ## for later use
-        rf$weights <- rf$scale <- rf$Ntrials <- rf$offset <- rf$E <- rf$strata <- rf$link.covariates <- NULL ## these we do not need
+        rf$weights <- rf$scale <- rf$Ntrials <- rf$offset <- rf$E <- rf$strata <- rf$lp.scale <- rf$link.covariates <- NULL ## these we do not need
         rf$formula <- gp$randf
         rf$data <- data.same.len
         rf <- eval.parent(rf)
@@ -1129,7 +1144,7 @@
 
     if (gp$n.weights > 0) {
         wf <- mf
-        wf$weights <- wf$scale <- wf$Ntrials <- wf$offset <- wf$E <- wf$strata <- wf$link.covariates <- NULL ## these we do not need
+        wf$weights <- wf$scale <- wf$Ntrials <- wf$offset <- wf$E <- wf$strata <- wf$lp.scale <- wf$link.covariates <- NULL ## these we do not need
         wf$formula <- gp$weightf
         wf$data <- data.same.len
         wf <- eval.parent(wf)
@@ -1143,7 +1158,7 @@
     ## E = model.extract(mf, "E")
     ## offset = as.vector(model.extract(mf, "offset"))
 
-    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "link.covariates")) {
+    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
         inla.eval(paste("tmp = try(eval(mf$", nm, ", data, enclos = parent.frame()), silent=TRUE)", sep = ""))
         if (!is.null(tmp) && !inherits(tmp, "try-error")) {
             inla.eval(paste("mf$", nm, " = NULL", sep = ""))
@@ -1267,7 +1282,7 @@
 
         files <- inla.create.data.file(
             y.orig = yy, mf = mf, E = E, scale = scale,
-            weights = weights, Ntrials = Ntrials, strata = strata,
+            weights = weights, Ntrials = Ntrials, strata = strata, lp.scale = lp.scale, 
             family = family[i.family], data.dir = data.dir, file = file.ini, debug = debug
         )
 
@@ -1281,7 +1296,7 @@
         ## ....then create the new section
         inla.family.section(
             file = file.ini, family = family[[i.family]], file.data = files$file.data, file.weights = files$file.weights,
-            file.attr = files$file.attr,
+            file.attr = files$file.attr, file.lp.scale = files$file.lp.scale, 
             control = cont.family[[i.family]], i.family = i.family, link.covariates = link.covariates, data.dir = data.dir
         )
     }
@@ -2028,6 +2043,31 @@
     cont.update <- inla.set.control.update.default()
     cont.update[names(control.update)] <- control.update
     inla.update.section(file = file.ini, data.dir = data.dir, contr = cont.update)
+
+    ## create lp.scale section
+    cont.lp.scale <- inla.set.control.lp.scale.default()
+    cont.lp.scale[names(control.lp.scale)] <- control.lp.scale
+    cont.lp.scale$hyper <- inla.set.hyper(
+        "lp.scale", "lp.scale",
+        cont.lp.scale$hyper, cont.lp.scale$initial,
+        cont.lp.scale$fixed, cont.lp.scale$prior, cont.lp.scale$param
+    )
+    if (!is.null(lp.scale)) {
+        all.hyper$lp.scale <- cont.lp.scale$hyper
+        lps <- as.numeric(lp.scale)
+        lps <- unique(sort(lps[!is.na(lps)]))
+        h.new <- list()
+        k <- 1
+        for(i in seq_along(all.hyper$lp.scale)) {
+            if (i %in% lps) {
+                h.new[[k]] <- all.hyper$lp.scale[[i]]
+                k <- k+1
+            }
+        }
+        all.hyper$lp.scale <- h.new
+    }
+    inla.lp.scale.section(file = file.ini, data.dir = data.dir, contr = cont.lp.scale,
+                          write.hyper = !is.null(lp.scale))
 
     ## create pardiso section
     cont.pardiso <- inla.set.control.pardiso.default()

@@ -142,8 +142,8 @@
     return(inla.data.section(...))
 }
 
-`inla.data.section` <- function(
-                                file, family, file.data, file.weights, file.attr, control, i.family = "",
+`inla.data.section` <- function(file, family, file.data, file.weights, file.attr, file.lp.scale,
+                                control, i.family = "",
                                 link.covariates = link.covariates, data.dir) {
     ## this function is called from 'inla.family.section' only.
     cat(inla.secsep(), "INLA.Data", i.family, inla.secsep(), "\n", sep = "", file = file, append = TRUE)
@@ -152,6 +152,7 @@
     cat("filename = ", file.data, "\n", sep = " ", file = file, append = TRUE)
     cat("weights = ", file.weights, "\n", sep = " ", file = file, append = TRUE)
     cat("attributes = ", file.attr, "\n", sep = " ", file = file, append = TRUE)
+    cat("lpscale = ", file.lp.scale, "\n", sep = " ", file = file, append = TRUE)
 
     cat("variant = ",
         inla.ifelse(is.null(control$variant), 0L, as.integer(control$variant)),
@@ -1082,6 +1083,13 @@
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
+`inla.lp.scale.section` <- function(file, contr, data.dir, write.hyper = TRUE) {
+    cat(inla.secsep("INLA.lp.scale"), "\n", sep = " ", file = file, append = TRUE)
+    cat("type = lp.scale\n", sep = " ", file = file, append = TRUE)
+    if (write.hyper) inla.write.hyper(contr$hyper, file, data.dir = data.dir)
+    cat("\n", sep = " ", file = file, append = TRUE)
+}
+
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
                                    cpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config) {
     cat("", sep = "", file = file, append = FALSE)
@@ -1262,6 +1270,7 @@
         }
         inla.write.boolean.field("restart", args$restart, file)
         inla.write.boolean.field("fixed", args$fixed, file)
+        cat("\n", sep = " ", file = file, append = TRUE)
     }
 }
 
@@ -1297,7 +1306,8 @@
         args$disable.gaussian.check <- FALSE
     }
     inla.write.boolean.field("DISABLE.GAUSSIAN.CHECK", args$disable.gaussian.check, file)
-}
+    cat("\n", sep = " ", file = file, append = TRUE)
+ }
 
 `inla.update.section` <- function(file, data.dir, contr) {
     if (!is.null(contr$result) && length(contr$result$mode$theta) > 0L) {
@@ -1316,6 +1326,7 @@
         inla.write.fmesher.file(x, filename = file.update)
         file.update <- gsub(data.dir, "$inladatadir", file.update, fixed = TRUE)
         cat("filename = ", file.update, "\n", sep = " ", file = file, append = TRUE)
+        cat("\n", sep = " ", file = file, append = TRUE)
     }
 }
 
@@ -1327,6 +1338,7 @@
     cat("debug = ", if (contr$debug) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("parallel.reordering = ", if (contr$parallel.reordering) 1 else 0, "\n", sep = " ", file = file, append = TRUE)
     cat("nrhs = ", contr$nrhs, "\n", sep = " ", file = file, append = TRUE)
+    cat("\n", sep = " ", file = file, append = TRUE)
 }
 
 `inla.lincomb.section` <- function(file, data.dir, contr, lincomb) {
@@ -1416,6 +1428,7 @@
 
             fnm.new <- gsub(data.dir, "$inladatadir", fnm, fixed = TRUE)
             cat("filename = ", fnm.new, "\n", sep = " ", file = file, append = TRUE)
+            cat("\n", sep = " ", file = file, append = TRUE)
         }
 
         close(fp.binary)

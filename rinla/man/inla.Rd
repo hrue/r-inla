@@ -28,6 +28,7 @@
     verbose = FALSE,
     lincomb = NULL,
     selection = NULL,
+    lp.scale = NULL,
     control.compute = list(),
     control.predictor = list(),
     control.family = list(),
@@ -38,6 +39,7 @@
     control.hazard = list(),
     control.lincomb = list(),
     control.update = list(),
+    control.lp.scale = list(),
     control.pardiso = list(),
     only.hyperparam = FALSE,
     inla.call = inla.getOption("inla.call"),
@@ -119,6 +121,10 @@
  \code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
  \item{strata}{Fixed (optional) strata indicators
  for tstrata likelihood model.}
+ \item{lp.scale}{ A vector with same length as the predictor going into the likelihood with
+ either \code{NA}'s or indices indexing the scaling coefficients. \code{NA} or a index less
+ or equal to 0 means no scaling. The priors and properties of the scaling coefficients are
+ set in \code{control.lp.scale} }
  \item{link.covariates}{A vector or matrix with covariates for link functions}
  \item{verbose}{
  Boolean indicating if the \code{inla}-program should
@@ -146,6 +152,7 @@
  \item{control.hazard}{ See \code{?control.hazard}}
  \item{control.lincomb}{ See \code{?control.lincomb}}
  \item{control.update}{ See \code{?control.update}}
+ \item{control.lp.scale}{ See \code{?control.lp.scale}}
  \item{control.pardiso}{ See \code{?control.pardiso}}
  \item{only.hyperparam}{ A boolean variable saying if
  only the hyperparameters should be computed. This option is mainly used
