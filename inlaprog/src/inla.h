@@ -80,7 +80,8 @@ __BEGIN_DECLS
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
-#define INLA_LP_SCALE_MAX 52
+
+#define INLA_LP_SCALE_MAX 100
 
 /* 
  *
