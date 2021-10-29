@@ -152,6 +152,7 @@ typedef enum {
 	MAP_INCREASING = GMRFLib_TRANSFORM_INCREASING,	       /* = 4 */
 	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
+
 /* 
    this is needed so we can identify each component in the model
  */

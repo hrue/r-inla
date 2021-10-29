@@ -139,7 +139,7 @@ extern double R_rgeneric_cputime;
 #define OFFSET3(idx_) mb->offset[idx_]
 
 #define LINK_INIT							\
-	double *_link_covariates = NULL, lp_scale = 1.0;		\
+	double *_link_covariates = NULL;				\
 	Link_param_tp *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg[idx]; \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
@@ -4725,8 +4725,6 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		*n = M->nrow * M->ncol;
 		*x = Calloc(*n, double);
 
-		P(*n);
-		
 		int i, j, k;
 		for (i = k = 0; i < M->nrow; i++) {
 			for (j = 0; j < M->ncol; j++) {
@@ -8462,9 +8460,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
