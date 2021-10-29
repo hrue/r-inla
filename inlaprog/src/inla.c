@@ -139,7 +139,7 @@ extern double R_rgeneric_cputime;
 #define OFFSET3(idx_) mb->offset[idx_]
 
 #define LINK_INIT							\
-	double *_link_covariates = NULL;				\
+	double *_link_covariates = NULL, lp_scale = 1.0;		\
 	Link_param_tp *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg[idx]; \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
@@ -4725,6 +4725,8 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 		*n = M->nrow * M->ncol;
 		*x = Calloc(*n, double);
 
+		P(*n);
+		
 		int i, j, k;
 		for (i = k = 0; i < M->nrow; i++) {
 			for (j = 0; j < M->ncol; j++) {
