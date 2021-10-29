@@ -145,9 +145,9 @@ extern double R_rgeneric_cputime;
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
 	}								\
-	double lp_scale = 1.0;						\
+	double _lp_scale = 1.0;						\
 	if (ds->lp_scale && ds->lp_scale[idx] >= 0) {					\
-		lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][GMRFLib_thread_id][0]; \
+		_lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][GMRFLib_thread_id][0]; \
 	}
 
 #define LINK_END				\
@@ -156,13 +156,13 @@ extern double R_rgeneric_cputime;
 #define PREDICTOR_LINK_EQ(_fun) (ds->predictor_invlinkfunc == (_fun))
 
 #define PREDICTOR_INVERSE_LINK(xx_)					\
-	ds->predictor_invlinkfunc(lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
+	ds->predictor_invlinkfunc(_lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
 #define PREDICTOR_LINK(xx_)						\
-	(ds->predictor_invlinkfunc((xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)/lp_scale)
+	(ds->predictor_invlinkfunc((xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates) / _lp_scale)
 
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
-	log(ABS(ds->predictor_invlinkfunc(lp_scale * (xx_), MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
+	log(ABS(_lp_scale * ds->predictor_invlinkfunc(_lp_scale * (xx_), MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
 
 #define PENALTY (-100.0)				       /* wishart3d: going over limit... */
 
@@ -8460,9 +8460,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -31083,12 +31083,14 @@ double extra(double *theta, int ntheta, void *argument)
 		}
 	}
 
-	for (int k = 0; k < INLA_LP_SCALE_MAX; k++) {
-		if (mb->data_sections[0].lp_scale_in_use[k]) {
-			if (_NOT_FIXED(data_sections[0].lp_scale_nfixed[k])) {
-				double beta = theta[count];
-				val = PRIOR_EVAL(mb->data_sections[0].lp_scale_nprior[k], &beta);
-				count++;
+	if (mb->data_sections[0].lp_scale) {
+		for (int k = 0; k < INLA_LP_SCALE_MAX; k++) {
+			if (mb->data_sections[0].lp_scale_in_use[k]) {
+				if (_NOT_FIXED(data_sections[0].lp_scale_nfixed[k])) {
+					double beta = theta[count];
+					val = PRIOR_EVAL(mb->data_sections[0].lp_scale_nprior[k], &beta);
+					count++;
+				}
 			}
 		}
 	}
