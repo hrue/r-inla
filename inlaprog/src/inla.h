@@ -86,7 +86,7 @@ __BEGIN_DECLS
 /* 
  *
  */
-    typedef enum {
+typedef enum {
 	/*
 	 * Failure time
 	 */
