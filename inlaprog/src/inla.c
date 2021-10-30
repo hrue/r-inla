@@ -12074,7 +12074,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		mb->predictor_invlinkfunc_covariates[i] = (found == 1 ? mb->data_sections[k].link_covariates :
 							   ((mb->link_fitted_values && !gsl_isnan(mb->link_fitted_values[i])) ?
 							    mb->data_sections[(int) (mb->link_fitted_values[i])].link_covariates : NULL));
-
 		if (found == 0 && mb->predictor_invlinkfunc[i] == NULL)
 			need_link++;
 	}
@@ -12646,7 +12645,7 @@ int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
 					fprintf(stderr, "link[%d] = %g (%g)\n", i, mb->link_fitted_values[i], GSL_NAN);
 		}
 	}
-
+	
 	mb->predictor_cross_sumzero = NULL;
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS_CONSTRAINT"), NULL));
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CROSS.CONSTRAINT"), filename));
@@ -32278,6 +32277,32 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	if (mb->gaussian_data) {
 		mb->ai_par->vb_enable = GMRFLib_FALSE;
 	}
+
+	mb->transform_funcs = Calloc(N + preopt->mnpred, GMRFLib_transform_array_func_tp *);
+	for (i = 0; i < preopt->mnpred; i++) {
+		/*
+		 * only where we have data (ie n or m), can be a invlinkfunc different from the identity. 
+		 */
+		if (i < mb->predictor_ndata && mb->predictor_invlinkfunc[i]) {
+			mb->transform_funcs[i] = Calloc(1, GMRFLib_transform_array_func_tp);
+			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) mb->predictor_invlinkfunc[i];
+			mb->transform_funcs[i]->arg = mb->predictor_invlinkfunc_arg[i];
+
+			double *cov = NULL;
+			if (mb->predictor_invlinkfunc_covariates && mb->predictor_invlinkfunc_covariates[i]) {
+				int ncov = mb->predictor_invlinkfunc_covariates[i]->ncol;
+				cov = Calloc(ncov, double);
+				GMRFLib_matrix_get_row(cov, i, mb->predictor_invlinkfunc_covariates[i]);
+			}
+			mb->transform_funcs[i]->cov = cov;     /* yes, we store a copy here */
+		} else {
+			mb->transform_funcs[i] = Calloc(1, GMRFLib_transform_array_func_tp);
+			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
+			mb->transform_funcs[i]->arg = NULL;
+			mb->transform_funcs[i]->cov = NULL;
+		}
+	}
+
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -32690,7 +32715,6 @@ int inla_output(inla_tp * mb)
 			if (mb->predictor_invlinkfunc && mb->predictor_user_scale) {
 				char *sdir, *newtag;
 				int offset = offsets[0];
-
 				GMRFLib_sprintf(&newtag, "%s in user scale", mb->predictor_tag);
 				GMRFLib_sprintf(&sdir, "%s-user-scale", mb->predictor_dir);
 				inla_output_detail(mb->dir, &(mb->density[offset]),
