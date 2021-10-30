@@ -80,13 +80,12 @@ __BEGIN_DECLS
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
-
 #define INLA_LP_SCALE_MAX 100
 
 /* 
  *
  */
-typedef enum {
+    typedef enum {
 	/*
 	 * Failure time
 	 */
@@ -1907,7 +1906,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

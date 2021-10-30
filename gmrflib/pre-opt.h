@@ -47,8 +47,7 @@ __BEGIN_DECLS
 /* 
  * 
  */
-
-typedef enum {
+    typedef enum {
 	GMRFLib_PREOPT_TP_F = 1,
 	GMRFLib_PREOPT_TP_BETA,
 	GMRFLib_PREOPT_TP___VOID = -1

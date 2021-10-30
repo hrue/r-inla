@@ -150,7 +150,7 @@ typedef enum {
 	/**
 	 * \brief USER_EXPERT (expert option: the density and the integration weights in the real scale)
 	 */
-	GMRFLib_AI_INT_STRATEGY_USER_EXPERT, 
+	GMRFLib_AI_INT_STRATEGY_USER_EXPERT,
 
 	/**
 	 * \brief USER_PART2 (expert option: this is part2 of 'twostage' for which the weights are the corrections to 'log_dens')
@@ -1031,7 +1031,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						  GMRFLib_preopt_tp * preopt);
 int GMRFLib_free_ai_store(GMRFLib_ai_store_tp * ai_store);
 
-int GMRFLib_ai_INLA(GMRFLib_density_tp *** density, 
+int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		    GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 		    GMRFLib_density_tp *** density_hyper,
 		    GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
@@ -1075,8 +1075,8 @@ GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_a
 size_t GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store);
 double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 			  double *x_vec, double mean_add, double var_scale);
-int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp *coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					   double *x_vec);
+int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
+			  void *loglFunc_arg, double *x_vec);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d, GMRFLib_logl_tp * loglFunc,
 				   void *loglFunc_arg, double *x_vec);
