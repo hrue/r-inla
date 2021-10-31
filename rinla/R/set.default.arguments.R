@@ -12,6 +12,7 @@
 ## Export: inla.set.control.mode.default
 ## Export: inla.set.control.hazard.default
 ## Export: inla.set.control.bgev.default
+## Export: inla.set.control.lp.scale.default
 ## Export: inla.set.control.pardiso.default
 
 ## Export: control.lincomb
@@ -29,6 +30,7 @@
 ## Export: control.mode
 ## Export: control.hazard
 ## Export: control.bgev
+## Export: control.lp.scale
 ## Export: control.pardiso
 
 
@@ -244,6 +246,18 @@
 
             ## :ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
             graph = FALSE
+        )
+
+        ## :SEEALSO: inla
+    }
+
+`inla.set.control.lp.scale.default` <-
+    function(...) {
+        ## :EXTRA:
+        ## :NAME: control.lp.scale
+        list(
+            ## :ARGUMENT: hyper Definition of the hyperparameter(s)
+            hyper = NULL
         )
 
         ## :SEEALSO: inla
@@ -783,4 +797,5 @@ control.predictor <- inla.make.completion.function(names(inla.set.control.predic
 control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
 control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
 control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))
+control.lp.scale <- inla.make.completion.function(names(inla.set.control.lp.scale.default()))
 control.pardiso <- inla.make.completion.function(names(inla.set.control.pardiso.default()))

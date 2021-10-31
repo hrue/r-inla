@@ -765,7 +765,7 @@
         return(invisible(figures))
     }
 
-inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug = FALSE) {
+inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE) {
     str.trunc <- function(..., max.len = 32) {
         str <- paste(..., sep = "", collapse = " ")
         str <- substr(str, 1, min(max.len, nchar(str)))
@@ -901,7 +901,7 @@ inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug 
                 }
             }
         }
-    } else {
+    } else if (section == "random") {
         ## random
         output("request for random ", section, " with hyperid ", hyperid)
         h <- all.hyper$random
@@ -951,13 +951,35 @@ inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug 
         param <- hyper[[idx.theta]]$param
         from.theta <- hyper[[idx.theta]]$from.theta
         to.theta <- hyper[[idx.theta]]$to.theta
+    } else if (section == "inla.lp.scale") {
+        output("request for ", section, " with hyperid ", hyperid)
+        h <- all.hyper$lp.scale
+        found <- FALSE
+        for (idx.theta in seq_along(h)) {
+            if (inla.strcasecmp(hyperid, h[[idx.theta]]$hyperid)) {
+                found <- TRUE
+                break
+            }
+        }
+        if (!found) {
+            output(section, " with hyperid ", hyperid, ". theta is not found", warning = TRUE)
+            return(NA)
+        }
+        hyper <- h[[idx.theta]]
+        output("random ", section, " with hyperid ", hyperid, ". theta is found with idx.theta=", idx.theta)
+        prior <- hyper$prior
+        param <- hyper$param
+        from.theta <- hyper$from.theta
+        to.theta <- hyper$to.theta
+    } else {
+        stop(paste0("this should not happen,  section=", section))
     }
 
     output("prior ", str.trunc(prior), " param ", str.trunc(param))
     return(list(prior = prior, param = param, from.theta = from.theta, to.theta = to.theta))
 }
 
-inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug = FALSE,
+inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE,
                               len = 10000, range, intern = FALSE) {
     str.trunc <- function(..., max.len = 32) {
         str <- paste(..., sep = "", collapse = " ")

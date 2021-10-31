@@ -53,10 +53,8 @@
 #endif
 
 __BEGIN_DECLS
-
 #define BLAS_LEVEL2 2
 #define BLAS_LEVEL3 3
-
 int dpbtrf_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
 int dpbtf2_(const char *, int *, int *, double *, int *, int *, fortran_charlen_t);
 int dpotrf_(const char *, int *, double *, int *, int *, fortran_charlen_t);

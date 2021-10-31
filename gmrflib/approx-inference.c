@@ -1233,6 +1233,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 					if (1) {
 						// have to redo this later if this gets serious
 						double d3[2];
+						double s = 1.0 / (2.0 * deldif);
 						GMRFLib_2order_approx(NULL, NULL, NULL, &(d3[0]), d[i], fixed_mode[i] - deldif, i,
 								      fixed_mode, loglFunc, loglFunc_arg,
 								      &(ai_par->step_len), &(ai_par->stencil), NULL);

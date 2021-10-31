@@ -49,20 +49,17 @@ __BEGIN_DECLS
 #include "fgn.h"
 #include "stochvol.h"
 #include "quantile-regression.h"
-
-#define ONE_MINUS_EXP(_x) (-expm1(_x))				 /* 1-exp(_x) */
-#define LOG_ONE_MINUS(_x) (log1p(-(_x)))			 /* log(1-(_x)) */
-#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560) /* -1/2 * log(2*pi) */
+#define ONE_MINUS_EXP(_x) (-expm1(_x))			       /* 1-exp(_x) */
+#define LOG_ONE_MINUS(_x) (log1p(-(_x)))		       /* log(1-(_x)) */
+#define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
 #define INLA_FAIL  1
 #define INLA_OK    0
-
 // just to have a big and small number to use
 #include <gsl/gsl_machine.h>
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
 #define INLA_REAL_SMALL GMRFLib_eps2()
 #define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
-
-#define INLA_SPECIAL_NUMBER (1048576.0) // 2^20
+#define INLA_SPECIAL_NUMBER (1048576.0)			       // 2^20
 #define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
 
 /*
@@ -83,6 +80,7 @@ __BEGIN_DECLS
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
+#define INLA_LP_SCALE_MAX 100
 
 /* 
  *
@@ -154,6 +152,226 @@ typedef enum {
 	LINKINCREASING = GMRFLib_TRANSFORM_INCREASING
 } map_arg_tp;
 
+/* 
+   this is needed so we can identify each component in the model
+ */
+typedef enum {
+	INVALID_COMPONENT = 0,
+	L_GAUSSIAN = 1,					       /* likelihood-models */
+	L_LOGISTIC,
+	L_SKEWNORMAL,
+	L_GEV,
+	L_T,
+	L_TSTRATA,
+	L_POISSON,
+	L_GPOISSON,
+	L_BINOMIAL,
+	L_CBINOMIAL,					       /* clumped binomial */
+	L_ZEROINFLATEDBINOMIAL0,
+	L_ZEROINFLATEDBINOMIAL1,
+	L_ZEROINFLATEDBINOMIAL2,
+	L_ZEROINFLATEDBETABINOMIAL0,
+	L_ZEROINFLATEDBETABINOMIAL1,
+	L_ZEROINFLATEDBETABINOMIAL2,
+	L_GAMMA,
+	L_BETA,
+	L_BETABINOMIAL,
+	L_NBINOMIAL,
+	L_ZEROINFLATEDNBINOMIAL0,
+	L_ZEROINFLATEDNBINOMIAL1,
+	L_ZEROINFLATEDNBINOMIAL2,
+	L_ZEROINFLATEDNBINOMIAL1STRATA2,
+	L_ZEROINFLATEDNBINOMIAL1STRATA3,
+	L_STOCHVOL,
+	L_STOCHVOL_T,
+	L_STOCHVOL_NIG,
+	L_LOGPERIODOGRAM,
+	L_EXPONENTIAL,
+	L_EXPONENTIALSURV,
+	L_WEIBULL,
+	L_WEIBULLSURV,
+	L_LOGNORMAL,
+	L_LOGNORMALSURV,
+	L_ZEROINFLATEDPOISSON0,
+	L_ZEROINFLATEDPOISSON1,
+	L_ZEROINFLATEDPOISSON2,
+	L_ZERO_N_INFLATEDBINOMIAL2,
+	L_ZERO_N_INFLATEDBINOMIAL3,
+	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
+	L_LOGGAMMA_FRAILTY,
+	L_IID_GAMMA,
+	L_IID_LOGITBETA,
+	L_CIRCULAR_NORMAL,
+	L_WRAPPED_CAUCHY,
+	REMOVED___L_TEST_BINOMIAL_1,
+	L_SIMPLEX,
+	L_GAMMACOUNT,
+	L_SKEWNORMAL2____NO_LONGER_IN_USE,
+	L_QKUMAR,
+	L_QCONTPOISSON,					       /* DISABLED in models.R */
+	L_CENPOISSON,					       /* cencored poisson */
+	L_NMIX,
+	L_NMIXNB,
+	L_GP,
+	L_CONTPOISSON,					       /* DISABLED in models.R */
+	L_LOGLOGISTIC,
+	L_LOGLOGISTICSURV,
+	L_QLOGLOGISTIC,
+	L_QLOGLOGISTICSURV,
+	L_POM,
+	L_BGEV,
+	L_NBINOMIAL2,
+	L_GAMMASURV,
+	L_BETABINOMIALNA,
+	L_XPOISSON,
+	L_DGP,
+	L_XBINOMIAL,
+	L_ZEROINFLATEDCENPOISSON0,
+	L_ZEROINFLATEDCENPOISSON1,
+	L_POISSON_SPECIAL1,
+	L_GAMMAJW,
+	L_GAMMAJWSURV,
+	L_TWEEDIE,
+	L_FMRI,
+	L_FMRISURV,
+	L_AGAUSSIAN,					       /* likelihood-models */
+	L_GOMPERTZ,
+	L_GOMPERTZSURV,
+	L_STOCHVOL_SN,
+	L_CENPOISSON2,					       /* cencored poisson (version 2) */
+	F_RW2D = 1000,					       /* f-models */
+	F_BESAG,
+	F_BESAG2,					       /* the [a*x, x/a] model */
+	F_BESAGPROPER,
+	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux et al. */
+	F_SEASONAL,
+	F_IID,
+	F_2DIID,
+	F_IID1D,
+	F_IID2D,
+	F_IID3D,
+	F_IID4D,
+	F_IID5D,
+	F_RW1,
+	F_RW2,
+	F_CRW2,
+	F_AR1,
+	F_AR,
+	F_OU,
+	F_Z,
+	F_BYM,
+	F_BYM2,
+	F_GENERIC0,
+	F_GENERIC1,
+	F_GENERIC2,
+	F_MATERN2D,
+	F_SPDE,
+	F_SPDE2,
+	F_COPY,
+	F_MEC,
+	F_MEB,
+	F_R_GENERIC________DISABLED,
+	F_SLM,
+	F_CLINEAR,					       /* constrained fixed effect */
+	F_SIGM,
+	F_REVSIGM,
+	F_RW2DIID,
+	F_SPDE3,
+	F_GENERIC3,
+	F_LOG1EXP,
+	F_LOGDIST,
+	F_R_GENERIC,
+	F_FGN,
+	F_FGN2,
+	F_AR1C,
+	F_DMATERN,
+	F_INTSLOPE,
+	F_IIDKD,
+	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
+	P_BETACORRELATION,
+	P_DIRICHLET,
+	P_EXPRESSION,
+	P_FLAT,
+	P_GAMMA,
+	P_GAUSSIAN,
+	P_INVALID,
+	P_JEFFREYS_T_DF,
+	P_LOGFLAT,
+	P_LOGGAMMA,
+	P_LOGIFLAT,
+	P_LOGITBETA,
+	P_MINUSLOGSQRTRUNCGAUSSIAN,
+	P_MVGAUSSIAN,
+	P_MVNORM,
+	P_NONE,
+	P_PC_ALPHAW,
+	P_PC_AR,
+	P_PC_COR0,
+	P_PC_COR1,
+	P_PC_DOF,
+	P_PC_FGN_H,
+	P_PC_GAMMA,
+	P_PC_GAMMACOUNT,
+	P_PC_MATERN,
+	P_PC_MGAMMA,
+	P_PC_PREC,
+	P_PC_RANGE,
+	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
+	P_PC_GEVTAIL,
+	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
+	P_TABLE,
+	P_WISHART1D,
+	P_WISHART2D,
+	P_WISHART3D,
+	P_WISHART4D,
+	P_WISHART5D,
+	P_PC_SN,
+	P_SN_INTERCEPT,
+	P_WISHARTK_2D,
+	P_WISHARTK_3D,
+	P_WISHARTK_4D,
+	P_WISHARTK_5D,
+	P_WISHARTK_6D,
+	P_WISHARTK_7D,
+	P_WISHARTK_8D,
+	P_WISHARTK_9D,
+	P_WISHARTK_10D,
+	G_EXCHANGEABLE = 3000,				       /* group models */
+	G_EXCHANGEABLE_POS,
+	G_AR1,
+	G_RW1,
+	G_RW2,
+	G_AR,
+	G_BESAG,
+	G_IID,
+	MIX_GAUSSIAN = 4000,				       /* mix-models */
+	MIX_LOGGAMMA,
+	MIX_MLOGGAMMA,
+	LINK_IDENTITY = 5000,				       /* link-models */
+	LINK_LOG,
+	LINK_NEGLOG,
+	LINK_PROBIT,
+	LINK_CLOGLOG,
+	LINK_LOGIT,
+	LINK_TAN,
+	LINK_TEST1,
+	LINK_SPECIAL1,
+	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
+	LINK_LOGOFFSET,
+	LINK_SSLOGIT,
+	LINK_LOGLOG,
+	LINK_CAUCHIT,
+	LINK_LOGITOFFSET,
+	LINK_INVERSE,
+	LINK_QPOISSON,
+	LINK_QBINOMIAL,
+	LINK_QWEIBULL,
+	LINK_QGAMMA,
+	LINK_ROBIT,
+	LINK_SN,
+	LINK_LOGa
+} inla_component_tp;
+
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
 typedef double link_func_tp(double arg, map_arg_tp typ, void *param, double *cov);
 
@@ -166,6 +384,22 @@ typedef struct {
 	size_t len;
 	char *contents;
 } inla_file_contents_tp;
+
+/* 
+   priors are defined using this template. return log(pi(precision, parameters....))
+ */
+typedef double inla_priorfunc_tp(double *param, double *parameters);
+
+typedef struct {
+	inla_component_tp id;				       /* prior Id */
+	char *hyperid;					       /* hyperpar Id */
+	char *name;					       /* name of prior */
+	double *parameters;				       /* the parameters */
+	char *to_theta;					       /* R-code */
+	char *from_theta;				       /* R-code */
+	inla_priorfunc_tp *priorfunc;			       /* Either a priorfunction, or */
+	char *expression;				       /* an alternative expression/table */
+} Prior_tp;
 
 typedef struct {
 	double *d;					       /* the d-array */
@@ -487,226 +721,6 @@ typedef struct {
 	double *scale;
 } Link_param_tp;
 
-/* 
-   this is needed so we can identify each component in the model
- */
-typedef enum {
-	INVALID_COMPONENT = 0,
-	L_GAUSSIAN = 1,					       /* likelihood-models */
-	L_LOGISTIC,
-	L_SKEWNORMAL,
-	L_GEV,
-	L_T,
-	L_TSTRATA,
-	L_POISSON,
-	L_GPOISSON,
-	L_BINOMIAL,
-	L_CBINOMIAL,					       /* clumped binomial */
-	L_ZEROINFLATEDBINOMIAL0,
-	L_ZEROINFLATEDBINOMIAL1,
-	L_ZEROINFLATEDBINOMIAL2,
-	L_ZEROINFLATEDBETABINOMIAL0,
-	L_ZEROINFLATEDBETABINOMIAL1,
-	L_ZEROINFLATEDBETABINOMIAL2,
-	L_GAMMA,
-	L_BETA,
-	L_BETABINOMIAL,
-	L_NBINOMIAL,
-	L_ZEROINFLATEDNBINOMIAL0,
-	L_ZEROINFLATEDNBINOMIAL1,
-	L_ZEROINFLATEDNBINOMIAL2,
-	L_ZEROINFLATEDNBINOMIAL1STRATA2,
-	L_ZEROINFLATEDNBINOMIAL1STRATA3,
-	L_STOCHVOL,
-	L_STOCHVOL_T,
-	L_STOCHVOL_NIG,
-	L_LOGPERIODOGRAM,
-	L_EXPONENTIAL,
-	L_EXPONENTIALSURV,
-	L_WEIBULL,
-	L_WEIBULLSURV,
-	L_LOGNORMAL,
-	L_LOGNORMALSURV,
-	L_ZEROINFLATEDPOISSON0,
-	L_ZEROINFLATEDPOISSON1,
-	L_ZEROINFLATEDPOISSON2,
-	L_ZERO_N_INFLATEDBINOMIAL2,
-	L_ZERO_N_INFLATEDBINOMIAL3,
-	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
-	L_LOGGAMMA_FRAILTY,
-	L_IID_GAMMA,
-	L_IID_LOGITBETA,
-	L_CIRCULAR_NORMAL,
-	L_WRAPPED_CAUCHY,
-	REMOVED___L_TEST_BINOMIAL_1,
-	L_SIMPLEX,
-	L_GAMMACOUNT,
-	L_SKEWNORMAL2____NO_LONGER_IN_USE,
-	L_QKUMAR,
-	L_QCONTPOISSON,					       /* DISABLED in models.R */
-	L_CENPOISSON,					       /* cencored poisson */
-	L_NMIX,
-	L_NMIXNB,
-	L_GP,
-	L_CONTPOISSON,					       /* DISABLED in models.R */
-	L_LOGLOGISTIC,
-	L_LOGLOGISTICSURV,
-	L_QLOGLOGISTIC,
-	L_QLOGLOGISTICSURV,
-	L_POM,
-	L_BGEV,
-	L_NBINOMIAL2,
-	L_GAMMASURV,
-	L_BETABINOMIALNA,
-	L_XPOISSON,
-	L_DGP,
-	L_XBINOMIAL,
-	L_ZEROINFLATEDCENPOISSON0,
-	L_ZEROINFLATEDCENPOISSON1,
-	L_POISSON_SPECIAL1,
-	L_GAMMAJW,
-	L_GAMMAJWSURV,
-	L_TWEEDIE,
-	L_FMRI,
-	L_FMRISURV,
-	L_AGAUSSIAN,					       /* likelihood-models */
-	L_GOMPERTZ,
-	L_GOMPERTZSURV,
-	L_STOCHVOL_SN,
-	L_CENPOISSON2,					       /* cencored poisson (version 2) */
-	F_RW2D = 1000,					       /* f-models */
-	F_BESAG,
-	F_BESAG2,					       /* the [a*x, x/a] model */
-	F_BESAGPROPER,
-	F_BESAGPROPER2,					       /* The alternative parameterisation from Leroux et al. */
-	F_SEASONAL,
-	F_IID,
-	F_2DIID,
-	F_IID1D,
-	F_IID2D,
-	F_IID3D,
-	F_IID4D,
-	F_IID5D,
-	F_RW1,
-	F_RW2,
-	F_CRW2,
-	F_AR1,
-	F_AR,
-	F_OU,
-	F_Z,
-	F_BYM,
-	F_BYM2,
-	F_GENERIC0,
-	F_GENERIC1,
-	F_GENERIC2,
-	F_MATERN2D,
-	F_SPDE,
-	F_SPDE2,
-	F_COPY,
-	F_MEC,
-	F_MEB,
-	F_R_GENERIC________DISABLED,
-	F_SLM,
-	F_CLINEAR,					       /* constrained fixed effect */
-	F_SIGM,
-	F_REVSIGM,
-	F_RW2DIID,
-	F_SPDE3,
-	F_GENERIC3,
-	F_LOG1EXP,
-	F_LOGDIST,
-	F_R_GENERIC,
-	F_FGN,
-	F_FGN2,
-	F_AR1C,
-	F_DMATERN,
-	F_INTSLOPE,
-	F_IIDKD,
-	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
-	P_BETACORRELATION,
-	P_DIRICHLET,
-	P_EXPRESSION,
-	P_FLAT,
-	P_GAMMA,
-	P_GAUSSIAN,
-	P_INVALID,
-	P_JEFFREYS_T_DF,
-	P_LOGFLAT,
-	P_LOGGAMMA,
-	P_LOGIFLAT,
-	P_LOGITBETA,
-	P_MINUSLOGSQRTRUNCGAUSSIAN,
-	P_MVGAUSSIAN,
-	P_MVNORM,
-	P_NONE,
-	P_PC_ALPHAW,
-	P_PC_AR,
-	P_PC_COR0,
-	P_PC_COR1,
-	P_PC_DOF,
-	P_PC_FGN_H,
-	P_PC_GAMMA,
-	P_PC_GAMMACOUNT,
-	P_PC_MATERN,
-	P_PC_MGAMMA,
-	P_PC_PREC,
-	P_PC_RANGE,
-	P_PC_SPDE_GA,					       /* Experimental prior from GA when dim(theta)=2 */
-	P_PC_GEVTAIL,
-	P_REF_AR,					       /* Reference prior for AR(p) for p=1,2,3 */
-	P_TABLE,
-	P_WISHART1D,
-	P_WISHART2D,
-	P_WISHART3D,
-	P_WISHART4D,
-	P_WISHART5D,
-	P_PC_SN,
-	P_SN_INTERCEPT,
-	P_WISHARTK_2D,
-	P_WISHARTK_3D,
-	P_WISHARTK_4D,
-	P_WISHARTK_5D,
-	P_WISHARTK_6D,
-	P_WISHARTK_7D,
-	P_WISHARTK_8D,
-	P_WISHARTK_9D,
-	P_WISHARTK_10D,
-	G_EXCHANGEABLE = 3000,				       /* group models */
-	G_EXCHANGEABLE_POS,
-	G_AR1,
-	G_RW1,
-	G_RW2,
-	G_AR,
-	G_BESAG,
-	G_IID,
-	MIX_GAUSSIAN = 4000,				       /* mix-models */
-	MIX_LOGGAMMA,
-	MIX_MLOGGAMMA,
-	LINK_IDENTITY = 5000,				       /* link-models */
-	LINK_LOG,
-	LINK_NEGLOG,
-	LINK_PROBIT,
-	LINK_CLOGLOG,
-	LINK_LOGIT,
-	LINK_TAN,
-	LINK_TEST1,
-	LINK_SPECIAL1,
-	LINK_SPECIAL2,					       /* exp(eta)*((1-x) + x*exp(beta)) for Poisson (JW) */
-	LINK_LOGOFFSET,
-	LINK_SSLOGIT,
-	LINK_LOGLOG,
-	LINK_CAUCHIT,
-	LINK_LOGITOFFSET,
-	LINK_INVERSE,
-	LINK_QPOISSON,
-	LINK_QBINOMIAL,
-	LINK_QWEIBULL,
-	LINK_QGAMMA,
-	LINK_ROBIT,
-	LINK_SN,
-	LINK_LOGa
-} inla_component_tp;
-
 typedef struct {
 	GMRFLib_spline_tp *cdf, *icdf;
 	double alpha, xmin, xmax, pmin, pmax;
@@ -716,22 +730,6 @@ typedef struct {
 	GMRFLib_spline_tp *cdf, *icdf;
 	double a, eta_min, eta_max, p_intern_min, p_intern_max;
 } inla_loga_table_tp;
-
-/* 
-   priors are defined using this template. return log(pi(precision, parameters....))
- */
-typedef double inla_priorfunc_tp(double *param, double *parameters);
-
-typedef struct {
-	inla_component_tp id;				       /* prior Id */
-	char *hyperid;					       /* hyperpar Id */
-	char *name;					       /* name of prior */
-	double *parameters;				       /* the parameters */
-	char *to_theta;					       /* R-code */
-	char *from_theta;				       /* R-code */
-	inla_priorfunc_tp *priorfunc;			       /* Either a priorfunction, or */
-	char *expression;				       /* an alternative expression/table */
-} Prior_tp;
 
 /* 
    This is the macro to evaluate the prior. One and only one of `priorfunc' and `expression' is non-NULL, so we use that one
@@ -804,6 +802,7 @@ typedef struct {
 	File_tp data_file;
 	File_tp weight_file;
 	File_tp attr_file;
+	File_tp lp_scale_file;
 	Prior_tp data_prior;
 	Prior_tp data_prior0;
 	Prior_tp data_prior1;
@@ -819,6 +818,12 @@ typedef struct {
 	GMRFLib_logl_tp *loglikelihood;
 	double *offset;
 	inla_tp *mb;					       /* to get the off_.... */
+
+	double *lp_scale;				       /* index vector */
+	double ***lp_scale_beta;
+	int *lp_scale_nfixed;
+	int *lp_scale_in_use;
+	Prior_tp *lp_scale_nprior;
 
 	/*
 	 * the link model
@@ -1788,6 +1793,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 int inla_output_names(const char *dir, const char *sdir, int n, const char **names, const char *suffix);
 int inla_output_ok(const char *dir);
 int inla_output_size(const char *dir, const char *sdir, int n, int N, int Ntotal, int ngroup, int nrep);
+int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir));
 int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int make_dir);
 int inla_parse_data(inla_tp * mb, dictionary * ini, int sec);
 int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec);
