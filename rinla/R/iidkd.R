@@ -57,7 +57,11 @@
         L <- matrix(0, dim, dim)
         diag(L) <- exp(theta[1:dim])
         L[lower.tri(L)] <- theta[dim + 1:dim2]
-        S <- solve(L %*% t(L))
+        S <- try(solve(L %*% t(L)))
+        ## if singular, then invert what is invertable
+        if (inherits(S, "try-error")) {
+            S <- inla.ginv(L %*% t(L))
+        }
         S <- (S + t(S))/2.0 ## force matrix to be symmetric
         if (ret.cov) {
             return (S)

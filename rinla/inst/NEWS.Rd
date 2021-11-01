@@ -4,11 +4,19 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 21.??.??}{
+\section{CHANGES IN VERSION 21.11.01}{
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item New experimental feature \code{lp.scale}. No good documentation yet, but
+       that will come soon.
+     }
+   }
   \subsection{BUG FIXES}{
     \itemize{
+      \item Robustify \code{inla.iidkd.sample} function for numerical singular matrices
       \item Corrected \code{inla.stack.join} handling of factor variables that in some
-        cases converted variables to/from factors unintentionally.
+            cases converted variables to/from factors unintentionally.
+      \item \code{inla.mode="experimental"} got its fitted values back.
     }
   }
 }
