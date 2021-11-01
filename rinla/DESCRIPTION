@@ -32,6 +32,7 @@ Suggests:
     evd,
     fields,
     ggplot2,
+    gsl,
     graph,
     gridExtra,
     knitr,
