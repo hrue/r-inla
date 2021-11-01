@@ -3,7 +3,7 @@
 #' It implements the models in Knorr-Held, L. (2000) with three different
 #' constraint approaches: sum-to-zero, contrast or diagonal add.
 #' 
-#' 
+#' @rdname knmodels
 #' @aliases inla.knmodels knmodels
 #' @param formula The formula specifying the other model components, without
 #' the spacetime interaction term. The spacetime interaction term will be added

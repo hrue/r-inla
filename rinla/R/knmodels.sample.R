@@ -3,7 +3,7 @@
 #' It implements the sampling method for the models in Knorr-Held, L. (2000)
 #' considering the algorithm 3.1 in Rue & Held (2005) book.
 #' 
-#' 
+#' @rdname knmodels.sample
 #' @param graph Model graph definition
 #' @param m Time dimention.
 #' @param type Integer from 1 to 4 to identify one of the four interaction
