@@ -977,7 +977,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         for(nm in fun) {
             arg <- paste0(if (is.null(arg)) "" else paste0(arg, ","), "get('", nm, "')")
         }
-        fun <- inla.eval(paste0("function() return(c(", arg, "))"))
+        fun <- inla.eval(paste0("function(...) return(c(", arg, "))"))
     } else {
         fun <- match.fun(fun)
     }
