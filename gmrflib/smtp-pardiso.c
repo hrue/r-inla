@@ -820,7 +820,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	FIXME1("ENABLE PARALLEL SOLVE if NRHS=1? ");
 	for(int i = 0; i < n * nrhs; i++) {
 		if (!bb[i]) {
-			bb[i] += 1e-99;
+			bb[i] = 1e-99;
 		}
 	}
 	
