@@ -806,7 +806,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 	//max_nrhs = IMAX(1, nrhs / GMRFLib_openmp->max_threads_inner);
 	max_nrhs = S.nrhs_max;
-	max_nrhs = GMRFLib_MAX_THREADS;
 
 	P(max_nrhs);
 	d = div(nrhs, max_nrhs);
