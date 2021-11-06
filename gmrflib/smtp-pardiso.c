@@ -77,7 +77,7 @@ GMRFLib_static_pardiso_tp S = {
 	0,						       // csr_check
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
-	1,						       // maximum number of rhs
+	-1,						       // maximum number of rhs
 	1,						       // parallel reordering? yes
 	NULL,						       // busy
 	NULL
@@ -802,10 +802,11 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	int n = store->graph->n, mnum1 = 1, nblock, reminder, max_nrhs, err_code = 0;
 	div_t d;
 
-	//max_nrhs = IMAX(1, nrhs / GMRFLib_openmp->max_threads_inner);
-	max_nrhs = S.nrhs_max;
-	max_nrhs = GMRFLib_MAX_THREADS;
-	max_nrhs = 2;
+	if (S.nrhs_max > 0) {
+		max_nrhs = S.nrhs_max;
+	} else {
+		max_nrhs = IMAX(1, nrhs / GMRFLib_openmp->max_threads_inner);
+	}
 
 	d = div(nrhs, max_nrhs);
 	nblock = d.quot;
@@ -814,24 +815,18 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	double *yy = Calloc(nrhs * n, double);
 	Memcpy((void *) bb, (void *) b, n * nrhs * sizeof(double));
 
+	// workaround for PARDISO bug...
+	FIXME1("PARDISO workaround...");
+	FIXME1("ENABLE PARALLEL SOLVE if NRHS=1? ");
 	for(int i = 0; i < n * nrhs; i++) {
-		bb[i] += 1e-99;
+		if (!bb[i]) {
+			bb[i] += 1e-99;
+		}
 	}
 	
-	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is
-	// thread-safe
+	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is thread-safe
 
-	P(max_nrhs);
-	P(nblock);
-	P(reminder);
-	P(n);
-	P(n * nrhs);
-	
-	PP("pt", store->pt);
-	PP("b", b);
-	PP("x", x);
-	
-//#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 	for (int i = 0; i < nblock + reminder; i++) {
 
 		int idum = 0;
@@ -841,15 +836,8 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 		GMRFLib_pardiso_setparam(flag, store);
 
-		// this is a workaround until the issue is fixed
-		//if ((omp_get_num_threads() > 1 || GMRFLib_openmp->max_threads_inner > 1) && store->pstore[tnum]->iparm[2] > 1) {
 		FIXME1(" *** iparm[7] workaround enabled ***");
 		store->pstore[tnum]->iparm[7] = 0;
-
-		if (1||i == 0) printf("solve %d systems for thread %d for thread_id %d\n", local_nrhs, tnum, GMRFLib_thread_id);
-		P(tnum);
-		P(offset);
-		P(local_nrhs);
 
 		pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
 			&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
@@ -859,44 +847,27 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR;
 		}
 
-		for(int j = 0; j < local_nrhs; j++) {
-			double normb, normr;
-			pardiso_residual(&(store->mtype), &n,
-					 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a,
-					 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
-					 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,
-					 bb + offset + j * n,
-					 x + offset + j * n,
-					 yy + offset + j * n,
-					 &normb, &normr);
-			if (1 || j == 0 || normr/normb > 1e-3)
-				printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb);
-			if(0)if(normr / normb <  1e-3) {
-				for(int i = 0; i < n; i++) {
-					P(i);
-					if (bb[offset + j * n + i]) P(bb[offset + j * n + i]);
-					if (x[offset + j * n + i]) P(x[offset + j * n + i]);
+		// check? 
+		if (0) {
+			for(int j = 0; j < local_nrhs; j++) {
+				double normb, normr;
+				pardiso_residual(&(store->mtype), &n,
+						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a,
+						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
+						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,
+						 bb + offset + j * n,
+						 x + offset + j * n,
+						 yy + offset + j * n,
+						 &normb, &normr);
+				//printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb);
+				if (!(normr / normb <  1e-6)) {
+					P(normr / normb);
+					assert(normr / normb <  1e-6);
 				}
 			}
-			//assert(normr / normb <  1e-3);
 		}
+		
 	}
-	printf("bb\n");
-	for(int i = 0; i < n; i++) {
-		for(int j = 0; j < nrhs; j++) {
-			printf(" %8.4f", bb[j * n + i]);
-		}
-		printf("\n");
-	}
-	printf("x\n");
-	for(int i = 0; i < n; i++) {
-		for(int j = 0; j < nrhs; j++) {
-			printf(" %8.4f", x[j * n + i]);
-		}
-		printf("\n");
-	}
-	exit(0);
-	
 	Free(bb);
 	Free(yy);
 

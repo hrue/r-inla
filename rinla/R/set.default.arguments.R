@@ -277,7 +277,7 @@
             ## :ARGUMENT: parallel.reordering Do reordering in parallel (default TRUE)
             parallel.reordering = TRUE,
 
-            ## :ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (default depends on the argument \code{num.threads} and \code{-1} will not change it)
+            ## :ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (\code{-1} will determine this adapative)
             nrhs = -1
         )
 

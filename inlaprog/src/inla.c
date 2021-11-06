@@ -36597,7 +36597,6 @@ int main(int argc, char **argv)
 
 	GMRFLib_init_constr_store();			       /* no need to reset this with preopt */
 	GMRFLib_init_graph_store();			       /* no need to reset this with pretop */
-	GMRFLib_pardiso_set_nrhs(1);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 
@@ -36786,7 +36785,6 @@ int main(int argc, char **argv)
 				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads);
 			}
 			omp_set_num_threads(GMRFLib_MAX_THREADS);
-			GMRFLib_pardiso_set_nrhs(GMRFLib_MAX_THREADS);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
