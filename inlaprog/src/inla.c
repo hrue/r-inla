@@ -36786,7 +36786,7 @@ int main(int argc, char **argv)
 				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads);
 			}
 			omp_set_num_threads(GMRFLib_MAX_THREADS);
-			GMRFLib_pardiso_set_nrhs(ntt[1]);
+			GMRFLib_pardiso_set_nrhs(GMRFLib_MAX_THREADS);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
