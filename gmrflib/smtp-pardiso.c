@@ -455,7 +455,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[12] = 0;			       /* I need these for the divided LDL^Tx=b solver to work */
 	s->iparm_default[20] = 0;			       /* Diagonal pivoting, and... */
 	s->iparm_default[23] = 1;			       /* two level scheduling, and... */
-	s->iparm_default[24] = 0;			       /* use parallel solve */
+	s->iparm_default[24] = 0;			       /* use parallel solve? */
 	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
 	s->iparm_default[33] = 1;			       /* want identical solutions */
 
@@ -799,33 +799,26 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_chol == GMRFLib_TRUE);
 
 	// this is so that the RHS can be overwritten
-	int n = store->graph->n, mnum1 = 1, nblock, reminder, max_nrhs, err_code = 0;
-	div_t d;
+	int n = store->graph->n, mnum1 = 1, nblock, reminder, max_nrhs, err_code = 0, debug = 0;
 
-	if (S.nrhs_max > 0) {
-		max_nrhs = S.nrhs_max;
-	} else {
-		max_nrhs = IMAX(1, nrhs / GMRFLib_openmp->max_threads_inner);
-	}
-
-	d = div(nrhs, max_nrhs);
+	max_nrhs = (S.nrhs_max > 0 ? S.nrhs_max : IMAX(1, nrhs / GMRFLib_openmp->max_threads_inner));
+	div_t d = div(nrhs, max_nrhs);
 	nblock = d.quot;
 	reminder = (d.rem != 0);
+
 	double *bb = Calloc(nrhs * n, double);
-	double *yy = Calloc(nrhs * n, double);
+	double *yy = (debug ? Calloc(nrhs * n, double) : NULL);
 	Memcpy((void *) bb, (void *) b, n * nrhs * sizeof(double));
 
 	// workaround for PARDISO bug...
 	FIXME1("PARDISO workaround...");
-	FIXME1("ENABLE PARALLEL SOLVE if NRHS=1? ");
+	// ENABLE PARALLEL SOLVE if NRHS=1? probably not... 
 	for(int i = 0; i < n * nrhs; i++) {
-		if (!bb[i]) {
-			bb[i] = 1e-99;
+		if (ISZERO(bb[i])) {
+			bb[i] = 1.0e-99;
 		}
 	}
 	
-	// we might want to tweak the number of threads here, even do this in parallel for many rhs when the version is thread-safe
-
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 	for (int i = 0; i < nblock + reminder; i++) {
 
@@ -834,6 +827,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		int offset = i * n * max_nrhs;
 		int local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
 
+		// this will set ..[tnum] params
 		GMRFLib_pardiso_setparam(flag, store);
 
 		FIXME1(" *** iparm[7] workaround enabled ***");
@@ -843,12 +837,12 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
 			store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, store->pstore[tnum]->iparm, &(store->msglvl),
 			bb + offset, x + offset, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
+
 		if (store->pstore[tnum]->err_code != 0) {
-			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR;
+			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR; /* this is ok as the rhs is always the same */
 		}
 
-		// check? 
-		if (0) {
+		if (debug) {
 			for(int j = 0; j < local_nrhs; j++) {
 				double normb, normr;
 				pardiso_residual(&(store->mtype), &n,
@@ -859,11 +853,8 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 						 x + offset + j * n,
 						 yy + offset + j * n,
 						 &normb, &normr);
-				//printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb);
-				if (!(normr / normb <  1e-6)) {
-					P(normr / normb);
-					assert(normr / normb <  1e-6);
-				}
+				printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb);
+				assert(normr / normb <  1e-6);
 			}
 		}
 		
