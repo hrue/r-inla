@@ -813,12 +813,12 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	// workaround for PARDISO bug...
 	FIXME1("PARDISO workaround...");
 	// ENABLE PARALLEL SOLVE if NRHS=1? probably not... 
-	for(int i = 0; i < n * nrhs; i++) {
+	for (int i = 0; i < n * nrhs; i++) {
 		if (ISZERO(bb[i])) {
 			bb[i] = 1.0e-99;
 		}
 	}
-	
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 	for (int i = 0; i < nblock + reminder; i++) {
 
@@ -839,25 +839,22 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			bb + offset, x + offset, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
 
 		if (store->pstore[tnum]->err_code != 0) {
-			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR; /* this is ok as the rhs is always the same */
+			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR;	/* this is ok as the rhs is always the same */
 		}
 
 		if (debug) {
-			for(int j = 0; j < local_nrhs; j++) {
+			for (int j = 0; j < local_nrhs; j++) {
 				double normb, normr;
 				pardiso_residual(&(store->mtype), &n,
 						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a,
 						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
 						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,
-						 bb + offset + j * n,
-						 x + offset + j * n,
-						 yy + offset + j * n,
-						 &normb, &normr);
+						 bb + offset + j * n, x + offset + j * n, yy + offset + j * n, &normb, &normr);
 				printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb);
-				assert(normr / normb <  1e-6);
+				assert(normr / normb < 1e-6);
 			}
 		}
-		
+
 	}
 	Free(bb);
 	Free(yy);

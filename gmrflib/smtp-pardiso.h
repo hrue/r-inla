@@ -202,7 +202,7 @@ void pardiso_chkvec(int *, int *, double *, int *);
 void pardiso_get_factor_csc(void **, double *, int *, int *, double *, int *, int *, int *, int);
 void pardiso_get_inverse_factor_csc(void **, double *, int *, int *, int *, int);
 void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, int *);
-void pardiso_residual(int * mtype, int *n, double *a, int *ia, int *ja, double *b, double *x, double *y, double *norm_b, double *norm_res);
+void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b, double *x, double *y, double *norm_b, double *norm_res);
 void pardisoinit(void *, int *, int *, int *, double *, int *);
 __END_DECLS
 #endif
