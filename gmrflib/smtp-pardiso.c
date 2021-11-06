@@ -847,13 +847,16 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 					 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a,
 					 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
 					 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,
-					 bb + offset + j * n, x + offset + j * n, yy + offset + j * n,
+					 bb + offset + j * n,
+					 x  + offset + j * n,
+					 yy + offset + j * n,
 					 &normb, &normr);
 			printf("\nThe norm of the residual is %e \n ", normr / normb);
 			assert(normr / normb <  1e-3);
 		}
 	}
 	Free(bb);
+	Free(yy);
 
 	if (err_code) {
 		GMRFLib_ERROR(err_code);
