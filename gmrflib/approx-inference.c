@@ -3109,8 +3109,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				}
 
 				if (ai_par->restart) {
-					for (k = 0; k < IMAX(0, ai_par->restart); k++)
+					for (k = 0; k < IMAX(0, ai_par->restart); k++) {
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
+					}
 				}
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
@@ -5578,8 +5579,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				}
 
 				if (ai_par->restart) {
-					for (k = 0; k < IMAX(0, ai_par->restart); k++)
+					for (k = 0; k < IMAX(0, ai_par->restart); k++) {
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
+					}
 				}
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
