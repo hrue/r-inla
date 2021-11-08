@@ -519,22 +519,33 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 int GMRFLib_gsl_mgs(gsl_matrix * A)
 {
 	// this is the modified Gram-Schmith ortogonalisation, and it 
-	// overwrite matrix A with its ortogonal normalized basis, column by column
-	gsl_vector *q = gsl_vector_alloc(A->size1);
+	// overwrite matrix A with its ortogonal normalized basis, column by column.
+	// the sign of each column is so that max(abs(column)) is positive
 
+	gsl_vector *q = gsl_vector_alloc(A->size1);
 	size_t i, j, k, n = A->size1;
-	double r;
 
 	for (i = 0; i < n; i++) {
 
-		for (r = 0.0, j = 0; j < n; j++) {
-			r += SQR(gsl_matrix_get(A, j, i));
+		double aij_amax = 0.0, r = 0.0;
+		for (j = 0; j < n; j++) {
+			double elm = gsl_matrix_get(A, j, i);
+			r += SQR(elm);
+			aij_amax = (ABS(elm) >  ABS(aij_amax) ? elm : aij_amax);
 		}
+
+		if (aij_amax < 0.0) {			       /* swap the sign of this column */
+			for (j = 0; j < n; j++) {
+				gsl_matrix_set(A, j, i, - gsl_matrix_get(A, j, i));
+			}
+		}
+
 		r = sqrt(r);
 		for (j = 0; j < n; j++) {
 			gsl_vector_set(q, j, gsl_matrix_get(A, j, i) / r);
 			gsl_matrix_set(A, j, i, gsl_vector_get(q, j));	// normalize
 		}
+
 		for (j = i + 1; j < n; j++) {
 			for (r = 0, k = 0; k < n; k++) {
 				r += gsl_vector_get(q, k) * gsl_matrix_get(A, k, j);
