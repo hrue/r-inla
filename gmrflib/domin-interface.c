@@ -63,7 +63,8 @@ static Best_tp B = {
 
 static opt_dir_params_tp Opt_dir_params = {
 	NULL,
-	NULL
+	NULL,
+	0
 };
 
 typedef struct {
@@ -130,6 +131,13 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 	return GMRFLib_SUCCESS;
 
+}
+
+int GMRFLib_opt_reset_directions(void) 
+{
+	// restart with diagonal direction matrix
+	Opt_dir_params.reset_directions = 1;
+	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_opt_get_latent(double *latent)
@@ -1051,19 +1059,19 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	static gsl_matrix *tAinv = NULL;
 
 	if (G.use_directions) {
-		if (!Opt_dir_params.A || (Opt_dir_params.A && Opt_dir_params.A->size1 != (size_t) G.nhyper)) {
-			A = gsl_matrix_alloc(G.nhyper, G.nhyper);
-			Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
-			tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);
+		if (Opt_dir_params.reset_directions || !Opt_dir_params.A ||
+		    (Opt_dir_params.A && Opt_dir_params.A->size1 != (size_t) G.nhyper)) {
 
+			if (!A && !Adir && !tAinv) {
+				A = gsl_matrix_alloc(G.nhyper, G.nhyper);
+				Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
+				tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);
+			} 
 			gsl_matrix_set_zero(A);
-			gsl_matrix_set_zero(Adir);
 			gsl_matrix_set_zero(tAinv);
-			for (i = 0; i < (size_t) G.nhyper; i++) {
-				gsl_matrix_set(Adir, i, i, 1.0);
-			}
+			gsl_matrix_set_identity(Adir);
 
-			if (G.directions) {
+			if (G.directions && !Opt_dir_params.reset_directions) {
 				// start fom here instead
 				if (Adir->size1 == G.directions->size1 && Adir->size2 == G.directions->size2) {
 					gsl_matrix_memcpy(Adir, G.directions);
@@ -1074,6 +1082,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			}
 			gsl_matrix_memcpy(A, Adir);
 			gsl_matrix_memcpy(tAinv, Adir);
+			Opt_dir_params.reset_directions = 0; 
+
 		} else {
 			// ok
 		}
