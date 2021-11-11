@@ -36533,6 +36533,32 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 64: 
+	{
+		int n = atoi(args[0]);
+		int gsl_bfgs4_test1(size_t);
+		gsl_bfgs4_test1((size_t) n);
+		break;
+	}
+
+	case 65: 
+	{
+		double bfgs4_robust_minimize(double *, double *, int , double *,  double *, int );
+		double x[] = {0.000000, 0.117601, 0.140824, 0.142939, 0.143781, 0.144150, 0.144319, 0.144462, 0.151020, 0.785981};
+		double y[] = {190.587218, 190.560078, 190.559036, 190.559015, 190.559011, 190.559009,
+			190.559009, 190.559008, 190.589052, 191.217117};
+		int n = sizeof(y) / sizeof(double);
+
+		double xmin;
+		double ymin;
+		
+		for(int order = 2; order <= 4; order += 2) {
+			bfgs4_robust_minimize(&xmin, &ymin, n, x, y, order);
+			printf("xmin = %f ymin= %f when order = %d\n", xmin, ymin, order);
+		}
+		break;
+	}
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

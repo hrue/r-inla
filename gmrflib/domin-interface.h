@@ -118,6 +118,7 @@ void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df);
 void GMRFLib_gsl_fdf(const gsl_vector * x, void *params, double *f, gsl_vector * df);
 
 GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs3;	/* my version of vector_bfgs2() */
+GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs4;	/* my 2nd version of vector_bfgs2() */
 
 __END_DECLS
 #endif
