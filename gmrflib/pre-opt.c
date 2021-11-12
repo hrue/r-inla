@@ -503,7 +503,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	SHOW_TIME("admin1");
 
 	GMRFLib_graph_tp *g = NULL;
-
 	ged = NULL;
 	GMRFLib_ged_init2(&ged, N);
 	for (i = 0; i < gen_len_At; i++) {
@@ -515,10 +514,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
+	SHOW_TIME("build graph part 1");
+
 	GMRFLib_ged_build(&g, ged);
 	GMRFLib_ged_free(ged);
 	assert(g->n == gen_len_At);
-	SHOW_TIME("build graph");
+	SHOW_TIME("build graph part 2");
 
 	AtA_idxval = Calloc(gen_len_At, GMRFLib_idxval_tp **);
 	for (i = 0; i < g->n; i++) {
