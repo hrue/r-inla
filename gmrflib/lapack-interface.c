@@ -390,7 +390,7 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
-	double s_min = tol * s_max;
+	double s_min = tol * s_max; 
 	for (i = 0; i < A->size1; i++) {
 		s = gsl_vector_get(S, i);
 		gsl_matrix_set(M2, i, i, DMAX(s_min, s));
@@ -418,6 +418,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, d
 	 *
 	 */
 
+	int debug = 0;
 	assert(A && (A->size1 == A->size2));
 	assert(tol >= 0.0);
 
@@ -437,8 +438,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, d
 	gsl_matrix_set_zero(M2);
 
 	double s_min = tol * s_max;
-
-	if (!(s_max > 0.0)) {
+	if (debug && !(s_max > 0.0)) {
 		FIXME("s_max > 0 FAILED");
 		P(s_max);
 		GMRFLib_printf_gsl_matrix(stdout, A, " %g");
@@ -446,7 +446,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, d
 
 	for (i = 0; i < A->size1; i++) {
 		s = gsl_vector_get(S, i);
-		if (s < s_min) {
+		if (s <= s_min) {
 			s = 0.0;
 		} else {
 			s = 1.0 / s;
@@ -481,6 +481,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 	 * A=inv(A) for symmetric A, ignoring contributions from eigenvalues < tol*max(eigenval)
 	 */
 
+	int debug = 0;
 	assert(A && (A->size1 == A->size2));
 	assert(tol >= 0.0);
 
@@ -499,8 +500,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M2);
 
 	double s_min = tol * s_max;
-
-	if (!(s_max > 0.0)) {
+	if (debug && !(s_max > 0.0)) {
 		FIXME("s_max > 0 FAILED");
 		P(s_max);
 		GMRFLib_printf_gsl_matrix(stdout, A, " %g");
@@ -508,7 +508,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 
 	for (i = 0; i < A->size1; i++) {
 		s = gsl_vector_get(S, i);
-		if (s < s_min) {
+		if (s <= s_min) {
 			s = 0.0;
 		} else {
 			s = 1.0 / s;
