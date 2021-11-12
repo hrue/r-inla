@@ -221,7 +221,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		 * Fletcher's rho test 
 		 */
 
-		if (falpha > f0 + alpha * rho * fp0 || falpha >= falpha_prev || GMRFLib_request_optimiser_to_stop) {
+		if (falpha > f0 + alpha * rho * fp0 || falpha >= falpha_prev) {
 			a = alpha_prev;
 			fa = falpha_prev;
 			fpa = fpalpha_prev;
@@ -239,12 +239,12 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		 * Fletcher's sigma test 
 		 */
 
-		if (fabs(fpalpha) <= -sigma * fp0 || GMRFLib_request_optimiser_to_stop) {
+		if (fabs(fpalpha) <= -sigma * fp0) {
 			*alpha_new = alpha;
 			return GSL_SUCCESS;
 		}
 
-		if (fpalpha >= 0 || GMRFLib_request_optimiser_to_stop) {
+		if (fpalpha >= 0) {
 			a = alpha;
 			fa = falpha;
 			fpa = fpalpha;
@@ -267,14 +267,6 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		falpha_prev = falpha;
 		fpalpha_prev = fpalpha;
 		alpha = alpha_next;
-
-		if (GMRFLib_request_optimiser_to_stop)
-			break;
-	}
-
-	if (GMRFLib_request_optimiser_to_stop) {
-		*alpha_new = alpha;
-		return GSL_SUCCESS;			       /* terminate */
 	}
 
 	/*
@@ -316,11 +308,6 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("...TEST %.12g > %.12g || %.12g >= %.12g\n", falpha, f0 + rho * alpha * fp0, falpha, fa);
 
-		if (GMRFLib_request_optimiser_to_stop) {
-			*alpha_new = alpha;
-			return GSL_SUCCESS;		       /* terminate */
-		}
-
 		if (falpha > f0 + rho * alpha * fp0 || falpha >= fa) {
 			/*
 			 * a_next = a; 
@@ -335,7 +322,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 
 			if (debug)
 				printf("... TEST %.12g <= %.12g\n", fabs(fpalpha), -sigma * fp0);
-			if (fabs(fpalpha) <= -sigma * fp0 || GMRFLib_request_optimiser_to_stop) {
+			if (fabs(fpalpha) <= -sigma * fp0) {
 				*alpha_new = alpha;
 				return GSL_SUCCESS;	       /* terminate */
 			}
@@ -810,6 +797,8 @@ static int bfgs4_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X,
 
 int gsl_bfgs4_test1(size_t n)
 {
+	// test-example from the GSL documentation
+	
 	size_t i;
 	const size_t p = 2;				       /* linear fit */
 	gsl_matrix *X, *cov;
@@ -877,7 +866,7 @@ int gsl_bfgs4_test1(size_t n)
 int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order)
 {
 	// input n pairs of (x_i, y_i), fit a robust regression model of given order
-	// and return the x* that minimize the fitted model.
+	// and return the x* and optional y* that minimize the fitted model.
 
 	size_t n = (size_t) nn, i, j, p = order + 1;
 	gsl_matrix *X, *cov;
@@ -921,7 +910,6 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	int max_iter = 10;
 	for (int iter = 0; iter < max_iter; iter++) {
-
 		double val, grad, dx;
 
 		xtmp = x_min;
@@ -932,7 +920,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 		}
 
 		xtmp = x_min;
-		grad = 2 * gsl_vector_get(c, 2);
+		grad = 2.0 * gsl_vector_get(c, 2);
 		for (j = 3; j < p; j++) {
 			grad += j * (j - 1.0) * gsl_vector_get(c, j) * xtmp;
 			xtmp *= x_min;
@@ -958,7 +946,9 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	gsl_matrix_free(cov);
 
 	*xmin = x_min;
-	*ymin = y_min;
+	if (ymin) {
+		*ymin = y_min;
+	}
 
 	return GMRFLib_SUCCESS;
 }
