@@ -7784,6 +7784,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			// solve MM %*% delta = MB
 			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0 / 3.0));
 		}
+
+		for (i = 0; i < (int) delta->size; i++) {
+			if (ISNAN(delta[i])) {
+				gsl_vector_set_zero(delta);
+				break;
+			}
+		}
+
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
 		double step_len;

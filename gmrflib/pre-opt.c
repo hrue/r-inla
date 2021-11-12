@@ -902,6 +902,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	if (preopt->mpred) {
 #define CODE_BLOCK							\
 		for (int i = 0; i < preopt->mpred; i++) {		\
+			CODE_BLOCK_SET_THREAD_ID;			\
 			if (preopt->pA_idxval[i]) {			\
 				GMRFLib_idxval_elm_tp *elm = preopt->pA_idxval[i]->store; \
 				for (int jj = 0; jj < preopt->pA_idxval[i]->n; jj++) { \
