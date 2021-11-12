@@ -154,7 +154,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 			nbs[i] = NULL;					\
 		}							\
 	}
-        RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+        RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 
 	GMRFLib_graph_mk_empty(&g);
