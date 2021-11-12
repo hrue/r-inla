@@ -390,7 +390,7 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
-	double s_min = tol * s_max; 
+	double s_min = tol * s_max;
 	for (i = 0; i < A->size1; i++) {
 		s = gsl_vector_get(S, i);
 		gsl_matrix_set(M2, i, i, DMAX(s_min, s));
@@ -543,12 +543,12 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 		for (j = 0; j < n; j++) {
 			double elm = gsl_matrix_get(A, j, i);
 			r += SQR(elm);
-			aij_amax = (ABS(elm) >  ABS(aij_amax) ? elm : aij_amax);
+			aij_amax = (ABS(elm) > ABS(aij_amax) ? elm : aij_amax);
 		}
 
 		if (aij_amax < 0.0) {			       /* swap the sign of this column */
 			for (j = 0; j < n; j++) {
-				gsl_matrix_set(A, j, i, - gsl_matrix_get(A, j, i));
+				gsl_matrix_set(A, j, i, -gsl_matrix_get(A, j, i));
 			}
 		}
 
