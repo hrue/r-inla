@@ -75,7 +75,7 @@ __BEGIN_DECLS
 #define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT();			\
 	static double debug_cpu_acc_ = 0.0;				\
 	_Pragma("omp threadprivate(debug_cpu_acc_)")			\
-	static double debug_cpu_ = 0;					\
+	static double debug_cpu_ = 0.0;					\
 	_Pragma("omp threadprivate(debug_cpu_)")			\
 	debug_cpu_ = GMRFLib_cpu();					\
 	GMRFLib_DEBUG_d("Enter", debug_cpu_);				\
