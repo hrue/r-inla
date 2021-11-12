@@ -7786,7 +7786,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		for (i = 0; i < (int) delta->size; i++) {
-			if (ISNAN(delta[i])) {
+			if (ISNAN(gsl_vector_get(delta, i))) {
 				gsl_vector_set_zero(delta);
 				break;
 			}
