@@ -499,7 +499,13 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M2);
 
 	double s_min = tol * s_max;
-	assert(s_max > 0.0);
+
+	if (!(s_max > 0.0)) {
+		FIXME("s_max > 0 FAILED");
+		P(s_max);
+		GMRFLib_printf_gsl_matrix(stdout, A, " %g");
+	}
+
 	for (i = 0; i < A->size1; i++) {
 		s = gsl_vector_get(S, i);
 		if (s < s_min) {
