@@ -129,32 +129,33 @@ int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, in
 
 int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 {
-	GMRFLib_graph_tp *g;
-	int i, j, n, *nnbs, **nbs;
-	map_ii_storage *p;
+	GMRFLib_graph_tp *g = NULL;
+	int n, *nnbs = NULL, **nbs = NULL;
 
 	n = ged->n;
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
 
-	for (i = 0; i < n; i++) {
-		for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {
-			j++;
-		}
-		nnbs[i] = j;
+#define CODE_BLOCK				\
+	for (int i = 0; i < n; i++) {		\
+		int j;				\
+		map_ii_storage *p;					\
+		for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {	\
+			j++;						\
+		}							\
+		nnbs[i] = j;						\
+		if (nnbs[i]) {						\
+			nbs[i] = Calloc(nnbs[i], int);			\
+			for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL; j++) { \
+				nbs[i][j] = p->key;			\
+			}						\
+			assert(j == nnbs[i]);				\
+		} else {						\
+			nbs[i] = NULL;					\
+		}							\
 	}
-
-	for (i = 0; i < n; i++) {
-		if (nnbs[i]) {
-			nbs[i] = Calloc(nnbs[i], int);
-			for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL; j++) {
-				nbs[i][j] = p->key;
-			}
-			assert(j == nnbs[i]);
-		} else {
-			nbs[i] = NULL;
-		}
-	}
+        RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+#undef CODE_BLOCK
 
 	GMRFLib_graph_mk_empty(&g);
 	g->n = n;
@@ -165,7 +166,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	GMRFLib_graph_prepare(g);
 	GMRFLib_graph_duplicate(graph, g);
 
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		Free(nbs[i]);
 	}
 	Free(nbs);
