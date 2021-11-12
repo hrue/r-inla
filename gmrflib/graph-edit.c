@@ -136,9 +136,10 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
 
-#define CODE_BLOCK				\
-	for (int i = 0; i < n; i++) {		\
-		int j;				\
+#define CODE_BLOCK							\
+	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		int j;							\
 		map_ii_storage *p;					\
 		for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {	\
 			j++;						\
