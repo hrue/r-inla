@@ -36543,7 +36543,7 @@ int testit(int argc, char **argv)
 
 	case 65: 
 	{
-		double bfgs4_robust_minimize(double *, double *, int , double *,  double *, int );
+		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order);
 		double x[] = {0.000000, 0.117601, 0.140824, 0.142939, 0.143781, 0.144150, 0.144319, 0.144462, 0.151020, 0.785981};
 		double y[] = {190.587218, 190.560078, 190.559036, 190.559015, 190.559011, 190.559009,
 			190.559009, 190.559008, 190.589052, 191.217117};
