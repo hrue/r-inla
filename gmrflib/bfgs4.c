@@ -887,7 +887,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state,
 	double *pos = Calloc(na, double);
 	
 	// layout points on [0,1], adding a left point outside for stability. make them close to each other close to 0 compared to 1.
-	pos[0] = -0.2;
+	pos[0] = -0.15;
 	pos[1] = 0.0;
 	for(i = 2; i < na; i++) {
 		pos[i] = SQR((i-1.0) / (na -1.0));
