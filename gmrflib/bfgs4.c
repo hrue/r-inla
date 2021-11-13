@@ -624,7 +624,7 @@ static int bfgs4_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X,
 int gsl_bfgs4_test1(size_t n)
 {
 	// test-example from the GSL documentation
-	
+
 	size_t i;
 	const size_t p = 2;				       /* linear fit */
 	gsl_matrix *X, *cov;
@@ -717,7 +717,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	int err;
 	gsl_set_error_handler_off();
 
-        // err = bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
+	// err = bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
 	err = bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
@@ -732,7 +732,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 		}
 		return GMRFLib_SUCCESS;
 	}
-		
+
 	size_t m = 25;
 	double dx = (x[n - 1] - x[0]) / (m - 1.0);
 
@@ -794,8 +794,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	return GMRFLib_SUCCESS;
 }
 
-static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state, 
-		    double rho, double sigma, double tau1, double alpha1, double *alpha_new)
+static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double rho, double sigma, double tau1, double alpha1, double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
 	double alpha = alpha1, alpha_prev = 0.0;
@@ -879,25 +878,26 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state,
 
 	size_t dim = state->p->size;
 	size_t num_threads = GMRFLib_openmp->max_threads_outer;
-	size_t na = IMIN(16, IMAX(num_threads, 8)); /* since 'zero' is already computed */
-	
+	size_t na = IMIN(16, IMAX(num_threads, 8));	       /* since 'zero' is already computed */
+
 	double *aa = Calloc(na, double);
 	double *fun = Calloc(na, double);
 	double **thetas = Calloc(na, double *);
 	double *pos = Calloc(na, double);
-	
-	// layout points on [0,1], adding a left point outside for stability. make them close to each other close to 0 compared to 1.
-	pos[0] = -0.15;
-	pos[1] = 0.0;
-	for(i = 2; i < na; i++) {
-		pos[i] = SQR((i-1.0) / (na -1.0));
+
+	// layout points on [0,1], adding two left points outside for stability. make them close to each other close to 0 compared to 1.
+	pos[0] = -0.20;
+	pos[1] = -0.075;
+	pos[2] = 0.0;
+	for (i = 3; i < na; i++) {
+		pos[i] = SQR((i - 3.0) / (na - 2.0));
 	}
 	GMRFLib_scale_vector(pos, na);
 
-	for(i = 0; i < na; i++) {
-		aa[i] = a + (b-a) * pos[i];
+	for (i = 0; i < na; i++) {
+		aa[i] = a + (b - a) * pos[i];
 		thetas[i] = Calloc(dim, double);
-		for(j = 0; j < dim; j++) {
+		for (j = 0; j < dim; j++) {
 			thetas[i][j] = gsl_vector_get(state->x0, j) + aa[i] * gsl_vector_get(state->p, j);
 		}
 	}
@@ -906,21 +906,20 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state,
 	GMRFLib_opt_f_omp(thetas, na, fun, &ierr);
 
 	if (debug) {
-		for(i = 0; i < na; i++) {
+		for (i = 0; i < na; i++) {
 			printf("%.3f ", aa[i]);
-			for(j = 0; j < dim; j++) {
+			for (j = 0; j < dim; j++) {
 				printf(" %6.3f", thetas[i][j]);
 			}
 			printf(" %10.6f\n", fun[i]);
 		}
 	}
-	
-	// remove the largest values
+	// remove the largest value(s)
 	size_t remove = 1 + IMIN(2, IMAX(0, na - 8) / 4L);
-	for(k = 0; k < remove; k++) {
+	for (k = 0; k < remove; k++) {
 		int idx_max = 0;
 		GMRFLib_max_value(fun, na, &idx_max);
-		for(i = j = 0; i < na; i++) {
+		for (i = j = 0; i < na; i++) {
 			if (i != (size_t) idx_max) {
 				aa[j] = aa[i];
 				fun[j] = fun[i];
@@ -929,20 +928,21 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state,
 		}
 		na--;
 	}
-	
+
 	double amin, fmin;
 	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 2);
 
-	if (debug) printf("amin %f fmin %f\n", amin, fmin);
+	if (debug)
+		printf("amin %f fmin %f\n", amin, fmin);
 	*alpha_new = amin;
 
-	for(i = 0; i < na; i++) {
+	for (i = 0; i < na; i++) {
 		Free(thetas[i]);
 	}
 	Free(thetas);
 	Free(aa);
 	Free(fun);
 	Free(pos);
-	
+
 	return GSL_SUCCESS;
 }
