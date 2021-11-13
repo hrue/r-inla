@@ -182,7 +182,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
 	double alpha = alpha1, alpha_prev = 0.0;
 	double a, b, fa, fb, fpa, fpb;
-	const size_t bracket_iters = 100, section_iters = 100;
+	const size_t bracket_iters = 50, section_iters = 50;
 	size_t i = 0;
 
 	if (debug)

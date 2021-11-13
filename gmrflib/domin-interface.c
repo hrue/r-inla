@@ -1104,8 +1104,12 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	}
 
 	// T = gsl_multimin_fdfminimizer_vector_bfgs2; /* GSL version */
-	T = gsl_multimin_fdfminimizer_vector_bfgs3;	       /* I've made some small fixes... */
-
+	if (getenv("INLA_USE_BFGS4")) {
+		FIXME1("USE BFGS4");
+		T = gsl_multimin_fdfminimizer_vector_bfgs4;	       /* I've made some small fixes... */
+	} else {
+		T = gsl_multimin_fdfminimizer_vector_bfgs3;	       /* I've made some small fixes... */
+	}
 	s = gsl_multimin_fdfminimizer_alloc(T, G.nhyper);
 	gsl_multimin_fdfminimizer_set(s, &my_func, x, step_size, tol);
 

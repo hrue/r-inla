@@ -173,17 +173,16 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 	return alpha;
 }
 
-/* recommended values from Fletcher are 
-   rho = 0.01, sigma = 0.1, tau1 = 9, tau2 = 0.05, tau3 = 0.5 */
 
-static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
+static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state, 
+		    double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
 		    double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
 	double alpha = alpha1, alpha_prev = 0.0;
 	double a, b, fa, fb, fpa, fpb;
 	const size_t bracket_iters = 100, section_iters = 100;
-	size_t i = 0;
+	size_t i = 0, j;
 
 	if (debug)
 		printf("...enter minimize() sigma = %.12g\n", sigma);
@@ -231,6 +230,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			break;				       /* goto sectioning */
 		}
 
+		FIXME("evaluate _DF in bracketing");
+		
 		fpalpha = GSL_FN_FDF_EVAL_DF(fn, alpha);
 		if (debug)
 			printf("...begin bracketing: eval df %.12g\n", falpha);
@@ -238,7 +239,6 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		/*
 		 * Fletcher's sigma test 
 		 */
-
 		if (fabs(fpalpha) <= -sigma * fp0) {
 			*alpha_new = alpha;
 			return GSL_SUCCESS;
@@ -273,75 +273,63 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	 * Sectioning of bracket [a,b] 
 	 */
 
-	while (i++ < section_iters) {
+	size_t dim = state->p->size;
+	int num_threads = GMRFLib_openmp->max_threads_outer;
+	int na = IMIN(16, IMAX(num_threads, 8));
+	double **thetas;
+	double *aa;
+	
+	aa = Calloc(na, double);
+	thetas = Calloc(na, double *);
+	for(i = 0; i < na; i++) {
+		thetas[i] = Calloc(dim, double);
+	}
 
-		if (debug)
-			printf("...sectioning of bracket b %.12g a %.12g alpha %.12g\n", b, a, alpha);
-
-		delta = b - a;
-
-		{
-			double lower = a + tau2 * delta;
-			double upper = b - tau3 * delta;
-
-			alpha = interpolate(a, fa, fpa, b, fb, fpb, lower, upper, order);
-		}
-
-		falpha = GSL_FN_FDF_EVAL_F(fn, alpha);
-		if (debug)
-			printf("...eval F %.12g\n", falpha);
-
-		if (debug)
-			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
-
-		if ((a - alpha) * fpa <= GMRFLib_eps(2.0 / 3.0)) {	/* hrue */
-			/*
-			 * roundoff prevents progress 
-			 */
-			if (debug)
-				printf("BFGS4: minimizer: abort search as we do not seem to get any longer...\n");
-
-			*alpha_new = alpha;		       /* hrue */
-			return GSL_ENOPROG;
-		}
-
-		if (debug)
-			printf("...TEST %.12g > %.12g || %.12g >= %.12g\n", falpha, f0 + rho * alpha * fp0, falpha, fa);
-
-		if (falpha > f0 + rho * alpha * fp0 || falpha >= fa) {
-			/*
-			 * a_next = a; 
-			 */
-			b = alpha;
-			fb = falpha;
-			fpb = GSL_NAN;
-		} else {
-			fpalpha = GSL_FN_FDF_EVAL_DF(fn, alpha);
-			if (debug)
-				printf("...eval DF %.12g\n", fpalpha);
-
-			if (debug)
-				printf("... TEST %.12g <= %.12g\n", fabs(fpalpha), -sigma * fp0);
-			if (fabs(fpalpha) <= -sigma * fp0) {
-				*alpha_new = alpha;
-				return GSL_SUCCESS;	       /* terminate */
-			}
-
-			if (((b - a) >= 0 && fpalpha >= 0) || ((b - a) <= 0 && fpalpha <= 0)) {
-				b = a;
-				fb = fa;
-				fpb = fpa;
-				a = alpha;
-				fa = falpha;
-				fpa = fpalpha;
-			} else {
-				a = alpha;
-				fa = falpha;
-				fpa = fpalpha;
-			}
+	for(i = 0; i < na; i++) {
+		aa[i] =  a + (b-a) * i/(na - 1.0);
+		for(j = 0; j < dim; j++) {
+			thetas[i][j] = gsl_vector_get(state->x0, j) + aa[i] * gsl_vector_get(state->p, j);
+			if (debug) P(thetas[i][j]);
 		}
 	}
 
+	double *fun = Calloc(na, double);
+	int ierr = 0;
+	GMRFLib_opt_f_omp(thetas, na, fun, &ierr);
+	
+	if (debug)
+		for(i = 0; i < na; i++) {
+			printf("%.3f ", aa[i]);
+			for(j = 0; j < dim; j++) {
+				printf(" %6.3f", thetas[i][j]);
+			}
+			printf(" %10.4f\n", fun[i]);
+		}
+	
+	// remove the 'remove' largest values
+	int remove = 2 + IMIN(4, IMAX(0, na - 8) / 2);
+	P(remove);
+	for(int k = 0; k < remove; k++) {
+		int idx_max = 0;
+		GMRFLib_max_value(fun, na, &idx_max);
+		for(i = j = 0; i < na; i++) {
+			if (i != idx_max) {
+				aa[j] = aa[i];
+				fun[j] = fun[i];
+				j++;
+			}
+		}
+		na--;
+	}
+	
+	double amin, fmin;
+	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 2);
+
+	if (debug) printf("amin %f fmin %f\n", amin, fmin);
+	*alpha_new = amin;
+
+	FIXME1("recall to FREE");
+	
 	return GSL_SUCCESS;
 }
 
@@ -680,7 +668,8 @@ static int vector_bfgs4_iterate(void *vstate, gsl_multimin_function_fdf * UNUSED
 	 */
 	if (debug)
 		printf("...call minimize()\n");
-	status = minimize(&state->wrap.fdf_linear, state->rho, state->sigma, state->tau1, state->tau2, state->tau3, state->order, alpha1, &alpha);
+	status = minimize(&state->wrap.fdf_linear, state,
+			  state->rho, state->sigma, state->tau1, state->tau2, state->tau3, state->order, alpha1, &alpha);
 	if (debug)
 		printf("...end minimize()\n");
 
@@ -889,8 +878,9 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	}
 
 	// bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
-	// bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
-	bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
+	bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
+	// bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
+	// bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
 
 	size_t m = 25;
 	double dx = (x[n - 1] - x[0]) / (m - 1.0);
