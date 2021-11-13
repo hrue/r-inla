@@ -890,7 +890,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	pos[1] = -0.075;
 	pos[2] = 0.0;
 	for (i = 3; i < na; i++) {
-		pos[i] = SQR((i - 3.0) / (na - 2.0));
+		pos[i] = SQR((i - 3.0) / (na - 4.0));
 	}
 	GMRFLib_scale_vector(pos, na);
 
