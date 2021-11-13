@@ -885,11 +885,12 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state,
 	double *fun = Calloc(na, double);
 	double **thetas = Calloc(na, double *);
 	double *pos = Calloc(na, double);
-
-	pos[0] = -1.0;
+	
+	// layout points on [0,1], adding a left point outside for stability. make them close to each other close to 0 compared to 1.
+	pos[0] = -0.2;
 	pos[1] = 0.0;
 	for(i = 2; i < na; i++) {
-		pos[i] = pos[i-1] + 1.0;
+		pos[i] = SQR((i-1.0) / (na -1.0));
 	}
 	GMRFLib_scale_vector(pos, na);
 
