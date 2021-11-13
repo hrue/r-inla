@@ -54,7 +54,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/bfgs4.h"
-static int debug = 0;
+static int debug = 1;
 
 /* Find a minimum in x=[0,1] of the interpolating quadratic through
  * (0,f0) (1,f1) with derivative fp0 at x=0.  The interpolating
@@ -286,7 +286,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t *state,
 	}
 
 	for(i = 0; i < na; i++) {
-		aa[i] =  a + (b-a) * i/(na - 1.0);
+		aa[i] =  a + (b-a) * (i - 2.0) /(na - 3.0);
 		for(j = 0; j < dim; j++) {
 			thetas[i][j] = gsl_vector_get(state->x0, j) + aa[i] * gsl_vector_get(state->p, j);
 			if (debug) P(thetas[i][j]);
@@ -878,8 +878,8 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	}
 
 	// bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
-	bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
-	// bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
+	// bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
+	bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
 	// bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
 
 	size_t m = 25;
