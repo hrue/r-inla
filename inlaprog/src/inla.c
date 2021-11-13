@@ -27275,6 +27275,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 
 	mb->ai_par->improved_simplified_laplace = iniparser_getboolean(ini, inla_string_join(secname, "IMPROVED.SIMPLIFIED.LAPLACE"), 0);
 
+	mb->ai_par->bfgs_version = iniparser_getint(ini, inla_string_join(secname, "BFGS.VERSION"), 3);
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}

@@ -111,7 +111,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.graph = graph;
 	G.directions = ai_par->optimise_use_directions_m;
 	G.preopt = preopt;
-
+	G.bfgs_version = ai_par->bfgs_version;
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS, GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS, void *);
 	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -1104,11 +1104,12 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	}
 
 	// T = gsl_multimin_fdfminimizer_vector_bfgs2; /* GSL version */
-	if (getenv("INLA_USE_BFGS4")) {
-		FIXME1("USE BFGS4");
-		T = gsl_multimin_fdfminimizer_vector_bfgs4;	       /* I've made some small fixes... */
+	if (G.bfgs_version == 4) {
+		FIXME("BFGS=4");
+		T = gsl_multimin_fdfminimizer_vector_bfgs4;	       
 	} else {
-		T = gsl_multimin_fdfminimizer_vector_bfgs3;	       /* I've made some small fixes... */
+		FIXME("BFGS=3");
+		T = gsl_multimin_fdfminimizer_vector_bfgs3;	       
 	}
 	s = gsl_multimin_fdfminimizer_alloc(T, G.nhyper);
 	gsl_multimin_fdfminimizer_set(s, &my_func, x, step_size, tol);

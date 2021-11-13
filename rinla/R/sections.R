@@ -996,6 +996,9 @@
 
     inla.write.boolean.field("improved.simplified.laplace", inla.spec$improved.simplified.laplace, file)
 
+    cat("bfgs.version = ", if (!is.null(inla.spec$bfgs.version) && inla.spec$bfgs.version == 4)
+                               4L else 3L, "\n", append = TRUE, sep = " ", file = file)
+    
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
@@ -1080,7 +1083,7 @@
 
     inla.write.boolean.field("vb.correct", predictor.spec$vb.correct, file)
 
-    cat("\n", sep = " ", file = file, append = TRUE)
+   cat("\n", sep = " ", file = file, append = TRUE)
 }
 
 `inla.lp.scale.section` <- function(file, contr, data.dir, write.hyper = TRUE) {

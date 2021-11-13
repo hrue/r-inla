@@ -570,8 +570,8 @@
             ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
             improved.simplified.laplace = FALSE,
 
-            ## :ARGUMENT: fast If \code{stage1only} then try to do all calculations during stage1 by ## enabling Gaussian strategy with VB correction enabled.
-            control.twostage = list(stage1only = TRUE)
+            ## :ARGUMENT: bfgs.version  Which BFGS version to use,  either default (\code{=3}) the experimental one (\code{=4})
+            bfgs.version = 3L
         )
 
         ## :SEEALSO: inla
