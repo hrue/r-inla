@@ -89,6 +89,7 @@ __BEGIN_DECLS
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_sort_vector.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_multifit.h>
 
 /* 
  * include all the include-files in GMRFLib

@@ -10041,7 +10041,7 @@ inla.models()
 							\item{initial = }{`0'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`normal'}
-							\item{param = }{`0 10'}
+							\item{param = }{`0 100'}
 							\item{to.theta = }{`\code{function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x))}'}
 							\item{from.theta = }{`\code{function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))}'}
 							}
@@ -10051,10 +10051,10 @@ inla.models()
 							\item{hyperid = }{`102201'}
 							\item{name = }{`dispersion'}
 							\item{short.name = }{`phi'}
-							\item{initial = }{`0'}
+							\item{initial = }{`-4'}
 							\item{fixed = }{`FALSE'}
 							\item{prior = }{`loggamma'}
-							\item{param = }{`1 0.1'}
+							\item{param = }{`100 100'}
 							\item{to.theta = }{`\code{function(x) log(x)}'}
 							\item{from.theta = }{`\code{function(x) exp(x)}'}
 							}

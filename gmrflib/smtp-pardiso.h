@@ -196,13 +196,13 @@ int my_pardiso_test6();
 int my_pardiso_test7(void);
 double my_pardiso_test_Q(int i, int j, double *values, void *arg);
 
-void pardisoinit(void *, int *, int *, int *, double *, int *);
 void pardiso(void *, int *, int *, int *, int *, int *, double *, int *, int *, int *, int *, int *, int *, double *, double *, int *, double *);
 void pardiso_chkmatrix(int *, int *, double *, int *, int *, int *);
 void pardiso_chkvec(int *, int *, double *, int *);
-void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, int *);
 void pardiso_get_factor_csc(void **, double *, int *, int *, double *, int *, int *, int *, int);
 void pardiso_get_inverse_factor_csc(void **, double *, int *, int *, int *, int);
-
+void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, int *);
+void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b, double *x, double *y, double *norm_b, double *norm_res);
+void pardisoinit(void *, int *, int *, int *, double *, int *);
 __END_DECLS
 #endif

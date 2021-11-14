@@ -19,7 +19,7 @@ control.pardiso.default(debug, nrhs, parallel.reordering, verbose)
 \item{verbose}{   Show detailed output (default FALSE)}
 \item{debug}{   Show internal debug output (default FALSE)}
 \item{parallel.reordering}{   Do reordering in parallel (default TRUE)}
-\item{nrhs}{   Number of right-hand sides to solve for in parallel (default depends on the argument \code{num.threads} and \code{-1} will not change it)}
+\item{nrhs}{   Number of right-hand sides to solve for in parallel (\code{-1} will determine this adapative)}
 }
 \value{
    Extra options controlling the PARDISO library

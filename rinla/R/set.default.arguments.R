@@ -277,7 +277,7 @@
             ## :ARGUMENT: parallel.reordering Do reordering in parallel (default TRUE)
             parallel.reordering = TRUE,
 
-            ## :ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (default depends on the argument \code{num.threads} and \code{-1} will not change it)
+            ## :ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (\code{-1} will determine this adapative)
             nrhs = -1
         )
 
@@ -570,8 +570,8 @@
             ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
             improved.simplified.laplace = FALSE,
 
-            ## :ARGUMENT: fast If \code{stage1only} then try to do all calculations during stage1 by ## enabling Gaussian strategy with VB correction enabled.
-            control.twostage = list(stage1only = TRUE)
+            ## :ARGUMENT: bfgs.version  Which BFGS version to use,  either default (\code{=3}) the HIGHLY experimental one (\code{=4})
+            bfgs.version = 3L
         )
 
         ## :SEEALSO: inla

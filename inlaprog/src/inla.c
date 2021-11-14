@@ -8461,9 +8461,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -27275,6 +27275,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 
 	mb->ai_par->improved_simplified_laplace = iniparser_getboolean(ini, inla_string_join(secname, "IMPROVED.SIMPLIFIED.LAPLACE"), 0);
 
+	mb->ai_par->bfgs_version = iniparser_getint(ini, inla_string_join(secname, "BFGS.VERSION"), 3);
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
 	}
@@ -36533,6 +36534,32 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 64: 
+	{
+		int n = atoi(args[0]);
+		int gsl_bfgs4_test1(size_t);
+		gsl_bfgs4_test1((size_t) n);
+		break;
+	}
+
+	case 65: 
+	{
+		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order);
+		double x[] = {0.000000, 0.117601, 0.140824, 0.142939, 0.143781, 0.144150, 0.144319, 0.144462, 0.151020, 0.785981};
+		double y[] = {190.587218, 190.560078, 190.559036, 190.559015, 190.559011, 190.559009,
+			190.559009, 190.559008, 190.589052, 191.217117};
+		int n = sizeof(y) / sizeof(double);
+
+		double xmin;
+		double ymin;
+		
+		for(int order = 2; order <= 4; order += 2) {
+			bfgs4_robust_minimize(&xmin, &ymin, n, x, y, order);
+			printf("xmin = %f ymin= %f when order = %d\n", xmin, ymin, order);
+		}
+		break;
+	}
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -36597,7 +36624,6 @@ int main(int argc, char **argv)
 
 	GMRFLib_init_constr_store();			       /* no need to reset this with preopt */
 	GMRFLib_init_graph_store();			       /* no need to reset this with pretop */
-	GMRFLib_pardiso_set_nrhs(1);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 
@@ -36786,7 +36812,6 @@ int main(int argc, char **argv)
 				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads);
 			}
 			omp_set_num_threads(GMRFLib_MAX_THREADS);
-			GMRFLib_pardiso_set_nrhs(ntt[1]);
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 

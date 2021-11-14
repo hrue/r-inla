@@ -157,6 +157,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->gsl_epsx = 0.005;
 	(*ai_par)->gsl_step_size = 1.0;
 	(*ai_par)->mode_known = 0;
+	(*ai_par)->bfgs_version = 3L;
 
 	/*
 	 * parameters for the Gaussian approximations 
@@ -257,6 +258,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tOptimise: try to be smart: %s\n", (ai_par->optimise_smart ? "Yes" : "No"));
 	fprintf(fp, "\t\tOptimise: use directions: %s\n", (ai_par->optimise_use_directions ? "Yes" : "No"));
 	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
+	fprintf(fp, "\t\tbfgs.version [%1d]\n", ai_par->bfgs_version);
 
 	gsl_matrix *m = ai_par->optimise_use_directions_m;
 	if (m) {
@@ -3109,8 +3111,9 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				}
 
 				if (ai_par->restart) {
-					for (k = 0; k < IMAX(0, ai_par->restart); k++)
+					for (k = 0; k < IMAX(0, ai_par->restart); k++) {
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
+					}
 				}
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
@@ -5578,8 +5581,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				}
 
 				if (ai_par->restart) {
-					for (k = 0; k < IMAX(0, ai_par->restart); k++)
+					for (k = 0; k < IMAX(0, ai_par->restart); k++) {
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
+					}
 				}
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
@@ -7782,6 +7786,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			// solve MM %*% delta = MB
 			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0 / 3.0));
 		}
+
+		for (i = 0; i < (int) delta->size; i++) {
+			if (ISNAN(gsl_vector_get(delta, i))) {
+				gsl_vector_set_zero(delta);
+				break;
+			}
+		}
+
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
 		double step_len;

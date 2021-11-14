@@ -75,7 +75,7 @@ __BEGIN_DECLS
 #define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT();			\
 	static double debug_cpu_acc_ = 0.0;				\
 	_Pragma("omp threadprivate(debug_cpu_acc_)")			\
-	static double debug_cpu_ = 0;					\
+	static double debug_cpu_ = 0.0;					\
 	_Pragma("omp threadprivate(debug_cpu_)")			\
 	debug_cpu_ = GMRFLib_cpu();					\
 	GMRFLib_DEBUG_d("Enter", debug_cpu_);				\
@@ -89,7 +89,7 @@ __BEGIN_DECLS
 #define GMRFLib_LEAVE_ROUTINE if (1)					\
 	{								\
 		debug_cpu_acc_ += (GMRFLib_cpu() - debug_cpu_);		\
-		GMRFLib_DEBUG_id("Leave, count cpu/count", debug_count_, debug_cpu_acc_ / (double) debug_count_); \
+		GMRFLib_DEBUG_id("Leave, count cpu/count total", debug_count_, debug_cpu_acc_ / (double) debug_count_, debug_cpu_acc_); \
 		if (GMRFLib_collect_timer_statistics) {			\
 			GMRFLib_timer_leave(GMRFLib_timer_strip(__GMRFLib_FuncName)); \
 		}							\

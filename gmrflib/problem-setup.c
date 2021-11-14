@@ -138,65 +138,137 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 
 	// compute C=A*B, where A is the constr matrix, and we know that C is symmetric.
 	// see below where this is used.
-	int K = m * (m + 1) / 2, *ii, *jj, cond;
 
-	ii = Calloc(2 * K, int);
-	jj = ii + K;
-	for (int k = 0, i = 0; i < m; i++) {
-		for (int j = i; j < m; j++) {
-			ii[k] = i;
-			jj[k] = j;
-			k++;
+	typedef struct {
+		int m;
+		int K;
+		int *ii;
+		int *jj;
+	} storage_t;
+
+	static storage_t **storage = NULL;
+
+	if (!storage) {
+#pragma omp critical
+		{
+			if (!storage) {
+				storage = Calloc(GMRFLib_CACHE_LEN, storage_t *);
+			}
 		}
 	}
 
-	cond = (m > GMRFLib_MAX_THREADS);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
-	for (int k = 0; k < K; k++) {
-		int i = ii[k], j = jj[k], incx = m, incy = 1;
-		double value;
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
 
-		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy);
-		C[i + j * m] = C[j + i * m] = value;
+	if (!storage[id]) {
+		storage[id] = Calloc(1, storage_t);
 	}
 
-	Free(ii);
+	if (storage[id]->m != m) {
+		Free(storage[id]->ii);
+
+		int K = m * (m + 1) / 2;
+		int *ii = Calloc(2 * K, int);
+		int *jj = ii + K;
+		for (int k = 0, i = 0; i < m; i++) {
+			for (int j = i; j < m; j++) {
+				ii[k] = i;
+				jj[k] = j;
+				k++;
+			}
+		}
+		storage[id]->m = m;
+		storage[id]->K = K;
+		storage[id]->ii = ii;
+		storage[id]->jj = jj;
+	}
+#define CODE_BLOCK							\
+	for (int k = 0; k < storage[id]->K; k++) {			\
+		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;		\
+		double value;						\
+		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
+		C[i + j * m] = C[j + i * m] = value;			\
+	}
+
+	if (m > GMRFLib_MAX_THREADS) {
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+	} else {
+		CODE_BLOCK;
+	}
+#undef CODE_BLOCK
+
 	return GMRFLib_SUCCESS;
 }
 
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 {
 	// compute C=A*A', where A is the constr matrix. C is symmetric. see below where this is used.
-	int K = m * (m + 1) / 2, *ii, *jj, cond;
 
-	ii = Calloc(2 * K, int);
-	jj = ii + K;
-	for (int k = 0, i = 0; i < m; i++) {
-		for (int j = i; j < m; j++) {
-			ii[k] = i;
-			jj[k] = j;
-			k++;
+	typedef struct {
+		int m;
+		int K;
+		int *ii;
+		int *jj;
+	} storage_t;
+
+	static storage_t **storage = NULL;
+
+	if (!storage) {
+#pragma omp critical
+		{
+			if (!storage) {
+				storage = Calloc(GMRFLib_CACHE_LEN, storage_t *);
+			}
 		}
 	}
 
-	cond = (m > GMRFLib_MAX_THREADS);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
-	for (int k = 0; k < K; k++) {
-		int i = ii[k], j = jj[k], incx = m, jf, je, jlen;
-		double value;
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
 
-		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);
-		je = IMIN(constr->jfirst[i] + constr->jlen[i], constr->jfirst[j] + constr->jlen[j]);
-		jlen = je - jf;
-		if (jlen > 0) {
-			value = ddot_(&jlen, &(A[i + m * jf]), &incx, &(A[j + m * jf]), &incx);
-		} else {
-			value = 0.0;
-		}
-		C[i + j * m] = C[j + i * m] = value;
+	if (!storage[id]) {
+		storage[id] = Calloc(1, storage_t);
 	}
 
-	Free(ii);
+	if (storage[id]->m != m) {
+		Free(storage[id]->ii);
+
+		int K = m * (m + 1) / 2;
+		int *ii = Calloc(2 * K, int);
+		int *jj = ii + K;
+		for (int k = 0, i = 0; i < m; i++) {
+			for (int j = i; j < m; j++) {
+				ii[k] = i;
+				jj[k] = j;
+				k++;
+			}
+		}
+		storage[id]->m = m;
+		storage[id]->K = K;
+		storage[id]->ii = ii;
+		storage[id]->jj = jj;
+	}
+#define CODE_BLOCK							\
+	for (int k = 0; k < storage[id]->K; k++) {			\
+		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, jf, je, jlen; \
+		double value;						\
+		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);	\
+		je = IMIN(constr->jfirst[i] + constr->jlen[i], constr->jfirst[j] + constr->jlen[j]); \
+		jlen = je - jf;						\
+		if (jlen > 0) {						\
+			value = ddot_(&jlen, &(A[i + m * jf]), &incx, &(A[j + m * jf]), &incx);	\
+		} else {						\
+			value = 0.0;					\
+		}							\
+		C[i + j * m] = C[j + i * m] = value;			\
+	}
+
+	if (m > GMRFLib_MAX_THREADS) {
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+	} else {
+		CODE_BLOCK;
+	}
+#undef CODE_BLOCK
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -205,12 +277,19 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 	// compute 'res = A %*% x'
 
 	int nc = constr->nc, inc = 1;
-	int cond = (nc > GMRFLib_MAX_THREADS);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(cond)
-	for (int i = 0; i < nc; i++) {
-		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc);
+#define CODE_BLOCK							\
+	for (int i = 0; i < nc; i++) {					\
+		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); \
 	}
+
+	if (nc > GMRFLib_MAX_THREADS) {
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+	} else {
+		CODE_BLOCK;
+	}
+#undef CODE_BLOCK
+
 	return GMRFLib_SUCCESS;
 }
 

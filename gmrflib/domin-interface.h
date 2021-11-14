@@ -54,9 +54,12 @@ __BEGIN_DECLS
 /* 
    
 */
+
+
     typedef struct {
 	gsl_matrix *A;
 	gsl_matrix *tAinv;
+	int reset_directions;
 } opt_dir_params_tp;
 
 typedef struct {
@@ -85,6 +88,7 @@ typedef struct {
 	GMRFLib_logl_tp *loglFunc;
 	gsl_matrix *directions;
 	GMRFLib_preopt_tp *preopt;
+	int bfgs_version;
 } GMRFLib_opt_arg_tp;
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
@@ -108,6 +112,7 @@ GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
 int GMRFLib_opt_get_latent(double *latent);
+int GMRFLib_opt_reset_directions(void);
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_opt_dir_step(double *x, int idx, double h);
 int GMRFLib_opt_dir_transform_gradient(double *grad);
@@ -116,6 +121,7 @@ void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df);
 void GMRFLib_gsl_fdf(const gsl_vector * x, void *params, double *f, gsl_vector * df);
 
 GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs3;	/* my version of vector_bfgs2() */
+GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs4;	/* my 2nd version of vector_bfgs2() */
 
 __END_DECLS
 #endif

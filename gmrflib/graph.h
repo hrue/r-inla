@@ -181,8 +181,6 @@ typedef struct {
 size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg);
 int *GMRFLib_graph_cc(GMRFLib_graph_tp * g);
-int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
-int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
 int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph);
@@ -200,6 +198,8 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 int GMRFLib_graph_free(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph);
+int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp *graph);
+int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp *graph);
 int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph);
 int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag);
 int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag);
@@ -207,7 +207,6 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold);
 int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph);
-int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename);
@@ -225,9 +224,13 @@ int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol);
 int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol);
 int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c);
+int GMRFLib_printf_Qfunc(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
+
 
 __END_DECLS
 #endif

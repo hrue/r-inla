@@ -1175,6 +1175,8 @@
                 fam.dic.sat[i] <- sum(local.dic.sat[idx])
                 fam.p.eff[i] <- sum(local.p.eff[idx])
             }
+        } else {
+            fam.dic.sat <- rep(NA, length(fam.dic))
         }
 
         dic <- list(

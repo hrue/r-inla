@@ -8476,7 +8476,7 @@
                             initial = 0,
                             fixed = FALSE,
                             prior = "normal",
-                            param = c(0, 10),
+                            param = c(0, 100),
                             to.theta = function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x)),
                             from.theta = function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))
                         ),
@@ -8484,10 +8484,10 @@
                             hyperid = 102201,
                             name = "dispersion",
                             short.name = "phi",
-                            initial = 0,
+                            initial = -4,
                             fixed = FALSE,
                             prior = "loggamma",
-                            param = c(1, 0.1),
+                            param = c(100, 100),
                             to.theta = function(x) log(x),
                             from.theta = function(x) exp(x)
                         )

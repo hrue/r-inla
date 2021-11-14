@@ -4,6 +4,30 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.11.14}{
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item Parallel linesearch implemented, see option
+       \code{bfgs.version} in \code{control.inla}. This option is highly
+       experimental at the moment and work in progress, and should
+       not be used.
+     }
+   }
+  \subsection{BUG FIXES AND IMPROVEMENTS}{
+    \itemize{
+      \item Change default settings for \code{family="tweedie"}
+      \item Implemented an adaptive parallel/serial version of
+        \code{Q%*%x}
+      \item Improved perforance for parallel linear solve with \code{PARDISO}
+      \item Use stable Legendre polynomial evaluation for spherical covariances
+      \item Add support for \code{Fedora Linux 35}
+      \item Fixed \code{dic.sat} when all response are \code{NA}
+      \item Various internal code changes and improvements
+    }
+  }
+}
+
+
 \section{CHANGES IN VERSION 21.11.01}{
    \subsection{NEW EXPERIMENTAL FEATURES}{
      \itemize{
