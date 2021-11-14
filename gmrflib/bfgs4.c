@@ -885,12 +885,15 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	double **thetas = Calloc(na, double *);
 	double *pos = Calloc(na, double);
 
-	// layout points on [0,1], adding two left points outside for stability. make them close to each other close to 0 compared to 1.
+	// layout points on [0,1], adding two left points outside for stability. make points close to each other close to 0 compared to 1.
+	int idx_zero = 2;
+	double dzero = (double) idx_zero;
+
 	pos[0] = -0.20;
 	pos[1] = -0.075;
-	pos[2] = 0.0;
-	for (i = 3; i < na; i++) {
-		pos[i] = SQR((i - 3.0) / (na - 4.0));
+	pos[idx_zero] = 0.0;
+	for (i = idx_zero + 1; i < na; i++) {
+		pos[i] = SQR((i - dzero) / ((na - 1.0) - dzero));
 	}
 	GMRFLib_scale_vector(pos, na);
 
@@ -907,7 +910,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 
 	if (debug) {
 		for (i = 0; i < na; i++) {
-			printf("%.3f ", aa[i]);
+			printf("\t i=%1d aa=%.3f ", i, aa[i]);
 			for (j = 0; j < dim; j++) {
 				printf(" %6.3f", thetas[i][j]);
 			}
@@ -933,7 +936,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 2);
 
 	if (debug)
-		printf("amin %f fmin %f\n", amin, fmin);
+		printf("\tamin %f fmin %f\n", amin, fmin);
 	*alpha_new = amin;
 
 	for (i = 0; i < na; i++) {

@@ -69,7 +69,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{use.directions}{   THIS OPTION IS EXPERIMENTAL. Unless \code{FALSE} or \code{NULL}, use directions for computing gradient and Hessian, initialised with \code{use.directions} if a matrix.}
 \item{constr.marginal.diagonal}{   Add stability to \code{AQ^-1A^T} by adding a small diagonal term. (default \code{epsilon^0.5})}
 \item{improved.simplified.laplace}{   If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.}
-\item{bfgs.version}{   Which BFGS version to use, either default (\code{=3}) the experimental one (\code{=4})}
+\item{bfgs.version}{   Which BFGS version to use, either default (\code{=3}) the HIGHLY experimental one (\code{=4})}
 }
 \value{
   

@@ -570,7 +570,7 @@
             ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
             improved.simplified.laplace = FALSE,
 
-            ## :ARGUMENT: bfgs.version  Which BFGS version to use,  either default (\code{=3}) the experimental one (\code{=4})
+            ## :ARGUMENT: bfgs.version  Which BFGS version to use,  either default (\code{=3}) the HIGHLY experimental one (\code{=4})
             bfgs.version = 3L
         )
 
