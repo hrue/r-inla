@@ -910,7 +910,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 
 	if (debug) {
 		for (i = 0; i < na; i++) {
-			printf("\t i=%1d aa=%.3f ", i, aa[i]);
+			printf("\t i=%1ld aa=%.3f ", i, aa[i]);
 			for (j = 0; j < dim; j++) {
 				printf(" %6.3f", thetas[i][j]);
 			}
