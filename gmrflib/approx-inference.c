@@ -5540,6 +5540,36 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		 */
 		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
 				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+
+		if (1) {
+			// compute an initial value for 'x' if not given
+			int all_the_same = 1;
+			for(i = 0; i < graph->n; i++) {
+				if (!ISZERO(x[i] - x[0])) {
+					all_the_same = 0;
+					break;
+				}
+			}
+			if (all_the_same) {
+				// do a controlled function call to get started
+				double cmin = ai_par->cmin;
+				double *tt = Calloc(nhyper, double);
+				double dummy;
+				int ierr;
+				ai_par->cmin = 10.0;
+				for(i = 0; i < nhyper; i++) {
+					tt[i] =  hyperparam[i][0][0];
+				}
+				if (ai_par->fp_log) {
+					fprintf(ai_par->fp_log, "Do a fake fn-call to get initial values for x, using cmin=%g\n",
+						ai_par->cmin);
+				}
+				GMRFLib_opt_f(tt, &dummy, &ierr, NULL, NULL);
+				Free(tt);
+				ai_par->cmin = cmin;
+			}
+		}
+		
 		/*
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
 		 * computing the gradient.
