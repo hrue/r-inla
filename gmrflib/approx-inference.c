@@ -2520,6 +2520,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 					for (i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + (1.0 + lambda) * c[i] + lambda;
+						c_new[i] = (1.0 + lambda) * c[i] + lambda;
 						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
 							x[i] = mode[i];
 						}
