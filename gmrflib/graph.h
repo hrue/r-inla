@@ -198,8 +198,8 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 int GMRFLib_graph_free(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph);
-int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp *graph);
-int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp *graph);
+int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph);
 int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag);
 int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag);

@@ -54,8 +54,6 @@ __BEGIN_DECLS
 /* 
    
 */
-
-
     typedef struct {
 	gsl_matrix *A;
 	gsl_matrix *tAinv;
@@ -88,7 +86,7 @@ typedef struct {
 	GMRFLib_logl_tp *loglFunc;
 	gsl_matrix *directions;
 	GMRFLib_preopt_tp *preopt;
-	int bfgs_version;
+	int parallel_linesearch;
 } GMRFLib_opt_arg_tp;
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,

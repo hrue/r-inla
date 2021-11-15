@@ -111,7 +111,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.graph = graph;
 	G.directions = ai_par->optimise_use_directions_m;
 	G.preopt = preopt;
-	G.bfgs_version = ai_par->bfgs_version;
+	G.parallel_linesearch = ai_par->parallel_linesearch;
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS, GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS, void *);
 	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -133,7 +133,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 }
 
-int GMRFLib_opt_reset_directions(void) 
+int GMRFLib_opt_reset_directions(void)
 {
 	// restart with diagonal direction matrix
 	Opt_dir_params.reset_directions = 1;
@@ -1059,14 +1059,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	static gsl_matrix *tAinv = NULL;
 
 	if (G.use_directions) {
-		if (Opt_dir_params.reset_directions || !Opt_dir_params.A ||
-		    (Opt_dir_params.A && Opt_dir_params.A->size1 != (size_t) G.nhyper)) {
+		if (Opt_dir_params.reset_directions || !Opt_dir_params.A || (Opt_dir_params.A && Opt_dir_params.A->size1 != (size_t) G.nhyper)) {
 
 			if (!A && !Adir && !tAinv) {
 				A = gsl_matrix_alloc(G.nhyper, G.nhyper);
 				Adir = gsl_matrix_alloc(G.nhyper, G.nhyper);
 				tAinv = gsl_matrix_alloc(G.nhyper, G.nhyper);
-			} 
+			}
 			gsl_matrix_set_zero(A);
 			gsl_matrix_set_zero(tAinv);
 			gsl_matrix_set_identity(Adir);
@@ -1082,7 +1081,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			}
 			gsl_matrix_memcpy(A, Adir);
 			gsl_matrix_memcpy(tAinv, Adir);
-			Opt_dir_params.reset_directions = 0; 
+			Opt_dir_params.reset_directions = 0;
 
 		} else {
 			// ok
@@ -1104,12 +1103,10 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 	}
 
 	// T = gsl_multimin_fdfminimizer_vector_bfgs2; /* GSL version */
-	if (G.bfgs_version == 4) {
-		FIXME("BFGS=4");
-		T = gsl_multimin_fdfminimizer_vector_bfgs4;	       
+	if (G.parallel_linesearch) {
+		T = gsl_multimin_fdfminimizer_vector_bfgs4;
 	} else {
-		FIXME("BFGS=3");
-		T = gsl_multimin_fdfminimizer_vector_bfgs3;	       
+		T = gsl_multimin_fdfminimizer_vector_bfgs3;
 	}
 	s = gsl_multimin_fdfminimizer_alloc(T, G.nhyper);
 	gsl_multimin_fdfminimizer_set(s, &my_func, x, step_size, tol);
