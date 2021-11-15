@@ -157,7 +157,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->gsl_epsx = 0.005;
 	(*ai_par)->gsl_step_size = 1.0;
 	(*ai_par)->mode_known = 0;
-	(*ai_par)->bfgs_version = 3L;
+	(*ai_par)->parallel_linesearch = 0;
 
 	/*
 	 * parameters for the Gaussian approximations 
@@ -258,7 +258,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	fprintf(fp, "\t\tOptimise: try to be smart: %s\n", (ai_par->optimise_smart ? "Yes" : "No"));
 	fprintf(fp, "\t\tOptimise: use directions: %s\n", (ai_par->optimise_use_directions ? "Yes" : "No"));
 	fprintf(fp, "\t\tMode known: %s\n", (ai_par->mode_known ? "Yes" : "No"));
-	fprintf(fp, "\t\tbfgs.version [%1d]\n", ai_par->bfgs_version);
+	fprintf(fp, "\t\tparallel linesearch [%1d]\n", ai_par->parallel_linesearch);
 
 	gsl_matrix *m = ai_par->optimise_use_directions_m;
 	if (m) {
@@ -2519,7 +2519,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				for (kk = 0; kk < ntimes; kk++) {
 
 					for (i = 0; i < graph->n; i++) {
-						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + (1.0 + lambda) * c[i];
+						c_new[i] = lambda * Qfunc(i, i, NULL, Qfunc_arg) + lambda * c[i] + lambda;
 						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
 							x[i] = mode[i];
 						}
@@ -5540,6 +5540,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		 */
 		GMRFLib_opt_setup(hyperparam, nhyper, log_extra, log_extra_arg, NULL, x, b, c, mean, bfunc, d, loglFunc,
 				  loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, ai_par, ai_store, preopt);
+
 		/*
 		 * the optimizer runs most smoothly when #threads is about nhyper+1, which is the number of `natural' threads for
 		 * computing the gradient.

@@ -570,8 +570,8 @@
             ## :ARGUMENT: improved.simplified.laplace If \code{TRUE} use an experimental improved variant, otherwise, use the standard one.
             improved.simplified.laplace = FALSE,
 
-            ## :ARGUMENT: bfgs.version  Which BFGS version to use,  either default (\code{=3}) the HIGHLY experimental one (\code{=4})
-            bfgs.version = 3L
+            ## :ARGUMENT: parallel.linesearch Use serial (default) or parallel line-search (highly experimental for the moment)
+            parallel.linesearch = FALSE
         )
 
         ## :SEEALSO: inla

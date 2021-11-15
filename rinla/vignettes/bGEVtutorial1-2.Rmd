@@ -593,7 +593,7 @@ The spread and tail parameter are simulated as before:
 x2 = rnorm(n)
 x4 = rnorm(n)
 s.x = exp(0.1 + 0.3*x2 + x4)
-x3 = runif(n,-0.5,2)
+x3 = runif(n,-0.2, 0.2)
 t.x = 0.1 + 0.2*x3
 tail.intern = map.tail(t.x, tail.interval, inverse=TRUE) # internal xi
 ```

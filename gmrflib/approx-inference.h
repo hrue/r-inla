@@ -577,7 +577,7 @@ typedef struct {
 	// use the experimental version?
 	int improved_simplified_laplace;
 
-	int bfgs_version;
+	int parallel_linesearch;
 } GMRFLib_ai_param_tp;
 
 /**

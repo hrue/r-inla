@@ -1094,7 +1094,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp *graph) 
+int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph)
 {
 	int m = 0;
 	for (int i = 0; i < graph->n; i++) {
@@ -1103,7 +1103,7 @@ int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp *graph)
 	return m;
 }
 
-int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp *graph) 
+int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph)
 {
 	int m = 0;
 	for (int i = 0; i < graph->n; i++) {
@@ -1112,7 +1112,7 @@ int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp *graph)
 	return m;
 }
 
-	
+
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	return (GMRFLib_Qx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
@@ -1128,7 +1128,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	int m, run_parallel = 0, max_t = 0, debug = 0;
 	double *values, res, tref = GMRFLib_cpu();
 
-	static double cputime[2] = {0.0, 0.0};
+	static double cputime[2] = { 0.0, 0.0 };
 	static int time_n = 0;
 
 	if (time_n >= 0 && time_n < 20) {
@@ -1149,7 +1149,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			max_t = GMRFLib_MAX_THREADS;
 		}
 	}
-	
+
 	memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 	values = Calloc(m + 1, double);
@@ -1157,7 +1157,8 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 
 	if (ISNAN(res)) {
 		if (run_parallel) {
-			if (debug) FIXME("Qx2: run parallel");
+			if (debug)
+				FIXME("Qx2: run parallel");
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
 				CODE_BLOCK_SET_THREAD_ID;		\
@@ -1171,9 +1172,10 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			}
 
 			RUN_CODE_BLOCK(max_t, 0, 0);
-#undef CODE_BLOCK			
+#undef CODE_BLOCK
 		} else {
-			if (debug) FIXME("Qx2: run serial");
+			if (debug)
+				FIXME("Qx2: run serial");
 			for (int i = 0; i < graph->n; i++) {
 				double qij;
 				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i];
@@ -1187,7 +1189,8 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 		}
 	} else {
 		if (run_parallel) {
-			if (debug) FIXME("Qx2: run block parallel");
+			if (debug)
+				FIXME("Qx2: run block parallel");
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
@@ -1206,17 +1209,18 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				}					\
 			}
 
-			RUN_CODE_BLOCK(max_t, max_t, m+1);
-			for(int j = 0; j < max_t; j++) {
+			RUN_CODE_BLOCK(max_t, max_t, m + 1);
+			for (int j = 0; j < max_t; j++) {
 				int offset = j * graph->n;
 				double *r = local_result + offset;
-				for(int i = 0; i < graph->n; i++) {
+				for (int i = 0; i < graph->n; i++) {
 					result[i] += r[i];
 				}
 			}
 			Free(local_result);
 		} else {
-			if (debug) FIXME("Qx2: run block serial");
+			if (debug)
+				FIXME("Qx2: run block serial");
 			for (int i = 0; i < graph->n; i++) {
 				res = Qfunc(i, -1, values, Qfunc_arg);
 				result[i] += (values[0] + (diag ? diag[i] : 0.0)) * x[i];
@@ -1237,7 +1241,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 		cputime[run_parallel] += tref;
 		time_n++;
 	}
-		
+
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }

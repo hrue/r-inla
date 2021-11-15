@@ -995,9 +995,7 @@
     }
 
     inla.write.boolean.field("improved.simplified.laplace", inla.spec$improved.simplified.laplace, file)
-
-    cat("bfgs.version = ", if (!is.null(inla.spec$bfgs.version) && inla.spec$bfgs.version == 4)
-                               4L else 3L, "\n", append = TRUE, sep = " ", file = file)
+    inla.write.boolean.field("parallel.linesearch", inla.spec$parallel.linesearch, file)
     
     cat("\n", sep = " ", file = file, append = TRUE)
 }

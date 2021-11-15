@@ -854,7 +854,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 				assert(normr / normb < 1e-6);
 			}
 		}
-
 	}
 	Free(bb);
 	Free(yy);
