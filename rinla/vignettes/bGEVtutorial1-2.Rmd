@@ -641,7 +641,7 @@ formula = inla.mdata(y, cbind(spread.x, spread.xx), tail.x) ~ -1 + intercept + x
 	f(z1, model = "rw1", scale.model=TRUE, constr=TRUE,
 		hyper = list(prec = list(prior = "pc.prec", 
 		param = c(0.1, 0.01)))) +
-		f(z2, model = 'ar', order = 2, 
+    f(z2, model = 'ar', order = 1, 
 		   hyper=list(prec=list(prior="pc.prec", constr=TRUE,
 		                        param=c(0.1,0.01)),
                       pacf1=list(param=c(0.5,0.8),
@@ -656,7 +656,8 @@ r3 = inla(formula,
          control.predictor = list(compute = TRUE),
 	     control.fixed = list(prec=100,prec.intercept=100),
          control.compute = list(cpo = TRUE),
-         control.inla = list(int.strategy = "eb",cmin=0),
+         control.inla = list(int.strategy = "eb",cmin=0,
+	                         b.strategy="keep"),
          verbose=FALSE)
 ```
 
