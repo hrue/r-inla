@@ -4,6 +4,22 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.11.15}{
+   \subsection{NEW EXPERIMENTAL FEATURES}{
+     \itemize{
+       \item Option for parallel linesearch has been renamed into
+       \code{parallel.linesearch} in \code{control.inla}.
+     }
+   }
+  \subsection{BUG FIXES AND IMPROVEMENTS}{
+    \itemize{
+      \item This is fix for a build-error in the Windows binary for
+      version \code{21.11.14}
+      \item Various minor internal code changes and improvements
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.11.14}{
    \subsection{NEW EXPERIMENTAL FEATURES}{
      \itemize{
