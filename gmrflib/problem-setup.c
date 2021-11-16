@@ -654,11 +654,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 					if (retval != GMRFLib_SUCCESS) {
 						for(int i = 0; i < nc; i++) {
 							for(int ii = 0; ii < nc; ii++) {
-								if (ai_par->fp_log) {
-									fprintf(ai_par->fp_log, "%d %d %.16f\n", i, ii, aqat_m[i + ii * nc]); 
-								} else {
-									fprintf(stdout, "%d %d %.16f\n", i, ii, aqat_m[i + ii * nc]);
-								}
+								fprintf(stderr, "AQA-issue: %d %d %.16f\n", i, ii, aqat_m[i + ii * nc]); 
 							}
 						}
 						GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
