@@ -645,8 +645,13 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			if (retval != GMRFLib_SUCCESS) {
 				GMRFLib_WARNING("Matrix AQA^t is numerical singular, remove singularity and move on");
 				GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.5));
-				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
-					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
+				retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
+				// this should not happen, but have, so...
+				if (retval != GMRFLib_SUCCESS) {
+					GMRFLib_WARNING("Matrix AQA^t is numerical singular, remove singularity TRY2 and move on");
+					GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.25));
+					GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
+				}
 			}
 			Free(aqat_m);
 
