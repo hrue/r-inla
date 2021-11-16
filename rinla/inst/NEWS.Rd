@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.11.16}{
+  \subsection{BUG FIXES AND IMPROVEMENTS}{
+    \itemize{
+      \item Minor internal changes for robustness
+      \item Upgraded compilers to gcc-11 on Windows
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.11.15}{
    \subsection{NEW EXPERIMENTAL FEATURES}{
      \itemize{
