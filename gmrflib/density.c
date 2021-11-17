@@ -511,6 +511,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		return GMRFLib_SUCCESS;
 	}
 
+	Calloc_init(2 * npm + 4 * np);
+
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// density->mean = density->mean_gaussian;
 		// density->stdev = density->stdev_gaussian;
@@ -545,8 +547,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			double ldmax, log_integral;
 			double w[2] = { 4.0, 2.0 };
 
-			xpm = Calloc(2 * npm, double);
-			ldm = xpm + npm;
+			xpm = Calloc_get(npm);
+			ldm = Calloc_get(npm);
 			for (xval = low, i = 0; i < npm; xval += dx, i++) {
 				xpm[i] = xval;
 			}
@@ -675,7 +677,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		/*
 		 * build fast lookup tables for P() and Pinv() calculations using linear interpolation 
 		 */
-		double *p = NULL, *work = NULL, *val = NULL, *dens;
+		double *p = NULL, *val = NULL, *dens;
 		int some_nans = 0;
 
 		if (!xpm) {
@@ -686,8 +688,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 			high = density->x_max;
 			dx = (high - low) / (npm - 1.0);
 
-			xpm = Calloc(2 * npm, double);
-			ldm = xpm + npm;
+			xpm = Calloc_get(npm);
+			ldm = Calloc_get(npm);
 			for (xval = low, i = 0; i < npm; xval += dx, i++) {
 				xpm[i] = xval;
 			}
@@ -703,11 +705,10 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		density->user_mode = density->std_mean + density->std_stdev *
 		    (xpm[imax] - (((ldm[imax + 1] - ldm[imax - 1]) / (2.0 * dx)) / ((ldm[imax + 1] - 2.0 * ldm[imax] + ldm[imax - 1]) / SQR(dx))));
 
-		work = Calloc(4 * np, double);
-		dens = work;
-		val = work + np;
-		p = work + 2 * np;
-		xp = work + 3 * np;
+		dens = Calloc_get(np);
+		val = Calloc_get(np);
+		p = Calloc_get(np);
+		xp = Calloc_get(np);
 
 		for (i = 0; i < np; i++) {
 			xp[i] = xpm[2 * i];
@@ -742,13 +743,12 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		} else {
 			density->P = NULL;
 		}
-		Free(work);
 	} else {
 		density->P = NULL;
 		density->Pinv = NULL;
 	}
 
-	Free(xpm);
+	Calloc_free();
 
 	return GMRFLib_SUCCESS;
 }
@@ -809,14 +809,6 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 				val = GMRFLib_log_gsl_cdf_ugaussian_P(zz);
 			}
 			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
-		}
-		if (0) {
-			// OLD code
-			for (i = 0; i < n; i++) {
-				z = (x[i] - p->xi) / p->omega;
-				logdens[i] =
-				    M_LN2 + log_norm_const_gaussian - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
-			}
 		}
 		break;
 	}
@@ -1071,12 +1063,14 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	 * the weights need not to be scaled. 
 	 */
 	int i, j, k, n_idx, *idx = NULL, n_alloc = IMAX(nd, nx);
-	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std;
+	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std, *dp = NULL;
 
-	d = Calloc(4 * n_alloc, double);
-	d_tmp = &d[n_alloc];
-	x_std = &d[2 * n_alloc];
-	idx = (int *) &d[3 * n_alloc];			       // the int* from double* is ok here.
+	Calloc_init(4 * n_alloc);
+	d = Calloc_get(n_alloc);
+	d_tmp = Calloc_get(n_alloc);
+	x_std = Calloc_get(n_alloc);
+	dp = Calloc_get(n_alloc);
+	idx = (int *) dp;
 
 	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
 
@@ -1085,11 +1079,6 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 		w_sum += weights[i];
 
 		GMRFLib_density_user2std_n(x_std, x_user, densities[i], nx);
-		if (0) {
-			// Old code
-			for (j = 0; j < nx; j++)
-				x_std[j] = GMRFLib_density_user2std(x_user[j], densities[i]);
-		}
 		GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
 		for (j = 0; j < nx; j++) {
 			d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
@@ -1101,7 +1090,7 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 		dens[j] = d[j] * w_sum;
 	}
 
-	Free(d);
+	Calloc_free();
 	return GMRFLib_SUCCESS;
 }
 
@@ -1210,7 +1199,8 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	}
 
 	np_max = n_points + nf;
-	x_points = Calloc(np_max, double);
+	Calloc_init(5 * np_max);
+	x_points = Calloc_get(np_max);
 
 	GMRFLib_ghq_abscissas(&ptr, n_points);
 	Memcpy(x_points, ptr, n_points * sizeof(double));
@@ -1227,7 +1217,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	double *x_points_tmp = NULL;
 	int np_tmp;
 
-	x_points_tmp = Calloc(np, double);
+	x_points_tmp = Calloc_get(np_max);
 	np_tmp = np;
 	Memcpy(x_points_tmp, x_points, np * sizeof(double));
 	GMRFLib_unique_additive(&np_tmp, x_points_tmp, GMRFLib_eps(1. / 4.0));
@@ -1241,17 +1231,16 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 			Memcpy(x_points, x_points_tmp, np * sizeof(double));
 		}
 	}
-	Free(x_points_tmp);
 
-	log_dens = Calloc(np, double);
 
 	/*
 	 * compute the weighted density. note that we have to go through the user/real-scale to get this right 
 	 */
 	double *xx_real = NULL, *ddens = NULL;
 
-	xx_real = Calloc(2 * np, double);
-	ddens = &xx_real[np];
+	log_dens = Calloc_get(np_max);
+	xx_real = Calloc_get(np_max);
+	ddens = Calloc_get(np_max);
 	for (i = 0; i < np; i++) {
 		xx_real[i] = x_points[i] * stdev + mean;
 	}
@@ -1259,15 +1248,13 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	for (i = 0; i < np; i++) {
 		log_dens[i] = (ddens[i] > 0.0 ? log(ddens[i]) : -FLT_MAX);
 	}
-	Free(xx_real);
 	GMRFLib_adjust_vector(log_dens, np);
 
 	if (density) {
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, x_points, log_dens, mean, stdev, GMRFLib_TRUE);
 	}
 
-	Free(x_points);
-	Free(log_dens);
+	Calloc_free();
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -1344,8 +1331,10 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	double *xx = NULL, *ldens = NULL, g_mean, g_var;
 	GMRFLib_sn_param_tp sn_param;
 
-	xx = Calloc(n, double);
-	ldens = Calloc(n, double);
+	Calloc_init(2 * n);
+	xx = Calloc_get(n);
+	ldens = Calloc_get(n);
+
 	Memcpy(xx, x, (size_t) n * sizeof(double));
 	Memcpy(ldens, logdens, (size_t) n * sizeof(double));
 
@@ -1423,9 +1412,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 		}
 	}
 
-	Free(xx);
-	Free(ldens);
-
+	Calloc_free();
 	return GMRFLib_SUCCESS;
 }
 
@@ -1439,7 +1426,10 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 	int i, n = N + 2 * M;
 	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
-	x = Calloc(n, double);
+	Calloc_init(2 * n);
+	x = Calloc_get(n);
+	ld = Calloc_get(n);
+
 	for (i = 0; i < M; i++) {
 		GMRFLib_density_Pinv(&x[i], eps[i], density);
 		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
@@ -1449,12 +1439,10 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 		alpha = delta + (1.0 - 2.0 * delta) * i * (1.0 / (double) (N - 1.0));
 		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
 	}
-	ld = Calloc(n, double);
 	GMRFLib_evaluate_nlogdensity(ld, x, n, density);
 	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_mean, density->std_stdev, GMRFLib_TRUE);
 
-	Free(x);
-	Free(ld);
+	Calloc_free();
 #undef N
 #undef M
 
@@ -1472,7 +1460,10 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 	int i, n = N + 2 * M;
 	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
-	x = Calloc(n, double);
+	Calloc_init(2 * n);
+	x = Calloc_get(n);
+	ld = Calloc_get(n);
+
 	for (i = 0; i < M; i++) {
 		GMRFLib_density_Pinv(&x[i], eps[i], density);
 		GMRFLib_density_Pinv(&x[M + i], 1.0 - eps[i], density);
@@ -1481,13 +1472,10 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 		alpha = 0.01 + 0.98 * (1.0 / (double) N) * i;
 		GMRFLib_density_Pinv(&x[2 * M + i], alpha, density);
 	}
-	ld = Calloc(n, double);
-
 	GMRFLib_evaluate_nlogdensity(ld, x, n, density);
 	GMRFLib_density_create(new_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, new_mean, new_stdev, GMRFLib_TRUE);
 
-	Free(x);
-	Free(ld);
+	Calloc_free();
 #undef N
 #undef M
 	return GMRFLib_SUCCESS;
