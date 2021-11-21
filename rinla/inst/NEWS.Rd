@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.11.22}{
+  \subsection{BUG FIXES AND IMPROVEMENTS}{
+    \itemize{
+      \item Remove jemalloc-option that creates warning message for Mac
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.11.21}{
   \subsection{BUG FIXES AND IMPROVEMENTS}{
     \itemize{
