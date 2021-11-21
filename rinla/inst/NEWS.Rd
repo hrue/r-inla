@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.11.21}{
+  \subsection{BUG FIXES AND IMPROVEMENTS}{
+    \itemize{
+      \item Minor internal changes
+      \item Add jemalloc options for Linux/Mac
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.11.16}{
   \subsection{BUG FIXES AND IMPROVEMENTS}{
     \itemize{
