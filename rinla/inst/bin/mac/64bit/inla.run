@@ -91,7 +91,7 @@ else
     vecLibLink=""
 fi
 
-export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:auto'
+export MALLOC_CONF='abort_conf:true,metadata_thp:auto'
 export DYLD_LIBRARY_PATH="$DIR/first:$vecLibLink:$RHOME_LIB:$DIR:$LIBPNGPATH:/usr/lib:/usr/local/lib:/opt/local/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "MALLOC_CONF=$MALLOC_CONF"
