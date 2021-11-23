@@ -99,6 +99,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "R-interface.h"
 #include "fgn.h"
 #include "tweedie.h"
+#include "pc-powerlink.h"
 
 #define PREVIEW (10)
 #define MODEFILENAME ".inla-mode"
@@ -5275,12 +5276,12 @@ double inla_log_Phi(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
 	// This version is ok for all x 
-	if (ABS(x) < 7.0) {
+	if (ABS(x) <= 7.0) {
 		return (log(gsl_cdf_ugaussian_P(x)));
 	} else {
 		double t1, t4, t3, t8, t9, t13, t27, t28, t31, t47;
 
-		if (x >= 7.0) {
+		if (x > 7.0) {
 			t1 = 1.77245385090551602729816748334;
 			t3 = M_SQRT2;
 			t4 = t3 / t1;
@@ -5296,7 +5297,7 @@ double inla_log_Phi(double x)
 			    + 0.1e1 / t27 * (-0.1e1 / t8 * t31 / 0.4e1 + 0.1e1 / t13 * t31 / 0.2e1 - 0.7e1 / 0.4e1 / t13 / t8 * t31);
 			return t47;
 		} else {
-			// x <= -7.0
+			// x < -7.0
 			double xx = -x, cg1;
 			cg1 =
 			    -(pow(xx, 0.6e1) + log(0.2e1) * pow(xx, 0.4e1) + log(0.3141592653589793e1) * pow(xx, 0.4e1) +
@@ -5312,7 +5313,7 @@ double inla_log_Phi(double x)
 double inla_Phi_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
-	if (ABS(x) < 7.0) {
+	if (ABS(x) <= 7.0) {
 		// see misc/doc/doc/approximate-cdf-normal.pdf
 		// sqrt(M_PI / 8.0) = 0.6266570686577502....
 		if (x > 0.0) {
@@ -36561,6 +36562,26 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 66: 
+	{
+		double power, power_intern;
+		double intercept, intercept_intern;
+		double **param;
+		param = Calloc(2, double *);
+
+		power = 1.5;
+		power_intern = map_exp(power, MAP_BACKWARD, NULL);
+		intercept = 0.75;
+		intercept_intern = map_probability(intercept, MAP_BACKWARD, NULL);
+		
+		param[0] = &power_intern;
+		param[1] = &intercept_intern;
+		
+		map_inv_powerlink_core(0.0, MAP_FORWARD, (void *) param, NULL);
+
+		break;
+	}
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

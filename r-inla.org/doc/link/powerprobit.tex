@@ -1,0 +1,58 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\begin{document}
+
+\section*{Linkmodel: power.probit (EXPERIMENTAL)}
+
+\subsection*{Parametrization}
+
+This is the link that map $p\in (0,1)$ into $x\in\Re$, where
+\begin{displaymath}
+    \Phi^{\beta}(x) = p, \qquad \beta > 0
+\end{displaymath}
+and $\Phi^{\beta}$ is the cummulative distribution function for the
+standard Normal. This link is renormalized to have zero mean and unit
+variance (for every $\beta$).
+
+\subsection*{Hyperparameters}
+
+The parameter $\beta$ represent the power
+\begin{displaymath}
+    \beta = \exp(\theta_1)
+\end{displaymath}
+and the prior is defined on $\theta$. 
+
+The intercept is represented by a quantile level $\alpha$, where
+\begin{displaymath}
+    \alpha = \frac{\exp(\theta_2)}{1 + \exp(\theta_2)}
+\end{displaymath}
+
+\subsection*{Specification}
+
+Use \texttt{model="power.probit"} within \texttt{control.link}.  
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/link/power.probit.tex}
+
+\subsection*{Example}
+
+\begin{verbatim}
+\end{verbatim}
+
+\subsection*{Notes}
+
+\begin{itemize}
+\item Setting the initial value for the hyperparameter ``intercept''
+    to infinity, will remove the intercept from the link-model.
+\end{itemize}
+
+\end{document}
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
