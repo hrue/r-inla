@@ -47,6 +47,9 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
 #define diMAP(_x) (exp(_x)/SQR(1.0+exp(_x)))
 
+#define Probit_Pinv(_prob, _power) (-log1p(exp(-log(_prob)/(_power))-2.0))
+#define Probit_P(_x, _power) exp(-(_power) * log1p(exp(-(_x))))
+
 	int id;
 	GMRFLib_CACHE_SET_ID(id);
 	
@@ -69,9 +72,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		printf("map_inv_powerlink: enter with arg= %g, power= %g, intercept_intern= %g\n", arg, power, intercept_intern);
 	}
 
-	static double *lcdf_ref = NULL;
-	static double *x_ref = NULL;
-	static int x_len = 0;
+	static int x_len = 1024;
 
 	if (first) {
 #pragma omp critical
@@ -85,37 +86,6 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 				table[i]->power = INLA_REAL_BIG;
 				table[i]->cdf = NULL;
 				table[i]->icdf = NULL;
-			}
-
-			double dx = 0.1;
-			int len_add = 12;
-			int len_extra = (int)(1.0/dx + 1.0) * (2 * len_add) + 1;
-			x_len = 201;
-			int len_calloc = x_len + len_extra;
-			lcdf_ref = Calloc(2 * len_calloc, double);
-			x_ref = lcdf_ref + len_calloc;
-
-			// layout quantiles and some extra points
-			for (i = 0; i < x_len; i++) {
-				double p = (i + 0.5) / (double) x_len;
-				x_ref[i] = gsl_cdf_ugaussian_Pinv(p);
-			}
-
-			// its a little hard to count correct, but as long we err on the right side, its ok
-			for (i = 0; i <= len_extra; i++) {
-				double xtmp  = -len_add + (i-1) * dx;
-				if (xtmp <= len_add) {
-					x_ref[x_len++] = xtmp;
-				} else {
-					break;
-				}
-			}
-			assert(x_len <= len_calloc);
-			
-			qsort((void *) x_ref, (size_t) x_len, sizeof(double), GMRFLib_dcmp);
-			GMRFLib_unique_additive(&x_len, x_ref, eps);
-			for (i = 0; i < x_len; i++) {
-				lcdf_ref[i] = inla_log_Phi(x_ref[i]);
 			}
 			first = 0;
 		}
@@ -134,19 +104,15 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		x = Calloc_get(x_len);
 		cdf = Calloc_get(x_len);
 
-		len = 0;
 		for (i = 0; i < x_len; i++) {
-			double xx, cc;
-
-			xx = x_ref[i];
-			cc = exp(power * lcdf_ref[i]);
-			if (cc > 0.0 && cc < 1.0) {
-				x[len] = xx;
-				cdf[len] = cc;
-				len++;
-			}
+			double p; 
+			p = (i + 0.5) / (double) x_len;
+			x[i] = Probit_Pinv(p, power);
+			cdf[i] = Probit_P(x[i], power);
+			//printf("%f %f %f\n", p, x[i], cdf[i]);
 		}
-
+		len = x_len;
+		
 		/*
 		 * moments computed from the CDF, using:
 		 *
@@ -163,10 +129,12 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		mom[1] /= 2.0;
 		sd = sqrt(mom[2] - SQR(mom[1]));
 
-		//P(power);
-		//P(mom[1]);
-		//P(sd);
-		//P(mom[2]);
+		if (0) {
+			P(power);
+			P(mom[1]);
+			P(sd);
+			P(mom[2]);
+		}
 		
 		for(i = 0; i < len; i++) {
 			x[i] = (x[i] - mom[1]) / sd; 
