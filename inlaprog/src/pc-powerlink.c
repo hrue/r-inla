@@ -34,7 +34,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "inla.h"
 #include "pc-powerlink.h"
@@ -53,10 +53,10 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	static inla_powerlink_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, debug = 1;
-	double alpha;
-	double **par, intercept_local, intercept_intern, power, power_intern;
-
+	int i, debug = 0;
+	double **par, intercept_intern, power, power_intern, sd;
+	double eps = GMRFLib_eps(0.5);
+	
 	par = (double **) param;
 	power_intern = *(par[0]);
 	intercept_intern = *(par[1]);
@@ -76,8 +76,8 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	if (first) {
 #pragma omp critical
 		if (first) {
-			if (debug) {
-				fprintf(stderr, "map_inv_powerlink: build table\n");
+			if (1) {
+				fprintf(stderr, "map_inv_powerlink: build table with power=%f\n", power);
 			}
 			table = Calloc(GMRFLib_CACHE_LEN, inla_powerlink_table_tp *);
 			for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
@@ -87,21 +87,33 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 				table[i]->icdf = NULL;
 			}
 
-			int len_add = 7;
-			int len_extra = 2 * len_add + 1;
-			x_len = 1000;
-			lcdf_ref = Calloc(2 * (x_len + len_extra), double);
-			x_ref = lcdf_ref + x_len + len_extra;
+			double dx = 0.1;
+			int len_add = 12;
+			int len_extra = (int)(1.0/dx + 1.0) * (2 * len_add) + 1;
+			x_len = 201;
+			int len_calloc = x_len + len_extra;
+			lcdf_ref = Calloc(2 * len_calloc, double);
+			x_ref = lcdf_ref + len_calloc;
 
 			// layout quantiles and some extra points
 			for (i = 0; i < x_len; i++) {
 				double p = (i + 0.5) / (double) x_len;
 				x_ref[i] = gsl_cdf_ugaussian_Pinv(p);
 			}
-			for (i = -len_add; i <= len_add; i++) {
-				x_ref[x_len++] = i;
+
+			// its a little hard to count correct, but as long we err on the right side, its ok
+			for (i = 0; i <= len_extra; i++) {
+				double xtmp  = -len_add + (i-1) * dx;
+				if (xtmp <= len_add) {
+					x_ref[x_len++] = xtmp;
+				} else {
+					break;
+				}
 			}
+			assert(x_len <= len_calloc);
+			
 			qsort((void *) x_ref, (size_t) x_len, sizeof(double), GMRFLib_dcmp);
+			GMRFLib_unique_additive(&x_len, x_ref, eps);
 			for (i = 0; i < x_len; i++) {
 				lcdf_ref[i] = inla_log_Phi(x_ref[i]);
 			}
@@ -115,23 +127,30 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		int len;
 
 		if (debug) {
-			fprintf(stderr, "map_invsn: build new table for alpha=%g id=%1d\n", alpha, id);
+			fprintf(stderr, "map_invsn: build new table for power=%g id=%1d\n", power, id);
 		}
 
 		Calloc_init(2 * x_len);
 		x = Calloc_get(x_len);
 		cdf = Calloc_get(x_len);
 
+		len = 0;
 		for (i = 0; i < x_len; i++) {
-			x[i] = x_ref[i];
-			cdf[i] = exp(power * lcdf_ref[i]);
+			double xx, cc;
+
+			xx = x_ref[i];
+			cc = exp(power * lcdf_ref[i]);
+			if (cc > 0.0 && cc < 1.0) {
+				x[len] = xx;
+				cdf[len] = cc;
+				len++;
+			}
 		}
-		len = x_len;
 
 		/*
-		  moments computed from the CDF, using:
-
-		  E(x^k) = k * [ \int_{-inf}^0 x^{k-1} (0-F(x)) dx + \int_0^inf x^{k-1} * (1-F(x)) dx ]
+		 * moments computed from the CDF, using:
+		 *
+		 * E(x^k) = k * [ \int_{-inf}^0 x^{k-1} (0-F(x)) dx + \int_0^inf x^{k-1} * (1-F(x)) dx ]
 		*/
 		double mom[3] = { 0.0, 0.0, 0.0 }, w;
 		for (i = 1; i < len - 1; i++) {
@@ -142,20 +161,28 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 			mom[2] += w * x[i] * yy;
 		}
 		mom[1] /= 2.0;
+		sd = sqrt(mom[2] - SQR(mom[1]));
 
-		double sd = sqrt(mom[2] - SQR(mom[1]));
+		//P(power);
+		//P(mom[1]);
+		//P(sd);
+		//P(mom[2]);
+		
+		for(i = 0; i < len; i++) {
+			x[i] = (x[i] - mom[1]) / sd; 
+		}
 
-		P(mom[1]);
-		P(sd);
-
-		// Remove values in 'cdf' that are to close (difference is to small), as this will create issues later on in the interpolation
-		GMRFLib_unique_additive2(&len, cdf, x, GMRFLib_eps(0.75));
+		// Remove values in 'cdf' and 'x',that are to close (difference is to small), as this will create issues later on in the
+		// interpolation
+		GMRFLib_unique_additive2(&len, cdf, x, eps);
+		GMRFLib_unique_additive2(&len, x, cdf, eps);
 
 		table[id]->power = power;
 		table[id]->xmin = x[0];
 		table[id]->xmax = x[len - 1];
 		table[id]->pmin = cdf[0];
 		table[id]->pmax = cdf[len-1];
+
 		// transform before spline'ing
 		for (i = 0; i < len; i++) {
 			cdf[i] = MAP(cdf[i]);
@@ -169,10 +196,21 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		Calloc_free();
 	}
 
+	double intercept, p, pp;
+	
 	if (!ISNAN(intercept_intern)) {
 		intercept = GMRFLib_spline_eval(intercept_intern, table[id]->icdf);
 	} else {
 		intercept = 0.0;
+	}
+
+	if (0) {
+		static double intercept_save = 0.0;
+		if (intercept != intercept_save) {
+			P(intercept);
+			P(intercept_intern);
+			intercept_save =  intercept;
+		}
 	}
 
 	if (debug) {

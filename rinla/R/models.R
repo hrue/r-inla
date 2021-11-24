@@ -5696,7 +5696,7 @@
                             initial = 0.00123456789,
                             fixed = FALSE,
                             prior = "normal",
-                            param = c(0, 100),
+                            param = c(0, 10),
                             to.theta = function(x) log(x),
                             from.theta = function(x) exp(x)
                         ),
@@ -5706,7 +5706,7 @@
                             short.name = "intercept",
                             initial = 0.0,
                             fixed = FALSE,
-                            prior = "beta",
+                            prior = "logitbeta",
                             param = c(1, 1),
                             to.theta = function(x) log(x / (1 - x)),
                             from.theta = function(x) exp(x) / (1 + exp(x))
@@ -6089,7 +6089,8 @@
                     discrete = TRUE,
                     link = c(
                         "default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
-                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"
+                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
+                        "power.probit"
                     ),
                     pdf = "binomial"
                 ),
