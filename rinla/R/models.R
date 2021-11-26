@@ -5686,8 +5686,8 @@
                     ),
                     pdf = "linksn"
                 ),
-                power.probit = list(
-                    doc = "Power probit link",
+                powerlogit = list(
+                    doc = "Power logit link",
                     hyper = list(
                         theta1 = list(
                             hyperid = 49131,
@@ -5712,7 +5712,7 @@
                             from.theta = function(x) exp(x) / (1 + exp(x))
                         )
                     ),
-                    pdf = "linkpowerprobit"
+                    pdf = "linkpowerlogit"
                 ),
                 test1 = list(
                     doc = "A test1-link function (experimental)",
@@ -6090,7 +6090,7 @@
                     link = c(
                         "default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
                         "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
-                        "power.probit"
+                        "powerlogit"
                     ),
                     pdf = "binomial"
                 ),
@@ -6102,7 +6102,8 @@
                     discrete = TRUE,
                     link = c(
                         "default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
-                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"
+                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
+                        "powerlogit"
                     ),
                     pdf = "binomial",
                     status = "experimental"

@@ -1,5 +1,4 @@
 
-
 /* inla.c
  * 
  * Copyright (C) 2007-2021 Havard Rue
@@ -1395,14 +1394,14 @@ double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invsn(x, typ, (void *) par);
 }
 
-double link_power_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_power_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
 	 */
 	Link_param_tp *p = (Link_param_tp *) param;
-	double power = p->power_intern[GMRFLib_thread_id][0],
-		intercept = p->intercept_intern[GMRFLib_thread_id][0];
+	double power = p->power_intern[GMRFLib_thread_id][0];
+	double intercept = p->intercept_intern[GMRFLib_thread_id][0];
 	double *par[2];
 
 	par[0] = &power;
@@ -17758,10 +17757,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_SN;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sn;
-	} else if (!strcasecmp(ds->link_model, "POWERPROBIT")) {
-		ds->link_id = LINK_POWER_PROBIT;
+	} else if (!strcasecmp(ds->link_model, "POWERLOGIT")) {
+		ds->link_id = LINK_POWER_LOGIT;
 		ds->link_ntheta = 2;
-		ds->predictor_invlinkfunc = link_power_probit;
+		ds->predictor_invlinkfunc = link_power_logit;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -18223,10 +18222,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
-	case LINK_POWER_PROBIT: 
+	case LINK_POWER_LOGIT: 
 	{
 		/*
-		 * power probit link
+		 * power logit link
 		 */
 
 		ds->link_parameters = Calloc(1, Link_param_tp);
@@ -18245,7 +18244,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		HYPER_NEW(ds->link_parameters->power_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise link_power_probit power[%g]\n", ds->link_parameters->power_intern[0][0]);
+			printf("\t\tinitialise link_power_logit power[%g]\n", ds->link_parameters->power_intern[0][0]);
 			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
 		}
 
@@ -18262,8 +18261,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Link power.probit power.intern", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link power.probit power", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link power_logit power.intern", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link power_logit power", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -18294,7 +18293,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		HYPER_NEW(ds->link_parameters->intercept_intern, tmp);
 		if (mb->verbose) {
-			printf("\t\tinitialise link_power_probit intercept.intern[%g]\n", ds->link_parameters->intercept_intern[0][0]);
+			printf("\t\tinitialise link_power_logit intercept.intern[%g]\n", ds->link_parameters->intercept_intern[0][0]);
 			if (ISNAN(ds->link_parameters->intercept_intern[0][0])) {
 				printf("\t\t *** Intercept is removed from link-model\n");
 			}
@@ -18312,8 +18311,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("Link power.probit intercept.intern", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link power.probit intercept", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link power_logit intercept_intern", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link power_logit intercept", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -28861,7 +28860,7 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
-			case LINK_POWER_PROBIT:
+			case LINK_POWER_LOGIT:
 				if (!ds->link_fixed[0]) {
 					double power = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &power);
@@ -33953,8 +33952,14 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "pquantile\n");
 		} else if (lf == link_qweibull) {
 			fprintf(fp, "quantile\n");
-		} else if (lf == NULL) {
-			fprintf(fp, "invalid-linkfunction\n");
+		} else if (lf == link_qweibull) {
+			fprintf(fp, "quantile\n");
+		} else if (lf == link_qgamma) {
+			fprintf(fp, "quantile\n");
+		} else if (lf == link_loga) {
+			fprintf(fp, "loga\n");
+		} else if (lf == link_power_logit) {
+			fprintf(fp, "powerlogit\n");
 		} else {
 			fprintf(fp, "invalid-linkfunction\n");
 		}

@@ -39,6 +39,11 @@ static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 #include "inla.h"
 #include "pc-powerlink.h"
 
+
+// have to add the pc-prior for the log(power) later....
+
+// we can use this code to make a generic function for any power-link
+
 double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *intercept_out)
 {
 	// if 'intercept' is !NULL, just return the contents. its a backdoor avoid duplicating code
@@ -54,25 +59,20 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	GMRFLib_CACHE_SET_ID(id);
 	
 	static inla_powerlink_table_tp **table = NULL;
-	static char first = 1;
+	static int first = 1, x_len = 256;
 
-	int i, debug = 0;
+	int i, j, debug = 0;
 	double **par, intercept_intern, power, power_intern, sd;
 	double eps = GMRFLib_eps(0.5);
 	
 	par = (double **) param;
 	power_intern = *(par[0]);
 	intercept_intern = *(par[1]);
-
-	// power is the exponent
-	// intercept is the quantile-level
 	power = map_exp(power_intern, MAP_FORWARD, NULL);
 
 	if (debug) {
 		printf("map_inv_powerlink: enter with arg= %g, power= %g, intercept_intern= %g\n", arg, power, intercept_intern);
 	}
-
-	static int x_len = 1024;
 
 	if (first) {
 #pragma omp critical
@@ -93,31 +93,51 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 
 	GMRFLib_CACHE_SET_ID(id);
 	if (!ISEQUAL(power, table[id]->power)) {
-		double *x, *cdf, yy;
+		double *x, *cdf, yy, p;
 		int len;
 
 		if (debug) {
 			fprintf(stderr, "map_invsn: build new table for power=%g id=%1d\n", power, id);
 		}
 
-		Calloc_init(2 * x_len);
-		x = Calloc_get(x_len);
-		cdf = Calloc_get(x_len);
+		double pp[] = {
+			1.0E-3, 
+			1.0 - 1.0E-3,
+			1.0E-4, 
+			1.0 - 1.0E-4,
+			1.0E-5,
+			1.0 - 1.0E-5,
+			1.0E-6,
+			1.0 - 1.0E-6,
+			1.0E-7,
+			1.0 - 1.0E-7,
+			1.0E-8,
+			1.0 - 1.0E-8
+		};
+		int x_len_extra = sizeof(pp)/sizeof(double);
+			
+		Calloc_init(2 * (x_len + x_len_extra));
+		x = Calloc_get(x_len + x_len_extra);
+		cdf = Calloc_get(x_len + x_len_extra);
 
 		for (i = 0; i < x_len; i++) {
-			double p; 
 			p = (i + 0.5) / (double) x_len;
 			x[i] = Probit_Pinv(p, power);
 			cdf[i] = Probit_P(x[i], power);
-			//printf("%f %f %f\n", p, x[i], cdf[i]);
 		}
-		len = x_len;
+		for (j = 0; j < x_len_extra; j++) {
+			p = pp[j];
+			i = x_len + j;
+			x[i] = Probit_Pinv(p, power);
+			cdf[i] = Probit_P(x[i], power);
+		}
+		len = x_len + x_len_extra;
 		
 		/*
 		 * moments computed from the CDF, using:
 		 *
 		 * E(x^k) = k * [ \int_{-inf}^0 x^{k-1} (0-F(x)) dx + \int_0^inf x^{k-1} * (1-F(x)) dx ]
-		*/
+		 */
 		double mom[3] = { 0.0, 0.0, 0.0 }, w;
 		for (i = 1; i < len - 1; i++) {
 			// I remove the ()/2.0 for w, and rather correct at the end
@@ -129,13 +149,6 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		mom[1] /= 2.0;
 		sd = sqrt(mom[2] - SQR(mom[1]));
 
-		if (0) {
-			P(power);
-			P(mom[1]);
-			P(sd);
-			P(mom[2]);
-		}
-		
 		for(i = 0; i < len; i++) {
 			x[i] = (x[i] - mom[1]) / sd; 
 		}
@@ -164,7 +177,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		Calloc_free();
 	}
 
-	double intercept, p, pp;
+	double intercept;
 	
 	if (!ISNAN(intercept_intern)) {
 		intercept = GMRFLib_spline_eval(intercept_intern, table[id]->icdf);
@@ -192,6 +205,8 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	}
 
 	switch (typ) {
+		double p, pp;
+		
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 

@@ -4,17 +4,21 @@
 \usepackage{listings}
 \begin{document}
 
-\section*{Linkmodel: power.probit (EXPERIMENTAL)}
+\section*{Linkmodel: powerlogit}
 
 \subsection*{Parametrization}
 
 This is the link that map $p\in (0,1)$ into $x\in\Re$, where
 \begin{displaymath}
-    \Phi^{\beta}(x) = p, \qquad \beta > 0
+    F^{\beta}(x) = p, \qquad \beta > 0
 \end{displaymath}
-and $\Phi^{\beta}$ is the cummulative distribution function for the
-standard Normal. This link is renormalized to have zero mean and unit
-variance (for every $\beta$).
+and $F(x)$ is the cummulative distribution function for the
+logit,
+\begin{displaymath}
+    F(x) = \frac{1}{1+\exp(-x)}.
+\end{displaymath}
+This link is renormalized so its corresponding density have zero mean
+and unit variance for every value of $\beta$.
 
 \subsection*{Hyperparameters}
 
@@ -32,19 +36,22 @@ and the prior is defined on $\theta_2$.
 
 \subsection*{Specification}
 
-Use \texttt{model="power.probit"} within \texttt{control.link}.  
+Use \texttt{model="powerlogit"} within \texttt{control.link}.  
 
 \subsubsection*{Hyperparameter spesification and default values}
-\input{../hyper/link/power.probit.tex}
+\input{../hyper/link/powerlogit.tex}
 
 \subsection*{Example}
 
 \begin{verbatim}
+to be completed...
 \end{verbatim}
 
 \subsection*{Notes}
 
 \begin{itemize}
+\item This link is EXPERIMENTAL, and new default priors will be added
+    in the near future
 \item Setting the initial value for the hyperparameter ``intercept''
     to infinity, will remove the intercept from the link-model.
 \end{itemize}
