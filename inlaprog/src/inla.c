@@ -1,5 +1,4 @@
 
-
 /* inla.c
  * 
  * Copyright (C) 2007-2021 Havard Rue
@@ -99,6 +98,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "R-interface.h"
 #include "fgn.h"
 #include "tweedie.h"
+#include "pc-powerlink.h"
 
 #define PREVIEW (10)
 #define MODEFILENAME ".inla-mode"
@@ -1392,6 +1392,22 @@ double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	par[1] = &intercept;
 
 	return map_invsn(x, typ, (void *) par);
+}
+
+double link_power_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+{
+	/*
+	 * the link-functions calls the inverse map-function 
+	 */
+	Link_param_tp *p = (Link_param_tp *) param;
+	double power = p->power_intern[GMRFLib_thread_id][0];
+	double intercept = p->intercept_intern[GMRFLib_thread_id][0];
+	double *par[2];
+
+	par[0] = &power;
+	par[1] = &intercept;
+
+	return map_inv_powerlink_core(x, typ, (void *) par, NULL);
 }
 
 double link_tan(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
@@ -5275,12 +5291,12 @@ double inla_log_Phi(double x)
 {
 	// return the log of the cummulative distribution function for a standard normal.
 	// This version is ok for all x 
-	if (ABS(x) < 7.0) {
+	if (ABS(x) <= 7.0) {
 		return (log(gsl_cdf_ugaussian_P(x)));
 	} else {
 		double t1, t4, t3, t8, t9, t13, t27, t28, t31, t47;
 
-		if (x >= 7.0) {
+		if (x > 7.0) {
 			t1 = 1.77245385090551602729816748334;
 			t3 = M_SQRT2;
 			t4 = t3 / t1;
@@ -5296,7 +5312,7 @@ double inla_log_Phi(double x)
 			    + 0.1e1 / t27 * (-0.1e1 / t8 * t31 / 0.4e1 + 0.1e1 / t13 * t31 / 0.2e1 - 0.7e1 / 0.4e1 / t13 / t8 * t31);
 			return t47;
 		} else {
-			// x <= -7.0
+			// x < -7.0
 			double xx = -x, cg1;
 			cg1 =
 			    -(pow(xx, 0.6e1) + log(0.2e1) * pow(xx, 0.4e1) + log(0.3141592653589793e1) * pow(xx, 0.4e1) +
@@ -5312,7 +5328,7 @@ double inla_log_Phi(double x)
 double inla_Phi_fast(double x)
 {
 	// a faster approximation, see misc/doc/doc/approximate-cdf-normal.pdf
-	if (ABS(x) < 7.0) {
+	if (ABS(x) <= 7.0) {
 		// see misc/doc/doc/approximate-cdf-normal.pdf
 		// sqrt(M_PI / 8.0) = 0.6266570686577502....
 		if (x > 0.0) {
@@ -17741,6 +17757,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_SN;
 		ds->link_ntheta = 2;
 		ds->predictor_invlinkfunc = link_sn;
+	} else if (!strcasecmp(ds->link_model, "POWERLOGIT")) {
+		ds->link_id = LINK_POWER_LOGIT;
+		ds->link_ntheta = 2;
+		ds->predictor_invlinkfunc = link_power_logit;
 	} else if (!strcasecmp(ds->link_model, "TEST1")) {
 		ds->link_id = LINK_TEST1;
 		ds->link_ntheta = 1;
@@ -18191,6 +18211,116 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
 			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
 			mb->theta[mb->ntheta] = ds->link_parameters->sn_intercept;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_probability;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+	}
+		break;
+
+	case LINK_POWER_LOGIT: 
+	{
+		/*
+		 * power logit link
+		 */
+
+		ds->link_parameters = Calloc(1, Link_param_tp);
+		ds->link_parameters->idx = -1;
+		ds->link_parameters->order = -1;
+		for (i = 0; i < n_data; i++) {
+			ds->predictor_invlinkfunc_arg[i] = (void *) (ds->link_parameters);
+		}
+
+		ds->link_fixed = Calloc(2, int);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL0"), 0.0);
+		ds->link_fixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED0"), 1);
+		if (!ds->link_fixed[0] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+
+		HYPER_NEW(ds->link_parameters->power_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link_power_logit power[%g]\n", ds->link_parameters->power_intern[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[0]);
+		}
+
+		ds->link_prior = Calloc(2, Prior_tp);
+		inla_read_prior_link0(mb, ini, sec, &(ds->link_prior[0]), "NORMAL", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[0]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[0].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link power_logit power.intern", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link power_logit power", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[0].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->power_intern;
+
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->ntheta++;
+			ds->link_ntheta++;
+		}
+
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "LINK.INITIAL1"), 0);
+		ds->link_fixed[1] = iniparser_getboolean(ini, inla_string_join(secname, "LINK.FIXED1"), 1);
+
+		// special option. If 'initial=NA' or 'Inf', then remove intercept from the model. This is done setting fixed=1
+		// and then recognising NAN in the map_invsn() function.
+		if (ISNAN(tmp) || ISINF(tmp)) {
+			tmp = NAN;
+			ds->link_fixed[1] = 1;
+		}
+
+		if (!ds->link_fixed[1] && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->link_parameters->intercept_intern, tmp);
+		if (mb->verbose) {
+			printf("\t\tinitialise link_power_logit intercept.intern[%g]\n", ds->link_parameters->intercept_intern[0][0]);
+			if (ISNAN(ds->link_parameters->intercept_intern[0][0])) {
+				printf("\t\t *** Intercept is removed from link-model\n");
+			}
+			printf("\t\tfixed=[%1d]\n", ds->link_fixed[1]);
+		}
+		inla_read_prior_link1(mb, ini, sec, &(ds->link_prior[1]), "LOGITBETA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->link_fixed[1]) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->link_prior[1].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("Link power_logit intercept_intern", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Link power_logit intercept", mb->ds);
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->link_prior[1].to_theta);
+			mb->theta[mb->ntheta] = ds->link_parameters->intercept_intern;
 
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 			mb->theta_map[mb->ntheta] = map_probability;
@@ -28730,6 +28860,19 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case LINK_POWER_LOGIT:
+				if (!ds->link_fixed[0]) {
+					double power = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[0], &power);
+					count++;
+				}
+				if (!ds->link_fixed[1]) {
+					double intercept = theta[count];
+					val += PRIOR_EVAL(ds->link_prior[1], &intercept);
+					count++;
+				}
+				break;
+
 			case LINK_TEST1:
 				if (!ds->link_fixed[0]) {
 					double beta = theta[count];
@@ -33809,8 +33952,14 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "pquantile\n");
 		} else if (lf == link_qweibull) {
 			fprintf(fp, "quantile\n");
-		} else if (lf == NULL) {
-			fprintf(fp, "invalid-linkfunction\n");
+		} else if (lf == link_qweibull) {
+			fprintf(fp, "quantile\n");
+		} else if (lf == link_qgamma) {
+			fprintf(fp, "quantile\n");
+		} else if (lf == link_loga) {
+			fprintf(fp, "loga\n");
+		} else if (lf == link_power_logit) {
+			fprintf(fp, "powerlogit\n");
 		} else {
 			fprintf(fp, "invalid-linkfunction\n");
 		}
@@ -36557,6 +36706,52 @@ int testit(int argc, char **argv)
 		for (int order = 2; order <= 4; order += 2) {
 			bfgs4_robust_minimize(&xmin, &ymin, n, x, y, order);
 			printf("xmin = %f ymin= %f when order = %d\n", xmin, ymin, order);
+		}
+		break;
+	}
+
+	case 66: 
+	{
+		double power, power_intern;
+		double intercept, intercept_intern;
+		double **param;
+		param = Calloc(2, double *);
+
+		power = 1.5;
+		power_intern = map_exp(power, MAP_BACKWARD, NULL);
+		intercept = 0.75;
+		intercept_intern = map_probability(intercept, MAP_BACKWARD, NULL);
+		
+		param[0] = &power_intern;
+		param[1] = &intercept_intern;
+		
+		map_inv_powerlink_core(0.0, MAP_FORWARD, (void *) param, NULL);
+
+		break;
+	}
+	
+	case 67:
+	{
+		double xx, power, intercept;
+		power = (!args[0] ? 0.01 : atof(args[0]));
+		intercept = (!args[1] ? 0.01 : atof(args[1]));
+		printf("power = %g\n", power);
+		printf("intercept = %g\n", intercept);
+		double range = 2.0, dx = 0.2;
+		double *arg[2];
+		arg[0] = &power;
+		arg[1] = &intercept;
+
+		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
+			xx = -range + i * dx;
+			double a, b, c, d, h = 1e-6;
+			a = map_inv_powerlink_core(xx, MAP_FORWARD, (void *) arg, NULL);
+			b = map_inv_powerlink_core(a, MAP_BACKWARD, (void *) arg, NULL);
+			c = map_inv_powerlink_core(xx, MAP_DFORWARD, (void *) arg, NULL);
+			d = (map_inv_powerlink_core(xx + h, MAP_FORWARD, (void *) arg, NULL)
+			     - map_inv_powerlink_core(xx - h, MAP_FORWARD, (void *) arg, NULL)) / (2.0 * h);
+			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a, b, c, d, c - d);
+
 		}
 		break;
 	}

@@ -5686,6 +5686,34 @@
                     ),
                     pdf = "linksn"
                 ),
+                powerlogit = list(
+                    doc = "Power logit link",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 49131,
+                            name = "power",
+                            short.name = "power",
+                            initial = 0.00123456789,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 10),
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 49132,
+                            name = "intercept",
+                            short.name = "intercept",
+                            initial = 0.0,
+                            fixed = FALSE,
+                            prior = "logitbeta",
+                            param = c(1, 1),
+                            to.theta = function(x) log(x / (1 - x)),
+                            from.theta = function(x) exp(x) / (1 + exp(x))
+                        )
+                    ),
+                    pdf = "linkpowerlogit"
+                ),
                 test1 = list(
                     doc = "A test1-link function (experimental)",
                     hyper = list(
@@ -6061,7 +6089,8 @@
                     discrete = TRUE,
                     link = c(
                         "default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
-                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"
+                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
+                        "powerlogit"
                     ),
                     pdf = "binomial"
                 ),
@@ -6073,7 +6102,8 @@
                     discrete = TRUE,
                     link = c(
                         "default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog",
-                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn"
+                        "log", "sslogit", "logitoffset", "quantile", "pquantile", "robit", "sn",
+                        "powerlogit"
                     ),
                     pdf = "binomial",
                     status = "experimental"

@@ -369,7 +369,8 @@ typedef enum {
 	LINK_QGAMMA,
 	LINK_ROBIT,
 	LINK_SN,
-	LINK_LOGa
+	LINK_LOGa,
+	LINK_POWER_LOGIT
 } inla_component_tp;
 
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
@@ -719,6 +720,8 @@ typedef struct {
 	double **sn_skew;
 	double **sn_intercept;
 	double *scale;
+	double **power_intern;
+	double **intercept_intern;
 } Link_param_tp;
 
 typedef struct {
@@ -1606,6 +1609,7 @@ double link_qpoisson(double x, map_arg_tp typ, void *param, double *cov);
 double link_qweibull(double x, map_arg_tp typ, void *param, double *cov);
 double link_robit(double x, map_arg_tp typ, void *param, double *cov);
 double link_sn(double x, map_arg_tp typ, void *param, double *cov);
+double link_power_logit(double x, map_arg_tp typ, void *param, double *cov);
 double link_special1(double x, map_arg_tp typ, void *param, double *cov);
 double link_special2(double x, map_arg_tp typ, void *param, double *cov);
 double link_sslogit(double x, map_arg_tp typ, void *param, double *cov);

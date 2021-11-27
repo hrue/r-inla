@@ -6723,6 +6723,44 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `powerlogit'.}{Number of hyperparmeters are 2.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`49131'}
+							\item{name = }{`power'}
+							\item{short.name = }{`power'}
+							\item{initial = }{`0.00123456789'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 10'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`49132'}
+							\item{name = }{`intercept'}
+							\item{short.name = }{`intercept'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`logitbeta'}
+							\item{param = }{`1 1'}
+							\item{to.theta = }{`\code{function(x) log(x / (1 - x))}'}
+							\item{from.theta = }{`\code{function(x) exp(x) / (1 + exp(x))}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Power logit link'}
+								\item{pdf = }{`linkpowerlogit'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `test1'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{
