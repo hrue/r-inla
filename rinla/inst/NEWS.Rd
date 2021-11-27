@@ -4,6 +4,13 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.11.28}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item added new link \code{powerprobit}. Not completely done yet.
+    }
+  }
+}
 \section{CHANGES IN VERSION 21.11.22}{
   \subsection{BUG FIXES AND IMPROVEMENTS}{
     \itemize{
