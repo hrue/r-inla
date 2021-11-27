@@ -57,14 +57,14 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 
 	int id;
 	GMRFLib_CACHE_SET_ID(id);
-	
+
 	static inla_powerlink_table_tp **table = NULL;
 	static int first = 1, x_len = 256;
 
 	int i, j, debug = 0;
 	double **par, intercept_intern, power, power_intern, sd;
 	double eps = GMRFLib_eps(0.5);
-	
+
 	par = (double **) param;
 	power_intern = *(par[0]);
 	intercept_intern = *(par[1]);
@@ -101,9 +101,9 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		}
 
 		double pp[] = {
-			1.0E-3, 
+			1.0E-3,
 			1.0 - 1.0E-3,
-			1.0E-4, 
+			1.0E-4,
 			1.0 - 1.0E-4,
 			1.0E-5,
 			1.0 - 1.0E-5,
@@ -112,13 +112,18 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 			1.0E-7,
 			1.0 - 1.0E-7,
 			1.0E-8,
-			1.0 - 1.0E-8
+			1.0 - 1.0E-8,
+			1.0E-9,
+			1.0 - 1.0E-9,
+			1.0E-10,
+			1.0 - 1.0E-10
 		};
-		int x_len_extra = sizeof(pp)/sizeof(double);
-			
-		Calloc_init(2 * (x_len + x_len_extra));
-		x = Calloc_get(x_len + x_len_extra);
-		cdf = Calloc_get(x_len + x_len_extra);
+		int x_len_extra = sizeof(pp) / sizeof(double);
+		len = x_len + x_len_extra;
+
+		Calloc_init(2 * len);
+		x = Calloc_get(len);
+		cdf = Calloc_get(len);
 
 		for (i = 0; i < x_len; i++) {
 			p = (i + 0.5) / (double) x_len;
@@ -131,8 +136,9 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 			x[i] = Probit_Pinv(p, power);
 			cdf[i] = Probit_P(x[i], power);
 		}
-		len = x_len + x_len_extra;
-		
+
+		GMRFLib_qsorts((void *) x, (size_t) len, sizeof(double), (void *) cdf, sizeof(double), (void *) NULL, (size_t) 0, GMRFLib_dcmp);
+
 		/*
 		 * moments computed from the CDF, using:
 		 *
@@ -149,8 +155,8 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		mom[1] /= 2.0;
 		sd = sqrt(mom[2] - SQR(mom[1]));
 
-		for(i = 0; i < len; i++) {
-			x[i] = (x[i] - mom[1]) / sd; 
+		for (i = 0; i < len; i++) {
+			x[i] = (x[i] - mom[1]) / sd;
 		}
 
 		// Remove values in 'cdf' and 'x',that are to close (difference is to small), as this will create issues later on in the
@@ -162,7 +168,9 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		table[id]->xmin = x[0];
 		table[id]->xmax = x[len - 1];
 		table[id]->pmin = cdf[0];
-		table[id]->pmax = cdf[len-1];
+		table[id]->pmax = cdf[len - 1];
+		table[id]->mean = mom[1];
+		table[id]->sd = sd;
 
 		// transform before spline'ing
 		for (i = 0; i < len; i++) {
@@ -178,25 +186,20 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	}
 
 	double intercept;
-	
+
 	if (!ISNAN(intercept_intern)) {
 		intercept = GMRFLib_spline_eval(intercept_intern, table[id]->icdf);
 	} else {
 		intercept = 0.0;
 	}
 
-	if (0) {
+	if (debug) {
 		static double intercept_save = 0.0;
 		if (intercept != intercept_save) {
 			P(intercept);
 			P(intercept_intern);
-			intercept_save =  intercept;
+			intercept_save = intercept;
 		}
-	}
-
-	if (debug) {
-		printf("... intercept_intern= %g intercept_alpha=%g intercept= %g\n",
-		       intercept_intern, iMAP(intercept_intern), intercept);
 	}
 
 	if (intercept_out) {
@@ -204,9 +207,9 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		return 0.0;
 	}
 
+	double p, pp;
+
 	switch (typ) {
-		double p, pp;
-		
 	case MAP_FORWARD:
 		/*
 		 * extern = func(local) 
