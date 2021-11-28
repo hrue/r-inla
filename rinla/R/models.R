@@ -5712,7 +5712,7 @@
                             from.theta = function(x) exp(x) / (1 + exp(x))
                         )
                     ),
-                    pdf = "linkpowerlogit"
+                    pdf = "powerlogit"
                 ),
                 test1 = list(
                     doc = "A test1-link function (experimental)",
