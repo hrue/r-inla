@@ -908,6 +908,19 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	int ierr = 0;
 	GMRFLib_opt_f_omp(thetas, na, fun, &ierr);
 
+	// remove possible Inf values (do nan's in the same round...)
+	for (i = j = 0; i < na; i++) {
+		if (!(ISINF(fun[i]) || ISNAN(fun[i]))) {
+			if (j < i) {
+				fun[j] = fun[i];
+				Memcpy(thetas[j], thetas[i], dim * sizeof(double));
+			}
+			j++;
+		}
+	}
+	na = j;
+	assert(na > 2);
+
 	if (debug) {
 		for (i = 0; i < na; i++) {
 			printf("\t i=%1zu aa=%.3f ", i, aa[i]);

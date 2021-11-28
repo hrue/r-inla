@@ -6756,7 +6756,7 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`Power logit link'}
-								\item{pdf = }{`linkpowerlogit'}
+								\item{pdf = }{`powerlogit'}
 							 }
 						 }
 					 }
