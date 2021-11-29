@@ -329,8 +329,7 @@
                         rr <- rand[[i]]
                         dim1 <- dim(rr)[1]
                         dim2 <- dim(rr)[2]
-                        tp <- ifelse(labels.random[i] == "baseline.hazard", "s", "l")
-
+                        tp <- if (length(grep("^baseline.*hazard$", labels.random[i])) > 0) "s" else "l"
                         r.n <- x$size.random[[i]]$n
                         r.N <- x$size.random[[i]]$N
                         r.Ntotal <- x$size.random[[i]]$Ntotal
