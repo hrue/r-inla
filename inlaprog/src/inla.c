@@ -7036,10 +7036,15 @@ int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int 
 
 int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
-#define _F_CORE(_x) (1.0/(1.0 + exp(-(_x))))
-#define _P(_class, _eta) (_class == 1 ? _F_CORE(alpha[_class] - (_eta)) : \
-	(_class == nclasses ? (1.0 - _F_CORE(alpha[_class -1] - (_eta))) : \
-	(_F_CORE(alpha[_class] - (_eta)) - _F_CORE(alpha[_class -1] - (_eta)))))
+#define _F_CORE_LOGIT(_x) (1.0/(1.0 + exp(-(_x))))
+#define _P_LOGIT(_class, _eta) (_class == 1 ? _F_CORE_LOGIT(alpha[_class] - (_eta)) : \
+				(_class == nclasses ? (1.0 - _F_CORE_LOGIT(alpha[_class -1] - (_eta))) : \
+				 (_F_CORE_LOGIT(alpha[_class] - (_eta)) - _F_CORE_LOGIT(alpha[_class -1] - (_eta)))))
+#define _F_CORE_PROBIT(_x) inla_Phi(_x)
+//#define _F_CORE_PROBIT(_x) inla_Phi_fast(_x)
+#define _P_PROBIT(_class, _eta) (_class == 1 ? _F_CORE_PROBIT(alpha[_class] - (_eta)) : \
+				 (_class == nclasses ? (1.0 - _F_CORE_PROBIT(alpha[_class -1] - (_eta))) : \
+				  (_F_CORE_PROBIT(alpha[_class] - (_eta)) - _F_CORE_PROBIT(alpha[_class -1] - (_eta)))))
 
 	/*
 	 * y ~ POM(alpha_k + eta)
@@ -7051,6 +7056,7 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 	double *alpha = NULL, eta, theta;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, k, iy = (int) ds->data_observations.y[idx], nclasses = ds->data_observations.pom_nclasses;
+	int use_logit = (ds->data_observations.pom_cdf == POM_CDF_LOGIT);
 
 	alpha = Calloc(nclasses, double);
 	for (i = 0; i < nclasses - 1; i++) {
@@ -7061,9 +7067,16 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = log(_P(iy, eta));
+		if (use_logit) {
+			for (i = 0; i < m; i++) {
+				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(_P_LOGIT(iy, eta));
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(_P_PROBIT(iy, eta));
+			}
 		}
 	} else {
 		assert(0 == 1);
@@ -7071,8 +7084,11 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 
 	Free(alpha);
 	LINK_END;
-#undef _P
-#undef _F_CORE
+
+#undef _P_LOGIT
+#undef _P_PROBIT
+#undef _F_CORE_LOGIT
+#undef _F_CORE_PROBIT
 
 	return GMRFLib_SUCCESS;
 }
@@ -14252,7 +14268,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_POM:
 	{
-#define _Q(_x) log((_x)/(1.0-(_x)))
+#define _Q(_x) log((_x)/(1.0-(_x)))			       /* we can still use this one for default initial values */
 		/*
 		 * get options for the POM model. note that all theta`K' for K > nclasses-1 are not used and must be fixed no
 		 * matter their input.
@@ -14261,6 +14277,25 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_observations.pom_theta = Calloc(POM_MAXTHETA, double **);
 		ds->data_nfixed = Calloc(POM_MAXTHETA, int);
 		ds->data_nprior = Calloc(POM_MAXTHETA, Prior_tp);
+
+		char *ctmp;
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "pom.cdf"), GMRFLib_strdup("DEFAULT"));
+		if (!strcasecmp(ctmp, "DEFAULT")) {
+			ds->data_observations.pom_cdf = POM_CDF_DEFAULT;
+		} else if (!strcasecmp(ctmp, "LOGIT")) {
+			ds->data_observations.pom_cdf = POM_CDF_LOGIT;
+		} else if (!strcasecmp(ctmp, "PROBIT")) {
+			ds->data_observations.pom_cdf = POM_CDF_PROBIT;
+		} else {
+			GMRFLib_ASSERT(ds->data_observations.pom_cdf == POM_CDF_DEFAULT ||
+				       ds->data_observations.pom_cdf == POM_CDF_LOGIT ||
+				       ds->data_observations.pom_cdf == POM_CDF_PROBIT, GMRFLib_EPARAMETER);
+		}
+		if (mb->verbose) {
+			printf("\tPOM cdf = [%s]\n", (ds->data_observations.pom_cdf == POM_CDF_DEFAULT ? "default" :
+						      (ds->data_observations.pom_cdf == POM_CDF_LOGIT ? "logit" :
+						       (ds->data_observations.pom_cdf == POM_CDF_PROBIT ? "probit" : "UNKNOWN"))));
+		}
 
 		if (mb->verbose) {
 			printf("\tPOM nclasses = [%1d]\n", nclasses);

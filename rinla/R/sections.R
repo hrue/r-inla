@@ -293,6 +293,14 @@
         inla.write.hyper(control$control.mix$hyper, file, prefix = "mix.", data.dir = dirname(file))
     }
 
+    ## the pom-part
+    if (inla.one.of(family, "pom")) {
+        if (!is.null(control$control.pom$cdf)) {
+            stopifnot(inla.one.of(control$control.pom$cdf, c("logit", "probit")))
+            cat("pom.cdf = ", control$control.pom$cdf, "\n", sep = "", file = file, append = TRUE)
+        }
+    }
+
     cat("\n", sep = " ", file = file, append = TRUE)
 }
 
