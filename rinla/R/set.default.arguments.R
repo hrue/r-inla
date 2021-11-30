@@ -143,8 +143,10 @@
         ## :EXTRA: The \code{control.pom} -list is set within the corresponding \code{control.family}
         ## :NAME: control.pom
         list(
-            ## :ARGUMENT: cdf The cdf to use, "logit" (default) or "probit"
-            cdf  = "logit"
+            ## :ARGUMENT: cdf character The cdf to use, "logit" (default) or "probit"
+            cdf  = "logit",
+            ## :ARGUMENT: fast Logical Use a faster but approximate form for the probit cdf (default \code{FALSE})?
+            fast = FALSE
         )
 
         ## :SEEALSO: inla

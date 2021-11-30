@@ -196,6 +196,8 @@ double inla_fgn2_helper(int i, int j, int n, double phi)
 		}
 		return val / (1.0 - phi2);		       /* correction to get unit variance */
 	}
+	assert(0 == 1);
+	return 0.0;
 }
 
 double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)

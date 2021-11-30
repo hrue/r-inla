@@ -156,7 +156,6 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 	} else if (m == n || m == 0) {
 		result->val = 0.0;
 		result->err = 0.0;
-		return GSL_SUCCESS;
 	} else {
 		gsl_sf_result nf;
 		gsl_sf_result mf;
@@ -169,6 +168,6 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 		result->val = nf.val - mf.val - nmmf.val;
 		result->err = nf.err + mf.err + nmmf.err;
 		result->err += 2.0 * GSL_DBL_EPSILON * fabs(result->val);
-		return GSL_SUCCESS;
 	}
+	return GMRFLib_SUCCESS;
 }

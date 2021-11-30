@@ -459,6 +459,7 @@ typedef struct {
 	double ***pom_theta;
 	int pom_nclasses;
 	inla_pom_cdf_tp pom_cdf;
+	int pom_fast_probit;
 	
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal

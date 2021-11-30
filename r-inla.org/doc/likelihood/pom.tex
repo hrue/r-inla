@@ -62,6 +62,9 @@ described above
     \texttt{control.pom=list(cdf="logit")} or \\
     \texttt{control.pom=list(cdf="probit")} to control the cdf used.
     Default is the ``logit''.
+\item For the \texttt{cdf="probit"}, then \texttt{fast=TRUE} in
+    \texttt{control.pom} will use a faster but approximate
+    implementation of the probit cdf (default \texttt{FALSE}).
 \end{itemize}
 Number of classes, $K$ is determined as the maximum of the
 observations. Empty classes are not allowed.

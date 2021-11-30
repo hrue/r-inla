@@ -12,11 +12,12 @@
 \description{Control variables in \code{control.pom} for use in \code{inla}}
 \usage{
 inla.set.control.pom.default(...)
-control.pom(cdf)
+control.pom(cdf, fast)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{cdf}{   The cdf to use, "logit" (default) or "probit"}
+\item{cdf}{   character The cdf to use, "logit" (default) or "probit"}
+\item{fast}{   Logical Use a faster but approximate form for the probit cdf (default \code{FALSE})?}
 }
 \value{
    The \code{control.pom} -list is set within the corresponding \code{control.family}

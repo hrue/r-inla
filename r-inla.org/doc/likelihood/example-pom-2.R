@@ -29,16 +29,14 @@ xx = inla.group(x)
 r = inla(y ~ -1 +
              f(xx, model="rw2", scale.model=TRUE, 
                hyper = list(prec = list(prior = "pc.prec",
-                                        param = c(0.5, 0.01),
-                                        initial = 2.44444444))) + 
+                                        param = c(0.5, 0.01)))) +
              f(idx, model="iid", 
                hyper = list(prec = list(prior = "pc.prec",
-                                        param = c(0.5, 0.01),
-                                        initial = 2.33333333))), 
+                                        param = c(0.5, 0.01)))), 
          data = data.frame(y, x, idx = 1:n, xx),
          family = "pom",
          control.family = list(control.pom = list(cdf = "probit")), 
-         control.inla = list(cmin=0), 
+         ##control.inla = list(cmin=0), 
          control.fixed = list(prec = 1, prec.intercept = 1))
 
 theta = inla.hyperpar.sample(nsim, r, intern=TRUE)
