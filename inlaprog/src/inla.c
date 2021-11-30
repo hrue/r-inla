@@ -7073,7 +7073,7 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 				nclass = Calloc(GMRFLib_CACHE_LEN, int);
 				calpha = Calloc(GMRFLib_CACHE_LEN, double *);
 				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
-					nclass[i] = 8;
+					nclass[i] = 4;
 					calpha[i] = Calloc(nclass[i], double);
 				}
 			}
