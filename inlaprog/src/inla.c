@@ -7061,13 +7061,13 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, k, iy = (int) ds->data_observations.y[idx], nclasses = ds->data_observations.pom_nclasses;
 	int use_logit = (ds->data_observations.pom_cdf == POM_CDF_LOGIT);
-	int fast_probit = ds->data_observations.pom_fast_probit; 
+	int fast_probit = ds->data_observations.pom_fast_probit;
 
 	static double **calpha = NULL;
 	static int *nclass = NULL;
 
 	if (!calpha) {
-#pragma omp critical 
+#pragma omp critical
 		{
 			if (!calpha) {
 				nclass = Calloc(GMRFLib_CACHE_LEN, int);
@@ -7079,13 +7079,13 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 			}
 		}
 	}
-	
+
 	int id;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (nclasses > nclass[id]) {
-		nclass[id] = nclasses; 
-		calpha[id] = Realloc(calpha[id], nclass[id], double);       
+		nclass[id] = nclasses;
+		calpha[id] = Realloc(calpha[id], nclass[id], double);
 	}
 	alpha = calpha[id];
 
@@ -8530,9 +8530,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -14331,8 +14331,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		if (mb->verbose) {
 			printf("\t\tPOM cdf = [%s]\n", (ds->data_observations.pom_cdf == POM_CDF_DEFAULT ? "default" :
-						      (ds->data_observations.pom_cdf == POM_CDF_LOGIT ? "logit" :
-						       (ds->data_observations.pom_cdf == POM_CDF_PROBIT ? "probit" : "UNKNOWN"))));
+							(ds->data_observations.pom_cdf == POM_CDF_LOGIT ? "logit" :
+							 (ds->data_observations.pom_cdf == POM_CDF_PROBIT ? "probit" : "UNKNOWN"))));
 			printf("\t\tPOM fast.probit = [%s]\n", (ds->data_observations.pom_fast_probit ? "Yes" : "No"));
 		}
 
@@ -18296,7 +18296,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
-	case LINK_POWER_LOGIT: 
+	case LINK_POWER_LOGIT:
 	{
 		/*
 		 * power logit link
@@ -36769,8 +36769,8 @@ int testit(int argc, char **argv)
 	{
 		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order);
 
-		double x[] = {-0.200, -0.075, 0.000, 0.040, 0.160, 0.360, 0.640, 1.000};
-		double y[] = {14960.675457, 14934.327851, 14927.976542, 14943.616530, 14945.530949, 15000.597367, 15140.861227, 15412.165108};
+		double x[] = { -0.200, -0.075, 0.000, 0.040, 0.160, 0.360, 0.640, 1.000 };
+		double y[] = { 14960.675457, 14934.327851, 14927.976542, 14943.616530, 14945.530949, 15000.597367, 15140.861227, 15412.165108 };
 		int n = sizeof(y) / sizeof(double);
 
 		double xmin;
@@ -36783,7 +36783,7 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 66: 
+	case 66:
 	{
 		double power, power_intern;
 		double intercept, intercept_intern;
@@ -36794,15 +36794,15 @@ int testit(int argc, char **argv)
 		power_intern = map_exp(power, MAP_BACKWARD, NULL);
 		intercept = 0.75;
 		intercept_intern = map_probability(intercept, MAP_BACKWARD, NULL);
-		
+
 		param[0] = &power_intern;
 		param[1] = &intercept_intern;
-		
+
 		map_inv_powerlink_core(0.0, MAP_FORWARD, (void *) param, NULL);
 
 		break;
 	}
-	
+
 	case 67:
 	{
 		double xx, power, intercept;
