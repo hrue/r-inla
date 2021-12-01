@@ -8196,6 +8196,27 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 	lambda = exp(log_lambda);
 
 	LINK_INIT;
+
+	static double **cy = NULL;
+	static int *ncy = NULL;
+
+	if (!cy) {
+#pragma omp critical
+		{
+			if (!cy) {
+				ncy = Calloc(GMRFLib_CACHE_LEN, int);
+				cy = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					ncy[i] = 8;
+					cy[i] = Calloc(ncy[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
 		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
@@ -8207,7 +8228,13 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
 		normc_poisson = gsl_sf_lnfact((unsigned int) n);
-		y = Calloc(ny, double);
+
+		if (ny > ncy[id]) {
+			ncy[id] = ny;
+			cy[id] = Realloc(cy[id], ncy[id], double);
+		}
+		y = cy[id];
+
 		for (i = 0; i < ny; i++) {
 			y[i] = ds->data_observations.nmix_y[i][idx];
 		}
@@ -8233,7 +8260,6 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 			}
 			logll[i] += log(fac);
 		}
-		Free(y);
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -8264,6 +8290,27 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 	size = 1.0 / map_exp(ds->data_observations.nmix_log_overdispersion[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
+
+	static double **cy = NULL;
+	static int *ncy = NULL;
+
+	if (!cy) {
+#pragma omp critical
+		{
+			if (!cy) {
+				ncy = Calloc(GMRFLib_CACHE_LEN, int);
+				cy = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					ncy[i] = 8;
+					cy[i] = Calloc(ncy[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
 		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
@@ -8275,7 +8322,13 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
 		normc_nb = gsl_sf_lngamma(n + size) - gsl_sf_lngamma(size) - gsl_sf_lnfact((unsigned int) n);
-		y = Calloc(ny, double);
+	
+		if (ny > ncy[id]) {
+			ncy[id] = ny;
+			cy[id] = Realloc(cy[id], ncy[id], double);
+		}
+		y = cy[id];
+
 		for (i = 0; i < ny; i++) {
 			y[i] = ds->data_observations.nmix_y[i][idx];
 		}
@@ -8303,7 +8356,6 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 			}
 			logll[i] += log(fac);
 		}
-		Free(y);
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -9535,13 +9587,37 @@ int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUS
 	phi /= w;
 	LINK_INIT;
 
+	static double **cmu = NULL;
+	static int *ncmu = NULL;
+
+	if (!cmu) {
+#pragma omp critical
+		{
+			if (!cmu) {
+				ncmu = Calloc(GMRFLib_CACHE_LEN, int);
+				cmu = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					ncmu[i] = 8;
+					cmu[i] = Calloc(ncmu[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
 	if (m > 0) {
-		double *mu = Calloc(m, double);
+		if (m > ncmu[id]) {
+			ncmu[id] = m;
+			cmu[id] = Realloc(cmu[id], ncmu[id], double);
+		}
+		double *mu = cmu[id];
+
 		for (i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 		}
 		dtweedie(m, y, mu, phi, p, logll);
-		Free(mu);
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
