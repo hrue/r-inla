@@ -9,7 +9,8 @@
 
 \subsection*{Parametrisation}
 
-The proportional odds model, is for discrete observations
+The proportional odds model, is for discrete observations (here
+described with the logit cdf)
 \begin{displaymath}
     y \in \{ 1, 2, \ldots, K\}, \qquad K>1,
 \end{displaymath}
@@ -52,19 +53,39 @@ found through simulations as shown in the example below.
 
 \subsection*{Specification}
 
+There is also an option to use the probit cdf instead of the logit as
+described above
 \begin{itemize}
 \item $\text{family}=\texttt{pom}$
 \item Required arguments: $y$ (observations)
+\item Within \texttt{control.family}, add
+    \texttt{control.pom=list(cdf="logit")} or \\
+    \texttt{control.pom=list(cdf="probit")} to control the cdf used.
+    Default is the ``logit''.
+\item For the \texttt{cdf="probit"}, then \texttt{fast=TRUE} in
+    \texttt{control.pom} will use a faster but approximate
+    implementation of the probit cdf (default \texttt{FALSE}).
 \end{itemize}
 Number of classes, $K$ is determined as the maximum of the
 observations. Empty classes are not allowed.
 
-\subsection*{Example}
+
+
+
+\subsection*{Example: logit}
 
 In the following example we estimate the parameters in a simulated
-example.
+example using the logit.
 {\small
 \verbatiminput{example-pom.R}
+}
+
+\subsection*{Example: probit}
+
+In the following example we estimate the parameters in a simulated
+example using the probit.
+{\small
+\verbatiminput{example-pom-2.R}
 }
 
 \subsection*{Notes}

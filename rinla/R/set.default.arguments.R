@@ -2,6 +2,7 @@
 ## Export: inla.set.control.update.default
 ## Export: inla.set.control.group.default
 ## Export: inla.set.control.mix.default
+## Export: inla.set.control.pom.default
 ## Export: inla.set.control.link.default
 ## Export: inla.set.control.expert.default
 ## Export: inla.set.control.compute.default
@@ -19,6 +20,7 @@
 ## Export: control.update
 ## Export: control.group
 ## Export: control.mix
+## Export: control.pom
 ## Export: control.link
 ## Export: control.expert
 ## Export: control.compute
@@ -136,6 +138,20 @@
         ## :SEEALSO: inla
     }
 
+`inla.set.control.pom.default` <-
+    function(...) {
+        ## :EXTRA: The \code{control.pom} -list is set within the corresponding \code{control.family}
+        ## :NAME: control.pom
+        list(
+            ## :ARGUMENT: cdf character The cdf to use, "logit" (default) or "probit"
+            cdf  = "logit",
+            ## :ARGUMENT: fast Logical Use a faster but approximate form for the probit cdf (default \code{FALSE})?
+            fast = FALSE
+        )
+
+        ## :SEEALSO: inla
+    }
+
 `inla.set.control.link.default` <-
     function(...) {
         ## :EXTRA: The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
@@ -175,12 +191,10 @@
         ## :SEEALSO: inla
     }
 
-
 `inla.set.f.default` <-
     function(...) {
         list(diagonal = 1.0E-4)
     }
-
 
 `inla.set.control.expert.default` <-
     function(...) {
@@ -351,6 +365,9 @@
 
             ## :ARGUMENT: control.mix See \code{?control.mix}
             control.mix = NULL,
+
+            ## :ARGUMENT: control.pom See \code{?control.pom}
+            control.pom = NULL,
 
             ## :ARGUMENT: control.link See \code{?control.link}
             control.link = NULL
@@ -786,6 +803,7 @@ control.update <- inla.make.completion.function(names(inla.set.control.update.de
 control.lincomb <- inla.make.completion.function(names(inla.set.control.lincomb.default()))
 control.group <- inla.make.completion.function(names(inla.set.control.group.default()))
 control.mix <- inla.make.completion.function(names(inla.set.control.mix.default()))
+control.pom <- inla.make.completion.function(names(inla.set.control.pom.default()))
 control.link <- inla.make.completion.function(names(inla.set.control.link.default()))
 control.expert <- inla.make.completion.function(names(inla.set.control.expert.default()))
 control.compute <- inla.make.completion.function(names(inla.set.control.compute.default()))

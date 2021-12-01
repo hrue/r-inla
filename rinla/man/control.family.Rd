@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, control.mix, dummy, fixed, gev.scale.xi, hyper, initial, link, param, prior, sn.shape.max, variant)
+control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, control.mix, control.pom, dummy, fixed, gev.scale.xi, hyper, initial, link, param, prior, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -30,6 +30,7 @@ control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, cont
 \item{beta.censor.value}{   The censor value for the Beta-likelihood \code{(0 <= beta.censor.value < 1/2)}}
 \item{variant}{   This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
 \item{control.mix}{   See \code{?control.mix}}
+\item{control.pom}{   See \code{?control.pom}}
 \item{control.link}{   See \code{?control.link}}
 }
 \value{
@@ -38,6 +39,6 @@ The function \code{control.family} is used to TAB-complete arguments and returns
 The function \code{inla.set.control.family.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

@@ -159,6 +159,8 @@ double inla_eval(char *expression, double *x, double *theta, int ntheta)
 	} else {
 		assert(0 == 1);
 	}
+	assert(0 == 1);
+	return 0.0;
 }
 double inla_eval_expression(char *expression, double *x, double *theta, int ntheta)
 {

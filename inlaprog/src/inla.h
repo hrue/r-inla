@@ -373,6 +373,13 @@ typedef enum {
 	LINK_POWER_LOGIT
 } inla_component_tp;
 
+typedef enum {
+	POM_CDF_DEFAULT = 1, 
+	POM_CDF_LOGIT = 1,
+	POM_CDF_PROBIT = 2
+}
+	inla_pom_cdf_tp;
+	
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
 typedef double link_func_tp(double arg, map_arg_tp typ, void *param, double *cov);
 
@@ -451,7 +458,9 @@ typedef struct {
 	 */
 	double ***pom_theta;
 	int pom_nclasses;
-
+	inla_pom_cdf_tp pom_cdf;
+	int pom_fast_probit;
+	
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */

@@ -4,6 +4,19 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.12.01}{
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Allow for probit cdf in likelihood model \code{pom}
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various code improvements
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.11.29}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

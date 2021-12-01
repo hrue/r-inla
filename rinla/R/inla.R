@@ -952,14 +952,17 @@
     for (i.family in 1:n.family) {
         cont.family[[i.family]] <- inla.set.control.family.default()
         cont.family[[i.family]]$control.mix <- inla.set.control.mix.default()
+        cont.family[[i.family]]$control.pom <- inla.set.control.pom.default()
         cont.family[[i.family]]$control.link <- inla.set.control.link.default()
         cont.family[[i.family]]$control.bgev <- inla.set.control.bgev.default()
 
         ## need to take option 'control.mix' and 'control.link' out and process it seperately
         c.mix <- control.family[[i.family]]$control.mix
+        c.pom <- control.family[[i.family]]$control.pom
         c.link <- control.family[[i.family]]$control.link
         c.bgev <- control.family[[i.family]]$control.bgev
         control.family[[i.family]]$control.mix <- NULL
+        control.family[[i.family]]$control.pom <- NULL
         control.family[[i.family]]$control.link <- NULL
         control.family[[i.family]]$control.bgev <- NULL
 
@@ -980,6 +983,7 @@
         )
 
         cont.family[[i.family]]$control.mix[names(c.mix)] <- c.mix
+        cont.family[[i.family]]$control.pom[names(c.pom)] <- c.pom
         cont.family[[i.family]]$control.link[names(c.link)] <- c.link
         cont.family[[i.family]]$control.bgev[names(c.bgev)] <- c.bgev
 

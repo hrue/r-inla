@@ -717,10 +717,11 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	int err;
 	gsl_set_error_handler_off();
 
-	// err = bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
+	err = bfgs4_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_fair, X, yy, c, cov);
-	err = bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
+	// err = bfgs4_dofit(gsl_multifit_robust_huber, X, yy, c, cov);
 	// err = bfgs4_dofit(gsl_multifit_robust_welsch, X, yy, c, cov);
+	// err = bfgs4_dofit(gsl_multifit_robust_cauchy, X, yy, c, cov);
 
 	gsl_set_error_handler(NULL);
 	if (err == GSL_EMAXITER) {
@@ -733,7 +734,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 		return GMRFLib_SUCCESS;
 	}
 
-	size_t m = 25;
+	size_t m = 50;
 	double dx = (x[n - 1] - x[0]) / (m - 1.0);
 
 	for (i = 0; i < m; ++i) {
@@ -799,8 +800,8 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
 	double alpha = alpha1, alpha_prev = 0.0;
 	double a, b;
-	const size_t bracket_iters = 50;
-	size_t i = 0, j, k;
+	const size_t bracket_iters = 25;
+	size_t i = 0, j;
 
 	if (debug)
 		printf("...enter minimize() sigma = %.12g\n", sigma);
@@ -930,26 +931,13 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 			printf(" %10.6f\n", fun[i]);
 		}
 	}
-	// remove the largest value(s)
-	size_t remove = 1 + IMIN(2, IMAX(0, na - 8) / 4L);
-	for (k = 0; k < remove; k++) {
-		int idx_max = 0;
-		GMRFLib_max_value(fun, na, &idx_max);
-		for (i = j = 0; i < na; i++) {
-			if (i != (size_t) idx_max) {
-				aa[j] = aa[i];
-				fun[j] = fun[i];
-				j++;
-			}
-		}
-		na--;
-	}
 
 	double amin, fmin;
 	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 2);
 
-	if (debug)
+	if (debug) {
 		printf("\tamin %f fmin %f\n", amin, fmin);
+	}
 	*alpha_new = amin;
 
 	for (i = 0; i < na; i++) {

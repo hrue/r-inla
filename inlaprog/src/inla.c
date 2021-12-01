@@ -4048,10 +4048,17 @@ double priorfunc_loggamma(double *x, double *parameters)
 
 double priorfunc_dirichlet(double *x, double *parameters)
 {
-#define _F(_x) (1.0/(1.0+exp(-(_x))))
-#define _f(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
+#define _F_logit(_x) (1.0/(1.0+exp(-(_x))))
+#define _f_logit(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
+
+#define _F_probit(_x) inla_Phi(_x)
+#define _f_probit(_x) (0.39894228040143270286 * exp(-0.5 * SQR(_x)))
+
+#define _F(_x) (cdf_logit ? _F_logit(_x) : _F_probit(_x))
+#define _f(_x) (cdf_logit ? _f_logit(_x) : _f_probit(_x))
 
 	double alpha = parameters[0], nclasses = parameters[1], ld;
+	int cdf_logit = ((inla_pom_cdf_tp) parameters[2] == POM_CDF_LOGIT);
 	int K = (int) nclasses, k, debug = 0;
 	double *work = Calloc(4 * K, double);
 	double *xx = work, *alphas = work + K, *qs = work + 2 * K, *v = work + 3 * K;
@@ -4062,9 +4069,11 @@ double priorfunc_dirichlet(double *x, double *parameters)
 		xx[k] = xx[k - 1] + exp(x[k]);
 	}
 	// from cutpoints, xx, to quantiles, qs
+
 	for (k = 0; k < K - 1; k++) {
 		qs[k] = _F(xx[k]);
 	}
+
 	// from quantiles, qs, to Dirichlet variables, v
 	v[0] = qs[0];
 	for (k = 1; k < K - 1; k++) {
@@ -4099,6 +4108,10 @@ double priorfunc_dirichlet(double *x, double *parameters)
 	Free(work);
 #undef _F
 #undef _f
+#undef _F_logit
+#undef _f_logit
+#undef _F_probit
+#undef _f_probit
 
 	return (ld);
 }
@@ -7036,10 +7049,19 @@ int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int 
 
 int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
 {
-#define _F_CORE(_x) (1.0/(1.0 + exp(-(_x))))
-#define _P(_class, _eta) (_class == 1 ? _F_CORE(alpha[_class] - (_eta)) : \
-	(_class == nclasses ? (1.0 - _F_CORE(alpha[_class -1] - (_eta))) : \
-	(_F_CORE(alpha[_class] - (_eta)) - _F_CORE(alpha[_class -1] - (_eta)))))
+#define _F_CORE_LOGIT(_x) (1.0/(1.0 + exp(-(_x))))
+#define _P_LOGIT(_class, _eta) ((_class) == 1 ? _F_CORE_LOGIT(alpha[(_class)] - (_eta)) : \
+				((_class) == nclasses ? (1.0 - _F_CORE_LOGIT(alpha[(_class) -1] - (_eta))) : \
+				 (_F_CORE_LOGIT(alpha[(_class)] - (_eta)) - _F_CORE_LOGIT(alpha[(_class) -1] - (_eta)))))
+#define _F_CORE_PROBIT(_x) inla_Phi(_x)
+#define _P_PROBIT(_class, _eta) ((_class) == 1 ? _F_CORE_PROBIT(alpha[(_class)] - (_eta)) : \
+				 ((_class) == nclasses ? (1.0 - _F_CORE_PROBIT(alpha[(_class) -1] - (_eta))) : \
+				  (_F_CORE_PROBIT(alpha[(_class)] - (_eta)) - _F_CORE_PROBIT(alpha[(_class) -1] - (_eta)))))
+
+#define _F_CORE_PROBIT_FAST(_x) inla_Phi_fast(_x)
+#define _P_PROBIT_FAST(_class, _eta) ((_class) == 1 ? _F_CORE_PROBIT_FAST(alpha[(_class)] - (_eta)) : \
+				      ((_class) == nclasses ? (1.0 - _F_CORE_PROBIT_FAST(alpha[(_class) -1] - (_eta))) : \
+				       (_F_CORE_PROBIT_FAST(alpha[(_class)] - (_eta)) - _F_CORE_PROBIT_FAST(alpha[(_class) -1] - (_eta)))))
 
 	/*
 	 * y ~ POM(alpha_k + eta)
@@ -7048,11 +7070,38 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 		return GMRFLib_SUCCESS;
 	}
 
-	double *alpha = NULL, eta, theta;
+	double eta, theta, *alpha = NULL;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int i, k, iy = (int) ds->data_observations.y[idx], nclasses = ds->data_observations.pom_nclasses;
+	int use_logit = (ds->data_observations.pom_cdf == POM_CDF_LOGIT);
+	int fast_probit = ds->data_observations.pom_fast_probit;
 
-	alpha = Calloc(nclasses, double);
+	static double **calpha = NULL;
+	static int *nclass = NULL;
+
+	if (!calpha) {
+#pragma omp critical
+		{
+			if (!calpha) {
+				nclass = Calloc(GMRFLib_CACHE_LEN, int);
+				calpha = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					nclass[i] = 4;
+					calpha[i] = Calloc(nclass[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
+	if (nclasses > nclass[id]) {
+		nclass[id] = nclasses;
+		calpha[id] = Realloc(calpha[id], nclass[id], double);
+	}
+	alpha = calpha[id];
+
 	for (i = 0; i < nclasses - 1; i++) {
 		k = 1 + i;
 		theta = map_identity(ds->data_observations.pom_theta[i][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -7061,18 +7110,35 @@ int loglikelihood_pom(double *logll, double *x, int m, int idx, double *UNUSED(x
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = log(_P(iy, eta));
+		if (use_logit) {
+			for (i = 0; i < m; i++) {
+				eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(_P_LOGIT(iy, eta));
+			}
+		} else {
+			if (fast_probit) {
+				for (i = 0; i < m; i++) {
+					eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(_P_PROBIT_FAST(iy, eta));
+				}
+			} else {
+				for (i = 0; i < m; i++) {
+					eta = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(_P_PROBIT(iy, eta));
+				}
+			}
 		}
 	} else {
 		assert(0 == 1);
 	}
 
-	Free(alpha);
 	LINK_END;
-#undef _P
-#undef _F_CORE
+#undef _P_LOGIT
+#undef _P_PROBIT
+#undef _P_PROBIT_FAST
+#undef _F_CORE_LOGIT
+#undef _F_CORE_PROBIT
+#undef _F_CORE_PROBIT_FAST
 
 	return GMRFLib_SUCCESS;
 }
@@ -8130,6 +8196,27 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 	lambda = exp(log_lambda);
 
 	LINK_INIT;
+
+	static double **cy = NULL;
+	static int *ncy = NULL;
+
+	if (!cy) {
+#pragma omp critical
+		{
+			if (!cy) {
+				ncy = Calloc(GMRFLib_CACHE_LEN, int);
+				cy = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					ncy[i] = 8;
+					cy[i] = Calloc(ncy[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
 		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
@@ -8141,7 +8228,13 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
 		normc_poisson = gsl_sf_lnfact((unsigned int) n);
-		y = Calloc(ny, double);
+
+		if (ny > ncy[id]) {
+			ncy[id] = ny;
+			cy[id] = Realloc(cy[id], ncy[id], double);
+		}
+		y = cy[id];
+
 		for (i = 0; i < ny; i++) {
 			y[i] = ds->data_observations.nmix_y[i][idx];
 		}
@@ -8167,7 +8260,6 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 			}
 			logll[i] += log(fac);
 		}
-		Free(y);
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -8198,6 +8290,27 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 	size = 1.0 / map_exp(ds->data_observations.nmix_log_overdispersion[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 
 	LINK_INIT;
+
+	static double **cy = NULL;
+	static int *ncy = NULL;
+
+	if (!cy) {
+#pragma omp critical
+		{
+			if (!cy) {
+				ncy = Calloc(GMRFLib_CACHE_LEN, int);
+				cy = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					ncy[i] = 8;
+					cy[i] = Calloc(ncy[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
 	if (m > 0) {
 		n = ds->data_observations.nmix_y[0][idx];
 		assert(!gsl_isnan(ds->data_observations.nmix_y[0][idx]));
@@ -8209,7 +8322,13 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
 		normc_nb = gsl_sf_lngamma(n + size) - gsl_sf_lngamma(size) - gsl_sf_lnfact((unsigned int) n);
-		y = Calloc(ny, double);
+
+		if (ny > ncy[id]) {
+			ncy[id] = ny;
+			cy[id] = Realloc(cy[id], ncy[id], double);
+		}
+		y = cy[id];
+
 		for (i = 0; i < ny; i++) {
 			y[i] = ds->data_observations.nmix_y[i][idx];
 		}
@@ -8237,7 +8356,6 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 			}
 			logll[i] += log(fac);
 		}
-		Free(y);
 	} else {
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -8477,9 +8595,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9469,13 +9587,37 @@ int loglikelihood_tweedie(double *logll, double *x, int m, int idx, double *UNUS
 	phi /= w;
 	LINK_INIT;
 
+	static double **cmu = NULL;
+	static int *ncmu = NULL;
+
+	if (!cmu) {
+#pragma omp critical
+		{
+			if (!cmu) {
+				ncmu = Calloc(GMRFLib_CACHE_LEN, int);
+				cmu = Calloc(GMRFLib_CACHE_LEN, double *);
+				for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					ncmu[i] = 8;
+					cmu[i] = Calloc(ncmu[i], double);
+				}
+			}
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
 	if (m > 0) {
-		double *mu = Calloc(m, double);
+		if (m > ncmu[id]) {
+			ncmu[id] = m;
+			cmu[id] = Realloc(cmu[id], ncmu[id], double);
+		}
+		double *mu = cmu[id];
+
 		for (i = 0; i < m; i++) {
 			mu[i] = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 		}
 		dtweedie(m, y, mu, phi, p, logll);
-		Free(mu);
 	} else {
 		double yy = (y_cdf ? *y_cdf : y);
 		for (i = 0; i < -m; i++) {
@@ -11548,15 +11690,17 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->id = P_DIRICHLET;
 		prior->priorfunc = priorfunc_dirichlet;
 		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
-			prior->parameters = Calloc(2, double); /* yes, 2 */
+			prior->parameters = Calloc(3, double); /* yes, 3 */
 			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
+			prior->parameters[2] = NAN;	       /* cdf, added later */
 		} else {
 			prior->parameters = Calloc(2, double);
 			prior->parameters[0] = 0.5;	       /* alpha */
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
+			prior->parameters[2] = NAN;	       /* number of classes, added later */
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
@@ -14252,18 +14396,39 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_POM:
 	{
-#define _Q(_x) log((_x)/(1.0-(_x)))
+#define _Q(_x) log((_x)/(1.0-(_x)))			       /* we can still use this one for default initial values */
 		/*
 		 * get options for the POM model. note that all theta`K' for K > nclasses-1 are not used and must be fixed no
 		 * matter their input.
 		 */
+		char *ctmp;
 		int nclasses = ds->data_observations.pom_nclasses;
 		ds->data_observations.pom_theta = Calloc(POM_MAXTHETA, double **);
 		ds->data_nfixed = Calloc(POM_MAXTHETA, int);
 		ds->data_nprior = Calloc(POM_MAXTHETA, Prior_tp);
 
+		ds->data_observations.pom_fast_probit = iniparser_getboolean(ini, inla_string_join(secname, "POM.FAST.PROBIT"), 0);
+		ctmp = iniparser_getstring(ini, inla_string_join(secname, "pom.cdf"), GMRFLib_strdup("DEFAULT"));
+		if (!strcasecmp(ctmp, "DEFAULT")) {
+			ds->data_observations.pom_cdf = POM_CDF_DEFAULT;
+		} else if (!strcasecmp(ctmp, "LOGIT")) {
+			ds->data_observations.pom_cdf = POM_CDF_LOGIT;
+		} else if (!strcasecmp(ctmp, "PROBIT")) {
+			ds->data_observations.pom_cdf = POM_CDF_PROBIT;
+		} else {
+			GMRFLib_ASSERT(ds->data_observations.pom_cdf == POM_CDF_DEFAULT ||
+				       ds->data_observations.pom_cdf == POM_CDF_LOGIT ||
+				       ds->data_observations.pom_cdf == POM_CDF_PROBIT, GMRFLib_EPARAMETER);
+		}
 		if (mb->verbose) {
-			printf("\tPOM nclasses = [%1d]\n", nclasses);
+			printf("\t\tPOM cdf = [%s]\n", (ds->data_observations.pom_cdf == POM_CDF_DEFAULT ? "default" :
+							(ds->data_observations.pom_cdf == POM_CDF_LOGIT ? "logit" :
+							 (ds->data_observations.pom_cdf == POM_CDF_PROBIT ? "probit" : "UNKNOWN"))));
+			printf("\t\tPOM fast.probit = [%s]\n", (ds->data_observations.pom_fast_probit ? "Yes" : "No"));
+		}
+
+		if (mb->verbose) {
+			printf("\t\tPOM nclasses = [%1d]\n", nclasses);
 		}
 
 		for (int count = 0; count < POM_MAXTHETA; count++) {
@@ -14301,6 +14466,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "DIRICHLET", count, NULL);
 				assert(ds->data_nprior[count].id == P_DIRICHLET);
 				ds->data_nprior[count].parameters[1] = nclasses;
+				ds->data_nprior[count].parameters[2] = ds->data_observations.pom_cdf;
 			} else {
 				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "NONE", count, NULL);
 				assert(ds->data_nprior[count].id == P_NONE);
@@ -18222,7 +18388,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
-	case LINK_POWER_LOGIT: 
+	case LINK_POWER_LOGIT:
 	{
 		/*
 		 * power logit link
@@ -36694,10 +36860,9 @@ int testit(int argc, char **argv)
 	case 65:
 	{
 		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order);
-		double x[] = { 0.000000, 0.117601, 0.140824, 0.142939, 0.143781, 0.144150, 0.144319, 0.144462, 0.151020, 0.785981 };
-		double y[] = { 190.587218, 190.560078, 190.559036, 190.559015, 190.559011, 190.559009,
-			190.559009, 190.559008, 190.589052, 191.217117
-		};
+
+		double x[] = { -0.200, -0.075, 0.000, 0.040, 0.160, 0.360, 0.640, 1.000 };
+		double y[] = { 14960.675457, 14934.327851, 14927.976542, 14943.616530, 14945.530949, 15000.597367, 15140.861227, 15412.165108 };
 		int n = sizeof(y) / sizeof(double);
 
 		double xmin;
@@ -36710,7 +36875,7 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 66: 
+	case 66:
 	{
 		double power, power_intern;
 		double intercept, intercept_intern;
@@ -36721,15 +36886,15 @@ int testit(int argc, char **argv)
 		power_intern = map_exp(power, MAP_BACKWARD, NULL);
 		intercept = 0.75;
 		intercept_intern = map_probability(intercept, MAP_BACKWARD, NULL);
-		
+
 		param[0] = &power_intern;
 		param[1] = &intercept_intern;
-		
+
 		map_inv_powerlink_core(0.0, MAP_FORWARD, (void *) param, NULL);
 
 		break;
 	}
-	
+
 	case 67:
 	{
 		double xx, power, intercept;
