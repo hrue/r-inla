@@ -12685,7 +12685,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 				}
 			} else {
 				if (mb->verbose) {
-					printf("\tstore results in directory=[%s]\n", tmp);
+					printf("\t\tstore results in directory=[%s]\n", tmp);
 				}
 				mb->dir = tmp;
 				ok = 1;
