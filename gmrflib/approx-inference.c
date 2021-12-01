@@ -7812,20 +7812,28 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			x_mean[i] += dx[i];
 		}
 
+		// this is RMS standardized change between the iterations (using step_len=1), otherwise, just run the max iterations.
+		// test this here so we can adjust the verbose output below
+		int do_break = 0;
+		if (err_dx < 0.001 || iter == niter - 1) {
+			do_break = 1;
+		}
+
 		if (ai_par->vb_verbose) {
 			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n",
 			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref);
 			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f] rms(dx/sd)[%.3f]\n", (int) delta->size, step_len, err_dx);
-			for (jj = 0; jj < vb_idx->n; jj++) {
-				j = vb_idx->idx[jj];
-				printf("\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] |x-mode|/sd[%.3f]\n", j, gsl_vector_get(delta_mu, j), dx[j] / sd[j],
-				       (x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j]);
+			if (do_break) {
+				for (jj = 0; jj < vb_idx->n; jj++) {
+					j = vb_idx->idx[jj];
+					printf("\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] |x-mode|/sd[%.3f]\n", j, gsl_vector_get(delta_mu, j),
+					       dx[j] / sd[j], (x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j]);
+				}
+				printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 			}
-			printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 		}
 
-		// this is RMS standardized change between the iterations (using step_len=1), otherwise, just run the max iterations
-		if (err_dx < 0.001) {
+		if (do_break) {
 			break;
 		}
 	}
