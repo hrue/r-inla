@@ -4048,10 +4048,17 @@ double priorfunc_loggamma(double *x, double *parameters)
 
 double priorfunc_dirichlet(double *x, double *parameters)
 {
-#define _F(_x) (1.0/(1.0+exp(-(_x))))
-#define _f(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
+#define _F_logit(_x) (1.0/(1.0+exp(-(_x))))
+#define _f_logit(_x) (exp(-(_x)) / SQR(1.0 + exp(-(_x))))
+
+#define _F_probit(_x) inla_Phi(_x)
+#define _f_probit(_x) (0.39894228040143270286 * exp(-0.5 * SQR(_x)))
+
+#define _F(_x) (cdf_logit ? _F_logit(_x) : _F_probit(_x))
+#define _f(_x) (cdf_logit ? _f_logit(_x) : _f_probit(_x))
 
 	double alpha = parameters[0], nclasses = parameters[1], ld;
+	int cdf_logit = ((inla_pom_cdf_tp) parameters[2] == POM_CDF_LOGIT);
 	int K = (int) nclasses, k, debug = 0;
 	double *work = Calloc(4 * K, double);
 	double *xx = work, *alphas = work + K, *qs = work + 2 * K, *v = work + 3 * K;
@@ -4062,9 +4069,11 @@ double priorfunc_dirichlet(double *x, double *parameters)
 		xx[k] = xx[k - 1] + exp(x[k]);
 	}
 	// from cutpoints, xx, to quantiles, qs
+
 	for (k = 0; k < K - 1; k++) {
 		qs[k] = _F(xx[k]);
 	}
+	
 	// from quantiles, qs, to Dirichlet variables, v
 	v[0] = qs[0];
 	for (k = 1; k < K - 1; k++) {
@@ -4099,6 +4108,10 @@ double priorfunc_dirichlet(double *x, double *parameters)
 	Free(work);
 #undef _F
 #undef _f
+#undef _F_logit
+#undef _f_logit
+#undef _F_probit
+#undef _f_probit
 
 	return (ld);
 }
@@ -11601,15 +11614,17 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		prior->id = P_DIRICHLET;
 		prior->priorfunc = priorfunc_dirichlet;
 		if (param && inla_is_NAs(1, param) != GMRFLib_SUCCESS) {
-			prior->parameters = Calloc(2, double); /* yes, 2 */
+			prior->parameters = Calloc(3, double); /* yes, 3 */
 			if (inla_sread_doubles(prior->parameters, 1, param) == INLA_FAIL) {
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
+			prior->parameters[2] = NAN;	       /* cdf, added later */
 		} else {
 			prior->parameters = Calloc(2, double);
 			prior->parameters[0] = 0.5;	       /* alpha */
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
+			prior->parameters[2] = NAN;	       /* number of classes, added later */
 		}
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%g]\n", prior_tag, param_tag, prior->parameters[0]);
@@ -14375,6 +14390,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "DIRICHLET", count, NULL);
 				assert(ds->data_nprior[count].id == P_DIRICHLET);
 				ds->data_nprior[count].parameters[1] = nclasses;
+				ds->data_nprior[count].parameters[2] = ds->data_observations.pom_cdf;
 			} else {
 				inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "NONE", count, NULL);
 				assert(ds->data_nprior[count].id == P_NONE);
