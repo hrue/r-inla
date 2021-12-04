@@ -271,9 +271,6 @@
 }
 
 `inla.tjmarginal` <- function(jmarginal, A) {
-    inla.require("mpoly", stop.on.error = TRUE)
-    inla.require("symmoments", stop.on.error = TRUE)
-
     if (inherits(jmarginal, "inla")) {
         jmarginal <- jmarginal$selection
     } else if (inherits(jmarginal, "inla.jmarginal")) {
@@ -293,18 +290,15 @@
     } else {
         names.sel <- rownames(A)
     }
-
-    ## create global environment symmoments to store all moments
-    if (!exists("symmoments")) {
-        symmoments <<- new.env()
-    }
-
+                            
     skew.max <- 0.99
     moments <- jmarginal$.private$moments
+    skewness.sel <- jmarginal$skewness
     mom1 <- moments[[1]]
     mom2 <- moments[[2]]
     mom3 <- moments[[3]]
     S <- jmarginal$cov.matrix
+    var.sel <- diag(S)
     mu.tjoint <- A %*% mom1
     S.tjoint <- A %*% S %*% t(A)
     m2.tjoint <- diag(S.tjoint) + mu.tjoint^2
@@ -313,62 +307,13 @@
         x <- A[lc, ]
         lc.ind <- which(x != 0 & !is.na(x))
         coef <- A[lc, lc.ind]
-        n <- length(lc.ind)
-        m1.lin <- mom1[lc.ind]
-        m3.lin <- mom3[lc.ind]
-        S.lin <- S[lc.ind, lc.ind]
-        S.str <- S.lin[lower.tri(S.lin, diag = TRUE)]
-        m <- rep(2, n)
-        names(m) <- sapply(1:n, function(x) paste0("x", x))
-        names(coef) <- rep("coef", n)
-        bicross <- tricross <- NULL
-        for (i in 1:(n - 1)) {
-            j <- i + 1
-            while ((i < j) && (j <= n)) {
-                mom.eval <- rep(0, n)
-                bicross <- c(
-                    bicross, list(c(m[i], m[j] / 2, 3 * coef[i]^2, coef[j])),
-                    list(c(m[i] / 2, m[j], 3 * coef[i], coef[j]^2))
-                )
-                mom.eval[i] <- 1
-                mom.eval[j] <- 2
-                symmoments::make.all.moments(moment = mom.eval,
-                                             verbose = FALSE)
-                mom.eval[i] <- 2
-                mom.eval[j] <- 1
-                symmoments::make.all.moments(moment = mom.eval,
-                                             verbose = FALSE)
-                j <- j + 1
-            }
-        }
-
-        m[1:n] <- 3
-        if (n > 2) {
-            for (i in 1:n) {
-                j <- 1
-                while (j < i) {
-                    k <- 1
-                    while (k < j) {
-                        mom.eval <- rep(0, n)
-                        tricross <- c(tricross, list(c(m[i] / 3, m[j] / 3, m[k] / 3, 6 * coef[i], coef[j], coef[k])))
-                        mom.eval[i] <- mom.eval[j] <- mom.eval[k] <- 1
-                        symmoments::make.all.moments(moment = mom.eval, 
-                                                     verbose = FALSE)
-                        k <- k + 1
-                    }
-                    j <- j + 1
-                }
-            }
-        }
-
-        all3 <- c(bicross, tricross)
-        poly3 <- mpoly::mpoly(all3)
+        skewness.lin <- skewness.sel[lc.ind]
+        var.lin <- var.sel[lc.ind]
         mom1.m <- mu.tjoint[lc]
         mom2.m <- m2.tjoint[lc]
-        mom3.m <- sum(coef^3 * m3.lin) +
-            symmoments::evaluate_expected.polynomial(poly = poly3, mu = m1.lin, sigma = S.str)
-        skew.m <- (mom3.m - 3 * mom2.m * mom1.m + 2 * mom1.m^3) * ((mom2.m - mom1.m^2)^(-1.5)) # global skewnesses
-        m3.tjoint[lc] <- mom3.m
+        mom3.cm <- sum(coef^3*skewness.lin*var.lin^(1.5)) 
+        skew.m <- (mom3.cm)*((mom2.m - mom1.m^2)^(-1.5)) # global skewnesses
+        m3.tjoint[lc] <- mom3.cm+3*mom1.m*mom2.m-2*mom1.m^3
         if (any(abs(skew.m) > skew.max)) {
             skew.m <- pmax(-skew.max, pmin(skew.max, skew.m))
             warning(paste0("One or more marginal skewness are too high. Coerced to be ", skew.max))
