@@ -39,7 +39,6 @@ Suggests:
     markdown,
     matrixStats,
     mlogit,
-    mpoly,
     mvtnorm,
     numDeriv,
     orthopolynom,
@@ -52,7 +51,6 @@ Suggests:
     sn,
     spdep,
     splancs,
-    symmoments,
     testthat,
     tools
 Imports:
