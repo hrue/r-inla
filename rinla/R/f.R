@@ -61,6 +61,7 @@
 ## !         scale = NULL,
 ## !         strata = NULL,
 ## !         rgeneric = NULL,
+## !         cgeneric = NULL,
 ## !         scale.model = NULL,
 ## !         args.slm = list(rho.min = NULL, rho.max = NULL,
 ## !                         X = NULL, W = NULL, Q.beta = NULL),
@@ -314,6 +315,9 @@
 
                 ## !\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
                 rgeneric = NULL,
+
+                ## !\item{cgeneric}{A object of class \code{inla.cgeneric} which defines the model. (EXPERIMENTAL!)}
+                cgeneric = NULL,
 
                 ## !\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}
                 scale.model = NULL,
@@ -1056,6 +1060,15 @@
         rgeneric <- list(model = rgeneric, Id = vars[[1]], R.init = R.init)
     }
 
+    if (model %in% "cgeneric") {
+        if (inla.is.element("f", cgeneric) && inla.is.element("cgeneric", cgeneric$f)) {
+            cgeneric <- cgeneric$f$cgeneric
+        }
+        stopifnot(inherits(cgeneric, "inla.cgeneric"))
+        ## add an 'Id' so we know who we are
+        cgeneric <- list(model = cgeneric, Id = vars[[1]])
+    }
+
     ret <- list(
         Cmatrix = Cmatrix,
         Z = Z,
@@ -1099,6 +1112,7 @@
         scale = scale,
         strata = strata,
         rgeneric = rgeneric,
+        cgeneric = cgeneric,
         scale.model = as.logical(scale.model),
         adjust.for.con.comp = as.logical(adjust.for.con.comp),
         args.intslope = args.intslope,
@@ -1118,7 +1132,7 @@
     return(c(
         "inla.model.class", "inla.wrapper.model",
         "inla.spde", "inla.spde1", "inla.spde2", "inla.spde3",
-        "inla.rgeneric"
+        "inla.rgeneric", "inla.cgeneric"
     ))
 }
 

@@ -76,6 +76,7 @@ Collate:
     'barrier.R'
     'binary.R'
     'binary.install.R'
+    'cgeneric.R'
     'changelog.R'
     'collect.results.R'
     'compare.results.R'

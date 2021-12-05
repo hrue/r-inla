@@ -768,6 +768,12 @@
         rm(model) ## do not need it anymore
     }
 
+    if (random.spec$model == "cgeneric") {
+        fnm <- inla.copy.file.for.section(random.spec$model$definition, data.dir)
+        fnm <- gsub(data.dir, "$inladatadir", fnm, fixed = TRUE)
+        cat("cgeneric.model =", fnm, "\n", file = file, append = TRUE)
+    }
+
     if (inla.one.of(random.spec$model, c("ar", "fgn", "fgn2", "iidkd"))) {
         cat("order = ", random.spec$order, "\n", append = TRUE, sep = " ", file = file)
     }

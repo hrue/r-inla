@@ -1,0 +1,68 @@
+## Export: inla.cgeneric.define
+
+## !\name{cgeneric.define}
+## !\alias{cgeneric}
+## !\alias{cgeneric.define}
+## !\alias{inla.cgeneric.define}
+## !
+## !\title{cgeneric models}
+## !
+## !\description{A framework for defining latent models in C}
+## !
+## !\usage{
+## !inla.cgeneric.define(model = NULL, debug = FALSE, compile = TRUE, optimize = FALSE, ...)
+## !}
+## !
+## !\arguments{
+## !  \item{model}{The definition of the model; see \code{inla.cgeneric.ar1.model}}
+## !  \item{rmodel}{The cgeneric model-object, the output of \code{inla.cgeneric.define}}
+## !  \item{debug}{Logical. Turn on/off debugging}
+## !  \item{compile}{Logical. Compile the definition of the model or not.}
+## !  \item{optimze}{Logical. With this option \code{TRUE}, then \code{model}
+## !                 pass only the values of \code{Q} and not the whole matrix.
+## !                 Please see the vignette for details and
+## !                 \code{inla.cgeneric.ar1.model.opt} for an example.}
+## !  \item{cmd}{An allowed request}
+## !  \item{theta}{Values of theta}
+## !  \item{...}{Named list of variables that defines the environment of \code{model}}
+## !  \item{debug}{Logical. Enable debug output}
+## !}
+## !
+## !\value{%%
+## !  This allows a latent model to be
+## !  defined in \code{R}.
+## !  See \code{inla.cgeneric.ar1.model} and
+## !  \code{inla.cgeneric.iid.model} and the documentation for
+## !  worked out examples of how to define latent models in  this way.
+## !  This will be somewhat slow and is intended for special cases and
+## !  protyping. The function \code{inla.cgeneric.wrapper} is for
+## !  internal use only.}
+## !\author{Havard Rue \email{hrue@r-inla.org}}
+
+
+`inla.cgeneric.define` <- function(model = NULL, n = 0L, debug = FALSE, ...) {
+    stopifnot(!missing(n))
+    stopifnot(as.integer(n) > 0)
+    stopifnot(!missing(model))
+    model <- normalizePath(model)
+    stopifnot(file.exists(model))
+
+    args <- list(...)
+    if (any(names(args) == "")) {
+        stop("The '...' argument in 'inla.cgeneric.define()' needs *named* arguments.")
+    }
+
+    cmodel <- list(
+        f = list(
+            model = "cgeneric",
+            n = as.integer(n), 
+            cgeneric = list(
+                definition = model, 
+                debug = debug
+            )
+        )
+    )
+    class(cmodel) <- "inla.cgeneric"
+    class(cmodel$f$cgeneric) <- "inla.cgeneric"
+    return(cmodel)
+}

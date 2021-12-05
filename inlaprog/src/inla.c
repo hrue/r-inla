@@ -99,6 +99,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "fgn.h"
 #include "tweedie.h"
 #include "pc-powerlink.h"
+#include "cgeneric.h"
 
 #define PREVIEW (10)
 #define MODEFILENAME ".inla-mode"

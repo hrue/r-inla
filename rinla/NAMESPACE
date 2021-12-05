@@ -25,6 +25,7 @@ import(splines)
 # etc...
 export(inla.agaussian)
 export(inla.binary.install)
+export(inla.cgeneric.define)
 export(inla.changelog)
 export(inla.collect.results)
 export(inla.compare.results)

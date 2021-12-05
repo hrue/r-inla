@@ -63,6 +63,7 @@
          scale = NULL,
          strata = NULL,
          rgeneric = NULL,
+         cgeneric = NULL,
          scale.model = NULL,
          args.slm = list(rho.min = NULL, rho.max = NULL,
                          X = NULL, W = NULL, Q.beta = NULL),
@@ -219,6 +220,7 @@ used for other models at the time being.}
 \item{scale}{A scaling vector. Its meaning depends on the model.}
 \item{strata}{Currently not in use}
 \item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
+\item{cgeneric}{A object of class \code{inla.cgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}
 \item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
 \item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},

@@ -405,7 +405,7 @@
     if (cmd %in% "Q") {
         if (model$optimize) {
             ## pass only Q@x, using the ordering after applying 'inla.sparse.matrix()' to 'Q'
-            ## and (of course) only the upper triangular part of Q
+            ## and (of course) only the lower triangular part of Q
             len <- length(res)
             debug.cat("length(Q@x)", len)
             result <- c(-1, len, res) ## yes, this is the code that we have optimized Q-output
