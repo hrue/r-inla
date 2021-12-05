@@ -70,7 +70,8 @@ typedef struct
 }
 	inla_cgeneric_arg_tp;
 
-double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_arg_tp *args);
+typedef double * inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_arg_tp * args);
+inla_cgeneric_func_tp inla_cgeneric_demo; 
 
 __END_DECLS
 #endif

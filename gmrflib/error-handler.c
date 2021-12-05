@@ -53,7 +53,7 @@ const char *GMRFLib_error_reason(int errorno)
 	/*
 	 * return a pointer to the reason for error=errorno 
 	 */
-#define NMSG 31
+#define NMSG 33
 	static const char *reasons[NMSG] = {
 		"Warning",
 		"Alloc failed",
@@ -85,6 +85,8 @@ const char *GMRFLib_error_reason(int errorno)
 		"PARDISO: Internal error",
 		"PARDISO: Library not available",
 		"Singular constraints: Matrix AA' is singular (input error)",
+		"dlopen error",
+		"dlsym error",
 		"(((this is an unknown errorcode)))"
 	};
 	if (errorno < 0 || errorno >= NMSG - 1)
