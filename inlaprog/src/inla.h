@@ -1459,8 +1459,10 @@ typedef struct {
 
 typedef struct {
 	int Id;
+	int debug;
 	char *filename;					       /* file to load containing the model definition */
 	char *model;					       /* the name of the model definition */
+	char *secname;
 	int ntheta;
 	int n;
 	int mu_zero;					       /* often mu is zero, allow for fast return */
@@ -1760,6 +1762,7 @@ int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);
+int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
 int inla_divisible(int n, int by);
 int inla_endian(void);
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value);

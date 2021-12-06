@@ -29,7 +29,10 @@
     stopifnot(!missing(model))
     stopifnot(!missing(filename))
     filename <- normalizePath(filename)
-    stopifnot(file.exists(filename))
+    if (!file.exists(filename)) {
+        filename <- paste0(getwd(), "/", filename)
+        stopifnot(file.exists(filename))
+    }
 
     args <- list(...)
     if (any(names(args) == "")) {

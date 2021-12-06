@@ -29,8 +29,11 @@
  */
 
 
-#include <math.h>
+#include <assert.h>
+#if !defined(__FreeBSD__)
 #include <malloc.h>
+#endif
+#include <math.h>
 #include <stdlib.h>
 
 #include "cgeneric.h"
@@ -87,7 +90,7 @@ double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneri
 		break;
 	}
 
-	case INLA_CGENERIC_INIT:
+	case INLA_CGENERIC_INITIAL:
 	{
 		ret = Calloc(2, double);
 		ret[0] = 1;
@@ -113,7 +116,7 @@ double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneri
 	}
 
 	case INLA_CGENERIC_QUIT:
-	case default:
+	default:
 		break;
 	}
 

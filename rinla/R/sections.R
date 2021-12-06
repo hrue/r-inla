@@ -769,11 +769,12 @@
     }
 
     if (random.spec$model == "cgeneric") {
-        fnm <- inla.copy.file.for.section(random.spec$model$file, data.dir)
+        fnm <- inla.copy.file.for.section(random.spec$cgeneric$model$file, data.dir)
         fnm <- gsub(data.dir, "$inladatadir", fnm, fixed = TRUE)
         cat("cgeneric.file =", fnm, "\n", file = file, append = TRUE)
-        cat("cgeneric.model =", random.spec$model$model, "\n", file = file, append = TRUE)
-        cat("cgeneric.n =", random.spec$model$n, "\n", file = file, append = TRUE)
+        cat("cgeneric.model =", random.spec$cgeneric$model$model, "\n", file = file, append = TRUE)
+        cat("cgeneric.n =", random.spec$cgeneric$model$n, "\n", file = file, append = TRUE)
+        inla.write.boolean.field("cgeneric.debug", random.spec$cgeneric$model$debug, file)
     }
 
     if (inla.one.of(random.spec$model, c("ar", "fgn", "fgn2", "iidkd"))) {

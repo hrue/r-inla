@@ -163,6 +163,21 @@
                     pdf = "rgeneric"
                 ),
 
+                cgeneric = list(
+                    doc = "Generic latent model spesified using C",
+                    hyper = list(),
+                    constr = FALSE,
+                    nrow.ncol = FALSE,
+                    augmented = FALSE,
+                    aug.factor = 1L,
+                    aug.constr = NULL,
+                    n.div.by = NULL,
+                    n.required = TRUE,
+                    set.default.values = TRUE,
+                    status = "experimental",
+                    pdf = "cgeneric"
+                ),
+
                 rw1 = list(
                     doc = "Random walk of order 1",
                     hyper = list(

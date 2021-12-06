@@ -57,6 +57,15 @@ typedef enum {
 }
 	inla_cgeneric_cmd_tp;
 
+#define INLA_CGENERIC_CMD_NAME(cmd_) ((cmd_) == INLA_CGENERIC_VOID ? "void" : \
+				      ((cmd_) == INLA_CGENERIC_Q ? "Q" : \
+				       ((cmd_) == INLA_CGENERIC_GRAPH ? "graph" : \
+					((cmd_) == INLA_CGENERIC_MU ? "mu" : \
+					 ((cmd_) == INLA_CGENERIC_INITIAL ? "initial" : \
+					  ((cmd_) == INLA_CGENERIC_LOG_NORM_CONST ? "log_norm_const" : \
+					   ((cmd_) == INLA_CGENERIC_LOG_PRIOR ? "log_prior" : \
+					    ((cmd_) == INLA_CGENERIC_QUIT ? "quit" : "(***ERROR***)"))))))))
+
 typedef struct 
 {
 	int n_ints;
