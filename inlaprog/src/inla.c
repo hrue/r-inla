@@ -22343,7 +22343,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		cgeneric_debug = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.DEBUG"), cgeneric_debug);
 		cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 
-		cgeneric_data = inla_cgeneric_read_data(cdata_fnm);
+		cgeneric_data = inla_cgeneric_read_data(cdata_fnm, cgeneric_debug);
 		
 		if (mb->verbose) {
 			printf("\t\tcgeneric.shlib  [%s]\n", cgeneric_shlib);

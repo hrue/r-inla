@@ -44,7 +44,7 @@
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #endif
 
-inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename) 
+inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename, int debug) 
 {
 #define iDEBUG(msg_, i_) if (debug) printf("\tread_data: %s %d\n", msg_, i_)
 #define dDEBUG(msg_, x_) if (debug) printf("\tread_data: %s %g\n", msg_, x_)
@@ -63,7 +63,7 @@ inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename)
 
 	FILE *fp;
 	inla_cgeneric_data_tp * data = Calloc(1, inla_cgeneric_data_tp);
-	int i, j, k, len, debug = 1;
+	int i, j, k, len;
 
 	fp = fopen(filename, "rb");
 	assert(fp);

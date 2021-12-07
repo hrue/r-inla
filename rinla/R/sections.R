@@ -780,7 +780,6 @@
         file.data <- inla.tempfile(tmpdir = data.dir)
         fd <- file(file.data, "wb")
 
-        browser()
         writeBin(as.integer(length(data$ints)), fd)
         for(idx in seq_along(data$ints)) {
             writeBin(as.integer(nchar(names(data$ints)[idx])), fd)
