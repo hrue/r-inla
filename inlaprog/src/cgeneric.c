@@ -110,7 +110,7 @@ inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename)
 	for(k = 0; k < len; k++) {
 		READ_NAME(chars);
 		fread((void *) &j, sizeof(int), (size_t) 1, fp);
-		iDEBUG("lenght", j);
+		//iDEBUG("lenght", j);
 
 		data->chars[k] = Calloc(j+1L, char);
 		fread((void *) data->chars[k], sizeof(char), (size_t) (j+1L), fp);

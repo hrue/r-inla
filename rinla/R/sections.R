@@ -809,15 +809,15 @@
             writeBin(as.integer(data$matrices[idx][[1]][1:2]), fd)
             writeBin(as.double(data$matrices[idx][[1]][-(1:2)]), fd)
         }
-        writeBin(as.integer(length(data$sparse.matrices)), fd)
-        for(idx in seq_along(data$sparse.matrices)) {
-            writeBin(as.integer(nchar(names(data$sparse.matrices)[idx])), fd)
-            writeBin(as.character(names(data$sparse.matrices)[idx]), fd)
-            writeBin(as.integer(data$sparse.matrices[idx][[1]][1:3]), fd)
-            nn <- as.integer(data$sparse.matrices[idx][[1]][3])
-            writeBin(as.integer(data$sparse.matrices[idx][[1]][3 + 1:nn]), fd)
-            writeBin(as.integer(data$sparse.matrices[idx][[1]][3 + nn + 1:nn]), fd)
-            writeBin(as.double(data$sparse.matrices[idx][[1]][3 + 2*nn + 1:nn]), fd)
+        writeBin(as.integer(length(data$smatrices)), fd)
+        for(idx in seq_along(data$smatrices)) {
+            writeBin(as.integer(nchar(names(data$smatrices)[idx])), fd)
+            writeBin(as.character(names(data$smatrices)[idx]), fd)
+            writeBin(as.integer(data$smatrices[idx][[1]][1:3]), fd)
+            nn <- as.integer(data$smatrices[idx][[1]][3])
+            writeBin(as.integer(data$smatrices[idx][[1]][3 + 1:nn]), fd)
+            writeBin(as.integer(data$smatrices[idx][[1]][3 + nn + 1:nn]), fd)
+            writeBin(as.double(data$smatrices[idx][[1]][3 + 2*nn + 1:nn]), fd)
         }
         close(fd)
         file.data <- gsub(data.dir, "$inladatadir", file.data, fixed = TRUE)

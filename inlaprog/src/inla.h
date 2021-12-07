@@ -1470,6 +1470,7 @@ typedef struct {
 	int *ilist;
 	int *jlist;
 	int len_list;
+	inla_cgeneric_data_tp *data;
 	double ***theta;
 	double **param;
 	GMRFLib_graph_tp *graph;

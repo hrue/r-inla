@@ -35,6 +35,7 @@
 #endif
 #include <math.h>
 #include <stdlib.h>
+#include <strings.h>
 
 #include "cgeneric.h"
 
@@ -43,7 +44,6 @@
 #endif
 
 
-#define N 10
 double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
 {
 	// this implements a simple IID model for testing purposes.
@@ -51,6 +51,9 @@ double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneri
 	// for the graph, then Qij is known to be 1, so its not needed.
 
 	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
+
+	assert(!strcasecmp(data->name_ints[0], "n"));
+	int N = data->ints[0][0];
 
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:

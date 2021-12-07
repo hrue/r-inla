@@ -48,7 +48,7 @@
                 shlib = shlib, 
                 n = as.integer(n), 
                 debug = debug,
-                data = inla.cgeneric.convert.arguments(...)
+                data = inla.cgeneric.convert.arguments(n = as.integer(n), model = model, shlib = shlib, debug = as.integer(debug), ...)
             )
         )
     )
@@ -57,14 +57,14 @@
     return(cmodel)
 }
 
-`inla.cgeneric.convert.arguments` <-  function(...) {
-
-    a <- list(...)
+`inla.cgeneric.convert.arguments` <-  function(n = 0L, model = NULL, shlib = NULL, debug = 0L, ...)
+{
+    a <- c(n = n, model = model, shlib = shlib, debug = debug, list(...))
     if (any(names(a) == "")) {
         stop("Unnamed arguments are not allowed")
     }
 
-    res <- list(ints = list(), doubles = list(), characters = list(), matrices = list(), sparse.matrices = list())
+    res <- list(ints = list(), doubles = list(), characters = list(), matrices = list(), smatrices = list())
     for(idx in seq_along(a)) {
         xx <- a[idx][[1]]
         if (is.matrix(xx)) {
@@ -75,7 +75,7 @@
             xx <- inla.as.sparse(xx)
             xx <- list(c(nrow(xx), ncol(xx), length(xx@x), xx@i, xx@j, xx@x))
             names(xx) <- names(a)[idx]
-            res$sparse.matrices <- c(res$sparse.matrices, xx)
+            res$smatrices <- c(res$smatrices, xx)
         } else if (is.integer(xx)) {
             res$ints <- c(res$ints, a[idx])
         } else if (is.character(xx)) {

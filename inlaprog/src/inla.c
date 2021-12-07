@@ -2898,7 +2898,7 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 				if (debug) {
 					printf("\tCall rgeneric\n");
 				}
-				x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, NULL);
+				x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, a->data);
 				if (a->debug) {
 					inla_cgeneric_debug(stdout, a->secname, INLA_CGENERIC_Q, x_out);
 				}
@@ -3128,7 +3128,7 @@ double mfunc_cgeneric(int i, void *arg)
 			if (debug) {
 				printf("Call cgeneric\n");
 			}
-			x_out = a->model_func(INLA_CGENERIC_MU, a->mu_param[id], NULL);
+			x_out = a->model_func(INLA_CGENERIC_MU, a->mu_param[id], a->data);
 			if (debug) {
 				printf("Return from cgeneric with x_out[0]= %1d\n", (int) x_out[0]);
 			}
@@ -19566,7 +19566,7 @@ int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, doubl
 	
 	return GMRFLib_SUCCESS;
 }
-	
+
 int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 {
 #define _SET(a_, b_) mb->f_ ## a_[mb->nf] = b_
@@ -19581,7 +19581,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
-		*cgeneric_shlib = NULL, *cgeneric_model = NULL, *cgeneric_data = NULL;
+		*cgeneric_shlib = NULL, *cgeneric_model = NULL; 
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -19591,6 +19591,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	lt_dlhandle handle;
 	inla_cgeneric_func_tp *model_func = NULL;
+	inla_cgeneric_data_tp *cgeneric_data = NULL; 
 
 	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -22335,22 +22336,22 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_C_GENERIC:
 	{
 		const char *emsg = NULL;
+		char *cdata_fnm = NULL;
 		cgeneric_shlib = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.SHLIB"), NULL);
 		cgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.MODEL"), NULL);
-		cgeneric_data = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 		cgeneric_n = iniparser_getint(ini, inla_string_join(secname, "CGENERIC.N"), cgeneric_n);
 		cgeneric_debug = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.DEBUG"), cgeneric_debug);
+		cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 
+		cgeneric_data = inla_cgeneric_read_data(cdata_fnm);
+		
 		if (mb->verbose) {
 			printf("\t\tcgeneric.shlib  [%s]\n", cgeneric_shlib);
 			printf("\t\tcgeneric.model  [%s]\n", cgeneric_model);
-			printf("\t\tcgeneric.data   [%s]\n", cgeneric_data);
+			printf("\t\tcgeneric.data   [%s]\n", cdata_fnm);
 			printf("\t\tcgeneric.n      [%1d]\n", cgeneric_n);
 			printf("\t\tcgeneric.debug  [%1d]\n", cgeneric_debug);
 		}
-
-		inla_cgeneric_read_data(cgeneric_data);
-		exit(0);
 
 		int nn;
 		double *x_out = NULL, *xx_out = NULL;
@@ -22389,7 +22390,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		lt_dlerror();
 		
-		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, NULL);
+		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
 		if (cgeneric_debug) {
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, xx_out);
 		}
@@ -22435,7 +22436,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		int ntheta = 0;
 		double *initial = NULL;
 
-		x_out = model_func(INLA_CGENERIC_INITIAL, NULL, NULL);
+		x_out = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
 		if (cgeneric_debug) {
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_INITIAL, x_out);
 		}
@@ -26059,6 +26060,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def->shlib = GMRFLib_strdup(cgeneric_shlib);
 		def->model = GMRFLib_strdup(cgeneric_model);
 		def->model_func = model_func;
+		def->data = cgeneric_data;
 		def->secname = GMRFLib_strdup(secname);
 		def->debug = cgeneric_debug;
 		def->mu = Calloc(GMRFLib_CACHE_LEN, double *);
@@ -26081,6 +26083,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		def_orig->shlib = GMRFLib_strdup(cgeneric_shlib);
 		def_orig->model = GMRFLib_strdup(cgeneric_model);
 		def_orig->model_func = model_func;
+		def_orig->data = cgeneric_data;
 		def_orig->secname = GMRFLib_strdup(secname);
 		def_orig->debug = cgeneric_debug;
 		def_orig->mu = Calloc(GMRFLib_CACHE_LEN, double *);
@@ -26100,7 +26103,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 
 		double *x_out = NULL;
-		x_out = model_func(INLA_CGENERIC_GRAPH, NULL, NULL);
+		x_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
 		if (cgeneric_debug) {
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, x_out);
 		}
@@ -31064,12 +31067,12 @@ double extra(double *theta, int ntheta, void *argument)
 				}
 			}
 
-			x_out = def->model_func(INLA_CGENERIC_LOG_NORM_CONST, param, NULL);
+			x_out = def->model_func(INLA_CGENERIC_LOG_NORM_CONST, param, def->data);
 			if (def->debug) {
 				inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_LOG_NORM_CONST, x_out);
 			}
 
-			xx_out = def->model_func(INLA_CGENERIC_LOG_PRIOR, param, NULL);
+			xx_out = def->model_func(INLA_CGENERIC_LOG_PRIOR, param, def->data);
 			if (def->debug) {
 				inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_LOG_PRIOR, xx_out);
 			}
@@ -31099,7 +31102,7 @@ double extra(double *theta, int ntheta, void *argument)
 				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
 				double *Qijlist = NULL;
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-				xx_out = def->model_func(INLA_CGENERIC_Q, param, NULL);
+				xx_out = def->model_func(INLA_CGENERIC_Q, param, def->data);
 				if (def->debug) {
 					inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_Q, xx_out);
 				}
