@@ -19581,7 +19581,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
-		*cgeneric_file = NULL, *cgeneric_model = NULL;
+		*cgeneric_shlib = NULL, *cgeneric_model = NULL, *cgeneric_data = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -19590,7 +19590,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL;
 
 	lt_dlhandle handle;
-	inla_cgeneric_func_tp *model_func;
+	inla_cgeneric_func_tp *model_func = NULL;
 
 	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -22335,17 +22335,22 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_C_GENERIC:
 	{
 		const char *emsg = NULL;
-		cgeneric_file = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.FILE"), NULL);
+		cgeneric_shlib = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.SHLIB"), NULL);
 		cgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.MODEL"), NULL);
+		cgeneric_data = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 		cgeneric_n = iniparser_getint(ini, inla_string_join(secname, "CGENERIC.N"), cgeneric_n);
 		cgeneric_debug = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.DEBUG"), cgeneric_debug);
 
 		if (mb->verbose) {
-			printf("\t\tcgeneric.file   [%s]\n", cgeneric_file);
+			printf("\t\tcgeneric.shlib  [%s]\n", cgeneric_shlib);
 			printf("\t\tcgeneric.model  [%s]\n", cgeneric_model);
+			printf("\t\tcgeneric.data   [%s]\n", cgeneric_data);
 			printf("\t\tcgeneric.n      [%1d]\n", cgeneric_n);
 			printf("\t\tcgeneric.debug  [%1d]\n", cgeneric_debug);
 		}
+
+		inla_cgeneric_read_data(cgeneric_data);
+		exit(0);
 
 		int nn;
 		double *x_out = NULL, *xx_out = NULL;
@@ -22364,10 +22369,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			lt_dlerror();
 		}
 		
-		handle = lt_dlopen(cgeneric_file);
+		handle = lt_dlopen(cgeneric_shlib);
 		if (!handle) {
 			char *msg;
-			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_file, lt_dlerror());
+			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
 			inla_error_general(msg);
 			assert(0 != 1);
 			exit(1);
@@ -26051,7 +26056,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_cgeneric_tp *def = Calloc(1, inla_cgeneric_tp), *def_orig = Calloc(1, inla_cgeneric_tp);
 		double ***tptr;
 
-		def->filename = GMRFLib_strdup(cgeneric_file);
+		def->shlib = GMRFLib_strdup(cgeneric_shlib);
 		def->model = GMRFLib_strdup(cgeneric_model);
 		def->model_func = model_func;
 		def->secname = GMRFLib_strdup(secname);
@@ -26073,7 +26078,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			def->theta = NULL;
 		}
 
-		def_orig->filename = GMRFLib_strdup(cgeneric_file);
+		def_orig->shlib = GMRFLib_strdup(cgeneric_shlib);
 		def_orig->model = GMRFLib_strdup(cgeneric_model);
 		def_orig->model_func = model_func;
 		def_orig->secname = GMRFLib_strdup(secname);

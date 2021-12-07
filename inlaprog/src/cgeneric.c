@@ -36,89 +36,143 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "GMRFLib/GMRFLib.h"
+#include "GMRFLib/GMRFLibP.h"
 #include "cgeneric.h"
 
 #if !defined(Calloc)
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #endif
 
-#define N 10
-
-double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_arg_tp * args)
+inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename) 
 {
-	// this implements a simple IID model for testing purposes.
-	// for sparse matrices, return in format (n, len, i, j, Qij), where i<=j.
-	// for the graph, then Qij is known to be 1, so its not needed.
-
-	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
-
-	switch (cmd) {
-	case INLA_CGENERIC_VOID:
-	{
-		assert(!(cmd == INLA_CGENERIC_VOID));
-		break;
+#define iDEBUG(msg_, i_) if (debug) printf("\tread_data: %s %d\n", msg_, i_)
+#define dDEBUG(msg_, x_) if (debug) printf("\tread_data: %s %g\n", msg_, x_)
+#define idDEBUG(msg_, idx_, x_) if (debug) printf("\tread_data: %s[%1d] %g\n", msg_, idx_, x_)
+#define cDEBUG(msg_, c_) if (debug) printf("\tread_data: %s %s\n", msg_, c_)
+#define ijxDEBUG(msg_, idx_, i_, j_, x_) if (debug) printf("\tread_data: %s[%1d] (%d, %d, %g)\n", msg_, idx_, i_, j_, x_)
+	
+#define READ_NAME(nm_) if (1) {						\
+		int j;							\
+		fread((void *) &j, sizeof(int), (size_t) 1, fp);	\
+		data->name_ ## nm_[k] = Calloc(j + 1L, char);		\
+		if(0)data->name_ ## nm_[k][j+1L] = '\0';		\
+		fread((void *) data->name_ ## nm_[k], sizeof(char), (size_t) (j + 1L), fp); \
+		cDEBUG("name", data->name_ ## nm_[k]);			\
 	}
 
-	case INLA_CGENERIC_GRAPH:
-	{
-		ret = Calloc(2 + 2 * N, double);
-		ret[0] = N;				       /* dimension */
-		ret[1] = N;				       /* number of (i <= j) */
-		for (int i = 0; i < N; i++) {
-			ret[2 + i] = i;
-			ret[2 + N + i] = i;
+	FILE *fp;
+	inla_cgeneric_data_tp * data = Calloc(1, inla_cgeneric_data_tp);
+	int i, j, k, len, debug = 1;
+
+	fp = fopen(filename, "rb");
+	assert(fp);
+
+	fread((void *) &len, sizeof(int), (size_t) 1, fp);
+	iDEBUG("Number of ints", len);
+	data->n_ints = len;
+	data->name_ints = Calloc(len, char *);
+	data->ints = Calloc(len, int *);
+	for(k = 0; k < len; k++) {
+		READ_NAME(ints);
+		fread((void *) &j, sizeof(int), (size_t) 1, fp);
+		iDEBUG("lenght", j);
+
+		data->ints[k] = Calloc(j, int);
+		fread((void *) data->ints[k], sizeof(int), (size_t) j, fp);
+		for(i = 0; i < j; i++) {
+			iDEBUG("contents", data->ints[k][i]);
 		}
-		break;
 	}
 
-	case INLA_CGENERIC_Q:
-	{
-		// optimized format only
-		ret = Calloc(2 + N, double);
-		ret[0] = -1;				       /* code for optimized output */
-		ret[1] = N;				       /* number of (i <= j) */
-		for (int i = 0; i < N; i++) {
-			ret[2 + i] = prec;
+	fread((void *) &len, sizeof(int), (size_t) 1, fp);
+	iDEBUG("Number of doubles", len);
+	data->n_doubles = len;
+	data->name_doubles = Calloc(len, char *);
+	data->doubles = Calloc(len, double *);
+	for(k = 0; k < len; k++) {
+		READ_NAME(doubles);
+		fread((void *) &j, sizeof(int), (size_t) 1, fp);
+		iDEBUG("lenght", j);
+
+		data->doubles[k] = Calloc(j, double);
+		fread((void *) data->doubles[k], sizeof(double), (size_t) j, fp);
+		for(i = 0; i < j; i++) {
+			dDEBUG("contents", data->doubles[k][i]);
 		}
-		break;
 	}
 
-	case INLA_CGENERIC_MU:
-	{
-		ret = Calloc(1, double);
-		ret[0] = 0;
-		break;
+	fread((void *) &len, sizeof(int), (size_t) 1, fp);
+	iDEBUG("Number of chars", len);
+	data->n_chars = len;
+	data->name_chars = Calloc(len, char *);
+	data->chars = Calloc(len, char *);
+	for(k = 0; k < len; k++) {
+		READ_NAME(chars);
+		fread((void *) &j, sizeof(int), (size_t) 1, fp);
+		iDEBUG("lenght", j);
+
+		data->chars[k] = Calloc(j+1L, char);
+		fread((void *) data->chars[k], sizeof(char), (size_t) (j+1L), fp);
+		cDEBUG("contents", data->chars[k]);
 	}
 
-	case INLA_CGENERIC_INITIAL:
-	{
-		ret = Calloc(2, double);
-		ret[0] = 1;
-		ret[1] = 4.0;
-		break;
+	fread((void *) &len, sizeof(int), (size_t) 1, fp);
+	iDEBUG("Number of matrices", len);
+	data->n_matrices = len;
+	data->name_matrices = Calloc(len, char *);
+	data->matrices = Calloc(len, inla_cgeneric_matrix_tp *);
+	for(k = 0; k < len; k++) {
+		READ_NAME(chars);
+		data->matrices[k] = Calloc(1, inla_cgeneric_matrix_tp);
+
+		int dim[2], nn;
+		fread((void *) dim, sizeof(int), (size_t) 2, fp);
+		data->matrices[k]->nrow = dim[0];
+		data->matrices[k]->ncol = dim[1];
+		nn = dim[0] * dim[1];
+
+		iDEBUG("nrow", data->matrices[k]->nrow);
+		iDEBUG("ncol", data->matrices[k]->ncol);
+
+		data->matrices[k]->x = Calloc(nn, double);
+		fread((void *) data->matrices[k]->x, sizeof(double), (size_t) nn, fp);
+		for(i = 0; i < nn; i++) {
+			idDEBUG("\tx", i, data->matrices[k]->x[i]);
+		}
 	}
 
-	case INLA_CGENERIC_LOG_NORM_CONST:
-	{
-		ret = Calloc(1, double);
-		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
-		break;
-	}
+	fread((void *) &len, sizeof(int), (size_t) 1, fp);
+	iDEBUG("Number of smatrices", len);
+	data->n_smatrices = len;
+	data->name_smatrices = Calloc(len, char *);
+	data->smatrices = Calloc(len, inla_cgeneric_smatrix_tp *);
+	for(k = 0; k < len; k++) {
+		READ_NAME(chars);
+		data->smatrices[k] = Calloc(1, inla_cgeneric_smatrix_tp);
 
-	case INLA_CGENERIC_LOG_PRIOR:
-	{
-		double u[] = { 1.0, 0.01 }, th, x;
-		ret = Calloc(1, double);
-		th = -log(u[1]) / u[0];
-		x = lprec / 2.0;
-		ret[0] = log(th / 2.0) - th * exp(-x) - x;
-		break;
-	}
+		int dim[3], n;
+		fread((void *) dim, sizeof(int), (size_t) 3, fp);
+		data->smatrices[k]->nrow = dim[0];
+		data->smatrices[k]->ncol = dim[1];
+		data->smatrices[k]->n = n = dim[2];
 
-	case INLA_CGENERIC_QUIT:
-	default:
-		break;
-	}
+		iDEBUG("nrow", data->smatrices[k]->nrow);
+		iDEBUG("ncol", data->smatrices[k]->ncol);
+		iDEBUG("n", data->smatrices[k]->n);
 
-	return (ret);
+		data->smatrices[k]->i = Calloc(n, int);
+		data->smatrices[k]->j = Calloc(n, int);
+		data->smatrices[k]->x = Calloc(n, double);
+		fread((void *) data->smatrices[k]->i, sizeof(int), (size_t) n, fp);
+		fread((void *) data->smatrices[k]->j, sizeof(int), (size_t) n, fp);
+		fread((void *) data->smatrices[k]->x, sizeof(double), (size_t) n, fp);
+
+		for(i = 0; i < data->smatrices[k]->n; i++) {
+			ijxDEBUG("\tx", i, data->smatrices[k]->i[i], data->smatrices[k]->j[i], data->smatrices[k]->x[i]);
+		}
+	}
+	fclose(fp);
+
+	return data;
 }

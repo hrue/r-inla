@@ -68,19 +68,50 @@ typedef enum {
 
 typedef struct 
 {
+	int nrow;
+	int ncol;
+	double *x;
+}
+	inla_cgeneric_matrix_tp;
+
+typedef struct 
+{
+	int nrow;
+	int ncol;
+	int n;
+	int *i;
+	int *j;
+	double *x;
+}
+	inla_cgeneric_smatrix_tp;
+
+typedef struct 
+{
 	int n_ints;
+	char **name_ints;
 	int **ints;
 
 	int n_doubles;
+	char **name_doubles;
 	double **doubles;
 
 	int n_chars;
+	char **name_chars;
 	char **chars;
-}
-	inla_cgeneric_arg_tp;
 
-typedef double * inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_arg_tp * args);
+	int n_matrices;
+	char **name_matrices;
+	inla_cgeneric_matrix_tp **matrices;
+	
+	int n_smatrices;
+	char **name_smatrices;
+	inla_cgeneric_smatrix_tp **smatrices;
+}
+	inla_cgeneric_data_tp;
+
+typedef double * inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
 inla_cgeneric_func_tp inla_cgeneric_demo; 
+inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename);
 
 __END_DECLS
 #endif

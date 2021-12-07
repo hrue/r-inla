@@ -1460,7 +1460,7 @@ typedef struct {
 typedef struct {
 	int Id;
 	int debug;
-	char *filename;					       /* file to load containing the model definition */
+	char *shlib;					       /* file to load containing the model definition */
 	char *model;					       /* the name of the model definition */
 	char *secname;
 	int ntheta;
