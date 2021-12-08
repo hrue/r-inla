@@ -72,7 +72,7 @@ typedef struct
 	int ncol;
 	double *x;
 }
-	inla_cgeneric_matrix_tp;
+	inla_cgeneric_mat_tp;
 
 typedef struct 
 {
@@ -83,7 +83,7 @@ typedef struct
 	int *j;
 	double *x;
 }
-	inla_cgeneric_smatrix_tp;
+	inla_cgeneric_smat_tp;
 
 typedef struct 
 {
@@ -99,18 +99,19 @@ typedef struct
 	char **name_chars;
 	char **chars;
 
-	int n_matrices;
-	char **name_matrices;
-	inla_cgeneric_matrix_tp **matrices;
+	int n_mat;
+	char **name_mat;
+	inla_cgeneric_mat_tp **mat;
 	
-	int n_smatrices;
-	char **name_smatrices;
-	inla_cgeneric_smatrix_tp **smatrices;
+	int n_smat;
+	char **name_smat;
+	inla_cgeneric_smat_tp **smat;
 }
 	inla_cgeneric_data_tp;
 
 typedef double * inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
-inla_cgeneric_func_tp inla_cgeneric_demo; 
+inla_cgeneric_func_tp inla_cgeneric_iid_model; 
+inla_cgeneric_func_tp inla_cgeneric_ar1_model; 
 inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename, int debug);
 
 __END_DECLS

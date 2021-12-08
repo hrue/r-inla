@@ -43,12 +43,13 @@
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #endif
 
+#if !defined(SQR)
+#define SQR(x) ((x)*(x))
+#endif
 
-double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
+double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
 {
-	// this implements a simple IID model for testing purposes.
-	// for sparse matrices, return in format (n, len, i, j, Qij), where i<=j.
-	// for the graph, then Qij is known to be 1, so its not needed.
+	// this reimplement `inla.rgeneric.iid.model` using cgeneric
 
 	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
 
@@ -68,20 +69,32 @@ double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneri
 		ret[0] = N;				       /* dimension */
 		ret[1] = N;				       /* number of (i <= j) */
 		for (int i = 0; i < N; i++) {
-			ret[2 + i] = i;
-			ret[2 + N + i] = i;
+			ret[2 + i] = i;			       /* i */
+			ret[2 + N + i] = i;		       /* j */
 		}
 		break;
 	}
 
 	case INLA_CGENERIC_Q:
 	{
-		// optimized format only
-		ret = Calloc(2 + N, double);
-		ret[0] = -1;				       /* code for optimized output */
-		ret[1] = N;				       /* number of (i <= j) */
-		for (int i = 0; i < N; i++) {
-			ret[2 + i] = prec;
+		if (1) {
+			// optimized format, better
+			ret = Calloc(2 + N, double);
+			ret[0] = -1;			       /* code for optimized output */
+			ret[1] = N;			       /* number of (i <= j) */
+			for (int i = 0; i < N; i++) {
+				ret[2 + i] = prec;
+			}
+		} else {
+			// plain format
+			ret = Calloc(2 + 3 * N, double);
+			ret[0] = N;
+			ret[1] = N;
+			for (int i = 0; i < N; i++) {
+				ret[2 + i] = i;		       /* i */
+				ret[2 + N + i] = i;	       /* j */
+				ret[2 + 2 * N + i] = prec;     /* Q_ij */
+			}
 		}
 		break;
 	}
@@ -110,11 +123,113 @@ double *inla_cgeneric_demo(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneri
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
-		double u[] = { 1.0, 0.01 }, th, x;
+		// prec ~ gamma(1,1)
 		ret = Calloc(1, double);
-		th = -log(u[1]) / u[0];
-		x = lprec / 2.0;
-		ret[0] = log(th / 2.0) - th * exp(-x) - x;
+		ret[0] = -prec + lprec;
+		break;
+	}
+
+	case INLA_CGENERIC_QUIT:
+	default:
+		break;
+	}
+
+	return (ret);
+}
+
+double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
+{
+	// this reimplement `inla.rgeneric.ar1.model` using cgeneric
+
+	double *ret = NULL, prec, lprec, rho, rho_intern;
+
+	if (theta) {
+		lprec = theta[0];
+		prec = exp(lprec);
+		rho_intern = theta[1];
+		rho = 2.0 * exp(rho_intern) / (1.0 + exp(rho_intern)) - 1.0;
+	} else {
+		prec = lprec = rho = rho_intern = NAN;
+	}
+
+	assert(!strcasecmp(data->name_ints[0], "n"));
+	int N = data->ints[0][0];
+
+	switch (cmd) {
+	case INLA_CGENERIC_VOID:
+	{
+		assert(!(cmd == INLA_CGENERIC_VOID));
+		break;
+	}
+
+	case INLA_CGENERIC_GRAPH:
+	{
+		int m = N + N - 1, offset, i, k;
+		ret = Calloc(2 + 2 * m, double);
+
+		offset = 2;
+		ret[0] = N;				       /* dimension */
+		ret[1] = m;				       /* number of (i <= j) */
+		for (k = i = 0; i < N; i++) {
+			ret[offset + k] = i;		       /* i */
+			ret[offset + m + k] = i;	       /* j */
+			k++;
+			if (i < N - 1) {
+				ret[offset + k] = i;	       /* i */
+				ret[offset + m + k] = i + 1;   /* j */
+				k++;
+			}
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_Q:
+	{
+		double param = prec / (1.0 - SQR(rho));
+		int m = N + N - 1;
+		int offset, i, k;
+		ret = Calloc(2 + m, double);
+
+		offset = 2;
+		ret[0] = -1;
+		ret[1] = m;
+		for (i = k = 0; i < N; i++) {
+			ret[offset + k++] = param * (i == 0 || i == N - 1 ? 1.0 : (1.0 + SQR(rho)));
+			if (i < N - 1) {
+				ret[offset + k++] = -param * rho;
+			}
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_MU:
+	{
+		ret = Calloc(1, double);
+		ret[0] = 0;
+		break;
+	}
+
+	case INLA_CGENERIC_INITIAL:
+	{
+		ret = Calloc(3, double);
+		ret[0] = 2;
+		ret[1] = 1.0;
+		ret[2] = 1.0;
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_NORM_CONST:
+	{
+		double prec_innovation = prec / (1.0 - SQR(rho));
+		ret = Calloc(1, double);
+		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_PRIOR:
+	{
+		ret = Calloc(1, double);
+		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
 		break;
 	}
 
