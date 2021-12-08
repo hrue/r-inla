@@ -44,18 +44,16 @@ __BEGIN_DECLS
 /* 
  *
  */
-
-typedef enum {
-	INLA_CGENERIC_VOID = 0, 
-	INLA_CGENERIC_Q, 
-	INLA_CGENERIC_GRAPH, 
-	INLA_CGENERIC_MU, 
-	INLA_CGENERIC_INITIAL, 
-	INLA_CGENERIC_LOG_NORM_CONST, 
-	INLA_CGENERIC_LOG_PRIOR, 
+    typedef enum {
+	INLA_CGENERIC_VOID = 0,
+	INLA_CGENERIC_Q,
+	INLA_CGENERIC_GRAPH,
+	INLA_CGENERIC_MU,
+	INLA_CGENERIC_INITIAL,
+	INLA_CGENERIC_LOG_NORM_CONST,
+	INLA_CGENERIC_LOG_PRIOR,
 	INLA_CGENERIC_QUIT
-}
-	inla_cgeneric_cmd_tp;
+} inla_cgeneric_cmd_tp;
 
 #define INLA_CGENERIC_CMD_NAME(cmd_) ((cmd_) == INLA_CGENERIC_VOID ? "void" : \
 				      ((cmd_) == INLA_CGENERIC_Q ? "Q" : \
@@ -75,13 +73,11 @@ typedef enum {
  *      > c(matrix(1:6,2,3))
  *      [1] 1 2 3 4 5 6
  */
-typedef struct 
-{
+typedef struct {
 	int nrow;
 	int ncol;
 	double *x;
-}
-	inla_cgeneric_mat_tp;
+} inla_cgeneric_mat_tp;
 
 /* 
  * sparse matrix format, stored used 0-based indices, like
@@ -98,19 +94,16 @@ typedef struct
  *      [3,]  0 1 3
  *      [4,]  1 2 6
  */
-typedef struct 
-{
+typedef struct {
 	int nrow;
 	int ncol;
 	int n;						       /* number of triplets (i,j,x) */
 	int *i;
 	int *j;
 	double *x;
-}
-	inla_cgeneric_smat_tp;
+} inla_cgeneric_smat_tp;
 
-typedef struct 
-{
+typedef struct {
 	int n_ints;
 	char **name_ints;
 	int **ints;
@@ -126,18 +119,17 @@ typedef struct
 	int n_mat;
 	char **name_mat;
 	inla_cgeneric_mat_tp **mat;
-	
+
 	int n_smat;
 	char **name_smat;
 	inla_cgeneric_smat_tp **smat;
-}
-	inla_cgeneric_data_tp;
+} inla_cgeneric_data_tp;
 
-typedef double * inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
+typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
 
-inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename, int debug);
-inla_cgeneric_func_tp inla_cgeneric_iid_model; 
-inla_cgeneric_func_tp inla_cgeneric_ar1_model; 
+inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug);
+inla_cgeneric_func_tp inla_cgeneric_iid_model;
+inla_cgeneric_func_tp inla_cgeneric_ar1_model;
 
 __END_DECLS
 #endif
