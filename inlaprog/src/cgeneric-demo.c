@@ -53,8 +53,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
 
-	assert(!strcasecmp(data->name_ints[0], "n"));
-	int N = data->ints[0][0];
+	assert(!strcasecmp(data->name_ints[0], "n")); // this will always be the case
+	int N = data->ints[0][0];		      // this will always be the case
 
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
@@ -78,7 +78,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	case INLA_CGENERIC_Q:
 	{
 		if (1) {
-			// optimized format, better
+			// optimized format
 			ret = Calloc(2 + N, double);
 			ret[0] = -1;			       /* code for optimized output */
 			ret[1] = N;			       /* number of (i <= j) */
@@ -86,7 +86,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 				ret[2 + i] = prec;
 			}
 		} else {
-			// plain format
+			// plain format, but the optimized format above is better to use
 			ret = Calloc(2 + 3 * N, double);
 			ret[0] = N;
 			ret[1] = N;
@@ -152,8 +152,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		prec = lprec = rho = rho_intern = NAN;
 	}
 
-	assert(!strcasecmp(data->name_ints[0], "n"));
-	int N = data->ints[0][0];
+	assert(!strcasecmp(data->name_ints[0], "n")); // this will always be the case
+	int N = data->ints[0][0];		      // this will always be the case
 
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
@@ -191,7 +191,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(2 + m, double);
 
 		offset = 2;
-		ret[0] = -1;
+		ret[0] = -1;				       /* use optimized format */
 		ret[1] = m;
 		for (i = k = 0; i < N; i++) {
 			ret[offset + k++] = param * (i == 0 || i == N - 1 ? 1.0 : (1.0 + SQR(rho)));

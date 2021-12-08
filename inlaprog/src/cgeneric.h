@@ -66,6 +66,15 @@ typedef enum {
 					   ((cmd_) == INLA_CGENERIC_LOG_PRIOR ? "log_prior" : \
 					    ((cmd_) == INLA_CGENERIC_QUIT ? "quit" : "(***ERROR***)"))))))))
 
+/*
+ *      matrix storage, stored column by column, like
+ *      > matrix(1:6,2,3)
+ *      [,1] [,2] [,3]
+ *      [1,]    1    3    5
+ *      [2,]    2    4    6
+ *      > c(matrix(1:6,2,3))
+ *      [1] 1 2 3 4 5 6
+ */
 typedef struct 
 {
 	int nrow;
@@ -74,11 +83,26 @@ typedef struct
 }
 	inla_cgeneric_mat_tp;
 
+/* 
+ * sparse matrix format, stored used 0-based indices, like
+ *
+ *      > A <- inla.as.sparse(matrix(c(1,2,3,0,0,6),2,3))
+ *      > A
+ *      2 x 3 sparse Matrix of class "dgTMatrix"
+ *      [1,] 1 3 .
+ *      [2,] 2 . 6
+ *      > cbind(i=A@i, j=A@j, x=A@x)
+ *            i j x   
+ *      [1,]  0 0 1
+ *      [2,]  1 0 2
+ *      [3,]  0 1 3
+ *      [4,]  1 2 6
+ */
 typedef struct 
 {
 	int nrow;
 	int ncol;
-	int n;
+	int n;						       /* number of triplets (i,j,x) */
 	int *i;
 	int *j;
 	double *x;
@@ -110,9 +134,10 @@ typedef struct
 	inla_cgeneric_data_tp;
 
 typedef double * inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
+
+inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename, int debug);
 inla_cgeneric_func_tp inla_cgeneric_iid_model; 
 inla_cgeneric_func_tp inla_cgeneric_ar1_model; 
-inla_cgeneric_data_tp * inla_cgeneric_read_data(const char *filename, int debug);
 
 __END_DECLS
 #endif
