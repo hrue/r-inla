@@ -1,10 +1,10 @@
 ---
-title: "Defining a latent model in `R`: The `rgeneric` model"
+title: "Defining a latent model in `R` or `C`: The `rgeneric` and `cgeneric` model"
 author: "Haavard Rue `(hrue@r-inla.org)`"
-date: "Nov 28th 2020"
+date: "Dec 9th 2021"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{rgeneric model}
+  %\VignetteIndexEntry{rgeneric and cgeneric model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---
@@ -24,10 +24,14 @@ knitr::opts_chunk$set(fig.path="figures/rgeneric/")
 # Introduction
 
 This is a class of generic models allows the user to define latent
-model component in `R`, for cases where the requested model is not yet
-implemented in `INLA`, and do the Bayesian inference using `INLA`.
-Since the model component has to be interpreted in `R`, it will run
-slower compared to a similar model implemented in `INLA`.
+model component in `R` or `C`, for cases where the requested model is
+not yet implemented in `INLA`. The model component implemented in `R`
+will run slower, whereas the model component implemented in `C` will
+run just slightly slower, compared to a similar model implemented in
+`INLA`,
+
+We will first describe the more accessible `R` interface, then at the
+end, the `C` interface as it is buildt on the same ideas.
 
 
 # Defining a latent model in `R`

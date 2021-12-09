@@ -175,7 +175,7 @@
                     n.required = TRUE,
                     set.default.values = TRUE,
                     status = "experimental",
-                    pdf = "cgeneric"
+                    pdf = "rgeneric" ## Yes
                 ),
 
                 rw1 = list(

@@ -39,13 +39,8 @@
 
 #include "cgeneric.h"
 
-#if !defined(Calloc)
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
-#endif
-
-#if !defined(SQR)
 #define SQR(x) ((x)*(x))
-#endif
 
 double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
 {
@@ -54,7 +49,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
 
 	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		      // this will always be the case
+	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(N > 0);
 
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
@@ -153,8 +149,9 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	}
 
 	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		      // this will always be the case
-
+	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(N > 0);
+	
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
 	{
@@ -172,12 +169,10 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret[1] = m;				       /* number of (i <= j) */
 		for (k = i = 0; i < N; i++) {
 			ret[offset + k] = i;		       /* i */
-			ret[offset + m + k] = i;	       /* j */
-			k++;
+			ret[offset + m + k++] = i;	       /* j */
 			if (i < N - 1) {
 				ret[offset + k] = i;	       /* i */
-				ret[offset + m + k] = i + 1;   /* j */
-				k++;
+				ret[offset + m + k++] = i + 1; /* j */
 			}
 		}
 		break;
@@ -190,8 +185,17 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		int offset, i, k;
 		ret = Calloc(2 + m, double);
 
+		// use optimized format.
+		// The order of Q_ij's are then predetermined as the upper triangular of Q:
+		//
+		// for(i=0; i < n; i++) 
+		//     for(j=i; j<n; j++)
+		//        ...
+		//
+		// but for only those (i,j)'s that is defined in _GRAPH, of'course
+
 		offset = 2;
-		ret[0] = -1;				       /* use optimized format */
+		ret[0] = -1;
 		ret[1] = m;
 		for (i = k = 0; i < N; i++) {
 			ret[offset + k++] = param * (i == 0 || i == N - 1 ? 1.0 : (1.0 + SQR(rho)));
