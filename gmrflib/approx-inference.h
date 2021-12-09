@@ -604,6 +604,8 @@ typedef struct {
 	double *bb;					       /* the 'bb' and 'cc' array */
 	double *cc;
 
+	int Npred;
+	
 	/**
 	 *\brief Store indices for the datapoints
 	 */
