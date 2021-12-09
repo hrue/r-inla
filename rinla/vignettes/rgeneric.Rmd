@@ -765,3 +765,437 @@ Another general approach to optimizing R-code, is to write critical
 parts in C or C++. This can also be done here, by calling C-code
 within the rgeneric model.
 
+
+
+
+# The Cgeneric interface
+
+The new interface in C (as of Dec 2021) allows one to do similar as
+described above using C code. The advantage is mainly speed but that
+benefite could be dramatic, as the R interpreter is avoided and the
+calls to the generic functions are no longer wrapped in an OpenMP
+critical region which is required due to the serial nature of libR.
+
+This new feature is necessarily much more technical, but is relative
+straight forward on Linux and Mac. For Windows its currently not
+tested. 
+
+The main idea is to provide a C implementation with similar features
+as for the R interface, and to pass the name of the function and its
+binary in a form of a shared/dynamic library. The GNU library `ltdl`
+is used for cross-platform compatabilty, see
+`https://www.gnu.org/software/libtool/manual/html_node/Using-libltdl.html`.
+
+## Example of usage
+
+In short, the usage is as follows. First compile and build a shared
+object
+```{r eval=FALSE}
+gcc -Wall -fpic -g -O -c -o cgeneric-demo.o cgeneric-demo.c
+gcc -shared -o cgeneric-demo.so cgeneric-demo.o
+```
+then use this file to define the `cgeneric` model,
+```{r eval=FALSE}
+cmodel <- inla.cgeneric.define(model = "inla_cgeneric_iid_model",
+                               shlib = "cgeneric-demo.so", n = n)
+```
+where `n` is the size of the model. Unfortunately, this needs to be
+known before the model is loaded. 
+
+The usage is similar to `rgeneric`, as
+```{r eval=FALSE}
+rc <- inla(
+    y ~ -1 + f(idx, model = cmodel), 
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))))
+```
+
+The following example implements the same model using the builtin
+model, `rgeneric` and `cgeneric`.
+```{r eval=FALSE}
+n <- 100
+y <- rnorm(n)
+
+r <- inla(
+    y ~ -1 + f(idx, model = "iid", hyper = list(prec = list(param = c(1, 1)))), 
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))))
+
+rmodel <- inla.rgeneric.define(inla.rgeneric.iid.model, n = n)
+rr <- inla(
+    y ~ -1 + f(idx, model = rmodel), 
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))))
+
+cmodel <- inla.cgeneric.define(model = "inla_cgeneric_iid_model",
+                               shlib = "cgeneric-demo.so", n = n)
+rc <- inla(
+    y ~ -1 + f(idx, model = cmodel), 
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = list(prec = list(initial = 12, fixed = TRUE))))
+
+print(cbind(r$mlik, rr$mlik-r$mlik, rc$mlik-r$mlik))
+print(cbind(r$cpu[2], rr$cpu[2], rc$cpu[2]))
+```
+
+## Header file and example file
+
+The header-file `cgeneric.h` is included in the package in the
+`include` directory, and in the `cgeneric` directory, the header-file
+and the example file given above is included.
+
+The header file `cgeneric.h` needs to be included in any
+implementation as it defines the data types and definitions needed, like
+```{r eval=FALSE}
+typedef enum {
+	INLA_CGENERIC_VOID = 0,
+	INLA_CGENERIC_Q,
+	INLA_CGENERIC_GRAPH,
+	INLA_CGENERIC_MU,
+	INLA_CGENERIC_INITIAL,
+	INLA_CGENERIC_LOG_NORM_CONST,
+	INLA_CGENERIC_LOG_PRIOR,
+	INLA_CGENERIC_QUIT
+} inla_cgeneric_cmd_tp;
+```
+to define the various actions. 
+
+## Example `iid`
+
+It is easier to see how this is one by a simple `iid-model` example
+```{r eval=FALSE}
+#include "cgeneric.h"
+#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#define SQR(x) ((x)*(x))
+
+double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, 
+	double *theta, inla_cgeneric_data_tp * data)
+{
+	// this reimplement `inla.rgeneric.iid.model` using cgeneric
+
+	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), 
+		lprec = (theta ? theta[0] : NAN);
+
+	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
+	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(N > 0);
+
+	switch (cmd) {
+	case INLA_CGENERIC_VOID:
+	{
+		assert(!(cmd == INLA_CGENERIC_VOID));
+		break;
+	}
+
+	case INLA_CGENERIC_GRAPH:
+	{
+		ret = Calloc(2 + 2 * N, double);
+		ret[0] = N;				       /* dimension */
+		ret[1] = N;				       /* number of (i <= j) */
+		for (int i = 0; i < N; i++) {
+			ret[2 + i] = i;			       /* i */
+			ret[2 + N + i] = i;		       /* j */
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_Q:
+	{
+		if (1) {
+			// optimized format
+			ret = Calloc(2 + N, double);
+			ret[0] = -1;			       /* code for optimized output */
+			ret[1] = N;			       /* number of (i <= j) */
+			for (int i = 0; i < N; i++) {
+				ret[2 + i] = prec;
+			}
+		} else {
+			// plain format, but the optimized format above is better to use
+			ret = Calloc(2 + 3 * N, double);
+			ret[0] = N;
+			ret[1] = N;
+			for (int i = 0; i < N; i++) {
+				ret[2 + i] = i;		       /* i */
+				ret[2 + N + i] = i;	       /* j */
+				ret[2 + 2 * N + i] = prec;     /* Q_ij */
+			}
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_MU:
+	{
+		ret = Calloc(1, double);
+		ret[0] = 0;
+		break;
+	}
+
+	case INLA_CGENERIC_INITIAL:
+	{
+		ret = Calloc(2, double);
+		ret[0] = 1;
+		ret[1] = 4.0;
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_NORM_CONST:
+	{
+		ret = Calloc(1, double);
+		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_PRIOR:
+	{
+		// prec ~ gamma(1,1)
+		ret = Calloc(1, double);
+		ret[0] = -prec + lprec;
+		break;
+	}
+
+	case INLA_CGENERIC_QUIT:
+	default:
+		break;
+	}
+
+	return (ret);
+}
+```
+
+The return values must be allocated dynamically, and is free'ed in the
+main program after use.
+
+## Example `ar1`
+
+The reimplementation of the AR1 model as in `inla.rgeneric.ar1.model`
+is as follows.
+```{r eval=FALSE}
+#include "cgeneric.h"
+#define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
+#define SQR(x) ((x)*(x))
+
+double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, 
+	inla_cgeneric_data_tp * data)
+{
+	// this reimplement `inla.rgeneric.ar1.model` using cgeneric
+
+	double *ret = NULL, prec, lprec, rho, rho_intern;
+
+	if (theta) {
+		lprec = theta[0];
+		prec = exp(lprec);
+		rho_intern = theta[1];
+		rho = 2.0 * exp(rho_intern) / (1.0 + exp(rho_intern)) - 1.0;
+	} else {
+		prec = lprec = rho = rho_intern = NAN;
+	}
+
+	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
+	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(N > 0);
+	
+	switch (cmd) {
+	case INLA_CGENERIC_VOID:
+	{
+		assert(!(cmd == INLA_CGENERIC_VOID));
+		break;
+	}
+
+	case INLA_CGENERIC_GRAPH:
+	{
+		int m = N + N - 1, offset, i, k;
+		ret = Calloc(2 + 2 * m, double);
+
+		offset = 2;
+		ret[0] = N;				       /* dimension */
+		ret[1] = m;				       /* number of (i <= j) */
+		for (k = i = 0; i < N; i++) {
+			ret[offset + k] = i;		       /* i */
+			ret[offset + m + k++] = i;	       /* j */
+			if (i < N - 1) {
+				ret[offset + k] = i;	       /* i */
+				ret[offset + m + k++] = i + 1; /* j */
+			}
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_Q:
+	{
+		double param = prec / (1.0 - SQR(rho));
+		int m = N + N - 1;
+		int offset, i, k;
+		ret = Calloc(2 + m, double);
+
+		// use optimized format.
+		// The order of Q_ij s are then predetermined as the upper triangular of Q:
+		//
+		// for(i=0; i < n; i++) 
+		//     for(j=i; j<n; j++)
+		//        ...
+		//
+		// but for only those (i,j)s that is defined in _GRAPH, of course
+
+		offset = 2;
+		ret[0] = -1;
+		ret[1] = m;
+		for (i = k = 0; i < N; i++) {
+			ret[offset + k++] = param * (i == 0 || i == N - 1 ? 1.0 : (1.0 + SQR(rho)));
+			if (i < N - 1) {
+				ret[offset + k++] = -param * rho;
+			}
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_MU:
+	{
+		ret = Calloc(1, double);
+		ret[0] = 0;
+		break;
+	}
+
+	case INLA_CGENERIC_INITIAL:
+	{
+		ret = Calloc(3, double);
+		ret[0] = 2;
+		ret[1] = 1.0;
+		ret[2] = 1.0;
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_NORM_CONST:
+	{
+		double prec_innovation = prec / (1.0 - SQR(rho));
+		ret = Calloc(1, double);
+		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 
+			0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_PRIOR:
+	{
+		ret = Calloc(1, double);
+		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
+		break;
+	}
+
+	case INLA_CGENERIC_QUIT:
+	default:
+		break;
+	}
+
+	return (ret);
+}
+```
+
+## Passing arguments to `inla.cgeneric.define`
+
+The `R` interface is easier when it comes to passing arguments
+throughout the system, as any non-standard arguments to
+`inla.rgeneric.define` is stored in environment of the function and is
+then available when the function is evaluated in `libR`. 
+
+For the `C` interface, this has to be done manually, and pointer to a
+data structure that contains all arguments to `inla.cgeneric.define`
+is passed to the `C` function. The data structure is as follows
+```{r eval=FALSE}
+typedef struct {
+	int n_ints;
+	inla_cgeneric_vec_tp **ints;
+
+	int n_doubles;
+	inla_cgeneric_vec_tp **doubles;
+
+	int n_chars;
+	inla_cgeneric_vec_tp **chars;
+
+	int n_mat;
+	inla_cgeneric_mat_tp **mats;
+
+	int n_smat;
+	inla_cgeneric_smat_tp **smats;
+} inla_cgeneric_data_tp;
+```
+where integers, doubles (or numerics), characters (or strings), dense matrices
+and sparse matrices are stored in named lists. The `n_ints` gives the
+number of integers or integer vectors, and similar with `n_doubles`,
+`n_chars`, `n_mat` and `n_smat`.  The predefined named arguments in
+`inla.cmatrix.define` are stored first, then additional named arguments are
+stored. This implies that the argument `n` is always the first one in
+the integer list, like used in the examples above
+```{r eval=FALSE}
+	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
+	int N = data->ints[0]->ints[0];		       // this will always be the case
+```
+
+The integers, doubles and characters, are stored in 
+```{r eval=FALSE}
+typedef struct 
+{
+	char *name;
+	int len;
+	int *ints;
+	double *doubles;
+	char *chars;
+}
+	inla_cgeneric_vec_tp;
+```
+so possible vectors with length `len` or a string with `len` characters.
+
+Dense matrices are stored column wise, like default in `R`
+```{r eval=FALSE}
+/*
+ *      matrix storage, stored column by column, like
+ *      > matrix(1:6,2,3)
+ *      [,1] [,2] [,3]
+ *      [1,]    1    3    5
+ *      [2,]    2    4    6
+ *      > c(matrix(1:6,2,3))
+ *      [1] 1 2 3 4 5 6
+ */
+typedef struct {
+	char *name;
+	int nrow;
+	int ncol;
+	double *x;
+} inla_cgeneric_mat_tp;
+```
+and sparse matrices are stored as triplets `(i,j,x)`, 
+```{r eval=FALSE}
+/* 
+ * sparse matrix format, stored used 0-based indices, like
+ *
+ *      > A <- inla.as.sparse(matrix(c(1,2,3,0,0,6),2,3))
+ *      > A
+ *      2 x 3 sparse Matrix of class "dgTMatrix"
+ *      [1,] 1 3 .
+ *      [2,] 2 . 6
+ *      > cbind(i=A@i, j=A@j, x=A@x)
+ *            i j x   
+ *      [1,]  0 0 1
+ *      [2,]  1 0 2
+ *      [3,]  0 1 3
+ *      [4,]  1 2 6
+ */
+typedef struct {
+	char *name;
+	int nrow;
+	int ncol;
+	int n;						       /* number of triplets (i,j,x) */
+	int *i;
+	int *j;
+	double *x;
+} inla_cgeneric_smat_tp;
+```
+R-objects not of the above types cannot be handled, but one can
+always, for example, store them in a file and pass the filename.
+
+Adding the option `debug=TRUE` to `inla.cgeneric.define` will turn on
+debug-output and the contents of `inla_cgeneric_data_tp * data` is
+displayed. Only use this option for small size problems as the output
+can be excessive.
+
+## Thread safe
+
+The implementation of the `cgeneric` model, must be thread safe. 
