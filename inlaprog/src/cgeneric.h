@@ -74,6 +74,7 @@ __BEGIN_DECLS
  *      [1] 1 2 3 4 5 6
  */
 typedef struct {
+	char *name;
 	int nrow;
 	int ncol;
 	double *x;
@@ -95,6 +96,7 @@ typedef struct {
  *      [4,]  1 2 6
  */
 typedef struct {
+	char *name;
 	int nrow;
 	int ncol;
 	int n;						       /* number of triplets (i,j,x) */
@@ -103,26 +105,31 @@ typedef struct {
 	double *x;
 } inla_cgeneric_smat_tp;
 
+typedef struct 
+{
+	char *name;
+	int len;
+	int *ints;
+	double *doubles;
+	char *chars;
+}
+	inla_cgeneric_vec_tp;
+
 typedef struct {
 	int n_ints;
-	char **name_ints;
-	int **ints;
+	inla_cgeneric_vec_tp **ints;
 
 	int n_doubles;
-	char **name_doubles;
-	double **doubles;
+	inla_cgeneric_vec_tp **doubles;
 
 	int n_chars;
-	char **name_chars;
-	char **chars;
+	inla_cgeneric_vec_tp **chars;
 
 	int n_mat;
-	char **name_mat;
-	inla_cgeneric_mat_tp **mat;
+	inla_cgeneric_mat_tp **mats;
 
 	int n_smat;
-	char **name_smat;
-	inla_cgeneric_smat_tp **smat;
+	inla_cgeneric_smat_tp **smats;
 } inla_cgeneric_data_tp;
 
 typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);

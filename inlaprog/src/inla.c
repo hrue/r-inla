@@ -2904,10 +2904,6 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 				assert(a->graph->n == a->n);
 			}
 			Free(x_out);
-
-			if (0 && debug) {
-				GMRFLib_printf_Qfunc(stdout, a->graph, a->Q[id]->Qfunc, a->Q[id]->Qfunc_arg);
-			}
 			if (a->param[id]) {
 				Memcpy(a->param[id], a_tmp, a->ntheta * sizeof(double));
 				Free(a_tmp);
@@ -8760,9 +8756,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -19469,73 +19465,79 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 	return GMRFLib_SUCCESS;
 }
 
-int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out) 
+int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out)
 {
 	int i, n, nn;
 
-#pragma omp critical 
+#pragma omp critical
 	{
 		fprintf(fp, "cgeneric(%s) cmd=%s out=\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
-		switch(cmd) {
-		case INLA_CGENERIC_Q: 
+		switch (cmd) {
+		case INLA_CGENERIC_Q:
 		{
-			assert((int) out[0] == -1);
+			fprintf(fp, "\tout[0] = %d  out[1] = %d\n", (int) out[0], (int) out[1]);
 			n = (int) out[1];
-			for(i = 0; i < n; i++) {
-				fprintf(fp, "\t%d %.8f\n", i, out[2+i]);
+			if ((int) out[0] == -1) {
+				for (i = 0; i < n; i++) {
+					fprintf(fp, "\t%1d %.8f\n", i, out[2 + i]);
+				}
+			} else {
+				for (i = 0; i < n; i++) {
+					fprintf(fp, "\t%1d (%1d, %1d, %.8f)\n", i, (int) out[2 + i], (int) out[2 + n + i], out[2 + 2 * n + i]);
+				}
 			}
 			break;
 		}
 
-		case INLA_CGENERIC_GRAPH: 
+		case INLA_CGENERIC_GRAPH:
 		{
 			n = (int) out[0];
 			nn = (int) out[1];
-			for(i = 0; i < nn; i++) {
-				fprintf(fp, "\t%d (%d %d)\n", i, (int) out[2 + i], (int) out[2 + n + i]);
+			for (i = 0; i < nn; i++) {
+				fprintf(fp, "\t%1d (%1d %1d)\n", i, (int) out[2 + i], (int) out[2 + n + i]);
 			}
 			break;
 		}
-	
-		case INLA_CGENERIC_MU: 
+
+		case INLA_CGENERIC_MU:
 		{
 			n = (int) out[0];
-			for(i = 0; i < n; i++) {
-				fprintf(fp, "\t%d %.8f\n", i, out[1 + i]);
+			for (i = 0; i < n; i++) {
+				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
 			}
 			break;
 		}
-	
-		case INLA_CGENERIC_INITIAL: 
+
+		case INLA_CGENERIC_INITIAL:
 		{
 			n = (int) out[0];
-			for(i = 0; i < n; i++) {
-				fprintf(fp, "\t%d %.8f\n", i, out[1 + i]);
+			for (i = 0; i < n; i++) {
+				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
 			}
 			break;
 		}
-	
-		case INLA_CGENERIC_LOG_NORM_CONST: 
+
+		case INLA_CGENERIC_LOG_NORM_CONST:
 		{
 			if (out) {
 				fprintf(fp, "\t%.8f\n", out[0]);
 			}
 			break;
 		}
-	
-		case INLA_CGENERIC_LOG_PRIOR: 
+
+		case INLA_CGENERIC_LOG_PRIOR:
 		{
 			if (out) {
 				fprintf(fp, "\t%.8f\n", out[0]);
 			}
 			break;
 		}
-	
+
 		default:
 			break;
 		}
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -19550,10 +19552,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = ffield 
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
-		nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
+	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
-		*cgeneric_shlib = NULL, *cgeneric_model = NULL; 
+	    *cgeneric_shlib = NULL, *cgeneric_model = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
@@ -19563,7 +19565,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	lt_dlhandle handle;
 	inla_cgeneric_func_tp *model_func = NULL;
-	inla_cgeneric_data_tp *cgeneric_data = NULL; 
+	inla_cgeneric_data_tp *cgeneric_data = NULL;
 
 	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -22316,7 +22318,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 
 		cgeneric_data = inla_cgeneric_read_data(cdata_fnm, cgeneric_debug);
-		
+
 		if (mb->verbose) {
 			printf("\t\tcgeneric.shlib  [%s]\n", cgeneric_shlib);
 			printf("\t\tcgeneric.model  [%s]\n", cgeneric_model);
@@ -22341,7 +22343,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			ltdl_init = 0;
 			lt_dlerror();
 		}
-		
+
 		handle = lt_dlopen(cgeneric_shlib);
 		if (!handle) {
 			char *msg;
@@ -22351,7 +22353,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			exit(1);
 		}
 		lt_dlerror();
-		
+
 		model_func = lt_dlsym(handle, cgeneric_model);
 		if ((emsg = lt_dlerror())) {
 			char *msg;
@@ -22361,7 +22363,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			exit(1);
 		}
 		lt_dlerror();
-		
+
 		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
 		if (cgeneric_debug) {
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, xx_out);
@@ -22376,7 +22378,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			assert(0 != 1);
 			exit(1);
 		}
-			
+
 		if (mb->f_n[mb->nf] != nn) {
 			int err = 0;
 			for (i = 0; i < mb->f_n[mb->nf]; i++) {
@@ -31048,7 +31050,7 @@ double extra(double *theta, int ntheta, void *argument)
 			if (def->debug) {
 				inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_LOG_PRIOR, xx_out);
 			}
-			
+
 			nn_out = (xx_out ? 1 : 0);
 			switch (nn_out) {
 			case 0:
@@ -31154,7 +31156,7 @@ double extra(double *theta, int ntheta, void *argument)
 				GMRFLib_free_tabulate_Qfunc(Qf);
 				Free(xx_out);
 			}
-			break;
+				break;
 
 			case 1:
 			{

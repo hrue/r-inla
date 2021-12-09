@@ -46,19 +46,12 @@
 
 inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 {
-#define iDEBUG(msg_, i_) if (debug) printf("\tread_data: %s %d\n", msg_, i_)
-#define dDEBUG(msg_, x_) if (debug) printf("\tread_data: %s %g\n", msg_, x_)
-#define idDEBUG(msg_, idx_, x_) if (debug) printf("\tread_data: %s[%1d] %g\n", msg_, idx_, x_)
-#define cDEBUG(msg_, c_) if (debug) printf("\tread_data: %s %s\n", msg_, c_)
-#define ijxDEBUG(msg_, idx_, i_, j_, x_) if (debug) printf("\tread_data: %s[%1d] (%d, %d, %g)\n", msg_, idx_, i_, j_, x_)
-
-#define READ_NAME(nm_) if (1) {						\
+#define READ_NAME(nm_) \
+	if (1) {							\
 		int j;							\
 		nread = fread((void *) &j, sizeof(int), (size_t) 1, fp); assert(nread == (size_t) 1); \
-		data->name_ ## nm_[k] = Calloc(j + 1L, char);		\
-		if (0) data->name_ ## nm_[k][j+1L] = '\0';		\
-		nread = fread((void *) data->name_ ## nm_[k], sizeof(char), (size_t) (j + 1L), fp); assert(nread == (size_t) (j + 1L)); \
-		cDEBUG("name", data->name_ ## nm_[k]);			\
+		nm_ = Calloc(j + 1L, char);				\
+		nread = fread((void *) nm_, sizeof(char), (size_t) (j + 1L), fp); assert(nread == (size_t) (j + 1L)); \
 	}
 
 	FILE *fp;
@@ -71,126 +64,141 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 
 	nread = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 	assert(nread == (size_t) 1);
-	iDEBUG("Number of ints", len);
+	if (debug) {
+		printf("\tNumber of ints %1d\n", len);
+	}
 	data->n_ints = len;
-	data->name_ints = Calloc(len, char *);
-	data->ints = Calloc(len, int *);
+	data->ints = Calloc(len, inla_cgeneric_vec_tp *);
 	for (k = 0; k < len; k++) {
-		READ_NAME(ints);
+		data->ints[k] = Calloc(1, inla_cgeneric_vec_tp);
+		READ_NAME(data->ints[k]->name);
 		nread = fread((void *) &j, sizeof(int), (size_t) 1, fp);
 		assert(nread == (size_t) 1);
-		iDEBUG("lenght", j);
-
-		data->ints[k] = Calloc(j, int);
-		nread = fread((void *) data->ints[k], sizeof(int), (size_t) j, fp);
+		data->ints[k]->len = j;
+		data->ints[k]->ints = Calloc(j, int);
+		nread = fread((void *) data->ints[k]->ints, sizeof(int), (size_t) j, fp);
 		assert(nread == (size_t) j);
-		for (i = 0; i < j; i++) {
-			iDEBUG("contents", data->ints[k][i]);
+		if (debug) {
+			printf("\t\tname[%s] length[%1d] type[%s]\n", data->ints[k]->name, data->ints[k]->len, "INT");
+			for (i = 0; i < j; i++) {
+				printf("\t\t\tidx=%1d %d\n", i, data->ints[k]->ints[i]);
+			}
 		}
 	}
 
 	nread = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 	assert(nread == (size_t) 1);
-	iDEBUG("Number of doubles", len);
+	if (debug) {
+		printf("\tNumber of doubles %1d\n", len);
+	}
 	data->n_doubles = len;
-	data->name_doubles = Calloc(len, char *);
-	data->doubles = Calloc(len, double *);
+	data->doubles = Calloc(len, inla_cgeneric_vec_tp *);
 	for (k = 0; k < len; k++) {
-		READ_NAME(doubles);
+		data->doubles[k] = Calloc(1, inla_cgeneric_vec_tp);
+		READ_NAME(data->doubles[k]->name);
 		nread = fread((void *) &j, sizeof(int), (size_t) 1, fp);
 		assert(nread == (size_t) 1);
-		iDEBUG("lenght", j);
 
-		data->doubles[k] = Calloc(j, double);
-		nread = fread((void *) data->doubles[k], sizeof(double), (size_t) j, fp);
+		data->doubles[k]->len = j;
+		data->doubles[k]->doubles = Calloc(j, double);
+		nread = fread((void *) data->doubles[k]->doubles, sizeof(double), (size_t) j, fp);
 		assert(nread == (size_t) j);
-		for (i = 0; i < j; i++) {
-			dDEBUG("contents", data->doubles[k][i]);
+		if (debug) {
+			printf("\t\tname[%s] length[%1d] type[%s]\n", data->doubles[k]->name, data->doubles[k]->len, "DOUBLE");
+			for (i = 0; i < j; i++) {
+				printf("\t\t\tidx=%1d %g\n", i, data->doubles[k]->doubles[i]);
+			}
 		}
 	}
 
 	nread = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 	assert(nread == (size_t) 1);
-	iDEBUG("Number of chars", len);
+	if (debug) {
+		printf("\tNumber of chars %1d\n", len);
+	}
 	data->n_chars = len;
-	data->name_chars = Calloc(len, char *);
-	data->chars = Calloc(len, char *);
+	data->chars = Calloc(len, inla_cgeneric_vec_tp *);
 	for (k = 0; k < len; k++) {
-		READ_NAME(chars);
+		data->chars[k] = Calloc(1, inla_cgeneric_vec_tp);
+		READ_NAME(data->chars[k]->name);
 		nread = fread((void *) &j, sizeof(int), (size_t) 1, fp);
 		assert(nread == (size_t) 1);
-		// iDEBUG("lenght", j);
 
-		data->chars[k] = Calloc(j + 1L, char);
-		nread = fread((void *) data->chars[k], sizeof(char), (size_t) (j + 1L), fp);
+		data->chars[k]->len = j; 
+		data->chars[k]->chars = Calloc(j + 1L, char);
+		nread = fread((void *) data->chars[k]->chars, sizeof(char), (size_t) (j + 1L), fp);
 		assert(nread == (size_t) (j + 1L));
-		cDEBUG("contents", data->chars[k]);
+		if (debug) {
+			printf("\t\tname[%s] length[%1d] type[%s]\n", data->chars[k]->name, data->chars[k]->len, "CHAR");
+			printf("\t\t\t%s\n", data->chars[k]->chars);
+		}
 	}
 
 	nread = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 	assert(nread == (size_t) 1);
-	iDEBUG("Number of mat", len);
-	data->n_mat = len;
-	data->name_mat = Calloc(len, char *);
-	data->mat = Calloc(len, inla_cgeneric_mat_tp *);
+	if (debug) {
+		printf("\tNumber of matrices %1d\n", len);
+	}
+	data->mats = Calloc(len, inla_cgeneric_mat_tp *);
 	for (k = 0; k < len; k++) {
-		READ_NAME(chars);
-		data->mat[k] = Calloc(1, inla_cgeneric_mat_tp);
+		data->mats[k] = Calloc(1, inla_cgeneric_mat_tp);
+		READ_NAME(data->mats[k]->name);
 
 		int dim[2], nn;
 		nread = fread((void *) dim, sizeof(int), (size_t) 2, fp);
 		assert(nread == (size_t) 2);
-		data->mat[k]->nrow = dim[0];
-		data->mat[k]->ncol = dim[1];
+		data->mats[k]->nrow = dim[0];
+		data->mats[k]->ncol = dim[1];
 		nn = dim[0] * dim[1];
 
-		iDEBUG("nrow", data->mat[k]->nrow);
-		iDEBUG("ncol", data->mat[k]->ncol);
-
-		data->mat[k]->x = Calloc(nn, double);
-		nread = fread((void *) data->mat[k]->x, sizeof(double), (size_t) nn, fp);
+		data->mats[k]->nrow = dim[0];
+		data->mats[k]->ncol = dim[1];
+		data->mats[k]->x = Calloc(nn, double);
+		nread = fread((void *) data->mats[k]->x, sizeof(double), (size_t) nn, fp);
 		assert(nread == (size_t) nn);
-		for (i = 0; i < nn; i++) {
-			idDEBUG("\tx", i, data->mat[k]->x[i]);
+		if (debug) {
+			printf("\t\tname[%s] nrow[%1d] ncol[%1d] type[%s]\n", data->mats[k]->name, data->mats[k]->nrow, data->mats[k]->ncol, "MATRIX");
+			for (i = 0; i < nn; i++) {
+				printf("\t\t\tidx=%1d %g\n", i, data->mats[k]->x[i]);
+			}
 		}
 	}
 
 	nread = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 	assert(nread == (size_t) 1);
-	iDEBUG("Number of smat", len);
+	if (debug) {
+		printf("\tNumber of sparse matrices %1d\n", len);
+	}
 	data->n_smat = len;
-	data->name_smat = Calloc(len, char *);
-	data->smat = Calloc(len, inla_cgeneric_smat_tp *);
+	data->smats = Calloc(len, inla_cgeneric_smat_tp *);
 	for (k = 0; k < len; k++) {
-		READ_NAME(chars);
-		data->smat[k] = Calloc(1, inla_cgeneric_smat_tp);
-
+		data->smats[k] = Calloc(1, inla_cgeneric_smat_tp);
+		READ_NAME(data->smats[k]->name);
 		int dim[3], n;
 		nread = fread((void *) dim, sizeof(int), (size_t) 3, fp);
 		assert(nread == (size_t) 3);
-		data->smat[k]->nrow = dim[0];
-		data->smat[k]->ncol = dim[1];
-		data->smat[k]->n = n = dim[2];
-
-		iDEBUG("nrow", data->smat[k]->nrow);
-		iDEBUG("ncol", data->smat[k]->ncol);
-		iDEBUG("n", data->smat[k]->n);
-
-		data->smat[k]->i = Calloc(n, int);
-		data->smat[k]->j = Calloc(n, int);
-		data->smat[k]->x = Calloc(n, double);
-		nread = fread((void *) data->smat[k]->i, sizeof(int), (size_t) n, fp);
+		data->smats[k]->nrow = dim[0];
+		data->smats[k]->ncol = dim[1];
+		data->smats[k]->n = n = dim[2];
+		data->smats[k]->i = Calloc(n, int);
+		data->smats[k]->j = Calloc(n, int);
+		data->smats[k]->x = Calloc(n, double);
+		nread = fread((void *) data->smats[k]->i, sizeof(int), (size_t) n, fp);
 		assert(nread == (size_t) n);
-		nread = fread((void *) data->smat[k]->j, sizeof(int), (size_t) n, fp);
+		nread = fread((void *) data->smats[k]->j, sizeof(int), (size_t) n, fp);
 		assert(nread == (size_t) n);
-		nread = fread((void *) data->smat[k]->x, sizeof(double), (size_t) n, fp);
+		nread = fread((void *) data->smats[k]->x, sizeof(double), (size_t) n, fp);
 		assert(nread == (size_t) n);
-
-		for (i = 0; i < data->smat[k]->n; i++) {
-			ijxDEBUG("\tx", i, data->smat[k]->i[i], data->smat[k]->j[i], data->smat[k]->x[i]);
+		if (debug) {
+			printf("\t\tname[%s] nrow[%1d] ncol[%1d] n[%1d] type[%s]\n",
+			       data->smats[k]->name, data->smats[k]->nrow, data->smats[k]->ncol, data->smats[k]->n, "SPARSE.MATRIX");
+			for (i = 0; i < n; i++) {
+				printf("\t\t\tidx=%1d (i=%1d j=%1d x=%g)\n", i, data->smats[k]->i[i], data->smats[k]->j[i], data->smats[k]->x[i]);
+			}
 		}
 	}
 	fclose(fp);
-
+#undef READ_NAME
+	
 	return data;
 }

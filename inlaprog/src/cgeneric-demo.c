@@ -53,8 +53,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
 
-	assert(!strcasecmp(data->name_ints[0], "n")); // this will always be the case
-	int N = data->ints[0][0];		      // this will always be the case
+	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
+	int N = data->ints[0]->ints[0];		      // this will always be the case
 
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
@@ -152,8 +152,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		prec = lprec = rho = rho_intern = NAN;
 	}
 
-	assert(!strcasecmp(data->name_ints[0], "n")); // this will always be the case
-	int N = data->ints[0][0];		      // this will always be the case
+	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
+	int N = data->ints[0]->ints[0];		      // this will always be the case
 
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
