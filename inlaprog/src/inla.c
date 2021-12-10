@@ -3009,7 +3009,7 @@ double mfunc_rgeneric(int i, void *arg)
 	}
 
 	if (rebuild) {
-		int n, k = 0, n_out, jj;
+		int n, n_out, jj;
 		double *x_out = NULL;
 #pragma omp critical
 		{
@@ -3036,14 +3036,13 @@ double mfunc_rgeneric(int i, void *arg)
 				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
 			assert(n_out > 0);
-			n = (int) x_out[k++];
+			n = (int) x_out[0];
 			if (n > 0) {
 				assert(n == a->n);
 				a->mu[id] = Calloc(n, double);
-				Memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
+				Memcpy((void *) (a->mu[id]), (void *) &(x_out[1]), n * sizeof(double));
 				a->mu_zero = 0;
 			} else {
-				// a->mu[id] = Calloc(a->n, double);
 				a->mu_zero = 1;
 			}
 			Free(x_out);
@@ -3077,7 +3076,7 @@ double mfunc_cgeneric(int i, void *arg)
 	}
 
 	if (rebuild) {
-		int n, k = 0, jj;
+		int n, jj;
 
 		double *x_out = NULL;
 		if (debug) {
@@ -3102,14 +3101,13 @@ double mfunc_cgeneric(int i, void *arg)
 		if (debug) {
 			printf("Return from cgeneric with x_out[0]= %1d\n", (int) x_out[0]);
 		}
-		n = (int) x_out[k++];
+		n = (int) x_out[0];
 		if (n > 0) {
 			assert(n == a->n);
 			a->mu[id] = Calloc(n, double);
-			Memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
+			Memcpy((void *) (a->mu[id]), (void *) &(x_out[1]), n * sizeof(double));
 			a->mu_zero = 0;
 		} else {
-			// a->mu[id] = Calloc(a->n, double);
 			a->mu_zero = 1;
 		}
 		Free(x_out);
