@@ -59,6 +59,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
+#include <ltdl.h>
 
 #if !defined(WINDOWS)
 #include <sys/resource.h>
@@ -99,6 +100,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "fgn.h"
 #include "tweedie.h"
 #include "pc-powerlink.h"
+#include "cgeneric.h"
 
 #define PREVIEW (10)
 #define MODEFILENAME ".inla-mode"
@@ -2714,8 +2716,9 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 
 	GMRFLib_CACHE_SET_ID(id);
 
-	// reset cache once in a while
-	if (a->reset_cache >= 0) {
+	// WHY IS THIS A GOOD IDEA?
+	// reset cache once in a while. 
+	if (0 && a->reset_cache >= 0) {
 		if (a->reset_cache || (id == 0 && omp_get_level() == 0 && i == 0 && j <= 0)) {
 			a->reset_cache = 1;
 #pragma omp critical
@@ -2816,6 +2819,99 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 				if (debug) {
 					printf("\tRebuild for id %1d done\n", id);
 				}
+			}
+		}
+	}
+
+	if (j >= 0) {
+		return (a->Q[id]->Qfunc(i, j, NULL, a->Q[id]->Qfunc_arg));
+	} else {
+		return (a->Q[id]->Qfunc(i, j, values, a->Q[id]->Qfunc_arg));
+	}
+}
+
+double Qfunc_cgeneric(int i, int j, double *values, void *arg)
+{
+	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
+	int rebuild, ii, debug = 0, id;
+
+	GMRFLib_CACHE_SET_ID(id);
+
+	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
+	if (!rebuild) {
+		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+			rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
+		}
+	}
+
+	if (rebuild) {
+		int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
+		double *Qijlist = NULL, *x_out = NULL;
+		rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
+		if (!rebuild) {
+			for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+				rebuild = (a->param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
+			}
+		}
+
+		if (rebuild) {
+			if (debug) {
+				printf("Qfunc_cgeneric: Rebuild Q-hash for id %d thread_id %d\n", id, GMRFLib_thread_id);
+			}
+			if (a->Q[id]) {
+				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
+			}
+			double *a_tmp = Calloc(a->ntheta, double);
+			for (jj = 0; jj < a->ntheta; jj++) {
+				a_tmp[jj] = a->theta[jj][GMRFLib_thread_id][0];
+				if (debug) {
+					printf("\ttheta[%1d] %.12f\n", jj, a_tmp[jj]);
+				}
+			}
+
+			if (debug) {
+				printf("\tCall cgeneric\n");
+			}
+			x_out = a->model_func(INLA_CGENERIC_Q, a_tmp, a->data);
+			if (a->debug) {
+				inla_cgeneric_debug(stdout, a->secname, INLA_CGENERIC_Q, x_out);
+			}
+
+			assert(a->graph);
+			if ((int) x_out[0] == -1) {
+				// optimized output
+				k = 1;
+				len = (int) x_out[k++];
+				assert(len == a->len_list);
+				n = a->graph->n;
+				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n,
+								  NULL, NULL, NULL);
+			} else {
+				k = 0;
+				n = (int) x_out[k++];
+				len = (int) x_out[k++];
+
+				// we can overlay these arrays to avoid allocating new ones, since x_out is double
+				ilist = (int *) &(x_out[k]);
+				jlist = (int *) &(x_out[k + len]);
+				Qijlist = (double *) &(x_out[k + 2 * len]);
+				for (jj = 0; jj < len; jj++) {
+					ilist[jj] = (int) x_out[k + jj];
+					jlist[jj] = (int) x_out[k + len + jj];
+				}
+
+				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+				assert(a->graph->n == a->n);
+			}
+			Free(x_out);
+			if (a->param[id]) {
+				Memcpy(a->param[id], a_tmp, a->ntheta * sizeof(double));
+				Free(a_tmp);
+			} else {
+				a->param[id] = a_tmp;
+			}
+			if (debug) {
+				printf("\tRebuild for id %1d done\n", id);
 			}
 		}
 	}
@@ -2952,6 +3048,71 @@ double mfunc_rgeneric(int i, void *arg)
 			}
 			Free(x_out);
 		}
+
+		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
+		if (a->mu_zero) {
+			return 0.0;
+		}
+	}
+
+	return (a->mu[id][i]);
+}
+
+double mfunc_cgeneric(int i, void *arg)
+{
+	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
+	int rebuild, ii, debug = 0, id;
+
+	// possible fast return ?
+	if (a->mu_zero) {
+		return 0.0;
+	}
+
+	GMRFLib_CACHE_SET_ID(id);
+	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
+	if (!rebuild) {
+		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+			rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
+		}
+	}
+
+	if (rebuild) {
+		int n, k = 0, jj;
+
+		double *x_out = NULL;
+		if (debug) {
+			printf("Rebuild mu-hash for id %d\n", id);
+		}
+		if (a->mu[id]) {
+			Free(a->mu[id]);
+		}
+		if (!(a->mu_param[id])) {
+			a->mu_param[id] = Calloc(a->ntheta, double);
+		}
+		for (jj = 0; jj < a->ntheta; jj++) {
+			a->mu_param[id][jj] = a->theta[jj][GMRFLib_thread_id][0];
+			if (debug) {
+				printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
+			}
+		}
+		if (debug) {
+			printf("Call cgeneric\n");
+		}
+		x_out = a->model_func(INLA_CGENERIC_MU, a->mu_param[id], a->data);
+		if (debug) {
+			printf("Return from cgeneric with x_out[0]= %1d\n", (int) x_out[0]);
+		}
+		n = (int) x_out[k++];
+		if (n > 0) {
+			assert(n == a->n);
+			a->mu[id] = Calloc(n, double);
+			Memcpy((void *) (a->mu[id]), (void *) &(x_out[k]), n * sizeof(double));
+			a->mu_zero = 0;
+		} else {
+			// a->mu[id] = Calloc(a->n, double);
+			a->mu_zero = 1;
+		}
+		Free(x_out);
 
 		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
 		if (a->mu_zero) {
@@ -8595,9 +8756,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -12685,7 +12846,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 				}
 			} else {
 				if (mb->verbose) {
-					printf("\tstore results in directory=[%s]\n", tmp);
+					printf("\t\tstore results in directory=[%s]\n", tmp);
 				}
 				mb->dir = tmp;
 				ok = 1;
@@ -19304,6 +19465,82 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 	return GMRFLib_SUCCESS;
 }
 
+int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out)
+{
+	int i, n, nn;
+
+#pragma omp critical
+	{
+		fprintf(fp, "cgeneric(%s) cmd=%s out=\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
+		switch (cmd) {
+		case INLA_CGENERIC_Q:
+		{
+			fprintf(fp, "\tout[0] = %d  out[1] = %d\n", (int) out[0], (int) out[1]);
+			n = (int) out[1];
+			if ((int) out[0] == -1) {
+				for (i = 0; i < n; i++) {
+					fprintf(fp, "\t%1d %.8f\n", i, out[2 + i]);
+				}
+			} else {
+				for (i = 0; i < n; i++) {
+					fprintf(fp, "\t%1d (%1d, %1d, %.8f)\n", i, (int) out[2 + i], (int) out[2 + n + i], out[2 + 2 * n + i]);
+				}
+			}
+			break;
+		}
+
+		case INLA_CGENERIC_GRAPH:
+		{
+			n = (int) out[0];
+			nn = (int) out[1];
+			for (i = 0; i < nn; i++) {
+				fprintf(fp, "\t%1d (%1d %1d)\n", i, (int) out[2 + i], (int) out[2 + n + i]);
+			}
+			break;
+		}
+
+		case INLA_CGENERIC_MU:
+		{
+			n = (int) out[0];
+			for (i = 0; i < n; i++) {
+				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
+			}
+			break;
+		}
+
+		case INLA_CGENERIC_INITIAL:
+		{
+			n = (int) out[0];
+			for (i = 0; i < n; i++) {
+				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
+			}
+			break;
+		}
+
+		case INLA_CGENERIC_LOG_NORM_CONST:
+		{
+			if (out) {
+				fprintf(fp, "\t%.8f\n", out[0]);
+			}
+			break;
+		}
+
+		case INLA_CGENERIC_LOG_PRIOR:
+		{
+			if (out) {
+				fprintf(fp, "\t%.8f\n", out[0]);
+			}
+			break;
+		}
+
+		default:
+			break;
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 {
 #define _SET(a_, b_) mb->f_ ## a_[mb->nf] = b_
@@ -19315,15 +19552,20 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	 * parse section = ffield 
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
-	    nstrata = 0, nsubject = 0;
+	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
-	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL;
+	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
+	    *cgeneric_shlib = NULL, *cgeneric_model = NULL;
 	double **log_prec = NULL, **log_prec0 = NULL, **log_prec1 = NULL, **log_prec2, **phi_intern = NULL, **rho_intern =
 	    NULL, **group_rho_intern = NULL, **group_prec_intern = NULL, **rho_intern01 = NULL, **rho_intern02 =
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
 	    NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd, **mean_x = NULL, **log_prec_x =
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
 	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL;
+
+	lt_dlhandle handle;
+	inla_cgeneric_func_tp *model_func = NULL;
+	inla_cgeneric_data_tp *cgeneric_data = NULL;
 
 	GMRFLib_matrix_tp *intslope_def = NULL;
 	GMRFLib_crwdef_tp *crwdef = NULL;
@@ -19592,6 +19834,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_R_GENERIC;
 		mb->f_ntheta[mb->nf] = -1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("RGeneric2");
+	} else if (_OneOf("CGENERIC")) {
+		mb->f_id[mb->nf] = F_C_GENERIC;
+		mb->f_ntheta[mb->nf] = -1;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("CGeneric");
 	} else if (_OneOf("RW1")) {
 		mb->f_id[mb->nf] = F_RW1;
 		mb->f_ntheta[mb->nf] = 1;
@@ -19974,6 +20220,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_R_GENERIC:
+	case F_C_GENERIC:
 		break;
 
 	default:
@@ -20787,6 +21034,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		case F_LOG1EXP:
 		case F_LOGDIST:
 		case F_R_GENERIC:
+		case F_C_GENERIC:
 		case F_DMATERN:
 		{
 			/*
@@ -22000,6 +22248,185 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			printf("\t\tntheta = [%1d]\n", ntheta);
 			for (ii = 0; ii < ntheta; ii++) {
+				printf("\t\tinitial[%1d] = %g\n", ii, initial[ii]);
+			}
+		}
+
+		if (ntheta) {
+			mb->f_fixed[mb->nf] = Calloc(ntheta, int);
+			mb->f_theta[mb->nf] = Calloc(ntheta, double **);
+		} else {
+			mb->f_fixed[mb->nf] = NULL;
+			mb->f_theta[mb->nf] = NULL;
+		}
+
+		for (i = 0; i < ntheta; i++) {
+			double theta_initial;
+
+			mb->f_fixed[mb->nf][i] = 0;
+			theta_initial = initial[i];
+
+			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+				theta_initial = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(mb->f_theta[mb->nf][i], theta_initial);
+			if (mb->verbose) {
+				printf("\t\tinitialise theta[%1d]=[%g]\n", i, theta_initial);
+				printf("\t\tfixed[%1d]=[%1d]\n", i, mb->f_fixed[mb->nf][i]);
+			}
+
+			/*
+			 * add this \theta 
+			 */
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = NULL;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Theta%1d for %s", i + 1, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter%1d", mb->f_dir[mb->nf], i + 1);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup("function(x) x");
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup("function(x) x");
+
+			mb->theta[mb->ntheta] = mb->f_theta[mb->nf][i];
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+		}
+
+		break;
+	}
+
+	case F_C_GENERIC:
+	{
+		const char *emsg = NULL;
+		char *cdata_fnm = NULL;
+		cgeneric_shlib = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.SHLIB"), NULL);
+		cgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.MODEL"), NULL);
+		cgeneric_n = iniparser_getint(ini, inla_string_join(secname, "CGENERIC.N"), cgeneric_n);
+		cgeneric_debug = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.DEBUG"), cgeneric_debug);
+		cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
+
+		cgeneric_data = inla_cgeneric_read_data(cdata_fnm, cgeneric_debug);
+
+		if (mb->verbose) {
+			printf("\t\tcgeneric.shlib  [%s]\n", cgeneric_shlib);
+			printf("\t\tcgeneric.model  [%s]\n", cgeneric_model);
+			printf("\t\tcgeneric.data   [%s]\n", cdata_fnm);
+			printf("\t\tcgeneric.n      [%1d]\n", cgeneric_n);
+			printf("\t\tcgeneric.debug  [%1d]\n", cgeneric_debug);
+		}
+
+		int nn;
+		double *x_out = NULL, *xx_out = NULL;
+
+		static int ltdl_init = 1;
+		if (ltdl_init) {
+			lt_dlinit();
+			if ((emsg = lt_dlerror())) {
+				char *msg;
+				GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+			ltdl_init = 0;
+			lt_dlerror();
+		}
+
+		handle = lt_dlopen(cgeneric_shlib);
+		if (!handle) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
+			inla_error_general(msg);
+			assert(0 != 1);
+			exit(1);
+		}
+		lt_dlerror();
+
+		model_func = lt_dlsym(handle, cgeneric_model);
+		if ((emsg = lt_dlerror())) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
+			inla_error_general(msg);
+			assert(0 != 1);
+			exit(1);
+		}
+		lt_dlerror();
+
+		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+		if (cgeneric_debug) {
+			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, xx_out);
+		}
+		nn = (int) xx_out[0];
+
+		if (nn != cgeneric_n) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "f(%s): 'n' does not match with the one in cgeneric-function '%s', %1d != %1d\n",
+					secname, cgeneric_model, nn, cgeneric_n);
+			inla_error_general(msg);
+			assert(0 != 1);
+			exit(1);
+		}
+
+		if (mb->f_n[mb->nf] != nn) {
+			int err = 0;
+			for (i = 0; i < mb->f_n[mb->nf]; i++) {
+				// provide a warning if something could be wrong in the input
+				if (mb->f_locations[mb->nf][i] != i + 1)
+					err++;
+			}
+			if (err) {
+				char *msg;
+				GMRFLib_sprintf(&msg, "%s\n\t\t%s, %1d != %1d, \n\t\t%s\n\t\t%s%1d%s",
+						"There is a potential issue with the 'cgeneric' model and the indices used:",
+						"the dimension of the model is different from expected", mb->f_n[mb->nf], nn,
+						"and correctness cannot be verified.",
+						"Please use argument n=", nn, ", f.ex, to *define* the dimension of the cgeneric model.");
+				inla_error_general(msg);
+				assert(0 != 1);
+				exit(1);
+			}
+
+			Free(mb->f_locations[mb->nf]);
+			mb->f_locations[mb->nf] = Calloc(nn, double);
+			for (i = 0; i < nn; i++) {
+				mb->f_locations[mb->nf][i] = i + 1;	/* set default ones */
+			}
+			mb->f_n[mb->nf] = mb->f_N[mb->nf] = nn;
+		}
+		Free(xx_out);
+
+		int ntheta = 0;
+		double *initial = NULL;
+
+		x_out = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
+		if (cgeneric_debug) {
+			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_INITIAL, x_out);
+		}
+		ntheta = (int) x_out[0];
+		if (ntheta) {
+			initial = Calloc(ntheta, double);
+			Memcpy(initial, &(x_out[1]), ntheta * sizeof(double));
+		}
+		Free(x_out);
+
+		mb->f_ntheta[mb->nf] = ntheta;
+		mb->f_initial[mb->nf] = initial;
+
+		if (mb->verbose) {
+			printf("\t\tntheta = [%1d]\n", ntheta);
+			for (int ii = 0; ii < ntheta; ii++) {
 				printf("\t\tinitial[%1d] = %g\n", ii, initial[ii]);
 			}
 		}
@@ -25588,6 +26015,157 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
 		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
 		mb->f_bfunc2[mb->nf]->mfunc = mfunc_rgeneric;
+		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
+		mb->f_bfunc2[mb->nf]->nreplicate = 1;
+		mb->f_bfunc2[mb->nf]->ngroup = 1;
+
+		break;
+	}
+
+	case F_C_GENERIC:
+	{
+		/*
+		 * C_GENERIC
+		 */
+		inla_cgeneric_tp *def = Calloc(1, inla_cgeneric_tp), *def_orig = Calloc(1, inla_cgeneric_tp);
+		double ***tptr;
+
+		def->shlib = GMRFLib_strdup(cgeneric_shlib);
+		def->model = GMRFLib_strdup(cgeneric_model);
+		def->model_func = model_func;
+		def->data = cgeneric_data;
+		def->secname = GMRFLib_strdup(secname);
+		def->debug = cgeneric_debug;
+		def->mu = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->mu_param = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->ntheta = mb->f_ntheta[mb->nf];
+		def->param = Calloc(GMRFLib_CACHE_LEN, double *);
+		def->Q = Calloc(GMRFLib_CACHE_LEN, GMRFLib_tabulate_Qfunc_tp *);
+		def->reset_cache = 0;			       /* only do if = 0 */
+		def->graph = NULL;
+		if (def->ntheta) {
+			tptr = Calloc(def->ntheta, double **);
+			for (j = 0; j < def->ntheta; j++) {
+				tptr[j] = mb->f_theta[mb->nf][j];
+			}
+			def->theta = tptr;
+		} else {
+			def->theta = NULL;
+		}
+
+		def_orig->shlib = GMRFLib_strdup(cgeneric_shlib);
+		def_orig->model = GMRFLib_strdup(cgeneric_model);
+		def_orig->model_func = model_func;
+		def_orig->data = cgeneric_data;
+		def_orig->secname = GMRFLib_strdup(secname);
+		def_orig->debug = cgeneric_debug;
+		def_orig->mu = Calloc(GMRFLib_CACHE_LEN, double *);
+		def_orig->mu_param = Calloc(GMRFLib_CACHE_LEN, double *);
+		def_orig->ntheta = mb->f_ntheta[mb->nf];
+		def_orig->param = Calloc(GMRFLib_CACHE_LEN, double *);
+		def_orig->Q = Calloc(GMRFLib_CACHE_LEN, GMRFLib_tabulate_Qfunc_tp *);
+		if (def_orig->ntheta) {
+			tptr = Calloc(def_orig->ntheta, double **);
+			for (j = 0; j < def_orig->ntheta; j++) {
+				tptr[j] = mb->f_theta[mb->nf][j];
+			}
+			def_orig->theta = tptr;
+		} else {
+			def_orig->theta = NULL;
+		}
+
+
+		double *x_out = NULL;
+		x_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+		if (cgeneric_debug) {
+			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, x_out);
+		}
+
+		int n, len, *ilist, *jlist, k = 0;
+		n = (int) x_out[k++];
+		len = (int) x_out[k++];
+		ilist = Calloc(len, int);
+		for (i = 0; i < len; i++) {
+			ilist[i] = (int) x_out[k++];
+		}
+		jlist = Calloc(len, int);
+		for (i = 0; i < len; i++) {
+			jlist[i] = (int) x_out[k++];
+		}
+
+		double *Qijlist = Calloc(len, double);
+		for (i = 0; i < len; i++) {
+			Qijlist[i] = 1.0;
+		}
+
+		GMRFLib_tabulate_Qfunc_tp *tab;
+		GMRFLib_graph_tp *graph, *ggraph;
+
+		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+		GMRFLib_free_tabulate_Qfunc(tab);
+		Free(ilist);
+		Free(jlist);
+		Free(Qijlist);
+		Free(x_out);
+
+		def->graph = graph;
+		mb->f_graph[mb->nf] = graph;
+		mb->f_Qfunc[mb->nf] = Qfunc_cgeneric;
+		mb->f_Qfunc_arg[mb->nf] = (void *) def;
+
+		// save the indices for the graph, as we need them repeatedly
+		GMRFLib_graph_nnodes(&(def->len_list), graph);
+		def->len_list = (def->len_list - graph->n) / 2 + graph->n;
+		def->ilist = Calloc(def->len_list, int);
+		def->jlist = Calloc(def->len_list, int);
+		for (i = 0, k = 0; i < graph->n; i++) {
+			def->ilist[k] = i;
+			def->jlist[k] = i;
+			k++;
+			for (jj = 0; jj < graph->lnnbs[i]; jj++) {
+				j = graph->lnbs[i][jj];
+				def->ilist[k] = i;
+				def->jlist[k] = j;
+				k++;
+			}
+		}
+
+		// we need to revert the order of the list. pretty annoying...
+		GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+		// now we need to sort within each value of jlist.
+		assert(def->jlist[0] == 0);
+		for (j = k = 0; j < graph->n; j++) {
+			for (jj = k; jj < def->len_list; jj++) {
+				if (def->jlist[jj] > j)
+					break;
+			}
+			qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
+			k = jj;
+		}
+		assert(k == def->len_list);
+
+		def_orig->len_list = def->len_list;
+		def_orig->ilist = Calloc(def_orig->len_list, int);
+		def_orig->jlist = Calloc(def_orig->len_list, int);
+		Memcpy(def_orig->ilist, def->ilist, def->len_list * sizeof(int));
+		Memcpy(def_orig->jlist, def->jlist, def->len_list * sizeof(int));
+
+		GMRFLib_graph_duplicate(&ggraph, graph);
+		def_orig->graph = graph;
+		mb->f_graph_orig[mb->nf] = ggraph;
+		mb->f_Qfunc_orig[mb->nf] = Qfunc_cgeneric;
+		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
+
+		mb->f_N[mb->nf] = mb->f_n[mb->nf] = def->n = graph->n;
+		mb->f_rankdef[mb->nf] = 0.0;
+
+		mb->f_bfunc2[mb->nf] = Calloc(1, GMRFLib_bfunc2_tp);
+		mb->f_bfunc2[mb->nf]->graph = mb->f_graph[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc = mb->f_Qfunc[mb->nf];
+		mb->f_bfunc2[mb->nf]->Qfunc_arg = mb->f_Qfunc_arg[mb->nf];
+		mb->f_bfunc2[mb->nf]->diagonal = mb->f_diag[mb->nf];
+		mb->f_bfunc2[mb->nf]->mfunc = mfunc_cgeneric;
 		mb->f_bfunc2[mb->nf]->mfunc_arg = mb->f_Qfunc_arg[mb->nf];
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
@@ -30437,6 +31015,171 @@ double extra(double *theta, int ntheta, void *argument)
 			if (n_out) {
 				Free(x_out);
 			}
+			break;
+		}
+
+		case F_C_GENERIC:
+		{
+			int n_out, nn_out, ii, ntheta, all_fixed = 0;
+
+			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
+			inla_cgeneric_tp *def = NULL;
+			def = (inla_cgeneric_tp *) mb->f_Qfunc_arg_orig[i];
+
+			ntheta = def->ntheta;
+			if (ntheta) {
+				all_fixed = 1;
+				param = Calloc(ntheta, double);
+				for (ii = 0; ii < ntheta; ii++) {
+					if (_NOT_FIXED(f_fixed[i][ii])) {
+						param[ii] = theta[count];
+						all_fixed = 0;
+						count++;
+					} else {
+						param[ii] = mb->f_theta[i][ii][GMRFLib_thread_id][0];
+					}
+				}
+			}
+
+			x_out = def->model_func(INLA_CGENERIC_LOG_NORM_CONST, param, def->data);
+			if (def->debug) {
+				inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_LOG_NORM_CONST, x_out);
+			}
+
+			xx_out = def->model_func(INLA_CGENERIC_LOG_PRIOR, param, def->data);
+			if (def->debug) {
+				inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_LOG_PRIOR, xx_out);
+			}
+
+			nn_out = (xx_out ? 1 : 0);
+			switch (nn_out) {
+			case 0:
+				log_prior = 0.0;
+				break;
+			case 1:
+				// we need to add a check for 'all_fixed' here, as with control.mode=list(...,fixed=TRUE) will
+				// trigger all_fixed=1.
+				log_prior = (evaluate_hyper_prior && !all_fixed ? xx_out[0] : 0.0);
+				break;
+			default:
+				assert(0 == 1);
+			}
+			Free(xx_out);
+
+			n_out = (x_out ? 1 : 0);
+			switch (n_out) {
+			case 0:
+			{
+				/*
+				 * if it is the standard norm.const, the user can request us to compute it here if NULL is returned
+				 */
+				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
+				double *Qijlist = NULL;
+				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
+				xx_out = def->model_func(INLA_CGENERIC_Q, param, def->data);
+				if (def->debug) {
+					inla_cgeneric_debug(stdout, def->secname, INLA_CGENERIC_Q, xx_out);
+				}
+
+				if ((int) xx_out[0] == -1) {
+					// optimized output
+					k = 1;
+					len = (int) xx_out[k++];
+					assert(len == def->len_list);
+					assert(def->graph);
+					assert(def->ilist);
+					assert(def->jlist);
+					n = def->graph->n;
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
+									  def->graph->n, NULL, NULL, NULL);
+				} else {
+					n = (int) xx_out[k++];
+					len = (int) xx_out[k++];
+					ilist = (int *) &xx_out[k];
+					jlist = (int *) &xx_out[k + len];
+					Qijlist = &xx_out[k + 2 * len];
+					for (jj = 0; jj < len; jj++) {
+						ilist[jj] = (int) xx_out[k + jj];
+						jlist[jj] = (int) xx_out[k + len + jj];
+					}
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+				}
+
+				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
+				GMRFLib_problem_tp *problem = NULL;
+				GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
+				double *cc_add = Calloc(n, double);
+
+				if (mb->f_diag[i]) {
+					for (jj = 0; jj < n; jj++) {
+						cc_add[jj] = mb->f_diag[i];
+					}
+				}
+
+				while (!ok) {
+					retval = GMRFLib_init_problem(&problem, NULL, NULL, cc_add, NULL,
+								      def->graph, Qf->Qfunc, Qf->Qfunc_arg, mb->f_constr_orig[i]);
+					switch (retval) {
+					case GMRFLib_EPOSDEF:
+					{
+						double eps = GMRFLib_eps(0.5);
+						for (jj = 0; jj < n; jj++) {
+							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
+						}
+						break;
+					}
+
+					case GMRFLib_SUCCESS:
+						ok = 1;
+						break;
+
+					default:
+						/*
+						 * some other error 
+						 */
+						GMRFLib_set_error_handler(old_handler);
+						assert(0 == 1);
+						abort();
+					}
+
+					if (++num_try >= num_try_max) {
+						FIXME("This should not happen. Contact developers...");
+						abort();
+					}
+				}
+				Free(cc_add);
+				GMRFLib_set_error_handler(old_handler);
+				GMRFLib_evaluate(problem);
+				log_norm_const = problem->sub_logdens;
+
+				GMRFLib_free_problem(problem);
+				GMRFLib_free_tabulate_Qfunc(Qf);
+				Free(xx_out);
+			}
+				break;
+
+			case 1:
+			{
+				log_norm_const = x_out[0];
+				break;
+			}
+
+			default:
+				assert(0 == 1);
+			}
+
+			if (debug) {
+				for (ii = 0; ii < ntheta; ii++) {
+					printf("p %.12g ", param[ii]);
+				}
+				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
+			}
+
+			_SET_GROUP_RHO(ntheta);
+			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
+
+			Free(param);
+			Free(x_out);
 			break;
 		}
 

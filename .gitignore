@@ -894,7 +894,6 @@ r-inla.org/doc/likelihood/cenpoisson2.pdf
 
 r-inla.org/doc/likelihood/cenpoisson2.synctex.gz
 
-r-inla.org/doc/likelihood/fmri.pdf
 
 GPATH
 
@@ -1032,3 +1031,5 @@ r-inla.org/doc/link/powerlogit.fdb_latexmk
 r-inla.org/doc/link/powerlogit.fls
 
 r-inla.org/doc/link/powerlogit.synctex.gz
+
+sandbox/dynlinking/test

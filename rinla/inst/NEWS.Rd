@@ -4,6 +4,22 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.12.10}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item A \code{cgeneric} interface
+      like \code{rgeneric} but with C-code.
+      This is for internal testing only.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various code improvements and minor fixes
+    }
+  }
+}
+
+
 \section{CHANGES IN VERSION 21.12.01}{
   \subsection{NEW FEATURES}{
     \itemize{

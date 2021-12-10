@@ -49,6 +49,7 @@ __BEGIN_DECLS
 #include "fgn.h"
 #include "stochvol.h"
 #include "quantile-regression.h"
+#include "cgeneric.h"
 #define ONE_MINUS_EXP(_x) (-expm1(_x))			       /* 1-exp(_x) */
 #define LOG_ONE_MINUS(_x) (log1p(-(_x)))		       /* log(1-(_x)) */
 #define LOG_NORMC_GAUSSIAN (-0.91893853320467274178032973640560)	/* -1/2 * log(2*pi) */
@@ -287,6 +288,7 @@ typedef enum {
 	F_DMATERN,
 	F_INTSLOPE,
 	F_IIDKD,
+	F_C_GENERIC,
 	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
 	P_DIRICHLET,
@@ -1456,6 +1458,29 @@ typedef struct {
 } inla_rgeneric_tp;
 
 typedef struct {
+	int Id;
+	int debug;
+	char *shlib;					       /* file to load containing the model definition */
+	char *model;					       /* the name of the model definition */
+	char *secname;
+	int ntheta;
+	int n;
+	int mu_zero;					       /* often mu is zero, allow for fast return */
+	int reset_cache;
+	int *ilist;
+	int *jlist;
+	int len_list;
+	inla_cgeneric_data_tp *data;
+	double ***theta;
+	double **param;
+	GMRFLib_graph_tp *graph;
+	GMRFLib_tabulate_Qfunc_tp **Q;
+	double **mu;
+	double **mu_param;
+	inla_cgeneric_func_tp *model_func;
+} inla_cgeneric_tp;
+
+typedef struct {
 	int n;						       /* size of graph */
 	int m;						       /* number of terms in the sum */
 	GMRFLib_graph_tp *graph;			       /* total graph */
@@ -1570,6 +1595,7 @@ double Qfunc_logdist(int i, int j, double *values, void *arg);
 double Qfunc_mec(int i, int j, double *values, void *arg);
 double Qfunc_ou(int i, int j, double *values, void *arg);
 double Qfunc_replicate(int i, int j, double *values, void *arg);
+double Qfunc_cgeneric(int i, int j, double *values, void *arg);
 double Qfunc_rgeneric(int i, int j, double *values, void *arg);
 double Qfunc_rw2diid(int i, int j, double *values, void *arg);
 double Qfunc_sigm(int i, int j, double *values, void *arg);
@@ -1658,11 +1684,13 @@ double map_rho(double arg, map_arg_tp typ, void *param);
 double map_shape_svnig(double arg, map_arg_tp typ, void *param);
 double map_sqrt1exp(double arg, map_arg_tp typ, void *param);
 double mfunc_ar1(int i, void *arg);
+double mfunc_cgeneric(int i, void *arg);
 double mfunc_clinear(int i, void *arg);
 double mfunc_log1exp(int i, void *arg);
 double mfunc_logdist(int i, void *arg);
 double mfunc_mec(int i, void *arg);
 double mfunc_revsigm(int i, void *arg);
+double mfunc_rgeneric(int i, void *arg);
 double mfunc_sigm(int i, void *arg);
 double priorfunc_beta(double *x, double *parameters);
 double priorfunc_betacorrelation(double *x, double *parameters);
@@ -1716,7 +1744,6 @@ double priorfunc_wishartk_8d(double *x, double *parameters);
 double priorfunc_wishartk_9d(double *x, double *parameters);
 double priorfunc_wishartk_10d(double *x, double *parameters);
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
-double rgeneric_mfunc(int idx, void *arg);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
 inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir);
@@ -1736,6 +1763,7 @@ int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);
+int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
 int inla_divisible(int n, int by);
 int inla_endian(void);
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value);

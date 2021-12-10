@@ -1931,7 +1931,7 @@
                     A <- gp$random.spec[[r]]$extraconstr$A
                     e <- gp$random.spec[[r]]$extraconstr$e
 
-                    if ((gp$random.spec[[r]]$model != "rgeneric") &&
+                    if ((gp$random.spec[[r]]$model != "rgeneric") && (gp$random.spec[[r]]$model != "cgeneric") &&
                         (ncol(A) != inla.model.properties(gp$random.spec[[r]]$model, "latent")$aug.factor * n)) {
                         stop(paste(
                             "\n\tncol in matrix A(extraconstr) does not correspont to the length of f:",

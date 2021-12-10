@@ -933,10 +933,19 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	}
 
 	double amin, fmin;
-	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 2);
+	int robust_regression = 1, order = 2;
+
+	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, order);
+	if (amin < DMIN(aa[0], aa[na-1]) || amin > DMAX(aa[0], aa[na-1])) {
+		int idx_min;
+		GMRFLib_min_value(fun, na, &idx_min);
+		amin = aa[idx_min];
+		robust_regression = 0;
+	}
 
 	if (debug) {
-		printf("\tamin %f fmin %f\n", amin, fmin);
+		printf("\tamin %f fmin %f (%s)\n", amin, fmin,
+		       (robust_regression ? "robust regression, internal minimum" : "enable emergency mode"));
 	}
 	*alpha_new = amin;
 

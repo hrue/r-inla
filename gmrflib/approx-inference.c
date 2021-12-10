@@ -427,7 +427,8 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	double ldens = 0.0;
 	int n, free_ai_par = 0;
 	int Npred = (preopt ? preopt->Npred : graph->n);
-
+	ai_store->Npred = Npred;
+	
 	/*
 	 * this is a special option for _INLA(), so it works only when calling it the first time 
 	 */
@@ -918,6 +919,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	GMRFLib_store_tp *store = NULL;
 	GMRFLib_ai_strategy_tp strategy;
 
+	int Npred = (preopt ? preopt->Npred : graph->n);
+	ai_store->Npred = Npred;
+
 #define COMPUTE_CPO_DENSITY						\
 	if (cpo_density) {						\
 		if (d[idx]) {						\
@@ -1078,9 +1082,9 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		Free(ai_store->aa);
 		Free(ai_store->bb);
 		Free(ai_store->cc);
-		ai_store->aa = Calloc(n, double);
-		ai_store->bb = Calloc(n, double);
-		ai_store->cc = Calloc(n, double);
+		ai_store->aa = Calloc(Npred, double);
+		ai_store->bb = Calloc(Npred, double);
+		ai_store->cc = Calloc(Npred, double);
 
 		GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store__intern(&(ai_store->problem),
 									     (ai_store->mode ? ai_store->mode : x),
@@ -9531,17 +9535,17 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	int id = 0;
 	GMRFLib_meminfo_thread_id = id;
 
-#define DUPLICATE(name, len, tp, skeleton_)				\
+#define DUPLICATE(name_, len_, tp_, skeleton_)				\
 	if (1) {							\
-		if (ai_store->name && len && !skeleton_){		\
-			new_ai_store->name = Calloc(len, tp);		\
-			Memcpy(new_ai_store->name, ai_store->name, len*sizeof(tp)); \
+		if (ai_store->name_ && (len_) && !(skeleton_)){		\
+			new_ai_store->name_ = Calloc(len_, tp_);	\
+			Memcpy(new_ai_store->name_, ai_store->name_, (len_)*sizeof(tp_)); \
 		} else {						\
-			new_ai_store->name = NULL;			\
+			new_ai_store->name_ = NULL;			\
 	 	}							\
 	}
 
-#define COPY(name) new_ai_store->name = ai_store->name
+#define COPY(name_) new_ai_store->name_ = ai_store->name_
 
 	GMRFLib_ENTER_ROUTINE;
 	if (!ai_store) {
@@ -9551,17 +9555,19 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	GMRFLib_ai_store_tp *new_ai_store = Calloc(1, GMRFLib_ai_store_tp);
 	int n = (ai_store->problem ? ai_store->problem->n : 0);
 	int nd = ai_store->nd;
+	int Npred = ai_store->Npred;
 
 	GMRFLib_meminfo_thread_id = id;
 	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
 	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
-	COPY(nidx);
+	COPY(nidx);	
 	COPY(nd);
+	COPY(Npred);
 
 	DUPLICATE(mode, n, double, 0);
-	DUPLICATE(aa, n, double, skeleton);
-	DUPLICATE(bb, n, double, skeleton);
-	DUPLICATE(cc, n, double, skeleton);
+	DUPLICATE(aa, Npred, double, skeleton);
+	DUPLICATE(bb, Npred, double, skeleton);
+	DUPLICATE(cc, Npred, double, skeleton);
 	DUPLICATE(stdev, n, double, skeleton);
 	DUPLICATE(correction_term, n, double, skeleton);
 	DUPLICATE(derivative3, n, double, skeleton);

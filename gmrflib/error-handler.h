@@ -89,6 +89,8 @@ __BEGIN_DECLS
 #define  GMRFLib_EPARDISO_INTERNAL_ERROR  (27)		       /* */
 #define  GMRFLib_EPARDISO_NO_LIBRARY  (28)		       /* */
 #define  GMRFLib_ESINGCONSTR2 (29)			       /* Singular constraints: Matrix AA' is singular (input error) */
+#define  GMRFLib_EDLOPEN      (30)			       /* dlopen */
+#define  GMRFLib_EDLSYM       (31)			       /* dlsym */
 
 /**
   \brief A template function declaration for specifying error-handling functions.
