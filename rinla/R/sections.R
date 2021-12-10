@@ -769,7 +769,19 @@
     }
 
     if (random.spec$model == "cgeneric") {
-        shlib <- inla.copy.file.for.section(random.spec$cgeneric$model$shlib, data.dir)
+
+        if (inla.os.type() == "windows") {
+            suffix <- ".dll"
+        } else if (inla.os.type() == "linux") {
+            suffix <- ".so"
+        } else if (inla.os.type() == "mac" || inla.os.type() == "mac.arm64") {
+            ## mac
+            suffix <- ".dylib"
+        } else {
+            stop("SHOULD NOT HAPPEN")
+        }
+
+        shlib <- inla.copy.file.for.section(random.spec$cgeneric$model$shlib, data.dir, suffix = suffix)
         shlib <- gsub(data.dir, "$inladatadir", shlib, fixed = TRUE)
         cat("cgeneric.shlib =", shlib, "\n", file = file, append = TRUE)
         cat("cgeneric.model =", random.spec$cgeneric$model$model, "\n", file = file, append = TRUE)
@@ -1502,7 +1514,7 @@
     }
 }
 
-`inla.copy.file.for.section` <- function(filename, data.dir) {
+`inla.copy.file.for.section` <- function(filename, data.dir, suffix = "") {
     if (missing(filename)) {
         return(NULL)
     }
@@ -1511,8 +1523,9 @@
     }
 
     fnm <- inla.tempfile(tmpdir = data.dir)
+    fnm <- paste0(fnm, suffix)
     file.copy(filename, fnm, overwrite = TRUE)
-    return(gsub(data.dir, "$inladatadir", fnm, fixed = TRUE))
+    return (gsub(data.dir, "$inladatadir", fnm, fixed = TRUE))
 }
 
 `inla.copy.dir.for.section` <- function(dir.name, data.dir) {
