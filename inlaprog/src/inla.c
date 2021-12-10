@@ -37662,6 +37662,36 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 68: 
+	{
+		assert(nargs == 3);
+		printf("Call 'double (*fun)(double)' function [%s] in [%s] with argument [%s]\n", args[0], args[1], args[2]);
+		    lt_dlhandle handle;
+		    double (*fun)(double);
+		    const char *error;
+
+		    lt_dlinit();
+		    handle = lt_dlopen (args[1]);
+		    if (!handle) {
+			    fprintf (stderr, "%s\n", lt_dlerror());
+			    exit(1);
+		    }
+		    lt_dlerror();
+
+		    fun = lt_dlsym(handle, args[0]);
+		    if ((error = lt_dlerror()) != NULL)  {
+			    fprintf (stderr, "%s\n", error);
+			    exit(1);
+		    }
+		    lt_dlerror();
+
+		    double x = atof(args[2]);
+		    printf("fun(%g) = %g\n", x, fun(x));
+		    lt_dlclose(handle);
+
+		    break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
