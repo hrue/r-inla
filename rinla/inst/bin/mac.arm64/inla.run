@@ -40,7 +40,7 @@ for f in $DIR/first/lib*.dylib*; do
     esac
 done
 
-export MALLOC_CONF='abort_conf:true,true,metadata_thp:auto'
+export MALLOC_CONF='abort_conf:true,metadata_thp:auto'
 export DYLD_LIBRARY_PATH="$DIR/first:$RHOME_LIB:$DIR:/usr/lib:/opt/homebrew/lib:$DYLD_LIBRARY_PATH"
 if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "MALLOC_CONF=$MALLOC_CONF"
