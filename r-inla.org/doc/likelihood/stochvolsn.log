@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.11.1)  2 NOV 2021 14:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.12.10)  11 DEC 2021 00:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -422,8 +422,8 @@ ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
-dmap/pdftex.map): fontmap entry for `rpxpplbo' already exists, duplicates ignor
-ed
+dmap/pdftex.map): invalid entry for `rpxpplbo': SlantFont/ExtendFont can be use
+d only with embedded Type1 fonts
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
@@ -437,8 +437,8 @@ ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
-dmap/pdftex.map): fontmap entry for `rpxpplro' already exists, duplicates ignor
-ed
+dmap/pdftex.map): invalid entry for `rpxpplro': SlantFont/ExtendFont can be use
+d only with embedded Type1 fonts
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
@@ -452,8 +452,8 @@ d
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
-dmap/pdftex.map): invalid entry for `rtxphvbo': SlantFont/ExtendFont can be use
-d only with embedded Type1 fonts
+dmap/pdftex.map): fontmap entry for `rtxphvbo' already exists, duplicates ignor
+ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
@@ -462,8 +462,8 @@ d
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
-dmap/pdftex.map): invalid entry for `rtxphvro': SlantFont/ExtendFont can be use
-d only with embedded Type1 fonts
+dmap/pdftex.map): fontmap entry for `rtxphvro' already exists, duplicates ignor
+ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
@@ -477,8 +477,8 @@ ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
-dmap/pdftex.map): invalid entry for `rtxptmbo': SlantFont/ExtendFont can be use
-d only with embedded Type1 fonts
+dmap/pdftex.map): fontmap entry for `rtxptmbo' already exists, duplicates ignor
+ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
@@ -492,8 +492,8 @@ ed
 
 
 pdfTeX warning: pdflatex (file /usr/share/texlive/texmf-var/fonts/map/pdftex/up
-dmap/pdftex.map): invalid entry for `rtxptmro': SlantFont/ExtendFont can be use
-d only with embedded Type1 fonts
+dmap/pdftex.map): fontmap entry for `rtxptmro' already exists, duplicates ignor
+ed
 }]
 Overfull \hbox (47.70874pt too wide) in paragraph at lines 16--17
 [][][]\OT1/cmtt/m/n/10.95 function(x, skew.max = 0.988) log((1 + x / skew.max) 
@@ -511,7 +511,7 @@ File: "example-stochvolsn.R"  (verbatim)
  [2] [3] (./stochvolsn.aux) ) 
 Here is how much of TeX's memory you used:
  1656 strings out of 480806
- 23713 string characters out of 5905151
+ 23713 string characters out of 5905150
  327385 words of memory out of 6000000
  19065 multiletter control sequences out of 15000+600000
  409206 words of font info for 48 fonts, out of 8000000 for 9000
