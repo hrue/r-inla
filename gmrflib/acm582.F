@@ -1259,6 +1259,12 @@ c         these paths and in other connected components of full graph
 c         from further consideration.  sign of entries in tree1 is used
 c         as a mask.
 c
+      
+c     compiler warnings (HRUE)
+      width1 = 0
+      width2 = 0
+      revrs1 = .false.
+
       offdia = active
 c
       do 100 i = 1, depth
