@@ -85,7 +85,7 @@ static GMRFLib_meminfo_tp *MemInfo = NULL;
 #endif
 
 #define IDX_ALLOC_INITIAL 64
-#define IDX_ALLOC_ADD     128
+#define IDX_ALLOC_ADD     512
 
 char *GMRFLib_rindex(const char *p, int ch)
 {
