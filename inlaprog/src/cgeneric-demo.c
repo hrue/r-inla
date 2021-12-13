@@ -61,6 +61,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_GRAPH:
 	{
+		// return c(N, Npairs, ii, jj) where ii<=jj and increasing
+
 		ret = Calloc(2 + 2 * N, double);
 		ret[0] = N;				       /* dimension */
 		ret[1] = N;				       /* number of (i <= j) */
@@ -75,6 +77,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	{
 		if (1) {
 			// optimized format
+			// return c(N, Npairs, Qij) in the same order as above
 			ret = Calloc(2 + N, double);
 			ret[0] = -1;			       /* code for optimized output */
 			ret[1] = N;			       /* number of (i <= j) */
@@ -83,6 +86,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 			}
 		} else {
 			// plain format, but the optimized format above is better to use
+			// return c(N, Npairs, ii, jj, Qij) where ii<=jj and increasing
 			ret = Calloc(2 + 3 * N, double);
 			ret[0] = N;
 			ret[1] = N;
@@ -97,6 +101,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_MU:
 	{
+		// return (N, mu), if N=0 then mu==0
 		ret = Calloc(1, double);
 		ret[0] = 0;
 		break;
@@ -104,6 +109,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_INITIAL:
 	{
+		// return c(M, initials), define M hyperparameters
 		ret = Calloc(2, double);
 		ret[0] = 1;
 		ret[1] = 4.0;
@@ -112,6 +118,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
+		// return c(NORM_CONST)  or NULL-pointer for INLA to compute it itself
 		ret = Calloc(1, double);
 		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
 		break;
@@ -119,6 +126,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
+		// return c(LOG_PRIOR)
 		// prec ~ gamma(1,1)
 		ret = Calloc(1, double);
 		ret[0] = -prec + lprec;
@@ -136,6 +144,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
 {
 	// this reimplement `inla.rgeneric.ar1.model` using cgeneric
+	// see the 'iid' model for more comments in the code
 
 	double *ret = NULL, prec, lprec, rho, rho_intern;
 
