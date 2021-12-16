@@ -7708,7 +7708,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	for (iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM || ratio_ok);
 		double err_dx;
-
+		double ratio = NAN;
+		
 		time_grad = GMRFLib_cpu();
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
@@ -7733,7 +7734,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2] * cc_scale); \
-	}
+		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
@@ -7745,6 +7746,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
+		time_grad = GMRFLib_cpu() - time_grad;
 
 #define CODE_BLOCK							\
 		for (int jj = 0; jj < vb_idx->n; jj++) {		\
@@ -7770,7 +7772,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 			time_hess = GMRFLib_cpu() - time_hess;
 		}
+
+		time_grad += GMRFLib_cpu();
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
+		time_grad = GMRFLib_cpu() - time_grad;
 
 		if (debug) {
 			FIXME("M");
@@ -7779,16 +7784,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			GMRFLib_printf_gsl_vector(stdout, B, "%.6f ");
 		}
 
-		time_grad = GMRFLib_cpu() - time_grad;
 
 		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
-				double ltref = GMRFLib_cpu();
+				time_hess += GMRFLib_cpu();
 				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0 / 3.0));
-				time_hess += GMRFLib_cpu() - ltref;
-				time_grad += GMRFLib_cpu() - ltref; /* since grad is assumed to contain hess */
+				time_hess = GMRFLib_cpu() - time_hess;
 			}
 			if (debug) {
 				GMRFLib_printf_gsl_matrix(stdout, MM, "%.6f ");
@@ -7803,9 +7806,11 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		if (iter == 0) {
-			time_grad -= time_hess;		       /* since hess is included in grad */
 			// assume we need twice the number of iterations, then this is the decision value
-			ratio_ok = (time_hess / time_grad < 1.0);
+			ratio = time_hess / time_grad;
+			ratio_ok = (ratio < 1.0);
+		} else {
+			ratio = NAN;
 		}
 				
 		for (i = 0; i < (int) delta->size; i++) {
@@ -7840,8 +7845,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		if (ai_par->vb_verbose) {
-			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n",
-			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref);
+			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]sec hess/grad[%.3f]\n",
+			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
 			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f] rms(dx/sd)[%.3f]\n", (int) delta->size, step_len, err_dx);
 			if (do_break) {
 				for (jj = 0; jj < vb_idx->n; jj++) {
