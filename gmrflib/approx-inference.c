@@ -428,7 +428,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 	int n, free_ai_par = 0;
 	int Npred = (preopt ? preopt->Npred : graph->n);
 	ai_store->Npred = Npred;
-	
+
 	/*
 	 * this is a special option for _INLA(), so it works only when calling it the first time 
 	 */
@@ -7254,26 +7254,26 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 	 */
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
-#define NP 15
-		int i;
-		double *xp = NULL, *wp = NULL;
+
+		int i, np = 15;
+		double *xp = NULL, *wp = NULL, *x_user = NULL, *x_std = NULL, *loglik = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
 
-		double work[3 * NP];
-		double *x_user = work;
-		double *x_std = work + NP;
-		double *loglik = work + 2 * NP;
+		Calloc_init(3 * np);
+		x_user = Calloc_get(np);
+		x_std = Calloc_get(np);
+		loglik = Calloc_get(np);
 
-		GMRFLib_ghq(&xp, &wp, NP);		       /* just give ptr to storage */
-		for (i = 0; i < NP; i++) {
+		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
+		for (i = 0; i < np; i++) {
 			x_user[i] = m + s * xp[i];
 		}
-		GMRFLib_density_user2std_n(x_std, x_user, density, NP);
-		loglFunc(loglik, x_user, NP, idx, x_vec, NULL, loglFunc_arg);
+		GMRFLib_density_user2std_n(x_std, x_user, density, np);
+		loglFunc(loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s), tmp;
-		for (i = 0; i < NP; i++) {
+		for (i = 0; i < np; i++) {
 			tmp = wp[i] * d * loglik[i];
 			A -= tmp;
 			B -= tmp * xp[i] * s_inv;
@@ -7282,7 +7282,8 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 		coofs->coofs[0] = A;
 		coofs->coofs[1] = B;
 		coofs->coofs[2] = C;
-#undef NP
+		Calloc_free();
+
 		return GMRFLib_SUCCESS;
 	} else {
 		int i, k, np = GMRFLib_faster_integration_np;
@@ -7597,7 +7598,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
-	int keep_MM = 1;
+	int keep_MM = 1, ratio_ok = 0;
 
 	// this is for robustness: scale CC[i] with 'cc_scale'
 	double cc_scale = SQR(1.0 / 0.95);
@@ -7608,7 +7609,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	// double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
-
+	double time_grad = 0.0, time_hess = 0.0;
+	
 	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
@@ -7706,7 +7708,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	for (iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
 		double err_dx;
-
+		double ratio = NAN;
+		
+		if (ratio_ok) {
+			// this override options, as the decision is that it is most efficient to update MM all the time
+			update_MM = 1;
+			keep_MM = 0;
+		}
+		
+		time_grad = GMRFLib_cpu();
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
 		gsl_vector_set_zero(delta);
@@ -7730,7 +7740,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2] * cc_scale); \
-	}
+		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
@@ -7742,6 +7752,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
+		time_grad = GMRFLib_cpu() - time_grad;
 
 #define CODE_BLOCK							\
 		for (int jj = 0; jj < vb_idx->n; jj++) {		\
@@ -7758,14 +7769,19 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		if (update_MM) {
+			time_hess = GMRFLib_cpu();
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
 		}
 #undef CODE_BLOCK
 
 		if (update_MM) {
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
+			time_hess = GMRFLib_cpu() - time_hess;
 		}
+
+		time_grad += GMRFLib_cpu();
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
+		time_grad = GMRFLib_cpu() - time_grad;
 
 		if (debug) {
 			FIXME("M");
@@ -7778,7 +7794,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
+				time_hess += GMRFLib_cpu();
 				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0 / 3.0));
+				time_hess = GMRFLib_cpu() - time_hess;
 			}
 			if (debug) {
 				GMRFLib_printf_gsl_matrix(stdout, MM, "%.6f ");
@@ -7792,6 +7810,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0 / 3.0));
 		}
 
+		if (iter == 0) {
+			// assume we need twice the number of iterations, then this is the decision value
+			ratio = time_hess / time_grad;
+			ratio_ok = (ratio < 1.0);
+		} else {
+			ratio = NAN;
+		}
+				
 		for (i = 0; i < (int) delta->size; i++) {
 			if (ISNAN(gsl_vector_get(delta, i))) {
 				gsl_vector_set_zero(delta);
@@ -7824,8 +7850,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		if (ai_par->vb_verbose) {
-			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]seconds\n",
-			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref);
+			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]sec hess/grad[%.3f]\n",
+			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
 			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f] rms(dx/sd)[%.3f]\n", (int) delta->size, step_len, err_dx);
 			if (do_break) {
 				for (jj = 0; jj < vb_idx->n; jj++) {
@@ -9560,7 +9586,7 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	GMRFLib_meminfo_thread_id = id;
 	new_ai_store->store = GMRFLib_duplicate_store(ai_store->store, skeleton, copy_ptr, copy_pardiso_ptr);
 	new_ai_store->problem = GMRFLib_duplicate_problem(ai_store->problem, skeleton, copy_ptr, copy_pardiso_ptr);
-	COPY(nidx);	
+	COPY(nidx);
 	COPY(nd);
 	COPY(Npred);
 

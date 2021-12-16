@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.12.16}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item A bug-fix for \code{matern2d} model
+      \item Various code improvements
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.12.11}{
   \subsection{BUG FIXES}{
     \itemize{

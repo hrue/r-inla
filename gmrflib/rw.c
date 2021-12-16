@@ -799,13 +799,7 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 {
-	GMRFLib_graph_tp *g = NULL;
-
-	GMRFLib_EWRAP0(GMRFLib_graph_mk_lattice(&g, def->nrow, def->ncol, 2, 2, def->cyclic));
-	GMRFLib_EWRAP0(GMRFLib_graph_prune(graph, g, (GMRFLib_Qfunc_tp *) GMRFLib_rw2d, (void *) def));
-
-	GMRFLib_graph_free(g);
-
+	GMRFLib_graph_mk_lattice(graph, def->nrow, def->ncol, 2, 2, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 

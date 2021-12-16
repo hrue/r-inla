@@ -48,8 +48,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
 
-	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
+	int N = data->ints[0]->ints[0];			       // this will always be the case
 	assert(N > 0);
 
 	switch (cmd) {
@@ -61,6 +61,11 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_GRAPH:
 	{
+		// return a vector of indices with format
+		// c(N, M, ii, jj)
+		// where ii<=jj and both ii and jj are non-decreasing
+		// and M is the length of ii
+
 		ret = Calloc(2 + 2 * N, double);
 		ret[0] = N;				       /* dimension */
 		ret[1] = N;				       /* number of (i <= j) */
@@ -75,6 +80,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	{
 		if (1) {
 			// optimized format
+			// return c(N, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+			// where M is the length of Qij
 			ret = Calloc(2 + N, double);
 			ret[0] = -1;			       /* code for optimized output */
 			ret[1] = N;			       /* number of (i <= j) */
@@ -83,6 +90,9 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 			}
 		} else {
 			// plain format, but the optimized format above is better to use
+			// return c(N, M, ii, jj, Qij)
+			// where ii<=jj and both ii and jj are non-decreasing
+			// and M is the length of ii
 			ret = Calloc(2 + 3 * N, double);
 			ret[0] = N;
 			ret[1] = N;
@@ -97,6 +107,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_MU:
 	{
+		// return (N, mu)
+		// if N==0 then mu is not needed as its taken to be mu[]==0
 		ret = Calloc(1, double);
 		ret[0] = 0;
 		break;
@@ -104,6 +116,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_INITIAL:
 	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
 		ret = Calloc(2, double);
 		ret[0] = 1;
 		ret[1] = 4.0;
@@ -112,6 +126,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
+		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
 		ret = Calloc(1, double);
 		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
 		break;
@@ -119,9 +134,9 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
-		// prec ~ gamma(1,1)
+		// return c(LOG_PRIOR)
 		ret = Calloc(1, double);
-		ret[0] = -prec + lprec;
+		ret[0] = -prec + lprec;			       // prec ~ gamma(1,1)
 		break;
 	}
 
@@ -148,10 +163,10 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		prec = lprec = rho = rho_intern = NAN;
 	}
 
-	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
+	int N = data->ints[0]->ints[0];			       // this will always be the case
 	assert(N > 0);
-	
+
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
 	{
@@ -161,6 +176,11 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_GRAPH:
 	{
+		// return a vector of indices with format
+		// c(N, M, ii, jj)
+		// where ii<=jj and both ii and jj are non-decreasing
+		// and M is the length of ii
+
 		int m = N + N - 1, offset, i, k;
 		ret = Calloc(2 + 2 * m, double);
 
@@ -180,19 +200,14 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_Q:
 	{
+		// optimized format
+		// return c(N, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+		// where M is the length of Qij
+
 		double param = prec / (1.0 - SQR(rho));
 		int m = N + N - 1;
 		int offset, i, k;
 		ret = Calloc(2 + m, double);
-
-		// use optimized format.
-		// The order of Q_ij's are then predetermined as the upper triangular of Q:
-		//
-		// for(i=0; i < n; i++) 
-		//     for(j=i; j<n; j++)
-		//        ...
-		//
-		// but for only those (i,j)'s that is defined in _GRAPH, of'course
 
 		offset = 2;
 		ret[0] = -1;
@@ -208,6 +223,9 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_MU:
 	{
+		// return (N, mu)
+		// if N==0 then mu is not needed as its taken to be mu[]==0
+
 		ret = Calloc(1, double);
 		ret[0] = 0;
 		break;
@@ -215,6 +233,9 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_INITIAL:
 	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
+
 		ret = Calloc(3, double);
 		ret[0] = 2;
 		ret[1] = 1.0;
@@ -224,6 +245,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
+		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
+
 		double prec_innovation = prec / (1.0 - SQR(rho));
 		ret = Calloc(1, double);
 		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
@@ -232,6 +255,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
+		// return c(LOG_PRIOR)
+
 		ret = Calloc(1, double);
 		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
 		break;
