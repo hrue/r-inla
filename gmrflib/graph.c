@@ -1131,7 +1131,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	static double cputime[2] = { 0.0, 0.0 };
 	static int time_n = 0;
 
-	if (time_n >= 0 && time_n < 20) {
+	if (time_n >= 0 && time_n < 10) {
 		if (time_n % 2) {
 			run_parallel = 0;
 			max_t = 1;
