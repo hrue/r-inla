@@ -207,7 +207,6 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold);
 int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph);
-int GMRFLib_graph_prune(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename);
