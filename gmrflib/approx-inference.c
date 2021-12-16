@@ -7706,9 +7706,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 #undef CODE_BLOCK
 
 	for (iter = 0; iter < niter; iter++) {
-		int update_MM = ((iter == 0) || !keep_MM || ratio_ok);
+		int update_MM = ((iter == 0) || !keep_MM);
 		double err_dx;
 		double ratio = NAN;
+		
+		if (ratio_ok) {
+			// this override options, as the decision is that it is most efficient to update MM all the time
+			update_MM = 1;
+			keep_MM = 0;
+		}
 		
 		time_grad = GMRFLib_cpu();
 		gsl_vector_set_zero(B);
@@ -7783,7 +7789,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			FIXME("B");
 			GMRFLib_printf_gsl_vector(stdout, B, "%.6f ");
 		}
-
 
 		// the system can be singular, like with intrinsic model components. its safe to invert the non-singular part only
 		if (keep_MM) {
