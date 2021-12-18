@@ -2527,6 +2527,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
 							x[i] = mode[i];
 						}
+						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
+							x[i] = 0.0;
+						}
 					}
 					retval = GMRFLib_init_GMRF_approximation_store__intern(problem, x, b, c_new, mean, d,
 											       loglFunc, loglFunc_arg,

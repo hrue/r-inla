@@ -750,32 +750,60 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 	 * 
 	 */
 
+#define INVALID(x_) (ISNAN(x_) || ISINF(x_))
+
 	double f0 = 0.0, df = 0.0, ddf = 0.0, dddf = 0.0;
+	int rescue = 0;
 
 	if (ISZERO(d)) {
 		f0 = df = ddf = dddf = 0.0;
 	} else {
-		GMRFLib_2order_approx_core(&f0, &df, &ddf, (dd ? &dddf : NULL), x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
+		if (!INVALID(x0)) {
+			GMRFLib_2order_approx_core(&f0, &df, &ddf, (dd ? &dddf : NULL), x0, indx, x_vec, loglFunc, loglFunc_arg, step_len, stencil);
+		}
+
+		if (INVALID(x0) || INVALID(ddf) || INVALID(df) || INVALID(f0)) {
+			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
+			f0 = df = 0.0;
+			ddf = - 1.0;			       /* we try with this */
+			if (dd) dddf = 0.0;
+			rescue = 1;
+		} else {
+			if (cmin) {
+				ddf = DMIN(-(*cmin), ddf);
+			}
+		}
 	}
 
-	// If there is a truncation, we have to do this here
-	if (cmin) {
-		ddf = DMIN(-(*cmin), ddf);
+	if (rescue) {
+		if (a) {
+			*a = 0.0;
+		}
+		if (b) {
+			*b = 0.0;
+		}
+		if (c) {
+			*c = -d * ddf;
+		}
+		if (dd) {
+			*dd = 0.0;
+		}
+	} else {
+		if (a) {
+			*a = d * (f0 - df * x0 + 0.5 * ddf * SQR(x0) + 1.0 / 6.0 * dddf * gsl_pow_3(x0));
+		}
+		if (b) {
+			*b = d * (df - ddf * x0 + dddf / 2.0 * SQR(x0));
+		}
+		if (c) {
+			*c = -d * (ddf - dddf * x0);
+		}
+		if (dd) {
+			*dd = d * dddf;
+		}
 	}
 
-	if (a) {
-		*a = d * (f0 - df * x0 + 0.5 * ddf * SQR(x0) + 1.0 / 6.0 * dddf * gsl_pow_3(x0));
-	}
-	if (b) {
-		*b = d * (df - ddf * x0 + dddf / 2.0 * SQR(x0));
-	}
-	if (c) {
-		*c = -d * (ddf - dddf * x0);
-	}
-	if (dd) {
-		*dd = d * dddf;
-	}
-
+#undef INVALID
 	return GMRFLib_SUCCESS;
 }
 
