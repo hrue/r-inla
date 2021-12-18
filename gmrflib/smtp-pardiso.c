@@ -814,7 +814,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	FIXME1("PARDISO workaround...");
 	// ENABLE PARALLEL SOLVE if NRHS=1? probably not... 
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(nhrs > 1)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if(nrhs > 1)
 	for (int i = 0; i < n * nrhs; i++) {
 		if (ISZERO(bb[i])) {
 			bb[i] = 1.0e-99;
