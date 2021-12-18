@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.12.18}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Improved handling of \code{NAN} and \code{INF}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.12.16}{
   \subsection{BUG FIXES}{
     \itemize{

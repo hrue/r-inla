@@ -57,17 +57,26 @@
         L <- matrix(0, dim, dim)
         diag(L) <- exp(theta[1:dim])
         L[lower.tri(L)] <- theta[dim + 1:dim2]
-        S <- try(solve(L %*% t(L)))
+        ## rescue Inf values
+        L[is.infinite(L)] <- 1/.Machine$double.eps
+        S <- try(solve(L %*% t(L)), silent = TRUE)
+
         ## if singular, then invert what is invertable
         if (inherits(S, "try-error")) {
             S <- inla.ginv(L %*% t(L))
-        }
+            ## do an extra check
+            diag(S) <- pmax(0, diag(S))
+            e <- eigen(S)
+            S <- e$vectors %*% diag(pmax(0, e$values)) %*% t(e$vectors)
+        } 
         S <- (S + t(S))/2.0 ## force matrix to be symmetric
+
         if (ret.cov) {
             return (S)
         } else {
             sd <- sqrt(diag(S))
             iSigma <- diag(1/sd)
+            iSigma[is.infinite(iSigma)] <- 0
             Cor <- iSigma %*% S %*% iSigma
             diag(Cor) <- sd
             return(Cor)
