@@ -47,7 +47,8 @@
 ## !    keep = inla.getOption("keep"),
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
-## !    inla.mode = c("classic", "twostage", "experimental"), 
+## !    inla.mode = inla.getOption("inla.mode"), 
+## !    safe = FALSE, 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = parent.frame()
 ## !    )
@@ -224,6 +225,9 @@
 ## !             Default is to use the 
 ## !             mode set by \code{inla.getOption("inla.mode")} which is default
 ## !             \code{classic}-mode. }
+
+## ! \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
+## ! Hessian if needed. }
 
 ## ! \item{debug}{ If \code{TRUE}, then enable some debug
 ## ! output.  }
@@ -422,10 +426,57 @@
                    keep = inla.getOption("keep"),
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
-                   inla.mode = c("classic", "twostage", "experimental"), 
+                   inla.mode = inla.getOption("inla.mode"), 
+                   safe = FALSE, 
                    debug = inla.getOption("debug"),
-                   .parent.frame = parent.frame()) {
+                   .parent.frame = parent.frame())
+{
+    return (inla.call.inla(
+        formula = formula, 
+        family = family, 
+        contrasts = contrasts, 
+        data = data, 
+        quantiles = quantiles, 
+        E = E, 
+        offset = offset, 
+        scale = scale, 
+        weights = weights, 
+        Ntrials = Ntrials, 
+        strata = strata, 
+        lp.scale = lp.scale, 
+        link.covariates = link.covariates, 
+        verbose = verbose, 
+        lincomb = lincomb, 
+        selection = selection, 
+        control.compute = control.compute, 
+        control.predictor = control.predictor, 
+        control.family = control.family, 
+        control.inla = control.inla, 
+        control.fixed = control.fixed, 
+        control.mode = control.mode, 
+        control.expert = control.expert, 
+        control.hazard = control.hazard, 
+        control.lincomb = control.lincomb, 
+        control.update = control.update, 
+        control.lp.scale = control.lp.scale, 
+        control.pardiso = control.pardiso, 
+        only.hyperparam = only.hyperparam, 
+        inla.call = inla.call, 
+        inla.arg = inla.arg, 
+        num.threads = num.threads, 
+        blas.num.threads = blas.num.threads, 
+        keep = keep, 
+        working.directory = working.directory, 
+        silent = silent, 
+        inla.mode = inla.mode, 
+        safe = safe, 
+        debug = debug, 
+        .parent.frame = .parent.frame))
+}
 
+`inla.core` <- function(...) 
+{
+    safe <- FALSE
     ## This will prevent values of 'OutDec' not '.' to cause error, as we create the Model.ini
     ## file with cat().
     old.options <- options()
@@ -493,7 +544,7 @@
     if (missing(inla.mode)) {
         inla.mode <- inla.getOption("inla.mode")
     }
-    inla.mode <- match.arg(inla.mode)
+    inla.mode <- match.arg(inla.mode, c("classic", "twostage", "experimental"))
 
     ## check all control.xx arguments here. do the assign as variable
     ## expansion might occur.
@@ -610,7 +661,8 @@
             working.directory = working.directory,
             silent = silent,
             inla.mode = inla.mode, 
-            debug = debug
+            debug = debug,
+            safe = safe
         )
 
         ## replace the argument so it can be reused, if...
@@ -2624,3 +2676,111 @@
 
     return(num.threads)
 }
+
+`inla.call.inla` <- function(..., safe)
+{
+    if (safe) {
+        return (do.call("inla.core.safe", args = list(...)))
+    } else {
+        return (do.call("inla.core", args = list(...)))
+    }        
+}
+
+`inla.core.safe` <- function(...)
+{
+    run.inla <- function() 
+        return(try(inla(formula = formula, 
+                        family = family, 
+                        contrasts = contrasts, 
+                        data = data, 
+                        quantiles = quantiles, 
+                        E = E, 
+                        offset = offset, 
+                        scale = scale, 
+                        weights = weights, 
+                        Ntrials = Ntrials, 
+                        strata = strata, 
+                        lp.scale = lp.scale, 
+                        link.covariates = link.covariates, 
+                        verbose = verbose, 
+                        lincomb = lincomb, 
+                        selection = selection, 
+                        control.compute = control.compute, 
+                        control.predictor = control.predictor, 
+                        control.family = control.family, 
+                        control.inla = control.inla, 
+                        control.fixed = control.fixed, 
+                        control.mode = control.mode, 
+                        control.expert = control.expert, 
+                        control.hazard = control.hazard, 
+                        control.lincomb = control.lincomb, 
+                        control.update = control.update, 
+                        control.lp.scale = control.lp.scale, 
+                        control.pardiso = control.pardiso, 
+                        only.hyperparam = only.hyperparam, 
+                        inla.call = inla.call, 
+                        inla.arg = inla.arg, 
+                        num.threads = num.threads, 
+                        blas.num.threads = blas.num.threads, 
+                        keep = keep, 
+                        working.directory = working.directory, 
+                        silent = silent, 
+                        inla.mode = inla.mode, 
+                        safe = FALSE, 
+                        debug = debug, 
+                        .parent.frame = .parent.frame)))
+
+    safe <- FALSE
+    cmin <- 1
+    ntry <- 0
+    max.try <- 3
+
+    r <- run.inla()
+    while (inherits(r,"try-error")) {
+        if (ntry == max.try)
+            stop("Fail to get good enough initial values, sorry...")
+
+        cat("\n\n **** inla.core.safe: inla.program has crashed: rerun to get better initial values\n\n")
+        cont.inla <- inla.set.control.inla.default(family)
+        cont.inla[names(control.inla)] <- control.inla
+
+        cont.inla$int.strategy <- "eb"
+        cont.inla$strategy <- "gaussian"
+        cont.inla$control.vb <- list(enable = FALSE)
+        cont.inla$cmin <- cmin
+        cont.inla$force.diagonal = TRUE
+        cont.inla$optimise.strategy = "plain"
+        cont.inla$tolerance = 0.01
+        
+        control.inla.save <- control.inla
+        control.inla <- cont.inla
+        r <- run.inla()
+        r$.args$control.inla <- control.inla <- control.inla.save
+
+        cmin <- cmin * 100
+        ntry <- ntry + 1
+    }
+
+    ## as the msg out is different...
+    if (ntry > 1) {
+        cat("\n\n **** inla.core.safe: rerun with improved initial values \n\n")
+        r <- inla.rerun(r)
+    } else if (nrow(r$misc$cov.intern) > 1 &&
+          sum(abs(r$misc$cov.intern[upper.tri(r$misc$cov.intern)])) == 0) {
+          cat("\n\n **** inla.core.safe: rerun to try to solve negative eigenvalue(s) in the Hessian\n\n")
+        r <- inla.rerun(r)
+    }
+    r$.args$safe <- TRUE
+
+    return (r)
+}
+
+## define functions 'inla.core' and 'inla.core.safe'
+.tmp <- body(inla.core.safe)
+inla.core.safe <- inla
+body(inla.core.safe) <- .tmp
+
+.tmp <- body(inla.core)
+inla.core <- inla
+body(inla.core) <- .tmp
+.tmp <- NULL
