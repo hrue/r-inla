@@ -1579,6 +1579,8 @@
         size.info <- NULL
     }
 
+    summary.fitted.values <- NULL
+    marginals.fitted.values <- NULL
     ## SECOND: get the inverse linear predictor(if computed)
     if (length(grep("^predictor-user-scale$", alldir)) == 1L) {
         subdir <- paste(results.dir, .Platform$file.sep, "predictor-user-scale", sep = "")
@@ -1653,11 +1655,7 @@
             }
             marginals.fitted.values <- rr
         }
-    } else {
-        summary.fitted.values <- NULL
-        marginals.fitted.values <- NULL
-    }
-
+    } 
 
     res <- list(
         summary.linear.predictor = as.data.frame(summary.linear.predictor),

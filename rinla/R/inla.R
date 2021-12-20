@@ -2643,7 +2643,7 @@
         control.inla <- cont.inla
 
         cont.compute <- inla.set.control.compute.default()
-        cont.compute[names(control.compute)] <- cont.compute
+        cont.compute[names(control.compute)] <- control.compute
         cont.compute$return.marginals <- FALSE
         cont.compute$dic <- FALSE
         cont.compute$cpo <- FALSE
@@ -2677,7 +2677,7 @@
     }
 
     ## as the msg out is different...
-    if (ntry > 1) {
+    if (ntry > 0) {
         output("rerun with improved initial values")
         r <- inla.rerun(r)
     } else if (nrow(r$misc$cov.intern) > 1 &&
