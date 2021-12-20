@@ -2572,7 +2572,7 @@
 `inla.core.safe` <- function(...)
 {
     output <- function(msg) {
-        cat("\n\n\t***\n\t*** ", "inla.core.safe: ", msg, "\n\t***\n\n")
+        cat("\n\n\t***\n\t*** ", "inla.core.safe: ", msg, "\n\t***\n")
     }
 
     run.inla <- function() {
@@ -2662,16 +2662,21 @@
         control.predictor.save <- control.predictor
         control.predictor <- cont.predictor
         
+        lincomb.save <- lincomb
+        lincomb <- NULL
+        
         r <- run.inla()
 
         control.inla <- control.inla.save
         control.compute <- control.compute.save
         control.predictor <- control.predictor.save
+        lincomb <- lincomb.save
 
         if (!inherits(r,"try-error")) {
             r$.args$control.inla <- control.inla.save
             r$.args$control.compute <- control.compute.save
             r$.args$control.predictor <- control.predictor.save
+            r$.args$lincomb <- lincomb.save
         }
 
         cmin <- cmin * 10^2
