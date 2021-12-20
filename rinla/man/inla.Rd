@@ -49,7 +49,8 @@
     keep = inla.getOption("keep"),
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
-    inla.mode = c("classic", "twostage", "experimental"), 
+    inla.mode = inla.getOption("inla.mode"), 
+    safe = FALSE, 
     debug = inla.getOption("debug"),
     .parent.frame = parent.frame()
     )
@@ -190,6 +191,8 @@
              Default is to use the 
              mode set by \code{inla.getOption("inla.mode")} which is default
              \code{classic}-mode. }
+ \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
+ Hessian if needed. }
  \item{debug}{ If \code{TRUE}, then enable some debug
  output.  }
  \item{.parent.frame}{Internal use only}
