@@ -2645,11 +2645,13 @@
         cont.compute <- inla.set.control.compute.default()
         cont.compute[names(control.compute)] <- control.compute
         cont.compute$return.marginals <- FALSE
+        cont.compute$return.marginals.predictor <- FALSE
         cont.compute$dic <- FALSE
         cont.compute$cpo <- FALSE
         cont.compute$po <- FALSE
         cont.compute$waic <- FALSE
         cont.compute$config <- FALSE
+        cont.compute$q <- FALSE
         cont.compute$graph <- FALSE
         control.compute.save <- control.compute
         control.compute <- cont.compute
