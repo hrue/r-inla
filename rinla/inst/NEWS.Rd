@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 21.12.21}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Option \code{safe} in function \code{inla}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.12.18}{
   \subsection{BUG FIXES}{
     \itemize{
