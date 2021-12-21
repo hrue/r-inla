@@ -13,10 +13,10 @@
 
  \usage{
  inla(
-    formula,
+    formula = NULL,
     family = "gaussian",
     contrasts = NULL,
-    data,
+    data = NULL,
     quantiles=c(0.025, 0.5, 0.975),
     E = NULL,
     offset=NULL,

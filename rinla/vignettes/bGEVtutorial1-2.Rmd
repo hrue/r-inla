@@ -403,7 +403,7 @@ r1 = inla(formula,
 	     control.fixed = list(prec=100),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
-         verbose=FALSE)
+         verbose=FALSE, safe=TRUE)
 ```
 
 A summary of the fitted fixed effects and hyperparameters can be
@@ -531,8 +531,7 @@ r2 = inla(formula,
 	     control.fixed = list(prec=100),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
-         verbose=FALSE)
-
+         verbose=FALSE, safe=TRUE)
 ```
 
 A summary of the fitted fixed effects and hyperparameters can be
@@ -656,9 +655,10 @@ r3 = inla(formula,
          control.predictor = list(compute = TRUE),
 	     control.fixed = list(prec=100,prec.intercept=100),
          control.compute = list(cpo = TRUE),
-         control.inla = list(int.strategy = "eb",cmin=0,
+         control.inla = list(int.strategy = "eb",
+	                         cmin=0,
 	                         b.strategy="keep"),
-         verbose=FALSE)
+         verbose=FALSE, safe=TRUE)
 ```
 
 A summary of the fitted effects and hyperparameters can be obtained as
