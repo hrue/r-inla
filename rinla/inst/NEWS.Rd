@@ -10,6 +10,11 @@
       \item Option \code{safe} in function \code{inla}
     }
   }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Minor bug fixes
+    }
+  }
 }
 
 \section{CHANGES IN VERSION 21.12.18}{
