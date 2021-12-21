@@ -2618,13 +2618,15 @@
             debug = debug, 
             .parent.frame = .parent.frame)))
     }
+
     stopifnot(!safe)
     cmin <- 1
     ntry <- 0
-    max.try <- 3
-
+    max.try <- 2
     r <- run.inla()
+
     while (inherits(r,"try-error")) {
+        ##
         if (ntry == max.try) {
             stop("*** Fail to get good enough initial values. Maybe it is due to something else.")
         }
@@ -2679,7 +2681,7 @@
             r$.args$lincomb <- lincomb.save
         }
 
-        cmin <- cmin * 10^2
+        cmin <- cmin * 10^3
         ntry <- ntry + 1
     }
 
