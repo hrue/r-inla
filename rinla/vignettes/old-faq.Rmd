@@ -270,6 +270,7 @@ link[n2  + which(is.na(y[1:n2 + n2]))] = 2
 
 r = inla(Y ~ 1 + x,  family = c("poisson", "nbinomial"),
         data = list(Y=Y, x=x),
+		control.family= list(list(), list()),
         control.predictor = list(link = link))
 plot(exp(eta),type ="l")
 points(r$summary.fitted.values$mean, pch=19)
@@ -714,6 +715,7 @@ lcs = inla.make.lincombs(Predictor = B)
 r = inla(formula,  data = data.frame(Y, time),
         control.predictor = list(compute=TRUE),
         lincomb = lcs,
+		inla.mode="classic",
         control.inla = list(lincomb.derived.correlation.matrix=TRUE))
 
 print(round(r$misc$lincomb.derived.correlation.matrix,dig=3))
@@ -1054,6 +1056,7 @@ formula = Y ~ X - 1
 ## `family' is now
 result = inla(formula,
         family = c("poisson", "binomial"),
+		control.family=list(list(), list()),
         data = list(Y=Y, X=X),
         E = E, Ntrials = Ntrials)
 summary(result)
@@ -1115,13 +1118,13 @@ formula = y ~ f(i, model="ar1", replicate=r, constr=TRUE) + rf -1
 data = list(y=y, i=i, r=r, rf=rf)
 
 ## parameters for the binomial and the poisson
-Ntrial = rep(NA, 3*n)
-Ntrial[1:n] = Nt
+Ntrials = rep(NA, 3*n)
+Ntrials[1:n] = Nt
 E = rep(NA, 3*n)
 E[1:n + n] = Ep
 
 result = inla(formula, family = c("binomial", "poisson", "normal"),
-              data = data, Ntrial = Ntrial, E = E,
+              data = data, Ntrials = Ntrials, E = E,
               control.family = list(
                       list(),
                       list(),

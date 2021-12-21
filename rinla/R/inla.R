@@ -11,10 +11,10 @@
 ## !
 ## ! \usage{
 ## ! inla(
-## !    formula,
+## !    formula = NULL,
 ## !    family = "gaussian",
 ## !    contrasts = NULL,
-## !    data,
+## !    data = NULL,
 ## !    quantiles=c(0.025, 0.5, 0.975),
 ## !    E = NULL,
 ## !    offset=NULL,
@@ -390,10 +390,10 @@
 ## ! }
 ## ! }
 
-`inla` <- function(formula,
+`inla` <- function(formula = NULL,
                    family = "gaussian",
                    contrasts = NULL,
-                   data,
+                   data = NULL,
                    quantiles = c(0.025, 0.5, 0.975),
                    E = NULL,
                    offset = NULL,
@@ -535,11 +535,11 @@
     all.hyper <- list()
     data.orig <- data
 
-    if (missing(formula)) {
+    if (is.null(formula)) {
         stop("Usage: inla(formula, family, data, ...); see ?inla\n")
     }
 
-    if (missing(data)) {
+    if (is.null(data)) {
         stop("Missing data.frame/list `data'. Leaving `data' empty might lead to\n\t\tuncontrolled behaviour, therefore is it required.")
     }
     if (!is.data.frame(data) && !is.list(data)) {
@@ -586,7 +586,7 @@
         }
     }
 
-    if (missing(inla.mode)) {
+    if (is.null(inla.mode)) {
         inla.mode <- inla.getOption("inla.mode")
     }
     inla.mode <- match.arg(inla.mode, c("classic", "twostage", "experimental"))
@@ -1003,19 +1003,23 @@
         cont.predictor$cdf <- cont.predictor$quantiles <- NULL
     }
 
-    ## control.family
+    ## control.family. if control.family=list(),  make this work for any n.family
+    if (n.family > 1 && (length(control.family) == 0 && is.list(control.family))) {
+        control.family <- rep(list(list()), n.family)
+    }
     control.family.orig <- control.family
+
     if (n.family == 1) {
-        if (!missing(control.family) && (inla.is.list.of.lists(control.family) && length(control.family) > 1L)) {
+        if (inla.is.list.of.lists(control.family) && length(control.family) > 1L) {
             stop(paste("Argument 'control.family' does not match length(family)=", n.family))
         }
     } else {
-        if (!missing(control.family) && !(inla.is.list.of.lists(control.family) && length(control.family) == n.family)) {
+        if (!(inla.is.list.of.lists(control.family) && length(control.family) == n.family)) {
             stop(paste("Argument 'control.family' does not match length(family)=", n.family))
         }
     }
 
-    if (missing(control.family)) {
+    if (length(control.family) == 0 && is.list(control.family)) {
         tt <- list(list())
         for (i in 1:n.family) {
             tt[[i]] <- control.family
