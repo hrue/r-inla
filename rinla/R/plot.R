@@ -380,10 +380,10 @@
                                             xval <- rr[, colnames(rr) == "ID"][idx]
                                             yval <- rr[, colnames(rr) == "mean"][idx]
                                             my.plot(xval, yval,
-                                                ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                                xlim = range(xval),
-                                                axes = TRUE, ylab = "", xlab = "", type = tp
-                                            )
+                                                    ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                    xlim = range(xval),
+                                                    axes = TRUE, ylab = "", xlab = "", type = tp
+                                                    )
                                             if (!is.null(x$.args$data$baseline.hazard.strata.coding)) {
                                                 rep.txt <- inla.paste(c(
                                                     rep.txt, "[",
@@ -395,15 +395,15 @@
                                             yval <- rr[, colnames(rr) == "mean"][idx]
                                             if (is.numeric(xval)) {
                                                 my.plot(xval, yval,
-                                                    ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                                    xlim = range(xval),
-                                                    ylab = "", xlab = "", type = tp
-                                                )
+                                                        ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                        xlim = range(xval),
+                                                        ylab = "", xlab = "", type = tp
+                                                        )
                                             } else {
                                                 my.plot(as.factor(xval), yval,
-                                                    ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
-                                                    axes = TRUE, ylab = "", xlab = "", type = tp
-                                                )
+                                                        ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                        axes = TRUE, ylab = "", xlab = "", type = tp
+                                                        )
                                             }
                                         }
 
@@ -430,8 +430,8 @@
                                             my.title(main = inla.nameunfix(main), sub = paste(inla.nameunfix(sub), rep.txt))
                                         }
                                         else {
-                                              my.title(main = inla.nameunfix(main), sub = paste("Posterior mean", rep.txt))
-                                          }
+                                            my.title(main = inla.nameunfix(main), sub = paste("Posterior mean", rep.txt))
+                                        }
                                     }
                                 }
                             }
@@ -459,10 +459,10 @@
                                     if (!is.null(x$marginals.random[[i]])) {
                                         zz <- x$marginals.random[[i]][[r.rep]]
                                         my.plot(inla.smarginal(zz),
-                                            type = "l",
-                                            main = paste("PostDens [", inla.nameunfix(labels.random[i]), "]", " ", rep.txt, sep = ""),
-                                            xlab = inla.nameunfix(labels.random[i]), ylab = ""
-                                        )
+                                                type = "l",
+                                                main = paste("PostDens [", inla.nameunfix(labels.random[i]), "]", " ", rep.txt, sep = ""),
+                                                xlab = inla.nameunfix(labels.random[i]), ylab = ""
+                                                )
                                     }
                                 }
                             }
@@ -764,7 +764,8 @@
         return(invisible(figures))
     }
 
-inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE) {
+inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE) 
+{
     str.trunc <- function(..., max.len = 32) {
         str <- paste(..., sep = "", collapse = " ")
         str <- substr(str, 1, min(max.len, nchar(str)))
@@ -900,57 +901,7 @@ inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug 
                 }
             }
         }
-    } else if (section == "random") {
-        ## random
-        output("request for random ", section, " with hyperid ", hyperid)
-        h <- all.hyper$random
-        found <- FALSE
-        for (idx.random in seq_along(h)) {
-            if (inla.strcasecmp(section, h[[idx.random]]$hyperid)) {
-                found <- TRUE
-                break
-            }
-        }
-        if (!found) {
-            output("random ", section, " with hyperid ", hyperid, " is not found", warning = TRUE)
-            return(NA)
-        } else {
-            output("random ", section, " with hyperid ", hyperid, " is found with idx.random=", idx.random)
-        }
-
-        ## now we need to find the theta
-        found <- FALSE
-        for (idx.theta in seq_along(h[[idx.random]]$hyper)) {
-            if (inla.strcasecmp(hyperid, h[[idx.random]]$hyper[[idx.theta]]$hyperid)) {
-                found <- TRUE
-                break
-            }
-        }
-        hyper <- h[[idx.random]]$hyper
-        if (!found) {
-            for (idx.theta in seq_along(h[[idx.random]]$group.hyper)) {
-                if (inla.strcasecmp(hyperid, h[[idx.random]]$group.hyper[[idx.theta]]$hyperid)) {
-                    found <- TRUE
-                    break
-                }
-            }
-            hyper <- h[[idx.random]]$group.hyper
-            if (!found) {
-                output("random ", section, " with hyperid ", hyperid, ". theta is not found",
-                    warning = TRUE
-                )
-                return(NA)
-            } else {
-                output("random ", section, " with hyperid ", hyperid, ". theta is found with (group) idx.theta=", idx.theta)
-            }
-        } else {
-            output("random ", section, " with hyperid ", hyperid, ". theta is found with idx.theta=", idx.theta)
-        }
-        prior <- hyper[[idx.theta]]$prior
-        param <- hyper[[idx.theta]]$param
-        from.theta <- hyper[[idx.theta]]$from.theta
-        to.theta <- hyper[[idx.theta]]$to.theta
-    } else if (section == "inla.lp.scale") {
+   } else if (section == "inla.lp.scale") {
         output("request for ", section, " with hyperid ", hyperid)
         h <- all.hyper$lp.scale
         found <- FALSE
@@ -970,16 +921,66 @@ inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug 
         param <- hyper$param
         from.theta <- hyper$from.theta
         to.theta <- hyper$to.theta
-    } else {
-        stop(paste0("this should not happen,  section=", section))
-    }
+   } else {
+       ## random
+       output("request for random ", section, " with hyperid ", hyperid)
+       h <- all.hyper$random
+       found <- FALSE
+       for (idx.random in seq_along(h)) {
+           if (inla.strcasecmp(section, h[[idx.random]]$hyperid)) {
+               found <- TRUE
+               break
+           }
+       }
+       if (!found) {
+           output("random ", section, " with hyperid ", hyperid, " is not found", warning = TRUE)
+           return(NA)
+       } else {
+           output("random ", section, " with hyperid ", hyperid, " is found with idx.random=", idx.random)
+       }
+
+       ## now we need to find the theta
+       found <- FALSE
+       for (idx.theta in seq_along(h[[idx.random]]$hyper)) {
+           if (inla.strcasecmp(hyperid, h[[idx.random]]$hyper[[idx.theta]]$hyperid)) {
+               found <- TRUE
+               break
+           }
+       }
+       hyper <- h[[idx.random]]$hyper
+       if (!found) {
+           for (idx.theta in seq_along(h[[idx.random]]$group.hyper)) {
+               if (inla.strcasecmp(hyperid, h[[idx.random]]$group.hyper[[idx.theta]]$hyperid)) {
+                   found <- TRUE
+                   break
+               }
+           }
+           hyper <- h[[idx.random]]$group.hyper
+           if (!found) {
+               output("random ", section, " with hyperid ", hyperid, ". theta is not found",
+                      warning = TRUE
+                      )
+               return(NA)
+           } else {
+               output("random ", section, " with hyperid ", hyperid, ". theta is found with (group) idx.theta=", idx.theta)
+           }
+       } else {
+           output("random ", section, " with hyperid ", hyperid, ". theta is found with idx.theta=", idx.theta)
+       }
+       prior <- hyper[[idx.theta]]$prior
+       param <- hyper[[idx.theta]]$param
+       from.theta <- hyper[[idx.theta]]$from.theta
+       to.theta <- hyper[[idx.theta]]$to.theta
+   } 
+
 
     output("prior ", str.trunc(prior), " param ", str.trunc(param))
     return(list(prior = prior, param = param, from.theta = from.theta, to.theta = to.theta))
 }
 
 inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE,
-                              len = 10000, range, intern = FALSE) {
+                              len = 10000, range, intern = FALSE) 
+{
     str.trunc <- function(..., max.len = 32) {
         str <- paste(..., sep = "", collapse = " ")
         str <- substr(str, 1, min(max.len, nchar(str)))
@@ -1236,7 +1237,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
 
     ## end of prior functions
 
-    stopifnot(!missing(range))
+     stopifnot(!missing(range))
     prior <- inla.extract.prior(section, hyperid, all.hyper, debug)
 
     if (length(prior) == 1 && is.na(prior)) {
