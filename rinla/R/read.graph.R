@@ -48,6 +48,8 @@
 ## !            \item{\code{id}}{is a vector with the connected component id for each node (starting from 1)}
 ## !            \item{\code{n}}{is the number of connected components}
 ## !            \item{\code{nodes}}{is a list-list of nodes belonging to each connected component}
+## !            \item{\code{mean}}{is a factor with one level for each connected component of
+## !                               size larger than one,  otherwise \code{NA}}
 ## !        }
 ## !    }
 ## !    Methods implemented for \code{inla.graph} are \code{summary} and \code{plot}.
@@ -160,6 +162,13 @@
         cc$id <- s
         cc$n <- max(s)
         cc$nodes <- lapply(1L:cc$n, function(cc.id, cs) sort(which(cc.id == cs)), cs = s)
+
+        ## build a factor for the means, with one level for each connected component with size
+        ## larger than one
+        for (ii in which(sapply(cc$nodes, length) == 1)) {
+            s[cc$nodes[[ii]]] <- NA
+        }
+        cc$mean <- factor(s, exclude = NA)
     }
 
     graph$cc <- cc
