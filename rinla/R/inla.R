@@ -2786,9 +2786,10 @@ body(inla.core) <- .tmp
     file.create(lic.filename.dir)
 
     if (!is.null(inla.getOption("pardiso.license"))) {
-        lic.file <- normalizePath(inla.getOption("pardiso.license"))
+        lic.file <- try(normalizePath(inla.getOption("pardiso.license"), mustWork = FALSE),
+                        silent = TRUE)
         lic.path <- NA
-        if (file.exists(lic.file)) {
+        if (!inherits(lic.file, "try-error") && file.exists(lic.file)) {
             info <- file.info(lic.file)
             if (!is.na(info$isdir)) {
                 if (info$isdir) {
@@ -2803,7 +2804,12 @@ body(inla.core) <- .tmp
                 lic.path <- lic.file
             }
         } else {
-            lic.path <- lic.file
+            r <- try(write(as.character(inla.getOption("pardiso.license")),
+                           file = lic.filename.dir, append = FALSE))
+            if ((inherits(r, "try-error"))) {
+                stop(paste0("Fail to write licent to file: ", lic.filename.dir))
+            }
+            lic.path <- inla.dir
         }
         do.call("Sys.setenv", list(
             PARDISO_LIC_PATH = normalizePath(lic.path),
