@@ -41,7 +41,7 @@
 ## !
 ## !     vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.
 ## !
-## !     pardiso.license: The full path to the PARDISO license file
+## !     pardiso.license: The full path to the PARDISO license file  or a newline-separated string with license key(s)
 ## !
 ## !     keep: Keep temporary files?
 ## !
