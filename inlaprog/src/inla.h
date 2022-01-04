@@ -1993,14 +1993,15 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_cenpoisson0(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int inla_reset(void);
+int inla_testit_timer(void);
 int my_dir_exists(const char *dirname);
 int my_file_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int testit(int argc, char **argv);
 map_table_tp *mapfunc_find(const char *name);
+unsigned long long getTotalSystemMemory();
 void inla_signal(int sig);
-int inla_testit_timer(void);
-int inla_reset(void);
 
 double testit_Qfunc(int i, int j, double *values, void *arg);
 
