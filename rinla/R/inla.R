@@ -2371,6 +2371,9 @@
                 ret <- try(inla.collect.results(results.dir,
                     only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2
                 ), silent = FALSE)
+                if (inherits(ret, "try-error")) {
+                    return (ret)
+                }
                 if (!is.list(ret)) {
                     ret <- list()
                 }
@@ -2576,7 +2579,7 @@
 `inla.core.safe` <- function(...)
 {
     output <- function(msg) {
-        cat("\n\n\t***\n\t*** ", "inla.core.safe: ", msg, "\n\t***\n")
+        cat("\n *** inla.core.safe: ", msg, "\n")
     }
 
     run.inla <- function() {

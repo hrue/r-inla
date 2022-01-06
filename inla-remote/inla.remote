@@ -56,7 +56,7 @@ if [ -r "$INIFILE" ]; then
     fi
 else
     echo -e "\n\n\n$0: No such file $INIFILE"
-    echo -e "Run command in R: inla.remote()"
+    echo    " *** Run command in R: inla.remote()"
     echo -e "\n\n"
     exit 1
 fi
@@ -70,7 +70,7 @@ verbose=0
 if $(echo $args | awk '$0 ~ /(^|[ \t])-v($|[ \t])/{exit 0};{exit 1}'); then
     {
 	verbose=1
-	echo -e "\tRun $RemoteINLA at $RemoteUser@$RemoteHost" 
+	echo " *** Run $RemoteINLA at $RemoteUser@$RemoteHost" 
     } 1>&2
 fi
 
@@ -122,9 +122,8 @@ tar cfm$compress_put - . 2>/dev/null | ssh -p$Port $sshArguments $RemoteUser@$Re
 
 if [ $verbose == 1 ]; then
    {
-       echo 
        echo -e " *** Computations finished at $(date)"
-       echo -e " *** Transfer the results...\n" 
+       echo -e " *** Transfer the results..." 
    } 1>&2
 fi
 
