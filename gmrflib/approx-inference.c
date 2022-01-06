@@ -2434,7 +2434,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
 		// this assumes err_i = m * (err_{i-1})^2
 		double m = err / SQR(err_previous);
-		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
+		int almost_there = ((iter > 1) && (f >= 1.0) && (err > optpar->abserr_step) &&
 				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
 		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
@@ -3122,6 +3122,15 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
 					}
 				}
+
+				if (ai_par->parallel_linesearch) {
+					if (ai_par->fp_log) {
+						fprintf(ai_par->fp_log, "Smart optimise part II: turn off parallel linesearch\n");
+					}
+					GMRFLib_opt_turn_off_parallel_linesearch();
+					GMRFLib_gsl_optimize(ai_par);	/* restart */
+				}
+
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
 			}
@@ -5593,6 +5602,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 						GMRFLib_gsl_optimize(ai_par);	/* restart */
 					}
 				}
+
+				if (ai_par->parallel_linesearch) {
+					if (ai_par->fp_log) {
+						fprintf(ai_par->fp_log, "Smart optimise part II: turn off parallel linesearch\n");
+					}
+					GMRFLib_opt_turn_off_parallel_linesearch();
+					GMRFLib_gsl_optimize(ai_par);	/* restart */
+				}
+				
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
 			}

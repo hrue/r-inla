@@ -115,6 +115,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_opt_dir_step(double *x, int idx, double h);
 int GMRFLib_opt_dir_transform_gradient(double *grad);
 int GMRFLib_opt_dir_transform_hessian(double *hessian);
+int GMRFLib_opt_turn_off_parallel_linesearch();
 void GMRFLib_gsl_df(const gsl_vector * v, void *params, gsl_vector * df);
 void GMRFLib_gsl_fdf(const gsl_vector * x, void *params, double *f, gsl_vector * df);
 

@@ -133,6 +133,11 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 }
 
+int GMRFLib_opt_turn_off_parallel_linesearch() 
+{
+	G.parallel_linesearch = 0;
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_opt_reset_directions(void)
 {
 	// restart with diagonal direction matrix
