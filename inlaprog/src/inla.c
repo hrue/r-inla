@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2021 Havard Rue
+ * Copyright (C) 2007-2022 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -234,6 +234,25 @@ int inla_mkdir(const char *dirname)
 	return mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 #endif
 }
+
+// this is from https://stackoverflow.com/questions/2513505/how-to-get-available-memory-c-g
+// return RAM in Mb
+#if defined(WIN32) || defined(WINDOWS)
+unsigned long long getTotalSystemMemory()
+{
+    MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+    return ((status.ullTotalPhys / 1024L / 1024L));
+}
+#else
+unsigned long long getTotalSystemMemory()
+{
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    return ((pages * page_size) / 1024L / 1024L);
+}
+#endif
 
 double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 {
@@ -12735,9 +12754,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	rinla_version = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.VERSION"), GMRFLib_strdup("UNKNOWN")));
 	build_date = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "RINLA.BDATE"), GMRFLib_strdup("UNKNOWN")));
 	if (mb->verbose) {
-		printf("\t\tR-INLA version=[%s]\n", rinla_version);
-		printf("\t\tR-INLA build date=[%s]\n", build_date);
-		printf("\t\tBuild tag=[%s]\n", INLA_TAG);
+		printf("\t\tR-INLA version = [%s]\n", rinla_version);
+		printf("\t\tR-INLA build date = [%s]\n", build_date);
+		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
+		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
 	}
 
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));

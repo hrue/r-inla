@@ -1,7 +1,7 @@
 
 /* domin-interface.c
  * 
- * Copyright (C) 2006-2021 Havard Rue
+ * Copyright (C) 2006-2022 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +133,11 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 }
 
+int GMRFLib_opt_turn_off_parallel_linesearch() 
+{
+	G.parallel_linesearch = 0;
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_opt_reset_directions(void)
 {
 	// restart with diagonal direction matrix

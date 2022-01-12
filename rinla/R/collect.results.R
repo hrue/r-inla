@@ -69,7 +69,7 @@
         } else {
             ## neither directories contain the file /.ok, then we
             ## assume the inla-program has crashed
-            inla.inlaprogram.has.crashed()
+            return (inla.inlaprogram.has.crashed())
         }
     }
 

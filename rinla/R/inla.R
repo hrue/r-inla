@@ -1223,6 +1223,14 @@
     mf$lincomb <- NULL
     mf$selection <- NULL
     mf$inla.mode <- NULL
+    mf$scale <- NULL
+    mf$weights <- NULL
+    mf$Ntrials <- NULL
+    mf$offset <- NULL
+    mf$E <- NULL
+    mf$strata <- NULL
+    mf$lp.scale <- NULL
+    mf$link.covariates <- NULL
     mf$.parent.frame <- NULL
     mf$data <- data.same.len
 
@@ -1240,60 +1248,54 @@
 
     if (gp$n.random > 0) {
         rf <- mf ## for later use
-        rf$weights <- rf$scale <- rf$Ntrials <- rf$offset <- rf$E <- rf$strata <- rf$lp.scale <- rf$link.covariates <- NULL ## these we do not need
         rf$formula <- gp$randf
         rf$data <- data.same.len
-        rf <- eval.parent(rf)
+        rf <- eval.parent(rf, n = 2)
     } else {
         rf <- NULL
     }
 
     if (gp$n.weights > 0) {
         wf <- mf
-        wf$weights <- wf$scale <- wf$Ntrials <- wf$offset <- wf$E <- wf$strata <- wf$lp.scale <- wf$link.covariates <- NULL ## these we do not need
         wf$formula <- gp$weightf
         wf$data <- data.same.len
-        wf <- eval.parent(wf)
+        wf <- eval.parent(wf, n = 2)
     } else {
         wf <- NULL
     }
 
-    ## We set these here, instead of::
-    ## scale = model.extract(mf, "scale")
-    ## Ntrials = model.extract(mf, "Ntrials")
-    ## E = model.extract(mf, "E")
-    ## offset = as.vector(model.extract(mf, "offset"))
+    tmp <- try(eval(scale, envir = data, enclos = .parent.frame), silent = TRUE)
+    scale <- if (inherits(tmp, "try-error")) NULL else tmp
+    
+    tmp <- try(eval(weights, envir = data, enclos = .parent.frame), silent = TRUE)
+    weights <- if (inherits(tmp, "try-error")) NULL else tmp
+    
+    tmp <- try(eval(Ntrials, envir = data, enclos = .parent.frame), silent = TRUE)
+    Ntrials <- if (inherits(tmp, "try-error")) NULL else tmp
 
-    for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
-        inla.eval(paste("tmp = try(eval(mf$", nm, ", data, enclos = parent.frame()), silent=TRUE)", sep = ""))
-        if (!is.null(tmp) && !inherits(tmp, "try-error")) {
-            inla.eval(paste("mf$", nm, " = NULL", sep = ""))
-            inla.eval(paste(nm, " = tmp"))
-        } else {
-            inla.eval(paste("tmp = try(eval.parent(mf$", nm, "), silent=TRUE)", sep = ""))
-            if (!is.null(tmp) && !inherits(tmp, "try-error")) {
-                inla.eval(paste("mf$", nm, " = NULL", sep = ""))
-                inla.eval(paste(nm, " = tmp"))
-            } else {
-                ## this *is* defined by default,  as all variables are default NULL
-                inla.eval(paste("mf$", nm, " = NULL", sep = ""))
-                inla.eval(paste(nm, "= inla.eval(nm)", sep = ""))
-            }
+    tmp <- try(eval(offset, envir = data, enclos = .parent.frame), silent = TRUE)
+    offset <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(E, envir = data, enclos = .parent.frame), silent = TRUE)
+    E <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(strata, envir = data, enclos = .parent.frame), silent = TRUE)
+    strata <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(lp.scale, envir = data, enclos = .parent.frame), silent = TRUE)
+    lp.scale <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(link.covariates, envir = data, enclos = .parent.frame), silent = TRUE)
+    link.covariates <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    if (debug) {
+        for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
+            print(paste0("head(", nm, ")"))
+            print(head(inla.eval(nm)))
         }
     }
 
-    ## as there are functions as well with this name....
-    if (is.function(offset)) {
-        offset <- NULL
-    }
-    if (is.function(scale)) {
-        scale <- NULL
-    }
-
-    ## ## ## ## ## ## ## ## ## ## ## ##
-    ## ## ## ## ## ## ## ## ## ## ## ##
-
-    mf <- eval.parent(mf)
+    mf <- eval.parent(mf, n = 2)
     indN <- seq(0L, NPredictor - 1L)
     indM <- seq(0L, MPredictor - 1L)
     indD <- seq(0L, NData - 1)
@@ -2371,6 +2373,9 @@
                 ret <- try(inla.collect.results(results.dir,
                     only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2
                 ), silent = FALSE)
+                if (inherits(ret, "try-error")) {
+                    return (ret)
+                }
                 if (!is.list(ret)) {
                     ret <- list()
                 }
@@ -2576,7 +2581,7 @@
 `inla.core.safe` <- function(...)
 {
     output <- function(msg) {
-        cat("\n\n\t***\n\t*** ", "inla.core.safe: ", msg, "\n\t***\n")
+        cat("\n *** inla.core.safe: ", msg, "\n")
     }
 
     run.inla <- function() {
@@ -2685,7 +2690,7 @@
             r$.args$lincomb <- lincomb.save
         }
 
-        cmin <- cmin * 10^3
+        cmin <- cmin * 10^4
         ntry <- ntry + 1
     }
 
@@ -2703,19 +2708,9 @@
     return (r)
 }
 
-## add the same arguments as for 'inla' to functions 'inla.core' and 'inla.core.safe'
-.tmp <- body(inla.core.safe)
-inla.core.safe <- inla
-body(inla.core.safe) <- .tmp
-
-.tmp <- body(inla.core)
-inla.core <- inla
-body(inla.core) <- .tmp
-.tmp <- NULL
-
-#################################################################################
-#################################################################################
-#################################################################################
+## to avoid maintaining 3 functions with the same arguments, we add the same arguments as for
+## 'inla' to functions 'inla.core' and 'inla.core.safe'
+formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
 
 `inla.fix.data` <- function(data, n, revert = FALSE)
 {
@@ -2786,9 +2781,10 @@ body(inla.core) <- .tmp
     file.create(lic.filename.dir)
 
     if (!is.null(inla.getOption("pardiso.license"))) {
-        lic.file <- normalizePath(inla.getOption("pardiso.license"))
+        lic.file <- try(normalizePath(inla.getOption("pardiso.license"), mustWork = FALSE),
+                        silent = TRUE)
         lic.path <- NA
-        if (file.exists(lic.file)) {
+        if (!inherits(lic.file, "try-error") && file.exists(lic.file)) {
             info <- file.info(lic.file)
             if (!is.na(info$isdir)) {
                 if (info$isdir) {
@@ -2803,7 +2799,12 @@ body(inla.core) <- .tmp
                 lic.path <- lic.file
             }
         } else {
-            lic.path <- lic.file
+            r <- try(write(as.character(inla.getOption("pardiso.license")),
+                           file = lic.filename.dir, append = FALSE))
+            if ((inherits(r, "try-error"))) {
+                stop(paste0("Fail to write licent to file: ", lic.filename.dir))
+            }
+            lic.path <- inla.dir
         }
         do.call("Sys.setenv", list(
             PARDISO_LIC_PATH = normalizePath(lic.path),

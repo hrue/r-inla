@@ -4,6 +4,38 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.01.12}{
+  \subsection{IMPROVEMENTS}{
+    \itemize{
+      \item Added \code{graph$cc$mean} to help defining intercepts for
+      disconnected regions.
+
+      \item Can now define the license key for PARDISO directly as
+      \code{inla.setOption(pardiso.license="<KEY>")}
+
+      \item Print total RAM in Gb in the inla-program output, for easier debugging
+      of these problems.
+
+      \item Using \code{inla.call="remote"} will now return error code that can be
+      controlled by \code{try}, so that \code{r=try(inla(..., inla.call="remote"))}
+      should work as intended.
+
+      \item Add a refine step for \code{parallel.linesearch}, so if this is
+      enabled, then it will do a restart at the end with this option
+      disabled.
+
+      \item Minor changes when option \code{safe} is enabled.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed regression error with \code{plot(result, plot.prior=TRUE)}
+      \item Fixed a regression error from version 21.12.21 which expanded some
+      variables incorrect.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 21.12.21}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
