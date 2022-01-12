@@ -2690,7 +2690,7 @@
             r$.args$lincomb <- lincomb.save
         }
 
-        cmin <- cmin * 10^3
+        cmin <- cmin * 10^4
         ntry <- ntry + 1
     }
 
