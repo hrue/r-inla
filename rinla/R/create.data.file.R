@@ -132,7 +132,6 @@
         "cenpoisson",
         "gammacount",
         "gpoisson",
-        "nbinomial",
         "xpoisson",
         "zeroinflatedcenpoisson0",
         "zeroinflatedcenpoisson1",
@@ -159,6 +158,30 @@
         }
 
         null.dat <- is.na(response[, 3L])
+        response <- response[!null.dat, ]
+    } else if (inla.one.of(family, c("nbinomial"))) {
+        if (is.null(E)) {
+            E <- rep(1.0, n.data)
+        }
+        if (length(E) == 1L) {
+            E <- rep(E, n.data)
+        }
+
+        if (is.null(scale)) {
+            scale <- rep(1.0, n.data)
+        }
+        if (length(scale) == 1L) {
+            scale <- rep(scale, n.data)
+        }
+
+        response <- cbind(ind, E, scale, y.orig)
+
+        if (length(E) != n.data || length(scale) != n.data) {
+            file.remove(file)
+            file.remove(data.dir)
+            stop(paste("Length of E and scale has to be the same as the length of the response: E scale data ", length(E), length(scale), n.data))
+        }
+        null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
     } else if (inla.one.of(family, c("exponential", "weibull", "loglogistic", "gammajw", "gompertz"))) {
         response <- cbind(ind, y.orig)

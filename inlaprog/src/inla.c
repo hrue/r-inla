@@ -5044,7 +5044,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_CONTPOISSON:
 	case L_GAMMACOUNT:
 	case L_GPOISSON:
-	case L_NBINOMIAL:
 	case L_POISSON:
 	case L_QCONTPOISSON:
 	case L_XPOISSON:
@@ -5059,6 +5058,12 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_POISSON_SPECIAL1:
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		break;
+
+	case L_NBINOMIAL:
+		idiv = 4;
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_CENPOISSON2:
@@ -7647,6 +7652,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 	double size;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
+	double S = ds->data_observations.S[idx];
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
 
@@ -7656,6 +7662,9 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 		break;
 	case 1:
 		size = E * exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
+		break;
+	case 2:
+		size = S * exp(ds->data_observations.log_size[GMRFLib_thread_id][0]);
 		break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -13838,7 +13847,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDPOISSON2:
 	case L_ZEROINFLATEDCENPOISSON0:
 	case L_ZEROINFLATEDCENPOISSON1:
-	case L_NBINOMIAL:
 	case L_ZEROINFLATEDNBINOMIAL0:
 	case L_ZEROINFLATEDNBINOMIAL1:
 	case L_ZEROINFLATEDNBINOMIAL2:
@@ -13847,6 +13855,23 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson-like data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_NBINOMIAL: 
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Poisson-like data[%1d] (E,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+				if (ds->data_observations.S[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Poisson-like data[%1d] S = %g is void\n", secname, i,
+							ds->data_observations.S[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -16053,14 +16078,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			if (ds->variant == 0 || ds->variant == 1) {
+			if (ds->variant == 0 || ds->variant == 1 || ds->variant == 2) {
 				mb->theta_tag[mb->ntheta] = inla_make_tag("log size for the nbinomial observations (1/overdispersion)", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] =
 				    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
-			} else if (ds->variant == 2) {
-				mb->theta_tag[mb->ntheta] = inla_make_tag("minus log size for the nbinomial observations (overdispersion)", mb->ds);
-				mb->theta_tag_userscale[mb->ntheta] =
-				    inla_make_tag("1/size for the nbinomial observations (overdispersion)", mb->ds);
 			} else {
 				assert(0 == 1);
 			}
