@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.01.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added new variant for nbinomial likelihood
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.01.12}{
   \subsection{IMPROVEMENTS}{
     \itemize{
