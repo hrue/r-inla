@@ -434,6 +434,11 @@ typedef struct {
 	double *p_scale;
 
 	/*
+	 * nbinomial
+	 */
+	double *S;
+	
+	/*
 	 * y ~ BinomialRE()
 	 */
 	double **log_prec_binomialre;

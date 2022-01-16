@@ -50,14 +50,23 @@ represented as
 \end{displaymath}
 and the prior is defined on $\theta$.
 
+If \verb|variant=2|, then dispersion parameter $n$ (\emph{size}) is
+represented as
+\begin{displaymath}
+    n = S\exp(\theta)
+\end{displaymath}
+where $S$ is \texttt{scale}, and the prior is defined on $\theta$.
+
 \subsection*{Specification}
 
 \begin{itemize}
 \item $\text{family}=\texttt{nbinomial}$
-\item Required arguments: $y$ and $E$ (default $E=1$).
+\item Required arguments: $y$ and $E$ (default $E=1$) and
+    \texttt{scale} (default \texttt{scale}=1)
 \item Chose variant with either
     \verb|control.family = list(variant=0)| (default) or\\
-    \verb|control.family = list(variant=1)|.
+    \verb|control.family = list(variant=1)| or \verb|control.family = list(variant=2)|.
+    
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
