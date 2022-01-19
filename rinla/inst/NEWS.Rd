@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.01.19}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed bug in the variable expansion in some arguments
+      that could give different results than before
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.01.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
