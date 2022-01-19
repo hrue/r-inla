@@ -732,7 +732,6 @@
     })
 
     stopifnot(!missing(contr))
-    stopifnot(is.list(contr))
     if (length(contr) == 0) {
         return(contr)
     }
@@ -799,21 +798,42 @@ inla.make.completion.function <- function(...) {
 }"))
 }
 
-control.update <- inla.make.completion.function(names(inla.set.control.update.default()))
-control.lincomb <- inla.make.completion.function(names(inla.set.control.lincomb.default()))
-control.group <- inla.make.completion.function(names(inla.set.control.group.default()))
-control.mix <- inla.make.completion.function(names(inla.set.control.mix.default()))
-control.pom <- inla.make.completion.function(names(inla.set.control.pom.default()))
-control.link <- inla.make.completion.function(names(inla.set.control.link.default()))
-control.expert <- inla.make.completion.function(names(inla.set.control.expert.default()))
-control.compute <- inla.make.completion.function(names(inla.set.control.compute.default()))
-control.family <- inla.make.completion.function(names(inla.set.control.family.default()))
-control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.default()))
-control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
-control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
-control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
-control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
-control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
-control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))
-control.lp.scale <- inla.make.completion.function(names(inla.set.control.lp.scale.default()))
-control.pardiso <- inla.make.completion.function(names(inla.set.control.pardiso.default()))
+if (TRUE) {
+    control.update <- inla.make.completion.function(names(inla.set.control.update.default()))
+    control.lincomb <- inla.make.completion.function(names(inla.set.control.lincomb.default()))
+    control.group <- inla.make.completion.function(names(inla.set.control.group.default()))
+    control.mix <- inla.make.completion.function(names(inla.set.control.mix.default()))
+    control.pom <- inla.make.completion.function(names(inla.set.control.pom.default()))
+    control.link <- inla.make.completion.function(names(inla.set.control.link.default()))
+    control.expert <- inla.make.completion.function(names(inla.set.control.expert.default()))
+    control.compute <- inla.make.completion.function(names(inla.set.control.compute.default()))
+    control.family <- inla.make.completion.function(names(inla.set.control.family.default()))
+    control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.default()))
+    control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
+    control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
+    control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
+    control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
+    control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
+    control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))
+    control.lp.scale <- inla.make.completion.function(names(inla.set.control.lp.scale.default()))
+    control.pardiso <- inla.make.completion.function(names(inla.set.control.pardiso.default()))
+} else {
+    control.update <- NULL
+    control.lincomb <-NULL
+    control.group <- NULL
+    control.mix <- NULL
+    control.pom <- NULL
+    control.link <- NULL
+    control.expert <- NULL
+    control.compute <-NULL
+    control.family <- NULL
+    control.fixed <- NULL
+    control.inla <- NULL
+    control.vb <- NULL
+    control.predictor <- NULL
+    control.mode <- NULL
+    control.hazard <- NULL
+    control.bgev <- NULL
+    control.lp.scale <- NULL
+    control.pardiso <- NULL
+}
