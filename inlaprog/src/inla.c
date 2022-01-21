@@ -93,7 +93,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "spde2.h"
 #include "spde3.h"
 #include "eval.h"
-#include "re.h"
 #include "ar.h"
 #include "pc-priors.h"
 #include "R-interface.h"
@@ -36665,8 +36664,6 @@ int testit(int argc, char **argv)
 
 	case 15:
 	{
-		double lambda = 10;
-		re_init(&lambda);
 	}
 		break;
 
@@ -36679,71 +36676,16 @@ int testit(int argc, char **argv)
 
 	case 17:
 	{
-		P(bessel_Knu(0.25, 0.2));
-		P(gsl_sf_bessel_Knu(0.25, 0.2));
-		exit(EXIT_SUCCESS);
 	}
 		break;
 
 	case 18:
 	{
-		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.1, 3.2)));
-		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.5, 3.2)));
-		exit(EXIT_SUCCESS);
 	}
 		break;
 
 	case 19:
 	{
-#define _GET(_int) if (1) {				      \
-			if (fscanf(fp, "%d\n", &_int) == EOF) {	\
-				fprintf(stderr, "%s\n", strerror(errno)); \
-				exit(1);\
-			}\
-		}
-#define _GETV(_vec, _len)						\
-		if (1) {						\
-			_vec = Calloc(_len, double);			\
-			int _i;						\
-			for(_i=0; _i < _len; _i++) {			\
-				if (fscanf(fp, "%lf\n", &_vec[_i]) == EOF) { \
-					fprintf(stderr, "%s\n", strerror(errno)); \
-					exit(1);			\
-				}					\
-				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
-			}						\
-		}
-
-		if (1) {
-
-			FILE *fp = fopen("prior.dat", "r");
-
-			int nx, ny, nz;
-			double *x, *y, *z;
-
-			_GET(nx);
-			_GET(ny);
-			_GET(nz);
-			_GETV(x, nx);
-			_GETV(y, ny);
-			_GETV(z, nz);
-
-			int i;
-			double lev = 0.1;
-
-			for (i = 0; i < nz; i++) {
-				if (z[i] < 0.0) {
-					z[i] = NAN;
-				}
-			}
-
-			re_contour_tp *c;
-			c = contourLines(x, nx, y, ny, z, lev);
-
-			re_print_contourLines(NULL, c);
-		}
-#undef _GET
-#undef _GETV
 	}
 		break;
 
