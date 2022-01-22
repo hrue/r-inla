@@ -536,8 +536,6 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
 	/*
-	 * plain version (modified Aug/2020).
-	 *
 	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
 	 * then they are not neighbours.
 	 */
@@ -545,34 +543,41 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	if (node == nnode) {
 		return GMRFLib_FALSE;
 	}
-
+	
 	int imin = IMIN(node, nnode);
 	int imax = IMAX(node, nnode);
-	int m, j, *k;
 
-	if (imin < 0 || imax > graph->n) {
-		return GMRFLib_FALSE;
-	}
-
-	m = graph->lnnbs[imin];
-	if (m == 0) {
-		return GMRFLib_FALSE;
-	}
-
-	if (imax > graph->lnbs[imin][m - 1]) {
-		return GMRFLib_FALSE;
-	}
-
-	for (j = 0; j < m; j++) {
-		k = graph->lnbs[imin] + j;
-		if (*k > imax) {
+	if (0) {
+		// OLD CODE
+		if (imin < 0 || imax > graph->n) {
 			return GMRFLib_FALSE;
 		}
-		if (*k == imax) {
-			return GMRFLib_TRUE;
+
+		int m = graph->lnnbs[imin];
+		if (m == 0) {
+			return GMRFLib_FALSE;
 		}
+
+		if (imax > graph->lnbs[imin][m - 1]) {
+			return GMRFLib_FALSE;
+		}
+
+		for (int j = 0; j < m; j++) {
+			int *k = graph->lnbs[imin] + j;
+			if (*k > imax) {
+				return GMRFLib_FALSE;
+			}
+			if (*k == imax) {
+				return GMRFLib_TRUE;
+			}
+		}
+		return GMRFLib_FALSE;
+	} else {
+		// NEW CODE, which do an initial binary-tree search
+		int m = graph->lnnbs[imin];
+		return ((!m || imax > graph->lnbs[imin][m - 1] || 
+			 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 	}
-	return GMRFLib_FALSE;
 }
 
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)

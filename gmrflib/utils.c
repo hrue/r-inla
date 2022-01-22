@@ -120,7 +120,7 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted(int val, int *ix, int len)
+forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len)
 {
 	// return the index of iarray for which ix[idx]=val and
 	// we KNOW that ix is sorted, and return -1 if not found
@@ -138,7 +138,7 @@ int GMRFLib_iwhich_sorted(int val, int *ix, int len)
 		if (n <= n_lim) {
 			for (i = low; i <= high; i++) {
 				if (ix[i] == val) {
-					return (i);
+					return i;
 				}
 			}
 			return (-1);
