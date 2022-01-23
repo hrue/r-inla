@@ -69,7 +69,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 	if (nnode >= 0) {						\
 		if (args->Q) {						\
 			int offset = args->Q->ia[imin];			\
-			j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset);	\
+			j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset, guess); \
 			assert(j >= offset);				\
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
@@ -102,11 +102,17 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg)
 {
+	static int guess[] = {0, 0};
+#pragma omp threadprivate(guess)
+
 	TAB_FUNC_CORE(1);
 }
 
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
+	static int guess[] = {0, 0};
+#pragma omp threadprivate(guess)
+
 	TAB_FUNC_CORE(0);
 }
 

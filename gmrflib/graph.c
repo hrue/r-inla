@@ -547,6 +547,9 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	int imin = IMIN(node, nnode);
 	int imax = IMAX(node, nnode);
 
+	static int guess[] = {0, 0};
+#pragma omp threadprivate(guess)
+
 	if (0) {
 		// OLD CODE
 		if (imin < 0 || imax > graph->n) {
@@ -576,7 +579,7 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 		// NEW CODE, which do an initial binary-tree search
 		int m = graph->lnnbs[imin];
 		return ((!m || imax > graph->lnbs[imin][m - 1] || 
-			 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+			 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, guess) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 	}
 }
 

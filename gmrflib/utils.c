@@ -120,22 +120,49 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len)
+forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 {
-	// return the index of iarray for which ix[idx]=val and
-	// we KNOW that ix is sorted, and return -1 if not found
+#define MY_ENABLE_GUESS 1				       /* can disable 'guess'-feature here */
 
-	int low, high, mid, n, n_lim = 8, i;
+	// return the index of iarray for which ix[idx]=val and
+	// we KNOW that ix is sorted, and return -1 if not found.
+	// 'guess' is an option initial guess for [low,high], and updated if used
+
+	int low, high, mid, i, n, n_lim = 8;
+
 	if (len == 0) {
 		return -1;
 	}
 
+#if MY_ENABLE_GUESS
+	if (guess) {
+		// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
+		if (guess[1] == 0 || guess[1] >= len) {
+			// invalid values for 'guess', no need to check
+			low = 0;
+			high = len - 1;
+		} else {
+			low = (val >= ix[guess[0]] ? guess[0] : 0);
+			high = (val <= ix[guess[1]] ? guess[1] : len - 1);
+		}
+	} else {
+		low = 0;
+		high = len - 1;
+	}
+#else
 	low = 0;
 	high = len - 1;
-
+#endif	
 	while (1) {
 		n = high - low - 1;			       /* n is how many alternatives left */
 		if (n <= n_lim) {
+#if MY_ENABLE_GUESS
+			if (guess) {
+				// update 'guess' with [low,high]
+				guess[0] = low;
+				guess[1] = high;
+			}
+#endif
 			for (i = low; i <= high; i++) {
 				if (ix[i] == val) {
 					return i;
@@ -151,6 +178,7 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len)
 			}
 		}
 	}
+#undef MY_ENABLE_GUESS
 	return -1;
 }
 

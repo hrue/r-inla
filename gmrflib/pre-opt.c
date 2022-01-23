@@ -528,6 +528,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 #pragma omp parallel for private (i, kk, k, jj, j, index) num_threads(nt)
 	for (i = 0; i < gen_len_At; i++) {
+		int guess[] = {0, 0};
 		for (kk = 0; kk < gen_At[i]->n; kk++) {
 			k = gen_At[i]->store[kk].idx;
 			for (jj = 0; jj < gen_A[k]->n; jj++) {
@@ -536,7 +537,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 					if (i == j) {
 						index = 0;
 					} else {
-						index = 1 + GMRFLib_iwhich_sorted(j, g->lnbs[i], g->lnnbs[i]);
+						index = 1 + GMRFLib_iwhich_sorted(j, g->lnbs[i], g->lnnbs[i], guess);
 						assert(index > 0);
 					}
 					GMRFLib_idxval_add(&(AtA_idxval[i][index]), k, gen_At[i]->store[kk].val * gen_A[k]->store[jj].val);
@@ -743,20 +744,23 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 	} else {
 		int k = 0;
 		int iw_guess;
-
 		if (1) {
 			// we try to be clever to guess the solution as the previous one found plus one. some tests give a success rate of about
 			// 95% but this depends on everything of course. if we miss, we search as before
 			static int iw = -1;
 #pragma omp threadprivate(iw)
-			
+
+			// use also this [low, high] guess, which is updated automatically
+			static int guess[] = {0, 0};
+#pragma omp threadprivate(guess)
+
 			iw_guess = (iw + 1 < a->like_graph->lnnbs[node] ? iw + 1 : 0);
 			iw = (nnode == a->like_graph->lnbs[node][iw_guess] ? iw_guess : 
-				      GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]));
+			      GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess));
 			k = 1 + iw;
 		} else {
 			// this is the plain version that was used before.
-			k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]);
+			k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], NULL);
 		}
 		assert(k > 0);
 		elm = a->AtA_idxval[node][k]->store;
