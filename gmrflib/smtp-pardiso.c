@@ -685,7 +685,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 		}						\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+	RUN_CODE_BLOCK((m > 8 ? m : 1), 0, 0);
 #undef CODE_BLOCK	
 
 	Free(xx);
