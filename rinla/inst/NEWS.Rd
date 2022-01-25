@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.01.25}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed regression bug in \code{knmodels}
+      \item Code improvements and cleanup
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.01.19}{
   \subsection{BUG FIXES}{
     \itemize{
