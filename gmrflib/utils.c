@@ -120,28 +120,58 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted(int val, int *ix, int len)
+forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 {
-	// return the index of iarray for which ix[idx]=val and
-	// we KNOW that ix is sorted, and return -1 if not found
+	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
+	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be threadprivate
 
-	int low, high, mid, n, n_lim = 8, i;
 	if (len == 0) {
 		return -1;
 	}
 
-	low = 0;
-	high = len - 1;
+	int low, high, mid, n;
+
+	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
+	if (guess[1] == 0 || guess[1] >= len) {
+		// invalid values for 'guess', no need to check
+		low = 0;
+		high = len - 1;
+	} else {
+		low = (val >= ix[guess[0]] ? guess[0] : 0);
+		high = (val <= ix[guess[1]] ? guess[1] : len - 1);
+	}
 
 	while (1) {
-		n = high - low - 1;			       /* n is how many alternatives left */
-		if (n <= n_lim) {
-			for (i = low; i <= high; i++) {
-				if (ix[i] == val) {
-					return (i);
+		n = high - low + 1;			       // 'n' is how many alternatives left 
+		if (n <= 8) {				       // DO NOT INCREASE BEYOND 8; see below
+			guess[1] = high;
+			if (0) {
+				for (int i = low; i <= high; i++) {
+					if (ix[i] == val) {
+						guess[0] = i;
+						return i;
+					}
 				}
+				guess[0] = low;
+				return -1;
+			} else {
+				int i = low + n;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"	       // disable warning as this behaviour is intended 
+				switch(n) {
+				case 8: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 7: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 6: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 5: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 4: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 3: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 2: if (ix[--i] == val) {guess[0] = i; return i;}
+				case 1: if (ix[--i] == val) {guess[0] = i; return i;}
+				}
+#pragma GCC diagnostic pop
+				guess[0] = low;
+				return -1;
 			}
-			return (-1);
 		} else {
 			mid = low + (high - low) / 2;	       /* integer division */
 			if (ix[mid] > val) {

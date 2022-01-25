@@ -666,8 +666,8 @@ int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store)
 
 int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction)
 {
-	int i, j, k, n, *permutation;
-	double *xx;
+	int n, *permutation = NULL;
+	double *xx = NULL;
 
 	n = store->graph->n;
 	xx = Calloc(n * m, double);
@@ -676,14 +676,19 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	assert(permutation);
 	assert(m > 0);
 
-	for (j = 0; j < m; j++) {
-		k = j * n;
-		for (i = 0; i < n; i++) {
-			x[k + i] = xx[k + permutation[i]];
-		}
+	
+#define CODE_BLOCK						\
+	for (int j = 0; j < m; j++) {				\
+		int k = j * n;					\
+		for (int i = 0; i < n; i++) {			\
+			x[k + i] = xx[k + permutation[i]];	\
+		}						\
 	}
-	Free(xx);
 
+	RUN_CODE_BLOCK((m > 8 ? m : 1), 0, 0);
+#undef CODE_BLOCK	
+
+	Free(xx);
 	return GMRFLib_SUCCESS;
 }
 
