@@ -7273,20 +7273,31 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 	 * params for the GMRFLib_DENSITY_TYPE_SKEWNORMAL 
 	 * params for the GMRFLib_DENSITY_TYPE_SCGAUSSIAN 
 	 */
+
+	if (ISZERO(d)) {
+		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
+		return GMRFLib_SUCCESS;
+	}
+		      
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
 
-		int i, np = 15;
-		double *xp = NULL, *wp = NULL, *x_user = NULL, *x_std = NULL, *loglik = NULL;
+		const int np = 15;
+		int i;
+		double *x_user = NULL, *x_std = NULL, *loglik = NULL;
 		double m = density->user_mean;
 		double s = density->user_stdev;
 
-		Calloc_init(3 * np);
-		x_user = Calloc_get(np);
-		x_std = Calloc_get(np);
-		loglik = Calloc_get(np);
+		static double *work = NULL, *xp = NULL, *wp = NULL;
+#pragma omp threadprivate(work, xp, wp)
+		if (!work) {
+			work = Calloc(3 * np, double);
+			GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
+		}
+		x_user = work;
+		x_std = work + np;
+		loglik = work + 2 * np;
 
-		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
 		for (i = 0; i < np; i++) {
 			x_user[i] = m + s * xp[i];
 		}
@@ -7295,15 +7306,14 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s), tmp;
 		for (i = 0; i < np; i++) {
-			tmp = wp[i] * d * loglik[i];
+			tmp = wp[i] * loglik[i];
 			A -= tmp;
 			B -= tmp * xp[i] * s_inv;
 			C -= tmp * (SQR(xp[i]) - 1.0) * s2_inv;
 		}
-		coofs->coofs[0] = A;
-		coofs->coofs[1] = B;
-		coofs->coofs[2] = C;
-		Calloc_free();
+		coofs->coofs[0] = d * A;
+		coofs->coofs[1] = d * B;
+		coofs->coofs[2] = d * C;
 
 		return GMRFLib_SUCCESS;
 	} else {
