@@ -157,16 +157,48 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 			} else {
 				int i = low + n;
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"	       // disable warning as this behaviour is intended 
-				switch(n) {
-				case 8: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 7: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 6: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 5: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 4: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 3: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 2: if (ix[--i] == val) {guess[0] = i; return i;}
-				case 1: if (ix[--i] == val) {guess[0] = i; return i;}
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"	       // disable warning as this behaviour is intended
+				switch (n) {
+				case 8:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 7:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 6:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 5:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 4:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 3:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 2:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
+				case 1:
+					if (ix[--i] == val) {
+						guess[0] = i;
+						return i;
+					}
 				}
 #pragma GCC diagnostic pop
 				guess[0] = low;

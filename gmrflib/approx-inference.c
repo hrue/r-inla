@@ -5610,7 +5610,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 					GMRFLib_opt_turn_off_parallel_linesearch();
 					GMRFLib_gsl_optimize(ai_par);	/* restart */
 				}
-				
+
 				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
 				ai_par->gradient_forward_finite_difference = fd_save;
 			}
@@ -7278,7 +7278,7 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
 		return GMRFLib_SUCCESS;
 	}
-		      
+
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
 
@@ -7292,7 +7292,7 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 #pragma omp threadprivate(work, xp, wp)
 		if (!work) {
 			work = Calloc(3 * np, double);
-			GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
+			GMRFLib_ghq(&xp, &wp, np);	       /* just give ptr to storage */
 		}
 		x_user = work;
 		x_std = work + np;
@@ -7641,7 +7641,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 	double time_grad = 0.0, time_hess = 0.0;
-	
+
 	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
@@ -7740,13 +7740,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		int update_MM = ((iter == 0) || !keep_MM);
 		double err_dx;
 		double ratio = NAN;
-		
+
 		if (ratio_ok) {
 			// this override options, as the decision is that it is most efficient to update MM all the time
 			update_MM = 1;
 			keep_MM = 0;
 		}
-		
+
 		time_grad = GMRFLib_cpu();
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
@@ -7848,7 +7848,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		} else {
 			ratio = NAN;
 		}
-				
+
 		for (i = 0; i < (int) delta->size; i++) {
 			if (ISNAN(gsl_vector_get(delta, i))) {
 				gsl_vector_set_zero(delta);

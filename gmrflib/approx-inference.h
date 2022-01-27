@@ -605,7 +605,7 @@ typedef struct {
 	double *cc;
 
 	int Npred;
-	
+
 	/**
 	 *\brief Store indices for the datapoints
 	 */

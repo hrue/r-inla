@@ -239,17 +239,17 @@ int inla_mkdir(const char *dirname)
 #if defined(WIN32) || defined(WINDOWS)
 unsigned long long getTotalSystemMemory()
 {
-    MEMORYSTATUSEX status;
-    status.dwLength = sizeof(status);
-    GlobalMemoryStatusEx(&status);
-    return ((status.ullTotalPhys / 1024L / 1024L));
+	MEMORYSTATUSEX status;
+	status.dwLength = sizeof(status);
+	GlobalMemoryStatusEx(&status);
+	return ((status.ullTotalPhys / 1024L / 1024L));
 }
 #else
 unsigned long long getTotalSystemMemory()
 {
-    long pages = sysconf(_SC_PHYS_PAGES);
-    long page_size = sysconf(_SC_PAGE_SIZE);
-    return ((pages * page_size) / 1024L / 1024L);
+	long pages = sysconf(_SC_PHYS_PAGES);
+	long page_size = sysconf(_SC_PAGE_SIZE);
+	return ((pages * page_size) / 1024L / 1024L);
 }
 #endif
 
@@ -8781,9 +8781,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -13860,7 +13860,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_NBINOMIAL: 
+	case L_NBINOMIAL:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -37645,34 +37645,34 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 68: 
+	case 68:
 	{
 		assert(nargs == 3);
 		printf("Call 'double (*fun)(double)' function [%s] in [%s] with argument [%s]\n", args[0], args[1], args[2]);
-		    lt_dlhandle handle;
-		    double (*fun)(double);
-		    const char *error;
+		lt_dlhandle handle;
+		double (*fun)(double);
+		const char *error;
 
-		    lt_dlinit();
-		    handle = lt_dlopen (args[1]);
-		    if (!handle) {
-			    fprintf (stderr, "%s\n", lt_dlerror());
-			    exit(1);
-		    }
-		    lt_dlerror();
+		lt_dlinit();
+		handle = lt_dlopen(args[1]);
+		if (!handle) {
+			fprintf(stderr, "%s\n", lt_dlerror());
+			exit(1);
+		}
+		lt_dlerror();
 
-		    fun = lt_dlsym(handle, args[0]);
-		    if ((error = lt_dlerror()) != NULL)  {
-			    fprintf (stderr, "%s\n", error);
-			    exit(1);
-		    }
-		    lt_dlerror();
+		fun = lt_dlsym(handle, args[0]);
+		if ((error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		lt_dlerror();
 
-		    double x = atof(args[2]);
-		    printf("fun(%g) = %g\n", x, fun(x));
-		    lt_dlclose(handle);
+		double x = atof(args[2]);
+		printf("fun(%g) = %g\n", x, fun(x));
+		lt_dlclose(handle);
 
-		    break;
+		break;
 	}
 
 	case 999:

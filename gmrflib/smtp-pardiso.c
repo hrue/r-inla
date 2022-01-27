@@ -676,7 +676,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	assert(permutation);
 	assert(m > 0);
 
-	
+
 #define CODE_BLOCK						\
 	for (int j = 0; j < m; j++) {				\
 		int k = j * n;					\
@@ -686,7 +686,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	}
 
 	RUN_CODE_BLOCK((m > 8 ? m : 1), 0, 0);
-#undef CODE_BLOCK	
+#undef CODE_BLOCK
 
 	Free(xx);
 	return GMRFLib_SUCCESS;

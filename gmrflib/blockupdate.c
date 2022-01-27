@@ -765,8 +765,9 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 		if (INVALID(x0) || INVALID(ddf) || INVALID(df) || INVALID(f0)) {
 			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
 			f0 = df = 0.0;
-			ddf = - 1.0;			       /* we try with this */
-			if (dd) dddf = 0.0;
+			ddf = -1.0;			       /* we try with this */
+			if (dd)
+				dddf = 0.0;
 			rescue = 1;
 		} else {
 			if (cmin) {
