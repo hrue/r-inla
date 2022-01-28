@@ -146,6 +146,7 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 		if (n <= 8) {				       // DO NOT INCREASE BEYOND 8; see below
 			guess[1] = high;
 			if (0) {
+				// old code
 				for (int i = low; i <= high; i++) {
 					if (ix[i] == val) {
 						guess[0] = i;
@@ -154,56 +155,49 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 				}
 				guess[0] = low;
 				return -1;
-			} else {
-				int i = low + n;
+			}
+			
+			int *ixx = ix + low - 1;
+			int llow = low - 1;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough"	       // disable warning as this behaviour is intended
-				switch (n) {
-				case 8:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 7:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 6:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 5:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 4:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 3:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 2:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				case 1:
-					if (ix[--i] == val) {
-						guess[0] = i;
-						return i;
-					}
+			switch (n) {
+			case 8:
+				if (ixx[8] == val) {
+					return guess[0] = llow + 8;
 				}
-#pragma GCC diagnostic pop
-				guess[0] = low;
-				return -1;
+			case 7:
+				if (ixx[7] == val) {
+					return guess[0] = llow + 7;
+				}
+			case 6:
+				if (ixx[6] == val) {
+					return guess[0] = llow + 6;
+				}
+			case 5:
+				if (ixx[5] == val) {
+					return guess[0] = llow + 5;
+				}
+			case 4:
+				if (ixx[4] == val) {
+					return guess[0] = llow + 4;
+				}
+			case 3:
+				if (ixx[3] == val) {
+					return guess[0] = llow + 3;
+				}
+			case 2:
+				if (ixx[2] == val) {
+					return guess[0] = llow + 2;
+				}
+			case 1:
+				if (ixx[1] == val) {
+					return guess[0] = llow + 1;
+				}
 			}
+#pragma GCC diagnostic pop
+			guess[0] = low;
+			return -1;
 		} else {
 			mid = low + (high - low) / 2;	       /* integer division */
 			if (ix[mid] > val) {
@@ -213,6 +207,7 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 			}
 		}
 	}
+	
 	return -1;
 }
 

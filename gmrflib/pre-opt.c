@@ -732,38 +732,24 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 	if (!lc) {
 		return 0.0;
 	}
+
 	// imin = node; imax = nnode;
 	if (node == nnode) {
 		elm = a->AtA_idxval[node][0]->store;
+
 #pragma GCC ivdep
 #pragma GCC unroll 8
 		for (int kk = 0; kk < a->AtA_idxval[node][0]->n; kk++) {
 			value += elm[kk].val * lc[elm[kk].idx];
 		}
 	} else {
-		int k = 0;
-		int iw_guess;
-		if (1) {
-			// we try to be clever to guess the solution as the previous one found plus one. some tests give a success rate of about
-			// 95% but this depends on everything of course. if we miss, we search as before
-			static int iw = -1;
-#pragma omp threadprivate(iw)
-
-			// use also this [low, high] guess, which is updated automatically
-			static int guess[] = { 0, 0 };
+		// use also this [low, high] guess, which is updated automatically
+		static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
-			iw_guess = (iw + 1 < a->like_graph->lnnbs[node] ? iw + 1 : 0);
-			iw = (nnode == a->like_graph->lnbs[node][iw_guess] ? iw_guess :
-			      GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess));
-			k = 1 + iw;
-		} else {
-			int guess[] = { 0, 0 };
-			// this is the plain version that was used before.
-			k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess);
-		}
-		assert(k > 0);
+		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess);
 		elm = a->AtA_idxval[node][k]->store;
+
 #pragma GCC ivdep
 #pragma GCC unroll 8
 		for (int kk = 0; kk < a->AtA_idxval[node][k]->n; kk++) {
