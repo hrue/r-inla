@@ -820,9 +820,9 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	int **iiparm = NULL;
 	int *init_done = NULL;
 	double **ddparm = NULL;
-	
+
 	int *factor = NULL;
-	
+
 	ppt = Calloc(max_nt, void *);
 	init_done = Calloc(max_nt, int);
 	iiparm = Calloc(max_nt, int *);
@@ -831,12 +831,12 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	ppt[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, void *);
 	iiparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, int);
 	ddparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, double);
-	for(int i = 1; i < max_nt; i++) {
-		ppt[i] = ppt[i-1] + GMRFLib_PARDISO_PLEN * sizeof(void *);
-		iiparm[i] = iiparm[i-1] + GMRFLib_PARDISO_PLEN;
-		ddparm[i] = ddparm[i-1] + GMRFLib_PARDISO_PLEN;
+	for (int i = 1; i < max_nt; i++) {
+		ppt[i] = ppt[i - 1] + GMRFLib_PARDISO_PLEN * sizeof(void *);
+		iiparm[i] = iiparm[i - 1] + GMRFLib_PARDISO_PLEN;
+		ddparm[i] = ddparm[i - 1] + GMRFLib_PARDISO_PLEN;
 		factor[i] = 0;
-	} 
+	}
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 	for (int i = 0; i < nblock + reminder; i++) {
@@ -854,7 +854,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 							    store->pstore[GMRFLib_PSTORE_TNUM_REF]->dparm, ddparm[tnum],
 							    &n, &(store->maxfct), &(factor[tnum]));
 		}
-		
+
 		pardiso(ppt[tnum], &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
 			&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
 			store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, iiparm[tnum], &(store->msglvl),
@@ -877,7 +877,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		}
 	}
 
-	for(int i = 0; i < max_nt; i++) {
+	for (int i = 0; i < max_nt; i++) {
 		if (ppt[i]) {
 			pardiso_delete_symbolic_factor_single(ppt[i], iiparm[i], &(factor[i]));
 		}
