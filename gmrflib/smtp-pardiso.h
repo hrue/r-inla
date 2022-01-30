@@ -60,7 +60,8 @@ __BEGIN_DECLS
  */
 #define GMRFLib_PSTORE_TNUM_REF (0)			       /* the reference thread number to store store-spesific things */
 #define GMRFLib_PARDISO_PLEN (64)
-    typedef enum {
+
+typedef enum {
 	GMRFLib_PARDISO_FLAG_REORDER = 1,
 	GMRFLib_PARDISO_FLAG_SYMFACT,
 	GMRFLib_PARDISO_FLAG_CHOL,
@@ -179,7 +180,7 @@ int GMRFLib_pardiso_set_debug(int debug);
 int GMRFLib_pardiso_set_nrhs(int nrhs);
 int GMRFLib_pardiso_set_parallel_reordering(int value);
 int GMRFLib_pardiso_set_verbose(int verbose);
-int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store);
+int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store, int *thread_num);
 int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
 int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs);
@@ -199,10 +200,13 @@ double my_pardiso_test_Q(int i, int j, double *values, void *arg);
 void pardiso(void *, int *, int *, int *, int *, int *, double *, int *, int *, int *, int *, int *, int *, double *, double *, int *, double *);
 void pardiso_chkmatrix(int *, int *, double *, int *, int *, int *);
 void pardiso_chkvec(int *, int *, double *, int *);
+void pardiso_copy_symbolic_factor_single(void *, void *, int *, int *, double *, double *, int *, int *, int *);
+void pardiso_delete_symbolic_factor_single(void *, int *, int *);
 void pardiso_get_factor_csc(void **, double *, int *, int *, double *, int *, int *, int *, int);
 void pardiso_get_inverse_factor_csc(void **, double *, int *, int *, int *, int);
 void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, int *);
 void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b, double *x, double *y, double *norm_b, double *norm_res);
 void pardisoinit(void *, int *, int *, int *, double *, int *);
+
 __END_DECLS
 #endif
