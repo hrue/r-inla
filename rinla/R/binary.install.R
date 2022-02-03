@@ -13,12 +13,13 @@
 ## !                               "Fedora-33", "Fedora-34", "Fedora Linux-35",
 ## !                               "Manjaro Linux",
 ## !                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
-## !                        verbose = TRUE, md5.check = TRUE)
+## !                        path = NULL, verbose = TRUE, md5.check = TRUE)
 ## ! }
 ## ! \arguments{
 ## !    \item{os}{If \code{os} is given, install binary build for this \code{os}.
 ## !              If \code{os} is not given, chose \code{os} interactively
 ## !              among available builds.}
+## !    \item{path}{character. The install path. If \code{NULL} the path is derived from \code{INLA} package}
 ## !    \item{verbose}{Logical. Verbose output if \code{TRUE}}
 ## !    \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not present
 ## !                     or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
@@ -36,6 +37,7 @@
 ## !   \dontrun{
 ## !     inla.binary.install()
 ## !     inla.binary.install(os = "CentOS Linux-7")
+## !     inla.binary.install(os = "CentOS Linux-7",  path = "~/local/bin/inla.binary")
 ## !   }
 ## ! }
 
@@ -50,6 +52,7 @@
                                          "Ubuntu-16.04", 
                                          "Ubuntu-18.04", 
                                          "Ubuntu-20.04"),
+                                  path = NULL, 
                                   verbose = TRUE,
                                   md5.check = TRUE) {
     show <- function(...) {
@@ -100,14 +103,23 @@
 
     fnm <- paste0(address, "/", ff[ans])
     show("Install file [", fnm, "]")
-    pa <- searchpaths()
-    pa <- pa[grep("/INLA$", pa)]
-    if (length(pa) == 0) {
-        stop("I cannot find '/INLA' in the searchpath(), so please retry after doing library('INLA')")
+    external.path <- FALSE
+    if (is.null(path)) {
+        pa <- searchpaths()
+        pa <- pa[grep("/INLA$", pa)]
+        if (length(pa) == 0) {
+            stop("I cannot find '/INLA' in the searchpath(), so please retry after doing library('INLA')")
+        }
+        stopifnot(file.info(pa)$isdir)
+        show("INLA is installed in [", pa, "]")
+        pa <- paste0(pa, "/bin/linux")
+    } else {
+        external.path <- TRUE
+        pa <- normalizePath(path)
+        if (!file.info(pa)$isdir) {
+            stopifnot(dir.create(pa, recursive = TRUE))
+        }
     }
-    stopifnot(file.info(pa)$isdir)
-    show("INLA is installed in [", pa, "]")
-    pa <- paste0(pa, "/bin/linux")
 
     show("Checking for write access...")
     test.fnm <- paste0(pa, "/test-file---", random.num, ".txt")
@@ -155,7 +167,7 @@
         unlink(to.file, force = TRUE)
         file.rename(to.dir, from.dir)
     }
-
+    
     show("Rename old 64bit directory...")
     from.dir <- paste0(pa, "/64bit")
     to.dir <- paste0(pa, "/64bit-", random.num)
@@ -166,7 +178,6 @@
         my.restore()
         stop("Error renaming old 64bit directory. Abort.")
     }
-
     show("Unpack file...")
     ret <- untar(to.file, exdir = dirname(to.file), verbose = FALSE)
     if (ret == 0) {
@@ -185,5 +196,12 @@
     unlink(to.dir, recursive = TRUE, force = TRUE)
     show("Done!")
 
-    return(invisible(TRUE))
+    if (external.path) {
+        cat("* Examples of usage:\n")
+        cat("* \tinla.setOption(inla.call = \"", paste0(from.dir, "/inla.mkl.run"), "\")\n")
+        cat("* \tinla.setOption(inla.call = \"", paste0(from.dir, "/inla.run"), "\")\n")
+        cat("* \tinla.setOption(fmesher.call = \"", paste0(from.dir, "/fmesher.run"), "\")\n")
+    }
+
+   return(invisible(TRUE))
 }
