@@ -984,10 +984,9 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	GMRFLib_Qinv_tp *subQinv = Calloc(1, GMRFLib_Qinv_tp);
 
 	subQinv->Qinv = Qinv;
-	subQinv->mapping = Calloc(1, map_ii);
-	map_ii_init_hint(subQinv->mapping, n);
+	subQinv->mapping = Calloc(n, int);
 	for (i = 0; i < n; i++) {
-		map_ii_set(subQinv->mapping, problem->sub_graph->mothergraph_idx[i], problem->sub_graph->mothergraph_idx[i]);
+		subQinv->mapping[i] = i;
 	}
 	problem->sub_inverse = subQinv;
 

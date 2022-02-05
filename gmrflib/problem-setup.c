@@ -978,7 +978,6 @@ int GMRFLib_free_Qinv(GMRFLib_problem_tp * problem)
 		}
 		Free(problem->sub_inverse->Qinv);
 
-		map_ii_free(problem->sub_inverse->mapping);
 		Free(problem->sub_inverse->mapping);
 		Free(problem->sub_inverse);
 	}
@@ -1051,21 +1050,9 @@ int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
 
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j)
 {
-	int *ii = NULL, *jj = NULL;
-
-	if (!problem || !problem->sub_inverse) {
-		return NULL;
-	}
-
-	ii = map_ii_ptr(problem->sub_inverse->mapping, i);
-	if (!ii) {
-		return NULL;
-	}
-	jj = map_ii_ptr(problem->sub_inverse->mapping, j);
-	if (!jj) {
-		return NULL;
-	}
-	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(*ii, *jj)], IMAX(*ii, *jj));
+	int ii = problem->sub_inverse->mapping[i];
+	int jj = problem->sub_inverse->mapping[j];
+	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
 }
 
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
@@ -1593,7 +1580,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 			Qinv[i] = GMRFLib_duplicate_map_id(problem->sub_inverse->Qinv[i]);
 		}
 		np->sub_inverse->Qinv = Qinv;
-		np->sub_inverse->mapping = GMRFLib_duplicate_map_ii(problem->sub_inverse->mapping);
+		np->sub_inverse->mapping = Calloc(n, int);
+		Memcpy(np->sub_inverse->mapping, problem->sub_inverse->mapping, n * sizeof(int));
 	} else {
 		np->sub_inverse = NULL;
 	}
@@ -1682,7 +1670,7 @@ size_t GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 		for (i = 0; i < n; i++) {
 			siz += GMRFLib_sizeof_map_id(problem->sub_inverse->Qinv[i]);
 		}
-		siz += GMRFLib_sizeof_map_ii(problem->sub_inverse->mapping);
+		siz += n * sizeof(int);
 	}
 #undef DUPLICATE
 

@@ -906,7 +906,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 */
 
 	char *fix = NULL, *fixx = NULL;
-	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, *i_idx, *j_idx, one = 1;
+	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, i_idx, j_idx, one = 1;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
 	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, ld0, ld1, deldif =
 	    GMRFLib_eps(1.0 / 6.0), h2 = 0.0, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
@@ -1277,11 +1277,11 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			}
 			Free(covariances);
 		} else {
-			i_idx = map_ii_ptr(store_Qinv->mapping, idx);
+			i_idx = store_Qinv->mapping[idx]; 
 			for (j = 0; j < ai_store->nidx; j++) {
 				i = ai_store->correction_idx[j];
-				j_idx = map_ii_ptr(store_Qinv->mapping, i);
-				cov = map_id_ptr(store_Qinv->Qinv[IMIN(*i_idx, *j_idx)], IMAX(*i_idx, *j_idx));
+				j_idx = store_Qinv->mapping[i];
+				cov = map_id_ptr(store_Qinv->Qinv[IMIN(i_idx, j_idx)], IMAX(i_idx, j_idx));
 				if (cov) {
 					corr = *cov * inv_stdev / ai_store->stdev[i];
 					corr_term = 1.0 - SQR(corr);

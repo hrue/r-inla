@@ -961,11 +961,13 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			cov = GMRFLib_Qinv_get(problem, j, j);		\
 			var += SQR(elm[k].val) * *cov;			\
 			mean[i] += elm[k].val * mm[j];			\
+			double tvar = 0.0;				\
 			for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\
 				cov = GMRFLib_Qinv_get(problem, j, jj);	\
-				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
+				tvar += elm[kk].val * *cov;		\
 			}						\
+			var += 2.0 * elm[k].val * tvar;			\
 		}							\
 		variance[i] = var;					\
 	}
@@ -984,6 +986,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			cov = GMRFLib_Qinv_get(problem, j, j);		\
 			var += SQR(elm[k].val) * *cov;			\
 			mean[offset + i] += elm[k].val * mm[j];		\
+			double tvar = 0.0;				\
 			for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\
 				cov = GMRFLib_Qinv_get(problem, j, jj);	\
@@ -991,8 +994,9 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					err_count++;			\
 					cov = &zero;			\
 				}					\
-				var += 2.0 * elm[k].val * elm[kk].val * *cov; \
+				tvar += elm[kk].val * *cov;		\
 			}						\
+			var += 2.0 * elm[k].val * tvar;			\
 		}							\
 		variance[offset + i] = var;				\
 	}

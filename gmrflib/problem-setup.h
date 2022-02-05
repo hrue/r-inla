@@ -184,7 +184,7 @@ typedef struct {
 	/**
 	 *  \brief The mapping used to lookup values in \a Qinv 
 	 */
-	map_ii *mapping;
+	int *mapping;
 } GMRFLib_Qinv_tp;
 
 /*! 
