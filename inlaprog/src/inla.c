@@ -38318,26 +38318,26 @@ int main(int argc, char **argv)
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
 
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
-					printf("\nNumber of fn-calls= %1d with %.3f sec/fn-call\n",
+					printf("\nNumber of fn-calls= %1d with %.4f sec/fn-call\n",
 					       mb->misc_output->nfunc, time_used[1] / IMAX(1, mb->misc_output->nfunc));
 					if (R_rgeneric_cputime > 0.0) {
-						printf("rgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+						printf("rgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
 						       R_rgeneric_cputime,
 						       R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc),
 						       R_rgeneric_cputime / time_used[1] * 100.0);
 					}
 				} else {
 					printf("Stage1:");
-					printf("\tNumber of fn-calls= %1d with %.3f sec/fn-call\n", nfunc[0], time_used[3] / IMAX(1, nfunc[0]));
+					printf("\tNumber of fn-calls= %1d with %.4f sec/fn-call\n", nfunc[0], time_used[3] / IMAX(1, nfunc[0]));
 					if (rgeneric_cpu[0] > 0.0) {
-						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+						printf("\trgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
 						       rgeneric_cpu[0],
 						       rgeneric_cpu[0] / IMAX(1, nfunc[0]), rgeneric_cpu[0] / time_used[3] * 100.0);
 					}
 					printf("Stage2:");
-					printf("\tNumber of fn-calls= %1d with %.3f sec/fn-call\n", nfunc[1], time_used[1] / IMAX(1, nfunc[1]));
+					printf("\tNumber of fn-calls= %1d with %.4f sec/fn-call\n", nfunc[1], time_used[1] / IMAX(1, nfunc[1]));
 					if (rgeneric_cpu[1] > 0.0) {
-						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+						printf("\trgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
 						       rgeneric_cpu[1],
 						       rgeneric_cpu[1] / IMAX(1, nfunc[1]),
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);

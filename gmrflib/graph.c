@@ -80,7 +80,6 @@ int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 	(*graph)->nnbs = NULL;
 	(*graph)->lnnbs = NULL;
 	(*graph)->sha = NULL;
-	(*graph)->mothergraph_idx = NULL;
 
 	return GMRFLib_SUCCESS;
 }
@@ -256,11 +255,6 @@ int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph)
 			fprintf(fpp, " %1d", graph->lnbs[i][j]);
 		}
 		fprintf(fpp, "\n");
-	}
-	if (graph->mothergraph_idx) {
-		for (i = 0; i < graph->n; i++) {
-			fprintf(fpp, "node %1d corresponds to mother-node %1d\n", i, graph->mothergraph_idx[i]);
-		}
 	}
 
 	return GMRFLib_SUCCESS;
@@ -472,7 +466,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	Free(graph->lnbs);
 	Free(graph->lnnbs);
 	Free(graph->sha);
-	Free(graph->mothergraph_idx);
 	Free(graph);
 
 	return GMRFLib_SUCCESS;
@@ -883,12 +876,6 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		}
 	}
 
-	if (graph_old->mothergraph_idx) {
-		if (!g->mothergraph_idx) {
-			g->mothergraph_idx = Calloc(n, int);
-		}
-		Memcpy(g->mothergraph_idx, graph_old->mothergraph_idx, (size_t) (n * sizeof(int)));
-	}
 	*graph_new = g;
 	GMRFLib_graph_prepare(g);
 
@@ -924,137 +911,136 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 
 	siz += sizeof(int) + m * sizeof(int) + 2 * n * sizeof(int) + 2 * n * sizeof(int *);
 
-	if (graph->mothergraph_idx) {
-		siz += n * sizeof(int);
-	}
-
 	return siz;
 }
 
 int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag)
 {
-	/*
-	 * return a subgraph of graph, by ruling out those nodes for which remove_flag[i] is true, keeping those which
-	 * remove_flag[i] false. 
-	 */
-	int i, j, nneig, nn, k, n_neig_tot, storage_indx, *sg_iidx, *storage = NULL, free_remove_flag = 0;
-
-	GMRFLib_ENTER_ROUTINE;
-
-	if (!graph) {
-		GMRFLib_LEAVE_ROUTINE;
-		return GMRFLib_SUCCESS;
-	}
-
-	/*
-	 * if the graph is empty, then just return an empty graph 
-	 */
-	if (graph->n == 0) {
-		*subgraph = Calloc(1, GMRFLib_graph_tp);
-		(*subgraph)->n = 0;
-		GMRFLib_LEAVE_ROUTINE;
-
-		return GMRFLib_SUCCESS;
-	}
-
-	/*
-	 * to ease the interface: remove_flag = NULL is ok. then this just do a (slow) copy of the graph. 
-	 */
 	if (!remove_flag) {
-		remove_flag = Calloc(graph->n, char);
+		return GMRFLib_graph_duplicate(subgraph, graph);
+	} else {
 
-		free_remove_flag = 1;
-	}
+		/*
+		 * return a subgraph of graph, by ruling out those nodes for which remove_flag[i] is true, keeping those which
+		 * remove_flag[i] false. 
+		 */
+		int i, j, nneig, nn, k, n_neig_tot, storage_indx, *sg_iidx, *storage = NULL, free_remove_flag = 0;
 
-	GMRFLib_graph_mk_empty(subgraph);
+		GMRFLib_ENTER_ROUTINE;
 
-	for (i = 0, nn = 0; i < graph->n; i++) {
-		nn += (!remove_flag[i]);
-	}
-	(*subgraph)->n = nn;
-	if (!((*subgraph)->n)) {
+		if (!graph) {
+			GMRFLib_LEAVE_ROUTINE;
+			return GMRFLib_SUCCESS;
+		}
+
+		/*
+		 * if the graph is empty, then just return an empty graph 
+		 */
+		if (graph->n == 0) {
+			*subgraph = Calloc(1, GMRFLib_graph_tp);
+			(*subgraph)->n = 0;
+			GMRFLib_LEAVE_ROUTINE;
+
+			return GMRFLib_SUCCESS;
+		}
+
+		/*
+		 * to ease the interface: remove_flag = NULL is ok. then this just do a (slow) copy of the graph. 
+		 */
+		if (!remove_flag) {
+			remove_flag = Calloc(graph->n, char);
+
+			free_remove_flag = 1;
+		}
+
+		GMRFLib_graph_mk_empty(subgraph);
+
+		for (i = 0, nn = 0; i < graph->n; i++) {
+			nn += (!remove_flag[i]);
+		}
+		(*subgraph)->n = nn;
+		if (!((*subgraph)->n)) {
+			GMRFLib_LEAVE_ROUTINE;
+			return GMRFLib_SUCCESS;
+		}
+
+		/*
+		 * create space 
+		 */
+		(*subgraph)->nnbs = Calloc((*subgraph)->n, int);
+		(*subgraph)->nbs = Calloc((*subgraph)->n, int *);
+
+		sg_iidx = Calloc(graph->n, int);
+
+		/*
+		 * make the mapping of nodes 
+		 */
+		for (i = 0, k = 0; i < graph->n; i++) {
+			if (!remove_flag[i]) {
+				sg_iidx[i] = k;
+				k++;
+			} else {
+				sg_iidx[i] = -1;		       /* to force a failure if used wrong */
+			}
+		}
+
+		/*
+		 * parse the graph and collect nodes not to be removed. 
+		 */
+		for (i = 0, k = 0, n_neig_tot = 0; i < graph->n; i++) {
+			if (!remove_flag[i]) {
+				for (j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
+					nneig += (!remove_flag[graph->nbs[i][j]]);
+				}
+				n_neig_tot += nneig;
+				(*subgraph)->nnbs[k] = nneig;
+
+				if (nneig > 0) {
+					(*subgraph)->nbs[k] = Calloc(nneig, int);
+
+					for (j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
+						if (!remove_flag[graph->nbs[i][j]]) {
+							(*subgraph)->nbs[k][nneig] = sg_iidx[graph->nbs[i][j]];
+							nneig++;
+						}
+					}
+				} else {
+					(*subgraph)->nbs[k] = NULL;
+				}
+
+				k++;
+			}
+		}
+
+		Free(sg_iidx);
+
+		/*
+		 * map the graph to a more computational convenient memory layout! use just one long vector to store all the neighbours. 
+		 */
+		if (n_neig_tot) {
+			storage = Calloc(n_neig_tot, int);
+
+			storage_indx = 0;
+			for (i = 0; i < (*subgraph)->n; i++) {
+				if ((*subgraph)->nnbs[i]) {
+					Memcpy(&storage[storage_indx], (*subgraph)->nbs[i], (size_t) (sizeof(int) * (*subgraph)->nnbs[i]));
+					Free((*subgraph)->nbs[i]);
+					(*subgraph)->nbs[i] = &storage[storage_indx];
+					storage_indx += (*subgraph)->nnbs[i];
+				} else {
+					(*subgraph)->nbs[i] = NULL;
+				}
+			}
+		}
+		GMRFLib_graph_prepare(*subgraph);
+
+		if (free_remove_flag) {
+			Free(remove_flag);			       /* if we have used our own */
+		}
+
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
-
-	/*
-	 * create space 
-	 */
-	(*subgraph)->nnbs = Calloc((*subgraph)->n, int);
-	(*subgraph)->nbs = Calloc((*subgraph)->n, int *);
-
-	(*subgraph)->mothergraph_idx = Calloc((*subgraph)->n, int);
-	sg_iidx = Calloc(graph->n, int);
-
-	/*
-	 * make the mapping of nodes 
-	 */
-	for (i = 0, k = 0; i < graph->n; i++) {
-		if (!remove_flag[i]) {
-			(*subgraph)->mothergraph_idx[k] = i;
-			sg_iidx[i] = k;
-			k++;
-		} else {
-			sg_iidx[i] = -1;		       /* to force a failure if used wrong */
-		}
-	}
-
-	/*
-	 * parse the graph and collect nodes not to be removed. 
-	 */
-	for (i = 0, k = 0, n_neig_tot = 0; i < graph->n; i++) {
-		if (!remove_flag[i]) {
-			for (j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
-				nneig += (!remove_flag[graph->nbs[i][j]]);
-			}
-			n_neig_tot += nneig;
-			(*subgraph)->nnbs[k] = nneig;
-
-			if (nneig > 0) {
-				(*subgraph)->nbs[k] = Calloc(nneig, int);
-
-				for (j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
-					if (!remove_flag[graph->nbs[i][j]]) {
-						(*subgraph)->nbs[k][nneig] = sg_iidx[graph->nbs[i][j]];
-						nneig++;
-					}
-				}
-			} else {
-				(*subgraph)->nbs[k] = NULL;
-			}
-
-			k++;
-		}
-	}
-
-	Free(sg_iidx);
-
-	/*
-	 * map the graph to a more computational convenient memory layout! use just one long vector to store all the neighbours. 
-	 */
-	if (n_neig_tot) {
-		storage = Calloc(n_neig_tot, int);
-
-		storage_indx = 0;
-		for (i = 0; i < (*subgraph)->n; i++) {
-			if ((*subgraph)->nnbs[i]) {
-				Memcpy(&storage[storage_indx], (*subgraph)->nbs[i], (size_t) (sizeof(int) * (*subgraph)->nnbs[i]));
-				Free((*subgraph)->nbs[i]);
-				(*subgraph)->nbs[i] = &storage[storage_indx];
-				storage_indx += (*subgraph)->nnbs[i];
-			} else {
-				(*subgraph)->nbs[i] = NULL;
-			}
-		}
-	}
-	GMRFLib_graph_prepare(*subgraph);
-
-	if (free_remove_flag) {
-		Free(remove_flag);			       /* if we have used our own */
-	}
-
-	GMRFLib_LEAVE_ROUTINE;
-	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap)
@@ -1908,9 +1894,6 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g)
 		}
 	}
 
-	if (g->mothergraph_idx) {
-		GMRFLib_SHA_IUPDATE(g->mothergraph_idx, g->n);
-	}
 	GMRFLib_SHA_Final(md, &c);
 	md[GMRFLib_SHA_DIGEST_LEN] = '\0';
 	g->sha = md;

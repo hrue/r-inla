@@ -162,7 +162,6 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	g->n = n;
 	g->nnbs = nnbs;
 	g->nbs = nbs;
-	g->mothergraph_idx = NULL;
 
 	GMRFLib_graph_prepare(g);
 	GMRFLib_graph_duplicate(graph, g);

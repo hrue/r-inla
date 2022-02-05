@@ -136,7 +136,6 @@ __BEGIN_DECLS
 typedef struct {
 	void *user_Qfunc_args;
 	GMRFLib_Qfunc_tp *user_Qfunc;
-	int *map;					       /* Mapping to the real-world */
 	double *diagonal_adds;
 	GMRFLib_graph_tp *graph;
 } GMRFLib_Qfunc_arg_tp;
@@ -267,15 +266,6 @@ typedef struct {
 	 * for internal use only; the length of sample, mean and mean_constr. 
 	 */
 	int n;
-
-	/**
-	 *  \brief Mapping to the real-world
-	 * 
-	 * The mapping between the elements of \a sub_sample, \a sub_mean, \a sub_mean_constr and \a sub_graph, and the real
-	 * world. The correspondence is defined by \f$ \mbox{\small\tt sub\_sample}[i] \leftrightarrow \mbox{\small\tt sample}
-	 * [\mbox{\small\tt map}[i]] \f$, and similar with the other quantities. \n\n 
-	 */
-	int *map;
 
 	/**
 	 *  \brief The log-density of sub_sample, corresponding to the elements of <em>\b x</em> that are not fixed. 

@@ -713,7 +713,6 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 		g = Calloc(ns, double);
 
 		for (ii = 0; ii < ns; ii++) {
-			// i = subgraph->mothergraph_idx[ii];
 			i = ii;
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
@@ -746,14 +745,12 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 		linear_term = 0.0;
 		quadratic_term = 0.0;
 		for (ii = 0; ii < ns; ii++) {
-			// i = subgraph->mothergraph_idx[ii];
 			i = ii;
 			linear_term -= g[ii] * x_gradient[i];
 			quadratic_term += f[ii] * x_gradient[i];
 		}
 		if (b) {
 			for (ii = 0; ii < ns; ii++) {
-				// i = subgraph->mothergraph_idx[ii];
 				i = ii;
 				linear_term += x_gradient[i] * b[i];
 			}
@@ -776,7 +773,6 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 			if (d) {
 				tmp = 0.0;
 				for (ii = 0; ii < ns; ii++) {
-					// i = subgraph->mothergraph_idx[ii];
 					i = ii;
 					if (d[i]) {
 						loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
@@ -828,7 +824,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		g = Calloc(ns, double);
 
 		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
+			i = ii;
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
 			if (c) {
@@ -860,13 +856,13 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		linear_term = 0.0;
 		quadratic_term = 0.0;
 		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
+			i = ii;
 			linear_term -= g[ii] * x_gradient[i];
 			quadratic_term += f[ii] * x_gradient[i];
 		}
 		if (b) {
 			for (ii = 0; ii < ns; ii++) {
-				i = subgraph->mothergraph_idx[ii];
+				i = ii;
 				linear_term += x_gradient[i] * b[i];
 			}
 		}
@@ -877,7 +873,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		if (d) {
 			tmp = 0.0;
 			for (ii = 0; ii < ns; ii++) {
-				i = subgraph->mothergraph_idx[ii];
+				i = ii;
 				if (d[i]) {
 					loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 					tmp += d[i] * logll;
@@ -1309,7 +1305,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		}
 		h2 = 0.5 * x_sd;
 		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
+			i = ii;
 			cond_mode[i] = fixed_mode[i] - h2 * derivative[i];
 		}
 		// this is needed but 'fix' is no longer there
@@ -1327,7 +1323,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		}
 
 		for (ii = 0; ii < ns; ii++) {
-			i = subgraph->mothergraph_idx[ii];
+			i = ii;
 			cond_mode[i] = fixed_mode[i] + h2 * derivative[i];
 		}
 		// this is needed but 'fix' is no longer there
@@ -1642,19 +1638,19 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 			*covariances = Calloc(n, double);
 
 			for (i = 0; i < sub_n; i++) {
-				ii = (*problem)->map[i];
+				ii = i;
 				(*covariances)[ii] = (*problem)->qi_at_m[kk + i];
 			}
 
 			if ((*problem)->sub_constr->nc > 1) {
 				for (i = 0; i < sub_n; i++) {
-					if (idx == (*problem)->map[i]) {
+					if (idx == i) {
 						break;
 					}
 				}
 				idx_map = i;
 				for (i = 0; i < sub_n; i++) {
-					ii = (*problem)->map[i];
+					ii = i;
 					for (kk = 0; kk < (*problem)->sub_constr->nc - 1; kk++) {
 						(*covariances)[ii] -= constr_m[i + kk * sub_n] * (*problem)->qi_at_m[idx_map + kk * sub_n];
 					}
@@ -1873,7 +1869,7 @@ int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x,
 		Free(t_vector);
 
 		for (i = 0; i < sub_n; i++) {
-			j = (*problem)->map[i];
+			j = i;
 			(*problem)->mean_constr[j] = (*problem)->sub_mean_constr[i];
 		}
 
