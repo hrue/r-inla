@@ -776,10 +776,6 @@ benefite could be dramatic, as the R interpreter is avoided and the
 calls to the generic functions are no longer wrapped in an OpenMP
 critical region which is required due to the serial nature of libR.
 
-This new feature is necessarily much more technical, but is relative
-straight forward on Linux and Mac. For Windows its currently not
-tested. 
-
 The main idea is to provide a C implementation with similar features
 as for the R interface, and to pass the name of the function and its
 binary in a form of a shared/dynamic library. The GNU library `ltdl`
