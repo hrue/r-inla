@@ -2854,7 +2854,6 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 	int rebuild, ii, debug = 0, id;
 
 	GMRFLib_CACHE_SET_ID(id);
-
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
@@ -8781,9 +8780,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -19505,34 +19504,45 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 
 int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out)
 {
-	int i, n, nn;
+	int i, n, m;
 
 #pragma omp critical
 	{
-		fprintf(fp, "cgeneric(%s) cmd=%s out=\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
+		fprintf(fp, "cgeneric[ %s ]  cmd = %s\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
 		switch (cmd) {
-		case INLA_CGENERIC_Q:
+		case INLA_CGENERIC_GRAPH:
 		{
-			fprintf(fp, "\tout[0] = %d  out[1] = %d\n", (int) out[0], (int) out[1]);
-			n = (int) out[1];
-			if ((int) out[0] == -1) {
-				for (i = 0; i < n; i++) {
-					fprintf(fp, "\t%1d %.8f\n", i, out[2 + i]);
-				}
-			} else {
-				for (i = 0; i < n; i++) {
-					fprintf(fp, "\t%1d (%1d, %1d, %.8f)\n", i, (int) out[2 + i], (int) out[2 + n + i], out[2 + 2 * n + i]);
-				}
+			int ii = -1, jj, ii_prev;
+			n = (int) out[0];
+			m = (int) out[1];
+			fprintf(fp, "\tdimension = %1d   number.of.elements = %1d\n", n, m);
+			for (i = 0; i < m; i++) {
+				ii_prev = ii;
+				ii = (int) out[2 + i];
+				jj = (int) out[2 + m + i];
+				assert(ii >= 0 && jj >= 0);
+				assert(ii >= ii_prev);
+				assert(jj >= ii);
+				fprintf(fp, "\tidx = %1d i = %1d j = %1d\n", i, (int) out[2 + i], (int) out[2 + m + i]);
 			}
 			break;
 		}
 
-		case INLA_CGENERIC_GRAPH:
+		case INLA_CGENERIC_Q:
 		{
 			n = (int) out[0];
-			nn = (int) out[1];
-			for (i = 0; i < nn; i++) {
-				fprintf(fp, "\t%1d (%1d %1d)\n", i, (int) out[2 + i], (int) out[2 + n + i]);
+			m = (int) out[1];
+			fprintf(fp, "\tn = %d  m = %d\n", n, m);
+			if (n == -1) {
+				fprintf(fp, "\toptimized format (same as the graph)\n");
+				for (i = 0; i < m; i++) {
+					fprintf(fp, "\tidx = %1d Q = %.8f\n", i, out[2 + i]);
+				}
+			} else {
+				for (i = 0; i < m; i++) {
+					fprintf(fp, "\tidx = %1d i = %1d, j = %1d, Qij = %.8f\n", i, (int) out[2 + i], (int) out[2 + n + i],
+						out[2 + 2 * n + i]);
+				}
 			}
 			break;
 		}
@@ -19540,8 +19550,9 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_MU:
 		{
 			n = (int) out[0];
+			fprintf(fp, "n = %1d\n", n);
 			for (i = 0; i < n; i++) {
-				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
+				fprintf(fp, "\ti = %1d mu_i = %.8f\n", i, out[1 + i]);
 			}
 			break;
 		}
@@ -19549,8 +19560,9 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_INITIAL:
 		{
 			n = (int) out[0];
+			fprintf(fp, "n = %1d\n", n);
 			for (i = 0; i < n; i++) {
-				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
+				fprintf(fp, "\tidx = %1d initial = %.8f\n", i, out[1 + i]);
 			}
 			break;
 		}
@@ -19558,7 +19570,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_LOG_NORM_CONST:
 		{
 			if (out) {
-				fprintf(fp, "\t%.8f\n", out[0]);
+				fprintf(fp, "\tlog.norm.const = %.8f\n", out[0]);
 			}
 			break;
 		}
@@ -19566,7 +19578,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_LOG_PRIOR:
 		{
 			if (out) {
-				fprintf(fp, "\t%.8f\n", out[0]);
+				fprintf(fp, "\tlog.prior = %.8f\n", out[0]);
 			}
 			break;
 		}
@@ -22348,11 +22360,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_C_GENERIC:
 	{
 		const char *emsg = NULL;
-		char *cdata_fnm = NULL;
+		char *cdata_fnm = NULL, *cgeneric_qfnm = NULL;
+		int cgeneric_q;
 		cgeneric_shlib = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.SHLIB"), NULL);
 		cgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.MODEL"), NULL);
 		cgeneric_n = iniparser_getint(ini, inla_string_join(secname, "CGENERIC.N"), cgeneric_n);
 		cgeneric_debug = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.DEBUG"), cgeneric_debug);
+		cgeneric_q = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.Q"), 0);
+		cgeneric_qfnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.Q.FILE"), NULL);
 		cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 
 		cgeneric_data = inla_cgeneric_read_data(cdata_fnm, cgeneric_debug);
@@ -22362,6 +22377,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tcgeneric.model  [%s]\n", cgeneric_model);
 			printf("\t\tcgeneric.data   [%s]\n", cdata_fnm);
 			printf("\t\tcgeneric.n      [%1d]\n", cgeneric_n);
+			printf("\t\tcgeneric.q      [%1d]\n", cgeneric_q);
 			printf("\t\tcgeneric.debug  [%1d]\n", cgeneric_debug);
 		}
 
@@ -22401,6 +22417,48 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			exit(1);
 		}
 		lt_dlerror();
+
+		if (cgeneric_q) {
+			// this is a hack for `inla.cgeneric.q`. write out info and then exit.
+
+			double *x = NULL, *theta = NULL;
+			int nt;
+
+			FILE *fp = fopen(cgeneric_qfnm, "w");
+
+			fprintf(fp, "CGENERIC_BEGIN\n");
+			x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
+			nt = (int) x[0];
+			if (nt > 0) {
+				theta = x + 1;
+			} else {
+				theta = NULL;
+			}
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_INITIAL, x);
+
+			x = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_GRAPH, x);
+
+			x = model_func(INLA_CGENERIC_Q, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_Q, x);
+
+			x = model_func(INLA_CGENERIC_MU, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_MU, x);
+
+			x = model_func(INLA_CGENERIC_LOG_PRIOR, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_LOG_PRIOR, x);
+
+			x = model_func(INLA_CGENERIC_LOG_NORM_CONST, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_LOG_NORM_CONST, x);
+
+			x = model_func(INLA_CGENERIC_QUIT, theta, cgeneric_data);
+
+			fprintf(fp, "CGENERIC_END\n");
+			fclose(fp);
+
+			// YES
+			exit(0);
+		}
 
 		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
 		if (cgeneric_debug) {

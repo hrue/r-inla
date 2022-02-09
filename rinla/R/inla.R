@@ -2371,8 +2371,8 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,
-                    only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2
-                ), silent = FALSE)
+                    only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
+                    silent = silent), silent = FALSE)
                 if (inherits(ret, "try-error")) {
                     return (ret)
                 }
