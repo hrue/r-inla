@@ -834,6 +834,48 @@ print(cbind(r$mlik, rr$mlik-r$mlik, rc$mlik-r$mlik))
 print(cbind(r$cpu[2], rr$cpu[2], rc$cpu[2]))
 ```
 
+The behaviour of the `cgeneric` model can be verified using
+`inla.cgeneric.q()`, like
+```{r eval=FALSE}
+gcc -Wall -fpic -g3 -O   -c -o cgeneric-demo.o cgeneric-demo.c
+gcc -shared -o cgeneric-demo.so cgeneric-demo.o
+
+> n <- 5
+> cmodel <- inla.cgeneric.define(model = "inla_cgeneric_ar1_model",
++                                shlib = "cgeneric-demo.so", n = n)
+> inla.cgeneric.q(cmodel)
+$theta
+[1] 1 1
+
+$graph
+5 x 5 sparse Matrix of class "dgCMatrix"
+              
+[1,] 1 1 . . .
+[2,] 1 1 1 . .
+[3,] . 1 1 1 .
+[4,] . . 1 1 1
+[5,] . . . 1 1
+
+$Q
+5 x 5 sparse Matrix of class "dgCMatrix"
+                                                                
+[1,]  3.45640494 -1.59726402  .           .           .         
+[2,] -1.59726402  4.19452805 -1.59726402  .           .         
+[3,]  .          -1.59726402  4.19452805 -1.59726402  .         
+[4,]  .           .          -1.59726402  4.19452805 -1.59726402
+[5,]  .           .           .          -1.59726402  3.45640494
+
+$mu
+numeric(0)
+
+$log.prior
+[1] -3.13722036
+
+$log.norm.const
+[1] -1.61423464
+```
+
+
 ## Header file and example file
 
 The header-file `cgeneric.h` is included in the package in the
