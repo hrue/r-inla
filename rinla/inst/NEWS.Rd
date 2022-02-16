@@ -4,6 +4,20 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.02.16}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New feature \code{inla.cgeneric.q}
+      \item New and updated PARDISO library
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Code improvements and cleanup
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.01.25}{
   \subsection{BUG FIXES}{
     \itemize{
