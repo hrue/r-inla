@@ -89,11 +89,11 @@ inla.pc.dgammacount <- function(x, lambda = 1, log = FALSE) {
 }
 
 inla.pc.qgammacount <- function(p, lambda = 1) {
-    log.x <- inla.pmarginal(p, inla.pc.gammacount.intern(lambda = lambda))
+    log.x <- inla.qmarginal(p, inla.pc.gammacount.intern(lambda = lambda))
     return(exp(log.x))
 }
 
 inla.pc.pgammacount <- function(q, lambda = 1) {
-    p <- inla.qmarginal(log(q), inla.pc.gammacount.intern(lambda = lambda))
+    p <- inla.pmarginal(log(q), inla.pc.gammacount.intern(lambda = lambda))
     return(p)
 }
