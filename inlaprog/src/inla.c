@@ -3018,23 +3018,19 @@ double mfunc_rgeneric(int i, void *arg)
 	}
 
 	GMRFLib_CACHE_SET_ID(id);
-	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
-	if (!rebuild) {
-		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
-			rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
-		}
+	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
+	for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+		rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 	}
 
 	if (rebuild) {
-		int n, n_out, jj;
-		double *x_out = NULL;
 #pragma omp critical
 		{
+			int n, n_out, jj;
+			double *x_out = NULL;
+
 			if (debug) {
 				printf("Rebuild mu-hash for id %d\n", id);
-			}
-			if (a->mu[id]) {
-				Free(a->mu[id]);
 			}
 			if (!(a->mu_param[id])) {
 				a->mu_param[id] = Calloc(a->ntheta, double);
@@ -3045,6 +3041,7 @@ double mfunc_rgeneric(int i, void *arg)
 					printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
 				}
 			}
+
 			if (debug) {
 				printf("Call rgeneric\n");
 			}
@@ -3052,19 +3049,21 @@ double mfunc_rgeneric(int i, void *arg)
 			if (debug) {
 				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
+
 			assert(n_out > 0);
 			n = (int) x_out[0];
 			if (n > 0) {
 				assert(n == a->n);
-				a->mu[id] = Calloc(n, double);
-				Memcpy((void *) (a->mu[id]), (void *) &(x_out[1]), n * sizeof(double));
+				if (!(a->mu[id])) {
+					a->mu[id] = Calloc(n, double);
+				}
+				Memcpy(a->mu[id], &(x_out[1]), n * sizeof(double));
 				a->mu_zero = 0;
 			} else {
 				a->mu_zero = 1;
 			}
 			Free(x_out);
 		}
-
 		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
 		if (a->mu_zero) {
 			return 0.0;
@@ -3085,22 +3084,17 @@ double mfunc_cgeneric(int i, void *arg)
 	}
 
 	GMRFLib_CACHE_SET_ID(id);
-	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
-	if (!rebuild) {
-		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
-			rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
-		}
+	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
+	for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+		rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 	}
 
 	if (rebuild) {
 		int n, jj;
-
 		double *x_out = NULL;
+
 		if (debug) {
 			printf("Rebuild mu-hash for id %d\n", id);
-		}
-		if (a->mu[id]) {
-			Free(a->mu[id]);
 		}
 		if (!(a->mu_param[id])) {
 			a->mu_param[id] = Calloc(a->ntheta, double);
@@ -3111,6 +3105,7 @@ double mfunc_cgeneric(int i, void *arg)
 				printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
 			}
 		}
+
 		if (debug) {
 			printf("Call cgeneric\n");
 		}
@@ -3118,11 +3113,14 @@ double mfunc_cgeneric(int i, void *arg)
 		if (debug) {
 			printf("Return from cgeneric with x_out[0]= %1d\n", (int) x_out[0]);
 		}
+
 		n = (int) x_out[0];
 		if (n > 0) {
 			assert(n == a->n);
-			a->mu[id] = Calloc(n, double);
-			Memcpy((void *) (a->mu[id]), (void *) &(x_out[1]), n * sizeof(double));
+			if (!(a->mu[id])) {
+				a->mu[id] = Calloc(n, double);
+			}
+			Memcpy(a->mu[id], &(x_out[1]), n * sizeof(double));
 			a->mu_zero = 0;
 		} else {
 			a->mu_zero = 1;
@@ -3133,7 +3131,7 @@ double mfunc_cgeneric(int i, void *arg)
 		if (a->mu_zero) {
 			return 0.0;
 		}
-	}
+	} 
 
 	return (a->mu[id][i]);
 }
