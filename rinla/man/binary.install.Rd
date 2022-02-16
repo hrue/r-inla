@@ -15,12 +15,13 @@
                                "Fedora-33", "Fedora-34", "Fedora Linux-35",
                                "Manjaro Linux",
                                "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
-                        verbose = TRUE, md5.check = TRUE)
+                        path = NULL, verbose = TRUE, md5.check = TRUE)
  }
  \arguments{
     \item{os}{If \code{os} is given, install binary build for this \code{os}.
               If \code{os} is not given, chose \code{os} interactively
               among available builds.}
+    \item{path}{character. The install path. If \code{NULL} the path is derived from \code{INLA} package}
     \item{verbose}{Logical. Verbose output if \code{TRUE}}
     \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not present
                      or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
@@ -38,5 +39,6 @@
    \dontrun{
      inla.binary.install()
      inla.binary.install(os = "CentOS Linux-7")
+     inla.binary.install(os = "CentOS Linux-7",  path = "~/local/bin/inla.binary")
    }
  }

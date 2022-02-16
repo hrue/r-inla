@@ -436,9 +436,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 
 	int i, j, k, kk, iii, jjj, bw, ldim, n, *inv_remap = NULL, *rremove = NULL, nrremove;
 	double tmp, Lii_inv, value, *Lmatrix, *cov;
-
 	map_id **Qinv_L = NULL;
-	map_ii *mapping = NULL;
 
 	bw = problem->sub_sm_fact.bandwidth;
 	ldim = bw + 1;
@@ -604,11 +602,8 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 	 * compute the mapping for lookup using GMRFLib_Qinv_get(). here, the user lookup using a global index, which is then
 	 * transformed to the reordered sub_graph. 
 	 */
-	problem->sub_inverse->mapping = mapping = Calloc(1, map_ii);
-	map_ii_init_hint(mapping, n);
-	for (i = 0; i < n; i++) {
-		map_ii_set(mapping, problem->sub_graph->mothergraph_idx[i], problem->sub_sm_fact.remap[i]);
-	}
+	problem->sub_inverse->mapping = Calloc(n, int);
+	Memcpy(problem->sub_inverse->mapping, problem->sub_sm_fact.remap, n * sizeof(int));
 
 	/*
 	 * cleanup 

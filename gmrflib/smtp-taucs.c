@@ -631,7 +631,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 		iperm_new = Calloc(graph->n, int);
 
 		for (i = 0; i < ns; i++) {
-			iperm_new[subgraph->mothergraph_idx[iperm[i]]] = i;
+			iperm_new[iperm[i]] = i;
 		}
 
 		/*
@@ -1455,7 +1455,6 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;
 	taucs_ccs_matrix *L = NULL;
-	map_ii *mapping = NULL;
 	map_id **Qinv_L = NULL, *q = NULL;
 
 	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);	/* chose matrix to use */
@@ -1639,11 +1638,8 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	 * compute the mapping for lookup using GMRFLib_Qinv_get(). here, the user lookup using a global index, which is then
 	 * transformed to the reordered sub_graph. 
 	 */
-	problem->sub_inverse->mapping = mapping = Calloc(1, map_ii);
-	map_ii_init_hint(mapping, n);
-	for (i = 0; i < n; i++) {
-		map_ii_set(mapping, problem->sub_graph->mothergraph_idx[i], problem->sub_sm_fact.remap[i]);
-	}
+	problem->sub_inverse->mapping = Calloc(n, int);
+	Memcpy(problem->sub_inverse->mapping, problem->sub_sm_fact.remap, n * sizeof(int));
 
 	/*
 	 * cleanup 

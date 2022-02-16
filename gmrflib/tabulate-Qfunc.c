@@ -102,7 +102,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg)
 {
-	static int guess[] = {0, 0};
+	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
 	TAB_FUNC_CORE(1);
@@ -110,7 +110,7 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
-	static int guess[] = {0, 0};
+	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
 	TAB_FUNC_CORE(0);

@@ -24,6 +24,7 @@
  the internal calculations}
  \item{file.log2}{Character. The filename, if any, of the logfile2 for
  the internal calculations}
+ \item{silent}{Internal use only}
  }
  \value{ The function returns an object of class \code{"inla"}, see the
  help file for \code{inla} for details.}

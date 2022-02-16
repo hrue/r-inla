@@ -133,7 +133,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 
 }
 
-int GMRFLib_opt_turn_off_parallel_linesearch() 
+int GMRFLib_opt_turn_off_parallel_linesearch()
 {
 	G.parallel_linesearch = 0;
 	return GMRFLib_SUCCESS;

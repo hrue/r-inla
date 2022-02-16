@@ -205,11 +205,6 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	}
 
 	/*
-	 * the mapping is there in the graph, make a new pointer in the opt_problem-definition 
-	 */
-	opt_problem->map = opt_problem->sub_graph->mothergraph_idx;
-
-	/*
 	 * setup space & misc 
 	 */
 	{
@@ -218,7 +213,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 			opt_problem->mode = Calloc(sub_n, double);
 
 			for (ii = 0; ii < sub_n; ii++) {
-				opt_problem->mode[ii] = mode[opt_problem->map[ii]];
+				opt_problem->mode[ii] = mode[ii];
 			}
 		}
 		{
@@ -228,7 +223,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 				int ii;
 
 				for (ii = 0; ii < sub_n; ii++) {
-					opt_problem->b[ii] = b[opt_problem->map[ii]];
+					opt_problem->b[ii] = b[ii];
 				}
 			}
 		}
@@ -239,7 +234,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 				int ii;
 
 				for (ii = 0; ii < sub_n; ii++) {
-					opt_problem->d[ii] = d[opt_problem->map[ii]];
+					opt_problem->d[ii] = d[ii];
 				}
 			}
 		}
@@ -250,7 +245,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 				int ii;
 
 				for (ii = 0; ii < sub_n; ii++) {
-					cc[ii] = c[opt_problem->map[ii]];
+					cc[ii] = c[ii];
 				}
 			}
 		}
@@ -272,7 +267,6 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	 */
 	opt_problem->sub_Qfunc = GMRFLib_Qfunc_wrapper;
 	opt_problem->sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
-	opt_problem->sub_Qfunc_arg->map = opt_problem->map;    /* yes, this ptr is needed */
 	opt_problem->sub_Qfunc_arg->diagonal_adds = cc;
 
 	opt_problem->sub_Qfunc_arg->user_Qfunc = Qfunc;
@@ -395,7 +389,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 	 * copy back 
 	 */
 	for (i = 0; i < sub_n; i++) {
-		mode[opt_problem->map[i]] = opt_problem->mode[i];
+		mode[i] = opt_problem->mode[i];
 	}
 
 	/*
@@ -474,7 +468,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		 * then compute contribution from the loglFunc 
 		 */
 		for (i = 0; i < sub_n; i++) {
-			opt_problem->x_vec[opt_problem->map[i]] = opt_problem->mode[i];
+			opt_problem->x_vec[i] = opt_problem->mode[i];
 		}
 #pragma omp parallel for private(i)
 		for (i = 0; i < sub_n; i++) {
@@ -483,7 +477,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 				double bcoof, ccoof;
 
 				GMRFLib_2order_taylor(NULL, &bcoof, &ccoof, NULL, opt_problem->d[i],
-						      opt_problem->mode[i], opt_problem->map[i], opt_problem->x_vec,
+						      opt_problem->mode[i], i, opt_problem->x_vec,
 						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
 						      &(opt_problem->optpar->stencil));
 				grad[i] += bcoof;
@@ -597,7 +591,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 	GMRFLib_Qx(v, u, opt_problem->sub_graph, opt_problem->sub_Qfunc, (void *) (opt_problem->sub_Qfunc_arg));
 
 	for (i = 0; i < sub_n; i++) {
-		opt_problem->x_vec[opt_problem->map[i]] = u[i];
+		opt_problem->x_vec[i] = u[i];
 	}
 #if defined(_OPENMP)
 	{
@@ -610,7 +604,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 			GMRFLib_thread_id = id;
 			sum += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 			if (opt_problem->d[i]) {
-				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL,
+				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, i, opt_problem->x_vec, NULL,
 							    opt_problem->loglFunc_arg);
 				sum += opt_problem->d[i] * logll;
 			}
@@ -625,7 +619,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 		GMRFLib_thread_id = id;
 		fval += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 		if (opt_problem->d[i]) {
-			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, opt_problem->map[i], opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
+			(*(opt_problem->loglFunc)) (&logll, &u[i], 1, i, opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 			fval += opt_problem->d[i] * logll;
 		}
 	}
@@ -653,14 +647,14 @@ int GMRFLib_linesearch(GMRFLib_optimize_problem_tp * opt_problem, double *dir)
 
 	for (iter = 0, fail = 1; iter < opt_problem->optpar->max_linesearch_iter; iter++) {
 		for (i = 0; i < sub_n; i++) {
-			opt_problem->x_vec[opt_problem->map[i]] = opt_problem->mode[i];
+			opt_problem->x_vec[i] = opt_problem->mode[i];
 		}
 #pragma omp parallel for private(i)
 		for (i = 0; i < sub_n; i++) {
 			GMRFLib_thread_id = id;
 			if (opt_problem->d[i]) {
 				GMRFLib_2order_taylor(NULL, &loglikgrad[i], &loglikggrad[i], NULL, 1.0,
-						      opt_problem->mode[i], opt_problem->map[i], opt_problem->x_vec,
+						      opt_problem->mode[i], i, opt_problem->x_vec,
 						      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
 						      &(opt_problem->optpar->stencil));
 			} else {
@@ -776,7 +770,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		 * compute contribution from the loglFunc 
 		 */
 		for (i = 0; i < sub_n; i++) {
-			opt_problem->x_vec[opt_problem->map[i]] = opt_problem->mode[i];
+			opt_problem->x_vec[i] = opt_problem->mode[i];
 		}
 
 		if (!idxs) {
@@ -802,7 +796,7 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			GMRFLib_thread_id = id;
 			idx = idxs[i];
 			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, NULL, opt_problem->d[idx],
-					      opt_problem->mode[idx], opt_problem->map[idx], opt_problem->x_vec,
+					      opt_problem->mode[idx], idx, opt_problem->x_vec,
 					      opt_problem->loglFunc, opt_problem->loglFunc_arg, &(opt_problem->optpar->step_len),
 					      &(opt_problem->optpar->stencil), &cmin);
 			bb[idx] = opt_problem->b[idx] + bcoof;

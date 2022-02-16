@@ -410,11 +410,6 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	}
 
 	/*
-	 * the mapping is there in the graph, make a new pointer in the problem-definition 
-	 */
-	(*problem)->map = (*problem)->sub_graph->mothergraph_idx;
-
-	/*
 	 * compute the reordering which is stored in sub_sm_fact 
 	 */
 	if (store_use_remap) {
@@ -469,13 +464,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 	sub_Qfunc = GMRFLib_Qfunc_wrapper;
 	sub_Qfunc_arg = Calloc(1, GMRFLib_Qfunc_arg_tp);
-	sub_Qfunc_arg->map = (*problem)->map;		       /* yes, this ptr is needed */
 	sub_Qfunc_arg->diagonal_adds = Calloc(sub_n, double);
 	sub_Qfunc_arg->graph = (*problem)->sub_graph;
 
 	if (c) {
 		for (i = 0; i < sub_n; i++) {
-			sub_Qfunc_arg->diagonal_adds[i] = c[(*problem)->map[i]];
+			sub_Qfunc_arg->diagonal_adds[i] = c[i];
 		}
 	}
 	sub_Qfunc_arg->user_Qfunc = Qfunc;
@@ -498,7 +492,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 	if (b) {
 		for (i = 0; i < sub_n; i++) {
-			bb[i] = b[(*problem)->map[i]];
+			bb[i] = b[i];
 		}
 	}
 
@@ -645,7 +639,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			if (retval != GMRFLib_SUCCESS) {
 				GMRFLib_WARNING("Matrix AQA^t is numerical singular, remove singularity and move on");
 				GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.5));
-				GMRFLib_EWRAP1(GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
+				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
+					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 			}
 			Free(aqat_m);
 
@@ -757,7 +752,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	 * make the ``mean variables'', which are easier accessible for the user. 
 	 */
 	for (i = 0; i < sub_n; i++) {
-		j = (*problem)->map[i];
+		j = i;
 		(*problem)->mean[j] = (*problem)->sub_mean[i];
 		(*problem)->mean_constr[j] = (*problem)->sub_mean_constr[i];
 	}
@@ -799,7 +794,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 	GMRFLib_EWRAP1(GMRFLib_solve_lt_sparse_matrix(problem->sub_sample, 1, &(problem->sub_sm_fact), problem->sub_graph));
 	for (i = 0; i < n; i++) {
 		problem->sub_sample[i] += problem->sub_mean[i];
-		problem->sample[problem->map[i]] = problem->sub_sample[i];	/* will be modified later if constraints */
+		problem->sample[i] = problem->sub_sample[i];	/* will be modified later if constraints */
 	}
 
 	/*
@@ -834,7 +829,7 @@ int GMRFLib_sample(GMRFLib_problem_tp * problem)
 		Free(t_vector);
 
 		for (i = 0; i < n; i++) {
-			problem->sample[problem->map[i]] = problem->sub_sample[i];	/* put into place */
+			problem->sample[i] = problem->sub_sample[i];	/* put into place */
 		}
 		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));     /* to compute the log-density */
 	}
@@ -873,7 +868,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 	 * user has altered the 'sample', put the correct subset into sub_sample and compute (x-\mu)^TQ(x-\mu)
 	 */
 	for (i = 0; i < n; i++) {
-		problem->sub_sample[i] = problem->sample[problem->map[i]];
+		problem->sub_sample[i] = problem->sample[i];
 		xx[i] = problem->sub_sample[i] - problem->sub_mean[i];
 	}
 	GMRFLib_Qx(yy, xx, problem->sub_graph, problem->tab->Qfunc, (void *) problem->tab->Qfunc_arg);
@@ -977,7 +972,6 @@ int GMRFLib_free_Qinv(GMRFLib_problem_tp * problem)
 		}
 		Free(problem->sub_inverse->Qinv);
 
-		map_ii_free(problem->sub_inverse->mapping);
 		Free(problem->sub_inverse->mapping);
 		Free(problem->sub_inverse);
 	}
@@ -1050,21 +1044,9 @@ int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
 
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j)
 {
-	int *ii = NULL, *jj = NULL;
-
-	if (!problem || !problem->sub_inverse) {
-		return NULL;
-	}
-
-	ii = map_ii_ptr(problem->sub_inverse->mapping, i);
-	if (!ii) {
-		return NULL;
-	}
-	jj = map_ii_ptr(problem->sub_inverse->mapping, j);
-	if (!jj) {
-		return NULL;
-	}
-	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(*ii, *jj)], IMAX(*ii, *jj));
+	int ii = problem->sub_inverse->mapping[i];
+	int jj = problem->sub_inverse->mapping[j];
+	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
 }
 
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
@@ -1320,7 +1302,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 	 */
 	for (k = 0; k < constr->nc; k++) {
 		for (i = 0; i < ns && in_use[k] == 0; i++) {
-			if (constr->a_matrix[k + constr->nc * sub_graph->mothergraph_idx[i]]) {
+			if (constr->a_matrix[k + constr->nc * i]) {
 				in_use[k] = 1;
 			}
 		}
@@ -1355,7 +1337,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 			}
 		}
 		for (i = 0; i < ns; i++) {
-			(*new_constr)->a_matrix[k + nc * i] = constr->a_matrix[kk + constr->nc * sub_graph->mothergraph_idx[i]];
+			(*new_constr)->a_matrix[k + nc * i] = constr->a_matrix[kk + constr->nc * i];
 		}
 	}
 
@@ -1434,7 +1416,6 @@ int GMRFLib_print_problem(FILE * fp, GMRFLib_problem_tp * problem)
 	GMRFLib_print_darray(fpp, problem->sample, n, "sample");
 	GMRFLib_print_darray(fpp, problem->mean, n, "mean");
 	GMRFLib_print_darray(fpp, problem->mean_constr, n, "mean_constr");
-	GMRFLib_print_iarray(fpp, problem->map, ns, "map");
 	GMRFLib_print_darray(fpp, &(problem->sub_logdens), 1, "sub_logdens");
 	GMRFLib_print_darray(fpp, problem->sub_sample, ns, "sub_sample");
 	GMRFLib_print_darray(fpp, problem->sub_mean, ns, "sub_mean");
@@ -1546,7 +1527,6 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	COPY(log_normc);
 	COPY(exp_corr);
 	GMRFLib_graph_duplicate(&(np->sub_graph), problem->sub_graph);
-	np->map = np->sub_graph->mothergraph_idx;	       /* its kind of special */
 
 	/*
 	 * copy the tab 
@@ -1592,7 +1572,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 			Qinv[i] = GMRFLib_duplicate_map_id(problem->sub_inverse->Qinv[i]);
 		}
 		np->sub_inverse->Qinv = Qinv;
-		np->sub_inverse->mapping = GMRFLib_duplicate_map_ii(problem->sub_inverse->mapping);
+		np->sub_inverse->mapping = Calloc(n, int);
+		Memcpy(np->sub_inverse->mapping, problem->sub_inverse->mapping, n * sizeof(int));
 	} else {
 		np->sub_inverse = NULL;
 	}
@@ -1681,7 +1662,7 @@ size_t GMRFLib_sizeof_problem(GMRFLib_problem_tp * problem)
 		for (i = 0; i < n; i++) {
 			siz += GMRFLib_sizeof_map_id(problem->sub_inverse->Qinv[i]);
 		}
-		siz += GMRFLib_sizeof_map_ii(problem->sub_inverse->mapping);
+		siz += n * sizeof(int);
 	}
 #undef DUPLICATE
 

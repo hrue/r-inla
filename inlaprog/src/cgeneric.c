@@ -124,7 +124,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		nread = fread((void *) &j, sizeof(int), (size_t) 1, fp);
 		assert(nread == (size_t) 1);
 
-		data->chars[k]->len = j; 
+		data->chars[k]->len = j;
 		data->chars[k]->chars = Calloc(j + 1L, char);
 		nread = fread((void *) data->chars[k]->chars, sizeof(char), (size_t) (j + 1L), fp);
 		assert(nread == (size_t) (j + 1L));
@@ -157,7 +157,8 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 		nread = fread((void *) data->mats[k]->x, sizeof(double), (size_t) nn, fp);
 		assert(nread == (size_t) nn);
 		if (debug) {
-			printf("\t\tname[%s] nrow[%1d] ncol[%1d] type[%s]\n", data->mats[k]->name, data->mats[k]->nrow, data->mats[k]->ncol, "MATRIX");
+			printf("\t\tname[%s] nrow[%1d] ncol[%1d] type[%s]\n", data->mats[k]->name, data->mats[k]->nrow, data->mats[k]->ncol,
+			       "MATRIX");
 			for (i = 0; i < nn; i++) {
 				printf("\t\t\tidx=%1d %g\n", i, data->mats[k]->x[i]);
 			}
@@ -199,6 +200,6 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	}
 	fclose(fp);
 #undef READ_NAME
-	
+
 	return data;
 }

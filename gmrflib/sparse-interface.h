@@ -57,7 +57,7 @@ __BEGIN_DECLS
 /* 
    
  */
-    typedef struct {
+typedef struct {
 	double factor;
 	int degree;
 } GMRFLib_global_node_tp;

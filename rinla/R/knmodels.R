@@ -128,6 +128,10 @@
         }
         if (length(spaceref) == 0) spaceref <- 1
     }
+    assign('timeref', timeref,
+           envir=environment(formula))
+    assign('spaceref', spaceref,
+           envir=environment(formula))
     fst <- paste("~", mcall$control.st$spacetime)
     if (fst == "~ ") {
         spacetime <- NULL
@@ -263,7 +267,7 @@
         add4 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
             "Cmatrix=kronecker(R.t, R.s), ",
-            "extraconstr=list(A=rbind(M2,M3), e=rep(0,n+m))", add0, ")"
+            "extraconstr=list(A=rbind(M2,M3)[-1,], e=rep(0,n+m-1))", add0, ")"
         )
         res$"4" <- inla(update(formula, paste(".~.+", add4)), ...)
     }
@@ -273,8 +277,7 @@
     if (any(type %in% "2c")) {
         add2c <- paste0(
             'f(st2, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, Diagonal(n)), ",
-            "extraconstr=list(A=M2, e=rep(0,n))", add0, ")"
+            "Cmatrix=kronecker(R.t[-timeref, -timeref], Diagonal(n))", add0, ")"
         )
         if (is.null(time)) {
             st2 <- spacetime
@@ -304,8 +307,7 @@
     if (any(type %in% "3c")) {
         add3c <- paste0(
             'f(st3, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(Diagonal(m), R.s), ",
-            "extraconstr=list(A=M3, e=rep(0,m))", add0, ")"
+            "Cmatrix=kronecker(Diagonal(m), R.s[-spaceref, -spaceref])", add0, ")"
         )
         if (is.null(space)) {
             st3 <- spacetime
@@ -335,17 +337,25 @@
     if (any(type %in% "4c")) {
         add4c <- paste0(
             'f(st4, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, R.s), ",
-            "extraconstr=list(A=rbind(M2, M3), e=rep(0,n+m))", add0, ")"
+            "Cmatrix=kronecker(R.t[-timeref, -timeref], R.s[-spaceref, -spaceref])", add0, ")"
         )
-        aux4 <- logical(n * m)
         if (is.null(time)) {
-            aux4 <- aux4 | (time == timeref)
+            if(is.null(space)) {
+                st4 <- spacetime
+            } else {
+                st4 <- ifelse(space == spaceref, NA, spacetime - cumsum(space == spaceref))
+            }
+        } else {
+            if(is.null(space)) {
+                st4 <- ifelse(time == timeref, NA, spacetime - cumsum(time == timeref))
+            } else {
+                st4 <- ifelse(
+                    time == timeref, NA,
+                       ifelse(space == spaceref, NA,
+                              spacetime - cumsum((time == timeref) |
+                                                 (space == spaceref))))
+            }
         }
-        if (is.null(space)) {
-            aux4 <- aux4 | (space == spaceref)
-        }
-        st4 <- ifelse(aux4, NA, spacetime - cumsum(aux4))
         assign('st4', st4, environment(formula))
         id4 <- which(!is.na(st4))
         lc4 <- inla.make.lincombs(

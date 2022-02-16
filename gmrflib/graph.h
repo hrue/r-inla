@@ -147,13 +147,6 @@ typedef struct {
 	 */
 	int **lnbs;
 
-	/**
-	 *  \brief For node \em i in graph, then <em>mothergraph_idx[i]</em> is the corresponding node in the mother graph.
-	 * 
-	 * If the graph is a subgraph, <em>mothergraph_idx[i]</em> is the index of node \em i in the mothergraph of the current 
-	 * graph. \n\n 
-	 */
-	int *mothergraph_idx;
 } GMRFLib_graph_tp;
 
 typedef struct {

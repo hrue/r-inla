@@ -629,13 +629,13 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		 * the sub_graph is available. 
 		 */
 
-		int ns = store->sub_graph->n, *mothergraph_idx = store->sub_graph->mothergraph_idx;
+		int ns = store->sub_graph->n; 
 
 #pragma omp parallel for private(i, j)
 		for (j = 0; j < ns; j++) {
 			double cmin = 0.0;
 			GMRFLib_thread_id = id;
-			i = mothergraph_idx[j];
+			i = j;
 			if (d[i]) {
 				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[i], mode[i], i, mode, loglFunc, loglFunc_arg,
 						      &(blockupdate_par->step_len), &(blockupdate_par->stencil), &cmin);
@@ -646,19 +646,19 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		if (b) {
 			if (mean) {
 				for (j = 0; j < ns; j++) {
-					i = mothergraph_idx[j];
+					i = j;
 					bb[i] += b[i] - cc[i] * mean[i];
 				}
 			} else {
 				for (j = 0; j < ns; j++) {
-					i = mothergraph_idx[j];
+					i = j;
 					bb[i] += b[i];
 				}
 			}
 		} else {
 			if (mean) {
 				for (j = 0; j < ns; j++) {
-					i = mothergraph_idx[j];
+					i = j;
 					bb[i] -= cc[i] * mean[i];
 				}
 			}
@@ -666,7 +666,7 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 
 		if (c) {
 			for (j = 0; j < ns; j++) {
-				i = mothergraph_idx[j];
+				i = j;
 				cc[i] += c[i];
 			}
 		}
@@ -765,8 +765,9 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 		if (INVALID(x0) || INVALID(ddf) || INVALID(df) || INVALID(f0)) {
 			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
 			f0 = df = 0.0;
-			ddf = - 1.0;			       /* we try with this */
-			if (dd) dddf = 0.0;
+			ddf = -1.0;			       /* we try with this */
+			if (dd)
+				dddf = 0.0;
 			rescue = 1;
 		} else {
 			if (cmin) {

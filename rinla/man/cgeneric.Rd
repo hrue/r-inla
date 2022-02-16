@@ -5,7 +5,9 @@
 \name{cgeneric.define}
 \alias{cgeneric}
 \alias{cgeneric.define}
+\alias{cgeneric.q}
 \alias{inla.cgeneric.define}
+\alias{inla.cgeneric.q}
 
 \title{cgeneric models}
 
@@ -13,10 +15,12 @@
 
 \usage{
 inla.cgeneric.define(model = NULL, shlib = NULL, n = 0L, debug = FALSE, ...)
+inla.cgeneric.q(cmodel = NULL)
 }
 
 \arguments{
   \item{model}{The name of the model function}
+  \item{cmodel}{The name of a cgeneric model-object (output from \code{inla.cgeneric.define}}
   \item{shlib}{Name of the compiled object-file with \code{model}}
   \item{n}{The size of the model}
   \item{debug}{Logical. Turn on/off debugging}
