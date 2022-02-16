@@ -74,11 +74,11 @@ inla.pc.dgamma <- function(x, lambda = 1, log = FALSE) {
 }
 
 inla.pc.qgamma <- function(p, lambda = 1) {
-    log.x <- inla.pmarginal(p, inla.pc.gamma.intern(lambda = lambda))
+    log.x <- inla.qmarginal(p, inla.pc.gamma.intern(lambda = lambda))
     return(exp(log.x))
 }
 
 inla.pc.pgamma <- function(q, lambda = 1) {
-    p <- inla.qmarginal(log(q), inla.pc.gamma.intern(lambda = lambda))
+    p <- inla.pmarginal(log(q), inla.pc.gamma.intern(lambda = lambda))
     return(p)
 }
