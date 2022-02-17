@@ -1,4 +1,4 @@
-## Export: inla.cgeneric.define
+## Export: inla.cgeneric.define inla.cgeneric.q
 
 ## !\name{cgeneric.define}
 ## !\alias{cgeneric}
