@@ -333,6 +333,7 @@ typedef enum {
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
+#define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)

@@ -7189,12 +7189,25 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 
 	// first, compute the correction between eta_i and eta_j
 
+	typedef struct 
+	{
+		GMRFLib_idxval_tp *g;			       /* list of nodes */
+		gsl_matrix *cov_mat;
+		int node_min;				       /* min(nodes) */
+		int node_max;				       /* max(nodes) */
+		int idx_node;
+	}
+		GMRFLib_gcpo_tp;
+
+	GMRFLib_gcpo_tp **gcpo = NULL;
+	
 	int debug = 1;
 	int Npred = preopt->Npred;
 	int n = preopt->n;
 	int ngroup = 5;
 	int node, nnode;
-	int i, j;
+	int i, j, pos;
+	int guess[2] = {0,0};
 	int *idxs = Calloc(Npred, int);
 
 	double *a = Calloc(n, double);
@@ -7202,18 +7215,16 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	double *cov = Calloc(Npred, double);
 	double c;
 
-	GMRFLib_idxval_tp **g;
-	g = GMRFLib_idxval_ncreate_x(Npred, ngroup);
+	gcpo = Calloc(Npred, GMRFLib_gcpo_tp *);
+	for(i = 0; i < Npred; i++) {
+		gcpo[i] = Calloc(1, GMRFLib_gcpo_tp);
+		GMRFLib_idxval_create_x(&(gcpo[i]->g), ngroup);
+		gcpo[i]->cov_mat = gsl_matrix_calloc((size_t) ngroup, (size_t) ngroup);
+		gsl_matrix_set_all(gcpo[i]->cov_mat, NAN);
+	}
 
-	gsl_matrix **cov_mat;
-	cov_mat = Calloc(Npred, gsl_matrix *);
-
-	// for(node = 0; node < Npred; node++) {
-	for (node = 0; node < 1; node++) {
+	for(node = 0; node < Npred; node++) {
 		GMRFLib_idxval_tp *v = A_idx(node);
-
-		cov_mat[node] = gsl_matrix_calloc((size_t) ngroup, (size_t) ngroup);
-		gsl_matrix_set_all(cov_mat[node], NAN);
 
 		for (i = 0; i < Npred; i++) {
 			idxs[i] = i;
@@ -7243,37 +7254,133 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 
 		GMRFLib_qsorts(cov, Npred, sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
 		for (i = 0; i < ngroup; i++) {
-			GMRFLib_idxval_add(&(g[node]), idxs[i], cov[i]);
+			GMRFLib_idxval_add(&(gcpo[node]->g), idxs[i], cov[i]);
 		}
-		GMRFLib_idxval_sort(g[node]);
+		GMRFLib_idxval_sort(gcpo[node]->g);
+		gcpo[node]->node_min = gcpo[node]->g->store[0].idx;
+		gcpo[node]->node_max = gcpo[node]->g->store[gcpo[node]->g->n - 1].idx;
 
 		if (debug) {
-			GMRFLib_idxval_printf(stdout, g[node], "GROUP");
+			P(gcpo[node]->node_min);
+			P(gcpo[node]->node_max);
+			GMRFLib_idxval_printf(stdout, gcpo[node]->g, "GROUP");
 		}
 
-		int idx_node = -1;
-		for (i = 0; i < ngroup && idx_node < 0; i++) {
-			if (g[node]->store[i].idx == node) {
-				idx_node = i;
+		gcpo[node]->idx_node = -1;
+		for (i = 0; i < ngroup && gcpo[node]->idx_node < 0; i++) {
+			if (gcpo[node]->g->store[i].idx == node) {
+				gcpo[node]->idx_node = i;
 			}
 		}
-		assert(idx_node >= 0);
-
+		assert(gcpo[node]->idx_node >= 0);
+		
 		for (i = 0; i < ngroup; i++) {
-			c = g[node]->store[i].val;
-			j = g[node]->store[i].idx;
-			gsl_matrix_set(cov_mat[node], i, i, lpred_variance[j]);
+			c = gcpo[node]->g->store[i].val;
+			j = gcpo[node]->g->store[i].idx;
+			gsl_matrix_set(gcpo[node]->cov_mat, i, i, lpred_variance[j]);
 
-			if (i != idx_node) {
+			if (i != gcpo[node]->idx_node) {
 				double value = c * sqrt(lpred_variance[node] * lpred_variance[j]);
-				gsl_matrix_set(cov_mat[node], idx_node, i, value);
-				gsl_matrix_set(cov_mat[node], i, idx_node, value);
+				gsl_matrix_set(gcpo[node]->cov_mat, gcpo[node]->idx_node, i, value);
+				gsl_matrix_set(gcpo[node]->cov_mat, i, gcpo[node]->idx_node, value);
 			}
 		}
-		GMRFLib_printf_gsl_matrix(stdout, cov_mat[node], " %.8f");
-
 		if (debug) {
-			GMRFLib_idxval_printf(stdout, g[node], "GROUP");
+			GMRFLib_idxval_printf(stdout, gcpo[node]->g, "GROUP");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
+		}
+
+		div_t r = div(sizeof(GMRFLib_idxval_elm_tp), sizeof(int));
+		assert(r.rem == 0);
+		int inc = sizeof(GMRFLib_idxval_elm_tp) / sizeof(int);
+
+		for(j = 0; j < Npred; j++) {
+			pos = GMRFLib_iwhich_sorted_x(j, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
+			if (debug) {
+				printf("j=%d is found at index %d\n", j, pos);
+			}
+		}
+	}
+
+	if (debug) {
+		for(node = 0; node < Npred; node++) {
+			printf("BEFORE nodes for node=%1d: ", node);
+			for(j = 0; j < gcpo[node]->g->n; j++) {
+				printf(" %d", gcpo[node]->g->store[j].idx);
+			}
+			printf("\n");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
+		}
+	}
+
+	int inc = sizeof(GMRFLib_idxval_elm_tp) / sizeof(int);
+	guess[0] = guess[1] = 0;
+
+	for(node = 0; node < Npred; node++) {
+		if (debug) {
+			printf("nodes for node=%1d: ", node);
+			for(j = 0; j < gcpo[node]->g->n; j++) {
+				printf(" %d", gcpo[node]->g->store[j].idx);
+			}
+			printf("\n");
+		}
+		
+		double cov = 0.0;
+		int ii = -1, jj = -1, node_i = -1, node_j = -1, found = 0;
+		
+		for(i = 0; i < ngroup; i++) {
+			for(j = i + 1; j < ngroup; j++) {
+
+				found = 0;
+				if (ISNAN(gsl_matrix_get(gcpo[node]->cov_mat, i, j))) {
+					node_i = gcpo[node]->g->store[i].idx;
+					node_j = gcpo[node]->g->store[j].idx;
+
+					// check if node_j is within node_i and computed
+					if (node_j >= gcpo[node_i]->node_min && node_j <= gcpo[node_i]->node_max) {
+						ii = gcpo[node_i]->idx_node;
+						jj = GMRFLib_iwhich_sorted_x(node_j, (int *) gcpo[node_i]->g->store, gcpo[node_i]->g->n, guess, inc);
+						if (jj >= 0) {
+							found = 1;
+						} else {
+							SWAP(node_i, node_j);
+							// check if node_j is within node_i and computed (same code as above)
+							if (node_j >= gcpo[node_i]->node_min && node_j <= gcpo[node_i]->node_max) {
+								ii = gcpo[node_i]->idx_node;
+								jj = GMRFLib_iwhich_sorted_x(node_j, (int *) gcpo[node_i]->g->store, gcpo[node_i]->g->n, guess, inc);
+								found = (jj >= 0 ? 1 : 0);
+							}
+						} 
+					} else {
+						found = 0;
+					}
+
+					if (found) {
+						if (debug) {
+							printf("\tii = %d jj = %d\n", ii, jj);
+						}
+						cov = gsl_matrix_get(gcpo[node_i]->cov_mat, ii, jj);
+						if (!ISNAN(cov)) {
+							gsl_matrix_set(gcpo[node]->cov_mat, i, j, cov);
+							gsl_matrix_set(gcpo[node]->cov_mat, j, i, cov);
+							if (debug) {
+								printf("set i=%d j=%d cov=%f found at node_i=%d, node_j=%d\n", i, j, cov, node_i, node_j);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (debug) {
+		for(node = 0; node < Npred; node++) {
+			printf("AFTER nodes for node=%1d: ", node);
+			for(j = 0; j < gcpo[node]->g->n; j++) {
+				printf(" %d", gcpo[node]->g->store[j].idx);
+			}
+			printf("\n");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 		}
 	}
 

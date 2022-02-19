@@ -1369,6 +1369,7 @@ double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
+	return 0.0;
 }
 
 double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
