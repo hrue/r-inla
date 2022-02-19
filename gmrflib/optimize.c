@@ -497,7 +497,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			}
 		} else {
 			for (i = 0; i < opt_problem->optpar->nsearch_dir; i++) {
-				memset(sdir[i], 0, sub_n * sizeof(double));
+				Memset(sdir[i], 0, sub_n * sizeof(double));
 			}
 		}
 		Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));	/* go back to original */

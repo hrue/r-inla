@@ -316,8 +316,8 @@ int GMRFLib_blockupdate_store(double *laccept,
 							      constr_old, d_old, loglFunc_old, loglFunc_arg_old, optpar, store));
 		}
 
-		memset(bb, 0, n * sizeof(double));
-		memset(cc, 0, n * sizeof(double));
+		Memset(bb, 0, n * sizeof(double));
+		Memset(cc, 0, n * sizeof(double));
 		if (d_old) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {

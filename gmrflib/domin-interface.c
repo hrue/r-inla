@@ -154,13 +154,13 @@ int GMRFLib_opt_get_latent(double *latent)
 int GMRFLib_opt_exit(void)
 {
 	opt_setup = 0;
-	memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
-	memset(&B, 0, sizeof(Best_tp));
+	Memset(&G, 0, sizeof(GMRFLib_opt_arg_tp));
+	Memset(&B, 0, sizeof(Best_tp));
 	// we want to keep the directions. if the dimension changes then we reset... see below
 	if (0) {
-		memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
+		Memset(&Opt_dir_params, 0, sizeof(opt_dir_params_tp));
 	}
-	memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
+	Memset(&fncall_timing, 0, sizeof(fncall_timing_tp));
 
 	return GMRFLib_SUCCESS;
 }
@@ -649,7 +649,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	id = omp_get_thread_num();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);
-	memset(hessian, 0, ISQR(n) * sizeof(double));
+	Memset(hessian, 0, ISQR(n) * sizeof(double));
 
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 

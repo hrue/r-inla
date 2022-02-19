@@ -128,7 +128,7 @@ void SHA1_Final(unsigned char hash[], SHA_CTX * ctx)
 		while (i < 64)
 			ctx->data[i++] = 0x00;
 		SHA1_Transform(ctx, ctx->data);
-		memset(ctx->data, 0, 56);
+		Memset(ctx->data, 0, 56);
 	}
 
 	// Append to the padding the total message's length in bits and transform. 

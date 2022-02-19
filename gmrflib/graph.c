@@ -1144,7 +1144,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 		}
 	}
 
-	memset(result, 0, graph->n * sizeof(double));
+	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 	values = Calloc(m + 1, double);
 	res = Qfunc(0, -1, values, Qfunc_arg);
@@ -1879,7 +1879,7 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g)
 	GMRFLib_SHA_TP c;
 	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 
-	memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
+	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
 	GMRFLib_SHA_IUPDATE(&(g->n), 1);

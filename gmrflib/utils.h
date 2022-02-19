@@ -97,6 +97,7 @@ typedef struct {
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len);
 GMRFLib_val_tp **GMRFLib_val_ncreate(int n);
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
 char *GMRFLib_rindex(const char *p, int ch);
@@ -114,6 +115,7 @@ int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double 
 int GMRFLib_adjust_vector(double *x, int n);
 int GMRFLib_dcmp(const void *a, const void *b);
 int GMRFLib_dcmp_abs(const void *a, const void *b);
+int GMRFLib_dcmp_abs_r(const void *a, const void *b);
 int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_debug_functions(const char *name);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
@@ -121,8 +123,10 @@ int GMRFLib_fpe(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
 int GMRFLib_icmp(const void *a, const void *b);
+int GMRFLib_icmp_r(const void *a, const void *b);
 int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1);
 int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold);
+int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len);
 int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold);
 int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n);
 int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg);

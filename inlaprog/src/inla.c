@@ -13126,7 +13126,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	mb->nds++;
 	mb->data_sections = Realloc(mb->data_sections, mb->nds, Data_section_tp);
 	ds = &(mb->data_sections[mb->nds - 1]);		       /* shorthand */
-	memset(ds, 0, sizeof(Data_section_tp));
+	Memset(ds, 0, sizeof(Data_section_tp));
 
 	if (mb->verbose) {
 		printf("\tinla_parse_data [section %1d]...\n", mb->nds);
@@ -32411,11 +32411,11 @@ int inla_INLA(inla_tp * mb)
 	}
 
 	mb->d = Realloc(mb->d, N, double);
-	memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
+	Memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
 	mb->loglikelihood = Realloc(mb->loglikelihood, N, GMRFLib_logl_tp *);
-	memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
+	Memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb->loglikelihood_arg = Realloc(mb->loglikelihood_arg, N, void *);
-	memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
+	Memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
 
 	if (0) {
 		for (i = 0; i < N; i++)
@@ -33050,11 +33050,11 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	}
 
 	mb->d = Realloc(mb->d, N, double);
-	memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
+	Memset(&(mb->d[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(double));
 	mb->loglikelihood = Realloc(mb->loglikelihood, N, GMRFLib_logl_tp *);
-	memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
+	Memset(&(mb->loglikelihood[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(GMRFLib_logl_tp *));
 	mb->loglikelihood_arg = Realloc(mb->loglikelihood_arg, N, void *);
-	memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
+	Memset(&(mb->loglikelihood_arg[mb->predictor_ndata]), 0, (N - mb->predictor_ndata) * sizeof(void *));
 
 	if (0) {
 		for (i = 0; i < N; i++)

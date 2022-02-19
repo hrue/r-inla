@@ -1284,7 +1284,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 
 				if (j > 0) {		       /* not needed for j=0 */
 					if (nset > GMRFLib_NSET_LIMIT(nset, (int) sizeof(char), n)) {
-						memset(Zj, 0, n * sizeof(char));
+						Memset(Zj, 0, n * sizeof(char));
 					} else {
 						for (kk = 0; kk < nset; kk++) {
 							Zj[Zj_set[kk]] = 0;	/* set those to zero */
@@ -1328,7 +1328,7 @@ map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
 					map_ii_set(Qinv_L[i], j, 1);
 				}
 				if (j > 0) {
-					memset(Zj, 0, n * sizeof(char));
+					Memset(Zj, 0, n * sizeof(char));
 				}
 			}
 			Free(Zj);
@@ -1532,7 +1532,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 		}
 		if (j > 0) {				       /* not needed for j=0 */
 			if (nset > GMRFLib_NSET_LIMIT(nset, (int) sizeof(double), n)) {
-				memset(Zj, 0, n * sizeof(double));	/* faster if nset is large */
+				Memset(Zj, 0, n * sizeof(double));	/* faster if nset is large */
 			} else {
 				for (kk = 0; kk < nset; kk++) {
 					Zj[Zj_set[kk]] = 0.0;  /* set those to zero */

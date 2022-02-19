@@ -458,7 +458,7 @@ double *inla_spde3_userfunc3(int number, double *theta, int nhyper, double *covm
 			/*
 			 * insert it into a larger vector to get the the full 'row' 
 			 */
-			memset(row, 0, (nhyper + 1) * sizeof(double));
+			Memset(row, 0, (nhyper + 1) * sizeof(double));
 			row[0] = row_spde3[0];
 			Memcpy(row + idx_offset + 1, row_spde3 + 1, model->ntheta * sizeof(double));
 

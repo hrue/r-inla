@@ -1225,7 +1225,7 @@ int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 	GMRFLib_SHA_TP c;
 	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 
-	memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
+	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
 	GMRFLib_SHA_DUPDATE(constr->a_matrix, graph->n * constr->nc);
@@ -1336,7 +1336,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 
 	GMRFLib_make_empty_constr(new_constr);
 	if (b_add) {
-		memset(b_add, 0, sub_graph->n * sizeof(double));
+		Memset(b_add, 0, sub_graph->n * sizeof(double));
 	}
 
 	/*

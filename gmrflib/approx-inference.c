@@ -518,7 +518,7 @@ int GMRFLib_ai_marginal_hyperparam(double *logdens,
 		 * 
 		 * the expression below is not correct if mean != 0, so then we need a term -1/2 mu*(Q+C)mu as well. so therefore the if (mean==NULL) test. 
 		 */
-		memset(problem->sample, 0, n * sizeof(double));
+		Memset(problem->sample, 0, n * sizeof(double));
 		GMRFLib_evaluate(problem);
 
 		double A = 0;
@@ -2241,9 +2241,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				printf("i mode %d %f \n", i, mode[i]);
 			}
 
-		memset(aa, 0, Npred * sizeof(double));
-		memset(bb, 0, Npred * sizeof(double));
-		memset(cc, 0, Npred * sizeof(double));
+		Memset(aa, 0, Npred * sizeof(double));
+		Memset(bb, 0, Npred * sizeof(double));
+		Memset(cc, 0, Npred * sizeof(double));
 
 		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
 			if (!free_linear_predictor) {
@@ -2262,8 +2262,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		}
 
 		cc_is_negative = 0;
-		memset(bcoof, 0, Npred * sizeof(double));
-		memset(ccoof, 0, Npred * sizeof(double));
+		Memset(bcoof, 0, Npred * sizeof(double));
+		Memset(ccoof, 0, Npred * sizeof(double));
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < nidx; i++) {			\
@@ -2745,7 +2745,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			userfunc_values = Realloc(userfunc_values, dens_max, double *); \
 		}							\
 		izs = Realloc(izs, dens_max, double *);			\
-		memset(&(izs[old_dens_max]), 0, (num_) * sizeof(double *)); \
+		Memset(&(izs[old_dens_max]), 0, (num_) * sizeof(double *)); \
 		for (kk_ = 0; kk_ < compute_n; kk_++) {			\
 			ii_ = compute_idx[kk_];				\
 			if (dens && dens[ii_]){					\
@@ -3438,7 +3438,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 					fprintf(stderr,
 						"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
-					memset(hessian, 0, ISQR(nhyper) * sizeof(double));
+					Memset(hessian, 0, ISQR(nhyper) * sizeof(double));
 					for (i = 0; i < nhyper; i++)
 						hessian[i + i * nhyper] = 1.0;
 				} else {
@@ -3573,7 +3573,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		 */
 
 		iz = Calloc(nhyper, int);
-		memset(iz, 0, nhyper * sizeof(int));
+		Memset(iz, 0, nhyper * sizeof(int));
 
 		hyper_len = dens_max;
 		hyper_count = 0;
@@ -3623,7 +3623,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						}
 						zz = Calloc(nhyper, double);
 						ttheta = Calloc(nhyper, double);
-						memset(zz, 0, nhyper * sizeof(double));
+						Memset(zz, 0, nhyper * sizeof(double));
 						GMRFLib_thread_id = omp_get_thread_num();
 
 						if (GMRFLib_OPENMP_IN_PARALLEL) {
@@ -3664,7 +3664,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 						zz = Calloc(nhyper, double);
 						ttheta = Calloc(nhyper, double);
-						memset(zz, 0, nhyper * sizeof(double));
+						Memset(zz, 0, nhyper * sizeof(double));
 						GMRFLib_thread_id = omp_get_thread_num();
 
 						if (GMRFLib_OPENMP_IN_PARALLEL) {
@@ -4346,7 +4346,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		if (id_nz < GMRFLib_MAX_THREADS) {
 			Memcpy(x_mode, ai_store_id[id_nz]->mode, graph->n * sizeof(double));
 		} else {
-			memset(x_mode, 0, graph->n * sizeof(double));
+			Memset(x_mode, 0, graph->n * sizeof(double));
 		}
 
 		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
@@ -4976,7 +4976,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						len[i] = 1 + k_maxx[i] - k_minn[i];
 						len_length *= len[i];
 					}
-					memset(izz, 0, nhyper * sizeof(int));
+					Memset(izz, 0, nhyper * sizeof(int));
 					for (k = 0; k < len_length; k++) {
 						for (i = 0; i < nhyper; i++) {
 							iz[i] = (izz[i] <= k_maxx[i] ? izz[i] : k_maxx[i] - izz[i]);
@@ -5915,7 +5915,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 				fprintf(stderr,
 					"\n\t*** WARNING *** R-inla: All eigenvalues of the Hessian are negative. Move on with Hessian = Identity\n\n");
-				memset(hessian, 0, ISQR(nhyper) * sizeof(double));
+				Memset(hessian, 0, ISQR(nhyper) * sizeof(double));
 				for (i = 0; i < nhyper; i++)
 					hessian[i + i * nhyper] = 1.0;
 			} else {
@@ -5998,7 +5998,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		 */
 
 		iz = Calloc(nhyper, int);
-		memset(iz, 0, nhyper * sizeof(int));
+		Memset(iz, 0, nhyper * sizeof(int));
 
 		hyper_len = dens_max;
 		hyper_z = Calloc(hyper_len * nhyper, double);
@@ -6017,7 +6017,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 			zz = Calloc(nhyper, double);
 			ttheta = Calloc(nhyper, double);
-			memset(zz, 0, nhyper * sizeof(double));
+			Memset(zz, 0, nhyper * sizeof(double));
 			GMRFLib_thread_id = omp_get_thread_num();
 
 			if (GMRFLib_OPENMP_IN_PARALLEL) {
@@ -7186,58 +7186,99 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance,
 		 GMRFLib_preopt_tp * preopt)
 {
+#define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
+	
 	// first, compute the correction between eta_i and eta_j
 	
-	int Npred = preopt->Npred, i, j, jj, k;
+	int debug = 1;
+	int Npred = preopt->Npred;
 	int n = preopt->n;
-
+	int ngroup = 5;
+	int node, nnode;
+	int i, j;
+	int *idxs = Calloc(Npred, int);
+	
 	double *a= Calloc(n, double);
 	double *Sa= Calloc(n, double);
-	double *cmean= Calloc(n, double);
-	double *row= Calloc(n, double);
+	double *cov= Calloc(Npred, double);
+	double c;
+	
+	GMRFLib_idxval_tp **g;
+	g = GMRFLib_idxval_ncreate_x(Npred, ngroup);
 
-	
-	i = 0;
-	j = 1;
-	jj = 2;
-	
-	GMRFLib_idxval_tp *iv = (preopt->pA_idxval ? preopt->pA_idxval[i] : preopt->A_idxval[i]);
-	P(iv->n);
-	for(k = 0; k < iv->n; k++) {
-		a[iv->store[k].idx] = iv->store[k].val;
-		double *c = GMRFLib_Qinv_get(ai_store_id->problem, i, iv->store[k].idx);
-		printf("> k %d idx %d c %.8f\n", k, iv->store[k].idx, (c ? *c : NAN));
-	}
-	
-	// this gives is the i'th row of inv(Q), with correction for constraints
-	GMRFLib_ai_update_conditional_mean2(cmean, ai_store_id->problem, i, ai_store_id->problem->mean_constr[i] + 1.0, NULL); 
-	for(k = 0; k < n; k++) {
-		row[k] = lpred_variance[i] * (cmean[k] - ai_store_id->problem->mean_constr[k]);
-	}
+	gsl_matrix **cov_mat;
+	cov_mat = Calloc(Npred, gsl_matrix *);
 
-	if (1) {
-		for(k = 0; k < n; k++) {
-			double *c = GMRFLib_Qinv_get(ai_store_id->problem, i, k);
-			printf("k %d cov %.8f %.8f\n", k+1, row[k], *c);
+	//for(node = 0; node < Npred; node++) {
+	for(node = 0; node < 1; node++) {
+		GMRFLib_idxval_tp *v = A_idx(node);
+
+		cov_mat[node] = gsl_matrix_calloc((size_t) ngroup, (size_t) ngroup);
+		gsl_matrix_set_all(cov_mat[node], NAN);
+		
+		for(i = 0; i < Npred; i++) {
+			idxs[i] = i;
+		}
+
+		Memset(cov, 0, Npred * sizeof(double));
+		Memset(a, 0, n * sizeof(double));
+
+		for(int k = 0; k < v->n; k++) {
+			a[v->store[k].idx] = v->store[k].val;
+		}
+		
+		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);
+		for(nnode = 0; nnode < Npred; nnode++) {
+			v = A_idx(nnode);
+			for(int k = 0; k < v->n; k++) {
+				cov[nnode] += Sa[v->store[k].idx] * v->store[k].val;
+			}
+			cov[nnode] /= sqrt(lpred_variance[node] * lpred_variance[nnode]);
+		}
+
+		if (debug)  {
+			for(nnode = 0; nnode < Npred; nnode++) {
+				printf("node %d nnode %d corr %.8f\n", node, nnode, cov[nnode]);
+			}
+		}
+
+		GMRFLib_qsorts(cov, Npred, sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
+		for(i = 0; i < ngroup; i++) {
+			GMRFLib_idxval_add(&(g[node]), idxs[i], cov[i]);
+		}
+		GMRFLib_idxval_sort(g[node]);
+
+		if (debug) {
+			GMRFLib_idxval_printf(stdout, g[node], "GROUP");
+		}
+
+		int idx_node = -1;
+		for(i = 0; i < ngroup && idx_node < 0; i++) {
+			if (g[node]->store[i].idx == node) {
+				idx_node = i;
+			}
+		}
+		assert(idx_node >= 0);
+		
+		for(i = 0; i < ngroup; i++) {
+			c = g[node]->store[i].val;
+			j = g[node]->store[i].idx;
+			gsl_matrix_set(cov_mat[node], i, i, lpred_variance[j]);
+
+			if (i != idx_node) {
+				double value = c * sqrt(lpred_variance[node] * lpred_variance[j]);
+				gsl_matrix_set(cov_mat[node], idx_node, i, value);
+				gsl_matrix_set(cov_mat[node], i, idx_node, value);
+			}
+		}
+		GMRFLib_printf_gsl_matrix(stdout, cov_mat[node], " %.8f");
+
+		if (debug) {
+			GMRFLib_idxval_printf(stdout, g[node], "GROUP");
 		}
 	}
-
-	P(i); P(j); P(jj); P(row[j]); P(row[jj]); P(lpred_variance[i]); P(lpred_variance[j]); P(lpred_variance[jj]);
 	
-
-	GMRFLib_Qsolve(Sa, a, ai_store_id->problem);
-	for(j = 0; j < Npred; j++) {
-		double cov = 0.0;
-		int idx, val, k;
-		GMRFLib_idxval_tp *v = (preopt->pA_idxval ? preopt->pA_idxval[j] : preopt->A_idxval[j]);
-
-		for(k = 0; k < v->n; k++) {
-			cov += Sa[v->store[k].idx] * v->store[k].val;
-		}
-		printf("j %d cov %.8f\n", j, cov);
-	}
-
-
+#undef A_idx
 	exit(0);
 }
 
@@ -8642,7 +8683,7 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 	} while (idx > 0 && (logdens[idx] > logdens[idx - 1]));
 
 	if (idx < *n)
-		memset(&code[idx], 1, *n - idx);
+		Memset(&code[idx], 1, *n - idx);
 
 	idx = -1;
 	do {
@@ -8650,7 +8691,7 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 	} while (idx < *n && (logdens[idx] > logdens[idx + 1]));
 
 	if (idx > 0)
-		memset(&code[0], 1, idx);
+		Memset(&code[0], 1, idx);
 
 	for (idx = i = 0; i < *n; i++) {
 		if (!code[i]) {
@@ -8729,7 +8770,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	if (compute_cpo) {
 		loglFunc(prob, xp, -np, idx, x_vec, NULL, loglFunc_arg);	/* no correction for 'd' here; should we? */
 	} else {
-		memset(prob, 0, np * sizeof(double));
+		Memset(prob, 0, np * sizeof(double));
 	}
 	loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
 	for (i = 0; i < np; i++) {

@@ -299,6 +299,7 @@ typedef enum {
 #define Free(ptr)               {free((void *)(ptr)); ptr=NULL;}
 #define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
 #endif
+#define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
 /* 
    ABS is for double, IABS is for int, and so on.
@@ -378,7 +379,7 @@ typedef enum {
 // GMRFLib_thread_id in the parallel loop and GMRFLib_thread_id is reset automatically afterwards
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
-#define CODE_BLOCK_WORK_ZERO(i_work_) memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
+#define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = id__
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\

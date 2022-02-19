@@ -354,7 +354,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			char *crow = Calloc(N + 1, char);
 			crow[N] = '\0';
 			for (i = 0; i < nrow; i++) {
-				memset(crow, ' ', N * sizeof(char));
+				Memset(crow, ' ', N * sizeof(char));
 				for (k = 0; k < pAA_pattern[i]->n; k++) {
 					j = pAA_pattern[i]->idx[k];
 					// printf("Add crow i j %d %d\n", i, j);
@@ -947,8 +947,8 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	int offset = mpred;
 	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
 
-	memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
-	memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
+	Memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+	Memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
 
 #define CODE_BLOCK							\
 	for(int i = 0; i < mpred; i++) {				\
@@ -1028,7 +1028,7 @@ int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *li
 	if (!(preopt->total_b[id])) {
 		preopt->total_b[id] = Calloc(preopt->n, double);
 	}
-	memset(preopt->total_b[id], 0, preopt->n * sizeof(double));
+	Memset(preopt->total_b[id], 0, preopt->n * sizeof(double));
 	GMRFLib_preopt_bnew(preopt->total_b[id], preopt);
 
 	return GMRFLib_SUCCESS;
