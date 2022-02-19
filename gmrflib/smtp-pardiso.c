@@ -841,7 +841,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			factor[i] = 0;
 		}
 	}
-	
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 	for (int i = 0; i < nblock + reminder; i++) {
 		int idum = 0;
@@ -870,7 +869,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 				store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, store->pstore[tnum]->iparm, &(store->msglvl),
 				bb + offset, x + offset, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
 		}
-		
+
 		if (store->pstore[tnum]->err_code != 0) {
 			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR;
 		}
@@ -902,14 +901,14 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		Free(ppt);
 		Free(factor);
 	}
-	
+
 	Free(bb);
 	Free(yy);
 
 	if (err_code) {
 		GMRFLib_ERROR(err_code);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 

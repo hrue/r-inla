@@ -629,7 +629,7 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		 * the sub_graph is available. 
 		 */
 
-		int ns = store->sub_graph->n; 
+		int ns = store->sub_graph->n;
 
 #pragma omp parallel for private(i, j)
 		for (j = 0; j < ns; j++) {

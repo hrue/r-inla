@@ -732,7 +732,6 @@ forceinline double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *UNUSED
 	if (!lc) {
 		return 0.0;
 	}
-
 	// imin = node; imax = nnode;
 	if (node == nnode) {
 		elm = a->AtA_idxval[node][0]->store;

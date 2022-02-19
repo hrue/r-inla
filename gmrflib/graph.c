@@ -980,7 +980,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 				sg_iidx[i] = k;
 				k++;
 			} else {
-				sg_iidx[i] = -1;		       /* to force a failure if used wrong */
+				sg_iidx[i] = -1;	       /* to force a failure if used wrong */
 			}
 		}
 
@@ -1035,7 +1035,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		GMRFLib_graph_prepare(*subgraph);
 
 		if (free_remove_flag) {
-			Free(remove_flag);			       /* if we have used our own */
+			Free(remove_flag);		       /* if we have used our own */
 		}
 
 		GMRFLib_LEAVE_ROUTINE;

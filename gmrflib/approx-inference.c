@@ -1273,7 +1273,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			}
 			Free(covariances);
 		} else {
-			i_idx = store_Qinv->mapping[idx]; 
+			i_idx = store_Qinv->mapping[idx];
 			for (j = 0; j < ai_store->nidx; j++) {
 				i = ai_store->correction_idx[j];
 				j_idx = store_Qinv->mapping[i];
@@ -7183,13 +7183,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance,
-		 GMRFLib_preopt_tp * preopt)
+int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance, GMRFLib_preopt_tp * preopt)
 {
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
-	
+
 	// first, compute the correction between eta_i and eta_j
-	
+
 	int debug = 1;
 	int Npred = preopt->Npred;
 	int n = preopt->n;
@@ -7197,53 +7196,53 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int node, nnode;
 	int i, j;
 	int *idxs = Calloc(Npred, int);
-	
-	double *a= Calloc(n, double);
-	double *Sa= Calloc(n, double);
-	double *cov= Calloc(Npred, double);
+
+	double *a = Calloc(n, double);
+	double *Sa = Calloc(n, double);
+	double *cov = Calloc(Npred, double);
 	double c;
-	
+
 	GMRFLib_idxval_tp **g;
 	g = GMRFLib_idxval_ncreate_x(Npred, ngroup);
 
 	gsl_matrix **cov_mat;
 	cov_mat = Calloc(Npred, gsl_matrix *);
 
-	//for(node = 0; node < Npred; node++) {
-	for(node = 0; node < 1; node++) {
+	// for(node = 0; node < Npred; node++) {
+	for (node = 0; node < 1; node++) {
 		GMRFLib_idxval_tp *v = A_idx(node);
 
 		cov_mat[node] = gsl_matrix_calloc((size_t) ngroup, (size_t) ngroup);
 		gsl_matrix_set_all(cov_mat[node], NAN);
-		
-		for(i = 0; i < Npred; i++) {
+
+		for (i = 0; i < Npred; i++) {
 			idxs[i] = i;
 		}
 
 		Memset(cov, 0, Npred * sizeof(double));
 		Memset(a, 0, n * sizeof(double));
 
-		for(int k = 0; k < v->n; k++) {
+		for (int k = 0; k < v->n; k++) {
 			a[v->store[k].idx] = v->store[k].val;
 		}
-		
+
 		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);
-		for(nnode = 0; nnode < Npred; nnode++) {
+		for (nnode = 0; nnode < Npred; nnode++) {
 			v = A_idx(nnode);
-			for(int k = 0; k < v->n; k++) {
+			for (int k = 0; k < v->n; k++) {
 				cov[nnode] += Sa[v->store[k].idx] * v->store[k].val;
 			}
 			cov[nnode] /= sqrt(lpred_variance[node] * lpred_variance[nnode]);
 		}
 
-		if (debug)  {
-			for(nnode = 0; nnode < Npred; nnode++) {
+		if (debug) {
+			for (nnode = 0; nnode < Npred; nnode++) {
 				printf("node %d nnode %d corr %.8f\n", node, nnode, cov[nnode]);
 			}
 		}
 
 		GMRFLib_qsorts(cov, Npred, sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
-		for(i = 0; i < ngroup; i++) {
+		for (i = 0; i < ngroup; i++) {
 			GMRFLib_idxval_add(&(g[node]), idxs[i], cov[i]);
 		}
 		GMRFLib_idxval_sort(g[node]);
@@ -7253,14 +7252,14 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 
 		int idx_node = -1;
-		for(i = 0; i < ngroup && idx_node < 0; i++) {
+		for (i = 0; i < ngroup && idx_node < 0; i++) {
 			if (g[node]->store[i].idx == node) {
 				idx_node = i;
 			}
 		}
 		assert(idx_node >= 0);
-		
-		for(i = 0; i < ngroup; i++) {
+
+		for (i = 0; i < ngroup; i++) {
 			c = g[node]->store[i].val;
 			j = g[node]->store[i].idx;
 			gsl_matrix_set(cov_mat[node], i, i, lpred_variance[j]);
@@ -7277,7 +7276,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			GMRFLib_idxval_printf(stdout, g[node], "GROUP");
 		}
 	}
-	
+
 #undef A_idx
 	exit(0);
 }
