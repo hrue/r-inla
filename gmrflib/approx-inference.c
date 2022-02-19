@@ -7204,7 +7204,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int debug = 1;
 	int Npred = preopt->Npred;
 	int n = preopt->n;
-	int ngroup = 5;
+	int ngroup = 25;
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
@@ -7246,7 +7246,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			cov[nnode] /= sqrt(lpred_variance[node] * lpred_variance[nnode]);
 		}
 
-		if (debug) {
+		if (0 && debug) {
 			for (nnode = 0; nnode < Npred; nnode++) {
 				printf("node %d nnode %d corr %.8f\n", node, nnode, cov[nnode]);
 			}
@@ -7297,7 +7297,9 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		for(j = 0; j < Npred; j++) {
 			pos = GMRFLib_iwhich_sorted_x(j, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
 			if (debug) {
-				printf("j=%d is found at index %d\n", j, pos);
+				if (pos >= 0) {
+					printf("j=%d is found at index %d\n", j, pos);
+				}
 			}
 		}
 	}
