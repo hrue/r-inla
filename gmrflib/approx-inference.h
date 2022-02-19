@@ -1133,5 +1133,9 @@ double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 
+int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance,
+		 GMRFLib_preopt_tp * preopt);
+
+
 __END_DECLS
 #endif

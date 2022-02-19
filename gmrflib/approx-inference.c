@@ -6305,6 +6305,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
 
+		if (getenv("INLA_gcpo")) {
+			GMRFLib_gcpo(ai_store_id, mean_corrected, lpred_mean, lpred_variance, preopt);
+		}
+
+
 		if (GMRFLib_ai_INLA_userfunc0) {
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(ai_store_id->problem, theta_local, nhyper);
 		}
@@ -7176,6 +7181,64 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 #undef SET_THETA_MODE
 
 	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance,
+		 GMRFLib_preopt_tp * preopt)
+{
+	// first, compute the correction between eta_i and eta_j
+	
+	int Npred = preopt->Npred, i, j, jj, k;
+	int n = preopt->n;
+
+	double *a= Calloc(n, double);
+	double *Sa= Calloc(n, double);
+	double *cmean= Calloc(n, double);
+	double *row= Calloc(n, double);
+
+	
+	i = 0;
+	j = 1;
+	jj = 2;
+	
+	GMRFLib_idxval_tp *iv = (preopt->pA_idxval ? preopt->pA_idxval[i] : preopt->A_idxval[i]);
+	P(iv->n);
+	for(k = 0; k < iv->n; k++) {
+		a[iv->store[k].idx] = iv->store[k].val;
+		double *c = GMRFLib_Qinv_get(ai_store_id->problem, i, iv->store[k].idx);
+		printf("> k %d idx %d c %.8f\n", k, iv->store[k].idx, (c ? *c : NAN));
+	}
+	
+	// this gives is the i'th row of inv(Q), with correction for constraints
+	GMRFLib_ai_update_conditional_mean2(cmean, ai_store_id->problem, i, ai_store_id->problem->mean_constr[i] + 1.0, NULL); 
+	for(k = 0; k < n; k++) {
+		row[k] = lpred_variance[i] * (cmean[k] - ai_store_id->problem->mean_constr[k]);
+	}
+
+	if (1) {
+		for(k = 0; k < n; k++) {
+			double *c = GMRFLib_Qinv_get(ai_store_id->problem, i, k);
+			printf("k %d cov %.8f %.8f\n", k+1, row[k], *c);
+		}
+	}
+
+	P(i); P(j); P(jj); P(row[j]); P(row[jj]); P(lpred_variance[i]); P(lpred_variance[j]); P(lpred_variance[jj]);
+	
+
+	GMRFLib_Qsolve(Sa, a, ai_store_id->problem);
+	for(j = 0; j < Npred; j++) {
+		double cov = 0.0;
+		int idx, val, k;
+		GMRFLib_idxval_tp *v = (preopt->pA_idxval ? preopt->pA_idxval[j] : preopt->A_idxval[j]);
+
+		for(k = 0; k < v->n; k++) {
+			cov += Sa[v->store[k].idx] * v->store[k].val;
+		}
+		printf("j %d cov %.8f\n", j, cov);
+	}
+
+
+	exit(0);
 }
 
 int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,

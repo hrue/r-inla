@@ -427,6 +427,7 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
+int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem);
 int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
