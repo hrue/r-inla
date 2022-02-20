@@ -7187,33 +7187,25 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 {
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
 
-	// first, compute the correction between eta_i and eta_j
-
-	typedef struct 
-	{
-		GMRFLib_idxval_tp *g;			       /* list of nodes */
-		gsl_matrix *cov_mat;
-		int node_min;				       /* min(nodes) */
-		int node_max;				       /* max(nodes) */
-		int idx_node;
-	}
-		GMRFLib_gcpo_tp;
-
 	GMRFLib_gcpo_tp **gcpo = NULL;
-	
 	int debug = 1;
 	int Npred = preopt->Npred;
+	int *idxs = Calloc(Npred, int);
 	int n = preopt->n;
 	int ngroup = 25;
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
-	int *idxs = Calloc(Npred, int);
 
 	double *a = Calloc(n, double);
 	double *Sa = Calloc(n, double);
 	double *cov = Calloc(Npred, double);
 	double c;
+
+	// iwhich... for idxval...
+	div_t r = div(sizeof(GMRFLib_idxval_elm_tp), sizeof(int));
+	assert(r.rem == 0);
+	int inc = sizeof(GMRFLib_idxval_elm_tp) / sizeof(int);
 
 	gcpo = Calloc(Npred, GMRFLib_gcpo_tp *);
 	for(i = 0; i < Npred; i++) {
@@ -7224,8 +7216,8 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	}
 
 	for(node = 0; node < Npred; node++) {
-		GMRFLib_idxval_tp *v = A_idx(node);
 
+		GMRFLib_idxval_tp *v = A_idx(node);
 		for (i = 0; i < Npred; i++) {
 			idxs[i] = i;
 		}
@@ -7290,10 +7282,6 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 		}
 
-		div_t r = div(sizeof(GMRFLib_idxval_elm_tp), sizeof(int));
-		assert(r.rem == 0);
-		int inc = sizeof(GMRFLib_idxval_elm_tp) / sizeof(int);
-
 		for(j = 0; j < Npred; j++) {
 			pos = GMRFLib_iwhich_sorted_x(j, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
 			if (debug) {
@@ -7319,6 +7307,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	guess[0] = guess[1] = 0;
 
 	for(node = 0; node < Npred; node++) {
+
 		if (debug) {
 			printf("nodes for node=%1d: ", node);
 			for(j = 0; j < gcpo[node]->g->n; j++) {
@@ -7382,7 +7371,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 				printf(" %d", gcpo[node]->g->store[j].idx);
 			}
 			printf("\n");
-			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.12f");
 		}
 	}
 

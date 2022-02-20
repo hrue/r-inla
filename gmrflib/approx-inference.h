@@ -972,6 +972,16 @@ typedef struct {
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
 
+typedef struct 
+{
+	GMRFLib_idxval_tp *g;			       /* list of nodes */
+	gsl_matrix *cov_mat;
+	int node_min;				       /* min(nodes) */
+	int node_max;				       /* max(nodes) */
+	int idx_node;
+}
+	GMRFLib_gcpo_tp;
+
 #include "GMRFLib/pre-opt.h"
 
 int GMRFLib_ai_pool_free(GMRFLib_ai_pool_tp * pool);
