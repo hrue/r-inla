@@ -936,7 +936,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	int robust_regression = 1, order = 2;
 
 	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, order);
-	if (amin < DMIN(aa[0], aa[na-1]) || amin > DMAX(aa[0], aa[na-1])) {
+	if (amin < DMIN(aa[0], aa[na - 1]) || amin > DMAX(aa[0], aa[na - 1])) {
 		int idx_min;
 		GMRFLib_min_value(fun, na, &idx_min);
 		amin = aa[idx_min];

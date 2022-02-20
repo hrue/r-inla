@@ -1,4 +1,22 @@
 #!/bin/bash
+
+myreadlink () {
+    (
+        TARGET_FILE=$1
+        cd `dirname $TARGET_FILE`
+        TARGET_FILE=`basename $TARGET_FILE`
+        while [ -L "$TARGET_FILE" ]
+        do
+            TARGET_FILE=`readlink $TARGET_FILE`
+            cd `dirname $TARGET_FILE`
+            TARGET_FILE=`basename $TARGET_FILE`
+        done
+        PHYS_DIR=`pwd -P`
+        RESULT=$PHYS_DIR/$TARGET_FILE
+        echo $RESULT
+    )
+}
+
 D=$(dirname "$1")
 D=${D/%bin/lib}
 
@@ -56,9 +74,16 @@ A=$(Xfun $A)
 {
     echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : 
     if $(uname -a |grep -q ARM64); then 
-	echo builds/arm64/local/lib/libpardiso720-MACOS-M1-X86-64-RINLA-May23-2021.dylib
+	echo builds/arm64/local/lib/libpardiso720-MACOS-ARM64-RINLA.so
     else
-	echo builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA-May26-2021.dylib
+	echo builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
+	MKL=/opt/intel/oneapi/mkl/latest/lib
+	echo $(myreadlink $MKL/libmkl_intel_lp64.dylib)
+	echo $(myreadlink $MKL/libmkl_sequential.dylib)
+	echo $(myreadlink $MKL/libmkl_core.dylib)
+	for f in $(echo $MKL/libmkl_avx*.dylib); do
+	    echo $(myreadlink $f)
+	done
     fi
 } | sort | awk '{gsub(/\.\//,"");print}' | uniq
 

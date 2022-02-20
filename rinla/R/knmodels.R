@@ -128,6 +128,10 @@
         }
         if (length(spaceref) == 0) spaceref <- 1
     }
+    assign('timeref', timeref,
+           envir=environment(formula))
+    assign('spaceref', spaceref,
+           envir=environment(formula))
     fst <- paste("~", mcall$control.st$spacetime)
     if (fst == "~ ") {
         spacetime <- NULL
@@ -155,6 +159,8 @@
         R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
             constr = list(A = matrix(1, 1, n), e = 0)
         )
+        assign('R.s', R.s,
+               envir=environment(formula))
     } else {
         if (any(substr(type, 1, 1) %in% c("3", "4"))) {
             stop("'graph' must be provided to build the spacetime interaction model!")
@@ -171,16 +177,24 @@
     if (!is.null(time)) {
         m <- length(unique(time))
         if (any(substr(type, 1, 1) %in% c("2", "4"))) {
-            R.t <- inla.scale.model(crossprod(diff(Diagonal(m))),
-                constr = list(A = matrix(1, 1, m), e = 0)
-            )
+            R.t <- inla.scale.model(
+                       crossprod(diff(Diagonal(m))),
+                constr = list(A = matrix(1, 1, m), e = 0))
+            assign('R.t', R.t,
+                   envir=environment(formula))
         }
     }
     if (is.null(m)) m <- nst / n
     if (is.null(n)) n <- nst / m
+
+    assign('n', n,
+           envir=environment(formula))
+    assign('m', m,
+           envir=environment(formula))
+
     ## cat('m = ', m, ', n = ', n, ', nst = ', nst, '\n', sep='')
     if (TRUE) { ## working in progress: identify need of constraints from the formula
-        etemp <- inla.interpret.formula(formula, data, debug = FALSE)
+        etemp <- INLA:::inla.interpret.formula(formula, data, debug = FALSE)
         rterms <- attr(terms(etemp[[1]]), "term.labels")
         id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights)))
         if (length(id.r) > 0) {
@@ -203,6 +217,11 @@
     ## cat('lc2 =', lc2.on, ' and lc3 =', lc3.on, '\n')
     M2 <- kronecker(matrix(1 / m, 1, m), diag(n))
     M3 <- kronecker(diag(m), matrix(1 / n, 1, n))
+    assign('M2', M2,
+           envir=environment(formula))
+    assign('M3', M3,
+           envir=environment(formula))
+
     dotdot <- mcall$control.st[which(!is.element(
         names(mcall$control.st),
         c(
@@ -248,7 +267,7 @@
         add4 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
             "Cmatrix=kronecker(R.t, R.s), ",
-            "extraconstr=list(A=rbind(M2,M3), e=rep(0,n+m))", add0, ")"
+            "extraconstr=list(A=rbind(M2,M3)[-1,], e=rep(0,n+m-1))", add0, ")"
         )
         res$"4" <- inla(update(formula, paste(".~.+", add4)), ...)
     }
@@ -258,14 +277,14 @@
     if (any(type %in% "2c")) {
         add2c <- paste0(
             'f(st2, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, Diagonal(n)), ",
-            "extraconstr=list(A=M2, e=rep(0,n))", add0, ")"
+            "Cmatrix=kronecker(R.t[-timeref, -timeref], Diagonal(n))", add0, ")"
         )
         if (is.null(time)) {
             st2 <- spacetime
         } else {
             st2 <- ifelse(time == timeref, NA, spacetime - cumsum(time == timeref))
         }
+        assign('st2', st2, environment(formula))
         id2 <- which(!is.na(st2))
         lc2 <- inla.make.lincombs(
             st2 = Diagonal(n * m)[, id2] - M2[space, id2]
@@ -288,14 +307,14 @@
     if (any(type %in% "3c")) {
         add3c <- paste0(
             'f(st3, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(Diagonal(m), R.s), ",
-            "extraconstr=list(A=M3, e=rep(0,m))", add0, ")"
+            "Cmatrix=kronecker(Diagonal(m), R.s[-spaceref, -spaceref])", add0, ")"
         )
         if (is.null(space)) {
             st3 <- spacetime
         } else {
             st3 <- ifelse(space == spaceref, NA, spacetime - cumsum(space == spaceref))
         }
+        assign('st3', st3, environment(formula))
         id3 <- which(!is.na(st3))
         lc3 <- inla.make.lincombs(
             st3 = Diagonal(n * m)[, id3] - M3[time, id3]
@@ -318,17 +337,26 @@
     if (any(type %in% "4c")) {
         add4c <- paste0(
             'f(st4, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, R.s), ",
-            "extraconstr=list(A=rbind(M2, M3), e=rep(0,n+m))", add0, ")"
+            "Cmatrix=kronecker(R.t[-timeref, -timeref], R.s[-spaceref, -spaceref])", add0, ")"
         )
-        aux4 <- logical(n * m)
         if (is.null(time)) {
-            aux4 <- aux4 | (time == timeref)
+            if(is.null(space)) {
+                st4 <- spacetime
+            } else {
+                st4 <- ifelse(space == spaceref, NA, spacetime - cumsum(space == spaceref))
+            }
+        } else {
+            if(is.null(space)) {
+                st4 <- ifelse(time == timeref, NA, spacetime - cumsum(time == timeref))
+            } else {
+                st4 <- ifelse(
+                    time == timeref, NA,
+                       ifelse(space == spaceref, NA,
+                              spacetime - cumsum((time == timeref) |
+                                                 (space == spaceref))))
+            }
         }
-        if (is.null(space)) {
-            aux4 <- aux4 | (space == spaceref)
-        }
-        st4 <- ifelse(aux4, NA, spacetime - cumsum(aux4))
+        assign('st4', st4, environment(formula))
         id4 <- which(!is.na(st4))
         lc4 <- inla.make.lincombs(
             st4 = (Diagonal(n * m)[, id4] - M2[space, id4] - M3[time, id4] + 1 / (n * m))
@@ -370,6 +398,7 @@
             lcd3 <- do.call("inla.make.lincombs", lc3args)
         }
         dd <- Diagonal(m * n, diagonal)
+        assign('dd', dd, environment(formula))
     }
     if (any(type %in% "2d")) {
         lcd2args <- list(Diagonal(n * m) - M2[space, ])

@@ -105,15 +105,13 @@ typedef struct {
 	double *x;
 } inla_cgeneric_smat_tp;
 
-typedef struct 
-{
+typedef struct {
 	char *name;
 	int len;
 	int *ints;
 	double *doubles;
 	char *chars;
-}
-	inla_cgeneric_vec_tp;
+} inla_cgeneric_vec_tp;
 
 typedef struct {
 	int n_ints;

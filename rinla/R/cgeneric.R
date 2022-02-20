@@ -1,9 +1,11 @@
-## Export: inla.cgeneric.define
+## Export: inla.cgeneric.define inla.cgeneric.q
 
 ## !\name{cgeneric.define}
 ## !\alias{cgeneric}
 ## !\alias{cgeneric.define}
+## !\alias{cgeneric.q}
 ## !\alias{inla.cgeneric.define}
+## !\alias{inla.cgeneric.q}
 ## !
 ## !\title{cgeneric models}
 ## !
@@ -11,17 +13,18 @@
 ## !
 ## !\usage{
 ## !inla.cgeneric.define(model = NULL, shlib = NULL, n = 0L, debug = FALSE, ...)
+## !inla.cgeneric.q(cmodel = NULL)
 ## !}
 ## !
 ## !\arguments{
 ## !  \item{model}{The name of the model function}
+## !  \item{cmodel}{The name of a cgeneric model-object (output from \code{inla.cgeneric.define}}
 ## !  \item{shlib}{Name of the compiled object-file with \code{model}}
 ## !  \item{n}{The size of the model}
 ## !  \item{debug}{Logical. Turn on/off debugging}
 ## !}
 ## !
 ## !\author{Havard Rue \email{hrue@r-inla.org}}
-
 
 `inla.cgeneric.define` <- function(model = NULL, shlib = NULL, n = 0L, debug = FALSE, ...) {
     stopifnot(!missing(n))
@@ -87,4 +90,104 @@
         }
     }
     return (res)
+}
+
+`inla.cgeneric.q` <- function(cmodel = NULL)
+{
+    stopifnot(!is.null(cmodel))
+    stopifnot(inherits(cmodel$f$cgeneric, "inla.cgeneric"))
+
+    ## need to turn off warnings for the numerics-conversions in 'split()'
+    opt <- options()
+    options(warn = -1)
+    on.exit(options(opt))
+
+    result <- list()
+    ## add hidden options, which will make the inla-program print the contents of 'cmodel' and
+    ## then exit
+    tfile <- tempfile()
+    cmodel$f$cgeneric$debug <- FALSE
+    cmodel$f$cgeneric$.q <- TRUE
+    cmodel$f$cgeneric$.q.file <- tfile
+
+    try(inla(y ~ -1 + f(one, model = cmodel), data = data.frame(y = NA, one = 1),
+             silent = 2L, verbose = FALSE), silent = TRUE)
+    res <- readLines(tfile)
+    unlink(tfile)
+    
+    ## cleanup the output
+    for(i in 1:length(res)) {
+        res[i] <- gsub("\t", "", res[i])
+        res[i] <- gsub("[ ]+", " ", res[i])
+    }
+
+    split.char <- function(i) strsplit(res[i], "[ ]+")[[1]]
+    split <- function(i) as.numeric(split.char(i))
+
+    ## control...
+    line <- 1
+    stopifnot(split.char(line)[1] == "CGENERIC_BEGIN")
+    line <- line + 2
+
+    ntheta <- split(line)[3]
+    line <- line+1
+
+    theta <- numeric(ntheta)
+    for(i in seq_len(ntheta)) {
+        theta[i] <- split(line)[6]
+        line <- line + 1
+    }
+    line <- line + 1
+    result$theta <- theta
+
+    nelm <- split(line)[6]
+    line <- line + 1
+    ii <- numeric(nelm)
+    jj <- numeric(nelm)
+
+    for(i in seq_len(nelm)) {
+        ij <- split(line)[c(6, 9)]
+        ii[i] <- ij[1]
+        jj[i] <- ij[2]
+        line <- line + 1
+    }
+    G <- sparseMatrix(i = ii +1, j = jj + 1)
+    G <- G + t(G)
+    diag(G) <- 1
+    result$graph <- G
+
+    line <- line+2
+    stopifnot(split.char(line)[1] == "optimized")
+    line <- line+1
+
+    qq <- numeric(nelm)
+    for(i in seq_len(nelm)) {
+        qq[i] <- split(line)[6]
+        line <- line + 1
+    }
+    Q <- sparseMatrix(i = ii + 1, j =  jj + 1, x = qq)
+    dQ <- diag(Q)
+    Q <- Q + t(Q)
+    diag(Q) <- dQ
+    result$Q <- Q
+
+    line <- line + 1
+    nelm <- split(line)[3]
+    line <- line + 1
+    mu <- numeric(nelm)
+    for(i in seq_len(nelm)) {
+        mu[i] <- split(line)[6]
+        line <- line + 1
+    }
+    result$mu <- mu
+
+    line <- line + 1
+    result$log.prior <- split(line)[3]
+    line <- line + 2
+    result$log.norm.const <- split(line)[3]
+    line <- line + 1
+    ## control...
+    stopifnot(split.char(line)[1] == "CGENERIC_END")
+
+    return(result)
 }

@@ -33,7 +33,11 @@
 
              ## ! \item{file.log2}{Character. The filename, if any, of the logfile2 for
              ## ! the internal calculations}
-             file.log2 = NULL)
+             file.log2 = NULL,
+
+             ## ! \item{silent}{Internal use only}
+             silent = inla.getOption("silent")
+             )
 {
     ## ! }
     ## ! \value{ The function returns an object of class \code{"inla"}, see the
@@ -69,7 +73,7 @@
         } else {
             ## neither directories contain the file /.ok, then we
             ## assume the inla-program has crashed
-            return (inla.inlaprogram.has.crashed())
+            return (if (silent != 2L) inla.inlaprogram.has.crashed() else NULL)
         }
     }
 

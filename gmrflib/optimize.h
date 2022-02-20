@@ -261,8 +261,6 @@ typedef struct {
 } GMRFLib_optimize_param_tp;
 
 typedef struct {
-	int *map;
-
 	double *mode;
 	double *b;
 	double *d;

@@ -61,9 +61,12 @@ void pardiso_get_factor_csc(void **a, double *s, int *d, int *f, double *g, int 
 void pardiso_get_inverse_factor_csc(void **a, double *s, int *d, int *f, int *g, int h) NO_PARDISO_LIB;
 void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b, double *x, double *y, double *norm_b,
 		      double *norm_res) NO_PARDISO_LIB;
+void pardiso_copy_symbolic_factor_single(void *a, void *b, int *c, int *d, double *e, double *f, int *g, int *h, int *i) NO_PARDISO_LIB;
+void pardiso_delete_symbolic_factor_single(void *a, int *b, int *c) NO_PARDISO_LIB;
 
 int METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)
 {
 	return METIS_NodeND(nvtxs, xadj, adjncy, vwgt, options, perm, iperm);
 }
+

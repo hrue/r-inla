@@ -376,12 +376,11 @@ typedef enum {
 } inla_component_tp;
 
 typedef enum {
-	POM_CDF_DEFAULT = 1, 
+	POM_CDF_DEFAULT = 1,
 	POM_CDF_LOGIT = 1,
 	POM_CDF_PROBIT = 2
-}
-	inla_pom_cdf_tp;
-	
+} inla_pom_cdf_tp;
+
 typedef double map_func_tp(double arg, map_arg_tp typ, void *param);
 typedef double link_func_tp(double arg, map_arg_tp typ, void *param, double *cov);
 
@@ -437,7 +436,7 @@ typedef struct {
 	 * nbinomial
 	 */
 	double *S;
-	
+
 	/*
 	 * y ~ BinomialRE()
 	 */
@@ -467,7 +466,7 @@ typedef struct {
 	int pom_nclasses;
 	inla_pom_cdf_tp pom_cdf;
 	int pom_fast_probit;
-	
+
 	/*
 	 * y ~ Normal(x, 1/(weight*prec)), also used for the log-normal
 	 */
@@ -1768,7 +1767,7 @@ int inla_add_copyof(inla_tp * mb);
 int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);
-int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
+int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out);
 int inla_divisible(int n, int by);
 int inla_endian(void);
 int inla_error_field_is_void(const char *funcname, const char *secname, const char *field, const char *value);
@@ -1952,7 +1951,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

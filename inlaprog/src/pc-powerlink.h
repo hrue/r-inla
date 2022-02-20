@@ -44,13 +44,12 @@ __BEGIN_DECLS
 /* 
  *
  */
-
-typedef struct {
+    typedef struct {
 	GMRFLib_spline_tp *cdf, *icdf;
 	double power, xmin, xmax, pmin, pmax, mean, sd;
 } inla_powerlink_table_tp;
 
-double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double * intercept);
+double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *intercept);
 
 __END_DECLS
 #endif

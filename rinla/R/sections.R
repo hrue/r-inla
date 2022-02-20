@@ -787,6 +787,12 @@
         cat("cgeneric.model =", random.spec$cgeneric$model$model, "\n", file = file, append = TRUE)
         cat("cgeneric.n =", random.spec$cgeneric$model$n, "\n", file = file, append = TRUE)
         inla.write.boolean.field("cgeneric.debug", random.spec$cgeneric$model$debug, file)
+        inla.write.boolean.field("cgeneric.q", random.spec$cgeneric$model$.q, file)
+        if (!is.null(random.spec$cgeneric$model$.q) && random.spec$cgeneric$model$.q) {
+            cat("cgeneric.q.file =", random.spec$cgeneric$model$.q.file, "\n",
+                file = file, append = TRUE)
+        }
+
 
         data <- random.spec$cgeneric$model$data
         file.data <- inla.tempfile(tmpdir = data.dir)

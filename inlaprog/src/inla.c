@@ -93,7 +93,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "spde2.h"
 #include "spde3.h"
 #include "eval.h"
-#include "re.h"
 #include "ar.h"
 #include "pc-priors.h"
 #include "R-interface.h"
@@ -240,17 +239,17 @@ int inla_mkdir(const char *dirname)
 #if defined(WIN32) || defined(WINDOWS)
 unsigned long long getTotalSystemMemory()
 {
-    MEMORYSTATUSEX status;
-    status.dwLength = sizeof(status);
-    GlobalMemoryStatusEx(&status);
-    return ((status.ullTotalPhys / 1024L / 1024L));
+	MEMORYSTATUSEX status;
+	status.dwLength = sizeof(status);
+	GlobalMemoryStatusEx(&status);
+	return ((status.ullTotalPhys / 1024L / 1024L));
 }
 #else
 unsigned long long getTotalSystemMemory()
 {
-    long pages = sysconf(_SC_PHYS_PAGES);
-    long page_size = sysconf(_SC_PAGE_SIZE);
-    return ((pages * page_size) / 1024L / 1024L);
+	long pages = sysconf(_SC_PHYS_PAGES);
+	long page_size = sysconf(_SC_PAGE_SIZE);
+	return ((pages * page_size) / 1024L / 1024L);
 }
 #endif
 
@@ -2855,7 +2854,6 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 	int rebuild, ii, debug = 0, id;
 
 	GMRFLib_CACHE_SET_ID(id);
-
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
@@ -3020,23 +3018,19 @@ double mfunc_rgeneric(int i, void *arg)
 	}
 
 	GMRFLib_CACHE_SET_ID(id);
-	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
-	if (!rebuild) {
-		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
-			rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
-		}
+	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
+	for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+		rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 	}
 
 	if (rebuild) {
-		int n, n_out, jj;
-		double *x_out = NULL;
 #pragma omp critical
 		{
+			int n, n_out, jj;
+			double *x_out = NULL;
+
 			if (debug) {
 				printf("Rebuild mu-hash for id %d\n", id);
-			}
-			if (a->mu[id]) {
-				Free(a->mu[id]);
 			}
 			if (!(a->mu_param[id])) {
 				a->mu_param[id] = Calloc(a->ntheta, double);
@@ -3047,6 +3041,7 @@ double mfunc_rgeneric(int i, void *arg)
 					printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
 				}
 			}
+
 			if (debug) {
 				printf("Call rgeneric\n");
 			}
@@ -3054,19 +3049,21 @@ double mfunc_rgeneric(int i, void *arg)
 			if (debug) {
 				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
+
 			assert(n_out > 0);
 			n = (int) x_out[0];
 			if (n > 0) {
 				assert(n == a->n);
-				a->mu[id] = Calloc(n, double);
-				Memcpy((void *) (a->mu[id]), (void *) &(x_out[1]), n * sizeof(double));
+				if (!(a->mu[id])) {
+					a->mu[id] = Calloc(n, double);
+				}
+				Memcpy(a->mu[id], &(x_out[1]), n * sizeof(double));
 				a->mu_zero = 0;
 			} else {
 				a->mu_zero = 1;
 			}
 			Free(x_out);
 		}
-
 		// do a fast return here, so we do not need to allocate the a->mu[id] above. 
 		if (a->mu_zero) {
 			return 0.0;
@@ -3087,22 +3084,17 @@ double mfunc_cgeneric(int i, void *arg)
 	}
 
 	GMRFLib_CACHE_SET_ID(id);
-	rebuild = (a->mu_param[id] == NULL || a->mu[GMRFLib_thread_id] == NULL);
-	if (!rebuild) {
-		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
-			rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
-		}
+	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
+	for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+		rebuild = (a->mu_param[id][ii] != a->theta[ii][GMRFLib_thread_id][0]);
 	}
 
 	if (rebuild) {
 		int n, jj;
-
 		double *x_out = NULL;
+
 		if (debug) {
 			printf("Rebuild mu-hash for id %d\n", id);
-		}
-		if (a->mu[id]) {
-			Free(a->mu[id]);
 		}
 		if (!(a->mu_param[id])) {
 			a->mu_param[id] = Calloc(a->ntheta, double);
@@ -3113,6 +3105,7 @@ double mfunc_cgeneric(int i, void *arg)
 				printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
 			}
 		}
+
 		if (debug) {
 			printf("Call cgeneric\n");
 		}
@@ -3120,11 +3113,14 @@ double mfunc_cgeneric(int i, void *arg)
 		if (debug) {
 			printf("Return from cgeneric with x_out[0]= %1d\n", (int) x_out[0]);
 		}
+
 		n = (int) x_out[0];
 		if (n > 0) {
 			assert(n == a->n);
-			a->mu[id] = Calloc(n, double);
-			Memcpy((void *) (a->mu[id]), (void *) &(x_out[1]), n * sizeof(double));
+			if (!(a->mu[id])) {
+				a->mu[id] = Calloc(n, double);
+			}
+			Memcpy(a->mu[id], &(x_out[1]), n * sizeof(double));
 			a->mu_zero = 0;
 		} else {
 			a->mu_zero = 1;
@@ -3135,7 +3131,7 @@ double mfunc_cgeneric(int i, void *arg)
 		if (a->mu_zero) {
 			return 0.0;
 		}
-	}
+	} 
 
 	return (a->mu[id][i]);
 }
@@ -13861,7 +13857,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 		break;
 
-	case L_NBINOMIAL: 
+	case L_NBINOMIAL:
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -19506,34 +19502,45 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 
 int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out)
 {
-	int i, n, nn;
+	int i, n, m;
 
 #pragma omp critical
 	{
-		fprintf(fp, "cgeneric(%s) cmd=%s out=\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
+		fprintf(fp, "cgeneric[ %s ]  cmd = %s\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
 		switch (cmd) {
-		case INLA_CGENERIC_Q:
+		case INLA_CGENERIC_GRAPH:
 		{
-			fprintf(fp, "\tout[0] = %d  out[1] = %d\n", (int) out[0], (int) out[1]);
-			n = (int) out[1];
-			if ((int) out[0] == -1) {
-				for (i = 0; i < n; i++) {
-					fprintf(fp, "\t%1d %.8f\n", i, out[2 + i]);
-				}
-			} else {
-				for (i = 0; i < n; i++) {
-					fprintf(fp, "\t%1d (%1d, %1d, %.8f)\n", i, (int) out[2 + i], (int) out[2 + n + i], out[2 + 2 * n + i]);
-				}
+			int ii = -1, jj, ii_prev;
+			n = (int) out[0];
+			m = (int) out[1];
+			fprintf(fp, "\tdimension = %1d   number.of.elements = %1d\n", n, m);
+			for (i = 0; i < m; i++) {
+				ii_prev = ii;
+				ii = (int) out[2 + i];
+				jj = (int) out[2 + m + i];
+				assert(ii >= 0 && jj >= 0);
+				assert(ii >= ii_prev);
+				assert(jj >= ii);
+				fprintf(fp, "\tidx = %1d i = %1d j = %1d\n", i, (int) out[2 + i], (int) out[2 + m + i]);
 			}
 			break;
 		}
 
-		case INLA_CGENERIC_GRAPH:
+		case INLA_CGENERIC_Q:
 		{
 			n = (int) out[0];
-			nn = (int) out[1];
-			for (i = 0; i < nn; i++) {
-				fprintf(fp, "\t%1d (%1d %1d)\n", i, (int) out[2 + i], (int) out[2 + n + i]);
+			m = (int) out[1];
+			fprintf(fp, "\tn = %d  m = %d\n", n, m);
+			if (n == -1) {
+				fprintf(fp, "\toptimized format (same as the graph)\n");
+				for (i = 0; i < m; i++) {
+					fprintf(fp, "\tidx = %1d Q = %.8f\n", i, out[2 + i]);
+				}
+			} else {
+				for (i = 0; i < m; i++) {
+					fprintf(fp, "\tidx = %1d i = %1d, j = %1d, Qij = %.8f\n", i, (int) out[2 + i], (int) out[2 + n + i],
+						out[2 + 2 * n + i]);
+				}
 			}
 			break;
 		}
@@ -19541,8 +19548,9 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_MU:
 		{
 			n = (int) out[0];
+			fprintf(fp, "n = %1d\n", n);
 			for (i = 0; i < n; i++) {
-				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
+				fprintf(fp, "\ti = %1d mu_i = %.8f\n", i, out[1 + i]);
 			}
 			break;
 		}
@@ -19550,8 +19558,9 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_INITIAL:
 		{
 			n = (int) out[0];
+			fprintf(fp, "n = %1d\n", n);
 			for (i = 0; i < n; i++) {
-				fprintf(fp, "\t%1d %.8f\n", i, out[1 + i]);
+				fprintf(fp, "\tidx = %1d initial = %.8f\n", i, out[1 + i]);
 			}
 			break;
 		}
@@ -19559,7 +19568,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_LOG_NORM_CONST:
 		{
 			if (out) {
-				fprintf(fp, "\t%.8f\n", out[0]);
+				fprintf(fp, "\tlog.norm.const = %.8f\n", out[0]);
 			}
 			break;
 		}
@@ -19567,7 +19576,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 		case INLA_CGENERIC_LOG_PRIOR:
 		{
 			if (out) {
-				fprintf(fp, "\t%.8f\n", out[0]);
+				fprintf(fp, "\tlog.prior = %.8f\n", out[0]);
 			}
 			break;
 		}
@@ -22349,11 +22358,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_C_GENERIC:
 	{
 		const char *emsg = NULL;
-		char *cdata_fnm = NULL;
+		char *cdata_fnm = NULL, *cgeneric_qfnm = NULL;
+		int cgeneric_q;
 		cgeneric_shlib = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.SHLIB"), NULL);
 		cgeneric_model = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.MODEL"), NULL);
 		cgeneric_n = iniparser_getint(ini, inla_string_join(secname, "CGENERIC.N"), cgeneric_n);
 		cgeneric_debug = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.DEBUG"), cgeneric_debug);
+		cgeneric_q = iniparser_getboolean(ini, inla_string_join(secname, "CGENERIC.Q"), 0);
+		cgeneric_qfnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.Q.FILE"), NULL);
 		cdata_fnm = iniparser_getstring(ini, inla_string_join(secname, "CGENERIC.DATA"), NULL);
 
 		cgeneric_data = inla_cgeneric_read_data(cdata_fnm, cgeneric_debug);
@@ -22363,6 +22375,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tcgeneric.model  [%s]\n", cgeneric_model);
 			printf("\t\tcgeneric.data   [%s]\n", cdata_fnm);
 			printf("\t\tcgeneric.n      [%1d]\n", cgeneric_n);
+			printf("\t\tcgeneric.q      [%1d]\n", cgeneric_q);
 			printf("\t\tcgeneric.debug  [%1d]\n", cgeneric_debug);
 		}
 
@@ -22402,6 +22415,48 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			exit(1);
 		}
 		lt_dlerror();
+
+		if (cgeneric_q) {
+			// this is a hack for `inla.cgeneric.q`. write out info and then exit.
+
+			double *x = NULL, *theta = NULL;
+			int nt;
+
+			FILE *fp = fopen(cgeneric_qfnm, "w");
+
+			fprintf(fp, "CGENERIC_BEGIN\n");
+			x = model_func(INLA_CGENERIC_INITIAL, NULL, cgeneric_data);
+			nt = (int) x[0];
+			if (nt > 0) {
+				theta = x + 1;
+			} else {
+				theta = NULL;
+			}
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_INITIAL, x);
+
+			x = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_GRAPH, x);
+
+			x = model_func(INLA_CGENERIC_Q, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_Q, x);
+
+			x = model_func(INLA_CGENERIC_MU, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_MU, x);
+
+			x = model_func(INLA_CGENERIC_LOG_PRIOR, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_LOG_PRIOR, x);
+
+			x = model_func(INLA_CGENERIC_LOG_NORM_CONST, theta, cgeneric_data);
+			inla_cgeneric_debug(fp, secname, INLA_CGENERIC_LOG_NORM_CONST, x);
+
+			x = model_func(INLA_CGENERIC_QUIT, theta, cgeneric_data);
+
+			fprintf(fp, "CGENERIC_END\n");
+			fclose(fp);
+
+			// YES
+			exit(0);
+		}
 
 		xx_out = model_func(INLA_CGENERIC_GRAPH, NULL, cgeneric_data);
 		if (cgeneric_debug) {
@@ -36665,8 +36720,6 @@ int testit(int argc, char **argv)
 
 	case 15:
 	{
-		double lambda = 10;
-		re_init(&lambda);
 	}
 		break;
 
@@ -36679,71 +36732,16 @@ int testit(int argc, char **argv)
 
 	case 17:
 	{
-		P(bessel_Knu(0.25, 0.2));
-		P(gsl_sf_bessel_Knu(0.25, 0.2));
-		exit(EXIT_SUCCESS);
 	}
 		break;
 
 	case 18:
 	{
-		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.1, 3.2)));
-		P(re_intrinsic_discrepancy_distance_map(re_intrinsic_discrepancy_distance(0.5, 3.2)));
-		exit(EXIT_SUCCESS);
 	}
 		break;
 
 	case 19:
 	{
-#define _GET(_int) if (1) {				      \
-			if (fscanf(fp, "%d\n", &_int) == EOF) {	\
-				fprintf(stderr, "%s\n", strerror(errno)); \
-				exit(1);\
-			}\
-		}
-#define _GETV(_vec, _len)						\
-		if (1) {						\
-			_vec = Calloc(_len, double);			\
-			int _i;						\
-			for(_i=0; _i < _len; _i++) {			\
-				if (fscanf(fp, "%lf\n", &_vec[_i]) == EOF) { \
-					fprintf(stderr, "%s\n", strerror(errno)); \
-					exit(1);			\
-				}					\
-				if (0) printf("%s[%1d] = %g\n", #_vec, _i, _vec[_i]); \
-			}						\
-		}
-
-		if (1) {
-
-			FILE *fp = fopen("prior.dat", "r");
-
-			int nx, ny, nz;
-			double *x, *y, *z;
-
-			_GET(nx);
-			_GET(ny);
-			_GET(nz);
-			_GETV(x, nx);
-			_GETV(y, ny);
-			_GETV(z, nz);
-
-			int i;
-			double lev = 0.1;
-
-			for (i = 0; i < nz; i++) {
-				if (z[i] < 0.0) {
-					z[i] = NAN;
-				}
-			}
-
-			re_contour_tp *c;
-			c = contourLines(x, nx, y, ny, z, lev);
-
-			re_print_contourLines(NULL, c);
-		}
-#undef _GET
-#undef _GETV
 	}
 		break;
 
@@ -37703,34 +37701,34 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 68: 
+	case 68:
 	{
 		assert(nargs == 3);
 		printf("Call 'double (*fun)(double)' function [%s] in [%s] with argument [%s]\n", args[0], args[1], args[2]);
-		    lt_dlhandle handle;
-		    double (*fun)(double);
-		    const char *error;
+		lt_dlhandle handle;
+		double (*fun)(double);
+		const char *error;
 
-		    lt_dlinit();
-		    handle = lt_dlopen (args[1]);
-		    if (!handle) {
-			    fprintf (stderr, "%s\n", lt_dlerror());
-			    exit(1);
-		    }
-		    lt_dlerror();
+		lt_dlinit();
+		handle = lt_dlopen(args[1]);
+		if (!handle) {
+			fprintf(stderr, "%s\n", lt_dlerror());
+			exit(1);
+		}
+		lt_dlerror();
 
-		    fun = lt_dlsym(handle, args[0]);
-		    if ((error = lt_dlerror()) != NULL)  {
-			    fprintf (stderr, "%s\n", error);
-			    exit(1);
-		    }
-		    lt_dlerror();
+		fun = lt_dlsym(handle, args[0]);
+		if ((error = lt_dlerror()) != NULL) {
+			fprintf(stderr, "%s\n", error);
+			exit(1);
+		}
+		lt_dlerror();
 
-		    double x = atof(args[2]);
-		    printf("fun(%g) = %g\n", x, fun(x));
-		    lt_dlclose(handle);
+		double x = atof(args[2]);
+		printf("fun(%g) = %g\n", x, fun(x));
+		lt_dlclose(handle);
 
-		    break;
+		break;
 	}
 
 	case 999:
@@ -38376,26 +38374,26 @@ int main(int argc, char **argv)
 				printf("\tTotal                    : %7.3f seconds\n\n", time_used[0] + time_used[1] + time_used[2]);
 
 				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
-					printf("\nNumber of fn-calls= %1d with %.3f sec/fn-call\n",
+					printf("\nNumber of fn-calls= %1d with %.4f sec/fn-call\n",
 					       mb->misc_output->nfunc, time_used[1] / IMAX(1, mb->misc_output->nfunc));
 					if (R_rgeneric_cputime > 0.0) {
-						printf("rgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+						printf("rgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
 						       R_rgeneric_cputime,
 						       R_rgeneric_cputime / IMAX(1, mb->misc_output->nfunc),
 						       R_rgeneric_cputime / time_used[1] * 100.0);
 					}
 				} else {
 					printf("Stage1:");
-					printf("\tNumber of fn-calls= %1d with %.3f sec/fn-call\n", nfunc[0], time_used[3] / IMAX(1, nfunc[0]));
+					printf("\tNumber of fn-calls= %1d with %.4f sec/fn-call\n", nfunc[0], time_used[3] / IMAX(1, nfunc[0]));
 					if (rgeneric_cpu[0] > 0.0) {
-						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+						printf("\trgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
 						       rgeneric_cpu[0],
 						       rgeneric_cpu[0] / IMAX(1, nfunc[0]), rgeneric_cpu[0] / time_used[3] * 100.0);
 					}
 					printf("Stage2:");
-					printf("\tNumber of fn-calls= %1d with %.3f sec/fn-call\n", nfunc[1], time_used[1] / IMAX(1, nfunc[1]));
+					printf("\tNumber of fn-calls= %1d with %.4f sec/fn-call\n", nfunc[1], time_used[1] / IMAX(1, nfunc[1]));
 					if (rgeneric_cpu[1] > 0.0) {
-						printf("\trgeneric-time= %.3f seconds, with %.3f sec/fn-call and %.2f%% of the total time\n",
+						printf("\trgeneric-time= %.4f seconds, with %.4f sec/fn-call and %.4f%% of the total time\n",
 						       rgeneric_cpu[1],
 						       rgeneric_cpu[1] / IMAX(1, nfunc[1]),
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);

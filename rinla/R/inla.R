@@ -429,8 +429,39 @@
                    inla.mode = inla.getOption("inla.mode"), 
                    safe = FALSE, 
                    debug = inla.getOption("debug"),
-                   .parent.frame = parent.frame())
+                   .parent.frame = environment(formula))
 {
+    tmp <- try(eval(substitute(E), envir = data, enclos = .parent.frame), silent = TRUE)
+    E <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(offset), envir = data, enclos = .parent.frame), silent = TRUE)
+    offset <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(scale), envir = data, enclos = .parent.frame), silent = TRUE)
+    scale <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(weights), envir = data, enclos = .parent.frame), silent = TRUE)
+    weights <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(Ntrials), envir = data, enclos = .parent.frame), silent = TRUE)
+    Ntrials <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(strata), envir = data, enclos = .parent.frame), silent = TRUE)
+    strata <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(lp.scale), envir = data, enclos = .parent.frame), silent = TRUE)
+    lp.scale <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    tmp <- try(eval(substitute(link.covariates), envir = data, enclos = .parent.frame), silent = TRUE)
+    link.covariates <- if (inherits(tmp, "try-error")) NULL else tmp
+
+    if (debug) {
+        for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
+            print(paste0("head(", nm, ")"))
+            print(head(inla.eval(nm)))
+        }
+    }
+
     if (safe) {
         return (inla.core.safe(
             formula = formula, 
@@ -1262,37 +1293,6 @@
         wf <- eval.parent(wf, n = 2)
     } else {
         wf <- NULL
-    }
-
-    tmp <- try(eval(scale, envir = data, enclos = .parent.frame), silent = TRUE)
-    scale <- if (inherits(tmp, "try-error")) NULL else tmp
-    
-    tmp <- try(eval(weights, envir = data, enclos = .parent.frame), silent = TRUE)
-    weights <- if (inherits(tmp, "try-error")) NULL else tmp
-    
-    tmp <- try(eval(Ntrials, envir = data, enclos = .parent.frame), silent = TRUE)
-    Ntrials <- if (inherits(tmp, "try-error")) NULL else tmp
-
-    tmp <- try(eval(offset, envir = data, enclos = .parent.frame), silent = TRUE)
-    offset <- if (inherits(tmp, "try-error")) NULL else tmp
-
-    tmp <- try(eval(E, envir = data, enclos = .parent.frame), silent = TRUE)
-    E <- if (inherits(tmp, "try-error")) NULL else tmp
-
-    tmp <- try(eval(strata, envir = data, enclos = .parent.frame), silent = TRUE)
-    strata <- if (inherits(tmp, "try-error")) NULL else tmp
-
-    tmp <- try(eval(lp.scale, envir = data, enclos = .parent.frame), silent = TRUE)
-    lp.scale <- if (inherits(tmp, "try-error")) NULL else tmp
-
-    tmp <- try(eval(link.covariates, envir = data, enclos = .parent.frame), silent = TRUE)
-    link.covariates <- if (inherits(tmp, "try-error")) NULL else tmp
-
-    if (debug) {
-        for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
-            print(paste0("head(", nm, ")"))
-            print(head(inla.eval(nm)))
-        }
     }
 
     mf <- eval.parent(mf, n = 2)
@@ -2371,8 +2371,8 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,
-                    only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2
-                ), silent = FALSE)
+                    only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
+                    silent = silent), silent = FALSE)
                 if (inherits(ret, "try-error")) {
                     return (ret)
                 }
