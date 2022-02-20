@@ -7303,9 +7303,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 	}
 
-	int inc = sizeof(GMRFLib_idxval_elm_tp) / sizeof(int);
 	guess[0] = guess[1] = 0;
-
 	for(node = 0; node < Npred; node++) {
 
 		if (debug) {
@@ -7363,6 +7361,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			}
 		}
 	}
+	
 
 	if (debug) {
 		for(node = 0; node < Npred; node++) {
