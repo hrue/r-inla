@@ -32529,6 +32529,7 @@ int inla_INLA(inla_tp * mb)
 	// VB correct 
 	char *vb_nodes = NULL;
 	local_count = 0;
+
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		if (mb->predictor_vb_correct) {
@@ -32550,7 +32551,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			}
+			} 
 			count += mb->f_Ntotal[i];
 		}
 		for (i = 0; i < mb->nlinear; i++) {
@@ -33482,6 +33483,15 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
+				}
+			} else if (!(mb->f_vb_correct[i] == 0)) {
+				// chose random points for correction with expected number of points = vb_enable_limit
+				double prob = (double) mb->ai_par->vb_enable_limit / (double) mb->f_Ntotal[i];
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					if (GMRFLib_uniform() < prob) {
+						vb_nodes[count + j] = (char) 1;
+						local_count++;
+					}
 				}
 			}
 			count += mb->f_Ntotal[i];

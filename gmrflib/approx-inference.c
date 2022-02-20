@@ -7915,22 +7915,44 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 
+	if (0) {
+		// old code
 #define CODE_BLOCK							\
-	for (int jj = 0; jj < vb_idx->n; jj++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
-		int j = vb_idx->idx[jj];				\
-		double *cmean = CODE_BLOCK_WORK_PTR(0);			\
-		double *col = CODE_BLOCK_WORK_PTR(1);			\
-		GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, ai_store->problem->mean_constr[j] + 1.0, NULL); \
-		for (int i = 0; i < graph->n; i++) {			\
-			double corr = (i == j ? 1.0 : sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]); \
-			col[i] = corr * sd[i] * sd[j];			\
-			gsl_matrix_set(M, i, jj, col[i]);		\
+		for (int jj = 0; jj < vb_idx->n; jj++) {		\
+			CODE_BLOCK_SET_THREAD_ID;			\
+			int j = vb_idx->idx[jj];			\
+			double *cmean = CODE_BLOCK_WORK_PTR(0);		\
+			double *col = CODE_BLOCK_WORK_PTR(1);		\
+			GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, ai_store->problem->mean_constr[j] + 1.0, NULL); \
+			for (int i = 0; i < graph->n; i++) {		\
+				double corr = (i == j ? 1.0 : sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]); \
+				col[i] = corr * sd[i] * sd[j];		\
+				gsl_matrix_set(M, i, jj, col[i]);	\
+			}						\
 		}							\
-	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
 #undef CODE_BLOCK
+
+	} else {
+		// new and simpler code. clean this up later
+#define CODE_BLOCK							\
+		for (int jj = 0; jj < vb_idx->n; jj++) {		\
+			CODE_BLOCK_SET_THREAD_ID;			\
+			int j = vb_idx->idx[jj];			\
+			double *b = CODE_BLOCK_WORK_PTR(0);		\
+			double *cov = CODE_BLOCK_WORK_PTR(1);		\
+			CODE_BLOCK_WORK_ZERO(0);			\
+			b[j] = 1.0;					\
+			GMRFLib_Qsolve(cov, b, ai_store->problem);	\
+			for (int i = 0; i < graph->n; i++) {		\
+				gsl_matrix_set(M, i, jj, cov[i]);	\
+			}						\
+		}
+		
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+#undef CODE_BLOCK
+	}
 
 	for (iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
