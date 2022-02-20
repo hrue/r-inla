@@ -503,6 +503,10 @@
     if (inla.one.of(model, "copy")) {
         stopifnot(missing(constr))
         stopifnot(missing(extraconstr))
+        ## unless stated otherwise, do not vb.correct copies
+        if (is.null(vb.correct)) {
+            vb.correct <- FALSE
+        }
     }
 
     if (!inla.one.of(model, c("copy", "clinear", "mec", "meb"))) {
