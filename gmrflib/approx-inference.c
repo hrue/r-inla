@@ -7192,7 +7192,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int Npred = preopt->Npred;
 	int *idxs = Calloc(Npred, int);
 	int n = preopt->n;
-	int ngroup = 25;
+	int ngroup[2] = {49, 25};
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
@@ -7210,8 +7210,8 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	gcpo = Calloc(Npred, GMRFLib_gcpo_tp *);
 	for(i = 0; i < Npred; i++) {
 		gcpo[i] = Calloc(1, GMRFLib_gcpo_tp);
-		GMRFLib_idxval_create_x(&(gcpo[i]->g), ngroup);
-		gcpo[i]->cov_mat = gsl_matrix_calloc((size_t) ngroup, (size_t) ngroup);
+		GMRFLib_idxval_create_x(&(gcpo[i]->g), ngroup[0]);
+		gcpo[i]->cov_mat = gsl_matrix_calloc((size_t) ngroup[0], (size_t) ngroup[0]);
 		gsl_matrix_set_all(gcpo[i]->cov_mat, NAN);
 	}
 
@@ -7245,7 +7245,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 
 		GMRFLib_qsorts(cov, Npred, sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
-		for (i = 0; i < ngroup; i++) {
+		for (i = 0; i < ngroup[0]; i++) {
 			GMRFLib_idxval_add(&(gcpo[node]->g), idxs[i], cov[i]);
 		}
 		GMRFLib_idxval_sort(gcpo[node]->g);
@@ -7259,14 +7259,14 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 
 		gcpo[node]->idx_node = -1;
-		for (i = 0; i < ngroup && gcpo[node]->idx_node < 0; i++) {
+		for (i = 0; i < ngroup[0] && gcpo[node]->idx_node < 0; i++) {
 			if (gcpo[node]->g->store[i].idx == node) {
 				gcpo[node]->idx_node = i;
 			}
 		}
 		assert(gcpo[node]->idx_node >= 0);
 		
-		for (i = 0; i < ngroup; i++) {
+		for (i = 0; i < ngroup[0]; i++) {
 			c = gcpo[node]->g->store[i].val;
 			j = gcpo[node]->g->store[i].idx;
 			gsl_matrix_set(gcpo[node]->cov_mat, i, i, lpred_variance[j]);
@@ -7317,8 +7317,8 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		double cov = 0.0;
 		int ii = -1, jj = -1, node_i = -1, node_j = -1, found = 0;
 		
-		for(i = 0; i < ngroup; i++) {
-			for(j = i + 1; j < ngroup; j++) {
+		for(i = 0; i < ngroup[0]; i++) {
+			for(j = i + 1; j < ngroup[0]; j++) {
 
 				found = 0;
 				if (ISNAN(gsl_matrix_get(gcpo[node]->cov_mat, i, j))) {
@@ -7362,7 +7362,49 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 	}
 	
+	double *corr = Calloc(ngroup[0], double);
+	for(node = 0; node < Npred; node++) {
 
+		for(i = 0; i < gcpo[node]->g->n; i++){
+			corr[i] = gcpo[node]->g->store[i].val;
+			idxs[i] = gcpo[node]->g->store[i].idx;
+		}
+		GMRFLib_qsorts(corr, ngroup[0], sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
+
+		GMRFLib_idxval_tp *gg;
+		GMRFLib_idxval_create_x(&gg, ngroup[1]);
+		for(i = 0; i < ngroup[1]; i++) {
+			GMRFLib_idxval_add(&gg, idxs[i], corr[i]);
+		}
+		GMRFLib_idxval_sort(gg);
+
+		gcpo[node]->node_min = gg->store[0].idx;
+		gcpo[node]->node_max = gg->store[gg->n-1].idx;
+
+		gsl_matrix *M = gsl_matrix_calloc((size_t) ngroup[1], (size_t)ngroup[1]);
+		for(i = 0; i < ngroup[1]; i++) {
+			for(j = i; j < ngroup[1]; j++) {
+				int ii, jj, iii, jjj;
+				double val;
+				
+				ii = gg->store[i].idx;
+				jj = gg->store[j].idx;
+				iii = GMRFLib_iwhich_sorted_x(ii, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
+				jjj = GMRFLib_iwhich_sorted_x(jj, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
+				
+				val = gsl_matrix_get(gcpo[node]->cov_mat, iii, jjj);
+				gsl_matrix_set(M, i, j, val);
+				gsl_matrix_set(M, j, i, val);
+			}
+		}
+		GMRFLib_idxval_free(gcpo[node]->g);
+		gsl_matrix_free(gcpo[node]->cov_mat);
+		gcpo[node]->g= gg;
+		gcpo[node]->cov_mat = M;
+		gcpo[node]->idx_node = GMRFLib_iwhich_sorted_x(node, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
+	}
+
+		
 	if (debug) {
 		for(node = 0; node < Npred; node++) {
 			printf("AFTER nodes for node=%1d: ", node);
@@ -8003,31 +8045,38 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 		time_grad = GMRFLib_cpu() - time_grad;
 
+		if (0) {
 #define CODE_BLOCK							\
-		for (int jj = 0; jj < vb_idx->n; jj++) {		\
-			CODE_BLOCK_SET_THREAD_ID;			\
-			double *col = CODE_BLOCK_WORK_PTR(0);		\
-			double *res = CODE_BLOCK_WORK_PTR(1);		\
-			for (int i = 0; i < graph->n; i++) {		\
-				col[i] = gsl_matrix_get(M, i, jj);	\
-			}						\
-			GMRFLib_Qx(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
-			for (int i = 0; i < graph->n; i++) {		\
-				gsl_matrix_set(QM, i, jj, res[i]);	\
-			}						\
-		}
+			for (int jj = 0; jj < vb_idx->n; jj++) {	\
+				CODE_BLOCK_SET_THREAD_ID;		\
+				double *col = CODE_BLOCK_WORK_PTR(0);	\
+				double *res = CODE_BLOCK_WORK_PTR(1);	\
+				for (int i = 0; i < graph->n; i++) {	\
+					col[i] = gsl_matrix_get(M, i, jj); \
+				}					\
+				GMRFLib_Qx(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
+				for (int i = 0; i < graph->n; i++) {	\
+					gsl_matrix_set(QM, i, jj, res[i]); \
+				}					\
+			}
 
-		if (update_MM) {
-			time_hess = GMRFLib_cpu();
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
-		}
+			if (update_MM) {
+				time_hess = GMRFLib_cpu();
+				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+			}
 #undef CODE_BLOCK
+		} else {
+			if (update_MM) {
+				time_hess = GMRFLib_cpu();
+				GMRFLib_QM(QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
+			}
+		}
 
 		if (update_MM) {
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 			time_hess = GMRFLib_cpu() - time_hess;
 		}
-
+		
 		time_grad += GMRFLib_cpu();
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 		time_grad = GMRFLib_cpu() - time_grad;

@@ -33484,14 +33484,15 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (!(mb->f_vb_correct[i] == 0)) {
-				// chose random points for correction with expected number of points = vb_enable_limit
-				double prob = (double) mb->ai_par->vb_enable_limit / (double) mb->f_Ntotal[i];
-				for (j = 0; j < mb->f_Ntotal[i]; j++) {
-					if (GMRFLib_uniform() < prob) {
-						vb_nodes[count + j] = (char) 1;
-						local_count++;
-					}
+			} else if (mb->f_vb_correct[i] < 0) {
+				// chose vb_enable_limit points for correction with random start
+				int len, k, jj;
+				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_enable_limit); /* integer division */
+				k = len / 2;						      /* integer division */
+				for (j = 0; j < mb->ai_par->vb_enable_limit; j++) {
+					jj = (j * len + k) % mb->f_Ntotal[i];
+					vb_nodes[count + jj] = (char) 1;
+					local_count++;
 				}
 			}
 			count += mb->f_Ntotal[i];

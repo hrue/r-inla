@@ -1240,6 +1240,106 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+{
+	GMRFLib_ENTER_ROUTINE;
+
+#define ADDTO(M_, i_, j_, val_) gsl_matrix_set(M_, i_, j_, gsl_matrix_get(M_, i_, j_) + val_)
+
+	int id = GMRFLib_thread_id;
+	int ncol = result->size2;
+	double res, *values = NULL;
+
+	if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		values = Calloc(graph->n * GMRFLib_openmp->max_threads_inner, double);
+	} else {
+		values = Calloc(graph->n, double);
+	}
+	
+	gsl_matrix_set_zero(result);
+	res = Qfunc(0, -1, values, Qfunc_arg);
+	if (ISNAN(res)) {
+		if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+			for(int k = 0; k < ncol; k++) {
+				GMRFLib_thread_id = id;
+				for (int i = 0; i < graph->n; i++) {
+					double qij = Qfunc(i, i, NULL, Qfunc_arg);
+					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * qij);
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						qij = Qfunc(i, j, NULL, Qfunc_arg);
+						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+					}
+				}
+			}
+		} else {
+			for (int i = 0; i < graph->n; i++) {
+				double qij = Qfunc(i, i, NULL, Qfunc_arg);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+				for (int k = 0; k < ncol; k++) {
+					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * qij);
+				}
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					int j = graph->lnbs[i][jj];
+					qij = Qfunc(i, j, NULL, Qfunc_arg);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+					for(int k = 0; k < ncol; k++) {
+						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+					}
+				}
+			}
+		}
+	} else {
+		if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+			for(int k = 0; k < ncol; k++) {
+				double *val = values + omp_get_thread_num() * graph->n;
+				assert(omp_get_thread_num() < GMRFLib_openmp->max_threads_inner);
+				GMRFLib_thread_id = id;
+				for (int i = 0; i < graph->n; i++) {
+					Qfunc(i, -1, val, Qfunc_arg);
+					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * val[0]);
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						double qij = val[1 + jj];
+						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+					}
+				}
+			}
+		} else {
+			for (int i = 0; i < graph->n; i++) {
+				Qfunc(i, -1, values, Qfunc_arg);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+				for (int k = 0; k < ncol; k++) {
+					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * values[0]);
+				}
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					int j = graph->lnbs[i][jj];
+					double qij = values[1 + jj];
+#pragma GCC ivdep
+#pragma GCC unroll 8
+					for(int k = 0; k < ncol; k++) {
+						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+					}
+				}
+			}
+		}
+	}
+	Free(values);
+#undef ADDTO
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	// print in sparse matrix style. only for small graphs...
@@ -1255,10 +1355,11 @@ int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp 
 				value = 0.0;
 			}
 
-			if (ISZERO(value))
+			if (ISZERO(value)) {
 				fprintf(fp, "  .   ");
-			else
+			} else {
 				fprintf(fp, "%5.2f ", value);
+			}
 		}
 		fprintf(fp, "\n");
 	}
