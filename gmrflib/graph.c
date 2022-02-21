@@ -1295,7 +1295,9 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 			}
 		}
 	} else {
-		if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		if (0 && // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
+		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+			// I think is less good as it index the matrices in the wrong direction
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for(int k = 0; k < ncol; k++) {
 				double *val = values + omp_get_thread_num() * graph->n;
@@ -1313,26 +1315,55 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 				}
 			}
 		} else {
-			for (int i = 0; i < graph->n; i++) {
-				Qfunc(i, -1, values, Qfunc_arg);
-#pragma GCC ivdep
-#pragma GCC unroll 8
-				for (int k = 0; k < ncol; k++) {
-					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * values[0]);
-				}
-				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-					int j = graph->lnbs[i][jj];
-					double qij = values[1 + jj];
+			if (1) {
+				// better one, as the 'k' loop is sequential with inc=1
+				double *p1, *p2, *p3, *p4;
+				for (int i = 0; i < graph->n; i++) {
+					Qfunc(i, -1, values, Qfunc_arg);
+					p1 = gsl_matrix_ptr(result, i, 0);
+					p3 = gsl_matrix_ptr(x, i, 0);
 #pragma GCC ivdep
 #pragma GCC unroll 8
 					for(int k = 0; k < ncol; k++) {
-						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
-						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+						p1[k] += p3[k] * values[0];
+					}
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						double qij = values[1 + jj];
+						p2 = gsl_matrix_ptr(result, j, 0);
+						p4 = gsl_matrix_ptr(x, j, 0);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+						for(int k = 0; k < ncol; k++) {
+							p1[k] += qij * p4[k];
+							p2[k] += qij * p3[k];
+						}
+					}
+				}
+			} else {
+				// the safe option
+				for (int i = 0; i < graph->n; i++) {
+					Qfunc(i, -1, values, Qfunc_arg);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+					for (int k = 0; k < ncol; k++) {
+						ADDTO(result, i, k, gsl_matrix_get(x, i, k) * values[0]);
+					}
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						double qij = values[1 + jj];
+#pragma GCC ivdep
+#pragma GCC unroll 8
+						for(int k = 0; k < ncol; k++) {
+							ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+							ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+						}
 					}
 				}
 			}
 		}
 	}
+	
 	Free(values);
 #undef ADDTO
 

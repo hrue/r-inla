@@ -8084,6 +8084,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}
 #undef CODE_BLOCK
 		} else {
+			// new and better code
 			if (update_MM) {
 				time_hess = GMRFLib_cpu();
 				GMRFLib_QM(QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
