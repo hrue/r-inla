@@ -7886,13 +7886,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
 	int keep_MM = 1, ratio_ok = 0;
 
-	// this is for robustness: scale CC[i] with 'cc_scale'
-	double cc_scale = SQR(1.0 / 0.95);
-
 	int niter = 1 + ai_par->vb_refinement;
 	int i, j, iter, debug = 0;			       // debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
-	// double _tref = GMRFLib_cpu();
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 	double time_grad = 0.0, time_hess = 0.0;
@@ -8024,7 +8020,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			keep_MM = 0;
 		}
 
-		time_grad = GMRFLib_cpu();
 		gsl_vector_set_zero(B);
 		gsl_vector_set_zero(MB);
 		gsl_vector_set_zero(delta);
@@ -8033,6 +8028,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_matrix_set_zero(MM);
 		}
 
+		time_grad = GMRFLib_cpu();
+		time_hess = 0.0;
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
 
 #define CODE_BLOCK							\
@@ -8047,14 +8044,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
-			CC[i] = DMAX(0.0, vb_coof.coofs[2] * cc_scale); \
+			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(preopt, BB, CC);
-
 		GMRFLib_Qx(tmp, x_mean, preopt->latent_graph, prior->Qfunc, prior->Qfunc_arg);
 		for (i = 0; i < graph->n; i++) {
 			tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
@@ -8079,19 +8075,22 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}
 
 			if (update_MM) {
-				time_hess = GMRFLib_cpu();
+				time_hess += GMRFLib_cpu();
 				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+				time_hess = GMRFLib_cpu() - time_hess;
 			}
 #undef CODE_BLOCK
 		} else {
 			// new and better code
 			if (update_MM) {
-				time_hess = GMRFLib_cpu();
+				time_hess += GMRFLib_cpu();
 				GMRFLib_QM(QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
+				time_hess = GMRFLib_cpu() - time_hess;
 			}
 		}
 
 		if (update_MM) {
+			time_hess += GMRFLib_cpu();
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
 			time_hess = GMRFLib_cpu() - time_hess;
 		}
@@ -8167,7 +8166,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		if (ai_par->vb_verbose) {
-			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in [%.3f]sec hess/grad[%.3f]\n",
+			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in total [%.3f]sec hess/grad[%.3f]\n",
 			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
 			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f] rms(dx/sd)[%.3f]\n", (int) delta->size, step_len, err_dx);
 			if (do_break) {
