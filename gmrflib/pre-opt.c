@@ -1013,6 +1013,49 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_preopt_predictor_mean(double *mean, GMRFLib_preopt_tp * preopt,
+				  GMRFLib_problem_tp * problem, double *optional_mean)
+{
+	// compute the marginal mean for the linear predictor
+	int npred = preopt->npred;
+	int mpred = preopt->mpred;
+	int mnpred = preopt->mnpred;
+	int offset = mpred;
+	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
+
+	Memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+
+#define CODE_BLOCK							\
+	for(int i = 0; i < mpred; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		int k, j;						\
+		GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
+		for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {		\
+			j = elm[k].idx;					\
+			mean[i] += elm[k].val * mm[j];			\
+		}							\
+	}
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+#undef CODE_BLOCK
+
+#define CODE_BLOCK							\
+	for(int i = 0; i < npred; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		int k, j;						\
+		GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
+		for(k = 0; k < preopt->A_idxval[i]->n; k++){		\
+			j = elm[k].idx;					\
+			mean[offset + i] += elm[k].val * mm[j];		\
+		}							\
+	}
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+#undef CODE_BLOCK
+
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *like_c)
 {
 	int id = GMRFLib_thread_id, np = preopt->Npred;

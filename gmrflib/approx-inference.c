@@ -7891,7 +7891,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
-	double time_grad = 0.0, time_hess = 0.0;
 
 	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
 		GMRFLib_LEAVE_ROUTINE;
@@ -8013,7 +8012,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		int update_MM = ((iter == 0) || !keep_MM);
 		double err_dx;
 		double ratio = NAN;
-
+		double time_grad = 0.0, time_hess = 0.0, time_ref_grad, time_ref_hess;
+		
 		if (ratio_ok) {
 			// this override options, as the decision is that it is most efficient to update MM all the time
 			update_MM = 1;
@@ -8028,9 +8028,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			gsl_matrix_set_zero(MM);
 		}
 
-		time_grad = GMRFLib_cpu();
-		time_hess = 0.0;
-		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
+		// no need to compute the variance more than once since we're doing just the mean correction
+		time_ref_grad = GMRFLib_cpu();
+		if (iter == 0) {
+			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
+		} else {
+			GMRFLib_preopt_predictor_mean(pmean, preopt, ai_store->problem, x_mean);
+		}
+		time_grad += (GMRFLib_cpu() - time_ref_grad) * (iter == 0 ? 0.3 : 1.0); /* to adjust for mean/var compared to mean only */
+		time_ref_grad = GMRFLib_cpu();
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
@@ -8056,7 +8062,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			tmp[i] += preopt->total_b[GMRFLib_thread_id][i];
 			gsl_vector_set(B, i, tmp[i]);
 		}
-		time_grad = GMRFLib_cpu() - time_grad;
+		time_grad += GMRFLib_cpu() - time_ref_grad;
+		time_ref_grad = GMRFLib_cpu();
 
 		if (0) {
 			// old code
@@ -8075,29 +8082,28 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			}
 
 			if (update_MM) {
-				time_hess += GMRFLib_cpu();
+				time_ref_hess = GMRFLib_cpu();
 				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
-				time_hess = GMRFLib_cpu() - time_hess;
+				time_hess += GMRFLib_cpu() - time_ref_hess;
 			}
 #undef CODE_BLOCK
 		} else {
 			// new and better code
 			if (update_MM) {
-				time_hess += GMRFLib_cpu();
+				time_ref_hess = GMRFLib_cpu();
 				GMRFLib_QM(QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
-				time_hess = GMRFLib_cpu() - time_hess;
+				time_hess += GMRFLib_cpu() - time_ref_hess;
 			}
 		}
 
 		if (update_MM) {
-			time_hess += GMRFLib_cpu();
+			time_ref_hess = GMRFLib_cpu();
 			gsl_blas_dgemm(CblasTrans, CblasNoTrans, one, M, QM, zero, MM);
-			time_hess = GMRFLib_cpu() - time_hess;
+			time_hess += GMRFLib_cpu() - time_ref_hess;
 		}
 		
-		time_grad += GMRFLib_cpu();
+		// no timing; this one is common
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
-		time_grad = GMRFLib_cpu() - time_grad;
 
 		if (debug) {
 			FIXME("M");
@@ -8110,9 +8116,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		if (keep_MM) {
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
-				time_hess += GMRFLib_cpu();
+				time_ref_hess = GMRFLib_cpu();
 				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0 / 3.0));
-				time_hess = GMRFLib_cpu() - time_hess;
+				time_hess += GMRFLib_cpu() - time_ref_hess;
 			}
 			if (debug) {
 				GMRFLib_printf_gsl_matrix(stdout, MM, "%.6f ");
@@ -8143,32 +8149,51 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
-		double step_len;
-		double ddx_max = 0.0;
-		for (i = 0, err_dx = 0.0; i < graph->n; i++) {
-			dx[i] = gsl_vector_get(delta_mu, i);
-			ddx_max = DMAX(ddx_max, ABS(dx[i]) / sd[i]);
-			err_dx += SQR(dx[i] / sd[i]);
-		}
-		err_dx = sqrt(err_dx / graph->n);
-		step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
+		if (0) {
+			// old code
+			double step_len;
+			double ddx_max = 0.0;
+			// truncate all components witht the same step
+			for (i = 0, err_dx = 0.0; i < graph->n; i++) {
+				dx[i] = gsl_vector_get(delta_mu, i);
+				ddx_max = DMAX(ddx_max, ABS(dx[i]) / sd[i]);
+				err_dx += SQR(dx[i] / sd[i]);
+			}
+			err_dx = sqrt(err_dx / graph->n);
+			step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
 
-		for (i = 0; i < graph->n; i++) {
-			dx[i] *= step_len;
-			x_mean[i] += dx[i];
+			for (i = 0; i < graph->n; i++) {
+				dx[i] *= step_len;
+				x_mean[i] += dx[i];
+			}
+		} else {
+			// new code
+			for (i = 0, err_dx = 0.0; i < graph->n; i++) {
+				dx[i] = gsl_vector_get(delta_mu, i);
+				err_dx += SQR(dx[i] / sd[i]);
+				// truncate individual components
+				if (ABS(dx[i]) >  sd[i] * ai_par->vb_max_correct) {
+					dx[i] = ai_par->vb_max_correct * sd[i] * SIGN(dx[i]);
+				}
+			}
+			err_dx = sqrt(err_dx / graph->n);
+			for (i = 0; i < graph->n; i++) {
+				x_mean[i] += dx[i];
+			}
 		}
+		
 
-		// this is RMS standardized change between the iterations (using step_len=1), otherwise, just run the max iterations.
+		// this is RMS standardized change between the iterations, otherwise, just run the max iterations.
 		// test this here so we can adjust the verbose output below
 		int do_break = 0;
-		if (err_dx < 0.001 || iter == niter - 1) {
+		if (err_dx < 0.005 || iter == niter - 1) {
 			do_break = 1;
 		}
 
 		if (ai_par->vb_verbose) {
 			printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [mean] in total [%.3f]sec hess/grad[%.3f]\n",
 			       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
-			printf("\t\tNumber of nodes corrected for [%1d] step.len[%.4f] rms(dx/sd)[%.3f]\n", (int) delta->size, step_len, err_dx);
+			printf("\t\tNumber of nodes corrected for [%1d] rms(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 			if (do_break) {
 				for (jj = 0; jj < vb_idx->n; jj++) {
 					j = vb_idx->idx[jj];
