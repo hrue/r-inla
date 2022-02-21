@@ -945,6 +945,17 @@ int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 	return 0;
 }
 
+int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
+{
+	int num = 0;
+	for(size_t i = 0; i < A->size1; i++) {
+		for(size_t j = 0; j <  A->size2; j++) {
+			num += (ISNAN(value) ? ISNAN(gsl_matrix_get(A, i, j)) : (gsl_matrix_get(A, i, j) == value));
+		}
+	}
+	return num;
+}
+
 int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format)
 {
 	size_t i, j;

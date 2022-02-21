@@ -7192,7 +7192,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int Npred = preopt->Npred;
 	int *idxs = Calloc(Npred, int);
 	int n = preopt->n;
-	int ngroup[2] = {49, 25};
+	int ngroup[2] = {9, 4};
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
@@ -7215,6 +7215,8 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		gsl_matrix_set_all(gcpo[i]->cov_mat, NAN);
 	}
 
+	double tref = GMRFLib_cpu();
+	
 	for(node = 0; node < Npred; node++) {
 
 		GMRFLib_idxval_tp *v = A_idx(node);
@@ -7252,7 +7254,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		gcpo[node]->node_min = gcpo[node]->g->store[0].idx;
 		gcpo[node]->node_max = gcpo[node]->g->store[gcpo[node]->g->n - 1].idx;
 
-		if (debug) {
+		if (0 && debug) {
 			P(gcpo[node]->node_min);
 			P(gcpo[node]->node_max);
 			GMRFLib_idxval_printf(stdout, gcpo[node]->g, "GROUP");
@@ -7277,7 +7279,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 				gsl_matrix_set(gcpo[node]->cov_mat, i, gcpo[node]->idx_node, value);
 			}
 		}
-		if (debug) {
+		if (0 && debug) {
 			GMRFLib_idxval_printf(stdout, gcpo[node]->g, "GROUP");
 			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 		}
@@ -7292,7 +7294,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 	}
 
-	if (debug) {
+	if (0 && debug) {
 		for(node = 0; node < Npred; node++) {
 			printf("BEFORE nodes for node=%1d: ", node);
 			for(j = 0; j < gcpo[node]->g->n; j++) {
@@ -7303,6 +7305,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 	}
 
+	debug = 0;
 	guess[0] = guess[1] = 0;
 	for(node = 0; node < Npred; node++) {
 
@@ -7364,22 +7367,37 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	
 	double *corr = Calloc(ngroup[0], double);
 	for(node = 0; node < Npred; node++) {
-
-		for(i = 0; i < gcpo[node]->g->n; i++){
+		int debug = 1;
+		
+		for(i = 0; i < gcpo[node]->g->n; i++) {
 			corr[i] = gcpo[node]->g->store[i].val;
 			idxs[i] = gcpo[node]->g->store[i].idx;
 		}
 		GMRFLib_qsorts(corr, ngroup[0], sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
 
-		GMRFLib_idxval_tp *gg;
+		if (debug) {
+			for(i = 0; i < gcpo[node]->g->n; i++) {
+				printf("node=%d i=%d idxs=%d corr=%f\n", node, i, idxs[i], corr[i]);
+			}
+		}
+
+		GMRFLib_idxval_tp *gg = NULL;
 		GMRFLib_idxval_create_x(&gg, ngroup[1]);
 		for(i = 0; i < ngroup[1]; i++) {
 			GMRFLib_idxval_add(&gg, idxs[i], corr[i]);
 		}
 		GMRFLib_idxval_sort(gg);
 
+		if (debug) GMRFLib_idxval_printf(stdout, gg, "gg");
+		
 		gcpo[node]->node_min = gg->store[0].idx;
 		gcpo[node]->node_max = gg->store[gg->n-1].idx;
+
+		if (debug) {
+			FIXME("old covmat");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.4f");
+			printf("BEFORE %d ", GMRFLib_gsl_matrix_count_eq(gcpo[node]->cov_mat, NAN));
+		}
 
 		gsl_matrix *M = gsl_matrix_calloc((size_t) ngroup[1], (size_t)ngroup[1]);
 		for(i = 0; i < ngroup[1]; i++) {
@@ -7392,6 +7410,9 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 				iii = GMRFLib_iwhich_sorted_x(ii, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
 				jjj = GMRFLib_iwhich_sorted_x(jj, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
 				
+				assert(iii >= 0 && jjj >= 0);
+				if (debug) printf("i %d j %d ii %d jj %d iii %d jjj %d\n", i, j, ii, jj, iii, jjj);
+				
 				val = gsl_matrix_get(gcpo[node]->cov_mat, iii, jjj);
 				gsl_matrix_set(M, i, j, val);
 				gsl_matrix_set(M, j, i, val);
@@ -7402,19 +7423,15 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		gcpo[node]->g= gg;
 		gcpo[node]->cov_mat = M;
 		gcpo[node]->idx_node = GMRFLib_iwhich_sorted_x(node, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
-	}
 
-		
-	if (debug) {
-		for(node = 0; node < Npred; node++) {
-			printf("AFTER nodes for node=%1d: ", node);
-			for(j = 0; j < gcpo[node]->g->n; j++) {
-				printf(" %d", gcpo[node]->g->store[j].idx);
-			}
-			printf("\n");
-			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.12f");
+		if (debug){
+			FIXME("AFTER");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.4f");
+			printf("AFTER %d \n", GMRFLib_gsl_matrix_count_eq(gcpo[node]->cov_mat, NAN));
 		}
 	}
+		
+	P(GMRFLib_cpu() - tref);
 
 #undef A_idx
 	exit(0);
@@ -8046,6 +8063,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		time_grad = GMRFLib_cpu() - time_grad;
 
 		if (0) {
+			// old code
 #define CODE_BLOCK							\
 			for (int jj = 0; jj < vb_idx->n; jj++) {	\
 				CODE_BLOCK_SET_THREAD_ID;		\
