@@ -8007,21 +8007,22 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}
 
 		// no need to compute the variance more than once since we're doing just the mean correction
-		time_ref_grad = GMRFLib_cpu();
 		if (iter == 0) {
 			GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, ai_store->problem, x_mean);
-		} else {
-			GMRFLib_preopt_predictor_mean(pmean, preopt, ai_store->problem, x_mean);
-		}
-		time_grad += (GMRFLib_cpu() - time_ref_grad) * (iter == 0 ? 0.3 : 1.0); /* to adjust for mean/var compared to mean only */
+		} 
+		// I know I compute the mean twice for iter=0, but then the timing gets right
+		time_grad = 0.0;
+		time_ref_grad = GMRFLib_cpu();
+		GMRFLib_preopt_predictor_mean(pmean, preopt, ai_store->problem, x_mean); 
+		time_grad += GMRFLib_cpu() - time_ref_grad; 
 		time_ref_grad = GMRFLib_cpu();
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			CODE_BLOCK_SET_THREAD_ID;			\
 			int i = d_idx->idx[ii];				\
-			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
 			GMRFLib_vb_coofs_tp vb_coof;			\
+			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
 			GMRFLib_ai_vb_prepare(&vb_coof, i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
 			if (debug) {					\
 				printf("[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
@@ -8102,12 +8103,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
+		double mc = ai_par->vb_max_correct;
 		for (i = 0, err_dx = 0.0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
 			err_dx += SQR(dx[i] / sd[i]);
 			// truncate individual components
-			if (ABS(dx[i]) >  sd[i] * ai_par->vb_max_correct) {
-				dx[i] = ai_par->vb_max_correct * sd[i] * SIGN(dx[i]);
+			if (ABS(dx[i]) >  sd[i] * mc) {
+				dx[i] = mc * sd[i] * SIGN(dx[i]);
 			}
 		}
 		err_dx = sqrt(err_dx / graph->n);
