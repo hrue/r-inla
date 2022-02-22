@@ -7969,44 +7969,22 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 
-	if (0) {
-		// old code
 #define CODE_BLOCK							\
-		for (int jj = 0; jj < vb_idx->n; jj++) {		\
-			CODE_BLOCK_SET_THREAD_ID;			\
-			int j = vb_idx->idx[jj];			\
-			double *cmean = CODE_BLOCK_WORK_PTR(0);		\
-			double *col = CODE_BLOCK_WORK_PTR(1);		\
-			GMRFLib_ai_update_conditional_mean2(cmean, ai_store->problem, j, ai_store->problem->mean_constr[j] + 1.0, NULL); \
-			for (int i = 0; i < graph->n; i++) {		\
-				double corr = (i == j ? 1.0 : sd[j] * (cmean[i] - ai_store->problem->mean_constr[i]) / sd[i]); \
-				col[i] = corr * sd[i] * sd[j];		\
-				gsl_matrix_set(M, i, jj, col[i]);	\
-			}						\
+	for (int jj = 0; jj < vb_idx->n; jj++) {			\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		int j = vb_idx->idx[jj];				\
+		double *b = CODE_BLOCK_WORK_PTR(0);			\
+		double *cov = CODE_BLOCK_WORK_PTR(1);			\
+		CODE_BLOCK_WORK_ZERO(0);				\
+		b[j] = 1.0;						\
+		GMRFLib_Qsolve(cov, b, ai_store->problem);		\
+		for (int i = 0; i < graph->n; i++) {			\
+			gsl_matrix_set(M, i, jj, cov[i]);		\
 		}							\
-
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
-#undef CODE_BLOCK
-
-	} else {
-		// new and simpler code. clean this up later
-#define CODE_BLOCK							\
-		for (int jj = 0; jj < vb_idx->n; jj++) {		\
-			CODE_BLOCK_SET_THREAD_ID;			\
-			int j = vb_idx->idx[jj];			\
-			double *b = CODE_BLOCK_WORK_PTR(0);		\
-			double *cov = CODE_BLOCK_WORK_PTR(1);		\
-			CODE_BLOCK_WORK_ZERO(0);			\
-			b[j] = 1.0;					\
-			GMRFLib_Qsolve(cov, b, ai_store->problem);	\
-			for (int i = 0; i < graph->n; i++) {		\
-				gsl_matrix_set(M, i, jj, cov[i]);	\
-			}						\
-		}
-		
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
-#undef CODE_BLOCK
 	}
+		
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+#undef CODE_BLOCK
 
 	for (iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
@@ -8065,35 +8043,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		time_grad += GMRFLib_cpu() - time_ref_grad;
 		time_ref_grad = GMRFLib_cpu();
 
-		if (0) {
-			// old code
-#define CODE_BLOCK							\
-			for (int jj = 0; jj < vb_idx->n; jj++) {	\
-				CODE_BLOCK_SET_THREAD_ID;		\
-				double *col = CODE_BLOCK_WORK_PTR(0);	\
-				double *res = CODE_BLOCK_WORK_PTR(1);	\
-				for (int i = 0; i < graph->n; i++) {	\
-					col[i] = gsl_matrix_get(M, i, jj); \
-				}					\
-				GMRFLib_Qx(res, col, graph, tabQ->Qfunc, tabQ->Qfunc_arg); \
-				for (int i = 0; i < graph->n; i++) {	\
-					gsl_matrix_set(QM, i, jj, res[i]); \
-				}					\
-			}
-
-			if (update_MM) {
-				time_ref_hess = GMRFLib_cpu();
-				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
-				time_hess += GMRFLib_cpu() - time_ref_hess;
-			}
-#undef CODE_BLOCK
-		} else {
-			// new and better code
-			if (update_MM) {
-				time_ref_hess = GMRFLib_cpu();
-				GMRFLib_QM(QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
-				time_hess += GMRFLib_cpu() - time_ref_hess;
-			}
+		if (update_MM) {
+			time_ref_hess = GMRFLib_cpu();
+			GMRFLib_QM(QM, M, graph, tabQ->Qfunc, tabQ->Qfunc_arg);
+			time_hess += GMRFLib_cpu() - time_ref_hess;
 		}
 
 		if (update_MM) {
@@ -8149,39 +8102,18 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
-		if (0) {
-			// old code
-			double step_len;
-			double ddx_max = 0.0;
-			// truncate all components witht the same step
-			for (i = 0, err_dx = 0.0; i < graph->n; i++) {
-				dx[i] = gsl_vector_get(delta_mu, i);
-				ddx_max = DMAX(ddx_max, ABS(dx[i]) / sd[i]);
-				err_dx += SQR(dx[i] / sd[i]);
-			}
-			err_dx = sqrt(err_dx / graph->n);
-			step_len = DMIN(1.0, 1.0 / ddx_max * ai_par->vb_max_correct);
-
-			for (i = 0; i < graph->n; i++) {
-				dx[i] *= step_len;
-				x_mean[i] += dx[i];
-			}
-		} else {
-			// new code
-			for (i = 0, err_dx = 0.0; i < graph->n; i++) {
-				dx[i] = gsl_vector_get(delta_mu, i);
-				err_dx += SQR(dx[i] / sd[i]);
-				// truncate individual components
-				if (ABS(dx[i]) >  sd[i] * ai_par->vb_max_correct) {
-					dx[i] = ai_par->vb_max_correct * sd[i] * SIGN(dx[i]);
-				}
-			}
-			err_dx = sqrt(err_dx / graph->n);
-			for (i = 0; i < graph->n; i++) {
-				x_mean[i] += dx[i];
+		for (i = 0, err_dx = 0.0; i < graph->n; i++) {
+			dx[i] = gsl_vector_get(delta_mu, i);
+			err_dx += SQR(dx[i] / sd[i]);
+			// truncate individual components
+			if (ABS(dx[i]) >  sd[i] * ai_par->vb_max_correct) {
+				dx[i] = ai_par->vb_max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
-		
+		err_dx = sqrt(err_dx / graph->n);
+		for (i = 0; i < graph->n; i++) {
+			x_mean[i] += dx[i];
+		}
 
 		// this is RMS standardized change between the iterations, otherwise, just run the max iterations.
 		// test this here so we can adjust the verbose output below
