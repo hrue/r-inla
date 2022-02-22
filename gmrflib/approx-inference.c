@@ -7192,7 +7192,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int Npred = preopt->Npred;
 	int *idxs = Calloc(Npred, int);
 	int n = preopt->n;
-	int ngroup[2] = {9, 4};
+	int ngroup[2] = {121, 25};
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
@@ -7200,7 +7200,9 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	double *a = Calloc(n, double);
 	double *Sa = Calloc(n, double);
 	double *cov = Calloc(Npred, double);
+	double *corr_abs = Calloc(Npred, double);
 	double c;
+	size_t *largest = Calloc(ngroup[0], size_t);
 
 	// iwhich... for idxval...
 	div_t r = div(sizeof(GMRFLib_idxval_elm_tp), sizeof(int));
@@ -7215,40 +7217,46 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		gsl_matrix_set_all(gcpo[i]->cov_mat, NAN);
 	}
 
-	double tref = GMRFLib_cpu();
-	
+	double tref =  0.0; 
+	static double time_used[4] = {0, 0, 0, 0};
+
+	for (i = 0; i < Npred; i++) {
+		idxs[i] = i;
+	}
+
 	for(node = 0; node < Npred; node++) {
-
 		GMRFLib_idxval_tp *v = A_idx(node);
-		for (i = 0; i < Npred; i++) {
-			idxs[i] = i;
-		}
-
 		Memset(cov, 0, Npred * sizeof(double));
 		Memset(a, 0, n * sizeof(double));
 
 		for (int k = 0; k < v->n; k++) {
 			a[v->store[k].idx] = v->store[k].val;
 		}
-
+		
+		tref = GMRFLib_cpu();
 		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);
+		time_used[0] += GMRFLib_cpu() - tref;
+
+		tref = GMRFLib_cpu();
 		for (nnode = 0; nnode < Npred; nnode++) {
+			double sum = 0.0;
 			v = A_idx(nnode);
+#pragma GCC ivdep
+#pragma GCC unroll 4
 			for (int k = 0; k < v->n; k++) {
-				cov[nnode] += Sa[v->store[k].idx] * v->store[k].val;
+				sum += Sa[v->store[k].idx] * v->store[k].val;
 			}
-			cov[nnode] /= sqrt(lpred_variance[node] * lpred_variance[nnode]);
+			
+			sum /= sqrt(lpred_variance[node] * lpred_variance[nnode]);
+			cov[nnode] = TRUNCATE(sum, -1.0, 1.0);
+			corr_abs[nnode] = ABS(cov[nnode]);
 		}
+		time_used[1] += GMRFLib_cpu() - tref;
+		tref = GMRFLib_cpu();
 
-		if (0 && debug) {
-			for (nnode = 0; nnode < Npred; nnode++) {
-				printf("node %d nnode %d corr %.8f\n", node, nnode, cov[nnode]);
-			}
-		}
-
-		GMRFLib_qsorts(cov, Npred, sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
+		gsl_sort_largest_index(largest, (size_t) ngroup[0], corr_abs, (size_t) 1, (size_t) Npred);
 		for (i = 0; i < ngroup[0]; i++) {
-			GMRFLib_idxval_add(&(gcpo[node]->g), idxs[i], cov[i]);
+			GMRFLib_idxval_add(&(gcpo[node]->g), idxs[largest[i]], cov[largest[i]]);
 		}
 		GMRFLib_idxval_sort(gcpo[node]->g);
 		gcpo[node]->node_min = gcpo[node]->g->store[0].idx;
@@ -7267,6 +7275,9 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			}
 		}
 		assert(gcpo[node]->idx_node >= 0);
+
+		time_used[2] += GMRFLib_cpu() - tref;
+		tref = GMRFLib_cpu();
 		
 		for (i = 0; i < ngroup[0]; i++) {
 			c = gcpo[node]->g->store[i].val;
@@ -7284,14 +7295,28 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 		}
 
-		for(j = 0; j < Npred; j++) {
-			pos = GMRFLib_iwhich_sorted_x(j, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
-			if (debug) {
-				if (pos >= 0) {
-					printf("j=%d is found at index %d\n", j, pos);
+		if (0) {
+			for(j = 0; j < Npred; j++) {
+				pos = GMRFLib_iwhich_sorted_x(j, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
+				if (debug) {
+					if (pos >= 0) {
+						printf("j=%d is found at index %d\n", j, pos);
+					}
 				}
 			}
 		}
+
+		time_used[3] += GMRFLib_cpu() - tref;
+		tref = GMRFLib_cpu();
+
+		if ((node % 1000) == 0)
+		printf("node %d time[0] %.4f time[1] %.4f time[2] %.4f time[3] %.4f perc[0] %.4f perc[1] %.4f perc[2] %.4f perc[3] %.4f \n",
+		       node,
+		       time_used[0], time_used[1], time_used[2], time_used[3], 
+		       time_used[0]/(time_used[0] + time_used[1] + time_used[2] + time_used[3]),
+		       time_used[1]/(time_used[0] + time_used[1] + time_used[2] + time_used[3]),
+		       time_used[2]/(time_used[0] + time_used[1] + time_used[2] + time_used[3]),
+		       time_used[3]/(time_used[0] + time_used[1] + time_used[2] + time_used[3]));
 	}
 
 	if (0 && debug) {
