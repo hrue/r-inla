@@ -5,8 +5,6 @@ maketemp () {
     mktemp -t inla.remote.XXXXXXXX
 }
 
-compress_put="z"
-compress_get="z"
 ## this one is fixed, do not change
 SSHDefaultPort=22
 
@@ -35,11 +33,13 @@ else
 fi
 
 ## these are the variables to be set by the user
-RemoteINLA="/usr/local/bin/inla"
-RemoteHost=inla.math.ntnu.no
+RemoteINLA="/usr/local/bin/inla.mkl.run"
+RemoteHost=inla.kaust.edu.sa
 RemoteUser=$USER
 Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
+COMPRESS="zstd -T0 -z -18"
+UNCOMPRESS="zstd -T0 -d"
 
 if [ -r "$INIFILE" ]; then
     if [ "$INLA_OS" == "windows" ]; then
@@ -109,11 +109,11 @@ else
    PardisoLoad="true"
 fi	
 
-tar cfm$compress_put - . 2>/dev/null | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
+tar cfm - . 2>/dev/null | $COMPRESS | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
     eval $PardisoLoad; \
-    tar xfm$compress_put - 2>/dev/null ; \
+    $UNCOMPRESS | tar xfm - 2>/dev/null ; \
     $RemoteINLA $args Model.ini < /dev/null"
 
 if [ $verbose == 1 ]; then
@@ -130,7 +130,7 @@ fi
 if [ $CYGWIN == 0 -a $Port == $SSHDefaultPort ]; then
     ## Linux and Mac
     ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; tar cf$compress_get - results.files 2>/dev/null ; cd; rm -rf $rdir" | tar xfm$compress_get - 2>/dev/null 
+    cd $rdir; tar cfm - results.files 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
 else
     ## Cygwin/Windows or Port != $SSHDefaultPort
     tarfile=results$RANDOM$RANDOM.tar
