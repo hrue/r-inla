@@ -7192,7 +7192,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int Npred = preopt->Npred;
 	int *idxs = Calloc(Npred, int);
 	int n = preopt->n;
-	int ngroup[2] = {121, 25};
+	int ngroup[2] = {169, 25};
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
@@ -7201,6 +7201,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	double *Sa = Calloc(n, double);
 	double *cov = Calloc(Npred, double);
 	double *corr_abs = Calloc(Npred, double);
+	double *isd = Calloc(Npred, double);
 	double c;
 	size_t *largest = Calloc(ngroup[0], size_t);
 
@@ -7215,14 +7216,13 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		GMRFLib_idxval_create_x(&(gcpo[i]->g), ngroup[0]);
 		gcpo[i]->cov_mat = gsl_matrix_calloc((size_t) ngroup[0], (size_t) ngroup[0]);
 		gsl_matrix_set_all(gcpo[i]->cov_mat, NAN);
+
+		isd[i] = 1.0/sqrt(lpred_variance[i]);
+		idxs[i] = i;
 	}
 
 	double tref =  0.0; 
 	static double time_used[4] = {0, 0, 0, 0};
-
-	for (i = 0; i < Npred; i++) {
-		idxs[i] = i;
-	}
 
 	for(node = 0; node < Npred; node++) {
 		GMRFLib_idxval_tp *v = A_idx(node);
@@ -7247,7 +7247,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 				sum += Sa[v->store[k].idx] * v->store[k].val;
 			}
 			
-			sum /= sqrt(lpred_variance[node] * lpred_variance[nnode]);
+			sum *= isd[node] * isd[nnode];
 			cov[nnode] = TRUNCATE(sum, -1.0, 1.0);
 			corr_abs[nnode] = ABS(cov[nnode]);
 		}
@@ -7309,7 +7309,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		time_used[3] += GMRFLib_cpu() - tref;
 		tref = GMRFLib_cpu();
 
-		if ((node % 1000) == 0)
+		if ((node % 100) == 0)
 		printf("node %d time[0] %.4f time[1] %.4f time[2] %.4f time[3] %.4f perc[0] %.4f perc[1] %.4f perc[2] %.4f perc[3] %.4f \n",
 		       node,
 		       time_used[0], time_used[1], time_used[2], time_used[3], 
@@ -7373,14 +7373,14 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 					}
 
 					if (found) {
-						if (debug) {
+						if (0 && debug) {
 							printf("\tii = %d jj = %d\n", ii, jj);
 						}
 						cov = gsl_matrix_get(gcpo[node_i]->cov_mat, ii, jj);
 						if (!ISNAN(cov)) {
 							gsl_matrix_set(gcpo[node]->cov_mat, i, j, cov);
 							gsl_matrix_set(gcpo[node]->cov_mat, j, i, cov);
-							if (debug) {
+							if (0 && debug) {
 								printf("set i=%d j=%d cov=%f found at node_i=%d, node_j=%d\n", i, j, cov, node_i, node_j);
 							}
 						}
@@ -7400,7 +7400,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 		GMRFLib_qsorts(corr, ngroup[0], sizeof(double), idxs, sizeof(int), NULL, 0, GMRFLib_dcmp_abs_r);
 
-		if (debug) {
+		if (0 && debug) {
 			for(i = 0; i < gcpo[node]->g->n; i++) {
 				printf("node=%d i=%d idxs=%d corr=%f\n", node, i, idxs[i], corr[i]);
 			}
@@ -7413,12 +7413,12 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 		GMRFLib_idxval_sort(gg);
 
-		if (debug) GMRFLib_idxval_printf(stdout, gg, "gg");
+		if (0 && debug) GMRFLib_idxval_printf(stdout, gg, "gg");
 		
 		gcpo[node]->node_min = gg->store[0].idx;
 		gcpo[node]->node_max = gg->store[gg->n-1].idx;
 
-		if (debug) {
+		if (0 && debug) {
 			FIXME("old covmat");
 			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.4f");
 			printf("BEFORE %d ", GMRFLib_gsl_matrix_count_eq(gcpo[node]->cov_mat, NAN));
@@ -7436,7 +7436,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 				jjj = GMRFLib_iwhich_sorted_x(jj, (int *) gcpo[node]->g->store, gcpo[node]->g->n, guess, inc);
 				
 				assert(iii >= 0 && jjj >= 0);
-				if (debug) printf("i %d j %d ii %d jj %d iii %d jjj %d\n", i, j, ii, jj, iii, jjj);
+				if (0 && debug) printf("i %d j %d ii %d jj %d iii %d jjj %d\n", i, j, ii, jj, iii, jjj);
 				
 				val = gsl_matrix_get(gcpo[node]->cov_mat, iii, jjj);
 				gsl_matrix_set(M, i, j, val);
@@ -7451,7 +7451,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 
 		if (debug){
 			FIXME("AFTER");
-			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.4f");
+			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.12f");
 			printf("AFTER %d \n", GMRFLib_gsl_matrix_count_eq(gcpo[node]->cov_mat, NAN));
 		}
 	}
