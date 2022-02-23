@@ -7192,10 +7192,11 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	int Npred = preopt->Npred;
 	int *idxs = Calloc(Npred, int);
 	int n = preopt->n;
-	int ngroup[2] = {169, 25};
+	int ngroup[2] = {121, 9};
 	int node, nnode;
 	int i, j, pos;
 	int guess[2] = {0,0};
+	char *cov_mat_ok = Calloc(Npred, char);
 
 	double *a = Calloc(n, double);
 	double *Sa = Calloc(n, double);
@@ -7454,8 +7455,144 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.12f");
 			printf("AFTER %d \n", GMRFLib_gsl_matrix_count_eq(gcpo[node]->cov_mat, NAN));
 		}
+		cov_mat_ok[node] = (GMRFLib_gsl_matrix_count_eq(gcpo[node]->cov_mat, NAN) == 0 ? 1 : 0);
 	}
 		
+	GMRFLib_idx_tp **missing = GMRFLib_idx_ncreate(Npred);
+	for(node = 0; node < Npred; node++) {
+		if (cov_mat_ok[node]) {
+			continue;
+		}
+		if (debug) {
+			printf("check for missing for node=%d\n", node);
+		}
+		
+		for(i = 0; i < ngroup[1]; i++) {
+			for(j = i + 1; j < ngroup[1]; j++) {
+				if (ISNAN(gsl_matrix_get(gcpo[node]->cov_mat, i, j))) {
+					int ii, jj;
+					ii = gcpo[node]->g->store[i].idx;
+					jj = gcpo[node]->g->store[j].idx;
+					GMRFLib_idx_add(&(missing[IMIN(ii, jj)]), IMAX(ii, jj));
+
+					printf("ADD TO MISSING %d %d \n", ii, jj);
+				}
+			}
+		}
+	}
+
+	GMRFLib_idx_nuniq(missing, Npred, GMRFLib_openmp->max_threads_inner);
+	
+	int redo_count = 0;
+	for(node = 0; node < Npred; node++) {
+		if (missing[node]->n > 0) {
+			redo_count++;
+		}
+	}
+	printf("have to redo %d nodes, ratio %.3f\n", redo_count, redo_count / (double) Npred);
+
+	int first_idx = 0;
+	for(node = 0; node < Npred; node++){
+		if (!cov_mat_ok[node]) {
+			first_idx = node;
+			break;
+		}
+	}
+	
+	for(node = 0; node < Npred; node++) {
+		if (missing[node]->n == 0) {
+			continue;
+		}
+			
+		printf("redo node %d to add %d missing entries\n", node, missing[node]->n);
+		
+		GMRFLib_idxval_tp *v = A_idx(node);
+		Memset(cov, 0, Npred * sizeof(double));
+		Memset(a, 0, n * sizeof(double));
+
+		for (int k = 0; k < v->n; k++) {
+			a[v->store[k].idx] = v->store[k].val;
+		}
+		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);
+		for (nnode = 0; nnode < Npred; nnode++) {
+			double sum = 0.0;
+			v = A_idx(nnode);
+#pragma GCC ivdep
+#pragma GCC unroll 4
+			for (int k = 0; k < v->n; k++) {
+				sum += Sa[v->store[k].idx] * v->store[k].val;
+			}
+			
+			double f = isd[node] * isd[nnode];
+			sum *= f;
+			cov[nnode] = TRUNCATE(sum, -1.0, 1.0) / f;
+		}
+		
+		for(nnode = first_idx; nnode < Npred; nnode++) {
+			if (cov_mat_ok[nnode]) {
+				continue;
+			}
+			
+			int all_ok = 1;
+			for(i = 0; i < ngroup[1]; i++) {
+				for(j = i + 1; j < ngroup[1]; j++) {
+					if (ISNAN(gsl_matrix_get(gcpo[nnode]->cov_mat, i, j)))
+					{
+						int ii, jj;
+						ii = gcpo[nnode]->g->store[i].idx;
+						jj = gcpo[nnode]->g->store[j].idx;
+
+						if (ii == node) {
+							gsl_matrix_set(gcpo[nnode]->cov_mat, i, j, cov[jj]);
+							gsl_matrix_set(gcpo[nnode]->cov_mat, j, i, cov[jj]);
+						} else {
+							all_ok = 0;
+						}
+					}
+				}
+			}
+			if (all_ok) {
+				printf("nnode %d have complete matrix\n", nnode);
+				cov_mat_ok[nnode] = 1;
+				
+				if (nnode == first_idx) {
+					for(int ii = first_idx + 1; ii < Npred; ii++){
+						if (!cov_mat_ok[ii]){
+							printf("first_idx increased from %d to %d\n", first_idx, ii);
+							first_idx = ii;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	int num_error = 0;
+	for(node = 0; node < Npred; node++) {
+		if (cov_mat_ok[node]) {
+			continue;
+		}
+		for(i = 0; i < ngroup[1]; i++) {
+			for(j = i + 1; j < ngroup[1]; j++) {
+				if (ISNAN(gsl_matrix_get(gcpo[node]->cov_mat, i, j)))
+				{
+					num_error++;
+					printf("ERROR node %d i %d j %d\n", node, i, j);
+				}
+			}
+		}
+	}
+	if (num_error == 0) {
+		printf("NO MISSING VALUES FOUND\n");
+	}
+
+	for(node = 0; node < Npred; node++) {
+		FIXME("FINAL");
+		GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.16f");
+	}
+
+
 	P(GMRFLib_cpu() - tref);
 
 #undef A_idx
