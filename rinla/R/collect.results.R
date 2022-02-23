@@ -1792,7 +1792,10 @@
                 if (!is.null(id.names)) {
                     len.id.names <- length(id.names)
                     summary.random[[i]]$ID[1L:len.id.names] <- id.names
-                    if (length(marginals.random) >= i && !is.na(marginals.random[[i]])) {
+                    # Check for existing marginals.random[[i]] data:
+                    # Cannot use is.na() directly, since the result must
+                    # always be a single logical value.
+                    if (length(marginals.random) >= i && !is.null(rr)) {
                         names(marginals.random[[i]][1L:len.id.names]) <- id.names
                     }
                 }
