@@ -224,6 +224,9 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 
 	case GMRFLib_SMTP_PARDISO:
 		ret = GMRFLib_pardiso_chol(sm_fact->PARDISO_fact);
+		if (ret != GMRFLib_SUCCESS) {
+			return ret;
+		}
 		break;
 
 	default:
@@ -379,7 +382,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
-		GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs);
+		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));
 	} else {
 		GMRFLib_ERROR(GMRFLib_ESNH);
 	}
