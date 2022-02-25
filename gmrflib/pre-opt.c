@@ -940,13 +940,16 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				     GMRFLib_problem_tp * problem, double *optional_mean)
 {
 	// compute the marginal mean and variance for the linear predictor
+	// 'mean' can be NULL
 	int npred = preopt->npred;
 	int mpred = preopt->mpred;
 	int mnpred = preopt->mnpred;
 	int offset = mpred;
 	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
 
-	Memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+	if (mean) {
+		Memset((void *) mean, 0, (size_t) mnpred * sizeof(double));
+	}
 	Memset((void *) variance, 0, (size_t) mnpred * sizeof(double));
 
 #define CODE_BLOCK							\
@@ -959,7 +962,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			j = elm[k].idx;					\
 			cov = GMRFLib_Qinv_get(problem, j, j);		\
 			var += SQR(elm[k].val) * *cov;			\
-			mean[i] += elm[k].val * mm[j];			\
+			if (mean) mean[i] += elm[k].val * mm[j];	\
 			double tvar = 0.0;				\
 			for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\
@@ -984,7 +987,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			j = elm[k].idx;					\
 			cov = GMRFLib_Qinv_get(problem, j, j);		\
 			var += SQR(elm[k].val) * *cov;			\
-			mean[offset + i] += elm[k].val * mm[j];		\
+			if (mean) mean[offset + i] += elm[k].val * mm[j]; \
 			double tvar = 0.0;				\
 			for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
 				jj = elm[kk].idx;			\

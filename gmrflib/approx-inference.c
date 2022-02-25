@@ -6155,6 +6155,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 	}
 
+	GMRFLib_gcpo_groups_tp *gcpo_groups = NULL;
+	if (getenv("INLA_gcpo")) {
+		gcpo_groups = GMRFLib_gcpo_build(ai_store, preopt);
+		FIXME1("FIX THIS LATER");
+		assert(gcpo_groups);
+	}
+	
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
 #pragma omp parallel for private(k, i, log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (k = 0; k < design->nexperiments; k++) {
@@ -7181,6 +7188,97 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 #undef SET_THETA_MODE
 
 	return GMRFLib_SUCCESS;
+}
+
+GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt)
+{
+#define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
+
+	// build the groups
+
+	int Npred = preopt->Npred;
+	int size_group = 9;
+
+	GMRFLib_idx_tp **group = GMRFLib_idx_ncreate(Npred);
+	double *isd = Calloc(Npred, double);
+
+	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
+	GMRFLib_preopt_predictor_moments(NULL, isd, preopt, ai_store->problem, NULL);
+	for(int i = 0; i < Npred; i++) {
+		isd[i] = 1.0/sqrt(isd[i]);
+	}
+
+#define CODE_BLOCK							\
+	for(int node = 0; node < Npred; node++) {			\
+		GMRFLib_idxval_tp *v = A_idx(node);			\
+		double *cor = CODE_BLOCK_WORK_PTR(0);			\
+		CODE_BLOCK_WORK_ZERO(0);				\
+		double *a = CODE_BLOCK_WORK_PTR(1);			\
+		CODE_BLOCK_WORK_ZERO(1);				\
+		double *Sa = CODE_BLOCK_WORK_PTR(2);			\
+		size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(3);	\
+		CODE_BLOCK_WORK_ZERO(3);				\
+		for (int k = 0; k < v->n; k++) {			\
+			a[v->store[k].idx] = v->store[k].val;		\
+		}							\
+		GMRFLib_Qsolve(Sa, a, ai_store->problem);		\
+		for (int nnode = 0; nnode < Npred; nnode++) {		\
+			double sum = 0.0;				\
+			v = A_idx(nnode);				\
+			_Pragma("GCC ivdep")				\
+			_Pragma("GCC unroll 4") 			\
+			for (int k = 0; k < v->n; k++) {		\
+				sum += Sa[v->store[k].idx] * v->store[k].val; \
+			}						\
+			sum *= isd[node] * isd[nnode];			\
+			cor[nnode] = TRUNCATE(sum, -1.0, 1.0);		\
+			cor[nnode] = ABS(cor[nnode]);			\
+		}							\
+		gsl_sort_largest_index(largest, (size_t) size_group, cor, (size_t) 1, (size_t) Npred); \
+		for (int i = 0; i < size_group; i++) {			\
+			GMRFLib_idx_add(&(group[node]), (int) largest[i]); \
+		}							\
+		GMRFLib_idx_sort(group[node]);				\
+	}
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, Npred);
+#undef CODE_BLOCK
+
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate(Npred);
+	for(int node = 0; node < Npred; node++) {
+		for(int i = 0; i < size_group; i++) {
+			int ii = group[node]->idx[i];
+			for(int j = i + 1; j < size_group; j++) {
+				int jj = group[node]->idx[j];
+				GMRFLib_idx2_add(&(missing[IMIN(ii, jj)]), IMAX(ii, jj), node);
+			}
+		}
+	}
+
+	// build what to return
+	GMRFLib_gcpo_groups_tp *groups = Calloc(1, GMRFLib_gcpo_groups_tp);
+	groups->Npred = Npred;
+	groups->group = group;
+	groups->missing = missing;
+
+	if (1) {
+		for(int node = 0; node < Npred; node++) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "node %d", node);
+			GMRFLib_idx_printf(stdout, group[node], msg);
+			GMRFLib_idx2_printf(stdout, missing[node], msg);
+			Free(msg);
+		}
+	}
+	
+
+	FIXME1("ADD corr=1 later");
+	Free(isd);
+#undef A_idx
+
+	exit(1);
+
+	return groups;
 }
 
 int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance, GMRFLib_preopt_tp * preopt)

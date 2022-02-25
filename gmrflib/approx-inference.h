@@ -974,11 +974,20 @@ typedef struct {
 
 typedef struct 
 {
-	GMRFLib_idxval_tp *g;			       /* list of nodes */
-	gsl_matrix *cov_mat;
-	int node_min;				       /* min(nodes) */
-	int node_max;				       /* max(nodes) */
-	int idx_node;
+	int Npred;
+	GMRFLib_idx_tp **group;
+	GMRFLib_idx2_tp **missing;
+}
+	GMRFLib_gcpo_groups_tp;
+	
+typedef struct 
+{
+	GMRFLib_idxval_tp *g;				       /* list of nodes in the matrix, sorted*/
+	gsl_matrix *cov_mat;				       /* the covariance matrix */
+	int node_min;					       /* min(nodes) */
+	int node_max;					       /* max(nodes) */
+	int idx_node;					       /* the index for the the gcpo[i] in cov_mat */
+	int cov_mat_complete;				       /* TRUE if cov_mat is complete */
 }
 	GMRFLib_gcpo_tp;
 
@@ -1145,6 +1154,7 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 
 int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance,
 		 GMRFLib_preopt_tp * preopt);
+GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store_id, GMRFLib_preopt_tp * preopt);
 
 
 __END_DECLS
