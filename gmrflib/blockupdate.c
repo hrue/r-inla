@@ -721,7 +721,7 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
 	 * 
-	 * a + b*x- 0.5*c*x^2 + 1/6*dd*x^3
+	 * a + b*x - 0.5*c*x^2 + 1/6*dd*x^3
 	 *
 	 * where cmin is the minimum value of c.
 	 */
@@ -766,8 +766,9 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
 			f0 = df = 0.0;
 			ddf = -1.0;			       /* we try with this */
-			if (dd)
+			if (dd) {
 				dddf = 0.0;
+			}
 			rescue = 1;
 		} else {
 			if (cmin) {

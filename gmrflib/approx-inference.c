@@ -6300,12 +6300,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 		double *mean_corrected = Calloc(graph->n, double);
 		double *lpred_mean = Calloc(preopt->mnpred, double);
+		double *lpred_mode = Calloc(preopt->mnpred, double);
 		double *lpred_variance = Calloc(preopt->mnpred, double);
 
 		for (i = 0; i < graph->n; i++) {
 			mean_corrected[i] = dens[i][dens_count]->user_mean;
 		}
 		GMRFLib_preopt_predictor_moments(lpred_mean, lpred_variance, preopt, ai_store_id->problem, mean_corrected);
+		GMRFLib_preopt_predictor_moments(lpred_mode, NULL, preopt, ai_store_id->problem, NULL);
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < preopt->mnpred; i++) {
@@ -6313,7 +6315,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 
 		if (getenv("INLA_gcpo")) {
-			GMRFLib_gcpo(ai_store_id, mean_corrected, lpred_mean, lpred_variance, preopt, gcpo_groups);
+			GMRFLib_gcpo(ai_store_id, mean_corrected, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups,
+				     d, loglFunc, loglFunc_arg, ai_par);
 		}
 
 
@@ -7192,6 +7195,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt)
 {
+	GMRFLib_ENTER_ROUTINE;
+	
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
 
 	// build the groups
@@ -7244,7 +7249,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			cor[nnode] = ABS(cor[nnode]);			\
 			num_ones += ISEQUAL_x(cor[nnode], 1.0, eps);	\
 		}							\
-		int siz_g = size_group + num_ones;			\
+		int siz_g = IMIN(Npred, size_group + num_ones);		\
+		printf(" siz_g %d Npred %d num_ones %d\n", siz_g, Npred, num_ones);		\
 		gsl_sort_largest_index(largest, (size_t) siz_g, cor, (size_t) 1, (size_t) Npred); \
 		for (int i = 0; i < siz_g; i++) {			\
 			GMRFLib_idx_add(&(group[node]), (int) largest[i]); \
@@ -7288,12 +7294,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	Free(isd);
 #undef A_idx
 
+	GMRFLib_LEAVE_ROUTINE;
 	return groups;
 }
 
-int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance, GMRFLib_preopt_tp * preopt,
-		 GMRFLib_gcpo_groups_tp *groups)
+int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_mode,
+		 double *lpred_variance, GMRFLib_preopt_tp * preopt,
+		 GMRFLib_gcpo_groups_tp *groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp *ai_par)
 {
+	GMRFLib_ENTER_ROUTINE;
+	
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
 	int debug = 1;
 	int Npred = preopt->Npred;
@@ -7395,8 +7405,78 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		}
 	}
 	
+	double zero = 0.0;
+	for(int node = 0; node < Npred; node++) {
+
+		int ng = gcpo[node]->idxs->n;
+		int *idxs = gcpo[node]->idxs->idx;
+		size_t idx_node = gcpo[node]->idx_node;
+
+		if (0) {
+			printf("node %d\n", node);
+			printf("idxs\n");
+			GMRFLib_idx_printf(stdout, gcpo[node]->idxs, "idxs in group");
+		}
+		
+		double *bb = Calloc(ng, double);
+		double *cc = Calloc(ng, double);
+
+		gsl_vector *mean = gsl_vector_calloc((size_t) ng);
+		gsl_vector *b = gsl_vector_calloc((size_t) ng);
+		
+		for(int i = 0; i < ng; i++) {
+			int nnode = idxs[i];
+			gsl_vector_set(mean, (size_t) i, lpred_mode[nnode]);
+			GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[nnode], lpred_mean[nnode], nnode, 
+					      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero);
+			//printf("i bb cc %d %f %f\n", i, bb[i], cc[i]);
+		}
+
+		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat);
+		GMRFLib_gsl_spd_inv(Q, FLT_EPSILON);	       /* could be, and sometimes will be, singular */
+		GMRFLib_gsl_mv(Q, mean, b);
+		
+		for(size_t i = 0; i <  (size_t) ng; i++) {
+			gsl_matrix_set(Q, i, i, DMAX(0.0, gsl_matrix_get(Q, i, i) - cc[i]));
+			gsl_vector_set(b, i, gsl_vector_get(b, i) - bb[i]); 
+		}
+		GMRFLib_gsl_spd_inv(Q, FLT_EPSILON);
+		gsl_matrix *S = Q;
+		GMRFLib_gsl_mv(S, b, mean);
+		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + lpred_mean[node] - lpred_mode[node]);
+		
+		double mean_gcpo = gsl_vector_get(mean, idx_node);
+		double sd_gcpo = sqrt(DMAX(0.0, gsl_matrix_get(S, idx_node, idx_node)));
+
+		//printf("mean is %.12f   sd is %.12f\n", mean_gcpo, sd_gcpo);
+	
+		double *weights = NULL, *xx = NULL;
+		const int np = 15;
+
+		GMRFLib_ghq(&xx, &weights, np);
+		double *xp = Calloc(np, double);
+		double *loglik = Calloc(np, double);
+		
+		for (int i = 0; i < np; i++) {
+			xp[i] = mean_gcpo + sd_gcpo * xx[i];
+		}
+		loglFunc(loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg);
+
+		double gcpo = 0.0;
+		for (int i = 0; i < np; i++) {
+			gcpo += exp(d[i] * loglik[i]) * weights[i];
+		}
+
+		printf("node %d gcpo = %f\n", node, gcpo);
+
+		Free(xp);
+		Free(loglik);
+	}
+	
 	Calloc_free();
 #undef A_idx
+
+	GMRFLib_LEAVE_ROUTINE;
 	exit(0);
 }
 

@@ -1151,8 +1151,10 @@ double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 
-int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_variance,
-		 GMRFLib_preopt_tp * preopt, GMRFLib_gcpo_groups_tp *groups);
+int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_mode,
+		 double *lpred_variance, GMRFLib_preopt_tp * preopt,
+		 GMRFLib_gcpo_groups_tp *groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp *ai_par);
+
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store_id, GMRFLib_preopt_tp * preopt);
 
 
