@@ -987,7 +987,6 @@ typedef struct
 	int node_min;					       /* min(nodes) */
 	int node_max;					       /* max(nodes) */
 	int idx_node;					       /* the index for the central node, 'i' in 'gcpo[i]', within cov_mat */
-	int cov_mat_complete;				       /* TRUE if cov_mat is complete */
 }
 	GMRFLib_gcpo_tp;
 

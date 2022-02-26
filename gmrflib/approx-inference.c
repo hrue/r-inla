@@ -7307,10 +7307,9 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 	GMRFLib_gcpo_tp ** gcpo = Calloc(Npred, GMRFLib_gcpo_tp *);
 	for(int i = 0; i < Npred; i++) {
 		gcpo[i] = Calloc(1, GMRFLib_gcpo_tp);
-		gcpo[i]->idxs = groups->group[i];
+		gcpo[i]->idxs = groups->group[i];	       // just a copy!
 		gcpo[i]->cov_mat = gsl_matrix_calloc((size_t) gcpo[i]->idxs->n, (size_t) gcpo[i]->idxs->n);
 		gsl_matrix_set_all(gcpo[i]->cov_mat, NAN);
-		gcpo[i]->cov_mat_complete = 0;
 		sd[i] = sqrt(lpred_variance[i]);
 	}
 	
