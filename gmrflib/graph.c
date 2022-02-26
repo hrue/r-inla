@@ -1188,6 +1188,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
+				CODE_BLOCK_SET_THREAD_ID;		\
 				int tnum;				\
 				double *r, *local_values;		\
 				tnum = omp_get_thread_num();		\

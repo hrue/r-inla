@@ -7295,7 +7295,6 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 		 GMRFLib_gcpo_groups_tp *groups)
 {
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
-
 	int debug = 1;
 	int Npred = preopt->Npred;
 	int n = preopt->n;

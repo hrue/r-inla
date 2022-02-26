@@ -182,19 +182,17 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 		storage[id]->ii = ii;
 		storage[id]->jj = jj;
 	}
+
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
-		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;		\
+		CODE_BLOCK_SET_THREAD_ID;				\
+		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;	\
 		double value;						\
 		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
-	if (m > GMRFLib_MAX_THREADS) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
-	} else {
-		CODE_BLOCK;
-	}
+	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS ? GMRFLib_MAX_THREADS : 1), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -249,6 +247,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 	}
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, jf, je, jlen; \
 		double value;						\
 		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);	\
@@ -262,11 +261,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
-	if (m > GMRFLib_MAX_THREADS) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
-	} else {
-		CODE_BLOCK;
-	}
+	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS ? GMRFLib_MAX_THREADS : 1), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -280,14 +275,11 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < nc; i++) {					\
+		CODE_BLOCK_SET_THREAD_ID;				\
 		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); \
 	}
 
-	if (nc > GMRFLib_MAX_THREADS) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
-	} else {
-		CODE_BLOCK;
-	}
+	RUN_CODE_BLOCK((nc > GMRFLib_MAX_THREADS ? GMRFLib_MAX_THREADS : 1), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
