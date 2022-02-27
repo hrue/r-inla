@@ -984,6 +984,9 @@ typedef struct
 {
 	GMRFLib_idx_tp *idxs;				       /* list of nodes in the matrix, sorted*/
 	gsl_matrix *cov_mat;				       /* the covariance matrix */
+	double value;
+	double lpred_mean;
+	double lpred_sd;
 	int node_min;					       /* min(nodes) */
 	int node_max;					       /* max(nodes) */
 	int idx_node;					       /* the index for the central node, 'i' in 'gcpo[i]', within cov_mat */
