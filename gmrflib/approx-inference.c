@@ -7452,7 +7452,6 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 				xp[i] = gcpo[node]->lpred_mean + gcpo[node]->lpred_sd * xx[i]; \
 			}						\
 			loglFunc(loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg);	\
-									\
 			double val = 0.0;				\
 			for (int i = 0; i < np; i++) {			\
 				val += exp(d[node] * loglik[i]) * weights[i]; \
@@ -7474,7 +7473,6 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 #undef A_idx
 
 	GMRFLib_LEAVE_ROUTINE;
-	exit(0);
 }
 
 int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,
