@@ -7420,7 +7420,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean, (size_t) i, lpred_mode[nnode]); \
 			if (d[i]) {					\
-				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[nnode], lpred_mean[nnode], nnode, \
+				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 			} else {					\
 				bb[i] = cc[i] = 0.0;			\
@@ -7441,6 +7441,7 @@ int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, doub
 									\
 		gcpo[node]->lpred_mean = gsl_vector_get(mean, idx_node); \
 		gcpo[node]->lpred_sd = sqrt(DMAX(0.0, gsl_matrix_get(S, idx_node, idx_node))); \
+		gcpo[node]->kld =  
 		GMRFLib_DEBUG_idd("node, lpred mean and sd", node, gcpo[node]->lpred_mean, gcpo[node]->lpred_sd); \
 		if (d[node]) {						\
 			double *weights = NULL, *xx = NULL;		\
