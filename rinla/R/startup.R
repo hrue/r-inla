@@ -21,9 +21,8 @@ inla.print.version <- function() {
             " built ", built, ".", "\n",
             " - See www.r-inla.org/contact-us for how to get help."
         )
-        if (!inla.os("windows")) {
-            hello <- paste0(
-                hello,
+        if (FALSE && !inla.os("windows")) {
+            hello <- paste0(hello,
                 "\n",
                 " - To enable PARDISO sparse library; see inla.pardiso()"
             )
