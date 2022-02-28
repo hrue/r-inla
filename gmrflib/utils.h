@@ -96,6 +96,7 @@ typedef struct {
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
+GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len);
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len);
@@ -135,6 +136,7 @@ int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg);
 int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold);
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx);
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold);
+int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len);
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n);
 int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt);

@@ -6593,7 +6593,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				evalue += gcpo_theta[jj][j]->kld * adj_weights[jj];
 			}
 			(*gcpo)->kld[j] = evalue / evalue_one;
-			P((*gcpo)->kld[j]);
 
 			evalue = 0.0;
 			for (int jj = 0; jj < dens_max; jj++) {
@@ -7246,13 +7245,15 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 {
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
-
+	
 	// build the groups
 
+	P(gcpo_param->group_size);
+	
 	int Npred = preopt->Npred;
 	double eps = GMRFLib_eps(1.0 / 3.0);
 
-	GMRFLib_idx_tp **groups = GMRFLib_idx_ncreate(Npred);
+	GMRFLib_idx_tp **groups = GMRFLib_idx_ncreate_x(Npred, gcpo_param->group_size);
 	double *isd = Calloc(Npred, double);
 
 	GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
@@ -7308,6 +7309,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, Npred);
 #undef CODE_BLOCK
 
+	// add first off-diagonals
 	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate(Npred);
 	for (int node = 0; node < Npred; node++) {
 		for (int i = 0; i < groups[node]->n; i++) {
@@ -7317,6 +7319,10 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				GMRFLib_idx2_add(&(missing[IMIN(ii, jj)]), IMAX(ii, jj), node);
 			}
 		}
+	}
+	// then diagonals
+	for (int node = 0; node < Npred; node++) {
+		GMRFLib_idx2_add(&(missing[node]), node, node);
 	}
 
 	// build what to return
@@ -7419,9 +7425,11 @@ GMRFLib_gcpo_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lpred_
 			assert(ii >= 0 && jj >= 0);			\
 									\
 			gsl_matrix_set(mat, ii, ii, cov[node]);		\
-			gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
-			gsl_matrix_set(mat, ii, jj, cov[nnode]);	\
-			gsl_matrix_set(mat, jj, ii, cov[nnode]);	\
+			if (jj != ii) {					\
+				gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
+				gsl_matrix_set(mat, ii, jj, cov[nnode]); \
+				gsl_matrix_set(mat, jj, ii, cov[nnode]); \
+			}						\
 		}							\
         }
 

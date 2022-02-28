@@ -11943,6 +11943,7 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		printf("%s...\n", __GMRFLib_FuncName);
 	}
 	mb = Calloc(1, inla_tp);
+	mb->gcpo_param = Calloc(1, GMRFLib_ai_gcpo_param_tp);
 	mb->verbose = verbose;
 	mb->reuse_mode = 0;				       /* disable this feature. creates more trouble than it solves. */
 	if (mb->verbose && mb->reuse_mode) {
@@ -33711,12 +33712,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			Memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
 		}
 	}
-	(*out)->gcpo = iniparser_getboolean(ini, inla_string_join(secname, "GCPO"), (*out)->gcpo);
-	int group_size =  iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
-	mb->gcpo_param = Calloc(1, GMRFLib_ai_gcpo_param_tp);
-	mb->gcpo_param->group_size = group_size;
-	P(group_size);
+	mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), mb->gcpo_param->group_size);
 
+	(*out)->gcpo = iniparser_getboolean(ini, inla_string_join(secname, "GCPO"), (*out)->gcpo);
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
 	(*out)->po = iniparser_getboolean(ini, inla_string_join(secname, "PO"), (*out)->po);
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);

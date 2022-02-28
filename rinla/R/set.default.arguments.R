@@ -264,7 +264,7 @@
             graph = FALSE,
 
             ## :ARGUMENT: control.gcpo Set control variables for the gcpo
-            control.gcpo = list(enable = FALSE, group.size = 9)
+            control.gcpo = list(enable = FALSE, group.size = 3)
         )
 
         ## :SEEALSO: inla

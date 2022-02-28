@@ -1218,7 +1218,7 @@
     inla.write.boolean.field("config", config, file)
 
     inla.write.boolean.field("gcpo", gcpo$enable, file)
-    cat("gcpo.group.size", "=", DMAX(1.0, round(gcpo$group.size)), "\n", sep = " ", file = file, append = TRUE)
+    cat("gcpo.group.size", "=", max(1, round(gcpo$group.size)), "\n", sep = " ", file = file, append = TRUE)
 
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp <- inla.getOption("smtp")
@@ -1229,13 +1229,9 @@
     if (is.null(openmp.strategy) || !(is.character(openmp.strategy) && (nchar(openmp.strategy) > 0))) {
         openmp.strategy <- "default"
     }
-    openmp.strategy <- match.arg(
-        tolower(openmp.strategy),
-        c(
-            "default", "small", "medium", "large", "huge",
-            "pardiso.serial", "pardiso.parallel", "pardiso.nested", "pardiso"
-        )
-    )
+    openmp.strategy <- match.arg(tolower(openmp.strategy),
+                                 c("default", "small", "medium", "large", "huge",
+                                   "pardiso.serial", "pardiso.parallel", "pardiso.nested", "pardiso"))
     if (inla.one.of(openmp.strategy, c("pardiso.serial", "pardiso.parallel", "pardiso.nested"))) {
         ## they are all the same now. this is for backward compatibility
         warning(paste0(
