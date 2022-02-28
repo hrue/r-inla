@@ -998,11 +998,16 @@
     }
 
     ## control what should be computed
-    cont.compute <- inla.set.control.compute.default()
+    cont.compute <- cont.compute.def <- inla.set.control.compute.default()
     cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
+    cont.compute$control.gcpo$enable <- FALSE
     cont.compute[names(control.compute)] <- control.compute
+    ## because we have 'control' within a 'control', we have to process them spesifically
+    cont.compute$control.gcpo <- cont.compute.def$control.gcpo
+    cont.compute$control.gcpo[names(control.compute$control.gcpo)] <- control.compute$control.gcpo
     if (only.hyperparam) {
         cont.compute$hyperpar <- TRUE
+        cont.compute$control.gcpo$enable <- FALSE
         cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
     }
 
@@ -1023,7 +1028,7 @@
     )
     all.hyper$predictor$hyper <- cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
-        !is.null(cont.predictor$link) ||
+        cont.compute$control.gcpo$enable || !is.null(cont.predictor$link) ||
         (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb$enable)) {
         cont.predictor$compute <- TRUE
     }
@@ -1210,6 +1215,7 @@
         return.marginals.predictor = cont.compute$return.marginals.predictor,
         dic = cont.compute$dic, mlik = cont.compute$mlik,
         cpo = cont.compute$cpo,
+        gcpo = cont.compute$control.gcpo, 
         ## these two are merged together as they are compute together
         po = (cont.compute$po || cont.compute$waic),
         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
@@ -2658,6 +2664,7 @@
         cont.compute$return.marginals <- FALSE
         cont.compute$return.marginals.predictor <- FALSE
         cont.compute$dic <- FALSE
+        cont.compute$gcpo <- inla.set.control.compute.default()$control.gcpo
         cont.compute$cpo <- FALSE
         cont.compute$po <- FALSE
         cont.compute$waic <- FALSE

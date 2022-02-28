@@ -83,6 +83,7 @@
         res.lincomb.derived <- inla.collect.lincomb(results.dir, debug, derived = TRUE)
         res.dic <- inla.collect.dic(results.dir, debug)
         res.cpo.pit <- inla.collect.cpo(results.dir, debug)
+        res.gcpo <- inla.collect.gcpo(results.dir, debug)
         res.po <- inla.collect.po(results.dir, debug)
         res.waic <- inla.collect.waic(results.dir, debug)
         res.random <- inla.collect.random(results.dir, debug)
@@ -95,6 +96,7 @@
         res.lincomb.derived <- NULL
         res.dic <- NULL
         res.cpo.pit <- NULL
+        res.gcpo <- NULL
         res.po <- NULL
         res.waic <- NULL
         res.random <- NULL
@@ -206,7 +208,7 @@
 
     names(theta.mode) <- theta.tags
     res <- c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik,
-             list(cpo = res.cpo.pit), list(po = res.po), list(waic = res.waic),
+             list(cpo = res.cpo.pit), list(gcpo = res.gcpo), list(po = res.po), list(waic = res.waic),
              res.random, res.predictor, res.hyper,
              res.offset, res.spde2.blc, res.spde3.blc, logfile,
              list(
@@ -990,6 +992,46 @@
         )
     }
     return(res)
+}
+
+`inla.collect.gcpo` <- function(results.dir, debug = FALSE)
+{
+    alldir <- dir(results.dir)
+    if (length(grep("^gcpo$", alldir)) == 1L) {
+        if (debug) {
+            cat(paste("collect gcpo\n", sep = ""))
+        }
+
+        xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "gcpo", .Platform$file.sep, "gcpo.dat", sep = ""))
+        n <- xx[1L]
+        xx <- xx[-1L]
+
+        values <- xx[1:n]
+        values[is.nan(values)] <- NA
+        kld <- xx[n + 1:n]
+        mean <- xx[2 * n + 1:n]
+        sd <- xx[3 * n + 1:n]
+        offset <- 4 * n
+        groups <- rep(list(list()), n)
+        for(i in 1:n) {
+            nn <- xx[offset + 1]
+            if (nn > 0) {
+                gg <- xx[offset + 1 + seq_len(nn)]
+            } else {
+                gg <- NULL
+            }
+            groups[[i]] <- gg
+            offset <- offset + 1 + nn
+        }
+    } else {
+        values <- NULL
+        kld <- NULL
+        mean <- NULL
+        sd <- NULL
+        groups <- NULL
+    }
+
+    return(list(gcpo = values, kld = kld, mean = mean, sd = sd, groups = groups))
 }
 
 `inla.collect.cpo` <- function(results.dir, debug = FALSE)
@@ -1792,7 +1834,10 @@
                 if (!is.null(id.names)) {
                     len.id.names <- length(id.names)
                     summary.random[[i]]$ID[1L:len.id.names] <- id.names
-                    if (length(marginals.random) >= i && !is.na(marginals.random[[i]])) {
+                    # Check for existing marginals.random[[i]] data:
+                    # Cannot use is.na() directly, since the result must
+                    # always be a single logical value.
+                    if (length(marginals.random) >= i && !is.null(rr)) {
                         names(marginals.random[[i]][1L:len.id.names]) <- id.names
                     }
                 }

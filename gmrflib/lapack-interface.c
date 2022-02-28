@@ -47,6 +47,14 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+int GMRFLib_gsl_mv(gsl_matrix * A, gsl_vector * x, gsl_vector * b)
+{
+	// b = A x
+
+	gsl_blas_dgemv(CblasNoTrans, 1.0, (const gsl_matrix *) A, (const gsl_vector *) x, 0.0, b);
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 {
 	/*

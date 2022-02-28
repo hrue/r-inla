@@ -15,6 +15,7 @@
 ## Export: inla.set.control.bgev.default
 ## Export: inla.set.control.lp.scale.default
 ## Export: inla.set.control.pardiso.default
+## Export: inla.set.control.gcpo
 
 ## Export: control.lincomb
 ## Export: control.update
@@ -34,6 +35,7 @@
 ## Export: control.bgev
 ## Export: control.lp.scale
 ## Export: control.pardiso
+## Export: control.gcpo
 
 
 ### Defines default arguments
@@ -259,7 +261,10 @@
             smtp = NULL,
 
             ## :ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
-            graph = FALSE
+            graph = FALSE,
+
+            ## :ARGUMENT: control.gcpo Set control variables for the gcpo
+            control.gcpo = list(enable = FALSE, group.size = 3)
         )
 
         ## :SEEALSO: inla
@@ -566,8 +571,8 @@
             ## :ARGUMENT: stupid.search.factor Numerical Factor (>=1) to increase the step-length with after each new interation. (default 1.05)
             stupid.search.factor = 1.05,
 
-            ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} ## ## ## Logical/Character Use this feature? If \code{"auto"} this will be selected ## automatically. \code{strategy} Charactor What to correct, one of ## ## "mean", ## "more.to.come.later...". \code{verbose} Logical Be verbose or not. ## ## ## \code{refinement} Integer Number of extra possible refinement iterations. ## ## \code{max.correct} Numerical Bound the allowed correction ## ## (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). ## ## \code{hyperpar.correct} Logical Correct the marginal posterior for the ## ## hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()} ## ## model component.
-            control.vb = list(enable = "auto", strategy = "mean", verbose = TRUE, refinement = 9, max.correct = 0.5, hyperpar.correct = FALSE, enable.limit = 25),
+            ## :ARGUMENT: control.vb List of arguments for various VB corrections. \code{enable} ## ## ## ## Logical/Character Use this feature? If \code{"auto"} this will be ## selected ## automatically. \code{strategy} Charactor What to correct, one of ## ## ## "mean", ## "more.to.come.later...". \code{verbose} Logical Be verbose or not. ## ## ## ## \code{refinement} Integer Number of extra possible refinement ## iterations. ## ## \code{max.correct} Numerical Bound the allowed correction ## ## ## (\code{strategy="mean"}: \code{|diff.mean/stdev| < max.correct}). ## ## ## \code{hyperpar.correct} Logical Correct the marginal posterior for the ## ## ## hyperparameters? \code{f.enable.limit} The size limit to correct for a \code{f()} ## ## ## model component. If size is larger than this limit, \code{f.enable.limit} ## nodes are selected to be part of the correction.
+            control.vb = list(enable = "auto", strategy = "mean", verbose = TRUE, refinement = 9, max.correct = 0.75, hyperpar.correct = FALSE, f.enable.limit = 20),
 
             ## :ARGUMENT: num.gradient Character Set the numerical scheme to compute the gradient,  one of \code{"forward"} or \code{"central"} (default).
             num.gradient = "central",
@@ -811,6 +816,7 @@ if (TRUE) {
     control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.default()))
     control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
     control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
+    control.gcpo <- inla.make.completion.function(names(inla.set.control.compute.default()$control.gcpo))
     control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
     control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
     control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
@@ -830,6 +836,7 @@ if (TRUE) {
     control.fixed <- NULL
     control.inla <- NULL
     control.vb <- NULL
+    control.gcpo <- NULL
     control.predictor <- NULL
     control.mode <- NULL
     control.hazard <- NULL

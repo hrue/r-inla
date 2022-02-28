@@ -392,7 +392,7 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 			 * insert it into a larger vector to get the the full 'row' 
 			 */
 			GMRFLib_matrix_get_row(row_spde2, i, model->BLC);
-			memset(row, 0, (nhyper_new + 1) * sizeof(double));
+			Memset(row, 0, (nhyper_new + 1) * sizeof(double));
 			row[0] = row_spde2[0];
 			Memcpy(row + idx_offset + 1, row_spde2 + 1, model->ntheta * sizeof(double));
 

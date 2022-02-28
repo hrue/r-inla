@@ -497,7 +497,7 @@ int GMRFLib_optimize2(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 			}
 		} else {
 			for (i = 0; i < opt_problem->optpar->nsearch_dir; i++) {
-				memset(sdir[i], 0, sub_n * sizeof(double));
+				Memset(sdir[i], 0, sub_n * sizeof(double));
 			}
 		}
 		Memcpy(opt_problem->sub_Qfunc_arg->diagonal_adds, c_orig, sub_n * sizeof(double));	/* go back to original */
@@ -604,8 +604,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 			GMRFLib_thread_id = id;
 			sum += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 			if (opt_problem->d[i]) {
-				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, i, opt_problem->x_vec, NULL,
-							    opt_problem->loglFunc_arg);
+				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, i, opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
 				sum += opt_problem->d[i] * logll;
 			}
 		}

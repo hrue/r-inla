@@ -315,8 +315,8 @@ int GMRFLib_blockupdate_store(double *laccept,
 							      constr_old, d_old, loglFunc_old, loglFunc_arg_old, optpar, store));
 		}
 
-		memset(bb, 0, n * sizeof(double));
-		memset(cc, 0, n * sizeof(double));
+		Memset(bb, 0, n * sizeof(double));
+		Memset(cc, 0, n * sizeof(double));
 		if (d_old) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
@@ -629,7 +629,7 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		 * the sub_graph is available. 
 		 */
 
-		int ns = store->sub_graph->n; 
+		int ns = store->sub_graph->n;
 
 #pragma omp parallel for private(i, j)
 		for (j = 0; j < ns; j++) {
@@ -721,7 +721,7 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
 	 * 
-	 * a + b*x- 0.5*c*x^2 + 1/6*dd*x^3
+	 * a + b*x - 0.5*c*x^2 + 1/6*dd*x^3
 	 *
 	 * where cmin is the minimum value of c.
 	 */
@@ -766,8 +766,9 @@ int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d,
 			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
 			f0 = df = 0.0;
 			ddf = -1.0;			       /* we try with this */
-			if (dd)
+			if (dd) {
 				dddf = 0.0;
+			}
 			rescue = 1;
 		} else {
 			if (cmin) {

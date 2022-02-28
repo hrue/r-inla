@@ -246,7 +246,17 @@ typedef enum {
 
 #define GMRFLib_DEBUG_i(msg_, i_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s:%1d (%s): %s %d\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, _i); \
+		printf("\t[%1d] %s:%1d (%s): %s %d\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_); \
+	}
+
+#define GMRFLib_DEBUG_ii(msg_, i_, ii_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %d\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, ii_); \
+	}
+
+#define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_)				\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %d %d\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, ii_, iii_); \
 	}
 
 #define GMRFLib_DEBUG_d(msg_, d_)					\
@@ -254,9 +264,29 @@ typedef enum {
 		printf("\t[%1d] %s:%1d (%s): %s %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, d_); \
 	}
 
-#define GMRFLib_DEBUG_id(msg_, i_, d_, a_)				\
+#define GMRFLib_DEBUG_dd(msg_, d_, dd_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s:%1d (%s): %s %d %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_, a_); \
+		printf("\t[%1d] %s:%1d (%s): %s %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, d_, dd_); \
+	}
+
+#define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_)				\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %.4f %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, d_, dd_, ddd_); \
+	}
+
+#define GMRFLib_DEBUG_id(msg_, i_, d_)					\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_); \
+	}
+
+#define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_)				\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_, dd_); \
+	}
+
+#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %.4f %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_, dd_, ddd_); \
 	}
 
 #define Calloc_init(n_)							\
@@ -299,10 +329,13 @@ typedef enum {
 #define Free(ptr)               {free((void *)(ptr)); ptr=NULL;}
 #define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
 #endif
+#define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
 /* 
    ABS is for double, IABS is for int, and so on.
 */
+
+
 #define ABS(x)   fabs(x)
 #define DMAX(a,b) GSL_MAX_DBL(a, b)
 #define DMIN(a,b) GSL_MIN_DBL(a, b)
@@ -329,9 +362,14 @@ typedef enum {
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
 #define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
+#define ISZEROf(x) (gsl_fcmp(x, 0.0, FLT_EPSILON) == 0)
+#define ISZERO_x(x, eps) (gsl_fcmp(x, 0.0, eps) == 0)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
+#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
+#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
+#define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
@@ -378,7 +416,7 @@ typedef enum {
 // GMRFLib_thread_id in the parallel loop and GMRFLib_thread_id is reset automatically afterwards
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
-#define CODE_BLOCK_WORK_ZERO(i_work_) memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
+#define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = id__
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\

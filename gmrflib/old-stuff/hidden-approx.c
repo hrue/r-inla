@@ -802,7 +802,7 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 					} else
 						sample_scale[i].s[0] = sqrt(gsl_cdf_chisq_Pinv(GMRFLib_uniform(), (double) (idx - fidx)));
 				} else
-					memset(sample_scale[i].s, 0, sample_scale[i].n_sample_scale * sizeof(double));
+					Memset(sample_scale[i].s, 0, sample_scale[i].n_sample_scale * sizeof(double));
 
 				GMRFLib_EWRAP0(GMRFLib_solve_lt_sparse_matrix_special(samples[i], &(h->sub_sm_fact), h->sub_graph, idx, fidx, 1));
 				for (j = idx; j >= fidx; j--)
@@ -851,7 +851,7 @@ int GMRFLib_doit_hidden_i(GMRFLib_hidden_problem_tp * h, int sample_flag, int id
 						indexs[i++] = h->hidden_par->ngraph->nbs[idx][j];
 
 				for (j = 0; j < ndim; j++) {
-					memset(sol, 0, sub_n * sizeof(double));
+					Memset(sol, 0, sub_n * sizeof(double));
 					sol[indexs[j]] = 1.0;
 					GMRFLib_EWRAP0(GMRFLib_solve_llt_sparse_matrix(sol, 1, &(h->sub_sm_fact), h->sub_graph));
 					for (i = 0; i < ndim; i++)
@@ -1131,7 +1131,7 @@ double GMRFLib_ConditionalFunc(double xn, void *arg)
 	}
 
 	if (a->h->hidden_par->nsample * ns > 0) {
-		memset(ldens_f, 0, a->h->hidden_par->nsample * ns * sizeof(double));
+		Memset(ldens_f, 0, a->h->hidden_par->nsample * ns * sizeof(double));
 
 		if (a->h->hidden_par->cmeanmode == GMRFLib_COND_MODE) {	/* only needed then */
 			for (k = 0; k < a->h->hidden_par->nsample; k++) {

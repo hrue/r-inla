@@ -980,7 +980,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 				sg_iidx[i] = k;
 				k++;
 			} else {
-				sg_iidx[i] = -1;		       /* to force a failure if used wrong */
+				sg_iidx[i] = -1;	       /* to force a failure if used wrong */
 			}
 		}
 
@@ -1035,7 +1035,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		GMRFLib_graph_prepare(*subgraph);
 
 		if (free_remove_flag) {
-			Free(remove_flag);			       /* if we have used our own */
+			Free(remove_flag);		       /* if we have used our own */
 		}
 
 		GMRFLib_LEAVE_ROUTINE;
@@ -1144,7 +1144,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 		}
 	}
 
-	memset(result, 0, graph->n * sizeof(double));
+	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 	values = Calloc(m + 1, double);
 	res = Qfunc(0, -1, values, Qfunc_arg);
@@ -1188,6 +1188,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
+				CODE_BLOCK_SET_THREAD_ID;		\
 				int tnum;				\
 				double *r, *local_values;		\
 				tnum = omp_get_thread_num();		\
@@ -1240,6 +1241,146 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+{
+	GMRFLib_ENTER_ROUTINE;
+
+#define ADDTO(M_, i_, j_, val_) gsl_matrix_set(M_, i_, j_, gsl_matrix_get(M_, i_, j_) + val_)
+
+	int id = GMRFLib_thread_id;
+	int ncol = result->size2;
+	double res, *values = NULL;
+
+	if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		values = Calloc(graph->n * GMRFLib_openmp->max_threads_inner, double);
+	} else {
+		values = Calloc(graph->n, double);
+	}
+
+	gsl_matrix_set_zero(result);
+	res = Qfunc(0, -1, values, Qfunc_arg);
+	if (ISNAN(res)) {
+		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
+		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+			for (int k = 0; k < ncol; k++) {
+				GMRFLib_thread_id = id;
+				for (int i = 0; i < graph->n; i++) {
+					double qij = Qfunc(i, i, NULL, Qfunc_arg);
+					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * qij);
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						qij = Qfunc(i, j, NULL, Qfunc_arg);
+						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+					}
+				}
+			}
+		} else {
+			double *p1, *p2, *p3, *p4, qij;
+			for (int i = 0; i < graph->n; i++) {
+				qij = Qfunc(i, i, NULL, Qfunc_arg);
+				p1 = gsl_matrix_ptr(result, i, 0);
+				p3 = gsl_matrix_ptr(x, i, 0);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+				for (int k = 0; k < ncol; k++) {
+					p1[k] += p3[k] * qij;
+				}
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					int j = graph->lnbs[i][jj];
+					qij = Qfunc(i, j, NULL, Qfunc_arg);
+					p2 = gsl_matrix_ptr(result, j, 0);
+					p4 = gsl_matrix_ptr(x, j, 0);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+					for (int k = 0; k < ncol; k++) {
+						p1[k] += qij * p4[k];
+						p2[k] += qij * p3[k];
+					}
+				}
+			}
+
+		}
+	} else {
+		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
+		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+			// I think is less good as it index the matrices in the wrong direction
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+			for (int k = 0; k < ncol; k++) {
+				double *val = values + omp_get_thread_num() * graph->n;
+				assert(omp_get_thread_num() < GMRFLib_openmp->max_threads_inner);
+				GMRFLib_thread_id = id;
+				for (int i = 0; i < graph->n; i++) {
+					Qfunc(i, -1, val, Qfunc_arg);
+					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * val[0]);
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						double qij = val[1 + jj];
+						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+					}
+				}
+			}
+		} else {
+			// better one, as the 'k' loop is sequential with inc=1
+			double *p1, *p2, *p3, *p4;
+			for (int i = 0; i < graph->n; i++) {
+				Qfunc(i, -1, values, Qfunc_arg);
+				p1 = gsl_matrix_ptr(result, i, 0);
+				p3 = gsl_matrix_ptr(x, i, 0);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+				for (int k = 0; k < ncol; k++) {
+					p1[k] += p3[k] * values[0];
+				}
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					int j = graph->lnbs[i][jj];
+					double qij = values[1 + jj];
+					p2 = gsl_matrix_ptr(result, j, 0);
+					p4 = gsl_matrix_ptr(x, j, 0);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+					for (int k = 0; k < ncol; k++) {
+						p1[k] += qij * p4[k];
+						p2[k] += qij * p3[k];
+					}
+				}
+			}
+
+			if (0) {
+				assert(0 == 1);
+				// the old code which is more readable.
+				for (int i = 0; i < graph->n; i++) {
+					Qfunc(i, -1, values, Qfunc_arg);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+					for (int k = 0; k < ncol; k++) {
+						ADDTO(result, i, k, gsl_matrix_get(x, i, k) * values[0]);
+					}
+					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+						int j = graph->lnbs[i][jj];
+						double qij = values[1 + jj];
+#pragma GCC ivdep
+#pragma GCC unroll 8
+						for (int k = 0; k < ncol; k++) {
+							ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
+							ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	Free(values);
+#undef ADDTO
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	// print in sparse matrix style. only for small graphs...
@@ -1255,10 +1396,11 @@ int GMRFLib_printf_Qfunc2(FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp 
 				value = 0.0;
 			}
 
-			if (ISZERO(value))
+			if (ISZERO(value)) {
 				fprintf(fp, "  .   ");
-			else
+			} else {
 				fprintf(fp, "%5.2f ", value);
+			}
 		}
 		fprintf(fp, "\n");
 	}
@@ -1879,7 +2021,7 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g)
 	GMRFLib_SHA_TP c;
 	unsigned char *md = Calloc(GMRFLib_SHA_DIGEST_LEN + 1, unsigned char);
 
-	memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
+	Memset(md, 0, GMRFLib_SHA_DIGEST_LEN + 1);
 	GMRFLib_SHA_Init(&c);
 
 	GMRFLib_SHA_IUPDATE(&(g->n), 1);
