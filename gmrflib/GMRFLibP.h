@@ -284,6 +284,11 @@ typedef enum {
 		printf("\t[%1d] %s:%1d (%s): %s %d %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_, dd_); \
 	}
 
+#define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s:%1d (%s): %s %d %.4f %.4f %.4f\n", omp_get_thread_num(), __FILE__, __LINE__, GMRFLib_debug_functions_strip(__GMRFLib_FuncName), msg_, i_, d_, dd_, ddd_); \
+	}
+
 #define Calloc_init(n_)							\
 	size_t calloc_len_ = (size_t)(n_);				\
 	size_t calloc_offset_ = 0;					\

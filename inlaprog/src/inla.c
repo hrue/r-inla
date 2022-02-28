@@ -33631,6 +33631,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
+				     (mb->output->gcpo ? &(mb->gcpo) : NULL), mb->gcpo_param, 
 				     (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 				     (mb->output->po ? &(mb->po) : NULL),
 				     mb->dic,
@@ -33665,6 +33666,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		assert(mb->output == *out);
 		use_defaults = 1;			       /* to flag that we're reading mb->output */
 		(*out) = Calloc(1, Output_tp);
+		(*out)->gcpo = 0;
 		(*out)->cpo = 0;
 		(*out)->po = 0;
 		(*out)->dic = 0;
@@ -33684,6 +33686,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	} else {
 		use_defaults = 0;
 		*out = Calloc(1, Output_tp);
+		(*out)->gcpo = mb->output->gcpo;
 		(*out)->cpo = mb->output->cpo;
 		(*out)->po = mb->output->po;
 		(*out)->dic = mb->output->dic;
@@ -33708,6 +33711,12 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			Memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
 		}
 	}
+	(*out)->gcpo = iniparser_getboolean(ini, inla_string_join(secname, "GCPO"), (*out)->gcpo);
+	int group_size =  iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
+	mb->gcpo_param = Calloc(1, GMRFLib_ai_gcpo_param_tp);
+	mb->gcpo_param->group_size = group_size;
+	P(group_size);
+
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
 	(*out)->po = iniparser_getboolean(ini, inla_string_join(secname, "PO"), (*out)->po);
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);
@@ -33728,6 +33737,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		/*
 		 * these are the requirements for the HYPER_MODE 
 		 */
+		(*out)->gcpo = 0;
 		(*out)->cpo = 0;
 		(*out)->po = 0;
 		(*out)->dic = 0;
@@ -33762,6 +33772,8 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	if (mb->verbose) {
 		printf("\t\toutput:\n");
 		if (use_defaults) {
+			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
+			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);
 			printf("\t\t\tpo=[%1d]\n", (*out)->po);
 			printf("\t\t\tdic=[%1d]\n", (*out)->dic);
@@ -34185,6 +34197,9 @@ int inla_output(inla_tp * mb)
 						 mb->lc_order, local_verbose, mb);
 			}
 		} else if (k == 7) {
+			if (mb->gcpo) {
+				inla_output_detail_gcpo(mb->dir, mb->gcpo, local_verbose);
+			}
 			if (mb->cpo) {
 				inla_output_detail_cpo(mb->dir, mb->cpo, mb->predictor_ndata, local_verbose);
 			}
@@ -34232,6 +34247,63 @@ int inla_output(inla_tp * mb)
 			Free(mb->density);
 		}
 	}
+
+	return INLA_OK;
+}
+
+int inla_output_detail_gcpo(const char *dir, GMRFLib_ai_gcpo_tp * gcpo, int verbose)
+{
+	/*
+	 * output whatever is requested.... 
+	 */
+	char *ndir = NULL, *msg = NULL, *nndir = NULL;
+	int i, j, n;
+	Dinit();
+
+	if (!gcpo) {
+		return INLA_OK;
+	}
+	n = gcpo->n;
+
+	GMRFLib_sprintf(&ndir, "%s/%s", dir, "gcpo");
+	if (inla_mkdir(ndir) != 0) {
+		GMRFLib_sprintf(&msg, "fail to create directory [%s]: %s", ndir, strerror(errno));
+		inla_error_general(msg);
+	}
+	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "gcpo.dat");
+	{
+		Dopen(nndir);
+		if (verbose) {
+#pragma omp critical
+			{
+				printf("\t\tstore gcpo-results in[%s]\n", nndir);
+			}
+		}
+		D1W(n);
+		for (i = 0; i < n; i++) {
+			D1W(gcpo->value[i]);
+		}
+		for (i = 0; i < n; i++) {
+			D1W(gcpo->kld[i]);
+		}
+		for (i = 0; i < n; i++) {
+			D1W(gcpo->mean[i]);
+		}
+		for (i = 0; i < n; i++) {
+			D1W(gcpo->sd[i]);
+		}
+		for (i = 0; i < n; i++) {
+			D1W(gcpo->groups[i]->n);
+			for(j = 0; j < gcpo->groups[i]->n; j++) {
+				D1W(gcpo->groups[i]->idx[j]);
+			}
+		}
+		Dclose();
+	}
+
+	Dfree();
+	Free(ndir);
+	Free(nndir);
 
 	return INLA_OK;
 }

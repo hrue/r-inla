@@ -15,6 +15,7 @@
 ## Export: inla.set.control.bgev.default
 ## Export: inla.set.control.lp.scale.default
 ## Export: inla.set.control.pardiso.default
+## Export: inla.set.control.gcpo
 
 ## Export: control.lincomb
 ## Export: control.update
@@ -34,6 +35,7 @@
 ## Export: control.bgev
 ## Export: control.lp.scale
 ## Export: control.pardiso
+## Export: control.gcpo
 
 
 ### Defines default arguments
@@ -259,7 +261,10 @@
             smtp = NULL,
 
             ## :ARGUMENT: graph A boolean variable if the graph itself should be returned. (Default FALSE.)
-            graph = FALSE
+            graph = FALSE,
+
+            ## :ARGUMENT: control.gcpo Set control variables for the gcpo
+            control.gcpo = list(enable = FALSE, group.size = 9)
         )
 
         ## :SEEALSO: inla
@@ -811,6 +816,7 @@ if (TRUE) {
     control.fixed <- inla.make.completion.function(names(inla.set.control.fixed.default()))
     control.inla <- inla.make.completion.function(names(inla.set.control.inla.default()))
     control.vb <- inla.make.completion.function(names(inla.set.control.inla.default()$control.vb))
+    control.gcpo <- inla.make.completion.function(names(inla.set.control.compute.default()$control.gcpo))
     control.predictor <- inla.make.completion.function(names(inla.set.control.predictor.default()))
     control.mode <- inla.make.completion.function(names(inla.set.control.mode.default()))
     control.hazard <- inla.make.completion.function(names(inla.set.control.hazard.default()))
@@ -830,6 +836,7 @@ if (TRUE) {
     control.fixed <- NULL
     control.inla <- NULL
     control.vb <- NULL
+    control.gcpo <- NULL
     control.predictor <- NULL
     control.mode <- NULL
     control.hazard <- NULL

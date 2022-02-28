@@ -794,6 +794,21 @@ typedef struct {
 	double **failure;
 } GMRFLib_ai_cpo_tp;
 
+typedef struct 
+{
+	int group_size;
+}
+	GMRFLib_ai_gcpo_param_tp;
+
+typedef struct {
+	int n;
+	double *value;
+	double *kld;
+	double *mean;
+	double *sd;
+	GMRFLib_idx_tp **groups;
+} GMRFLib_ai_gcpo_tp;
+
 /**
  *   \brief The type of the cpo-object returned by \c GMRFLib_INLA().
  */
@@ -975,7 +990,7 @@ typedef struct {
 typedef struct 
 {
 	int Npred;
-	GMRFLib_idx_tp **group;
+	GMRFLib_idx_tp **groups;
 	GMRFLib_idx2_tp **missing;
 }
 	GMRFLib_gcpo_groups_tp;
@@ -1072,6 +1087,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				 GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 				 GMRFLib_density_tp *** density_hyper,
+				 GMRFLib_ai_gcpo_tp ** gcpo, GMRFLib_ai_gcpo_param_tp *gcpo_param, 
 				 GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
 				 GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood,
 				 double ***hyperparam, int nhyper,
@@ -1155,12 +1171,11 @@ double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 
-int GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *mean_corrected, double *lpred_mean, double *lpred_mode,
-		 double *lpred_variance, GMRFLib_preopt_tp * preopt,
-		 GMRFLib_gcpo_groups_tp *groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp *ai_par);
+GMRFLib_gcpo_tp ** GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
+				double *lpred_variance, GMRFLib_preopt_tp * preopt,
+				GMRFLib_gcpo_groups_tp *groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp *ai_par);
 
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store_id, GMRFLib_preopt_tp * preopt);
-
 
 __END_DECLS
 #endif
