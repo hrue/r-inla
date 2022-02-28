@@ -15,7 +15,6 @@
 ## Export: inla.set.control.bgev.default
 ## Export: inla.set.control.lp.scale.default
 ## Export: inla.set.control.pardiso.default
-## Export: inla.set.control.gcpo
 
 ## Export: control.lincomb
 ## Export: control.update
