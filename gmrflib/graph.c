@@ -1241,7 +1241,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1256,14 +1256,14 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 	} else {
 		values = Calloc(graph->n, double);
 	}
-	
+
 	gsl_matrix_set_zero(result);
 	res = Qfunc(0, -1, values, Qfunc_arg);
 	if (ISNAN(res)) {
-		if (0 && // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
+		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
 		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-			for(int k = 0; k < ncol; k++) {
+			for (int k = 0; k < ncol; k++) {
 				GMRFLib_thread_id = id;
 				for (int i = 0; i < graph->n; i++) {
 					double qij = Qfunc(i, i, NULL, Qfunc_arg);
@@ -1284,7 +1284,7 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 				p3 = gsl_matrix_ptr(x, i, 0);
 #pragma GCC ivdep
 #pragma GCC unroll 8
-				for(int k = 0; k < ncol; k++) {
+				for (int k = 0; k < ncol; k++) {
 					p1[k] += p3[k] * qij;
 				}
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
@@ -1294,7 +1294,7 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 					p4 = gsl_matrix_ptr(x, j, 0);
 #pragma GCC ivdep
 #pragma GCC unroll 8
-					for(int k = 0; k < ncol; k++) {
+					for (int k = 0; k < ncol; k++) {
 						p1[k] += qij * p4[k];
 						p2[k] += qij * p3[k];
 					}
@@ -1303,11 +1303,11 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 
 		}
 	} else {
-		if (0 && // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
+		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
 		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
 			// I think is less good as it index the matrices in the wrong direction
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-			for(int k = 0; k < ncol; k++) {
+			for (int k = 0; k < ncol; k++) {
 				double *val = values + omp_get_thread_num() * graph->n;
 				assert(omp_get_thread_num() < GMRFLib_openmp->max_threads_inner);
 				GMRFLib_thread_id = id;
@@ -1331,7 +1331,7 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 				p3 = gsl_matrix_ptr(x, i, 0);
 #pragma GCC ivdep
 #pragma GCC unroll 8
-				for(int k = 0; k < ncol; k++) {
+				for (int k = 0; k < ncol; k++) {
 					p1[k] += p3[k] * values[0];
 				}
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
@@ -1341,7 +1341,7 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 					p4 = gsl_matrix_ptr(x, j, 0);
 #pragma GCC ivdep
 #pragma GCC unroll 8
-					for(int k = 0; k < ncol; k++) {
+					for (int k = 0; k < ncol; k++) {
 						p1[k] += qij * p4[k];
 						p2[k] += qij * p3[k];
 					}
@@ -1363,17 +1363,17 @@ int GMRFLib_QM(gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp * graph, GMRF
 						double qij = values[1 + jj];
 #pragma GCC ivdep
 #pragma GCC unroll 8
-						for(int k = 0; k < ncol; k++) {
+						for (int k = 0; k < ncol; k++) {
 							ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
 							ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
 						}
 					}
 				}
 			}
-			
+
 		}
 	}
-	
+
 	Free(values);
 #undef ADDTO
 

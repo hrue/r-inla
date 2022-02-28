@@ -794,11 +794,9 @@ typedef struct {
 	double **failure;
 } GMRFLib_ai_cpo_tp;
 
-typedef struct 
-{
+typedef struct {
 	int group_size;
-}
-	GMRFLib_ai_gcpo_param_tp;
+} GMRFLib_ai_gcpo_param_tp;
 
 typedef struct {
 	int n;
@@ -987,17 +985,14 @@ typedef struct {
 #define GMRFLib_AI_POOL_GET 1
 #define GMRFLib_AI_POOL_SET 2
 
-typedef struct 
-{
+typedef struct {
 	int Npred;
 	GMRFLib_idx_tp **groups;
 	GMRFLib_idx2_tp **missing;
-}
-	GMRFLib_gcpo_groups_tp;
-	
-typedef struct 
-{
-	GMRFLib_idx_tp *idxs;				       /* list of nodes in the matrix, sorted*/
+} GMRFLib_gcpo_groups_tp;
+
+typedef struct {
+	GMRFLib_idx_tp *idxs;				       /* list of nodes in the matrix, sorted */
 	gsl_matrix *cov_mat;				       /* the covariance matrix */
 	double value;
 	double lpred_mean;
@@ -1006,8 +1001,7 @@ typedef struct
 	int node_min;					       /* min(nodes) */
 	int node_max;					       /* max(nodes) */
 	int idx_node;					       /* the index for the central node, 'i' in 'gcpo[i]', within cov_mat */
-}
-	GMRFLib_gcpo_tp;
+} GMRFLib_gcpo_tp;
 
 #include "GMRFLib/pre-opt.h"
 
@@ -1087,7 +1081,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				 GMRFLib_density_tp *** density_transform, GMRFLib_transform_array_func_tp ** tfunc,
 				 GMRFLib_density_tp *** density_hyper,
-				 GMRFLib_ai_gcpo_tp ** gcpo, GMRFLib_ai_gcpo_param_tp *gcpo_param, 
+				 GMRFLib_ai_gcpo_tp ** gcpo, GMRFLib_ai_gcpo_param_tp * gcpo_param,
 				 GMRFLib_ai_cpo_tp ** cpo, GMRFLib_ai_po_tp ** po, GMRFLib_ai_dic_tp * dic,
 				 GMRFLib_ai_marginal_likelihood_tp * marginal_likelihood,
 				 double ***hyperparam, int nhyper,
@@ -1171,11 +1165,12 @@ double GMRFLib_bfunc_eval(double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 
-GMRFLib_gcpo_tp ** GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
-				double *lpred_variance, GMRFLib_preopt_tp * preopt,
-				GMRFLib_gcpo_groups_tp *groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp *ai_par);
+GMRFLib_gcpo_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
+			       double *lpred_variance, GMRFLib_preopt_tp * preopt,
+			       GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+			       GMRFLib_ai_param_tp * ai_par);
 
-GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store_id, GMRFLib_preopt_tp * preopt);
+GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt, GMRFLib_ai_gcpo_param_tp * gcpo_param);
 
 __END_DECLS
 #endif

@@ -47,7 +47,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_gsl_mv(gsl_matrix *A, gsl_vector *x,  gsl_vector *b) 
+int GMRFLib_gsl_mv(gsl_matrix * A, gsl_vector * x, gsl_vector * b)
 {
 	// b = A x
 

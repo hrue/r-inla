@@ -129,12 +129,11 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 		return -1;
 	}
 
-	int low, high, mid, n, lguess[2] = {0, 0};
+	int low, high, mid, n, lguess[2] = { 0, 0 };
 
 	if (!guess) {
 		guess = lguess;
 	}
-
 	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
 	if (guess[1] == 0 || guess[1] >= len) {
 		// invalid values for 'guess', no need to check
@@ -949,11 +948,11 @@ int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 	return 0;
 }
 
-int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
+int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value)
 {
 	int num = 0;
-	for(size_t i = 0; i < A->size1; i++) {
-		for(size_t j = 0; j <  A->size2; j++) {
+	for (size_t i = 0; i < A->size1; i++) {
+		for (size_t j = 0; j < A->size2; j++) {
 			num += (ISNAN(value) ? ISNAN(gsl_matrix_get(A, i, j)) : (gsl_matrix_get(A, i, j) == value));
 		}
 	}

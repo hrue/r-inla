@@ -122,7 +122,7 @@ int GMRFLib_debug_functions(const char *name);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);
-int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value);
+int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value);
 int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec);
 int GMRFLib_icmp(const void *a, const void *b);
 int GMRFLib_icmp_r(const void *a, const void *b);

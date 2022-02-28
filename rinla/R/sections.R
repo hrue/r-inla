@@ -1218,7 +1218,7 @@
     inla.write.boolean.field("config", config, file)
 
     inla.write.boolean.field("gcpo", gcpo$enable, file)
-    cat("gcpo.group.size", "=", gcpo$group.size, "\n", sep = " ", file = file, append = TRUE)
+    cat("gcpo.group.size", "=", DMAX(1.0, round(gcpo$group.size)), "\n", sep = " ", file = file, append = TRUE)
 
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp <- inla.getOption("smtp")

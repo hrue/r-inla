@@ -182,7 +182,6 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 		storage[id]->ii = ii;
 		storage[id]->jj = jj;
 	}
-
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
 		CODE_BLOCK_SET_THREAD_ID;				\
@@ -295,19 +294,18 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	int n = problem->sub_graph->n;
 	int free_xx = 0;				       // non-overlap
 	double *xx = x;
-	//static double tref[2] =  {0, 0};
+	// static double tref[2] = {0, 0};
 
 	if (x == b) {
 		xx = Calloc(n, double);
 		free_xx = 1;
 	}
-
-	//tref[0] -= GMRFLib_cpu();
+	// tref[0] -= GMRFLib_cpu();
 	Memcpy(xx, b, n * sizeof(double));
 	GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
-	//tref[0] += GMRFLib_cpu();
-	
-	//tref[1] -= GMRFLib_cpu();
+	// tref[0] += GMRFLib_cpu();
+
+	// tref[1] -= GMRFLib_cpu();
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int nc = problem->sub_constr->nc, inc = 1;
 		double alpha = -1.0, beta = 1.0;
@@ -321,9 +319,9 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
 		Free(t_vector);
 	}
-	//tref[1] += GMRFLib_cpu();
+	// tref[1] += GMRFLib_cpu();
 
-	//printf("Qsolve %f %f %f\n", tref[0], tref[1], tref[0]/(tref[0] + tref[1]));
+	// printf("Qsolve %f %f %f\n", tref[0], tref[1], tref[0]/(tref[0] + tref[1]));
 	if (free_xx) {
 		Memcpy(x, xx, n * sizeof(double));
 		Free(xx);
@@ -636,7 +634,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 					}
 				}
-				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
+				GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix
+					       ((*problem)->qi_at_m, nc, &((*problem)->sub_sm_fact), (*problem)->sub_graph));
 			} else {
 				/*
 				 * reuse 

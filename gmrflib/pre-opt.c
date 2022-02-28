@@ -940,7 +940,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				     GMRFLib_problem_tp * problem, double *optional_mean)
 {
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	// compute the marginal mean and variance for the linear predictor
 	// either 'mean' and/or 'variance' could be NULL
 	int npred = preopt->npred;
@@ -949,7 +949,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	int offset = mpred;
 	int compute_mean = (mean ? 1 : 0);
 	int compute_variance = (variance ? 1 : 0);
-	
+
 	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
 
 	if (compute_mean) {
@@ -963,7 +963,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	if (compute_mean && !compute_variance) {
 #define CODE_BLOCK							\
 		for(int i = 0; i < mpred; i++) {			\
@@ -1006,7 +1006,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
 #undef CODE_BLOCK
 	}
-	
+
 	int err_count = 0;
 	if (compute_mean && !compute_variance) {
 #define CODE_BLOCK							\
@@ -1021,7 +1021,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
 #undef CODE_BLOCK
 	} else {
-		
+
 #define CODE_BLOCK							\
 		for(int i = 0; i < npred; i++) {			\
 			CODE_BLOCK_SET_THREAD_ID;			\
