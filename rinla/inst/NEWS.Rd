@@ -4,6 +4,29 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.02.28}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item VB correction for experimental mode do now include nodes
+      from all model components, not only the short ones and fixed
+      effects.
+      \item New group-cpo feature, very experimental at the moment
+      (internal use only).
+    }
+  }
+  \subsection{VARIOUS CHANGES}{
+    \itemize{
+      \item Parts of the VB code has been improved for
+      simplicity and speed.
+      \item \code{inla.call="remote"} now use \code{zstd} for
+      parallel compression, meaning that \code{zstd} must be
+      available on both sides.
+      \item PARDISO license help and startup msg has been disabled.
+      \item Minor fixes, code improvements and cleanup
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.02.16}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
