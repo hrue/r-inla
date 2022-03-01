@@ -1827,7 +1827,7 @@
                         colnames(rr[[j]]) <- c("x", "y")
                         }
                 }
-                marginals.random[[i]] <- if (is.null(rr)) NA else rr
+                marginals.random[[i]] <- if (is.null(rr)) NA_real_ else rr
 
                 ## if id.names are present,  override the default names
                 id.names <- inla.readLines(paste(file, .Platform$file.sep, "id-names.dat", sep = ""))
@@ -1858,7 +1858,13 @@
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random, function(x) (is.null(x) || is.na(x))))) {
+            if (all(sapply(marginals.random,
+                           function(x) (
+                               is.null(x) ||
+                               (is.numeric(x) &&
+                                (length(x) == 1) &&
+                                is.na(x))
+                               )))) {
                 marginals.random <- NULL
             }
         }
