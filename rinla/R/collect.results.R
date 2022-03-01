@@ -2024,7 +2024,11 @@
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random, function(x) (is.null(x) || is.na(x))))) {
+            if (all(sapply(marginals.random,
+                           function(x) (is.null(x) ||
+                                        (is.numeric(x) &&
+                                         (length(x) == 1) &&
+                                         is.na(x)))))) {
                 marginals.random <- NULL
             }
         }
@@ -2183,7 +2187,11 @@
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random, function(x) (is.null(x) || is.na(x))))) {
+            if (all(sapply(marginals.random,
+                           function(x) (is.null(x) ||
+                                        (is.numeric(x) &&
+                                         (length(x) == 1) &&
+                                         is.na(x)))))) {
                 marginals.random <- NULL
             }
         }
