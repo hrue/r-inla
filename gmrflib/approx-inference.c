@@ -7483,7 +7483,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 				for (int j = i; j < (int) gcpo[node]->cov_mat->size2; j++) {
 					if (ISNAN(gsl_matrix_get(gcpo[node]->cov_mat, i, j))) {
 						num_error++;
-						printf("%s[%1d]: ERROR node %d i %d j %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node, i, j);
+						printf("%s[%1d]: ERROR: covmat for node %d, element i %d j %d, is NAN\n",
+						       __GMRFLib_FuncName, omp_get_thread_num(), node, i, j);
 					}
 				}
 			}
