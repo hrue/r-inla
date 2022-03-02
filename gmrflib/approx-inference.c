@@ -7245,13 +7245,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 {
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
-	
+
 	int Npred = preopt->Npred;
-	GMRFLib_idx_tp **groups = NULL; 
+	GMRFLib_idx_tp **groups = NULL;
 	if (!(gcpo_param->groups)) {
 
 		if (gcpo_param->verbose) {
-			printf("%s[%1d]: Build groups\n",  __GMRFLib_FuncName, omp_get_thread_num());
+			printf("%s[%1d]: Build groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 		// build the groups
 		double eps = GMRFLib_eps(1.0 / 3.0);
@@ -7264,10 +7264,27 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			isd[i] = 1.0 / sqrt(isd[i]);
 		}
 
+		GMRFLib_idx_tp *selection = NULL;
+		int free_selection = 0;
+
+		if (!(gcpo_param->selection)) {
+			free_selection = 1;
+			for (int i = 0; i < Npred; i++) {
+				GMRFLib_idx_add(&selection, i);
+			}
+		} else {
+			selection = gcpo_param->selection;
+			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
+			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
+		}
+		if (gcpo_param->verbose) {
+			printf("%s[%1d]: Use selection of %d indices\n", __GMRFLib_FuncName, omp_get_thread_num(), selection->n);
+		}
+
 #define CODE_BLOCK							\
-		for(int node = 0; node < Npred; node++) {		\
+		for(int ii = 0;	ii < selection->n; ii++) {		\
+			int node = selection->idx[ii];			\
 			CODE_BLOCK_SET_THREAD_ID;			\
-									\
 			GMRFLib_idxval_tp *v = A_idx(node);		\
 			double *cor = CODE_BLOCK_WORK_PTR(0);		\
 			CODE_BLOCK_WORK_ZERO(0);			\
@@ -7311,16 +7328,19 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, Npred);
 #undef CODE_BLOCK
 
+		if (free_selection) {
+			GMRFLib_idx_free(selection);
+		}
 		Free(isd);
 	} else {
 		if (gcpo_param->verbose) {
-			printf("%s[%1d]: Use user-defined groups\n",  __GMRFLib_FuncName, omp_get_thread_num());
+			printf("%s[%1d]: Use user-defined groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 
-		// if the input groups are short, then pad with empty groups. if its to long, its an error.
+		// if the number of give groups are to short compared to Npred, then pad with empty groups. if its longer then that is an error.
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idx_tp *);
-			for(int i = gcpo_param->ngroups; i < Npred; i++) {
+			for (int i = gcpo_param->ngroups; i < Npred; i++) {
 				GMRFLib_idx_create_x(&(gcpo_param->groups[i]), gcpo_param->group_size);
 			}
 		} else if (gcpo_param->ngroups > Npred) {
@@ -7328,7 +7348,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		}
 		groups = gcpo_param->groups;
 	}
-	
+
 
 	// add first off-diagonals
 	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, gcpo_param->group_size);
@@ -7360,9 +7380,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		{
 			for (int node = 0; node < Npred; node++) {
 				char *msg;
-				GMRFLib_sprintf(&msg, "node %d", node);
-				GMRFLib_idx_printf(stdout, groups[node], msg);
-				GMRFLib_idx2_printf(stdout, missing[node], msg);
+				GMRFLib_sprintf(&msg, "%s[%1d]: node %d", __GMRFLib_FuncName, omp_get_thread_num(), node);
+				if (groups[node]->n > 0) {
+					GMRFLib_idx_printf(stdout, groups[node], msg);
+				}
+				if (missing[node]->n > 0) {
+					GMRFLib_idx2_printf(stdout, missing[node], msg);
+				}
 				Free(msg);
 			}
 		}
@@ -7375,9 +7399,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 }
 
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
-			       double *lpred_variance, GMRFLib_preopt_tp * preopt,
-			       GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-			       GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp *gcpo_param)
+				   double *lpred_variance, GMRFLib_preopt_tp * preopt,
+				   GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param)
 {
 	GMRFLib_ENTER_ROUTINE;
 
@@ -7407,22 +7431,23 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 #define CODE_BLOCK					      \
 	for(int node = 0; node < Npred; node++) {	      \
+		CODE_BLOCK_SET_THREAD_ID;		      \
 		if (groups->missing[node]->n == 0) continue;  \
-		CODE_BLOCK_SET_THREAD_ID;		      \
-		GMRFLib_idxval_tp *v = A_idx(node);	      \
-		double *a, *Sa, *cov;			      \
 							      \
+		GMRFLib_idxval_tp *v = A_idx(node);	      \
 		CODE_BLOCK_SET_THREAD_ID;		      \
-		a = CODE_BLOCK_WORK_PTR(0);		      \
+		double *a = CODE_BLOCK_WORK_PTR(0);	      \
 		CODE_BLOCK_WORK_ZERO(0);		      \
-		Sa = CODE_BLOCK_WORK_PTR(1);		      \
-		cov = CODE_BLOCK_WORK_PTR(2);		      \
+		double *Sa = CODE_BLOCK_WORK_PTR(1);	      \
+		double *cov = CODE_BLOCK_WORK_PTR(2);	      \
 		CODE_BLOCK_WORK_ZERO(2);		      \
 							      \
 		for (int k = 0; k < v->n; k++) {	      \
 			a[v->store[k].idx] = v->store[k].val; \
 		}					      \
-		if (gcpo_param->verbose) printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
+		if (gcpo_param->verbose) {		      \
+			printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
+		}							\
 		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);  \
 							      \
 		for (int nnode = 0; nnode < Npred; nnode++) { \
@@ -7468,7 +7493,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
-				if (gcpo[node]->cov_mat) {
+				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
 					printf("\ncov_mat for node=%d size=%d\n", node, (int) gcpo[node]->cov_mat->size1);
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.16f");
 				}
@@ -7535,8 +7560,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gcpo[node]->kld =  0.5 * (SQR(gcpo[node]->lpred_sd) / lpred_variance[node] - 1.0 + \
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
-		GMRFLib_DEBUG_iddd("node, lpred mean, sd and kld", node, gcpo[node]->lpred_mean, gcpo[node]->lpred_sd, \
-				   gcpo[node]->kld);			\
 		if (d[node]) {						\
 			double *weights = NULL, *xx = NULL;		\
 			GMRFLib_ghq(&xx, &weights, np);			\
@@ -7555,7 +7578,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		} else {						\
 			gcpo[node]->value = NAN;			\
 		}							\
-		GMRFLib_DEBUG_id("node and gcpo->value", node, gcpo[node]->value); \
+		if (gcpo_param->verbose) {				\
+			printf("%s[%1d]: node %d lpred_mean %f lpred_sd %f kld %f value %f\n", \
+			       __GMRFLib_FuncName, omp_get_thread_num(), \
+			       node, gcpo[node]->lpred_mean, gcpo[node]->lpred_sd, gcpo[node]->kld, gcpo[node]->value); \
+		}							\
 		gsl_vector_free(mean);					\
 		gsl_vector_free(b);					\
 		gsl_matrix_free(Q);					\

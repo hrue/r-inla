@@ -799,6 +799,7 @@ typedef struct {
 	int ngroups;
 	int verbose;
 	GMRFLib_idx_tp **groups;
+	GMRFLib_idx_tp *selection;
 } GMRFLib_gcpo_param_tp;
 
 typedef struct {
@@ -1169,9 +1170,9 @@ int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfun
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
-			       double *lpred_variance, GMRFLib_preopt_tp * preopt,
-			       GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-			       GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp *gcpo_param);
+				   double *lpred_variance, GMRFLib_preopt_tp * preopt,
+				   GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param);
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt, GMRFLib_gcpo_param_tp * gcpo_param);
 
 __END_DECLS

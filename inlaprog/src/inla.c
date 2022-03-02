@@ -3132,7 +3132,7 @@ double mfunc_cgeneric(int i, void *arg)
 		if (a->mu_zero) {
 			return 0.0;
 		}
-	} 
+	}
 
 	return (a->mu[id][i]);
 }
@@ -8779,9 +8779,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -32551,7 +32551,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} 
+			}
 			count += mb->f_Ntotal[i];
 		}
 		for (i = 0; i < mb->nlinear; i++) {
@@ -33487,8 +33487,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			} else if (mb->f_vb_correct[i] < 0) {
 				// chose vb_enable_limit points for correction with random start
 				int len, k, jj;
-				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_enable_limit); /* integer division */
-				k = len / 2;						      /* integer division */
+				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_enable_limit);	/* integer division */
+				k = len / 2;		       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_enable_limit; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
@@ -33631,7 +33631,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
-				     (mb->output->gcpo ? &(mb->gcpo) : NULL), mb->gcpo_param, 
+				     (mb->output->gcpo ? &(mb->gcpo) : NULL), mb->gcpo_param,
 				     (mb->output->cpo || mb->expert_cpo_manual ? &(mb->cpo) : NULL),
 				     (mb->output->po ? &(mb->po) : NULL),
 				     mb->dic,
@@ -33655,8 +33655,8 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	 * parse the output-options. defaults are given in the type=output-section, which are initialised with program defaults if
 	 * the program defaults are NULL. 
 	 */
-	int i, j, use_defaults = 1;
-	char *secname = NULL, *tmp = NULL, *gfile = NULL;
+	int i, j, use_defaults = 1, debug = 0, ret;
+	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile;
 
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (!mb->output) {
@@ -33716,29 +33716,35 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 3);
 		mb->gcpo_param->verbose = iniparser_getint(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
+		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
+		assert(!(gfile && sfile));
+
 		if (gfile) {
 			FILE *fp = fopen(gfile, "rb");
-			int len, total_len, glen, ret, offset = 0, debug = 1;
+			int len, total_len, glen, offset = 0;
 			ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 			assert(ret == 1);
 			ret = fread((void *) &total_len, sizeof(int), (size_t) 1, fp);
 			assert(ret == 1);
 
-			if (debug) printf(">>> read groups len %d total_len %d\n", len, total_len);
+			if (debug)
+				printf("%s: read groups len %d total_len %d\n", __GMRFLib_FuncName, len, total_len);
 			int *buffer = Calloc(total_len, int);
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
 			assert(ret == total_len);
 
 			mb->gcpo_param->groups = GMRFLib_idx_ncreate_x(len, IMAX(3, (total_len - len) / len));
-			for(int i = 0; i < len; i++) {
+			for (int i = 0; i < len; i++) {
 				glen = buffer[offset++];
-				for(int j = 0; j < glen; j++) {
+				for (int j = 0; j < glen; j++) {
 					GMRFLib_idx_add(&(mb->gcpo_param->groups[i]), buffer[offset++]);
 				}
 				if (debug) {
-					char *msg;
-					GMRFLib_sprintf(&msg, "group %d", i);
-					GMRFLib_idx_printf(stdout, mb->gcpo_param->groups[i], msg);
+					if (mb->gcpo_param->groups[i]->n > 0) {
+						char *msg;
+						GMRFLib_sprintf(&msg, "group %d", i);
+						GMRFLib_idx_printf(stdout, mb->gcpo_param->groups[i], msg);
+					}
 				}
 			}
 			mb->gcpo_param->ngroups = len;
@@ -33746,7 +33752,25 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			fclose(fp);
 			Free(buffer);
 		} else {
-			mb->gcpo_param->ngroups = 0;
+			mb->gcpo_param->ngroups = -1;
+			if (sfile) {
+				FILE *fp = fopen(sfile, "rb");
+				int len, debug = 1;
+				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
+				assert(ret == 1);
+				if (debug)
+					printf("%s: read selection len %d\n", __GMRFLib_FuncName, len);
+				int *buffer = Calloc(len, int);
+				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
+				assert(ret == len);
+				for (int i = 0; i < len; i++) {
+					if (debug)
+						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
+					GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
+				}
+				fclose(fp);
+				Free(buffer);
+			}
 		}
 	}
 
@@ -34329,8 +34353,8 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 		}
 		for (i = 0; i < n; i++) {
 			D1W(gcpo->groups[i]->n);
-			for(j = 0; j < gcpo->groups[i]->n; j++) {
-				D1W(gcpo->groups[i]->idx[j] + 1); /* back to R-style indexing */
+			for (j = 0; j < gcpo->groups[i]->n; j++) {
+				D1W(gcpo->groups[i]->idx[j] + 1);	/* back to R-style indexing */
 			}
 		}
 		Dclose();
