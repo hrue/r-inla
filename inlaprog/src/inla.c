@@ -33655,7 +33655,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	 * parse the output-options. defaults are given in the type=output-section, which are initialised with program defaults if
 	 * the program defaults are NULL. 
 	 */
-	int i, j, use_defaults = 1, debug = 0, ret;
+	int i, j, use_defaults = 1, ret, ngroups_eff = 0;
 	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile;
 
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
@@ -33727,8 +33727,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			ret = fread((void *) &total_len, sizeof(int), (size_t) 1, fp);
 			assert(ret == 1);
 
-			if (debug)
+			if (mb->gcpo_param->verbose) {
 				printf("%s: read groups len %d total_len %d\n", __GMRFLib_FuncName, len, total_len);
+			}
 			int *buffer = Calloc(total_len, int);
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
 			assert(ret == total_len);
@@ -33739,7 +33740,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 				for (int j = 0; j < glen; j++) {
 					GMRFLib_idx_add(&(mb->gcpo_param->groups[i]), buffer[offset++]);
 				}
-				if (debug) {
+				if (mb->gcpo_param->verbose) {
 					if (mb->gcpo_param->groups[i]->n > 0) {
 						char *msg;
 						GMRFLib_sprintf(&msg, "group %d", i);
@@ -33748,6 +33749,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 				}
 			}
 			mb->gcpo_param->ngroups = len;
+			for(int i = 0; i < len; i++) {
+				ngroups_eff += (mb->gcpo_param->groups[i]->n > 0 ? 1 : 0);
+			}
 			assert(offset == total_len);
 			fclose(fp);
 			Free(buffer);
@@ -33755,18 +33759,20 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			mb->gcpo_param->ngroups = -1;
 			if (sfile) {
 				FILE *fp = fopen(sfile, "rb");
-				int len, debug = 1;
+				int len;
 				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
 				assert(ret == 1);
-				if (debug)
+				if (mb->gcpo_param->verbose) {
 					printf("%s: read selection len %d\n", __GMRFLib_FuncName, len);
+				}
 				int *buffer = Calloc(len, int);
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
 				for (int i = 0; i < len; i++) {
-					if (debug)
+					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
-					GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
+						GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
+					}
 				}
 				fclose(fp);
 				Free(buffer);
@@ -33833,6 +33839,12 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
+			if (mb->gcpo_param->groups) {
+				printf("\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
+			}
+			if (mb->gcpo_param->selection) {
+				printf("\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
+			}
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);
 			printf("\t\t\tpo=[%1d]\n", (*out)->po);
 			printf("\t\t\tdic=[%1d]\n", (*out)->dic);
