@@ -11943,7 +11943,6 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		printf("%s...\n", __GMRFLib_FuncName);
 	}
 	mb = Calloc(1, inla_tp);
-	mb->gcpo_param = Calloc(1, GMRFLib_ai_gcpo_param_tp);
 	mb->verbose = verbose;
 	mb->reuse_mode = 0;				       /* disable this feature. creates more trouble than it solves. */
 	if (mb->verbose && mb->reuse_mode) {
@@ -33657,7 +33656,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	 * the program defaults are NULL. 
 	 */
 	int i, j, use_defaults = 1;
-	char *secname = NULL, *tmp = NULL;
+	char *secname = NULL, *tmp = NULL, *gfile = NULL;
 
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (!mb->output) {
@@ -33712,9 +33711,46 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			Memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
 		}
 	}
-	mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), mb->gcpo_param->group_size);
+	if (!(mb->gcpo_param)) {
+		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
+		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 3);
+		mb->gcpo_param->verbose = iniparser_getint(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
+		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
+		if (gfile) {
+			FILE *fp = fopen(gfile, "rb");
+			int len, total_len, glen, ret, offset = 0, debug = 1;
+			ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
+			assert(ret == 1);
+			ret = fread((void *) &total_len, sizeof(int), (size_t) 1, fp);
+			assert(ret == 1);
 
-	(*out)->gcpo = iniparser_getboolean(ini, inla_string_join(secname, "GCPO"), (*out)->gcpo);
+			if (debug) printf(">>> read groups len %d total_len %d\n", len, total_len);
+			int *buffer = Calloc(total_len, int);
+			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
+			assert(ret == total_len);
+
+			mb->gcpo_param->groups = GMRFLib_idx_ncreate_x(len, IMAX(3, (total_len - len) / len));
+			for(int i = 0; i < len; i++) {
+				glen = buffer[offset++];
+				for(int j = 0; j < glen; j++) {
+					GMRFLib_idx_add(&(mb->gcpo_param->groups[i]), buffer[offset++]);
+				}
+				if (debug) {
+					char *msg;
+					GMRFLib_sprintf(&msg, "group %d", i);
+					GMRFLib_idx_printf(stdout, mb->gcpo_param->groups[i], msg);
+				}
+			}
+			mb->gcpo_param->ngroups = len;
+			assert(offset == total_len);
+			fclose(fp);
+			Free(buffer);
+		} else {
+			mb->gcpo_param->ngroups = 0;
+		}
+	}
+
+	(*out)->gcpo = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.ENABLE"), (*out)->gcpo);
 	(*out)->cpo = iniparser_getboolean(ini, inla_string_join(secname, "CPO"), (*out)->cpo);
 	(*out)->po = iniparser_getboolean(ini, inla_string_join(secname, "PO"), (*out)->po);
 	(*out)->dic = iniparser_getboolean(ini, inla_string_join(secname, "DIC"), (*out)->dic);
@@ -33729,6 +33765,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->q = iniparser_getboolean(ini, inla_string_join(secname, "Q"), (*out)->q);
 	(*out)->graph = iniparser_getboolean(ini, inla_string_join(secname, "GRAPH"), (*out)->graph);
 	(*out)->config = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG"), (*out)->config);
+
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
 	if (G.mode == INLA_MODE_HYPER) {
@@ -34249,7 +34286,7 @@ int inla_output(inla_tp * mb)
 	return INLA_OK;
 }
 
-int inla_output_detail_gcpo(const char *dir, GMRFLib_ai_gcpo_tp * gcpo, int verbose)
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose)
 {
 	/*
 	 * output whatever is requested.... 

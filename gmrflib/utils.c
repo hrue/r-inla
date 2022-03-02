@@ -1320,6 +1320,18 @@ forceinline int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 	return GMRFLib_SUCCESS;
 }
 
+forceinline int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len)
+{
+	*hold = Calloc(1, GMRFLib_idx2_tp);
+	(*hold)->idx = Calloc(2, int *);
+	(*hold)->idx[0] = Calloc(len, int);
+	(*hold)->idx[1] = Calloc(len, int);
+	(*hold)->n_alloc = len;
+	(*hold)->n = 0;
+
+	return GMRFLib_SUCCESS;
+}
+
 forceinline int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_val_tp);
@@ -1375,6 +1387,15 @@ forceinline GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
 	GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idx2_create(&(a[i]));
+	}
+	return a;
+}
+
+forceinline GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
+{
+	GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idx2_create_x(&(a[i]), len);
 	}
 	return a;
 }
