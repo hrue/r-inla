@@ -22,23 +22,23 @@
 #' structure.
 #' @return A list with the following elements
 #' \item{time}{The time index for
-#' each obervation, with length equals m*n.}
+#' each obervation, with length equals `m*n`.}
 #' \item{space}{The spatial index for
-#' each obervation, with length equals m*n.}
+#' each observation, with length equals `m*n`.}
 #' \item{spacetime}{The spacetime
-#' index for each obervation, with length equals m*n.}
+#' index for each obervation, with length equals `m*n`.}
 #' \item{x}{A list with the
 #' following elements}
 #' \item{t.iid}{The unstructured main temporal effect
 #' part.}
 #' \item{t.str}{The structured main temporal effect part.}
 #' \item{t}{The
-#' main temporal effect with length equals 2m.}
+#' main temporal effect with length equals `2m`.}
 #' \item{s.iid}{The unstructured
 #' main spatial effect part.}
 #' \item{s.str}{The structured main spatial effect
 #' part.}
-#' \item{s}{The main spatial effect with length equals 2n.}
+#' \item{s}{The main spatial effect with length equals `2n`.}
 #' \item{st}{The spacetime interaction effect with length `m*n`.}
 #' \item{eta}{The linear predictor with length `n*m`.}
 #' @author Elias T. Krainski
