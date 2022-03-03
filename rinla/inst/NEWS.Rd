@@ -4,6 +4,19 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.03.03}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New options for the group-cpo feature.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed CRAN-check issues.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.02.28}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
