@@ -600,7 +600,7 @@ int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph)
 	graph->lnnbs = Calloc(n, int);
 	graph->lnbs = Calloc(n, int *);
 
-#pragma omp parallel for num_threads(2)
+//#pragma omp parallel for num_threads(2)
 	for (int i = 0; i < n; i++) {
 		int k = graph->nnbs[i];
 		for (int jj = 0; jj < graph->nnbs[i]; jj++) {
@@ -626,7 +626,7 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-#pragma omp parallel for num_threads(2)
+//#pragma omp parallel for num_threads(2)
 	for (int i = 0; i < graph->n; i++) {
 		if (graph->nnbs[i]) {
 			int k = 0;
@@ -651,7 +651,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-#pragma omp parallel for num_threads(2)
+//#pragma omp parallel for num_threads(2)
 	for (int i = 0; i < graph->n; i++) {
 		if (graph->nnbs[i]) {
 
@@ -1131,7 +1131,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			max_t = 1;
 		} else {
 			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS;
+			max_t = GMRFLib_MAX_THREADS();
 		}
 	} else {
 		time_n = -1;
@@ -1140,7 +1140,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			max_t = 1;
 		} else {
 			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS;
+			max_t = GMRFLib_MAX_THREADS();
 		}
 	}
 
@@ -1251,7 +1251,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 	int ncol = result->size2;
 	double res, *values = NULL;
 
-	if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+	if (GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
 		values = Calloc(graph->n * GMRFLib_openmp->max_threads_inner, double);
 	} else {
 		values = Calloc(graph->n, double);
@@ -1261,7 +1261,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 	res = Qfunc(0, -1, values, Qfunc_arg);
 	if (ISNAN(res)) {
 		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
-		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		    GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int k = 0; k < ncol; k++) {
 				GMRFLib_thread_id = id;
@@ -1304,7 +1304,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 		}
 	} else {
 		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
-		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		    GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
 			// I think is less good as it index the matrices in the wrong direction
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int k = 0; k < ncol; k++) {

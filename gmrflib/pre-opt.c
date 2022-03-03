@@ -41,7 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define GMRFLib_MAX_THREADS_LOCAL GMRFLib_MAX_THREADS
+#define GMRFLib_MAX_THREADS_LOCAL() GMRFLib_MAX_THREADS()
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
@@ -250,27 +250,27 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	// build up structure for the likelihood part
 
 	int nt = -1;
-	if (GMRFLib_OPENMP_IN_PARALLEL) {
+	if (GMRFLib_OPENMP_IN_PARALLEL()) {
 		nt = GMRFLib_openmp->max_threads_inner;
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
 	}
-	nt = IMIN(GMRFLib_MAX_THREADS_LOCAL, nt);
+	nt = IMIN(GMRFLib_MAX_THREADS_LOCAL(), nt);
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
-#pragma omp parallel for private (i, jj) num_threads(nt)
-	for (i = 0; i < npred; i++) {
+#pragma omp parallel for num_threads(nt)
+	for (int i = 0; i < npred; i++) {
 		int idx;
 		double val;
 
-		for (jj = 0; jj < nf; jj++) {
+		for (int jj = 0; jj < nf; jj++) {
 			if (c[jj][i] >= 0 && ww[jj][i]) {
 				idx = c[jj][i] + idx_map_f[jj];
 				val = ww[jj][i];
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
-		for (jj = 0; jj < nbeta; jj++) {
+		for (int jj = 0; jj < nbeta; jj++) {
 			if (covariate[jj][i]) {
 				idx = idx_map_beta[jj];
 				val = covariate[jj][i];
@@ -584,9 +584,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->AtA_idxval = AtA_idxval;
 
 	(*preopt)->like_graph = g;
-	(*preopt)->like_c = Calloc(GMRFLib_MAX_THREADS, double *);
-	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS, double *);
-	(*preopt)->total_b = Calloc(GMRFLib_MAX_THREADS, double *);
+	(*preopt)->like_c = Calloc(GMRFLib_MAX_THREADS(), double *);
+	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS(), double *);
+	(*preopt)->total_b = Calloc(GMRFLib_MAX_THREADS(), double *);
 
 	(*preopt)->like_Qfunc_arg = (void *) *preopt;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
@@ -861,7 +861,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -906,7 +906,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 
 	if (preopt->mpred) {
@@ -921,7 +921,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -974,7 +974,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 
 	} else {
@@ -1003,7 +1003,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			variance[i] = var;				\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -1018,7 +1018,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 	} else {
 
@@ -1050,7 +1050,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			variance[offset + i] = var;			\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -1132,7 +1132,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 			Free(preopt->idx_map_beta);
 			Free(preopt->what_type);
 
-			for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 				Free(preopt->like_b[i]);
 				Free(preopt->like_c[i]);
 				Free(preopt->total_b[i]);

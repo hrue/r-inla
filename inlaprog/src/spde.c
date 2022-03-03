@@ -108,7 +108,7 @@ double inla_spde_Qfunction(int node, int nnode, double *UNUSED(values), void *ar
 #pragma omp critical
 		{
 			if (!OC) {
-				OC = Calloc(GMRFLib_MAX_THREADS, OC_tp);
+				OC = Calloc(GMRFLib_MAX_THREADS(), OC_tp);
 			}
 		}
 	}
@@ -177,7 +177,7 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp 
 
 	HYPER_NEW2(theta, 0.0, theta_model->ntheta);
 	theta_model->theta = theta;
-	theta_model->theta_extra = Calloc(GMRFLib_MAX_THREADS, double *);
+	theta_model->theta_extra = Calloc(GMRFLib_MAX_THREADS(), double *);
 
 	theta_model->n = basis->nrow;
 	theta_model->basis = Calloc(basis->nrow, double *);
@@ -265,8 +265,8 @@ int inla_spde_build_model(inla_spde_tp ** smodel, const char *prefix)
 	/*
 	 * ocillating coeff 
 	 */
-	model->oc = Calloc(GMRFLib_MAX_THREADS, double *);
-	for (i = 0; i < GMRFLib_MAX_THREADS; i++)
+	model->oc = Calloc(GMRFLib_MAX_THREADS(), double *);
+	for (i = 0; i < GMRFLib_MAX_THREADS(); i++)
 		model->oc[i] = Calloc(1, double);
 
 	GMRFLib_sprintf(&fnm, "%s%s", prefix, "c0");

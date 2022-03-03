@@ -1955,7 +1955,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2033,8 +2033,8 @@ typedef struct {
 		int i_, j_;						\
 		name_ = Calloc(n_, double **);				\
 		for(j_=0; j_ < n_; j_++){				\
-			name_[j_] = Calloc(GMRFLib_MAX_THREADS, double *); \
-			for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) { \
+			name_[j_] = Calloc(GMRFLib_MAX_THREADS(), double *); \
+			for(i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) { \
 				name_[j_][i_] = Calloc(1, double);	\
 				name_[j_][i_][0] = initial_;		\
 			}						\
@@ -2043,8 +2043,8 @@ typedef struct {
 
 #define HYPER_NEW(name_, initial_)  {					\
 		int i_;							\
-		name_ = Calloc(GMRFLib_MAX_THREADS, double *);	\
-		for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) {	\
+		name_ = Calloc(GMRFLib_MAX_THREADS(), double *);	\
+		for(i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_] = Calloc(1, double);			\
 			name_[i_][0] = initial_;			\
 		}							\
@@ -2052,7 +2052,7 @@ typedef struct {
 
 #define HYPER_INIT(name_, initial_) {					\
 		int i_;							\
-		for(i_ = 0; i_ < GMRFLib_MAX_THREADS; i_++) {	\
+		for(i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_][0] = initial_;			\
 		}							\
 	}
