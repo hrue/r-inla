@@ -1217,8 +1217,55 @@
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("config", config, file)
 
-    inla.write.boolean.field("gcpo", gcpo$enable, file)
-    cat("gcpo.group.size", "=", max(1, round(gcpo$group.size)), "\n", sep = " ", file = file, append = TRUE)
+    inla.write.boolean.field("gcpo.enable", gcpo$enable, file)
+    inla.write.boolean.field("gcpo.verbose", gcpo$verbose, file)
+    if (!is.null(gcpo$groups)) {
+        stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
+        stopifnot(is.null(gcpo$selection))
+
+        file.groups <- inla.tempfile(tmpdir = data.dir)
+        fp.binary <- file(file.groups, "wb")
+        len <- length(gcpo$groups)
+        for(i in seq_len(len)) {
+            if (length(gcpo$groups[[i]]) > 0) {
+                gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
+            }
+        }
+        total.len <- len + sum(unlist(lapply(gcpo$groups, length)))
+        writeBin(as.integer(len), fp.binary)
+        ## this is length of the rest of the binary file. makes reading easies
+        writeBin(as.integer(total.len), fp.binary) 
+        for(i in seq_len(len)) {
+            g <- gcpo$groups[[i]]
+            writeBin(as.integer(length(g)), fp.binary)
+            if (length(g) > 0) {
+                ## back to C indexing
+                writeBin(as.integer(g - 1), fp.binary)
+                if (!(i %in% g)) {
+                    stop(paste0("Node ", i,  "is not in group ",  i,  ". This is not supported."))
+                }
+            }
+        }
+        close(fp.binary)
+        fnm <- gsub(data.dir, "$inladatadir", file.groups, fixed = TRUE)
+        cat("gcpo.groups =", fnm, "\n", file = file, append = TRUE)
+    } else {
+            cat("gcpo.group.size", "=", max(1, round(gcpo$group.size)), "\n", sep = " ", file = file, append = TRUE)
+            if (!is.null(gcpo$selection)) {
+                selection <- gcpo$selection[!is.na(gcpo$selection)]
+                selection <- unique(sort(selection))
+                stopifnot(all(selection >= 1))
+                selection <- selection - 1 ## to C indexing
+                len <- length(selection)
+                file.selection <- inla.tempfile(tmpdir = data.dir)
+                fp.binary <- file(file.selection, "wb")
+                writeBin(as.integer(len), fp.binary)
+                writeBin(as.integer(selection), fp.binary)
+                close(fp.binary)
+                fnm <- gsub(data.dir, "$inladatadir", file.selection, fixed = TRUE)
+                cat("gcpo.selection =", fnm, "\n", file = file, append = TRUE)
+            }
+    }
 
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
         smtp <- inla.getOption("smtp")

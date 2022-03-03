@@ -680,7 +680,9 @@
     ## the value is non null and not NA.
     if (any(names(alist) == name)) {
         idx <- which(names(alist) == name)
-        if (length(alist[[idx]]) > 0L && !is.null(alist[[idx]]) && !is.na(alist[[idx]])) {
+        if (length(alist[[idx]]) > 0L &&
+            !is.null(alist[[idx]]) &&
+            !((length(alist[[idx]]) == 1) && is.na(alist[[idx]]))) {
             return(TRUE)
         } else {
             return(FALSE)

@@ -1142,8 +1142,8 @@ struct inla_tp_struct {
 	GMRFLib_density_tp **density_transform;
 	GMRFLib_density_tp **density_hyper;
 	GMRFLib_density_tp **density_lin;
-	GMRFLib_ai_gcpo_tp *gcpo;
-	GMRFLib_ai_gcpo_param_tp *gcpo_param;
+	GMRFLib_gcpo_tp *gcpo;
+	GMRFLib_gcpo_param_tp *gcpo_param;
 	GMRFLib_ai_cpo_tp *cpo;
 	GMRFLib_ai_po_tp *po;
 	GMRFLib_ai_dic_tp *dic;
@@ -1824,7 +1824,7 @@ int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph);
 int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep,
 		       Output_tp * output, const char *sdir, int return_marginals, map_func_tp * func, void *func_arg,
 		       GMRFLib_transform_array_func_tp ** tfunc, const char *tag, const char *modelname, int verbose);
-int inla_output_detail_gcpo(const char *dir, GMRFLib_ai_gcpo_tp * gcpo, int verbose);
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose);
 int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose);
 int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose);
 int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose);
@@ -1955,7 +1955,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
