@@ -7247,6 +7247,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
 
 	int Npred = preopt->Npred;
+	int N = IMAX(preopt->n, Npred);
 	GMRFLib_idx_tp **groups = NULL;
 	if (!(gcpo_param->groups)) {
 
@@ -7325,7 +7326,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			GMRFLib_idx_sort(groups[node]);			\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, Npred);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, N);
 #undef CODE_BLOCK
 
 		if (free_selection) {
