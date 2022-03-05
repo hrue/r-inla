@@ -6164,7 +6164,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (j = 0; j < Alin[i]->n; j++) {
 				Alin[i]->idx[j] -= preopt->mnpred;
 				if (Alin[i]->idx[j] < 0) {
-					char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+					char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
 					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 					exit(1);
 				}
@@ -8696,8 +8696,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			       GMRFLib_ai_store_tp * ai_store, double *improved_mean, int lookup_tables)
 {
 	/*
-	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
-	 * in both a, in a^T x, and in remap(a). We only need the range of non-zero terms 'remap(a)' and the non-zero terms in 'a'.
+	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to
+	 * avoid dependency of n, in both a, in a^T x, and in remap(a). We only need the range of non-zero terms 'remap(a)' and the non-zero
+	 * terms in 'a'.
 	 */
 
 	GMRFLib_problem_tp *problem = ai_store->problem;
@@ -8877,7 +8878,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var), lookup_tables);
 		Free(a);
 	}
-
+	
 	if (cross) {
 		/*
 		 * do calculations for the E(xi*x_j) 

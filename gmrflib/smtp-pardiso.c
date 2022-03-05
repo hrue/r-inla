@@ -800,7 +800,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	nblock = d.quot;
 	reminder = (d.rem != 0);
 
-
 	GMRFLib_pardiso_setparam(flag, store, NULL);
 	int need_workaround = (GMRFLib_openmp->max_threads_inner > 1) && (store->pstore[omp_get_thread_num()]->iparm[7] > 0);
 	assert(need_workaround == 0);			       /* disable this for the moment */
@@ -827,6 +826,11 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			ddparm[i] = ddparm[i - 1] + GMRFLib_PARDISO_PLEN;
 			factor[i] = 0;
 		}
+	}
+
+	if (0) {
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+		assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	}
 
 #define CODE_BLOCK							\
@@ -871,14 +875,14 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, \
 						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,	\
 						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,	\
-						 bb + j * n, x + offset + j * n, yy + offset + j * n, &normb, &normr); \
-				printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb); \
+						 bb + j * n, x + offset + j * n, yy + j * n, &normb, &normr); \
+				printf("ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb); \
 			}						\
 			Free(yy);					\
 		}							\
 	}
-
-	RUN_CODE_BLOCK((nrhs == 1 ? 1 : GMRFLib_MAX_THREADS()), max_nrhs, n);
+	
+	RUN_CODE_BLOCK((nrhs == 1 ? 1 : GMRFLib_MAX_THREADS()), 1, max_nrhs * n);
 #undef CODE_BLOCK	
 
 	if (need_workaround) {
