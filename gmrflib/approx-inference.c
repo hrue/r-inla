@@ -6164,7 +6164,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (j = 0; j < Alin[i]->n; j++) {
 				Alin[i]->idx[j] -= preopt->mnpred;
 				if (Alin[i]->idx[j] < 0) {
-					char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
+					char *s =
+					    GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
 					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 					exit(1);
 				}
@@ -8880,7 +8881,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		GMRFLib_density_create_normal(&d[i], (imean - mean) / sqrt(var), 1.0, mean, sqrt(var), lookup_tables);
 		Free(a);
 	}
-	
+
 	if (cross) {
 		/*
 		 * do calculations for the E(xi*x_j) 

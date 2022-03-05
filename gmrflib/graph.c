@@ -552,11 +552,11 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
 	int nnz = 0;
-	for(int i = 0; i < graph->n; i++) {
+	for (int i = 0; i < graph->n; i++) {
 		nnz += graph->nnbs[i];
 	}
 	graph->nnz = nnz;
-	
+
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
 	GMRFLib_add_lnbs_info(graph);			       /* must be before sha */
 	GMRFLib_graph_add_sha(graph);
@@ -577,7 +577,7 @@ int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph)
 	graph->lnbs = Calloc(n, int *);
 	graph->snnbs = Calloc(n, int);
 	graph->snbs = Calloc(n, int *);
-	
+
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
 		int k = graph->nnbs[i];					\
@@ -605,7 +605,7 @@ int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph)
 
 	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
 #undef CODE_BLOCK
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -618,7 +618,6 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-
 #define CODE_BLOCK				\
 	for (int i = 0; i < graph->n; i++) {	\
 		if (graph->nnbs[i]) {		\
@@ -634,7 +633,7 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 
 	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
 #undef CODE_BLOCK
-	
+
 
 	return GMRFLib_SUCCESS;
 }
@@ -648,7 +647,6 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-
 #define CODE_BLOCK				\
 	for (int i = 0; i < graph->n; i++) {	\
 		if (graph->nnbs[i]) {		\
@@ -666,7 +664,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 
 	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
 #undef CODE_BLOCK
-	
+
 	return GMRFLib_SUCCESS;
 }
 

@@ -758,7 +758,7 @@ int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_
 #pragma omp threadprivate(iwork)
 	static int iwork_len = 0;
 #pragma omp threadprivate(iwork_len)
-	
+
 	if (n > iwork_len) {
 		Free(iwork);
 		iwork_len = n;
@@ -1137,7 +1137,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 
 	return GMRFLib_SUCCESS;
 }
- 
+
 int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph,
 				   int *remap)
 {
@@ -1310,7 +1310,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 			iii = inv_remap[i];
 			for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;
-				
+
 				if (j != i) {
 					jjj = inv_remap[j];
 					if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
@@ -1440,7 +1440,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 #pragma omp threadprivate(work)
 	static int work_len = 0;
 #pragma omp threadprivate(work_len)
-	
+
 	if (n > work_len) {
 		Free(work);
 		work_len = n;
@@ -1488,7 +1488,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 #pragma omp threadprivate(work)
 	static int work_len = 0;
 #pragma omp threadprivate(work_len)
-	
+
 	if (n > work_len) {
 		Free(work);
 		work_len = n;

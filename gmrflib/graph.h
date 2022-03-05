@@ -115,7 +115,7 @@ typedef struct {
 	 */
 	int n;
 	int nnz;					       /* number of off-diagonals = total sum of neighbours */
-	
+
 	/**
 	 *  \brief Number of neighbours for each node.
 	 * 

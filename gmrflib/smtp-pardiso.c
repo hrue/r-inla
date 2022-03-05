@@ -229,7 +229,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->n = n;
 	M->iwork = Calloc(na + n + 1, int);
 	M->ia = M->iwork;
-	M->ja = M->iwork + n + 1; 
+	M->ja = M->iwork + n + 1;
 
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Calloc(n, int);
@@ -832,7 +832,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 		assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	}
-
 #define CODE_BLOCK							\
 	for (int i = 0; i < nblock + reminder; i++) {			\
 		CODE_BLOCK_SET_THREAD_ID();				\
@@ -881,9 +880,9 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			Free(yy);					\
 		}							\
 	}
-	
+
 	RUN_CODE_BLOCK((nrhs == 1 ? 1 : GMRFLib_MAX_THREADS()), 1, max_nrhs * n);
-#undef CODE_BLOCK	
+#undef CODE_BLOCK
 
 	if (need_workaround) {
 		for (int i = 0; i < max_nt; i++) {
