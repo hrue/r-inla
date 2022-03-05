@@ -35763,7 +35763,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, constr);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+	GMRFLib_Qinv(problem);
 
 	/*
 	 * write a fmesher file and just pass the filename 
@@ -36298,7 +36298,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 				}
 			}
 			GMRFLib_set_error_handler(old_handler);
-			GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+			GMRFLib_Qinv(problem);
 
 			if (debug)
 				P(def->graph->n);
@@ -37701,7 +37701,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, g, testit_Qfunc, NULL, NULL);
 		GMRFLib_evaluate(problem);
-		GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+		GMRFLib_Qinv(problem);
 
 		for (int i = 0; i < g->n; i++) {
 			printf("Qinv[%1d]=  %f\n", i, *GMRFLib_Qinv_get(problem, i, i));

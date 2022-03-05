@@ -1468,7 +1468,7 @@ int my_pardiso_test2(void)
 
 	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_pardiso_test_Q, (void *) graph, constr);
 	GMRFLib_evaluate(problem);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+	GMRFLib_Qinv(problem);
 
 	for (i = 0; i < n; i++) {
 		var = GMRFLib_Qinv_get(problem, i, i);

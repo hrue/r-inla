@@ -77,7 +77,7 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp * graph, int bandwidth);
 int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol,
 				  GMRFLib_graph_tp * graph, int *remap, int bandwidth);
-int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage);
+int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem);
 int GMRFLib_bitmap_factorisation_BAND__iternal(const char *filename, double *band, GMRFLib_graph_tp * graph, int *remap, int bandwidth);
 int GMRFLib_bitmap_factorisation_BAND(const char *filename_body, double *band, GMRFLib_graph_tp * graph, int *remap, int bandwidth);
 int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp * graph, int *remap, int bandwidth);

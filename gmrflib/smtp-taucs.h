@@ -74,7 +74,7 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 				   int *remap);
 int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L);
 int GMRFLib_compute_Qinv_validate_TAUCS(GMRFLib_problem_tp * problem, FILE * fp);
-int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage);
+int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem);
 int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b);
 int GMRFLib_my_taucs_check_flags(int flags);
 int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix * L, double *x);
@@ -90,9 +90,7 @@ int GMRFLib_amdc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *n
 int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int *nv, int *next, int *last, int *head, int *elen, int *degree,
 		    int ncmpa, int *w);
 
-map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L);
-taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, map_ii ** missing_elements);
-int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage, taucs_ccs_matrix * Lmatrix);
+int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
 
 taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags);
 int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L);

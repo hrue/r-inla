@@ -54,7 +54,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-static int include_zeros_in_L = GMRFLib_TRUE;
 #define GMRFLib_NSET_LIMIT(nset, size, n)  IMAX(10, (n)/10/(size))
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
@@ -682,6 +681,9 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
+	static double time_used = 0.0;
+	double tref = GMRFLib_cpu();
+	
 	int i, j, k, ic, ne, n = 0, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
 
@@ -702,7 +704,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
 	Q->colptr[0] = 0;
 
-#if defined(_OPENMP)
 	/*
 	 * first, do a first pass to set the indices; then fill the matrix using omp 
 	 */
@@ -753,39 +754,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	if (nan_error) {
 		return !GMRFLib_SUCCESS;
 	}
-#else
-	for (i = 0, ic = 0; i < n; i++) {
-		double val;
 
-		Q->rowind[ic] = i;
-
-		val = Qfunc(i, i, NULL, Qfunc_arg);
-		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
-		Q->values.d[ic] = val;
-
-		ic++;
-		ne = 1;
-
-		for (k = 0; k < graph->nnbs[i]; k++) {
-			j = graph->nbs[i][k];
-			if (j > i) {
-				break;
-			}
-			Q->rowind[ic] = j;
-
-			val = Qfunc(i, j, NULL, Qfunc_arg);
-			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
-			Q->values.d[ic] = val;
-
-			ic++;
-			ne++;
-		}
-		Q->colptr[i + 1] = Q->colptr[i] + ne;
-	}
-	if (nan_error) {
-		return !GMRFLib_SUCCESS;
-	}
-#endif
 	iperm = remap;					       /* yes, this is correct */
 	perm = Calloc(n, int);
 
@@ -820,6 +789,9 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 		}
 	}
 
+	time_used += GMRFLib_cpu() - tref;
+	P(time_used);
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -851,18 +823,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	}
 	taucs_ccs_free(*L);
 
-	if (include_zeros_in_L) {
-		/*
-		 * this version will maintain the zero's in L, so that the computation of Qinv gets faster; there is then no need
-		 * to check L. 
-		 */
-		*L = my_taucs_dsupernodal_factor_to_ccs(*symb_fact);
-	} else {
-		/*
-		 * this is the library version which will remove zeros in L. 
-		 */
-		*L = taucs_supernodal_factor_to_ccs(*symb_fact);
-	}
+	*L = my_taucs_dsupernodal_factor_to_ccs(*symb_fact);
 	(*L)->flags = flags & ~TAUCS_SYMMETRIC;		       /* fixes a bug in ver 2.0 av TAUCS */
 	taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */
 
@@ -1128,329 +1089,18 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem, int storage)
+int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
 {
 	if (!problem) {
 		return GMRFLib_SUCCESS;
 	}
 
-	if (include_zeros_in_L) {
-		/*
-		 * we have now modified the code so that zero's maintains in L, so we do not need the checking-step any longer. 
-		 */
-		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, storage, NULL));
-	} else {
-		/*
-		 * strategy:
-		 * 
-		 * try first to compute Qinv, if fail, then go back and add zero-terms to L until ok, and compute Qinv again. 
-		 */
-
-		int i, n;
-		taucs_ccs_matrix *L = NULL, *LL = NULL;	       /* to hold L matrices if new ones are built */
-		map_ii **mis_elm = NULL;
-
-		n = problem->sub_sm_fact.TAUCS_L->n;
-
-		/*
-		 * no-check, check-once or failsafe? 
-		 */
-		if ((storage & GMRFLib_QINV_NO_CHECK)) {
-			GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, storage, NULL));
-		} else {
-			/*
-			 * do some checking 
-			 */
-			L = GMRFLib_L_duplicate_TAUCS(problem->sub_sm_fact.TAUCS_L, TAUCS_DOUBLE | TAUCS_LOWER | TAUCS_TRIANGULAR);
-			while ((mis_elm = GMRFLib_compute_Qinv_TAUCS_check(L))) {
-				LL = L;
-				L = GMRFLib_compute_Qinv_TAUCS_add_elements(LL, mis_elm);
-				taucs_ccs_free(LL);
-
-				for (i = 0; i < n; i++) {
-					map_ii_free(mis_elm[i]);
-					Free(mis_elm[i]);
-				}
-				Free(mis_elm);
-
-				if ((storage & GMRFLib_QINV_CHECK_ONCE)) {
-					break;		       /* check once only */
-				}
-			}
-			GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, storage, L));
-			taucs_ccs_free(L);
-		}
-	}
+	GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL));
 	return GMRFLib_SUCCESS;
 }
 
-map_ii **GMRFLib_compute_Qinv_TAUCS_check(taucs_ccs_matrix * L)
+int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
 {
-	int i, j, k, jp, ii, kk, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, nmissing = 0, n;
-	map_ii **Qinv_L = NULL;
-	map_ii **missing = NULL;
-
-	if (!L) {
-		return NULL;
-	}
-	n = L->n;
-
-	/*
-	 * construct a row-list of L_ij's including the diagonal 
-	 */
-	nnbs = Calloc(n, int);
-	nbs = Calloc(n, int *);
-	nnbsQ = Calloc(n, int);				       /* number of elm in the Qinv_L[j] hash-table */
-
-	for (i = 0; i < n; i++) {
-		for (jp = L->colptr[i]; jp < L->colptr[i + 1]; jp++) {
-			nnbs[L->rowind[jp]]++;
-		}
-	}
-
-	for (i = 0; i < n; i++) {
-		nbs[i] = Calloc(nnbs[i], int);
-		nnbs[i] = 0;
-	}
-
-	for (j = 0; j < n; j++) {
-		for (jp = L->colptr[j]; jp < L->colptr[j + 1]; jp++) {	/* including the diagonal */
-			i = L->rowind[jp];
-			nbs[i][nnbs[i]] = j;
-			nnbs[i]++;
-			nnbsQ[IMIN(i, j)]++;		       /* for the Qinv_L[] hash-table */
-		}
-	}
-
-	/*
-	 * I join these tasks into one i-loop; preferable for omp 
-	 */
-	Qinv_L = Calloc(n, map_ii *);
-	missing = Calloc(n, map_ii *);
-#pragma omp parallel for private(i)
-	for (i = 0; i < n; i++) {
-		qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* is this needed ???? */
-		Qinv_L[i] = Calloc(1, map_ii);
-		map_ii_init_hint(Qinv_L[i], nnbsQ[i]);
-		missing[i] = Calloc(1, map_ii);
-		map_ii_init(missing[i]);
-	}
-
-	if (1) {
-		/*
-		 * different versions 
-		 */
-		if (1) {
-			/*
-			 * fast version 1
-			 * 
-			 * not much to gain here. 
-			 */
-			char *Zj = NULL;
-			int *Zj_set = NULL, nset;
-
-			Zj = Calloc(n, char);
-			Zj_set = Calloc(n, int);
-
-			for (j = n - 1; j >= 0; j--) {
-				nset = 0;
-				for (k = -1; (k = (int) map_ii_next(Qinv_L[j], k)) != -1;) {
-					kk = Qinv_L[j]->contents[k].key;
-					Zj[kk] = 1;
-					Zj_set[nset++] = kk;
-				}
-
-				for (ii = nnbs[j] - 1; ii >= 0; ii--) {
-					i = nbs[j][ii];
-					for (kk = L->colptr[i] + 1; kk < L->colptr[i + 1]; kk++) {
-						k = L->rowind[kk];
-						if (Zj[k] == 0 && L->values.d[kk] != 0.0) {
-							map_ii_set(missing[IMIN(k, j)], IMAX(k, j), 1);
-							if (k < j) {
-								map_ii_set(Qinv_L[k], j, 1);	/* also mark those who are missing */
-							}
-							Zj[k] = 1;
-							Zj_set[nset++] = k;
-							nmissing++;
-						}
-					}
-					Zj[i] = 1;
-					Zj_set[nset++] = i;
-					map_ii_set(Qinv_L[i], j, 1);
-				}
-				/*
-				 * if (j > 0) for(kk=0;kk<nset;kk++) Zj[Zj_set[kk]] = 0; 
-				 */
-
-				if (j > 0) {		       /* not needed for j=0 */
-					if (nset > GMRFLib_NSET_LIMIT(nset, (int) sizeof(char), n)) {
-						Memset(Zj, 0, n * sizeof(char));
-					} else {
-						for (kk = 0; kk < nset; kk++) {
-							Zj[Zj_set[kk]] = 0;	/* set those to zero */
-						}
-					}
-				}
-			}
-			Free(Zj);
-			Free(Zj_set);
-		} else {
-			/*
-			 * fast version 2
-			 * 
-			 * run almost as fast as the above, probably since the size of Zj is char and hence small. but is to be 
-			 * preferred as it does not matter how large 'nset' is?
-			 * 
-			 */
-			char *Zj = NULL;
-
-			Zj = Calloc(n, char);
-
-			for (j = n - 1; j >= 0; j--) {
-				for (k = -1; (k = (int) map_ii_next(Qinv_L[j], k)) != -1;) {
-					Zj[Qinv_L[j]->contents[k].key] = 1;
-				}
-
-				for (ii = nnbs[j] - 1; ii >= 0; ii--) {
-					i = nbs[j][ii];
-					for (kk = L->colptr[i] + 1; kk < L->colptr[i + 1]; kk++) {
-						k = L->rowind[kk];
-						if (Zj[k] == 0 && L->values.d[kk] != 0.0) {
-							map_ii_set(missing[IMIN(k, j)], IMAX(k, j), 1);
-							if (k < j) {
-								map_ii_set(Qinv_L[k], j, 1);	/* also mark those who are missing */
-							}
-							Zj[k] = 1;
-							nmissing++;
-						}
-					}
-					Zj[i] = 1;
-					map_ii_set(Qinv_L[i], j, 1);
-				}
-				if (j > 0) {
-					Memset(Zj, 0, n * sizeof(char));
-				}
-			}
-			Free(Zj);
-		}
-	} else {
-		/*
-		 * slow version, but don't delete! 
-		 */
-		for (j = n - 1; j >= 0; j--) {
-			for (ii = nnbs[j] - 1; ii >= 0; ii--) {
-				i = nbs[j][ii];
-				for (kk = L->colptr[i] + 1; kk < L->colptr[i + 1]; kk++) {
-					k = L->rowind[kk];
-					if (!map_ii_ptr(Qinv_L[IMIN(k, j)], IMAX(k, j))) {
-						map_ii_set(missing[IMIN(k, j)], IMAX(k, j), 0);
-						map_ii_set(Qinv_L[IMIN(k, j)], IMAX(k, j), 0);	/* also mark those who are missing */
-						nmissing++;
-					}
-				}
-				map_ii_set(Qinv_L[IMIN(i, j)], IMAX(i, j), 0);
-			}
-		}
-	}
-
-#pragma omp parallel for private(i)
-	for (i = 0; i < n; i++) {
-		Free(nbs[i]);
-		map_ii_free(Qinv_L[i]);
-		Free(Qinv_L[i]);
-	}
-	Free(nbs);
-	Free(nnbs);
-	Free(Qinv_L);
-	Free(nnbsQ);
-
-	if (nmissing == 0) {
-		/*
-		 * free the missing-hash, and set it to NULL so that this function returns NULL 
-		 */
-#pragma omp parallel for private(i)
-		for (i = 0; i < n; i++) {
-			map_ii_free(missing[i]);
-			Free(missing[i]);
-		}
-		Free(missing);
-	}
-
-	printf("\n\n\n%s: nmissing %d\n\n", __GMRFLib_FuncName, nmissing);
-	if (nmissing) {
-		abort();
-	}
-
-	return missing;
-}
-
-taucs_ccs_matrix *GMRFLib_compute_Qinv_TAUCS_add_elements(taucs_ccs_matrix * L, map_ii ** missing)
-{
-	int i, j, k, jp, jpp, n, nnz, nnz_new, nmissing, collen;
-	taucs_ccs_matrix *LL = NULL;
-
-	n = L->n;
-	/*
-	 * first count the number of missing terms 
-	 */
-	for (i = 0, nmissing = 0; i < n; i++) {
-		for (k = -1; (k = (int) map_ii_next(missing[i], k)) != -1;) {
-			nmissing++;
-		}
-	}
-
-	nnz = L->colptr[n];
-	nnz_new = nnz + nmissing;
-
-	LL = taucs_dccs_create(n, n, nnz_new);
-	LL->flags = L->flags;				       /* maintain properties */
-
-	LL->colptr[0] = 0;				       /* start at zero */
-	for (j = 0, jp = 0; j < n; j++) {
-		/*
-		 * do each column j 
-		 */
-		collen = L->colptr[j + 1] - L->colptr[j];
-		jpp = L->colptr[j];
-
-		Memcpy(&(LL->rowind[jp]), &(L->rowind[jpp]), collen * sizeof(int));
-		Memcpy(&(LL->values.d[jp]), &(L->values.d[jpp]), collen * sizeof(double));
-
-		jp += collen;
-
-		/*
-		 * now add new elms to this column 
-		 */
-		for (k = -1; (k = (int) map_ii_next(missing[j], k)) != -1;) {
-			LL->rowind[jp] = missing[j]->contents[k].key;
-			LL->values.d[jp] = 0.0;
-			jp++;
-		}
-		LL->colptr[j + 1] = jp;
-	}
-
-	if (0) {
-		for (j = 0; j < n; j++) {
-			for (jp = L->colptr[j]; jp < L->colptr[j + 1]; jp++) {
-				printf("L[ %1d %1d ] = %.12f\n", L->rowind[jp], j, L->values.d[jp]);
-			}
-		}
-
-		for (j = 0; j < n; j++) {
-			for (jp = LL->colptr[j]; jp < LL->colptr[j + 1]; jp++) {
-				printf("LL[ %1d %1d ] = %.12f\n", LL->rowind[jp], j, LL->values.d[jp]);
-			}
-		}
-	}
-
-	return LL;
-}
-int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage, taucs_ccs_matrix * Lmatrix)
-{
-	/*
-	 * compute the elements in Qinv from the non-zero pattern of L (no checking). store them according to `storage':
-	 * GMRFLib_QINV_ALL GMRFLib_QINV_NEIGB GMRFLib_QINV_DIAG 
-	 */
 	double *ptr = NULL, value, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;
@@ -1517,9 +1167,6 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 			i = nbs[j][ii];
 			diag = L->values.d[L->colptr[i]];
 			value = (i == j ? 1. / diag : 0.0);
-			/*
-			 * no gain to omp this loop or to workshare this ii-loop either.... 
-			 */
 			for (kk = L->colptr[i] + 1; kk < L->colptr[i + 1]; kk++) {
 				value -= L->values.d[kk] * Zj[L->rowind[kk]];
 			}
@@ -1575,26 +1222,17 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, int storage
 	/*
 	 * possible remove entries: options are GMRFLib_QINV_ALL GMRFLib_QINV_NEIGB GMRFLib_QINV_DIAG 
 	 */
-	if (storage & (GMRFLib_QINV_DIAG | GMRFLib_QINV_NEIGB)) {
+	if (1) {
 		rremove = Calloc(n, int);
-
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
-			if (storage & GMRFLib_QINV_DIAG) {
-				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-					if ((j = Qinv_L[i]->contents[k].key) != i) {
+			for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
+				j = Qinv_L[i]->contents[k].key;
+				
+				if (j != i) {
+					jjj = inv_remap[j];
+					if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
 						rremove[nrremove++] = j;
-					}
-				}
-			} else {
-				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-					j = Qinv_L[i]->contents[k].key;
-
-					if (j != i) {
-						jjj = inv_remap[j];
-						if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
-							rremove[nrremove++] = j;
-						}
 					}
 				}
 			}

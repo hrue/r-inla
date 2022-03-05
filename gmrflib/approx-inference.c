@@ -9321,7 +9321,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store)
 	if (!ai_store->problem->sub_inverse) {
 		int i, n;
 
-		GMRFLib_Qinv(ai_store->problem, GMRFLib_QINV_NEIGB);
+		GMRFLib_Qinv(ai_store->problem);
 		Free(ai_store->stdev);
 		n = ai_store->problem->n;
 		ai_store->stdev = Calloc(n, double);

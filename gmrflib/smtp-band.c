@@ -422,7 +422,7 @@ int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
+int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 {
 	/*
 	 * large parts of this code is copied from the TAUCS version. be aware.... 
@@ -538,28 +538,17 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 		inv_remap[problem->sub_sm_fact.remap[k]] = k;
 	}
 
-	/*
-	 * possible remove entries: options are GMRFLib_QINV_ALL GMRFLib_QINV_NEIGB GMRFLib_QINV_DIAG 
-	 */
-	if (storage & (GMRFLib_QINV_DIAG | GMRFLib_QINV_NEIGB)) {
+	if (1) {
 		rremove = Calloc(n, int);
 
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
-			if (storage & GMRFLib_QINV_DIAG) {
-				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-					if ((j = Qinv_L[i]->contents[k].key) != i) {
+			for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
+				j = Qinv_L[i]->contents[k].key;
+				if (j != i) {
+					jjj = inv_remap[j];
+					if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
 						rremove[nrremove++] = j;
-					}
-				}
-			} else {
-				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-					j = Qinv_L[i]->contents[k].key;
-					if (j != i) {
-						jjj = inv_remap[j];
-						if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
-							rremove[nrremove++] = j;
-						}
 					}
 				}
 			}

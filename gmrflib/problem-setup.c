@@ -1073,10 +1073,10 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
+int GMRFLib_Qinv(GMRFLib_problem_tp * problem)
 {
 	if (problem) {
-		GMRFLib_EWRAP1(GMRFLib_compute_Qinv((void *) problem, storage));
+		GMRFLib_EWRAP1(GMRFLib_compute_Qinv((void *) problem));
 	}
 	return GMRFLib_SUCCESS;
 }

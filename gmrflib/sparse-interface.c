@@ -580,18 +580,18 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 /*!
   \brief Wrapper for computing the (structural) inverse of \c Q.
 */
-int GMRFLib_compute_Qinv(void *problem, int storage)
+int GMRFLib_compute_Qinv(void *problem)
 {
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (p->sub_sm_fact.smtp) {
 	case GMRFLib_SMTP_BAND:
-		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p, storage));
+		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p));
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS(p, storage));
+		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS(p));
 		break;
 
 	case GMRFLib_SMTP_PARDISO:
