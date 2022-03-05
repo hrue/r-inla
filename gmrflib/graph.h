@@ -114,7 +114,8 @@ typedef struct {
 	 *  \brief Number of nodes in the graph. 
 	 */
 	int n;
-
+	int nnz;					       /* number of off-diagonals = total sum of neighbours */
+	
 	/**
 	 *  \brief Number of neighbours for each node.
 	 * 
@@ -132,6 +133,14 @@ typedef struct {
 	int *lnnbs;
 
 	/**
+	 *  \brief Number of smaller neighbours (higher index) for each node.
+	 * 
+	 * A length \em n array, where <em>nnbs[i]</em> contains the number of smaler neighbours of node <em>i; i = 0,..., n-1.</em>
+	 * \n\n 
+	 */
+	int *snnbs;
+
+	/**
 	 *  \brief For each node: node numbers for neighbours
 	 * 
 	 * A length \em n array of arrays, where <em>nbs[i][j]</em> contains the node numbers <em>j; j = 0,..., nnbs[j]-1</em>
@@ -141,11 +150,13 @@ typedef struct {
 
 	/**
 	 *  \brief For each node: node numbers for larger (higher index) neighbours. Same storage as <em>nbs</em>
-	 * 
-	 * A length \em n array of arrays, where <em>nbs[i][j]</em> contains the node numbers <em>j; j = 0,..., nnbs[j]-1</em>
-	 * for the neighbours of node \em i. \n\n 
 	 */
 	int **lnbs;
+
+	/**
+	 *  \brief For each node: node numbers for smaller (higher index) neighbours. Same storage as <em>nbs</em>
+	 */
+	int **snbs;
 
 } GMRFLib_graph_tp;
 
@@ -193,13 +204,13 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph);
 int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag);
 int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag);
 int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold);
-int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename);
 int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename);

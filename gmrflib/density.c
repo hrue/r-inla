@@ -1169,13 +1169,11 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	    *log_dens = NULL, m1, m2, sum_w, *ptr = NULL,
 	    f[] = { 0, 0.1, -0.1, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75, 1.0, -1.0, 1.5, -1.5, 2.0, -2.0, 3.0, -3.0 };
 
-	GMRFLib_ENTER_ROUTINE;
 	nf = sizeof(f) / sizeof(double);
 	if (n == 0) {
 		if (density) {
 			*density = NULL;
 		}
-		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1256,7 +1254,6 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 
 	Calloc_free();
 
-	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

@@ -26059,8 +26059,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 
 		// save the indices for the graph, as we need them repeatedly
-		GMRFLib_graph_nnodes(&(def->len_list), graph);
-		def->len_list = (def->len_list - graph->n) / 2 + graph->n;
+		def->len_list = graph->nnz / 2 + graph->n;
 		def->ilist = Calloc(def->len_list, int);
 		def->jlist = Calloc(def->len_list, int);
 		for (i = 0, k = 0; i < graph->n; i++) {
@@ -26210,8 +26209,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 
 		// save the indices for the graph, as we need them repeatedly
-		GMRFLib_graph_nnodes(&(def->len_list), graph);
-		def->len_list = (def->len_list - graph->n) / 2 + graph->n;
+		def->len_list = graph->nnz / 2 + graph->n;
 		def->ilist = Calloc(def->len_list, int);
 		def->jlist = Calloc(def->len_list, int);
 		for (i = 0, k = 0; i < graph->n; i++) {
@@ -28365,7 +28363,7 @@ int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_
 	}
 	GMRFLib_pardiso_set_parallel_reordering(val);
 
-	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
+	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), 1);
 	if (mb->verbose) {
 		printf("\t\tnrhs[%1d]\n", val);
 	}

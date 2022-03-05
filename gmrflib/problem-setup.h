@@ -140,25 +140,6 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 } GMRFLib_Qfunc_arg_tp;
 
-/* 
-   options for Qinv
-*/
-
-/*!
-  \brief Store all values computed
-*/
-#define GMRFLib_QINV_ALL         0x0000
-
-/*!
-  \brief Store only marginal values and covariances for neigbours
-*/
-#define GMRFLib_QINV_NEIGB       0x0001
-
-/*!
-  \brief Store only marginal variances
-*/
-#define GMRFLib_QINV_DIAG        0x0002
-
 typedef struct {
 
 	/**

@@ -123,10 +123,11 @@ typedef struct {
 	int n;
 	int na;
 	int base;					       /* 0 or 1 */
+	int copy_only;
 	int *ia;
 	int *ja;
+	int *iwork;
 	double *a;
-	int copy_only;
 } GMRFLib_csr_tp;
 
 typedef struct {

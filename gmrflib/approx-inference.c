@@ -8404,8 +8404,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 			GMRFLib_printf_graph(stdout, g);
 		}
 
-		int nelm;				       /* number of elements in Q; double conting */
-		GMRFLib_graph_nnodes(&nelm, gmrf_approx->sub_graph);
+		int nelm = gmrf_approx->sub_graph->n + gmrf_approx->sub_graph->nnz;
 		mo->configs[id]->n = gmrf_approx->sub_graph->n;
 		mo->configs[id]->nz = (nelm - mo->configs[id]->n) / 2 + mo->configs[id]->n;
 		mo->configs[id]->ntheta = ntheta;
@@ -8541,12 +8540,10 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 		mo->configs_preopt[id]->n = preopt->n;
 		mo->configs_preopt[id]->ntheta = ntheta;
 
-		int nelm;				       /* number of elements in Q; double conting */
-		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
+		int nelm = preopt->preopt_graph->n + preopt->preopt_graph->nnz;
 		mo->configs_preopt[id]->nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
-		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
+		nelm = preopt->latent_graph->n + preopt->latent_graph->nnz;
 		mo->configs_preopt[id]->prior_nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
-
 		mo->configs_preopt[id]->A = preopt->A;
 		mo->configs_preopt[id]->pA = preopt->pA;
 		GMRFLib_duplicate_constr(&(mo->configs_preopt[id]->constr), preopt->latent_constr, preopt->preopt_graph);
