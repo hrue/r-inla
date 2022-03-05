@@ -37969,7 +37969,7 @@ int main(int argc, char **argv)
 	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
-			if (!strcasecmp(optarg, "CLASSIC")) {
+			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 			} else if (!strcasecmp(optarg, "TWOSTAGE")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE;

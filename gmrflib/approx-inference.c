@@ -8743,9 +8743,13 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	// FIXME: Recheck this later!
 	int use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
 
+	// seems to be ok now?? (March 2022)
+	use_pardiso = 0;
+
 	if (!use_pardiso) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 	}
+
 #pragma omp parallel for private(j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (int i = 0; i < nlin; i++) {
 
