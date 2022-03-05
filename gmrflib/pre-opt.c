@@ -852,7 +852,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->n; i++) {				\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		if (A[i]) {						\
 			GMRFLib_idxval_elm_tp *elm = A[i]->store;	\
 			for (int jj = 0; jj < A[i]->n; jj++) {		\
@@ -897,7 +897,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < preopt->npred; i++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		if (preopt->A_idxval[i]) {				\
 			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 			for (int jj = 0; jj < preopt->A_idxval[i]->n; jj++) { \
@@ -912,7 +912,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	if (preopt->mpred) {
 #define CODE_BLOCK							\
 		for (int i = 0; i < preopt->mpred; i++) {		\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			if (preopt->pA_idxval[i]) {			\
 				GMRFLib_idxval_elm_tp *elm = preopt->pA_idxval[i]->store; \
 				for (int jj = 0; jj < preopt->pA_idxval[i]->n; jj++) { \
@@ -967,7 +967,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	if (compute_mean && !compute_variance) {
 #define CODE_BLOCK							\
 		for(int i = 0; i < mpred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
 			for(int k = 0; k < preopt->pAA_idxval[i]->n; k++) { \
 				mean[i] += elm[k].val * mm[elm[k].idx];	\
@@ -981,7 +981,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 #define CODE_BLOCK							\
 		for(int i = 0; i < mpred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			double var = 0.0, *cov;				\
 			int k, j, kk, jj;				\
 			GMRFLib_idxval_elm_tp *elm = preopt->pAA_idxval[i]->store; \
@@ -1011,7 +1011,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	if (compute_mean && !compute_variance) {
 #define CODE_BLOCK							\
 		for(int i = 0; i < npred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \
 			for(int k = 0; k < preopt->A_idxval[i]->n; k++){ \
 				mean[offset + i] += elm[k].val * mm[elm[k].idx]; \
@@ -1024,7 +1024,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 #define CODE_BLOCK							\
 		for(int i = 0; i < npred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			double var = 0.0, zero = 0.0, *cov = NULL;	\
 			int k, j, kk, jj;				\
 			GMRFLib_idxval_elm_tp *elm = preopt->A_idxval[i]->store; \

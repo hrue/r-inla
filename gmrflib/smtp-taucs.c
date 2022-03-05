@@ -803,7 +803,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 
 #define CODE_BLOCK						\
 	for (int i = 0; i < n; i++) {				\
-		CODE_BLOCK_SET_THREAD_ID;			\
+		CODE_BLOCK_SET_THREAD_ID();			\
 		int ic = ic_idx[i];				\
 		double val = Qfunc(i, i, NULL, Qfunc_arg);	\
 		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\

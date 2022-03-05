@@ -2267,7 +2267,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < nidx; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			int idx = idxs[i];				\
 			GMRFLib_2order_approx(&(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
@@ -7285,7 +7285,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
 			int node = selection->idx[ii];			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			GMRFLib_idxval_tp *v = A_idx(node);		\
 			double *cor = CODE_BLOCK_WORK_PTR(0);		\
 			CODE_BLOCK_WORK_ZERO(0);			\
@@ -7432,11 +7432,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 #define CODE_BLOCK					      \
 	for(int node = 0; node < Npred; node++) {	      \
-		CODE_BLOCK_SET_THREAD_ID;		      \
+		CODE_BLOCK_SET_THREAD_ID();		      \
 		if (groups->missing[node]->n == 0) continue;  \
-							      \
 		GMRFLib_idxval_tp *v = A_idx(node);	      \
-		CODE_BLOCK_SET_THREAD_ID;		      \
 		double *a = CODE_BLOCK_WORK_PTR(0);	      \
 		CODE_BLOCK_WORK_ZERO(0);		      \
 		double *Sa = CODE_BLOCK_WORK_PTR(1);	      \
@@ -7520,7 +7518,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 #define CODE_BLOCK							\
 	for(int node = 0; node < Npred; node++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		if (gcpo[node]->cov_mat == NULL) {			\
 			gcpo[node]->value = NAN;			\
 			continue;					\
@@ -7869,7 +7867,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			int i = d_idx->idx[ii];				\
 			if (density) {					\
 				GMRFLib_ai_vb_prepare(vb_coof[i], i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
@@ -7919,7 +7917,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 
 #define CODE_BLOCK							\
 		for (int j = 0; j < vb_idx->n; j++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			double *col = CODE_BLOCK_WORK_PTR(0);		\
 			double *res = CODE_BLOCK_WORK_PTR(1);		\
 			for (int i = 0; i < graph->n; i++) {		\
@@ -8133,7 +8131,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 #define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int j = vb_idx->idx[jj];				\
 		double *b = CODE_BLOCK_WORK_PTR(0);			\
 		double *cov = CODE_BLOCK_WORK_PTR(1);			\
@@ -8181,7 +8179,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof;			\
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \

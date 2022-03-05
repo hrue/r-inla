@@ -1174,7 +1174,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				FIXME("Qx2: run parallel");
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				double qij;				\
 				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i]; \
 				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
@@ -1207,7 +1207,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				int tnum;				\
 				double *r, *local_values;		\
 				tnum = omp_get_thread_num();		\

@@ -418,7 +418,7 @@ typedef enum {
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
-#define CODE_BLOCK_SET_THREAD_ID GMRFLib_thread_id = id__
+#define CODE_BLOCK_SET_THREAD_ID() GMRFLib_thread_id = id__
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
@@ -435,7 +435,7 @@ typedef enum {
 			CODE_BLOCK;					\
 		}							\
 		Free(work__);						\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
         }
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.

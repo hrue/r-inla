@@ -244,7 +244,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		if (graph->lnnbs[i]) {					\
 			int k = k_arr[i];				\
 			Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
@@ -276,7 +276,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		if (ISNAN(val)) {
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				for (int k = M->ia[i]; k < M->ia[i + 1]; k++) {	\
 					int j = M->ja[k];		\
 					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);	\
@@ -288,7 +288,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		} else {
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				int k = M->ia[i];			\
 				double v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);	\
 				assert(!(ISNAN(v)));			\
@@ -665,7 +665,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 
 #define CODE_BLOCK						\
 	for (int j = 0; j < m; j++) {				\
-		CODE_BLOCK_SET_THREAD_ID;			\
+		CODE_BLOCK_SET_THREAD_ID();			\
 		int k = j * n;					\
 		for (int i = 0; i < n; i++) {			\
 			x[k + i] = xx[k + permutation[i]];	\
@@ -835,7 +835,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < nblock + reminder; i++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int idum = 0;						\
 		int tnum = omp_get_thread_num();			\
 		int offset = i * n * max_nrhs;				\
@@ -973,7 +973,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			for (int k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) { \
 				double value;				\
 				int j = Qinv[i]->contents[k].key;	\
