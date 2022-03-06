@@ -207,7 +207,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	 * building the graph, but we do it here, so we use 1 as last argument to SET_ELEMENT(,,1). 
 	 */
 
-	int tmax = GMRFLib_MAX_THREADS;
+	int tmax = GMRFLib_MAX_THREADS();
 
 	ilist = Calloc(tmax, int *);
 	jlist = Calloc(tmax, int *);

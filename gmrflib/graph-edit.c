@@ -138,7 +138,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int j;							\
 		map_ii_storage *p;					\
 		for (j = 0, p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {	\
@@ -155,7 +155,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 			nbs[i] = NULL;					\
 		}							\
 	}
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 	GMRFLib_graph_mk_empty(&g);

@@ -140,35 +140,6 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 } GMRFLib_Qfunc_arg_tp;
 
-/* 
-   options for Qinv
-*/
-
-/*!
-  \brief Store all values computed
-*/
-#define GMRFLib_QINV_ALL         0x0000
-
-/*!
-  \brief Store only marginal values and covariances for neigbours
-*/
-#define GMRFLib_QINV_NEIGB       0x0001
-
-/*!
-  \brief Store only marginal variances
-*/
-#define GMRFLib_QINV_DIAG        0x0002
-
-/*!
-  \brief Disable check for ``complete'' L.
-*/
-#define GMRFLib_QINV_NO_CHECK    0x0004
-
-/*!
-  \brief Check once only for a ``complete'' L
-*/
-#define GMRFLib_QINV_CHECK_ONCE  0x0008
-
 typedef struct {
 
 	/**
@@ -426,7 +397,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
-int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage);
+int GMRFLib_Qinv(GMRFLib_problem_tp * problem);
 int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem);
 int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);

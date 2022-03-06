@@ -50,6 +50,8 @@ static map_strvp graph_store;
 static int graph_store_must_init = 1;
 static int graph_store_debug = 0;
 
+#define NUM_THREADS_GRAPH(graph_) ((graph_)->n > 512 ? 2 : 1)
+
 int GMRFLib_init_graph_store(void)
 {
 	GMRFLib_DEBUG_INIT();
@@ -77,8 +79,10 @@ int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 	(*graph)->n = 0;
 	(*graph)->nbs = NULL;
 	(*graph)->lnbs = NULL;
+	(*graph)->snbs = NULL;
 	(*graph)->nnbs = NULL;
 	(*graph)->lnnbs = NULL;
+	(*graph)->snnbs = NULL;
 	(*graph)->sha = NULL;
 
 	return GMRFLib_SUCCESS;
@@ -241,9 +245,9 @@ int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph)
 
 	fpp = (fp ? fp : stdout);
 
-	fprintf(fpp, "graph has %1d nodes\n", graph->n);
+	fprintf(fpp, "graph has n=%1d nodes and nnz=%1d non-zero off-diagonals\n", graph->n, graph->nnz);
 	for (i = 0; i < graph->n; i++) {
-		fprintf(fpp, "node %1d has %1d neighbors and %1d lneighbors:", i, graph->nnbs[i], graph->lnnbs[i]);
+		fprintf(fpp, "node %1d has %1d neighbors, %1d lneighbors and %1d sneighbors:", i, graph->nnbs[i], graph->lnnbs[i], graph->snnbs[i]);
 		for (j = 0; j < graph->nnbs[i]; j++) {
 			fprintf(fpp, " %1d", graph->nbs[i][j]);
 		}
@@ -253,6 +257,13 @@ int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph)
 		fprintf(fpp, "node %1d has %1d lneighbors:", i, graph->lnnbs[i]);
 		for (j = 0; j < graph->lnnbs[i]; j++) {
 			fprintf(fpp, " %1d", graph->lnbs[i][j]);
+		}
+		fprintf(fpp, "\n");
+	}
+	for (i = 0; i < graph->n; i++) {
+		fprintf(fpp, "node %1d has %1d sneighbors:", i, graph->snnbs[i]);
+		for (j = 0; j < graph->snnbs[i]; j++) {
+			fprintf(fpp, " %1d", graph->snbs[i][j]);
 		}
 		fprintf(fpp, "\n");
 	}
@@ -464,25 +475,12 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	Free(graph->nbs);
 	Free(graph->nnbs);
 	Free(graph->lnbs);
+	Free(graph->snbs);
 	Free(graph->lnnbs);
+	Free(graph->snnbs);
 	Free(graph->sha);
 	Free(graph);
 
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_graph_nnodes(int *nelm, GMRFLib_graph_tp * graph)
-{
-	/*
-	 * Return the number of non-zero elements in Q 
-	 */
-	int nn, i;
-
-	for (i = 0, nn = graph->n; i < graph->n; i++) {
-		nn += graph->nnbs[i];
-	}
-
-	*nelm = nn;
 	return GMRFLib_SUCCESS;
 }
 
@@ -543,37 +541,9 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
-	if (0) {
-		// OLD CODE
-		if (imin < 0 || imax > graph->n) {
-			return GMRFLib_FALSE;
-		}
-
-		int m = graph->lnnbs[imin];
-		if (m == 0) {
-			return GMRFLib_FALSE;
-		}
-
-		if (imax > graph->lnbs[imin][m - 1]) {
-			return GMRFLib_FALSE;
-		}
-
-		for (int j = 0; j < m; j++) {
-			int *k = graph->lnbs[imin] + j;
-			if (*k > imax) {
-				return GMRFLib_FALSE;
-			}
-			if (*k == imax) {
-				return GMRFLib_TRUE;
-			}
-		}
-		return GMRFLib_FALSE;
-	} else {
-		// NEW CODE, which do an initial binary-tree search
-		int m = graph->lnnbs[imin];
-		return ((!m || imax > graph->lnbs[imin][m - 1] ||
-			 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, guess) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
-	}
+	int m = graph->lnnbs[imin];
+	return ((!m || imax > graph->lnbs[imin][m - 1] ||
+		 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, guess) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
 int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
@@ -581,6 +551,12 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
+	int nnz = 0;
+	for (int i = 0; i < graph->n; i++) {
+		nnz += graph->nnbs[i];
+	}
+	graph->nnz = nnz;
+
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
 	GMRFLib_add_lnbs_info(graph);			       /* must be before sha */
 	GMRFLib_graph_add_sha(graph);
@@ -599,20 +575,36 @@ int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph)
 	int n = graph->n;
 	graph->lnnbs = Calloc(n, int);
 	graph->lnbs = Calloc(n, int *);
+	graph->snnbs = Calloc(n, int);
+	graph->snbs = Calloc(n, int *);
 
-#pragma omp parallel for num_threads(2)
-	for (int i = 0; i < n; i++) {
-		int k = graph->nnbs[i];
-		for (int jj = 0; jj < graph->nnbs[i]; jj++) {
-			int j = graph->nbs[i][jj];
-			if (j > i) {
-				k = jj;
-				graph->lnbs[i] = &(graph->nbs[i][jj]);
-				break;
-			}
-		}
-		graph->lnnbs[i] = graph->nnbs[i] - k;
+#define CODE_BLOCK							\
+	for (int i = 0; i < n; i++) {					\
+		int k = graph->nnbs[i];					\
+		for (int jj = 0; jj < graph->nnbs[i]; jj++) {		\
+			int j = graph->nbs[i][jj];			\
+			if (j > i) {					\
+				k = jj;					\
+				graph->lnbs[i] = &(graph->nbs[i][jj]);	\
+				break;					\
+			}						\
+		}							\
+		graph->lnnbs[i] = graph->nnbs[i] - k;			\
+									\
+		k = graph->nnbs[i];					\
+		for (int jj = 0; jj < graph->nnbs[i]; jj++) {		\
+			int j = graph->nbs[i][jj];			\
+			if (j > i) {					\
+				k = jj;					\
+				break;					\
+			}						\
+		}							\
+		graph->snnbs[i] = k;					\
+		graph->snbs[i] = (k > 0 ? graph->nbs[i] : NULL);	\
 	}
+
+	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
+#undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
 }
@@ -626,18 +618,22 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-#pragma omp parallel for num_threads(2)
-	for (int i = 0; i < graph->n; i++) {
-		if (graph->nnbs[i]) {
-			int k = 0;
-			for (int j = 1; j < graph->nnbs[i]; j++) {
-				if (graph->nbs[i][k] != graph->nbs[i][j]) {
-					graph->nbs[i][++k] = graph->nbs[i][j];
-				}
-			}
-			graph->nnbs[i] = k + 1;
-		}
+#define CODE_BLOCK				\
+	for (int i = 0; i < graph->n; i++) {	\
+		if (graph->nnbs[i]) {		\
+			int k = 0;					\
+			for (int j = 1; j < graph->nnbs[i]; j++) {	\
+				if (graph->nbs[i][k] != graph->nbs[i][j]) { \
+					graph->nbs[i][++k] = graph->nbs[i][j]; \
+				}					\
+			}						\
+			graph->nnbs[i] = k + 1;				\
+		}							\
 	}
+
+	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
+#undef CODE_BLOCK
+
 
 	return GMRFLib_SUCCESS;
 }
@@ -651,23 +647,23 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-#pragma omp parallel for num_threads(2)
-	for (int i = 0; i < graph->n; i++) {
-		if (graph->nnbs[i]) {
-
-			// faster to check if its needed, as most graphs are already sorted although its hard to know for sure.
-			int j, is_sorted = 1;
-
-			if (graph->nnbs[i]) {
-				for (j = 1; j < graph->nnbs[i] && is_sorted; j++) {
-					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j - 1]);
-				}
-			}
-			if (!is_sorted) {
-				qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp);
-			}
-		}
+#define CODE_BLOCK				\
+	for (int i = 0; i < graph->n; i++) {	\
+		if (graph->nnbs[i]) {		\
+			int j, is_sorted = 1;				\
+			if (graph->nnbs[i]) {				\
+				for (j = 1; j < graph->nnbs[i] && is_sorted; j++) { \
+					is_sorted = is_sorted && (graph->nbs[i][j] > graph->nbs[i][j - 1]); \
+				}					\
+			}						\
+			if (!is_sorted) {				\
+				qsort(graph->nbs[i], (size_t) graph->nnbs[i], sizeof(int), GMRFLib_icmp); \
+			}						\
+		}							\
 	}
+
+	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
+#undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
 }
@@ -863,8 +859,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	g->nnbs = Calloc(n, int);
 	Memcpy(g->nnbs, graph_old->nnbs, (size_t) (n * sizeof(int)));
 
-	GMRFLib_graph_nnodes(&m, graph_old);
-	m = m - graph_old->n;
+	m = graph_old->nnz;
 	hold = Calloc(IMAX(1, m), int);
 	g->nbs = Calloc(n, int *);
 
@@ -1048,19 +1043,26 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 	/*
 	 * convert from the real-world to the mapped world. source might be NULL. 
 	 */
-	int i;
-
 	if ((destination && source) && (destination != source)) {
-		for (i = 0; i < graph->n; i++) {
+		for (int i = 0; i < graph->n; i++) {
 			destination[remap[i]] = source[i];
 		}
 	} else {
-		double *work = Malloc(graph->n, double);
+		static double *work = NULL;
+#pragma omp threadprivate(work)
+		static int work_len = 0;
+#pragma omp threadprivate(work_len)
+
+		if (graph->n > work_len) {
+			Free(work);
+			work_len = graph->n;
+			work = Calloc(work_len, double);
+		}
+
 		Memcpy(work, destination, graph->n * sizeof(double));
-		for (i = 0; i < graph->n; i++) {
+		for (int i = 0; i < graph->n; i++) {
 			destination[remap[i]] = work[i];
 		}
-		Free(work);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1070,20 +1072,26 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 	/*
 	 * convert from the mapped-world to the real world. source might be NULL. 
 	 */
-
-	int i;
-
 	if ((destination && source) && (destination != source)) {
-		for (i = 0; i < graph->n; i++) {
+		for (int i = 0; i < graph->n; i++) {
 			destination[i] = source[remap[i]];
 		}
 	} else {
-		double *work = Malloc(graph->n, double);
+		static double *work = NULL;
+#pragma omp threadprivate(work)
+		static int work_len = 0;
+#pragma omp threadprivate(work_len)
+
+		if (graph->n > work_len) {
+			Free(work);
+			work_len = graph->n;
+			work = Calloc(work_len, double);
+		}
+
 		Memcpy(work, destination, graph->n * sizeof(double));
-		for (i = 0; i < graph->n; i++) {
+		for (int i = 0; i < graph->n; i++) {
 			destination[i] = work[remap[i]];
 		}
-		Free(work);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1102,6 +1110,15 @@ int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph)
 	int m = 0;
 	for (int i = 0; i < graph->n; i++) {
 		m = IMAX(m, graph->lnnbs[i]);
+	}
+	return m;
+}
+
+int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph)
+{
+	int m = 0;
+	for (int i = 0; i < graph->n; i++) {
+		m = IMAX(m, graph->snnbs[i]);
 	}
 	return m;
 }
@@ -1131,7 +1148,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			max_t = 1;
 		} else {
 			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS;
+			max_t = GMRFLib_MAX_THREADS();
 		}
 	} else {
 		time_n = -1;
@@ -1140,7 +1157,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			max_t = 1;
 		} else {
 			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS;
+			max_t = GMRFLib_MAX_THREADS();
 		}
 	}
 
@@ -1155,7 +1172,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				FIXME("Qx2: run parallel");
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				double qij;				\
 				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i]; \
 				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
@@ -1188,7 +1205,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				int tnum;				\
 				double *r, *local_values;		\
 				tnum = omp_get_thread_num();		\
@@ -1251,7 +1268,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 	int ncol = result->size2;
 	double res, *values = NULL;
 
-	if (GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+	if (GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
 		values = Calloc(graph->n * GMRFLib_openmp->max_threads_inner, double);
 	} else {
 		values = Calloc(graph->n, double);
@@ -1261,7 +1278,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 	res = Qfunc(0, -1, values, Qfunc_arg);
 	if (ISNAN(res)) {
 		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
-		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		    GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int k = 0; k < ncol; k++) {
 				GMRFLib_thread_id = id;
@@ -1304,7 +1321,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 		}
 	} else {
 		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
-		    GMRFLib_OPENMP_IN_PARALLEL && GMRFLib_openmp->max_threads_inner > 1) {
+		    GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
 			// I think is less good as it index the matrices in the wrong direction
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int k = 0; k < ncol; k++) {
@@ -2025,15 +2042,10 @@ int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g)
 	GMRFLib_SHA_Init(&c);
 
 	GMRFLib_SHA_IUPDATE(&(g->n), 1);
+	GMRFLib_SHA_IUPDATE(&(g->nnz), 1);
 	GMRFLib_SHA_IUPDATE(g->nnbs, g->n);
-	if (g->lnnbs) {
-		for (int i = 0; i < g->n; i++) {
-			GMRFLib_SHA_IUPDATE(g->lnbs[i], g->lnnbs[i]);
-		}
-	} else {
-		for (int i = 0; i < g->n; i++) {
-			GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i]);
-		}
+	for (int i = 0; i < g->n; i++) {
+		GMRFLib_SHA_IUPDATE(g->nbs[i], g->nnbs[i]);
 	}
 
 	GMRFLib_SHA_Final(md, &c);

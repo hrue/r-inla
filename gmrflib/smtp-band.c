@@ -46,7 +46,7 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 	/*
 	 * compute the reordering from the graph using the routine in acm582.F 
 	 */
-	int i, j, lconnec, bandwidth, profile, error, space, ioptpro, worklen, *rstart, *connec, *degree, *work, simple;
+	int i, j, lconnec, bandwidth, profile, error, space, ioptpro, worklen, *rstart = NULL, *connec = NULL, *degree = NULL, *work = NULL;
 
 	if (!graph || !graph->n)
 		return GMRFLib_SUCCESS;
@@ -54,14 +54,8 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 	/*
 	 * check if we have a simple solution --> no neigbours 
 	 */
-	for (i = 0, simple = 1; i < graph->n && simple; i++) {
-		simple = (graph->nnbs[i] > 0 ? 0 : 1);
-	}
-	if (simple) {
-		int *imap = NULL;
-		if (graph->n >= 0)
-			imap = Calloc(graph->n, int);
-
+	if (graph->nnz == 0) {
+		int *imap = Calloc(graph->n, int);
 		for (i = 0; i < graph->n; i++) {
 			imap[i] = i;
 		}
@@ -72,27 +66,10 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 	/*
 	 * task I, reformat the graph to fit the fortran-routines 
 	 */
-	lconnec = 0;
-	for (i = 0; i < graph->n; i++) {
-		lconnec += graph->nnbs[i];
-	}
-	if (lconnec == 0) {
-		/*
-		 * no connections in the graph, use the identity-map. 
-		 */
-		*remap = Calloc(graph->n, int);
-
-		for (i = 0; i < graph->n; i++) {
-			(*remap)[i] = i;
-		}
-		return GMRFLib_SUCCESS;
-	}
-
+	lconnec = graph->nnz;
 	connec = Calloc(lconnec, int);
 	rstart = Calloc(graph->n, int);
-
 	degree = graph->nnbs;				       /* yes! */
-
 	rstart[0] = 1;					       /* fortran indx'ing */
 	for (i = 1; i < graph->n; i++) {
 		rstart[i] = degree[i - 1] + rstart[i - 1];
@@ -105,9 +82,7 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 
 	worklen = 6 * graph->n + 3;			       /* maximum over all graphs */
 	work = Calloc(worklen, int);
-
 	*remap = Calloc(graph->n, int);
-
 	for (i = 0; i < graph->n; i++) {
 		(*remap)[i] = i + 1;			       /* fortran indx'ing */
 	}
@@ -422,7 +397,7 @@ int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
+int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 {
 	/*
 	 * large parts of this code is copied from the TAUCS version. be aware.... 
@@ -538,28 +513,17 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem, int storage)
 		inv_remap[problem->sub_sm_fact.remap[k]] = k;
 	}
 
-	/*
-	 * possible remove entries: options are GMRFLib_QINV_ALL GMRFLib_QINV_NEIGB GMRFLib_QINV_DIAG 
-	 */
-	if (storage & (GMRFLib_QINV_DIAG | GMRFLib_QINV_NEIGB)) {
+	if (1) {
 		rremove = Calloc(n, int);
 
 		for (i = 0; i < n; i++) {
 			iii = inv_remap[i];
-			if (storage & GMRFLib_QINV_DIAG) {
-				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-					if ((j = Qinv_L[i]->contents[k].key) != i) {
+			for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
+				j = Qinv_L[i]->contents[k].key;
+				if (j != i) {
+					jjj = inv_remap[j];
+					if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
 						rremove[nrremove++] = j;
-					}
-				}
-			} else {
-				for (k = -1, nrremove = 0; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
-					j = Qinv_L[i]->contents[k].key;
-					if (j != i) {
-						jjj = inv_remap[j];
-						if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
-							rremove[nrremove++] = j;
-						}
 					}
 				}
 			}

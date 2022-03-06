@@ -26059,8 +26059,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 
 		// save the indices for the graph, as we need them repeatedly
-		GMRFLib_graph_nnodes(&(def->len_list), graph);
-		def->len_list = (def->len_list - graph->n) / 2 + graph->n;
+		def->len_list = graph->nnz / 2 + graph->n;
 		def->ilist = Calloc(def->len_list, int);
 		def->jlist = Calloc(def->len_list, int);
 		for (i = 0, k = 0; i < graph->n; i++) {
@@ -26210,8 +26209,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) def;
 
 		// save the indices for the graph, as we need them repeatedly
-		GMRFLib_graph_nnodes(&(def->len_list), graph);
-		def->len_list = (def->len_list - graph->n) / 2 + graph->n;
+		def->len_list = graph->nnz / 2 + graph->n;
 		def->ilist = Calloc(def->len_list, int);
 		def->jlist = Calloc(def->len_list, int);
 		for (i = 0, k = 0; i < graph->n; i++) {
@@ -28222,9 +28220,9 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->vb_nodes = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
 	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 0.25);
 	mb->ai_par->vb_max_correct = DMAX(0.0, mb->ai_par->vb_max_correct);
-	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 25);
+	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 20);
 	mb->ai_par->vb_refinement = IMAX(0, mb->ai_par->vb_refinement);
-	mb->ai_par->vb_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.ENABLE.LIMIT"), 25);
+	mb->ai_par->vb_f_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT"), 20);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), NULL));
 	if (opt) {
@@ -28365,7 +28363,7 @@ int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_
 	}
 	GMRFLib_pardiso_set_parallel_reordering(val);
 
-	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
+	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), 1);
 	if (mb->verbose) {
 		printf("\t\tnrhs[%1d]\n", val);
 	}
@@ -30752,7 +30750,7 @@ double extra(double *theta, int ntheta, void *argument)
 			 * Free 'a' 
 			 */
 			for (k = 0; k < GENERIC3_MAXTHETA; k++) {
-				for (kk = 0; kk < GMRFLib_MAX_THREADS; kk++) {
+				for (kk = 0; kk < GMRFLib_MAX_THREADS(); kk++) {
 					Free(a->log_prec[k][kk]);
 				}
 				Free(a->log_prec[k]);
@@ -32390,7 +32388,7 @@ int inla_INLA(inla_tp * mb)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
 		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy......... [%s]\n",
@@ -32546,7 +32544,7 @@ int inla_INLA(inla_tp * mb)
 		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -32666,7 +32664,7 @@ int inla_INLA(inla_tp * mb)
 		mb->misc_output->compute_corr_lin = 0;
 	}
 	if (mb->output->config) {
-		mb->misc_output->configs = Calloc(GMRFLib_MAX_THREADS, GMRFLib_store_configs_tp *);
+		mb->misc_output->configs = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_store_configs_tp *);
 	} else {
 		mb->misc_output->configs = NULL;
 	}
@@ -32832,7 +32830,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		vb_nodes = Calloc(N, char);
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -32869,7 +32867,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
 		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy......... [%s]\n",
@@ -33030,7 +33028,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
 		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy......... [%s]\n",
@@ -33185,7 +33183,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -33303,7 +33301,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		mb->misc_output->compute_corr_lin = 0;
 	}
 	if (mb->output->config) {
-		mb->misc_output->configs = Calloc(GMRFLib_MAX_THREADS, GMRFLib_store_configs_tp *);
+		mb->misc_output->configs = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_store_configs_tp *);
 	} else {
 		mb->misc_output->configs = NULL;
 	}
@@ -33479,17 +33477,17 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		vb_nodes = Calloc(N, char);
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
 			} else if (mb->f_vb_correct[i] < 0) {
-				// chose vb_enable_limit points for correction with random start
+				// chose vb_f_enable_limit points for correction with random start
 				int len, k, jj;
-				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_enable_limit);	/* integer division */
+				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit);	/* integer division */
 				k = len / 2;		       /* integer division */
-				for (j = 0; j < mb->ai_par->vb_enable_limit; j++) {
+				for (j = 0; j < mb->ai_par->vb_f_enable_limit; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
 					local_count++;
@@ -33526,7 +33524,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS);
+			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
 		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy......... [%s]\n",
@@ -33581,7 +33579,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	if (mb->output->config) {
-		mb->misc_output->configs_preopt = Calloc(GMRFLib_MAX_THREADS, GMRFLib_store_configs_preopt_tp *);
+		mb->misc_output->configs_preopt = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_store_configs_preopt_tp *);
 	} else {
 		mb->misc_output->configs_preopt = NULL;
 	}
@@ -33749,7 +33747,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 				}
 			}
 			mb->gcpo_param->ngroups = len;
-			for(int i = 0; i < len; i++) {
+			for (int i = 0; i < len; i++) {
 				ngroups_eff += (mb->gcpo_param->groups[i]->n > 0 ? 1 : 0);
 			}
 			assert(offset == total_len);
@@ -34105,7 +34103,7 @@ int inla_output(inla_tp * mb)
 	 */
 	local_verbose = 0;
 
-#pragma omp parallel for num_threads(GMRFLib_MAX_THREADS)
+#pragma omp parallel for num_threads(GMRFLib_MAX_THREADS())
 	for (int k = 0; k < 9; k++) {
 		int ii;
 
@@ -34844,13 +34842,13 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
 		int id, header = 0, nconfig = 0;
-		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
+		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs[id]) {
 				nconfig += mo->configs[id]->nconfig;	/* need the accumulated one! */
 			}
 		}
 
-		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
+		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs[id]) {
 
 				if (!header) {
@@ -34936,13 +34934,13 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
 		int id, header = 0, nconfig = 0;
-		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
+		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs_preopt[id]) {
 				nconfig += mo->configs_preopt[id]->nconfig;	/* need the accumulated one! */
 			}
 		}
 
-		for (id = 0; id < GMRFLib_MAX_THREADS; id++) {
+		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs_preopt[id]) {
 				if (!header) {
 					header = 1;	       /* do this only once */
@@ -35763,7 +35761,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
 	}
 	GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, graph, tab->Qfunc, tab->Qfunc_arg, constr);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+	GMRFLib_Qinv(problem);
 
 	/*
 	 * write a fmesher file and just pass the filename 
@@ -35822,7 +35820,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
-		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS, B->ncol));
+		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS(), B->ncol));
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	} else if (GMRFLib_smtp == GMRFLib_SMTP_BAND) {
 		GMRFLib_reorder = GMRFLib_REORDER_BAND;
@@ -36298,7 +36296,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 				}
 			}
 			GMRFLib_set_error_handler(old_handler);
-			GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+			GMRFLib_Qinv(problem);
 
 			if (debug)
 				P(def->graph->n);
@@ -36818,7 +36816,7 @@ int testit(int argc, char **argv)
 
 		for (i = 0; i < p; i++) {
 			printf("theta[%1d] = %g\n", i, GMRFLib_matrix_get(i, 0, theta));
-			for (t = 0; t < GMRFLib_MAX_THREADS; t++) {
+			for (t = 0; t < GMRFLib_MAX_THREADS(); t++) {
 				smodel->theta[i][t][0] = GMRFLib_matrix_get(i, 0, theta);
 			}
 		}
@@ -37701,7 +37699,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_init_problem(&problem, NULL, NULL, NULL, NULL, g, testit_Qfunc, NULL, NULL);
 		GMRFLib_evaluate(problem);
-		GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+		GMRFLib_Qinv(problem);
 
 		for (int i = 0; i < g->n; i++) {
 			printf("Qinv[%1d]=  %f\n", i, *GMRFLib_Qinv_get(problem, i, i));
@@ -37971,7 +37969,7 @@ int main(int argc, char **argv)
 	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
-			if (!strcasecmp(optarg, "CLASSIC")) {
+			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 			} else if (!strcasecmp(optarg, "TWOSTAGE")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE;
@@ -38098,19 +38096,19 @@ int main(int argc, char **argv)
 #if defined(WINDOWS)
 				ntt[1] = 1;
 #endif
-				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS) {
+				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
 					fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
-					fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS);
+					fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS());
 
-					if (ntt[0] > GMRFLib_MAX_THREADS) {
-						ntt[0] = GMRFLib_MAX_THREADS;
+					if (ntt[0] > GMRFLib_MAX_THREADS()) {
+						ntt[0] = GMRFLib_MAX_THREADS();
 						ntt[1] = 1;
-					} else if (ntt[1] > GMRFLib_MAX_THREADS) {
-						ntt[1] = GMRFLib_MAX_THREADS;
+					} else if (ntt[1] > GMRFLib_MAX_THREADS()) {
+						ntt[1] = GMRFLib_MAX_THREADS();
 						ntt[0] = 1;
 					} else {
 						// something gotta give
-						while (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS) {
+						while (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
 							ntt[1]--;
 						}
 					}
@@ -38121,7 +38119,7 @@ int main(int argc, char **argv)
 					ntt[i] = IMAX(1, ntt[i]);
 					GMRFLib_openmp->max_threads_nested[i] = ntt[i];
 				}
-				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS, ntt[0] * ntt[1]);
+				GMRFLib_openmp->max_threads = IMIN(GMRFLib_MAX_THREADS(), ntt[0] * ntt[1]);
 			} else {
 				fprintf(stderr, "Fail to read A:B from [%s]\n", optarg);
 				fprintf(stderr, "Will continue with '4:1'\n");
@@ -38137,7 +38135,7 @@ int main(int argc, char **argv)
 				printf("\tFound num.threads = %1d:%1d max_threads = %1d\n", GMRFLib_openmp->max_threads_nested[0],
 				       GMRFLib_openmp->max_threads_nested[1], GMRFLib_openmp->max_threads);
 			}
-			omp_set_num_threads(GMRFLib_MAX_THREADS);
+			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 			break;
 
@@ -38257,7 +38255,7 @@ int main(int argc, char **argv)
 	case INLA_MODE_OPENMP:
 		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		printf("export OMP_NESTED=TRUE; ");
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS);
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS());
 		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
 		       GMRFLib_openmp->blas_num_threads);
 		exit(EXIT_SUCCESS);
@@ -38370,7 +38368,7 @@ int main(int argc, char **argv)
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {
 				printf("Process file[%s] threads[%1d] max.threads[%1d] blas_threads[%1d]",
-				       argv[arg], GMRFLib_MAX_THREADS, host_max_threads, GMRFLib_openmp->blas_num_threads);
+				       argv[arg], GMRFLib_MAX_THREADS(), host_max_threads, GMRFLib_openmp->blas_num_threads);
 				if (GMRFLib_openmp->max_threads_nested) {
 					printf(" nested[%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 				} else {
@@ -38378,7 +38376,7 @@ int main(int argc, char **argv)
 				}
 			}
 			if (!silent) {
-				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS);
+				printf("\nWall-clock time used on [%s] max_threads=[%1d]\n", argv[arg], GMRFLib_MAX_THREADS());
 			}
 			time_used[0] = GMRFLib_cpu();
 			atime_used[0] = clock();
@@ -38486,20 +38484,20 @@ int main(int argc, char **argv)
 				printf("Total:");			\
 				eff_nt = ((double)(atime_used[0] + atime_used[1]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1]);	\
 				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
+				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS(), \
+				       100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 			}
 #define PEFF_PREOPT_OUTPUT if (1) {					\
 				printf("Stage1:");			\
 				eff_nt = ((double)(atime_used[0] + atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[3]);	\
 				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
+				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS(), \
+				       100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 				printf("Stage2:");			\
 				eff_nt = ((double)(atime_used[0] + atime_used[1] - atime_used[3]))/CLOCKS_PER_SEC/(time_used[0] + time_used[1] - time_used[3]); \
 				printf("\tAccumulated CPU-time is equivalent to %.2f threads running at 100%%\n", eff_nt); \
-				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS, \
-				       100.0 * eff_nt/GMRFLib_MAX_THREADS); \
+				printf("\tEfficiency using %1d threads = %.2f%%\n", GMRFLib_MAX_THREADS(), \
+				       100.0 * eff_nt/GMRFLib_MAX_THREADS()); \
 			}
 
 			if (!silent) {

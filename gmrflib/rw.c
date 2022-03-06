@@ -924,7 +924,7 @@ int GMRFLib_crw_scale(void *def)
 		}
 	}
 	GMRFLib_set_error_handler(old_handler);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < graph->n; i++) {
@@ -1058,7 +1058,7 @@ int GMRFLib_rw_scale(void *def)
 	}
 	GMRFLib_set_error_handler(old_handler);
 
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < graph->n; i++) {
@@ -1163,7 +1163,7 @@ int GMRFLib_rw2d_scale(void *def)
 	}
 	GMRFLib_set_error_handler(old_handler);
 
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < graph->n; i++) {

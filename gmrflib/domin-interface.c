@@ -96,7 +96,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.nhyper = nhyper;
 	G.log_extra = log_extra;
 	G.log_extra_arg = log_extra_arg;
-	G.f_count = Calloc(GMRFLib_MAX_THREADS, int);
+	G.f_count = Calloc(GMRFLib_MAX_THREADS(), int);
 	G.compute = compute;
 	G.solution = Calloc(nhyper, double);
 	G.fvalue = 0.0;
@@ -112,9 +112,9 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.directions = ai_par->optimise_use_directions_m;
 	G.preopt = preopt;
 	G.parallel_linesearch = ai_par->parallel_linesearch;
-	G.Qfunc = Calloc(GMRFLib_MAX_THREADS, GMRFLib_Qfunc_tp *);
-	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS, void *);
-	for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+	G.Qfunc = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_Qfunc_tp *);
+	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS(), void *);
+	for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 		G.Qfunc[i] = Qfunc;
 		G.Qfunc_arg[i] = Qfunc_arg;
 	}
@@ -171,7 +171,7 @@ int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **
 	 * this function is called only for thread=0!!! 
 	 */
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
@@ -190,8 +190,8 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	int i, tmax, *err = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL, *ai_store_reference = NULL;
 
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL == 0, GMRFLib_ESNH);
-	tmax = GMRFLib_MAX_THREADS;
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
+	tmax = GMRFLib_MAX_THREADS();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	err = Calloc(nx, int);
 
@@ -254,10 +254,10 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	int id = GMRFLib_thread_id;
 
 	if (!tabQfunc) {
-		tabQfunc_local = Calloc(GMRFLib_MAX_THREADS, GMRFLib_tabulate_Qfunc_tp *);
+		tabQfunc_local = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_tabulate_Qfunc_tp *);
 	}
 	if (!bnew) {
-		bnew_local = Calloc(GMRFLib_MAX_THREADS, double *);
+		bnew_local = Calloc(GMRFLib_MAX_THREADS(), double *);
 	}
 
 	GMRFLib_thread_id = id;
@@ -287,13 +287,13 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
 
 	if (tabQfunc_local) {
-		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			GMRFLib_free_tabulate_Qfunc(tabQfunc_local[i]);
 		}
 		Free(tabQfunc_local);
 	}
 	if (bnew_local) {
-		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			Free(bnew_local[i]);
 		}
 		Free(bnew_local);
@@ -383,8 +383,8 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
 
-	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL == 0, GMRFLib_ESNH);
-	tmax = GMRFLib_MAX_THREADS;
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
+	tmax = GMRFLib_MAX_THREADS();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
 	id_save = GMRFLib_thread_id;
 
@@ -412,7 +412,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
-			if (GMRFLib_OPENMP_IN_PARALLEL) {
+			if (GMRFLib_OPENMP_IN_PARALLEL()) {
 				if (GMRFLib_thread_id == 0) {
 					ais = G.ai_store;
 				} else {
@@ -482,7 +482,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			xx = Calloc(G.nhyper, double);
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
-			if (GMRFLib_OPENMP_IN_PARALLEL) {
+			if (GMRFLib_OPENMP_IN_PARALLEL()) {
 				if (GMRFLib_thread_id == 0) {
 					ais = G.ai_store;
 				} else {
@@ -645,7 +645,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
 	int i, n = G.nhyper, tmax, id, ok = 0, debug = 0, len_xx_hold;
 
-	tmax = GMRFLib_MAX_THREADS;
+	tmax = GMRFLib_MAX_THREADS();
 	id = omp_get_thread_num();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);
@@ -676,7 +676,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 
 		GMRFLib_thread_id = omp_get_thread_num();
-		if (GMRFLib_OPENMP_IN_PARALLEL) {
+		if (GMRFLib_OPENMP_IN_PARALLEL()) {
 			if (!ai_store[GMRFLib_thread_id]) {
 				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
@@ -808,7 +808,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				GMRFLib_ai_store_tp *ais = NULL;
 
 				GMRFLib_thread_id = omp_get_thread_num();
-				if (GMRFLib_OPENMP_IN_PARALLEL) {
+				if (GMRFLib_OPENMP_IN_PARALLEL()) {
 					if (!ai_store[GMRFLib_thread_id]) {
 						ai_store[GMRFLib_thread_id] =
 						    GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -897,7 +897,7 @@ int GMRFLib_opt_get_f_count(void)
 {
 	if (opt_setup) {
 		int i, sum;
-		for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (sum = 0, i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			sum += G.f_count[i];
 		}
 		return sum;

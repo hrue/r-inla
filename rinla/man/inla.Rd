@@ -52,7 +52,7 @@
     inla.mode = inla.getOption("inla.mode"), 
     safe = FALSE, 
     debug = inla.getOption("debug"),
-    .parent.frame = parent.frame()
+    .parent.frame = environment(formula)
     )
  }
  \arguments{

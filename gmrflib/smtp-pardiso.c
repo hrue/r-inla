@@ -77,7 +77,7 @@ GMRFLib_static_pardiso_tp S = {
 	0,						       // csr_check
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
-	-1,						       // maximum number of rhs
+	1,						       // maximum number of rhs
 	1,						       // parallel reordering? yes
 	NULL,						       // busy
 	NULL
@@ -97,7 +97,6 @@ int GMRFLib_pardiso_set_nrhs(int nrhs)
 {
 	if (nrhs > 0) {
 		S.nrhs_max = nrhs;
-		P(S.nrhs_max);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -123,8 +122,7 @@ int GMRFLib_pardiso_set_debug(int debug)
 int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 {
 	if (*csr) {
-		Free((*csr)->ia);
-		Free((*csr)->ja);
+		Free((*csr)->iwork);
 		if ((*csr)->copy_only) {
 			// do not free
 		} else {
@@ -148,11 +146,10 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	(*csr_to)->na = csr_from->na;
 	(*csr_to)->copy_only = csr_from->copy_only;
 
-	(*csr_to)->ia = Calloc(csr_from->n + 1, int);
-	Memcpy((void *) ((*csr_to)->ia), (void *) (csr_from->ia), (size_t) (csr_from->n + 1) * sizeof(int));
-
-	(*csr_to)->ja = Calloc(csr_from->na, int);
-	Memcpy((void *) ((*csr_to)->ja), (void *) (csr_from->ja), (size_t) (csr_from->na) * sizeof(int));
+	(*csr_to)->iwork = Calloc(csr_from->n + 1 + csr_from->na, int);
+	(*csr_to)->ia = (*csr_to)->iwork;
+	(*csr_to)->ja = (*csr_to)->iwork + csr_from->n + 1;
+	Memcpy((void *) ((*csr_to)->iwork), (void *) (csr_from->iwork), (size_t) (csr_from->n + 1 + csr_from->na) * sizeof(int));
 
 	if (csr_from->copy_only) {
 		(*csr_to)->a = csr_from->a;
@@ -222,54 +219,42 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
-	int i, k, n, na, nnz, nan_error = 0;
+	int i, k, n, na, nan_error = 0;
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	M->base = 0;
 	n = graph->n;
-	GMRFLib_graph_nnodes(&nnz, graph);		       // symmetric
-	na = (nnz - n) / 2 + n;				       // only upper triangular. yes, integer division
+	na = graph->nnz / 2 + n;			       // only upper triangular. yes, integer division
 	M->na = na;
 	M->n = n;
-	M->ja = Calloc(na, int);
-	M->ia = Calloc(n + 1, int);
+	M->iwork = Calloc(na + n + 1, int);
+	M->ia = M->iwork;
+	M->ja = M->iwork + n + 1;
 
-	if (0) {
-		// old code. the issue is that this loop does not parallelize
-		M->ia[0] = 0;
-		for (i = k = 0; i < n; i++) {
-			M->ja[k++] = i;
-			if (graph->lnnbs[i]) {
-				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int));
-				k += graph->lnnbs[i];
-			}
-			M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
-		}
-		assert(M->ia[n] == na);
-	} else {
-		// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
-		int *k_arr = Calloc(n, int);
-		M->ia[0] = 0;
-		for (i = k = 0; i < n; i++) {
-			M->ja[k++] = i;
-			k_arr[i] = k;
-			k += graph->lnnbs[i];
-			M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
-		}
-		assert(M->ia[n] == na);
-#define CODE_BLOCK					\
-		for (int i = 0; i < n; i++) {		\
-			CODE_BLOCK_SET_THREAD_ID;	\
-			if (graph->lnnbs[i]) {		\
-				int k = k_arr[i];			\
-				Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
-			}						\
-		}
-
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
-#undef CODE_BLOCK
-		Free(k_arr);
+	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
+	int *k_arr = Calloc(n, int);
+	M->ia[0] = 0;
+	for (i = k = 0; i < n; i++) {
+		M->ja[k++] = i;
+		k_arr[i] = k;
+		k += graph->lnnbs[i];
+		M->ia[i + 1] = M->ia[i] + (1 + graph->lnnbs[i]);
 	}
+	assert(M->ia[n] == na);
+
+#define CODE_BLOCK							\
+	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_SET_THREAD_ID();				\
+		if (graph->lnnbs[i]) {					\
+			int k = k_arr[i];				\
+			Memcpy(&(M->ja[k]), graph->lnbs[i], graph->lnnbs[i] * sizeof(int)); \
+		}							\
+	}
+
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+#undef CODE_BLOCK
+	Free(k_arr);
+
 	// when this is true, we can just copy the pointer to the matrix.
 	int used_fast_tab = 0;
 	if (Qfunc == GMRFLib_tabulate_Qfunction) {
@@ -291,25 +276,25 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 		if (ISNAN(val)) {
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				for (int k = M->ia[i]; k < M->ia[i + 1]; k++) {	\
 					int j = M->ja[k];		\
 					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);	\
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		} else {
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
-				CODE_BLOCK_SET_THREAD_ID;		\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				int k = M->ia[i];			\
 				double v = Qfunc(i, -1, &(M->a[k]), Qfunc_arg);	\
 				assert(!(ISNAN(v)));			\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
 	}
@@ -356,10 +341,11 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
 	GMRFLib_io_read(io, (void *) &(M->na), sizeof(int));
 	GMRFLib_io_read(io, (void *) &(M->base), sizeof(int));
 
-	M->ia = Calloc(M->n + 1, int);
+	M->iwork = Calloc(M->n + 1 + M->na, int);
+	M->ia = M->iwork;
 	GMRFLib_io_read(io, (void *) (M->ia), sizeof(int) * (M->n + 1));
 
-	M->ja = Calloc(M->na, int);
+	M->ja = M->iwork + M->n + 1;
 	GMRFLib_io_read(io, (void *) (M->ja), sizeof(int) * M->na);
 
 	M->a = Calloc(M->na, double);
@@ -429,8 +415,8 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	}
 
 	s->maxfct = 1;
-	s->pstore = Calloc(GMRFLib_MAX_THREADS, GMRFLib_pardiso_store_pr_thread_tp *);
-	for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+	s->pstore = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_pardiso_store_pr_thread_tp *);
+	for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 		s->pstore[i] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 	}
 	assert(S.mtype == -2 || S.mtype == 2);
@@ -440,7 +426,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default = Calloc(GMRFLib_PARDISO_PLEN, int);
 	s->dparm_default = Calloc(GMRFLib_PARDISO_PLEN, double);
 	s->iparm_default[0] = 0;			       /* use default values */
-	s->iparm_default[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
+	s->iparm_default[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
 
 	if (S.s_verbose) {
 		PPg("_pardiso_init(): num_threads", (double) (s->iparm_default[2]));
@@ -493,7 +479,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 
 	store->pstore[tnum]->nrhs = 0;
 	store->pstore[tnum]->err_code = 0;
-	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS;
+	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
 
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
@@ -679,7 +665,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 
 #define CODE_BLOCK						\
 	for (int j = 0; j < m; j++) {				\
-		CODE_BLOCK_SET_THREAD_ID;			\
+		CODE_BLOCK_SET_THREAD_ID();			\
 		int k = j * n;					\
 		for (int i = 0; i < n; i++) {			\
 			x[k + i] = xx[k + permutation[i]];	\
@@ -798,6 +784,8 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 
 int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs)
 {
+	// note that 'x' = 'b' !!!!!!!!!!!!!!!
+
 	assert(nrhs > 0);
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
@@ -807,19 +795,16 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	// this is so that the RHS can be overwritten
 	int n = store->graph->n, mnum1 = 1, nblock, reminder, max_nrhs, err_code = 0, debug = 0;
 
-	max_nrhs = (S.nrhs_max > 0 ? S.nrhs_max : IMAX(1, nrhs / GMRFLib_openmp->max_threads_inner));
+	max_nrhs = (S.nrhs_max > 0 ? S.nrhs_max : IMAX(1, nrhs));
 	div_t d = div(nrhs, max_nrhs);
 	nblock = d.quot;
 	reminder = (d.rem != 0);
 
-	double *bb = Calloc(nrhs * n, double);
-	double *yy = (debug ? Calloc(nrhs * n, double) : NULL);
-	Memcpy((void *) bb, (void *) b, n * nrhs * sizeof(double));
-
 	GMRFLib_pardiso_setparam(flag, store, NULL);
 	int need_workaround = (GMRFLib_openmp->max_threads_inner > 1) && (store->pstore[omp_get_thread_num()]->iparm[7] > 0);
+	assert(need_workaround == 0);			       /* disable this for the moment */
 
-	int max_nt = GMRFLib_MAX_THREADS;
+	int max_nt = GMRFLib_MAX_THREADS();
 	double **ddparm = NULL;
 	int **iiparm = NULL;
 	int *factor = NULL;
@@ -842,51 +827,62 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			factor[i] = 0;
 		}
 	}
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-	for (int i = 0; i < nblock + reminder; i++) {
-		int idum = 0;
-		int tnum = omp_get_thread_num();
-		int offset = i * n * max_nrhs;
-		int local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);
 
-		GMRFLib_pardiso_setparam(flag, store, &tnum);
-
-		// need this, as the 'copy_symbolic_factor' is very slow...
-		if (need_workaround) {
-			if (!init_done[tnum]) {
-				init_done[tnum] = 1;
-				pardiso_copy_symbolic_factor_single(store->pt, ppt[tnum],
-								    store->pstore[tnum]->iparm, iiparm[tnum],
-								    store->pstore[tnum]->dparm, ddparm[tnum],
-								    &n, &(store->maxfct), &(factor[tnum]));
-			}
-			pardiso(ppt[tnum], &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
-				&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
-				store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, iiparm[tnum], &(store->msglvl),
-				bb + offset, x + offset, &(store->pstore[tnum]->err_code), ddparm[tnum]);
-		} else {
-			pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase),
-				&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
-				store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, store->pstore[tnum]->iparm, &(store->msglvl),
-				bb + offset, x + offset, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm);
-		}
-
-		if (store->pstore[tnum]->err_code != 0) {
-			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR;
-		}
-
-		if (debug) {
-			for (int j = 0; j < local_nrhs; j++) {
-				double normb, normr;
-				pardiso_residual(&(store->mtype), &n,
-						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a,
-						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,
-						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,
-						 bb + offset + j * n, x + offset + j * n, yy + offset + j * n, &normb, &normr);
-				printf("\ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb);
-			}
-		}
+	if (0) {
+		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
+		assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	}
+#define CODE_BLOCK							\
+	for (int i = 0; i < nblock + reminder; i++) {			\
+		CODE_BLOCK_SET_THREAD_ID();				\
+		int idum = 0;						\
+		int tnum = omp_get_thread_num();			\
+		int offset = i * n * max_nrhs;				\
+		int local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);	\
+		double *bb = CODE_BLOCK_WORK_PTR(0);			\
+									\
+		GMRFLib_pardiso_setparam(flag, store, &tnum);		\
+		Memcpy((void *) bb, (void *) (b + offset), n * local_nrhs * sizeof(double));\
+		if (need_workaround) {					\
+			if (!init_done[tnum]) {				\
+				init_done[tnum] = 1;			\
+				pardiso_copy_symbolic_factor_single(store->pt, ppt[tnum], \
+								    store->pstore[tnum]->iparm, iiparm[tnum], \
+								    store->pstore[tnum]->dparm, ddparm[tnum], \
+								    &n, &(store->maxfct), &(factor[tnum])); \
+			}						\
+			pardiso(ppt[tnum], &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase), \
+				&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia, \
+				store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, iiparm[tnum], &(store->msglvl), \
+				bb, x + offset, &(store->pstore[tnum]->err_code), ddparm[tnum]); \
+		} else {						\
+			pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase), \
+				&n, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia, \
+				store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja, &idum, &local_nrhs, store->pstore[tnum]->iparm, &(store->msglvl), \
+				bb, x + offset, &(store->pstore[tnum]->err_code), store->pstore[tnum]->dparm); \
+		}							\
+									\
+		if (store->pstore[tnum]->err_code != 0) {		\
+			err_code = GMRFLib_EPARDISO_INTERNAL_ERROR;	\
+		}							\
+									\
+		if (debug) {						\
+			double *yy = Calloc(local_nrhs * n,  double);	\
+			for (int j = 0; j < local_nrhs; j++) {		\
+				double normb, normr;			\
+				pardiso_residual(&(store->mtype), &n,	\
+						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->a, \
+						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ia,	\
+						 store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->ja,	\
+						 bb + j * n, x + offset + j * n, yy + j * n, &normb, &normr); \
+				printf("ni j %d %d The norm of the residual is %e \n ", i, j, normr / normb); \
+			}						\
+			Free(yy);					\
+		}							\
+	}
+
+	RUN_CODE_BLOCK((nrhs == 1 ? 1 : GMRFLib_MAX_THREADS()), 1, max_nrhs * n);
+#undef CODE_BLOCK
 
 	if (need_workaround) {
 		for (int i = 0; i < max_nt; i++) {
@@ -902,9 +898,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		Free(ppt);
 		Free(factor);
 	}
-
-	Free(bb);
-	Free(yy);
 
 	if (err_code) {
 		GMRFLib_ERROR(err_code);
@@ -979,7 +972,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			for (int k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) { \
 				double value;				\
 				int j = Qinv[i]->contents[k].key;	\
@@ -991,7 +984,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -1078,7 +1071,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 			FIXME("Free pardiso store with copy_pardiso_ptr = 1");
 		}
 		if ((*store)->pstore) {
-			for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 				if ((*store)->pstore[i]) {
 					Free((*store)->pstore[i]->perm);
 					Free((*store)->pstore[i]->iperm);
@@ -1205,7 +1198,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 		CP(graph);
 
 		if (!dup->pstore)
-			dup->pstore = Calloc(GMRFLib_MAX_THREADS, GMRFLib_pardiso_store_pr_thread_tp *);
+			dup->pstore = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_pardiso_store_pr_thread_tp *);
 		if (!dup->pstore[tnum])
 			dup->pstore[tnum] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 		if (!dup->pstore[GMRFLib_PSTORE_TNUM_REF])
@@ -1468,7 +1461,7 @@ int my_pardiso_test2(void)
 
 	GMRFLib_init_problem(&problem, x, b, c, mean, graph, my_pardiso_test_Q, (void *) graph, constr);
 	GMRFLib_evaluate(problem);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_ALL);
+	GMRFLib_Qinv(problem);
 
 	for (i = 0; i < n; i++) {
 		var = GMRFLib_Qinv_get(problem, i, i);

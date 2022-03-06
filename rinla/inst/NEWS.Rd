@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.03.06}{
+  \subsection{CHANGES}{
+    \itemize{
+      \item Improved the TAUCS-interface performance.
+      \item Various code improvements.
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.03.03}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{

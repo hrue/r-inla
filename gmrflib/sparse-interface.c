@@ -282,22 +282,21 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 	/*
 	 * rhs in real world. solve L x=rhs, rhs is overwritten by the solution 
 	 */
-	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nrhs; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_l_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nrhs; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_l_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 		break;
@@ -324,22 +323,21 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 	/*
 	 * rhs in real world. solve L^Tx=rhs, rhs is overwritten by the solution 
 	 */
-	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nrhs; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_lt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nrhs; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_lt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 		break;
@@ -366,19 +364,18 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
 	 */
-	int i;
 	GMRFLib_ENTER_ROUTINE;
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nrhs; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_inner)
-		for (i = 0; i < nrhs; i++) {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
+		for (int i = 0; i < nrhs; i++) {
 			GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
@@ -580,18 +577,18 @@ int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *
 /*!
   \brief Wrapper for computing the (structural) inverse of \c Q.
 */
-int GMRFLib_compute_Qinv(void *problem, int storage)
+int GMRFLib_compute_Qinv(void *problem)
 {
 	GMRFLib_problem_tp *p = (GMRFLib_problem_tp *) problem;
 	GMRFLib_ENTER_ROUTINE;
 
 	switch (p->sub_sm_fact.smtp) {
 	case GMRFLib_SMTP_BAND:
-		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p, storage));
+		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_BAND(p));
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS(p, storage));
+		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS(p));
 		break;
 
 	case GMRFLib_SMTP_PARDISO:

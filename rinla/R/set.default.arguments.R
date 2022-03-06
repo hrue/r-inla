@@ -296,7 +296,7 @@
             parallel.reordering = TRUE,
 
             ## :ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (\code{-1} will determine this adapative)
-            nrhs = -1
+            nrhs = 1
         )
 
         ## :SEEALSO: inla

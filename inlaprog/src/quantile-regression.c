@@ -138,7 +138,7 @@ double inla_qgamma_cache(double shape, double quantile, int id)
 #pragma omp critical
 		{
 			double log_shape_min = -7.0, log_shape_max = 10.0, by = 0.2, *xy, *x, *y;
-			int id_max = GMRFLib_MAX_THREADS, i, n, nn;
+			int id_max = GMRFLib_MAX_THREADS(), i, n, nn;
 
 			n = (int) ((log_shape_max - log_shape_min) / by + 0.5) + 1;
 			xy = Calloc(2 * n, double);

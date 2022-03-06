@@ -156,8 +156,8 @@ int GMRFLib_timer_enter(const char *name)
 			int i;
 			map_strvp *tmp;
 
-			tmp = Calloc(GMRFLib_MAX_THREADS, map_strvp);
-			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			tmp = Calloc(GMRFLib_MAX_THREADS(), map_strvp);
+			for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 				map_strvp_init_hint(&tmp[i], 30);	/* about the number of elmements in the hash-table */
 			}
 			GMRFLib_timer_hashtable = tmp;
@@ -338,7 +338,7 @@ int GMRFLib_timer_report_OLD(FILE * fp)
 	}
 	ffp = (fp ? fp : stdout);
 
-	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
+	for (k = 0; k < GMRFLib_MAX_THREADS(); k++) {
 		fprintf(ffp, "\n\nGMRFLib report on time usage for thread %1d\n%-42s   %11s %10s %6s %6s %6s %6s\n%s\n",
 			k, "Function", "Total(s) %", "N", "Mean", "Stdev", "Min", "Max", sep);
 		if (1) {
@@ -372,7 +372,7 @@ int GMRFLib_timer_report(FILE * fp)
 	mapkit_size_t count, i;
 
 	namelist = Calloc(namelist_len_max, char *);
-	for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
+	for (k = 0; k < GMRFLib_MAX_THREADS(); k++) {
 
 		map_strvp_getall(&GMRFLib_timer_hashtable[k], &all, &count);
 		if (all) {
@@ -403,7 +403,7 @@ int GMRFLib_timer_report(FILE * fp)
 		GMRFLib_timer_hashval_tp *value = Calloc(1, GMRFLib_timer_hashval_tp);
 
 		value->name = strdup(nm);
-		for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
+		for (k = 0; k < GMRFLib_MAX_THREADS(); k++) {
 			map_strvp_element *all;
 			mapkit_size_t count, i;
 
@@ -464,7 +464,7 @@ void GMRFLib_timer_report__signal(int UNUSED(sig))
 int GMRFLib_timer_exit(void)
 {
 	if (GMRFLib_timer_hashtable) {
-		for (int i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			map_strvp_free(&(GMRFLib_timer_hashtable[i]));
 		}
 		Free(GMRFLib_timer_hashtable);

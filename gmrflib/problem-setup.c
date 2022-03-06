@@ -184,14 +184,14 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 	}
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;	\
 		double value;						\
 		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
-	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS ? GMRFLib_MAX_THREADS : 1), 0, 0);
+	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -246,7 +246,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 	}
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, jf, je, jlen; \
 		double value;						\
 		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);	\
@@ -260,7 +260,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
-	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS ? GMRFLib_MAX_THREADS : 1), 0, 0);
+	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -274,11 +274,11 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < nc; i++) {					\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); \
 	}
 
-	RUN_CODE_BLOCK((nc > GMRFLib_MAX_THREADS ? GMRFLib_MAX_THREADS : 1), 0, 0);
+	RUN_CODE_BLOCK((nc > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -1073,10 +1073,10 @@ int GMRFLib_free_store(GMRFLib_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Qinv(GMRFLib_problem_tp * problem, int storage)
+int GMRFLib_Qinv(GMRFLib_problem_tp * problem)
 {
 	if (problem) {
-		GMRFLib_EWRAP1(GMRFLib_compute_Qinv((void *) problem, storage));
+		GMRFLib_EWRAP1(GMRFLib_compute_Qinv((void *) problem));
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1580,7 +1580,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 		Qfunc_arg->prec = tmp->prec;
 		Qfunc_arg->log_prec = tmp->log_prec;
 		if (tmp->log_prec_omp) {
-			int tmax = GMRFLib_MAX_THREADS;
+			int tmax = GMRFLib_MAX_THREADS();
 			Qfunc_arg->log_prec_omp = Calloc(tmax, double *);
 			for (i = 0; i < tmax; i++) {
 				Qfunc_arg->log_prec_omp[i] = tmp->log_prec_omp[i];

@@ -161,7 +161,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 		}
 	}
 	GMRFLib_set_error_handler(old_handler);
-	GMRFLib_Qinv(problem, GMRFLib_QINV_DIAG);
+	GMRFLib_Qinv(problem);
 
 	double sum = 0.0;
 	for (i = 0; i < n; i++) {

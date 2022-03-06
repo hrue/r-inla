@@ -198,7 +198,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	(*ai_par)->vb_hyperpar_correct = 0;
 	(*ai_par)->vb_refinement = 25;
 	(*ai_par)->vb_max_correct = 0.25;
-	(*ai_par)->vb_enable_limit = 25;
+	(*ai_par)->vb_f_enable_limit = 20;
 	(*ai_par)->vb_nodes = NULL;
 
 	return GMRFLib_SUCCESS;
@@ -404,7 +404,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\t\tcorrect hyperpar = [%s]\n", (ai_par->vb_hyperpar_correct ? "Yes" : "No"));
 		fprintf(fp, "\t\trefinement       = [%1d]\n", ai_par->vb_refinement);
 		fprintf(fp, "\t\tmax_correct      = [%.2f]\n", ai_par->vb_max_correct);
-		fprintf(fp, "\t\tenable_limit     = [%1d]\n", ai_par->vb_enable_limit);
+		fprintf(fp, "\t\tf_enable_limit     = [%1d]\n", ai_par->vb_f_enable_limit);
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
@@ -2267,14 +2267,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < nidx; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			int idx = idxs[i];				\
 			GMRFLib_2order_approx(&(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		for (i = 0; i < nidx; i++) {
@@ -2897,7 +2897,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		abort();
 	}
 
-	tmax = GMRFLib_MAX_THREADS;
+	tmax = GMRFLib_MAX_THREADS();
 	if (!ai_par) {
 		GMRFLib_default_ai_param(&ai_par);
 		free_ai_par = 1;
@@ -3626,7 +3626,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						Memset(zz, 0, nhyper * sizeof(double));
 						GMRFLib_thread_id = omp_get_thread_num();
 
-						if (GMRFLib_OPENMP_IN_PARALLEL) {
+						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -3667,7 +3667,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						Memset(zz, 0, nhyper * sizeof(double));
 						GMRFLib_thread_id = omp_get_thread_num();
 
-						if (GMRFLib_OPENMP_IN_PARALLEL) {
+						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -3785,7 +3785,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				GMRFLib_ai_add_Qinv_to_ai_store(ai_store);	/* add Qinv if required */
 			}
 			// GMRFLib_ai_store_config(misc_output, nhyper, theta_mode, 0.0, ai_store->problem);
-			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+			GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_ai_store_tp *);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int i = 0; i < compute_n; i++) {
 
@@ -3808,7 +3808,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				COMPUTE2;
 				GMRFLib_free_density(cpodens);
 			}
-			for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+			for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 				if (!ai_store_id[i]) {
 					GMRFLib_free_ai_store(ai_store_id[i]);
 				}
@@ -3880,7 +3880,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				hyper_count = k;
 				GMRFLib_thread_id = omp_get_thread_num();
 
-				if (GMRFLib_OPENMP_IN_PARALLEL) {
+				if (GMRFLib_OPENMP_IN_PARALLEL()) {
 					if (!ais[GMRFLib_thread_id]) {
 						ais[GMRFLib_thread_id] =
 						    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -4094,7 +4094,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					tref = GMRFLib_cpu();
 					GMRFLib_thread_id = omp_get_thread_num();
 
-					if (GMRFLib_OPENMP_IN_PARALLEL) {
+					if (GMRFLib_OPENMP_IN_PARALLEL()) {
 						if (!ais[GMRFLib_thread_id]) {
 							ais[GMRFLib_thread_id] =
 							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -4312,7 +4312,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		Free(bnew);
 
-		GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+		GMRFLib_ai_store_tp **ai_store_id = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_ai_store_tp *);
 		GMRFLib_bnew(&bnew, &con, graph->n, b, bfunc);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < compute_n; i++) {
@@ -4338,18 +4338,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		}
 
 		int id_nz = 0;
-		for (id_nz = 0; id_nz < GMRFLib_MAX_THREADS; id_nz++) {
+		for (id_nz = 0; id_nz < GMRFLib_MAX_THREADS(); id_nz++) {
 			if (ai_store_id[id_nz]) {
 				break;
 			}
 		}
-		if (id_nz < GMRFLib_MAX_THREADS) {
+		if (id_nz < GMRFLib_MAX_THREADS()) {
 			Memcpy(x_mode, ai_store_id[id_nz]->mode, graph->n * sizeof(double));
 		} else {
 			Memset(x_mode, 0, graph->n * sizeof(double));
 		}
 
-		for (i = 0; i < GMRFLib_MAX_THREADS; i++) {
+		for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 			if (!ai_store_id[i]) {
 				GMRFLib_free_ai_store(ai_store_id[i]);
 			}
@@ -4431,7 +4431,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	if (misc_output->configs) {
 		for (int dc = 0; dc < dens_count; dc++) {
 			int found = 0;
-			for (int id = 0; id < GMRFLib_MAX_THREADS; id++) {
+			for (int id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 				if (misc_output->configs[id]) {
 					for (int i = 0; i < misc_output->configs[id]->nconfig; i++) {
 						if (misc_output->configs[id]->config[i]->dens_count == dc) {
@@ -5381,7 +5381,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 #define SET_THETA_MODE							\
 	if (theta_mode) {						\
 		int i_, j_;						\
-		for(j_=0; j_ < GMRFLib_MAX_THREADS; j_++) {		\
+		for(j_=0; j_ < GMRFLib_MAX_THREADS(); j_++) {		\
 			for(i_ = 0; i_ < nhyper; i_++){			\
 				hyperparam[i_][j_][0] = theta_mode[i_]; \
 			}						\
@@ -5460,7 +5460,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	nhyper = IMAX(0, nhyper);
-	ais = Calloc(GMRFLib_MAX_THREADS, GMRFLib_ai_store_tp *);
+	ais = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_ai_store_tp *);
 
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
@@ -6037,7 +6037,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			Memset(zz, 0, nhyper * sizeof(double));
 			GMRFLib_thread_id = omp_get_thread_num();
 
-			if (GMRFLib_OPENMP_IN_PARALLEL) {
+			if (GMRFLib_OPENMP_IN_PARALLEL()) {
 				if (!ais[GMRFLib_thread_id]) {
 					ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 				}
@@ -6164,7 +6164,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (j = 0; j < Alin[i]->n; j++) {
 				Alin[i]->idx[j] -= preopt->mnpred;
 				if (Alin[i]->idx[j] < 0) {
-					char *s = GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'stage1only' is not supported.");
+					char *s =
+					    GMRFLib_strdup("Using Predictor and/or Apredictor in lincomb in 'experimental-mode' is not supported.");
 					GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_EPARAMETER, s);
 					exit(1);
 				}
@@ -6188,7 +6189,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		dens_count = k;
 		GMRFLib_thread_id = omp_get_thread_num();
 
-		if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD) {
+		if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 			if (!ais[GMRFLib_thread_id]) {
 				ais[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
@@ -6218,7 +6219,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			// nothing
 		}
 
-		if (nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD) {
+		if (nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 			if (design->std_scale) {
 				// convert to theta_local
 				GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
@@ -7205,7 +7206,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	Free(dens_transform);
 
 	if (ais) {
-		for (k = 0; k < GMRFLib_MAX_THREADS; k++) {
+		for (k = 0; k < GMRFLib_MAX_THREADS(); k++) {
 			if (ais[k]) {
 				GMRFLib_free_ai_store(ais[k]);
 			}
@@ -7247,6 +7248,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 #define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
 
 	int Npred = preopt->Npred;
+	int N = IMAX(preopt->n, Npred);
 	GMRFLib_idx_tp **groups = NULL;
 	if (!(gcpo_param->groups)) {
 
@@ -7284,7 +7286,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
 			int node = selection->idx[ii];			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			GMRFLib_idxval_tp *v = A_idx(node);		\
 			double *cor = CODE_BLOCK_WORK_PTR(0);		\
 			CODE_BLOCK_WORK_ZERO(0);			\
@@ -7325,7 +7327,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			GMRFLib_idx_sort(groups[node]);			\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, Npred);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 4, N);
 #undef CODE_BLOCK
 
 		if (free_selection) {
@@ -7431,11 +7433,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 #define CODE_BLOCK					      \
 	for(int node = 0; node < Npred; node++) {	      \
-		CODE_BLOCK_SET_THREAD_ID;		      \
+		CODE_BLOCK_SET_THREAD_ID();		      \
 		if (groups->missing[node]->n == 0) continue;  \
-							      \
 		GMRFLib_idxval_tp *v = A_idx(node);	      \
-		CODE_BLOCK_SET_THREAD_ID;		      \
 		double *a = CODE_BLOCK_WORK_PTR(0);	      \
 		CODE_BLOCK_WORK_ZERO(0);		      \
 		double *Sa = CODE_BLOCK_WORK_PTR(1);	      \
@@ -7486,7 +7486,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		}							\
         }
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 3, N);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
 
 	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
@@ -7519,7 +7519,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 #define CODE_BLOCK							\
 	for(int node = 0; node < Npred; node++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		if (gcpo[node]->cov_mat == NULL) {			\
 			gcpo[node]->value = NAN;			\
 			continue;					\
@@ -7588,7 +7588,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_matrix_free(Q);					\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 4, IMAX(np, max_ng));
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 4, IMAX(np, max_ng));
 #undef CODE_BLOCK
 
 	Calloc_free();
@@ -7868,7 +7868,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			int i = d_idx->idx[ii];				\
 			if (density) {					\
 				GMRFLib_ai_vb_prepare(vb_coof[i], i, density[i][dens_count], d[i], loglFunc, loglFunc_arg, mode); \
@@ -7877,7 +7877,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		double *c_diag = Calloc(graph->n, double);
@@ -7918,7 +7918,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 
 #define CODE_BLOCK							\
 		for (int j = 0; j < vb_idx->n; j++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			double *col = CODE_BLOCK_WORK_PTR(0);		\
 			double *res = CODE_BLOCK_WORK_PTR(1);		\
 			for (int i = 0; i < graph->n; i++) {		\
@@ -7930,7 +7930,7 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
 #undef CODE_BLOCK
 
 		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
@@ -8132,7 +8132,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 #define CODE_BLOCK							\
 	for (int jj = 0; jj < vb_idx->n; jj++) {			\
-		CODE_BLOCK_SET_THREAD_ID;				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int j = vb_idx->idx[jj];				\
 		double *b = CODE_BLOCK_WORK_PTR(0);			\
 		double *cov = CODE_BLOCK_WORK_PTR(1);			\
@@ -8144,7 +8144,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 2, graph->n);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
 #undef CODE_BLOCK
 
 	for (iter = 0; iter < niter; iter++) {
@@ -8180,7 +8180,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
-			CODE_BLOCK_SET_THREAD_ID;			\
+			CODE_BLOCK_SET_THREAD_ID();			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof;			\
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
@@ -8193,7 +8193,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(preopt, BB, CC);
@@ -8403,8 +8403,7 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 			GMRFLib_printf_graph(stdout, g);
 		}
 
-		int nelm;				       /* number of elements in Q; double conting */
-		GMRFLib_graph_nnodes(&nelm, gmrf_approx->sub_graph);
+		int nelm = gmrf_approx->sub_graph->n + gmrf_approx->sub_graph->nnz;
 		mo->configs[id]->n = gmrf_approx->sub_graph->n;
 		mo->configs[id]->nz = (nelm - mo->configs[id]->n) / 2 + mo->configs[id]->n;
 		mo->configs[id]->ntheta = ntheta;
@@ -8540,12 +8539,10 @@ int GMRFLib_ai_store_config_preopt(GMRFLib_ai_misc_output_tp * mo, int ntheta, d
 		mo->configs_preopt[id]->n = preopt->n;
 		mo->configs_preopt[id]->ntheta = ntheta;
 
-		int nelm;				       /* number of elements in Q; double conting */
-		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
+		int nelm = preopt->preopt_graph->n + preopt->preopt_graph->nnz;
 		mo->configs_preopt[id]->nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
-		GMRFLib_graph_nnodes(&nelm, preopt->preopt_graph);
+		nelm = preopt->latent_graph->n + preopt->latent_graph->nnz;
 		mo->configs_preopt[id]->prior_nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
-
 		mo->configs_preopt[id]->A = preopt->A;
 		mo->configs_preopt[id]->pA = preopt->pA;
 		GMRFLib_duplicate_constr(&(mo->configs_preopt[id]->constr), preopt->latent_constr, preopt->preopt_graph);
@@ -8698,8 +8695,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			       GMRFLib_ai_store_tp * ai_store, double *improved_mean, int lookup_tables)
 {
 	/*
-	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to avoid dependency of n,
-	 * in both a, in a^T x, and in remap(a). We only need the range of non-zero terms 'remap(a)' and the non-zero terms in 'a'.
+	 * Compute the marginals for the linear combinations using just the Gaussians. The computations gets a bit messy since we will try to
+	 * avoid dependency of n, in both a, in a^T x, and in remap(a). We only need the range of non-zero terms 'remap(a)' and the non-zero
+	 * terms in 'a'.
 	 */
 
 	GMRFLib_problem_tp *problem = ai_store->problem;
@@ -8744,9 +8742,13 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	// FIXME: Recheck this later!
 	int use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
 
+	// seems to be ok now?? (March 2022)
+	use_pardiso = 0;
+
 	if (!use_pardiso) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 	}
+
 #pragma omp parallel for private(j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (int i = 0; i < nlin; i++) {
 
@@ -9320,7 +9322,7 @@ int GMRFLib_ai_add_Qinv_to_ai_store(GMRFLib_ai_store_tp * ai_store)
 	if (!ai_store->problem->sub_inverse) {
 		int i, n;
 
-		GMRFLib_Qinv(ai_store->problem, GMRFLib_QINV_NEIGB);
+		GMRFLib_Qinv(ai_store->problem);
 		Free(ai_store->stdev);
 		n = ai_store->problem->n;
 		ai_store->stdev = Calloc(n, double);
@@ -9555,7 +9557,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 			theta_max_all[i] = theta_mode[i] + limit * stdev_corr_pos[i] * std_stdev_theta[i];
 		}
 
-		int tmax = GMRFLib_MAX_THREADS;
+		int tmax = GMRFLib_MAX_THREADS();
 		GMRFLib_ai_integrator_arg_tp **arg = Calloc(tmax, GMRFLib_ai_integrator_arg_tp *);
 
 		for (i = 0; i < tmax; i++) {
@@ -10140,7 +10142,7 @@ int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_pa
 	 * now we need to ``sort'' the configurations... recall to set pool_hyper which is required.
 	 */
 	pool_nhyper = (int) p->nhyper;
-	if (GMRFLib_MAX_THREADS > 1) {
+	if (GMRFLib_MAX_THREADS() > 1) {
 		qsort(p->configurations, p->nconfig, p->nhyper * sizeof(int), GMRFLib_pool_cmp);
 	} else {
 		/*

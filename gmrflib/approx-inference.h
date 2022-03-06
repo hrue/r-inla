@@ -556,7 +556,7 @@ typedef struct {
 	/**
 	 * \brief N-limit when to enable a f() component
 	 */
-	int vb_enable_limit;
+	int vb_f_enable_limit;
 
 	/**
 	 * \brief List of nodes to VB correct for, if any.
