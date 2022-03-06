@@ -869,8 +869,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 	d = div(nrhs, block_nrhs);
 	nblock = d.quot;
-	reminder = (d.rem != 0);
-	nsolve = nblock + reminder;
+	nsolve = nblock + (d.rem != 0);
 
 	//printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
 	
