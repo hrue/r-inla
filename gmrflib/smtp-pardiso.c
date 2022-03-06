@@ -856,7 +856,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		d = div(nrhs, max_nrhs); 
 		nt = IMIN(nt, d.quot + (d.rem != 0));
 	}
-	omp_set_num_threads(nt);
+	if (nt > 1) omp_set_num_threads(nt);
 	d = div(nrhs, max_nrhs);
 	nblock = d.quot;
 	reminder = (d.rem != 0);
