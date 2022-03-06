@@ -923,7 +923,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL,		\
 				*ld = NULL, *logcor = NULL, *x_user = NULL, _alpha=-1.0; \
-			int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
+			int itry, flag, np, np_orig = 31, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
 			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
 									\
 			Calloc_init(4*np_new);				\
@@ -6359,9 +6359,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				if (cpo) {
 					GMRFLib_compute_cpodens(&cpodens, lpred[i][dens_count], i, d[i], loglFunc, loglFunc_arg, ai_par);
 					if (cpodens_moments) {
-						cpodens_moments[3 * i + 0] = cpodens->user_mean;
-						cpodens_moments[3 * i + 1] = SQR(cpodens->user_stdev);
-						cpodens_moments[3 * i + 2] = cpodens->skewness;
+						if (cpodens) {
+							cpodens_moments[3 * i + 0] = cpodens->user_mean;
+							cpodens_moments[3 * i + 1] = SQR(cpodens->user_stdev);
+							cpodens_moments[3 * i + 2] = cpodens->skewness;
+						} else {
+							cpodens_moments[3 * i + 0] = NAN;
+							cpodens_moments[3 * i + 1] = NAN;
+							cpodens_moments[3 * i + 2] = NAN;
+						}
 					}
 					failure_theta[i][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[i][dens_count],
 												   &pit_theta[i][dens_count], i, cpodens,
@@ -7606,8 +7612,8 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		return GMRFLib_SUCCESS;
 	}
 
-	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, _alpha = -1.0;
-	int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2 * npx;
+	int itry, flag, np, np_orig = 31, debug = 0, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
+	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, alpha = -1.0;
 	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
 
 	Calloc_init(4 * np_new);
@@ -7627,36 +7633,44 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 			xp[np + npx + itmp] = xp[npx + np - 1] + range * (itmp + 1.0) / (double) npx;
 		}
 		np = np_new;
-		if (_debug) {
-			if (0)
+		if (debug) {
+#pragma omp critical 
+			{
 				for (itmp = 0; itmp < np; itmp++)
-					printf("xp[%1d] = %.3fn", itmp, xp[itmp]);
-			GMRFLib_density_printf(stdout, density);
+					printf("xp[%1d] = %.3f\n", itmp, xp[itmp]);
+				GMRFLib_density_printf(stdout, density);
+			}
 		}
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 		GMRFLib_density_std2user_n(x_user, xp, np, density);
 		loglFunc(logcor, x_user, np, idx, NULL, NULL, loglFunc_arg);
-		for (_i = 0; _i < np; _i++) {
-			logcor[_i] *= d;
+		for(i = 0; i < np; i++) {
+			logcor[i] *= d;
 		}
-		if (_debug && np) {
-			for (_i = 0; _i < np; _i++)
-				printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %gn", idx,
-				       x_user[_i], xp[_i], ld[_i], logcor[_i], ld[_i] - logcor[_i]);
+		if (debug && np) {
+#pragma omp critical 
+			{
+				for (i = 0; i < np; i++)
+					printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
+					       x_user[i], xp[i], ld[i], logcor[i], ld[i] - logcor[i]);
+			}
 		}
 		if (itry == 1 && cor_eps > 0.0) {
 			flag = 1;
 			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
-			for (_i = 0; _i < np; _i++) {
-				ld[_i] = ld[_i] + logcor[_i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[_i]);
+			for (i = 0; i < np; i++) {
+				ld[i] = ld[i] + logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 			}
 		} else {
-			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);	/* ld = ld + logcor */
+			daxpy_(&np, &alpha, logcor, &one, ld, &one);	/* ld = ld + logcor */
 		}
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
-		if (_debug && np) {
-			for (_i = 0; _i < np; _i++)
-				printf("CPO AFTER: %d %g %gn", idx, xp[_i], ld[_i]);
+		if (debug && np) {
+#pragma omp critical 
+			{
+				for (i = 0; i < np; i++)
+					printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);
+			}
 		}
 		if (np > 4) {
 			GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld,
