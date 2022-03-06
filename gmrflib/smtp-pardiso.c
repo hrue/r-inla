@@ -835,7 +835,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		}
 	}
-	printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
+	//printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
 
 	if (nrhs == 1) {
 		max_nrhs = 1;
@@ -856,13 +856,13 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		d = div(nrhs, max_nrhs); 
 		nt = IMIN(nt, d.quot + (d.rem != 0));
 	}
-	if (nt > 1) omp_set_num_threads(nt);
+	omp_set_num_threads(nt);
 	d = div(nrhs, max_nrhs);
 	nblock = d.quot;
 	reminder = (d.rem != 0);
 	nsolve = nblock + reminder;
 
-	printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
+	//printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
 	
 #define CODE_BLOCK							\
 	for (int i = 0; i < nsolve; i++) {				\
