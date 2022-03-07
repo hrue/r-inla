@@ -4,6 +4,23 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.03.08}{
+  \subsection{CHANGES}{
+    \itemize{
+      \item Better TAUCS performance: improved storage scheme and
+      new code tp allow for linear solves with many rhs.
+      \item \code{gcpo}-improvement. The default is now \code{group.size=1},
+      and it acts like cpo.
+    }
+  }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed an issue for propagation an error
+      from the cpo-calculations
+      \item Various smaller changes
+    }
+  }
+}
 \section{CHANGES IN VERSION 22.03.06}{
   \subsection{CHANGES}{
     \itemize{
