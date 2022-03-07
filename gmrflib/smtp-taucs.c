@@ -935,38 +935,40 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
+	GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
 
-	if (0) {
-		/*
-		 * use TAUCS 
-		 */
-		double *b = Calloc(graph->n, double);
-		Memcpy(b, rhs, graph->n * sizeof(double));
-		taucs_ccs_solve_llt(L, rhs, b);
-		Free(b);
-
-		GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
-	} else {
-		/*
-		 * my version for this particular purpose, a bit faster (15% or so) 
-		 */
-		GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
-
-		static double *work = NULL;
+	static double *work = NULL;
 #pragma omp threadprivate(work)
-		static int work_len = 0;
+	static int work_len = 0;
 #pragma omp threadprivate(work_len)
 
-		if (graph->n > work_len) {
-			Free(work);
-			work_len = graph->n;
-			work = Calloc(work_len, double);
-		}
+	if (graph->n > work_len) {
+		Free(work);
+		work_len = graph->n;
+		work = Calloc(work_len, double);
+	}
 
-		Memcpy(work, rhs, graph->n * sizeof(double));
-		for (int i = 0; i < graph->n; i++) {
-			rhs[i] = work[remap[i]];
-		}
+	Memcpy(work, rhs, graph->n * sizeof(double));
+	for (int i = 0; i < graph->n; i++) {
+		rhs[i] = work[remap[i]];
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int nrhs)
+{
+	// same function but for many rnhs.
+	
+	int n = graph->n;
+	for(int j = 0; j < nrhs; j++) {
+		GMRFLib_convert_to_mapped(rhs + j * n, NULL, graph, remap);
+	}
+
+	GMRFLib_my_taucs_dccs_solve_llt2(L, rhs, nrhs);
+
+	for(int j = 0; j < nrhs; j++) {
+		GMRFLib_convert_from_mapped(rhs + j * n, NULL, graph, remap);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -1473,6 +1475,141 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 			int jp = L->colptr[i];
 			double Aii = L->values.d[jp];
 			x[i] = y[i] / Aii;
+		}
+	}
+
+	return 0;
+}
+
+int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
+{
+#define DAXPY(N_, DA_, DX_, INCX_, DY_, INCY_)			\
+	if (1) {						\
+		int n_ = N_;					\
+		int incx_ = INCX_;				\
+		int incy_ = INCY_;				\
+		double da_ = DA_;				\
+		Memset(DY_, 0, (N_) * sizeof(double));		\
+		daxpy_(&n_, &da_, DX_, &incx_, DY_, &incy_);	\
+	}							\
+
+	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+	int n = L->n;
+
+	if (n == 0) {
+		return 0;
+	}
+
+	FIXME("WE ARE HERE");
+	
+	static double *work = NULL;
+#pragma omp threadprivate(work)
+	static int work_len = 0;
+#pragma omp threadprivate(work_len)
+
+	if (nrhs * (n + 1) > work_len) {
+		Free(work);
+		work_len = nrhs * (n + 1);
+		work = Calloc(work_len, double);
+	}
+
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	for(int j = 0; j < nrhs; j++) {
+		double *xx = x + j;
+		double *ww = work + j * n;
+			
+		if (1) {
+			DAXPY(n, 1.0, ww, 1, xx, nrhs);
+		} else {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for(int i = 0; i < n; i++) {
+			xx[i * nrhs] = ww[i];
+		}
+		}
+	}
+
+	double *y = work;
+	double *sum = work + n * nrhs;
+	
+	int offset_j;
+	int offset_i;
+	for (int j = 0; j < n; j++) {
+		int ip = L->colptr[j];
+		double iAjj = 1.0/L->values.d[ip];
+		double *xx;
+		double *yy;
+		
+		offset_j = j * nrhs;
+		yy = y + offset_j;
+		xx = x + offset_j;
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for(int k = 0; k < nrhs; k++) {
+			yy[k] = xx[k] * iAjj;
+		}
+
+		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			int i = L->rowind[ip];
+			double Aij = L->values.d[ip];
+
+			offset_i = i * nrhs;
+			xx = x + offset_i;
+			yy = y + offset_j;
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for(int k = 0; k < nrhs; k++) {
+				xx[k] -= yy[k] * Aij;
+			}
+		}
+	}
+
+	for (int i = n - 1; i >= 0; i--) {
+		double *xx;
+		double *yy;
+		
+		memset(sum, 0, nrhs * sizeof(double));
+		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
+			int j = L->rowind[jp];
+			double Aij = L->values.d[jp];
+
+			offset_j = j * nrhs;
+			xx = x + offset_j;
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for(int k = 0; k < nrhs; k++) {
+				sum[k] += xx[k] * Aij;
+			}
+		}
+
+		offset_i = i * nrhs;
+		yy = y + offset_i;
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for(int k = 0; k < nrhs; k++) {
+			yy[k] -= sum[k];
+		}
+		
+		int jp = L->colptr[i];
+		double iAii = 1.0/L->values.d[jp];
+		xx = x + offset_i;
+		yy = y + offset_i;
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for(int k = 0; k < nrhs; k++) {
+			xx[k] = yy[k] * iAii;
+		}
+	}
+
+	Memcpy(work, x, n * nrhs * sizeof(double));
+	for(int j = 0; j < nrhs; j++) {
+		double *xx = x + j * n;
+		double *ww = work + j;
+
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for(int i = 0; i < n; i++) {
+			xx[i] = ww[i * nrhs];
 		}
 	}
 
