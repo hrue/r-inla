@@ -748,7 +748,7 @@
 
     ## this is nice hack ;-) we keep the original response. then we
     ## delete it from 'data' keeping a copy of the original one
-    y...orig <- eval(parse(text = formula[2]), data)
+    y...orig <- eval(parse(text = formula[2]), envir = data, enclos = .parent.frame)
 
     if (n.family > 1) {
         y...orig <- inla.as.list.of.lists(y...orig)
@@ -852,7 +852,6 @@
 
     ## creates a new version of ``formula'' and keep the old one for reference
     formula.orig <- formula
-    ## inla.eval(paste("formula = y...fake ~ ", inla.formula2character(formula.orig[3])))
     formula <- update.formula(formula, y...fake ~ .)
     ## parse the formula
     gp <- inla.interpret.formula(formula,
@@ -875,7 +874,6 @@
         ## use y...fake also here (which is the same as in gp$fixf[2])
         ## and construct the model.matrix().
         new.fix.formula <- gp$fixf
-        ## inla.eval(paste("new.fix.formula = y...fake ~ ", inla.formula2character(gp$fixf[3])))
         new.fix.formula <- update.formula(new.fix.formula, y...fake ~ .)
 
         ## replace NA's in covariates with 0. Ignore factors. NA's in
@@ -1287,7 +1285,7 @@
         rf <- mf ## for later use
         rf$formula <- gp$randf
         rf$data <- data.same.len
-        rf <- eval.parent(rf, n = 2)
+        rf <- eval(rf, envir = rf$data, enclos = .parent.frame)
     } else {
         rf <- NULL
     }
@@ -1296,12 +1294,13 @@
         wf <- mf
         wf$formula <- gp$weightf
         wf$data <- data.same.len
-        wf <- eval.parent(wf, n = 2)
+        wf <- eval(wf, envir = wf$data, enclos = .parent.frame)
     } else {
         wf <- NULL
     }
 
-    mf <- eval.parent(mf, n = 2)
+    ##mf <- eval.parent(mf, n = 2)
+    mf <- eval(mf, envir = mf$data, enclos = .parent.frame)
     indN <- seq(0L, NPredictor - 1L)
     indM <- seq(0L, MPredictor - 1L)
     indD <- seq(0L, NData - 1)
@@ -1314,7 +1313,8 @@
         ## there can be more offsets
         offset.formula <- 0
         for (i in 1:length(gp$offset)) {
-            offset.formula <- offset.formula + as.vector(eval(parse(text = gp$offset[i]), data))
+            offset.formula <- offset.formula +
+                as.vector(eval(parse(text = gp$offset[i]), envir = data, enclos = .parent.frame))
         }
     } else {
         offset.formula <- rep(0, NPredictor)
