@@ -1483,15 +1483,25 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 
 int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 {
-#define DAXPY(N_, DA_, DX_, INCX_, DY_, INCY_)			\
-	if (1) {						\
-		int n_ = N_;					\
-		int incx_ = INCX_;				\
-		int incy_ = INCY_;				\
-		double da_ = DA_;				\
-		Memset(DY_, 0, (N_) * sizeof(double));		\
-		daxpy_(&n_, &da_, DX_, &incx_, DY_, &incy_);	\
-	}							\
+#define DAXPY_CORE(SET_ZERO_, N_, DA_, DX_, INCX_, DY_, INCY_)		\
+	if (1) {							\
+		int n_ = N_;						\
+		int incx_ = INCX_;					\
+		int incy_ = INCY_;					\
+		double da_ = DA_;					\
+		double zero = 0.0;					\
+		if (SET_ZERO_) {					\
+			if (incy_ == 1) {				\
+				Memset(DY_, 0, n_ * sizeof(double));	\
+			} else {					\
+				dscal_(&n_, &zero, DY_, &incy_);	\
+			}						\
+		}							\
+		daxpy_(&n_, &da_, DX_, &incx_, DY_, &incy_);		\
+	}								\
+
+#define DAXPY1(N_, DA_, DX_, INCX_, DY_, INCY_) DAXPY_CORE(1, N_, DA_, DX_, INCX_, DY_, INCY_)
+#define DAXPY0(N_, DA_, DX_, INCX_, DY_, INCY_) DAXPY_CORE(0, N_, DA_, DX_, INCX_, DY_, INCY_)
 
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
@@ -1519,7 +1529,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		double *ww = work + j * n;
 			
 		if (1) {
-			DAXPY(n, 1.0, ww, 1, xx, nrhs);
+			DAXPY1(n, 1.0, ww, 1, xx, nrhs);
 		} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
@@ -1543,12 +1553,16 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		offset_j = j * nrhs;
 		yy = y + offset_j;
 		xx = x + offset_j;
+		if (1) {
+			DAXPY1(nrhs, iAjj, xx, 1, yy, 1);
+		} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
-		for(int k = 0; k < nrhs; k++) {
-			yy[k] = xx[k] * iAjj;
+			for(int k = 0; k < nrhs; k++) {
+				yy[k] = xx[k] * iAjj;
 		}
-
+	}
+	
 		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			int i = L->rowind[ip];
 			double Aij = L->values.d[ip];
@@ -1556,12 +1570,17 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 			offset_i = i * nrhs;
 			xx = x + offset_i;
 			yy = y + offset_j;
+			if (1) {
+				DAXPY0(nrhs, -Aij, yy, 1, xx, 1);
+			} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
 			for(int k = 0; k < nrhs; k++) {
 				xx[k] -= yy[k] * Aij;
 			}
 		}
+		}
+		
 	}
 
 	for (int i = n - 1; i >= 0; i--) {
@@ -1575,29 +1594,44 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 
 			offset_j = j * nrhs;
 			xx = x + offset_j;
+			if (1){
+				DAXPY0(nrhs, Aij, xx, 1, sum, 1);
+			} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
 			for(int k = 0; k < nrhs; k++) {
 				sum[k] += xx[k] * Aij;
 			}
+			}
+			
 		}
 
 		offset_i = i * nrhs;
 		yy = y + offset_i;
+
+		if (1) {
+			DAXPY0(nrhs, -1.0, sum, 1, yy, 1);
+		} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
 		for(int k = 0; k < nrhs; k++) {
 			yy[k] -= sum[k];
+		}
 		}
 		
 		int jp = L->colptr[i];
 		double iAii = 1.0/L->values.d[jp];
 		xx = x + offset_i;
 		yy = y + offset_i;
+
+		if (1) {
+			DAXPY1(nrhs, iAii, yy, 1, xx, 1);
+		} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
 		for(int k = 0; k < nrhs; k++) {
 			xx[k] = yy[k] * iAii;
+		}
 		}
 	}
 
@@ -1606,10 +1640,14 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		double *xx = x + j * n;
 		double *ww = work + j;
 
+		if (1){
+			DAXPY1(n, 1.0, ww, nrhs, xx, 1);
+		} else {
 #pragma GCC ivdep
 #pragma GCC unroll 8
 		for(int i = 0; i < n; i++) {
 			xx[i] = ww[i * nrhs];
+		}
 		}
 	}
 
