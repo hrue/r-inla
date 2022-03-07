@@ -59,7 +59,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 #define TAB_FUNC_CORE(_prec_scale)					\
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;			\
 	double prec, *dp;						\
-	int i, ii, j, len, imin, imax;					\
+	int i, ii, j, len = 0, imin, imax;				\
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;			\
 	if (_prec_scale) {						\
 		prec = GMRFLib_SET_PREC(args);				\
@@ -78,10 +78,11 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		} else {						\
 			dp = map_id_ptr(args->values[imin], imax);	\
 		}							\
+									\
 		if (_prec_scale) {					\
-				  return prec * (*dp);			\
+			val = prec * (*dp);				\
 		} else {						\
-			return *dp;					\
+			val = *dp;					\
 		}							\
 	} else {							\
 		if (args->Q) {						\
@@ -90,14 +91,14 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			len = args->Q->ia[node + 1] - j;		\
 			Memcpy(values, &(args->Q->a[j]), len * sizeof(double)); \
 		} else {						\
-			return NAN;					\
+			val = NAN;					\
 		}							\
+									\
 		if (_prec_scale) {					\
 			for (i = 0; i < len; i++) {			\
 				values[i] *= prec;			\
 			}						\
 		}							\
-		return 0.0;						\
 	 }
 
 double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg)
@@ -105,7 +106,9 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
+	double val = 0.0;
 	TAB_FUNC_CORE(1);
+	return val;
 }
 
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
@@ -113,7 +116,9 @@ double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void 
 	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
+	double val = 0.0;
 	TAB_FUNC_CORE(0);
+	return val;
 }
 
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
@@ -163,9 +168,7 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;
 	}
 
-	// Currently do this for PARDISO only, was some issues to extend it to TAUCS, and that require some more
-	// checking/rewrite.
-	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
+	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
 		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
 		if (arg->Q->a[0] < 0.0 || ISNAN(arg->Q->a[0]) || ISINF(arg->Q->a[0])) {
 			P(arg->Q->a[0]);
