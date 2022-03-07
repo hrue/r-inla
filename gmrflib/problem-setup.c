@@ -1594,6 +1594,10 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 		} else {
 			Qfunc_arg->values = NULL;
 		}
+		if (tmp->Q) {
+			GMRFLib_csr_duplicate(&(Qfunc_arg->Q), tmp->Q);
+		}
+		
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
 	} else {
