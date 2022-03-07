@@ -923,7 +923,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL,		\
 				*ld = NULL, *logcor = NULL, *x_user = NULL, _alpha=-1.0; \
-			int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
+			int itry, flag, np, np_orig = 31, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
 			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
 									\
 			Calloc_init(4*np_new);				\
@@ -6359,9 +6359,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				if (cpo) {
 					GMRFLib_compute_cpodens(&cpodens, lpred[i][dens_count], i, d[i], loglFunc, loglFunc_arg, ai_par);
 					if (cpodens_moments) {
-						cpodens_moments[3 * i + 0] = cpodens->user_mean;
-						cpodens_moments[3 * i + 1] = SQR(cpodens->user_stdev);
-						cpodens_moments[3 * i + 2] = cpodens->skewness;
+						if (cpodens) {
+							cpodens_moments[3 * i + 0] = cpodens->user_mean;
+							cpodens_moments[3 * i + 1] = SQR(cpodens->user_stdev);
+							cpodens_moments[3 * i + 2] = cpodens->skewness;
+						} else {
+							cpodens_moments[3 * i + 0] = NAN;
+							cpodens_moments[3 * i + 1] = NAN;
+							cpodens_moments[3 * i + 2] = NAN;
+						}
 					}
 					failure_theta[i][dens_count] = GMRFLib_ai_cpopit_integrate(&cpo_theta[i][dens_count],
 												   &pit_theta[i][dens_count], i, cpodens,
@@ -7250,8 +7256,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	int Npred = preopt->Npred;
 	int N = IMAX(preopt->n, Npred);
 	GMRFLib_idx_tp **groups = NULL;
-	if (!(gcpo_param->groups)) {
 
+	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose) {
 			printf("%s[%1d]: Build groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
@@ -7270,23 +7276,30 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		int free_selection = 0;
 
 		if (!(gcpo_param->selection)) {
-			free_selection = 1;
 			for (int i = 0; i < Npred; i++) {
 				GMRFLib_idx_add(&selection, i);
 			}
+			free_selection = 1;
 		} else {
 			selection = gcpo_param->selection;
 			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
 			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
 		}
 		if (gcpo_param->verbose) {
-			printf("%s[%1d]: Use selection of %d indices\n", __GMRFLib_FuncName, omp_get_thread_num(), selection->n);
+			printf("%s[%1d]: Use selection of %1d indices and group.size %1d\n", __GMRFLib_FuncName,
+			       omp_get_thread_num(), selection->n, gcpo_param->group_size);
 		}
 
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
 			int node = selection->idx[ii];			\
 			CODE_BLOCK_SET_THREAD_ID();			\
+									\
+			if (gcpo_param->group_size == 1) {		\
+				GMRFLib_idx_add(&(groups[node]), node); \
+				continue;				\
+			}						\
+									\
 			GMRFLib_idxval_tp *v = A_idx(node);		\
 			double *cor = CODE_BLOCK_WORK_PTR(0);		\
 			CODE_BLOCK_WORK_ZERO(0);			\
@@ -7300,14 +7313,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				a[v->store[k].idx] = v->store[k].val;	\
 			}						\
 			GMRFLib_Qsolve(Sa, a, ai_store->problem);	\
-									\
+			FIXME("SOLVE FOR GROUPS");			\
 			int num_ones = 0;				\
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				if (nnode == node) continue;		\
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
-									\
 				_Pragma("GCC ivdep")			\
 					_Pragma("GCC unroll 4")		\
 					for (int k = 0; k < v->n; k++) { \
@@ -7355,11 +7367,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	// add first off-diagonals
 	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, gcpo_param->group_size);
 	for (int node = 0; node < Npred; node++) {
-		for (int i = 0; i < groups[node]->n; i++) {
-			int ii = groups[node]->idx[i];
-			for (int j = i + 1; j < groups[node]->n; j++) {
-				int jj = groups[node]->idx[j];
-				GMRFLib_idx2_add(&(missing[IMIN(ii, jj)]), IMAX(ii, jj), node);
+		if (groups[node]->n > 1) {
+			for (int i = 0; i < groups[node]->n; i++) {
+				int ii = groups[node]->idx[i];
+				for (int j = i + 1; j < groups[node]->n; j++) {
+					int jj = groups[node]->idx[j];
+					GMRFLib_idx2_add(&(missing[IMIN(ii, jj)]), IMAX(ii, jj), node);
+				}
 			}
 		}
 	}
@@ -7431,34 +7445,46 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		}
 	}
 
-#define CODE_BLOCK					      \
-	for(int node = 0; node < Npred; node++) {	      \
-		CODE_BLOCK_SET_THREAD_ID();		      \
-		if (groups->missing[node]->n == 0) continue;  \
-		GMRFLib_idxval_tp *v = A_idx(node);	      \
-		double *a = CODE_BLOCK_WORK_PTR(0);	      \
-		CODE_BLOCK_WORK_ZERO(0);		      \
-		double *Sa = CODE_BLOCK_WORK_PTR(1);	      \
-		double *cov = CODE_BLOCK_WORK_PTR(2);	      \
-		CODE_BLOCK_WORK_ZERO(2);		      \
-							      \
-		for (int k = 0; k < v->n; k++) {	      \
-			a[v->store[k].idx] = v->store[k].val; \
-		}					      \
-		if (gcpo_param->verbose) {		      \
+#define CODE_BLOCK							\
+	for (int node = 0; node < Npred; node++) {			\
+		CODE_BLOCK_SET_THREAD_ID();				\
+		if (groups->missing[node]->n == 0) continue;		\
+		GMRFLib_idxval_tp *v = A_idx(node);			\
+		double *a = CODE_BLOCK_WORK_PTR(0);			\
+		CODE_BLOCK_WORK_ZERO(0);				\
+		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
+		double *cov = CODE_BLOCK_WORK_PTR(2);			\
+		CODE_BLOCK_WORK_ZERO(2);				\
+									\
+		if (groups->missing[node]->n == 1 &&			\
+		    groups->missing[node]->idx[0][0] == node &&		\
+		    groups->missing[node]->idx[1][0] == node) {		\
+			if (gcpo_param->verbose) {			\
+				printf("%s[%1d]: node %d is singleton, skip solve\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
+			}						\
+			gcpo[node]->node_min = node;			\
+			gcpo[node]->node_max = node;			\
+			gcpo[node]->idx_node = 0;			\
+			gsl_matrix_set(gcpo[node]->cov_mat, 0, 0, lpred_variance[node]); \
+			continue;					\
+		}							\
+		for (int k = 0; k < v->n; k++) {			\
+			a[v->store[k].idx] = v->store[k].val;		\
+		}							\
+		if (gcpo_param->verbose) {				\
 			printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 		}							\
-		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);  \
-							      \
-		for (int nnode = 0; nnode < Npred; nnode++) { \
-			double sum = 0.0;		      \
-			v = A_idx(nnode);		      \
-							      \
-			_Pragma("GCC ivdep")		      \
-			_Pragma("GCC unroll 8")		      \
-			for (int k = 0; k < v->n; k++) {	\
-				sum += Sa[v->store[k].idx] * v->store[k].val; \
-			}						\
+		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);		\
+									\
+		for (int nnode = 0; nnode < Npred; nnode++) {		\
+			double sum = 0.0;				\
+			v = A_idx(nnode);				\
+									\
+			_Pragma("GCC ivdep")				\
+				_Pragma("GCC unroll 8")			\
+				for (int k = 0; k < v->n; k++) {	\
+					sum += Sa[v->store[k].idx] * v->store[k].val; \
+				}					\
 			double f = sd[node] * sd[nnode];		\
 			sum /= f;					\
 			cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f;	\
@@ -7467,7 +7493,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gcpo[node]->node_min = gcpo[node]->idxs->idx[0];	\
 		gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
 		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, gcpo[node]->idxs->idx, gcpo[node]->idxs->n, NULL); \
-		if (gcpo[node]->idxs->n > 0) assert(gcpo[node]->idx_node >= 0);			\
+		if (gcpo[node]->idxs->n > 0) assert(gcpo[node]->idx_node >= 0);	\
 									\
 		for(int k = 0; k < groups->missing[node]->n; k++) {	\
 			int nnode = groups->missing[node]->idx[0][k];	\
@@ -7484,11 +7510,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 				gsl_matrix_set(mat, jj, ii, cov[nnode]); \
 			}						\
 		}							\
-        }
+	}
 
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
-
+	
 	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
 #pragma omp critical
 		{
@@ -7554,9 +7580,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
 		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + lpred_mean[node] - lpred_mode[node]); \
-									\
 		gcpo[node]->lpred_mean = gsl_vector_get(mean, idx_node); \
-		gcpo[node]->lpred_sd = sqrt(DMAX(0.0, gsl_matrix_get(S, idx_node, idx_node))); \
+		gcpo[node]->lpred_sd = sqrt(DMAX(DBL_EPSILON, gsl_matrix_get(S, idx_node, idx_node))); \
 		gcpo[node]->kld =  0.5 * (SQR(gcpo[node]->lpred_sd) / lpred_variance[node] - 1.0 + \
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
@@ -7565,12 +7590,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			GMRFLib_ghq(&xx, &weights, np);			\
 			double *xp = CODE_BLOCK_WORK_PTR(2);		\
 			double *loglik = CODE_BLOCK_WORK_PTR(3);	\
-									\
+			double val = 0.0;				\
 			for (int i = 0; i < np; i++) {			\
 				xp[i] = gcpo[node]->lpred_mean + gcpo[node]->lpred_sd * xx[i]; \
 			}						\
 			loglFunc(loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg);	\
-			double val = 0.0;				\
 			for (int i = 0; i < np; i++) {			\
 				val += exp(d[node] * loglik[i]) * weights[i]; \
 			}						\
@@ -7606,8 +7630,8 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		return GMRFLib_SUCCESS;
 	}
 
-	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, _alpha = -1.0;
-	int itry, flag, np, np_orig = 51, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2 * npx;
+	int itry, flag, np, np_orig = 31, debug = 0, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
+	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, alpha = -1.0;
 	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
 
 	Calloc_init(4 * np_new);
@@ -7627,36 +7651,44 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 			xp[np + npx + itmp] = xp[npx + np - 1] + range * (itmp + 1.0) / (double) npx;
 		}
 		np = np_new;
-		if (_debug) {
-			if (0)
+		if (debug) {
+#pragma omp critical 
+			{
 				for (itmp = 0; itmp < np; itmp++)
-					printf("xp[%1d] = %.3fn", itmp, xp[itmp]);
-			GMRFLib_density_printf(stdout, density);
+					printf("xp[%1d] = %.3f\n", itmp, xp[itmp]);
+				GMRFLib_density_printf(stdout, density);
+			}
 		}
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 		GMRFLib_density_std2user_n(x_user, xp, np, density);
 		loglFunc(logcor, x_user, np, idx, NULL, NULL, loglFunc_arg);
-		for (_i = 0; _i < np; _i++) {
-			logcor[_i] *= d;
+		for(i = 0; i < np; i++) {
+			logcor[i] *= d;
 		}
-		if (_debug && np) {
-			for (_i = 0; _i < np; _i++)
-				printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %gn", idx,
-				       x_user[_i], xp[_i], ld[_i], logcor[_i], ld[_i] - logcor[_i]);
+		if (debug && np) {
+#pragma omp critical 
+			{
+				for (i = 0; i < np; i++)
+					printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
+					       x_user[i], xp[i], ld[i], logcor[i], ld[i] - logcor[i]);
+			}
 		}
 		if (itry == 1 && cor_eps > 0.0) {
 			flag = 1;
 			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
-			for (_i = 0; _i < np; _i++) {
-				ld[_i] = ld[_i] + logcor[_i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[_i]);
+			for (i = 0; i < np; i++) {
+				ld[i] = ld[i] + logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 			}
 		} else {
-			daxpy_(&np, &_alpha, logcor, &_one, ld, &_one);	/* ld = ld + logcor */
+			daxpy_(&np, &alpha, logcor, &one, ld, &one);	/* ld = ld + logcor */
 		}
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
-		if (_debug && np) {
-			for (_i = 0; _i < np; _i++)
-				printf("CPO AFTER: %d %g %gn", idx, xp[_i], ld[_i]);
+		if (debug && np) {
+#pragma omp critical 
+			{
+				for (i = 0; i < np; i++)
+					printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);
+			}
 		}
 		if (np > 4) {
 			GMRFLib_density_create(cpo_density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, np, xp, ld,

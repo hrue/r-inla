@@ -133,6 +133,10 @@
             ret <- c(ret, list(cpo = lapply(object$cpo, round, digits = digits)))
         }
 
+        if (!is.null(object$gcpo$gcpo) && length(object$gcpo$gcpo) > 0L) {
+            ret <- c(ret, list(gcpo = lapply(object$gcpo$gcpo, round, digits = digits)))
+        }
+
         if (!is.null(object$summary.linear.predictor)) {
             ret <- c(ret, list(linear.predictor = round(object$summary.linear.predictor, digits = digits)))
         }
@@ -165,7 +169,8 @@
 }
 
 
-`print.summary.inla` <- function(x, digits = 3L, ...) {
+`print.summary.inla` <- function(x, digits = 3L, ...) 
+{
     form <- strwrap(inla.formula2character(x$call))
     if (!is.null(x$call)) {
         cat("\nCall:\n")
@@ -208,8 +213,8 @@
         cat("Random effects:\n")
         cat("  Name\t ", "Model\n ")
         for (i in 1:length(x$random.names)) {
-              cat("  ", paste0(inla.nameunfix(x$random.names[i]), " ", x$random.model[i], "\n"))
-          }
+            cat("  ", paste0(inla.nameunfix(x$random.names[i]), " ", x$random.model[i], "\n"))
+        }
         cat("\n")
     }
 
@@ -220,40 +225,45 @@
     }
 
     if (inla.is.element("dic", x)) {
-          cat(paste("Deviance Information Criterion (DIC) ...............: ",
-              format(x$dic$dic, digits = digits, nsmall = 2), "\n",
-              "Deviance Information Criterion (DIC, saturated) ....: ",
-              format(x$dic$dic.sat, digits = digits, nsmall = 2), "\n",
-              "Effective number of parameters .....................: ",
-              format(x$dic$p.eff, digits = digits, nsmall = 2), "\n\n",
-              sep = ""
-          ))
-      }
+        cat(paste("Deviance Information Criterion (DIC) ...............: ",
+                  format(x$dic$dic, digits = digits, nsmall = 2), "\n",
+                  "Deviance Information Criterion (DIC, saturated) ....: ",
+                  format(x$dic$dic.sat, digits = digits, nsmall = 2), "\n",
+                  "Effective number of parameters .....................: ",
+                  format(x$dic$p.eff, digits = digits, nsmall = 2), "\n\n",
+                  sep = ""
+                  ))
+    }
 
     if (inla.is.element("waic", x)) {
-          cat(paste("Watanabe-Akaike information criterion (WAIC) ...: ",
-              format(x$waic$waic, digits = digits, nsmall = 2), "\n",
-              "Effective number of parameters .................: ",
-              format(x$waic$p.eff, digits = digits, nsmall = 2), "\n\n",
-              sep = ""
-          ))
-      }
+        cat(paste("Watanabe-Akaike information criterion (WAIC) ...: ",
+                  format(x$waic$waic, digits = digits, nsmall = 2), "\n",
+                  "Effective number of parameters .................: ",
+                  format(x$waic$p.eff, digits = digits, nsmall = 2), "\n\n",
+                  sep = ""
+                  ))
+    }
 
     if (inla.is.element("mlik", x)) {
-          cat(paste("Marginal log-Likelihood: ", format(x$mlik[2], digits = digits, nsmall = 2), "\n"))
-      }
+        cat(paste("Marginal log-Likelihood: ", format(x$mlik[2], digits = digits, nsmall = 2), "\n"))
+    }
 
+    msg <- ""
     if (inla.is.element("cpo", x)) {
-          cat("CPO and PIT are computed\n\n")
-      }
-
+        msg <- paste0(msg, "CPO, PIT")
+    }
+    if (inla.is.element("gcpo", x)) {
+        msg <- paste0(msg, ", GCPO")
+    }
     if (inla.is.element("po", x)) {
-          cat("PO is computed\n\n")
-      }
-
+        msg <- paste0(msg, ", PO")
+    }
+    msg <- paste0(msg, " is computed")
+    cat(msg, "\n")
+    
     if (inla.is.element("linear.predictor", x)) {
-          cat(sep = "", 
-              "Posterior summaries for the linear predictor and the fitted values are computed\n",
-              "(Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')\n\n")
+        cat(sep = "", 
+            "Posterior summaries for the linear predictor and the fitted values are computed\n",
+            "(Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')\n\n")
     }
 }

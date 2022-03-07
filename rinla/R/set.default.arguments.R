@@ -263,7 +263,7 @@
             graph = FALSE,
 
             ## :ARGUMENT: control.gcpo Set control variables for the gcpo
-            control.gcpo = list(enable = FALSE, group.size = 3, groups = NULL, selection = NULL, verbose = FALSE)
+            control.gcpo = list(enable = FALSE, group.size = 1, groups = NULL, selection = NULL, verbose = FALSE)
         )
 
         ## :SEEALSO: inla
@@ -296,7 +296,7 @@
             parallel.reordering = TRUE,
 
             ## :ARGUMENT: nrhs Number of right-hand sides to solve for in parallel (\code{-1} will determine this adapative)
-            nrhs = 1
+            nrhs = -1
         )
 
         ## :SEEALSO: inla

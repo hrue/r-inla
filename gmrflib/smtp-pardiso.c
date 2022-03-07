@@ -77,7 +77,7 @@ GMRFLib_static_pardiso_tp S = {
 	0,						       // csr_check
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
-	1,						       // maximum number of rhs
+	-1,						       // maximum number of rhs
 	1,						       // parallel reordering? yes
 	NULL,						       // busy
 	NULL
@@ -95,10 +95,15 @@ int GMRFLib_pardiso_set_parallel_reordering(int value)
 
 int GMRFLib_pardiso_set_nrhs(int nrhs)
 {
-	if (nrhs > 0) {
+	if (nrhs != 0) {
 		S.nrhs_max = nrhs;
 	}
 	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_pardiso_get_nrhs(void)
+{
+	return S.nrhs_max;
 }
 
 int GMRFLib_pardiso_set_verbose(int verbose)
@@ -793,12 +798,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_chol == GMRFLib_TRUE);
 
 	// this is so that the RHS can be overwritten
-	int n = store->graph->n, mnum1 = 1, nblock, reminder, max_nrhs, err_code = 0, debug = 0;
-
-	max_nrhs = (S.nrhs_max > 0 ? S.nrhs_max : IMAX(1, nrhs));
-	div_t d = div(nrhs, max_nrhs);
-	nblock = d.quot;
-	reminder = (d.rem != 0);
+	int n = store->graph->n, mnum1 = 1, nblock, block_nrhs, err_code = 0, debug = 0;
 
 	GMRFLib_pardiso_setparam(flag, store, NULL);
 	int need_workaround = (GMRFLib_openmp->max_threads_inner > 1) && (store->pstore[omp_get_thread_num()]->iparm[7] > 0);
@@ -828,17 +828,65 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		}
 	}
 
-	if (0) {
-		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-		assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+	int nt = 1;
+	int nsolve;
+	div_t d;
+
+	if (nrhs > 1){
+		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
+			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
+			// level=0.
+			nt = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2];
+		} else {
+			nt = GMRFLib_openmp->max_threads_inner;
+			assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+		}
 	}
+	//printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
+
+	if (nrhs == 1) {
+		// in this case we always set block_nrhs=1 and nt=1
+		block_nrhs = 1;
+		nt = 1;
+	} else if (S.nrhs_max < 0) {	
+		// this is the adaptive choice
+		d = div(nrhs, nt); 
+		if (nrhs >= nt) {
+			// if this is true, we need to divide the work between the nt cores
+			block_nrhs = d.quot + (d.rem != 0);
+		} else {
+			// else we use one core pr rhs
+			block_nrhs = 1;
+			nt = IMIN(nt, nrhs);
+		}
+	} else if (nrhs <= S.nrhs_max) {
+		// then we do all of them in one block
+		block_nrhs = nrhs;
+		nt = 1;
+	} else {
+		// S.nrhs_max define the max nrhs, so then we divide the work
+		block_nrhs = S.nrhs_max;
+		d = div(nrhs, block_nrhs); 
+		nt = IMIN(nt, d.quot + (d.rem != 0));
+	}
+
+	if (nt > 1) {
+		omp_set_num_threads(nt);
+	}
+
+	d = div(nrhs, block_nrhs);
+	nblock = d.quot;
+	nsolve = nblock + (d.rem != 0);
+
+	//printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
+	
 #define CODE_BLOCK							\
-	for (int i = 0; i < nblock + reminder; i++) {			\
+	for (int i = 0; i < nsolve; i++) {				\
 		CODE_BLOCK_SET_THREAD_ID();				\
 		int idum = 0;						\
 		int tnum = omp_get_thread_num();			\
-		int offset = i * n * max_nrhs;				\
-		int local_nrhs = (i < nblock ? max_nrhs : (int) d.rem);	\
+		int offset = i * n * block_nrhs;			\
+		int local_nrhs = (i < nblock ? block_nrhs : (int) d.rem); \
 		double *bb = CODE_BLOCK_WORK_PTR(0);			\
 									\
 		GMRFLib_pardiso_setparam(flag, store, &tnum);		\
@@ -881,7 +929,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		}							\
 	}
 
-	RUN_CODE_BLOCK((nrhs == 1 ? 1 : GMRFLib_MAX_THREADS()), 1, max_nrhs * n);
+	RUN_CODE_BLOCK(nt, 1, block_nrhs * n);
 #undef CODE_BLOCK
 
 	if (need_workaround) {

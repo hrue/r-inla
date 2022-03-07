@@ -98,6 +98,9 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL);
 void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *which);
 
+int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int nrhs);
+int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs);
+
 /* 
    internal functions here, not documented
 */
