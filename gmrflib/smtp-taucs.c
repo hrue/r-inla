@@ -764,6 +764,7 @@ int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_
 		iwork_len = n;
 		iwork = Calloc(iwork_len, int);
 	}
+	Memset(iwork, 0, n * sizeof(int));
 
 	perm = iwork;
 	for (i = 0; i < n; i++) {
@@ -922,8 +923,9 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 		work_len = graph->n;
 		work = Calloc(work_len, double);
 	}
-	double *b = work;
+	Memset(work, 0, graph->n * sizeof(double));
 
+	double *b = work;
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	Memcpy(b, rhs, graph->n * sizeof(double));
 	GMRFLib_my_taucs_dccs_solve_lt(L, rhs, b);
@@ -993,6 +995,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 		work_len = graph->n;
 		work = Calloc(work_len, double);
 	}
+	Memset(work, 0, graph->n * sizeof(double));
 
 	double *b = work;
 	if (!remapped) {
@@ -1027,6 +1030,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 		work_len = graph->n;
 		work = Calloc(work_len, double);
 	}
+	Memset(work, 0, graph->n * sizeof(double));
 
 	double *b = work;
 	if (!remapped) {
@@ -1071,7 +1075,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 		work_len = n;
 		work = Calloc(work_len, double);
 	}
-
+	Memset(work, 0, n * sizeof(double));
 	y = work;
 
 	if (use_new_code) {
@@ -1448,6 +1452,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		work_len = n;
 		work = Calloc(work_len, double);
 	}
+	Memset(work, 0, n * sizeof(double));
 
 	double *y = work;
 	if (n > 0) {
@@ -1607,6 +1612,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 		work_len = n;
 		work = Calloc(work_len, double);
 	}
+	Memset(work, 0, n * sizeof(double));
 
 	double *y = work;
 	if (n > 0) {
