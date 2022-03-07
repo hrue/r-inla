@@ -99,6 +99,11 @@ int GMRFLib_pardiso_set_nrhs(int nrhs)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_pardiso_get_nrhs(void)
+{
+	return S.nrhs_max;
+}
+
 int GMRFLib_pardiso_set_verbose(int verbose)
 {
 	if (verbose > 0) {

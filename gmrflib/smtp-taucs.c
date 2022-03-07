@@ -1489,11 +1489,11 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		int incx_ = INCX_;					\
 		int incy_ = INCY_;					\
 		double da_ = DA_;					\
-		double zero = 0.0;					\
 		if (SET_ZERO_) {					\
 			if (incy_ == 1) {				\
 				Memset(DY_, 0, n_ * sizeof(double));	\
 			} else {					\
+				double zero = 0.0;			\
 				dscal_(&n_, &zero, DY_, &incy_);	\
 			}						\
 		}							\
@@ -1505,13 +1505,14 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
-
+	int ip, jp;
+	double Aij, iAii, iAjj;
+	double *xx = NULL, *ww = NULL, *yy = NULL;
+	
 	if (n == 0) {
 		return 0;
 	}
 
-	FIXME("WE ARE HERE");
-	
 	static double *work = NULL;
 #pragma omp threadprivate(work)
 	static int work_len = 0;
@@ -1524,19 +1525,12 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 	}
 
 	Memcpy(work, x, n * nrhs * sizeof(double));
+	Memset(x, 0, n * nrhs * sizeof(double));
 	for(int j = 0; j < nrhs; j++) {
-		double *xx = x + j;
-		double *ww = work + j * n;
-			
-		if (1) {
-			DAXPY1(n, 1.0, ww, 1, xx, nrhs);
-		} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for(int i = 0; i < n; i++) {
-			xx[i * nrhs] = ww[i];
-		}
-		}
+		xx = x + j;
+		ww = work + j * n;
+		// for(int i = 0; i < n; i++) xx[i * nrhs] = ww[i];
+		DAXPY0(n, 1.0, ww, 1, xx, nrhs);
 	}
 
 	double *y = work;
@@ -1545,110 +1539,54 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 	int offset_j;
 	int offset_i;
 	for (int j = 0; j < n; j++) {
-		int ip = L->colptr[j];
-		double iAjj = 1.0/L->values.d[ip];
-		double *xx;
-		double *yy;
-		
+		ip = L->colptr[j];
+		iAjj = 1.0/L->values.d[ip];
 		offset_j = j * nrhs;
 		yy = y + offset_j;
 		xx = x + offset_j;
-		if (1) {
-			DAXPY1(nrhs, iAjj, xx, 1, yy, 1);
-		} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-			for(int k = 0; k < nrhs; k++) {
-				yy[k] = xx[k] * iAjj;
-		}
-	}
-	
-		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-			int i = L->rowind[ip];
-			double Aij = L->values.d[ip];
+		// for(int k = 0; k < nrhs; k++) yy[k] = xx[k] * iAjj;
+		DAXPY1(nrhs, iAjj, xx, 1, yy, 1);
 
-			offset_i = i * nrhs;
+		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			Aij = L->values.d[ip];
+			offset_i = L->rowind[ip] * nrhs;
 			xx = x + offset_i;
 			yy = y + offset_j;
-			if (1) {
-				DAXPY0(nrhs, -Aij, yy, 1, xx, 1);
-			} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-			for(int k = 0; k < nrhs; k++) {
-				xx[k] -= yy[k] * Aij;
-			}
+			// for(int k = 0; k < nrhs; k++) xx[k] -= yy[k] * Aij;
+			DAXPY0(nrhs, -Aij, yy, 1, xx, 1);
 		}
-		}
-		
 	}
 
 	for (int i = n - 1; i >= 0; i--) {
-		double *xx;
-		double *yy;
-		
-		memset(sum, 0, nrhs * sizeof(double));
+		Memset(sum, 0, nrhs * sizeof(double));
 		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			int j = L->rowind[jp];
-			double Aij = L->values.d[jp];
-
-			offset_j = j * nrhs;
+			Aij = L->values.d[jp];
+			offset_j = L->rowind[jp] * nrhs;
 			xx = x + offset_j;
-			if (1){
-				DAXPY0(nrhs, Aij, xx, 1, sum, 1);
-			} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-			for(int k = 0; k < nrhs; k++) {
-				sum[k] += xx[k] * Aij;
-			}
-			}
-			
+			// for(int k = 0; k < nrhs; k++) sum[k] += xx[k] * Aij;
+			DAXPY0(nrhs, Aij, xx, 1, sum, 1);
 		}
 
 		offset_i = i * nrhs;
 		yy = y + offset_i;
+		// for(int k = 0; k < nrhs; k++) yy[k] -= sum[k];
+		DAXPY0(nrhs, -1.0, sum, 1, yy, 1);
 
-		if (1) {
-			DAXPY0(nrhs, -1.0, sum, 1, yy, 1);
-		} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for(int k = 0; k < nrhs; k++) {
-			yy[k] -= sum[k];
-		}
-		}
-		
-		int jp = L->colptr[i];
-		double iAii = 1.0/L->values.d[jp];
+		jp = L->colptr[i];
+		iAii = 1.0/L->values.d[jp];
 		xx = x + offset_i;
 		yy = y + offset_i;
-
-		if (1) {
-			DAXPY1(nrhs, iAii, yy, 1, xx, 1);
-		} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for(int k = 0; k < nrhs; k++) {
-			xx[k] = yy[k] * iAii;
-		}
-		}
+		// for(int k = 0; k < nrhs; k++) xx[k] = yy[k] * iAii;
+		DAXPY1(nrhs, iAii, yy, 1, xx, 1);
 	}
 
 	Memcpy(work, x, n * nrhs * sizeof(double));
+	Memset(x, 0, n * nrhs * sizeof(double));
 	for(int j = 0; j < nrhs; j++) {
-		double *xx = x + j * n;
-		double *ww = work + j;
-
-		if (1){
-			DAXPY1(n, 1.0, ww, nrhs, xx, 1);
-		} else {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for(int i = 0; i < n; i++) {
-			xx[i] = ww[i * nrhs];
-		}
-		}
+		xx = x + j * n;
+		ww = work + j;
+		// for(int i = 0; i < n; i++) xx[i] = ww[i * nrhs];
+		DAXPY0(n, 1.0, ww, nrhs, xx, 1);
 	}
 
 	return 0;
