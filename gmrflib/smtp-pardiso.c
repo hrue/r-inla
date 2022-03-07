@@ -77,7 +77,7 @@ GMRFLib_static_pardiso_tp S = {
 	0,						       // csr_check
 	-2,						       // mtype (-2 = sym, 2 = sym pos def)
 	0,						       // msg-level (0: no, 1: yes)
-	1,						       // maximum number of rhs
+	-1,						       // maximum number of rhs
 	1,						       // parallel reordering? yes
 	NULL,						       // busy
 	NULL
@@ -95,7 +95,9 @@ int GMRFLib_pardiso_set_parallel_reordering(int value)
 
 int GMRFLib_pardiso_set_nrhs(int nrhs)
 {
-	S.nrhs_max = (nrhs == 0 ? 1 : nrhs);
+	if (nrhs != 0) {
+		S.nrhs_max = nrhs;
+	}
 	return GMRFLib_SUCCESS;
 }
 

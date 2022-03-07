@@ -28363,7 +28363,7 @@ int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_
 	}
 	GMRFLib_pardiso_set_parallel_reordering(val);
 
-	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), 1);
+	val = iniparser_getint(ini, inla_string_join(secname, "NRHS"), -1);
 	if (mb->verbose) {
 		printf("\t\tnrhs[%1d]\n", val);
 	}
