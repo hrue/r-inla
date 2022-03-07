@@ -15,6 +15,7 @@ set.seed(123)
 if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
+inla.setOption(inla.mode="experimental")
 library(knitr)
 library(rmarkdown)
 knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE, warning=FALSE)
@@ -509,21 +510,21 @@ lines(inla.smarginal(rr$marginals.fixed$x), col="yellow")
 ```
 The tiny in-accuacy is due to treatment of `a` and `b` as
 hyperparameters in the `rgeneric` model.
-We can improve the estimates using `inla.hyperpar()` as usual, 
-```{r}
-r = inla.hyperpar(r)
-```
-Replotting the results shows improvement:
-```{r}
-plot(inla.smarginal(r$marginals.hyperpar[['Theta1 for idx']]),
-     type="l", lwd=5, col="red", xlab="Intercept", ylab="density")
-lines(inla.smarginal(rr$marginals.fixed$'(Intercept)'), col="yellow")
-```
-```{r}
-plot(inla.smarginal(r$marginals.hyperpar[['Theta2 for idx']]),
-     type="l", lwd=5, col="red", xlab="Slope", ylab="density")
-lines(inla.smarginal(rr$marginals.fixed$x), col="yellow")
-```
+###We can improve the estimates using `inla.hyperpar()` as usual, 
+###```{r}
+###r = inla.hyperpar(r)
+###```
+###Replotting the results shows improvement:
+###```{r}
+###plot(inla.smarginal(r$marginals.hyperpar[['Theta1 for idx']]),
+###     type="l", lwd=5, col="red", xlab="Intercept", ylab="density")
+###lines(inla.smarginal(rr$marginals.fixed$'(Intercept)'), col="yellow")
+###```
+###```{r}
+###plot(inla.smarginal(r$marginals.hyperpar[['Theta2 for idx']]),
+###     type="l", lwd=5, col="red", xlab="Slope", ylab="density")
+###lines(inla.smarginal(rr$marginals.fixed$x), col="yellow")
+###```
 
 
 # Some comments on optimization

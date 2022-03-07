@@ -545,7 +545,7 @@ func.munich <- function(a,b,option)
                     Kein.Badkach  + Besond.Bad + Gehobene.Kueche +
                         zim1 + zim2 + zim3 + zim4 + zim5 + zim6 -1
     
-    result = inla(formula, data=Munich, control.fixed=list(prec=1))
+    result = inla(formula, data=Munich, control.fixed=list(prec=1, prec.intercept = 1))
 }
 @
 
