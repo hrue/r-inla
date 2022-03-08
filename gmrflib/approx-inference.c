@@ -7514,7 +7514,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
-	
+
 	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
 #pragma omp critical
 		{
@@ -7652,7 +7652,7 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		}
 		np = np_new;
 		if (debug) {
-#pragma omp critical 
+#pragma omp critical
 			{
 				for (itmp = 0; itmp < np; itmp++)
 					printf("xp[%1d] = %.3f\n", itmp, xp[itmp]);
@@ -7662,11 +7662,11 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 		GMRFLib_density_std2user_n(x_user, xp, np, density);
 		loglFunc(logcor, x_user, np, idx, NULL, NULL, loglFunc_arg);
-		for(i = 0; i < np; i++) {
+		for (i = 0; i < np; i++) {
 			logcor[i] *= d;
 		}
 		if (debug && np) {
-#pragma omp critical 
+#pragma omp critical
 			{
 				for (i = 0; i < np; i++)
 					printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
@@ -7684,7 +7684,7 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		}
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
 		if (debug && np) {
-#pragma omp critical 
+#pragma omp critical
 			{
 				for (i = 0; i < np; i++)
 					printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);

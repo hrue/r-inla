@@ -287,45 +287,36 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 {
 	// solve Q x = b, but correct for constraints, like eq 2.30 in the GMRF-book, x := x - Q^-1A^T(AQ^-1A^T)^-1 (Ax-e).
-	// NOTE: the mean of x is not accounted for, so care must be taken if the mean is not zero (as then the constraints might need to be
-	// corrected.
 
 	GMRFLib_ENTER_ROUTINE;
-	int n = problem->sub_graph->n;
-	int free_xx = 0;				       // non-overlap
-	double *xx = x;
-	// static double tref[2] = {0, 0};
 
-	if (x == b) {
-		xx = Calloc(n, double);
-		free_xx = 1;
+	static double *work = NULL;
+#pragma omp threadprivate(work)
+	static int work_len = 0;
+#pragma omp threadprivate(work_len)
+
+	int n = problem->sub_graph->n;
+	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
+	double *xx = NULL;
+
+	if (n + nc > work_len) {
+		Free(work);
+		work_len = n + nc;
+		work = Calloc(work_len, double);
 	}
-	// tref[0] -= GMRFLib_cpu();
+	xx = work;
+
 	Memcpy(xx, b, n * sizeof(double));
 	GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
-	// tref[0] += GMRFLib_cpu();
 
-	// tref[1] -= GMRFLib_cpu();
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int nc = problem->sub_constr->nc, inc = 1;
-		double alpha = -1.0, beta = 1.0;
-		double *t_vector = Calloc(nc, double);
-
+		double alpha = -1.0, beta = 1.0, *t_vector = work + n;
 		GMRFLib_eval_constr(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
-
-		/*
-		 * sub_mean_constr is pr.default equal to sub_mean 
-		 */
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
-		Free(t_vector);
 	}
-	// tref[1] += GMRFLib_cpu();
 
-	// printf("Qsolve %f %f %f\n", tref[0], tref[1], tref[0]/(tref[0] + tref[1]));
-	if (free_xx) {
-		Memcpy(x, xx, n * sizeof(double));
-		Free(xx);
-	}
+	Memcpy(x, xx, n * sizeof(double));
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -1597,7 +1588,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 		if (tmp->Q) {
 			GMRFLib_csr_duplicate(&(Qfunc_arg->Q), tmp->Q);
 		}
-		
+
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
 	} else {
