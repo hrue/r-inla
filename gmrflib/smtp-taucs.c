@@ -938,22 +938,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 {
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
-
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (graph->n > work_len) {
-		Free(work);
-		work_len = graph->n;
-		work = Calloc(work_len, double);
-	}
-
-	Memcpy(work, rhs, graph->n * sizeof(double));
-	for (int i = 0; i < graph->n; i++) {
-		rhs[i] = work[remap[i]];
-	}
+	GMRFLib_convert_from_mapped(rhs, NULL, graph, remap);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1017,7 +1002,6 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	/*
 	 * rhs in real world, L in mapped world.  solve Lx=b backward only from rhs[findx] up to rhs[toindx].  note that
 	 * findx and toindx is in mapped world.  if remapped, do not remap/remap-back the rhs before solving.
-	 * 
 	 */
 
 	static double *work = NULL;
