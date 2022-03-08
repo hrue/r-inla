@@ -317,7 +317,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	options[METIS_OPTION_NO2HOP] = 0;
 	options[METIS_OPTION_COMPRESS] = 1;
 	options[METIS_OPTION_PFACTOR] = 200;
-	
+
 #if defined(NO_PARDISO_LIB)
 	// this the metis5 lib
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
@@ -953,15 +953,15 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int nrhs)
 {
 	// same function but for many rnhs.
-	
+
 	int n = graph->n;
-	for(int j = 0; j < nrhs; j++) {
+	for (int j = 0; j < nrhs; j++) {
 		GMRFLib_convert_to_mapped(rhs + j * n, NULL, graph, remap);
 	}
 
 	GMRFLib_my_taucs_dccs_solve_llt2(L, rhs, nrhs);
 
-	for(int j = 0; j < nrhs; j++) {
+	for (int j = 0; j < nrhs; j++) {
 		GMRFLib_convert_from_mapped(rhs + j * n, NULL, graph, remap);
 	}
 
@@ -1504,7 +1504,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 	int ip, jp;
 	double Aij, iAii, iAjj;
 	double *xx = NULL, *ww = NULL, *yy = NULL;
-	
+
 	if (n == 0) {
 		return 0;
 	}
@@ -1522,7 +1522,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 
 	Memcpy(work, x, n * nrhs * sizeof(double));
 	Memset(x, 0, n * nrhs * sizeof(double));
-	for(int j = 0; j < nrhs; j++) {
+	for (int j = 0; j < nrhs; j++) {
 		xx = x + j;
 		ww = work + j * n;
 		// for(int i = 0; i < n; i++) xx[i * nrhs] = ww[i];
@@ -1531,12 +1531,12 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 
 	double *y = work;
 	double *sum = work + n * nrhs;
-	
+
 	int offset_j;
 	int offset_i;
 	for (int j = 0; j < n; j++) {
 		ip = L->colptr[j];
-		iAjj = 1.0/L->values.d[ip];
+		iAjj = 1.0 / L->values.d[ip];
 		offset_j = j * nrhs;
 		yy = y + offset_j;
 		xx = x + offset_j;
@@ -1569,7 +1569,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		DAXPY0(nrhs, -1.0, sum, 1, yy, 1);
 
 		jp = L->colptr[i];
-		iAii = 1.0/L->values.d[jp];
+		iAii = 1.0 / L->values.d[jp];
 		xx = x + offset_i;
 		yy = y + offset_i;
 		// for(int k = 0; k < nrhs; k++) xx[k] = yy[k] * iAii;
@@ -1578,7 +1578,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 
 	Memcpy(work, x, n * nrhs * sizeof(double));
 	Memset(x, 0, n * nrhs * sizeof(double));
-	for(int j = 0; j < nrhs; j++) {
+	for (int j = 0; j < nrhs; j++) {
 		xx = x + j * n;
 		ww = work + j;
 		// for(int i = 0; i < n; i++) xx[i] = ww[i * nrhs];

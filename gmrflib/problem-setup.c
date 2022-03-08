@@ -287,8 +287,6 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 {
 	// solve Q x = b, but correct for constraints, like eq 2.30 in the GMRF-book, x := x - Q^-1A^T(AQ^-1A^T)^-1 (Ax-e).
-	// NOTE: the mean of x is not accounted for, so care must be taken if the mean is not zero (as then the constraints might need to be
-	// corrected.
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -300,24 +298,21 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 	double *xx = NULL;
-	
+
 	if (n + nc > work_len) {
 		Free(work);
 		work_len = n + nc;
 		work = Calloc(work_len, double);
 	}
 	xx = work;
-	
+
 	Memcpy(xx, b, n * sizeof(double));
 	GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int nc = problem->sub_constr->nc, inc = 1;
 		double alpha = -1.0, beta = 1.0, *t_vector = work + n;
-
 		GMRFLib_eval_constr(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
-
-		// sub_mean_constr is pr.default equal to sub_mean 
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
 	}
 
@@ -1593,7 +1588,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 		if (tmp->Q) {
 			GMRFLib_csr_duplicate(&(Qfunc_arg->Q), tmp->Q);
 		}
-		
+
 		tab->Qfunc_arg = (void *) Qfunc_arg;
 		np->tab = tab;
 	} else {

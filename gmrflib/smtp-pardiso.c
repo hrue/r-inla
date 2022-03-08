@@ -832,7 +832,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	int nsolve;
 	div_t d;
 
-	if (nrhs > 1){
+	if (nrhs > 1) {
 		if (GMRFLib_openmp->adaptive && omp_get_level() == 0) {
 			// this is the exception of the rule, as we want to run this in parallel if we are in adaptive model and
 			// level=0.
@@ -842,15 +842,15 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		}
 	}
-	//printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
+	// printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
 
 	if (nrhs == 1) {
 		// in this case we always set block_nrhs=1 and nt=1
 		block_nrhs = 1;
 		nt = 1;
-	} else if (S.nrhs_max < 0) {	
+	} else if (S.nrhs_max < 0) {
 		// this is the adaptive choice
-		d = div(nrhs, nt); 
+		d = div(nrhs, nt);
 		if (nrhs >= nt) {
 			// if this is true, we need to divide the work between the nt cores
 			block_nrhs = d.quot + (d.rem != 0);
@@ -866,7 +866,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	} else {
 		// S.nrhs_max define the max nrhs, so then we divide the work
 		block_nrhs = S.nrhs_max;
-		d = div(nrhs, block_nrhs); 
+		d = div(nrhs, block_nrhs);
 		nt = IMIN(nt, d.quot + (d.rem != 0));
 	}
 
@@ -878,8 +878,8 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	nblock = d.quot;
 	nsolve = nblock + (d.rem != 0);
 
-	//printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
-	
+	// printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
+
 #define CODE_BLOCK							\
 	for (int i = 0; i < nsolve; i++) {				\
 		CODE_BLOCK_SET_THREAD_ID();				\
