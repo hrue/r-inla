@@ -305,12 +305,19 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 		options[i] = -1;
 	}
 
-	options[METIS_OPTION_COMPRESS] = 0;
-	options[METIS_OPTION_NSEPS] = 5;
+	options[METIS_OPTION_PTYPE] = METIS_PTYPE_KWAY;
+	options[METIS_OPTION_CTYPE] = METIS_CTYPE_SHEM;
+	options[METIS_OPTION_IPTYPE] = METIS_IPTYPE_NODE;
+	options[METIS_OPTION_RTYPE] = METIS_RTYPE_SEP2SIDED;
+	options[METIS_OPTION_NCUTS] = 4;
+	options[METIS_OPTION_NSEPS] = 4;
 	options[METIS_OPTION_NUMBERING] = 0;
+	options[METIS_OPTION_SEED] = 2704;
+	options[METIS_OPTION_MINCONN] = 1;
+	options[METIS_OPTION_NO2HOP] = 0;
+	options[METIS_OPTION_COMPRESS] = 1;
 	options[METIS_OPTION_PFACTOR] = 200;
-	options[METIS_OPTION_RTYPE] = 2;
-
+	
 #if defined(NO_PARDISO_LIB)
 	// this the metis5 lib
 	ret = METIS_NodeND(&n, xadj, adj, NULL, options, *perm, *invperm);
