@@ -4,6 +4,15 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.03.09}{
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Issue with \code{gcpo} and \code{safe=T} fixed
+      \item Fixed issue with \code{A}-matrix in \code{gcpo}
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.03.08}{
   \subsection{CHANGES}{
     \itemize{
@@ -21,6 +30,7 @@
     }
   }
 }
+
 \section{CHANGES IN VERSION 22.03.06}{
   \subsection{CHANGES}{
     \itemize{
