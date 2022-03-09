@@ -396,6 +396,8 @@ typedef enum {
 	 : (arg_->log_prec ? exp(*(arg_->log_prec))			\
 	    : (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)))
 
+#define GMRFLib_SET_PREC_NEW(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)
+
 #define GMRFLib_SET_RANGE(arg_)						\
 	(arg_->range ? *(arg_->range)					\
 	 : (arg_->log_range ? exp(*(arg_->log_range))			\

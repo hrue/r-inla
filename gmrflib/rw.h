@@ -86,21 +86,6 @@ __BEGIN_DECLS
 	int cyclic;
 
 	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.
-	 */
-	double *log_prec;
-
-	/**
 	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
 	 * 
 	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
@@ -159,21 +144,6 @@ typedef struct {
 	 * \brief Use a dense representation to allow for 'si'. (EXPERT Option)
 	 */
 	int si;
-
-	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.
-	 */
-	double *log_prec;
 
 	/**
 	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
@@ -273,21 +243,6 @@ typedef struct {
 	 * \brief Choice of boundary values: #GMRFLib_BVALUE_DEFAULT use the correct null-space, whereas #GMRFLib_BVALUE_ZERO condition on zero outside the lattice.
 	 */
 	int bvalue;
-
-	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.
-	 */
-	double *log_prec;
 
 	/**
 	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.

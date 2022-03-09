@@ -25567,8 +25567,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->order = 2;
 		arg->cyclic = mb->f_cyclic[mb->nf];
 		arg->bvalue = bvalue;
-		arg->prec = NULL;
-		arg->log_prec = NULL;
 		arg->log_prec_omp = log_prec;
 
 		int std = iniparser_getint(ini, inla_string_join(secname, "SCALE.MODEL"), 0);
@@ -26522,8 +26520,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->ncol = mb->f_ncol[mb->nf];
 		arg->cyclic = mb->f_cyclic[mb->nf];
 		arg->nu = mb->f_nu[mb->nf];
-		arg->prec = NULL;
-		arg->log_prec = NULL;
 		arg->log_prec_omp = log_prec;
 		arg->range = NULL;
 		arg->log_range = NULL;
@@ -26677,8 +26673,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				rwdef->order = 2;
 			}
 			assert(rwdef->n > rwdef->order);
-			rwdef->prec = NULL;
-			rwdef->log_prec = NULL;
 			rwdef->log_prec_omp = log_prec;
 			rwdef->cyclic = mb->f_cyclic[mb->nf];
 			if (mb->f_cyclic[mb->nf]) {
@@ -26708,8 +26702,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			    mb->f_id[mb->nf] == F_RW2 || mb->f_id[mb->nf] == F_CRW2) && !mb->f_cyclic[mb->nf]) {
 			crwdef = Calloc(1, GMRFLib_crwdef_tp);
 			crwdef->n = mb->f_n[mb->nf];
-			crwdef->prec = NULL;
-			crwdef->log_prec = NULL;
 			crwdef->log_prec_omp = log_prec;
 			if (mb->f_id[mb->nf] == F_IID) {
 				crwdef->order = 0;
@@ -27270,9 +27262,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					def->rwdef->n = ng;
 					def->rwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
 					def->rwdef->cyclic = mb->f_group_cyclic[mb->nf];
-					def->rwdef->prec = Calloc(1, double);
-					def->rwdef->prec[0] = 1.0;
-					def->rwdef->log_prec = NULL;
 					def->rwdef->log_prec_omp = NULL;
 					if (std) {
 						char *err;
@@ -27287,9 +27276,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					def->crwdef = Calloc(1, GMRFLib_crwdef_tp);
 					def->crwdef->n = ng;
 					def->crwdef->order = (mb->f_group_model[mb->nf] == G_RW1 ? 1 : 2);
-					def->crwdef->prec = Calloc(1, double);
-					def->crwdef->prec[0] = 1.0;
-					def->crwdef->log_prec = NULL;
 					def->crwdef->log_prec_omp = NULL;
 					def->crwdef->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
 					def->crwdef->position = Calloc(ng, double);
@@ -37392,8 +37378,6 @@ int testit(int argc, char **argv)
 		int n = 10, i, j;
 
 		rw->n = n;
-		rw->prec = Calloc(1, double);
-		rw->prec[0] = 1.0;
 		rw->order = 2;
 		rw->layout = GMRFLib_CRW_LAYOUT_SIMPLE;
 		rw->position = Calloc(n, double);
