@@ -79,7 +79,7 @@ double GMRFLib_seasonal(int node, int nnode, double *UNUSED(values), void *def)
 			return 0.0;
 		}
 	}
-	prec = GMRFLib_SET_PREC(sdef);
+	prec = GMRFLib_SET_PREC_NEW(sdef);
 	prec *= (sdef->prec_scale ? sdef->prec_scale[0] : 1.0);
 
 	return val * prec;

@@ -25814,8 +25814,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		sdef->n = n;
 		sdef->s = s;
 		sdef->cyclic = mb->f_cyclic[mb->nf];
-		sdef->prec = NULL;
-		sdef->log_prec = NULL;
 		sdef->log_prec_omp = log_prec;
 		GMRFLib_make_seasonal_graph(&(mb->f_graph[mb->nf]), sdef);
 		mb->f_Qfunc_arg[mb->nf] = (void *) sdef;
