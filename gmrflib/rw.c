@@ -46,7 +46,7 @@ double GMRFLib_rw(int node, int nnode, double *UNUSED(values), void *def)
 	double prec;
 	GMRFLib_rwdef_tp *rwdef = (GMRFLib_rwdef_tp *) def;
 
-	prec = GMRFLib_SET_PREC_NEW(rwdef);
+	prec = GMRFLib_SET_PREC(rwdef);
 	prec *= (rwdef->prec_scale ? rwdef->prec_scale[0] : 1.0);
 
 	/*
@@ -191,7 +191,7 @@ double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 
 	GMRFLib_crwdef_tp *crwdef = (GMRFLib_crwdef_tp *) def;
 
-	prec = GMRFLib_SET_PREC_NEW(crwdef) * (crwdef->prec_scale ? crwdef->prec_scale[0] : 1.0);
+	prec = GMRFLib_SET_PREC(crwdef) * (crwdef->prec_scale ? crwdef->prec_scale[0] : 1.0);
 	n = crwdef->n;
 	use_pos = (crwdef->position ? 1 : 0);
 	order = crwdef->order;
@@ -545,7 +545,7 @@ double GMRFLib_rw2d(int node, int nnode, double *UNUSED(values), void *def)
 
 	nrow = rw2ddef->nrow;
 	ncol = rw2ddef->ncol;
-	prec = GMRFLib_SET_PREC_NEW(rw2ddef);
+	prec = GMRFLib_SET_PREC(rw2ddef);
 	prec *= (rw2ddef->prec_scale ? rw2ddef->prec_scale[0] : 1.0);
 
 	GMRFLib_node2lattice(node, &i, &j, nrow, ncol);

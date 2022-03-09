@@ -2809,8 +2809,7 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 					len = (int) x_out[k++];
 					assert(len == a->len_list);
 					n = a->graph->n;
-					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n,
-									  NULL, NULL, NULL);
+					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL);
 				} else {
 					n = (int) x_out[k++];
 					len = (int) x_out[k++];
@@ -2824,7 +2823,7 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 						jlist[jj] = (int) x_out[k + len + jj];
 					}
 
-					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL);
 					assert(a->graph->n == a->n);
 				}
 				Free(x_out);
@@ -2902,8 +2901,7 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 				len = (int) x_out[k++];
 				assert(len == a->len_list);
 				n = a->graph->n;
-				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n,
-								  NULL, NULL, NULL);
+				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL);
 			} else {
 				k = 0;
 				n = (int) x_out[k++];
@@ -2918,7 +2916,7 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 					jlist[jj] = (int) x_out[k + len + jj];
 				}
 
-				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+				GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, len, ilist, jlist, Qijlist, n, NULL);
 				assert(a->graph->n == a->n);
 			}
 			Free(x_out);
@@ -20453,7 +20451,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread Cmatrix from file=[%s]\n", filename);
 			}
-			GMRFLib_tabulate_Qfunc_from_file(&tab, &(mb->f_graph[mb->nf]), (const char *) filename, -1, NULL, NULL, log_prec);
+			GMRFLib_tabulate_Qfunc_from_file(&tab, &(mb->f_graph[mb->nf]), (const char *) filename, -1, log_prec);
 			mb->f_Qfunc[mb->nf] = tab->Qfunc;
 			mb->f_Qfunc_arg[mb->nf] = tab->Qfunc_arg;
 			mb->f_locations[mb->nf] = NULL;
@@ -20483,7 +20481,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread Cmatrix from file=[%s]\n", filename);
 			}
-			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &(mb->f_graph[mb->nf]), (const char *) filename, -1, NULL, NULL, NULL);
+			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &(mb->f_graph[mb->nf]), (const char *) filename, -1, NULL);
 			arg->log_prec = log_prec;
 			arg->beta = beta_intern;
 			arg->n = nn = mb->f_graph[mb->nf]->n;
@@ -20556,7 +20554,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			if (mb->verbose) {
 				printf("\t\tread Cmatrix from file=[%s]\n", filename);
 			}
-			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &g, (const char *) filename, -1, NULL, NULL, NULL);
+			GMRFLib_tabulate_Qfunc_from_file(&(arg->tab), &g, (const char *) filename, -1, NULL);
 			arg->log_prec = log_prec;
 			arg->h2_intern = h2_intern;
 			arg->n = nn = g->n;
@@ -20616,8 +20614,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				if (mb->verbose) {
 					printf("\t\tread Cmatrix[[%1d]] from file=[%s]\n", k, filename);
 				}
-				GMRFLib_tabulate_Qfunc_from_file(&(arg->tab[k]), &(arg->g[k]), filename, arg->n, NULL, NULL, NULL);
-				GMRFLib_tabulate_Qfunc_from_file(&(arg_orig->tab[k]), &(arg_orig->g[k]), filename, arg_orig->n, NULL, NULL, NULL);
+				GMRFLib_tabulate_Qfunc_from_file(&(arg->tab[k]), &(arg->g[k]), filename, arg->n, NULL);
+				GMRFLib_tabulate_Qfunc_from_file(&(arg_orig->tab[k]), &(arg_orig->g[k]), filename, arg_orig->n, NULL);
 				Free(ctmp);
 				Free(filename);
 			}
@@ -25598,8 +25596,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		Am = iniparser_getstring(ini, inla_string_join(secname, "z.Amatrix"), NULL);
 		Bm = iniparser_getstring(ini, inla_string_join(secname, "z.Bmatrix"), NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &graph_A, Am, zn + zm, NULL, NULL, NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, zn + zm, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A, &graph_A, Am, zn + zm, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, zn + zm, NULL);
 
 		gs[0] = graph_A;
 		gs[1] = graph_B;
@@ -25643,10 +25641,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		Bm = iniparser_getstring(ini, inla_string_join(secname, "slm.Bmatrix"), NULL);
 		Cm = iniparser_getstring(ini, inla_string_join(secname, "slm.Cmatrix"), NULL);
 
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A1, &graph_A1, A1m, slm_n + slm_m, NULL, NULL, NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A2, &graph_A2, A2m, slm_n + slm_m, NULL, NULL, NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, slm_n + slm_m, NULL, NULL, NULL);
-		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_C, &graph_C, Cm, slm_n + slm_m, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A1, &graph_A1, A1m, slm_n + slm_m, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_A2, &graph_A2, A2m, slm_n + slm_m, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_B, &graph_B, Bm, slm_n + slm_m, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qfunc_C, &graph_C, Cm, slm_n + slm_m, NULL);
 
 		gs[0] = graph_A1;
 		gs[1] = graph_A2;
@@ -26042,7 +26040,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_tabulate_Qfunc_tp *tab;
 		GMRFLib_graph_tp *graph, *ggraph;
 
-		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL);
 		GMRFLib_free_tabulate_Qfunc(tab);
 		Free(ilist);
 		Free(jlist);
@@ -26192,7 +26190,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		GMRFLib_tabulate_Qfunc_tp *tab;
 		GMRFLib_graph_tp *graph, *ggraph;
 
-		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_list(&tab, &graph, len, ilist, jlist, Qijlist, n, NULL);
 		GMRFLib_free_tabulate_Qfunc(tab);
 		Free(ilist);
 		Free(jlist);
@@ -30999,7 +30997,7 @@ double extra(double *theta, int ntheta, void *argument)
 					assert(def->jlist);
 					n = def->graph->n;
 					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
-									  def->graph->n, NULL, NULL, NULL);
+									  def->graph->n, NULL);
 				} else {
 					n = (int) xx_out[k++];
 					len = (int) xx_out[k++];
@@ -31010,7 +31008,7 @@ double extra(double *theta, int ntheta, void *argument)
 						ilist[jj] = (int) xx_out[k + jj];
 						jlist[jj] = (int) xx_out[k + len + jj];
 					}
-					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL);
 				}
 
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
@@ -31166,7 +31164,7 @@ double extra(double *theta, int ntheta, void *argument)
 					assert(def->jlist);
 					n = def->graph->n;
 					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, def->len_list, def->ilist, def->jlist, &(xx_out[k]),
-									  def->graph->n, NULL, NULL, NULL);
+									  def->graph->n, NULL);
 				} else {
 					n = (int) xx_out[k++];
 					len = (int) xx_out[k++];
@@ -31177,7 +31175,7 @@ double extra(double *theta, int ntheta, void *argument)
 						ilist[jj] = (int) xx_out[k + jj];
 						jlist[jj] = (int) xx_out[k + len + jj];
 					}
-					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL, NULL, NULL);
+					GMRFLib_tabulate_Qfunc_from_list2(&Qf, def->graph, len, ilist, jlist, Qijlist, n, NULL);
 				}
 
 				int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
@@ -32376,7 +32374,7 @@ int inla_INLA(inla_tp * mb)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
-			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
+			    mb->predictor_cross_sumzero, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision, mb->ai_par);
@@ -33016,7 +33014,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 
 	GMRFLib_init_hgmrfm(&(mb->hgmrfm), mb->predictor_n, mb->predictor_m,
-			    mb->predictor_cross_sumzero, NULL, mb->predictor_log_prec,
+			    mb->predictor_cross_sumzero, mb->predictor_log_prec,
 			    (const char *) mb->predictor_Aext_fnm, mb->predictor_Aext_precision,
 			    mb->nf, mb->f_c, mb->f_weights, mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg, mb->nlinear, mb->linear_covariate, mb->linear_precision, mb->ai_par);
@@ -35714,7 +35712,7 @@ int inla_qinv(const char *filename, const char *constrfile, const char *outfile)
 	GMRFLib_matrix_tp *constr_x = NULL;
 	FILE *fp;
 
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL);
 	fp = fopen(constrfile, "r");
 	if (fp) {
 		fclose(fp);
@@ -35795,7 +35793,7 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	GMRFLib_matrix_tp *B = GMRFLib_read_fmesher_file(Bfilename, (long int) 0, -1);
 	assert(B->i == NULL);				       /* I want B as dense matrix */
 
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, Qfilename, -1, NULL);
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_pardiso_set_nrhs(IMIN(GMRFLib_MAX_THREADS(), B->ncol));
@@ -35865,7 +35863,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	GMRFLib_constr_tp *constr = NULL;
 
 	inla_sread_ints(&ns, 1, nsamples);
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL);
 
 	fp = fopen(samplefile, "r");
 	if (fp) {
@@ -36039,7 +36037,7 @@ int inla_finn(const char *filename)
 	GMRFLib_graph_tp *graph;
 	GMRFLib_problem_tp *problem = NULL;
 
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, filename, -1, NULL);
 
 	if (G.reorder < 0) {
 		GMRFLib_optimize_reorder(graph, NULL, NULL, NULL);
@@ -36067,7 +36065,7 @@ int inla_qreordering(const char *filename)
 
 	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
 		GMRFLib_tabulate_Qfunc_tp *qtab = NULL;
-		GMRFLib_tabulate_Qfunc_from_file(&qtab, &graph, filename, -1, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&qtab, &graph, filename, -1, NULL);
 		GMRFLib_free_tabulate_Qfunc(qtab);
 	} else {
 		GMRFLib_graph_read(&graph, filename);

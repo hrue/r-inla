@@ -41,8 +41,17 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#define HYPER_NEW(name_, initial_)					\
+	if (1) {							\
+		name_ = Calloc(GMRFLib_MAX_THREADS(), double *);	\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
+			name_[i_] = Calloc(1, double);			\
+			name_[i_][0] = initial_;			\
+		}							\
+	}
+
 int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
-			int *eta_sumzero, double *logprec_unstruct, double **logprec_unstruct_omp,
+			int *eta_sumzero, double **logprec_unstruct_omp,
 			const char *Aext_fnm, double Aext_precision,
 			int nf, int **c, double **w,
 			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
@@ -165,10 +174,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	 * need to read the Aext matrix, which is required. Allocate a new copy of precision, as we need to make it persistent. 
 	 */
 	if (Aext_fnm) {
-		double *pr = Calloc(1, double);
-
-		*pr = Aext_precision;
-		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, pr, NULL, NULL);
+		double **lprec_omp;
+		HYPER_NEW(lprec_omp, Aext_precision);
+		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, lprec_omp);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
 		arg->n_ext = n_ext;
 		// GMRFLib_printf_graph(stdout, arg->eta_ext_graph);
@@ -533,8 +541,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			printf("ALL %d %d %g\n", iilist[i], jjlist[i], QQijlist[i]);
 		}
 	}
-	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, NULL, logprec_unstruct,
-					 logprec_unstruct_omp);
+	GMRFLib_tabulate_Qfunc_from_list(&(arg->eta_Q), &(arg->eta_graph), nntriples, iilist, jjlist, QQijlist, -1, logprec_unstruct_omp);
 	/*
 	 * cleanup already here, as we do not need them anymore 
 	 */

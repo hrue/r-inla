@@ -391,19 +391,8 @@ typedef enum {
 		nan_error = 1;						\
 	}
 
-#define GMRFLib_SET_PREC(arg_)						\
-	(arg_->prec ? *(arg_->prec)					\
-	 : (arg_->log_prec ? exp(*(arg_->log_prec))			\
-	    : (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)))
-
-#define GMRFLib_SET_PREC_NEW(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)
-
-#define GMRFLib_SET_RANGE(arg_)						\
-	(arg_->range ? *(arg_->range)					\
-	 : (arg_->log_range ? exp(*(arg_->log_range))			\
-	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
-
-#define GMRFLib_SET_RANGE_NEW(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)
+#define GMRFLib_SET_PREC(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)
+#define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)
 
 // This is for internal caching
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))

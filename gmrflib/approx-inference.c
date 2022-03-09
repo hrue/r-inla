@@ -8160,8 +8160,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	Memcpy(like_b_save, preopt->like_b[GMRFLib_thread_id], preopt->Npred * sizeof(double));
 	Memcpy(like_c_save, preopt->like_c[GMRFLib_thread_id], preopt->Npred * sizeof(double));
 
-	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
-	GMRFLib_tabulate_Qfunc_core(&prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, NULL, NULL, 1);
+	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, 1);
+	GMRFLib_tabulate_Qfunc_core(&prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, 1);
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 
