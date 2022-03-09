@@ -58,7 +58,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 #define TAB_FUNC_CORE(_prec_scale)					\
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;			\
-	double prec, *dp;						\
+	double prec = 1.0, *dp = NULL;					\
 	int i, ii, j, len = 0, imin, imax;				\
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;			\
 	if (_prec_scale) {						\
