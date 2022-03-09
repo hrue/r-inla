@@ -2664,7 +2664,7 @@
         cont.compute$return.marginals <- FALSE
         cont.compute$return.marginals.predictor <- FALSE
         cont.compute$dic <- FALSE
-        cont.compute$gcpo <- inla.set.control.compute.default()$control.gcpo
+        cont.compute$control.gcpo <- inla.set.control.compute.default()$control.gcpo
         cont.compute$cpo <- FALSE
         cont.compute$po <- FALSE
         cont.compute$waic <- FALSE

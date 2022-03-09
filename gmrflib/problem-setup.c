@@ -312,7 +312,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int nc = problem->sub_constr->nc, inc = 1;
 		double alpha = -1.0, beta = 1.0, *t_vector = work + n;
-		GMRFLib_eval_constr(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
+		GMRFLib_eval_constr0(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
 	}
 
@@ -1239,7 +1239,45 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 	work = Calloc(2 * nc, double);
 	t_vector = work;
 	res = work + nc;
+
 	Memcpy(t_vector, constr->e_vector, nc * sizeof(double));
+	alpha = 1.0;
+	beta = -1.0;
+
+	if (GMRFLib_faster_constr) {
+		dgemv_special(res, x, constr);
+		for (i = 0; i < nc; i++) {
+			t_vector[i] = res[i] - t_vector[i];
+		}
+	} else {
+		dgemv_("N", &nc, &(graph->n), &alpha, constr->a_matrix, &nc, x, &inc, &beta, t_vector, &inc, F_ONE);
+	}
+
+	if (value) {
+		Memcpy(value, t_vector, nc * sizeof(double));
+	}
+	if (sqr_value) {
+		*sqr_value = 0.0;
+	}
+	Free(work);
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
+{
+	/*
+	 * eval a constraint `constr' at x-value `x', setting e=0
+	 */
+	double *t_vector, alpha, beta, *res, *work = NULL;
+	int inc = 1, nc, i;
+
+	nc = constr->nc;
+	work = Calloc(2 * nc, double);
+	t_vector = work;
+	res = work + nc;
+
+	Memset(t_vector, 0, nc * sizeof(double));
 	alpha = 1.0;
 	beta = -1.0;
 

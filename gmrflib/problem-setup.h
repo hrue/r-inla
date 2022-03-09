@@ -402,6 +402,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem);
 int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
+int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
 int GMRFLib_evaluate(GMRFLib_problem_tp * problem);
 int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const);
 int GMRFLib_fact_info_report(FILE * fp, GMRFLib_sm_fact_tp * sm_fact);
