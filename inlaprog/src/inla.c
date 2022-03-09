@@ -26519,8 +26519,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg->cyclic = mb->f_cyclic[mb->nf];
 		arg->nu = mb->f_nu[mb->nf];
 		arg->log_prec_omp = log_prec;
-		arg->range = NULL;
-		arg->log_range = NULL;
 		arg->log_range_omp = range_intern;
 
 		GMRFLib_matern2ddef_tp *arg_orig = NULL;
@@ -31843,14 +31841,6 @@ double extra(double *theta, int ntheta, void *argument)
 			q = (GMRFLib_matern2ddef_tp *) mb->f_Qfunc_arg_orig[i];
 			h->matern2ddef = Calloc(1, GMRFLib_matern2ddef_tp);
 			Memcpy(h->matern2ddef, q, sizeof(GMRFLib_matern2ddef_tp));
-			h->matern2ddef->prec = &h->precision;
-			h->matern2ddef->range = &h->range;
-
-			h->matern2ddef->log_prec = NULL;
-			h->matern2ddef->log_prec_omp = NULL;
-			h->matern2ddef->log_range = NULL;
-			h->matern2ddef->log_range_omp = NULL;
-
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				h->precision = map_precision(theta[count], MAP_FORWARD, NULL);
 				val += PRIOR_EVAL(mb->f_prior[i][0], &theta[count]);
@@ -31865,6 +31855,8 @@ double extra(double *theta, int ntheta, void *argument)
 			} else {
 				h->range = map_range(mb->f_theta[i][1][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 			}
+			HYPER_NEW(h->matern2ddef->log_prec_omp, map_precision(h->precision, MAP_BACKWARD, NULL));
+			HYPER_NEW(h->matern2ddef->log_range_omp, map_precision(h->range, MAP_BACKWARD, NULL));
 
 			_SET_GROUP_RHO(2);
 
@@ -31878,6 +31870,8 @@ double extra(double *theta, int ntheta, void *argument)
 			val += h->nrep * (h->problem->sub_logdens * (ngroup - grankdef) + normc_g);
 
 			Free(h->c);
+			HYPER_FREE(h->matern2ddef->log_prec_omp);
+			HYPER_FREE(h->matern2ddef->log_range_omp);
 			Free(h->matern2ddef);
 			GMRFLib_free_problem(h->problem);
 			Free(h);

@@ -51,8 +51,8 @@ double GMRFLib_matern2d(int node, int nnode, double *UNUSED(values), void *def)
 	GMRFLib_matern2ddef_tp *arg = NULL;
 
 	arg = (GMRFLib_matern2ddef_tp *) def;
-	prec = GMRFLib_SET_PREC(arg);
-	range = GMRFLib_SET_RANGE(arg);
+	prec = GMRFLib_SET_PREC_NEW(arg);
+	range = GMRFLib_SET_RANGE_NEW(arg);
 	kappa = 2.0 * sqrt(2.0 * arg->nu) / range;
 	a = 4.0 + SQR(kappa);
 

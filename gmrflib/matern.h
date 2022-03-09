@@ -91,42 +91,12 @@ __BEGIN_DECLS
 	int cyclic;
 
 	/**
-	 *  \brief A (possible) pointer to the precision 
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the precision. Alternatively, \c log_prec is tried.
-	 */
-	double *prec;
-
-	/**
-	 *  \brief A (possible) pointer to the log-precision 
-	 * 
-	 * If log_prec!=\c NULL, then this pointer points to the log-precision. Alternatively, \c log_prec_omp is
-	 * tried.	 * tried.
-	 */
-	double *log_prec;
-
-	/**
 	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
 	 * 
 	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
 	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
 	 */
 	double **log_prec_omp;
-
-	/**
-	 *  \brief A (possible) pointer to the range
-	 * 
-	 * If prec!=\c NULL, then this pointer points to the range. Alternatively, \c log_range is tried.
-	 */
-	double *range;
-
-	/**
-	 *  \brief A (possible) pointer to the log-range
-	 * 
-	 * If log_range!=\c NULL, then this pointer points to the log-range. Alternatively, \c log_range_omp is
-	 * tried.	 
-	 */
-	double *log_range;
 
 	/**
 	 *  \brief A (possible) ppointer to the log-range where each tread has its own value.

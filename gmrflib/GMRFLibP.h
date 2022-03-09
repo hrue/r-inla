@@ -403,6 +403,8 @@ typedef enum {
 	 : (arg_->log_range ? exp(*(arg_->log_range))			\
 	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
 
+#define GMRFLib_SET_RANGE_NEW(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)
+
 // This is for internal caching
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
 #define GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
