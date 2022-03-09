@@ -458,8 +458,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 }
 
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
-				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, 
-				     double **log_prec_omp)
+				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
@@ -556,8 +555,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 }
 
 int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim),
-				      double **log_prec_omp)
+				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim), double **log_prec_omp)
 {
 	// this is a special version for Qfunc_rgeneric, as we assume here that graph is know.
 

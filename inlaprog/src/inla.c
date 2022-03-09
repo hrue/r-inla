@@ -2809,7 +2809,8 @@ double Qfunc_rgeneric(int i, int j, double *values, void *arg)
 					len = (int) x_out[k++];
 					assert(len == a->len_list);
 					n = a->graph->n;
-					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n, NULL);
+					GMRFLib_tabulate_Qfunc_from_list2(&(a->Q[id]), a->graph, a->len_list, a->ilist, a->jlist, &(x_out[k]), n,
+									  NULL);
 				} else {
 					n = (int) x_out[k++];
 					len = (int) x_out[k++];
@@ -8777,9 +8778,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
