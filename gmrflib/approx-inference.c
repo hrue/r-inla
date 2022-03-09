@@ -7251,9 +7251,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt, GMRFLib_gcpo_param_tp * gcpo_param)
 {
 	GMRFLib_ENTER_ROUTINE;
-#define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
+#define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
 	int Npred = preopt->Npred;
+	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
 	GMRFLib_idx_tp **groups = NULL;
 
@@ -7263,7 +7264,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		}
 		// build the groups
 		double eps = GMRFLib_eps(1.0 / 3.0);
-		double *isd = Calloc(Npred, double);
+		double *isd = Calloc(mnpred, double);
 
 		groups = GMRFLib_idx_ncreate_x(Npred, gcpo_param->group_size);
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
@@ -7419,18 +7420,20 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 				   GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param)
 {
+#define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+
 	GMRFLib_ENTER_ROUTINE;
 
-#define A_idx(node_) (preopt->pA_idxval ? preopt->pA_idxval[node_] : preopt->A_idxval[node_])
 	int Npred = preopt->Npred;
+	int mnpred = preopt->mnpred;
 	int n = preopt->n;
 	int N = IMAX(n, Npred);
 	int max_ng = -1;
 	const int np = 15;
 	double zero = 0.0;
 
-	Calloc_init(Npred);
-	double *sd = Calloc_get(Npred);
+	Calloc_init(mnpred);
+	double *sd = Calloc_get(mnpred);
 	GMRFLib_gcpo_elm_tp **gcpo = Calloc(Npred, GMRFLib_gcpo_elm_tp *);
 	for (int i = 0; i < Npred; i++) {
 		sd[i] = sqrt(lpred_variance[i]);
@@ -7521,7 +7524,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			for (int node = 0; node < Npred; node++) {
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
 					printf("\ncov_mat for node=%d size=%d\n", node, (int) gcpo[node]->cov_mat->size1);
-					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.16f");
+					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}
 		}
