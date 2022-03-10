@@ -115,6 +115,8 @@ typedef struct {
 	 */
 	int n;
 	int nnz;					       /* number of off-diagonals = total sum of neighbours */
+	int lnnz;
+	int snnz;
 
 	/**
 	 *  \brief Number of neighbours for each node.
@@ -158,6 +160,16 @@ typedef struct {
 	 */
 	int **snbs;
 
+	int **guess;
+	int *row2col;
+
+	int n_ptr; 
+	int n_idx; 
+	int *rowptr;
+	int *colidx;
+	int *colptr;
+	int *rowidx;
+
 } GMRFLib_graph_tp;
 
 typedef struct {
@@ -182,17 +194,19 @@ typedef struct {
 	int n;						       /* original graph->n */
 } GMRFLib_offset_arg_tp;
 
-size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 double GMRFLib_offset_Qfunc(int node, int nnode, double *values, void *arg);
 int *GMRFLib_graph_cc(GMRFLib_graph_tp * g);
+int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
-int GMRFLib_add_lnbs_info(GMRFLib_graph_tp * graph);
 int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value);
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno);
+int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g);
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
@@ -201,11 +215,12 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old);
 int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg);
 int GMRFLib_graph_free(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_init_store(void);
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph);
-int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph);
+int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph);
 int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag);
 int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag);
@@ -223,7 +238,6 @@ int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph);
-int GMRFLib_init_graph_store(void);
 int GMRFLib_lattice2node(int *node, int irow, int icol, int nrow, int ncol);
 int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int ncol);
 int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
@@ -234,7 +248,7 @@ int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph);
 int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno);
 int GMRFLib_xQx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag);
-
+size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph);
 
 __END_DECLS
 #endif

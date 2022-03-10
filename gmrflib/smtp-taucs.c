@@ -785,7 +785,7 @@ int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_
 
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
-	int n = 0, *perm = NULL, *iperm = NULL, nan_error = 0;
+	int n = 0, *iperm = NULL, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
 
 	if (!graph || graph->n == 0) {
@@ -799,49 +799,61 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
 	Q->colptr[0] = 0;
 
-	int *ic_idx = Calloc(n, int);
-	for (int i = 0, ic = 0; i < n; i++) {
-		Q->rowind[ic] = i;
-		ic_idx[i] = ic;
-		ic++;
-		Memcpy(&(Q->rowind[ic]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
-		ic += graph->snnbs[i];
-		Q->colptr[i + 1] = Q->colptr[i] + graph->snnbs[i] + 1;
-	}
+	GMRFLib_tabulate_Qfunc_arg_tp * arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
+	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
 
-#define CODE_BLOCK						\
-	for (int i = 0; i < n; i++) {				\
-		CODE_BLOCK_SET_THREAD_ID();			\
-		int ic = ic_idx[i];				\
-		double val = Qfunc(i, i, NULL, Qfunc_arg);	\
-		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
-		Q->values.d[ic++] = val;			\
-		for (int k = 0; k < graph->snnbs[i]; k++) {	\
-			int j = graph->snbs[i][k];		\
-			val = Qfunc(i, j, NULL, Qfunc_arg);	\
-			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
-			Q->values.d[ic++] = val;		\
-		}						\
-	}
+	if (fast_copy) {
+		Memcpy(Q->rowind, graph->rowidx, (n + graph->nnz/2) * sizeof(int));
+		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
+		for (int i = 0; i < n + graph->nnz/2; i++) {
+			Q->values.d[i] = arg->Q->a[graph->row2col[i]];
+		}
+	} else {
+		
+		int *ic_idx = Calloc(n, int);
+		for (int i = 0, ic = 0; i < n; i++) {
+			Q->rowind[ic] = i;
+			ic_idx[i] = ic;
+			ic++;
+			Memcpy(&(Q->rowind[ic]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+			ic += graph->snnbs[i];
+			Q->colptr[i + 1] = Q->colptr[i] + graph->snnbs[i] + 1;
+		}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+#define CODE_BLOCK							\
+		for (int i = 0; i < n; i++) {				\
+			CODE_BLOCK_SET_THREAD_ID();			\
+			int ic = ic_idx[i];				\
+			double val = Qfunc(i, i, NULL, Qfunc_arg);	\
+			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
+			Q->values.d[ic++] = val;			\
+			for (int k = 0; k < graph->snnbs[i]; k++) {	\
+				int j = graph->snbs[i][k];		\
+				val = Qfunc(i, j, NULL, Qfunc_arg);	\
+				GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
+				Q->values.d[ic++] = val;		\
+			}						\
+		}
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
-	Free(ic_idx);
+		Free(ic_idx);
+	}
+	
 	if (nan_error) {
 		return !GMRFLib_SUCCESS;
 	}
 
 	iperm = remap;					       /* yes, this is correct */
-	perm = Calloc(n, int);
 
-	for (int i = 0; i < n; i++) {
-		perm[iperm[i]] = i;
-	}
-	*L = taucs_ccs_permute_symmetrically(Q, perm, iperm);  /* permute the matrix */
+	// 'perm' is not used in the taucs_ccs_permute_symmetrically, so we can just pass NULL
 
+	// int *perm = Calloc(n, int);
+	// for (int i = 0; i < n; i++) perm[iperm[i]] = i;
+
+	*L = taucs_ccs_permute_symmetrically(Q, NULL, iperm);  /* permute the matrix */
 	taucs_ccs_free(Q);
-	Free(perm);
 
 	return GMRFLib_SUCCESS;
 }
