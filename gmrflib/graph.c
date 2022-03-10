@@ -545,37 +545,36 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 
 	int m = graph->lnnbs[imin];
 	return ((!m || imax > graph->lnbs[imin][m - 1] ||
-		 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[omp_get_thread_num()]) < 0) ?
-		GMRFLib_FALSE : GMRFLib_TRUE);
+		 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[omp_get_thread_num()]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
-int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph) 
+int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
 {
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	graph->guess = Calloc(GMRFLib_MAX_THREADS(), int *);
-	for(int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+	for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 		graph->guess[i] = Calloc(2, int);
 	}
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph) 
+int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph)
 {
 
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	int n = graph->n;
 	int N = graph->n + graph->nnz / 2;
 
 	// TAUCS
 	int *colptr = Calloc(graph->n + 1, int);
 	int *rowidx = Calloc(N, int);
-	
+
 	// PARDISO
 	int *rowptr = Calloc(graph->n + 1, int);
 	int *colidx = Calloc(N, int);
@@ -609,7 +608,7 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph)
 }
 
 
-int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph) 
+int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 {
 	// mapping between the CSR and CSC; see build_TAUCS.
 	// only used for TAUCS
@@ -617,7 +616,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	int n = graph->n;
 	int N = graph->n + graph->nnz / 2;
 	int *row2col = Calloc(N, int);
@@ -625,23 +624,22 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 	if (0) {
 		int *row = Calloc(graph->n + 1, int);
 		row[0] = 0;
-		for(int i = 1; i < n+1; i++) {
-			row[i] = row[i-1] + 1 + graph->lnnbs[i-1];
+		for (int i = 1; i < n + 1; i++) {
+			row[i] = row[i - 1] + 1 + graph->lnnbs[i - 1];
 		}
 	}
-
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
-	for(int i = 0, k = 0; i < n; i++){
-		row2col[k++]= Q(i, i, 0);
-		for(int jj = 0; jj < graph->snnbs[i]; jj++){
-			int guess[2] = {0, 0};
+	for (int i = 0, k = 0; i < n; i++) {
+		row2col[k++] = Q(i, i, 0);
+		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
+			int guess[2] = { 0, 0 };
 			int j = graph->snbs[i][jj];
 			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j], guess);
 			row2col[k++] = Q(i, j, kk);
 		}
 	}
 	graph->row2col = row2col;
-	
+
 #undef Q
 	return GMRFLib_SUCCESS;
 }
@@ -658,12 +656,12 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	graph->nnz = nnz;
 
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
-	GMRFLib_graph_add_lnbs_info(graph);			       /* must be before sha */
+	GMRFLib_graph_add_lnbs_info(graph);		       /* must be before sha */
 	GMRFLib_graph_add_guess(graph);
 	// need this check as graph is also used in the non-symmetric case for matrix
 	if (graph->lnnz == graph->snnz) {
 		GMRFLib_graph_add_crs_crc(graph);
-		GMRFLib_graph_add_row2col(graph);		       /* needs to come after crs_crc */
+		GMRFLib_graph_add_row2col(graph);	       /* needs to come after crs_crc */
 	}
 	GMRFLib_graph_add_sha(graph);
 
@@ -716,7 +714,7 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 #undef CODE_BLOCK
 
 	graph->lnnz = graph->snnz = 0;
-	for(int i = 0; i < graph->n; i++) {
+	for (int i = 0; i < graph->n; i++) {
 		graph->lnnz += graph->lnnbs[i];
 		graph->snnz += graph->snnbs[i];
 	}
@@ -733,7 +731,6 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-	
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
 		if (graph->nnbs[i]) {					\

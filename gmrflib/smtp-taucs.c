@@ -799,17 +799,17 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
 	Q->colptr[0] = 0;
 
-	GMRFLib_tabulate_Qfunc_arg_tp * arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
 	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
 
 	if (fast_copy) {
-		Memcpy(Q->rowind, graph->rowidx, (n + graph->nnz/2) * sizeof(int));
+		Memcpy(Q->rowind, graph->rowidx, (n + graph->nnz / 2) * sizeof(int));
 		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
-		for (int i = 0; i < n + graph->nnz/2; i++) {
+		for (int i = 0; i < n + graph->nnz / 2; i++) {
 			Q->values.d[i] = arg->Q->a[graph->row2col[i]];
 		}
 	} else {
-		
+
 		int *ic_idx = Calloc(n, int);
 		for (int i = 0, ic = 0; i < n; i++) {
 			Q->rowind[ic] = i;
@@ -840,7 +840,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 
 		Free(ic_idx);
 	}
-	
+
 	if (nan_error) {
 		return !GMRFLib_SUCCESS;
 	}

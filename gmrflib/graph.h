@@ -163,8 +163,8 @@ typedef struct {
 	int **guess;
 	int *row2col;
 
-	int n_ptr; 
-	int n_idx; 
+	int n_ptr;
+	int n_idx;
 	int *rowptr;
 	int *colidx;
 	int *colptr;

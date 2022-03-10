@@ -238,7 +238,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 
 	// we cannot just point to ia and ja in the graph, as these are 0 based and we need it to be 1 based. Maybe rewrite this later, as its
 	// not a big issue right now
-	
+
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Calloc(n, int);
 	M->ia[0] = 0;
