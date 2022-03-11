@@ -37859,6 +37859,41 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 69: 
+	{
+		int n = 10;
+
+		printf("\n\n");
+		FIXME("run with 4 threads");
+#pragma omp parallel for num_threads(4)
+		for(int i = 0; i < n; i++) {
+			P(GMRFLib_OPENMP_IN_SERIAL());
+			P(GMRFLib_OPENMP_IN_PARALLEL());
+			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+			P(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD());
+		}
+
+		printf("\n\n");
+		FIXME("run with 1 threads");
+#pragma omp parallel for num_threads(1)
+		for(int i = 0; i < n; i++) {
+			P(GMRFLib_OPENMP_IN_SERIAL());
+			P(GMRFLib_OPENMP_IN_PARALLEL());
+			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+			P(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD());
+		}
+
+		printf("\n\n");
+		FIXME("run serial");
+		for(int i = 0; i < n; i++) {
+			P(GMRFLib_OPENMP_IN_SERIAL());
+			P(GMRFLib_OPENMP_IN_PARALLEL());
+			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
+			P(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD());
+		}
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -38066,11 +38101,6 @@ int main(int argc, char **argv)
 					GMRFLib_openmp->blas_num_threads = 1;
 				}
 
-				// there is no need to support nested on WINDOWS before PARDISO is
-				// integrated there
-#if defined(WINDOWS)
-				ntt[1] = 1;
-#endif
 				if (ntt[0] * ntt[1] > GMRFLib_MAX_THREADS()) {
 					fprintf(stderr, "\n\n\tYou ask for %1d x %1d = %1d number of threads,\n", ntt[0], ntt[1], ntt[0] * ntt[1]);
 					fprintf(stderr, "\twhich is more that I got from the system: %1d\n", GMRFLib_MAX_THREADS());

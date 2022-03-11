@@ -2445,7 +2445,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				 * do nothing 
 				 */
 			} else if (cc_is_negative && cc_positive) {
-				FIXME("switch to cc_positive = 0");
 				cc_positive = 0;
 			} else {
 				break;
@@ -7314,7 +7313,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				a[v->store[k].idx] = v->store[k].val;	\
 			}						\
 			GMRFLib_Qsolve(Sa, a, ai_store->problem);	\
-			FIXME("SOLVE FOR GROUPS");			\
 			int num_ones = 0;				\
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
