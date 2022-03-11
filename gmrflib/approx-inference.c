@@ -7252,6 +7252,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
+	int detailed_output = 0;
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
@@ -7390,7 +7391,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	ggroups->groups = groups;
 	ggroups->missing = missing;
 
-	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
+	if (detailed_output && (GMRFLib_DEBUG_IF() || gcpo_param->verbose)) {
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
@@ -7422,6 +7423,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 	GMRFLib_ENTER_ROUTINE;
 
+	int detailed_output = 0;
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int n = preopt->n;
@@ -7516,7 +7518,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
 
-	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
+	if (detailed_output && (GMRFLib_DEBUG_IF() || gcpo_param->verbose)) {
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
