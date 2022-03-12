@@ -4,6 +4,21 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.03.12}{
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Option \code{safe=TRUE} is now default
+    }
+  }
+  \subsection{CHANGES}{
+    \itemize{
+      \item Code cleanup
+      \item Code optimization for \code{TACUS}
+      \item Nested parallelism is now enabled on Windows
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.03.09}{
   \subsection{BUG FIXES}{
     \itemize{
