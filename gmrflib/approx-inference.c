@@ -7256,7 +7256,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
-	GMRFLib_idx_tp **groups = NULL;
+	GMRFLib_idxval_tp **groups = NULL;
 
 	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose) {
@@ -7265,7 +7265,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		// build the groups
 		double *isd = Calloc(mnpred, double);
 
-		groups = GMRFLib_idx_ncreate_x(Npred, gcpo_param->group_size);
+		groups = GMRFLib_idxval_ncreate_x(Npred, gcpo_param->group_size);
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, ai_store->problem, NULL);
 		for (int i = 0; i < Npred; i++) {
@@ -7296,7 +7296,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			CODE_BLOCK_SET_THREAD_ID();			\
 									\
 			if (gcpo_param->group_size == 1) {		\
-				GMRFLib_idx_add(&(groups[node]), node); \
+				GMRFLib_idxval_add(&(groups[node]), node, 1.0); \
 				continue;				\
 			}						\
 									\
@@ -7333,9 +7333,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			GMRFLib_DEBUG_iii("siz_g Npred num_ones", siz_g, Npred, num_ones); \
 			gsl_sort_largest_index(largest, (size_t) siz_g, cor, (size_t) 1, (size_t) Npred); \
 			for (int i = 0; i < siz_g; i++) {		\
-				GMRFLib_idx_add(&(groups[node]), (int) largest[i]); \
+				GMRFLib_idxval_add(&(groups[node]), (int) largest[i], cor[(int) largest[i]]); \
 			}						\
-			GMRFLib_idx_sort(groups[node]);			\
+			GMRFLib_idxval_sort(groups[node]);		\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 4, N);
@@ -7352,9 +7352,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 
 		// if the number of give groups are to short compared to Npred, then pad with empty groups. if its longer then that is an error.
 		if (gcpo_param->ngroups < Npred) {
-			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idx_tp *);
+			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idx_create_x(&(gcpo_param->groups[i]), gcpo_param->group_size);
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), gcpo_param->group_size);
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -7368,9 +7368,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {
-				int ii = groups[node]->idx[i];
+				int ii = groups[node]->store[i].idx;
 				for (int j = i + 1; j < groups[node]->n; j++) {
-					int jj = groups[node]->idx[j];
+					int jj = groups[node]->store[j].idx;
 					GMRFLib_idx2_add(&(missing[IMIN(ii, jj)]), IMAX(ii, jj), node);
 				}
 			}
@@ -7397,7 +7397,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				char *msg;
 				GMRFLib_sprintf(&msg, "%s[%1d]: node %d", __GMRFLib_FuncName, omp_get_thread_num(), node);
 				if (groups[node]->n > 0) {
-					GMRFLib_idx_printf(stdout, groups[node], msg);
+					GMRFLib_idxval_printf(stdout, groups[node], msg);
 				}
 				if (missing[node]->n > 0) {
 					GMRFLib_idx2_printf(stdout, missing[node], msg);
@@ -7431,6 +7431,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	const int np = 15;
 	double zero = 0.0;
 
+	// the index is the first element, then the value 
+	int inc_idxval = sizeof(GMRFLib_idxval_elm_tp) / sizeof(int);
+
 	Calloc_init(mnpred);
 	double *sd = Calloc_get(mnpred);
 	GMRFLib_gcpo_elm_tp **gcpo = Calloc(Npred, GMRFLib_gcpo_elm_tp *);
@@ -7457,7 +7460,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
 		double *cov = CODE_BLOCK_WORK_PTR(2);			\
 		CODE_BLOCK_WORK_ZERO(2);				\
-									\
+		int guess[2] = {0, 0};					\
 		if (groups->missing[node]->n == 1 &&			\
 		    groups->missing[node]->idx[0][0] == node &&		\
 		    groups->missing[node]->idx[1][0] == node) {		\
@@ -7492,17 +7495,17 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f;	\
 		}							\
 		cov[node] = SQR(sd[node]);				\
-		gcpo[node]->node_min = gcpo[node]->idxs->idx[0];	\
-		gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
-		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, gcpo[node]->idxs->idx, gcpo[node]->idxs->n, NULL); \
+		gcpo[node]->node_min = gcpo[node]->idxs->store[0].idx;	\
+		gcpo[node]->node_max = gcpo[node]->idxs->store[IMAX(0, gcpo[node]->idxs->n - 1)].idx; \
+		gcpo[node]->idx_node = GMRFLib_iwhich_sorted_x(node, (int *) (gcpo[node]->idxs->store), gcpo[node]->idxs->n, guess, inc_idxval); \
 		if (gcpo[node]->idxs->n > 0) assert(gcpo[node]->idx_node >= 0);	\
 									\
 		for(int k = 0; k < groups->missing[node]->n; k++) {	\
 			int nnode = groups->missing[node]->idx[0][k];	\
 			int cm_idx = groups->missing[node]->idx[1][k];	\
 			gsl_matrix *mat = gcpo[cm_idx]->cov_mat;	\
-			int ii = GMRFLib_iwhich_sorted(node, gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n, NULL); \
-			int jj = GMRFLib_iwhich_sorted(nnode, gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n, NULL); \
+			int ii = GMRFLib_iwhich_sorted_x(node, (int *) gcpo[cm_idx]->idxs->store, gcpo[cm_idx]->idxs->n, guess, inc_idxval); \
+			int jj = GMRFLib_iwhich_sorted_x(nnode, (int *) gcpo[cm_idx]->idxs->store, gcpo[cm_idx]->idxs->n, guess, inc_idxval); \
 			assert(ii >= 0 && jj >= 0);			\
 									\
 			gsl_matrix_set(mat, ii, ii, cov[node]);		\
@@ -7553,7 +7556,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			continue;					\
 		}							\
 		int ng = gcpo[node]->idxs->n;				\
-		int *idxs = gcpo[node]->idxs->idx;			\
+		GMRFLib_idxval_elm_tp *idxs = gcpo[node]->idxs->store;	\
 		size_t idx_node = gcpo[node]->idx_node;			\
 		double *bb = CODE_BLOCK_WORK_PTR(0);			\
 		double *cc = CODE_BLOCK_WORK_PTR(1);			\
@@ -7561,7 +7564,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_vector *b = gsl_vector_calloc((size_t) ng);		\
 									\
 		for(int i = 0; i < ng; i++) {				\
-			int nnode = idxs[i];				\
+			int nnode = idxs[i].idx;			\
 			gsl_vector_set(mean, (size_t) i, lpred_mode[nnode]); \
 			if (d[i]) {					\
 				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[nnode], lpred_mode[nnode], nnode, \

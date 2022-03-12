@@ -34343,7 +34343,10 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 		for (i = 0; i < n; i++) {
 			D1W(gcpo->groups[i]->n);
 			for (j = 0; j < gcpo->groups[i]->n; j++) {
-				D1W(gcpo->groups[i]->idx[j] + 1);	/* back to R-style indexing */
+				D1W(gcpo->groups[i]->store[j].idx + 1);	/* back to R-style indexing */
+			}
+			for (j = 0; j < gcpo->groups[i]->n; j++) {
+				D1W(gcpo->groups[i]->store[j].val);
 			}
 		}
 		Dclose();

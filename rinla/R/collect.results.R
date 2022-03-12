@@ -1017,11 +1017,13 @@
             nn <- xx[offset + 1]
             if (nn > 0) {
                 gg <- xx[offset + 1 + seq_len(nn)]
+                cor <- xx[offset + 1 + nn + seq_len(nn)]
             } else {
                 gg <- NULL
+                cor <- NULL
             }
-            groups[[i]] <- gg
-            offset <- offset + 1 + nn
+            groups[[i]] <- list(idx = gg, correlation = cor)
+            offset <- offset + 1 + 2 * nn
         }
     } else {
         values <- NULL

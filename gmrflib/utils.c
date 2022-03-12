@@ -223,7 +223,11 @@ forceinline int GMRFLib_iwhich_sorted_x(int val, int *ix, int len, int *guess, i
 		return -1;
 	}
 
-	int low, high, mid, n;
+	int low, high, mid, n, lguess[2] = { 0, 0 };
+
+	if (!guess) {
+		guess = lguess;
+	}
 
 	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
 	if (guess[1] == 0 || guess[1] >= len) {
