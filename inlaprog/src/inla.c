@@ -33710,17 +33710,17 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
 			assert(ret == total_len);
 
-			mb->gcpo_param->groups = GMRFLib_idx_ncreate_x(len, IMAX(3, (total_len - len) / len));
+			mb->gcpo_param->groups = GMRFLib_idxval_ncreate_x(len, IMAX(3, (total_len - len) / len));
 			for (int i = 0; i < len; i++) {
 				glen = buffer[offset++];
 				for (int j = 0; j < glen; j++) {
-					GMRFLib_idx_add(&(mb->gcpo_param->groups[i]), buffer[offset++]);
+					GMRFLib_idxval_add(&(mb->gcpo_param->groups[i]), buffer[offset++], NAN);
 				}
 				if (mb->gcpo_param->verbose) {
 					if (mb->gcpo_param->groups[i]->n > 0) {
 						char *msg;
 						GMRFLib_sprintf(&msg, "group %d", i);
-						GMRFLib_idx_printf(stdout, mb->gcpo_param->groups[i], msg);
+						GMRFLib_idxval_printf(stdout, mb->gcpo_param->groups[i], msg);
 					}
 				}
 			}

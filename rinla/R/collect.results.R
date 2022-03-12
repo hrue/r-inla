@@ -1022,7 +1022,7 @@
                 gg <- NULL
                 cor <- NULL
             }
-            groups[[i]] <- list(idx = gg, correlation = cor)
+            groups[[i]] <- list(idx = gg, corr = cor)
             offset <- offset + 1 + 2 * nn
         }
     } else {
