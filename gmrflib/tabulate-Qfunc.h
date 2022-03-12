@@ -65,8 +65,6 @@ __BEGIN_DECLS
     typedef struct {
 	int n;						       /* the size of the graph */
 	map_id **values;				       /* hash-table for the values */
-	double *prec;					       /* precision */
-	double *log_prec;				       /* log(prec) */
 	double **log_prec_omp;				       /* log(prec) thread dependent */
 
 	// new format
@@ -98,15 +96,14 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg);
 int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulated_Qfunc);
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulated_Qfunc, GMRFLib_graph_tp * graph,
-			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp);
+			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename, int dim,
-				     double *prec, double *log_prec, double **log_prec_omp);
+				     double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, int ntriples,
-				     int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec, double **log_prec_omp);
+				     int *ilist, int *jlist, double *Qijlist, int dim, double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				      int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
-				      double **log_prec_omp);
+				      int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double **log_prec_omp);
 int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp, int force);
+				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp, int force);
 __END_DECLS
 #endif

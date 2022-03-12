@@ -2445,7 +2445,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 				 * do nothing 
 				 */
 			} else if (cc_is_negative && cc_positive) {
-				FIXME("switch to cc_positive = 0");
 				cc_positive = 0;
 			} else {
 				break;
@@ -7253,6 +7252,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
+	int detailed_output = 0;
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
@@ -7314,7 +7314,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				a[v->store[k].idx] = v->store[k].val;	\
 			}						\
 			GMRFLib_Qsolve(Sa, a, ai_store->problem);	\
-			FIXME("SOLVE FOR GROUPS");			\
 			int num_ones = 0;				\
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
@@ -7392,7 +7391,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	ggroups->groups = groups;
 	ggroups->missing = missing;
 
-	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
+	if (detailed_output && (GMRFLib_DEBUG_IF() || gcpo_param->verbose)) {
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
@@ -7424,6 +7423,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 	GMRFLib_ENTER_ROUTINE;
 
+	int detailed_output = 0;
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int n = preopt->n;
@@ -7518,7 +7518,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
 
-	if (GMRFLib_DEBUG_IF() || gcpo_param->verbose) {
+	if (detailed_output && (GMRFLib_DEBUG_IF() || gcpo_param->verbose)) {
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
@@ -8160,8 +8160,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	Memcpy(like_b_save, preopt->like_b[GMRFLib_thread_id], preopt->Npred * sizeof(double));
 	Memcpy(like_c_save, preopt->like_c[GMRFLib_thread_id], preopt->Npred * sizeof(double));
 
-	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, NULL, NULL, 1);
-	GMRFLib_tabulate_Qfunc_core(&prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, NULL, NULL, 1);
+	GMRFLib_tabulate_Qfunc_core(&tabQ, graph, Qfunc, Qfunc_arg, NULL, 1);
+	GMRFLib_tabulate_Qfunc_core(&prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, 1);
 	gsl_matrix_set_zero(M);
 	gsl_matrix_set_zero(QM);
 

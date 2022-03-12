@@ -2029,30 +2029,38 @@ typedef struct {
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;
 
-#define HYPER_NEW2(name_, initial_, n_)  {				\
-		int i_, j_;						\
+#define HYPER_NEW2(name_, initial_, n_)  \
+	if (1) {							\
 		name_ = Calloc(n_, double **);				\
-		for(j_=0; j_ < n_; j_++){				\
+		for(int j_=0; j_ < n_; j_++){				\
 			name_[j_] = Calloc(GMRFLib_MAX_THREADS(), double *); \
-			for(i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) { \
+			for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) { \
 				name_[j_][i_] = Calloc(1, double);	\
 				name_[j_][i_][0] = initial_;		\
 			}						\
 		}							\
 	}								\
 
-#define HYPER_NEW(name_, initial_)  {					\
-		int i_;							\
+#define HYPER_NEW(name_, initial_)					\
+	if (1) {							\
 		name_ = Calloc(GMRFLib_MAX_THREADS(), double *);	\
-		for(i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_] = Calloc(1, double);			\
 			name_[i_][0] = initial_;			\
 		}							\
 	}
 
-#define HYPER_INIT(name_, initial_) {					\
-		int i_;							\
-		for(i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
+#define HYPER_FREE(name_)						\
+	if (1) {							\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
+			Free(name_[i_]);				\
+		}							\
+		Free(name_);						\
+	}
+
+#define HYPER_INIT(name_, initial_)		\
+	if (1) {				\
+		for(int i_ = 0; i_ < GMRFLib_MAX_THREADS(); i_++) {	\
 			name_[i_][0] = initial_;			\
 		}							\
 	}

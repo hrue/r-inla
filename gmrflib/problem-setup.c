@@ -503,7 +503,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	}
 	sub_Qfunc_arg->user_Qfunc = Qfunc;
 	sub_Qfunc_arg->user_Qfunc_args = Qfunc_args;
-	GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc(&((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL, NULL, NULL));
+	GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc(&((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL));
 
 	Free(sub_Qfunc_arg->diagonal_adds);
 	Free(sub_Qfunc_arg);
@@ -1606,8 +1606,6 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 
 		tab->Qfunc = problem->tab->Qfunc;
 		Qfunc_arg->n = tmp->n;
-		Qfunc_arg->prec = tmp->prec;
-		Qfunc_arg->log_prec = tmp->log_prec;
 		if (tmp->log_prec_omp) {
 			int tmax = GMRFLib_MAX_THREADS();
 			Qfunc_arg->log_prec_omp = Calloc(tmax, double *);

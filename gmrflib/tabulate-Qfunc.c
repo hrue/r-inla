@@ -58,7 +58,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 #define TAB_FUNC_CORE(_prec_scale)					\
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;			\
-	double prec, *dp;						\
+	double prec = 1.0, *dp = NULL;					\
 	int i, ii, j, len = 0, imin, imax;				\
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;			\
 	if (_prec_scale) {						\
@@ -122,12 +122,12 @@ double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void 
 }
 
 int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp)
+			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp)
 {
-	return (GMRFLib_tabulate_Qfunc_core(tabulate_Qfunc, graph, Qfunc, Qfunc_arg, prec, log_prec, log_prec_omp, 0));
+	return (GMRFLib_tabulate_Qfunc_core(tabulate_Qfunc, graph, Qfunc, Qfunc_arg, log_prec_omp, 0));
 }
 int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *prec, double *log_prec, double **log_prec_omp, int force)
+				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
 {
 
 	int i, j, k;
@@ -150,22 +150,16 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 	(*tabulate_Qfunc)->Qfunc_arg = (void *) arg;
 
 	arg->n = graph->n;
-	arg->prec = prec;
-	arg->log_prec = (prec == NULL ? log_prec : NULL);
-	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
 			arg->log_prec_omp[i] = log_prec_omp[i];
 		}
+		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;
 	} else {
 		arg->log_prec_omp = NULL;
-	}
-
-	if (prec == NULL && log_prec == NULL && log_prec_omp == NULL) {
 		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction_std;
-	} else {
-		(*tabulate_Qfunc)->Qfunc = GMRFLib_tabulate_Qfunction;
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
@@ -207,7 +201,7 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 }
 
 int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
-				     int dim, double *prec, double *log_prec, double **log_prec_omp)
+				     int dim, double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but reads the Q_ij values from file with name FILENAME, in format
@@ -361,9 +355,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 	arg->n = (*graph)->n;
 	arg->values = Calloc((*graph)->n, map_id *);
-	arg->prec = prec;
-	arg->log_prec = (prec == NULL ? log_prec : NULL);
-	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
@@ -466,8 +458,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 }
 
 int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
-				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double *prec, double *log_prec,
-				     double **log_prec_omp)
+				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double **log_prec_omp)
 {
 	/*
 	 * as GMRFLib_tabulate_Qfunc(), but get its Q_ij values from its arguments
@@ -519,7 +510,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 	arg->n = (*graph)->n;
 	arg->values = Calloc((*graph)->n, map_id *);
-	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+	if (log_prec_omp) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {
@@ -564,8 +555,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 }
 
 int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim),
-				      double *prec, double *log_prec, double **log_prec_omp)
+				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim), double **log_prec_omp)
 {
 	// this is a special version for Qfunc_rgeneric, as we assume here that graph is know.
 
@@ -593,7 +583,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 
 	arg->n = graph->n;
 	arg->values = Calloc(graph->n, map_id *);
-	if (prec == NULL && log_prec == NULL && log_prec_omp != NULL) {
+	if (log_prec_omp != NULL) {
 		int tmax = GMRFLib_MAX_THREADS();
 		arg->log_prec_omp = Calloc(tmax, double *);
 		for (i = 0; i < tmax; i++) {

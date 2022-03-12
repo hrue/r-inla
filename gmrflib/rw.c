@@ -820,8 +820,6 @@ int GMRFLib_crw_scale(void *def)
 	crwdef->n = odef->n;
 	assert(odef->order > 0);
 	crwdef->order = odef->order;
-	crwdef->prec = NULL;
-	crwdef->log_prec = NULL;
 	crwdef->log_prec_omp = NULL;
 	crwdef->position = odef->position;
 	assert(odef->layout == GMRFLib_CRW_LAYOUT_SIMPLE);
@@ -960,8 +958,6 @@ int GMRFLib_rw_scale(void *def)
 	assert(odef->order > 0);
 	rwdef->order = odef->order;
 	rwdef->cyclic = odef->cyclic;
-	rwdef->prec = NULL;
-	rwdef->log_prec = NULL;
 	rwdef->log_prec_omp = NULL;
 	rwdef->scale0 = odef->scale0;
 	rwdef->prec_scale = prec_scale_guess;
@@ -1088,7 +1084,6 @@ int GMRFLib_rw2d_scale(void *def)
 	assert(rw2ddef->order == 2);
 	rw2ddef->cyclic = odef->cyclic;
 	rw2ddef->bvalue = odef->bvalue;
-	rw2ddef->log_prec = NULL;
 	rw2ddef->log_prec_omp = NULL;
 	rw2ddef->prec_scale = NULL;
 

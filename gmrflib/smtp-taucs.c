@@ -67,33 +67,35 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 	taucs_ccs_matrix *C = NULL;
-	int n, nnz;
-	int i, j, ip, jp, sn, next;
+	int n, nnz, i, j, ip, jp, sn, next, *len = NULL;
 	taucs_datatype v;
-	int *len = NULL;
 
 	n = L->n;
-
 	len = Malloc(n, int);
 
 	if (!len) {
 		return NULL;
 	}
+
 	nnz = 0;
 	for (sn = 0; sn < L->n_sn; sn++) {
-		for (jp = 0; jp < L->sn_size[sn]; jp++) {
-			j = L->sn_struct[sn][jp];
+		int Lsize = L->sn_size[sn];
+		int Lup_size = L->sn_up_size[sn];
+		int *Lss = L->sn_struct[sn];
+		
+		for (jp = 0; jp < Lsize; jp++) {
+			j = Lss[jp];
 			len[j] = 0;
 
-			for (ip = jp; ip < L->sn_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
+			for (ip = jp; ip < Lsize; ip++) {
+				i = Lss[ip];
 				if (i >= j) {
 					len[j]++;
 					nnz++;
 				}
 			}
-			for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
+			for (ip = Lsize; ip < Lup_size; ip++) {
+				i = Lss[ip];
 				if (i >= j) {
 					len[j]++;
 					nnz++;
@@ -114,30 +116,39 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	for (j = 1; j <= n; j++) {
 		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
 	}
-
 	free(len);
+
 	for (sn = 0; sn < L->n_sn; sn++) {
-		for (jp = 0; jp < L->sn_size[sn]; jp++) {
-			j = L->sn_struct[sn][jp];
-			next = (C->colptr)[j];
 
-			for (ip = jp; ip < L->sn_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
-				v = L->sn_blocks[sn][jp * L->sn_blocks_ld[sn] + ip];
+		int *Lss = L->sn_struct[sn];
+		int Lsbl = L->sn_blocks_ld[sn];
+		int Lsize = L->sn_size[sn];
+		int Lubl = L->up_blocks_ld[sn];
+		int Lup_size = L->sn_up_size[sn];
+		taucs_datatype *Lsb = L->sn_blocks[sn];
+		taucs_datatype *Lub = L->up_blocks[sn];
+		
+		for (jp = 0; jp < Lsize; jp++) {
+			j = Lss[jp];
+			next = C->colptr[j];
 
+			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
+			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize; 
+			for (ip = jp; ip < Lsize; ip++) {
+				i = Lss[ip];
 				if (i >= j) {
-					(C->rowind)[next] = i;
-					(C->values.d)[next] = v;
+					v = Lsb_p[ip];
+					C->rowind[next] = i;
+					C->values.d[next] = v;
 					next++;
 				}
 			}
-			for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
-				v = L->up_blocks[sn][jp * L->up_blocks_ld[sn] + (ip - L->sn_size[sn])];
-
+			for (ip = Lsize; ip < Lup_size; ip++) {
+				i = Lss[ip];
 				if (i >= j) {
-					(C->rowind)[next] = i;
-					(C->values.d)[next] = v;
+					v = Lub_p[ip];
+					C->rowind[next] = i;
+					C->values.d[next] = v;
 					next++;
 				}
 			}
@@ -145,6 +156,96 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	}
 	return C;
 }
+
+taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL)
+{
+        /*
+         * this is to be called for a lower triangular double matrix only.
+         * 
+         * it includes also zero terms as long as i>=j.
+         * 
+         */
+
+        supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+        taucs_ccs_matrix *C = NULL;
+        int n, nnz;
+        int i, j, ip, jp, sn, next;
+        taucs_datatype v;
+        int *len = NULL;
+
+        n = L->n;
+
+        len = Malloc(n, int);
+
+        if (!len) {
+                return NULL;
+        }
+        nnz = 0;
+        for (sn = 0; sn < L->n_sn; sn++) {
+                for (jp = 0; jp < L->sn_size[sn]; jp++) {
+                        j = L->sn_struct[sn][jp];
+                        len[j] = 0;
+
+                        for (ip = jp; ip < L->sn_size[sn]; ip++) {
+                                i = L->sn_struct[sn][ip];
+                                if (i >= j) {
+                                        len[j]++;
+                                        nnz++;
+                                }
+                        }
+                        for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
+                                i = L->sn_struct[sn][ip];
+                                if (i >= j) {
+                                        len[j]++;
+                                        nnz++;
+                                }
+                        }
+                }
+        }
+        C = taucs_dccs_create(n, n, nnz);
+        if (!C) {
+                free(len);
+                return NULL;
+        }
+        C->flags = TAUCS_DOUBLE;
+        C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;            /* this was a bug in version 2.0 of taucs */
+
+        (C->colptr)[0] = 0;
+        for (j = 1; j <= n; j++) {
+                (C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
+        }
+
+        free(len);
+        for (sn = 0; sn < L->n_sn; sn++) {
+                for (jp = 0; jp < L->sn_size[sn]; jp++) {
+                        j = L->sn_struct[sn][jp];
+                        next = (C->colptr)[j];
+
+                        for (ip = jp; ip < L->sn_size[sn]; ip++) {
+                                i = L->sn_struct[sn][ip];
+                                v = L->sn_blocks[sn][jp * L->sn_blocks_ld[sn] + ip];
+
+                                if (i >= j) {
+                                        (C->rowind)[next] = i;
+                                        (C->values.d)[next] = v;
+                                        next++;
+                                }
+                        }
+                        for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
+                                i = L->sn_struct[sn][ip];
+                                v = L->up_blocks[sn][jp * L->up_blocks_ld[sn] + (ip - L->sn_size[sn])];
+
+                                if (i >= j) {
+                                        (C->rowind)[next] = i;
+                                        (C->values.d)[next] = v;
+                                        next++;
+                                }
+                        }
+                }
+        }
+        return C;
+}
+
 
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
@@ -785,7 +886,7 @@ int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_
 
 int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
-	int n = 0, *perm = NULL, *iperm = NULL, nan_error = 0;
+	int n = 0, *iperm = NULL, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
 
 	if (!graph || graph->n == 0) {
@@ -799,49 +900,61 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 	Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
 	Q->colptr[0] = 0;
 
-	int *ic_idx = Calloc(n, int);
-	for (int i = 0, ic = 0; i < n; i++) {
-		Q->rowind[ic] = i;
-		ic_idx[i] = ic;
-		ic++;
-		Memcpy(&(Q->rowind[ic]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
-		ic += graph->snnbs[i];
-		Q->colptr[i + 1] = Q->colptr[i] + graph->snnbs[i] + 1;
-	}
+	GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
+	int fast_copy = (Qfunc == GMRFLib_tabulate_Qfunction_std && arg->Q);
 
-#define CODE_BLOCK						\
-	for (int i = 0; i < n; i++) {				\
-		CODE_BLOCK_SET_THREAD_ID();			\
-		int ic = ic_idx[i];				\
-		double val = Qfunc(i, i, NULL, Qfunc_arg);	\
-		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
-		Q->values.d[ic++] = val;			\
-		for (int k = 0; k < graph->snnbs[i]; k++) {	\
-			int j = graph->snbs[i][k];		\
-			val = Qfunc(i, j, NULL, Qfunc_arg);	\
-			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
-			Q->values.d[ic++] = val;		\
-		}						\
-	}
+	if (fast_copy) {
+		Memcpy(Q->rowind, graph->rowidx, (n + graph->nnz / 2) * sizeof(int));
+		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
+		for (int i = 0; i < n + graph->nnz / 2; i++) {
+			Q->values.d[i] = arg->Q->a[graph->row2col[i]];
+		}
+	} else {
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		int *ic_idx = Calloc(n, int);
+		for (int i = 0, ic = 0; i < n; i++) {
+			Q->rowind[ic] = i;
+			ic_idx[i] = ic;
+			ic++;
+			Memcpy(&(Q->rowind[ic]), graph->snbs[i], graph->snnbs[i] * sizeof(int));
+			ic += graph->snnbs[i];
+			Q->colptr[i + 1] = Q->colptr[i] + graph->snnbs[i] + 1;
+		}
+
+#define CODE_BLOCK							\
+		for (int i = 0; i < n; i++) {				\
+			CODE_BLOCK_SET_THREAD_ID();			\
+			int ic = ic_idx[i];				\
+			double val = Qfunc(i, i, NULL, Qfunc_arg);	\
+			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
+			Q->values.d[ic++] = val;			\
+			for (int k = 0; k < graph->snnbs[i]; k++) {	\
+				int j = graph->snbs[i][k];		\
+				val = Qfunc(i, j, NULL, Qfunc_arg);	\
+				GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
+				Q->values.d[ic++] = val;		\
+			}						\
+		}
+
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
-	Free(ic_idx);
+		Free(ic_idx);
+	}
+
 	if (nan_error) {
 		return !GMRFLib_SUCCESS;
 	}
 
 	iperm = remap;					       /* yes, this is correct */
-	perm = Calloc(n, int);
 
-	for (int i = 0; i < n; i++) {
-		perm[iperm[i]] = i;
-	}
-	*L = taucs_ccs_permute_symmetrically(Q, perm, iperm);  /* permute the matrix */
+	// 'perm' is not used in the taucs_ccs_permute_symmetrically, so we can just pass NULL
 
+	// int *perm = Calloc(n, int);
+	// for (int i = 0; i < n; i++) perm[iperm[i]] = i;
+
+	*L = taucs_ccs_permute_symmetrically(Q, NULL, iperm);  /* permute the matrix */
 	taucs_ccs_free(Q);
-	Free(perm);
 
 	return GMRFLib_SUCCESS;
 }

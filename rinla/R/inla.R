@@ -48,7 +48,7 @@
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
 ## !    inla.mode = inla.getOption("inla.mode"), 
-## !    safe = FALSE, 
+## !    safe = TRUE, 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = environment(formula)
 ## !    )
@@ -427,7 +427,7 @@
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
                    inla.mode = inla.getOption("inla.mode"), 
-                   safe = FALSE, 
+                   safe = TRUE, 
                    debug = inla.getOption("debug"),
                    .parent.frame = environment(formula))
 {

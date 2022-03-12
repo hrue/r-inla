@@ -391,15 +391,8 @@ typedef enum {
 		nan_error = 1;						\
 	}
 
-#define GMRFLib_SET_PREC(arg_)						\
-	(arg_->prec ? *(arg_->prec)					\
-	 : (arg_->log_prec ? exp(*(arg_->log_prec))			\
-	    : (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)))
-
-#define GMRFLib_SET_RANGE(arg_)						\
-	(arg_->range ? *(arg_->range)					\
-	 : (arg_->log_range ? exp(*(arg_->log_range))			\
-	    : (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)))
+#define GMRFLib_SET_PREC(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[GMRFLib_thread_id])) : 1.0)
+#define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[GMRFLib_thread_id])) : 1.0)
 
 // This is for internal caching
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
@@ -422,7 +415,7 @@ typedef enum {
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
-		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL() ? GMRFLib_openmp->max_threads_inner : GMRFLib_openmp->max_threads_outer); \
+		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
 		int len_work__ = len_work_;				\
 		int n_work__ = n_work_;					\

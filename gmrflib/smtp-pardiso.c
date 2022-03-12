@@ -236,6 +236,9 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 	M->ia = M->iwork;
 	M->ja = M->iwork + n + 1;
 
+	// we cannot just point to ia and ja in the graph, as these are 0 based and we need it to be 1 based. Maybe rewrite this later, as its
+	// not a big issue right now
+
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Calloc(n, int);
 	M->ia[0] = 0;
@@ -400,7 +403,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 		}
 	}
 	assert(k == csr->na);
-	GMRFLib_tabulate_Qfunc_from_list(Qtab, graph, csr->na, iarr, jarr, arr, csr->n, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_list(Qtab, graph, csr->na, iarr, jarr, arr, csr->n, NULL);
 
 	Free(iarr);
 	Free(jarr);
@@ -1369,9 +1372,9 @@ int my_pardiso_test1(void)
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
-	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
-	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL, NULL, NULL);
-	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL);
+	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL);
 
 	GMRFLib_csr_tp *csr, *csr2;
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
@@ -1540,9 +1543,9 @@ int my_pardiso_test3(void)
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
-	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL, NULL, NULL);
-	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL, NULL, NULL);
-	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qdense.txt", -1, NULL);
+	// GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL);
 
 	GMRFLib_csr_tp *csr;
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
@@ -1658,7 +1661,7 @@ int my_pardiso_test4(void)
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 	P(GMRFLib_openmp->max_threads_inner);
 
-	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q-problem-ijformat.txt", -1, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q-problem-ijformat.txt", -1, NULL);
 	GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
 	// GMRFLib_csr_write("Q-problem-csr.dat", csr);
@@ -1698,7 +1701,7 @@ int my_pardiso_test5(void)
 		GMRFLib_tabulate_Qfunc_tp *Qtab = NULL;
 		GMRFLib_graph_tp *g = NULL;
 
-		GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qsparse2.dat", -1, NULL, NULL, NULL);
+		GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Qsparse2.dat", -1, NULL);
 		GMRFLib_csr_tp *csr = NULL;
 		GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
@@ -1724,7 +1727,7 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	GMRFLib_pardiso_store_tp *pardiso_store = problem->sub_sm_fact.PARDISO_fact;
 
-	GMRFLib_tabulate_Qfunc(&tab, ai_store->problem->sub_graph, Qfunc, Qfunc_arg, NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc(&tab, ai_store->problem->sub_graph, Qfunc, Qfunc_arg, NULL);
 	P(GMRFLib_openmp->max_threads_outer);
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
@@ -1809,9 +1812,9 @@ int my_pardiso_test7(void)
 		GMRFLib_graph_tp *g = NULL;
 
 		if (k < 500)
-			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL, NULL, NULL);
+			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "Q.txt", -1, NULL);
 		else
-			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL, NULL, NULL);
+			GMRFLib_tabulate_Qfunc_from_file(&Qtab, &g, "I5.txt", -1, NULL);
 		GMRFLib_csr_tp *csr = NULL;
 		GMRFLib_Q2csr(&csr, g, Qtab->Qfunc, Qtab->Qfunc_arg);
 
