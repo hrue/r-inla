@@ -404,7 +404,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\t\tcorrect hyperpar = [%s]\n", (ai_par->vb_hyperpar_correct ? "Yes" : "No"));
 		fprintf(fp, "\t\trefinement       = [%1d]\n", ai_par->vb_refinement);
 		fprintf(fp, "\t\tmax_correct      = [%.2f]\n", ai_par->vb_max_correct);
-		fprintf(fp, "\t\tf_enable_limit     = [%1d]\n", ai_par->vb_f_enable_limit);
+		fprintf(fp, "\t\tf_enable_limit   = [%1d]\n", ai_par->vb_f_enable_limit);
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
@@ -7263,7 +7263,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			printf("%s[%1d]: Build groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 		// build the groups
-		double eps = GMRFLib_eps(1.0 / 3.0);
 		double *isd = Calloc(mnpred, double);
 
 		groups = GMRFLib_idx_ncreate_x(Npred, gcpo_param->group_size);
@@ -7328,7 +7327,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor[nnode] = ABS(cor[nnode]);		\
-				num_ones += ISEQUAL_x(cor[nnode], 1.0, eps); \
+				num_ones += ISEQUAL_x(cor[nnode], 1.0, gcpo_param->epsilon); \
 			}						\
 			int siz_g = IMIN(Npred, gcpo_param->group_size + num_ones); \
 			GMRFLib_DEBUG_iii("siz_g Npred num_ones", siz_g, Npred, num_ones); \

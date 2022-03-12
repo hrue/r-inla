@@ -798,6 +798,7 @@ typedef struct {
 	int group_size;
 	int ngroups;
 	int verbose;
+	double epsilon;
 	GMRFLib_idx_tp **groups;
 	GMRFLib_idx_tp *selection;
 } GMRFLib_gcpo_param_tp;
