@@ -28,7 +28,7 @@
 \arguments{
 \item{result}{An object of class
 \code{inla},  ie a result of a call to
-\code{inla()}}
+\code{inla()} in \code{classic} mode}
 \item{skip.configurations}{ A boolean variable; skip
 configurations if the values at the main axis are to
 small. (Default TRUE)}

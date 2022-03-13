@@ -29,7 +29,7 @@
     function(
              ## !\item{result}{An object of class
              ## !\code{inla},  ie a result of a call to
-             ## !\code{inla()}}
+             ## !\code{inla()} in \code{classic} mode}
              result,
 
              ## !\item{skip.configurations}{ A boolean variable; skip
@@ -83,6 +83,13 @@
     result.tmp <- result
     stopifnot(class(result.tmp) == "inla")
 
+    if (result$.args$inla.mode != "classic") {
+        warning("inla.hyperpar: Only for inla.mode='classic', skip...")
+        return (result)
+    }
+
+    warning("inla.hyperpar: This function is deprecated, please do not use.")
+
     ## only arguments that we need to change,  is changed...
     result.tmp$.args$quantiles <- inla.ifelse(missing(quantiles) || is.null(quantiles), result.tmp$.args$quantiles, quantiles)
     result.tmp$.args$verbose <- verbose
@@ -108,7 +115,7 @@
     result.tmp$.args$control.inla$print.joint.hyper <- TRUE
     result.tmp$.args$control.inla$force.diagonal <- TRUE
     result.tmp$.args$control.inla$adjust.weights <- FALSE
-
+    result.tmp$.args$control.inla$use.directions <- FALSE
     result.tmp$.args$control.mode$result <- result.tmp
     result.tmp$.args$control.mode$restart <- restart
 
@@ -116,6 +123,7 @@
     ## replace this into inla.call="remote"
     result.tmp$.args$inla.call <- sub("inla.submit", "inla.remote", result.tmp$.args$inla.call)
 
+    result.tmp$.args$keep <- T
     ## call itself
     result.tmp <- inla.rerun(result.tmp, plain = TRUE)
 

@@ -9489,10 +9489,9 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 			int new_npoints = 0;
 
 			for (i = j = 0; i < npoints; i++) {
-				if (npoints_j[i] > 1.0) {
+				if (npoints_j[i] > 0) {
 					points[j] = points[i];
 					dens[j] = dens[i];
-
 					new_npoints++;
 					j++;
 				}
