@@ -37899,6 +37899,15 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 70:
+	{
+		GMRFLib_design_tp *design = Calloc(1, GMRFLib_design_tp);
+		int nf = atoi(args[0]);
+		GMRFLib_design_grid(&design, nf);
+		GMRFLib_design_print(stdout, design);
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

@@ -5423,19 +5423,17 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		GMRFLib_default_ai_param(&ai_par);
 		free_ai_par = 1;
 	}
-	/*
-	 * otherwise, it might go very wrong below 
-	 */
-	assert(ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_GRID);
+
 	GMRFLib_ASSERT(ai_par && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT ||
+				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID ||
 				  ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD), GMRFLib_EPARAMETER);
 
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_AUTO) {
-		ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_CCD;
+		ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_GRID;
 	}
 
 	GMRFLib_ENTER_ROUTINE;
@@ -5465,6 +5463,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	GMRFLib_design_tp *tdesign = NULL;
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
 		GMRFLib_design_ccd(&tdesign, nhyper);
+	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && nhyper > 0) {
+		GMRFLib_design_grid(&tdesign, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES || nhyper == 0) {
 		GMRFLib_design_eb(&tdesign, nhyper);
 	} else {
@@ -6138,6 +6138,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	GMRFLib_design_tp *design = NULL;
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
 		GMRFLib_design_ccd(&design, nhyper);
+	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && nhyper > 0) {
+		GMRFLib_design_grid(&design, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES || nhyper == 0) {
 		// collect these two case into one
 		GMRFLib_design_eb(&design, nhyper);
@@ -6146,7 +6148,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 	assert(dens_max == design->nexperiments);
 
-	if (design->nexperiments > 1) {
+	if (design->nexperiments > 1 && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 		f = DMAX(ai_par->f0, 1.0) * sqrt((double) nhyper);
 		w = 1.0 / ((design->nexperiments - 1.0) * (1.0 + exp(-0.5 * SQR(f)) * (SQR(f) / nhyper - 1.0)));
 		w_origo = 1.0 - (design->nexperiments - 1.0) * w;
@@ -6200,15 +6202,16 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		z_local = Calloc(nhyper, double);
 		theta_local = Calloc(nhyper, double);
 
-		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD) {
+		if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD ||
+		    ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = f * design->experiment[k][i]
-				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_STD) {
 			for (i = 0; i < nhyper; i++) {
 				z_local[i] = design->experiment[k][i]
-				    * (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
+					* (design->experiment[k][i] > 0.0 ? stdev_corr_pos[i] : stdev_corr_neg[i]);
 			}
 		} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER || ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 			for (i = 0; i < nhyper; i++) {
@@ -6265,7 +6268,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				}
 			}
 		} else {
-			// integration weights are _given_. this is the deterministic integration points
+			// integration weights are _given_. this is the deterministic integration points (which includes the _GRID)
 			if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
 				log_dens += log(design->int_weight[k]);
 			} else {
@@ -6406,7 +6409,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				fprintf(ai_par->fp_log, " %.2fs\n", tu);
 			}
 		}
-
+		
 		GMRFLib_free_tabulate_Qfunc(tabQfunc);
 		Free(bnew);
 		Free(z_local);

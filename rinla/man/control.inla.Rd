@@ -17,7 +17,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \arguments{
 \item{...}{Possible arguments}
 \item{strategy}{   Character The strategy to use for the approximations; one of 'auto' (default), 'gaussian', 'simplified.laplace', 'laplace' or 'adaptive'}
-\item{int.strategy}{   Character The integration strategy to use; one of 'auto' (default), 'ccd', 'grid', 'eb' (empirical bayes), 'user' or 'user.std'}
+\item{int.strategy}{   Character The integration strategy to use; one of 'auto' (default), 'ccd', 'grid', 'eb' (empirical bayes), 'user' or 'user.std'. For the experimental mode, then 'grid' equal 'ccd' for more than two hyperparameters.}
 \item{int.design}{   Matrix Matrix of user-defined integration points and weights. Each row consists theta values and the integration weight. (EXPERIMENTAL!)}
 \item{interpolator}{   Character The interpolator used to compute the marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic', 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is 'auto'.}
 \item{fast}{   Logical If TRUE, then replace conditional modes in the Laplace approximation with conditional expectation (default TRUE)}
