@@ -175,7 +175,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	 */
 	if (Aext_fnm) {
 		double **lprec_omp;
-		HYPER_NEW(lprec_omp, Aext_precision);
+		HYPER_NEW(lprec_omp, log(Aext_precision));
 		GMRFLib_tabulate_Qfunc_from_file(&(arg->eta_ext_Q), &(arg->eta_ext_graph), Aext_fnm, -1, lprec_omp);
 		GMRFLib_ASSERT(arg->eta_ext_graph->n == n + n_ext, GMRFLib_EPARAMETER);	/* this is required!!!!! */
 		arg->n_ext = n_ext;
