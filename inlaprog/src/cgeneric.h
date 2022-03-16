@@ -65,13 +65,20 @@ __BEGIN_DECLS
 					    ((cmd_) == INLA_CGENERIC_QUIT ? "quit" : "(***ERROR***)"))))))))
 
 /*
- *      matrix storage, stored column by column, like
+ *      matrix storage is stored row by row.
+ *
+ *      In R the (default) storage is column by column, like
  *      > matrix(1:6,2,3)
  *      [,1] [,2] [,3]
  *      [1,]    1    3    5
  *      [2,]    2    4    6
+ *
+ *      hence
  *      > c(matrix(1:6,2,3))
  *      [1] 1 2 3 4 5 6
+ *
+ *      while in cgeneric, the matrix elements 'x', is stored as
+ *      x[] = { 1, 3, 5, 2, 4, 6 }
  */
 typedef struct {
 	char *name;
@@ -81,7 +88,11 @@ typedef struct {
 } inla_cgeneric_mat_tp;
 
 /* 
- * sparse matrix format, stored used 0-based indices, like
+ * sparse matrix format, stored used 0-based indices.
+ * If the matrix is not a 'dgTMatrix', it is converted using
+ * 'inla.as.sparse()'
+ *
+ * the matrix is stored in the order it appears, like
  *
  *      > A <- inla.as.sparse(matrix(c(1,2,3,0,0,6),2,3))
  *      > A
@@ -94,6 +105,24 @@ typedef struct {
  *      [2,]  1 0 2
  *      [3,]  0 1 3
  *      [4,]  1 2 6
+ *
+ *      If you want to have this matrix stored this column by column, 
+ *      then swap @i and @j, and rearrange @x, before passing them into
+ *      'inla.cgeneric.define'.
+ *
+ *      For example, if we want to pass only the upper half of a
+ *      symmetric sparse matrix, stored by column, then we can do
+ *
+ *      A <- inla.as.sparse(A)
+ *      ii <- A@i
+ *      A@i <- A@j
+ *      A@j <- ii
+ *      idx <- which(A@i <= A@j) 
+ *      A@i <- A@i[idx]
+ *      A@j <- A@j[idx]
+ *      A@x <- A@x[idx]
+ *
+ *      before passing it on into 'inla.cgeneric.define'
  */
 typedef struct {
 	char *name;
@@ -135,6 +164,7 @@ typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, i
 inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug);
 inla_cgeneric_func_tp inla_cgeneric_iid_model;
 inla_cgeneric_func_tp inla_cgeneric_ar1_model;
+inla_cgeneric_func_tp inla_cgeneric_generic0_model; 
 
 __END_DECLS
 #endif

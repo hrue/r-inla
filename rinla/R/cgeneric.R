@@ -71,11 +71,14 @@
     for(idx in seq_along(a)) {
         xx <- a[idx][[1]]
         if (is.matrix(xx)) {
-            xx <- list(c(nrow(xx), ncol(xx), as.numeric(xx)))
+            ## store columnwise and not rowwise, so we need to revert the internal storage
+            xx <- list(c(nrow(xx), ncol(xx), as.numeric(matrix(t(xx), nrow = ncol(xx), ncol = nrow(xx)))))
             names(xx) <- names(a)[idx]
             res$matrices <- c(res$matrices, xx)
         } else if (is(xx, "Matrix")) {
-            xx <- inla.as.sparse(xx)
+            if (!inherits(xx,"dgTMatrix")) {
+                xx <- inla.as.sparse(xx)
+            }
             xx <- list(c(nrow(xx), ncol(xx), length(xx@x), xx@i, xx@j, xx@x))
             names(xx) <- names(a)[idx]
             res$smatrices <- c(res$smatrices, xx)

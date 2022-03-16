@@ -175,7 +175,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// and M is the length of ii
 
 		int M = N + N - 1, offset, i, k;
-		ret = Calloc(2 + 2 * m, double);
+		ret = Calloc(2 + 2 * M, double);
 
 		offset = 2;
 		ret[0] = N;				       /* dimension */
@@ -252,6 +252,131 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 		ret = Calloc(1, double);
 		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
+		break;
+	}
+
+	case INLA_CGENERIC_QUIT:
+	default:
+		break;
+	}
+
+	return (ret);
+}
+
+double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
+{
+	double *ret = NULL, prec, lprec;
+
+	if (theta) {
+		lprec = theta[0];
+		prec = exp(lprec);
+	} else {
+		prec = lprec = NAN;
+	}
+
+	assert(data->n_ints > 0);
+	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
+	int N = data->ints[0]->ints[0];			       // this will always be the case
+	assert(N > 0);
+
+	/* 
+	 * we assume Cmatrix is stored column-wise, like
+	 * for(i...)
+	 *     for(j=i...)
+	 *         Q_ij
+	 * 
+	 * so, upper half only
+	 */
+	assert(data->n_smats > 0);
+	assert(!strcasecmp(data->smats[0]->name, "Cmatrix"));
+	inla_cgeneric_smat_tp *Cmatrix = data->smats[0];
+	assert(N == Cmatrix->nrow);
+	assert(N == Cmatrix->ncol);
+
+	switch (cmd) {
+	case INLA_CGENERIC_VOID:
+	{
+		assert(!(cmd == INLA_CGENERIC_VOID));
+		break;
+	}
+
+	case INLA_CGENERIC_GRAPH:
+	{
+		// return a vector of indices with format
+		// c(N, M, ii, jj)
+		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
+		// so like the loop
+		// for i=0, ...
+		//     for j=i, ...
+		//         G_ij = 
+		// and M is the length of ii
+
+		int M = Cmatrix->n, offset;
+		ret = Calloc(2 + 2 * M, double);
+		offset = 2;
+		ret[0] = N;				       /* dimension */
+		ret[1] = M;				       /* number of (i <= j) */
+		for (int k= 0; k < M; k++) {
+			ret[offset + k] = Cmatrix->i[k];       /* i */
+			ret[offset + M + k] = Cmatrix->j[k];   /* j */
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_Q:
+	{
+		// optimized format
+		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+		// where M is the length of Qij
+
+		int M = Cmatrix->n;
+		int offset; 
+		ret = Calloc(2 + M, double);
+
+		offset = 2;
+		ret[0] = -1;				       /* REQUIRED */
+		ret[1] = M;
+		for (int k = 0; k < M; k++) {
+			ret[offset + k] = prec * Cmatrix->x[k];
+		}
+		break;
+	}
+
+	case INLA_CGENERIC_MU:
+	{
+		// return (N, mu)
+		// if N==0 then mu is not needed as its taken to be mu[]==0
+
+		ret = Calloc(1, double);
+		ret[0] = 0;
+		break;
+	}
+
+	case INLA_CGENERIC_INITIAL:
+	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
+
+		ret = Calloc(2, double);
+		ret[0] = 1;
+		ret[1] = 4.0;
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_NORM_CONST:
+	{
+		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
+		ret = Calloc(1, double);
+		ret[0] = N / 2.0 * (lprec - log(2.0 * M_PI));
+		break;
+	}
+
+	case INLA_CGENERIC_LOG_PRIOR:
+	{
+		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, this is the log prior for the log(precision).
+
+		ret = Calloc(1, double);
+		ret[0] = -prec + lprec; 
 		break;
 	}
 
