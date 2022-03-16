@@ -903,20 +903,27 @@ to define the various actions.
 
 It is easier to see how this is one by a simple `iid-model` example
 ```{r eval=FALSE}
+#include <assert.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <math.h>
+#include <stdlib.h>
+#include <strings.h>
+
 #include "cgeneric.h"
+
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #define SQR(x) ((x)*(x))
 
-double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, 
-	double *theta, inla_cgeneric_data_tp * data)
+double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
 {
 	// this reimplement `inla.rgeneric.iid.model` using cgeneric
 
-	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), 
-		lprec = (theta ? theta[0] : NAN);
+	double *ret = NULL, prec = (theta ? exp(theta[0]) : NAN), lprec = (theta ? theta[0] : NAN);
 
-	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
+	int N = data->ints[0]->ints[0];			       // this will always be the case
 	assert(N > 0);
 
 	switch (cmd) {
@@ -928,10 +935,20 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd,
 
 	case INLA_CGENERIC_GRAPH:
 	{
+		// return a vector of indices with format
+		// c(N, M, ii, jj)
+		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
+		// so like the loop
+		// for i=0, ...
+		//     for j=i, ...
+		//         G_ij = 
+		// and M is the total length while N is the dimension
+
+		int M = N;
 		ret = Calloc(2 + 2 * N, double);
 		ret[0] = N;				       /* dimension */
-		ret[1] = N;				       /* number of (i <= j) */
-		for (int i = 0; i < N; i++) {
+		ret[1] = M;				       /* number of (i <= j) */
+		for (int i = 0; i < M; i++) {
 			ret[2 + i] = i;			       /* i */
 			ret[2 + N + i] = i;		       /* j */
 		}
@@ -940,30 +957,21 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd,
 
 	case INLA_CGENERIC_Q:
 	{
-		if (1) {
-			// optimized format
-			ret = Calloc(2 + N, double);
-			ret[0] = -1;			       /* code for optimized output */
-			ret[1] = N;			       /* number of (i <= j) */
-			for (int i = 0; i < N; i++) {
-				ret[2 + i] = prec;
-			}
-		} else {
-			// plain format, but the optimized format above is better to use
-			ret = Calloc(2 + 3 * N, double);
-			ret[0] = N;
-			ret[1] = N;
-			for (int i = 0; i < N; i++) {
-				ret[2 + i] = i;		       /* i */
-				ret[2 + N + i] = i;	       /* j */
-				ret[2 + 2 * N + i] = prec;     /* Q_ij */
-			}
+		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+		int M = N;
+		ret = Calloc(2 + N, double);
+		ret[0] = -1;			       /* REQUIRED! */
+		ret[1] = M;			       /* number of (i <= j) */
+		for (int i = 0; i < M; i++) {
+			ret[2 + i] = prec;
 		}
 		break;
 	}
 
 	case INLA_CGENERIC_MU:
 	{
+		// return (N, mu)
+		// if N==0 then mu is not needed as its taken to be mu[]==0
 		ret = Calloc(1, double);
 		ret[0] = 0;
 		break;
@@ -971,6 +979,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd,
 
 	case INLA_CGENERIC_INITIAL:
 	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
 		ret = Calloc(2, double);
 		ret[0] = 1;
 		ret[1] = 4.0;
@@ -979,6 +989,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd,
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
+		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
 		ret = Calloc(1, double);
 		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
 		break;
@@ -986,9 +997,9 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd,
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
-		// prec ~ gamma(1,1)
+		// return c(LOG_PRIOR)
 		ret = Calloc(1, double);
-		ret[0] = -prec + lprec;
+		ret[0] = -prec + lprec;			       // prec ~ gamma(1,1)
 		break;
 	}
 
@@ -1009,12 +1020,20 @@ main program after use.
 The reimplementation of the AR1 model as in `inla.rgeneric.ar1.model`
 is as follows.
 ```{r eval=FALSE}
+#include <assert.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <math.h>
+#include <stdlib.h>
+#include <strings.h>
+
 #include "cgeneric.h"
+
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #define SQR(x) ((x)*(x))
 
-double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, 
-	inla_cgeneric_data_tp * data)
+double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
 {
 	// this reimplement `inla.rgeneric.ar1.model` using cgeneric
 
@@ -1029,10 +1048,10 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta,
 		prec = lprec = rho = rho_intern = NAN;
 	}
 
-	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		       // this will always be the case
+	assert(!strcasecmp(data->ints[0]->name, "n"));	       // this will always be the case
+	int N = data->ints[0]->ints[0];			       // this will always be the case
 	assert(N > 0);
-	
+
 	switch (cmd) {
 	case INLA_CGENERIC_VOID:
 	{
@@ -1042,18 +1061,27 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta,
 
 	case INLA_CGENERIC_GRAPH:
 	{
-		int m = N + N - 1, offset, i, k;
+		// return a vector of indices with format
+		// c(N, M, ii, jj)
+		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
+		// so like the loop
+		// for i=0, ...
+		//     for j=i, ...
+		//         G_ij = 
+		// and M is the length of ii
+
+		int M = N + N - 1, offset, i, k;
 		ret = Calloc(2 + 2 * m, double);
 
 		offset = 2;
 		ret[0] = N;				       /* dimension */
-		ret[1] = m;				       /* number of (i <= j) */
+		ret[1] = M;				       /* number of (i <= j) */
 		for (k = i = 0; i < N; i++) {
 			ret[offset + k] = i;		       /* i */
-			ret[offset + m + k++] = i;	       /* j */
+			ret[offset + M + k++] = i;	       /* j */
 			if (i < N - 1) {
 				ret[offset + k] = i;	       /* i */
-				ret[offset + m + k++] = i + 1; /* j */
+				ret[offset + M + k++] = i + 1; /* j */
 			}
 		}
 		break;
@@ -1061,23 +1089,18 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta,
 
 	case INLA_CGENERIC_Q:
 	{
-		double param = prec / (1.0 - SQR(rho));
-		int m = N + N - 1;
-		int offset, i, k;
-		ret = Calloc(2 + m, double);
+		// optimized format
+		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+		// where M is the length of Qij
 
-		// use optimized format.
-		// The order of Q_ij s are then predetermined as the upper triangular of Q:
-		//
-		// for(i=0; i < n; i++) 
-		//     for(j=i; j<n; j++)
-		//        ...
-		//
-		// but for only those (i,j)s that is defined in _GRAPH, of course
+		double param = prec / (1.0 - SQR(rho));
+		int M = N + N - 1;
+		int offset, i, k;
+		ret = Calloc(2 + M, double);
 
 		offset = 2;
-		ret[0] = -1;
-		ret[1] = m;
+		ret[0] = -1;				       /* REQUIRED */
+		ret[1] = M;
 		for (i = k = 0; i < N; i++) {
 			ret[offset + k++] = param * (i == 0 || i == N - 1 ? 1.0 : (1.0 + SQR(rho)));
 			if (i < N - 1) {
@@ -1089,6 +1112,9 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta,
 
 	case INLA_CGENERIC_MU:
 	{
+		// return (N, mu)
+		// if N==0 then mu is not needed as its taken to be mu[]==0
+
 		ret = Calloc(1, double);
 		ret[0] = 0;
 		break;
@@ -1096,6 +1122,9 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta,
 
 	case INLA_CGENERIC_INITIAL:
 	{
+		// return c(M, initials)
+		// where M is the number of hyperparameters
+
 		ret = Calloc(3, double);
 		ret[0] = 2;
 		ret[1] = 1.0;
@@ -1105,15 +1134,18 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta,
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
+		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
+
 		double prec_innovation = prec / (1.0 - SQR(rho));
 		ret = Calloc(1, double);
-		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 
-			0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
+		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
 		break;
 	}
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
+		// return c(LOG_PRIOR)
+
 		ret = Calloc(1, double);
 		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
 		break;
@@ -1165,7 +1197,7 @@ stored. This implies that the argument `n` is always the first one in
 the integer list, like used in the examples above
 ```{r eval=FALSE}
 	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
-	int N = data->ints[0]->ints[0];		       // this will always be the case
+	int N = data->ints[0]->ints[0];		           // this will always be the case
 ```
 
 The integers, doubles and characters, are stored in 
@@ -1182,16 +1214,24 @@ typedef struct
 ```
 so possible vectors with length `len` or a string with `len` characters.
 
-Dense matrices are stored column wise, like default in `R`
+Dense matrices are stored row wise (as natural in C), which is NOT how
+it is stored in `R`.
 ```{r eval=FALSE}
 /*
- *      matrix storage, stored column by column, like
+ *      matrix storage is stored row by row.
+ *
+ *      In R the (default) storage is column by column, like
  *      > matrix(1:6,2,3)
  *      [,1] [,2] [,3]
  *      [1,]    1    3    5
  *      [2,]    2    4    6
+ *
+ *      hence
  *      > c(matrix(1:6,2,3))
  *      [1] 1 2 3 4 5 6
+ *
+ *      while in cgeneric, the matrix elements 'x', is stored as
+ *      x[] = { 1, 3, 5, 2, 4, 6 }
  */
 typedef struct {
 	char *name;
@@ -1203,7 +1243,11 @@ typedef struct {
 and sparse matrices are stored as triplets `(i,j,x)`, 
 ```{r eval=FALSE}
 /* 
- * sparse matrix format, stored used 0-based indices, like
+ * sparse matrix format, stored used 0-based indices.
+ * If the matrix is not a 'dgTMatrix', it is converted using
+ * 'inla.as.sparse()'
+ *
+ * the matrix is stored in the order it appears, like
  *
  *      > A <- inla.as.sparse(matrix(c(1,2,3,0,0,6),2,3))
  *      > A
@@ -1216,6 +1260,24 @@ and sparse matrices are stored as triplets `(i,j,x)`,
  *      [2,]  1 0 2
  *      [3,]  0 1 3
  *      [4,]  1 2 6
+ *
+ *      If you want to have this matrix stored this column by column, 
+ *      then swap @i and @j, and rearrange @x, before passing them into
+ *      'inla.cgeneric.define'.
+ *
+ *      For example, if we want to pass only the upper half of a
+ *      symmetric sparse matrix, stored by column, then we can do
+ *
+ *      A <- inla.as.sparse(A)
+ *      ii <- A@i
+ *      A@i <- A@j
+ *      A@j <- ii
+ *      idx <- which(A@i <= A@j) 
+ *      A@i <- A@i[idx]
+ *      A@j <- A@j[idx]
+ *      A@x <- A@x[idx]
+ *
+ *      before passing it on into 'inla.cgeneric.define'
  */
 typedef struct {
 	char *name;
@@ -1237,4 +1299,79 @@ can be excessive.
 
 ## Thread safe
 
-The implementation of the `cgeneric` model, must be thread safe. 
+The implementation of the `cgeneric` model must be thread safe. If you
+use internal cache in the `cgeneric`, you need copy one per thread.
+
+## Reimplementing model `generic0`
+
+Here is an example of reimplementing `generic0` using `cgeneric`. The
+C-code is in `cgeneric-demo.c`, and the following R-code compare the
+builtin and cgeneric implementation
+```{r eval=FALSE}
+library(mvtnorm)
+n <- 10
+A <- matrix(rnorm(n^2), n, n)
+Q <- A %*% t(A)
+S <- solve(Q)
+S <- S / exp(mean(log(diag(S))))
+Q <- solve(S)
+
+Cmatrix <- inla.as.sparse(Q)
+s <- 0.1
+y <- c(rmvnorm(1, sigma = S)) + rnorm(n, sd = s)
+
+r <- inla(
+    y ~ -1 + f(idx, model = "generic0", Cmatrix = Cmatrix, 
+              hyper = list(prec = list(prior = "loggamma",
+                                       param = c(1, 1),
+                                       initial = 4,
+                                       fixed = FALSE))), 
+	num.threads = "1:1",
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = 
+		list(prec = list(initial = log(1/s^2), fixed = TRUE))))
+
+## pass in the Cmatrix so its a good fit for 
+## the cgeneric-implementation, so we store 'Cmatrix'
+## column-wise, and upper half only (diagonal included)
+ii <- Cmatrix@i
+Cmatrix@i <- Cmatrix@j
+Cmatrix@j <- ii
+idx <- which(Cmatrix@i <= Cmatrix@j)
+Cmatrix@i <- Cmatrix@i[idx]
+Cmatrix@j <- Cmatrix@j[idx]
+Cmatrix@x <- Cmatrix@x[idx]
+
+cmodel <- inla.cgeneric.define(model = "inla_cgeneric_generic0_model", 
+	                           shlib = "cgeneric-demo.so",
+                               n = n, Cmatrix = Cmatrix, debug = FALSE)
+rc <- inla(
+    y ~ -1 + f(idx, model = cmodel), 
+	num.threads = "1:1",
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = list(
+                     prec = list(initial = log(1/s^2), fixed = TRUE))),
+    verbose = TRUE)
+
+print(r$mode$theta - rc$mode$theta)
+print(r$mode$x - rc$mode$x)
+print(r$mlik - rc$mlik)
+```
+which produces output like
+```{r eval=FALSE}
+> print(r$mode$theta - rc$mode$theta)
+Log precision for idx 
+     -8.710710942e-06 
+
+> print(r$mode$x - rc$mode$x)
+ [1] -6.988149615e-08  9.218204538e-08  1.151077143e-07 -3.683823807e-08
+ [5] -8.793919748e-08 -9.518123112e-08  2.305469839e-08 -2.043514372e-08
+ [9] -7.478532010e-08  1.064667019e-07 -6.988848433e-08  9.219126358e-08
+[13]  1.151192251e-07 -3.684192190e-08 -8.794799145e-08 -9.519074928e-08
+[17]  2.305700385e-08 -2.043718722e-08 -7.479279862e-08  1.064773486e-07
+
+> print(r$mlik - rc$mlik)
+                                                 [,1]
+log marginal-likelihood (integration) 2.070899825e-07
+log marginal-likelihood (Gaussian)    1.150937410e-05
+```

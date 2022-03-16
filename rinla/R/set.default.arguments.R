@@ -263,7 +263,7 @@
             graph = FALSE,
 
             ## :ARGUMENT: control.gcpo Set control variables for the gcpo
-            control.gcpo = list(enable = FALSE, group.size = 1, groups = NULL, selection = NULL, verbose = FALSE)
+            control.gcpo = list(enable = FALSE, group.size = 1, groups = NULL, selection = NULL, verbose = FALSE, epsilon = (.Machine$double.eps)^(1./3.))
         )
 
         ## :SEEALSO: inla
@@ -433,7 +433,7 @@
             ## :ARGUMENT: strategy  Character The strategy to use for the approximations; one of 'auto' (default), 'gaussian', 'simplified.laplace', 'laplace' or 'adaptive'
             strategy = "auto",
 
-            ## :ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'
+            ## :ARGUMENT: int.strategy  Character The integration strategy to use; one of 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'. For the experimental mode,  then 'grid' equal 'ccd' for more than two hyperparameters.
             int.strategy = "auto",
 
             ## :ARGUMENT: int.design  Matrix Matrix of user-defined integration points and weights. Each row consists theta values and the integration weight. (EXPERIMENTAL!)

@@ -661,17 +661,17 @@
         ## in this case, the responsibility is with the user
         ownfun <- TRUE
     } else if (inla.strcasecmp(inla.call, "remote") ||
-        inla.strcasecmp(inla.call, "inla.remote") ||
-        length(grep("/inla.remote$", inla.call)) > 0 ||
-        length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
+               inla.strcasecmp(inla.call, "inla.remote") ||
+               length(grep("/inla.remote$", inla.call)) > 0 ||
+               length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
         remote <- TRUE
         inla.call <- system.file("bin/remote/inla.remote", package = "INLA")
         if (inla.os("windows")) {
             inla.call <- paste(inla.call, ".cygwin", sep = "")
         }
     } else if (inla.strcasecmp(inla.call, "submit") ||
-        inla.strcasecmp(inla.call, "inla.submit") ||
-        length(grep("/inla.submit$", inla.call)) > 0) {
+               inla.strcasecmp(inla.call, "inla.submit") ||
+               length(grep("/inla.submit$", inla.call)) > 0) {
         remote <- TRUE
         submit <- TRUE
         submit.id <- paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1, min = 1E8, max = 1E9 - 1)), sep = "")
@@ -855,9 +855,9 @@
     formula <- update.formula(formula, y...fake ~ .)
     ## parse the formula
     gp <- inla.interpret.formula(formula,
-        data.same.len = data.same.len, data = data,
-        data.model = data.model, parent.frame = .parent.frame
-    )
+                                 data.same.len = data.same.len, data = data,
+                                 data.model = data.model, parent.frame = .parent.frame
+                                 )
     call <- deparse(match.call())
 
     ## issue a warning if the intercept is spesified while the
@@ -905,10 +905,10 @@
         }
         if (inla.require("MatrixModels")) {
             gp$model.matrix <- MatrixModels::model.Matrix(
-                new.fix.formula,
-                data = model.frame(new.fix.formula, data.same.len, na.action = inla.na.action),
-                contrasts.arg = contrasts, sparse = TRUE
-            )
+                                                 new.fix.formula,
+                                                 data = model.frame(new.fix.formula, data.same.len, na.action = inla.na.action),
+                                                 contrasts.arg = contrasts, sparse = TRUE
+                                             )
         } else {
             gp$model.matrix <- model.matrix(
                 new.fix.formula,
@@ -1032,8 +1032,6 @@
     }
     if (only.hyperparam) {
         cont.predictor$compute <- FALSE
-        cont.predictor$return.marginals <- FALSE
-        cont.predictor$return.marginals.predictor <- FALSE
         cont.predictor$cdf <- cont.predictor$quantiles <- NULL
     }
 
@@ -1076,10 +1074,10 @@
         ## control.family = list(
         ## list(hyper = list(), control.link = list())))
         while (is.list(control.family) &&
-            length(control.family) > 0 &&
-            is.null(names(control.family))) {
-            control.family <- control.family[[1]]
-        }
+               length(control.family) > 0 &&
+               is.null(names(control.family))) {
+                   control.family <- control.family[[1]]
+               }
         control.family.save[[ii]] <- inla.check.control(control.family, data)
     }
     control.family <- control.family.save
@@ -1176,9 +1174,9 @@
             tmp <- inla.dir.create(inla.dir, StopOnError = FALSE)
             if (is.null(tmp)) {
                 stop(paste("Cannot create directory [", inla.dir,
-                    "] even after trying a random dirname. I give up.",
-                    sep = ""
-                ))
+                           "] even after trying a random dirname. I give up.",
+                           sep = ""
+                           ))
             }
         }
         if (verbose) {
@@ -1382,8 +1380,8 @@
             ## check if removing 'surv' makes a valid family
             new.fam <- gsub("surv$", "", family[i.family])
             ok <- inla.model.properties(new.fam, "likelihood",
-                stop.on.error = FALSE
-            )$survival
+                                        stop.on.error = FALSE
+                                        )$survival
             if (!is.null(ok) && !ok) {
                 warning(paste0(
                     "*** WARNING *** Input family is '", family[i.family],
@@ -1449,11 +1447,11 @@
             }
             if (!(length(cont.predictor$link) == MPredictor || length(cont.predictor$link) == MPredictor + NPredictor)) {
                 stop(paste("Length of argument 'control.predictor$link' is wrong: length(link) = ",
-                    length(cont.predictor$link), ". Length must be equal to ",
-                    "length(A%*%eta)=", MPredictor, " or length(c(A%*%eta,eta))=", MPredictor + NPredictor,
-                    ".",
-                    sep = ""
-                ))
+                           length(cont.predictor$link), ". Length must be equal to ",
+                           "length(A%*%eta)=", MPredictor, " or length(c(A%*%eta,eta))=", MPredictor + NPredictor,
+                           ".",
+                           sep = ""
+                           ))
             }
             if (length(cont.predictor$link) == MPredictor) {
                 tlink <- cbind(0L:(MPredictor + NPredictor - 1L), c(cont.predictor$link - 1L, rep(NA, NPredictor)))
@@ -1467,10 +1465,10 @@
             }
             if (!(length(cont.predictor$link) == NPredictor)) {
                 stop(paste("Length of argument 'control.predictor$link' is wrong: length(link)=", length(control.predictor$link),
-                    ". Length must be equal to ",
-                    "length(eta)=", NPredictor, ".",
-                    sep = ""
-                ))
+                           ". Length must be equal to ",
+                           "length(eta)=", NPredictor, ".",
+                           sep = ""
+                           ))
             }
             stopifnot(length(cont.predictor$link) == NPredictor)
             tlink <- cbind(indN, as.numeric(cont.predictor$link) - 1L)
@@ -1547,13 +1545,13 @@
                 ## below.
                 if (is.null(gp$random.spec[[r]]$values) && is.null(gp$random.spec[[r]]$n)) {
                     stop(paste("Model component 'f(",
-                        gp$random.spec[[r]]$term,
-                        ", ...)' have only NA values in '",
-                        gp$random.spec[[r]]$term, "'. ",
-                        "In this case, ",
-                        "either argument 'n' or 'values' must be spesified.",
-                        sep = ""
-                    ))
+                               gp$random.spec[[r]]$term,
+                               ", ...)' have only NA values in '",
+                               gp$random.spec[[r]]$term, "'. ",
+                               "In this case, ",
+                               "either argument 'n' or 'values' must be spesified.",
+                               sep = ""
+                               ))
                 }
             }
         }
@@ -1574,12 +1572,12 @@
                         ##
                         ## not both are copy, then copy is at the end
                         ##
-                        (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r + 1]]$model != "copy") ||
-                            ##
-                            ## both are copy, then 'same.as' is at the end
-                            ##
-                            (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r + 1]]$model == "copy" &&
-                                !is.null(gp$random.spec[[r]]$same.as) && is.null(gp$random.spec[[r + 1]]$same.as))) {
+                    (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r + 1]]$model != "copy") ||
+                    ##
+                    ## both are copy, then 'same.as' is at the end
+                    ##
+                    (gp$random.spec[[r]]$model == "copy" && gp$random.spec[[r + 1]]$model == "copy" &&
+                     !is.null(gp$random.spec[[r]]$same.as) && is.null(gp$random.spec[[r + 1]]$same.as))) {
                         tmp <- gp$random.spec[[r]]
                         gp$random.spec[[r]] <- gp$random.spec[[r + 1]]
                         gp$random.spec[[r + 1]] <- tmp
@@ -1692,9 +1690,9 @@
                         }
                         if (any(is.na(replicate[!is.na(xx)]))) {
                             stop(paste("There are one or more NA's in 'replicate' where 'idx' in f(idx,...) is not NA: idx = \'",
-                                gp$random.spec[[r]]$term, "\'",
-                                sep = ""
-                            ))
+                                       gp$random.spec[[r]]$term, "\'",
+                                       sep = ""
+                                       ))
                         }
                         replicate[is.na(xx)] <- 1
                     }
@@ -1713,9 +1711,9 @@
                         }
                         if (any(is.na(group[!is.na(xx)]))) {
                             stop(paste("There are one or more NA's in 'group' where 'idx' in f(idx,...) is not NA: idx = \'",
-                                gp$random.spec[[r]]$term, "\'",
-                                sep = ""
-                            ))
+                                       gp$random.spec[[r]]$term, "\'",
+                                       sep = ""
+                                       ))
                         }
                         group[is.na(xx)] <- 1
 
@@ -1736,12 +1734,12 @@
                         }
                         if (ng.unused >= ng.used) {
                             warning(paste(txt, ": ",
-                                "Number of unused groups >= the number of groups used: ", ng.unused, " >= ", ng.used,
-                                ", this is *usually* a misspesification",
-                                sep = ""
-                            ),
-                            immediate. = TRUE
-                            )
+                                          "Number of unused groups >= the number of groups used: ", ng.unused, " >= ", ng.used,
+                                          ", this is *usually* a misspesification",
+                                          sep = ""
+                                          ),
+                                    immediate. = TRUE
+                                    )
                         }
                     }
                 } else {
@@ -1775,11 +1773,11 @@
                     ## in any case they must be unique:
                     if (length(gp$random.spec[[r]]$values) != length(unique(gp$random.spec[[r]]$values))) {
                         stop(paste("The 'values' given in f(",
-                            gp$random.spec[[r]]$term, ",..., values=...) are not unique:\n",
-                            "    length(values)=", length(gp$random.spec[[r]]$values),
-                            " but length(unique(values))=", length(unique(gp$random.spec[[r]]$values)),
-                            sep = ""
-                        ))
+                                   gp$random.spec[[r]]$term, ",..., values=...) are not unique:\n",
+                                   "    length(values)=", length(gp$random.spec[[r]]$values),
+                                   " but length(unique(values))=", length(unique(gp$random.spec[[r]]$values)),
+                                   sep = ""
+                                   ))
                     }
 
                     ## values are given. then either both must be numeric or a factor,  or factor x character
@@ -1796,16 +1794,16 @@
                         i.xx <- is.na(xx)
                         if (!all(i.cov == i.xx)) {
                             stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
-                                sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
-                                ". This is not what you want. Use NA values in the covariate!",
-                                sep = ""
-                            ))
+                                       sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
+                                       ". This is not what you want. Use NA values in the covariate!",
+                                       sep = ""
+                                       ))
                         }
                         cov[is.na(cov)] <- -1L
                         covariate[[r]] <- cov
                     } else if ((is.factor(xx) || is.character(xx))
-                    &&
-                        (is.factor(gp$random.spec[[r]]$values) || is.character(gp$random.spec[[r]]$values))) {
+                               &&
+                           (is.factor(gp$random.spec[[r]]$values) || is.character(gp$random.spec[[r]]$values))) {
                         ## case 2: both factors or character's
 
                         if (is.character(xx)) {
@@ -1828,10 +1826,10 @@
                         if (length(setdiff(levels(xx), gp$random.spec[[r]]$values)) != 0L) {
                             dif <- setdiff(levels(xx), levels(gp$random.spec[[r]]$values))
                             stop(paste("In f(", gp$random.spec[[r]]$term, "): Covariate does not match 'values' ",
-                                length(dif), " times. Levels that mismatch:", inla.paste(c(dif), sep = " "),
-                                ".\n  This is not what you want. Use NA values in the covariate!",
-                                sep = ""
-                            ))
+                                       length(dif), " times. Levels that mismatch:", inla.paste(c(dif), sep = " "),
+                                       ".\n  This is not what you want. Use NA values in the covariate!",
+                                       sep = ""
+                                       ))
                         }
 
                         cov <- match(xx, levels(gp$random.spec[[r]]$values)) - 1L
@@ -1840,9 +1838,9 @@
                     } else {
                         ## all combinations not covered above is not allowed.
                         stop(paste("In f(", gp$random.spec[[r]]$term, "): 'covariate' must match 'values'",
-                            ",  and both must either be 'numeric', or 'factor'/'character'.",
-                            sep = ""
-                        ))
+                                   ",  and both must either be 'numeric', or 'factor'/'character'.",
+                                   sep = ""
+                                   ))
                     }
                 } else {
                     ## values are not given. then 'values' depends on the type of the covariate.
@@ -1869,10 +1867,10 @@
                     i.xx <- is.na(xx)
                     if (!all(i.cov == i.xx)) {
                         stop(paste("f(", gp$random.spec[[r]]$term, "). Covariate does not match 'values' ",
-                            sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
-                            ". This is not what you want. Use NA values in the covariate!",
-                            sep = ""
-                        ))
+                                   sum(i.cov != i.xx), " times. Indexes for mismatch:", inla.paste(which(i.cov != i.xx)),
+                                   ". This is not what you want. Use NA values in the covariate!",
+                                   sep = ""
+                                   ))
                     }
 
                     cov[is.na(cov)] <- -1L
@@ -2086,10 +2084,10 @@
                     data.dir = data.dir
                 ))
                 all.hyper$random[[r]] <- (list(
-                    hyperid = inla.namefix(gp$random.spec[[r]]$term),
-                    hyper = rs.updated$hyper,
-                    group.hyper = rs.updated$control.group$hyper
-                ))
+                                    hyperid = inla.namefix(gp$random.spec[[r]]$term),
+                                    hyper = rs.updated$hyper,
+                                    group.hyper = rs.updated$control.group$hyper
+                                ))
             } else if (inla.one.of(gp$random.spec[[r]]$model, "linear")) {
                 ## ....while here we have to add a LINEAR section
                 count.linear <- count.linear + 1
@@ -2253,7 +2251,7 @@
         print(paste("all.args: ", all.args))
     }
 
-   vars <- NULL
+    vars <- NULL
     if (debug) {
         vars <- c(vars, INLA_DEBUG = 1)
     }
@@ -2261,23 +2259,23 @@
         if (submit) {
             all.args <- paste(all.args, "-p") ## need this option
             vars <- c(vars,
-                INLA_SUBMIT_ID = submit.id
-            )
+                      INLA_SUBMIT_ID = submit.id
+                      )
         }
         if (inla.os("windows")) {
             vars <- c(vars,
-                INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),
-                INLA_CYGWIN_HOME = inla.getOption("cygwin.home"),
-                INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME()))
-            )
+                      INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),
+                      INLA_CYGWIN_HOME = inla.getOption("cygwin.home"),
+                      INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME()))
+                      )
         } else {
             vars <- c(vars,
-                INLA_HOME = inla.get.HOME()
-            )
+                      INLA_HOME = inla.get.HOME()
+                      )
             if (Sys.getenv("SSH_AUTH_SOCK") == "") {
                 vars <- c(vars,
-                    INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock")
-                )
+                          INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock")
+                          )
             }
         }
     }
@@ -2377,8 +2375,8 @@
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,
-                    only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
-                    silent = silent), silent = FALSE)
+                                                only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
+                                                silent = silent), silent = FALSE)
                 if (inherits(ret, "try-error")) {
                     return (ret)
                 }
@@ -2441,10 +2439,10 @@
                     ret <- NULL
                 } else {
                     ret <- list(logfile = c(
-                        ret1$logfile,
-                        "", paste(rep("*", 72), sep = "", collapse = ""), "",
-                        ret2$logfile
-                    ))
+                                    ret1$logfile,
+                                    "", paste(rep("*", 72), sep = "", collapse = ""), "",
+                                    ret2$logfile
+                                ))
                     class(ret) <- "inla"
                 }
             }
@@ -2499,29 +2497,29 @@
             m <- list()
 
             m[[1]] <- matrix(unlist(lapply(ret$misc$configs$config,
-                function(x, sel.idx) {
-                    return(x$improved.mean[sel.idx])
-                },
-                sel.idx = sel.idx
+                                           function(x, sel.idx) {
+                return(x$improved.mean[sel.idx])
+            },
+            sel.idx = sel.idx
             )), nrow = ns, ncol = nc)
 
             m[[2]] <- (matrix(unlist(lapply(ret$misc$configs$config,
-                function(x, sel.idx) {
-                    return(diag(x$Qinv)[sel.idx])
-                },
-                sel.idx = sel.idx
-            )), nrow = ns, ncol = nc)
-            + m[[1]][, , drop = FALSE]^2)
+                                            function(x, sel.idx) {
+                 return(diag(x$Qinv)[sel.idx])
+             },
+             sel.idx = sel.idx
+             )), nrow = ns, ncol = nc)
+                + m[[1]][, , drop = FALSE]^2)
 
             m[[3]] <- (matrix(unlist(lapply(ret$misc$configs$config,
-                (function(x, sel.idx) {
-                    skew <- x$skewness[sel.idx]
-                    skew[is.na(skew)] <- 0
-                    return(skew * diag(x$Qinv)[sel.idx]^1.5)
-                }),
-                sel.idx = sel.idx
-            )), nrow = ns, ncol = nc)
-            + 3 * m[[2]][, , drop = FALSE] * m[[1]][, , drop = FALSE] - 2 * m[[1]][, , drop = FALSE]^3)
+             (function(x, sel.idx) {
+                 skew <- x$skewness[sel.idx]
+                 skew[is.na(skew)] <- 0
+                 return(skew * diag(x$Qinv)[sel.idx]^1.5)
+             }),
+             sel.idx = sel.idx
+             )), nrow = ns, ncol = nc)
+                + 3 * m[[2]][, , drop = FALSE] * m[[1]][, , drop = FALSE] - 2 * m[[1]][, , drop = FALSE]^3)
 
             for (i in seq_along(m)) {
                 rownames(m[[i]]) <- names(sel.idx)
@@ -2539,7 +2537,7 @@
                 }
             }
             skewness <- as.numeric((mm[[3]] - 3 * mm[[2]] * mm[[1]] + 2 * mm[[1]]^3)
-            / (mm[[2]] - mm[[1]]^2)^1.5)
+                                   / (mm[[2]] - mm[[1]]^2)^1.5)
             ret$selection <- list(
                 names = snames,
                 mean = mean,

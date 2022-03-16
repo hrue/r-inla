@@ -2896,6 +2896,7 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 			}
 
 			assert(a->graph);
+			assert((int) x_out[0] == -1);	       /* ONLY SUPPORT THIS, as its the same in any case... */
 			if ((int) x_out[0] == -1) {
 				// optimized output
 				k = 1;
@@ -26215,23 +26216,39 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				j = graph->lnbs[i][jj];
 				def->ilist[k] = i;
 				def->jlist[k] = j;
+				assert(def->ilist[k] <= def->jlist[k]);
 				k++;
 			}
 		}
 
-		// we need to revert the order of the list. pretty annoying...
-		GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
-		// now we need to sort within each value of jlist.
-		assert(def->jlist[0] == 0);
-		for (j = k = 0; j < graph->n; j++) {
-			for (jj = k; jj < def->len_list; jj++) {
-				if (def->jlist[jj] > j)
-					break;
+		if (0) {
+			// this seems no longer needed; see the 'assert' above
+			
+			FIXME("before");
+			for(k = 0; k < def->len_list; k++) {
+				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
 			}
-			qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
-			k = jj;
+		
+			// we need to revert the order of the list. pretty annoying...
+			GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+			// now we need to sort within each value of jlist.
+			assert(def->jlist[0] == 0);
+			for (j = k = 0; j < graph->n; j++) {
+				for (jj = k; jj < def->len_list; jj++) {
+					if (def->jlist[jj] > j)
+						break;
+				}
+				qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
+				k = jj;
+			}
+			assert(k == def->len_list);
+
+			FIXME("after");
+			for(k = 0; k < def->len_list; k++) {
+				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
+				assert(def->ilist[k] <= def->jlist[k]);
+			}
 		}
-		assert(k == def->len_list);
 
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);
@@ -33689,6 +33706,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 3);
+		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0/3.0));
 		mb->gcpo_param->verbose = iniparser_getint(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
@@ -33709,17 +33727,17 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			ret = fread((void *) buffer, sizeof(int), (size_t) total_len, fp);
 			assert(ret == total_len);
 
-			mb->gcpo_param->groups = GMRFLib_idx_ncreate_x(len, IMAX(3, (total_len - len) / len));
+			mb->gcpo_param->groups = GMRFLib_idxval_ncreate_x(len, IMAX(3, (total_len - len) / len));
 			for (int i = 0; i < len; i++) {
 				glen = buffer[offset++];
 				for (int j = 0; j < glen; j++) {
-					GMRFLib_idx_add(&(mb->gcpo_param->groups[i]), buffer[offset++]);
+					GMRFLib_idxval_add(&(mb->gcpo_param->groups[i]), buffer[offset++], NAN);
 				}
 				if (mb->gcpo_param->verbose) {
 					if (mb->gcpo_param->groups[i]->n > 0) {
 						char *msg;
 						GMRFLib_sprintf(&msg, "group %d", i);
-						GMRFLib_idx_printf(stdout, mb->gcpo_param->groups[i], msg);
+						GMRFLib_idxval_printf(stdout, mb->gcpo_param->groups[i], msg);
 					}
 				}
 			}
@@ -33814,6 +33832,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
+			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
 			if (mb->gcpo_param->groups) {
 				printf("\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
 			}
@@ -34341,7 +34360,10 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 		for (i = 0; i < n; i++) {
 			D1W(gcpo->groups[i]->n);
 			for (j = 0; j < gcpo->groups[i]->n; j++) {
-				D1W(gcpo->groups[i]->idx[j] + 1);	/* back to R-style indexing */
+				D1W(gcpo->groups[i]->store[j].idx + 1);	/* back to R-style indexing */
+			}
+			for (j = 0; j < gcpo->groups[i]->n; j++) {
+				D1W(gcpo->groups[i]->store[j].val);
 			}
 		}
 		Dclose();
@@ -37891,6 +37913,15 @@ int testit(int argc, char **argv)
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD());
 		}
+		break;
+	}
+
+	case 70:
+	{
+		GMRFLib_design_tp *design = Calloc(1, GMRFLib_design_tp);
+		int nf = atoi(args[0]);
+		GMRFLib_design_grid(&design, nf);
+		GMRFLib_design_print(stdout, design);
 		break;
 	}
 

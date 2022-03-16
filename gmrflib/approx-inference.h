@@ -798,7 +798,8 @@ typedef struct {
 	int group_size;
 	int ngroups;
 	int verbose;
-	GMRFLib_idx_tp **groups;
+	double epsilon;
+	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
 } GMRFLib_gcpo_param_tp;
 
@@ -808,17 +809,17 @@ typedef struct {
 	double *kld;
 	double *mean;
 	double *sd;
-	GMRFLib_idx_tp **groups;
+	GMRFLib_idxval_tp **groups;
 } GMRFLib_gcpo_tp;
 
 typedef struct {
 	int Npred;
-	GMRFLib_idx_tp **groups;
+	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx2_tp **missing;
 } GMRFLib_gcpo_groups_tp;
 
 typedef struct {
-	GMRFLib_idx_tp *idxs;				       /* list of nodes in the matrix, sorted */
+	GMRFLib_idxval_tp *idxs;			       /* list of nodes in the matrix, sorted */
 	gsl_matrix *cov_mat;				       /* the covariance matrix */
 	double value;
 	double lpred_mean;
