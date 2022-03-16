@@ -4,6 +4,17 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.03.16}{
+  \subsection{CHANGES}{
+    \itemize{
+      \item Code cleanup and a bug-fix
+      \item Dense matrices are now store column-wise in \code{cgeneric}
+      \item New example added to \code{cgeneric}, see vignette
+      \item Changed default integration stratey for \code{experimental} mode
+    }
+  }
+}
+
 \section{CHANGES IN VERSION 22.03.12}{
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
