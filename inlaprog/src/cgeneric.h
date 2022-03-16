@@ -164,7 +164,7 @@ typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, i
 inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug);
 inla_cgeneric_func_tp inla_cgeneric_iid_model;
 inla_cgeneric_func_tp inla_cgeneric_ar1_model;
-inla_cgeneric_func_tp inla_cgeneric_generic0_model; 
+inla_cgeneric_func_tp inla_cgeneric_generic0_model;
 
 __END_DECLS
 #endif

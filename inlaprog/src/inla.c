@@ -8779,9 +8779,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -26223,14 +26223,15 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		if (0) {
 			// this seems no longer needed; see the 'assert' above
-			
+
 			FIXME("before");
-			for(k = 0; k < def->len_list; k++) {
+			for (k = 0; k < def->len_list; k++) {
 				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
 			}
-		
+
 			// we need to revert the order of the list. pretty annoying...
-			GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+			GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0,
+				       GMRFLib_icmp);
 			// now we need to sort within each value of jlist.
 			assert(def->jlist[0] == 0);
 			for (j = k = 0; j < graph->n; j++) {
@@ -26244,7 +26245,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			assert(k == def->len_list);
 
 			FIXME("after");
-			for(k = 0; k < def->len_list; k++) {
+			for (k = 0; k < def->len_list; k++) {
 				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
 				assert(def->ilist[k] <= def->jlist[k]);
 			}
@@ -33706,7 +33707,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 3);
-		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0/3.0));
+		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
 		mb->gcpo_param->verbose = iniparser_getint(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
@@ -37881,14 +37882,14 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 69: 
+	case 69:
 	{
 		int n = 10;
 
 		printf("\n\n");
 		FIXME("run with 4 threads");
 #pragma omp parallel for num_threads(4)
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
@@ -37898,7 +37899,7 @@ int testit(int argc, char **argv)
 		printf("\n\n");
 		FIXME("run with 1 threads");
 #pragma omp parallel for num_threads(1)
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
@@ -37907,7 +37908,7 @@ int testit(int argc, char **argv)
 
 		printf("\n\n");
 		FIXME("run serial");
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());

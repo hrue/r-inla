@@ -82,7 +82,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 		int Lsize = L->sn_size[sn];
 		int Lup_size = L->sn_up_size[sn];
 		int *Lss = L->sn_struct[sn];
-		
+
 		for (jp = 0; jp < Lsize; jp++) {
 			j = Lss[jp];
 			len[j] = 0;
@@ -127,13 +127,13 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 		int Lup_size = L->sn_up_size[sn];
 		taucs_datatype *Lsb = L->sn_blocks[sn];
 		taucs_datatype *Lub = L->up_blocks[sn];
-		
+
 		for (jp = 0; jp < Lsize; jp++) {
 			j = Lss[jp];
 			next = C->colptr[j];
 
 			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
-			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize; 
+			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize;
 			for (ip = jp; ip < Lsize; ip++) {
 				i = Lss[ip];
 				if (i >= j) {
@@ -159,91 +159,91 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL)
 {
-        /*
-         * this is to be called for a lower triangular double matrix only.
-         * 
-         * it includes also zero terms as long as i>=j.
-         * 
-         */
+	/*
+	 * this is to be called for a lower triangular double matrix only.
+	 * 
+	 * it includes also zero terms as long as i>=j.
+	 * 
+	 */
 
-        supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-        taucs_ccs_matrix *C = NULL;
-        int n, nnz;
-        int i, j, ip, jp, sn, next;
-        taucs_datatype v;
-        int *len = NULL;
+	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
+	taucs_ccs_matrix *C = NULL;
+	int n, nnz;
+	int i, j, ip, jp, sn, next;
+	taucs_datatype v;
+	int *len = NULL;
 
-        n = L->n;
+	n = L->n;
 
-        len = Malloc(n, int);
+	len = Malloc(n, int);
 
-        if (!len) {
-                return NULL;
-        }
-        nnz = 0;
-        for (sn = 0; sn < L->n_sn; sn++) {
-                for (jp = 0; jp < L->sn_size[sn]; jp++) {
-                        j = L->sn_struct[sn][jp];
-                        len[j] = 0;
+	if (!len) {
+		return NULL;
+	}
+	nnz = 0;
+	for (sn = 0; sn < L->n_sn; sn++) {
+		for (jp = 0; jp < L->sn_size[sn]; jp++) {
+			j = L->sn_struct[sn][jp];
+			len[j] = 0;
 
-                        for (ip = jp; ip < L->sn_size[sn]; ip++) {
-                                i = L->sn_struct[sn][ip];
-                                if (i >= j) {
-                                        len[j]++;
-                                        nnz++;
-                                }
-                        }
-                        for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
-                                i = L->sn_struct[sn][ip];
-                                if (i >= j) {
-                                        len[j]++;
-                                        nnz++;
-                                }
-                        }
-                }
-        }
-        C = taucs_dccs_create(n, n, nnz);
-        if (!C) {
-                free(len);
-                return NULL;
-        }
-        C->flags = TAUCS_DOUBLE;
-        C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;            /* this was a bug in version 2.0 of taucs */
+			for (ip = jp; ip < L->sn_size[sn]; ip++) {
+				i = L->sn_struct[sn][ip];
+				if (i >= j) {
+					len[j]++;
+					nnz++;
+				}
+			}
+			for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
+				i = L->sn_struct[sn][ip];
+				if (i >= j) {
+					len[j]++;
+					nnz++;
+				}
+			}
+		}
+	}
+	C = taucs_dccs_create(n, n, nnz);
+	if (!C) {
+		free(len);
+		return NULL;
+	}
+	C->flags = TAUCS_DOUBLE;
+	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;	       /* this was a bug in version 2.0 of taucs */
 
-        (C->colptr)[0] = 0;
-        for (j = 1; j <= n; j++) {
-                (C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
-        }
+	(C->colptr)[0] = 0;
+	for (j = 1; j <= n; j++) {
+		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
+	}
 
-        free(len);
-        for (sn = 0; sn < L->n_sn; sn++) {
-                for (jp = 0; jp < L->sn_size[sn]; jp++) {
-                        j = L->sn_struct[sn][jp];
-                        next = (C->colptr)[j];
+	free(len);
+	for (sn = 0; sn < L->n_sn; sn++) {
+		for (jp = 0; jp < L->sn_size[sn]; jp++) {
+			j = L->sn_struct[sn][jp];
+			next = (C->colptr)[j];
 
-                        for (ip = jp; ip < L->sn_size[sn]; ip++) {
-                                i = L->sn_struct[sn][ip];
-                                v = L->sn_blocks[sn][jp * L->sn_blocks_ld[sn] + ip];
+			for (ip = jp; ip < L->sn_size[sn]; ip++) {
+				i = L->sn_struct[sn][ip];
+				v = L->sn_blocks[sn][jp * L->sn_blocks_ld[sn] + ip];
 
-                                if (i >= j) {
-                                        (C->rowind)[next] = i;
-                                        (C->values.d)[next] = v;
-                                        next++;
-                                }
-                        }
-                        for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
-                                i = L->sn_struct[sn][ip];
-                                v = L->up_blocks[sn][jp * L->up_blocks_ld[sn] + (ip - L->sn_size[sn])];
+				if (i >= j) {
+					(C->rowind)[next] = i;
+					(C->values.d)[next] = v;
+					next++;
+				}
+			}
+			for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
+				i = L->sn_struct[sn][ip];
+				v = L->up_blocks[sn][jp * L->up_blocks_ld[sn] + (ip - L->sn_size[sn])];
 
-                                if (i >= j) {
-                                        (C->rowind)[next] = i;
-                                        (C->values.d)[next] = v;
-                                        next++;
-                                }
-                        }
-                }
-        }
-        return C;
+				if (i >= j) {
+					(C->rowind)[next] = i;
+					(C->values.d)[next] = v;
+					next++;
+				}
+			}
+		}
+	}
+	return C;
 }
 
 
