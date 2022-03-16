@@ -19568,9 +19568,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 
 		case INLA_CGENERIC_LOG_NORM_CONST:
 		{
-			if (out) {
-				fprintf(fp, "\tlog.norm.const = %.8f\n", out[0]);
-			}
+			fprintf(fp, "\tlog.norm.const = %.8f\n", (out ? out[0] : NAN));
 			break;
 		}
 
