@@ -2896,6 +2896,7 @@ double Qfunc_cgeneric(int i, int j, double *values, void *arg)
 			}
 
 			assert(a->graph);
+			assert((int) x_out[0] == -1);	       /* ONLY SUPPORT THIS, as its the same in any case... */
 			if ((int) x_out[0] == -1) {
 				// optimized output
 				k = 1;
@@ -26215,23 +26216,39 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				j = graph->lnbs[i][jj];
 				def->ilist[k] = i;
 				def->jlist[k] = j;
+				assert(def->ilist[k] <= def->jlist[k]);
 				k++;
 			}
 		}
 
-		// we need to revert the order of the list. pretty annoying...
-		GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
-		// now we need to sort within each value of jlist.
-		assert(def->jlist[0] == 0);
-		for (j = k = 0; j < graph->n; j++) {
-			for (jj = k; jj < def->len_list; jj++) {
-				if (def->jlist[jj] > j)
-					break;
+		if (0) {
+			// this seems no longer needed; see the 'assert' above
+			
+			FIXME("before");
+			for(k = 0; k < def->len_list; k++) {
+				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
 			}
-			qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
-			k = jj;
+		
+			// we need to revert the order of the list. pretty annoying...
+			GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0, GMRFLib_icmp);
+			// now we need to sort within each value of jlist.
+			assert(def->jlist[0] == 0);
+			for (j = k = 0; j < graph->n; j++) {
+				for (jj = k; jj < def->len_list; jj++) {
+					if (def->jlist[jj] > j)
+						break;
+				}
+				qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
+				k = jj;
+			}
+			assert(k == def->len_list);
+
+			FIXME("after");
+			for(k = 0; k < def->len_list; k++) {
+				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
+				assert(def->ilist[k] <= def->jlist[k]);
+			}
 		}
-		assert(k == def->len_list);
 
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);

@@ -63,13 +63,18 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	{
 		// return a vector of indices with format
 		// c(N, M, ii, jj)
-		// where ii<=jj and both ii and jj are non-decreasing
-		// and M is the length of ii
+		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
+		// so like the loop
+		// for i=0, ...
+		//     for j=i, ...
+		//         G_ij = 
+		// and M is the total length while N is the dimension
 
+		int M = N;
 		ret = Calloc(2 + 2 * N, double);
 		ret[0] = N;				       /* dimension */
-		ret[1] = N;				       /* number of (i <= j) */
-		for (int i = 0; i < N; i++) {
+		ret[1] = M;				       /* number of (i <= j) */
+		for (int i = 0; i < M; i++) {
 			ret[2 + i] = i;			       /* i */
 			ret[2 + N + i] = i;		       /* j */
 		}
@@ -78,29 +83,13 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 	case INLA_CGENERIC_Q:
 	{
-		if (1) {
-			// optimized format
-			// return c(N, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
-			// where M is the length of Qij
-			ret = Calloc(2 + N, double);
-			ret[0] = -1;			       /* code for optimized output */
-			ret[1] = N;			       /* number of (i <= j) */
-			for (int i = 0; i < N; i++) {
-				ret[2 + i] = prec;
-			}
-		} else {
-			// plain format, but the optimized format above is better to use
-			// return c(N, M, ii, jj, Qij)
-			// where ii<=jj and both ii and jj are non-decreasing
-			// and M is the length of ii
-			ret = Calloc(2 + 3 * N, double);
-			ret[0] = N;
-			ret[1] = N;
-			for (int i = 0; i < N; i++) {
-				ret[2 + i] = i;		       /* i */
-				ret[2 + N + i] = i;	       /* j */
-				ret[2 + 2 * N + i] = prec;     /* Q_ij */
-			}
+		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+		int M = N;
+		ret = Calloc(2 + N, double);
+		ret[0] = -1;			       /* REQUIRED! */
+		ret[1] = M;			       /* number of (i <= j) */
+		for (int i = 0; i < M; i++) {
+			ret[2 + i] = prec;
 		}
 		break;
 	}
@@ -178,21 +167,25 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	{
 		// return a vector of indices with format
 		// c(N, M, ii, jj)
-		// where ii<=jj and both ii and jj are non-decreasing
+		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
+		// so like the loop
+		// for i=0, ...
+		//     for j=i, ...
+		//         G_ij = 
 		// and M is the length of ii
 
-		int m = N + N - 1, offset, i, k;
+		int M = N + N - 1, offset, i, k;
 		ret = Calloc(2 + 2 * m, double);
 
 		offset = 2;
 		ret[0] = N;				       /* dimension */
-		ret[1] = m;				       /* number of (i <= j) */
+		ret[1] = M;				       /* number of (i <= j) */
 		for (k = i = 0; i < N; i++) {
 			ret[offset + k] = i;		       /* i */
-			ret[offset + m + k++] = i;	       /* j */
+			ret[offset + M + k++] = i;	       /* j */
 			if (i < N - 1) {
 				ret[offset + k] = i;	       /* i */
-				ret[offset + m + k++] = i + 1; /* j */
+				ret[offset + M + k++] = i + 1; /* j */
 			}
 		}
 		break;
@@ -201,17 +194,17 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	case INLA_CGENERIC_Q:
 	{
 		// optimized format
-		// return c(N, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
+		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
 		// where M is the length of Qij
 
 		double param = prec / (1.0 - SQR(rho));
-		int m = N + N - 1;
+		int M = N + N - 1;
 		int offset, i, k;
-		ret = Calloc(2 + m, double);
+		ret = Calloc(2 + M, double);
 
 		offset = 2;
-		ret[0] = -1;
-		ret[1] = m;
+		ret[0] = -1;				       /* REQUIRED */
+		ret[1] = M;
 		for (i = k = 0; i < N; i++) {
 			ret[offset + k++] = param * (i == 0 || i == N - 1 ? 1.0 : (1.0 + SQR(rho)));
 			if (i < N - 1) {
