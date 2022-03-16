@@ -1301,3 +1301,77 @@ can be excessive.
 
 The implementation of the `cgeneric` model must be thread safe. If you
 use internal cache in the `cgeneric`, you need copy one per thread.
+
+## Reimplementing model `generic0`
+
+Here is an example of reimplementing `generic0` using `cgeneric`. The
+C-code is in `cgeneric-demo.c`, and the following R-code compare the
+builtin and cgeneric implementation
+```{r eval=FALSE}
+library(mvtnorm)
+n <- 10
+A <- matrix(rnorm(n^2), n, n)
+Q <- A %*% t(A)
+S <- solve(Q)
+S <- S / exp(mean(log(diag(S))))
+Q <- solve(S)
+
+Cmatrix <- inla.as.sparse(Q)
+s <- 0.1
+y <- c(rmvnorm(1, sigma = S)) + rnorm(n, sd = s)
+
+r <- inla(
+    y ~ -1 + f(idx, model = "generic0", Cmatrix = Cmatrix, 
+              hyper = list(prec = list(prior = "loggamma",
+                                       param = c(1, 1),
+                                       initial = 4,
+                                       fixed = FALSE))), 
+	num.threads = "1:1",
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = 
+		list(prec = list(initial = log(1/s^2), fixed = TRUE))))
+
+## pass in the Cmatrix so its a good fit for 
+## the cgeneric-implementation, so we store 'Cmatrix'
+## column-wise, and upper half only (diagonal included)
+ii <- Cmatrix@i
+Cmatrix@i <- Cmatrix@j
+Cmatrix@j <- ii
+idx <- which(Cmatrix@i <= Cmatrix@j)
+Cmatrix@i <- Cmatrix@i[idx]
+Cmatrix@j <- Cmatrix@j[idx]
+Cmatrix@x <- Cmatrix@x[idx]
+
+cmodel <- inla.cgeneric.define(model = "inla_cgeneric_generic0_model", 
+	                           shlib = "cgeneric-demo.so",
+                               n = n, Cmatrix = Cmatrix, debug = FALSE)
+rc <- inla(
+    y ~ -1 + f(idx, model = cmodel), 
+	num.threads = "1:1",
+    data = data.frame(y, idx = 1:n),
+    control.family = list(hyper = list(
+                     prec = list(initial = log(1/s^2), fixed = TRUE))),
+    verbose = TRUE)
+
+print(r$mode$theta - rc$mode$theta)
+print(r$mode$x - rc$mode$x)
+print(r$mlik - rc$mlik)
+```
+which produces output like
+```{r eval=FALSE}
+> print(r$mode$theta - rc$mode$theta)
+Log precision for idx 
+     -8.710710942e-06 
+
+> print(r$mode$x - rc$mode$x)
+ [1] -6.988149615e-08  9.218204538e-08  1.151077143e-07 -3.683823807e-08
+ [5] -8.793919748e-08 -9.518123112e-08  2.305469839e-08 -2.043514372e-08
+ [9] -7.478532010e-08  1.064667019e-07 -6.988848433e-08  9.219126358e-08
+[13]  1.151192251e-07 -3.684192190e-08 -8.794799145e-08 -9.519074928e-08
+[17]  2.305700385e-08 -2.043718722e-08 -7.479279862e-08  1.064773486e-07
+
+> print(r$mlik - rc$mlik)
+                                                 [,1]
+log marginal-likelihood (integration) 2.070899825e-07
+log marginal-likelihood (Gaussian)    1.150937410e-05
+```
