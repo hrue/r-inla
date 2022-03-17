@@ -212,20 +212,23 @@ int GMRFLib_design_grid(GMRFLib_design_tp ** design, int nhyper)
 	(*design)->experiment = Calloc(len, double *);
 	(*design)->int_weight = Calloc(len, double);
 	(*design)->std_scale = GMRFLib_TRUE;
-
-	if (nhyper == 1) {
+	
+	switch(nhyper) {
+	case 1: 
 		for (int j = 0; j < len; j++) {
 			(*design)->experiment[j] = Calloc(nhyper, double);
 			Memcpy((*design)->experiment[j], x1 + j, nhyper * sizeof(double));
 			(*design)->int_weight[j] = w1[j];
 		}
-	} else if (nhyper == 2) {
+		break;
+	case 2: 
 		for (int j = 0; j < len; j++) {
 			(*design)->experiment[j] = Calloc(nhyper, double);
 			Memcpy((*design)->experiment[j], x2 + 2 * j, nhyper * sizeof(double));
 			(*design)->int_weight[j] = w2[j];
 		}
-	} else {
+		break;
+	default: 
 		assert(0 == 1);
 	}
 

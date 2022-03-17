@@ -67,37 +67,35 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 
 	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
 	taucs_ccs_matrix *C = NULL;
-	int n, nnz, i, j, ip, jp, sn, next, *len = NULL;
+	int n, nnz = 0, *len = NULL;
 	taucs_datatype v;
 
 	n = L->n;
-	len = Malloc(n, int);
-
-	if (!len) {
+	if (n == 0) {
 		return NULL;
 	}
+	len = Calloc(n, int);
 
-	nnz = 0;
-	for (sn = 0; sn < L->n_sn; sn++) {
+	for (int sn = 0; sn < L->n_sn; sn++) {
 		int Lsize = L->sn_size[sn];
 		int Lup_size = L->sn_up_size[sn];
 		int *Lss = L->sn_struct[sn];
 
-		for (jp = 0; jp < Lsize; jp++) {
-			j = Lss[jp];
-			len[j] = 0;
-
-			for (ip = jp; ip < Lsize; ip++) {
-				i = Lss[ip];
+		for (int jp = 0; jp < Lsize; jp++) {
+			int j = Lss[jp];
+			int *len_j = len + j;
+			*len_j = 0;
+			for (int ip = jp; ip < Lsize; ip++) {
+				int i = Lss[ip];
 				if (i >= j) {
-					len[j]++;
+					(*len_j)++;
 					nnz++;
 				}
 			}
-			for (ip = Lsize; ip < Lup_size; ip++) {
-				i = Lss[ip];
+			for (int ip = Lsize; ip < Lup_size; ip++) {
+				int i = Lss[ip];
 				if (i >= j) {
-					len[j]++;
+					(*len_j)++;
 					nnz++;
 				}
 			}
@@ -105,21 +103,15 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	}
 
 	C = taucs_dccs_create(n, n, nnz);
-	if (!C) {
-		free(len);
-		return NULL;
-	}
 	C->flags = TAUCS_DOUBLE;
-	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;	       /* this was a bug in version 2.0 of taucs */
+	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;
 
 	(C->colptr)[0] = 0;
-	for (j = 1; j <= n; j++) {
+	for (int j = 1; j <= n; j++) {
 		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
 	}
-	free(len);
 
-	for (sn = 0; sn < L->n_sn; sn++) {
-
+	for (int sn = 0; sn < L->n_sn; sn++) {
 		int *Lss = L->sn_struct[sn];
 		int Lsbl = L->sn_blocks_ld[sn];
 		int Lsize = L->sn_size[sn];
@@ -128,14 +120,14 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 		taucs_datatype *Lsb = L->sn_blocks[sn];
 		taucs_datatype *Lub = L->up_blocks[sn];
 
-		for (jp = 0; jp < Lsize; jp++) {
-			j = Lss[jp];
-			next = C->colptr[j];
+		for (int jp = 0; jp < Lsize; jp++) {
+			int j = Lss[jp];
+			int next = C->colptr[j];
 
 			taucs_datatype *Lsb_p = Lsb + jp * Lsbl;
 			taucs_datatype *Lub_p = Lub + jp * Lubl - Lsize;
-			for (ip = jp; ip < Lsize; ip++) {
-				i = Lss[ip];
+			for (int ip = jp; ip < Lsize; ip++) {
+				int i = Lss[ip];
 				if (i >= j) {
 					v = Lsb_p[ip];
 					C->rowind[next] = i;
@@ -143,8 +135,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 					next++;
 				}
 			}
-			for (ip = Lsize; ip < Lup_size; ip++) {
-				i = Lss[ip];
+			for (int ip = Lsize; ip < Lup_size; ip++) {
+				int i = Lss[ip];
 				if (i >= j) {
 					v = Lub_p[ip];
 					C->rowind[next] = i;
@@ -154,6 +146,8 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 			}
 		}
 	}
+
+	Free(len);
 	return C;
 }
 

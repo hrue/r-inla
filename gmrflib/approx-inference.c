@@ -7322,7 +7322,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
 				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 4")		\
+					_Pragma("GCC unroll 8")		\
 					for (int k = 0; k < v->n; k++) { \
 						sum += Sa[v->store[k].idx] * v->store[k].val; \
 					}				\

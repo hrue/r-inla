@@ -160,6 +160,8 @@ extern double R_rgeneric_cputime;
 #define PREDICTOR_INVERSE_LINK(xx_)					\
 	ds->predictor_invlinkfunc(_lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
 
+#define PREDICTOR_INVERSE_IDENTITY_LINK(xx_) (_lp_scale * (xx_))
+
 #define PREDICTOR_LINK(xx_)						\
 	(ds->predictor_invlinkfunc((xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates) / _lp_scale)
 
@@ -253,7 +255,7 @@ unsigned long long getTotalSystemMemory()
 }
 #endif
 
-double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the idenity map-function
@@ -286,7 +288,7 @@ double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse map-function, assuming > 0
@@ -319,7 +321,7 @@ double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_identity_scale(double arg, map_arg_tp typ, void *param)
+forceinline double map_identity_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the idenity map-function
@@ -354,7 +356,7 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the exp-map-function
@@ -387,7 +389,7 @@ double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_exp_scale(double arg, map_arg_tp typ, void *param)
+forceinline double map_exp_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the exp-map-function with scaling
@@ -421,7 +423,7 @@ double map_exp_scale(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the negexp-map-function
@@ -454,7 +456,7 @@ double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_exp_scale2(double arg, map_arg_tp typ, void *param)
+forceinline double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the exp-map-function with a scale
@@ -490,7 +492,7 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_invrobit(double arg, map_arg_tp typ, void *param)
+forceinline double map_invrobit(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the inverse of the robit link: cdf of student t (scaled to have variance 1)
@@ -527,18 +529,18 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
+forceinline double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
 {
 	// param = *(skew_intern, intercept_intern)
 	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
 }
 
-double map_invsn(double arg, map_arg_tp typ, void *param)
+forceinline double map_invsn(double arg, map_arg_tp typ, void *param)
 {
 	return (map_invsn_core(arg, typ, param, NULL));
 }
 
-double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
+forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
 {
 	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
 
@@ -753,7 +755,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 	return 0.0;
 }
 
-double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse probit function
@@ -787,7 +789,7 @@ double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse loglog function
@@ -820,7 +822,7 @@ double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse cauchit function
@@ -853,7 +855,7 @@ double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse cloglog function
@@ -886,7 +888,7 @@ double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_beta(double x, map_arg_tp typ, void *param)
+forceinline double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map for the beta parameter, which can have a lower and upper range as well. If range.low=range.high, then its
@@ -955,7 +957,7 @@ double map_beta(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the 1/exp-map-function
@@ -988,7 +990,7 @@ double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the sqrt(1/exp) map
@@ -1021,7 +1023,7 @@ double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the degrees of freedom for the student-t 
@@ -1054,7 +1056,7 @@ double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the degrees of freedom for the student-t 
@@ -1087,7 +1089,7 @@ double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_phi(double arg, map_arg_tp typ, void *param)
+forceinline double map_phi(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the lag-1 correlation in the AR(1) model. The
@@ -1126,7 +1128,7 @@ double map_phi(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_rho(double arg, map_arg_tp typ, void *param)
+forceinline double map_rho(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the correlation in the 2D iid model
@@ -1134,7 +1136,7 @@ double map_rho(double arg, map_arg_tp typ, void *param)
 	return map_phi(arg, typ, param);
 }
 
-double map_precision(double arg, map_arg_tp typ, void *param)
+forceinline double map_precision(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the precision variables 
@@ -1142,7 +1144,7 @@ double map_precision(double arg, map_arg_tp typ, void *param)
 	return map_exp(arg, typ, param);
 }
 
-double map_range(double arg, map_arg_tp typ, void *param)
+forceinline double map_range(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the range
@@ -1150,7 +1152,7 @@ double map_range(double arg, map_arg_tp typ, void *param)
 	return map_exp(arg, typ, param);
 }
 
-double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the range
@@ -1159,7 +1161,7 @@ double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
-double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the range
@@ -1168,7 +1170,7 @@ double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
-double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the precision
@@ -1177,7 +1179,7 @@ double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
-double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
+forceinline double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the p parameter in L_WEIBULL_CURE
@@ -1185,7 +1187,7 @@ double map_p_weibull_cure(double arg, map_arg_tp typ, void *param)
 	return map_invlogit(arg, typ, param);
 }
 
-double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
@@ -1209,7 +1211,7 @@ double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
@@ -1233,7 +1235,7 @@ double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the mapping for the shape-parameters in the stochvol-nig model. shape = 1 + exp(shape_intern)
@@ -1266,7 +1268,7 @@ double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_H(double x, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = 1/2  + 1/2 * exp(local) / (1 + exp(local)) 
@@ -1290,7 +1292,7 @@ double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_interval(double x, map_arg_tp typ, void *param)
+forceinline double map_interval(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * extern = A  + (B-A) * exp(C * local) / (1 + exp(C * local)) ,  B > A, C>0
@@ -1320,7 +1322,7 @@ double map_interval(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_group_rho(double x, map_arg_tp typ, void *param)
+forceinline double map_group_rho(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * extern = 
@@ -1346,7 +1348,7 @@ double map_group_rho(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
+forceinline double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * y = 2*atan(x), so that |y| <= Pi
@@ -1372,7 +1374,7 @@ double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
+forceinline double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1382,7 +1384,7 @@ double link_this_should_not_happen(double UNUSED(x), map_arg_tp UNUSED(typ), voi
 	return 0.0;
 }
 
-double link_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1390,7 +1392,7 @@ double link_probit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invprobit(x, typ, param);
 }
 
-double link_robit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_robit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1401,7 +1403,7 @@ double link_robit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invrobit(x, typ, (void *) &dof_intern);
 }
 
-double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1415,7 +1417,7 @@ double link_sn(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invsn(x, typ, (void *) par);
 }
 
-double link_power_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_power_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1431,12 +1433,12 @@ double link_power_logit(double x, map_arg_tp typ, void *param, double *UNUSED(co
 	return map_inv_powerlink_core(x, typ, (void *) par, NULL);
 }
 
-double link_tan(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_tan(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	return map_invtan(x, typ, param);
 }
 
-double link_cloglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_cloglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1444,7 +1446,7 @@ double link_cloglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invcloglog(x, typ, param);
 }
 
-double link_loglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_loglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1452,7 +1454,7 @@ double link_loglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invloglog(x, typ, param);
 }
 
-double link_cauchit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_cauchit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1460,7 +1462,7 @@ double link_cauchit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invcauchit(x, typ, param);
 }
 
-double link_log(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_log(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1468,7 +1470,7 @@ double link_log(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_exp(x, typ, param);
 }
 
-double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 #define MAP(_x) log((_x)/(1.0 - (_x)))
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
@@ -1578,7 +1580,7 @@ double link_loga(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return 0.0;
 }
 
-double link_neglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_neglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1586,7 +1588,7 @@ double link_neglog(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_negexp(x, typ, param);
 }
 
-double link_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1594,7 +1596,7 @@ double link_logit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_invlogit(x, typ, param);
 }
 
-double link_identity(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_identity(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1602,7 +1604,7 @@ double link_identity(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_identity(x, typ, param);
 }
 
-double link_inverse(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_inverse(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1610,7 +1612,7 @@ double link_inverse(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return map_inverse(x, typ, param);
 }
 
-double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
+forceinline double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1651,7 +1653,7 @@ double link_logoffset(double x, map_arg_tp typ, void *param, double *cov)
 	return NAN;
 }
 
-double link_logitoffset(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_logitoffset(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1677,7 +1679,7 @@ double link_logitoffset(double x, map_arg_tp typ, void *param, double *UNUSED(co
 	return NAN;
 }
 
-double link_sslogit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+forceinline double link_sslogit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	Link_param_tp *p;
 	double sens, spec, a, b, xx;
@@ -1710,7 +1712,7 @@ double link_sslogit(double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 	return NAN;
 }
 
-double link_special2(double x, map_arg_tp typ, void *param, double *cov)
+forceinline double link_special2(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1924,7 +1926,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 	return (ret);
 }
 
-double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
+forceinline double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// individual link
 	Link_param_tp *lparam = (Link_param_tp *) param;
@@ -1975,7 +1977,7 @@ double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 	return (ret);
 }
 
-double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
+forceinline double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// population link
 	Link_param_tp *lparam = (Link_param_tp *) param;
@@ -2026,7 +2028,7 @@ double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 	return (ret);
 }
 
-double link_test1(double x, map_arg_tp typ, void *param, double *cov)
+forceinline double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -2040,7 +2042,7 @@ double link_test1(double x, map_arg_tp typ, void *param, double *cov)
 	return map_exp(x - beta * cov[0], typ, param);
 }
 
-double link_special1(double x, map_arg_tp typ, void *param, double *cov)
+forceinline double link_special1(double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p;
 	int i;
@@ -5580,9 +5582,8 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNU
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y, lprec, prec, w, ypred;
+	double y, lprec, prec, w;
 	static double log_prec_limit = 0.0;
 	y = ds->data_observations.y[idx];
 	w = ds->data_observations.weight_gaussian[idx];
@@ -5604,14 +5605,25 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNU
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+		if (PREDICTOR_LINK_EQ(link_identity)) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+			}
+		} else {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		for (int i = 0; i < -m; i++) {
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
 	}
@@ -5997,7 +6009,7 @@ int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double a, b, xx, cons, eta;
+	double a, b, cons;
 
 	LINK_INIT;
 	a = map_exp(ds->data_observations.iid_logitbeta_log_a[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
@@ -6006,8 +6018,8 @@ int loglikelihood_iid_logitbeta(double *logll, double *x, int m, int idx, double
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
-			eta = x[i] + OFFSET(idx);
-			xx = PREDICTOR_INVERSE_LINK(eta);
+			double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+			double xx = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = cons + (a - 1.0) * log(xx) + (b - 1.0) * LOG_ONE_MINUS(xx) + PREDICTOR_INVERSE_LINK_LOGJACOBIAN(eta);
 		}
 	}
@@ -6785,21 +6797,31 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *UNUS
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y);
 
 	LINK_INIT;
 	if (m > 0) {
 		double ylEmn = y * _logE(E) - normc;
-		for (i = 0; i < m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			logll[i] = y * log(lambda) + ylEmn - E * lambda;
+		if (PREDICTOR_LINK_EQ(link_log)) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (int i = 0; i < m; i++) {
+				double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+			}
+		} else {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = y * log(lambda) + ylEmn - E * lambda;
+			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			if (ISZERO(E * lambda)) {
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
@@ -8172,26 +8194,24 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNU
 	/*
 	 * y ~ Binomial(n, p)
 	 */
-	int i;
-
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double n = ds->data_observations.nb[idx], p;
-
+	double n = ds->data_observations.nb[idx];
+	double ny = n - y;
 	/*
 	 * this is a special case that should just return 0 or 1
 	 */
 	if (ISZERO(y) && ISZERO(n)) {
 		if (m > 0) {
-			for (i = 0; i < m; i++) {
+			for (int i = 0; i < m; i++) {
 				logll[i] = 0.0;		       /* log(1) = 0 */
 			}
 		} else {
-			for (i = 0; i < -m; i++) {
+			for (int i = 0; i < -m; i++) {
 				logll[i] = 1.0;
 			}
 		}
@@ -8212,38 +8232,69 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNU
 			status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
 		}
 		assert(status == GSL_SUCCESS);
-		for (i = 0; i < m; i++) {
-			double eta = x[i] + OFFSET(idx);
-			p = PREDICTOR_INVERSE_LINK(eta);
-			p = TRUNCATE(p, 0.0, 1.0);
-			if (ISEQUAL(p, 1.0)) {		       /* yes, this happens... */
-				if (PREDICTOR_LINK_EQ(link_probit)) {
-					logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
-				} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
-					// I need to do something with other links...
-					logll[i] = res.val + y * (-1.0 / exp(eta));
+
+		if (PREDICTOR_LINK_EQ(link_logit)) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (int i = 0; i < m; i++) {
+				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				double ee = exp(eta);
+				double log_1mp = -log1p(ee);
+				double log_p = -log1p(1.0 / ee);
+				logll[i] = res.val + y * log_p + ny * log_1mp;
+			}
+		} else {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (int i = 0; i < m; i++) {
+				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
+			}
+		}
+		
+		int limiting_case = 0;
+		for (int i = 0; i < m; i++) {
+			if (ISINF(logll[i]) || ISNAN(logll[i])) {
+				limiting_case = 1;
+				break;
+			}
+		}
+		
+		if (limiting_case) {
+			// doit again
+			for (int i = 0; i < m; i++) {
+				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				p = TRUNCATE(p, 0.0, 1.0);
+				if (ISEQUAL(p, 1.0)) {		       /* yes, this happens... */
+					if (PREDICTOR_LINK_EQ(link_probit)) {
+						logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
+					} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
+						// I need to do something with other links...
+						logll[i] = res.val + y * (-1.0 / exp(eta));
+					}
+				} else if (ISZERO(p)) {		       /* yes, this happens... */
+					eta = -eta;		       /* so we can just copy the code */
+					if (PREDICTOR_LINK_EQ(link_probit)) {
+						logll[i] = res.val + ny * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
+					} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
+						// I need to do something with other links...
+						logll[i] = res.val + ny * (-1.0 / exp(eta));
+					}
+				} else {
+					logll[i] = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
 				}
-			} else if (ISZERO(p)) {		       /* yes, this happens... */
-				eta = -eta;		       /* so we can just copy the code */
-				if (PREDICTOR_LINK_EQ(link_probit)) {
-					logll[i] = res.val + (n - y) * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
-				} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
-					// I need to do something with other links...
-					logll[i] = res.val + (n - y) * (-1.0 / exp(eta));
-				}
-			} else {
-				logll[i] = res.val + y * log(p) + (n - y) * LOG_ONE_MINUS(p);
 			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+		for (int i = 0; i < -m; i++) {
+			double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
 			if (ds->variant == 0) {
 				logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
 			} else {
-				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) (n - y), p, y);
+				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) ny, p, y);
 			}
 		}
 
@@ -8296,8 +8347,7 @@ int loglikelihood_xbinomial(double *logll, double *x, int m, int idx, double *UN
 		}
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
-			double eta = x[i] + OFFSET(idx);
-			p = p_scale * PREDICTOR_INVERSE_LINK(eta);
+			p = p_scale * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = DMIN(1.0 - FLT_EPSILON, p);
 			logll[i] = res.val + y * log(p) + (n - y) * LOG_ONE_MINUS(p);
 		}
@@ -36481,19 +36531,19 @@ int inla_check_pardiso(void)
 double inla_sn_intercept(double intern_quantile, double skew)
 {
 	// testing only
-	double a3, val;
-	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
-	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) &a3);
+	double a3[2] = {0.0, 0.0}, val;
+	a3[0] = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) a3);
 	P(intern_quantile);
 	P(skew);
 	P(inla_pc_sn_skew2alpha(skew));
-	P(a3);
+	P(a3[0]);
 	P(val);
 
 	return (0);
 
-	a3 = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
-	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) &a3));
+	a3[0] = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) a3));
 }
 
 int inla_reset(void)
