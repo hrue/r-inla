@@ -1080,18 +1080,6 @@ map_ii *GMRFLib_duplicate_map_ii(map_ii * hash)
 	return newhash;
 }
 
-size_t GMRFLib_sizeof_map_ii(map_ii * hash)
-{
-	if (!hash) {
-		return 0;
-	}
-	size_t siz = 0;
-	mapkit_size_t nelm = GMRFLib_nelm_map_ii(hash);
-	siz += sizeof(map_ii) + nelm * sizeof(int);
-
-	return siz;
-}
-
 map_id *GMRFLib_duplicate_map_id(map_id * hash)
 {
 	/*
@@ -1115,18 +1103,6 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash)
 	newhash->defaultvalue = hash->defaultvalue;
 
 	return newhash;
-}
-
-size_t GMRFLib_sizeof_map_id(map_id * hash)
-{
-	if (!hash) {
-		return 0;
-	}
-	size_t siz = 0;
-	mapkit_size_t nelm = GMRFLib_nelm_map_id(hash);
-	siz += sizeof(map_id) + nelm * sizeof(double);
-
-	return siz;
 }
 
 int GMRFLib_is_int(char *str, int *value)

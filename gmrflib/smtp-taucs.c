@@ -246,10 +246,9 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL)
 	return C;
 }
 
-
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
-#define DUPLICATE(name,len,type) if (1) {					\
+#define DUPLICATE(name,len,type) if (1) {				\
 		if (L->name && ((len) > 0)) {				\
 			LL->name = (type *)Calloc((len), type);		\
 			Memcpy(LL->name,L->name,(size_t)(len)*sizeof(type)); \
@@ -282,28 +281,19 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 	DUPLICATE(sn_blocks_ld, n_sn, int);
 	DUPLICATE(up_blocks_ld, n_sn, int);
 
-	{
-		{
-			int i;
-			LL->sn_struct = (int **) Calloc(n_sn, int *);
-			for (i = 0; i < LL->n_sn; i++) {
-				DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
-			}
-		}
-		{
-			int i;
-			LL->sn_blocks = (double **) Calloc(n_sn, double *);
-			for (i = 0; i < LL->n_sn; i++) {
-				DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
-			}
-		}
-		{
-			int i;
-			LL->up_blocks = (double **) Calloc(n_sn, double *);
-			for (i = 0; i < LL->n_sn; i++) {
-				DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * (LL->sn_size)[i], double);
-			}
-		}
+	LL->sn_struct = (int **) Calloc(n_sn, int *);
+	for (int i = 0; i < LL->n_sn; i++) {
+		DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
+	}
+			
+	LL->sn_blocks = (double **) Calloc(n_sn, double *);
+	for (int i = 0; i < LL->n_sn; i++) {
+		DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);
+	}
+
+	LL->up_blocks = (double **) Calloc(n_sn, double *);
+	for (int i = 0; i < LL->n_sn; i++) {
+		DUPLICATE(up_blocks[i], (LL->sn_up_size[i] - LL->sn_size[i]) * (LL->sn_size)[i], double);
 	}
 
 #undef DUPLICATE
@@ -452,47 +442,6 @@ size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 	return (nnz);
 }
 
-size_t GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L)
-{
-	/*
-	 * return, approximately, the size of L 
-	 */
-	size_t siz = 0;
-
-	if (!L) {
-		return siz;
-	}
-
-	int n, np, n_sn, i;
-
-	siz += sizeof(supernodal_factor_matrix);
-	n = L->n;
-	np = n + 1;
-	n_sn = L->n_sn;
-	siz += np * sizeof(int) * 5 + n_sn * sizeof(int) * 2;
-	siz += n * sizeof(int *);
-	if (L->sn_up_size) {
-		for (i = 0; i < L->n_sn; i++) {
-			siz += L->sn_up_size[i] * sizeof(int);
-		}
-	}
-
-	siz += n_sn * sizeof(double *);
-	if (L->sn_size) {
-		for (i = 0; i < L->n_sn; i++) {
-			siz += ISQR(L->sn_size[i]) * sizeof(double);
-		}
-	}
-
-	siz += n_sn * sizeof(double *);
-	if (L->sn_up_size && L->sn_size) {
-		for (i = 0; i < L->n_sn; i++) {
-			siz += (L->sn_up_size[i] - L->sn_size[i]) * (L->sn_size)[i] * sizeof(double);
-		}
-	}
-	return siz;
-}
-
 taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 {
 	/*
@@ -539,26 +488,6 @@ int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L)
 	}
 
 	return GMRFLib_SUCCESS;
-}
-
-size_t GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L)
-{
-	/*
-	 * return, approximately, the sizeof L 
-	 */
-
-	size_t siz = 0;
-	int n, nnz;
-
-	if (!L) {
-		return siz;
-	}
-
-	n = L->n;
-	nnz = L->colptr[L->n];
-	siz += (n + 1) * sizeof(int) + nnz * sizeof(int) + nnz * sizeof(double);
-
-	return siz;
 }
 
 int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp * gn_ptr)
@@ -1474,7 +1403,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 	/*
 	 * cleanup 
 	 */
-#pragma omp parallel for private(i)
+
 	for (i = 0; i < n; i++) {
 		Free(nbs[i]);
 	}

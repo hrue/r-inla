@@ -10009,26 +10009,6 @@ double GMRFLib_interpolator_ccd(int ndim, int UNUSED(nobs), double *x, double *U
 	return value;
 }
 
-size_t GMRFLib_sizeof_ai_store(GMRFLib_ai_store_tp * ai_store)
-{
-	/*
-	 * return, approximately, the size in bytes of ai_store 
-	 */
-	if (!ai_store)
-		return 0;
-
-	size_t siz = 0;
-	int n = (ai_store->problem ? ai_store->problem->n : 0);
-
-	siz += sizeof(GMRFLib_ai_store_tp);
-	siz += GMRFLib_sizeof_store(ai_store->store);
-	siz += sizeof(double) * n;
-	siz += GMRFLib_sizeof_problem(ai_store->problem);
-	siz += sizeof(double) * n * 6;
-
-	return siz;
-}
-
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr)
 {
 	/*

@@ -192,8 +192,6 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
 mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
-size_t GMRFLib_sizeof_map_id(map_id * hash);
-size_t GMRFLib_sizeof_map_ii(map_ii * hash);
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);
