@@ -279,7 +279,7 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 	for (int i = 0; i < LL->n_sn; i++) {
 		DUPLICATE(sn_struct[i], LL->sn_up_size[i], int);
 	}
-			
+
 	LL->sn_blocks = (double **) Calloc(n_sn, double *);
 	for (int i = 0; i < LL->n_sn; i++) {
 		DUPLICATE(sn_blocks[i], ISQR(LL->sn_size[i]), double);

@@ -8251,7 +8251,7 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNU
 				logll[i] = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
 			}
 		}
-		
+
 		int limiting_case = 0;
 		for (int i = 0; i < m; i++) {
 			if (ISINF(logll[i]) || ISNAN(logll[i])) {
@@ -8259,22 +8259,22 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNU
 				break;
 			}
 		}
-		
+
 		if (limiting_case) {
 			// doit again
 			for (int i = 0; i < m; i++) {
 				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
 				p = TRUNCATE(p, 0.0, 1.0);
-				if (ISEQUAL(p, 1.0)) {		       /* yes, this happens... */
+				if (ISEQUAL(p, 1.0)) {	       /* yes, this happens... */
 					if (PREDICTOR_LINK_EQ(link_probit)) {
 						logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
 					} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
 						// I need to do something with other links...
 						logll[i] = res.val + y * (-1.0 / exp(eta));
 					}
-				} else if (ISZERO(p)) {		       /* yes, this happens... */
-					eta = -eta;		       /* so we can just copy the code */
+				} else if (ISZERO(p)) {	       /* yes, this happens... */
+					eta = -eta;	       /* so we can just copy the code */
 					if (PREDICTOR_LINK_EQ(link_probit)) {
 						logll[i] = res.val + ny * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
 					} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
@@ -8829,9 +8829,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -33560,20 +33560,35 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
 
-	if (mb->verbose) {
-		printf("\tMode..................... [%s]\n", GMRFLib_MODE_NAME());
-		printf("\tSetup.................... [%.2fs]\n", GMRFLib_cpu() - tref);
-		printf("\tSparse-matrix library.... [%s]\n", mb->smtp);
-		printf("\tOpenMP strategy.......... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
-		printf("\tnum.threads.............. [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive)... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
+	// time the two versions of Qfunc_like
+	GMRFLib_thread_id = omp_get_thread_num();
+	double time_used[2] = { 0.0, 0.0 };
+	for (int time = 0; time < 2; time++) {
+		for (int met = 0; met < 2; met++) {
+			GMRFLib_preopt_like_method = met;
+			time_used[met] += GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
 		}
-		printf("\tblas.num.threads......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
-		printf("\tDensity-strategy......... [%s]\n",
+	}
+
+	// Seems like we can lose more than we can win, so have a slight preference for the SERIAL one
+	GMRFLib_preopt_like_method = (time_used[0] / time_used[1] < 1.1 ? 0 : 1);
+
+	if (mb->verbose) {
+		printf("\tMode...................... [%s]\n", GMRFLib_MODE_NAME());
+		printf("\tSetup..................... [%.2fs]\n", GMRFLib_cpu() - tref);
+		printf("\tSparse-matrix library..... [%s]\n", mb->smtp);
+		printf("\tOpenMP strategy........... [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
+		printf("\tnum.threads............... [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		if (GMRFLib_openmp->adaptive) {
+			printf("\tnum.threads (adaptive).... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
+		}
+		printf("\tblas.num.threads.......... [%1d]\n", GMRFLib_openmp->blas_num_threads);
+		printf("\tDensity-strategy.......... [%s]\n",
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
-		printf("\tSize of graph............ [%d]\n", N);
-		printf("\tNumber of constraints.... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
+		printf("\tSize of graph............. [%d]\n", N);
+		printf("\tNumber of constraints..... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
+		printf("\tTiming of Qlike-strategy.. [plain/group = %.2f]\n", time_used[0] / time_used[1]);
+		printf("\tQlike strategy............ [%s]\n", (GMRFLib_preopt_like_method == 0 ? "plain" : "group"));
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
@@ -34409,10 +34424,10 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 		for (i = 0; i < n; i++) {
 			D1W(gcpo->groups[i]->n);
 			for (j = 0; j < gcpo->groups[i]->n; j++) {
-				D1W(gcpo->groups[i]->store[j].idx + 1);	/* back to R-style indexing */
+				D1W(gcpo->groups[i]->idx[j] + 1);	/* back to R-style indexing */
 			}
 			for (j = 0; j < gcpo->groups[i]->n; j++) {
-				D1W(gcpo->groups[i]->store[j].val);
+				D1W(gcpo->groups[i]->val[j]);
 			}
 		}
 		Dclose();
@@ -36531,7 +36546,7 @@ int inla_check_pardiso(void)
 double inla_sn_intercept(double intern_quantile, double skew)
 {
 	// testing only
-	double a3[2] = {0.0, 0.0}, val;
+	double a3[2] = { 0.0, 0.0 }, val;
 	a3[0] = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
 	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) a3);
 	P(intern_quantile);

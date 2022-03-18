@@ -878,10 +878,10 @@ int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp ** M, GMRFLib_idxval_tp ** idxval
 
 	for (i = k = 0; i < nrow; i++) {
 		for (jj = 0; jj < idxval[i]->n; jj++, k++) {
-			j = idxval[i]->store[jj].idx;
+			j = idxval[i]->idx[jj];
 			(*M)->i[k] = i;
 			(*M)->j[k] = j;
-			(*M)->values[k] = idxval[i]->store[jj].val;
+			(*M)->values[k] = idxval[i]->val[jj];
 		}
 	}
 	GMRFLib_matrix_add_graph_and_hash(*M);

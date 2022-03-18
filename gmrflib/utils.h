@@ -80,15 +80,16 @@ typedef struct {
 } GMRFLib_val_tp;
 
 typedef struct {
-	int idx;
-	double val;
-} GMRFLib_idxval_elm_tp;
-
-typedef struct {
 	int n;
 	int n_alloc;
 	int iaddto;
-	GMRFLib_idxval_elm_tp *store;
+	int *idx;
+
+	int g_n;					       /* number of groups with sequential indices */
+	int *g_len;					       /* their length */
+	int *g_i;					       /* and their starting index */
+
+	double *val;
 } GMRFLib_idxval_tp;
 
 /*
@@ -148,7 +149,6 @@ int GMRFLib_idx_sort(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold);
 int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val);
-int GMRFLib_idxval_cmp(const void *a, const void *b);
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);

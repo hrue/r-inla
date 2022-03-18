@@ -256,6 +256,8 @@ extern double GMRFLib_aqat_m_diag_add;
 
 extern int GMRFLib_inla_mode;
 
+extern int GMRFLib_preopt_like_method;			       // 0 = plain, 1 = group.
+
 #endif
 __END_DECLS
 #endif

@@ -1270,12 +1270,7 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat)
 
 forceinline int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
-	*hold = Calloc(1, GMRFLib_idx_tp);
-	(*hold)->idx = Calloc(IDX_ALLOC_INITIAL, int);
-	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
-	(*hold)->n = 0;
-
-	return GMRFLib_SUCCESS;
+	return GMRFLib_idx_create_x(hold, IDX_ALLOC_INITIAL);
 }
 
 forceinline int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len)
@@ -1290,14 +1285,7 @@ forceinline int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len)
 
 forceinline int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 {
-	*hold = Calloc(1, GMRFLib_idx2_tp);
-	(*hold)->idx = Calloc(2, int *);
-	(*hold)->idx[0] = Calloc(IDX_ALLOC_INITIAL, int);
-	(*hold)->idx[1] = Calloc(IDX_ALLOC_INITIAL, int);
-	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
-	(*hold)->n = 0;
-
-	return GMRFLib_SUCCESS;
+	return GMRFLib_idx2_create_x(hold, IDX_ALLOC_INITIAL);
 }
 
 forceinline int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len)
@@ -1324,19 +1312,14 @@ forceinline int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 
 forceinline int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
 {
-	*hold = Calloc(1, GMRFLib_idxval_tp);
-	(*hold)->store = Calloc(IDX_ALLOC_INITIAL, GMRFLib_idxval_elm_tp);
-	(*hold)->n_alloc = IDX_ALLOC_INITIAL;
-	(*hold)->n = 0;
-	(*hold)->iaddto = 0;
-
-	return GMRFLib_SUCCESS;
+	return GMRFLib_idxval_create_x(hold, IDX_ALLOC_INITIAL);
 }
 
 forceinline int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len)
 {
 	*hold = Calloc(1, GMRFLib_idxval_tp);
-	(*hold)->store = Calloc(len, GMRFLib_idxval_elm_tp);
+	(*hold)->idx = Calloc(len, int);
+	(*hold)->val = Calloc(len, double);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 	(*hold)->iaddto = 0;
@@ -1445,7 +1428,7 @@ forceinline int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char 
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
 		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->store[i].idx, hold->store[i].val);
+			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -1556,13 +1539,14 @@ forceinline int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
 
 		GMRFLib_idxval_sort(hold);
 		for (j = 0, i = 0; i < hold->n; i++) {
-			if (hold->store[j].idx == hold->store[i].idx) {
+			if (hold->idx[j] == hold->idx[i]) {
 				if (i > j) {
-					hold->store[j].val += hold->store[i].val;
+					hold->val[j] += hold->val[i];
 				}
 			} else {
 				j++;
-				hold->store[j] = hold->store[i];
+				hold->idx[j] = hold->idx[i];
+				hold->val[j] = hold->val[i];
 			}
 		}
 		hold->n = j + 1;
@@ -1616,37 +1600,69 @@ forceinline int GMRFLib_val_prune(GMRFLib_val_tp * hold)
 forceinline int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
 {
 	if (hold) {
-		hold->store = Realloc(hold->store, IMAX(1, hold->n), GMRFLib_idxval_elm_tp);
-		hold->n_alloc = IMAX(1, hold->n);
+		int n = IMAX(1, hold->n);
+		hold->idx = Realloc(hold->idx, n, int);
+		hold->val = Realloc(hold->val, n, double);
+		hold->n_alloc = n;
 	}
 	return GMRFLib_SUCCESS;
-}
-
-forceinline int GMRFLib_idxval_cmp(const void *a, const void *b)
-{
-	GMRFLib_idxval_elm_tp *aa = (GMRFLib_idxval_elm_tp *) a;
-	GMRFLib_idxval_elm_tp *bb = (GMRFLib_idxval_elm_tp *) b;
-
-	return (aa->idx - bb->idx);
 }
 
 forceinline int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 {
-	if (hold) {
-		qsort((void *) hold->store, (size_t) hold->n, sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp);
-	}
-	return GMRFLib_SUCCESS;
+	return GMRFLib_idxval_nsort(&hold, 1, 1);
 }
 
 forceinline int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
+	int debug = 0;
+
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
 		CODE_BLOCK_SET_THREAD_ID();				\
 		if (hold[i] && hold[i]->n > 1) {			\
-			qsort((void *) hold[i]->store, (size_t) hold[i]->n, sizeof(GMRFLib_idxval_elm_tp), GMRFLib_idxval_cmp); \
+			GMRFLib_qsorts((void *) hold[i]->idx, (size_t) hold[i]->n, sizeof(int), \
+				       (void *) hold[i]->val, sizeof(double), NULL, (size_t) 0, GMRFLib_icmp); \
 		}							\
-	}
+		GMRFLib_idxval_tp *h = hold[i];				\
+		int ng = 1;						\
+		for(int j = 1; j < h->n; j++) {				\
+			if (h->idx[j] != h->idx[j-1] + 1) {		\
+				ng++;					\
+			}						\
+		}							\
+		int *g_i = Calloc(ng, int);				\
+		int *g_len = Calloc(ng, int);				\
+		int k = 0;						\
+		g_i[0] = 0;						\
+		for(int j = 1; j < h->n; j++) {				\
+			if (h->idx[j] != h->idx[j-1] + 1) {		\
+				g_len[k] = j - g_i[k];			\
+				k++;					\
+				g_i[k] = j;				\
+			}						\
+		}							\
+		g_len[ng-1] = h->n - g_i[ng - 1];			\
+									\
+		if (debug) {						\
+			printf("h->idx \t");				\
+			for(k = 0; k < h->n; k++){			\
+				printf(" %1d", h->idx[k]);		\
+			}						\
+			printf("\n");					\
+			for(int g = 0; g < ng; g++) {			\
+				printf("group %d has length %d and start at index %d\n", g, g_len[g], g_i[g]); \
+				printf("\t");				\
+				for(k = 0; k < g_len[g]; k++)		\
+					printf(" %1d", h->idx[g_i[g] + k]); \
+				printf("\n");				\
+			}						\
+		}							\
+									\
+		h->g_n = ng;						\
+		h->g_i = g_i;						\
+		h->g_len = g_len;					\
+        }
 
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
@@ -1686,7 +1702,8 @@ forceinline int GMRFLib_val_free(GMRFLib_val_tp * hold)
 forceinline int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 {
 	if (hold) {
-		Free(hold->store);
+		Free(hold->idx);
+		Free(hold->val);
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;
@@ -1746,10 +1763,11 @@ forceinline int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double va
 	}
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
-		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
 	}
-	(*hold)->store[(*hold)->n].idx = idx;
-	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->idx[(*hold)->n] = idx;
+	(*hold)->val[(*hold)->n] = val;
 	(*hold)->n++;
 
 	return GMRFLib_SUCCESS;
@@ -1768,22 +1786,22 @@ forceinline int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double 
 
 	// hopefully this is it.
 	i = (*hold)->iaddto;
-	if ((*hold)->store[i].idx == idx) {
-		(*hold)->store[i].val += val;
+	if ((*hold)->idx[i] == idx) {
+		(*hold)->val[i] += val;
 		return GMRFLib_SUCCESS;
 	}
 	// FIXME: this should be improved in general, but I think for the usage its ok. Since we are likely to add with same or increasing idx,
 	// then I added this 'iaddto' which recall the last index, and try to be a little smarter.
 	for (i = (*hold)->iaddto + 1; i < (*hold)->n; i++) {
-		if ((*hold)->store[i].idx == idx) {
-			(*hold)->store[i].val += val;
+		if ((*hold)->idx[i] == idx) {
+			(*hold)->val[i] += val;
 			(*hold)->iaddto = i;
 			return GMRFLib_SUCCESS;
 		}
 	}
 	for (i = 0; i < (*hold)->iaddto; i++) {
-		if ((*hold)->store[i].idx == idx) {
-			(*hold)->store[i].val += val;
+		if ((*hold)->idx[i] == idx) {
+			(*hold)->val[i] += val;
 			(*hold)->iaddto = i;
 			return GMRFLib_SUCCESS;
 		}
@@ -1791,10 +1809,11 @@ forceinline int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double 
 
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IMAX(IDX_ALLOC_ADD, (*hold)->n / 4);
-		(*hold)->store = Realloc((*hold)->store, (*hold)->n_alloc, GMRFLib_idxval_elm_tp);
+		(*hold)->idx = Realloc((*hold)->idx, (*hold)->n_alloc, int);
+		(*hold)->val = Realloc((*hold)->val, (*hold)->n_alloc, double);
 	}
-	(*hold)->store[(*hold)->n].idx = idx;
-	(*hold)->store[(*hold)->n].val = val;
+	(*hold)->idx[(*hold)->n] = idx;
+	(*hold)->val[(*hold)->n] = val;
 	(*hold)->n++;
 
 	return GMRFLib_SUCCESS;
