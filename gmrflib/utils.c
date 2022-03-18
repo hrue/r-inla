@@ -1428,7 +1428,7 @@ forceinline int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char 
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
 		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\t(idx,val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
+			fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
@@ -1615,7 +1615,7 @@ forceinline int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 
 forceinline int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
-	int debug = 0;
+	const int debug = 0;
 
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
