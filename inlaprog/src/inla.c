@@ -33570,7 +33570,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
-	// Seems like we can lose more than we can win, so have a slight preference for the SERIAL one
+	// Seems like we can lose more than we can win, so have a slight preference for the SERIAL one.
 	GMRFLib_preopt_like_method = (time_used[0] / time_used[1] < 1.1 ? 0 : 1);
 
 	if (mb->verbose) {
