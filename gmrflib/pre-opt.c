@@ -946,6 +946,8 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 	GMRFLib_ENTER_ROUTINE;
 
+	double *pred = Calloc(preopt->mnpred, double);
+
 	int offset = 0;
 	if (preopt->pA_idxval) {
 		offset = preopt->mpred;
@@ -954,41 +956,95 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		assert(preopt->mpred == 0);
 	}
 
-	double *pred = Calloc(preopt->mnpred, double);
-	if (preopt->pAAt_idxval) {
+		
+	
+	if (IMAX(preopt->mpred, preopt->npred) > preopt->n) {
+
+		// data-rich case
+		
+		if (preopt->pA_idxval) {
+			// both loops
 #define CODE_BLOCK							\
-		for(int j = 0; j < 2; j++) {				\
-			if (j == 0) {					\
-				for(int i = 0; i < preopt->n; i++) {	\
-					GMRFLib_idxval_tp *At = preopt->At_idxval[i]; \
-					double lat = latent[i];		\
-					for(int k = 0; k < At->n; k++) { \
-						pred[offset + At->idx[k]] += lat * At->val[k]; \
+			for(int j = 0; j < 2; j++) {			\
+				if (j == 0) {				\
+					for(int i = 0; i < preopt->n; i++) { \
+						GMRFLib_idxval_tp *At = preopt->At_idxval[i]; \
+						double lat = latent[i];	\
+						for(int k = 0; k < At->n; k++) { \
+							pred[offset + At->idx[k]] += lat * At->val[k]; \
+						}			\
+					}				\
+				} else {				\
+					for(int i = 0; i < preopt->n; i++) { \
+						GMRFLib_idxval_tp *pAAt = preopt->pAAt_idxval[i]; \
+						double lat = latent[i];	\
+						for(int k = 0; k < pAAt->n; k++) { \
+							pred[pAAt->idx[k]] += lat * pAAt->val[k]; \
+						}			\
 					}				\
 				}					\
-			} else {					\
-				for(int i = 0; i < preopt->n; i++) {	\
-					GMRFLib_idxval_tp *pAAt = preopt->pAAt_idxval[i]; \
-					double lat = latent[i];		\
-					for(int k = 0; k < pAAt->n; k++) { \
-						pred[pAAt->idx[k]] += lat * pAAt->val[k]; \
-					}				\
-				}					\
-			}						\
+			}
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+#undef CODE_BLOCK
+		} else {
+			// one loop
+
+			for(int i = 0; i < preopt->n; i++) {			
+				GMRFLib_idxval_tp *At = preopt->At_idxval[i]; 
+				double lat = latent[i];		
+				for(int k = 0; k < At->n; k++) { 
+					pred[offset + At->idx[k]] += lat * At->val[k]; 
+				}				
+			}					
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
-#undef CODE_BLOCK
-	} else {
-		for(int i = 0; i < preopt->n; i++) {			
-			GMRFLib_idxval_tp *At = preopt->At_idxval[i]; 
-			double lat = latent[i];		
-			for(int k = 0; k < At->n; k++) { 
-				pred[offset + At->idx[k]] += lat * At->val[k]; 
-			}				
-		}					
-	}
+	} else {	
 
+		// not data-rich case
+		
+		if (preopt->pA_idxval) {
+			// both loops
+#define CODE_BLOCK							\
+			for(int j = 0; j < 2; j++) {			\
+				if (j == 0) {				\
+					for (int i = 0; i < preopt->npred; i++) { \
+						CODE_BLOCK_SET_THREAD_ID(); \
+						if (preopt->A_idxval[i]) { \
+							GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
+							DOT_PRODUCT_SERIAL(pred[offset + i], elm, latent); \
+						}			\
+					}				\
+				} else {				\
+					for (int i = 0; i < preopt->mpred; i++) { \
+						CODE_BLOCK_SET_THREAD_ID(); \
+						if (preopt->pA_idxval[i]) { \
+							GMRFLib_idxval_tp *elm = preopt->pA_idxval[i]; \
+							DOT_PRODUCT_SERIAL(pred[i], elm, (pred + offset)); \
+						}			\
+					}				\
+				}					\
+			}
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+#undef CODE_BLOCK
+		
+		} else {
+			// one loop
+#define CODE_BLOCK							\
+			for (int i = 0; i < preopt->npred; i++) {	\
+				CODE_BLOCK_SET_THREAD_ID();		\
+				if (preopt->A_idxval[i]) {		\
+					GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
+					DOT_PRODUCT_SERIAL(pred[offset + i], elm, latent); \
+				}					\
+			}
+			
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+#undef CODE_BLOCK
+		}
+	}
+	
 	if (likelihood_only) {
 		Memcpy(predictor, pred, preopt->Npred * sizeof(double));
 	} else {
