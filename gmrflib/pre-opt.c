@@ -947,8 +947,9 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	GMRFLib_ENTER_ROUTINE;
 
 	double *pred = Calloc(preopt->mnpred, double);
-
+	int data_rich_case = (IMAX(preopt->mpred, preopt->npred) > preopt->n);
 	int offset = 0;
+
 	if (preopt->pA_idxval) {
 		offset = preopt->mpred;
 		assert(preopt->mpred > 0);
@@ -956,9 +957,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		assert(preopt->mpred == 0);
 	}
 
-		
-	
-	if (IMAX(preopt->mpred, preopt->npred) > preopt->n) {
+	if (data_rich_case) {
 
 		// data-rich case
 		
@@ -966,6 +965,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// both loops
 #define CODE_BLOCK							\
 			for(int j = 0; j < 2; j++) {			\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				if (j == 0) {				\
 					for(int i = 0; i < preopt->n; i++) { \
 						GMRFLib_idxval_tp *At = preopt->At_idxval[i]; \
@@ -1007,6 +1007,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// both loops
 #define CODE_BLOCK							\
 			for(int j = 0; j < 2; j++) {			\
+				CODE_BLOCK_SET_THREAD_ID();		\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->npred; i++) { \
 						CODE_BLOCK_SET_THREAD_ID(); \
@@ -1128,7 +1129,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	int offset = mpred;
 	int compute_mean = (mean ? 1 : 0);
 	int compute_variance = (variance ? 1 : 0);
-
+	int data_rich_case = (IMAX(preopt->mpred, preopt->npred) > preopt->n);
 	double *mm = (optional_mean ? optional_mean : problem->sub_mean_constr);
 
 	if (compute_mean) {
@@ -1143,63 +1144,90 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		return GMRFLib_SUCCESS;
 	}
 
-	if (compute_mean && !compute_variance) {
+	if (preopt->pA) {
+		if (compute_mean && !compute_variance) {
+
+			// mean only
+			if (data_rich_case) {
+				for(int i = 0; i < preopt->n; i++){
+					GMRFLib_idxval_tp *pAAt = preopt->pAAt_idxval[i];
+					double lat = mm[i];
+					for(int k = 0; k < pAAt->n; k++) {
+						mean[pAAt->idx[k]] += lat * pAAt->val[k];
+					}
+				}
+			} else {
+#define CODE_BLOCK							\
+				for(int i = 0; i < mpred; i++) {	\
+					CODE_BLOCK_SET_THREAD_ID();	\
+					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
+					DOT_PRODUCT_SERIAL(mean[i], elm, mm); \
+				}
+
+				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+#undef CODE_BLOCK
+			}
+		} else {
+			// both mean and variance
 
 #define CODE_BLOCK							\
-		for(int i = 0; i < mpred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID();			\
-			GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-			DOT_PRODUCT_SERIAL(mean[i], elm, mm);		\
-		}
-
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
-#undef CODE_BLOCK
-
-	} else {
-
-#define CODE_BLOCK							\
-		for(int i = 0; i < mpred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID();			\
-			double var = 0.0, *cov;				\
-			int k, j, kk, jj;				\
-			GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-			for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\
-				j = elm->idx[k];			\
-				if (compute_mean) {			\
-					mean[i] += elm->val[k] * mm[j];	\
+			for(int i = 0; i < mpred; i++) {		\
+				CODE_BLOCK_SET_THREAD_ID();		\
+				double var = 0.0, *cov;			\
+				int k, j, kk, jj;			\
+				GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
+				for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\
+					j = elm->idx[k];		\
+					if (compute_mean) {		\
+						mean[i] += elm->val[k] * mm[j];	\
+					}				\
+					cov = GMRFLib_Qinv_get(problem, j, j); \
+					var += SQR(elm->val[k]) * *cov;	\
+					double tvar = 0.0;		\
+					for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
+						jj = elm->idx[kk];	\
+						cov = GMRFLib_Qinv_get(problem, j, jj);	\
+						tvar += elm->val[kk] * *cov; \
+					}				\
+					var += 2.0 * elm->val[k] * tvar; \
 				}					\
-				cov = GMRFLib_Qinv_get(problem, j, j);	\
-				var += SQR(elm->val[k]) * *cov;		\
-				double tvar = 0.0;			\
-				for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
-					jj = elm->idx[kk];		\
-					cov = GMRFLib_Qinv_get(problem, j, jj);	\
-					tvar += elm->val[kk] * *cov;	\
-				}					\
-				var += 2.0 * elm->val[k] * tvar;	\
-			}						\
-			variance[i] = var;				\
-		}
+				variance[i] = var;			\
+			}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
+		}
 	}
-
+	
 	int err_count = 0;
 	if (compute_mean && !compute_variance) {
+
+		// mean only
+		if (data_rich_case) {
+			for(int i = 0; i < preopt->n; i++){
+				GMRFLib_idxval_tp *At = preopt->At_idxval[i];
+				double lat = mm[i];
+				for(int k = 0; k < At->n; k++) {
+					mean[offset + At->idx[k]] += lat * At->val[k];
+				}
+			}
+		} else {
 #define CODE_BLOCK							\
-		for(int i = 0; i < npred; i++) {			\
-			CODE_BLOCK_SET_THREAD_ID();			\
-			GMRFLib_idxval_tp *elm = preopt->A_idxval[i];	\
-			for(int k = 0; k < preopt->A_idxval[i]->n; k++){ \
-				mean[offset + i] += elm->val[k] * mm[elm->idx[k]]; \
-			}						\
+			for(int i = 0; i < npred; i++) {		\
+				CODE_BLOCK_SET_THREAD_ID();		\
+				GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
+				for(int k = 0; k < preopt->A_idxval[i]->n; k++){ \
+					mean[offset + i] += elm->val[k] * mm[elm->idx[k]]; \
+				}					\
+			}
+
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+#undef CODE_BLOCK
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
-#undef CODE_BLOCK
 	} else {
 
+		// both mean and variance
 #define CODE_BLOCK							\
 		for(int i = 0; i < npred; i++) {			\
 			CODE_BLOCK_SET_THREAD_ID();			\
