@@ -1428,7 +1428,7 @@ forceinline int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char 
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
 		for (int i = 0; i < hold->n; i++) {
-			fprintf(fp, "\tstore[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
+			fprintf(fp, "\t(idx,val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
 		}
 	}
 	return GMRFLib_SUCCESS;
