@@ -33482,6 +33482,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	N = ntot;
 	Calloc_init(3 * N);
 
+	ntot += mb->predictor_m + mb->predictor_n;
 	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
 		if (mb->verbose) {
 			printf("\tStrategy = [DEFAULT]\n");
@@ -33497,7 +33498,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
-	GMRFLib_density_storage_strategy = storage_scheme;
+	GMRFLib_density_storage_strategy = (mb->strategy == GMRFLib_OPENMP_STRATEGY_HUGE || mb->strategy == GMRFLib_OPENMP_STRATEGY_LARGE ?
+					    GMRFLib_DENSITY_STORAGE_STRATEGY_LOW : GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH);
 	GMRFLib_openmp->strategy = mb->strategy;
 
 	b = Calloc_get(N);
