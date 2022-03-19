@@ -186,16 +186,6 @@ extern int *GMRFLib_ai_INLA_userfunc3_len;
 extern char **GMRFLib_ai_INLA_userfunc3_tag;
 
 /* 
-   switch for integration type (TRUE/FALSE)
- */
-extern int GMRFLib_faster_integration;
-
-/* 
-   number of subdivisions for fast_integration
- */
-extern int GMRFLib_faster_integration_np;
-
-/* 
    OpenMP spesifics.
  */
 extern int GMRFLib_thread_id;

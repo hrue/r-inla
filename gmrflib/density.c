@@ -503,7 +503,10 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	/*
 	 * initialize 'density': compute the mean, stdev and the norm_const (for the log spline fit) 
 	 */
-	int i, k, np = GMRFLib_faster_integration_np, npm = 3 * np - 2;
+	
+	int np = GMRFLib_INT_NUM_POINTS;
+	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL-1);
+	int i;
 	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL,
 		dx = 0.0, dxm = 0.0, m0, m1, m2, m3, x0, x1, d0, d1;
 
@@ -511,6 +514,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		return GMRFLib_SUCCESS;
 	}
 
+	GMRFLib_ENTER_ROUTINE;
+	
 	Calloc_init(4 * npm + 2 * np);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
@@ -545,6 +550,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	if (!(density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN || lookup_tables)) {
+		Calloc_free();
+		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -592,18 +599,35 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	ldm = Calloc_get(npm);
 	pm = Calloc_get(npm);
 
+	if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
 #pragma GCC unroll 8
-	for(i = 0; i < np-1; i++) {
-		xpm[3 * i + 0] = xp[i];
-		xpm[3 * i + 1] = (2.0 * xp[i] + xp[i+1])/3.0;
-		xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i+1])/3.0;
-		ldm[3 * i + 0] = ld[i];
-		ldm[3 * i + 1] = (2.0 * ld[i] + ld[i+1])/3.0;
-		ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i+1])/3.0;
+		for(i = 0; i < np-1; i++) {
+			xpm[3 * i + 0] = xp[i];
+			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i+1])/3.0;
+			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i+1])/3.0;
+			ldm[3 * i + 0] = ld[i];
+			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i+1])/3.0;
+			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i+1])/3.0;
+		}
+		xpm[3 * (np-2) + 3] = xp[np-1];
+		ldm[3 * (np-2) + 3] = ld[np-1];
+		assert(3 * (np-2) + 3 == npm-1);
+	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for(i = 0; i < np-1; i++) {
+			xpm[2 * i + 0] = xp[i];
+			xpm[2 * i + 1] = (xp[i] + xp[i+1])/2.0;
+			ldm[2 * i + 0] = ld[i];
+			ldm[2 * i + 1] = (ld[i] + ld[i+1])/2.0;
+		}
+		xpm[2 * (np-2) + 2] = xp[np-1];
+		ldm[2 * (np-2) + 2] = ld[np-1];
+		assert(2 * (np-2) + 2 == npm-1);
+	} else {
+		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 	}
-	xpm[3 * (np-2) + 3] = xp[np-1];
-	ldm[3 * (np-2) + 3] = ld[np-1];
 	
 	// convert scale
 	for(i = 0; i < npm; i++) {
@@ -666,7 +690,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	Calloc_free();
-
+	GMRFLib_LEAVE_ROUTINE;
+	
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_init_density_ORIG(GMRFLib_density_tp * density, int lookup_tables)
@@ -674,7 +699,7 @@ int GMRFLib_init_density_ORIG(GMRFLib_density_tp * density, int lookup_tables)
 	/*
 	 * initialize 'density': compute the mean, stdev and the norm_const (for the log spline fit) 
 	 */
-	int i, k, debug = 0, np = GMRFLib_faster_integration_np, npm = 2 * np;
+	int i, k, debug = 0, np =GMRFLib_INT_NUM_POINTS, npm = 2 * np;
 	double result = 0.0, error, tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
 	    NULL, *ldm = NULL, *xp = NULL, integral, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
 
@@ -714,7 +739,7 @@ int GMRFLib_init_density_ORIG(GMRFLib_density_tp * density, int lookup_tables)
 			P(dx);
 		}
 
-		if (GMRFLib_faster_integration) {
+		if (1) {
 			double ldmax, log_integral;
 			double w[2] = { 4.0, 2.0 };
 
@@ -907,7 +932,7 @@ int GMRFLib_init_density_ORIG(GMRFLib_density_tp * density, int lookup_tables)
 			GMRFLib_EWRAP0_GSL_PTR(density->P->spline = gsl_spline_alloc(gsl_interp_linear, (unsigned int) np));
 			GMRFLib_EWRAP0_GSL(gsl_spline_init(density->P->spline, xp, p, (unsigned int) np));
 
-			GMRFLib_unique_additive2(&np, p, xp, GMRFLib_eps(1. / 2.));
+
 			GMRFLib_EWRAP0_GSL_PTR(density->Pinv->accel = gsl_interp_accel_alloc());
 			GMRFLib_EWRAP0_GSL_PTR(density->Pinv->spline = gsl_spline_alloc(gsl_interp_linear, (unsigned int) np));
 			GMRFLib_EWRAP0_GSL(gsl_spline_init(density->Pinv->spline, p, xp, (unsigned int) np));
@@ -1153,7 +1178,9 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 		GMRFLib_ASSERT(density->Pinv, GMRFLib_ESNH);
 		if (density->Pinv->spline) {
 			*xp = gsl_spline_eval(density->Pinv->spline,
-					      TRUNCATE(p, density->Pinv->xmin, density->Pinv->xmax), 
+					      TRUNCATE(p,
+						       density->Pinv->spline->interp->xmin,
+						       density->Pinv->spline->interp->xmax), 
 					      density->Pinv->accel);
 		} else {
 			GMRFLib_ASSERT(density->Pinv->spline != NULL, GMRFLib_ESNH);
@@ -1498,7 +1525,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	 * make lookup_tables if LOOKUP_TABLES is TRUE
 	 */
 	int i, debug = 0;
-	double *xx = NULL, *ldens = NULL, g_mean, g_var;
+	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
 	GMRFLib_sn_param_tp sn_param;
 
 	Calloc_init(2 * n);
@@ -1509,10 +1536,16 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	Memcpy(ldens, logdens, (size_t) n * sizeof(double));
 
 	/*
-	 * sort xx and remove ties
+	 * sort xx and remove ties. that that we need to sort first. In most cases we do not
 	 */
-	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
-	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1. / 3.0));
+	int is_sorted = 1;
+	for(i = 1; i < n && is_sorted; i++) {
+		is_sorted = (xx[i] > xx[i-1]);
+	}
+	if (!is_sorted) {
+		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
+	}
+	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1.0 / 2.0));
 	GMRFLib_adjust_vector(ldens, n);
 
 	if (debug) {
@@ -1556,18 +1589,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
-
-			(*density)->log_correction = Calloc(1, GMRFLib_spline_tp);
-			(*density)->log_correction->accel = gsl_interp_accel_alloc();
-			(*density)->log_correction->spline = gsl_spline_alloc(GMRFLib_density_interp_type(n), (unsigned int) n);
-			gsl_spline_init((*density)->log_correction->spline, xx, ldens, (unsigned int) n);
+			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
 			GMRFLib_init_density(*density, lookup_tables);
-			/*
-			 * to be sure, we reset them here
-			 */
-			(*density)->x_min = (*density)->log_correction->spline->interp->xmin;
-			(*density)->x_max = (*density)->log_correction->spline->interp->xmax;
-
 			break;
 
 		default:
@@ -1902,9 +1925,11 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density)
+int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp * density)
 {
-	int use_many, m, i;
+	GMRFLib_ENTER_ROUTINE;
+	
+	int use_many;
 
 	if ((GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ||
 	     GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH)) {
@@ -1913,39 +1938,52 @@ int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * de
 		use_many = GMRFLib_FALSE;
 	}
 
-#define CODE if (1) {							\
-		*len_x = (sizeof(p) + sizeof(x_add)) / sizeof(double);	\
+#define CODE								\
+	if (1) {							\
+		int m;							\
+		*len_x = m = (sizeof(p) + sizeof(x_add)) / sizeof(double);	\
 		m = sizeof(p) / sizeof(double);				\
-		*x_vec = Calloc(*len_x, double);			\
-		for (i = 0; i < m; i++) {				\
-			GMRFLib_density_Pinv(&((*x_vec)[i]), p[i], density); \
+		if (x_vec) {						\
+			for (int i = 0; i < m; i++) {			\
+				GMRFLib_density_Pinv(&(x_vec[i]), p[i], density); \
+			}						\
+			for (int i = m; i < *len_x; i++) {			\
+				x_vec[i] = x_add[i - m];		\
+			}						\
+			qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp); \
 		}							\
-		for (i = m; i < *len_x; i++) {				\
-			(*x_vec)[i] = x_add[i - m];			\
+}
+	
+#define CODE_NO_ADD							\
+	if (1) {							\
+		*len_x = sizeof(p) / sizeof(double);			\
+		if (x_vec) {						\
+			for (int i = 0; i < *len_x; i++) {		\
+				GMRFLib_density_Pinv(&(x_vec[i]), p[i], density); \
+			}						\
 		}							\
-		qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp); \
-		GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5)); \
 	}
-
+	
 	if (use_many) {
-		double p[] = { 0.0000001, 0.000001, 0.00001, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
-			0.05, 0.075, 0.10, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.30, 0.325,
+		double p[] = { 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
+			0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 
 			0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49, 0.50, 0.51,
-			0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.675, 0.70, 0.725,
-			0.75, 0.775, 0.80, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 0.99, 0.995,
-			0.999, 0.9995, 0.9999, 0.99999, 0.999999, 0.9999999
+			0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.70, 
+			0.75, 0.80, 0.85, 0.9, 0.95, 0.975, 0.99, 0.995,
+			0.999, 0.9995, 0.9999
 		};
-		double x_add[] = { -10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0 };
-		CODE;
+		double x_add[] = { -5.0, -4.0, -3.0, 3.0, 4.0, 5.0};
+		CODE_NO_ADD;
 	} else {
 		double p[] = { 0.001, 0.01, 0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 0.35, 0.40, 0.45, 0.475, 0.50,
 			0.525, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.9, 0.95, 0.99, 0.999
 		};
-		double x_add[] = { -8.0, -5.0, -3.0, 3.0, 5.0, 8.0 };
-		CODE;
+		double x_add[] = {-5.0, 5.0};
+		CODE_NO_ADD;
 	}
 
 #undef CODE
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

@@ -184,15 +184,6 @@ int GMRFLib_ai_INLA_userfunc3_n = 0;
 int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
 
-/* 
-   use faster integration than GSL?
- */
-int GMRFLib_faster_integration = GMRFLib_TRUE;
-
-/* 
-   number of subdivisions of the faster integration
- */
-int GMRFLib_faster_integration_np = 50;
 
 /* 
    OpenMP spesifics

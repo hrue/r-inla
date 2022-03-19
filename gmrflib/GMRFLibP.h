@@ -431,6 +431,11 @@ typedef enum {
 		CODE_BLOCK_SET_THREAD_ID();				\
         }
 
+
+#define GMRFLib_INT_NUM_POINTS   (50)			       /* number of points for integration,... */
+#define GMRFLib_INT_NUM_INTERPOL  (2)			       /* ...which are then interpolated: use 2 or 3 */
+
+
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 
    Version 2.4 and later of GCC define a magical variable `__PRETTY_FUNCTION__' which contains the

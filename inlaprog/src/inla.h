@@ -1572,20 +1572,17 @@ typedef struct {
 #define D1W_IDX(idx_, off_, a_)				\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		assert((size_t)idx_ < _d_store_len);	\
 		_d_store[iidx_] = a_;			\
 	}
 #define D2W_IDX(idx_, off_, a_, b_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		assert((size_t)idx_ < _d_store_len);	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 	}				
 #define D3W_IDX(idx_, off_, a_, b_, c_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		assert((size_t)idx_ < _d_store_len);	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
@@ -1593,7 +1590,6 @@ typedef struct {
 #define D4W_IDX(idx_, off_, a_, b_, c_, d_)		\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		assert((size_t)idx_ < _d_store_len);	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
@@ -1602,7 +1598,6 @@ typedef struct {
 #define D5W_IDX(idx_, off_, a_, b_, c_, d_, e_)		\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		assert((size_t)idx_ < _d_store_len);	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\

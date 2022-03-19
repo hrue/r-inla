@@ -304,7 +304,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
-int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density);
+int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp * density);
 int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean);
 int GMRFLib_density_new_user_mean(GMRFLib_density_tp * density, double new_user_mean);
 int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_density_tp * density, double new_mean, double new_stdev);

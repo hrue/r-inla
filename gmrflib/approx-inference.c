@@ -4482,15 +4482,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 #pragma omp parallel for private(j) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (j = 0; j < compute_n; j++) {
-
 			int ii = compute_idx[j];
-			// fprintf(stderr, "thead %d ii %d\n", omp_get_thread_num(), ii);
 			GMRFLib_density_tp *dens_combine = NULL;
 			GMRFLib_density_combine(&dens_combine, dens_count, dens[ii], adj_weights);
 			if (density) {
 				(*density)[ii] = dens_combine;
-				// printf("ii %d mean before %g mean after %g\n", ii, dens[ii][0]->user_mean,
-				// dens_combine->user_mean);
 			}
 
 			if (tfunc && tfunc[ii]) {
@@ -7769,7 +7765,7 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 
 		return GMRFLib_SUCCESS;
 	} else {
-		int i, k, np = GMRFLib_faster_integration_np;
+		int i, k, np =GMRFLib_INT_NUM_POINTS;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, w[2] =
 		    { 4.0, 2.0 }, integral_one, integral, integral_p, integral_m;
 
@@ -9068,7 +9064,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	/*
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
-	int retval, compute_cpo = 1, i, k, np = GMRFLib_faster_integration_np;
+	int retval, compute_cpo = 1, i, k, np =GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
@@ -9158,7 +9154,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density,
 			       double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
-	int i, k, np = GMRFLib_faster_integration_np;
+	int i, k, np =GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *xpi3 = NULL, *xpi4 = NULL,
 	    *dens = NULL, integral2 = 0.0, integral3 = 0.0, integral4 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
@@ -9249,7 +9245,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	 */
 	double inla_compute_saturated_loglik();
 
-	int i, k, np = GMRFLib_faster_integration_np;
+	int i, k, np =GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, integral = 0.0, w[2] =
 	    { 4.0, 2.0 }, integral_one, logl_saturated;
 
