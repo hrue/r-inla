@@ -8377,41 +8377,6 @@ int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp
 	GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);		       /* never enter this function */
 	abort();
 
-	/*
-	 * OLD CODE THAT CAN ''FAIL'' FOR DESIGN REASONS 
-	 */
-
-	double *x, x_user, *ld, m, s;
-	int len_x, i;
-
-	if (!(density->P) || !(density->Pinv)) {
-		GMRFLib_init_density(density, GMRFLib_TRUE);
-	}
-	GMRFLib_density_layout_x(&x, &len_x, density);	       /* in the standarized scale */
-
-	ld = Calloc(len_x, double);
-	GMRFLib_evaluate_nlogdensity(ld, x, len_x, density);
-
-	m = func->func(density->std_mean, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov);
-	s = ABS(func->func(density->std_mean, GMRFLib_TRANSFORM_DFORWARD, func->arg, func->cov)) * density->std_stdev;
-	for (i = 0; i < len_x; i++) {
-		x_user = GMRFLib_density_std2user(x[i], density);
-		ld[i] -= log(ABS(func->func(x_user, GMRFLib_TRANSFORM_DFORWARD, func->arg, func->cov)));
-		x[i] = (func->func(x_user, GMRFLib_TRANSFORM_FORWARD, func->arg, func->cov) - m) / s;
-	}
-
-	GMRFLib_density_create(tdensity, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, len_x, x, ld, m, s, GMRFLib_FALSE);
-
-	if (0) {
-		printf("OLD\n");
-		GMRFLib_density_printf(stdout, density);
-		printf("NEW\n");
-		GMRFLib_density_printf(stdout, *tdensity);
-	}
-
-	Free(x);
-	Free(ld);
-
 	return GMRFLib_SUCCESS;
 }
 
