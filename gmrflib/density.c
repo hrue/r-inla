@@ -1357,12 +1357,20 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	 * make a new spline-corrected-gaussian density out of a weighted sum of densities and return this in DENSITY.  make a
 	 * new spline-corrected-gaussian density out of a weighted sum of gaussian densities and return this in GDENSITY.
 	 *
-	 * both DENSITY and GDENSITY is optional, either of them can be NULL.
-	 * 
 	 * \sum_{i=0}^{n-1} weights[i]*densities[i]
 	 * 
 	 * the weights need not to be scaled. 
 	 */
+
+	// this actually happens like for 'eb'
+	if (n == 1) {
+		FIXME1("Todo: add the two other types as well");
+		if ((*densities)->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
+			return GMRFLib_density_create_normal(density, (*densities)->mean, (*densities)->stdev, (*densities)->std_mean, (*densities)->std_stdev,
+							     ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+		}
+	}
+
 
 	int i, n_points = 30, np, np_max, nf, minp = 3;
 	double mean, stdev, *x_points = NULL,

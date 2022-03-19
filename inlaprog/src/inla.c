@@ -33472,7 +33472,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	/*
 	 * We need to determine the strategy if strategy is default 
 	 */
-	int storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 	int ntot = 0;
 
 	ntot = mb->nlinear;
@@ -35633,11 +35632,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->summary) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
-			FIXME("summary");
-			
 			Dinit_IDX(n, 3);
 			Dopen(nndir);
-
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				CODE_BLOCK_SET_THREAD_ID();		\
@@ -35669,12 +35665,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
-			FIXME("marginals");
-			printf("%s\n", ndir);
-			
 			int nn;
 			GMRFLib_density_layout_x(NULL, &nn, NULL);
-
 			Dinit_IDX(n, 2 + nn * 2);
 			Dopen(nndir);			
 #define CODE_BLOCK							\
@@ -35784,8 +35776,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->nquantiles) {
 		if (inla_computed(density, n)) {
 			double x_user;
-			
-			FIXME("quantiles");
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles.dat");
 			Dinit();
 			Dopen(nndir);
@@ -35830,7 +35820,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->mode) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
-			FIXME("mode");
 			Dinit();
 			Dopen(nndir);
 			for (i = 0; i < n; i++) {
@@ -35861,7 +35850,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->ncdf) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf.dat");
-			FIXME("cdf");
 			Dinit();
 			Dopen(nndir);
 			for (i = 0; i < n; i++) {
