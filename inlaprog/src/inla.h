@@ -1555,10 +1555,10 @@ typedef struct {
 /* 
    binary write macros. Faster to cache and write in bulk. See example number 63
  */
-#define Dinit_core(n_) size_t _d_store_len = n_; double  *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0
-#define Dinit()   Dinit_core(1048576L)
-#define Dinit_s() Dinit_core(1024L)
-#define Dopen(filename_) FILE *_fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
+#define Dinit_core(n_, g_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 32L, double); size_t _d_n = 0
+#define Dinit()   Dinit_core(1048576L, 1L)
+#define Dinit_s() Dinit_core(1024L, 1L)
+#define Dopen(filename_) FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
 #define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
 #define Dclose() if (_d_n && _fp) fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; if (_fp) fclose(_fp); _fp = NULL
 #define Dfree()  Free(_d_store)
@@ -1567,6 +1567,56 @@ typedef struct {
 #define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
 #define D4W(a_, b_, c_, d_)     _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
 #define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
+
+// with these, one have to KNOW...  no dynamic writing, just filling in the array
+#define D1W_IDX(idx_, off_, a_)				\
+	if (1) {					\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		assert((size_t)idx_ < _d_store_len);	\
+		_d_store[iidx_] = a_;			\
+	}
+#define D2W_IDX(idx_, off_, a_, b_)			\
+	if (1) {					\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		assert((size_t)idx_ < _d_store_len);	\
+		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 1]= b_;		\
+	}				
+#define D3W_IDX(idx_, off_, a_, b_, c_)			\
+	if (1) {					\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		assert((size_t)idx_ < _d_store_len);	\
+		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 1]= b_;		\
+		_d_store[iidx_ + 2]= c_;		\
+	}
+#define D4W_IDX(idx_, off_, a_, b_, c_, d_)		\
+	if (1) {					\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		assert((size_t)idx_ < _d_store_len);	\
+		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 1]= b_;		\
+		_d_store[iidx_ + 2]= c_;		\
+		_d_store[iidx_ + 3]= d_;		\
+	}
+#define D5W_IDX(idx_, off_, a_, b_, c_, d_, e_)		\
+	if (1) {					\
+		size_t iidx_ = (idx_) * _d_g + off_;	\
+		assert((size_t)idx_ < _d_store_len);	\
+		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 1]= b_;		\
+		_d_store[iidx_ + 2]= c_;		\
+		_d_store[iidx_ + 3]= d_;		\
+		_d_store[iidx_ + 4]= e_;		\
+	}
+#define Dclose_IDX()							\
+	if (_fp) {							\
+		fwrite((void*)_d_store, sizeof(double), _d_store_len * _d_g, _fp); \
+		fclose(_fp);						\
+		_fp = NULL;						\
+		assert(_d_n == 0);					\
+	}
+#define Dinit_IDX(n_, g_) Dinit_core(n_, g_)
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);

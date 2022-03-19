@@ -59,7 +59,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	Memcpy(yy, y, n * sizeof(double));
 
 	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
-	GMRFLib_unique_relative2(&nn, xx, yy, GMRFLib_eps(1. / 3.0));
+	GMRFLib_unique_relative2(&nn, xx, yy, GMRFLib_eps(1. / 2.0));
 
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
