@@ -3382,7 +3382,6 @@ double Qfunc_iid_wishart(int node, int nnode, double *UNUSED(values), void *arg)
 		if (debug) {
 			for (i = 0; i < n_theta; i++)
 				printf("vec[%1d] = %.12f\n", i, vec[i]);
-			FIXME("hold->Q");
 			GMRFLib_printf_gsl_matrix(stdout, hold->Q, " %.12f");
 		}
 
@@ -8829,9 +8828,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -26269,36 +26268,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
-		if (0) {
-			// this seems no longer needed; see the 'assert' above
-
-			FIXME("before");
-			for (k = 0; k < def->len_list; k++) {
-				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
-			}
-
-			// we need to revert the order of the list. pretty annoying...
-			GMRFLib_qsorts((void *) def->jlist, (size_t) def->len_list, sizeof(int), (void *) def->ilist, sizeof(int), NULL, 0,
-				       GMRFLib_icmp);
-			// now we need to sort within each value of jlist.
-			assert(def->jlist[0] == 0);
-			for (j = k = 0; j < graph->n; j++) {
-				for (jj = k; jj < def->len_list; jj++) {
-					if (def->jlist[jj] > j)
-						break;
-				}
-				qsort((void *) &def->ilist[k], (size_t) (jj - k), sizeof(int), GMRFLib_icmp);
-				k = jj;
-			}
-			assert(k == def->len_list);
-
-			FIXME("after");
-			for (k = 0; k < def->len_list; k++) {
-				printf("def k=%d i %d j %d\n", k, def->ilist[k], def->jlist[k]);
-				assert(def->ilist[k] <= def->jlist[k]);
-			}
-		}
-
 		def_orig->len_list = def->len_list;
 		def_orig->ilist = Calloc(def_orig->len_list, int);
 		def_orig->jlist = Calloc(def_orig->len_list, int);
@@ -34199,11 +34168,10 @@ int inla_output(inla_tp * mb)
 				   mb->f_graph[ii]->n, mb->f_nrep[ii] * mb->f_ngroup[ii], mb->f_output[ii],
 				   mb->f_dir[ii], mb->output->return_marginals,
 				   NULL, NULL, NULL, mb->f_tag[ii], mb->f_modelname[ii], local_verbose);
-		inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii],
-				 mb->f_ngroup[ii], mb->f_nrep[ii]);
+		inla_output_size(mb->dir, mb->f_dir[ii], mb->f_n[ii], mb->f_N[ii], mb->f_Ntotal[ii], mb->f_ngroup[ii], mb->f_nrep[ii]);
 		inla_output_id_names(mb->dir, mb->f_dir[ii], mb->f_id_names[ii]);
 	}
-	
+
 #pragma omp parallel for num_threads(GMRFLib_MAX_THREADS())
 	for (int k = 3; k < 9; k++) {
 		int ii;
@@ -35292,7 +35260,7 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 }
 
 forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
-			void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
+				    void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -35315,9 +35283,8 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 
 	int i;
 	int np = GMRFLib_INT_NUM_POINTS;
-	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL-1);
-	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, 
-		dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
+	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
+	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
 	if (!density) {
@@ -35347,35 +35314,35 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
 #pragma GCC unroll 8
-		for(i = 0; i < np-1; i++) {
+		for (i = 0; i < np - 1; i++) {
 			xpm[3 * i + 0] = xp[i];
-			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i+1])/3.0;
-			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i+1])/3.0;
+			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
+			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
 			ldm[3 * i + 0] = ld[i];
-			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i+1])/3.0;
-			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i+1])/3.0;
+			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
+			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
 		}
-		xpm[3 * (np-2) + 3] = xp[np-1];
-		ldm[3 * (np-2) + 3] = ld[np-1];
-		assert(3 * (np-2) + 3 == npm-1);
+		xpm[3 * (np - 2) + 3] = xp[np - 1];
+		ldm[3 * (np - 2) + 3] = ld[np - 1];
+		assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
 #pragma GCC unroll 8
-		for(i = 0; i < np-1; i++) {
+		for (i = 0; i < np - 1; i++) {
 			xpm[2 * i + 0] = xp[i];
-			xpm[2 * i + 1] = (xp[i] + xp[i+1])/2.0;
+			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
 			ldm[2 * i + 0] = ld[i];
-			ldm[2 * i + 1] = (ld[i] + ld[i+1])/2.0;
+			ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
 		}
-		xpm[2 * (np-2) + 2] = xp[np-1];
-		ldm[2 * (np-2) + 2] = ld[np-1];
-		assert(2 * (np-2) + 2 == npm-1);
+		xpm[2 * (np - 2) + 2] = xp[np - 1];
+		ldm[2 * (np - 2) + 2] = ld[np - 1];
+		assert(2 * (np - 2) + 2 == npm - 1);
 	} else {
 		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 	}
-	
+
 	// convert scale
-	for(i = 0; i < npm; i++) {
+	for (i = 0; i < npm; i++) {
 		ldm[i] = exp(ldm[i]);
 	}
 
@@ -35383,10 +35350,10 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	GMRFLib_density_std2user_n(xx, xpm, npm, density);
 #pragma GCC ivdep
 #pragma GCC unroll 8
-	for(i = 0; i < np-1; i++) {
+	for (i = 0; i < np - 1; i++) {
 		xx[i] = _MAP_X(xx[i]);
 	}
-	
+
 	// compute moments
 	d0 = ldm[0];
 	d1 = ldm[npm - 1];
@@ -35399,7 +35366,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 #pragma GCC ivdep
 #pragma GCC unroll 8
 	for (i = 1; i < npm - 1; i++) {
-		double d = ldm[i] * w[(i-1) % 2];
+		double d = ldm[i] * w[(i - 1) % 2];
 		double x = xpm[i];
 		double x2 = x * x;
 
@@ -35417,7 +35384,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	*d_mode = _MAP_X(density->user_mode);
 
 	Calloc_free();
-	
+
 #undef _MAP_X
 #undef _TRANSFORMED_LOGDENS
 
@@ -35426,7 +35393,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 }
 
 int inla_integrate_func_ORIG(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
-			void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
+			     void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -35451,7 +35418,7 @@ int inla_integrate_func_ORIG(double *d_mean, double *d_stdev, double *d_mode, GM
 				       (_logdens)))
 
 	int i, k, debug = 0;
-	int npm = 4 * GMRFLib_INT_NUM_POINTS; 
+	int npm = 4 * GMRFLib_INT_NUM_POINTS;
 	double dxx, d, xx_local, fval;
 	double w[2] = { 4.0, 2.0 };
 	double sum[3] = { 0.0, 0.0, 0.0 };
@@ -35573,16 +35540,16 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
 
 #define GMRFLib_MAX_THREADS_LOCAL() (n > 1024 ? GMRFLib_MAX_THREADS() : 1)
-	
+
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	double x, p = 0.0, xp;
 	double d_mean, d_stdev, *d_mode = NULL, *g_mode = NULL;
-	int i, j,  ndiv;
+	int i, j, ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
-	
+
 	assert(nrep > 0);
 	ndiv = n / nrep;
 	d_mode = Calloc(n, double);
@@ -35655,7 +35622,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
-			
+
 			Dclose_IDX();
 			Dfree();
 			Free(nndir);
@@ -35668,7 +35635,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 			int nn;
 			GMRFLib_density_layout_x(NULL, &nn, NULL);
 			Dinit_IDX(n, 2 + nn * 2);
-			Dopen(nndir);			
+			Dopen(nndir);
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				CODE_BLOCK_SET_THREAD_ID();		\
@@ -35721,7 +35688,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}				\
 				}					\
 			}
-			
+
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, nn);
 #undef CODE_BLOCK
 
@@ -35902,7 +35869,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 #undef GMRFLib_MAX_THREADS_LOCAL
 
 	GMRFLib_LEAVE_ROUTINE;
-	
+
 	return INLA_OK;
 }
 
@@ -38152,14 +38119,14 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 71: 
+	case 71:
 	{
 		const int n = 51;
 		double x[n];
 		double ld[n];
 
-		for(int i = 0; i < n; i++) {
-			x[i] = -5 + (double) i /(n-1.0) * 10;
+		for (int i = 0; i < n; i++) {
+			x[i] = -5 + (double) i / (n - 1.0) * 10;
 			ld[i] = (-0.5 * SQR(x[i]));
 		}
 
@@ -38170,7 +38137,7 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 72: 
+	case 72:
 	{
 		P(omp_get_num_threads());
 		P(omp_get_max_threads());
@@ -38178,7 +38145,47 @@ int testit(int argc, char **argv)
 		P(GMRFLib_OPENMP_IN_SERIAL());
 		break;
 	}
-		
+
+	case 73:
+	{
+		const int n = 51;
+		double x[n];
+		double ld[n];
+
+		for (int i = 0; i < n; i++) {
+			x[i] = (double) i / (n - 1.0) * 10;
+			ld[i] = -0.5 * SQR(x[i]);
+		}
+
+		GMRFLib_density_tp *dens = NULL;
+		GMRFLib_density_tp *dens_dup = NULL;
+		GMRFLib_sn_param_tp sn_par = { 0., 1.0, 0.4 };
+
+		GMRFLib_density_create_sn(&dens, sn_par, 1.1, 2.2, 1);
+		FIXME("SN");
+		GMRFLib_density_printf(stdout, dens);
+		GMRFLib_density_duplicate(&dens_dup, dens);
+		FIXME("SN dup");
+		GMRFLib_density_printf(stdout, dens_dup);
+
+		GMRFLib_free_density(dens);
+		GMRFLib_free_density(dens_dup);
+
+		GMRFLib_density_create(&dens, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, 0.0, 1.0, 1);
+		FIXME("SC Gaussian");
+		GMRFLib_density_duplicate(&dens_dup, dens);
+		GMRFLib_density_printf(stdout, dens);
+		FIXME("SC Gaussian dup");
+		GMRFLib_density_printf(stdout, dens_dup);
+
+		GMRFLib_free_density(dens);
+		GMRFLib_free_density(dens_dup);
+
+		break;
+	}
+
+
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

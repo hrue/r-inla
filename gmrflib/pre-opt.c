@@ -960,7 +960,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	if (data_rich_case) {
 
 		// data-rich case
-		
+
 		if (preopt->pA_idxval) {
 			// both loops
 #define CODE_BLOCK							\
@@ -990,19 +990,19 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 		} else {
 			// one loop
 
-			for(int i = 0; i < preopt->n; i++) {			
-				GMRFLib_idxval_tp *At = preopt->At_idxval[i]; 
-				double lat = latent[i];		
-				for(int k = 0; k < At->n; k++) { 
-					pred[offset + At->idx[k]] += lat * At->val[k]; 
-				}				
-			}					
+			for (int i = 0; i < preopt->n; i++) {
+				GMRFLib_idxval_tp *At = preopt->At_idxval[i];
+				double lat = latent[i];
+				for (int k = 0; k < At->n; k++) {
+					pred[offset + At->idx[k]] += lat * At->val[k];
+				}
+			}
 		}
 
-	} else {	
+	} else {
 
 		// not data-rich case
-		
+
 		if (preopt->pA_idxval) {
 			// both loops
 #define CODE_BLOCK							\
@@ -1029,7 +1029,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
-		
+
 		} else {
 			// one loop
 #define CODE_BLOCK							\
@@ -1040,12 +1040,12 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 					DOT_PRODUCT_SERIAL(pred[offset + i], elm, latent); \
 				}					\
 			}
-			
+
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
 #undef CODE_BLOCK
 		}
 	}
-	
+
 	if (likelihood_only) {
 		Memcpy(predictor, pred, preopt->Npred * sizeof(double));
 	} else {
@@ -1149,10 +1149,10 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 
 			// mean only
 			if (data_rich_case) {
-				for(int i = 0; i < preopt->n; i++){
+				for (int i = 0; i < preopt->n; i++) {
 					GMRFLib_idxval_tp *pAAt = preopt->pAAt_idxval[i];
 					double lat = mm[i];
-					for(int k = 0; k < pAAt->n; k++) {
+					for (int k = 0; k < pAAt->n; k++) {
 						mean[pAAt->idx[k]] += lat * pAAt->val[k];
 					}
 				}
@@ -1198,16 +1198,16 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 #undef CODE_BLOCK
 		}
 	}
-	
+
 	int err_count = 0;
 	if (compute_mean && !compute_variance) {
 
 		// mean only
 		if (data_rich_case) {
-			for(int i = 0; i < preopt->n; i++){
+			for (int i = 0; i < preopt->n; i++) {
 				GMRFLib_idxval_tp *At = preopt->At_idxval[i];
 				double lat = mm[i];
-				for(int k = 0; k < At->n; k++) {
+				for (int k = 0; k < At->n; k++) {
 					mean[offset + At->idx[k]] += lat * At->val[k];
 				}
 			}

@@ -1579,7 +1579,7 @@ typedef struct {
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
-	}				
+	}
 #define D3W_IDX(idx_, off_, a_, b_, c_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
@@ -2000,7 +2000,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

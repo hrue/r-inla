@@ -7765,7 +7765,7 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 
 		return GMRFLib_SUCCESS;
 	} else {
-		int i, k, np =GMRFLib_INT_NUM_POINTS;
+		int i, k, np = GMRFLib_INT_NUM_POINTS;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, w[2] =
 		    { 4.0, 2.0 }, integral_one, integral, integral_p, integral_m;
 
@@ -8370,7 +8370,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func)
+int GMRFLib_transform_density(GMRFLib_density_tp ** UNUSED(tdensity), GMRFLib_density_tp * UNUSED(density),
+			      GMRFLib_transform_array_func_tp * UNUSED(func))
 {
 	fprintf(stderr,
 		"\n\n\nDISABLE THIS FEATURE FOR NOW, DO NOT KNOW HOW TO DO THIS WELL AT THE MOMENT. SINCE THE SCALE OF THE Xs CAN BE SO DIFFERENT, WE WILL NEED A NEW APPROACH OF HOW TO REPRESENT AND COMPUTE MIXTURES OF THESE DENSITIES.  SEE INFO ABOUT THIS AT: ISSUES\n\n.");
@@ -9029,7 +9030,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 	/*
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
-	int retval, compute_cpo = 1, i, k, np =GMRFLib_INT_NUM_POINTS;
+	int retval, compute_cpo = 1, i, k, np = GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
@@ -9119,7 +9120,7 @@ double GMRFLib_ai_cpopit_integrate(double *cpo, double *pit, int idx, GMRFLib_de
 double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density,
 			       double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec)
 {
-	int i, k, np =GMRFLib_INT_NUM_POINTS;
+	int i, k, np = GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *xpi3 = NULL, *xpi4 = NULL,
 	    *dens = NULL, integral2 = 0.0, integral3 = 0.0, integral4 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
@@ -9210,7 +9211,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	 */
 	double inla_compute_saturated_loglik();
 
-	int i, k, np =GMRFLib_INT_NUM_POINTS;
+	int i, k, np = GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, integral = 0.0, w[2] =
 	    { 4.0, 2.0 }, integral_one, logl_saturated;
 
