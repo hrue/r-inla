@@ -1361,6 +1361,92 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	 * the weights need not to be scaled. 
 	 */
 
+	if (n == 0) {
+		if (density) {
+			*density = NULL;
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	// this actually happens like for 'eb' and is also how 'duplicate' is implemented
+	if (n == 1) {
+		if ((*densities)->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
+			return GMRFLib_density_create_normal(density, (*densities)->mean, (*densities)->stdev,
+							     (*densities)->std_mean, (*densities)->std_stdev,
+							     ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
+			return GMRFLib_density_create_sn(density, *((*densities)->sn_param),
+							 (*densities)->std_mean, (*densities)->std_stdev,
+							 ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
+			int m;
+			double *x = NULL, *ld = NULL;
+
+			GMRFLib_density_layout_x(NULL, &m, NULL);
+			x = Calloc(2 * m, double);
+			ld = x + m;
+			GMRFLib_density_layout_x(x, &m, *densities);
+			GMRFLib_evaluate_nlogdensity(ld, x, m, *densities);
+			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, m, x, ld,
+					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+			Free(x);
+			return GMRFLib_SUCCESS;
+		} else {
+			assert(0 == 1);
+		}
+	}
+
+	double mean, stdev, *ddens = NULL, *log_dens = NULL, *xx_real = NULL, m1, m2, sum_w;
+	double xx[] = {-5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, -0.125, 0.0, 
+		0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0};
+	int nx = sizeof(xx) / sizeof(double);
+
+	/*
+	 * compute the mean and variance in the user-scale 
+	 */
+	m1 = m2 = sum_w = 0.0;
+	for (int i = 0; i < n; i++) {
+		m1 += weights[i] * densities[i]->user_mean;
+		m2 += weights[i] * (SQR(densities[i]->user_stdev) + SQR(densities[i]->user_mean));
+		sum_w += weights[i];
+	}
+	mean = m1 / sum_w;
+	stdev = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean)));
+
+	Calloc_init(3 * nx);
+
+	/*
+	 * compute the weighted density. note that we have to go through the user/real-scale to get this right 
+	 */
+	log_dens = Calloc_get(nx);
+	xx_real = Calloc_get(nx);
+	ddens = Calloc_get(nx);
+	for (int i = 0; i < nx; i++) {
+		xx_real[i] = xx[i] * stdev + mean;
+	}
+
+	GMRFLib_evaluate_ndensities(ddens, n, xx_real, nx, densities, weights);
+	for (int i = 0; i < nx; i++) {
+		log_dens[i] = (ddens[i] > 0.0 ? log(ddens[i]) : -FLT_MAX);
+	}
+	GMRFLib_adjust_vector(log_dens, nx);
+	GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
+
+	Calloc_free();
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_density_combine_ORIG(GMRFLib_density_tp ** density, int n, GMRFLib_density_tp ** densities, double *weights)
+{
+	/*
+	 * make a new spline-corrected-gaussian density out of a weighted sum of densities and return this in DENSITY.  make a
+	 * new spline-corrected-gaussian density out of a weighted sum of gaussian densities and return this in GDENSITY.
+	 *
+	 * \sum_{i=0}^{n-1} weights[i]*densities[i]
+	 * 
+	 * the weights need not to be scaled. 
+	 */
+
 	// this actually happens like for 'eb'
 	if (n == 1) {
 		if ((*densities)->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
