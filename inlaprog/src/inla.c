@@ -35350,7 +35350,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	GMRFLib_density_std2user_n(xx, xpm, npm, density);
 #pragma GCC ivdep
 #pragma GCC unroll 8
-	for (i = 0; i < np - 1; i++) {
+	for (i = 0; i < npm - 1; i++) {
 		xx[i] = _MAP_X(xx[i]);
 	}
 
@@ -35367,7 +35367,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 #pragma GCC unroll 8
 	for (i = 1; i < npm - 1; i++) {
 		double d = ldm[i] * w[(i - 1) % 2];
-		double x = xpm[i];
+		double x = xx[i];
 		double x2 = x * x;
 
 		m0 += d;
@@ -35380,7 +35380,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	*d_mean = m1;
 	*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
-	FIXME1("\n\n\n FIX BETTER d_mode LATER!\n\n");
+	FIXME1(" *** FIX BETTER d_mode LATER! ***");
 	*d_mode = _MAP_X(density->user_mode);
 
 	Calloc_free();
@@ -38184,6 +38184,21 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 74: 
+	{
+		double x[100];
+		double *p, *pp;
+
+		p = &x[0];
+		pp = &x[10];
+		P(OVERLAP(p, pp, 5));
+		P(OVERLAP(p, pp, 9));
+		P(OVERLAP(p, pp, 10));
+		P(OVERLAP(p, pp, 11));
+		P(OVERLAP(p, pp, 15));
+		break;
+	}
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

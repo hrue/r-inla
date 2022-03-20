@@ -356,7 +356,7 @@ typedef enum {
 #define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
+#define PP(msg,pt)  if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
 #define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
@@ -371,6 +371,7 @@ typedef enum {
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
+#define OVERLAP(p_, pp_, n_) (!(((pp_) + n_ - 1 <  (p_)) || ((p_) + n_ - 1 <  (pp_))))
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
