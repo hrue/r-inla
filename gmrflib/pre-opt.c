@@ -41,8 +41,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define GMRFLib_MAX_THREADS_LOCAL() GMRFLib_MAX_THREADS()
-
 int integer_one = 1;
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
 
@@ -303,7 +301,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	} else {
 		nt = GMRFLib_openmp->max_threads_outer;
 	}
-	nt = IMIN(GMRFLib_MAX_THREADS_LOCAL(), nt);
+	nt = IMIN(GMRFLib_MAX_THREADS(), nt);
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);
 #pragma omp parallel for num_threads(nt)
@@ -891,7 +889,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		}						\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -922,7 +920,7 @@ int GMRFLib_preopt_bnew_like_ORIG(double *bnew, double *blike, GMRFLib_preopt_tp
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -985,7 +983,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		} else {
 			// one loop
@@ -1027,7 +1025,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		} else {
@@ -1041,7 +1039,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
 	}
@@ -1086,7 +1084,7 @@ int GMRFLib_preopt_predictor_core_ORIG(double *predictor, double *latent, GMRFLi
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 	if (preopt->mpred) {
@@ -1101,7 +1099,7 @@ int GMRFLib_preopt_predictor_core_ORIG(double *predictor, double *latent, GMRFLi
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -1164,7 +1162,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					DOT_PRODUCT_SERIAL(mean[i], elm, mm); \
 				}
 
-				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 			}
 		} else {
@@ -1194,7 +1192,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				variance[i] = var;			\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
 	}
@@ -1221,7 +1219,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
 
@@ -1256,7 +1254,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			variance[offset + i] = var;			\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -1308,7 +1306,7 @@ int GMRFLib_preopt_predictor_moments_ORIG(double *mean, double *variance, GMRFLi
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 	} else {
@@ -1337,7 +1335,7 @@ int GMRFLib_preopt_predictor_moments_ORIG(double *mean, double *variance, GMRFLi
 			variance[i] = var;				\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 	}
 
@@ -1352,7 +1350,7 @@ int GMRFLib_preopt_predictor_moments_ORIG(double *mean, double *variance, GMRFLi
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 	} else {
 
@@ -1384,7 +1382,7 @@ int GMRFLib_preopt_predictor_moments_ORIG(double *mean, double *variance, GMRFLi
 			variance[offset + i] = var;			\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 	}
 
