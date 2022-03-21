@@ -5605,10 +5605,11 @@ int loglikelihood_gaussian(double *logll, double *x, int m, int idx, double *UNU
 	LINK_INIT;
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
+			double off = OFFSET(idx);
 #pragma GCC ivdep
 #pragma GCC unroll 8
 			for (int i = 0; i < m; i++) {
-				double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
 			}
 		} else {
@@ -6803,10 +6804,11 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *UNUS
 	if (m > 0) {
 		double ylEmn = y * _logE(E) - normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
+			double off = OFFSET(idx);
 #pragma GCC ivdep
 #pragma GCC unroll 8
 			for (int i = 0; i < m; i++) {
-				double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 				logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
 			}
 		} else {
@@ -8233,10 +8235,11 @@ int loglikelihood_binomial(double *logll, double *x, int m, int idx, double *UNU
 		assert(status == GSL_SUCCESS);
 
 		if (PREDICTOR_LINK_EQ(link_logit)) {
+			double off = OFFSET(idx);
 #pragma GCC ivdep
 #pragma GCC unroll 8
 			for (int i = 0; i < m; i++) {
-				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 				double ee = exp(eta);
 				double log_1mp = -log1p(ee);
 				double log_p = -log1p(1.0 / ee);
