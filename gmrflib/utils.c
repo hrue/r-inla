@@ -826,6 +826,20 @@ int GMRFLib_memcheck_printf(FILE * fp)
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_normalize(int n, double *x) 
+{
+	// scale x so the sum is 1
+
+	double sum = 0.0;
+	for(int i = 0; i < n; i++) {
+		sum += x[i];
+	}
+	sum = 1.0 / sum;
+	for(int i = 0; i < n; i++) {
+		x[i] *= sum;
+	}
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_unique_relative(int *n, double *x, double eps)
 {
 	/*

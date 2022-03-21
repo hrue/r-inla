@@ -4484,14 +4484,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, dens_count, dens[ii], adj_weights);
+			GMRFLib_density_combine_ORIG(&dens_combine, dens_count, dens[ii], adj_weights);
 			if (density) {
 				(*density)[ii] = dens_combine;
 			}
 
 			if (tfunc && tfunc[ii]) {
 				GMRFLib_density_tp *dens_c = NULL;
-				GMRFLib_density_combine((density_transform ? &dens_c : NULL), dens_count, dens_transform[ii], adj_weights);
+				GMRFLib_density_combine_ORIG((density_transform ? &dens_c : NULL), dens_count, dens_transform[ii], adj_weights);
 				(*density_transform)[ii] = dens_c;
 			}
 		}
@@ -4509,7 +4509,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			for (k = 0; k < dens_count; k++) {
 				dtmp[k] = lin_dens[k][j];
 			}
-			GMRFLib_density_combine(&dcombine, dens_count, dtmp, adj_weights);
+			GMRFLib_density_combine_ORIG(&dcombine, dens_count, dtmp, adj_weights);
 			(*dlin)[j] = dcombine;
 		}
 		Free(dtmp);
@@ -6482,21 +6482,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 	}
 
-	/*
-	 * normalise the weights so they sum to 1.
-	 */
-	{
-		double sum = 0.0;
-
-		for (j = 0; j < dens_max; j++) {
-			sum += adj_weights[j];
-		}
-		sum = 1.0 / sum;
-		for (j = 0; j < dens_max; j++) {
-			adj_weights[j] *= sum;
-		}
-	}
-
+	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max);
+	
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
@@ -6505,17 +6492,17 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		if (ii < preopt->mnpred) {
 			i = ii;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, dens_max, lpred[i], adj_weights);
+			GMRFLib_density_combine(&dens_combine, lpred[i], probs);
 			(*density)[i] = dens_combine;
 		} else {
 			i = ii - preopt->mnpred;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, dens_max, dens[i], adj_weights);
+			GMRFLib_density_combine(&dens_combine, dens[i], probs);
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
 
 			if (tfunc && tfunc[i]) {
 				GMRFLib_density_tp *dens_c = NULL;
-				GMRFLib_density_combine(&dens_c, dens_max, dens_transform[i], adj_weights);
+				GMRFLib_density_combine(&dens_c, dens_transform[i], probs);
 				(*density_transform)[i] = dens_c;
 			}
 		}
@@ -6534,7 +6521,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (k = 0; k < dens_max; k++) {
 				dtmp[k] = lin_dens[k][j];
 			}
-			GMRFLib_density_combine(&dcombine, dens_max, dtmp, adj_weights);
+			GMRFLib_density_combine(&dcombine, dtmp, probs);
 			(*dlin)[j] = dcombine;
 		}
 		Free(dtmp);
@@ -6546,8 +6533,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 			for (i = 0; i < nlin; i++) {
 				for (j = i; j < nlin; j++) {
-					for (k = 0; k < dens_max; k++) {
-						ptmp[i + j * nlin] += adj_weights[k] * lin_cross[k][i + j * nlin];
+					for (int kk = 0; kk < probs->n; kk++) {
+						k = probs->idx[kk];
+						ptmp[i + j * nlin] += probs->val[kk] * lin_cross[k][i + j * nlin];
 					}
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
@@ -6583,30 +6571,31 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		for (j = 0; j < preopt->Npred; j++) {
 			double evalue = 0.0, evalue_one = 0.0;
 
-			for (int jj = 0; jj < dens_max; jj++) {
-				evalue_one += adj_weights[jj];
-			}
-
-			for (int jj = 0; jj < dens_max; jj++) {
-				evalue += gcpo_theta[jj][j]->value * adj_weights[jj];
+			evalue_one = 1.0;
+			for (int jjj = 0; jjj < probs->n; jjj++) {
+				int jj = probs->idx[jjj];
+				evalue += gcpo_theta[jj][j]->value * probs->val[jjj];
 			}
 			(*gcpo)->value[j] = evalue / evalue_one;
 
 			evalue = 0.0;
-			for (int jj = 0; jj < dens_max; jj++) {
-				evalue += gcpo_theta[jj][j]->kld * adj_weights[jj];
+			for (int jjj = 0; jjj < probs->n; jjj++) {
+				int jj = probs->idx[jjj];
+				evalue += gcpo_theta[jj][j]->kld * probs->val[jjj];
 			}
 			(*gcpo)->kld[j] = evalue / evalue_one;
 
 			evalue = 0.0;
-			for (int jj = 0; jj < dens_max; jj++) {
-				evalue += gcpo_theta[jj][j]->lpred_mean * adj_weights[jj];
+			for (int jjj = 0; jjj < probs->n; jjj++) {
+				int jj = probs->idx[jjj];
+				evalue += gcpo_theta[jj][j]->lpred_mean * probs->val[jjj];
 			}
 			(*gcpo)->mean[j] = evalue / evalue_one;
 
 			evalue = 0.0;
-			for (int jj = 0; jj < dens_max; jj++) {
-				evalue += (SQR(gcpo_theta[jj][j]->lpred_sd) + SQR(gcpo_theta[jj][j]->lpred_mean)) * adj_weights[jj];
+			for (int jjj = 0; jjj < probs->n; jjj++) {
+				int jj = probs->idx[jjj];
+				evalue += (SQR(gcpo_theta[jj][j]->lpred_sd) + SQR(gcpo_theta[jj][j]->lpred_mean)) * probs->val[jjj];
 			}
 			(*gcpo)->sd[j] = sqrt(DMAX(0.0, evalue / evalue_one - SQR((*gcpo)->mean[j])));
 		}
@@ -6616,37 +6605,39 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		double *Z = Calloc(preopt->Npred, double);
 
 		for (j = 0; j < preopt->Npred; j++) {
-			int jj, ii;
+			int jj, jjj, ii;
 			ii = j;
 			if (cpo_theta[ii]) {
-				for (jj = 0; jj < dens_max; jj++) {
+				for (jjj = 0; jjj < probs->n; jjj++) {
+					jj = probs->idx[jjj];
 					if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
-						Z[ii] += adj_weights[jj] / cpo_theta[ii][jj];
+						Z[ii] += probs->val[jjj] / cpo_theta[ii][jj];
 				}
 			}
 		}
 
 		for (j = 0; j < preopt->Npred; j++) {
-			int ii, jj;
-			double evalue, evalue2, evalue_one;
+			int ii, jj, jjj;
+			double evalue, evalue2, evalue_one = 1.0;
 
 			ii = j;
 			if (cpo_theta[ii]) {
 				(*cpo)->value[ii] = Calloc(1, double);
 
 				if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_USER_EXPERT) {
-					for (jj = 0, evalue = evalue_one = 0.0; jj < dens_max; jj++) {
+					for (jjj = 0, evalue = 0.0; jjj < probs->n; jjj++) {
+						jj = probs->idx[jjj];
 						if (!ISNAN(cpo_theta[ii][jj])) {
-							evalue += cpo_theta[ii][jj] * adj_weights[jj];
-							evalue_one += adj_weights[jj];
+							evalue += cpo_theta[ii][jj] * probs->val[jjj];
 						}
 					}
 				} else {
 					// here, we correct for adjusting pi(theta_j|y_{-i})
-					for (jj = 0, evalue = evalue_one = 0.0; jj < dens_max; jj++) {
+					for (jjj = 0, evalue = evalue_one = 0.0; jjj < probs->n; jjj++) {
+						jj = probs->idx[jjj];
 						if (!ISNAN(cpo_theta[ii][jj])) {
-							evalue += cpo_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-							evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+							evalue += cpo_theta[ii][jj] * probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
+							evalue_one += probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
 						}
 					}
 				}
@@ -6662,15 +6653,16 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			if (cpo_theta[ii]) {
 				(*cpo)->pit_value[ii] = Calloc(1, double);
 				(*cpo)->failure[ii] = Calloc(1, double);
-				for (jj = 0, evalue = evalue2 = evalue_one = 0.0; jj < dens_max; jj++) {
+				for (jjj = 0, evalue = evalue2 = evalue_one = 0.0; jjj < probs->n; jjj++) {
+					jj = probs->idx[jjj];
 					if (!ISNAN(cpo_theta[ii][jj])) {
-						evalue += pit_theta[ii][jj] * adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
-						evalue_one += adj_weights[jj] / cpo_theta[ii][jj] / Z[ii];
+						evalue += pit_theta[ii][jj] * probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
+						evalue_one += probs->val[jjj] / cpo_theta[ii][jj] / Z[ii];
 					}
 					/*
 					 * this is defined over the unadjusted weights 
 					 */
-					evalue2 += failure_theta[ii][jj] * adj_weights[jj];
+					evalue2 += failure_theta[ii][jj] * probs->val[jjj];
 				}
 				if (evalue_one) {
 					evalue = TRUNCATE(evalue / evalue_one, 0.0, 1.0);
@@ -6727,19 +6719,20 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	if (po) {
 		// including waic
 		for (j = 0; j < preopt->Npred; j++) {
-			int ii, jj;
+			int ii, jj, jjj;
 			double evalue, evalue2, evalue3, evalue_one;
 
 			ii = j;
 			if (po_theta[ii]) {
 				(*po)->value[ii] = Calloc(2, double);
 
-				for (jj = 0, evalue = evalue2 = evalue3 = evalue_one = 0.0; jj < dens_max; jj++) {
+				evalue_one = 1.0;
+				for (jjj = 0, evalue = evalue2 = evalue3 = 0.0; jjj < probs->n; jjj++) {
+					jj = probs->idx[jjj];
 					if (po_theta[ii][jj]) {
-						evalue += po_theta[ii][jj] * adj_weights[jj];
-						evalue2 += po2_theta[ii][jj] * adj_weights[jj];
-						evalue3 += po3_theta[ii][jj] * adj_weights[jj];
-						evalue_one += adj_weights[jj];
+						evalue += po_theta[ii][jj] * probs->val[jjj];
+						evalue2 += po2_theta[ii][jj] * probs->val[jjj];
+						evalue3 += po3_theta[ii][jj] * probs->val[jjj];
 					}
 				}
 				if (evalue_one) {
@@ -6784,12 +6777,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			double md, md_sat, dm, dm_sat, logl_saturated;
 			int ii = d_idx->idx[j];
 
-			int jj;
-			double evalue, sum, logll;
+			int jj, jjj;
+			double evalue, sum = 1.0, logll;
 
-			for (jj = 0, evalue = sum = 0.0; jj < dens_max; jj++) {
-				evalue += deviance_theta[ii][jj] * adj_weights[jj];
-				sum += adj_weights[jj];
+			for (jjj = 0, evalue = 0.0; jjj < probs->n; jjj++) {
+				jj = probs->idx[jjj];
+				evalue += deviance_theta[ii][jj] * probs->val[jjj];
 			}
 			md = evalue / sum;
 
@@ -6850,10 +6843,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		for (j = 0; j < dim; j++) {
 			double val = 0.0, wsum = 0.0, val2 = 0.0, mmean, vvar, ssd;
 
-			for (i = 0; i < dens_max; i++) {
-				wsum += adj_weights[i];
-				val += adj_weights[i] * userfunc_values[i][j];
-				val2 += adj_weights[i] * SQR(userfunc_values[i][j]);
+			for (int ii = 0; ii < probs->n; ii++) {
+				i = probs->idx[ii];
+				wsum += probs->val[ii];
+				val += probs->val[ii] * userfunc_values[i][j];
+				val2 += probs->val[ii] * SQR(userfunc_values[i][j]);
 			}
 
 			mmean = val / wsum;
@@ -6963,7 +6957,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 
 			if (nhyper > 0) {
-				for (k = 0; k < dens_max; k++) {
+				for (int kkk = 0; kkk < probs->n; kkk++) {
+					k = probs->idx[kkk];
 					int kk;
 
 					GMRFLib_ai_z2theta(theta_tmp, nhyper, theta_mode, &(hyper_z[k * nhyper]), sqrt_eigen_values, eigen_vectors);
@@ -6972,7 +6967,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 							fprintf(ai_par->fp_hyperparam, " %.10g", theta_tmp[kk]);
 						}
 						fprintf(ai_par->fp_hyperparam, " %.10g %.10g\n", hyper_ldens[k] + log_dens_mode + log_jacobian,
-							adj_weights[k]);
+							probs->val[kkk]);
 					}
 				}
 			}
