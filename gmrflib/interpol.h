@@ -43,8 +43,19 @@ __BEGIN_DECLS
 /* 
  *
  */
+
+typedef enum
+{
+	GMRFLib_INTPOL_TRANS_NONE = 0,
+	GMRFLib_INTPOL_TRANS_P,
+	GMRFLib_INTPOL_TRANS_Pinv
+}
+	GMRFLib_intpol_transform_tp;
+	
+
 #define GMRFLib_SN_SKEWMAX (0.988)
-    typedef struct {
+typedef struct {
+	GMRFLib_intpol_transform_tp trans;
 	double xmin;
 	double xmax;
 	gsl_interp_accel *accel;
@@ -52,10 +63,13 @@ __BEGIN_DECLS
 } GMRFLib_spline_tp;
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n);
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans);
 GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M);
 double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s);
+double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s);
+double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s);
 int GMRFLib_spline_free(GMRFLib_spline_tp * s);
 
 __END_DECLS

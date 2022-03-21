@@ -1573,12 +1573,14 @@ typedef struct {
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
+		_d_n++;					\
 	}
 #define D2W_IDX(idx_, off_, a_, b_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
+		_d_n += 2;				\
 	}
 #define D3W_IDX(idx_, off_, a_, b_, c_)			\
 	if (1) {					\
@@ -1586,6 +1588,7 @@ typedef struct {
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
+		_d_n += 3;				\
 	}
 #define D4W_IDX(idx_, off_, a_, b_, c_, d_)		\
 	if (1) {					\
@@ -1594,6 +1597,7 @@ typedef struct {
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
+		_d_n += 4;				\
 	}
 #define D5W_IDX(idx_, off_, a_, b_, c_, d_, e_)		\
 	if (1) {					\
@@ -1603,13 +1607,17 @@ typedef struct {
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
 		_d_store[iidx_ + 4]= e_;		\
+		_d_n += 5;				\
 	}
 #define Dclose_IDX()							\
 	if (_fp) {							\
+		if (_d_n != _d_store_len * _d_g) {			\
+			printf("\n%s:%d: WRITE %zu elements to file, while N written is %zu\n\n", __FILE__, __LINE__, _d_store_len * _d_g, _d_n); \
+		}							\
 		fwrite((void*)_d_store, sizeof(double), _d_store_len * _d_g, _fp); \
 		fclose(_fp);						\
 		_fp = NULL;						\
-		assert(_d_n == 0);					\
+		if (0) assert(_d_n == _d_store_len * _d_g);		\
 	}
 #define Dinit_IDX(n_, g_) Dinit_core(n_, g_)
 

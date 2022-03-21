@@ -33502,7 +33502,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				// chose vb_f_enable_limit points for correction with random start
 				int len, k, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit);	/* integer division */
-				k = len / 2;		       /* integer division */
+				k = IMAX(1, len / 2);						/* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
@@ -33521,7 +33521,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 	mb->ai_par->vb_nodes = vb_nodes;
-
 	double tref = GMRFLib_cpu();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
@@ -35556,6 +35555,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 		       // 
 		       const char *tag, const char *modelname, int UNUSED(verbose))
 {
+	//printf("\n\nENTER WITH TAG= %s\n\n\n", tag);
+
 #define _FUNC (func ? func : NULL)
 #define _FUNC_ARG (func ? func_arg : NULL)
 #define _TFUNC(_idx) (tfunc ? tfunc[_idx] : NULL)
@@ -35670,7 +35671,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 			for (int i = 0; i < n; i++) {			\
 				CODE_BLOCK_SET_THREAD_ID();		\
 				int off = 0;				\
-				int nn = 0;				\
+				int nn = mm;				\
+				int nn_new;				\
 				double *x_user = CODE_BLOCK_WORK_PTR(0); \
 				double *dens = CODE_BLOCK_WORK_PTR(1); \
 				double *xx = CODE_BLOCK_WORK_PTR(2); \
@@ -35682,13 +35684,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					}				\
 					off++;				\
 									\
-					GMRFLib_density_layout_x(xx, &nn, density[i]);	\
+					GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
 					GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
 					GMRFLib_evaluate_ndensity(dens, xx, nn, density[i]);	\
-									\
 					D1W_IDX(i, off, nn);		\
 					off++;				\
-									\
 					if (plain) {			\
 						for (int ii = 0; ii < nn; ii++) { \
 							double dens_user = dens[ii] / density[i]->std_stdev; \
@@ -38227,6 +38227,37 @@ int testit(int argc, char **argv)
 		break;
 	}
 	
+	case 75: 
+	{
+		int n = 100, i;
+		double *x =  Calloc(n, double);
+		double *pp =  Calloc(n, double);
+		double xx, dx, p;
+		dx = 14.0/(n-1);
+		
+		i = 0;
+		for(xx = -7.0;  xx <= 7.0; xx += dx){
+			x[i] = xx;
+			pp[i] = inla_Phi(xx);
+			i++;
+		}
+
+		GMRFLib_spline_tp *P;
+		GMRFLib_spline_tp *Pinv;
+		
+		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P);
+		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv);
+
+		xx = 1.234;
+		P(xx);
+		P(inla_Phi(xx));
+		P(GMRFLib_spline_eval(xx, P));
+		p = 0.8913985479;
+		P(p);
+		P(GMRFLib_spline_eval(p, Pinv));
+
+		break;
+	}
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

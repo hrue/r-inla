@@ -121,10 +121,10 @@ typedef struct {
 
 #define STDOUT_TO_DEV_NULL_START(_silent)				\
 	int XX_silent = _silent;					\
-	int XX_stdoutBackupFd;						\
-	int XX_stderrBackupFd;						\
-        FILE *XX_nullOut;						\
-        FILE *XX_nullErr;						\
+	int XX_stdoutBackupFd = 0;					\
+	int XX_stderrBackupFd = 0;					\
+        FILE *XX_nullOut = NULL;					\
+        FILE *XX_nullErr = NULL;					\
 	if (XX_silent) {						\
 		XX_stdoutBackupFd = CROSS_DUP(STDOUT_FILENO);		\
 		XX_stderrBackupFd = CROSS_DUP(STDERR_FILENO);		\

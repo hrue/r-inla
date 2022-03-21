@@ -44,11 +44,18 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {
+	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE);
+}
+
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n,
+					 GMRFLib_intpol_transform_tp trans)
+{
 	/*
 	 * Return a spline interpolant for {(x,y)} 
 	 */
 	int nn = n;
 	double *xx = NULL, *yy = NULL;
+	double eps = GMRFLib_eps(0.5);
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
 	assert(n > 0);
@@ -58,9 +65,22 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	Memcpy(xx, x, n * sizeof(double));
 	Memcpy(yy, y, n * sizeof(double));
 
+	if (trans == GMRFLib_INTPOL_TRANS_P) {
+		for(int i = 0; i < n; i++) {
+			yy[i] = TRUNCATE(yy[i], eps, 1.0 - eps);
+			yy[i] = log(yy[i]/(1.0 - yy[i]));
+		}
+	} else if (trans == GMRFLib_INTPOL_TRANS_Pinv) {
+		for(int i = 0; i < n; i++) {
+			xx[i] = TRUNCATE(xx[i], eps, 1.0 - eps);
+			xx[i] = log(xx[i]/(1.0 - xx[i]));
+		}
+	}
+	
 	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
-	GMRFLib_unique_relative2(&nn, xx, yy, GMRFLib_eps(1. / 2.0));
+	GMRFLib_unique_relative2(&nn, xx, yy, eps);
 
+	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
 	s->accel = gsl_interp_accel_alloc();
@@ -94,18 +114,26 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	 */
 
 	int extrapolate = 1;
-	double val;
+	double xx, val;
+	double eps = GMRFLib_eps(0.5);
 
-	if (x < s->xmin || x > s->xmax) {
+	if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
+		xx = TRUNCATE(x, eps, 1.0-eps);
+		xx = log(xx/(1.0 - xx));
+	} else {
+		xx = x;
+	}
+	
+	if (xx < s->xmin || xx > s->xmax) {
 		if (extrapolate) {
 			// maybe I should put this into the GMRFLib_spline_tp as a parameter...
 			double deriv;
-			if (x > s->xmax) {
-				deriv = GMRFLib_spline_eval_deriv(s->xmax, s);
-				val = GMRFLib_spline_eval(s->xmax, s) + deriv * (x - s->xmax);
-			} else if (x < s->xmin) {
-				deriv = GMRFLib_spline_eval_deriv(s->xmin, s);
-				val = GMRFLib_spline_eval(s->xmin, s) + deriv * (x - s->xmin);
+			if (xx > s->xmax) {
+				deriv = GMRFLib_spline_eval_deriv_x(s->xmax, s);
+				val = GMRFLib_spline_eval(s->xmax, s) + deriv * (xx - s->xmax);
+			} else if (xx < s->xmin) {
+				deriv = GMRFLib_spline_eval_deriv_x(s->xmin, s);
+				val = GMRFLib_spline_eval(s->xmin, s) + deriv * (xx - s->xmin);
 			} else {
 				assert(0 == 1);
 			}
@@ -113,8 +141,12 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 			val = NAN;
 		}
 	} else {
-		val = gsl_spline_eval(s->spline, x, s->accel);
+		val = gsl_spline_eval(s->spline, xx, s->accel);
 	}
+
+	if (s->trans == GMRFLib_INTPOL_TRANS_P){
+		val = 1.0/(1.0 + exp(-val));
+	} 
 
 	return val;
 }
@@ -125,8 +157,8 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 	 * Evaluate the derivative of the spline 's' in point 'x' 
 	 */
 
+	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
 	double val;
-
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
@@ -142,14 +174,36 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 	 * Evaluate the 2.derivative of the spline 's' in point 'x' 
 	 */
 
+	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
 	double val;
-
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
 		val = gsl_spline_eval_deriv2(s->spline, x, s->accel);
 	}
 
+	return val;
+}
+
+double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
+{
+	double val;
+	if (x < s->xmin || x > s->xmax) {
+		val = NAN;
+	} else {
+		val = gsl_spline_eval_deriv(s->spline, x, s->accel);
+	}
+	return val;
+}
+
+double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s)
+{
+	double val;
+	if (x < s->xmin || x > s->xmax) {
+		val = NAN;
+	} else {
+		val = gsl_spline_eval_deriv2(s->spline, x, s->accel);
+	}
 	return val;
 }
 

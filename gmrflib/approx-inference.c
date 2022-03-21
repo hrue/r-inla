@@ -5079,7 +5079,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				fprintf(ai_par->fp_log,
 					"\tCompute the marginal for theta[%1d] to theta[%1d] using numerical integration...\n", 0, nhyper - 1);
 			}
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
+
 			for (k = 0; k < nhyper; k++) {
 				GMRFLib_ai_marginal_one_hyperparamter(&((*density_hyper)[k]), k, nhyper, hyper_count, hyper_z,
 								      hyper_ldens, theta_mode, sqrt_eigen_values, eigen_vectors,

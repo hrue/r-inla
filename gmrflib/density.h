@@ -245,7 +245,7 @@ typedef struct {
 	GMRFLib_spline_tp *Pinv;
 
 	GMRFLib_uchar flags;				       /* can set various flags */
-} GMRFLib_density_tp;
+}GMRFLib_density_tp;
 
 typedef enum {
 	DENSITY_FLAGS_FAILURE = 0
