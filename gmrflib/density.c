@@ -2110,6 +2110,7 @@ int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp * den
 		use_many = GMRFLib_TRUE;
 	} else {
 		use_many = GMRFLib_FALSE;
+		use_many = GMRFLib_TRUE;
 	}
 
 #define CODE								\

@@ -35276,6 +35276,14 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 
 		return GMRFLib_SUCCESS;
 	}
+
+	if (!density) {
+		*d_mean = NAN;
+		*d_stdev = NAN;
+		*d_mode = NAN;
+		return GMRFLib_SUCCESS;
+	}
+
 #define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
 			 (tfunc ? tfunc->func(_x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
 			  (_x_user)))
@@ -35290,104 +35298,127 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
-	if (!density) {
-		return GMRFLib_SUCCESS;
-	}
-
 	GMRFLib_ENTER_ROUTINE;
 
-	Calloc_init(3 * npm + 2 * np);
-	low = density->x_min;
-	high = density->x_max;
-	dx = (high - low) / (np - 1.0);
-	xp = Calloc_get(np);
-	ld = Calloc_get(np);
+	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
+		// then we can do better
 
+		int np = 11;
+		double *xp = NULL, *wp = NULL;
+		double mean = density->user_mean;
+		double stdev = density->user_stdev; 
+		
+		GMRFLib_ghq(&xp, &wp, np);
+
+		m1 = 0.0;
+		m2 = 0.0;
 #pragma GCC ivdep
 #pragma GCC unroll 8
-	for (xval = low, i = 0; i < np; xval += dx, i++) {
-		xp[i] = xval;
-	}
-	GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
-
-	// interpolate
-	xpm = Calloc_get(npm);
-	ldm = Calloc_get(npm);
-
-	if (GMRFLib_INT_NUM_INTERPOL == 3) {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for (i = 0; i < np - 1; i++) {
-			xpm[3 * i + 0] = xp[i];
-			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
-			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
-			ldm[3 * i + 0] = ld[i];
-			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
-			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
+		for(int i = 0; i < np; i++) {
+			double x = xp[i] * stdev + mean;
+			double f = _MAP_X(x);
+			m1 += wp[i] * f;
+			m2 += wp[i] * SQR(f);
 		}
-		xpm[3 * (np - 2) + 3] = xp[np - 1];
-		ldm[3 * (np - 2) + 3] = ld[np - 1];
-		assert(3 * (np - 2) + 3 == npm - 1);
-	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for (i = 0; i < np - 1; i++) {
-			xpm[2 * i + 0] = xp[i];
-			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
-			ldm[2 * i + 0] = ld[i];
-			ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
-		}
-		xpm[2 * (np - 2) + 2] = xp[np - 1];
-		ldm[2 * (np - 2) + 2] = ld[np - 1];
-		assert(2 * (np - 2) + 2 == npm - 1);
+		*d_mean = m1;
+		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
+
+		FIXME1(" *** FIX BETTER d_mode LATER! ***");
+		*d_mode = _MAP_X(mean);
 	} else {
-		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
-	}
-
-	// convert scale
-	for (i = 0; i < npm; i++) {
-		ldm[i] = exp(ldm[i]);
-	}
-
-	xx = Calloc_get(npm);
-	GMRFLib_density_std2user_n(xx, xpm, npm, density);
-#pragma GCC ivdep
-#pragma GCC unroll 8
-	for (i = 0; i < npm - 1; i++) {
-		xx[i] = _MAP_X(xx[i]);
-	}
-
-	// compute moments
-	d0 = ldm[0];
-	d1 = ldm[npm - 1];
-	x0 = xx[0];
-	x1 = xx[npm - 1];
-	m0 = d0 + d1;
-	m1 = x0 * d0 + x1 * d1;
-	m2 = SQR(x0) * d0 + SQR(x1) * d1;
+		Calloc_init(3 * npm + 2 * np);
+		low = density->x_min;
+		high = density->x_max;
+		dx = (high - low) / (np - 1.0);
+		xp = Calloc_get(np);
+		ld = Calloc_get(np);
 
 #pragma GCC ivdep
 #pragma GCC unroll 8
-	for (i = 1; i < npm - 1; i++) {
-		double d = ldm[i] * w[(i - 1) % 2];
-		double x = xx[i];
-		double x2 = x * x;
+		for (xval = low, i = 0; i < np; xval += dx, i++) {
+			xp[i] = xval;
+		}
+		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 
-		m0 += d;
-		m1 += x * d;
-		m2 += x2 * d;
+		// interpolate
+		xpm = Calloc_get(npm);
+		ldm = Calloc_get(npm);
+
+		if (GMRFLib_INT_NUM_INTERPOL == 3) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (i = 0; i < np - 1; i++) {
+				xpm[3 * i + 0] = xp[i];
+				xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
+				xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
+				ldm[3 * i + 0] = ld[i];
+				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
+				ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
+			}
+			xpm[3 * (np - 2) + 3] = xp[np - 1];
+			ldm[3 * (np - 2) + 3] = ld[np - 1];
+			assert(3 * (np - 2) + 3 == npm - 1);
+		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (i = 0; i < np - 1; i++) {
+				xpm[2 * i + 0] = xp[i];
+				xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
+				ldm[2 * i + 0] = ld[i];
+				ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
+			}
+			xpm[2 * (np - 2) + 2] = xp[np - 1];
+			ldm[2 * (np - 2) + 2] = ld[np - 1];
+			assert(2 * (np - 2) + 2 == npm - 1);
+		} else {
+			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
+		}
+
+		// convert scale
+		for (i = 0; i < npm; i++) {
+			ldm[i] = exp(ldm[i]);
+		}
+
+		xx = Calloc_get(npm);
+		GMRFLib_density_std2user_n(xx, xpm, npm, density);
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for (i = 0; i < npm - 1; i++) {
+			xx[i] = _MAP_X(xx[i]);
+		}
+
+		// compute moments
+		d0 = ldm[0];
+		d1 = ldm[npm - 1];
+		x0 = xx[0];
+		x1 = xx[npm - 1];
+		m0 = d0 + d1;
+		m1 = x0 * d0 + x1 * d1;
+		m2 = SQR(x0) * d0 + SQR(x1) * d1;
+
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for (i = 1; i < npm - 1; i++) {
+			double d = ldm[i] * w[(i - 1) % 2];
+			double x = xx[i];
+			double x2 = x * x;
+
+			m0 += d;
+			m1 += x * d;
+			m2 += x2 * d;
+		}
+		m1 /= m0;
+		m2 /= m0;
+
+		*d_mean = m1;
+		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
+
+		FIXME1(" *** FIX BETTER d_mode LATER! ***");
+		*d_mode = _MAP_X(density->user_mode);
+
+		Calloc_free();
 	}
-	m1 /= m0;
-	m2 /= m0;
-
-	*d_mean = m1;
-	*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
-
-	FIXME1(" *** FIX BETTER d_mode LATER! ***");
-	*d_mode = _MAP_X(density->user_mode);
-
-	Calloc_free();
-
+	
 #undef _MAP_X
 #undef _TRANSFORMED_LOGDENS
 
@@ -35548,7 +35579,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	double x, p = 0.0, xp;
-	double d_mean, d_stdev, *d_mode = NULL, *g_mode = NULL;
+	double *d_mode = NULL, *g_mode = NULL;
 	int i, j, ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
@@ -35607,12 +35638,13 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				CODE_BLOCK_SET_THREAD_ID();		\
+				double dm = 0.0, ds = 0.0;		\
 				if (density[i]) {			\
-					inla_integrate_func(&d_mean, &d_stdev, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
+					inla_integrate_func(&dm, &ds, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
 					if (locations) {		\
-						D3W_IDX(i, 0, locations[i % ndiv], d_mean, d_stdev); \
+						D3W_IDX(i, 0, locations[i % ndiv], dm, ds); \
 					} else {			\
-						D3W_IDX(i, 0, i, d_mean, d_stdev);	\
+						D3W_IDX(i, 0, i, dm, ds);	\
 					}				\
 				} else {				\
 					if (locations) {		\
@@ -35635,14 +35667,15 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
-			int nn;
-			GMRFLib_density_layout_x(NULL, &nn, NULL);
-			Dinit_IDX(n, 2 + nn * 2);
+			int mm = 0;
+			GMRFLib_density_layout_x(NULL, &mm, NULL);
+			Dinit_IDX(n, 2 + mm * 2);
 			Dopen(nndir);
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				CODE_BLOCK_SET_THREAD_ID();		\
 				int off = 0;				\
+				int nn = 0;				\
 				double *x_user = CODE_BLOCK_WORK_PTR(0); \
 				double *dens = CODE_BLOCK_WORK_PTR(1); \
 				double *xx = CODE_BLOCK_WORK_PTR(2); \
@@ -35663,15 +35696,13 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 									\
 					if (plain) {			\
 						for (int ii = 0; ii < nn; ii++) { \
-							double dens_user; \
-							dens_user = dens[ii] / density[i]->std_stdev; \
+							double dens_user = dens[ii] / density[i]->std_stdev; \
 							D2W_IDX(i, off, x_user[ii], dens_user); \
 							off += 2;	\
 						}			\
 					} else {			\
 						for (int ii = 0; ii < nn; ii++) { \
-							double dens_user; \
-							dens_user = dens[ii] / density[i]->std_stdev; \
+							double dens_user = dens[ii] / density[i]->std_stdev; \
 							D2W_IDX(i, off, _MAP_X(x_user[ii], i), _MAP_DENS(dens_user, x_user[ii], i)); \
 							off += 2;	\
 						}			\
@@ -35692,7 +35723,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, nn);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
 #undef CODE_BLOCK
 
 			Dclose_IDX();
