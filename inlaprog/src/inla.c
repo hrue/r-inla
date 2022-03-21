@@ -35303,7 +35303,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// then we can do better
 
-		int np = 11;
+		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = density->user_mean;
 		double stdev = density->user_stdev; 
@@ -35559,27 +35559,22 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 #define _FUNC (func ? func : NULL)
 #define _FUNC_ARG (func ? func_arg : NULL)
 #define _TFUNC(_idx) (tfunc ? tfunc[_idx] : NULL)
-
 #define _MAP_DENS(_dens, _x_user, _idx) (func ? (_dens)/(ABS(func(_x_user, MAP_DFORWARD, func_arg))) : \
 					(tfunc ? (_dens)/(ABS(tfunc[_idx]->func(_x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov))) : \
 					 (_dens)))
-
 #define _MAP_X(_x_user, _idx) (func ? func(_x_user, MAP_FORWARD, func_arg) : \
 			      (tfunc ? tfunc[_idx]->func(_x_user, GMRFLib_TRANSFORM_FORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov) : \
 			       (_x_user)))
-
 #define _MAP_INCREASING(_idx) (func ? func(0.0, MAP_INCREASING, func_arg) : \
 			      (tfunc ? tfunc[_idx]->func(0.0, GMRFLib_TRANSFORM_INCREASING, tfunc[_idx]->arg, tfunc[_idx]->cov) : 1))
-
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
-
 #define GMRFLib_MAX_THREADS_LOCAL() (n > 1024 ? GMRFLib_MAX_THREADS() : 1)
 
 	GMRFLib_ENTER_ROUTINE;
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	double x, p = 0.0, xp;
-	double *d_mode = NULL, *g_mode = NULL;
+	double *d_mode = NULL; 
 	int i, j, ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
@@ -35587,7 +35582,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	assert(nrep > 0);
 	ndiv = n / nrep;
 	d_mode = Calloc(n, double);
-	g_mode = Calloc(n, double);
 
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
@@ -35629,6 +35623,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 		fclose(fp);
 		Free(nndir);
 	}
+
 
 	if (output->summary) {
 		if (inla_computed(density, n)) {
@@ -35891,7 +35886,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	}
 
 	Free(d_mode);
-	Free(g_mode);
 
 #undef _MAP_DENS
 #undef _MAP_X
@@ -37208,7 +37202,7 @@ int testit(int argc, char **argv)
 #define FUN4(x) SQR(SQR(x))
 
 		double *xp, *wp, integral0 = 0, integral1 = 0, integral2 = 0, integral3 = 0, integral4 = 0.0;
-		int np = 11, i;
+		int np = GMRFLib_INT_GHQ_POINTS, i;
 		if (nargs) {
 			np = atoi(args[0]);
 		}

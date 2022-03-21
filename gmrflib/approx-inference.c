@@ -923,7 +923,8 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL,		\
 				*ld = NULL, *logcor = NULL, *x_user = NULL, _alpha=-1.0; \
-			int itry, flag, np, np_orig = 31, _debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
+			int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, \
+				_debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
 			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
 									\
 			Calloc_init(4*np_new);				\
@@ -7419,7 +7420,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	int n = preopt->n;
 	int N = IMAX(n, Npred);
 	int max_ng = -1;
-	const int np = 15;
+	const int np = GMRFLib_INT_GHQ_POINTS;
 	double zero = 0.0;
 
 	Calloc_init(mnpred);
@@ -7623,7 +7624,7 @@ int GMRFLib_compute_cpodens(GMRFLib_density_tp ** cpo_density, GMRFLib_density_t
 		return GMRFLib_SUCCESS;
 	}
 
-	int itry, flag, np, np_orig = 31, debug = 0, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
+	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, debug = 0, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
 	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, alpha = -1.0;
 	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
 
@@ -7723,7 +7724,7 @@ int GMRFLib_ai_vb_prepare(GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// life is simpler in this case
 
-		const int np = 11;
+		const int np = GMRFLib_INT_GHQ_POINTS;
 		int i;
 		double *x_user = NULL, *x_std = NULL, *loglik = NULL;
 		double m = density->user_mean;
@@ -9132,7 +9133,7 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 	}
 
 	if (po_density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		int np = 11;
+		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = po_density->user_mean;
 		double stdev = po_density->user_stdev;
@@ -9273,7 +9274,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	double integral = 0.0;
 	
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		int np = 11;
+		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = density->user_mean;
 		double stdev = density->user_stdev;
@@ -9582,7 +9583,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 		arg->dz = dz;
 		arg->interpolator = interpolator;
 
-		npoints = 71;
+		npoints = 51;
 		double theta_fixed, *x = NULL, *xx = NULL, *xxx = NULL;
 
 		GMRFLib_ghq_abscissas(&xx, npoints);
