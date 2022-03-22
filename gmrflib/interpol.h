@@ -43,15 +43,12 @@ __BEGIN_DECLS
 /* 
  *
  */
-
-typedef enum
-{
+    typedef enum {
 	GMRFLib_INTPOL_TRANS_NONE = 0,
 	GMRFLib_INTPOL_TRANS_P,
 	GMRFLib_INTPOL_TRANS_Pinv
-}
-	GMRFLib_intpol_transform_tp;
-	
+} GMRFLib_intpol_transform_tp;
+
 
 #define GMRFLib_SN_SKEWMAX (0.988)
 typedef struct {

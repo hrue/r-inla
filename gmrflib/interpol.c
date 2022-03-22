@@ -47,8 +47,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE);
 }
 
-GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n,
-					 GMRFLib_intpol_transform_tp trans)
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans)
 {
 	/*
 	 * Return a spline interpolant for {(x,y)} 
@@ -66,17 +65,17 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n,
 	Memcpy(yy, y, n * sizeof(double));
 
 	if (trans == GMRFLib_INTPOL_TRANS_P) {
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			yy[i] = TRUNCATE(yy[i], eps, 1.0 - eps);
-			yy[i] = log(yy[i]/(1.0 - yy[i]));
+			yy[i] = log(yy[i] / (1.0 - yy[i]));
 		}
 	} else if (trans == GMRFLib_INTPOL_TRANS_Pinv) {
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			xx[i] = TRUNCATE(xx[i], eps, 1.0 - eps);
-			xx[i] = log(xx[i]/(1.0 - xx[i]));
+			xx[i] = log(xx[i] / (1.0 - xx[i]));
 		}
 	}
-	
+
 	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
 	GMRFLib_unique_relative2(&nn, xx, yy, eps);
 
@@ -118,12 +117,12 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	double eps = GMRFLib_eps(0.5);
 
 	if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
-		xx = TRUNCATE(x, eps, 1.0-eps);
-		xx = log(xx/(1.0 - xx));
+		xx = TRUNCATE(x, eps, 1.0 - eps);
+		xx = log(xx / (1.0 - xx));
 	} else {
 		xx = x;
 	}
-	
+
 	if (xx < s->xmin || xx > s->xmax) {
 		if (extrapolate) {
 			// maybe I should put this into the GMRFLib_spline_tp as a parameter...
@@ -144,9 +143,9 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 		val = gsl_spline_eval(s->spline, xx, s->accel);
 	}
 
-	if (s->trans == GMRFLib_INTPOL_TRANS_P){
-		val = 1.0/(1.0 + exp(-val));
-	} 
+	if (s->trans == GMRFLib_INTPOL_TRANS_P) {
+		val = 1.0 / (1.0 + exp(-val));
+	}
 
 	return val;
 }
@@ -157,6 +156,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 	 * Evaluate the derivative of the spline 's' in point 'x' 
 	 */
 
+	// not yet implemented, I'm not sure I need this for P and Pinv
 	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
 	double val;
 	if (x < s->xmin || x > s->xmax) {
@@ -174,6 +174,7 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 	 * Evaluate the 2.derivative of the spline 's' in point 'x' 
 	 */
 
+	// not yet implemented, I'm not sure I need this for P and Pinv
 	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
 	double val;
 	if (x < s->xmin || x > s->xmax) {
@@ -187,6 +188,7 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 
 double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
 {
+	// this expert version do not check for 's->trans'
 	double val;
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
@@ -198,6 +200,7 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
 
 double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s)
 {
+	// this expert version do not check for 's->trans'
 	double val;
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;

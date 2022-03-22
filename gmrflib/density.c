@@ -93,7 +93,7 @@ forceinline int GMRFLib_sn_moments2par(GMRFLib_sn_param_tp * p, double *mean, do
 int GMRFLib_density_prune_weights_ORIG(int *n_idx, int *idx, double *weights, int n)
 {
 	// make a list of the largest scaled weights so that the cummulative sum is at least WEIGHT_PROB
-	
+
 	int i, debug = 0;
 	double w_sum = 0.0;
 	double *ww = Calloc(n, double);
@@ -130,7 +130,7 @@ int GMRFLib_density_prune_weights_ORIG(int *n_idx, int *idx, double *weights, in
 GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
 {
 	// return an idxval with some of the weights pruned off, so that the sum is at least WEIGHT_PROB
-	
+
 	size_t one = 1;
 	int nn;
 	double ww_sum = 0.0;
@@ -144,8 +144,8 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
 
 	ww_sum = 0;
 	nn = 0;
-	for(int i = 0; i < n; i++) {
-		if (ww_sum + ww[perm[i]] <  1.0 - WEIGHT_PROB) {
+	for (int i = 0; i < n; i++) {
+		if (ww_sum + ww[perm[i]] < 1.0 - WEIGHT_PROB) {
 			ww[perm[i]] = 0.0;
 		} else {
 			nn++;
@@ -154,10 +154,10 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
 	}
 	GMRFLib_normalize(n, ww);
 
-	GMRFLib_idxval_tp * idxval = NULL;
+	GMRFLib_idxval_tp *idxval = NULL;
 	GMRFLib_idxval_create_x(&idxval, nn);
-	
-	for(int i = 0; i < n; i++) {
+
+	for (int i = 0; i < n; i++) {
 		if (!ISZERO(ww[i])) {
 			GMRFLib_idxval_add(&idxval, i, ww[i]);
 		}
@@ -850,7 +850,7 @@ int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * densit
 int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp * density)
 {
 	int i;
-	
+
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
 	for (i = 0; i < n; i++) {
 		dens[i] = exp(dens[i]);
@@ -1024,7 +1024,7 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp *probs)
+int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs)
 {
 	/*
 	 * evaluate the density in ***USER SCALE*** at `x_user[j]', j=0...nx, where the density is given as a mixture
@@ -1066,43 +1066,43 @@ int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_de
 
 int GMRFLib_evaluate_ndensities_ORIG(double *dens, int nd, double *x_user, int nx, GMRFLib_density_tp ** densities, double *weights)
 {
-        /*
-         * evaluate the density in ***USER SCALE*** at `x_user[j]', j=0...nx, where the density is given as a mixture
-         * 
-         * \sum_{i=0}^{n-1} weights[i]*densities[i]
-         * 
-         * the weights need not to be scaled. 
-         */
-        int i, j, k, n_idx, *idx = NULL, n_alloc = IMAX(nd, nx);
-        double w_sum = 0.0, *d_tmp, *d = NULL, *x_std, *dp = NULL;
+	/*
+	 * evaluate the density in ***USER SCALE*** at `x_user[j]', j=0...nx, where the density is given as a mixture
+	 * 
+	 * \sum_{i=0}^{n-1} weights[i]*densities[i]
+	 * 
+	 * the weights need not to be scaled. 
+	 */
+	int i, j, k, n_idx, *idx = NULL, n_alloc = IMAX(nd, nx);
+	double w_sum = 0.0, *d_tmp, *d = NULL, *x_std, *dp = NULL;
 
-        Calloc_init(4 * n_alloc);
-        d = Calloc_get(n_alloc);
-        d_tmp = Calloc_get(n_alloc);
-        x_std = Calloc_get(n_alloc);
-        dp = Calloc_get(n_alloc);
-        idx = (int *) dp;
+	Calloc_init(4 * n_alloc);
+	d = Calloc_get(n_alloc);
+	d_tmp = Calloc_get(n_alloc);
+	x_std = Calloc_get(n_alloc);
+	dp = Calloc_get(n_alloc);
+	idx = (int *) dp;
 
-        GMRFLib_density_prune_weights_ORIG(&n_idx, idx, weights, nd);
+	GMRFLib_density_prune_weights_ORIG(&n_idx, idx, weights, nd);
 
-        for (k = 0; k < n_idx; k++) {
-                i = idx[k];
-                w_sum += weights[i];
+	for (k = 0; k < n_idx; k++) {
+		i = idx[k];
+		w_sum += weights[i];
 
-                GMRFLib_density_user2std_n(x_std, x_user, densities[i], nx);
-                GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
-                for (j = 0; j < nx; j++) {
-                        d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
-                }
-        }
+		GMRFLib_density_user2std_n(x_std, x_user, densities[i], nx);
+		GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
+		for (j = 0; j < nx; j++) {
+			d[j] += weights[i] * d_tmp[j] / densities[i]->std_stdev;
+		}
+	}
 
-        w_sum = 1.0 / w_sum;
-        for (j = 0; j < nx; j++) {
-                dens[j] = d[j] * w_sum;
-        }
+	w_sum = 1.0 / w_sum;
+	for (j = 0; j < nx; j++) {
+		dens[j] = d[j] * w_sum;
+	}
 
-        Calloc_free();
-        return GMRFLib_SUCCESS;
+	Calloc_free();
+	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights)
@@ -1159,7 +1159,7 @@ int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp *probs)
+int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs)
 {
 	/*
 	 * make a new spline-corrected-gaussian density out of a weighted sum of densities and return this in DENSITY.  make a
@@ -1181,7 +1181,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	}
 
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	// this actually happens like for 'eb' and is also how 'duplicate' is implemented
 	if (n == 1) {
 		if ((*densities)->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
@@ -1190,8 +1190,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 						      ((*densities)->P && (*densities)->Pinv ? 1 : 0));
 		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
 			GMRFLib_density_create_sn(density, *((*densities)->sn_param),
-						  (*densities)->std_mean, (*densities)->std_stdev,
-						  ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+						  (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
 		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 			int m;
 			double *x = NULL, *ld = NULL;
@@ -1212,8 +1211,9 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	}
 
 	double mean, stdev, *ddens = NULL, *log_dens = NULL, *xx_real = NULL, m1, m2, sum_w, p;
-	double xx[] = {-5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, -0.125, 0.0, 
-		0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0};
+	double xx[] = { -5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, -0.125, 0.0,
+		0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0
+	};
 	int nx = sizeof(xx) / sizeof(double);
 
 	/*
@@ -1249,7 +1249,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
 
 	Calloc_free();
-	
+
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -1265,7 +1265,7 @@ int GMRFLib_density_combine_ORIG(GMRFLib_density_tp ** density, int n, GMRFLib_d
 	 * the weights need not to be scaled. 
 	 */
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	int i, n_points = 30, np, np_max, nf, minp = 3;
 	double mean, stdev, *x_points = NULL,
 	    *log_dens = NULL, m1, m2, sum_w, *ptr = NULL,
@@ -1705,7 +1705,6 @@ int GMRFLib_kld_sym(double *kld_sym, GMRFLib_density_tp * density, GMRFLib_densi
 	 * compute the symmetric KLD distance between density and ddensity 
 	 */
 	double kld0, kld1;
-
 	GMRFLib_kld(&kld0, density, ddensity);
 	GMRFLib_kld(&kld1, ddensity, density);
 	*kld_sym = DMAX(0.0, (kld0 + kld1) / 2.0);
@@ -1716,7 +1715,6 @@ int GMRFLib_kld_sym(double *kld_sym, GMRFLib_density_tp * density, GMRFLib_densi
 int GMRFLib_mkld_sym(double *mkld_sym, GMRFLib_density_tp * density, GMRFLib_density_tp * ddensity)
 {
 	double mkld0, mkld1;
-
 	GMRFLib_mkld(&mkld0, density, ddensity);
 	GMRFLib_mkld(&mkld1, ddensity, density);
 	*mkld_sym = DMAX(0.0, (mkld0 + mkld1) / 2.0);
@@ -1731,9 +1729,7 @@ forceinline double GMRFLib_density_std2user(double x, GMRFLib_density_tp * densi
 
 forceinline double GMRFLib_density_std2user_n(double *x_user, double *x, int n, GMRFLib_density_tp * density)
 {
-	int i;
-
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		x_user[i] = density->std_mean + x[i] * density->std_stdev;
 	}
 	return GMRFLib_SUCCESS;
@@ -1747,10 +1743,9 @@ forceinline double GMRFLib_density_user2std(double x, GMRFLib_density_tp * densi
 forceinline int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n)
 {
 	// the vectorised version
-	int i;
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		x_std[i] = a * x[i] + b;
 	}
 	return GMRFLib_SUCCESS;
@@ -1839,7 +1834,7 @@ int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp * den
 	     GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH)) {
 		use_many = GMRFLib_TRUE;
 	} else {
-		//use_many = GMRFLib_FALSE;
+		// use_many = GMRFLib_FALSE;
 		use_many = GMRFLib_TRUE;
 	}
 

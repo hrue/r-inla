@@ -6483,7 +6483,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max);
-	
+
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
@@ -9116,7 +9116,7 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 {
 	double fail = 0.0;
 	double integral2 = 0.0, integral3 = 0.0, integral4 = 0.0;
-	
+
 	if (!po_density) {
 		if (po) {
 			*po = NAN;
@@ -9144,14 +9144,14 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 		double *x = Calloc_get(np);
 		double *ll = Calloc_get(np);
 		double *mask = Calloc_get(np);
-		
-		for(int i = 0; i < np; i++) {
+
+		for (int i = 0; i < np; i++) {
 			x[i] = mean + stdev * xp[i];
 		}
 		loglFunc(ll, x, np, idx, x_vec, NULL, loglFunc_arg);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
-		double limit = -0.5 * SQR(xp[0]); // prevent extreme values
-		for(int i = 0; i < np; i++) {
+		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
+		for (int i = 0; i < np; i++) {
 			if (ll[i] - dmax < limit) {
 				mask[i] = 0.0;
 				ll[i] = 0.0;
@@ -9163,16 +9163,15 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 		integral2 = 0.0;
 		integral3 = 0.0;
 		integral4 = 0.0;
-		for(int i = 0; i < np; i++) {
+		for (int i = 0; i < np; i++) {
 			integral2 += mask[i] * exp(ll[i]) * wp[i];
 			integral3 += ll[i] * wp[i];
 			integral4 += SQR(ll[i]) * wp[i];
 		}
 		Calloc_free();
 	} else {
-		int i, k; 
-		double low, dx, dxi, *xp = NULL, *xpi = NULL, 
-			*ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
+		int i, k;
+		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
 		int np = GMRFLib_INT_NUM_POINTS;
 		int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
@@ -9199,7 +9198,7 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 
 		double *dens = Calloc_get(npm);
 		double *llik = Calloc_get(npm);
-	
+
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
 #pragma GCC unroll 8
@@ -9230,9 +9229,9 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 		}
 
-		integral2 = exp(llik[0]) * dens[0] + exp(llik[npm-1]) * dens[npm-1];
-		integral3 = llik[0] * dens[0] + llik[npm-1] * dens[npm-1];
-		integral4 = SQR(llik[0]) * dens[0] + SQR(llik[npm-1]) * dens[npm-1];
+		integral2 = exp(llik[0]) * dens[0] + exp(llik[npm - 1]) * dens[npm - 1];
+		integral3 = llik[0] * dens[0] + llik[npm - 1] * dens[npm - 1];
+		integral4 = SQR(llik[0]) * dens[0] + SQR(llik[npm - 1]) * dens[npm - 1];
 		integral_one = dens[0] + dens[npm - 1];
 		for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
 			integral2 += w[k] * exp(llik[i]) * dens[i];
@@ -9240,7 +9239,7 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 			integral4 += w[k] * SQR(llik[i]) * dens[i];
 			integral_one += w[k] * dens[i];
 		}
-		
+
 		if (ISZERO(integral_one)) {
 			fail = 1.0;
 			integral2 = integral3 = integral4 = 0.0;
@@ -9251,17 +9250,17 @@ double GMRFLib_ai_po_integrate(double *po, double *po2, double *po3, int idx, GM
 		}
 		Calloc_free();
 	}
-	
 
-		if (po) {
-			*po = exp(d * log(DMAX(DBL_EPSILON, integral2)));
-		}
-		if (po2) {
-			*po2 = d * integral3;
-		}
-		if (po3) {
-			*po3 = SQR(d) * integral4;
-		}
+
+	if (po) {
+		*po = exp(d * log(DMAX(DBL_EPSILON, integral2)));
+	}
+	if (po2) {
+		*po2 = d * integral3;
+	}
+	if (po3) {
+		*po3 = SQR(d) * integral4;
+	}
 
 	return fail;
 }
@@ -9272,7 +9271,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	 * compute the integral of -2*loglikelihood * density(x), wrt x
 	 */
 	double integral = 0.0;
-	
+
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
@@ -9284,20 +9283,20 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		Calloc_init(2 * np);
 		double *x = Calloc_get(np);
 		double *ll = Calloc_get(np);
-		
-		for(int i = 0; i < np; i++) {
+
+		for (int i = 0; i < np; i++) {
 			x[i] = mean + stdev * xp[i];
 		}
 		loglFunc(ll, x, np, idx, x_vec, NULL, loglFunc_arg);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
-		double limit = -0.5 * SQR(xp[0]); // prevent extreme values
-		for(int i = 0; i < np; i++) {
+		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
+		for (int i = 0; i < np; i++) {
 			if (ll[i] - dmax < limit) {
 				ll[i] = 0.0;
 			}
 		}
 		integral = 0.0;
-		for(int i = 0; i < np; i++) {
+		for (int i = 0; i < np; i++) {
 			integral += ll[i] * wp[i];
 		}
 		integral = -2.0 * d * integral;
@@ -9305,7 +9304,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 	} else {
 		int i, k, np = GMRFLib_INT_NUM_POINTS;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, integral = 0.0, w[2] =
-			{ 4.0, 2.0 }, integral_one, logl_saturated;
+		    { 4.0, 2.0 }, integral_one, logl_saturated;
 
 		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
@@ -9343,7 +9342,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		}
 		llmax = GMRFLib_max_value(loglik, np, NULL);
 		for (i = 0; i < np; i++) {
-			loglik[i] = DMAX(loglik[i], llmax + logdlim);  /* 'logdlim' is negative */
+			loglik[i] = DMAX(loglik[i], llmax + logdlim);	/* 'logdlim' is negative */
 		}
 
 		integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];

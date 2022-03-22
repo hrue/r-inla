@@ -8831,9 +8831,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -33502,7 +33502,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				// chose vb_f_enable_limit points for correction with random start
 				int len, k, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit);	/* integer division */
-				k = IMAX(1, len / 2);						/* integer division */
+				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
@@ -35305,15 +35305,15 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = density->user_mean;
-		double stdev = density->user_stdev; 
-		
+		double stdev = density->user_stdev;
+
 		GMRFLib_ghq(&xp, &wp, np);
 
 		m1 = 0.0;
 		m2 = 0.0;
 #pragma GCC ivdep
 #pragma GCC unroll 8
-		for(int i = 0; i < np; i++) {
+		for (int i = 0; i < np; i++) {
 			double x = xp[i] * stdev + mean;
 			double f = _MAP_X(x);
 			m1 += wp[i] * f;
@@ -35417,7 +35417,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 
 		Calloc_free();
 	}
-	
+
 #undef _MAP_X
 #undef _TRANSFORMED_LOGDENS
 
@@ -35555,7 +35555,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 		       // 
 		       const char *tag, const char *modelname, int UNUSED(verbose))
 {
-	//printf("\n\nENTER WITH TAG= %s\n\n\n", tag);
+	// printf("\n\nENTER WITH TAG= %s\n\n\n", tag);
 
 #define _FUNC (func ? func : NULL)
 #define _FUNC_ARG (func ? func_arg : NULL)
@@ -35575,7 +35575,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	double x, p = 0.0, xp;
-	double *d_mode = NULL; 
+	double *d_mode = NULL;
 	int i, j, ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
@@ -38212,7 +38212,7 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 74: 
+	case 74:
 	{
 		double x[100];
 		double *p, *pp;
@@ -38226,17 +38226,17 @@ int testit(int argc, char **argv)
 		P(OVERLAP(p, pp, 15));
 		break;
 	}
-	
-	case 75: 
+
+	case 75:
 	{
 		int n = 100, i;
-		double *x =  Calloc(n, double);
-		double *pp =  Calloc(n, double);
+		double *x = Calloc(n, double);
+		double *pp = Calloc(n, double);
 		double xx, dx, p;
-		dx = 14.0/(n-1);
-		
+		dx = 14.0 / (n - 1);
+
 		i = 0;
-		for(xx = -7.0;  xx <= 7.0; xx += dx){
+		for (xx = -7.0; xx <= 7.0; xx += dx) {
 			x[i] = xx;
 			pp[i] = inla_Phi(xx);
 			i++;
@@ -38244,7 +38244,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_spline_tp *P;
 		GMRFLib_spline_tp *Pinv;
-		
+
 		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P);
 		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv);
 

@@ -245,7 +245,7 @@ typedef struct {
 	GMRFLib_spline_tp *Pinv;
 
 	GMRFLib_uchar flags;				       /* can set various flags */
-}GMRFLib_density_tp;
+} GMRFLib_density_tp;
 
 typedef enum {
 	DENSITY_FLAGS_FAILURE = 0
@@ -299,9 +299,10 @@ double GMRFLib_sn_mode(double skew);
 int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
-int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp *probs);
+int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs);
 int GMRFLib_density_combine_ORIG(GMRFLib_density_tp ** density, int n, GMRFLib_density_tp ** densities, double *weights);
-int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean,double std_stdev, int lookup_tables);
+int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean, double std_stdev,
+			   int lookup_tables);
 int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
@@ -316,7 +317,7 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * density);
 int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_evaluate_logdensity(double *logdens, double x, GMRFLib_density_tp * density);
-int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp *probs);
+int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs);
 int GMRFLib_evaluate_ndensities_ORIG(double *dens, int nd, double *x_user, int nx, GMRFLib_density_tp ** densities, double *weights);
 int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp * density);
 int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_density_tp * density);
