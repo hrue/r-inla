@@ -322,45 +322,13 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 	return -1;
 }
 
-double GMRFLib_eps2(void)
-{
-	static double eps2 = -1.0;
-	if (eps2 < 0.0) {
-		eps2 = GMRFLib_eps(0.5);
-	}
-	return (eps2);
-}
-
-double GMRFLib_eps1(void)
-{
-	static double eps1 = -1.0;
-	if (eps1 < 0.0) {
-		eps1 = GMRFLib_eps(1.0);
-	}
-	return (eps1);
-}
-
 double GMRFLib_eps(double power)
 {
 	/*
 	 * Return eps^power, where eps is the smalles number such that 1+eps != eps.  
-	 
-	 * i had to rewrite this due to compiler behaviour using `-ffast-math' and gcc version 4.1. it seems ok now. 
 	 */
 
-	static double eps = -1.0;
-	if (eps < 0.0) {
-		double val;
-
-		eps = 1.0;
-		val = 1.0 + eps;
-		while (val > 1.0) {
-			eps /= 2.0;
-			val = 1.0 + eps;
-		}
-		eps *= 2.0;
-	}
-	return (pow(eps, power));
+	return (pow(DBL_EPSILON, power));
 }
 
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc)

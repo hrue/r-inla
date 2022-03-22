@@ -804,24 +804,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		for (i = 0; i < n; i++) {
-			double xmax = density->log_correction->spline->interp->xmax, xmin = density->log_correction->spline->interp->xmin;
-
-			if (x[i] >= xmin && x[i] <= xmax) {
-				logdens[i] = gsl_spline_eval(density->log_correction->spline, x[i], density->log_correction->accel)
-				    - 0.5 * SQR(x[i]) - density->log_norm_const;
-			} else {
-				double diff, cor, f0;
-				if (x[i] >= xmax - DBL_EPSILON) {
-					f0 = gsl_spline_eval(density->log_correction->spline, xmax, density->log_correction->accel);
-					diff = gsl_spline_eval_deriv(density->log_correction->spline, xmax, density->log_correction->accel);
-					cor = f0 + DMIN(0.0, diff) * (x[i] - xmax);
-				} else {
-					f0 = gsl_spline_eval(density->log_correction->spline, xmin, density->log_correction->accel);
-					diff = gsl_spline_eval_deriv(density->log_correction->spline, xmin, density->log_correction->accel);
-					cor = f0 + DMAX(0.0, diff) * (x[i] - xmin);
-				}
-				logdens[i] = cor - 0.5 * SQR(x[i]) - density->log_norm_const;
-			}
+			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
 		}
 		break;
 	}

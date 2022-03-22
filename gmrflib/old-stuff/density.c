@@ -1,3 +1,33 @@
+	if (xx < s->xmin || xx > s->xmax) {
+		if (extrapolate) {
+			// maybe I should put this into the GMRFLib_spline_tp as a parameter...
+			double deriv;
+			if (xx > s->xmax) {
+				deriv = GMRFLib_spline_eval_deriv_x(s->xmax, s);
+				val = GMRFLib_spline_eval(s->xmax, s) + deriv * (xx - s->xmax);
+			} else if (xx < s->xmin) {
+				deriv = GMRFLib_spline_eval_deriv_x(s->xmin, s);
+				val = GMRFLib_spline_eval(s->xmin, s) + deriv * (xx - s->xmin);
+			} else {
+				assert(0 == 1);
+			}
+		} else {
+			val = NAN;
+		}
+	} else {
+
+
+
+
+
+
+
+
+
+
+
+
+
 int GMRFLib_init_density_ORIG(GMRFLib_density_tp * density, int lookup_tables)
 {
 	/*

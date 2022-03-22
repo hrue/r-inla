@@ -58,7 +58,7 @@ __BEGIN_DECLS
 // just to have a big and small number to use
 #include <gsl/gsl_machine.h>
 #define INLA_REAL_BIG   GSL_SQRT_FLT_MAX
-#define INLA_REAL_SMALL GMRFLib_eps2()
+#define INLA_REAL_SMALL FLT_EPSILON
 #define INLA_SIGN(_x) ((_x) >= 0.0 ? 1.0 : -1.0)
 #define INLA_SPECIAL_NUMBER (1048576.0)			       // 2^20
 #define INLA_IS_SPECIAL(_x) ISZERO( (_x) - INLA_SPECIAL_NUMBER)
@@ -1554,52 +1554,64 @@ typedef struct {
 
 /* 
    binary write macros. Faster to cache and write in bulk. See example number 63
+
+   First variant is not thread safe, second one is
  */
-#define Dinit_core(n_, g_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 32L, double); size_t _d_n = 0
-#define Dinit()   Dinit_core(1048576L, 1L)
-#define Dinit_s() Dinit_core(1024L, 1L)
-#define Dopen(filename_) FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
+#define Dinit_core(n_, filename_) size_t _d_store_len = n_; \
+	double *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0; \
+	FILE * _fp = fopen(filename_ , "wb"); if (!_fp) inla_error_open_file(filename_)
+
+#define Dinit(filename_)   Dinit_core(1048576L, filename_)
+#define Dinit_s(filename_) Dinit_core(1024L, filename_)
 #define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
-#define Dclose() if (_d_n && _fp) fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; if (_fp) fclose(_fp); _fp = NULL
-#define Dfree()  Free(_d_store)
+#define Dclose()							\
+	if (1) {							\
+		if (_d_n && _fp)					\
+			fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
+		if (_fp)						\
+			fclose(_fp);					\
+		_fp = NULL;						\
+		_d_n = 0;						\
+		Free(_d_store);						\
+	}
+
 #define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
 #define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
 #define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
 #define D4W(a_, b_, c_, d_)     _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; Dwrite()
 #define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
 
-// with these, one have to KNOW...  no dynamic writing, just filling in the array
-#define D1W_IDX(idx_, off_, a_)				\
+// thread-safe: with these, one have to KNOW... no dynamic writing, just filling in the array
+#define Dinit_r(n_, g_, filename_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 32L, double); \
+	FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
+
+#define D1W_r(idx_, off_, a_)				\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
-		_d_n++;					\
 	}
-#define D2W_IDX(idx_, off_, a_, b_)			\
+#define D2W_r(idx_, off_, a_, b_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
-		_d_n += 2;				\
 	}
-#define D3W_IDX(idx_, off_, a_, b_, c_)			\
+#define D3W_r(idx_, off_, a_, b_, c_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
-		_d_n += 3;				\
 	}
-#define D4W_IDX(idx_, off_, a_, b_, c_, d_)		\
+#define D4W_r(idx_, off_, a_, b_, c_, d_)		\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
-		_d_n += 4;				\
 	}
-#define D5W_IDX(idx_, off_, a_, b_, c_, d_, e_)		\
+#define D5W_r(idx_, off_, a_, b_, c_, d_, e_)		\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
 		_d_store[iidx_] = a_;			\
@@ -1607,19 +1619,15 @@ typedef struct {
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
 		_d_store[iidx_ + 4]= e_;		\
-		_d_n += 5;				\
 	}
-#define Dclose_IDX()							\
+#define Dclose_r()							\
 	if (_fp) {							\
-		if (_d_n != _d_store_len * _d_g) {			\
-			printf("\n%s:%d: WRITE %zu elements to file, while N written is %zu\n\n", __FILE__, __LINE__, _d_store_len * _d_g, _d_n); \
-		}							\
 		fwrite((void*)_d_store, sizeof(double), _d_store_len * _d_g, _fp); \
 		fclose(_fp);						\
 		_fp = NULL;						\
-		if (0) assert(_d_n == _d_store_len * _d_g);		\
+		_d_store_len = _d_g = 0;				\
+		Free(_d_store);						\
 	}
-#define Dinit_IDX(n_, g_) Dinit_core(n_, g_)
 
 GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr);
 GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr);

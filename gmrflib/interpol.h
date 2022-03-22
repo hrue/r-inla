@@ -55,7 +55,7 @@ typedef struct {
 	GMRFLib_intpol_transform_tp trans;
 	double xmin;
 	double xmax;
-	gsl_interp_accel *accel;
+	gsl_interp_accel **accel;
 	gsl_spline *spline;
 } GMRFLib_spline_tp;
 
