@@ -580,7 +580,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	/*
-	 * for convenience, here the mean and the stdev in the users scale 
+	 * the mean and the stdev in the users scale 
 	 */
 	density->user_mean = density->std_stdev * density->mean + density->std_mean;
 	density->user_stdev = density->std_stdev * density->stdev;
@@ -633,10 +633,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	} else if (idx_max == np - 1) {
 		x_max = xp[np - 1];
 	} else {
-		double *xx, *tld;
-
-		xx = xp + idx_max - 1;
-		tld = ld + idx_max - 1;
+		double * xx = xp + idx_max - 1;
+		double * tld = ld + idx_max - 1;
 		// see inla.c and 'inla_integrate_func'
 		x_max = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
 			 tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) /
@@ -1196,13 +1194,14 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 			double *x = NULL, *ld = NULL;
 
 			GMRFLib_density_layout_x(NULL, &m, NULL);
-			x = Calloc(2 * m, double);
-			ld = x + m;
+			Calloc_init(2 * m);
+			x = Calloc_get(m);
+			ld = Calloc_get(m);
 			GMRFLib_density_layout_x(x, &m, *densities);
 			GMRFLib_evaluate_nlogdensity(ld, x, m, *densities);
 			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, m, x, ld,
 					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
-			Free(x);
+			Calloc_free();
 		} else {
 			assert(0 == 1);
 		}
@@ -1230,14 +1229,14 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	mean = m1 / sum_w;
 	stdev = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean)));
 
-	Calloc_init(3 * nx);
+	Calloc_init(2 * nx);
 
 	/*
 	 * compute the weighted density. note that we have to go through the user/real-scale to get this right 
 	 */
-	log_dens = Calloc_get(nx);
 	xx_real = Calloc_get(nx);
 	ddens = Calloc_get(nx);
+	log_dens = ddens;				       /* same storage */
 	for (int i = 0; i < nx; i++) {
 		xx_real[i] = xx[i] * stdev + mean;
 	}
@@ -1377,7 +1376,7 @@ int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, do
 	(*density)->mean = mean;
 	(*density)->stdev = stdev;
 
-	GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
+	GMRFLib_init_density(*density, lookup_tables);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1397,7 +1396,7 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 	(*density)->sn_param = Calloc(1, GMRFLib_sn_param_tp);
 	Memcpy((void *) (*density)->sn_param, (const void *) &sn_param, sizeof(GMRFLib_sn_param_tp));
 
-	GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
+	GMRFLib_init_density(*density, lookup_tables);
 
 	return GMRFLib_SUCCESS;
 }

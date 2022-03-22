@@ -76,7 +76,14 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		}
 	}
 
-	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
+	// normally, 'xx' is sorted, but...
+	int is_sorted = 1;
+	for(int i = 1; i < n && is_sorted; i++) {
+		is_sorted = (xx[i] > xx[i-1]);
+	}
+	if (!is_sorted) {
+		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
+	}
 	GMRFLib_unique_relative2(&nn, xx, yy, eps);
 
 	s->trans = trans;

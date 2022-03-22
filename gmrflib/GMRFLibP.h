@@ -362,16 +362,20 @@ typedef enum {
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
-#define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
-#define ISZEROf(x) (gsl_fcmp(x, 0.0, FLT_EPSILON) == 0)
-#define ISZERO_x(x, eps) (gsl_fcmp(x, 0.0, eps) == 0)
-#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
-#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
-#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + n_ - 1 <  (p_)) || ((p_) + n_ - 1 <  (pp_))))
+
+
+// ``Note that x and y are compared to relative accuracy, so gsl_fcmp is not suitable for testing whether a value is approximately zero''. so we
+// make these tests relative to 1.0
+#define ISZERO(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
+#define ISZEROf(x) (gsl_fcmp(1.0 + (x), 1.0, FLT_EPSILON) == 0)
+#define ISZERO_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
+#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
+#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
+#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)

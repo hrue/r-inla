@@ -22,11 +22,11 @@
 ## !}
 ## !\author{Havard Rue \email{hrue@r-inla.org}}
 
-`inla.pardiso` <- function() {
-    stop("The use of the PARDISO library in R-INLA is no longer maintained.\n       Old license keys can be used until they expire.")
-}
+## `inla.pardiso` <- function() {
+##     stop("The use of the PARDISO library in R-INLA is no longer maintained.\n       Old license keys can be used until they expire.")
+## }
 
-`inla.pardiso.OLD` <- function() {
+`inla.pardiso` <- function() {
     browseURL("https://pardiso-project.org/r-inla/")
     cat(
         "\n\n",
@@ -70,7 +70,7 @@
         "Otherwise, your local license file will be used if its available.\n",
         "\n",
         "You can also request PARDISO explicitely with \n",
-        "     control.compute=list(openmp.strategy=\"pardiso\"), \n",
+        "     control.compute=list(smtp=\"pardiso\"), \n",
         "Nested parallelism, is controlled by the \"num.threads\" argument\n",
         "     num.threads=\"A:B\" \n",
         "with A threads in the outer layer and B threads in the inner.\n",
@@ -90,6 +90,7 @@
         "Havard Rue & Olaf Schenk\n",
         "May 2018\n",
         "Updated August 2020\n",
+        "Updated March 2022\n",
         "\n"
     )
 }
