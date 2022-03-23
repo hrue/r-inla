@@ -16,7 +16,7 @@
       \item Minor bug-fixes
       \item Fixed regression issue with \code{strategy="laplace"}
       which has been broken
-      from version \code{22.01.16} (ok in \code{22.01.25}).
+      from version \code{22.02.16} (ok in \code{22.01.25}).
       \item The value of \code{mode} in summary output is not longer computed
       for some densities (like for mixtures and non-linear
       transformation), as its pretty expensive to do so accurately.
