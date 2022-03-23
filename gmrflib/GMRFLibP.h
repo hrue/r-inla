@@ -356,21 +356,26 @@ typedef enum {
 #define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define PP(msg,pt) if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
+#define PP(msg,pt)  if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
 #define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
-#define ISZERO(x) (gsl_fcmp(x, 0.0, DBL_EPSILON) == 0)
-#define ISZEROf(x) (gsl_fcmp(x, 0.0, FLT_EPSILON) == 0)
-#define ISZERO_x(x, eps) (gsl_fcmp(x, 0.0, eps) == 0)
-#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
-#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
-#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
+#define OVERLAP(p_, pp_, n_) (!(((pp_) + n_ - 1 <  (p_)) || ((p_) + n_ - 1 <  (pp_))))
+
+
+// ``Note that x and y are compared to relative accuracy, so gsl_fcmp is not suitable for testing whether a value is approximately zero''. so we
+// make these tests relative to 1.0
+#define ISZERO(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
+#define ISZEROf(x) (gsl_fcmp(1.0 + (x), 1.0, FLT_EPSILON) == 0)
+#define ISZERO_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
+#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
+#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
+#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
@@ -430,6 +435,12 @@ typedef enum {
 		Free(work__);						\
 		CODE_BLOCK_SET_THREAD_ID();				\
         }
+
+
+#define GMRFLib_INT_NUM_POINTS   (60)			       /* number of points for integration,... */
+#define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
+#define GMRFLib_INT_GHQ_POINTS   (13)			       /* for the quadrature */
+
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
 

@@ -106,8 +106,6 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs);
 */
 int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename);
 int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L);
-size_t GMRFLib_L_sizeof_TAUCS(taucs_ccs_matrix * L);
-size_t GMRFLib_sm_fact_sizeof_TAUCS(supernodal_factor_matrix * L);
 size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L);
 
 __END_DECLS

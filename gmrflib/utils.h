@@ -80,15 +80,16 @@ typedef struct {
 } GMRFLib_val_tp;
 
 typedef struct {
-	int idx;
-	double val;
-} GMRFLib_idxval_elm_tp;
-
-typedef struct {
 	int n;
 	int n_alloc;
 	int iaddto;
-	GMRFLib_idxval_elm_tp *store;
+	int *idx;
+
+	int g_n;					       /* number of groups with sequential indices */
+	int *g_len;					       /* their length */
+	int *g_i;					       /* and their starting index */
+
+	double *val;
 } GMRFLib_idxval_tp;
 
 /*
@@ -108,8 +109,6 @@ char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 const char *GMRFLib_debug_functions_strip(const char *name);
 double GMRFLib_eps(double power);
-double GMRFLib_eps1(void);
-double GMRFLib_eps2(void);
 double GMRFLib_log_apbex(double a, double b);
 double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);
@@ -148,7 +147,6 @@ int GMRFLib_idx_sort(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold);
 int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val);
 int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val);
-int GMRFLib_idxval_cmp(const void *a, const void *b);
 int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
@@ -188,12 +186,11 @@ int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
 int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 int GMRFLib_which(double val, double *array, int len);
+int GMRFLib_normalize(int n, double *x);
 map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
 mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
-size_t GMRFLib_sizeof_map_id(map_id * hash);
-size_t GMRFLib_sizeof_map_ii(map_ii * hash);
 void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);

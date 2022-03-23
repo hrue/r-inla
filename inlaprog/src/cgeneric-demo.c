@@ -66,8 +66,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
 		// so like the loop
 		// for i=0, ...
-		//     for j=i, ...
-		//         G_ij = 
+		// for j=i, ...
+		// G_ij = 
 		// and M is the total length while N is the dimension
 
 		int M = N;
@@ -86,8 +86,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
 		int M = N;
 		ret = Calloc(2 + N, double);
-		ret[0] = -1;			       /* REQUIRED! */
-		ret[1] = M;			       /* number of (i <= j) */
+		ret[0] = -1;				       /* REQUIRED! */
+		ret[1] = M;				       /* number of (i <= j) */
 		for (int i = 0; i < M; i++) {
 			ret[2 + i] = prec;
 		}
@@ -170,8 +170,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
 		// so like the loop
 		// for i=0, ...
-		//     for j=i, ...
-		//         G_ij = 
+		// for j=i, ...
+		// G_ij = 
 		// and M is the length of ii
 
 		int M = N + N - 1, offset, i, k;
@@ -279,7 +279,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	int N = data->ints[0]->ints[0];			       // this will always be the case
 	assert(N > 0);
 
-	/* 
+	/*
 	 * we assume Cmatrix is stored column-wise, like
 	 * for(i...)
 	 *     for(j=i...)
@@ -307,8 +307,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
 		// so like the loop
 		// for i=0, ...
-		//     for j=i, ...
-		//         G_ij = 
+		// for j=i, ...
+		// G_ij = 
 		// and M is the length of ii
 
 		int M = Cmatrix->n, offset;
@@ -316,7 +316,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		offset = 2;
 		ret[0] = N;				       /* dimension */
 		ret[1] = M;				       /* number of (i <= j) */
-		for (int k= 0; k < M; k++) {
+		for (int k = 0; k < M; k++) {
 			ret[offset + k] = Cmatrix->i[k];       /* i */
 			ret[offset + M + k] = Cmatrix->j[k];   /* j */
 		}
@@ -330,7 +330,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		// where M is the length of Qij
 
 		int M = Cmatrix->n;
-		int offset; 
+		int offset;
 		ret = Calloc(2 + M, double);
 
 		offset = 2;
@@ -376,7 +376,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, this is the log prior for the log(precision).
 
 		ret = Calloc(1, double);
-		ret[0] = -prec + lprec; 
+		ret[0] = -prec + lprec;
 		break;
 	}
 

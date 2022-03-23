@@ -184,15 +184,6 @@ int GMRFLib_ai_INLA_userfunc3_n = 0;
 int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
 
-/* 
-   use faster integration than GSL?
- */
-int GMRFLib_faster_integration = GMRFLib_TRUE;
-
-/* 
-   number of subdivisions of the faster integration
- */
-int GMRFLib_faster_integration_np = 80;
 
 /* 
    OpenMP spesifics
@@ -253,3 +244,6 @@ int GMRFLib_inla_mode = 0;
 
 // add stability to AQ^-1A^T
 double GMRFLib_aqat_m_diag_add = 0.0;
+
+int GMRFLib_preopt_like_strategy = 0;			       // 0 = plain, 1 = group.
+int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel

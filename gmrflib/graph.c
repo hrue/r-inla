@@ -1022,7 +1022,8 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	return siz;
 }
 
-int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag)
+int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag,
+	int **node_map)
 {
 	if (!remove_flag) {
 		return GMRFLib_graph_duplicate(subgraph, graph);
@@ -1032,10 +1033,9 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		 * return a subgraph of graph, by ruling out those nodes for which remove_flag[i] is true, keeping those which
 		 * remove_flag[i] false. 
 		 */
-		int i, j, nneig, nn, k, n_neig_tot, storage_indx, *sg_iidx, *storage = NULL, free_remove_flag = 0;
-
+		int i, j, nneig, nn, k, n_neig_tot, storage_indx, *nmap = NULL, *sg_iidx = NULL, *storage = NULL, free_remove_flag = 0;
+		
 		GMRFLib_ENTER_ROUTINE;
-
 		if (!graph) {
 			GMRFLib_LEAVE_ROUTINE;
 			return GMRFLib_SUCCESS;
@@ -1047,6 +1047,9 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		if (graph->n == 0) {
 			*subgraph = Calloc(1, GMRFLib_graph_tp);
 			(*subgraph)->n = 0;
+			if (node_map) {
+				*node_map = nmap;
+			}
 			GMRFLib_LEAVE_ROUTINE;
 
 			return GMRFLib_SUCCESS;
@@ -1069,6 +1072,9 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		(*subgraph)->n = nn;
 		if (!((*subgraph)->n)) {
 			GMRFLib_LEAVE_ROUTINE;
+			if (node_map) {
+				*node_map = nmap;
+			}
 			return GMRFLib_SUCCESS;
 		}
 
@@ -1078,18 +1084,22 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		(*subgraph)->nnbs = Calloc((*subgraph)->n, int);
 		(*subgraph)->nbs = Calloc((*subgraph)->n, int *);
 
-		sg_iidx = Calloc(graph->n, int);
-
 		/*
 		 * make the mapping of nodes 
 		 */
+		sg_iidx = Calloc(graph->n, int);
+		nmap = Calloc(nn, int);
 		for (i = 0, k = 0; i < graph->n; i++) {
 			if (!remove_flag[i]) {
 				sg_iidx[i] = k;
+				nmap[k] = i;
 				k++;
 			} else {
 				sg_iidx[i] = -1;	       /* to force a failure if used wrong */
 			}
+		}
+		if (node_map) {
+			*node_map = nmap;
 		}
 
 		/*
@@ -1120,8 +1130,6 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 			}
 		}
 
-		Free(sg_iidx);
-
 		/*
 		 * map the graph to a more computational convenient memory layout! use just one long vector to store all the neighbours. 
 		 */
@@ -1145,7 +1153,8 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		if (free_remove_flag) {
 			Free(remove_flag);		       /* if we have used our own */
 		}
-
+		Free(sg_iidx);
+		
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
@@ -1246,39 +1255,23 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	/*
-	 * compute RESULT = Q*x, (RESULT is a vector).
-	 */
-	int m, run_parallel = 0, max_t = 0, debug = 0;
-	double *values, res, tref = GMRFLib_cpu();
+	const int debug = 0;
+	int m, run_parallel = (GMRFLib_Qx_strategy != 0);
+	int max_t; 
+	double *values = NULL, res;
 
-	static double cputime[2] = { 0.0, 0.0 };
-	static int time_n = 0;
-
-	if (time_n >= 0 && time_n < 10) {
-		if (time_n % 2) {
-			run_parallel = 0;
-			max_t = 1;
-		} else {
-			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS();
-		}
-	} else {
-		time_n = -1;
-		if (cputime[0] < cputime[1]) {
-			run_parallel = 0;
-			max_t = 1;
-		} else {
-			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS();
-		}
-	}
-
+	max_t = GMRFLib_openmp->max_threads_inner;
 	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
-	values = Calloc(m + 1, double);
-	res = Qfunc(0, -1, values, Qfunc_arg);
 
+	Calloc_init(m + 1 + (diag ? 0 : graph->n));
+	values = Calloc_get(m + 1);
+	if (!diag) {
+		diag = Calloc_get(graph->n);
+	}
+	res = Qfunc(0, -1, values, Qfunc_arg);
+	if (debug) P(max_t);
+	
 	if (ISNAN(res)) {
 		if (run_parallel) {
 			if (debug)
@@ -1287,7 +1280,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			for (int i = 0; i < graph->n; i++) {		\
 				CODE_BLOCK_SET_THREAD_ID();		\
 				double qij;				\
-				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i]; \
+				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
 					j = graph->nbs[i][jj];		\
 					qij = Qfunc(i, j, NULL, Qfunc_arg); \
@@ -1302,7 +1295,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				FIXME("Qx2: run serial");
 			for (int i = 0; i < graph->n; i++) {
 				double qij;
-				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + (diag ? diag[i] : 0.0)) * x[i];
+				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
 				for (int jj = 0, j; jj < graph->lnnbs[i]; jj++) {
 					j = graph->lnbs[i][jj];
 					qij = Qfunc(i, j, NULL, Qfunc_arg);
@@ -1325,7 +1318,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				r =  local_result + tnum * graph->n;	\
 				local_values = CODE_BLOCK_WORK_PTR(tnum); \
 				Qfunc(i, -1, local_values, Qfunc_arg); \
-				r[i] += (local_values[0] + (diag ? diag[i] : 0.0)) * x[i]; \
+				r[i] += (local_values[0] + diag[i]) * x[i]; \
 				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++) { \
 					j = graph->lnbs[i][jj];		\
 					r[i] += local_values[k] * x[j];	\
@@ -1335,6 +1328,8 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			}
 
 			RUN_CODE_BLOCK(max_t, max_t, m + 1);
+#undef CODE_BLOCK
+
 			for (int j = 0; j < max_t; j++) {
 				int offset = j * graph->n;
 				double *r = local_result + offset;
@@ -1348,7 +1343,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				FIXME("Qx2: run block serial");
 			for (int i = 0; i < graph->n; i++) {
 				res = Qfunc(i, -1, values, Qfunc_arg);
-				result[i] += (values[0] + (diag ? diag[i] : 0.0)) * x[i];
+				result[i] += (values[0] + diag[i]) * x[i];
 				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++) {
 					j = graph->lnbs[i][jj];
 					result[i] += values[k] * x[j];
@@ -1358,15 +1353,8 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			}
 		}
 	}
-	Free(values);
 
-	if (time_n >= 0) {
-		tref = GMRFLib_cpu() - tref;
-#pragma omp atomic
-		cputime[run_parallel] += tref;
-		time_n++;
-	}
-
+	Calloc_free();
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -1564,13 +1552,14 @@ int GMRFLib_xQx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qf
 	int i;
 	double *y = NULL, res;
 
-	y = Calloc(graph->n, double);
+	Calloc_init(graph->n);
+	y = Calloc_get(graph->n);
 
 	GMRFLib_Qx2(y, x, graph, Qfunc, Qfunc_arg, diag);
 	for (i = 0, res = 0.0; i < graph->n; i++) {
 		res += y[i] * x[i];
 	}
-	Free(y);
+	Calloc_free();
 
 	*result = res;
 	return GMRFLib_SUCCESS;

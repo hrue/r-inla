@@ -90,7 +90,7 @@ forceinline int GMRFLib_sn_moments2par(GMRFLib_sn_param_tp * p, double *mean, do
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
+int GMRFLib_density_prune_weights_ORIG(int *n_idx, int *idx, double *weights, int n)
 {
 	// make a list of the largest scaled weights so that the cummulative sum is at least WEIGHT_PROB
 
@@ -125,6 +125,48 @@ int GMRFLib_density_prune_weights(int *n_idx, int *idx, double *weights, int n)
 	Free(ww);
 
 	return GMRFLib_SUCCESS;
+}
+
+GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
+{
+	// return an idxval with some of the weights pruned off, so that the sum is at least WEIGHT_PROB
+
+	size_t one = 1;
+	int nn;
+	double ww_sum = 0.0;
+	double *ww = Calloc(n, double);
+
+	Memcpy(ww, weights, n * sizeof(double));
+	GMRFLib_normalize(n, ww);
+
+	size_t *perm = Calloc(n, size_t);
+	gsl_sort_index(perm, ww, one, (size_t) n);
+
+	ww_sum = 0;
+	nn = 0;
+	for (int i = 0; i < n; i++) {
+		if (ww_sum + ww[perm[i]] < 1.0 - WEIGHT_PROB) {
+			ww[perm[i]] = 0.0;
+		} else {
+			nn++;
+		}
+		ww_sum += ww[perm[i]];
+	}
+	GMRFLib_normalize(n, ww);
+
+	GMRFLib_idxval_tp *idxval = NULL;
+	GMRFLib_idxval_create_x(&idxval, nn);
+
+	for (int i = 0; i < n; i++) {
+		if (!ISZERO(ww[i])) {
+			GMRFLib_idxval_add(&idxval, i, ww[i]);
+		}
+	}
+
+	Free(ww);
+	Free(perm);
+
+	return idxval;
 }
 
 int GMRFLib_sn_density(double *dens, double x, void *param)
@@ -503,15 +545,20 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	/*
 	 * initialize 'density': compute the mean, stdev and the norm_const (for the log spline fit) 
 	 */
-	int i, k, debug = 0, np = 2 * GMRFLib_faster_integration_np, npm = 2 * np;
-	double result = 0.0, error, tmp, low = 0.0, high = 0.0, xval, ldens_max = -FLT_MAX, *xpm =
-	    NULL, *ldm = NULL, *xp = NULL, integral, dx = 0.0, m1, m2, m3, x0, x1, d0, d1;
+
+	int np = GMRFLib_INT_NUM_POINTS;
+	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
+	int i;
+	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL,
+	    dx = 0.0, dxm = 0.0, m0, m1, m2, m3, x0, x1, d0, d1;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
 	}
 
-	Calloc_init(2 * npm + 4 * np);
+	GMRFLib_ENTER_ROUTINE;
+
+	Calloc_init(4 * npm + 2 * np);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// density->mean = density->mean_gaussian;
@@ -523,143 +570,17 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		/*
 		 * for the skew-normal we know the moments 
 		 */
-		double mom[3] = { 0, 0, 0 };		       /* as we have params in 'float' */
+		double mom[3] = { 0, 0, 0 };
 		GMRFLib_sn_par2moments(&mom[0], &mom[1], &mom[2], density->sn_param);
 		density->mean = mom[0];
 		density->stdev = mom[1];
 		density->skewness = mom[2];
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
-	} else {
-		GMRFLib_ASSERT(density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN, GMRFLib_ESNH);
-
-		low = density->x_min;
-		high = density->x_max;
-		dx = (high - low) / (npm - 1.0);
-
-		if (debug) {
-			P(low);
-			P(high);
-			P(dx);
-		}
-
-		if (GMRFLib_faster_integration) {
-			double ldmax, log_integral;
-			double w[2] = { 4.0, 2.0 };
-
-			xpm = Calloc_get(npm);
-			ldm = Calloc_get(npm);
-			for (xval = low, i = 0; i < npm; xval += dx, i++) {
-				xpm[i] = xval;
-			}
-			density->log_norm_const = 0.0;
-			GMRFLib_evaluate_nlogdensity(ldm, xpm, npm, density);
-
-			if (debug) {
-				for (i = 0; i < npm; i++) {
-					printf("INIT: i %d xpm %g ldm %g\n", i, xpm[i], ldm[i]);
-				}
-			}
-
-			ldmax = GMRFLib_max_value(ldm, npm, NULL);
-			GMRFLib_adjust_vector(ldm, npm);       /* so its well-behaved... */
-
-			integral = exp(ldm[0]) + exp(ldm[npm - 1]);
-			for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
-				integral += exp(ldm[i]) * w[k];
-			}
-			integral *= dx / 3.0;
-
-			log_integral = log(integral);
-			for (i = 0; i < npm; i++) {
-				ldm[i] -= log_integral;
-			}
-			density->log_norm_const = log_integral + ldmax;
-
-			d0 = exp(ldm[0]);
-			d1 = exp(ldm[npm - 1]);
-			x0 = xpm[0];
-			x1 = xpm[npm - 1];
-			m1 = x0 * d0 + x1 * d1;
-			m2 = SQR(x0) * d0 + SQR(x1) * d1;
-			m3 = gsl_pow_3(x0) * d0 + gsl_pow_3(x1) * d1;
-			for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
-				double d, x, x2, x3;
-
-				d = exp(ldm[i]) * w[k];
-				x = xpm[i];
-				x2 = x * x;
-				x3 = x * x2;
-
-				m1 += x * d;
-				m2 += x2 * d;
-				m3 += x3 * d;
-			}
-			m1 *= dx / 3.0;
-			m2 *= dx / 3.0;
-			m3 *= dx / 3.0;
-
-			if (debug) {
-				P(m1);
-				P(m2);
-				P(m3);
-			}
-
-			density->mean = m1;
-			density->stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
-			density->skewness = (m3 - 3.0 * m1 * SQR(density->stdev) - gsl_pow_3(m1)) / gsl_pow_3(density->stdev);
-		} else {
-			double ldens;
-			double eps = GMRFLib_eps(1. / 2.);
-			GMRFLib_density_properties_tp prop;
-			gsl_function F;
-
-			low = density->x_min;
-			high = density->x_max;
-			dx = (high - low) / (npm - 1.0);
-
-			prop.density = density;
-			F.function = GMRFLib_evaluate_density__intern;
-			F.params = (void *) &prop;
-
-			/*
-			 * the __intern function *use* the norm_const, so first we need to set it temporary to 1.0 
-			 */
-			density->log_norm_const = 0.0;
-			for (xval = low; xval < high; xval += (high - low) / 20.0) {
-				GMRFLib_evaluate_logdensity(&ldens, xval, density);
-				if (xval == low || ldens > ldens_max) {
-					ldens_max = ldens;
-				}
-			}
-			density->log_norm_const = ldens_max;
-			GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
-			density->log_norm_const = log(result) + ldens_max;
-
-			/*
-			 * ...and from now on, the density is normalised 
-			 */
-			F.function = GMRFLib_evaluate_density_power__intern;	/* use this function for f(x)*x^power */
-
-			prop.power = 1;
-			GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
-			density->mean = result;
-
-			prop.power = 2;
-			GMRFLib_gsl_integration_wrapper(&F, low, high, eps, eps, &result, &error);
-			tmp = result - SQR(density->mean);
-			density->stdev = sqrt(DMAX(tmp, 0.0));
-
-			/*
-			 *  I do not care to add the skewness computations right now, as this code part is obsolete!
-			 */
-			fprintf(stderr, "\n\n\nTODO: added computation of skewness for a density, HERE!!!\n\n\n");
-			abort();
-		}
 	}
 
 	/*
-	 * for convenience, here the mean and the stdev in the users scale 
+	 * the mean and the stdev in the users scale 
 	 */
 	density->user_mean = density->std_stdev * density->mean + density->std_mean;
 	density->user_stdev = density->std_stdev * density->stdev;
@@ -670,85 +591,153 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		density->user_mode = NAN;		       /* yes, this is the value if its not computed */
 	}
 
-	/*
-	 * new style speedup 
-	 */
-	if (lookup_tables) {
-		/*
-		 * build fast lookup tables for P() and Pinv() calculations using linear interpolation 
-		 */
-		double *p = NULL, *val = NULL, *dens;
-		int some_nans = 0;
+	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
+		Calloc_free();
+		density->P = density->Pinv = NULL;
+		GMRFLib_LEAVE_ROUTINE;
+		return GMRFLib_SUCCESS;
+	}
 
-		if (!xpm) {
-			/*
-			 * in case we haven't done this before; same as above 
-			 */
-			low = density->x_min;
-			high = density->x_max;
-			dx = (high - low) / (npm - 1.0);
+	if (!lookup_tables && density->type != GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
+		Calloc_free();
+		density->P = density->Pinv = NULL;
+		GMRFLib_LEAVE_ROUTINE;
+		return GMRFLib_SUCCESS;
+	}
 
-			xpm = Calloc_get(npm);
-			ldm = Calloc_get(npm);
-			for (xval = low, i = 0; i < npm; xval += dx, i++) {
-				xpm[i] = xval;
-			}
-			GMRFLib_evaluate_nlogdensity(ldm, xpm, npm, density);
-			GMRFLib_adjust_vector(ldm, npm);       /* so its well-behaved... */
-		}
+	low = density->x_min;
+	high = density->x_max;
+	dx = (high - low) / (np - 1.0);
+	dxm = (high - low) / (npm - 1.0);
 
-		/*
-		 * find the mode fitting a quadratic around the best point, like a one-step Newton-Raphson, since we have so excellent initial value
-		 */
-		int imax;
-		GMRFLib_max_value(ldm, npm - 1, &imax);
-		density->user_mode = density->std_mean + density->std_stdev *
-		    (xpm[imax] - (((ldm[imax + 1] - ldm[imax - 1]) / (2.0 * dx)) / ((ldm[imax + 1] - 2.0 * ldm[imax] + ldm[imax - 1]) / SQR(dx))));
+	int idx_max;
+	double x_max;
 
-		dens = Calloc_get(np);
-		val = Calloc_get(np);
-		p = Calloc_get(np);
-		xp = Calloc_get(np);
+	double ldmax;
+	double w[2] = { 4.0, 2.0 };
 
-		for (i = 0; i < np; i++) {
-			xp[i] = xpm[2 * i];
-			dens[i] = exp(ldm[2 * i]);
-		}
-		val[0] = 0.0;
-		integral = val[0];
-		for (i = 1; i < np; i++) {
-			val[i] = (dens[i - 1] + dens[i] + 4.0 * exp(ldm[2 * i - 1])) * dx / 6.0;
-			val[i] = DMAX(0.0, val[i]);
-			integral += val[i];
-		}
+	xp = Calloc_get(np);
+	ld = Calloc_get(np);
 
-		p[0] = 0.0;
-		for (i = 1; i < np - 1; i++) {
-			p[i] = p[i - 1] + val[i] / integral;
-			some_nans = some_nans || isnan(p[i]);
-		}
-		p[np - 1] = 1.0;
+#pragma GCC ivdep
+#pragma GCC unroll 8
+	for (xval = low, i = 0; i < np; xval += dx, i++) {
+		xp[i] = xval;
+	}
+	density->log_norm_const = 0.0;
+	GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
+	ldmax = GMRFLib_max_value(ld, np, &idx_max);
+	GMRFLib_adjust_vector(ld, np);
 
-		if (!some_nans) {
-			density->P = Calloc(1, GMRFLib_spline_tp);
-			density->Pinv = Calloc(1, GMRFLib_spline_tp);
-			GMRFLib_EWRAP0_GSL_PTR(density->P->accel = gsl_interp_accel_alloc());
-			GMRFLib_EWRAP0_GSL_PTR(density->P->spline = gsl_spline_alloc(gsl_interp_linear, (unsigned int) np));
-			GMRFLib_EWRAP0_GSL(gsl_spline_init(density->P->spline, xp, p, (unsigned int) np));
-
-			GMRFLib_unique_additive2(&np, p, xp, GMRFLib_eps(1. / 2.));
-			GMRFLib_EWRAP0_GSL_PTR(density->Pinv->accel = gsl_interp_accel_alloc());
-			GMRFLib_EWRAP0_GSL_PTR(density->Pinv->spline = gsl_spline_alloc(gsl_interp_linear, (unsigned int) np));
-			GMRFLib_EWRAP0_GSL(gsl_spline_init(density->Pinv->spline, p, xp, (unsigned int) np));
-		} else {
-			density->P = NULL;
-		}
+	if (idx_max == 0) {
+		x_max = xp[0];
+	} else if (idx_max == np - 1) {
+		x_max = xp[np - 1];
 	} else {
-		density->P = NULL;
-		density->Pinv = NULL;
+		double * xx = xp + idx_max - 1;
+		double * tld = ld + idx_max - 1;
+		// see inla.c and 'inla_integrate_func'
+		x_max = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
+			 tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) /
+		    (tld[0] * xx[1] - tld[0] * xx[2] - tld[1] * xx[0] + tld[1] * xx[2] + tld[2] * xx[0] - xx[1] * tld[2]) / 0.2e1;
+	}
+
+	// interpolate
+	xpm = Calloc_get(npm);
+	ldm = Calloc_get(npm);
+	pm = Calloc_get(npm);
+
+	if (GMRFLib_INT_NUM_INTERPOL == 3) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for (i = 0; i < np - 1; i++) {
+			xpm[3 * i + 0] = xp[i];
+			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
+			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
+			ldm[3 * i + 0] = ld[i];
+			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
+			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
+		}
+		xpm[3 * (np - 2) + 3] = xp[np - 1];
+		ldm[3 * (np - 2) + 3] = ld[np - 1];
+		assert(3 * (np - 2) + 3 == npm - 1);
+	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+		for (i = 0; i < np - 1; i++) {
+			xpm[2 * i + 0] = xp[i];
+			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
+			ldm[2 * i + 0] = ld[i];
+			ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
+		}
+		xpm[2 * (np - 2) + 2] = xp[np - 1];
+		ldm[2 * (np - 2) + 2] = ld[np - 1];
+		assert(2 * (np - 2) + 2 == npm - 1);
+	} else {
+		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
+	}
+
+	// convert scale
+	for (i = 0; i < npm; i++) {
+		ldm[i] = exp(ldm[i]);
+	}
+
+	// compute moments
+	d0 = ldm[0];
+	d1 = ldm[npm - 1];
+	x0 = xpm[0];
+	x1 = xpm[npm - 1];
+	m0 = d0 + d1;
+	m1 = x0 * d0 + x1 * d1;
+	m2 = SQR(x0) * d0 + SQR(x1) * d1;
+	m3 = gsl_pow_3(x0) * d0 + gsl_pow_3(x1) * d1;
+
+#pragma GCC ivdep
+#pragma GCC unroll 8
+	for (i = 1; i < npm - 1; i++) {
+		double d = ldm[i] * w[(i - 1) % 2];
+		double x = xpm[i];
+		double x2 = x * x;
+		double x3 = x * x2;
+
+		m0 += d;
+		m1 += x * d;
+		m2 += x2 * d;
+		m3 += x3 * d;
+	}
+	m1 /= m0;
+	m2 /= m0;
+	m3 /= m0;
+
+	if (density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
+		density->log_norm_const = log(m0 * dxm / 3.0) + ldmax;
+		density->mean = m1;
+		density->stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
+		density->skewness = (m3 - 3.0 * m1 * SQR(density->stdev) - gsl_pow_3(m1)) / gsl_pow_3(density->stdev);
+		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
+		density->user_mean = density->std_stdev * density->mean + density->std_mean;
+		density->user_stdev = density->std_stdev * density->stdev;
+		density->user_mode = x_max * density->std_stdev + density->std_mean;
+	}
+
+	if (lookup_tables) {
+		pm = Calloc_get(npm);
+		pm[0] = 0.5 * ldm[0];
+		for (i = 1; i < npm; i++) {
+			pm[i] = pm[i - 1] + 0.5 * (ldm[i] + ldm[i - 1]);
+		}
+
+		double cc = 1.0 / (pm[npm - 1] + 0.5 * ldm[npm - 1]);
+		for (i = 0; i < npm; i++) {
+			pm[i] *= cc;
+		}
+		density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
+		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv);
 	}
 
 	Calloc_free();
+	GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -816,24 +805,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		for (i = 0; i < n; i++) {
-			double xmax = density->log_correction->spline->interp->xmax, xmin = density->log_correction->spline->interp->xmin;
-
-			if (x[i] >= xmin && x[i] <= xmax) {
-				logdens[i] = gsl_spline_eval(density->log_correction->spline, x[i], density->log_correction->accel)
-				    - 0.5 * SQR(x[i]) - density->log_norm_const;
-			} else {
-				double diff, cor, f0;
-				if (x[i] >= xmax - DBL_EPSILON) {
-					f0 = gsl_spline_eval(density->log_correction->spline, xmax, density->log_correction->accel);
-					diff = gsl_spline_eval_deriv(density->log_correction->spline, xmax, density->log_correction->accel);
-					cor = f0 + DMIN(0.0, diff) * (x[i] - xmax);
-				} else {
-					f0 = gsl_spline_eval(density->log_correction->spline, xmin, density->log_correction->accel);
-					diff = gsl_spline_eval_deriv(density->log_correction->spline, xmin, density->log_correction->accel);
-					cor = f0 + DMAX(0.0, diff) * (x[i] - xmin);
-				}
-				logdens[i] = cor - 0.5 * SQR(x[i]) - density->log_norm_const;
-			}
+			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
 		}
 		break;
 	}
@@ -890,15 +862,6 @@ double GMRFLib_evaluate_density_power__intern(double x, void *param)
 
 int GMRFLib_free_density(GMRFLib_density_tp * density)
 {
-#define FreeSpline(_s) \
-	if (_s) {						\
-		if (_s->spline)					\
-			gsl_spline_free(_s->spline);		\
-		if (_s->accel)					\
-			gsl_interp_accel_free(_s->accel);	\
-		Free(_s);					\
-	}
-
 	if (density) {
 		switch (density->type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
@@ -909,18 +872,18 @@ int GMRFLib_free_density(GMRFLib_density_tp * density)
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
-			FreeSpline(density->log_correction);
+			GMRFLib_spline_free(density->log_correction);
 			break;
 
 		default:
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 			break;
 		}
-		FreeSpline(density->P);
-		FreeSpline(density->Pinv);
+		GMRFLib_spline_free(density->P);
+		GMRFLib_spline_free(density->Pinv);
 		Free(density);
 	}
-#undef FreeSpline
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -981,7 +944,7 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density)
 	} else {
 		GMRFLib_ASSERT(density->Pinv, GMRFLib_ESNH);
 		if (density->Pinv->spline) {
-			*xp = gsl_spline_eval(density->Pinv->spline, p, density->Pinv->accel);
+			*xp = GMRFLib_spline_eval(p, density->Pinv);
 		} else {
 			GMRFLib_ASSERT(density->Pinv->spline != NULL, GMRFLib_ESNH);
 		}
@@ -1006,17 +969,7 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		result = gsl_cdf_ugaussian_P((x - density->mean) / density->stdev);
 	} else {
-		if (density->P->spline) {
-			if (x <= density->P->spline->interp->xmin) {
-				result = 0.0;
-			} else if (x >= density->P->spline->interp->xmax) {
-				result = 1.0;
-			} else {
-				result = gsl_spline_eval(density->P->spline, x, density->P->accel);
-			}
-		} else {
-			GMRFLib_ASSERT(density->P->spline != NULL, GMRFLib_ESNH);
-		}
+		result = GMRFLib_spline_eval(x, density->P);
 	}
 
 	*px = result;
@@ -1038,7 +991,7 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std;
 
 	idx = Calloc(n, int);
-	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);
+	GMRFLib_density_prune_weights_ORIG(&n_idx, idx, weights, n);
 
 	for (j = 0; j < n_idx; j++) {
 		i = idx[j];
@@ -1053,7 +1006,47 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GMRFLib_density_tp ** densities, double *weights)
+int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs)
+{
+	/*
+	 * evaluate the density in ***USER SCALE*** at `x_user[j]', j=0...nx, where the density is given as a mixture
+	 * 
+	 * \sum_{i=0}^{n-1} weights[i]*densities[i]
+	 * 
+	 * the weights need not to be scaled. 
+	 */
+	int nd = (probs ? probs->n : 1);
+	int i, j, k, n_alloc = IMAX(nd, nx);
+	double *d_tmp = NULL, *x_std = NULL, p;
+
+	Calloc_init(2 * n_alloc);
+	d_tmp = Calloc_get(n_alloc);
+	x_std = Calloc_get(n_alloc);
+
+	Memset(dens, 0, nx * sizeof(double));
+	for (k = 0; k < probs->n; k++) {
+		i = probs->idx[k];
+		p = probs->val[k];
+		GMRFLib_density_user2std_n(x_std, x_user, densities[i], nx);
+		GMRFLib_evaluate_ndensity(d_tmp, x_std, nx, densities[i]);
+
+		double a = p / densities[i]->std_stdev;
+		int inc = 1;
+		daxpy_(&nx, &a, d_tmp, &inc, dens, &inc);
+
+		// old code
+		if (0) {
+			for (j = 0; j < nx; j++) {
+				dens[j] += p * d_tmp[j] / densities[i]->std_stdev;
+			}
+		}
+	}
+
+	Calloc_free();
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_evaluate_ndensities_ORIG(double *dens, int nd, double *x_user, int nx, GMRFLib_density_tp ** densities, double *weights)
 {
 	/*
 	 * evaluate the density in ***USER SCALE*** at `x_user[j]', j=0...nx, where the density is given as a mixture
@@ -1072,7 +1065,7 @@ int GMRFLib_evaluate_ndensities(double *dens, int nd, double *x_user, int nx, GM
 	dp = Calloc_get(n_alloc);
 	idx = (int *) dp;
 
-	GMRFLib_density_prune_weights(&n_idx, idx, weights, nd);
+	GMRFLib_density_prune_weights_ORIG(&n_idx, idx, weights, nd);
 
 	for (k = 0; k < n_idx; k++) {
 		i = idx[k];
@@ -1108,7 +1101,7 @@ int GMRFLib_evaluate_gdensities(double *dens, double x_user, int n, GMRFLib_dens
 	double w_sum = 0.0, d_tmp = 0.0, d = 0.0, x_std;
 
 	idx = Calloc(n, int);
-	GMRFLib_density_prune_weights(&n_idx, idx, weights, n);
+	GMRFLib_density_prune_weights_ORIG(&n_idx, idx, weights, n);
 
 	for (j = 0; j < n_idx; j++) {
 		i = idx[j];
@@ -1142,27 +1135,119 @@ const gsl_interp_type *GMRFLib_density_interp_type(int n)
 
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from)
 {
-	int n = 1;
-	double weights = 1.0;
-
-	GMRFLib_density_combine(density_to, n, &density_from, &weights);
+	GMRFLib_density_combine(density_to, &density_from, NULL);
 	(*density_to)->flags = density_from->flags;
 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_density_tp ** densities, double *weights)
+int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs)
 {
 	/*
 	 * make a new spline-corrected-gaussian density out of a weighted sum of densities and return this in DENSITY.  make a
 	 * new spline-corrected-gaussian density out of a weighted sum of gaussian densities and return this in GDENSITY.
 	 *
-	 * both DENSITY and GDENSITY is optional, either of them can be NULL.
-	 * 
 	 * \sum_{i=0}^{n-1} weights[i]*densities[i]
 	 * 
 	 * the weights need not to be scaled. 
 	 */
+
+	// probs == NULL means n=1
+	int n = (probs ? probs->n : 1);
+
+	if (n == 0) {
+		if (density) {
+			*density = NULL;
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	GMRFLib_ENTER_ROUTINE;
+
+	// this actually happens like for 'eb' and is also how 'duplicate' is implemented
+	if (n == 1) {
+		if ((*densities)->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
+			GMRFLib_density_create_normal(density, (*densities)->mean, (*densities)->stdev,
+						      (*densities)->std_mean, (*densities)->std_stdev,
+						      ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
+			GMRFLib_density_create_sn(density, *((*densities)->sn_param),
+						  (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
+			int m;
+			double *x = NULL, *ld = NULL;
+
+			GMRFLib_density_layout_x(NULL, &m, NULL);
+			Calloc_init(2 * m);
+			x = Calloc_get(m);
+			ld = Calloc_get(m);
+			GMRFLib_density_layout_x(x, &m, *densities);
+			GMRFLib_evaluate_nlogdensity(ld, x, m, *densities);
+			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, m, x, ld,
+					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+			Calloc_free();
+		} else {
+			assert(0 == 1);
+		}
+		GMRFLib_LEAVE_ROUTINE;
+		return GMRFLib_SUCCESS;
+	}
+
+	double mean, stdev, *ddens = NULL, *log_dens = NULL, *xx_real = NULL, m1, m2, sum_w, p;
+	double xx[] = { -5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, -0.125, 0.0,
+		0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0
+	};
+	int nx = sizeof(xx) / sizeof(double);
+
+	/*
+	 * compute the mean and variance in the user-scale 
+	 */
+	m1 = m2 = sum_w = 0.0;
+	for (int ii = 0; ii < probs->n; ii++) {
+		int i = probs->idx[ii];
+		p = probs->val[ii];
+		m1 += p * densities[i]->user_mean;
+		m2 += p * (SQR(densities[i]->user_stdev) + SQR(densities[i]->user_mean));
+		sum_w += p;
+	}
+	mean = m1 / sum_w;
+	stdev = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean)));
+
+	Calloc_init(2 * nx);
+
+	/*
+	 * compute the weighted density. note that we have to go through the user/real-scale to get this right 
+	 */
+	xx_real = Calloc_get(nx);
+	ddens = Calloc_get(nx);
+	log_dens = ddens;				       /* same storage */
+	for (int i = 0; i < nx; i++) {
+		xx_real[i] = xx[i] * stdev + mean;
+	}
+
+	GMRFLib_evaluate_ndensities(ddens, xx_real, nx, densities, probs);
+	for (int i = 0; i < nx; i++) {
+		log_dens[i] = (ddens[i] > 0.0 ? log(ddens[i]) : -FLT_MAX);
+	}
+	GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
+
+	Calloc_free();
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_density_combine_ORIG(GMRFLib_density_tp ** density, int n, GMRFLib_density_tp ** densities, double *weights)
+{
+	/*
+	 * make a new spline-corrected-gaussian density out of a weighted sum of densities and return this in DENSITY.  make a
+	 * new spline-corrected-gaussian density out of a weighted sum of gaussian densities and return this in GDENSITY.
+	 *
+	 * \sum_{i=0}^{n-1} weights[i]*densities[i]
+	 * 
+	 * the weights need not to be scaled. 
+	 */
+	GMRFLib_ENTER_ROUTINE;
 
 	int i, n_points = 30, np, np_max, nf, minp = 3;
 	double mean, stdev, *x_points = NULL,
@@ -1174,6 +1259,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 		if (density) {
 			*density = NULL;
 		}
+		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1242,7 +1328,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 	for (i = 0; i < np; i++) {
 		xx_real[i] = x_points[i] * stdev + mean;
 	}
-	GMRFLib_evaluate_ndensities(ddens, n, xx_real, np, densities, weights);
+	GMRFLib_evaluate_ndensities_ORIG(ddens, n, xx_real, np, densities, weights);
 	for (i = 0; i < np; i++) {
 		log_dens[i] = (ddens[i] > 0.0 ? log(ddens[i]) : -FLT_MAX);
 	}
@@ -1254,6 +1340,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, int n, GMRFLib_densit
 
 	Calloc_free();
 
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1273,7 +1360,7 @@ int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, do
 	(*density)->mean = mean;
 	(*density)->stdev = stdev;
 
-	GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
+	GMRFLib_init_density(*density, lookup_tables);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1293,7 +1380,7 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 	(*density)->sn_param = Calloc(1, GMRFLib_sn_param_tp);
 	Memcpy((void *) (*density)->sn_param, (const void *) &sn_param, sizeof(GMRFLib_sn_param_tp));
 
-	GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
+	GMRFLib_init_density(*density, lookup_tables);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1325,7 +1412,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	 * make lookup_tables if LOOKUP_TABLES is TRUE
 	 */
 	int i, debug = 0;
-	double *xx = NULL, *ldens = NULL, g_mean, g_var;
+	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
 	GMRFLib_sn_param_tp sn_param;
 
 	Calloc_init(2 * n);
@@ -1336,42 +1423,43 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	Memcpy(ldens, logdens, (size_t) n * sizeof(double));
 
 	/*
-	 * sort xx and remove ties
+	 * sort xx and remove ties. that that we need to sort first. In most cases we do not
 	 */
-	GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
-	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1. / 3.0));
+	int is_sorted = 1;
+	for (i = 1; i < n && is_sorted; i++) {
+		is_sorted = (xx[i] > xx[i - 1]);
+	}
+	if (!is_sorted) {
+		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
+	}
+	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1.0 / 2.0));
 	GMRFLib_adjust_vector(ldens, n);
 
 	if (debug) {
-		int ii;
-
 		printf("%s: Create density n %d type %d\n", __GMRFLib_FuncName, n, type);
-		for (ii = 0; ii < n; ii++) {
+		for (int ii = 0; ii < n; ii++) {
 			printf("\tx %f ldens %f\n", xx[ii], ldens[ii]);
 		}
 	}
 
-	/*
-	 * special option 
-	 */
 	if (n == 1) {
-		GMRFLib_EWRAP0(GMRFLib_density_create_normal(density, 0.0, 1.0, std_mean, std_stdev, lookup_tables));
+		GMRFLib_density_create_normal(density, 0.0, 1.0, std_mean, std_stdev, lookup_tables);
 	} else {
 		switch (type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
 			/*
 			 * fit a gaussian 
 			 */
-			GMRFLib_EWRAP0(GMRFLib_normal_fit(&g_mean, &g_var, NULL, xx, ldens, n));
-			GMRFLib_EWRAP0(GMRFLib_density_create_normal(density, g_mean, sqrt(g_var), std_mean, std_stdev, lookup_tables));
+			GMRFLib_normal_fit(&g_mean, &g_var, NULL, xx, ldens, n);
+			GMRFLib_density_create_normal(density, g_mean, sqrt(g_var), std_mean, std_stdev, lookup_tables);
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
 			/*
 			 * fit skew-normal 
 			 */
-			GMRFLib_EWRAP0(GMRFLib_sn_fit(&sn_param, NULL, xx, ldens, n));
-			GMRFLib_EWRAP0(GMRFLib_density_create_sn(density, sn_param, std_mean, std_stdev, lookup_tables));
+			GMRFLib_sn_fit(&sn_param, NULL, xx, ldens, n);
+			GMRFLib_density_create_sn(density, sn_param, std_mean, std_stdev, lookup_tables);
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
@@ -1385,23 +1473,11 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
 			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
-			GMRFLib_density_adjust_vector(ldens, n);	/* prevent extreme cases for the spline */
 			for (i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
-
-			(*density)->log_correction = Calloc(1, GMRFLib_spline_tp);
-			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->accel = gsl_interp_accel_alloc());
-			GMRFLib_EWRAP0_GSL_PTR((*density)->log_correction->spline =
-					       gsl_spline_alloc(GMRFLib_density_interp_type(n), (unsigned int) n));
-			GMRFLib_EWRAP0_GSL(gsl_spline_init((*density)->log_correction->spline, xx, ldens, (unsigned int) n));
-			GMRFLib_EWRAP0(GMRFLib_init_density(*density, lookup_tables));
-			/*
-			 * to be sure, we reset them here
-			 */
-			(*density)->x_min = (*density)->log_correction->spline->interp->xmin;
-			(*density)->x_max = (*density)->log_correction->spline->interp->xmax;
-
+			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
+			GMRFLib_init_density(*density, lookup_tables);
 			break;
 
 		default:
@@ -1503,6 +1579,7 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 		}
 		fprintf(fp, "%-35s %16.10f\n", "Mean", density->mean);
 		fprintf(fp, "%-35s %16.10f\n", "Stdev", density->stdev);
+		fprintf(fp, "%-35s %16.10f\n", "Skewness", density->skewness);
 		fprintf(fp, "%-35s %16.10f\n", "User mean", density->user_mean);
 		fprintf(fp, "%-35s %16.10f\n", "User stdev", density->user_stdev);
 		fprintf(fp, "%-35s %16.10f\n", "User mode", density->user_mode);
@@ -1528,12 +1605,9 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 			break;
 		}
 
-		int i;
-		for (i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; i++) {
 			fprintf(fp, "Flag %1d = %1d\n", i, GMRFLib_getbit(density->flags, i));
 		}
-
-		fflush(fp);
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1614,7 +1688,6 @@ int GMRFLib_kld_sym(double *kld_sym, GMRFLib_density_tp * density, GMRFLib_densi
 	 * compute the symmetric KLD distance between density and ddensity 
 	 */
 	double kld0, kld1;
-
 	GMRFLib_kld(&kld0, density, ddensity);
 	GMRFLib_kld(&kld1, ddensity, density);
 	*kld_sym = DMAX(0.0, (kld0 + kld1) / 2.0);
@@ -1625,7 +1698,6 @@ int GMRFLib_kld_sym(double *kld_sym, GMRFLib_density_tp * density, GMRFLib_densi
 int GMRFLib_mkld_sym(double *mkld_sym, GMRFLib_density_tp * density, GMRFLib_density_tp * ddensity)
 {
 	double mkld0, mkld1;
-
 	GMRFLib_mkld(&mkld0, density, ddensity);
 	GMRFLib_mkld(&mkld1, ddensity, density);
 	*mkld_sym = DMAX(0.0, (mkld0 + mkld1) / 2.0);
@@ -1633,33 +1705,30 @@ int GMRFLib_mkld_sym(double *mkld_sym, GMRFLib_density_tp * density, GMRFLib_den
 	return GMRFLib_SUCCESS;
 }
 
-double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density)
+forceinline double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density)
 {
 	return density->std_mean + x * density->std_stdev;
 }
 
-double GMRFLib_density_std2user_n(double *x_user, double *x, int n, GMRFLib_density_tp * density)
+forceinline double GMRFLib_density_std2user_n(double *x_user, double *x, int n, GMRFLib_density_tp * density)
 {
-	int i;
-
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		x_user[i] = density->std_mean + x[i] * density->std_stdev;
 	}
 	return GMRFLib_SUCCESS;
 }
 
-double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density)
+forceinline double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density)
 {
 	return (x - density->std_mean) / density->std_stdev;
 }
 
-int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n)
+forceinline int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n)
 {
 	// the vectorised version
-	int i;
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		x_std[i] = a * x[i] + b;
 	}
 	return GMRFLib_SUCCESS;
@@ -1738,50 +1807,65 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_layout_x(double **x_vec, int *len_x, GMRFLib_density_tp * density)
+int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp * density)
 {
-	int use_many, m, i;
+	GMRFLib_ENTER_ROUTINE;
+
+	int use_many;
 
 	if ((GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ||
 	     GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH)) {
 		use_many = GMRFLib_TRUE;
 	} else {
-		use_many = GMRFLib_FALSE;
+		// use_many = GMRFLib_FALSE;
+		use_many = GMRFLib_TRUE;
 	}
 
-#define CODE if (1) {							\
-		*len_x = (sizeof(p) + sizeof(x_add)) / sizeof(double);	\
+#define CODE								\
+	if (1) {							\
+		int m;							\
+		*len_x = m = (sizeof(p) + sizeof(x_add)) / sizeof(double);	\
 		m = sizeof(p) / sizeof(double);				\
-		*x_vec = Calloc(*len_x, double);			\
-		for (i = 0; i < m; i++) {				\
-			GMRFLib_density_Pinv(&((*x_vec)[i]), p[i], density); \
+		if (x_vec) {						\
+			for (int i = 0; i < m; i++) {			\
+				GMRFLib_density_Pinv(&(x_vec[i]), p[i], density); \
+			}						\
+			for (int i = m; i < *len_x; i++) {			\
+				x_vec[i] = x_add[i - m];		\
+			}						\
+			qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp); \
 		}							\
-		for (i = m; i < *len_x; i++) {				\
-			(*x_vec)[i] = x_add[i - m];			\
+}
+
+#define CODE_NO_ADD							\
+	if (1) {							\
+		*len_x = sizeof(p) / sizeof(double);			\
+		if (x_vec) {						\
+			for (int i = 0; i < *len_x; i++) {		\
+				GMRFLib_density_Pinv(&(x_vec[i]), p[i], density); \
+			}						\
 		}							\
-		qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp); \
-		GMRFLib_unique_additive(len_x, *x_vec, GMRFLib_eps(0.5)); \
 	}
 
 	if (use_many) {
-		double p[] = { 0.0000001, 0.000001, 0.00001, 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025,
-			0.05, 0.075, 0.10, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.30, 0.325,
+		double p[] = { 0.00001, 0.0001, 0.001, 0.01, 0.025,
+			0.05, 0.10, 0.15, 0.2, 0.25, 0.30,
 			0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49, 0.50, 0.51,
-			0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.675, 0.70, 0.725,
-			0.75, 0.775, 0.80, 0.825, 0.85, 0.875, 0.9, 0.925, 0.95, 0.975, 0.99, 0.995,
-			0.999, 0.9995, 0.9999, 0.99999, 0.999999, 0.9999999
+			0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.70,
+			0.75, 0.80, 0.85, 0.9, 0.95, 0.975, 0.99, 0.999, 0.9999, 0.99999
 		};
-		double x_add[] = { -10.0, -8.0, -6.0, -5.0, -4.0, -3.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0 };
-		CODE;
+		// double x_add[] = { -5.0, -4.0, -3.0, 3.0, 4.0, 5.0};
+		CODE_NO_ADD;
 	} else {
-		double p[] = { 0.001, 0.01, 0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 0.35, 0.40, 0.45, 0.475, 0.50,
-			0.525, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.9, 0.95, 0.99, 0.999
+		double p[] = { 0.0001, 0.001, 0.01, 0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 0.35, 0.40, 0.45, 0.475, 0.50,
+			0.525, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.9, 0.95, 0.99, 0.999, 0.9999
 		};
-		double x_add[] = { -8.0, -5.0, -3.0, 3.0, 5.0, 8.0 };
-		CODE;
+		// double x_add[] = {-5.0, 5.0};
+		CODE_NO_ADD;
 	}
 
 #undef CODE
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
