@@ -616,7 +616,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 			int *idxs = NULL, nidx, iii;
 
 			Calloc_init(n);
-			idxs = Calloc_get(n);
+			idxs = (int *) Calloc_get(n);
 			nidx = 0;
 
 			for (ii = 0; ii < n; ii++) {

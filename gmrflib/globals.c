@@ -245,4 +245,5 @@ int GMRFLib_inla_mode = 0;
 // add stability to AQ^-1A^T
 double GMRFLib_aqat_m_diag_add = 0.0;
 
-int GMRFLib_preopt_like_method = 0;			       // 0 = plain, 1 = group.
+int GMRFLib_preopt_like_strategy = 0;			       // 0 = plain, 1 = group.
+int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel

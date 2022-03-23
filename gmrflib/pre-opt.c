@@ -83,7 +83,7 @@ int integer_one = 1;
 	}
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
-	if (GMRFLib_preopt_like_method == 0) {		\
+	if (GMRFLib_preopt_like_strategy == 0) {	\
 		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
 	} else {					\
 		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
@@ -1484,10 +1484,13 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	return GMRFLib_SUCCESS;
 }
 
-double GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+double *GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
-	double time_ref = GMRFLib_cpu();
+	// return alloc'ed double *cpu
+	// cpu[0] is the time accessing the matrix. cpu[1] is the time for doing Q %*% x
 	double value = 0.0;
+	double *cpu = Calloc(2, double);
+	double time_ref = GMRFLib_cpu();
 
 	for (int i = 0; i < graph->n; i++) {
 		value += Qfunc(i, i, NULL, Qfunc_arg);
@@ -1497,6 +1500,22 @@ double GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * 
 		}
 	}
 	assert(value != 0.0);
+	cpu[0] =  GMRFLib_cpu() - time_ref;
 
-	return (GMRFLib_cpu() - time_ref);
+	Calloc_init(2 * graph->n);
+	double *x = Calloc_get(graph->n);
+	double *xx = Calloc_get(graph->n);
+
+	for(int i = 0; i < graph->n; i++) {
+		x[i] = GMRFLib_uniform();
+	}
+
+	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
+	GMRFLib_tabulate_Qfunc(&tab, graph, Qfunc, Qfunc_arg, NULL);
+	time_ref = GMRFLib_cpu();
+	GMRFLib_Qx(xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
+	cpu[1] =  GMRFLib_cpu() - time_ref;
+	GMRFLib_free_tabulate_Qfunc(tab);
+	
+	return cpu;
 }

@@ -246,7 +246,10 @@ extern double GMRFLib_aqat_m_diag_add;
 
 extern int GMRFLib_inla_mode;
 
-extern int GMRFLib_preopt_like_method;			       // 0 = plain, 1 = group.
+
+extern int GMRFLib_preopt_like_strategy;		       // 0 = plain, 1 = group.
+
+extern int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel
 
 #endif
 __END_DECLS

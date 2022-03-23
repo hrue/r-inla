@@ -33534,19 +33534,31 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	// time the two versions of Qfunc_like
 	GMRFLib_thread_id = omp_get_thread_num();
-	double time_used[2] = { 0.0, 0.0 };
+	double time_used_like[2] = {0.0, 0.0};
+	double time_used_Qx[2] = {0.0, 0.0};
 
 	if (1) {
-		for (int time = 0; time < 2; time++) {
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
+		for (int time = 0; time < 1; time++) {
 			for (int met = 0; met < 2; met++) {
-				GMRFLib_preopt_like_method = met;
-				time_used[met] += GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
+				for (int mett = 0; mett < 2; mett++) {
+					GMRFLib_preopt_like_strategy = met;
+					GMRFLib_Qx_strategy = mett;
+					double *cpu;
+					cpu = GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
+					time_used_like[met] += cpu[0];
+					time_used_Qx[mett] += cpu[1];
+					//printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
+					Free(cpu);
+				}
 			}
 		}
-		// Seems like we can lose more than we can win, so have a slight preference for the SERIAL one.
-		GMRFLib_preopt_like_method = (time_used[0] / time_used[1] < 1.1 ? 0 : 1);
+		// we have a slight preference for the simpler/serial ones
+		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.1 ? 0 : 1);
+		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
 	} else {
-		GMRFLib_preopt_like_method = 0;
+		GMRFLib_preopt_like_strategy = 0;
+		GMRFLib_Qx_strategy = 0;
 	}
 
 	if (mb->verbose) {
@@ -33563,11 +33575,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph............. [%d]\n", N);
 		printf("\tNumber of constraints..... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tTiming of Qlike-strategy.. [plain/group = %.2f]\n", time_used[0] / time_used[1]);
-		printf("\tQlike strategy............ [%s]\n", (GMRFLib_preopt_like_method == 0 ? "plain" : "group"));
+		printf("\tTiming of Qlike-strategy.. [plain/group = %.2f]\n", time_used_like[0] / time_used_like[1]);
+		printf("\tQlike strategy............ [%s]\n", (GMRFLib_preopt_like_strategy == 0 ? "plain" : "group"));
+		printf("\tTiming of Qx-strategy..... [serial/parallel = %.2f]\n", time_used_Qx[0] / time_used_Qx[1]);
+		printf("\tQx strategy............... [%s]\n", (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-
+	
 	c = Calloc_get(N);
 	if (mb->expert_diagonal_emergencey) {
 		for (i = 0; i < N; i++)

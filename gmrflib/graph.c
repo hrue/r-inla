@@ -1255,44 +1255,23 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	Calloc_init((diag ? 1 : graph->n));
+	const int debug = 0;
+	int m, run_parallel = (GMRFLib_Qx_strategy != 0);
+	int max_t; 
+	double *values = NULL, res;
+
+	max_t = GMRFLib_openmp->max_threads_inner;
+	Memset(result, 0, graph->n * sizeof(double));
+	m = GMRFLib_graph_max_nnbs(graph);
+
+	Calloc_init(m + 1 + (diag ? 0 : graph->n));
+	values = Calloc_get(m + 1);
 	if (!diag) {
 		diag = Calloc_get(graph->n);
 	}
-
-	/*
-	 * compute RESULT = Q*x, (RESULT is a vector).
-	 */
-	int m, run_parallel = 0, max_t = 0, debug = 0;
-	double *values, res, tref = GMRFLib_cpu();
-
-	static double cputime[2] = { 0.0, 0.0 };
-	static int time_n = 0;
-
-	if (time_n >= 0 && time_n < 10) {
-		if (time_n % 2) {
-			run_parallel = 0;
-			max_t = 1;
-		} else {
-			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS();
-		}
-	} else {
-		time_n = -1;
-		if (cputime[0] < cputime[1]) {
-			run_parallel = 0;
-			max_t = 1;
-		} else {
-			run_parallel = 1;
-			max_t = GMRFLib_MAX_THREADS();
-		}
-	}
-
-	Memset(result, 0, graph->n * sizeof(double));
-	m = GMRFLib_graph_max_nnbs(graph);
-	values = Calloc(m + 1, double);
 	res = Qfunc(0, -1, values, Qfunc_arg);
-
+	if (debug) P(max_t);
+	
 	if (ISNAN(res)) {
 		if (run_parallel) {
 			if (debug)
@@ -1349,6 +1328,8 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			}
 
 			RUN_CODE_BLOCK(max_t, max_t, m + 1);
+#undef CODE_BLOCK
+
 			for (int j = 0; j < max_t; j++) {
 				int offset = j * graph->n;
 				double *r = local_result + offset;
@@ -1371,14 +1352,6 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				}
 			}
 		}
-	}
-	Free(values);
-
-	if (time_n >= 0) {
-		tref = GMRFLib_cpu() - tref;
-#pragma omp atomic
-		cputime[run_parallel] += tref;
-		time_n++;
 	}
 
 	Calloc_free();
