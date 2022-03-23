@@ -588,19 +588,10 @@ int GMRFLib_ai_log_posterior(double *logdens,
 
 	double tmp0 = 0.0, tmp1 = 0.0, tmp2 = 0.0, tmp3 = 0.0, tmp4 = 0.0;
 
-	GMRFLib_xQx(&result, xx, graph, Qfunc, Qfunc_arg);
+	// c-term is now in here
+	GMRFLib_xQx2(&result, xx, graph, Qfunc, Qfunc_arg, c);
 	tmp4 = -0.5 * result;
-	/*
-	 * add the diagonal if 'c' 
-	 */
-	if (c) {
-		int ii;
 
-		for (ii = 0; ii < n; ii++) {
-			tmp0 += c[ii] * SQR(xx[ii]);
-		}
-		tmp0 = -0.5 * tmp0;
-	}
 	/*
 	 * add the linear term 
 	 */
@@ -624,7 +615,8 @@ int GMRFLib_ai_log_posterior(double *logdens,
 			 */
 			int *idxs = NULL, nidx, iii;
 
-			idxs = Calloc(n, int);
+			Calloc_init(n);
+			idxs = Calloc_get(n);
 			nidx = 0;
 
 			for (ii = 0; ii < n; ii++) {
@@ -640,7 +632,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 				tmp2 += d[ii] * logll;
 			}
 			GMRFLib_thread_id = id;
-			Free(idxs);
+			Calloc_free();
 		} else {
 			/*
 			 * old version 
@@ -794,7 +786,8 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 					double *b, double *c, double *mean, double *d,
 					GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					GMRFLib_constr_tp * UNUSED(constr), GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * UNUSED(ai_store))
+					GMRFLib_constr_tp * UNUSED(constr), GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * UNUSED(ai_store),
+					int *node_map)
 {
 	/*
 	 * this is the same function as GMRFLib_ai_log_posterior, BUT we only include those terms where at least one component
@@ -824,7 +817,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		g = Calloc(ns, double);
 
 		for (ii = 0; ii < ns; ii++) {
-			i = ii;
+			i = node_map[ii];
 			xx = (mean ? x_mode[i] - mean[i] : x_mode[i]);
 
 			if (c) {
@@ -856,13 +849,13 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		linear_term = 0.0;
 		quadratic_term = 0.0;
 		for (ii = 0; ii < ns; ii++) {
-			i = ii;
+			i = node_map[ii];
 			linear_term -= g[ii] * x_gradient[i];
 			quadratic_term += f[ii] * x_gradient[i];
 		}
 		if (b) {
 			for (ii = 0; ii < ns; ii++) {
-				i = ii;
+				i = node_map[ii];
 				linear_term += x_gradient[i] * b[i];
 			}
 		}
@@ -873,7 +866,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 		if (d) {
 			tmp = 0.0;
 			for (ii = 0; ii < ns; ii++) {
-				i = ii;
+				i = node_map[ii];
 				if (d[i]) {
 					loglFunc(&logll, &x[i], 1, i, x, NULL, loglFunc_arg);
 					tmp += d[i] * logll;
@@ -902,10 +895,11 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 */
 
 	char *fix = NULL, *fixx = NULL;
-	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, i_idx, j_idx, one = 1;
+	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, i_idx, j_idx, one = 1,
+		*node_map = NULL;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
-	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, ld0, ld1, deldif =
-	    GMRFLib_eps(1.0 / 6.0), h2 = 0.0, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
+	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, deldif =
+	    GMRFLib_eps(1.0 / 6.0), inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
 
 	GMRFLib_graph_tp *subgraph = NULL;
 	GMRFLib_Qinv_tp *store_Qinv = NULL;
@@ -1175,6 +1169,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 
 		if (marginal_hidden_store->subgraphs && marginal_hidden_store->subgraphs[idx]) {
 			subgraph = marginal_hidden_store->subgraphs[idx];
+			node_map = marginal_hidden_store->node_maps[idx];
 			ns = subgraph->n;
 		} else {
 			/*
@@ -1194,13 +1189,12 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			/*
 			 * note that idx is included in subgraph 
 			 */
-			GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&subgraph, graph, fixx));
+			GMRFLib_graph_comp_subgraph(&subgraph, graph, fixx, &(marginal_hidden_store->node_maps[idx]));
 
-			/*
-			 * store it for lated usage
-			 */
+			// store it for later usage
 			marginal_hidden_store->subgraphs[idx] = subgraph;
 			ns = subgraph->n;
+			node_map = marginal_hidden_store->node_maps[idx];
 		}
 	}
 
@@ -1296,51 +1290,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 
 		FIXME("option GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE is no longer supported.");
 		assert(0 == 1);
-
-		/*
-		 * use central difference for the log-density. this involved computing the determinant of Q twice. use a large h
-		 * to capture the large(r) scale behaviour.
-		 */
-		if (ai_par->fast) {
-			blockpar->modeoption = GMRFLib_MODEOPTION_CURRENT;
-		}
-		h2 = 0.5 * x_sd;
-		for (ii = 0; ii < ns; ii++) {
-			i = ii;
-			cond_mode[i] = fixed_mode[i] - h2 * derivative[i];
-		}
-		// this is needed but 'fix' is no longer there
-
-		// GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store
-		// (&newp, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, fix, graph, Qfunc, Qfunc_arg, constr,
-		// optpar, blockpar, store));
-		if (newp) {
-			Memcpy(newp->sample, newp->mean_constr, n * sizeof(double));
-			GMRFLib_EWRAP1(GMRFLib_evaluate(newp));
-			ld0 = newp->sub_logdens;
-			GMRFLib_free_problem(newp);
-		} else {
-			ld0 = 0.0;
-		}
-
-		for (ii = 0; ii < ns; ii++) {
-			i = ii;
-			cond_mode[i] = fixed_mode[i] + h2 * derivative[i];
-		}
-		// this is needed but 'fix' is no longer there
-
-		// GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store
-		// (&newp, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, fix, graph, Qfunc, Qfunc_arg, constr,
-		// optpar, blockpar, store));
-		if (newp) {
-			Memcpy(newp->sample, newp->mean_constr, n * sizeof(double));
-			GMRFLib_EWRAP1(GMRFLib_evaluate(newp));
-			ld1 = newp->sub_logdens;
-			GMRFLib_free_problem(newp);
-		} else {
-			ld1 = 0.0;
-		}
-		deriv_log_dens_cond = x_sd * (ld1 - ld0) / (2.0 * h2);
 		break;
 	}
 
@@ -1424,12 +1373,14 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				GMRFLib_ai_log_posterior_restricted(NULL,
 								    fixed_mode, fixed_mode, derivative,
 								    0.0, b, c, mean, d, loglFunc,
-								    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store);
+								    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store,
+								    node_map);
 			}
 			GMRFLib_ai_log_posterior_restricted(&log_density[k],
 							    cond_mode, fixed_mode, derivative,
 							    x_points[k] * x_sd, b, c, mean, d, loglFunc,
-							    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store);
+							    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store,
+							    node_map);
 			log_density[k] -= log_dens_cond;
 		}
 	}
@@ -3050,9 +3001,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
 			marginal_hidden_store->n = graph->n;
 			marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
+			marginal_hidden_store->node_maps = Calloc(graph->n, int *);
 		} else {
 			marginal_hidden_store->n = 0;
 			marginal_hidden_store->subgraphs = NULL;
+			marginal_hidden_store->node_maps = NULL;
 		}
 	}						       /* end of: if (!preopt) */
 
@@ -8677,6 +8630,11 @@ int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m)
 			for (i = 0; i < m->n; i++)
 				GMRFLib_graph_free(m->subgraphs[i]);
 			Free(m->subgraphs);
+		}
+		if (m->node_maps) {
+			for (i = 0; i < m->n; i++)
+				Free(m->node_maps);
+			Free(m->node_maps);
 		}
 		Free(m);
 	}

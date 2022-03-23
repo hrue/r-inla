@@ -210,7 +210,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g);
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
-int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag);
+int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag, int **node_map);
 int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old);
 int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg);

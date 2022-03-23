@@ -643,6 +643,7 @@ typedef struct {
 	 * \brief Store reduced subgraphs for the marginal
 	 */
 	int n;
+	int **node_maps;
 	GMRFLib_graph_tp **subgraphs;
 } GMRFLib_marginal_hidden_store_tp;
 
@@ -1050,7 +1051,8 @@ int GMRFLib_ai_log_posterior_restricted_OLD(double *logdens, double *x, double *
 int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mode, double *x_gradient, double delta, double *b,
 					double *c, double *mean, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store);
+					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store,
+					int *node_map);
 int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp ** cpo_density,
 			       int lookup_tables,
 			       int idx, double *x, double *b, double *c, double *mean, double *d,

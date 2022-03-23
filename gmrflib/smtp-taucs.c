@@ -550,7 +550,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 			fixed[i] = (graph->nnbs[i] >= limit ? 1 : 0);
 		}
 
-		GMRFLib_graph_comp_subgraph(&subgraph, graph, fixed);
+		GMRFLib_graph_comp_subgraph(&subgraph, graph, fixed, NULL);
 		free_subgraph = 1;
 	} else {
 		subgraph = graph;

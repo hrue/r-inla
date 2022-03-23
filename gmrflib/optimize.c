@@ -186,7 +186,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		/*
 		 * compute it 
 		 */
-		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&(opt_problem->sub_graph), graph, NULL));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&(opt_problem->sub_graph), graph, NULL, NULL));
 
 		/*
 		 * store it in store if requested 
@@ -337,7 +337,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		}
 		store_ptr = (store ? store->diag_store : store);
 
-		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&diag_graph, opt_problem->sub_graph, NULL));
+		GMRFLib_EWRAP1(GMRFLib_graph_comp_subgraph(&diag_graph, opt_problem->sub_graph, NULL, NULL));
 		for (i = 0; i < diag_graph->n; i++)
 			if (diag_graph->nnbs[i]) {
 				diag_graph->nnbs[i] = 0;

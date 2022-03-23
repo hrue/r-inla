@@ -597,7 +597,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
-	if (!lookup_tables) {
+
+	if (!lookup_tables && density->type != GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
 		GMRFLib_LEAVE_ROUTINE;

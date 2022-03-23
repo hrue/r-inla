@@ -36438,7 +36438,7 @@ int inla_besag_scale(inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
 				printf("\t\tconnected component[%1d] size[%1d] scale[%.6g]\n", k, num, -1.0);
 		} else {
 			// compute the subgraph and find the scaling for this connected component
-			GMRFLib_graph_comp_subgraph(&(def->graph), arg->graph, remove);
+			GMRFLib_graph_comp_subgraph(&(def->graph), arg->graph, remove, NULL);
 
 			constr->nc = 1;
 			constr->a_matrix = Calloc(def->graph->n, double);

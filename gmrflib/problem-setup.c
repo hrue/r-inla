@@ -417,7 +417,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		/*
 		 * compute it 
 		 */
-		GMRFLib_graph_comp_subgraph(&((*problem)->sub_graph), graph, NULL);
+		GMRFLib_graph_comp_subgraph(&((*problem)->sub_graph), graph, NULL, NULL);
 
 		/*
 		 * store a copy, if requested 
