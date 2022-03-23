@@ -24,6 +24,7 @@ library(INLA)
 if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(smtp="taucs")
 inla.setOption(num.threads="1:1")
+inla.setOption(inla.mode="experimental")
 ```
 
 
@@ -400,7 +401,7 @@ r1 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     control.fixed = list(prec=100),
+	     control.fixed = list(prec=1000),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
          verbose=FALSE, safe=TRUE)
@@ -528,7 +529,7 @@ r2 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     control.fixed = list(prec=100),
+	     control.fixed = list(prec=1000),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb"),
          verbose=FALSE, safe=TRUE)
@@ -653,7 +654,7 @@ r3 = inla(formula,
          control.family = list(hyper = hyper.bgev,
                                control.bgev = control.bgev),
          control.predictor = list(compute = TRUE),
-	     control.fixed = list(prec=100,prec.intercept=100),
+	     control.fixed = list(prec=1000,prec.intercept=1000),
          control.compute = list(cpo = TRUE),
          control.inla = list(int.strategy = "eb",
 	                         cmin=0,

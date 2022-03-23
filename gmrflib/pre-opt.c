@@ -1499,7 +1499,7 @@ double *GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp *
 			value += Qfunc(i, j, NULL, Qfunc_arg);
 		}
 	}
-	assert(value != 0.0);
+	assert(!ISNAN(value));
 	cpu[0] =  GMRFLib_cpu() - time_ref;
 
 	Calloc_init(2 * graph->n);
