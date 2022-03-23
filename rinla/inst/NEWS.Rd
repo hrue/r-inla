@@ -7,6 +7,23 @@
 \section{CHANGES IN VERSION 22.03.16}{
   \subsection{CHANGES}{
     \itemize{
+      \item Improved the code for output which is now way faster for
+      data-rich models
+      \item Internal changes in how integrals are computed and how
+      marginals densities are represented. This which will
+      make the results tiny tiny different from earlier versions.
+      \item Code-improvement for data-rich models
+      \item Minor bug-fixes
+      \item Fixed regression issue with \code{strategy="laplace"}
+      which has been broken
+      from version \code{22.01.16} (ok in \code{22.01.25}).
+    }
+  }
+}
+
+\section{CHANGES IN VERSION 22.03.16}{
+  \subsection{CHANGES}{
+    \itemize{
       \item Code cleanup and a bug-fix
       \item Dense matrices are now store column-wise in \code{cgeneric}
       \item New example added to \code{cgeneric}, see vignette
