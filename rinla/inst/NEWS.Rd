@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 22.03.16}{
+\section{CHANGES IN VERSION 22.03.23}{
   \subsection{CHANGES}{
     \itemize{
       \item Improved the code for output which is now way faster for
@@ -305,12 +305,12 @@
 }
 
 \section{CHANGES IN VERSION 21.11.15}{
-   \subsection{NEW EXPERIMENTAL FEATURES}{
-     \itemize{
-       \item Option for parallel linesearch has been renamed into
-       \code{parallel.linesearch} in \code{control.inla}.
-     }
-   }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Option for parallel linesearch has been renamed into
+      \code{parallel.linesearch} in \code{control.inla}.
+    }
+  }
   \subsection{BUG FIXES AND IMPROVEMENTS}{
     \itemize{
       \item This is fix for a build-error in the Windows binary for
@@ -332,8 +332,7 @@
   \subsection{BUG FIXES AND IMPROVEMENTS}{
     \itemize{
       \item Change default settings for \code{family="tweedie"}
-      \item Implemented an adaptive parallel/serial version of
-        \code{Q%*%x}
+      \item Implemented an adaptive parallel/serial version of \code{Qx}
       \item Improved perforance for parallel linear solve with \code{PARDISO}
       \item Use stable Legendre polynomial evaluation for spherical covariances
       \item Add support for \code{Fedora Linux 35}
@@ -345,17 +344,17 @@
 
 
 \section{CHANGES IN VERSION 21.11.01}{
-   \subsection{NEW EXPERIMENTAL FEATURES}{
-     \itemize{
-       \item New experimental feature \code{lp.scale}. No good documentation yet, but
-       that will come soon.
-     }
-   }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New experimental feature \code{lp.scale}. No good documentation yet, but
+      that will come soon.
+    }
+  }
   \subsection{BUG FIXES}{
     \itemize{
       \item Robustify \code{inla.iidkd.sample} function for numerical singular matrices
       \item Corrected \code{inla.stack.join} handling of factor variables that in some
-            cases converted variables to/from factors unintentionally.
+      cases converted variables to/from factors unintentionally.
       \item \code{inla.mode="experimental"} got its fitted values back.
     }
   }
@@ -370,62 +369,62 @@
 }
 
 \section{CHANGES IN VERSION 21.09.29-1}{
-   \subsection{BUG FIXES}{
-     \itemize{
-       \item Better special number
-     }
-   }
-   \subsection{NEW EXPERIMENTAL FEATURES}{
-     \itemize{
-       \item New option to \code{inla.iidkd.sample}
-     }
-   }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Better special number
+    }
+  }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New option to \code{inla.iidkd.sample}
+    }
+  }
 }
 
 \section{CHANGES IN VERSION 21.09.29}{
-   \subsection{NEW EXPERIMENTAL FEATURES}{
-     \itemize{
-       \item New latent model \code{iidkd} which use a different
-       parameterisation than \code{iid3d} and similar ones.
-     }
-   }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New latent model \code{iidkd} which use a different
+      parameterisation than \code{iid3d} and similar ones.
+    }
+  }
 }
 
 \section{CHANGES IN VERSION 21.09.13}{
-   \subsection{BUG FIXES}{
-     \itemize{
-       \item Fixed crash when using \code{int.strategy="user"} with
-       \code{inla.mode="experimental"}
-       \item Minor fixes
-     }
-   }
- }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed crash when using \code{int.strategy="user"} with
+      \code{inla.mode="experimental"}
+      \item Minor fixes
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 21.09.11}{
-   \subsection{BUG FIXES}{
-     \itemize{
-       \item Fixed crash when using linear combinations with
-       \code{inla.mode="experimental"}
-       \item Minor fixes
-     }
-   }
- }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Fixed crash when using linear combinations with
+      \code{inla.mode="experimental"}
+      \item Minor fixes
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 21.09.01}{
-   \subsection{NEW EXPERIMENTAL FEATURES}{
-     \itemize{
-       \item Added option \code{scale} to \code{family="xbinomial"}
-     }
-   }
- }
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item Added option \code{scale} to \code{family="xbinomial"}
+    }
+  }
+}
 
 \section{CHANGES IN VERSION 21.08.31}{
-   \subsection{BUG FIXES}{
-     \itemize{
-       \item Various bug-fixes
-     }
-   }
- }
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Various bug-fixes
+    }
+  }
+}
 
 
 \section{CHANGES IN VERSION 21.07.10}{
@@ -439,46 +438,44 @@
       storage requirement for the marginals can be substantial. The
       marginal densities can be returned setting
       \code{control.compute=list(return.marginals.predictor=TRUE)}
-
+      
       \item The argument \code{control.results} are removed as it was
-       not really in use.
-
-     \item The new default value for \code{b.strategy} is
-       \code{b.strategy="skip"}. See \code{?control.inla} for details
-       
-     }
-   }
-
-   \subsection{NEW FEATURES}{
-     \itemize{
-       \item New option \code{inla.timeout}, similar to
-       \code{fmesher.timeout}; see \code{?inla.setOption}
-
-       \item \code{CPO-marginals} are returned in when
-       \code{control.compute=list(config=TRUE)}
-
-       \item There is a change how a (numerical) singular constraint is
-       treated, hopefully this new way is more robust.
-     }
-   }
-
-   \subsection{NEW EXPERIMENTAL FEATURES}{
-     \itemize{
-       \item New option \code{inla.mode}, which define how to arrange the
-       internal model formulation. One of \code{"classic"},
-       \code{"twostage"} and \code{"experimental"}. The default is
-       \code{"classic"}, which is unchanged behaviour compared for
-       earlier versions. The other two are highly experimental for the
-       moment. See \code{?inla}
-     }
-   }
-
-   \subsection{BUG FIXES}{
-     \itemize{
-       \item Massive code clean-up and some minor fixes.
-     }
-   }
- }
+      not really in use.
+      
+      \item The new default value for \code{b.strategy} is
+      \code{b.strategy="skip"}. See \code{?control.inla} for details
+    }
+  }
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item New option \code{inla.timeout}, similar to
+      \code{fmesher.timeout}; see \code{?inla.setOption}
+      
+      \item \code{CPO-marginals} are returned in when
+      \code{control.compute=list(config=TRUE)}
+      
+      \item There is a change how a (numerical) singular constraint is
+      treated, hopefully this new way is more robust.
+    }
+  }
+  
+  \subsection{NEW EXPERIMENTAL FEATURES}{
+    \itemize{
+      \item New option \code{inla.mode}, which define how to arrange the
+      internal model formulation. One of \code{"classic"},
+      \code{"twostage"} and \code{"experimental"}. The default is
+      \code{"classic"}, which is unchanged behaviour compared for
+      earlier versions. The other two are highly experimental for the
+      moment. See \code{?inla}
+    }
+  }
+  
+  \subsection{BUG FIXES}{
+    \itemize{
+      \item Massive code clean-up and some minor fixes.
+    }
+  }
+}
 
 
 \section{CHANGES IN VERSION 21.06.11}{
@@ -524,9 +521,9 @@
   \subsection{NEW EXPERIMENTAL FEATURES}{
     \itemize{
       \item Mac only: Link with \code{vecLib} BLAS and LAPACK libraries
-            by default. Turn off with \code{inla.setOption(vecLib=FALSE)}.
+      by default. Turn off with \code{inla.setOption(vecLib=FALSE)}.
       \item Adding an experimental improvement
-            for \code{strategy=simplified.laplace} (not enabled by default)
+      for \code{strategy=simplified.laplace} (not enabled by default)
     }
   }
   \subsection{BUG FIXES}{
