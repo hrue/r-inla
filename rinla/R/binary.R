@@ -97,6 +97,7 @@
         fp <- file(file, "rb")
         len <- file.info(file)$size
         xx <- readBin(fp, numeric(), n = len)
+        xx[is.nan(xx)] <- NA
         close(fp)
     } else {
         if (!silent) {
