@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 22.03.23}{
+\section{CHANGES IN VERSION 22.03.24}{
   \subsection{CHANGES}{
     \itemize{
       \item Improved the code for output which is now way faster for
