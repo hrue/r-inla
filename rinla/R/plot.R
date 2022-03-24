@@ -380,7 +380,7 @@
                                             xval <- rr[, colnames(rr) == "ID"][idx]
                                             yval <- rr[, colnames(rr) == "mean"][idx]
                                             my.plot(xval, yval,
-                                                    ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                    ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld", "mode"))]),
                                                     xlim = range(xval),
                                                     axes = TRUE, ylab = "", xlab = "", type = tp
                                                     )
@@ -395,13 +395,13 @@
                                             yval <- rr[, colnames(rr) == "mean"][idx]
                                             if (is.numeric(xval)) {
                                                 my.plot(xval, yval,
-                                                        ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                        ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld", "mode"))]),
                                                         xlim = range(xval),
                                                         ylab = "", xlab = "", type = tp
                                                         )
                                             } else {
                                                 my.plot(as.factor(xval), yval,
-                                                        ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld"))]),
+                                                        ylim = range(rr[, setdiff(colnames(rr), c("ID", "sd", "kld", "mode"))]),
                                                         axes = TRUE, ylab = "", xlab = "", type = tp
                                                         )
                                             }
@@ -568,9 +568,9 @@
             if (!is.null(n)) {
                 lp <- x$summary.linear.predictor
                 fv <- x$summary.fitted.values
-                ## remove the 'kld' column, we do not need it
-                lp <- lp[, names(lp) != "kld"]
-                fv <- fv[, names(fv) != "kld"]
+                ## remove the 'kld' and 'mode' column, we do not need it
+                lp <- lp[, setdiff(colnames(lp), c("kld", "mode"))]
+                fv <- fv[, setdiff(colnames(fv), c("kld", "mode"))]
                 A <- (x$size.linear.predictor$nrep == 2)
 
                 if (A) {
