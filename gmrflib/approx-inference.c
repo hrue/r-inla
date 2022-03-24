@@ -619,6 +619,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 			idxs = (int *) Calloc_get(n);
 			nidx = 0;
 
+			// why isn't this precomputed as its the same all the time ?
 			for (ii = 0; ii < n; ii++) {
 				if (d[ii]) {
 					idxs[nidx++] = ii;
@@ -900,7 +901,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	GMRFLib_Qinv_tp *store_Qinv = NULL;
 	GMRFLib_optimize_param_tp *optpar = NULL;
 	GMRFLib_blockupdate_param_tp *blockpar = NULL;
-	GMRFLib_problem_tp *newp = NULL;
 	GMRFLib_store_tp *store = NULL;
 	GMRFLib_ai_strategy_tp strategy;
 
@@ -1132,8 +1132,10 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	}
 
 	n_points = ai_par->n_points;
+	n_points = 2 * (ai_par->n_points / 2) + 1;			      /* ensure its odd */
 	GMRFLib_ghq_abscissas(&x_points, n_points);	       /* get the x-points */
 	qsort(x_points, (size_t) n_points, sizeof(double), GMRFLib_dcmp_abs);	/* sort them using ABS() */
+	x_points[0] = 0.0;
 
 	log_density = Calloc(n_points, double);		       /* values of the log_density */
 	cond_mode = Calloc(n, double);
@@ -1170,6 +1172,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 				}
 			}
 		}
+		derivative[idx] = 1.0;
 
 		/*
 		 * note that idx is included in subgraph 
@@ -1285,7 +1288,8 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			 * find first the conditional mode: compute the initial value `cond_mode' 
 			 */
 			for (ii = 0; ii < subgraph->n; ii++) {
-				cond_mode[ii] = fixed_mode[ii] + x_points[k] * x_sd * derivative[ii];
+				i = node_map[ii];
+				cond_mode[i]= fixed_mode[i] + x_points[k] * x_sd * derivative[i];
 			}
 
 			/*
@@ -1311,17 +1315,21 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			 * speedup for successive calls
 			 */
 			if (k == 0) {
+				assert(ISZERO(x_points[k]));
 				GMRFLib_ai_log_posterior_restricted(NULL,
-								    fixed_mode, fixed_mode, derivative,
+								    cond_mode, fixed_mode, derivative,
 								    0.0, b, c, mean, d, loglFunc,
 								    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store,
 								    node_map, ql);
+				//GMRFLib_ai_log_posterior(&logdens_ref, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
 			}
 			GMRFLib_ai_log_posterior_restricted(&log_density[k],
 							    cond_mode, fixed_mode, derivative,
 							    x_points[k] * x_sd, b, c, mean, d, loglFunc,
 							    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store, node_map, ql);
-			log_density[k] -= log_dens_cond;
+			//GMRFLib_ai_log_posterior(&logdens_new, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
+
+			log_density[k] -= log_dens_cond; 
 		}
 		Free(node_map);
 		GMRFLib_graph_free(subgraph);
