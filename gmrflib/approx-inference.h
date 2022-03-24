@@ -637,16 +637,6 @@ typedef struct {
 
 #define GMRFLib_AI_STORE_NEFF_NOT_COMPUTED (-1.23456789)
 
-typedef struct {
-
-	/**
-	 * \brief Store reduced subgraphs for the marginal
-	 */
-	int n;
-	int **node_maps;
-	GMRFLib_graph_tp **subgraphs;
-} GMRFLib_marginal_hidden_store_tp;
-
 /**
  * \brief Store the integrated likelihood for the model
  */
@@ -1052,14 +1042,14 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 					double *c, double *mean, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					GMRFLib_constr_tp * constr, GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * ai_store,
-					int *node_map);
+					int *node_map, double *ql);
 int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp ** cpo_density,
 			       int lookup_tables,
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store, GMRFLib_preopt_tp * preopt);
+			       GMRFLib_preopt_tp * preopt);
 int GMRFLib_ai_update_conditional_mean(GMRFLib_problem_tp * pproblem, double *x, double *mean,
 				       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 				       GMRFLib_constr_tp * constr, double *bbb, double *ccc, double **covariances, int idx);
@@ -1137,7 +1127,6 @@ int GMRFLib_ai_skip_configurations(map_strd * hash_table, int k, int *iz, int *i
 int GMRFLib_ai_theta2z(double *z, int nhyper, double *theta_mode, double *theta, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
 int GMRFLib_ai_validate_cpodens(GMRFLib_density_tp * cpo_density);
 int GMRFLib_ai_z2theta(double *theta, int nhyper, double *theta_mode, double *z, gsl_vector * sqrt_eigen_values, gsl_matrix * eigen_vectors);
-int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m);
 
 int GMRFLib_ai_vb_correct_mean(GMRFLib_density_tp *** density, // need two types
 			       int dens_count,

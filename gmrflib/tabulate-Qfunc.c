@@ -129,9 +129,7 @@ int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_
 int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
 {
-
 	int i, j, k;
-
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
 
 	if (!force) {
@@ -171,7 +169,6 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
 	} else {
 		int id, mem_id;
-
 		id = GMRFLib_thread_id;
 		mem_id = GMRFLib_meminfo_thread_id;
 		arg->values = Calloc(graph->n, map_id *);

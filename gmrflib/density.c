@@ -634,8 +634,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	} else if (idx_max == np - 1) {
 		x_max = xp[np - 1];
 	} else {
-		double * xx = xp + idx_max - 1;
-		double * tld = ld + idx_max - 1;
+		double *xx = xp + idx_max - 1;
+		double *tld = ld + idx_max - 1;
 		// see inla.c and 'inla_integrate_func'
 		x_max = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
 			 tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) /

@@ -619,6 +619,7 @@ int GMRFLib_ai_log_posterior(double *logdens,
 			idxs = (int *) Calloc_get(n);
 			nidx = 0;
 
+			// why isn't this precomputed as its the same all the time ?
 			for (ii = 0; ii < n; ii++) {
 				if (d[ii]) {
 					idxs[nidx++] = ii;
@@ -787,7 +788,7 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 					GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 					GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 					GMRFLib_constr_tp * UNUSED(constr), GMRFLib_graph_tp * subgraph, GMRFLib_ai_store_tp * UNUSED(ai_store),
-					int *node_map)
+					int *node_map, double *ql)
 {
 	/*
 	 * this is the same function as GMRFLib_ai_log_posterior, BUT we only include those terms where at least one component
@@ -801,9 +802,6 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 
 	int i, j, ii, jj, ns;
 	double xx, *f = NULL, *g = NULL, val, tmp, logll = 0.0, q_value;
-
-	static double quadratic_term = 0.0, linear_term = 0.0; /* compute those if logdens == NULL */
-#pragma omp threadprivate(quadratic_term, linear_term)
 
 	GMRFLib_ENTER_ROUTINE;
 	assert(subgraph);
@@ -846,23 +844,23 @@ int GMRFLib_ai_log_posterior_restricted(double *logdens, double *x, double *x_mo
 			}
 		}
 
-		linear_term = 0.0;
-		quadratic_term = 0.0;
+		// ql[0] is linear, ql[1] is quadratic
+		ql[0] = ql[1] = 0.0;
 		for (ii = 0; ii < ns; ii++) {
 			i = node_map[ii];
-			linear_term -= g[ii] * x_gradient[i];
-			quadratic_term += f[ii] * x_gradient[i];
+			ql[0] -= g[ii] * x_gradient[i];
+			ql[1] += f[ii] * x_gradient[i];
 		}
 		if (b) {
 			for (ii = 0; ii < ns; ii++) {
 				i = node_map[ii];
-				linear_term += x_gradient[i] * b[i];
+				ql[0] += x_gradient[i] * b[i];
 			}
 		}
 		Free(f);
 		Free(g);
 	} else {
-		val = -0.5 * SQR(delta) * quadratic_term + delta * linear_term;
+		val = -0.5 * SQR(delta) * ql[1] + delta * ql[0];
 		if (d) {
 			tmp = 0.0;
 			for (ii = 0; ii < ns; ii++) {
@@ -886,8 +884,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			       int idx, double *x, double *b, double *c, double *mean, double *d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store,
-			       GMRFLib_marginal_hidden_store_tp * marginal_hidden_store, GMRFLib_preopt_tp * preopt)
+			       GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt)
 {
 	/*
 	 * compute the approximation to the marginal for the hidden field at index 'idx' and return the density in *density. if
@@ -895,8 +892,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	 */
 
 	char *fix = NULL, *fixx = NULL;
-	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ns = -1, ii, free_ai_store = 0, i_idx, j_idx, one = 1,
-		*node_map = NULL;
+	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ii, free_ai_store = 0, i_idx, j_idx, one = 1, *node_map = NULL;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
 	    log_dens_cond, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, deldif =
 	    GMRFLib_eps(1.0 / 6.0), inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
@@ -905,7 +901,6 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	GMRFLib_Qinv_tp *store_Qinv = NULL;
 	GMRFLib_optimize_param_tp *optpar = NULL;
 	GMRFLib_blockupdate_param_tp *blockpar = NULL;
-	GMRFLib_problem_tp *newp = NULL;
 	GMRFLib_store_tp *store = NULL;
 	GMRFLib_ai_strategy_tp strategy;
 
@@ -1137,8 +1132,10 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	}
 
 	n_points = ai_par->n_points;
+	n_points = 2 * (ai_par->n_points / 2) + 1;			      /* ensure its odd */
 	GMRFLib_ghq_abscissas(&x_points, n_points);	       /* get the x-points */
 	qsort(x_points, (size_t) n_points, sizeof(double), GMRFLib_dcmp_abs);	/* sort them using ABS() */
+	x_points[0] = 0.0;
 
 	log_density = Calloc(n_points, double);		       /* values of the log_density */
 	cond_mode = Calloc(n, double);
@@ -1166,36 +1163,21 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	    && ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_FAST) {
 		// do nothing
 	} else {
-
-		if (marginal_hidden_store->subgraphs && marginal_hidden_store->subgraphs[idx]) {
-			subgraph = marginal_hidden_store->subgraphs[idx];
-			node_map = marginal_hidden_store->node_maps[idx];
-			ns = subgraph->n;
-		} else {
-			/*
-			 * here we need the 'neigbours'.... 
-			 */
-
-			if (!ISZERO(ai_par->cutoff)) {
-				for (i = 0; i < n; i++) {
-					a = x_sd * derivative[i] / ai_store->stdev[i];
-					if (ABS(a) < ai_par->cutoff) {
-						fix[i] = fixx[i] = 1;
-						derivative[i] = 0.0;
-					}
+		if (!ISZERO(ai_par->cutoff)) {
+			for (i = 0; i < n; i++) {
+				a = x_sd * derivative[i] / ai_store->stdev[i];
+				if (ABS(a) < ai_par->cutoff) {
+					fix[i] = fixx[i] = 1;
+					derivative[i] = 0.0;
 				}
 			}
-
-			/*
-			 * note that idx is included in subgraph 
-			 */
-			GMRFLib_graph_comp_subgraph(&subgraph, graph, fixx, &(marginal_hidden_store->node_maps[idx]));
-
-			// store it for later usage
-			marginal_hidden_store->subgraphs[idx] = subgraph;
-			ns = subgraph->n;
-			node_map = marginal_hidden_store->node_maps[idx];
 		}
+		derivative[idx] = 1.0;
+
+		/*
+		 * note that idx is included in subgraph 
+		 */
+		GMRFLib_graph_comp_subgraph(&subgraph, graph, fixx, &node_map);
 	}
 
 	fixx[idx] = 0;					       /* this is how 'fix' and 'fixx' differ */
@@ -1299,13 +1281,15 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		 */
 
 		int debug_me = 0;
+		double ql[2] = { 0.0, 0.0 };
 
 		for (k = 0; k < n_points; k++) {
 			/*
 			 * find first the conditional mode: compute the initial value `cond_mode' 
 			 */
-			for (ii = 0; ii < ns; ii++) {
-				cond_mode[ii] = fixed_mode[ii] + x_points[k] * x_sd * derivative[ii];
+			for (ii = 0; ii < subgraph->n; ii++) {
+				i = node_map[ii];
+				cond_mode[i]= fixed_mode[i] + x_points[k] * x_sd * derivative[i];
 			}
 
 			/*
@@ -1321,68 +1305,34 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			} else {
 				FIXME("THIS OPTION IS NO LONGER SUPPORTED");
 				assert(0 == 1);
-
-				/*
-				 * ... while the default action is to compute the correction-term 
-				 */
-				if (ai_par->fast) {
-					blockpar->modeoption = GMRFLib_MODEOPTION_CURRENT;
-				}
-				// this is needed but 'fix' is no longer there
-
-				// GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store
-				// (&newp, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, fix, graph, Qfunc,
-				// Qfunc_arg, constr, optpar, blockpar, store));
-				if (newp) {
-					/*
-					 * ....which is returned in newp->mean_constr 
-					 */
-					Memcpy(newp->sample, newp->mean_constr, n * sizeof(double));
-					Memcpy(cond_mode, newp->mean_constr, n * sizeof(double));
-
-					/*
-					 * with density 
-					 */
-					GMRFLib_EWRAP1(GMRFLib_evaluate(newp));
-					log_dens_cond = newp->sub_logdens;
-
-					/*
-					 * free this object 
-					 */
-					GMRFLib_free_problem(newp);
-				} else {
-					/*
-					 * we end here if all nodes are fixed 
-					 */
-					log_dens_cond = 0.0;
-				}
-
-				if (debug_me)
-					printf("true x %f log_dens_cond %f\n", x_points[k], log_dens_cond);
 			}
 
 			/*
 			 * this is the fast version that take into account that x = x_mode + delta * gradient for the
 			 * quadratic term
 			 * 
-			 * we first initialise the routine computing the linear and quadratic term, and then we can get
-			 * the speedup for successive calls
+			 * we first initialise the routine computing the linear (ql[0]) and quadratic term (ql[1]), and then we can get the
+			 * speedup for successive calls
 			 */
-			assert(subgraph);
 			if (k == 0) {
+				assert(ISZERO(x_points[k]));
 				GMRFLib_ai_log_posterior_restricted(NULL,
-								    fixed_mode, fixed_mode, derivative,
+								    cond_mode, fixed_mode, derivative,
 								    0.0, b, c, mean, d, loglFunc,
 								    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store,
-								    node_map);
+								    node_map, ql);
+				//GMRFLib_ai_log_posterior(&logdens_ref, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
 			}
 			GMRFLib_ai_log_posterior_restricted(&log_density[k],
 							    cond_mode, fixed_mode, derivative,
 							    x_points[k] * x_sd, b, c, mean, d, loglFunc,
-							    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store,
-							    node_map);
-			log_density[k] -= log_dens_cond;
+							    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store, node_map, ql);
+			//GMRFLib_ai_log_posterior(&logdens_new, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
+
+			log_density[k] -= log_dens_cond; 
 		}
+		Free(node_map);
+		GMRFLib_graph_free(subgraph);
 	}
 
 	GMRFLib_free_store(store);
@@ -1487,6 +1437,11 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		GMRFLib_density_create_sn(density, snp, x_mean, x_sd, lookup_tables);
 	} else {
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n_points, x_points, log_density, x_mean, x_sd, lookup_tables);
+
+		if (0) {
+			printf("idx %d Gaussian mean %f sd %f internal mean %f sd %f user mean %f sd %f\n",
+			       idx, x_mean, x_sd, (*density)->mean, (*density)->stdev, (*density)->user_mean, (*density)->user_stdev);
+		}
 	}
 
 	COMPUTE_CPO_DENSITY;
@@ -2827,7 +2782,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	GMRFLib_density_tp ***lin_dens = NULL;
 	GMRFLib_ai_store_tp **ais = NULL;
 	double **lin_cross = NULL;
-	GMRFLib_marginal_hidden_store_tp *marginal_hidden_store = NULL;
 
 	assert(GMRFLib_inla_mode != GMRFLib_MODE_EXPERIMENTAL);
 	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
@@ -2995,17 +2949,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					deviance_theta[j] = Calloc(dens_max, double);
 				}
 			}
-		}
-
-		marginal_hidden_store = Calloc(1, GMRFLib_marginal_hidden_store_tp);
-		if (ai_par->strategy == GMRFLib_AI_STRATEGY_FIT_SCGAUSSIAN || ai_par->strategy == GMRFLib_AI_STRATEGY_ADAPTIVE) {
-			marginal_hidden_store->n = graph->n;
-			marginal_hidden_store->subgraphs = Calloc(graph->n, GMRFLib_graph_tp *);
-			marginal_hidden_store->node_maps = Calloc(graph->n, int *);
-		} else {
-			marginal_hidden_store->n = 0;
-			marginal_hidden_store->subgraphs = NULL;
-			marginal_hidden_store->node_maps = NULL;
 		}
 	}						       /* end of: if (!preopt) */
 
@@ -3753,7 +3696,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 											   || ai_par->cpo_manual) ? &cpodens : NULL),
 							   GMRFLib_TRUE,
 							   ii, x, b, c, mean, d, loglFunc, loglFunc_arg, graph,
-							   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id], marginal_hidden_store, preopt);
+							   Qfunc, Qfunc_arg, constr, ai_par, ai_store_id[id], preopt);
 				if (tfunc && tfunc[ii]) {
 					GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 				}
@@ -3959,7 +3902,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 								   ii, x, bnew, c, mean, d,
 								   loglFunc, loglFunc_arg,
 								   graph, tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-								   constr, ai_par, ai_store_id, marginal_hidden_store, preopt);
+								   constr, ai_par, ai_store_id, preopt);
 					if (tfunc && tfunc[ii]) {
 						GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 					}
@@ -4117,7 +4060,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 										   x, bnew, c, mean, d, loglFunc,
 										   loglFunc_arg, graph,
 										   tabQfunc->Qfunc, tabQfunc->Qfunc_arg,
-										   constr, ai_par, ai_store_id, marginal_hidden_store, preopt);
+										   constr, ai_par, ai_store_id, preopt);
 							if (tfunc && tfunc[ii]) {
 								GMRFLib_transform_density(&dens_local_transform[ii], dens_local[ii], tfunc[ii]);
 							}
@@ -4281,7 +4224,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			GMRFLib_ai_marginal_hidden(&dens[ii][dens_count], (cpo && (d[ii]
 										   || ai_par->cpo_manual) ? &cpodens : NULL), GMRFLib_TRUE,
 						   ii, x, bnew, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg,
-						   constr, ai_par, ai_store_id[id], marginal_hidden_store, preopt);
+						   constr, ai_par, ai_store_id[id], preopt);
 			if (tfunc && tfunc[ii]) {
 				GMRFLib_transform_density(&dens_transform[ii][dens_count], dens[ii][dens_count], tfunc[ii]);
 			}
@@ -5184,7 +5127,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	Free(userfunc_values);
 	Free(weights);
 	Free(z);
-	GMRFLib_free_marginal_hidden_store(marginal_hidden_store);
 	if (cpo_theta) {
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
@@ -8618,26 +8560,6 @@ int GMRFLib_bnew(double **bnew, double *constant, int n, double *b, GMRFLib_bfun
 	*bnew = bb;
 	*constant = -con / 2.0;
 
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_free_marginal_hidden_store(GMRFLib_marginal_hidden_store_tp * m)
-{
-	int i;
-
-	if (m) {
-		if (m->subgraphs) {
-			for (i = 0; i < m->n; i++)
-				GMRFLib_graph_free(m->subgraphs[i]);
-			Free(m->subgraphs);
-		}
-		if (m->node_maps) {
-			for (i = 0; i < m->n; i++)
-				Free(m->node_maps);
-			Free(m->node_maps);
-		}
-		Free(m);
-	}
 	return GMRFLib_SUCCESS;
 }
 

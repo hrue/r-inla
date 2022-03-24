@@ -1500,13 +1500,13 @@ double *GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp *
 		}
 	}
 	assert(!ISNAN(value));
-	cpu[0] =  GMRFLib_cpu() - time_ref;
+	cpu[0] = GMRFLib_cpu() - time_ref;
 
 	Calloc_init(2 * graph->n);
 	double *x = Calloc_get(graph->n);
 	double *xx = Calloc_get(graph->n);
 
-	for(int i = 0; i < graph->n; i++) {
+	for (int i = 0; i < graph->n; i++) {
 		x[i] = GMRFLib_uniform();
 	}
 
@@ -1514,8 +1514,8 @@ double *GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp *
 	GMRFLib_tabulate_Qfunc(&tab, graph, Qfunc, Qfunc_arg, NULL);
 	time_ref = GMRFLib_cpu();
 	GMRFLib_Qx(xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
-	cpu[1] =  GMRFLib_cpu() - time_ref;
+	cpu[1] = GMRFLib_cpu() - time_ref;
 	GMRFLib_free_tabulate_Qfunc(tab);
-	
+
 	return cpu;
 }
