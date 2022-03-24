@@ -1429,6 +1429,11 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 		GMRFLib_density_create_sn(density, snp, x_mean, x_sd, lookup_tables);
 	} else {
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n_points, x_points, log_density, x_mean, x_sd, lookup_tables);
+
+		if (0) {
+			printf("idx %d Gaussian mean %f sd %f internal mean %f sd %f user mean %f sd %f\n",
+			       idx, x_mean, x_sd, (*density)->mean, (*density)->stdev, (*density)->user_mean, (*density)->user_stdev);
+		}
 	}
 
 	COMPUTE_CPO_DENSITY;
