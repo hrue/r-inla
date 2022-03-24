@@ -1022,10 +1022,15 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	return siz;
 }
 
-int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag,
-	int **node_map)
+int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag, int **node_map)
 {
 	if (!remove_flag) {
+		if (node_map) {
+			*node_map = Calloc(graph->n, int);
+			for (int i = 0; i < graph->n; i++) {
+				(*node_map)[i] = i;
+			}
+		}
 		return GMRFLib_graph_duplicate(subgraph, graph);
 	} else {
 
@@ -1034,7 +1039,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		 * remove_flag[i] false. 
 		 */
 		int i, j, nneig, nn, k, n_neig_tot, storage_indx, *nmap = NULL, *sg_iidx = NULL, *storage = NULL, free_remove_flag = 0;
-		
+
 		GMRFLib_ENTER_ROUTINE;
 		if (!graph) {
 			GMRFLib_LEAVE_ROUTINE;
@@ -1098,6 +1103,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 				sg_iidx[i] = -1;	       /* to force a failure if used wrong */
 			}
 		}
+		assert(k == nn);
 		if (node_map) {
 			*node_map = nmap;
 		}
@@ -1154,7 +1160,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 			Free(remove_flag);		       /* if we have used our own */
 		}
 		Free(sg_iidx);
-		
+
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
@@ -1257,7 +1263,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 
 	const int debug = 0;
 	int m, run_parallel = (GMRFLib_Qx_strategy != 0);
-	int max_t; 
+	int max_t;
 	double *values = NULL, res;
 
 	max_t = GMRFLib_openmp->max_threads_inner;
@@ -1270,8 +1276,9 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 		diag = Calloc_get(graph->n);
 	}
 	res = Qfunc(0, -1, values, Qfunc_arg);
-	if (debug) P(max_t);
-	
+	if (debug)
+		P(max_t);
+
 	if (ISNAN(res)) {
 		if (run_parallel) {
 			if (debug)

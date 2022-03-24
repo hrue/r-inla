@@ -75,11 +75,10 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 			xx[i] = log(xx[i] / (1.0 - xx[i]));
 		}
 	}
-
 	// normally, 'xx' is sorted, but...
 	int is_sorted = 1;
-	for(int i = 1; i < n && is_sorted; i++) {
-		is_sorted = (xx[i] > xx[i-1]);
+	for (int i = 1; i < n && is_sorted; i++) {
+		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
 		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
@@ -227,8 +226,8 @@ int GMRFLib_spline_free(GMRFLib_spline_tp * s)
 
 	if (s) {
 		gsl_spline_free(s->spline);
-		for(int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
-			if (s->accel[i]) 
+		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+			if (s->accel[i])
 				gsl_interp_accel_free(s->accel[i]);
 		}
 		Free(s->accel);
