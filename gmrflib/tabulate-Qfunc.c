@@ -464,6 +464,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * 
 	 */
 
+	int id = GMRFLib_thread_id;
 	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
@@ -527,6 +528,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 #pragma omp parallel for private(i)
 	for (i = 0; i < (*graph)->n; i++) {
+		GMRFLib_thread_id = id;
 		int j, jj;
 		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);

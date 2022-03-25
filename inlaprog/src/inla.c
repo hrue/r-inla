@@ -8831,9 +8831,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -32352,6 +32352,8 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 
 int inla_INLA(inla_tp * mb)
 {
+	int id = GMRFLib_thread_id;
+
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
 	char *compute = NULL;
@@ -32660,6 +32662,7 @@ int inla_INLA(inla_tp * mb)
 	} else {
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < mb->predictor_ndata; i++) {
+			GMRFLib_thread_id = id;
 			if (mb->d[i]) {
 				x[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
 			} else {
@@ -32752,6 +32755,7 @@ int inla_INLA(inla_tp * mb)
 	 */
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
+		GMRFLib_thread_id = id;
 		GMRFLib_density_tp *d;
 
 		if (mb->density[i]) {
@@ -32992,6 +32996,8 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 
 int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 {
+	int id = GMRFLib_thread_id;
+
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
 	char *compute = NULL;
@@ -33297,6 +33303,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	} else {
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < mb->predictor_ndata; i++) {
+			GMRFLib_thread_id = id;
 			if (mb->d[i]) {
 				x[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
 			} else {
@@ -33398,8 +33405,9 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	 */
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
-		GMRFLib_density_tp *d;
+		GMRFLib_thread_id = id;
 
+		GMRFLib_density_tp *d;
 		if (mb->density[i]) {
 			d = mb->density[i];
 			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
@@ -33534,8 +33542,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	// time the two versions of Qfunc_like
 	GMRFLib_thread_id = omp_get_thread_num();
-	double time_used_like[2] = {0.0, 0.0};
-	double time_used_Qx[2] = {0.0, 0.0};
+	double time_used_like[2] = { 0.0, 0.0 };
+	double time_used_Qx[2] = { 0.0, 0.0 };
 
 	if (1) {
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
@@ -33548,7 +33556,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					cpu = GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
 					time_used_like[met] += cpu[0];
 					time_used_Qx[mett] += cpu[1];
-					//printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
+					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
 					Free(cpu);
 				}
 			}
@@ -33581,7 +33589,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		printf("\tQx strategy............... [%s]\n", (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-	
+
 	c = Calloc_get(N);
 	if (mb->expert_diagonal_emergencey) {
 		for (i = 0; i < N; i++)
@@ -34113,6 +34121,7 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 
 int inla_output(inla_tp * mb)
 {
+	int id = GMRFLib_thread_id;
 	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
 	assert(mb);
 
@@ -34174,6 +34183,7 @@ int inla_output(inla_tp * mb)
 
 #pragma omp parallel for num_threads(IMIN(IMAX(1, mb->nf), GMRFLib_openmp->max_threads_outer))
 	for (int ii = 0; ii < mb->nf; ii++) {
+		GMRFLib_thread_id = id;
 		int offset = offsets[ii + 1];
 		inla_output_detail(mb->dir, &(mb->density[offset]),
 				   mb->f_locations[ii],
@@ -34187,6 +34197,7 @@ int inla_output(inla_tp * mb)
 
 #pragma omp parallel for num_threads(GMRFLib_MAX_THREADS())
 	for (int k = 3; k < 9; k++) {
+		GMRFLib_thread_id = id;
 		int ii;
 		if (k == 3) {
 			char *fnm;
@@ -34353,6 +34364,7 @@ int inla_output(inla_tp * mb)
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < 2; i++) {
+		GMRFLib_thread_id = id;
 		if (i == 0 && mb->density) {
 			for (int ii = 0; ii < N; ii++) {
 				GMRFLib_free_density(mb->density[ii]);
@@ -35573,9 +35585,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	assert(nrep > 0);
 	ndiv = n / nrep;
-	//d_mode = Calloc(n, double);
-	//for(int i = 0; i < n; i++) d_mode[i] = NAN;
-	
+	// d_mode = Calloc(n, double);
+	// for(int i = 0; i < n; i++) d_mode[i] = NAN;
+
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
 	if (inla_mkdir(ndir) != 0) {
@@ -35705,7 +35717,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 				}					\
 			}
 
-			//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
+			// RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
 			RUN_CODE_BLOCK(1, 3, mm);
 #undef CODE_BLOCK
 
@@ -36056,6 +36068,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		 const char *samplefile, const char *bfile, const char *mufile, const char *constrfile,
 		 const char *meanfile, const char *selectionfile, int verbose)
 {
+	int id = GMRFLib_thread_id;
 	int output_every = 100;
 	double t_ref = GMRFLib_cpu(), t_reff = GMRFLib_cpu();
 	size_t siz, ret;
@@ -36193,6 +36206,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < ns; i++) {
+			GMRFLib_thread_id = id;
+
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
 				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
@@ -36718,6 +36733,7 @@ double testit_Qfunc(int i, int j, double *UNUSED(values), void *UNUSED(arg))
 
 int testit(int argc, char **argv)
 {
+	int id = GMRFLib_thread_id;
 	int test_no = -1;
 	char **args = NULL;
 	int nargs = 0, i, j;
@@ -36809,6 +36825,7 @@ int testit(int argc, char **argv)
 		double lq;
 #pragma omp parallel for
 		for (int i = 0; i < 10000; i++) {
+			GMRFLib_thread_id = id;
 			lq = -5 + i * 0.001;
 			printf("%1d quantile %f  eta %f\n", omp_get_thread_num(), exp(lq), GMRFLib_spline_eval(lq, spline[omp_get_thread_num()]));
 		}
@@ -36934,6 +36951,7 @@ int testit(int argc, char **argv)
 		sum = 0;
 #pragma omp parallel for private(i, x, xx) reduction(+: sum)
 		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
+			GMRFLib_thread_id = id;
 			x = low + dx * i;
 			double x2[1];
 			x2[0] = x;
@@ -36946,6 +36964,7 @@ int testit(int argc, char **argv)
 		sum = 0;
 #pragma omp parallel for private(i, x, xx) reduction(+: sum)
 		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
+			GMRFLib_thread_id = id;
 			x = low + dx * i;
 			for (xx = low; xx < high; xx += dx) {
 				double x2[2];
@@ -36961,6 +36980,7 @@ int testit(int argc, char **argv)
 		sum = 0;
 #pragma omp parallel for private(i, x, xx, xxx) reduction(+: sum)
 		for (i = 0; i < (int) ((high - low) / dx + 1); i++) {
+			GMRFLib_thread_id = id;
 			x = low + dx * i;
 			for (xx = low; xx < high; xx += dx) {
 				for (xxx = low; xxx < high; xxx += dx) {
@@ -36990,6 +37010,7 @@ int testit(int argc, char **argv)
 		int i;
 #pragma omp parallel for
 		for (int i = 0; i < 10; i++) {
+			GMRFLib_thread_id = id;
 			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", nx, x);
 		}
 		inla_R_funcall2(&nxx, &xx, "lprior2", NULL, nx, x);
@@ -37032,6 +37053,7 @@ int testit(int argc, char **argv)
 		for (itim = 0; itim < ntimes; itim++) {
 #pragma omp parallel for private(i, jj, j)
 			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id;
 				Q->A[i + i * n] = inla_spde3_Qfunction(i, i, NULL, (void *) smodel);
 				for (jj = 0; jj < smodel->graph->nnbs[i]; jj++) {
 					j = smodel->graph->nbs[i][jj];
@@ -37475,6 +37497,7 @@ int testit(int argc, char **argv)
 		// paralle for must have int as loop-index
 		// #pragma omp parallel for private(xx)
 		for (int i = 0; i < (int) (2.0 * range / dx); i++) {
+			GMRFLib_thread_id = id;
 			xx = -range + i * dx;
 			double a, b, c, d, h = 1e-6;
 			a = link_loga(xx, MAP_FORWARD, (void *) arg, NULL);
@@ -37723,6 +37746,7 @@ int testit(int argc, char **argv)
 
 #pragma omp parallel for private(iy, y, ldens) reduction(+:sum)
 		for (iy = 0; iy < 100000; iy++) {
+			GMRFLib_thread_id = id;
 			double y = SQR(dy) + iy * dy;
 			dtweedie(1, y, &mu, phi, p, &ldens);
 			printf("LDENS %f %f\n", y, ldens);
@@ -38087,6 +38111,7 @@ int testit(int argc, char **argv)
 		FIXME("run with 4 threads");
 #pragma omp parallel for num_threads(4)
 		for (int i = 0; i < n; i++) {
+			GMRFLib_thread_id = id;
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
@@ -38097,6 +38122,7 @@ int testit(int argc, char **argv)
 		FIXME("run with 1 threads");
 #pragma omp parallel for num_threads(1)
 		for (int i = 0; i < n; i++) {
+			GMRFLib_thread_id = id;
 			P(GMRFLib_OPENMP_IN_SERIAL());
 			P(GMRFLib_OPENMP_IN_PARALLEL());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());

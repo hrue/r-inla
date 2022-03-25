@@ -377,6 +377,8 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 }
 int ar_test1()
 {
+	int id = GMRFLib_thread_id;
+
 	if (1) {
 		GMRFLib_graph_tp *g;
 		ar_def_tp def;
@@ -421,6 +423,7 @@ int ar_test1()
 		double val = 0.0;
 #pragma omp parallel for private(k, i, j)
 		for (k = 0; k < 1000; k++) {
+			GMRFLib_thread_id = id;
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++) {
 					val += Qfunc_ar(i, j, NULL, &def);

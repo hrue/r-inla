@@ -599,9 +599,9 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 
 #pragma omp parallel for private(i) reduction(+: sum)
 		for (i = 0; i < sub_n; i++) {
-			double logll;
-
 			GMRFLib_thread_id = id;
+
+			double logll;
 			sum += (-0.5 * v[i] + opt_problem->b[i]) * u[i];
 			if (opt_problem->d[i]) {
 				(*(opt_problem->loglFunc)) (&logll, &u[i], 1, i, opt_problem->x_vec, NULL, opt_problem->loglFunc_arg);
@@ -788,11 +788,12 @@ int GMRFLib_optimize3(GMRFLib_optimize_problem_tp * opt_problem, GMRFLib_store_t
 		}
 #pragma omp parallel for private(i)
 		for (i = 0; i < nidx; i++) {
+			GMRFLib_thread_id = id;
+
 			int idx;
 			double bcoof, ccoof;
 			double cmin = 0.0;
 
-			GMRFLib_thread_id = id;
 			idx = idxs[i];
 			GMRFLib_2order_approx(NULL, &bcoof, &ccoof, NULL, opt_problem->d[idx],
 					      opt_problem->mode[idx], idx, opt_problem->x_vec,

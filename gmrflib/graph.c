@@ -685,6 +685,7 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		int k = graph->nnbs[i];					\
 		for (int jj = 0; jj < graph->nnbs[i]; jj++) {		\
 			int j = graph->nbs[i][jj];			\
@@ -733,6 +734,7 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	}
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID();				\
 		if (graph->nnbs[i]) {					\
 			int k = 0;					\
 			for (int j = 1; j < graph->nnbs[i]; j++) {	\
@@ -760,9 +762,10 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	if (!graph) {
 		return GMRFLib_SUCCESS;
 	}
-#define CODE_BLOCK				\
-	for (int i = 0; i < graph->n; i++) {	\
-		if (graph->nnbs[i]) {		\
+#define CODE_BLOCK							\
+	for (int i = 0; i < graph->n; i++) {				\
+		CODE_BLOCK_SET_THREAD_ID();				\
+		if (graph->nnbs[i]) {					\
 			int j, is_sorted = 1;				\
 			if (graph->nnbs[i]) {				\
 				for (j = 1; j < graph->nnbs[i] && is_sorted; j++) { \
@@ -1433,6 +1436,7 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 			// I think is less good as it index the matrices in the wrong direction
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int k = 0; k < ncol; k++) {
+				GMRFLib_thread_id = id;
 				double *val = values + omp_get_thread_num() * graph->n;
 				assert(omp_get_thread_num() < GMRFLib_openmp->max_threads_inner);
 				GMRFLib_thread_id = id;

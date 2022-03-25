@@ -232,8 +232,8 @@ int GMRFLib_blockupdate_store(double *laccept,
 		if (d_new) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
-				double cmin = 0.0;
 				GMRFLib_thread_id = id;
+				double cmin = 0.0;
 				if (d_new[i]) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d_new[i], mode[i], i,
 							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len), &(blockpar->stencil),
@@ -320,8 +320,8 @@ int GMRFLib_blockupdate_store(double *laccept,
 		if (d_old) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
-				double cmin = 0.0;
 				GMRFLib_thread_id = id;
+				double cmin = 0.0;
 				if (d_old[i]) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d_old[i], mode[i], i, mode,
 							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len), &(blockpar->stencil), &cmin);
@@ -592,8 +592,8 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 		if (d) {
 #pragma omp parallel for private(i)
 			for (i = 0; i < n; i++) {
-				double cmin = 0.0;
 				GMRFLib_thread_id = id;
+				double cmin = 0.0;
 				if (d[i]) {
 					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[i], mode[i], i, mode, loglFunc, loglFunc_arg,
 							      &(blockupdate_par->step_len), &(blockupdate_par->stencil), &cmin);
@@ -633,8 +633,8 @@ int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double 
 
 #pragma omp parallel for private(i, j)
 		for (j = 0; j < ns; j++) {
-			double cmin = 0.0;
 			GMRFLib_thread_id = id;
+			double cmin = 0.0;
 			i = j;
 			if (d[i]) {
 				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[i], mode[i], i, mode, loglFunc, loglFunc_arg,

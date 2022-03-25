@@ -951,7 +951,7 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i, j; 
+	int i, j;
 	double d_tmp = 0.0, d = 0.0, x_std, p;
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(weights, n);
 
@@ -1197,7 +1197,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	 *
 	 * make lookup_tables if LOOKUP_TABLES is TRUE
 	 */
-	int i, debug = 0;
+	int i, j, debug = 0;
 	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
 	GMRFLib_sn_param_tp sn_param;
 
@@ -1252,6 +1252,15 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			/*
 			 * fit spline-corrected gaussian 
 			 */
+			for(i = j = 0; i < n;  i++) {	       /* this could happen */
+				if (!ISINF(ldens[i])) {
+					ldens[j] = ldens[i];
+					xx[j] = xx[i];
+					j++;
+				}
+			}
+			n = j;
+
 			(*density) = Calloc(1, GMRFLib_density_tp);
 			(*density)->type = GMRFLib_DENSITY_TYPE_SCGAUSSIAN;
 			(*density)->std_mean = std_mean;

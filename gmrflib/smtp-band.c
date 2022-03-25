@@ -124,6 +124,8 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 
 #pragma omp parallel for private(i)
 	for (i = 0; i < graph->n; i++) {
+		GMRFLib_thread_id = id;
+
 		int node = remap[i];
 		int j;
 		double val;
@@ -412,6 +414,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	int i, j, k, kk, iii, jjj, bw, ldim, n, *inv_remap = NULL, *rremove = NULL, nrremove;
 	double tmp, Lii_inv, value, *Lmatrix, *cov;
 	map_id **Qinv_L = NULL;
+	int id = GMRFLib_thread_id;
 
 	bw = problem->sub_sm_fact.bandwidth;
 	ldim = bw + 1;
@@ -427,6 +430,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	Qinv_L = Calloc(n, map_id *);
 #pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
+		GMRFLib_thread_id = id;
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], ldim);
 	}
@@ -543,6 +547,8 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
+			GMRFLib_thread_id = id;
+
 			iii = inv_remap[i];
 			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;
