@@ -712,7 +712,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
-	int id = GMRFLib_thread_id; 
+	int id = GMRFLib_thread_id;
 	int i, j, k, ic, ne, n = 0, nnz, *perm = NULL, *iperm = NULL, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
 
@@ -1215,7 +1215,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	double *ptr = NULL, value, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;

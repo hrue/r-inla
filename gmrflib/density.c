@@ -951,7 +951,7 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	 * 
 	 * the weights need not to be scaled. 
 	 */
-	int i, j; 
+	int i, j;
 	double d_tmp = 0.0, d = 0.0, x_std, p;
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(weights, n);
 

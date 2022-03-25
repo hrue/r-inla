@@ -1132,7 +1132,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 	}
 
 	n_points = ai_par->n_points;
-	n_points = 2 * (ai_par->n_points / 2) + 1;			      /* ensure its odd */
+	n_points = 2 * (ai_par->n_points / 2) + 1;	       /* ensure its odd */
 	GMRFLib_ghq_abscissas(&x_points, n_points);	       /* get the x-points */
 	qsort(x_points, (size_t) n_points, sizeof(double), GMRFLib_dcmp_abs);	/* sort them using ABS() */
 	x_points[0] = 0.0;
@@ -1289,7 +1289,7 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 			 */
 			for (ii = 0; ii < subgraph->n; ii++) {
 				i = node_map[ii];
-				cond_mode[i]= fixed_mode[i] + x_points[k] * x_sd * derivative[i];
+				cond_mode[i] = fixed_mode[i] + x_points[k] * x_sd * derivative[i];
 			}
 
 			/*
@@ -1321,15 +1321,16 @@ int GMRFLib_ai_marginal_hidden(GMRFLib_density_tp ** density, GMRFLib_density_tp
 								    0.0, b, c, mean, d, loglFunc,
 								    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store,
 								    node_map, ql);
-				//GMRFLib_ai_log_posterior(&logdens_ref, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
+				// GMRFLib_ai_log_posterior(&logdens_ref, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc,
+				// Qfunc_arg, NULL);
 			}
 			GMRFLib_ai_log_posterior_restricted(&log_density[k],
 							    cond_mode, fixed_mode, derivative,
 							    x_points[k] * x_sd, b, c, mean, d, loglFunc,
 							    loglFunc_arg, graph, Qfunc, Qfunc_arg, constr, subgraph, ai_store, node_map, ql);
-			//GMRFLib_ai_log_posterior(&logdens_new, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
+			// GMRFLib_ai_log_posterior(&logdens_new, cond_mode, b, c, mean, d, loglFunc, loglFunc_arg, graph, Qfunc, Qfunc_arg, NULL);
 
-			log_density[k] -= log_dens_cond; 
+			log_density[k] -= log_dens_cond;
 		}
 		Free(node_map);
 		GMRFLib_graph_free(subgraph);
@@ -2576,7 +2577,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		    GMRFLib_preopt_tp * preopt, GMRFLib_preopt_res_tp * rpreopt)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	/*
 	 * 
 	 * compute integrated marginals for the hidden gmrf at those indices where compute[i] = true. the hyperparameters is
@@ -3523,7 +3524,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						zz = Calloc(nhyper, double);
 						ttheta = Calloc(nhyper, double);
 						Memset(zz, 0, nhyper * sizeof(double));
-						
+
 						if (GMRFLib_OPENMP_IN_PARALLEL()) {
 							if (!ais[GMRFLib_thread_id]) {
 								ais[GMRFLib_thread_id] =
@@ -3686,7 +3687,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int i = 0; i < compute_n; i++) {
 				GMRFLib_thread_id = id;
-				
+
 				int ii = compute_idx[i];
 				int id = omp_get_thread_num();
 				GMRFLib_density_tp *cpodens = NULL;
@@ -3970,7 +3971,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 #pragma omp parallel for private(i, log_dens, tref, tu, ierr) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (size_t kk = 0; kk < pool->nconfig; kk++) {
 				GMRFLib_thread_id = omp_get_thread_num();
-				
+
 				GMRFLib_ai_store_tp *ai_store_id = NULL;
 				GMRFLib_density_tp **dens_local = NULL;
 				GMRFLib_density_tp **dens_local_transform = NULL;
@@ -4359,7 +4360,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 	GMRFLib_normalize(dens_count, adj_weights);
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_count);
-	
+
 	if (density) {
 		/*
 		 * need a separate strategy here, as this might take time if the number of points are large, and we essentially want to do this loop with max
@@ -6240,7 +6241,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 
 		if (cpo || dic || po) {
-		id = GMRFLib_thread_id;
+			id = GMRFLib_thread_id;
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int ii = 0; ii < d_idx->n; ii++) {
 				GMRFLib_thread_id = id;
@@ -8623,7 +8624,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 #pragma omp parallel for private(j, k) num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
 	for (int i = 0; i < nlin; i++) {
 		GMRFLib_thread_id = id;
-		
+
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
 		double var, mean, imean, *a = NULL, *b = NULL, *v = NULL, *vv = NULL, var_corr, weight;
 
@@ -8782,7 +8783,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 #pragma omp parallel for if(nc) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int k = 0; k < klen; k++) {
 			GMRFLib_thread_id = id;
-			
+
 			int i = arr[k].i;
 			int j = arr[k].j;
 			int ij_from, ij_to;

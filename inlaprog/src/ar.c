@@ -378,7 +378,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 int ar_test1()
 {
 	int id = GMRFLib_thread_id;
-	
+
 	if (1) {
 		GMRFLib_graph_tp *g;
 		ar_def_tp def;

@@ -1357,7 +1357,7 @@ int my_pardiso_test1(void)
 {
 	int err = 0;
 	int id = GMRFLib_thread_id;
-	
+
 	if (1) {
 		err = GMRFLib_pardiso_check_install(1, 0);
 		if (err == GMRFLib_SUCCESS) {
@@ -1687,7 +1687,7 @@ int my_pardiso_test4(void)
 int my_pardiso_test5(void)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	S.msglvl = 1;
 	S.csr_check = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
@@ -1741,7 +1741,7 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < n; i++) {
 		GMRFLib_thread_id = id;
-		
+
 		int *iparm = Calloc(GMRFLib_PARDISO_PLEN, int);
 		double *dparm = Calloc(GMRFLib_PARDISO_PLEN, double);
 
@@ -1802,7 +1802,7 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 int my_pardiso_test7(void)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	S.msglvl = 0;
 	S.csr_check = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;

@@ -415,7 +415,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	double tmp, Lii_inv, value, *Lmatrix, *cov;
 	map_id **Qinv_L = NULL;
 	int id = GMRFLib_thread_id;
-	
+
 	bw = problem->sub_sm_fact.bandwidth;
 	ldim = bw + 1;
 	n = problem->sub_graph->n;

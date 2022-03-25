@@ -114,7 +114,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
 	int id = GMRFLib_thread_id;
-	
+
 	if (!hgmrfm) {
 		return GMRFLib_SUCCESS;
 	}

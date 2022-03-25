@@ -113,7 +113,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	int nrow = 0, ncol = 0;
 	int debug = 0;
 	int id = GMRFLib_thread_id;
-	
+
 	double tref = GMRFLib_cpu();
 	double **ww = NULL;
 	GMRFLib_constr_tp *fc = NULL;
@@ -1428,7 +1428,7 @@ int GMRFLib_preopt_update(GMRFLib_preopt_tp * preopt, double *like_b, double *li
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
 	}

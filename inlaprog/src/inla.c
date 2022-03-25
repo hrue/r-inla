@@ -8831,9 +8831,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -32353,12 +32353,12 @@ double inla_compute_saturated_loglik_core(int idx, GMRFLib_logl_tp * loglfunc, d
 int inla_INLA(inla_tp * mb)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
 	char *compute = NULL;
 	GMRFLib_bfunc_tp **bfunc;
-	
+
 	if (mb->verbose) {
 		printf("%s...\n", __GMRFLib_FuncName);
 	}
@@ -32997,7 +32997,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 {
 	int id = GMRFLib_thread_id;
-	
+
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
 	char *compute = NULL;
@@ -33542,8 +33542,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	// time the two versions of Qfunc_like
 	GMRFLib_thread_id = omp_get_thread_num();
-	double time_used_like[2] = {0.0, 0.0};
-	double time_used_Qx[2] = {0.0, 0.0};
+	double time_used_like[2] = { 0.0, 0.0 };
+	double time_used_Qx[2] = { 0.0, 0.0 };
 
 	if (1) {
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
@@ -33556,7 +33556,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					cpu = GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
 					time_used_like[met] += cpu[0];
 					time_used_Qx[mett] += cpu[1];
-					//printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
+					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
 					Free(cpu);
 				}
 			}
@@ -33589,7 +33589,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		printf("\tQx strategy............... [%s]\n", (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
-	
+
 	c = Calloc_get(N);
 	if (mb->expert_diagonal_emergencey) {
 		for (i = 0; i < N; i++)
@@ -35585,9 +35585,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	assert(nrep > 0);
 	ndiv = n / nrep;
-	//d_mode = Calloc(n, double);
-	//for(int i = 0; i < n; i++) d_mode[i] = NAN;
-	
+	// d_mode = Calloc(n, double);
+	// for(int i = 0; i < n; i++) d_mode[i] = NAN;
+
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
 	if (inla_mkdir(ndir) != 0) {
@@ -35717,7 +35717,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 				}					\
 			}
 
-			//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
+			// RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
 			RUN_CODE_BLOCK(1, 3, mm);
 #undef CODE_BLOCK
 
@@ -36207,7 +36207,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < ns; i++) {
 			GMRFLib_thread_id = id;
-			
+
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
 				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
