@@ -5910,7 +5910,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		stdev_corr_pos = Calloc(nhyper, double);
 		stdev_corr_neg = Calloc(nhyper, double);
 
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
+//#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (k = 0; k < nhyper; k++) {
 			GMRFLib_thread_id = omp_get_thread_num();
 
@@ -8855,10 +8855,18 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 	 * remove 'local' maxima at the extremes and return !GMRFLib_SUCCESS if the density is monotone otherwise GMRFLib_SUCCESS. If maximum, or nearly, is on the
 	 * extremes, then flag an error.
 	 */
-	int idx, i;
+	int idx, i, j;
 	char *code = Calloc(*n, char);
 	double mode;
 
+	for(i = j = 0; i < *n; i++) {
+		if (!ISINF(logdens[i])) {
+			logdens[j] = logdens[i];
+			j++;
+		}
+	}
+	*n = j;
+	
 	idx = *n;
 	do {
 		idx--;

@@ -46,6 +46,7 @@ int integer_one = 1;
 
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
+		double value_ = 0.0;					\
 		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
 			int istart_ = ELM_->g_i[g_];			\
 			int *ii_ = &(ELM_->idx[istart_]);		\
@@ -53,33 +54,36 @@ int integer_one = 1;
 			switch(ELM_->g_len[g_])				\
 			{						\
 			case 1:						\
-				VALUE_ +=				\
+				value_ +=				\
 					vv_[0] * ARR_[ii_[0]];		\
 				break;					\
 			case 2:						\
-				VALUE_ +=				\
+				value_ +=				\
 					vv_[0] * ARR_[ii_[0]] +		\
 					vv_[1] * ARR_[ii_[1]];		\
 				break;					\
 			case 3:						\
-				VALUE_ +=				\
+				value_ +=				\
 					vv_[0] * ARR_[ii_[0]] +		\
 					vv_[1] * ARR_[ii_[1]] +		\
 					vv_[2] * ARR_[ii_[2]];		\
 				break;					\
 			default:					\
-				VALUE_ += DDOT(ELM_->g_len[g_], vv_, &(ARR_[ii_[0]])); \
+				value_ += DDOT(ELM_->g_len[g_], vv_, &(ARR_[ii_[0]])); \
 			}						\
 		}							\
+		VALUE_ = value_;					\
 	}
 
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
+		double value_ = 0.0;					\
 		_Pragma("GCC ivdep")					\
 			_Pragma("GCC unroll 8")				\
 			for (int i_= 0; i_ < ELM_->n; i_++) {		\
-				VALUE_ += ELM_->val[i_] * ARR_[ELM_->idx[i_]]; \
+				value_ += ELM_->val[i_] * ARR_[ELM_->idx[i_]]; \
 			}						\
+		VALUE_ = value_;					\
 	}
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
@@ -1017,7 +1021,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				CODE_BLOCK_SET_THREAD_ID();		\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->npred; i++) { \
-						CODE_BLOCK_SET_THREAD_ID(); \
 						if (preopt->A_idxval[i]) { \
 							GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
 							DOT_PRODUCT_SERIAL(pred[offset + i], elm, latent); \
@@ -1025,10 +1028,9 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 					}				\
 				} else {				\
 					for (int i = 0; i < preopt->mpred; i++) { \
-						CODE_BLOCK_SET_THREAD_ID(); \
-						if (preopt->pA_idxval[i]) { \
-							GMRFLib_idxval_tp *elm = preopt->pA_idxval[i]; \
-							DOT_PRODUCT_SERIAL(pred[i], elm, (pred + offset)); \
+						if (preopt->pAA_idxval[i]) { \
+							GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
+							DOT_PRODUCT_SERIAL(pred[i], elm, latent); \
 						}			\
 					}				\
 				}					\
