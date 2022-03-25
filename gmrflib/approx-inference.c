@@ -4356,21 +4356,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		}
 	}
 
-	/*
-	 * normalise the weights so they sum to 1.
-	 */
-	{
-		double sum = 0.0;
 
-		for (j = 0; j < dens_count; j++) {
-			sum += adj_weights[j];
-		}
-		sum = 1.0 / sum;
-		for (j = 0; j < dens_count; j++) {
-			adj_weights[j] *= sum;
-		}
-	}
-
+	GMRFLib_normalize(dens_count, adj_weights);
+	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_count);
+	
 	if (density) {
 		/*
 		 * need a separate strategy here, as this might take time if the number of points are large, and we essentially want to do this loop with max
@@ -4381,14 +4370,14 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		for (j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine_ORIG(&dens_combine, dens_count, dens[ii], adj_weights);
+			GMRFLib_density_combine(&dens_combine, dens[ii], probs);
 			if (density) {
 				(*density)[ii] = dens_combine;
 			}
 
 			if (tfunc && tfunc[ii]) {
 				GMRFLib_density_tp *dens_c = NULL;
-				GMRFLib_density_combine_ORIG((density_transform ? &dens_c : NULL), dens_count, dens_transform[ii], adj_weights);
+				GMRFLib_density_combine((density_transform ? &dens_c : NULL), dens_transform[ii], probs);
 				(*density_transform)[ii] = dens_c;
 			}
 		}
@@ -4406,7 +4395,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			for (k = 0; k < dens_count; k++) {
 				dtmp[k] = lin_dens[k][j];
 			}
-			GMRFLib_density_combine_ORIG(&dcombine, dens_count, dtmp, adj_weights);
+			GMRFLib_density_combine(&dcombine, dtmp, probs);
 			(*dlin)[j] = dcombine;
 		}
 		Free(dtmp);
