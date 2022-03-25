@@ -712,10 +712,9 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
 {
-	int i, j, k, ic, ne, n = 0, nnz, *perm = NULL, *iperm = NULL, id, nan_error = 0;
+	int id = GMRFLib_thread_id; 
+	int i, j, k, ic, ne, n = 0, nnz, *perm = NULL, *iperm = NULL, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
-
-	id = GMRFLib_thread_id;
 
 	if (!graph || graph->n == 0) {
 		*L = NULL;
@@ -756,11 +755,10 @@ int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_
 	}
 #pragma omp parallel for private(i, ic, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
 	for (i = 0; i < n; i++) {
+		GMRFLib_thread_id = id;
 		double val;
 
 		ic = ic_idx[i];
-		GMRFLib_thread_id = id;
-
 		val = Qfunc(i, i, NULL, Qfunc_arg);
 		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
 		Q->values.d[ic++] = val;
@@ -1216,6 +1214,8 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
 
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
 {
+	int id = GMRFLib_thread_id;
+	
 	double *ptr = NULL, value, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;
@@ -1258,6 +1258,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 	Qinv_L = Calloc(n, map_id *);
 #pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
+		GMRFLib_thread_id = id;
 		qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* needed? */
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
@@ -1367,6 +1368,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
+			GMRFLib_thread_id = id;
 			iii = inv_remap[i];
 			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;

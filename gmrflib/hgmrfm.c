@@ -113,7 +113,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	double **Qijlist = NULL, value, **ww = NULL;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
-
+	int id = GMRFLib_thread_id;
+	
 	if (!hgmrfm) {
 		return GMRFLib_SUCCESS;
 	}
@@ -301,6 +302,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	{
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
+
 			/*
 			 * \eta_i^2 = 1 
 			 */
@@ -313,6 +316,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
+
 			/*
 			 * \eta_i f_jk = - 1_{c_j(i) = k} 
 			 */
@@ -333,6 +338,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
+
 			/*
 			 * \eta_i \beta_j 
 			 */
@@ -349,6 +356,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
+
 			/*
 			 * f_jk beta_m = \sum z_ki, for all i: c_j[i] = k 
 			 */
@@ -374,6 +383,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp section
 		{
+			GMRFLib_thread_id = id;
+
 			/*
 			 * beta_k beta_m = sum_i z_ki z_mi 
 			 */
@@ -434,6 +445,8 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp parallel for private(k, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < f_graph[j]->n; k++) {
+					GMRFLib_thread_id = id;
+
 					int thread = omp_get_thread_num();
 					for (l = 0; l < f_graph[m]->n; l++) {
 						value = 0.0;
@@ -465,6 +478,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
+				GMRFLib_thread_id = id;
 				int thread = omp_get_thread_num();
 
 				j = j_idx[jm_idx];

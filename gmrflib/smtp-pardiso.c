@@ -1356,7 +1356,8 @@ double my_pardiso_test_Q(int i, int j, double *UNUSED(values), void *arg)
 int my_pardiso_test1(void)
 {
 	int err = 0;
-
+	int id = GMRFLib_thread_id;
+	
 	if (1) {
 		err = GMRFLib_pardiso_check_install(1, 0);
 		if (err == GMRFLib_SUCCESS) {
@@ -1404,8 +1405,9 @@ int my_pardiso_test1(void)
 	// S.s_verbose=1;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (k = 0; k < 100; k++) {
-		printf("this is k= %d from thread %d\n", k, omp_get_thread_num());
+		GMRFLib_thread_id = id;
 
+		printf("this is k= %d from thread %d\n", k, omp_get_thread_num());
 		GMRFLib_pardiso_store_tp *store2 = NULL;
 		if (0) {
 			GMRFLib_pardiso_init(&store2);
@@ -1525,6 +1527,7 @@ int my_pardiso_test2(void)
 
 int my_pardiso_test3(void)
 {
+	int id = GMRFLib_thread_id;
 	int err = 0;
 
 	FIXME("this is test3");
@@ -1567,6 +1570,7 @@ int my_pardiso_test3(void)
 	int nrhs = S.nrhs_max, k;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (k = 0; k < 1000; k++) {
+		GMRFLib_thread_id = id;
 
 		int i;
 		GMRFLib_pardiso_store_tp *local_store = NULL;
@@ -1682,6 +1686,8 @@ int my_pardiso_test4(void)
 
 int my_pardiso_test5(void)
 {
+	int id = GMRFLib_thread_id;
+	
 	S.msglvl = 1;
 	S.csr_check = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
@@ -1694,6 +1700,7 @@ int my_pardiso_test5(void)
 	int k;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (k = 0; k < 1000; k++) {
+		GMRFLib_thread_id = id;
 
 		// I do not free anything here...
 
@@ -1717,6 +1724,7 @@ int my_pardiso_test5(void)
 
 int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *c)
 {
+	int id = GMRFLib_thread_id;
 	int n = ai_store->problem->sub_graph->n;
 	int i;
 
@@ -1732,6 +1740,8 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < n; i++) {
+		GMRFLib_thread_id = id;
+		
 		int *iparm = Calloc(GMRFLib_PARDISO_PLEN, int);
 		double *dparm = Calloc(GMRFLib_PARDISO_PLEN, double);
 
@@ -1791,6 +1801,8 @@ int my_pardiso_test6(GMRFLib_ai_store_tp * ai_store, GMRFLib_Qfunc_tp * Qfunc, v
 
 int my_pardiso_test7(void)
 {
+	int id = GMRFLib_thread_id;
+	
 	S.msglvl = 0;
 	S.csr_check = 1;
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
@@ -1803,6 +1815,7 @@ int my_pardiso_test7(void)
 	int k;
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (k = 0; k < 100; k++) {
+		GMRFLib_thread_id = id;
 
 		// I do not free anything here...
 

@@ -283,12 +283,14 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 	 * rhs in real world. solve L x=rhs, rhs is overwritten by the solution 
 	 */
 	GMRFLib_ENTER_ROUTINE;
+	int id = GMRFLib_thread_id;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
+			GMRFLib_thread_id = id;
 			GMRFLib_solve_l_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 		break;
@@ -297,6 +299,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
+			GMRFLib_thread_id = id;
 			GMRFLib_solve_l_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 		break;
@@ -324,12 +327,14 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 	 * rhs in real world. solve L^Tx=rhs, rhs is overwritten by the solution 
 	 */
 	GMRFLib_ENTER_ROUTINE;
+	int id = GMRFLib_thread_id;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
+			GMRFLib_thread_id = id;
 			GMRFLib_solve_lt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 		break;
@@ -338,6 +343,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
+			GMRFLib_thread_id = id;
 			GMRFLib_solve_lt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 		}
 		break;
@@ -365,11 +371,13 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
 	 */
 	GMRFLib_ENTER_ROUTINE;
+	int id = GMRFLib_thread_id;
 
 	if (sm_fact->smtp == GMRFLib_SMTP_BAND) {
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 		for (int i = 0; i < nrhs; i++) {
+			GMRFLib_thread_id = id;
 			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
@@ -377,6 +385,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 			// omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
 			// #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int i = 0; i < nrhs; i++) {
+				GMRFLib_thread_id = id;
 				GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 			}
 		} else {
@@ -437,6 +446,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 			}
 #pragma omp parallel for num_threads(nt) if (nt > 1)
 			for (int k = 0; k < nsolve; k++) {
+				GMRFLib_thread_id = id;
 				int offset = k * graph->n * block_nrhs;
 				int local_nrhs = (k < nblock ? block_nrhs : (int) d.rem);
 				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset, sm_fact->TAUCS_L, graph, sm_fact->remap, local_nrhs);
@@ -459,7 +469,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T. BUT, here we know that rhs is 0 execpt for a 1 at index idx.
 	 */
 	GMRFLib_ENTER_ROUTINE;
-
+	
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
 		GMRFLib_EWRAP1(GMRFLib_solve_llt_sparse_matrix_special_BAND(rhs, sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth, idx));
