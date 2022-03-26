@@ -1269,7 +1269,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	int max_t;
 	double *values = NULL, res;
 
-	max_t = GMRFLib_openmp->max_threads_inner;
+	max_t = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 
@@ -1322,14 +1322,13 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
 				CODE_BLOCK_SET_THREAD_ID();		\
-				int tnum;				\
 				double *r, *local_values;		\
-				tnum = omp_get_thread_num();		\
-				r =  local_result + tnum * graph->n;	\
-				local_values = CODE_BLOCK_WORK_PTR(tnum); \
+				int tnum = omp_get_thread_num();	\
+				r = local_result + tnum * graph->n;	\
+				local_values = CODE_BLOCK_WORK_PTR(0); \
 				Qfunc(i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
-				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++) { \
+				for (int k = 1, jj = 0, j = 0; jj < graph->lnnbs[i]; jj++) { \
 					j = graph->lnbs[i][jj];		\
 					r[i] += local_values[k] * x[j];	\
 					r[j] += local_values[k] * x[i];	\
@@ -1337,7 +1336,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				}					\
 			}
 
-			RUN_CODE_BLOCK(max_t, max_t, m + 1);
+			RUN_CODE_BLOCK(max_t, 1, m + 1);
 #undef CODE_BLOCK
 
 			for (int j = 0; j < max_t; j++) {
