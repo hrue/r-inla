@@ -113,11 +113,20 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
+	//static double time_used = 0.0;
+	//static double ntimes = 0;
+	//double tref = GMRFLib_cpu();
+
 	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
 	double val = 0.0;
 	TAB_FUNC_CORE(0);
+
+	//time_used += GMRFLib_cpu() - tref;
+	//ntimes++;
+	//if (!((int)ntimes % 10000000)) printf("tab_func total ntimes average %f %f %f\n", time_used, ntimes, time_used/ntimes * 1.0e9);
+
 	return val;
 }
 
