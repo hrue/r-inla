@@ -135,7 +135,7 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 		guess = lguess;
 	}
 	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
-	if (guess[1] == 0 || guess[1] >= len) {
+	if (guess[1] == 0 || guess[1] >= len || guess[1] <= guess[0]) {
 		// invalid values for 'guess', no need to check
 		low = 0;
 		high = len - 1;
@@ -146,60 +146,16 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 
 	while (1) {
 		n = high - low + 1;			       // 'n' is how many alternatives left 
-		if (n <= 8) {				       // DO NOT INCREASE BEYOND 8; see below
-			guess[1] = high;
-			if (0) {
-				// old code
-				for (int i = low; i <= high; i++) {
-					if (ix[i] == val) {
-						guess[0] = i;
-						return i;
-					}
-				}
-				guess[0] = low;
-				return -1;
-			}
-
-			int *ixx = ix + low - 1;
-			int llow = low - 1;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"	       // disable warning as this behaviour is intended
-			switch (n) {
-			case 8:
-				if (ixx[8] == val) {
-					return guess[0] = llow + 8;
-				}
-			case 7:
-				if (ixx[7] == val) {
-					return guess[0] = llow + 7;
-				}
-			case 6:
-				if (ixx[6] == val) {
-					return guess[0] = llow + 6;
-				}
-			case 5:
-				if (ixx[5] == val) {
-					return guess[0] = llow + 5;
-				}
-			case 4:
-				if (ixx[4] == val) {
-					return guess[0] = llow + 4;
-				}
-			case 3:
-				if (ixx[3] == val) {
-					return guess[0] = llow + 3;
-				}
-			case 2:
-				if (ixx[2] == val) {
-					return guess[0] = llow + 2;
-				}
-			case 1:
-				if (ixx[1] == val) {
-					return guess[0] = llow + 1;
+		if (n <= 8) {
+			guess[1] = high + 1;
+			for (int i = low; i <= high; i++) {
+				if (ix[i] == val) {
+					guess[0] = i + 1;
+					return i;
 				}
 			}
-#pragma GCC diagnostic pop
 			guess[0] = low;
+			guess[1] = high;
 			return -1;
 		} else {
 			mid = low + (high - low) / 2;	       /* integer division */
@@ -213,91 +169,6 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 
 	return -1;
 }
-
-forceinline int GMRFLib_iwhich_sorted_x(int val, int *ix, int len, int *guess, int inc_ix)
-{
-	// return the index of iarray for which ix[idx * inc_ix]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is
-	// not allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be threadprivate
-
-	if (len == 0) {
-		return -1;
-	}
-
-	int low, high, mid, n, lguess[2] = { 0, 0 };
-
-	if (!guess) {
-		guess = lguess;
-	}
-
-	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
-	if (guess[1] == 0 || guess[1] >= len) {
-		// invalid values for 'guess', no need to check
-		low = 0;
-		high = len - 1;
-	} else {
-		low = (val >= ix[guess[0] * inc_ix] ? guess[0] : 0);
-		high = (val <= ix[guess[1] * inc_ix] ? guess[1] : len - 1);
-	}
-
-	while (1) {
-		n = high - low + 1;			       // 'n' is how many alternatives left 
-		if (n <= 8) {				       // DO NOT INCREASE BEYOND 8; see below
-			guess[1] = high;
-
-			int *ixx = ix + (low - 1) * inc_ix;
-			int llow = low - 1;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"	       // disable warning as this behaviour is intended
-			switch (n) {
-			case 8:
-				if (ixx[8 * inc_ix] == val) {
-					return guess[0] = llow + 8;
-				}
-			case 7:
-				if (ixx[7 * inc_ix] == val) {
-					return guess[0] = llow + 7;
-				}
-			case 6:
-				if (ixx[6 * inc_ix] == val) {
-					return guess[0] = llow + 6;
-				}
-			case 5:
-				if (ixx[5 * inc_ix] == val) {
-					return guess[0] = llow + 5;
-				}
-			case 4:
-				if (ixx[4 * inc_ix] == val) {
-					return guess[0] = llow + 4;
-				}
-			case 3:
-				if (ixx[3 * inc_ix] == val) {
-					return guess[0] = llow + 3;
-				}
-			case 2:
-				if (ixx[2 * inc_ix] == val) {
-					return guess[0] = llow + 2;
-				}
-			case 1:
-				if (ixx[1 * inc_ix] == val) {
-					return guess[0] = llow + 1;
-				}
-			}
-#pragma GCC diagnostic pop
-			guess[0] = low;
-			return -1;
-		} else {
-			mid = low + (high - low) / 2;	       /* integer division */
-			if (ix[mid * inc_ix] > val) {
-				high = mid;
-			} else {
-				low = mid;
-			}
-		}
-	}
-
-	return -1;
-}
-
 int GMRFLib_find_nonzero(double *array, int len, int direction)
 {
 	/*

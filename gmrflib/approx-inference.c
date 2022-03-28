@@ -8859,14 +8859,14 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 	char *code = Calloc(*n, char);
 	double mode;
 
-	for(i = j = 0; i < *n; i++) {
+	for (i = j = 0; i < *n; i++) {
 		if (!ISINF(logdens[i])) {
 			logdens[j] = logdens[i];
 			j++;
 		}
 	}
 	*n = j;
-	
+
 	idx = *n;
 	do {
 		idx--;
