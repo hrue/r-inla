@@ -29,8 +29,8 @@ render_toc("old-faq.Rmd")
 ## Introduction
 
 This vignette is a copy and slightly edited FAQ-entries and other
-short tutorials from the old \verb|www.r-inla.org| page. The content
-comes is slightly random order, sorry about that.
+short tutorials from the old \verb|https://http://www.r-inla.org|
+page. The content comes is slightly random order, sorry about that.
 
 ## User-defined priors for the hyperparameters
 
@@ -824,6 +824,91 @@ r = inla(formula,
         list()))
 
 summary(r)
+
+
+### An alternative specification of the same model applies the inla.stack() function. 
+### It is called four times, one time for each submodel, one time for the "copying", 
+### and one time for joining the three substacks to one.
+
+fixed.high <- 10
+fixed.low <- - 6
+
+### The first model stack comes in two versions
+### mod1.a.stack mimics the code above
+
+mod1.a.stack <- inla.stack(
+	data = list(Y = as.matrix(cbind(NA, y1, NA))), 
+	A = list(1, 1),
+	effects = list(intercept1 = rep(1,n),
+			x1 = x1)
+)
+		
+### while mod1.b.stack utilizes the predictor u in the model specification
+
+mod1.b.stack <- inla.stack(
+	data = list(Y = as.matrix(cbind(NA, y1, NA))), 
+	A = list(1),
+	effects = list(u = 1:n)
+)
+		
+copy.stack <- inla.stack(
+	data = list(Y = as.matrix(cbind(rep(0,n), NA, NA))),
+	A = list(1, 1, - 1),
+	effects = list(intercept1 = rep(1,n),
+			x1 = x1,
+			u = 1:n)
+)
+
+mod2.stack <- inla.stack(
+	data = list(Y = as.matrix(cbind(NA, NA, y2))), 
+	A = list(1, 1, 1),
+	effects = list(intercept2 = rep(1,n),
+			x2 = x2,
+			b.eta2 = 1:n)
+)
+
+all.a.stack <- inla.stack(mod1.a.stack, copy.stack, mod2.stack)
+all.b.stack <- inla.stack(mod1.b.stack, copy.stack, mod2.stack)
+
+
+### The formula is slightly modified because the long vectors X1 and X2 has not been created
+### and there is no weight applied, as "-1" appears as the effect of u
+
+formula = Y ~ -1 + intercept1 + x1 + intercept2 + x2 +
+    f(u, model = "iid", hyper = list(prec = list(initial = fixed.low, fixed = TRUE))) + 
+    f(b.eta2, copy = "u", hyper = list(beta = list(fixed = FALSE)))
+
+
+### The inla() function makes use of the stack
+r.new.a = inla(formula,
+    data =  inla.stack.data(all.a.stack),
+    control.predictor = list(A = inla.stack.A(all.a.stack)),
+    family = c("gaussian", "gaussian", "gaussian"),
+    control.family = list(
+        list(),
+        list(hyper = list(prec = list(initial = fixed.high, fixed=TRUE))),
+        list()))
+
+summary(r.new.a)
+
+r.new.b = inla(formula,
+    data =  inla.stack.data(all.b.stack),
+    control.predictor = list(A = inla.stack.A(all.b.stack)),
+    family = c("gaussian", "gaussian", "gaussian"),
+    control.family = list(
+        list(),
+        list(hyper = list(prec = list(initial = fixed.high, fixed=TRUE))),
+        list()))
+
+summary(r.new.b)
+
+
+### There are some surprises here. All specifications give similar and acceptable results for fixed effects, 
+### but different results with regard to precisions, and none has an approximately correct result, c(10000, 10000). 
+### I guess this is due to inner working of the INLA-machine.
+
+
+### The version r.new.b is faster than r.new.a. This time-saving is LARGE for more complex models with several spde-terms
 ```
 
 ## Latent models, likelihoods and priors.
