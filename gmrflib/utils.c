@@ -135,7 +135,7 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 		guess = lguess;
 	}
 	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
-	if (guess[1] == 0 || guess[1] >= len) {
+	if (guess[1] == 0 || guess[1] >= len || guess[1] <= guess[0]) {
 		// invalid values for 'guess', no need to check
 		low = 0;
 		high = len - 1;
@@ -150,7 +150,7 @@ forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 			guess[1] = high + 1;
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
-					guess[0] = i + 1; 
+					guess[0] = i + 1;
 					return i;
 				}
 			}

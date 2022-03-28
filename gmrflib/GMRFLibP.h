@@ -122,10 +122,11 @@ typedef enum {
 typedef struct {
 	int n;
 	int na;
-	int base;					       /* 0 or 1 */
 	int copy_only;
 	int *ia;
+	int *ia1;
 	int *ja;
+	int *ja1;
 	int *iwork;
 	double *a;
 } GMRFLib_csr_tp;

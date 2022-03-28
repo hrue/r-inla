@@ -1252,7 +1252,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			/*
 			 * fit spline-corrected gaussian 
 			 */
-			for(i = j = 0; i < n;  i++) {	       /* this could happen */
+			for (i = j = 0; i < n; i++) {	       /* this could happen */
 				if (!ISINF(ldens[i])) {
 					ldens[j] = ldens[i];
 					xx[j] = xx[i];

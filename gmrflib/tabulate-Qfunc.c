@@ -58,21 +58,22 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 #define TAB_FUNC_CORE(_prec_scale)					\
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;			\
-	double prec = 1.0, *dp = NULL;					\
-	int i, ii, j, len = 0, imin, imax;				\
+	double prec = 1.0;						\
 	args = (GMRFLib_tabulate_Qfunc_arg_tp *) arg;			\
 	if (_prec_scale) {						\
 		prec = GMRFLib_SET_PREC(args);				\
 	}								\
-	imin = IMIN(node, nnode);					\
-	imax = IMAX(node, nnode);					\
 	if (nnode >= 0) {						\
+		int imin = IMIN(node, nnode);				\
+		int imax = IMAX(node, nnode);				\
+		double *dp = NULL;					\
 		if (args->Q) {						\
 			int offset = args->Q->ia[imin];			\
-			j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset, guess); \
+			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset, guess); \
 			assert(j >= offset);				\
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
+			int ii;						\
 			map_ii_get(args->Q_idx[imin], imax, &ii);	\
 			dp = &(args->Q->a[ii]);				\
 		} else {						\
@@ -85,9 +86,9 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			val = *dp;					\
 		}							\
 	} else {							\
+		int len = 0;						\
 		if (args->Q) {						\
-			assert(args->Q->base == 0);			\
-			j = args->Q->ia[node];				\
+			int j = args->Q->ia[node];			\
 			len = args->Q->ia[node + 1] - j;		\
 			Memcpy(values, &(args->Q->a[j]), len * sizeof(double)); \
 		} else {						\
@@ -95,7 +96,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		}							\
 									\
 		if (_prec_scale) {					\
-			for (i = 0; i < len; i++) {			\
+			for (int i = 0; i < len; i++) {			\
 				values[i] *= prec;			\
 			}						\
 		}							\
@@ -113,20 +114,11 @@ double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg
 
 double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
 {
-	//static double time_used = 0.0;
-	//static double ntimes = 0;
-	//double tref = GMRFLib_cpu();
-
 	static int guess[] = { 0, 0 };
 #pragma omp threadprivate(guess)
 
 	double val = 0.0;
 	TAB_FUNC_CORE(0);
-
-	//time_used += GMRFLib_cpu() - tref;
-	//ntimes++;
-	//if (!((int)ntimes % 10000000)) printf("tab_func total ntimes average %f %f %f\n", time_used, ntimes, time_used/ntimes * 1.0e9);
-
 	return val;
 }
 

@@ -526,6 +526,8 @@ double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 #undef SETUP_LOCAL_WORK_PTRS
 #undef TP_POS
 #undef TP_VEL
+
+	return NAN;
 }
 
 double GMRFLib_rw2d(int node, int nnode, double *UNUSED(values), void *def)
