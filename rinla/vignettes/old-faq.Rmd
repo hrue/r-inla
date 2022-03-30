@@ -764,23 +764,27 @@ example will illustrate the idea:
 
 ```{r}
 ## simple example
-n = 100
+set.seed(12345L)
+sd.data = 1
+n = 2000
+
+## fixed high and low precisions are specified with parameters
+fixed.high <- 10
+fixed.low <- - 6
+
+## otherwise is the model identical to the previous FAQ-model
 x1 = rnorm(n)
 eta1 = 1 + x1
 x2 = rnorm(n)
 eta2 = 2 + 2*eta1 + 2*x2
-y1 = rnorm(n, mean=eta1, sd = 0.01)
-y2 = rnorm(n, mean=eta2, sd = 0.01)
+y1 = rnorm(n, mean=eta1, sd = sd.data)
+y2 = rnorm(n, mean=eta2, sd = sd.data)
+## the trick is to create a vector 'u' (iid) which is equal to eta1, and then we can copy 'u' to
+## create beta*u or beta*eta1. we do this by using 0 = eta1 -u + tiny.noise
 
-## the trick is to create a vector 'u' (iid) which is 
-## equal to eta1, and then we can copy 'u' to
-## create beta*u or beta*eta1. we do this by 
-## using 0 = eta1 -u + tiny.noise
-
-formula = Y ~ -1 + intercept1 + X1 + intercept2 + f(u, w, model="iid",
-    hyper = list(prec = list(initial = -6, fixed=TRUE))) + f(b.eta2,
-    copy="u", hyper = list(beta = list(fixed = FALSE))) + X2
-    
+formula = Y ~ -1 + intercept1 + X1 + intercept2 +
+    f(u, w, model="iid", hyper = list(prec = list(initial = fixed.low, fixed=TRUE))) + 
+    f(b.eta2, copy="u", hyper = list(beta = list(fixed = FALSE))) + X2
 Y = matrix(NA, 3*n, 3)
 
 ## part 1: y1
@@ -792,7 +796,6 @@ w = rep(NA, n)
 b.eta2 = rep(NA, n)
 X2 = rep(NA, n)
 Y[1:n, 1] = y1
-
 ## part 2: 0 = eta1 - u + tiny.noise
 intercept1 = c(intercept1,  intercept1)
 X1 = c(X1,  x1)
@@ -802,7 +805,6 @@ w = c(w, rep(-1, n))
 b.eta2 = c(b.eta2,  rep(NA, n))
 X2 = c(X2,  rep(NA, n))
 Y[n + 1:n, 2] = 0
-
 ## part 3: y2
 intercept1 = c(intercept1,  rep(NA, n))
 X1 = c(X1,  rep(NA, n))
@@ -812,53 +814,46 @@ w = c(w, rep(NA, n))
 b.eta2 = c(b.eta2, 1:n)
 X2 = c(X2, x2)
 Y[2*n + 1:n, 3] = y2
-
 r = inla(formula,
     data =  list(Y=Y, intercept1=intercept1, X1=X1,
         intercept2=intercept2, u=u, w=w, b.eta2=b.eta2, X2=X2),
-    family = rep("gaussian", 3),
-	control.inla = list(h = 1e-3),
+    family = c("gaussian", "gaussian", "gaussian"),
     control.family = list(
         list(),
-        list(hyper = list(prec = list(initial = 10, fixed=TRUE))),
+        list(hyper = list(prec = list(initial = fixed.high, fixed=TRUE))),
         list()))
-
 summary(r)
 
+## An alternative specification of the same model applies the inla.stack() function. 
+## It is called four times, one time for each submodel, one time for the "copying", 
+## and one time for joining the three substacks to one.
 
-### An alternative specification of the same model applies the inla.stack() function. 
-### It is called four times, one time for each submodel, one time for the "copying", 
-### and one time for joining the three substacks to one.
+## Part 1:
+## The first model stack comes in two versions
 
-fixed.high <- 10
-fixed.low <- - 6
-
-### The first model stack comes in two versions
-### mod1.a.stack mimics the code above
-
-mod1.a.stack <- inla.stack(
-	data = list(Y = as.matrix(cbind(NA, y1, NA))), 
+mod1a.stack <- inla.stack(
+	data = list(Y = as.matrix(cbind(y1, NA, NA))), 
 	A = list(1, 1),
 	effects = list(intercept1 = rep(1,n),
 			x1 = x1)
 )
 		
-### while mod1.b.stack utilizes the predictor u in the model specification
-
-mod1.b.stack <- inla.stack(
-	data = list(Y = as.matrix(cbind(NA, y1, NA))), 
+mod1b.stack <- inla.stack(
+	data = list(Y = as.matrix(cbind(y1, NA, NA))), 
 	A = list(1),
 	effects = list(u = 1:n)
 )
-		
+
+## Part 2:		
 copy.stack <- inla.stack(
-	data = list(Y = as.matrix(cbind(rep(0,n), NA, NA))),
+	data = list(Y = as.matrix(cbind(NA, rep(0,n), NA))),
 	A = list(1, 1, - 1),
 	effects = list(intercept1 = rep(1,n),
 			x1 = x1,
 			u = 1:n)
 )
 
+## Part 3:
 mod2.stack <- inla.stack(
 	data = list(Y = as.matrix(cbind(NA, NA, y2))), 
 	A = list(1, 1, 1),
@@ -867,19 +862,17 @@ mod2.stack <- inla.stack(
 			b.eta2 = 1:n)
 )
 
-all.a.stack <- inla.stack(mod1.a.stack, copy.stack, mod2.stack)
-all.b.stack <- inla.stack(mod1.b.stack, copy.stack, mod2.stack)
+all.a.stack <- inla.stack(mod1a.stack, copy.stack, mod2.stack)
+all.b.stack <- inla.stack(mod1b.stack, copy.stack, mod2.stack)
 
-
-### The formula is slightly modified because the long vectors X1 and X2 has not been created
-### and there is no weight applied, as "-1" appears as the effect of u
+## The formula is slightly modified because the long vectors X1 and X2 has not been created
+## and there is no weight applied as "-1" appears as the effect of u
 
 formula = Y ~ -1 + intercept1 + x1 + intercept2 + x2 +
     f(u, model = "iid", hyper = list(prec = list(initial = fixed.low, fixed = TRUE))) + 
     f(b.eta2, copy = "u", hyper = list(beta = list(fixed = FALSE)))
 
-
-### The inla() function makes use of the stack
+## The inla() function makes use of the stack
 r.new.a = inla(formula,
     data =  inla.stack.data(all.a.stack),
     control.predictor = list(A = inla.stack.A(all.a.stack)),
@@ -888,7 +881,6 @@ r.new.a = inla(formula,
         list(),
         list(hyper = list(prec = list(initial = fixed.high, fixed=TRUE))),
         list()))
-
 summary(r.new.a)
 
 r.new.b = inla(formula,
@@ -899,16 +891,11 @@ r.new.b = inla(formula,
         list(),
         list(hyper = list(prec = list(initial = fixed.high, fixed=TRUE))),
         list()))
-
 summary(r.new.b)
 
+## All specifications give similar and acceptable results both for fixed effects and precisions,
+## The version r.new.b seems faster than r.new.a for more complex models with one or more spde-terms
 
-### There are some surprises here. All specifications give similar and acceptable results for fixed effects, 
-### but different results with regard to precisions, and none has an approximately correct result, c(10000, 10000). 
-### I guess this is due to inner working of the INLA-machine.
-
-
-### The version r.new.b is faster than r.new.a. This time-saving is LARGE for more complex models with several spde-terms
 ```
 
 ## Latent models, likelihoods and priors.
