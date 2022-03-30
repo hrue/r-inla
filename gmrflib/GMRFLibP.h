@@ -421,9 +421,10 @@ typedef enum {
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
+		int l1_cacheline = 8;					\
 		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = len_work_;				\
+		int len_work__ = len_work_ + l1_cacheline;		\
 		int n_work__ = n_work_;					\
 		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
 		double * work__ = ((len_work__ * n_work__) > 0 ? Calloc(len_work__ * n_work__ * nt__, double) : NULL); \

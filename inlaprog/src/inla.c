@@ -33553,7 +33553,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					GMRFLib_preopt_like_strategy = met;
 					GMRFLib_Qx_strategy = mett;
 					double *cpu;
-					cpu = GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
+					cpu = GMRFLib_preopt_measure_time(preopt);
 					time_used_like[met] += cpu[0];
 					time_used_Qx[mett] += cpu[1];
 					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
