@@ -1093,7 +1093,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 		Free(constr->a_matrix);
 		Free(constr->e_vector);
 		Free(constr->jfirst);
-		Free(constr->jlen);
+		// Free(constr->jlen); included in jfirst
 		Free(constr->sha);
 		Free(constr);
 	}
@@ -1110,7 +1110,7 @@ int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_t
 	}
 	fpp = (fp ? fp : stdout);
 
-	fprintf(fpp, "n_constr %d\n", constr->nc);
+	fprintf(fpp, "n_constr %d  is_scaled %d\n", constr->nc, constr->is_scaled);
 	for (i = 0; i < constr->nc; i++) {
 		fprintf(fpp, "constraint %d, e= %f\na[%1d, ] = ", i, constr->e_vector[i], i);
 		for (j = 0; j < graph->n; j++) {
@@ -1126,6 +1126,57 @@ int GMRFLib_printf_constr(FILE * fp, GMRFLib_constr_tp * constr, GMRFLib_graph_t
 }
 
 int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr)
+{
+	/*
+	 * prepare a constraint
+	 */
+	int i, j, nc, k, n;
+
+	if (!constr) {
+		return GMRFLib_SUCCESS;
+	}
+
+	nc = constr->nc;
+	n = graph->n;
+	
+	if (scale_constr && !(constr->is_scaled)) {
+		// scale the constraints so that max(|A[i,]|)=1 
+		for (k = 0; k < nc; k++) {
+			int idx = idamax_(&n, constr->a_matrix + k, &nc) - 1;
+			double a = 1.0 / ABS(constr->a_matrix[idx * nc + k]);
+			if (!ISEQUAL(a, 1.0)) {
+				dscal_(&n, &a, constr->a_matrix + k, &nc);
+				constr->e_vector[k] *= a;
+			}
+		}
+		constr->is_scaled = 1;
+	}
+
+	constr->jfirst = Calloc(2 * nc, int);
+	constr->jlen = constr->jfirst + nc;
+	
+	for (i = 0; i < nc; i++) {
+		double *a = constr->a_matrix + i;
+		for (j = 0; j < n; j++) {
+			if (!ISZERO(a[j * nc])) {
+				constr->jfirst[i] = j;
+				break;
+			}
+		}
+		for (j = n - 1; j >= 0; j--) {
+			if (!ISZERO(a[j * nc])) {
+				constr->jlen[i] = j - constr->jfirst[i] + 1;
+				break;
+			}
+		}
+	}
+
+	GMRFLib_constr_add_sha(constr, graph);
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_prepare_constr_ORIG(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr)
 {
 	/*
 	 * prepare a constraint
@@ -1184,10 +1235,8 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
-	// Free(constr->jfirst);
-	// Free(constr->jlen);
-	constr->jfirst = Calloc(nc, int);
-	constr->jlen = Calloc(nc, int);
+	constr->jfirst = Calloc(2 * nc, int);
+	constr->jlen = constr->jfirst + nc;
 	for (i = 0; i < nc; i++) {
 		for (j = 0; j < n; j++) {
 			if (constr->a_matrix[i + j * nc] != 0.0) {
@@ -1341,6 +1390,7 @@ int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * c
 		 */
 		GMRFLib_make_empty_constr(new_constr);
 		(*new_constr)->nc = constr->nc;
+		(*new_constr)->is_scaled = constr->is_scaled;
 
 		(*new_constr)->a_matrix = Calloc(graph->n * constr->nc, double);
 		Memcpy((*new_constr)->a_matrix, constr->a_matrix, graph->n * constr->nc * sizeof(double));
