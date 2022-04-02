@@ -54,11 +54,13 @@ int my_file_exists(const char *filename)
 	struct stat sb;
 	return ((stat(filename, &sb) == 0 && S_ISREG(sb.st_mode)) ? INLA_OK : !INLA_OK);
 }
+
 int my_dir_exists(const char *dirname)
 {
 	struct stat sb;
 	return ((stat(dirname, &sb) == 0 && S_ISDIR(sb.st_mode)) ? INLA_OK : !INLA_OK);
 }
+
 int my_setenv(char *str, int prefix)
 {
 	/*
@@ -99,6 +101,34 @@ int my_setenv(char *str, int prefix)
 	return INLA_OK;
 }
 
+double my_gsl_sf_lnfact(int x)
+{
+	static int first = 1;
+	static int nmax = 1048576;
+	static double *lng = NULL;
+
+	if (first) {
+#pragma omp critical
+		if (first) {
+			lng = Calloc(nmax, double);
+			lng[0] = 0.0;
+			for (int i = 1; i < nmax; i++) {
+				lng[i] = lng[i - 1] + log((double) i);
+			}
+			first = 0;
+		}
+	}
+
+	if (x >= nmax) {
+		return gsl_sf_lnfact((unsigned int) x);
+	} else {
+		return lng[x];
+	}
+
+	assert(0 == 1);
+	return NAN;
+}
+
 double my_gsl_sf_lngamma(double x)
 {
 	if (round(x) != x) {
@@ -131,11 +161,6 @@ double my_gsl_sf_lngamma(double x)
 
 	assert(0 == 1);
 	return NAN;
-}
-
-double my_gsl_sf_lnfact(unsigned int x)
-{
-	return my_gsl_sf_lngamma((double) x + 1.0);
 }
 
 int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result)
