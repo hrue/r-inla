@@ -699,7 +699,7 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * pr
 	return t;
 }
 
-forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// as this one is always called through preopt_Qfunc
 	// assert(nnode >= node);

@@ -440,7 +440,7 @@ typedef enum {
 
 
 #define GMRFLib_INT_NUM_POINTS   (60)			       /* number of points for integration,... */
-#define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
+#define GMRFLib_INT_NUM_INTERPOL  (2)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (13)			       /* for the quadrature */
 
 
