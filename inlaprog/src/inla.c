@@ -8831,9 +8831,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -37690,8 +37690,8 @@ int testit(int argc, char **argv)
 
 	case 49:
 	{
-#define SPECIAL(x) ((x > 0 ?					\
-		-2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
+#define SPECIAL(x) ((x > 0 ?						\
+		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
 
 		for (double x = 1.0;; x *= 10.0) {
@@ -38261,11 +38261,41 @@ int testit(int argc, char **argv)
 		break;
 	}
 
-	case 76: 
+	case 76:
 	{
 		for (int i = 0; i < 10; i++) {
-			printf("%d %f %f\n", i,  gsl_sf_lnfact((unsigned int) i), my_gsl_sf_lnfact(i));
+			printf("%d %f %f\n", i, gsl_sf_lnfact((unsigned int) i), my_gsl_sf_lnfact(i));
 		}
+		break;
+	}
+
+	case 77:
+	{
+		int n = 111;
+		double dx = 12.0 / (n - 1);
+		Calloc_init(2 * n);
+		double *x = Calloc_get(n);
+		double *y = Calloc_get(n);
+
+		double z = 0.0;
+		for (i = 0; i < n; i++) {
+			x[i] = -6.0 + i * dx;
+			// this one is normalized
+			y[i] = log(2.0) + log(1.0 / sqrt(2.0 * M_PI)) - 0.5 * SQR(x[i]) + inla_log_Phi(1.0 * x[i]);
+			z += dx * exp(y[i]);
+		}
+		P(z);					       /* should be 1 */
+		GMRFLib_density_tp *density;
+		GMRFLib_density_create(&density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, y, 0.0, 1.0, 1);
+		GMRFLib_density_printf(stdout, density);
+
+		for (i = 0; i < n; i++) {
+			x[i] = -6.0 + i * dx;
+			double yy;
+			GMRFLib_evaluate_logdensity(&yy, x[i], density);
+			printf("Evaluate x %f true %f scg %f\n", x[i], y[i], yy);
+		}
+
 		break;
 	}
 
@@ -38276,9 +38306,11 @@ int testit(int argc, char **argv)
 	}
 
 	default:
-		exit(0);
+	{
+		printf("\nNo such test: %d\n", test_no);
+		break;
 	}
-
+	}
 	exit(EXIT_SUCCESS);
 }
 
