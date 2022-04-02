@@ -167,7 +167,7 @@ int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result)
 {
 	// copy of gsl_sf_lnfact_e
 
-	result->val = my_gsl_sf_lnfact(n);
+	result->val = my_gsl_sf_lnfact((int) n);
 	result->err = 2.0 * GSL_DBL_EPSILON * fabs(result->val);
 	return GSL_SUCCESS;
 }
