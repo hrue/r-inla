@@ -120,7 +120,7 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-forceinline int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
+int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess)
 {
 	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
 	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be threadprivate
@@ -226,7 +226,7 @@ int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_icmp(const void *a, const void *b)
+int GMRFLib_icmp(const void *a, const void *b)
 {
 	const int *ia, *ib;
 
@@ -236,12 +236,12 @@ forceinline int GMRFLib_icmp(const void *a, const void *b)
 	return (*ia - *ib);
 }
 
-forceinline int GMRFLib_icmp_r(const void *a, const void *b)
+int GMRFLib_icmp_r(const void *a, const void *b)
 {
 	return (-GMRFLib_icmp(a, b));
 }
 
-forceinline int GMRFLib_dcmp(const void *a, const void *b)
+int GMRFLib_dcmp(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
 
@@ -258,12 +258,12 @@ forceinline int GMRFLib_dcmp(const void *a, const void *b)
 	return 0;
 }
 
-forceinline int GMRFLib_dcmp_r(const void *a, const void *b)
+int GMRFLib_dcmp_r(const void *a, const void *b)
 {
 	return (-GMRFLib_dcmp(a, b));
 }
 
-forceinline int GMRFLib_dcmp_abs(const void *a, const void *b)
+int GMRFLib_dcmp_abs(const void *a, const void *b)
 {
 	const double *da = NULL, *db = NULL;
 
@@ -296,7 +296,7 @@ forceinline int GMRFLib_dcmp_abs(const void *a, const void *b)
 	return 0;
 }
 
-forceinline int GMRFLib_dcmp_abs_r(const void *a, const void *b)
+int GMRFLib_dcmp_abs_r(const void *a, const void *b)
 {
 	return (-GMRFLib_dcmp_abs(a, b));
 }
@@ -1121,12 +1121,12 @@ int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
+int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
 	return GMRFLib_idx_create_x(hold, IDX_ALLOC_INITIAL);
 }
 
-forceinline int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len)
+int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len)
 {
 	*hold = Calloc(1, GMRFLib_idx_tp);
 	(*hold)->idx = Calloc(len, int);
@@ -1136,12 +1136,12 @@ forceinline int GMRFLib_idx_create_x(GMRFLib_idx_tp ** hold, int len)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
+int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold)
 {
 	return GMRFLib_idx2_create_x(hold, IDX_ALLOC_INITIAL);
 }
 
-forceinline int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len)
+int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len)
 {
 	*hold = Calloc(1, GMRFLib_idx2_tp);
 	(*hold)->idx = Calloc(2, int *);
@@ -1153,7 +1153,7 @@ forceinline int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_val_create(GMRFLib_val_tp ** hold)
+int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 {
 	*hold = Calloc(1, GMRFLib_val_tp);
 	(*hold)->val = Calloc(IDX_ALLOC_INITIAL, double);
@@ -1163,12 +1163,12 @@ forceinline int GMRFLib_val_create(GMRFLib_val_tp ** hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
+int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold)
 {
 	return GMRFLib_idxval_create_x(hold, IDX_ALLOC_INITIAL);
 }
 
-forceinline int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len)
+int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len)
 {
 	*hold = Calloc(1, GMRFLib_idxval_tp);
 	(*hold)->idx = Calloc(len, int);
@@ -1180,7 +1180,7 @@ forceinline int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
+GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
 {
 	GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1189,7 +1189,7 @@ forceinline GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n)
 	return a;
 }
 
-forceinline GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len)
+GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len)
 {
 	GMRFLib_idx_tp **a = Calloc(n, GMRFLib_idx_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1198,7 +1198,7 @@ forceinline GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len)
 	return a;
 }
 
-forceinline GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
 {
 	GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1207,7 +1207,7 @@ forceinline GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n)
 	return a;
 }
 
-forceinline GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
+GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
 {
 	GMRFLib_idx2_tp **a = Calloc(n, GMRFLib_idx2_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1216,7 +1216,7 @@ forceinline GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len)
 	return a;
 }
 
-forceinline GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
+GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
 {
 	GMRFLib_val_tp **a = Calloc(n, GMRFLib_val_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1225,7 +1225,7 @@ forceinline GMRFLib_val_tp **GMRFLib_val_ncreate(int n)
 	return a;
 }
 
-forceinline GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 {
 	GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1234,7 +1234,7 @@ forceinline GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n)
 	return a;
 }
 
-forceinline GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len)
+GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len)
 {
 	GMRFLib_idxval_tp **a = Calloc(n, GMRFLib_idxval_tp *);
 	for (int i = 0; i < n; i++) {
@@ -1243,7 +1243,7 @@ forceinline GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len)
 	return a;
 }
 
-forceinline int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -1254,7 +1254,7 @@ forceinline int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -1265,7 +1265,7 @@ forceinline int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -1276,7 +1276,7 @@ forceinline int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
@@ -1287,7 +1287,7 @@ forceinline int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char 
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
+int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
 {
 	if (a) {
 		for (int i = 0; i < n; i++) {
@@ -1297,7 +1297,7 @@ forceinline int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_sort(GMRFLib_idx_tp * hold)
+int GMRFLib_idx_sort(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
 		qsort((void *) hold->idx, (size_t) hold->n, sizeof(int), GMRFLib_icmp);
@@ -1305,7 +1305,7 @@ forceinline int GMRFLib_idx_sort(GMRFLib_idx_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
+int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
@@ -1321,7 +1321,7 @@ forceinline int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold)
+int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold)
 {
 	if (hold && hold->n > 1) {
 		int i, j;
@@ -1337,7 +1337,7 @@ forceinline int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
+int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK				\
 	for (int i = 0; i < n; i++) {		\
@@ -1351,7 +1351,7 @@ forceinline int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n)
+int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n)
 {
 	if (a) {
 		for (int i = 0; i < n; i++) {
@@ -1361,7 +1361,7 @@ forceinline int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n)
+int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n)
 {
 	if (a) {
 		for (int i = 0; i < n; i++) {
@@ -1371,7 +1371,7 @@ forceinline int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
+int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK					\
 	for (int i = 0; i < n; i++) {			\
@@ -1384,7 +1384,7 @@ forceinline int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
+int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
 {
 	// sort idx, and accumulate values and then prune
 	if (hold && hold->n > 1) {
@@ -1408,7 +1408,7 @@ forceinline int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
+int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 {
 #define CODE_BLOCK					\
 	for (int i = 0; i < n; i++) {			\
@@ -1422,7 +1422,7 @@ forceinline int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
+int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
 		hold->idx = Realloc(hold->idx, IMAX(1, hold->n), int);
@@ -1431,7 +1431,7 @@ forceinline int GMRFLib_idx_prune(GMRFLib_idx_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
+int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
 {
 	if (hold) {
 		hold->idx[0] = Realloc(hold->idx[0], IMAX(1, hold->n), int);
@@ -1441,7 +1441,7 @@ forceinline int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_val_prune(GMRFLib_val_tp * hold)
+int GMRFLib_val_prune(GMRFLib_val_tp * hold)
 {
 	if (hold) {
 		hold->val = Realloc(hold->val, IMAX(1, hold->n), double);
@@ -1450,7 +1450,7 @@ forceinline int GMRFLib_val_prune(GMRFLib_val_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
+int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
 {
 	if (hold) {
 		int n = IMAX(1, hold->n);
@@ -1461,12 +1461,12 @@ forceinline int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
+int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 {
 	return GMRFLib_idxval_nsort(&hold, 1, 1);
 }
 
-forceinline int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
+int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
 	const int debug = 0;
 
@@ -1523,7 +1523,7 @@ forceinline int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
+int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
 	if (hold) {
 		Free(hold->idx);
@@ -1532,7 +1532,7 @@ forceinline int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
+int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 {
 	if (hold) {
 		Free(hold->idx[0]);
@@ -1543,7 +1543,7 @@ forceinline int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_val_free(GMRFLib_val_tp * hold)
+int GMRFLib_val_free(GMRFLib_val_tp * hold)
 {
 	if (hold) {
 		Free(hold->val);
@@ -1552,7 +1552,7 @@ forceinline int GMRFLib_val_free(GMRFLib_val_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
+int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 {
 	if (hold) {
 		Free(hold->idx);
@@ -1562,7 +1562,7 @@ forceinline int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
+int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 {
 	if (*hold == NULL) {
 		GMRFLib_idx_create(hold);
@@ -1577,7 +1577,7 @@ forceinline int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
+int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 {
 	if (*hold == NULL) {
 		GMRFLib_idx2_create(hold);
@@ -1594,7 +1594,7 @@ forceinline int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
+int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
 {
 	if (*hold == NULL) {
 		GMRFLib_val_create(hold);
@@ -1609,7 +1609,7 @@ forceinline int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val)
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
+int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double val)
 {
 	if (*hold == NULL) {
 		GMRFLib_idxval_create(hold);
@@ -1626,7 +1626,7 @@ forceinline int GMRFLib_idxval_add(GMRFLib_idxval_tp ** hold, int idx, double va
 	return GMRFLib_SUCCESS;
 }
 
-forceinline int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
+int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 {
 	// if idx exists before, add val to value , otherwise just 'add'.
 	// if there are two entries of 'idx', then only the first is used.

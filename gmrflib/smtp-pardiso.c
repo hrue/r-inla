@@ -723,9 +723,14 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	if (debug) {
 		printf("Average number of non-zeros in L per row %.2f\n", store->pstore[tnum]->iparm[17] / (double) n);
 	}
-	// Revert back to C indexing 
+
+	// Revert back to C indexing ?
+	if (GMRFLib_imin_value(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm, n, NULL) == 1) {
+		for (i = 0; i < n; i++) {
+			store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]--;
+		}
+	}
 	for (i = 0; i < n; i++) {
-		store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]--;
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]] = i;
 	}
 

@@ -104,6 +104,7 @@ __BEGIN_DECLS
     typedef struct {
 
 	unsigned char *sha;
+	unsigned char is_scaled;
 
 	/**
 	 *  \brief Number of constaints, can be 0. 

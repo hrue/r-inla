@@ -645,6 +645,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	(*preopt)->like_b = Calloc(GMRFLib_MAX_THREADS(), double *);
 	(*preopt)->total_b = Calloc(GMRFLib_MAX_THREADS(), double *);
 
+
 	(*preopt)->like_Qfunc_arg = (void *) *preopt;
 	(*preopt)->like_Qfunc = GMRFLib_preopt_like_Qfunc;
 	(*preopt)->bfunc = bfunc;
@@ -698,7 +699,7 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * pr
 	return t;
 }
 
-forceinline double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// as this one is always called through preopt_Qfunc
 	// assert(nnode >= node);
@@ -1498,38 +1499,52 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	return GMRFLib_SUCCESS;
 }
 
-double *GMRFLib_preopt_measure_time(GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+double *GMRFLib_preopt_measure_time(GMRFLib_preopt_tp * preopt)
 {
-	// return alloc'ed double *cpu
-	// cpu[0] is the time accessing the matrix. cpu[1] is the time for doing Q %*% x
+	// return alloc'ed double *cpu measurements.
+	// cpu[0] and cpu[1] is the time for doing Q %*% x.
+	// cpu[0] does elementwise computations, cpu[1] does blockwise using tabulated Q.
+
 	double value = 0.0;
 	double *cpu = Calloc(2, double);
-	double time_ref = GMRFLib_cpu();
 
-	for (int i = 0; i < graph->n; i++) {
-		value += Qfunc(i, i, NULL, Qfunc_arg);
-		for (int jj = 0, j; jj < graph->lnnbs[i]; jj++) {
-			j = graph->lnbs[i][jj];
-			value += Qfunc(i, j, NULL, Qfunc_arg);
+	GMRFLib_Qfunc_tp *like_Qfunc = preopt->like_Qfunc;
+	GMRFLib_graph_tp *like_graph = preopt->like_graph;
+	void *like_Qfunc_arg = preopt->like_Qfunc_arg;
+
+	// this will be measure with serial or with group
+	cpu[0] = -GMRFLib_cpu();
+	for (int i = 0; i < like_graph->n; i++) {
+		value += like_Qfunc(i, i, NULL, like_Qfunc_arg);
+		for (int jj = 0, j; jj < like_graph->lnnbs[i]; jj++) {
+			j = like_graph->lnbs[i][jj];
+			value += like_Qfunc(i, j, NULL, like_Qfunc_arg);
 		}
 	}
+	cpu[0] += GMRFLib_cpu();
 	assert(!ISNAN(value));
-	cpu[0] = GMRFLib_cpu() - time_ref;
+
+	GMRFLib_Qfunc_tp *Qfunc = preopt->preopt_Qfunc;
+	GMRFLib_graph_tp *graph = preopt->preopt_graph;
+	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
 
 	Calloc_init(2 * graph->n);
 	double *x = Calloc_get(graph->n);
 	double *xx = Calloc_get(graph->n);
-
 	for (int i = 0; i < graph->n; i++) {
 		x[i] = GMRFLib_uniform();
 	}
 
 	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
 	GMRFLib_tabulate_Qfunc(&tab, graph, Qfunc, Qfunc_arg, NULL);
-	time_ref = GMRFLib_cpu();
-	GMRFLib_Qx(xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
-	cpu[1] = GMRFLib_cpu() - time_ref;
-	GMRFLib_free_tabulate_Qfunc(tab);
 
+	// this will be measured with serial or parallel
+	cpu[1] = -GMRFLib_cpu();
+	GMRFLib_Qx(xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
+	cpu[1] += GMRFLib_cpu();
+
+	Calloc_free();
+	GMRFLib_free_tabulate_Qfunc(tab);
+	
 	return cpu;
 }

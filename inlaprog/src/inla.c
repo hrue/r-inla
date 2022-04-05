@@ -206,7 +206,6 @@ extern double R_rgeneric_cputime;
 
 // these versions (in my.c) cache the result when the argument is integer
 #define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
-#define gsl_sf_lnfact(_x) my_gsl_sf_lnfact(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
 int inla_ncpu(void)
@@ -6753,7 +6752,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *UNU
 	int i, yy;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double log_y_fact = gsl_sf_lnfact((unsigned int) y);
+	double log_y_fact = my_gsl_sf_lnfact(y);
 	double phi = map_exp(ds->data_observations.gpoisson_overdispersion[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double p = map_identity(ds->data_observations.gpoisson_p[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
 	double E = ds->data_observations.E[idx];
@@ -6777,7 +6776,7 @@ int loglikelihood_gpoisson(double *logll, double *x, int m, int idx, double *UNU
 			logll[i] = 0.0;
 			for (yy = 0; yy <= (int) y; yy++) {
 				a = mu + phi * pow(mu, p - 1.0) * yy;
-				logll[i] += exp(log(mu) + (yy - 1.0) * log(a) - yy * log(b) - gsl_sf_lnfact((unsigned int) yy) - a / b);
+				logll[i] += exp(log(mu) + (yy - 1.0) * log(a) - yy * log(b) - my_gsl_sf_lnfact(yy) - a / b);
 			}
 		}
 	}
@@ -6798,7 +6797,8 @@ int loglikelihood_poisson(double *logll, double *x, int m, int idx, double *UNUS
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y);
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
+	double normc = my_gsl_sf_lnfact(y);
 
 	LINK_INIT;
 	if (m > 0) {
@@ -6868,7 +6868,7 @@ double eval_log_contpoisson(double y, double lambda)
 
 	for (iy = low, i = istart; iy <= high; iy++, i++) {
 		xx[i] = iy + 0.5;
-		yy[i] = iy * log(lambda) - lambda - gsl_sf_lnfact((unsigned int) iy);
+		yy[i] = iy * log(lambda) - lambda - my_gsl_sf_lnfact(iy);
 	}
 	spline = GMRFLib_spline_create(xx, yy, len);
 	lval = GMRFLib_spline_eval(y, spline);
@@ -6976,7 +6976,7 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 		}
 	} else {
 		assert(ito >= ifrom);
-		prob_sum = prob = pow(mean, (double) ifrom) * exp(-mean) / exp(gsl_sf_lnfact((double) ifrom));
+		prob_sum = prob = pow(mean, (double) ifrom) * exp(-mean) / exp(my_gsl_sf_lnfact(ifrom));
 		for (int y = ifrom + 1; y <= ito; y++) {
 			prob *= mean / (double) y;
 			prob_sum += prob;
@@ -7002,7 +7002,7 @@ int loglikelihood_cenpoisson2(double *logll, double *x, int m, int idx, double *
 	double E = ds->data_observations.E[idx];
 	double cen_low = ds->data_observations.cen_low[idx];
 	double cen_high = ds->data_observations.cen_high[idx];
-	double normc = gsl_sf_lnfact((unsigned int) y);
+	double normc = my_gsl_sf_lnfact(y);
 	int int_low = (int) cen_low;
 	int int_high = (int) cen_high;
 
@@ -7068,7 +7068,7 @@ int loglikelihood_cenpoisson(double *logll, double *x, int m, int idx, double *U
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval, mu;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y), lambda;
 	int int_low = (int) interval[0], int_high = (int) interval[1];
 
 	// must use 'double' to store an INF
@@ -7129,7 +7129,7 @@ int loglikelihood_zeroinflated_cenpoisson0(double *logll, double *x, int m, int 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
 	double mu, p0, fac, p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y), lambda;
 
 	LINK_INIT;
 	/*
@@ -7203,7 +7203,7 @@ int loglikelihood_zeroinflated_cenpoisson1(double *logll, double *x, int m, int 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
 	double mu, p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y), lambda;
 
 	LINK_INIT;
 	/*
@@ -7357,7 +7357,7 @@ int loglikelihood_zeroinflated_poisson0(double *logll, double *x, int m, int idx
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
 	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, lambda;
 
 	LINK_INIT;
@@ -7413,7 +7413,7 @@ int loglikelihood_zeroinflated_poisson1(double *logll, double *x, int m, int idx
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
 	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, lambda, logA, logB;
 
 	LINK_INIT;
@@ -7470,7 +7470,7 @@ int loglikelihood_zeroinflated_poisson2(double *logll, double *x, int m, int idx
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
 	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p, lambda;
 
 	LINK_INIT;
@@ -7565,7 +7565,7 @@ int loglikelihood_poisson_special1(double *logll, double *x, int m, int idx, dou
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = gsl_sf_lnfact((unsigned int) y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
 	    p = map_probability(ds->data_observations.prob_intern[GMRFLib_thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
 
 	LINK_INIT;
@@ -7708,7 +7708,7 @@ int loglikelihood_negative_binomial(double *logll, double *x, int m, int idx, do
 				 * 
 				 * * the Poission limit 
 				 */
-				logll[i] = y * log(mu) - mu - gsl_sf_lnfact((unsigned int) y);
+				logll[i] = y * log(mu) - mu - my_gsl_sf_lnfact(y);
 			}
 		}
 	} else {
@@ -7785,7 +7785,7 @@ int loglikelihood_zeroinflated_negative_binomial0(double *logll, double *x, int 
 					 */
 					prob_y_is_zero = gsl_ran_poisson_pdf((unsigned int) 0, mu);
 					logll[i] = log((1.0 - p_zeroinflated) / (1.0 - prob_y_is_zero))
-					    + y * log(mu) - mu - gsl_sf_lnfact((unsigned int) y);
+					    + y * log(mu) - mu - my_gsl_sf_lnfact(y);
 				}
 			}
 		}
@@ -7876,7 +7876,7 @@ int loglikelihood_zeroinflated_negative_binomial1(double *logll, double *x, int 
 					/*
 					 * the Poission limit 
 					 */
-					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - gsl_sf_lnfact((unsigned int) y);
+					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact(y);
 				}
 			}
 		}
@@ -7965,7 +7965,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(double *logll, double 
 					/*
 					 * the Poission limit 
 					 */
-					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - gsl_sf_lnfact((unsigned int) y);
+					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact(y);
 				}
 			}
 		}
@@ -8055,7 +8055,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(double *logll, double 
 					/*
 					 * the Poission limit 
 					 */
-					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - gsl_sf_lnfact((unsigned int) y);
+					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact(y);
 				}
 			}
 		}
@@ -8103,7 +8103,7 @@ int loglikelihood_zeroinflated_negative_binomial2(double *logll, double *x, int 
 	double E = ds->data_observations.E[idx];
 	double lnorm, mu, p, lambda;
 	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
-	double normc = gsl_sf_lnfact((unsigned int) y);
+	double normc = my_gsl_sf_lnfact(y);
 
 	LINK_INIT;
 	if (m > 0) {
@@ -8463,7 +8463,7 @@ int loglikelihood_nmix(double *logll, double *x, int m, int idx, double *UNUSED(
 			ny++;
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
-		normc_poisson = gsl_sf_lnfact((unsigned int) n);
+		normc_poisson = my_gsl_sf_lnfact(n);
 
 		if (ny > ncy[id]) {
 			ncy[id] = ny;
@@ -8557,7 +8557,7 @@ int loglikelihood_nmixnb(double *logll, double *x, int m, int idx, double *UNUSE
 			ny++;
 			n = IMAX(n, ds->data_observations.nmix_y[i][idx]);
 		}
-		normc_nb = gsl_sf_lngamma(n + size) - gsl_sf_lngamma(size) - gsl_sf_lnfact((unsigned int) n);
+		normc_nb = gsl_sf_lngamma(n + size) - gsl_sf_lngamma(size) - my_gsl_sf_lnfact(n);
 
 		if (ny > ncy[id]) {
 			ncy[id] = ny;
@@ -8831,9 +8831,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int(*func_simpson)(double **, double **, int *, void *arg))
+			   int (*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9666,7 +9666,7 @@ int loglikelihood_betabinomial(double *logll, double *x, int m, int idx, double 
 	/*
 	 * BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
 	 */
-#define _LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+#define _LOGGAMMA_INT(xx) my_gsl_sf_lnfact(((xx) - 1))
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -9871,7 +9871,7 @@ int loglikelihood_zeroinflated_betabinomial0(double *logll, double *x, int m, in
 	/*
 	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
 	 */
-#define _LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+#define _LOGGAMMA_INT(xx) my_gsl_sf_lnfact(((xx) - 1))
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -9939,7 +9939,7 @@ int loglikelihood_zeroinflated_betabinomial1(double *logll, double *x, int m, in
 	/*
 	 * zeroinflated BetaBinomial : y ~ BetaBinomial(n, a, b), where logit(p) = a/(a+b), overdispertsion = 1/(a+b+1)
 	 */
-#define _LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+#define _LOGGAMMA_INT(xx) my_gsl_sf_lnfact(((xx) - 1))
 
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -10000,7 +10000,7 @@ int loglikelihood_zeroinflated_betabinomial2(double *logll, double *x, int m, in
 #define _PROB(xx)         (exp(xx)/(1.0+exp(xx)))
 #define _PROBZERO(xx)     (1.0-pow(_PROB(xx), alpha))
 #define _LOGGAMMA(xx)     gsl_sf_lngamma(xx)
-#define _LOGGAMMA_INT(xx) gsl_sf_lnfact((unsigned int) ((xx) - 1))
+#define _LOGGAMMA_INT(xx) my_gsl_sf_lnfact(((xx) - 1))
 
 	if (m == 0) {
 		return 0;
@@ -33553,7 +33553,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					GMRFLib_preopt_like_strategy = met;
 					GMRFLib_Qx_strategy = mett;
 					double *cpu;
-					cpu = GMRFLib_preopt_measure_time(preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg);
+					cpu = GMRFLib_preopt_measure_time(preopt);
 					time_used_like[met] += cpu[0];
 					time_used_Qx[mett] += cpu[1];
 					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
@@ -37690,8 +37690,8 @@ int testit(int argc, char **argv)
 
 	case 49:
 	{
-#define SPECIAL(x) ((x > 0 ?					\
-		-2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
+#define SPECIAL(x) ((x > 0 ?						\
+		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
 
 		for (double x = 1.0;; x *= 10.0) {
@@ -38260,6 +38260,45 @@ int testit(int argc, char **argv)
 
 		break;
 	}
+
+	case 76:
+	{
+		for (int i = 0; i < 10; i++) {
+			printf("%d %f %f\n", i, gsl_sf_lnfact((unsigned int) i), my_gsl_sf_lnfact(i));
+		}
+		break;
+	}
+
+	case 77:
+	{
+		int n = 111;
+		double dx = 12.0 / (n - 1);
+		Calloc_init(2 * n);
+		double *x = Calloc_get(n);
+		double *y = Calloc_get(n);
+
+		double z = 0.0;
+		for (i = 0; i < n; i++) {
+			x[i] = -6.0 + i * dx;
+			// this one is normalized
+			y[i] = log(2.0) + log(1.0 / sqrt(2.0 * M_PI)) - 0.5 * SQR(x[i]) + inla_log_Phi(1.0 * x[i]);
+			z += dx * exp(y[i]);
+		}
+		P(z);					       /* should be 1 */
+		GMRFLib_density_tp *density;
+		GMRFLib_density_create(&density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, y, 0.0, 1.0, 1);
+		GMRFLib_density_printf(stdout, density);
+
+		for (i = 0; i < n; i++) {
+			x[i] = -6.0 + i * dx;
+			double yy;
+			GMRFLib_evaluate_logdensity(&yy, x[i], density);
+			printf("Evaluate x %f true %f scg %f\n", x[i], y[i], yy);
+		}
+
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -38267,9 +38306,11 @@ int testit(int argc, char **argv)
 	}
 
 	default:
-		exit(0);
+	{
+		printf("\nNo such test: %d\n", test_no);
+		break;
 	}
-
+	}
 	exit(EXIT_SUCCESS);
 }
 

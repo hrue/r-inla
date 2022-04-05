@@ -1405,29 +1405,26 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 			}
 		} else {
 			double *p1, *p2, *p3, *p4, qij;
+			int one = 1;
 			for (int i = 0; i < graph->n; i++) {
 				qij = Qfunc(i, i, NULL, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
 				p3 = gsl_matrix_ptr(x, i, 0);
-#pragma GCC ivdep
-#pragma GCC unroll 8
-				for (int k = 0; k < ncol; k++) {
-					p1[k] += p3[k] * qij;
-				}
+				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * qij;
+				daxpy_(&ncol, &qij, p3, &one, p1, &one);
+
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = graph->lnbs[i][jj];
 					qij = Qfunc(i, j, NULL, Qfunc_arg);
 					p2 = gsl_matrix_ptr(result, j, 0);
 					p4 = gsl_matrix_ptr(x, j, 0);
-#pragma GCC ivdep
-#pragma GCC unroll 8
-					for (int k = 0; k < ncol; k++) {
-						p1[k] += qij * p4[k];
-						p2[k] += qij * p3[k];
-					}
+					// for (int k = 0; k < ncol; k++) {
+					//         p1[k] += qij * p4[k];
+					//         p2[k] += qij * p3[k];
+					daxpy_(&ncol, &qij, p4, &one, p1, &one);
+					daxpy_(&ncol, &qij, p3, &one, p2, &one);
 				}
 			}
-
 		}
 	} else {
 		if (0 &&				       // TURN OFF THIS AS THE SERIAL IS JUST SO MUCH BETTER for the moment
@@ -1454,25 +1451,23 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 			// better one, as the 'k' loop is sequential with inc=1
 			double *p1, *p2, *p3, *p4;
 			for (int i = 0; i < graph->n; i++) {
+				int one = 1;
 				Qfunc(i, -1, values, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
 				p3 = gsl_matrix_ptr(x, i, 0);
-#pragma GCC ivdep
-#pragma GCC unroll 8
-				for (int k = 0; k < ncol; k++) {
-					p1[k] += p3[k] * values[0];
-				}
+				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * values[0];
+				daxpy_(&ncol, &(values[0]), p3, &one, p1, &one);
+
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = graph->lnbs[i][jj];
 					double qij = values[1 + jj];
 					p2 = gsl_matrix_ptr(result, j, 0);
 					p4 = gsl_matrix_ptr(x, j, 0);
-#pragma GCC ivdep
-#pragma GCC unroll 8
-					for (int k = 0; k < ncol; k++) {
-						p1[k] += qij * p4[k];
-						p2[k] += qij * p3[k];
-					}
+					// for (int k = 0; k < ncol; k++) {
+					//       p1[k] += qij * p4[k];
+					//       p2[k] += qij * p3[k];
+					daxpy_(&ncol, &qij, p4, &one, p1, &one);
+					daxpy_(&ncol, &qij, p3, &one, p2, &one);
 				}
 			}
 
