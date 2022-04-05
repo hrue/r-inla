@@ -779,6 +779,8 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 
 	default:
 
+		FIXME("Unknown type");
+		P(density->type);
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		break;
 	}
@@ -1082,6 +1084,8 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
 			Calloc_free();
 		} else {
+			FIXME("Unknown type");
+			P((*densities)->type);
 			assert(0 == 1);
 		}
 		GMRFLib_LEAVE_ROUTINE;
