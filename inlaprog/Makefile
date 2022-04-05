@@ -10,11 +10,11 @@ PREFIX = /usr/local
 ## *** chose either one of these; rgeneric requires the second version ***
 ifeq ($(INLA_WITHOUT_LIBR),1)
   RLIB_INC = -DINLA_WITH_RMATH \
-		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+		-I/usr/include/R -I/usr/share/R/include
   RLIB_LIB = -L/usr/lib -lRmath
 else
   RLIB_INC = -DINLA_WITH_RMATH -DINLA_LIBR \
-		-I/usr/include -I/usr/include/R -I/usr/share/R/include
+		-I/usr/include/R -I/usr/share/R/include
   RLIB_LIB = -L/usr/lib -lRmath -L/usr/lib/R/lib -lR
 endif
 
