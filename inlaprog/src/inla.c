@@ -455,7 +455,7 @@ forceinline double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_exp_scale2(double arg, map_arg_tp typ, void *param)
+double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the exp-map-function with a scale
@@ -1925,7 +1925,7 @@ double link_qgamma(double x, map_arg_tp typ, void *param, double *cov)
 	return (ret);
 }
 
-forceinline double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
+double link_qbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// individual link
 	Link_param_tp *lparam = (Link_param_tp *) param;
@@ -1976,7 +1976,7 @@ forceinline double link_qbinomial(double x, map_arg_tp typ, void *param, double 
 	return (ret);
 }
 
-forceinline double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
+double link_pqbinomial(double x, map_arg_tp typ, void *param, double *cov)
 {
 	// population link
 	Link_param_tp *lparam = (Link_param_tp *) param;
