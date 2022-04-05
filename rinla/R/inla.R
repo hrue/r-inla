@@ -2584,6 +2584,10 @@
 ## the call will be changed to the same as 'inla' later
 `inla.core.safe` <- function(...)
 {
+    err.due.to.timeout <- function(r) {
+        return (inherits(r, "try-error") && length(grep("seconds due to timeout", r[1])) > 0)
+    }
+
     output <- function(msg) {
         cat("\n *** inla.core.safe: ", msg, "\n")
     }
@@ -2636,9 +2640,13 @@
     cmin <- 1
     ntry <- 0
     max.try <- 2
-    r <- run.inla()
 
-    while (inherits(r,"try-error")) {
+    r <- run.inla()
+    if (err.due.to.timeout(r)) {
+        return (r)
+    }
+    
+    while (inherits(r, "try-error")) {
         ##
         if (ntry == max.try) {
             stop("*** Fail to get good enough initial values. Maybe it is due to something else.")
@@ -2682,13 +2690,16 @@
         lincomb <- NULL
         
         r <- run.inla()
+        if (err.due.to.timeout(r)) {
+            return (r)
+        }
 
         control.inla <- control.inla.save
         control.compute <- control.compute.save
         control.predictor <- control.predictor.save
         lincomb <- lincomb.save
 
-        if (!inherits(r,"try-error")) {
+        if (!inherits(r, "try-error")) {
             r$.args$control.inla <- control.inla.save
             r$.args$control.compute <- control.compute.save
             r$.args$control.predictor <- control.predictor.save
@@ -2708,7 +2719,9 @@
         output("rerun to try to solve negative eigenvalue(s) in the Hessian")
         r <- inla.rerun(r)
     }
-    r$.args$safe <- TRUE
+    if (!is.null(r$.args)) {
+        r$.args$safe <- TRUE
+    }
 
     return (r)
 }
