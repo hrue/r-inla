@@ -35585,6 +35585,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	assert(nrep > 0);
 	ndiv = n / nrep;
+
 	// d_mode = Calloc(n, double);
 	// for(int i = 0; i < n; i++) d_mode[i] = NAN;
 
@@ -35683,11 +35684,13 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						D1W_r(i, off, i);	\
 					}				\
 					off++;				\
+									\
 					GMRFLib_density_layout_x(xx, &nn_new, density[i]); assert(nn_new == nn); \
 					GMRFLib_density_std2user_n(x_user, xx, nn, density[i]); \
 					GMRFLib_evaluate_ndensity(dens, xx, nn, density[i]); \
 					D1W_r(i, off, nn);		\
 					off++;				\
+									\
 					if (plain) {			\
 						for (int ii = 0; ii < nn; ii++) { \
 							double dens_user = dens[ii] / density[i]->std_stdev; \
@@ -35708,8 +35711,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						D1W_r(i, off, i);	\
 					}				\
 					off++;				\
+									\
 					D1W_r(i, off, nn);		\
 					off++;				\
+									\
 					for (int ii = 0; ii < nn; ii++) { \
 						D2W_r(i, off, NAN, NAN); \
 						off += 2;		\
@@ -35720,7 +35725,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 			// RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
 			RUN_CODE_BLOCK(1, 3, mm);
 #undef CODE_BLOCK
-
 			Dclose_r();
 			Free(nndir);
 		}
@@ -38234,29 +38238,28 @@ int testit(int argc, char **argv)
 		int n = 100, i;
 		double *x = Calloc(n, double);
 		double *pp = Calloc(n, double);
-		double xx, dx, p;
-		dx = 14.0 / (n - 1);
+		double xx, dx;
+		double xmax = 5; 
+		dx = 2.0 * xmax / (n - 1);
 
-		i = 0;
-		for (xx = -7.0; xx <= 7.0; xx += dx) {
+		for (i = 0; i < n; i++) {
+			xx = -xmax + dx * i; 
 			x[i] = xx;
 			pp[i] = inla_Phi(xx);
-			i++;
+			//printf("%d %.20f %.20f\n", i, x[i], pp[i]); 
 		}
 
-		GMRFLib_spline_tp *P;
-		GMRFLib_spline_tp *Pinv;
+		GMRFLib_spline_tp *P, *Pinv;
 
 		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P);
 		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv);
 
-		xx = 1.234;
-		P(xx);
-		P(inla_Phi(xx));
-		P(GMRFLib_spline_eval(xx, P));
-		p = 0.8913985479;
-		P(p);
-		P(GMRFLib_spline_eval(p, Pinv));
+		for(xx = - (xmax+2); xx <= (xmax+2); xx +=  0.5) {
+			double p1 = inla_Phi(xx);
+			double p2 = GMRFLib_spline_eval(xx, P);
+			double xx2 = GMRFLib_spline_eval(p2, Pinv);
+			printf("XX %.20f %.20f %.20f %.20f\n", xx, p1, p2, xx2); 
+		}
 
 		break;
 	}
