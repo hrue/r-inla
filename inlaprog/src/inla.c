@@ -8831,9 +8831,9 @@ int loglikelihood_mix_gaussian(double *logll, double *x, int m, int idx, double 
 
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(double **, double **, int *, void *arg),
-			   int (*func_simpson)(double **, double **, int *, void *arg))
+			   int(*func_simpson)(double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -38239,14 +38239,14 @@ int testit(int argc, char **argv)
 		double *x = Calloc(n, double);
 		double *pp = Calloc(n, double);
 		double xx, dx;
-		double xmax = 5; 
+		double xmax = 5;
 		dx = 2.0 * xmax / (n - 1);
 
 		for (i = 0; i < n; i++) {
-			xx = -xmax + dx * i; 
+			xx = -xmax + dx * i;
 			x[i] = xx;
 			pp[i] = inla_Phi(xx);
-			//printf("%d %.20f %.20f\n", i, x[i], pp[i]); 
+			// printf("%d %.20f %.20f\n", i, x[i], pp[i]); 
 		}
 
 		GMRFLib_spline_tp *P, *Pinv;
@@ -38254,11 +38254,11 @@ int testit(int argc, char **argv)
 		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P);
 		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv);
 
-		for(xx = - (xmax+2); xx <= (xmax+2); xx +=  0.5) {
+		for (xx = -(xmax + 2); xx <= (xmax + 2); xx += 0.5) {
 			double p1 = inla_Phi(xx);
 			double p2 = GMRFLib_spline_eval(xx, P);
 			double xx2 = GMRFLib_spline_eval(p2, Pinv);
-			printf("XX %.20f %.20f %.20f %.20f\n", xx, p1, p2, xx2); 
+			printf("XX %.20f %.20f %.20f %.20f\n", xx, p1, p2, xx2);
 		}
 
 		break;

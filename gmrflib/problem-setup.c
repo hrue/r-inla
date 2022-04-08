@@ -1138,7 +1138,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 
 	nc = constr->nc;
 	n = graph->n;
-	
+
 	if (scale_constr && !(constr->is_scaled)) {
 		// scale the constraints so that max(|A[i,]|)=1 
 		for (k = 0; k < nc; k++) {
@@ -1154,7 +1154,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 
 	constr->jfirst = Calloc(2 * nc, int);
 	constr->jlen = constr->jfirst + nc;
-	
+
 	for (i = 0; i < nc; i++) {
 		double *a = constr->a_matrix + i;
 		for (j = 0; j < n; j++) {

@@ -93,7 +93,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	s->xmax = xx[nn - 1];
 	s->accel = Calloc(GMRFLib_MAX_THREADS(), gsl_interp_accel *);
 	s->accel[0] = gsl_interp_accel_alloc();		       /* rest will be created if needed */
-	
+
 	if (special) {
 		// we know its monotone inbetween the datapoints
 		s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_steffen), (unsigned int) nn);
@@ -140,7 +140,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 
 	int tnum = omp_get_thread_num();
 	if (!(s->accel[tnum])) {
-#pragma omp critical 
+#pragma omp critical
 		{
 			if (!(s->accel[tnum])) {
 				s->accel[tnum] = gsl_interp_accel_alloc();
@@ -153,8 +153,8 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 		// we are all fine
 	} else {
 		double h = (s->xmax - s->xmin) * 1e-4;
-		double x_mid  = (s->xmax + s->xmin) / 2.0;
-		double h_mid =  s->xmax - x_mid;
+		double x_mid = (s->xmax + s->xmin) / 2.0;
+		double h_mid = s->xmax - x_mid;
 		double vval = 0.0, grad = 0.0, grad_mid = 0.0;
 		double val_mid = gsl_spline_eval(s->spline, x_mid, s->accel[tnum]);
 		int increasing = 1;
@@ -183,7 +183,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 		}
 		val = val + (xx_raw - xx) * grad;
 	}
-	
+
 	if (s->trans == GMRFLib_INTPOL_TRANS_P) {
 		val = GMRFLib_inv_logit(val);
 		val = TRUNCATE(val, eps, 1.0 - eps);

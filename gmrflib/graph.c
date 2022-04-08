@@ -1419,8 +1419,8 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 					p2 = gsl_matrix_ptr(result, j, 0);
 					p4 = gsl_matrix_ptr(x, j, 0);
 					// for (int k = 0; k < ncol; k++) {
-					//         p1[k] += qij * p4[k];
-					//         p2[k] += qij * p3[k];
+					// p1[k] += qij * p4[k];
+					// p2[k] += qij * p3[k];
 					daxpy_(&ncol, &qij, p4, &one, p1, &one);
 					daxpy_(&ncol, &qij, p3, &one, p2, &one);
 				}
@@ -1464,8 +1464,8 @@ int GMRFLib_QM(gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GM
 					p2 = gsl_matrix_ptr(result, j, 0);
 					p4 = gsl_matrix_ptr(x, j, 0);
 					// for (int k = 0; k < ncol; k++) {
-					//       p1[k] += qij * p4[k];
-					//       p2[k] += qij * p3[k];
+					// p1[k] += qij * p4[k];
+					// p2[k] += qij * p3[k];
 					daxpy_(&ncol, &qij, p4, &one, p1, &one);
 					daxpy_(&ncol, &qij, p3, &one, p2, &one);
 				}
