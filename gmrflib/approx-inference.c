@@ -2302,12 +2302,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(GMRFLib_problem_tp ** problem,
 		err = sqrt(err / n);
 
 		if (iter > 0) {
-			if ((float) (10.0 * err) == (float) (10.0 * err_previous)) {
-				/*
-				 * we're down to some rounding error and cannot get any further. this weird situation has happend. 
-				 */
-				flag_cycle_behaviour = 1;
+			if ((float) err == (float) err_previous) {
+				// we're down to some rounding error and cannot get any further. this weird situation has happend. 
+				// flag_cycle_behaviour = 1;
+
+				// I'll disable this for now. It is better to just run out of iterations. [Apr'22]
+				flag_cycle_behaviour = 0;
 			}
+
 			if (err > 4.0 * err_previous) {
 				iter += itmax;		       /* so we can restart... */
 			}
