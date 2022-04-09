@@ -1545,6 +1545,6 @@ double *GMRFLib_preopt_measure_time(GMRFLib_preopt_tp * preopt)
 
 	Calloc_free();
 	GMRFLib_free_tabulate_Qfunc(tab);
-	
+
 	return cpu;
 }

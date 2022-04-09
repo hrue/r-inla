@@ -1582,7 +1582,7 @@ typedef struct {
 #define D5W(a_, b_, c_, d_, e_) _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; _d_store[_d_n++]= d_; _d_store[_d_n++]= e_; Dwrite()
 
 // thread-safe: with these, one have to KNOW... no dynamic writing, just filling in the array
-#define Dinit_r(n_, g_, filename_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 32L, double); \
+#define Dinit_r(n_, g_, filename_) size_t _d_store_len = n_; size_t _d_g = g_; double *_d_store = Calloc(_d_store_len * _d_g + 0L, double); \
 	FILE * _fp = fopen(filename_, "wb"); if (!_fp) inla_error_open_file(filename_)
 
 #define D1W_r(idx_, off_, a_)				\
@@ -1593,20 +1593,20 @@ typedef struct {
 #define D2W_r(idx_, off_, a_, b_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 	}
 #define D3W_r(idx_, off_, a_, b_, c_)			\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 	}
 #define D4W_r(idx_, off_, a_, b_, c_, d_)		\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
@@ -1614,7 +1614,7 @@ typedef struct {
 #define D5W_r(idx_, off_, a_, b_, c_, d_, e_)		\
 	if (1) {					\
 		size_t iidx_ = (idx_) * _d_g + off_;	\
-		_d_store[iidx_] = a_;			\
+		_d_store[iidx_ + 0] = a_;		\
 		_d_store[iidx_ + 1]= b_;		\
 		_d_store[iidx_ + 2]= c_;		\
 		_d_store[iidx_ + 3]= d_;		\
@@ -2016,7 +2016,7 @@ int loglikelihood_lognormal(double *logll, double *x, int m, int idx, double *x_
 int loglikelihood_lognormalsurv(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(double **, double **, int *, void *), int(*simpson)(double **, double **, int *, void *));
+			   int (*quadrature)(double **, double **, int *, void *), int (*simpson)(double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

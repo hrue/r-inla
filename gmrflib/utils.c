@@ -1812,6 +1812,28 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
+forceinline double GMRFLib_logit(double p)
+{
+	// evaluate log(p/(1-p)) more safe than just log(p/(1-p))
+	const double lim = 0.01;
+
+	if (p > lim && p < 1.0 - lim) {
+		return log(p / (1.0 - p));
+	} else if (p < 0.5) {
+		return (log(p) - log1p(-p));
+	} else {
+		double pp = 1.0 - p;
+		return (-log(pp) + log1p(-pp));
+	}
+}
+
+forceinline double GMRFLib_inv_logit(double x)
+{
+	// evaluate 1/(1+exp(-x))
+
+	return 1.0 / (2.0 + expm1(-x));
+}
+
 const char *GMRFLib_debug_functions_strip(const char *name)
 {
 	char *s = (char *) name;

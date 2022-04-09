@@ -109,6 +109,8 @@ char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 const char *GMRFLib_debug_functions_strip(const char *name);
 double GMRFLib_eps(double power);
+double GMRFLib_logit(double p);
+double GMRFLib_inv_logit(double x);
 double GMRFLib_log_apbex(double a, double b);
 double GMRFLib_max_value(double *x, int n, int *idx);
 double GMRFLib_min_value(double *x, int n, int *idx);

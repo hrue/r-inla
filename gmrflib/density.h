@@ -279,7 +279,6 @@ typedef struct {
 } GMRFLib_density_properties_tp;
 
 GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n);
-const gsl_interp_type *GMRFLib_density_interp_type(int n);
 double GMRFLib_density_Pinv_df(double x, void *param);
 double GMRFLib_density_Pinv_f(double x, void *param);
 double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density);

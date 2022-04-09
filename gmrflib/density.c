@@ -513,8 +513,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 	int i;
-	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL,
-	    dx = 0.0, dxm = 0.0, d0, d1;
+	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL, dx = 0.0, dxm = 0.0, d0, d1;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
@@ -647,9 +646,9 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	// compute moments
-	double mm[4] = { 0.0, 0.0, 0.0, 0.0};
-	double xx[4] = { 0.0, 0.0, 0.0, 0.0};
-	
+	double mm[4] = { 0.0, 0.0, 0.0, 0.0 };
+	double xx[4] = { 0.0, 0.0, 0.0, 0.0 };
+
 	d0 = ldm[0];
 	d1 = ldm[npm - 1];
 	xx[0] = xpm[0];
@@ -664,7 +663,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	for (i = 1; i < npm - 1; i++) {
 		double d = ldm[i] * w[(i - 1) % 2];
 		xx[1] = xpm[i];
-		xx[2] = SQR(xx[1]); 
+		xx[2] = SQR(xx[1]);
 		xx[3] = xx[2] * xx[1];
 
 		mm[0] += d;
@@ -1011,23 +1010,6 @@ int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_de
 
 	Calloc_free();
 	return GMRFLib_SUCCESS;
-}
-
-const gsl_interp_type *GMRFLib_density_interp_type(int n)
-{
-	/*
-	 * return the interpolation type depending on the number of points 
-	 */
-
-	if (n >= (int) gsl_interp_cspline->min_size) {	       /* n >= 3 */
-		return gsl_interp_cspline;
-	} else if (n >= (int) gsl_interp_linear->min_size) {   /* n >= 2 */
-		return gsl_interp_linear;
-	} else {
-		GMRFLib_ASSERT_RETVAL(n >= (int) gsl_interp_linear->min_size, GMRFLib_EPARAMETER, NULL);
-	}
-
-	return NULL;
 }
 
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from)
@@ -1613,60 +1595,21 @@ int GMRFLib_density_layout_x(double *x_vec, int *len_x, GMRFLib_density_tp * den
 {
 	GMRFLib_ENTER_ROUTINE;
 
-	int use_many;
+	// this one must be increasing
+	double p[] = { 0.00001, 0.0001, 0.001, 0.01, 0.025,
+		0.05, 0.10, 0.15, 0.2, 0.25, 0.30,
+		0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49, 0.50, 0.51,
+		0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.70,
+		0.75, 0.80, 0.85, 0.9, 0.95, 0.975, 0.99, 0.999, 0.9999, 0.99999
+	};
 
-	if ((GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT ||
-	     GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH)) {
-		use_many = GMRFLib_TRUE;
-	} else {
-		// use_many = GMRFLib_FALSE;
-		use_many = GMRFLib_TRUE;
+	*len_x = sizeof(p) / sizeof(double);
+	if (x_vec) {
+		for (int i = 0; i < *len_x; i++) {
+			GMRFLib_density_Pinv(&(x_vec[i]), p[i], density);
+		}
 	}
 
-#define CODE								\
-	if (1) {							\
-		int m;							\
-		*len_x = m = (sizeof(p) + sizeof(x_add)) / sizeof(double);	\
-		m = sizeof(p) / sizeof(double);				\
-		if (x_vec) {						\
-			for (int i = 0; i < m; i++) {			\
-				GMRFLib_density_Pinv(&(x_vec[i]), p[i], density); \
-			}						\
-			for (int i = m; i < *len_x; i++) {			\
-				x_vec[i] = x_add[i - m];		\
-			}						\
-			qsort(*x_vec, (size_t) (*len_x), sizeof(double), GMRFLib_dcmp); \
-		}							\
-}
-
-#define CODE_NO_ADD							\
-	if (1) {							\
-		*len_x = sizeof(p) / sizeof(double);			\
-		if (x_vec) {						\
-			for (int i = 0; i < *len_x; i++) {		\
-				GMRFLib_density_Pinv(&(x_vec[i]), p[i], density); \
-			}						\
-		}							\
-	}
-
-	if (use_many) {
-		double p[] = { 0.00001, 0.0001, 0.001, 0.01, 0.025,
-			0.05, 0.10, 0.15, 0.2, 0.25, 0.30,
-			0.35, 0.375, 0.40, 0.425, 0.45, 0.46, 0.47, 0.475, 0.48, 0.49, 0.50, 0.51,
-			0.52, 0.525, 0.53, 0.54, 0.55, 0.575, 0.60, 0.625, 0.65, 0.70,
-			0.75, 0.80, 0.85, 0.9, 0.95, 0.975, 0.99, 0.999, 0.9999, 0.99999
-		};
-		// double x_add[] = { -5.0, -4.0, -3.0, 3.0, 4.0, 5.0};
-		CODE_NO_ADD;
-	} else {
-		double p[] = { 0.0001, 0.001, 0.01, 0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 0.35, 0.40, 0.45, 0.475, 0.50,
-			0.525, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.9, 0.95, 0.99, 0.999, 0.9999
-		};
-		// double x_add[] = {-5.0, 5.0};
-		CODE_NO_ADD;
-	}
-
-#undef CODE
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }

@@ -42,6 +42,7 @@
 
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
+
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 {
 	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE);
@@ -52,9 +53,9 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	/*
 	 * Return a spline interpolant for {(x,y)} 
 	 */
-	int nn = n;
+	int nn = n, special = 0;
 	double *xx = NULL, *yy = NULL;
-	double eps = GMRFLib_eps(0.5);
+	double eps = GMRFLib_eps(0.75);
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
 	assert(n > 0);
@@ -65,14 +66,16 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	Memcpy(yy, y, n * sizeof(double));
 
 	if (trans == GMRFLib_INTPOL_TRANS_P) {
+		special = 1;
 		for (int i = 0; i < n; i++) {
 			yy[i] = TRUNCATE(yy[i], eps, 1.0 - eps);
-			yy[i] = log(yy[i] / (1.0 - yy[i]));
+			yy[i] = GMRFLib_logit(yy[i]);
 		}
 	} else if (trans == GMRFLib_INTPOL_TRANS_Pinv) {
+		special = 1;
 		for (int i = 0; i < n; i++) {
 			xx[i] = TRUNCATE(xx[i], eps, 1.0 - eps);
-			xx[i] = log(xx[i] / (1.0 - xx[i]));
+			xx[i] = GMRFLib_logit(xx[i]);
 		}
 	}
 	// normally, 'xx' is sorted, but...
@@ -83,14 +86,20 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	if (!is_sorted) {
 		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
 	}
-	GMRFLib_unique_relative2(&nn, xx, yy, eps);
+	GMRFLib_unique_additive2(&nn, xx, yy, GMRFLib_eps(0.5));
 
 	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
 	s->accel = Calloc(GMRFLib_MAX_THREADS(), gsl_interp_accel *);
 	s->accel[0] = gsl_interp_accel_alloc();		       /* rest will be created if needed */
-	s->spline = gsl_spline_alloc(GMRFLib_density_interp_type(nn), (unsigned int) nn);
+
+	if (special) {
+		// we know its monotone inbetween the datapoints
+		s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_steffen), (unsigned int) nn);
+	} else {
+		s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_cspline), (unsigned int) nn);
+	}
 	gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
 
 	Calloc_free();
@@ -118,25 +127,66 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	/*
 	 * Evaluate a spline 's' in point 'x' 
 	 */
-	double xx, val;
-	double eps = FLT_EPSILON;
+	double xx, xx_raw, val;
+	double eps = GMRFLib_eps(0.75);
 
 	if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
-		xx = TRUNCATE(x, eps, 1.0 - eps);
-		xx = log(xx / (1.0 - xx));
+		xx_raw = TRUNCATE(x, eps, 1.0 - eps);
+		xx_raw = GMRFLib_logit(xx_raw);
 	} else {
-		xx = x;
+		xx_raw = x;
 	}
+	xx = TRUNCATE(xx_raw, s->xmin, s->xmax);
 
-	xx = TRUNCATE(xx, s->xmin, s->xmax);
 	int tnum = omp_get_thread_num();
 	if (!(s->accel[tnum])) {
-		s->accel[tnum] = gsl_interp_accel_alloc();
+#pragma omp critical
+		{
+			if (!(s->accel[tnum])) {
+				s->accel[tnum] = gsl_interp_accel_alloc();
+			}
+		}
 	}
 	val = gsl_spline_eval(s->spline, xx, s->accel[tnum]);
 
+	if (xx > s->xmin && xx < s->xmax) {
+		// we are all fine
+	} else {
+		double h = (s->xmax - s->xmin) * 1e-4;
+		double x_mid = (s->xmax + s->xmin) / 2.0;
+		double h_mid = s->xmax - x_mid;
+		double vval = 0.0, grad = 0.0, grad_mid = 0.0;
+		double val_mid = gsl_spline_eval(s->spline, x_mid, s->accel[tnum]);
+		int increasing = 1;
+
+		if (ISEQUAL(xx, s->xmax)) {
+			vval = gsl_spline_eval(s->spline, xx - h, s->accel[tnum]);
+			grad = (val - vval) / h;
+			if (s->trans == GMRFLib_INTPOL_TRANS_P || s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
+				increasing = (val > val_mid);
+				grad_mid = (val - val_mid) / h_mid;
+			}
+		} else if (ISEQUAL(xx, s->xmin)) {
+			vval = gsl_spline_eval(s->spline, xx + h, s->accel[tnum]);
+			grad = (vval - val) / h;
+			if (s->trans == GMRFLib_INTPOL_TRANS_P || s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
+				increasing = (val_mid > val);
+				grad_mid = (val_mid - val) / h_mid;
+			}
+		} else {
+			assert(0 == 1);
+		}
+
+		// if grad has the wrong sign, then use the crude one
+		if ((increasing && grad < 0.0) || (!increasing && grad > 0.0)) {
+			grad = grad_mid;
+		}
+		val = val + (xx_raw - xx) * grad;
+	}
+
 	if (s->trans == GMRFLib_INTPOL_TRANS_P) {
-		val = 1.0 / (1.0 + exp(-val));
+		val = GMRFLib_inv_logit(val);
+		val = TRUNCATE(val, eps, 1.0 - eps);
 	}
 
 	return val;
