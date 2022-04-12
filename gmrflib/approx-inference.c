@@ -7354,7 +7354,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			}						\
 			gcpo[node]->node_min = node;			\
 			gcpo[node]->node_max = node;			\
-			gcpo[node]->idx_node = 0;			\
+			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n, guess); \
+			assert(gcpo[node]->idx_node >= 0);		\
 			gsl_matrix_set(gcpo[node]->cov_mat, 0, 0, lpred_variance[node]); \
 			continue;					\
 		}							\
@@ -7410,7 +7411,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		{
 			for (int node = 0; node < Npred; node++) {
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
-					printf("\ncov_mat for node=%d size=%d\n", node, (int) gcpo[node]->cov_mat->size1);
+					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
+					       (int) gcpo[node]->idx_node);
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}
@@ -7447,28 +7449,51 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		double *cc = CODE_BLOCK_WORK_PTR(1);			\
 		gsl_vector *mean = gsl_vector_calloc((size_t) ng);	\
 		gsl_vector *b = gsl_vector_calloc((size_t) ng);		\
+		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
 									\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, idx_node %lu,cov mat\n", node, idx_node); \
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
+		}							\
+		int *idx_map = (int *) CODE_BLOCK_WORK_PTR(4);		\
+		GMRFLib_gsl_gcpo_singular_fix(idx_map, idx_node, Q, gcpo_param->epsilon); \
 		for(int i = 0; i < ng; i++) {				\
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean, (size_t) i, lpred_mode[nnode]); \
+			double local_bb = 0.0, local_cc = 0.0;		\
 			if (d[i]) {					\
-				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[nnode], lpred_mode[nnode], nnode, \
+				GMRFLib_2order_approx(NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
-			} else {					\
-				bb[i] = cc[i] = 0.0;			\
 			}						\
+			bb[idx_map[i]] += local_bb;			\
+			cc[idx_map[i]] += local_cc;			\
 		}							\
-		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
-		GMRFLib_gsl_spd_inv(Q, FLT_EPSILON);			\
+		GMRFLib_gsl_spd_inverse(Q);				\
 		GMRFLib_gsl_mv(Q, mean, b);				\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, prec mat and mean\n", node);	\
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
+			GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
+		}							\
 									\
-		for(size_t i = 0; i <  (size_t) ng; i++) {		\
+		for(size_t i = 0; i < (size_t) ng; i++) {		\
 			gsl_matrix_set(Q, i, i, DMAX(0.0, gsl_matrix_get(Q, i, i) - cc[i])); \
 			gsl_vector_set(b, i, gsl_vector_get(b, i) - bb[i]); \
 		}							\
-		GMRFLib_gsl_spd_inv(Q, FLT_EPSILON);			\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, prec mat and b after correction\n", node); \
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
+			GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
+		}							\
+		GMRFLib_gsl_spd_inverse(Q);				\
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, new cov mat and mean\n", node); \
+			GMRFLib_printf_gsl_matrix(stdout, S, " %.8f ");	\
+			GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
+		}							\
+									\
 		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + lpred_mean[node] - lpred_mode[node]); \
 		gcpo[node]->lpred_mean = gsl_vector_get(mean, idx_node); \
 		gcpo[node]->lpred_sd = sqrt(DMAX(DBL_EPSILON, gsl_matrix_get(S, idx_node, idx_node))); \
@@ -7502,7 +7527,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_matrix_free(Q);					\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 4, IMAX(np, max_ng));
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, IMAX(np, max_ng));
 #undef CODE_BLOCK
 
 	Calloc_free();
