@@ -9221,7 +9221,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		Calloc_free();
 	} else {
 		int i, k, np = GMRFLib_INT_NUM_POINTS;
-		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, integral = 0.0, w[2] =
+		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, w[2] =
 		    { 4.0, 2.0 }, integral_one, logl_saturated;
 
 		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
@@ -9244,9 +9244,6 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		}
 		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
 		loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
-		for (i = 0; i < np; i++) {
-			loglik[i] *= d;
-		}
 		logl_saturated = 0.0;
 
 		// added this for stability, as it simply ignore extreme values that might and do occur, making the DIC=inf
@@ -9258,6 +9255,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 				dens[i] = 0.0;
 			}
 		}
+		
 		llmax = GMRFLib_max_value(loglik, np, NULL);
 		for (i = 0; i < np; i++) {
 			loglik[i] = DMAX(loglik[i], llmax + logdlim);	/* 'logdlim' is negative */
@@ -9269,7 +9267,7 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 			integral += w[k] * loglik[i] * dens[i];
 			integral_one += w[k] * dens[i];
 		}
-		integral = -2.0 * (integral / integral_one - logl_saturated);
+		integral = -2.0 * d * (integral / integral_one - logl_saturated);
 
 		Calloc_free();
 	}
