@@ -9220,16 +9220,18 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		integral = -2.0 * d * integral;
 		Calloc_free();
 	} else {
-		int i, k, np = GMRFLib_INT_NUM_POINTS;
-		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, w[2] =
-		    { 4.0, 2.0 }, integral_one, logl_saturated;
+		int i, k;
+		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
+
+		int np = GMRFLib_INT_NUM_POINTS;
+		int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 
 		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
-		Calloc_init(4 * np);
+		Calloc_init(4 * np + 2 * npm);
 		xp = Calloc_get(np);
 		xpi = Calloc_get(np);
-		dens = Calloc_get(np);
+		ldens = Calloc_get(np);
 		loglik = Calloc_get(np);
 
 		dxi = (density->x_max - density->x_min) / (np - 1.0);
@@ -9242,33 +9244,60 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 			xp[i] = xp[0] + i * dx;
 			xpi[i] = xpi[0] + i * dxi;
 		}
-		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
+		GMRFLib_evaluate_nlogdensity(ldens, xpi, np, density);
 		loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
-		logl_saturated = 0.0;
 
-		// added this for stability, as it simply ignore extreme values that might and do occur, making the DIC=inf
-		double dlim = 1.0E-10, logdlim = log(dlim), dmax, llmax;
-		dmax = GMRFLib_max_value(dens, np, NULL);
-		for (i = 0; i < np; i++) {
-			dens[i] /= dmax;
-			if (dens[i] < dlim) {
+		double *dens = Calloc_get(npm);
+		double *llik = Calloc_get(npm);
+
+		if (GMRFLib_INT_NUM_INTERPOL == 3) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (i = 0; i < np - 1; i++) {
+				llik[3 * i + 0] = loglik[i];
+				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
+				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+				dens[3 * i + 0] = exp(ldens[i]);
+				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
+				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
+			}
+			llik[3 * (np - 2) + 3] = loglik[np - 1];
+			dens[3 * (np - 2) + 3] = exp(ldens[np - 1]);
+			assert(3 * (np - 2) + 3 == npm - 1);
+		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (i = 0; i < np - 1; i++) {
+				llik[2 * i + 0] = loglik[i];
+				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+				dens[2 * i + 0] = exp(ldens[i]);
+				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
+			}
+			llik[2 * (np - 2) + 2] = loglik[np - 1];
+			dens[2 * (np - 2) + 2] = exp(ldens[np - 1]);
+			assert(2 * (np - 2) + 2 == npm - 1);
+		} else {
+			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
+		}
+
+		// prevent extreme values
+		double dmax = GMRFLib_max_value(llik, np, NULL);
+		double limit = - 0.5 * SQR(6.0);
+		for (int i = 0; i < np; i++) {
+			if (llik[i] - dmax < limit) {
+				llik[i] = 0.0;
 				dens[i] = 0.0;
 			}
 		}
 		
-		llmax = GMRFLib_max_value(loglik, np, NULL);
-		for (i = 0; i < np; i++) {
-			loglik[i] = DMAX(loglik[i], llmax + logdlim);	/* 'logdlim' is negative */
-		}
-
-		integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
-		integral_one = dens[0] + dens[np - 1];
-		for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
-			integral += w[k] * loglik[i] * dens[i];
+		integral = llik[0] * dens[0] + llik[npm - 1] * dens[npm - 1];
+		integral_one = dens[0] + dens[npm - 1];
+		for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
+			integral += w[k] * llik[i] * dens[i];
 			integral_one += w[k] * dens[i];
 		}
-		integral = -2.0 * d * (integral / integral_one - logl_saturated);
 
+		integral = -2.0 * d * (integral / integral_one);
 		Calloc_free();
 	}
 
