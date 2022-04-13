@@ -4,6 +4,12 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.04.13}{
+  \subsection{CHANGES}{
+    \itemize Bug-fix release
+  }
+}
+
 \section{CHANGES IN VERSION 22.04.09}{
   \subsection{CHANGES}{
     \itemize Bug-fix and code improvement release
