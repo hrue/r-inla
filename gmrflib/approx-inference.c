@@ -9282,14 +9282,14 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 
 		// prevent extreme values
 		double dmax = GMRFLib_max_value(llik, np, NULL);
-		double limit = - 0.5 * SQR(6.0);
+		double limit = -0.5 * SQR(6.0);
 		for (int i = 0; i < np; i++) {
 			if (llik[i] - dmax < limit) {
 				llik[i] = 0.0;
 				dens[i] = 0.0;
 			}
 		}
-		
+
 		integral = llik[0] * dens[0] + llik[npm - 1] * dens[npm - 1];
 		integral_one = dens[0] + dens[npm - 1];
 		for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {

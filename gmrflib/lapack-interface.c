@@ -47,22 +47,22 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, double epsilon) 
+int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon)
 {
 	// give a covariance matrix S with mid-node 'idx_node', then detect those indices singular with 'idx_node'.
 	// idx_map will map contribution from likelihood to which node.
 	// S will be overwritten with a 'fixed' version which is non-singular and partly fake.
 
-	for(size_t i = 0; i < S->size1; i++) {
+	for (size_t i = 0; i < S->size1; i++) {
 		idx_map[i] = (int) i;
 		if (i != idx_node) {
 			double corr = gsl_matrix_get(S, i, idx_node) / sqrt(gsl_matrix_get(S, i, i) * gsl_matrix_get(S, idx_node, idx_node));
 			corr = TRUNCATE(corr, -1.0, 1.0);
 			if (ISEQUAL_x(ABS(corr), 1.0, epsilon)) {
 				// map contribution to 'idx_node' 
-				idx_map[i] = (int) idx_node;		  
+				idx_map[i] = (int) idx_node;
 				// then make that node independent of the others so it does not do any harm
-				for(size_t ii = 0; ii < S->size1; ii++) { 
+				for (size_t ii = 0; ii < S->size1; ii++) {
 					if (i != ii) {
 						gsl_matrix_set(S, i, ii, 0.0);
 						gsl_matrix_set(S, ii, i, 0.0);
