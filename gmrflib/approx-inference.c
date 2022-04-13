@@ -7153,7 +7153,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		// build the groups
 		double *isd = Calloc(mnpred, double);
 
-		groups = GMRFLib_idxval_ncreate_x(Npred, gcpo_param->group_size);
+		groups = GMRFLib_idxval_ncreate_x(Npred, IABS(gcpo_param->group_size));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, ai_store->problem, NULL);
 		for (int i = 0; i < Npred; i++) {
@@ -7183,7 +7183,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			CODE_BLOCK_SET_THREAD_ID();			\
 			int node = selection->idx[ii];			\
 									\
-			if (gcpo_param->group_size == 1) {		\
+			if (gcpo_param->group_size == -1) {		\
 				GMRFLib_idxval_add(&(groups[node]), node, 1.0); \
 				continue;				\
 			}						\
@@ -7217,7 +7217,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 				cor[nnode] = ABS(cor[nnode]);		\
 				num_ones += ISEQUAL_x(cor[nnode], 1.0, gcpo_param->epsilon); \
 			}						\
-			int siz_g = IMIN(Npred, gcpo_param->group_size + num_ones); \
+			int siz_g = IMIN(Npred, IABS(gcpo_param->group_size) + num_ones); \
 			GMRFLib_DEBUG_iii("siz_g Npred num_ones", siz_g, Npred, num_ones); \
 			gsl_sort_largest_index(largest, (size_t) siz_g, cor, (size_t) 1, (size_t) Npred); \
 			for (int i = 0; i < siz_g; i++) {		\
@@ -7238,11 +7238,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			printf("%s[%1d]: Use user-defined groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 
-		// if the number of give groups are to short compared to Npred, then pad with empty groups. if its longer then that is an error.
+		// if the number of given groups are to short compared to Npred, then pad with empty groups. if its longer then that is an error.
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), gcpo_param->group_size);
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), IABS(gcpo_param->group_size));
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -7252,7 +7252,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 
 
 	// add first off-diagonals
-	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, gcpo_param->group_size);
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, IABS(gcpo_param->group_size));
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {

@@ -1252,21 +1252,25 @@
         fnm <- gsub(data.dir, "$inladatadir", file.groups, fixed = TRUE)
         cat("gcpo.groups =", fnm, "\n", file = file, append = TRUE)
     } else {
-            cat("gcpo.group.size", "=", max(1, round(gcpo$group.size)), "\n", sep = " ", file = file, append = TRUE)
-            if (!is.null(gcpo$selection)) {
-                selection <- gcpo$selection[!is.na(gcpo$selection)]
-                selection <- unique(sort(selection))
-                stopifnot(all(selection >= 1))
-                selection <- selection - 1 ## to C indexing
-                len <- length(selection)
-                file.selection <- inla.tempfile(tmpdir = data.dir)
-                fp.binary <- file(file.selection, "wb")
-                writeBin(as.integer(len), fp.binary)
-                writeBin(as.integer(selection), fp.binary)
-                close(fp.binary)
-                fnm <- gsub(data.dir, "$inladatadir", file.selection, fixed = TRUE)
-                cat("gcpo.selection =", fnm, "\n", file = file, append = TRUE)
-            }
+        ## gsiz = -1 is CPO,  gsiz = 0 or gsiz < -1 means the default value 1
+        gsiz <- round(gcpo$group.size)
+        if (gsiz == 0 || gsiz < -1) gsiz <- 1
+        cat("gcpo.group.size", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
+
+        if (!is.null(gcpo$selection)) {
+            selection <- gcpo$selection[!is.na(gcpo$selection)]
+            selection <- unique(sort(selection))
+            stopifnot(all(selection >= 1))
+            selection <- selection - 1 ## to C indexing
+            len <- length(selection)
+            file.selection <- inla.tempfile(tmpdir = data.dir)
+            fp.binary <- file(file.selection, "wb")
+            writeBin(as.integer(len), fp.binary)
+            writeBin(as.integer(selection), fp.binary)
+            close(fp.binary)
+            fnm <- gsub(data.dir, "$inladatadir", file.selection, fixed = TRUE)
+            cat("gcpo.selection =", fnm, "\n", file = file, append = TRUE)
+        }
     }
 
     if (is.null(smtp) || !(is.character(smtp) && (nchar(smtp) > 0))) {
