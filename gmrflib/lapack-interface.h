@@ -96,6 +96,7 @@ int GMRFLib_gsl_mgs(gsl_matrix * A);
 int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol);
 int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol);
 int GMRFLib_gsl_mv(gsl_matrix * A, gsl_vector * x, gsl_vector * b);
+int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon);
 
 __END_DECLS
 #endif

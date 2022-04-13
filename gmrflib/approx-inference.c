@@ -7354,7 +7354,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			}						\
 			gcpo[node]->node_min = node;			\
 			gcpo[node]->node_max = node;			\
-			gcpo[node]->idx_node = 0;			\
+			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n, guess); \
+			assert(gcpo[node]->idx_node >= 0);		\
 			gsl_matrix_set(gcpo[node]->cov_mat, 0, 0, lpred_variance[node]); \
 			continue;					\
 		}							\
@@ -7410,7 +7411,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		{
 			for (int node = 0; node < Npred; node++) {
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
-					printf("\ncov_mat for node=%d size=%d\n", node, (int) gcpo[node]->cov_mat->size1);
+					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
+					       (int) gcpo[node]->idx_node);
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}
@@ -7447,28 +7449,51 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		double *cc = CODE_BLOCK_WORK_PTR(1);			\
 		gsl_vector *mean = gsl_vector_calloc((size_t) ng);	\
 		gsl_vector *b = gsl_vector_calloc((size_t) ng);		\
+		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
 									\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, idx_node %lu,cov mat\n", node, idx_node); \
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
+		}							\
+		int *idx_map = (int *) CODE_BLOCK_WORK_PTR(4);		\
+		GMRFLib_gsl_gcpo_singular_fix(idx_map, idx_node, Q, gcpo_param->epsilon); \
 		for(int i = 0; i < ng; i++) {				\
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean, (size_t) i, lpred_mode[nnode]); \
+			double local_bb = 0.0, local_cc = 0.0;		\
 			if (d[i]) {					\
-				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[nnode], lpred_mode[nnode], nnode, \
+				GMRFLib_2order_approx(NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
-			} else {					\
-				bb[i] = cc[i] = 0.0;			\
 			}						\
+			bb[idx_map[i]] += local_bb;			\
+			cc[idx_map[i]] += local_cc;			\
 		}							\
-		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
-		GMRFLib_gsl_spd_inv(Q, FLT_EPSILON);			\
+		GMRFLib_gsl_spd_inverse(Q);				\
 		GMRFLib_gsl_mv(Q, mean, b);				\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, prec mat and mean\n", node);	\
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
+			GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
+		}							\
 									\
-		for(size_t i = 0; i <  (size_t) ng; i++) {		\
+		for(size_t i = 0; i < (size_t) ng; i++) {		\
 			gsl_matrix_set(Q, i, i, DMAX(0.0, gsl_matrix_get(Q, i, i) - cc[i])); \
 			gsl_vector_set(b, i, gsl_vector_get(b, i) - bb[i]); \
 		}							\
-		GMRFLib_gsl_spd_inv(Q, FLT_EPSILON);			\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, prec mat and b after correction\n", node); \
+			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
+			GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
+		}							\
+		GMRFLib_gsl_spd_inverse(Q);				\
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
+		if (detailed_output && gcpo_param->verbose) {		\
+			printf("node %d, new cov mat and mean\n", node); \
+			GMRFLib_printf_gsl_matrix(stdout, S, " %.8f ");	\
+			GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
+		}							\
+									\
 		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + lpred_mean[node] - lpred_mode[node]); \
 		gcpo[node]->lpred_mean = gsl_vector_get(mean, idx_node); \
 		gcpo[node]->lpred_sd = sqrt(DMAX(DBL_EPSILON, gsl_matrix_get(S, idx_node, idx_node))); \
@@ -7502,7 +7527,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_matrix_free(Q);					\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 4, IMAX(np, max_ng));
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, IMAX(np, max_ng));
 #undef CODE_BLOCK
 
 	Calloc_free();
@@ -9195,16 +9220,18 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 		integral = -2.0 * d * integral;
 		Calloc_free();
 	} else {
-		int i, k, np = GMRFLib_INT_NUM_POINTS;
-		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, integral = 0.0, w[2] =
-		    { 4.0, 2.0 }, integral_one, logl_saturated;
+		int i, k;
+		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
+
+		int np = GMRFLib_INT_NUM_POINTS;
+		int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 
 		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 
-		Calloc_init(4 * np);
+		Calloc_init(4 * np + 2 * npm);
 		xp = Calloc_get(np);
 		xpi = Calloc_get(np);
-		dens = Calloc_get(np);
+		ldens = Calloc_get(np);
 		loglik = Calloc_get(np);
 
 		dxi = (density->x_max - density->x_min) / (np - 1.0);
@@ -9217,35 +9244,60 @@ double GMRFLib_ai_dic_integrate(int idx, GMRFLib_density_tp * density, double d,
 			xp[i] = xp[0] + i * dx;
 			xpi[i] = xpi[0] + i * dxi;
 		}
-		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
+		GMRFLib_evaluate_nlogdensity(ldens, xpi, np, density);
 		loglFunc(loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
-		for (i = 0; i < np; i++) {
-			loglik[i] *= d;
-		}
-		logl_saturated = 0.0;
 
-		// added this for stability, as it simply ignore extreme values that might and do occur, making the DIC=inf
-		double dlim = 1.0E-10, logdlim = log(dlim), dmax, llmax;
-		dmax = GMRFLib_max_value(dens, np, NULL);
-		for (i = 0; i < np; i++) {
-			dens[i] /= dmax;
-			if (dens[i] < dlim) {
+		double *dens = Calloc_get(npm);
+		double *llik = Calloc_get(npm);
+
+		if (GMRFLib_INT_NUM_INTERPOL == 3) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (i = 0; i < np - 1; i++) {
+				llik[3 * i + 0] = loglik[i];
+				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
+				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+				dens[3 * i + 0] = exp(ldens[i]);
+				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
+				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
+			}
+			llik[3 * (np - 2) + 3] = loglik[np - 1];
+			dens[3 * (np - 2) + 3] = exp(ldens[np - 1]);
+			assert(3 * (np - 2) + 3 == npm - 1);
+		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for (i = 0; i < np - 1; i++) {
+				llik[2 * i + 0] = loglik[i];
+				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+				dens[2 * i + 0] = exp(ldens[i]);
+				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
+			}
+			llik[2 * (np - 2) + 2] = loglik[np - 1];
+			dens[2 * (np - 2) + 2] = exp(ldens[np - 1]);
+			assert(2 * (np - 2) + 2 == npm - 1);
+		} else {
+			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
+		}
+
+		// prevent extreme values
+		double dmax = GMRFLib_max_value(llik, np, NULL);
+		double limit = -0.5 * SQR(6.0);
+		for (int i = 0; i < np; i++) {
+			if (llik[i] - dmax < limit) {
+				llik[i] = 0.0;
 				dens[i] = 0.0;
 			}
 		}
-		llmax = GMRFLib_max_value(loglik, np, NULL);
-		for (i = 0; i < np; i++) {
-			loglik[i] = DMAX(loglik[i], llmax + logdlim);	/* 'logdlim' is negative */
-		}
 
-		integral = loglik[0] * dens[0] + loglik[np - 1] * dens[np - 1];
-		integral_one = dens[0] + dens[np - 1];
-		for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
-			integral += w[k] * loglik[i] * dens[i];
+		integral = llik[0] * dens[0] + llik[npm - 1] * dens[npm - 1];
+		integral_one = dens[0] + dens[npm - 1];
+		for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
+			integral += w[k] * llik[i] * dens[i];
 			integral_one += w[k] * dens[i];
 		}
-		integral = -2.0 * (integral / integral_one - logl_saturated);
 
+		integral = -2.0 * d * (integral / integral_one);
 		Calloc_free();
 	}
 
