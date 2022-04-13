@@ -263,7 +263,7 @@
             graph = FALSE,
 
             ## :ARGUMENT: control.gcpo Set control variables for the gcpo
-            control.gcpo = list(enable = FALSE, group.size = 1, groups = NULL, selection = NULL, verbose = FALSE, epsilon = (.Machine$double.eps)^(0.3194))
+            control.gcpo = list(enable = FALSE, group.size = 1, groups = NULL, selection = NULL, verbose = FALSE, epsilon = 0.005)
         )
 
         ## :SEEALSO: inla
