@@ -53,25 +53,65 @@ int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S,
 	// idx_map will map contribution from likelihood to which node.
 	// S will be overwritten with a 'fixed' version which is non-singular and partly fake.
 
+#define MAT_SYM_SET(M_, i_, j_, val_)		  \
+	if (1) {				  \
+		gsl_matrix_set(M_, i_, j_, val_); \
+		gsl_matrix_set(M_, j_, i_, val_); \
+	}
+	
+	assert(S->size1 == S->size2);
+	if (S->size1 == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	
+	gsl_matrix *C = GMRFLib_gsl_duplicate_matrix(S);
+	for (size_t i = 0; i < S->size1; i++) {
+		for (size_t j = i + 1; j < S->size1; j++) {
+			double val = gsl_matrix_get(C, i, j) / sqrt(gsl_matrix_get(C, i, i) * gsl_matrix_get(C, j, j));
+			val = TRUNCATE(ABS(val), 0.0, 1.0);
+			val = (ISEQUAL_x(val, 1.0, epsilon) ? 1.0 : 0.0);
+			MAT_SYM_SET(C, i, j, val);
+		}
+	}
+			
+	// first connect to idx_node
 	for (size_t i = 0; i < S->size1; i++) {
 		idx_map[i] = (int) i;
 		if (i != idx_node) {
-			double corr = gsl_matrix_get(S, i, idx_node) / sqrt(gsl_matrix_get(S, i, i) * gsl_matrix_get(S, idx_node, idx_node));
-			corr = TRUNCATE(corr, -1.0, 1.0);
-			if (ISEQUAL_x(ABS(corr), 1.0, epsilon)) {
+			if (gsl_matrix_get(C, i, idx_node)) {
 				// map contribution to 'idx_node' 
 				idx_map[i] = (int) idx_node;
 				// then make that node independent of the others so it does not do any harm
 				for (size_t ii = 0; ii < S->size1; ii++) {
 					if (i != ii) {
-						gsl_matrix_set(S, i, ii, 0.0);
-						gsl_matrix_set(S, ii, i, 0.0);
+						MAT_SYM_SET(S, i, ii, 0.0);
+						MAT_SYM_SET(C, i, ii, 0.0);
 					}
 				}
 			}
 		}
 	}
 
+	// then connect any other nodes that are perfectly correlated
+	for (size_t i = 0; i < S->size1; i++) {
+		for (size_t j = i + 1; j < S->size1; j++) {
+			if (!(i == idx_node || j == idx_node)) {
+				if (gsl_matrix_get(C, i, j)) {
+					idx_map[j] = (int) i;
+					for (size_t jj = 0; jj < S->size1; jj++) {
+						if (j != jj) {
+							MAT_SYM_SET(S, j, jj, 0.0);
+							MAT_SYM_SET(C, j, jj, 0.0);
+						}
+					}
+				}
+			}
+		}
+	}
+
+#undef MAT_SYM_SET
+	gsl_matrix_free(C);
+	
 	return GMRFLib_SUCCESS;
 }
 

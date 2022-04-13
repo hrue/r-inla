@@ -4,6 +4,13 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.04.14}{
+  \subsection{CHANGES}{
+    \itemize Improve \code{gcpo}-handling of singular cases. \code{group.size=-1} now
+    gives the CPO.
+  }
+}
+
 \section{CHANGES IN VERSION 22.04.13}{
   \subsection{CHANGES}{
     \itemize Bug-fix release
