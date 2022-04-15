@@ -6476,6 +6476,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		for (j = 0; j < preopt->Npred; j++) {
 
 			if (0) {
+				// skip correction for now. ALSO REMEMBER TO CORRECT BELOW AS WELL!
 				double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
 				for(int jjj = 1; jjj < dens_max; jjj++) {
 					lcorr_max = DMAX(lcorr_max, gcpo_theta[jjj][j]->marg_theta_correction);
