@@ -35910,7 +35910,7 @@ void inla_signal(int sig)
 		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
 	default:
-		_exit();
+		_exit(sig);
 		break;
 	}
 #endif
