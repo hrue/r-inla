@@ -28,7 +28,7 @@
 #include "my-fix.h"
 #include "strlib.h"
 
-static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define INI_INVALID_KEY     ((char*)-1)
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
 
@@ -40,6 +40,7 @@ static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
 	 * Make a key as section:keyword 
 	 */
 	longkey = (char *) calloc((size_t) ((sec ? strlen(sec) : 0) + (key ? strlen(key) : 0) + LEN_INIPARSER_SEP + 1), (size_t) 1);
+	assert(longkey);
 	if (key != NULL) {
 		sprintf(longkey, "%s%c%s", (sec ? sec : ""), INIPARSER_SEP, key);
 	} else {
@@ -187,10 +188,12 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
 	}
 	for (i = 0; i < nsec; i++) {
 		secname = iniparser_getsecname(d, i);
+		assert(secname);
 		seclen = (int) strlen(secname);
 		fprintf(f, "\n[%s]\n", secname);
 
 		keym = (char *) calloc(strlen(secname) + LEN_INIPARSER_SEP + 1, (size_t) 1);
+		assert(keym);
 		sprintf(keym, "%s%c", secname, INIPARSER_SEP);
 		for (j = 0; j < d->size; j++) {
 			if (d->key[j] == NULL)
@@ -272,6 +275,7 @@ int iniparser_getint(dictionary * d, const char *key, int notfound)
 	char *str = NULL;
 
 	str = iniparser_getstring(d, key, INI_INVALID_KEY);
+	assert(str);
 	if (str == INI_INVALID_KEY)
 		return notfound;
 
@@ -304,7 +308,8 @@ double iniparser_getdouble(dictionary * d, const char *key, double notfound)
 	char *str = NULL;
 
 	str = iniparser_getstring(d, key, INI_INVALID_KEY);
-
+	assert(str);
+	
 	if (str == INI_INVALID_KEY)
 		return notfound;
 
@@ -357,6 +362,7 @@ int iniparser_getboolean(dictionary * d, const char *key, int notfound)
 	int ret = notfound;
 
 	c = iniparser_getstring(d, key, INI_INVALID_KEY);
+	assert(c);
 	if (c == INI_INVALID_KEY)
 		return notfound;
 	if (c[0] == 'y' || c[0] == 'Y' || c[0] == '1' || c[0] == 't' || c[0] == 'T') {

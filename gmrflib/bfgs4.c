@@ -6,7 +6,7 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* multimin/vector_bfgs2.c
  * 

@@ -35903,8 +35903,6 @@ void inla_signal(int sig)
 	fflush(stdout);
 	switch (sig) {
 	case SIGUSR1:
-		GMRFLib_timer_full_report(NULL);
-		break;
 	case SIGUSR2:
 		fprintf(stderr, "\n\n\t%s: Recieve signal %1d: request optimiser to stop\n\n", __GMRFLib_FuncName, sig);
 		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
@@ -36724,7 +36722,6 @@ int inla_reset(void)
 
 	GMRFLib_opt_exit();
 	GMRFLib_pardiso_exit();
-	GMRFLib_timer_exit();
 	R_rgeneric_cputime = 0.0;
 
 	return GMRFLib_SUCCESS;
@@ -37343,19 +37340,6 @@ int testit(int argc, char **argv)
 
 	case 30:
 	{
-		double tref = GMRFLib_cpu();
-		for (int i = 0; i < 3; i++) {
-			int ret = system("sleep 1");
-			if (ret != 0)
-				exit(1);
-			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
-		}
-		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
-		for (int i = 0; i < 3; i++) {
-			printf("Call inla_testit_timer()\n");
-			inla_testit_timer();
-		}
-		GMRFLib_timer_full_report(stdout);
 		break;
 	}
 
@@ -38391,7 +38375,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err;
+	int i, verbose = 0, silent = 0, opt, arg, ntt[2] = { 0, 0 }, err;
 #if !defined(WINDOWS)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
@@ -38441,7 +38425,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfr:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
@@ -38647,12 +38631,6 @@ int main(int argc, char **argv)
 			GMRFLib_fpe();
 			break;
 
-		case 'i':
-			GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
-			GMRFLib_timer_init();
-			report = 1;
-			break;
-
 		case 'r':
 			err = inla_sread_ints(&G.reorder, 1, optarg);
 			if (err) {
@@ -38733,58 +38711,42 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_QINV:
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_QSOLVE:
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_QREORDERING:
 		inla_qreordering(argv[optind]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_QSAMPLE:
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_FINN:
 		inla_finn(argv[optind]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_GRAPH:
 		inla_read_graph(argv[optind]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_R:
 		inla_R(&(argv[optind]));
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_FGN:
 		inla_fgn(argv[optind], argv[optind + 1]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -38795,8 +38757,6 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_TESTIT:
 		testit(argc - optind, &(argv[optind]));
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -39033,10 +38993,6 @@ int main(int argc, char **argv)
 				printf("\n");
 			}
 		}
-	}
-
-	if (report) {
-		GMRFLib_timer_full_report(NULL);
 	}
 
 	/*

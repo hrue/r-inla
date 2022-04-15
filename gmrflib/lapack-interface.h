@@ -89,8 +89,8 @@ double ddot_(int *n, double *x, int *incx, double *y, int *incy);
 double dnrm2_(int *n, double *x, int *inc);
 
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
-double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q);
-double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S);
+double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);
+double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S);
 gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A);
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon);
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);

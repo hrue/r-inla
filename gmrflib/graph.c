@@ -1254,7 +1254,6 @@ int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph)
 	return m;
 }
 
-
 int GMRFLib_Qx(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	return (GMRFLib_Qx2(result, x, graph, Qfunc, Qfunc_arg, NULL));
@@ -1270,11 +1269,13 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 	double *values = NULL, res;
 
 	max_t = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
+	assert(result);
 	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 
 	Calloc_init(m + 1 + (diag ? 0 : graph->n));
 	values = Calloc_get(m + 1);
+	assert(values);
 	if (!diag) {
 		diag = Calloc_get(graph->n);
 	}

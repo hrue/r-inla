@@ -47,11 +47,15 @@
 		exit(1);						\
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void pardisoinit(void *a, int *b, int *c, int *d, double *e, int *f)
 {
 	*f = NOLIB_ECODE;
 	return;
 }
+
 void pardiso(void *a, int *b, int *c, int *d, int *e, int *f, double *g,
 	     int *h, int *i, int *j, int *k, int *l, int *m, double *n, double *o, int *p, double *q) NO_PARDISO_LIB;
 void pardiso_chkmatrix(int *a, int *s, double *d, int *f, int *g, int *h) NO_PARDISO_LIB;
@@ -63,6 +67,9 @@ void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b
 		      double *norm_res) NO_PARDISO_LIB;
 void pardiso_copy_symbolic_factor_single(void *a, void *b, int *c, int *d, double *e, double *f, int *g, int *h, int *i) NO_PARDISO_LIB;
 void pardiso_delete_symbolic_factor_single(void *a, int *b, int *c) NO_PARDISO_LIB;
+
+#pragma GCC diagnostic pop
+
 
 int METIS_NodeND(int *, int *, int *, int *, int *, int *, int *);
 int METIS51PARDISO_NodeND(int *nvtxs, int *xadj, int *adjncy, int *vwgt, int *options, int *perm, int *iperm)

@@ -888,6 +888,8 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	if (!L) {
 		return GMRFLib_SUCCESS;
 	}
+	assert(*L);
+
 	/*
 	 * compute some info about the factorization 
 	 */
@@ -909,6 +911,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	taucs_ccs_free(*L);
 
 	*L = my_taucs_dsupernodal_factor_to_ccs(*symb_fact);
+	assert(*L);
 	(*L)->flags = flags & ~TAUCS_SYMMETRIC;		       /* fixes a bug in ver 2.0 av TAUCS */
 	taucs_supernodal_factor_free_numeric(*symb_fact);      /* remove the numerics, preserve the symbolic */
 

@@ -3,6 +3,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#if 0
 int main(int argc, char **argv)
 {
 	if (argc == 1) {
@@ -17,7 +18,7 @@ int main(int argc, char **argv)
 	tref = GMRFLib_cpu();
 	fprintf(stderr, "Read Q-matrix and build graph... ");
 	fflush(stderr);
-	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, argv[1], NULL, NULL, NULL);
+	GMRFLib_tabulate_Qfunc_from_file(&tab, &graph, argv[1], -1, NULL);
 	fprintf(stderr, "%gs\n", GMRFLib_cpu() - tref);
 
 	fprintf(stderr, "Graph-size %d\n", graph->n);
@@ -52,3 +53,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#endif

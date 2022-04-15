@@ -1818,6 +1818,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	 * setup workspace for small-mem's for the hole routine here. 
 	 */
 	Calloc_init(n + ncc + (nc ? n + nc + nc + ISQR(nc) : 0));
+	assert(calloc_work_);
 	c = Calloc_get(n);
 	t_vec = Calloc_get(ncc);
 	if (nc) {
@@ -1853,6 +1854,10 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		 * add inv(A Q^-1 A^t) if it does not exists. Be careful, as we need to add this and that this routine can be called threaded with the same
 		 * ai_store. 
 		 */
+
+		assert(w);
+		assert(v);
+		assert(z);
 
 		if (!problem->inv_aqat_m) {
 			double *m;
@@ -4382,8 +4387,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 			if (tfunc && tfunc[ii]) {
 				GMRFLib_density_tp *dens_c = NULL;
-				GMRFLib_density_combine((density_transform ? &dens_c : NULL), dens_transform[ii], probs);
-				(*density_transform)[ii] = dens_c;
+				GMRFLib_density_combine((density_transform ? &dens_c : NULL), (density_transform ? dens_transform[ii] : NULL),
+							probs);
+				if (density_transform && *density_transform) {
+					(*density_transform)[ii] = dens_c;
+				}
 			}
 		}
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -6468,11 +6476,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		for (j = 0; j < preopt->Npred; j++) {
 
 			double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
-			for(int jjj = 1; jjj < dens_max; jjj++) {
+			for (int jjj = 1; jjj < dens_max; jjj++) {
 				lcorr_max = DMAX(lcorr_max, gcpo_theta[jjj][j]->marg_theta_correction);
 			}
 			P(j);
-			for(int jjj = 0; jjj < dens_max; jjj++) {
+			for (int jjj = 0; jjj < dens_max; jjj++) {
 				gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
 				P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
 			}
@@ -7514,7 +7522,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
 		gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(mean_old, mean, NULL, S); \
-		/* want a multiplicative correction */                  \		
+		/* want a multiplicative correction */                  \
 		gcpo[node]->marg_theta_correction *= -1.0;		\
 									\
 		if (detailed_output && gcpo_param->verbose) {		\

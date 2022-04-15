@@ -58,11 +58,6 @@ __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
     typedef struct {
-	size_t n;
-	size_t bytes;
-} GMRFLib_meminfo_tp;
-
-typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -192,15 +187,13 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
 mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
-void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
-void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
-void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);
-void *GMRFLib_malloc__(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+
+int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 void *GMRFLib_memcpy(void *dest, const void *src, size_t n);
+void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
-void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
-void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
 
 __END_DECLS
 #endif

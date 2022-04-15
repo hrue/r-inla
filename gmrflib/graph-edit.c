@@ -46,7 +46,7 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define GED_INIT 64
 #define GED_GROW 1024
 

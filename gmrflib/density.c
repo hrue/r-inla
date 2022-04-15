@@ -1191,6 +1191,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	GMRFLib_sn_param_tp sn_param;
 
 	Calloc_init(2 * n);
+	assert(calloc_work_);
 	xx = Calloc_get(n);
 	ldens = Calloc_get(n);
 

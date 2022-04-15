@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#if 0
 int main(int argc, char **argv)
 {
 	double x;
@@ -31,3 +33,4 @@ int main(int argc, char **argv)
 #endif
 	return 0;
 }
+#endif

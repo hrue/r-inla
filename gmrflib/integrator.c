@@ -489,6 +489,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 		return 0;
 
 	r = (rule75genzmalik *) malloc(sizeof(rule75genzmalik));
+	assert(r);
 	r->parent.dim = dim;
 
 	r->weight1 = (real(12824 - 9120 * to_int(dim) + 400 * isqr(to_int(dim)))
@@ -500,6 +501,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 	r->weightE3 = real(265 - 100 * to_int(dim)) / real(1458);
 
 	r->p = (double *) malloc(sizeof(double) * dim * 3);
+	assert(r->p);
 	r->widthLambda = r->p + dim;
 	r->widthLambda2 = r->p + 2 * dim;
 
@@ -628,6 +630,7 @@ static rule *make_rule15gauss(unsigned dim)
 	if (dim != 1)
 		return 0;				       /* this rule is only for 1d integrals */
 	r = (rule *) malloc(sizeof(rule));
+	assert(r);
 	r->dim = dim;
 	r->num_points = 15;
 	r->evalError = rule15gauss_evalError;
@@ -1014,7 +1017,9 @@ int main(int argc, char **argv)
 	fdata = which_integrand == 6 ? (1.0 + sqrt(10.0)) / 9.0 : 0.1;
 
 	xmin = (double *) malloc(dim * sizeof(double));
+	assert(xmin);
 	xmax = (double *) malloc(dim * sizeof(double));
+	assert(xmax);
 	for (i = 0; i < dim; ++i) {
 		xmin[i] = 0;
 		xmax[i] = 1 + (which_integrand >= 2 ? 0 : 0.4 * sin(i));

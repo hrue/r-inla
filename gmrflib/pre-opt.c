@@ -1529,6 +1529,7 @@ double *GMRFLib_preopt_measure_time(GMRFLib_preopt_tp * preopt)
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
 
 	Calloc_init(2 * graph->n);
+	assert(calloc_work_);
 	double *x = Calloc_get(graph->n);
 	double *xx = Calloc_get(graph->n);
 	for (int i = 0; i < graph->n; i++) {

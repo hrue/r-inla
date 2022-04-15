@@ -40,6 +40,8 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "cgeneric.h"
 
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+
 #if !defined(Calloc)
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #endif
