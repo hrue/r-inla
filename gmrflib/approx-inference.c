@@ -6475,24 +6475,33 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		(*gcpo)->groups = gcpo_groups->groups;
 		for (j = 0; j < preopt->Npred; j++) {
 
-			double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
-			for (int jjj = 1; jjj < dens_max; jjj++) {
-				lcorr_max = DMAX(lcorr_max, gcpo_theta[jjj][j]->marg_theta_correction);
-			}
-			P(j);
-			for (int jjj = 0; jjj < dens_max; jjj++) {
-				gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
-				P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
-			}
+			if (0) {
+				double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
+				for(int jjj = 1; jjj < dens_max; jjj++) {
+					lcorr_max = DMAX(lcorr_max, gcpo_theta[jjj][j]->marg_theta_correction);
+				}
 
-			double evalue = 0.0, evalue_one = 0.0;
-			for (int jjj = 0; jjj < probs->n; jjj++) {
-				int jj = probs->idx[jjj];
-				evalue += gcpo_theta[jj][j]->value * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
-				evalue_one += probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
-			}
-			(*gcpo)->value[j] = evalue / evalue_one;
+				for(int jjj = 0; jjj < dens_max; jjj++) {
+					gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
+					P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
+				}
 
+				double evalue = 0.0, evalue_one = 0.0;
+				for (int jjj = 0; jjj < probs->n; jjj++) {
+					int jj = probs->idx[jjj];
+					evalue += gcpo_theta[jj][j]->value * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
+					evalue_one += probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
+				}
+				(*gcpo)->value[j] = evalue / evalue_one;
+			} else {
+				double evalue = 0.0, evalue_one = 1.0;
+				for (int jjj = 0; jjj < probs->n; jjj++) {
+					int jj = probs->idx[jjj];
+					evalue += gcpo_theta[jj][j]->value * probs->val[jjj];
+				}
+				(*gcpo)->value[j] = evalue / evalue_one;
+			}
+			
 			evalue = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
