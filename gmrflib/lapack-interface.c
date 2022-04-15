@@ -47,6 +47,90 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
+{
+	size_t n = Q->size1;
+	assert(n == Q->size2);
+	double sqr, sqr2;
+
+	sqr = 0.0;
+	for(size_t i = 0; i < n; i++) {
+		double xx = gsl_vector_get(x, i);
+		sqr += SQR(xx) * gsl_matrix_get(Q, i, i);
+		sqr2 = 0.0;
+		for(size_t j = i+1; j < n; j++) {
+			sqr2 += gsl_matrix_get(Q, i, j) * gsl_vector_get(x, j);
+		}
+		sqr += 2.0 * xx * sqr2;
+	}
+	return sqr;
+}
+
+double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S) 
+{
+	gsl_matrix *L_Q = NULL, *L_S = NULL;
+	double log_det_Q = 0.0;
+	size_t n;
+	if (Q) {
+		n = Q->size1;
+		L_Q = GMRFLib_gsl_duplicate_matrix(Q);
+		gsl_linalg_cholesky_decomp(L_Q);
+		for(size_t i = 0; i < n; i++) {
+			log_det_Q += log(gsl_matrix_get(L_Q, i, i));
+		}
+		log_det_Q *= 2.0;
+	} else {
+		n = S->size1;
+		L_S = GMRFLib_gsl_duplicate_matrix(S);
+		gsl_linalg_cholesky_decomp(L_S);
+		for(size_t i = 0; i < n; i++) {
+			log_det_Q += log(gsl_matrix_get(L_S, i, i));
+		}
+		log_det_Q *= (-2.0);
+	}
+
+	gsl_vector *xx = gsl_vector_alloc(n);
+	if (x && mean) {
+		for(size_t i = 0; i < n; i++) {
+			gsl_vector_set(xx, i, gsl_vector_get(x, i) - gsl_vector_get(mean, i));
+		}
+	} else if (x && !mean) {
+		for(size_t i = 0; i < n; i++) {
+			gsl_vector_set(xx, i, gsl_vector_get(x, i));
+		}
+	} else if (!x && mean) {
+		for(size_t i = 0; i < n; i++) {
+			gsl_vector_set(xx, i, -gsl_vector_get(mean, i));
+		}
+	} else {
+		for(size_t i = 0; i < n; i++) {
+			gsl_vector_set(xx, i, 0.0);
+		}
+	}
+
+	double sqr = 0.0;
+	if (Q) {
+		sqr = GMRFLib_gsl_xQx(xx, Q);
+	} else {
+		// copy from randist/mvgauss.c
+
+		/* compute: work = L^{-1} * (x - mu) */
+		gsl_blas_dtrsv(CblasLower, CblasNoTrans, CblasNonUnit, L_S, xx);
+		/* compute: quadForm = (x - mu)' Sigma^{-1} (x - mu) */
+		gsl_blas_ddot(xx, xx, &sqr);
+	}
+
+	if (L_S) {
+		gsl_matrix_free(L_S);
+	}
+	if (L_Q) {
+		gsl_matrix_free(L_Q);
+	}
+	gsl_vector_free(xx);
+
+	return (- (double) n / 2.0 * log(2.0 * M_PI) + 0.5 * log_det_Q - 0.5 * sqr);
+}
+
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon)
 {
 	// give a covariance matrix S with mid-node 'idx_node', then detect those indices singular with 'idx_node'.

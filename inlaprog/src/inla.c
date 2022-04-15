@@ -38302,6 +38302,61 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 78: 
+	{
+		/*
+
+		  library(mvtnorm)
+		  Q <- matrix(c(17, -1, -2, -1, 15, -3, -2, -3, 14), 3, 3)
+		  S <- solve(Q)
+		  x <- c(0.55, 1.55, 2.55)
+		  m <- c(2.05, 3.45, 1.25)
+		  zero <- rep(0, length(x))
+		  print(dmvnorm(x = x, mean = m, sigma = S, log = TRUE))
+		  print(dmvnorm(x = x, mean = zero, sigma = S, log = TRUE))
+		  print(dmvnorm(x = zero, mean = m, sigma = S, log = TRUE))
+		  print(dmvnorm(x = zero, mean = zero, sigma = S, log = TRUE))
+
+		*/
+		
+		gsl_matrix * Q = gsl_matrix_alloc(3, 3);
+		gsl_matrix_set(Q, 0, 0, 17);
+		gsl_matrix_set(Q, 1, 1, 15);
+		gsl_matrix_set(Q, 2, 2, 14);
+		gsl_matrix_set(Q, 0, 1, -1);
+		gsl_matrix_set(Q, 1, 0, -1);
+		gsl_matrix_set(Q, 0, 2, -2);
+		gsl_matrix_set(Q, 2, 0, -2);
+		gsl_matrix_set(Q, 1, 2, -3);
+		gsl_matrix_set(Q, 2, 1, -3);
+		
+		gsl_matrix * S = GMRFLib_gsl_duplicate_matrix(Q);
+		GMRFLib_gsl_spd_inverse(S);
+
+		gsl_vector * x = gsl_vector_alloc(3);
+		gsl_vector_set(x, 0, 0.55);
+		gsl_vector_set(x, 1, 1.55);
+		gsl_vector_set(x, 2, 2.55);
+
+		gsl_vector * mean = gsl_vector_alloc(3);
+		gsl_vector_set(mean, 0, 2.05);
+		gsl_vector_set(mean, 1, 3.45);
+		gsl_vector_set(mean, 2, 1.25);
+
+		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL));
+
+		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL));
+		
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL));
+		
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL));
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
