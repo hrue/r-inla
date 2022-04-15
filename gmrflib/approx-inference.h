@@ -816,6 +816,7 @@ typedef struct {
 	double lpred_mean;
 	double lpred_sd;
 	double kld;
+	double marg_theta_correction;
 	int node_min;					       /* min(nodes) */
 	int node_max;					       /* max(nodes) */
 	int idx_node;					       /* the index for the central node, 'i' in 'gcpo[i]', within cov_mat */
