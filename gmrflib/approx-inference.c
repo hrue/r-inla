@@ -7196,6 +7196,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			printf("%s[%1d]: Use selection of %1d indices and group.size %1d\n", __GMRFLib_FuncName,
 			       omp_get_thread_num(), selection->n, gcpo_param->group_size);
 		}
+		assert(selection);
 
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
@@ -7815,6 +7816,8 @@ int GMRFLib_ai_vb_correct_mean_std(GMRFLib_density_tp *** density,	// need two t
 	// need the idx's for the vb correction and the data locations
 	GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
 
+	GMRFLib_idx_create(&vb_idx);
+	assert(vb_idx);
 	for (i = 0; i < graph->n; i++) {
 		if (ai_par->vb_nodes[i]) {
 			GMRFLib_idx_add(&vb_idx, i);
@@ -8425,10 +8428,11 @@ int GMRFLib_ai_store_config(GMRFLib_ai_misc_output_tp * mo, int ntheta, double *
 		}
 	}
 
-	if (g->n >= 0)
+	if (g->n >= 0) {
 		Qprior = Calloc(g->n, double);
-	for (ii = 0; ii < g->n; ii++) {
-		Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
+		for (ii = 0; ii < g->n; ii++) {
+			Qprior[ii] = Qfunc(ii, ii, NULL, Qfunc_arg) + c[ii];
+		}
 	}
 
 	mean = Calloc(g->n, double);
