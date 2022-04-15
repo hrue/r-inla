@@ -559,6 +559,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 
 	par = (double **) param;
 	assert(par);
+	assert(*par);
 	skew_intern = *(par[0]);
 	intercept_intern = *(par[1]);
 
@@ -35905,11 +35906,9 @@ void inla_signal(int sig)
 	switch (sig) {
 	case SIGUSR1:
 	case SIGUSR2:
-		fprintf(stderr, "\n\n\t%s: Recieve signal %1d: request optimiser to stop\n\n", __GMRFLib_FuncName, sig);
 		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
 	default:
-		fprintf(stderr, "\n\n\t%s: Recieve signal %1d, call exit(%1d)\n\n", __GMRFLib_FuncName, sig, sig);
 		exit(sig);
 		break;
 	}
