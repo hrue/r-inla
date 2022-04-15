@@ -559,7 +559,8 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 
 	par = (double **) param;
 	assert(par);
-	assert(*par);
+	assert(par[0]);
+	assert(par[1]);
 	skew_intern = *(par[0]);
 	intercept_intern = *(par[1]);
 
@@ -35909,7 +35910,7 @@ void inla_signal(int sig)
 		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
 	default:
-		exit(sig);
+		_exit();
 		break;
 	}
 #endif
