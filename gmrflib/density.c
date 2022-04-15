@@ -721,6 +721,8 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	static double log_norm_const_gaussian = -0.918938533204672741780329736407;	/* log(1.0/sqrt(2.0*M_PI)) */
 	int i;
 
+	assert(density);
+
 	switch (density->type) {
 	case GMRFLib_DENSITY_TYPE_GAUSSIAN:
 	{
@@ -800,6 +802,7 @@ int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * densit
 int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp * density)
 {
 	int i;
+	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
 	for (i = 0; i < n; i++) {

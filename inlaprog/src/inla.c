@@ -558,6 +558,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	double **par, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
+	assert(par);
 	skew_intern = *(par[0]);
 	intercept_intern = *(par[1]);
 

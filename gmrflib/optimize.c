@@ -181,6 +181,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		/*
 		 * copy from store 
 		 */
+		assert(store);
 		GMRFLib_EWRAP1(GMRFLib_graph_duplicate(&(opt_problem->sub_graph), store->sub_graph));
 	} else {
 		/*

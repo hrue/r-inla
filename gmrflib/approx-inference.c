@@ -7192,6 +7192,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
 		}
 		if (gcpo_param->verbose) {
+			assert(selection);
 			printf("%s[%1d]: Use selection of %1d indices and group.size %1d\n", __GMRFLib_FuncName,
 			       omp_get_thread_num(), selection->n, gcpo_param->group_size);
 		}
@@ -7338,6 +7339,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	double zero = 0.0;
 
 	Calloc_init(mnpred);
+	assert(calloc_work_);
 	double *sd = Calloc_get(mnpred);
 	GMRFLib_gcpo_elm_tp **gcpo = Calloc(Npred, GMRFLib_gcpo_elm_tp *);
 	for (int i = 0; i < Npred; i++) {

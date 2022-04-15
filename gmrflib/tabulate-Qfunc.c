@@ -80,6 +80,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			dp = map_id_ptr(args->values[imin], imax);	\
 		}							\
 									\
+		assert(dp);						\
 		if (_prec_scale) {					\
 			val = prec * (*dp);				\
 		} else {						\
