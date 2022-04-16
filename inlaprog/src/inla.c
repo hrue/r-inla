@@ -33771,8 +33771,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
+		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
-		mb->gcpo_param->verbose = iniparser_getint(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
+		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
 		assert(!(gfile && sfile));
@@ -33897,6 +33898,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
+			printf("\t\t\tgcpo.correct.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
 			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
 			if (mb->gcpo_param->groups) {
 				printf("\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);

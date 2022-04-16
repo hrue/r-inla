@@ -789,6 +789,7 @@ typedef struct {
 	int group_size;
 	int ngroups;
 	int verbose;
+	int correct_hyperpar;
 	double epsilon;
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;

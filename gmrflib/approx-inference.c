@@ -6473,54 +6473,45 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	if (gcpo) {
 		(*gcpo)->n = preopt->Npred;
 		(*gcpo)->groups = gcpo_groups->groups;
+
+		// if theta_correction is turned off, then all correction terms are 0
 		for (j = 0; j < preopt->Npred; j++) {
-
-			if (0) {
-				// skip correction for now. ALSO REMEMBER TO CORRECT BELOW AS WELL!
-				double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
-				for(int jjj = 1; jjj < dens_max; jjj++) {
-					lcorr_max = DMAX(lcorr_max, gcpo_theta[jjj][j]->marg_theta_correction);
-				}
-
-				for(int jjj = 0; jjj < dens_max; jjj++) {
-					gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
-					P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
-				}
-
-				double evalue = 0.0, evalue_one = 0.0;
-				for (int jjj = 0; jjj < probs->n; jjj++) {
-					int jj = probs->idx[jjj];
-					evalue += gcpo_theta[jj][j]->value * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
-					evalue_one += probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
-				}
-				(*gcpo)->value[j] = evalue / evalue_one;
-			} else {
-				double evalue = 0.0, evalue_one = 1.0;
-				for (int jjj = 0; jjj < probs->n; jjj++) {
-					int jj = probs->idx[jjj];
-					evalue += gcpo_theta[jj][j]->value * probs->val[jjj];
-				}
-				(*gcpo)->value[j] = evalue / evalue_one;
+			double lcorr_max = gcpo_theta[0][j]->marg_theta_correction;
+			for(int jjj = 1; jjj < dens_max; jjj++) {
+				lcorr_max = DMAX(lcorr_max, gcpo_theta[jjj][j]->marg_theta_correction);
 			}
-			
+			for(int jjj = 0; jjj < dens_max; jjj++) {
+				gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
+				//P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
+			}
+
+			double evalue = 0.0, evalue_one = 0.0;
+			for (int jjj = 0; jjj < probs->n; jjj++) {
+				int jj = probs->idx[jjj];
+				evalue += gcpo_theta[jj][j]->value * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
+				evalue_one += probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
+			}
+			(*gcpo)->value[j] = evalue / evalue_one;
+
 			evalue = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
-				evalue += gcpo_theta[jj][j]->kld * probs->val[jjj];
+				evalue += gcpo_theta[jj][j]->kld * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
 			}
 			(*gcpo)->kld[j] = evalue / evalue_one;
 
 			evalue = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
-				evalue += gcpo_theta[jj][j]->lpred_mean * probs->val[jjj];
+				evalue += gcpo_theta[jj][j]->lpred_mean * probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
 			}
 			(*gcpo)->mean[j] = evalue / evalue_one;
 
 			evalue = 0.0;
 			for (int jjj = 0; jjj < probs->n; jjj++) {
 				int jj = probs->idx[jjj];
-				evalue += (SQR(gcpo_theta[jj][j]->lpred_sd) + SQR(gcpo_theta[jj][j]->lpred_mean)) * probs->val[jjj];
+				evalue += (SQR(gcpo_theta[jj][j]->lpred_sd) + SQR(gcpo_theta[jj][j]->lpred_mean)) *
+					probs->val[jjj] * exp(gcpo_theta[jj][j]->marg_theta_correction);
 			}
 			(*gcpo)->sd[j] = sqrt(DMAX(0.0, evalue / evalue_one - SQR((*gcpo)->mean[j])));
 		}
@@ -7346,6 +7337,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	int n = preopt->n;
 	int N = IMAX(n, Npred);
 	int max_ng = -1;
+	int corr_hypar = gcpo_param->correct_hyperpar;
 	const int np = GMRFLib_INT_GHQ_POINTS;
 	double zero = 0.0;
 
@@ -7481,6 +7473,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_vector *mean_old = gsl_vector_calloc((size_t) ng);	\
 		gsl_vector *mean = gsl_vector_calloc((size_t) ng);	\
 		gsl_vector *b = gsl_vector_calloc((size_t) ng);		\
+		/* oops, Q = Sigma here... */				\
 		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
 									\
 		if (detailed_output && gcpo_param->verbose) {		\
@@ -7501,18 +7494,23 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			gsl_vector_set(mean_old, (size_t) i, lpred_mode[nnode]); \
 			double ll = 0.0, local_bb = 0.0, local_cc = 0.0; \
 			if (d[i]) {					\
-				loglFunc(&ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg); \
+				if (corr_hypar) loglFunc(&ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg); \
 				GMRFLib_2order_approx(NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
 			}						\
-			gcpo[node]->marg_theta_correction += ll;	\
+			if (corr_hypar) {				\
+				gcpo[node]->marg_theta_correction += ll; \
+			}						\
 			bb[idx_map[i]] += local_bb;			\
 			cc[idx_map[i]] += local_cc;			\
 		}							\
-		gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL); \
 									\
+		/* this computed Q = prec.matrix */			\
 		GMRFLib_gsl_spd_inverse(Q);				\
 		GMRFLib_gsl_mv(Q, mean_old, b);				\
+		if (corr_hypar) {					\
+			gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL); \
+		}							\
 									\
 		if (detailed_output && gcpo_param->verbose) {		\
 			printf("node %d, prec mat and mean\n", node);	\
@@ -7534,9 +7532,11 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		GMRFLib_gsl_spd_inverse(Q);				\
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
-		gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(mean_old, mean, NULL, S); \
-		/* want a multiplicative correction */                  \
-		gcpo[node]->marg_theta_correction *= -1.0;		\
+		if (corr_hypar) {					\
+			gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(mean_old, mean, NULL, S); \
+			/* we define the correction to be multiplicative */ \
+			gcpo[node]->marg_theta_correction *= -1.0;	\
+		}							\
 									\
 		if (detailed_output && gcpo_param->verbose) {		\
 			printf("node %d, new cov mat and mean\n", node); \
@@ -7550,7 +7550,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gcpo[node]->kld =  0.5 * (SQR(gcpo[node]->lpred_sd) / lpred_variance[node] - 1.0 + \
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
-									\
 		if (d[node]) {						\
 			double *weights = NULL, *xx = NULL;		\
 			GMRFLib_ghq(&xx, &weights, np);			\
