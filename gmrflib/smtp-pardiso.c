@@ -633,6 +633,8 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	int n, *permutation = NULL;
 	double *xx = NULL;
 
+	assert(store);
+	assert(store->graph);
 	n = store->graph->n;
 	xx = Calloc(n * m, double);
 	Memcpy(xx, x, n * m * sizeof(double));
@@ -761,6 +763,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 {
 	// note that 'x' = 'b' !!!!!!!!!!!!!!!
 
+	assert(store);
 	assert(nrhs > 0);
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);

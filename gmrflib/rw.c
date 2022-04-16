@@ -265,6 +265,7 @@ double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 
 		if (idiff == 0) {
 			if (use_pos) {
+				assert(idelta);
 				if (imin == 0) {
 					return prec * idelta[0];
 				}
@@ -409,6 +410,10 @@ double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 		 */
 
 		if (use_pos) {
+			assert(idelta);
+			assert(idelta2);
+			assert(idelta3);
+
 			if (idiff == 0) {
 				if (node_tp == TP_POS) {
 					if (nnode_tp == TP_POS) {	/* TP_POS & TP_POS */
@@ -1129,6 +1134,7 @@ int GMRFLib_rw2d_scale(void *def)
 		 * The model is proper if BVALUE_ZERO is set, no need to add anything on the diagonal
 		 */
 		constr = NULL;
+		c = Calloc(graph->n, double);
 	}
 
 	int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;

@@ -562,6 +562,9 @@ double R_rgeneric_cputime = 0.0;
 		exit(1);						\
 	}
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 void inla_R_exit(void)
 {
 	ERROR_MESSAGE;
@@ -570,60 +573,75 @@ void inla_R_exit(void)
 int inla_R_init(void)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_source(const char *filename)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_library(const char *filename)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_assign(const char *variable, int n, double *x)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_get(int *n_out, double **x_out, const char *variable)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_load(const char *filename)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
 int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
+
 int inla_R_inlaload(const char *filename)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
+
 void *inla_R_vector_of_strings(int n, char **s)
 {
 	ERROR_MESSAGE;
 }
+
 int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp)
 {
 	ERROR_MESSAGE;
+	return 1;
 }
 
+#pragma GCC diagnostic pop
 #undef ERROR_MESSAGE
 
 #endif

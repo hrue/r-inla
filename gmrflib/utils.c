@@ -34,6 +34,16 @@
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(__FreeBSD__)
+#include <assert.h>
+#include <float.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <math.h>
+#include <strings.h>
+#include <stdio.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
 #include <stddef.h>
 #include <string.h>
 #include <malloc.h>
@@ -44,48 +54,121 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-/* 
- *  compile with -DGMRFLib_MEMCHECK to enable the internal memcheck utility. Do not work with OPENMP. compile with -DGMRFLib_MEMINFO to enable the meminfo utility.
- *  compute with -DGMRFLib_TRACE_MEMORY to view memory allocation
- */
-
-static map_vpvp memcheck_hash_table;
-static int memcheck_verbose = 0;
-static int memcheck_first = 1;
-
-#if defined(GMRFLib_MEMINFO)
-static GMRFLib_meminfo_tp *MemInfo = NULL;
-#define MEMINFO(_size) \
-	if (GMRFLib_meminfo_thread_id != 0) {				\
-		assert(IABS(GMRFLib_meminfo_thread_id) < 1+omp_get_max_threads()); \
-		if (!MemInfo){						\
-			_Pragma("omp critial")				\
-			{						\
-				if (!MemInfo)				\
-					MemInfo = (GMRFLib_meminfo_tp *) calloc(1+omp_get_max_threads(), sizeof(GMRFLib_meminfo_tp)); \
-			}						\
-		}							\
-		if (GMRFLib_meminfo_thread_id > 0) {			\
-			MemInfo[GMRFLib_meminfo_thread_id].n++;	\
-			MemInfo[GMRFLib_meminfo_thread_id].bytes += _size; \
-		} else if (GMRFLib_meminfo_thread_id < 0 && MemInfo[-GMRFLib_meminfo_thread_id].n > 0) { \
-			_Pragma("omp critial")				\
-			{						\
-				if (GMRFLib_meminfo_thread_id < 0 && MemInfo[-GMRFLib_meminfo_thread_id].n > 0) { \
-					printf("\nMemInfo thread_id %d\n", -GMRFLib_meminfo_thread_id); \
-					printf("\tn %g\n", (double) MemInfo[-GMRFLib_meminfo_thread_id].n); \
-					printf("\tb %g Mb\n\n", ((double) MemInfo[-GMRFLib_meminfo_thread_id].bytes)/1024.0/1024.0); \
-					MemInfo[-GMRFLib_meminfo_thread_id].n = MemInfo[-GMRFLib_meminfo_thread_id].bytes = 0; \
-				}					\
-			}						\
-		}							\
-	}
-#else
-#define MEMINFO(_size) if (0) {}
-#endif
-
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
+
+int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
+{
+	/*
+	 * parts of this code is copied from the manual page of snprintf. 
+	 */
+
+	int n, size = 128 + 1;
+	char *p;
+	va_list ap;
+
+	GMRFLib_ASSERT(ptr, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(fmt, GMRFLib_EINVARG);
+
+	p = Calloc(size, char);
+
+	while (1) {
+		/*
+		 * Try to print in the allocated space. 
+		 */
+		va_start(ap, fmt);
+		n = vsnprintf(p, (unsigned int) size, fmt, ap);
+		va_end(ap);
+
+		/*
+		 * if that worked, return the string, 
+		 */
+		if (n > -1 && n < size) {
+			*ptr = p;
+			return GMRFLib_SUCCESS;
+		}
+
+		/*
+		 * ...else try again with more space 
+		 */
+		if (n > -1) {
+			size = n + 1;
+		} else {
+			size *= 2;
+		}
+		p = Realloc(p, size, char);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
+{
+	assert(n < PTRDIFF_MAX);
+	memcpy(dest, src, n);
+	return NULL;
+}
+
+void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
+{
+	void *ptr = NULL;
+	char *msg = NULL;
+
+	assert(nmemb * size < PTRDIFF_MAX);
+	ptr = calloc(nmemb, size);
+
+	if (ptr) {
+		return ptr;
+	}
+	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
+	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
+	abort();
+
+	return NULL;
+}
+
+void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id)
+{
+	void *ptr = NULL;
+	char *msg = NULL;
+
+	assert(size < PTRDIFF_MAX);
+	ptr = malloc(size);
+	if (ptr) {
+		return ptr;
+	}
+	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
+	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
+	abort();
+
+	return NULL;
+}
+
+void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id)
+{
+	void *ptr = NULL;
+	char *msg = NULL;
+
+	assert(size < PTRDIFF_MAX);
+	ptr = realloc(old_ptr, size);
+	if (ptr) {
+		return ptr;
+	}
+	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
+	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
+	abort();
+
+	return NULL;
+}
+
+void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id)
+{
+	if (ptr) {
+		free(ptr);
+	} else {
+		fprintf(stderr, "%s:%s:%d (%s): Try to free a NULL-ptr\n", file, funcname, lineno, id);
+	}
+}
 
 char *GMRFLib_rindex(const char *p, int ch)
 {
@@ -388,128 +471,12 @@ double GMRFLib_log_apbex(double a, double b)
 	}
 }
 
-void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
-{
-	assert(n < PTRDIFF_MAX);
-	memcpy(dest, src, n);
-	return NULL;
-}
-
-void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *ptr = NULL;
-	char *msg = NULL;
-
-	assert(nmemb * size < PTRDIFF_MAX);
-	MEMINFO(nmemb * size);
-
-#if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-	ptr = GMRFLib_calloc__(nmemb, size, file, funcname, lineno, id);
-#else
-	ptr = calloc(nmemb, size);
-#endif
-#if defined(GMRFLib_TRACE_MEMORY)
-	if (nmemb * size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: calloc %zu x %zu bytes, total %zu\n", file, funcname, lineno, nmemb, size, nmemb * size);
-#endif
-	if (ptr) {
-		return ptr;
-	}
-
-	/*
-	 * alloc failed 
-	 */
-	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
-	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
-	abort();
-
-	return NULL;
-}
-
-void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *ptr = NULL;
-	char *msg = NULL;
-
-	assert(size < PTRDIFF_MAX);
-	MEMINFO(size);
-
-#if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-	ptr = GMRFLib_malloc__(size, file, funcname, lineno, id);
-#else
-	ptr = malloc(size);
-#endif
-#if defined(GMRFLib_TRACE_MEMORY)
-	if (size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: malloc %zu bytes, total %zu\n", file, funcname, lineno, size, size);
-#endif
-	if (ptr) {
-		return ptr;
-	}
-
-	/*
-	 * alloc failed 
-	 */
-	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
-	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
-	abort();
-
-	return NULL;
-}
-
-void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *ptr = NULL;
-	char *msg = NULL;
-
-	assert(size < PTRDIFF_MAX);
-	MEMINFO(size);
-
-#if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-	ptr = GMRFLib_realloc__(old_ptr, size, file, funcname, lineno, id);
-#else
-	ptr = realloc(old_ptr, size);
-#endif
-#if defined(GMRFLib_TRACE_MEMORY)
-	if (size > GMRFLib_TRACE_MEMORY)
-		printf("%s:%s:%u: realloc %zu bytes, total %zu\n", file, funcname, lineno, size, size);
-#endif
-	if (ptr) {
-		return ptr;
-	}
-
-	/*
-	 * realloc failed 
-	 */
-	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
-	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
-	abort();
-
-	return NULL;
-}
-
-void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id)
-{
-	if (ptr) {
-#if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-		int choice = 1;
-#else
-		int choice = 0;
-#endif
-		if (choice) {
-			GMRFLib_free__(ptr, file, funcname, lineno, id);
-		} else {
-			free(ptr);
-		}
-	}
-}
-
 char *GMRFLib_strdup(const char *ptr)
 {
 	/*
 	 * strdup is not part of ANSI-C 
 	 */
-#if defined(__STRICT_ANSI__) || defined(GMRFLib_MEMCHECK)
+#if defined(__STRICT_ANSI__)
 	if (ptr) {
 		size_t len = strlen(ptr);
 		char *str = Malloc(len + 1, char);
@@ -528,141 +495,6 @@ char *GMRFLib_strdup(const char *ptr)
 		return NULL;
 	}
 #endif
-}
-
-void *GMRFLib_malloc__(size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *p = NULL;
-
-	p = malloc(size);
-	GMRFLib_memcheck_register(p, size, file, funcname, lineno, id);
-	return p;
-}
-
-void *GMRFLib_calloc__(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *p = NULL;
-
-	p = calloc(nmemb, size);
-	GMRFLib_memcheck_register(p, size, file, funcname, lineno, id);
-	return p;
-}
-
-void *GMRFLib_realloc__(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *p = NULL;
-
-	p = realloc(old_ptr, size);
-	GMRFLib_memcheck_remove(old_ptr, file, funcname, lineno, id);
-	GMRFLib_memcheck_register(p, size, file, funcname, lineno, id);
-	return p;
-}
-
-void GMRFLib_free__(void *ptr, const char *file, const char *funcname, int lineno, const char *id)
-{
-	if (!ptr) {
-		return;
-	}
-	if (memcheck_first) {
-		map_vpvp_init_hint(&memcheck_hash_table, 10000);
-		memcheck_first = 0;
-	}
-	if (ptr && !map_vpvp_ptr(&memcheck_hash_table, ptr)) {
-		GMRFLib_memcheck_error("try to free a ptr not alloced", ptr, file, funcname, lineno, id);
-	}
-	GMRFLib_memcheck_remove(ptr, file, funcname, lineno, id);
-	free(ptr);
-
-	return;
-}
-
-char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	char *tag = NULL;
-
-	tag = (char *) calloc(1024 + 1, sizeof(char));
-	snprintf(tag, 1024, "size: %zu bytes \tfile: %s \tfuncname: %s \tlineno: %d \tid: %s", size, file, funcname, lineno, id);
-
-	return tag;
-}
-
-int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id)
-{
-	printf("GMRFLib_memcheck: %s [0x%" PRIxPTR "]\n", msg, (uintptr_t) p);
-	printf("called from file %s funcname %s lineno %d id %s\n", file, funcname, lineno, id);
-	abort();
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *tag = NULL;
-
-	if (!p) {
-		return GMRFLib_SUCCESS;
-	}
-	if (memcheck_first) {
-		map_vpvp_init_hint(&memcheck_hash_table, 10000);
-		memcheck_first = 0;
-	}
-	if (map_vpvp_ptr(&memcheck_hash_table, p)) {
-		GMRFLib_memcheck_error("register a ptr not free'd", p, file, funcname, lineno, id);
-	} else {
-		tag = (void *) GMRFLib_memcheck_make_tag(size, file, funcname, lineno, id);
-		map_vpvp_set(&memcheck_hash_table, p, tag);
-	}
-
-	if (memcheck_verbose) {
-		printf("%s: 0x%" PRIxPTR " %sn\n", __GMRFLib_FuncName, (uintptr_t) p, (char *) tag);
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id)
-{
-	void *ptr = NULL;
-
-	if (!p) {
-		return GMRFLib_SUCCESS;
-	}
-	if (memcheck_first) {
-		map_vpvp_init_hint(&memcheck_hash_table, 10000);
-		memcheck_first = 0;
-	}
-	ptr = map_vpvp_ptr(&memcheck_hash_table, p);
-	if (!ptr) {
-		GMRFLib_memcheck_error("remove ptr not registered", p, file, funcname, lineno, id);
-	}
-	if (memcheck_verbose)
-		printf("%s: 0x%" PRIxPTR " %sn\n", __GMRFLib_FuncName, (uintptr_t) p, *((char **) ptr));
-
-	free(*((void **) ptr));
-	map_vpvp_remove(&memcheck_hash_table, p);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_memcheck_printf(FILE * fp)
-{
-#if defined(GMRFLib_MEMCHECK) && !defined(_OPENMP)
-	int choice = 1;
-#else
-	int choice = 0;
-#endif
-
-	if (choice == 1) {
-		int i;
-		fp = (fp ? fp : stdout);
-		if (!memcheck_first) {
-			for (i = -1; (i = map_vpvp_next(&memcheck_hash_table, i)) != -1;) {
-				fprintf(fp, "0x%zu %s\n", (size_t) memcheck_hash_table.contents[i].key,
-					(char *) memcheck_hash_table.contents[i].value);
-			}
-		}
-	}
-
-	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_normalize(int n, double *x)

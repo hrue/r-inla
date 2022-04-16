@@ -558,6 +558,9 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	double **par, intercept, intercept_intern, intercept_alpha;
 
 	par = (double **) param;
+	assert(par);
+	assert(par[0]);
+	assert(par[1]);
 	skew_intern = *(par[0]);
 	intercept_intern = *(par[1]);
 
@@ -33768,8 +33771,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
+		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
-		mb->gcpo_param->verbose = iniparser_getint(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
+		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
 		assert(!(gfile && sfile));
@@ -33894,6 +33898,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
+			printf("\t\t\tgcpo.correct.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
 			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
 			if (mb->gcpo_param->groups) {
 				printf("\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
@@ -35903,15 +35908,11 @@ void inla_signal(int sig)
 	fflush(stdout);
 	switch (sig) {
 	case SIGUSR1:
-		GMRFLib_timer_full_report(NULL);
-		break;
 	case SIGUSR2:
-		fprintf(stderr, "\n\n\t%s: Recieve signal %1d: request optimiser to stop\n\n", __GMRFLib_FuncName, sig);
 		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
 	default:
-		fprintf(stderr, "\n\n\t%s: Recieve signal %1d, call exit(%1d)\n\n", __GMRFLib_FuncName, sig, sig);
-		exit(sig);
+		_exit(sig);
 		break;
 	}
 #endif
@@ -36724,7 +36725,6 @@ int inla_reset(void)
 
 	GMRFLib_opt_exit();
 	GMRFLib_pardiso_exit();
-	GMRFLib_timer_exit();
 	R_rgeneric_cputime = 0.0;
 
 	return GMRFLib_SUCCESS;
@@ -37343,19 +37343,6 @@ int testit(int argc, char **argv)
 
 	case 30:
 	{
-		double tref = GMRFLib_cpu();
-		for (int i = 0; i < 3; i++) {
-			int ret = system("sleep 1");
-			if (ret != 0)
-				exit(1);
-			printf("Call system() to sleep 1s. Time elapsed: %.6f\n", GMRFLib_cpu() - tref);
-		}
-		GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
-		for (int i = 0; i < 3; i++) {
-			printf("Call inla_testit_timer()\n");
-			inla_testit_timer();
-		}
-		GMRFLib_timer_full_report(stdout);
 		break;
 	}
 
@@ -38302,6 +38289,61 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 78: 
+	{
+		/*
+
+		  library(mvtnorm)
+		  Q <- matrix(c(17, -1, -2, -1, 15, -3, -2, -3, 14), 3, 3)
+		  S <- solve(Q)
+		  x <- c(0.55, 1.55, 2.55)
+		  m <- c(2.05, 3.45, 1.25)
+		  zero <- rep(0, length(x))
+		  print(dmvnorm(x = x, mean = m, sigma = S, log = TRUE))
+		  print(dmvnorm(x = x, mean = zero, sigma = S, log = TRUE))
+		  print(dmvnorm(x = zero, mean = m, sigma = S, log = TRUE))
+		  print(dmvnorm(x = zero, mean = zero, sigma = S, log = TRUE))
+
+		*/
+		
+		gsl_matrix * Q = gsl_matrix_alloc(3, 3);
+		gsl_matrix_set(Q, 0, 0, 17);
+		gsl_matrix_set(Q, 1, 1, 15);
+		gsl_matrix_set(Q, 2, 2, 14);
+		gsl_matrix_set(Q, 0, 1, -1);
+		gsl_matrix_set(Q, 1, 0, -1);
+		gsl_matrix_set(Q, 0, 2, -2);
+		gsl_matrix_set(Q, 2, 0, -2);
+		gsl_matrix_set(Q, 1, 2, -3);
+		gsl_matrix_set(Q, 2, 1, -3);
+		
+		gsl_matrix * S = GMRFLib_gsl_duplicate_matrix(Q);
+		GMRFLib_gsl_spd_inverse(S);
+
+		gsl_vector * x = gsl_vector_alloc(3);
+		gsl_vector_set(x, 0, 0.55);
+		gsl_vector_set(x, 1, 1.55);
+		gsl_vector_set(x, 2, 2.55);
+
+		gsl_vector * mean = gsl_vector_alloc(3);
+		gsl_vector_set(mean, 0, 2.05);
+		gsl_vector_set(mean, 1, 3.45);
+		gsl_vector_set(mean, 2, 1.25);
+
+		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL));
+
+		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL));
+		
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL));
+		
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S));
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL));
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -38336,7 +38378,7 @@ int main(int argc, char **argv)
 
 #define _BUGS_intern(fp) fprintf(fp, "Report bugs to <help@r-inla.org>\n")
 #define _BUGS _BUGS_intern(stdout)
-	int i, verbose = 0, silent = 0, opt, report = 0, arg, ntt[2] = { 0, 0 }, err;
+	int i, verbose = 0, silent = 0, opt, arg, ntt[2] = { 0, 0 }, err;
 #if !defined(WINDOWS)
 	int enable_core_file = 0;			       /* allow for core files */
 #endif
@@ -38386,7 +38428,7 @@ int main(int argc, char **argv)
 	signal(SIGUSR2, inla_signal);
 	signal(SIGINT, inla_signal);
 #endif
-	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfir:R:cpLP:")) != -1) {
+	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfr:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
@@ -38592,12 +38634,6 @@ int main(int argc, char **argv)
 			GMRFLib_fpe();
 			break;
 
-		case 'i':
-			GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
-			GMRFLib_timer_init();
-			report = 1;
-			break;
-
 		case 'r':
 			err = inla_sread_ints(&G.reorder, 1, optarg);
 			if (err) {
@@ -38678,58 +38714,42 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_QINV:
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_QSOLVE:
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_QREORDERING:
 		inla_qreordering(argv[optind]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_QSAMPLE:
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_FINN:
 		inla_finn(argv[optind]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_GRAPH:
 		inla_read_graph(argv[optind]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_R:
 		inla_R(&(argv[optind]));
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
 	case INLA_MODE_FGN:
 		inla_fgn(argv[optind], argv[optind + 1]);
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -38740,8 +38760,6 @@ int main(int argc, char **argv)
 
 	case INLA_MODE_TESTIT:
 		testit(argc - optind, &(argv[optind]));
-		if (report)
-			GMRFLib_timer_full_report(NULL);
 		exit(EXIT_SUCCESS);
 		break;
 
@@ -38978,10 +38996,6 @@ int main(int argc, char **argv)
 				printf("\n");
 			}
 		}
-	}
-
-	if (report) {
-		GMRFLib_timer_full_report(NULL);
 	}
 
 	/*

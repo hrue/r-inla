@@ -1219,6 +1219,7 @@
 
     inla.write.boolean.field("gcpo.enable", gcpo$enable, file)
     inla.write.boolean.field("gcpo.verbose", gcpo$verbose, file)
+    inla.write.boolean.field("gcpo.correct.hyperpar", gcpo$correct.hyperpar, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
 
     if (!is.null(gcpo$groups)) {

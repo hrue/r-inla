@@ -48,51 +48,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
-{
-	/*
-	 * parts of this code is copied from the manual page of snprintf. 
-	 */
-
-	int n, size = 128 + 1;
-	char *p;
-	va_list ap;
-
-	GMRFLib_ASSERT(ptr, GMRFLib_EINVARG);
-	GMRFLib_ASSERT(fmt, GMRFLib_EINVARG);
-
-	p = Calloc(size, char);
-
-	while (1) {
-		/*
-		 * Try to print in the allocated space. 
-		 */
-		va_start(ap, fmt);
-		n = vsnprintf(p, (unsigned int) size, fmt, ap);
-		va_end(ap);
-
-		/*
-		 * if that worked, return the string, 
-		 */
-		if (n > -1 && n < size) {
-			*ptr = p;
-			return GMRFLib_SUCCESS;
-		}
-
-		/*
-		 * ...else try again with more space 
-		 */
-		if (n > -1) {
-			size = n + 1;
-		} else {
-			size *= 2;
-		}
-		p = Realloc(p, size, char);
-	}
-
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find)
 {
 	/*

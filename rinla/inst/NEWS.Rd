@@ -4,6 +4,13 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.04.16}{
+  \subsection{CHANGES}{
+    \itemize Added \code{theta}-correction for \code{gcpo} computations
+    \itemize Code improvement and cleanup
+  }
+}
+
 \section{CHANGES IN VERSION 22.04.14}{
   \subsection{CHANGES}{
     \itemize Improve \code{gcpo}-handling of singular cases. \code{group.size=-1} now

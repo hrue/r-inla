@@ -60,6 +60,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 
 	assert(n > 0);
 	Calloc_init(2 * n);
+	assert(calloc_work_);
 	xx = Calloc_get(n);
 	yy = Calloc_get(n);
 	Memcpy(xx, x, n * sizeof(double));

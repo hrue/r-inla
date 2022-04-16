@@ -181,6 +181,7 @@ int GMRFLib_optimize_store(double *mode, double *b, double *c, double *mean,
 		/*
 		 * copy from store 
 		 */
+		assert(store);
 		GMRFLib_EWRAP1(GMRFLib_graph_duplicate(&(opt_problem->sub_graph), store->sub_graph));
 	} else {
 		/*
@@ -576,6 +577,7 @@ double GMRFLib_linesearch_func(double length, double *dir, GMRFLib_optimize_prob
 	int i, sub_n, id;
 	double *v = NULL, *u = NULL, fval = 0.0;
 
+	assert(dir);
 	id = GMRFLib_thread_id;
 	sub_n = opt_problem->sub_graph->n;
 	v = Calloc(sub_n, double);
