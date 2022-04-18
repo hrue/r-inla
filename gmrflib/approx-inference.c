@@ -7551,19 +7551,37 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
 		if (d[node]) {						\
+			/* do the integral by approximating phi(x)*exp(ll(x)) with a normal, and */ \
+			/* then do the GHQ with respect to that normal as the kernel, with the */ \
+			/* ``errors'' as the function */		\
 			double *weights = NULL, *xx = NULL;		\
 			GMRFLib_ghq(&xx, &weights, np);			\
+									\
 			double *xp = CODE_BLOCK_WORK_PTR(2);		\
 			double *loglik = CODE_BLOCK_WORK_PTR(3);	\
+									\
 			double val = 0.0;				\
+			double loc_prec, loc_mean, loc_sd;		\
+			double ll_prec = cc[idx_node];			\
+			double ll_mean = bb[idx_node] / cc[idx_node];	\
+			double lp_prec = 1.0 / SQR(gcpo[node]->lpred_sd); \
+			double lp_mean = gcpo[node]->lpred_mean;	\
+									\
+			loc_prec = lp_prec + ll_prec;			\
+			loc_sd = 1.0 / sqrt(loc_prec);			\
+			loc_mean = (lp_prec * lp_mean + ll_prec * ll_mean) / loc_prec; \
 			for (int i = 0; i < np; i++) {			\
-				xp[i] = gcpo[node]->lpred_mean + gcpo[node]->lpred_sd * xx[i]; \
+				xp[i] = loc_mean + loc_sd * xx[i];	\
 			}						\
 			loglFunc(loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg);	\
+									\
 			for (int i = 0; i < np; i++) {			\
-				val += exp(d[node] * loglik[i]) * weights[i]; \
+				val += exp(d[node] * loglik[i]		\
+					   - 0.5 * lp_prec * SQR(xp[i] - lp_mean) \
+					   + 0.5 * SQR(xx[i]))		\
+					* weights[i];			\
 			}						\
-			gcpo[node]->value = val;			\
+			gcpo[node]->value = val * sqrt(lp_prec/loc_prec); \
 		} else {						\
 			gcpo[node]->value = NAN;			\
 		}							\
