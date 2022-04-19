@@ -7478,7 +7478,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
 									\
 		if (detailed_output && gcpo_param->verbose) {		\
-			printf("node %d, idx_node %lu,cov mat\n", node, idx_node); \
+			printf("node %d, idx_node %zu,cov mat\n", node, idx_node); \
 			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
 		}							\
 		int *idx_map = (int *) CODE_BLOCK_WORK_PTR(4);		\
@@ -7504,7 +7504,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			}						\
 			bb[idx_map[i]] += local_bb;			\
 			cc[idx_map[i]] += local_cc;			\
-			if (i == idx_node) {				\
+			if (i == (int) idx_node) {			\
 				bb_idx_node = local_bb;			\
 				cc_idx_node = local_cc;			\
 			}						\

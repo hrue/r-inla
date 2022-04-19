@@ -53,7 +53,7 @@ static int constr_store_use = 0;			       /* do not use it as the sha is not pre
 #else
 static int constr_store_use = 1;
 #endif
-static map_strd constr_store;
+static map_strvp constr_store;
 static int constr_store_must_init = 1;
 static int constr_store_debug = 0;
 
@@ -61,11 +61,36 @@ int GMRFLib_init_constr_store(void)
 {
 	if (constr_store_use) {
 		if (constr_store_must_init) {
-			map_strd_init_hint(&constr_store, 128);
+			map_strvp_init_hint(&constr_store, 128);
 			constr_store.alwaysdefault = 1;
 			constr_store_must_init = 0;
 			if (constr_store_debug) {
 				printf("constr_store: init storage\n");
+			}
+		}
+	}
+	return GMRFLib_SUCCESS;
+}
+
+
+#if defined(INLA_WINDOWS32)
+static int constr_store_logdet_use = 0;			       /* do not use it as the sha is not prepared for it */
+#else
+static int constr_store_logdet_use = 1;
+#endif
+static map_strd constr_store_logdet;
+static int constr_store_logdet_must_init = 1;
+static int constr_store_logdet_debug = 0;
+
+int GMRFLib_init_constr_store_logdet(void)
+{
+	if (constr_store_logdet_use) {
+		if (constr_store_logdet_must_init) {
+			map_strd_init_hint(&constr_store_logdet, 128);
+			constr_store_logdet.alwaysdefault = 1;
+			constr_store_logdet_must_init = 0;
+			if (constr_store_logdet_debug) {
+				printf("constr_store_logdet: init storage\n");
 			}
 		}
 	}
@@ -594,7 +619,12 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 		 */
 		b_add = Calloc((*problem)->sub_graph->n, double);
 
-		GMRFLib_EWRAP1(GMRFLib_recomp_constr(&((*problem)->sub_constr), constr, x, b_add, NULL, graph, (*problem)->sub_graph));
+		if (sub_n == graph->n) {
+			GMRFLib_duplicate_constr(&((*problem)->sub_constr), constr, graph);
+		} else {
+			GMRFLib_recomp_constr(&((*problem)->sub_constr), constr, x, b_add, NULL, graph, (*problem)->sub_graph);
+		}
+
 		/*
 		 * if we should keep the mean, then do not add the correction-terms 
 		 */
@@ -696,16 +726,16 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 			GMRFLib_constr_tp *con = (*problem)->sub_constr;
 			double *p = NULL;
 
-			if (con->sha && constr_store_use) {
-				p = map_strd_ptr(&constr_store, (char *) con->sha);
+			if (con->sha && constr_store_logdet_use) {
+				p = map_strd_ptr(&constr_store_logdet, (char *) con->sha);
 				if (p) {
 					(*problem)->logdet_aat = *p;
 				}
-				if (constr_store_debug) {
+				if (constr_store_logdet_debug) {
 					if (p) {
-						printf("constr_store: constr found in store= %f\n", *p);
+						printf("constr_store_logdet: constr found in store= %f\n", *p);
 					} else {
-						printf("constr_store: constr not found in store\n");
+						printf("constr_store_logdet: constr not found in store\n");
 					}
 				}
 			}
@@ -734,17 +764,19 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 				Free(aat_m);
 				Free(tmp_vector);
 
-				if (constr_store_use) {
+				if (constr_store_logdet_use) {
 					if (!(con->sha)) {
-						if (constr_store_debug) {
-							printf("constr_store: value computed %f, but not set\n", (*problem)->logdet_aat);
+						if (constr_store_logdet_debug) {
+							printf("constr_store_logdet: value computed %f, but not set\n", (*problem)->logdet_aat);
 						}
 					} else if (con->sha) {
-						if (constr_store_debug) {
-							printf("constr_store: store value %f\n", (*problem)->logdet_aat);
+						if (constr_store_logdet_debug) {
+							printf("constr_store_logdet: store value %f\n", (*problem)->logdet_aat);
 						}
 #pragma omp critical
-						map_strd_set(&constr_store, GMRFLib_strdup((char *) con->sha), (*problem)->logdet_aat);
+						{
+							map_strd_set(&constr_store_logdet, GMRFLib_strdup((char *) con->sha), (*problem)->logdet_aat);
+						}
 					}
 				}
 			}
@@ -1089,14 +1121,32 @@ int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
 
 int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 {
-	if (constr) {
-		Free(constr->a_matrix);
-		Free(constr->e_vector);
-		Free(constr->jfirst);
-		// Free(constr->jlen); included in jfirst
-		Free(constr->sha);
-		Free(constr);
+	if (!constr) {
+		return GMRFLib_SUCCESS;
 	}
+	
+	if (constr_store_use && constr->sha) {
+		void *p;
+		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
+		if (constr_store_debug) {
+			if (p) {
+				printf("\t[%1d] constr_store: constr is found in store: do not free\n", omp_get_thread_num());
+			} else {
+				printf("\t[%1d] constr_store: constr is not found in store: free\n", omp_get_thread_num());
+			}
+		}
+		if (p) {
+			return GMRFLib_SUCCESS;
+		}
+	}
+
+	Free(constr->a_matrix);
+	Free(constr->e_vector);
+	Free(constr->jfirst);
+	// Free(constr->jlen); included in jfirst
+	Free(constr->sha);
+	Free(constr);
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1352,14 +1402,40 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 
 int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph)
 {
-	if (constr) {
-		return GMRFLib_recomp_constr(new_constr, constr, NULL, NULL, NULL, graph, NULL);
-	} else {
-		if (new_constr) {
-			*new_constr = NULL;
-		}
+	if (!constr) {
+		*new_constr = NULL;
 		return GMRFLib_SUCCESS;
 	}
+
+	if (constr_store_use && constr->sha) {
+		void **p;
+		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
+		if (constr_store_debug) {
+			if (p) {
+				printf("\t[%1d] constr_store: constr is found in store: do not duplicate.\n", omp_get_thread_num());
+			} else {
+				printf("\t[%1d] constr_store: constr is not found in store: duplicate.\n", omp_get_thread_num());
+			}
+		}
+		if (p) {
+			*new_constr = (GMRFLib_constr_tp *) * p;
+			return GMRFLib_SUCCESS;
+		}
+	}
+
+	GMRFLib_recomp_constr(new_constr, constr, NULL, NULL, NULL, graph, NULL);
+
+	
+	if (constr_store_use && constr->sha) {
+		if (constr_store_debug) {
+			printf("\t[%1d] constr_store: store constr 0x%p\n", omp_get_thread_num(), (void *) *new_constr);
+		}
+#pragma omp critical
+		{
+			map_strvp_set(&constr_store, (char *) (*new_constr)->sha, (void *) *new_constr);
+		}
+	}
+	return GMRFLib_SUCCESS;
 }
 
 int GMRFLib_recomp_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp * constr, double *x,

@@ -410,6 +410,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr);
 int GMRFLib_free_problem(GMRFLib_problem_tp * problem);
 int GMRFLib_free_store(GMRFLib_store_tp * store);
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
+int GMRFLib_init_constr_store_logdet(void);
 int GMRFLib_init_constr_store(void);
 int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
 			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint);

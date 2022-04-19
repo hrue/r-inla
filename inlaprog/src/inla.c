@@ -38408,7 +38408,8 @@ int main(int argc, char **argv)
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
 
-	GMRFLib_init_constr_store();			       /* no need to reset this with preopt */
+	GMRFLib_init_constr_store();
+	GMRFLib_init_constr_store_logdet();			       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;

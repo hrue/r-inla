@@ -995,7 +995,9 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 			printf("\t[%1d] graph_store: store graph 0x%p\n", omp_get_thread_num(), (void *) g);
 		}
 #pragma omp critical
-		map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
+		{
+			map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
+		}
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
