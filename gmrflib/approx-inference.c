@@ -7468,6 +7468,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		int ng = gcpo[node]->idxs->n;				\
 		int *idxs = gcpo[node]->idxs->idx;			\
 		size_t idx_node = gcpo[node]->idx_node;			\
+		double bb_idx_node = NAN, cc_idx_node = NAN;		\
 		double *bb = CODE_BLOCK_WORK_PTR(0);			\
 		double *cc = CODE_BLOCK_WORK_PTR(1);			\
 		gsl_vector *mean_old = gsl_vector_calloc((size_t) ng);	\
@@ -7503,6 +7504,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			}						\
 			bb[idx_map[i]] += local_bb;			\
 			cc[idx_map[i]] += local_cc;			\
+			if (i == idx_node) {				\
+				bb_idx_node = local_bb;			\
+				cc_idx_node = local_cc;			\
+			}						\
 		}							\
 									\
 		/* this computed Q = prec.matrix */			\
@@ -7562,8 +7567,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 									\
 			double val = 0.0;				\
 			double loc_prec, loc_mean, loc_sd;		\
-			double ll_prec = cc[idx_node];			\
-			double ll_mean = bb[idx_node] / cc[idx_node];	\
+			double ll_prec = cc_idx_node;			\
+			double ll_mean = bb_idx_node / cc_idx_node;	\
 			double lp_prec = 1.0 / SQR(gcpo[node]->lpred_sd); \
 			double lp_mean = gcpo[node]->lpred_mean;	\
 									\
