@@ -33608,11 +33608,11 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tTiming of Qlike-strategy... plain/group = %.2f chose[%s]\n", time_used_like[0] / time_used_like[1], 
+		printf("\tTiming of Qlike-strategy... plain/group = %.2f choose[%s]\n", time_used_like[0] / time_used_like[1], 
 		       (GMRFLib_preopt_like_strategy == 0 ? "plain" : "group"));
-		printf("\tTiming of Qx-strategy...... serial/parallel = %.2f chose[%s]\n", time_used_Qx[0] / time_used_Qx[1], 
+		printf("\tTiming of Qx-strategy...... serial/parallel = %.2f choose[%s]\n", time_used_Qx[0] / time_used_Qx[1], 
 		       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
-		printf("\tTiming of pred-strategy.... plain/data-rich = %.2f chose[%s]\n", time_used_pred[0] / time_used_pred[1], 
+		printf("\tTiming of pred-strategy.... plain/data-rich = %.2f choose[%s]\n", time_used_pred[0] / time_used_pred[1], 
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
