@@ -148,6 +148,7 @@ double GMRFLib_preopt_Qfunc_prior(int node, int nnode, double *UNUSED(values), v
 double GMRFLib_preopt_latent_Qfunc(int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc(int node, int nnode, double *values, void *arg);
 double *GMRFLib_preopt_measure_time(GMRFLib_preopt_tp * preopt);
+double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew(double *b, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg);

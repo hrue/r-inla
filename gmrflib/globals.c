@@ -246,4 +246,5 @@ int GMRFLib_inla_mode = 0;
 double GMRFLib_aqat_m_diag_add = 0.0;
 
 int GMRFLib_preopt_like_strategy = 0;			       // 0 = plain, 1 = group.
-int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel
+int GMRFLib_Qx_strategy = 0;				       // 0 = serial, 1 = parallel
+int GMRFLib_preopt_predictor_strategy = 0;                     // 0 = !data_rich, 1 = data_rich
