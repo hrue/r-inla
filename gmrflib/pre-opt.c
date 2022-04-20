@@ -1098,13 +1098,13 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 #define CODE_BLOCK							\
 			for(int i = 0; i < mpred; i++) {		\
 				CODE_BLOCK_SET_THREAD_ID();		\
-				double var = 0.0, *cov;			\
+				double m = 0.0, var = 0.0, *cov;	\
 				int k, j, kk, jj;			\
 				GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
 				for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\
 					j = elm->idx[k];		\
 					if (compute_mean) {		\
-						mean[i] += elm->val[k] * mm[j];	\
+						m += elm->val[k] * mm[j]; \
 					}				\
 					cov = GMRFLib_Qinv_get(problem, j, j); \
 					var += SQR(elm->val[k]) * *cov;	\
@@ -1115,6 +1115,9 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 						tvar += elm->val[kk] * *cov; \
 					}				\
 					var += 2.0 * elm->val[k] * tvar; \
+				}					\
+				if (compute_mean) {			\
+					mean[i] = m;			\
 				}					\
 				variance[i] = var;			\
 			}
@@ -1156,8 +1159,9 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	} else {
 
 		// both mean and variance
-		double *mean_offset = mean + offset;
+		double *mean_offset = (compute_mean ? mean + offset : NULL);
 		double *variance_offset = variance + offset;
+
 #define CODE_BLOCK							\
 		for(int i = 0; i < npred; i++) {			\
 			CODE_BLOCK_SET_THREAD_ID();			\
@@ -1183,7 +1187,9 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				}					\
 				var += 2.0 * elm->val[k] * tvar;	\
 			}						\
-			mean_offset[i] += m;				\
+			if (compute_mean) {				\
+				mean_offset[i] = m;			\
+			}						\
 			variance_offset[i] = var;			\
 		}
 
