@@ -33601,7 +33601,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		printf("\tOpenMP strategy............ [%s]\n", GMRFLib_OPENMP_STRATEGY_NAME(GMRFLib_openmp->strategy));
 		printf("\tnum.threads................ [%1d:%1d]\n", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		if (GMRFLib_openmp->adaptive) {
-			printf("\tnum.threads (adaptive).... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
+			printf("\tnum.threads (adaptive)..... [%1d]\n", GMRFLib_PARDISO_MAX_NUM_THREADS());
 		}
 		printf("\tblas.num.threads........... [%1d]\n", GMRFLib_openmp->blas_num_threads);
 		printf("\tDensity-strategy........... [%s]\n",
