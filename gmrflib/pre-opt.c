@@ -103,7 +103,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
 #define SHOW_TIME(_msg)							\
-	if (GMRFLib_DEBUG_IF_TRUE()) {					\
+	if (debug) {							\
 		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
 		tref =  GMRFLib_cpu();					\
 	}
@@ -115,7 +115,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	int i, ii, j, jj, k, kk, N = 0, *idx_map_f = NULL, *idx_map_beta = NULL, offset, index;
 	int nrow = 0, ncol = 0;
-	int debug = 0;
+	int debug = GMRFLib_DEBUG_IF_TRUE();
+	int debug_detailed = 0;
 	int id = GMRFLib_thread_id;
 
 	double tref = GMRFLib_cpu();
@@ -283,7 +284,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		(*preopt)->what_type[i] = GMRFLib_preopt_what_type(i, *preopt);
 	}
 
-	if (debug) {
+	if (debug_detailed) {
 		printf("\tnpred %1d nf %1d nbeta %1d\n", npred, nf, nbeta);
 		for (i = 0; i < npred; i++) {
 			printf("data %1d\n", i);
@@ -347,7 +348,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_idxval_nsort(At_idxval, N, nt);
 
 	SHOW_TIME("At_idxval");
-	if (debug) {
+	if (debug_detailed) {
 		for (i = 0; i < npred; i++) {
 			GMRFLib_idxval_printf(stdout, A_idxval[i], "A_idxval");
 		}
@@ -360,7 +361,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		pA = GMRFLib_read_fmesher_file(pA_fnm, (long int) 0, -1);
 		assert(pA);
 
-		if (debug) {
+		if (debug_detailed) {
 			printf("read pA from [%s]\n", pA_fnm);
 			printf("\tnrow %d ncol %d nelms %d\n", pA->nrow, pA->ncol, pA->elems);
 			for (i = 0; i < pA->elems; i++) {
@@ -404,7 +405,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		}
 		SHOW_TIME("pAA_pattern");
 
-		if (debug) {
+		if (debug_detailed) {
 			char *crow = Calloc(N + 1, char);
 			crow[N] = '\0';
 			for (i = 0; i < nrow; i++) {
@@ -500,7 +501,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		GMRFLib_idxval_nsort(pAAt_idxval, N, 0);       /* as N is typical small */
 		SHOW_TIME("pAAt_idxval");
 
-		if (debug) {
+		if (debug_detailed) {
 			for (i = 0; i < nrow; i++) {
 				P(i);
 				GMRFLib_idxval_printf(stdout, pAA_idxval[i], "pAA");
@@ -604,7 +605,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	}
 	SHOW_TIME("AtA_idxval");
 
-	if (debug) {
+	if (debug_detailed) {
 		FIXME("AtA");
 		for (i = 0; i < N; i++) {
 			double sum = 0.0;

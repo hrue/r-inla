@@ -72,21 +72,23 @@ __BEGIN_DECLS
 /*!
   \brief Macro to be placed at the entry point of each routine which CPU time is be monitored.
 */
-#define GMRFLib_ENTER_ROUTINE GMRFLib_DEBUG_INIT();			\
-	static double debug_cpu_acc_ = 0.0;				\
-	_Pragma("omp threadprivate(debug_cpu_acc_)")			\
-	static double debug_cpu_ = 0.0;					\
-	_Pragma("omp threadprivate(debug_cpu_)")			\
-	debug_cpu_ = GMRFLib_cpu();					\
-	GMRFLib_DEBUG_d("Enter", debug_cpu_);
+#define GMRFLib_ENTER_ROUTINE \
+	GMRFLib_DEBUG_INIT();						\
+	GMRFLib_TRACE_INIT();						\
+	static double trace_cpu_acc_ = 0.0;				\
+	_Pragma("omp threadprivate(trace_cpu_acc_)")			\
+	static double trace_cpu_ = 0.0;					\
+	_Pragma("omp threadprivate(trace_cpu_)")			\
+	trace_cpu_ = GMRFLib_cpu();					\
+	GMRFLib_DEBUG_d("Enter", trace_cpu_);
 
 /*!
   \brief Macro to be placed at \em each exit point of each routine which CPU time is be monitored.
 */
 #define GMRFLib_LEAVE_ROUTINE if (1)					\
 	{								\
-		debug_cpu_acc_ += (GMRFLib_cpu() - debug_cpu_);		\
-		GMRFLib_DEBUG_idd("Leave, count cpu/count total", debug_count_, debug_cpu_acc_ / (double) debug_count_, debug_cpu_acc_); \
+		trace_cpu_acc_ += (GMRFLib_cpu() - trace_cpu_);		\
+		GMRFLib_TRACE_idd("Leave, count cpu/count total", trace_count_, trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); \
 	}
 
 double GMRFLib_cpu_default(void);

@@ -1666,7 +1666,7 @@ forceinline double GMRFLib_inv_logit(double x)
 	return 1.0 / (2.0 + expm1(-x));
 }
 
-const char *GMRFLib_debug_functions_strip(const char *name)
+const char *GMRFLib_function_name_strip(const char *name)
 {
 	char *s = (char *) name;
 	if (!strncmp("GMRFLib_", s, 8)) {
@@ -1679,6 +1679,95 @@ const char *GMRFLib_debug_functions_strip(const char *name)
 }
 
 int GMRFLib_debug_functions(const char *name)
+{
+	static int not_defined = 0;
+	if (not_defined) {
+		return 0;
+	}
+
+	static int first = 1;
+#pragma omp threadprivate(first)
+
+	static map_stri *defs = NULL;
+#pragma omp threadprivate(defs)
+
+	if (first == 1) {
+		// format FUN[:N],...
+		// prefix's GMRFLib_ and inla_ are removed automatically
+		char *def = getenv("INLA_DEBUG");
+		int verbose = 0;
+
+		if (def) {
+			def = GMRFLib_strdup(def);
+		}
+		if (verbose) {
+			printf("\t\tREAD %s\n", def);
+		}
+
+		if (!def) {
+			not_defined = 1;
+			first = 0;
+			return 0;
+		} else {
+			char sep1[] = ",";
+
+			defs = Calloc(1, map_stri);
+			map_stri_init_hint(defs, 128);
+			char *str = def;
+			char *s;
+
+			first = -1;
+			while ((s = strtok(str, sep1))) {
+				str = NULL;
+
+				int val = 0;
+				char *s2 = strchr(s, ':');
+				char *ss, *sss;
+				if (!s2) {
+					ss = s;
+					val = 1;
+				} else {
+					int len = s2 - s + 1;
+					ss = Calloc(len + 1, char);
+					ss[len] = '\0';
+					strncpy(ss, s, len - 1);
+					val = atoi(s2 + 1);
+					val = IMAX(val, 1);
+				}
+				// strip leading whitespace
+				while (!strncmp(ss, " ", 1))
+					ss++;
+				// special option that override all others
+				if (!strcmp(ss, "*")) {
+					first = 2;
+				}
+
+				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
+				char *nm = NULL;
+				if (strlen(ss)) {
+					GMRFLib_sprintf(&nm, "%s", sss);
+					map_stri_set(defs, nm, val);
+				}
+				if (first != 2) {
+					first = 0;
+				}
+
+				if (verbose) {
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+				}
+			}
+		}
+	}
+
+	if (!name) {
+		return 0;
+	} else {
+		int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		return (p ? *p : 0);
+	}
+}
+
+int GMRFLib_trace_functions(const char *name)
 {
 	static int not_defined = 0;
 	if (not_defined) {
@@ -1742,7 +1831,7 @@ int GMRFLib_debug_functions(const char *name)
 					first = 2;
 				}
 
-				sss = (char *) GMRFLib_debug_functions_strip((const char *) ss);
+				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
 					GMRFLib_sprintf(&nm, "%s", sss);
@@ -1753,13 +1842,16 @@ int GMRFLib_debug_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] trace init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
 				}
 			}
 		}
 	}
 
-	int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : GMRFLib_debug_functions_strip(name)));
-
-	return (p ? *p : 0);
+	if (!name) {
+		return 0;
+	} else {
+		int *p = map_stri_ptr(defs, (char *) (first == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		return (p ? *p : 0);
+	}
 }

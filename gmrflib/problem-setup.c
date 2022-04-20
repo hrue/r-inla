@@ -59,6 +59,8 @@ static int constr_store_debug = 0;
 
 int GMRFLib_init_constr_store(void)
 {
+	GMRFLib_ENTER_ROUTINE;
+	constr_store_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (constr_store_use) {
 		if (constr_store_must_init) {
 			map_strvp_init_hint(&constr_store, 128);
@@ -69,6 +71,7 @@ int GMRFLib_init_constr_store(void)
 			}
 		}
 	}
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -84,6 +87,8 @@ static int constr_store_logdet_debug = 0;
 
 int GMRFLib_init_constr_store_logdet(void)
 {
+	GMRFLib_ENTER_ROUTINE;
+	constr_store_logdet_debug = GMRFLib_DEBUG_IF_TRUE();
 	if (constr_store_logdet_use) {
 		if (constr_store_logdet_must_init) {
 			map_strd_init_hint(&constr_store_logdet, 128);
@@ -94,6 +99,7 @@ int GMRFLib_init_constr_store_logdet(void)
 			}
 		}
 	}
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

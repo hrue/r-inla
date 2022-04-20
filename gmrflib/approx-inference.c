@@ -7159,14 +7159,14 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
-	int detailed_output = 0;
+	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
 	GMRFLib_idxval_tp **groups = NULL;
 
 	if (!(gcpo_param->groups)) {
-		if (gcpo_param->verbose) {
+		if (gcpo_param->verbose || detailed_output) {
 			printf("%s[%1d]: Build groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 		// build the groups
@@ -7192,7 +7192,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 			assert(GMRFLib_imax_value(selection->idx, selection->n, NULL) < Npred);
 			assert(GMRFLib_imin_value(selection->idx, selection->n, NULL) >= 0);
 		}
-		if (gcpo_param->verbose) {
+		if (gcpo_param->verbose || detailed_output) {
 			assert(selection);
 			printf("%s[%1d]: Use selection of %1d indices and group.size %1d\n", __GMRFLib_FuncName,
 			       omp_get_thread_num(), selection->n, gcpo_param->group_size);
@@ -7255,7 +7255,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 		}
 		Free(isd);
 	} else {
-		if (gcpo_param->verbose) {
+		if (gcpo_param->verbose || detailed_output) {
 			printf("%s[%1d]: Use user-defined groups\n", __GMRFLib_FuncName, omp_get_thread_num());
 		}
 
@@ -7299,7 +7299,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(GMRFLib_ai_store_tp * ai_store, GMRFL
 	ggroups->groups = groups;
 	ggroups->missing = missing;
 
-	if (detailed_output && (GMRFLib_DEBUG_IF() || gcpo_param->verbose)) {
+	if (detailed_output) {
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
@@ -7331,7 +7331,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int detailed_output = 0;
+	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int n = preopt->n;
@@ -7372,7 +7372,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		if (groups->missing[node]->n == 1 &&			\
 		    groups->missing[node]->idx[0][0] == node &&		\
 		    groups->missing[node]->idx[1][0] == node) {		\
-			if (gcpo_param->verbose) {			\
+			if (gcpo_param->verbose || detailed_output) {	\
 				printf("%s[%1d]: node %d is singleton, skip solve\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 			}						\
 			gcpo[node]->node_min = node;			\
@@ -7385,7 +7385,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		for (int k = 0; k < v->n; k++) {			\
 			a[v->idx[k]] = v->val[k];			\
 		}							\
-		if (gcpo_param->verbose) {				\
+		if (gcpo_param->verbose || detailed_output) {		\
 			printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 		}							\
 		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);		\
@@ -7429,7 +7429,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
 
-	if (detailed_output && (GMRFLib_DEBUG_IF() || gcpo_param->verbose)) {
+	if (detailed_output) {
 #pragma omp critical
 		{
 			for (int node = 0; node < Npred; node++) {
@@ -7477,13 +7477,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		/* oops, Q = Sigma here... */				\
 		gsl_matrix *Q = GMRFLib_gsl_duplicate_matrix(gcpo[node]->cov_mat); \
 									\
-		if (detailed_output && gcpo_param->verbose) {		\
+		if (detailed_output) {					\
 			printf("node %d, idx_node %zu,cov mat\n", node, idx_node); \
 			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
 		}							\
 		int *idx_map = (int *) CODE_BLOCK_WORK_PTR(4);		\
 		GMRFLib_gsl_gcpo_singular_fix(idx_map, idx_node, Q, gcpo_param->epsilon); \
-		if (detailed_output && gcpo_param->verbose) {		\
+		if (detailed_output) {					\
 			for(int i = 0; i < ng; i++) {			\
 				printf("idx_map[%1d]=%1d\n", i, idx_map[i]); \
 			}						\
@@ -7517,7 +7517,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL); \
 		}							\
 									\
-		if (detailed_output && gcpo_param->verbose) {		\
+		if (detailed_output) {					\
 			printf("node %d, prec mat and mean\n", node);	\
 			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
 			GMRFLib_printf_gsl_vector(stdout, mean_old, " %.8f "); \
@@ -7528,7 +7528,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			gsl_vector_set(b, i, gsl_vector_get(b, i) - bb[i]); \
 		}							\
 									\
-		if (detailed_output && gcpo_param->verbose) {		\
+		if (detailed_output) {					\
 			printf("node %d, prec mat and b after correction\n", node); \
 			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
 			GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
@@ -7543,7 +7543,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			gcpo[node]->marg_theta_correction *= -1.0;	\
 		}							\
 									\
-		if (detailed_output && gcpo_param->verbose) {		\
+		if (detailed_output) {					\
 			printf("node %d, new cov mat and mean\n", node); \
 			GMRFLib_printf_gsl_matrix(stdout, S, " %.8f ");	\
 			GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
@@ -7591,7 +7591,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			gcpo[node]->value = NAN;			\
 		}							\
 									\
-		if (gcpo_param->verbose) {				\
+		if (gcpo_param->verbose || detailed_output) {		\
 			printf("%s[%1d]: node %d lpred_mean %f lpred_sd %f kld %f value %f\n", \
 			       __GMRFLib_FuncName, omp_get_thread_num(), \
 			       node, gcpo[node]->lpred_mean, gcpo[node]->lpred_sd, gcpo[node]->kld, gcpo[node]->value); \
@@ -8073,7 +8073,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(GMRFLib_density_tp *** density,
 	int keep_MM = 1, ratio_ok = 0;
 
 	int niter = 1 + ai_par->vb_refinement;
-	int i, j, iter, debug = 0;			       // debug = GMRFLib_DEBUG_IF();
+	int i, j, iter, debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;

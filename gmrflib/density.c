@@ -519,7 +519,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	//GMRFLib_ENTER_ROUTINE;
 
 	Calloc_init(4 * npm + 2 * np);
 
@@ -557,14 +557,14 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
-		GMRFLib_LEAVE_ROUTINE;
+		//GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
 	if (!lookup_tables && density->type != GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
-		GMRFLib_LEAVE_ROUTINE;
+		//GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -703,7 +703,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	Calloc_free();
-	GMRFLib_LEAVE_ROUTINE;
+	//GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -1044,7 +1044,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	//GMRFLib_ENTER_ROUTINE;
 
 	// this actually happens like for 'eb' and is also how 'duplicate' is implemented
 	if (n == 1) {
@@ -1073,7 +1073,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 			P((*densities)->type);
 			assert(0 == 1);
 		}
-		GMRFLib_LEAVE_ROUTINE;
+		//GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1117,7 +1117,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	Calloc_free();
 
-	GMRFLib_LEAVE_ROUTINE;
+	//GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 

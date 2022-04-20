@@ -217,6 +217,7 @@ typedef enum {
 		printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n", \
 		       __FILE__, __GMRFLib_FuncName, __LINE__, msg, _tacc, _tacc/_ntimes, _ntimes); \
 	}
+
 #define GMRFLib_MEASURE_CPU_BEGIN()			\
 	if (1) {					\
 		static double _tacc = 0.0;		\
@@ -224,6 +225,7 @@ typedef enum {
 		double _tref;				\
 		_tref = GMRFLib_cpu();			\
 		_ntimes++;
+
 #define GMRFLib_MEASURE_CPU_END(msg)					\
 	_tacc += GMRFLib_cpu() - _tref;					\
 	printf("%s:%s:%d: cpu accumulative [%s] %.6f mean %.8f n %d\n",	\
@@ -238,57 +240,70 @@ typedef enum {
 		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
 	}
 
+#define GMRFLib_TRACE_INIT() static int trace_ = -1;			\
+	static int trace_count_ = 0;					\
+	_Pragma("omp threadprivate(trace_count_)")			\
+	trace_count_++;							\
+	if (trace_ < 0)	{						\
+		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName); \
+	}
+
 #define GMRFLib_DEBUG_IF_TRUE() (debug_)
 #define GMRFLib_DEBUG_IF()      (debug_ > 0 && !((debug_count_ - 1) % debug_))
 
 #define GMRFLib_DEBUG(msg_)						\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_); \
+		printf("\t[%1d] %s (%s:%1d): %s\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_); \
 	}
 
 #define GMRFLib_DEBUG_i(msg_, i_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %d\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_); \
+		printf("\t[%1d] %s (%s:%1d): %s %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_); \
 	}
 
 #define GMRFLib_DEBUG_ii(msg_, i_, ii_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %d %d\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_); \
+		printf("\t[%1d] %s (%s:%1d): %s %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_); \
 	}
 
 #define GMRFLib_DEBUG_iii(msg_, i_, ii_, iii_)				\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %d %d %d\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_); \
+		printf("\t[%1d] %s (%s:%1d): %s %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_); \
 	}
 
 #define GMRFLib_DEBUG_d(msg_, d_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %.4f\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_); \
+		printf("\t[%1d] %s (%s:%1d): %s %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_); \
 	}
 
 #define GMRFLib_DEBUG_dd(msg_, d_, dd_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %.4f %.4f\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_, dd_); \
+		printf("\t[%1d] %s (%s:%1d): %s %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_, dd_); \
 	}
 
 #define GMRFLib_DEBUG_ddd(msg_, d_, dd_, ddd_)				\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_, dd_, ddd_); \
+		printf("\t[%1d] %s (%s:%1d): %s %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_, dd_, ddd_); \
 	}
 
 #define GMRFLib_DEBUG_id(msg_, i_, d_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %d %.4f\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_); \
+		printf("\t[%1d] %s (%s:%1d): %s %d %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_); \
 	}
 
 #define GMRFLib_DEBUG_idd(msg_, i_, d_, dd_)				\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_); \
+		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_); \
 	}
 
 #define GMRFLib_DEBUG_iddd(msg_, i_, d_, dd_, ddd_)			\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
-		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_debug_functions_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_, ddd_); \
+		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_, ddd_); \
+	}
+
+#define GMRFLib_TRACE_idd(msg_, i_, d_, dd_)				\
+	if (trace_ && !((trace_count_ - 1) % trace_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_); \
 	}
 
 #define Calloc_init(n_)							\

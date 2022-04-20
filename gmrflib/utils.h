@@ -102,7 +102,7 @@ char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcn
 char *GMRFLib_rindex(const char *p, int ch);
 char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
-const char *GMRFLib_debug_functions_strip(const char *name);
+const char *GMRFLib_function_name_strip(const char *name);
 double GMRFLib_eps(double power);
 double GMRFLib_logit(double p);
 double GMRFLib_inv_logit(double x);
@@ -117,6 +117,7 @@ int GMRFLib_dcmp_abs(const void *a, const void *b);
 int GMRFLib_dcmp_abs_r(const void *a, const void *b);
 int GMRFLib_dcmp_r(const void *a, const void *b);
 int GMRFLib_debug_functions(const char *name);
+int GMRFLib_trace_functions(const char *name);
 int GMRFLib_find_nonzero(double *array, int len, int direction);
 int GMRFLib_fpe(void);
 int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat);

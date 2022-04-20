@@ -35305,7 +35305,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
-	GMRFLib_ENTER_ROUTINE;
+	//GMRFLib_ENTER_ROUTINE;
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// then we can do better
@@ -35431,7 +35431,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 #undef _MAP_X
 #undef _TRANSFORMED_LOGDENS
 
-	GMRFLib_LEAVE_ROUTINE;
+	//GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -38411,6 +38411,8 @@ int main(int argc, char **argv)
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();			       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */
+	GMRFLib_trace_functions(NULL);
+	GMRFLib_debug_functions(NULL);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 
