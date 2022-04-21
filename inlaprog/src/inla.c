@@ -38394,6 +38394,36 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 80:
+	{
+		int n = 6;
+		int id = GMRFLib_thread_id;
+		printf("\n\n");
+		FIXME("run with 2:4 threads");
+		omp_set_nested(1);
+
+#pragma omp parallel for num_threads(2)
+		for (int i = 0; i < n; i++) {
+			GMRFLib_thread_id = id;
+#pragma omp critical
+			printf("i %d id %d thread_id %d %p thread_num %d level %d anc_level %d\n", i, id,
+			       GMRFLib_thread_id, &GMRFLib_thread_id,  omp_get_thread_num(),
+			       omp_get_level(),  omp_get_ancestor_thread_num(omp_get_level()-1));
+#pragma omp parallel for num_threads(4)
+			for (int j = 0; j < n; j++) {
+				GMRFLib_thread_id = id+1;
+#pragma omp critical
+				printf("\ti %d j %d id %d thread_id %d %p thread_num %d level %d anc_level %d ts %d anc_ts %d\n",
+				       i, j, id,
+				       GMRFLib_thread_id, &GMRFLib_thread_id,  omp_get_thread_num(),
+				       omp_get_level(),  omp_get_ancestor_thread_num(omp_get_level()-1),
+				       omp_get_team_size(omp_get_level()),
+				       omp_get_team_size(omp_get_level()-1));
+			}
+		}
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
