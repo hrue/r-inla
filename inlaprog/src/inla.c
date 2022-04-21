@@ -38368,6 +38368,32 @@ int testit(int argc, char **argv)
 		break;
 	}
 
+	case 79: 
+	{
+		/*
+		  Q <- matrix(c(0.1, -1, -2, -1, 15, -3, -2, -3, 14), 3, 3)
+		*/
+		
+		gsl_matrix * Q = gsl_matrix_alloc(3, 3);
+		gsl_matrix_set(Q, 0, 0, .1);
+		gsl_matrix_set(Q, 1, 1, 15);
+		gsl_matrix_set(Q, 2, 2, 14);
+		gsl_matrix_set(Q, 0, 1, -1);
+		gsl_matrix_set(Q, 1, 0, -1);
+		gsl_matrix_set(Q, 0, 2, -2);
+		gsl_matrix_set(Q, 2, 0, -2);
+		gsl_matrix_set(Q, 1, 2, -3);
+		gsl_matrix_set(Q, 2, 1, -3);
+		
+		gsl_matrix * S = GMRFLib_gsl_duplicate_matrix(Q);
+		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5));
+		GMRFLib_printf_gsl_matrix(stdout,  Q, " %.8f");
+		GMRFLib_printf_gsl_matrix(stdout,  S, " %.8f");
+		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5));
+		GMRFLib_printf_gsl_matrix(stdout,  S, " %.8f");
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

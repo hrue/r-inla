@@ -533,8 +533,21 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol)
 
 int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 {
+	return GMRFLib_gsl_ensure_spd_core(A, tol, 0);
+}
+
+int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol)
+{
+	return GMRFLib_gsl_ensure_spd_core(A, tol, 1);
+}
+
+int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method)
+{
 	/*
 	 * replace n x n matrix A with its SPD matrix, replacing small eigenvalues with 'tol' * max(|eigenvalue|).
+	 *
+	 * method=0: s=max(min,s)
+	 * method=1: s=1/max(min,s)
 	 */
 
 	assert(A && (A->size1 == A->size2));
@@ -556,9 +569,16 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	gsl_matrix_set_zero(M2);
 
 	double s_min = tol * s_max;
-	for (i = 0; i < A->size1; i++) {
-		s = gsl_vector_get(S, i);
-		gsl_matrix_set(M2, i, i, DMAX(s_min, s));
+	if (method == 0) {
+		for (i = 0; i < A->size1; i++) {
+			s = gsl_vector_get(S, i);
+			gsl_matrix_set(M2, i, i, DMAX(s_min, s));
+		}
+	} else {
+		for (i = 0; i < A->size1; i++) {
+			s = gsl_vector_get(S, i);
+			gsl_matrix_set(M2, i, i, 1.0 / DMAX(s_min, s));
+		}
 	}
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);

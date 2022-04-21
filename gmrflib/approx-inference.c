@@ -6482,6 +6482,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 			for(int jjj = 0; jjj < dens_max; jjj++) {
 				gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
+				// prevent the corrections to be to large for robustness. exp(-1)=0.367...
+				gcpo_theta[jjj][j]->marg_theta_correction = DMAX(-1.0, gcpo_theta[jjj][j]->marg_theta_correction);
 				//P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
 			}
 
@@ -7340,7 +7342,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 	int corr_hypar = gcpo_param->correct_hyperpar;
 	const int np = GMRFLib_INT_GHQ_POINTS;
 	double zero = 0.0;
-
+	double spd_eps = GMRFLib_eps(0.5);
+	
 	Calloc_init(mnpred);
 	assert(calloc_work_);
 	double *sd = Calloc_get(mnpred);
@@ -7511,7 +7514,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 		}							\
 									\
 		/* this computed Q = prec.matrix */			\
-		GMRFLib_gsl_spd_inverse(Q);				\
+		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps);		\
 		GMRFLib_gsl_mv(Q, mean_old, b);				\
 		if (corr_hypar) {					\
 			gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL); \
@@ -7534,7 +7537,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(GMRFLib_ai_store_tp * ai_store_id, double *lp
 			GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
 		}							\
 									\
-		GMRFLib_gsl_spd_inverse(Q);				\
+		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps);		\
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
 		if (corr_hypar) {					\
