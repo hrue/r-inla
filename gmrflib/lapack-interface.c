@@ -561,7 +561,11 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method)
 	size_t i;
 	double one = 1.0, zero = 0.0, s;
 
-	double s_max = ABS(gsl_vector_max(S));
+	double s_max = gsl_vector_max(S);
+
+	if (s_max <= 0.0) {
+		s_max = 0.0;				       /* then the whole matrix is zero or INF, as all is wrong... */
+	}
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
 
