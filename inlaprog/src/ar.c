@@ -421,7 +421,7 @@ int ar_test1()
 		}
 
 		double val = 0.0;
-#pragma omp parallel for private(k, i, j) reduction(+: val)
+//#pragma omp parallel for private(k, i, j) reduction(+: val)
 		for (k = 0; k < 1000; k++) {
 			GMRFLib_thread_id = id;
 			for (i = 0; i < def.n; i++)

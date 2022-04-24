@@ -780,20 +780,29 @@ int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_
 	if (nan_error) {
 		return !GMRFLib_SUCCESS;
 	}
-
 	iperm = remap;					       /* yes, this is correct */
 
-	static int *iwork = NULL;
-#pragma omp threadprivate(iwork)
-	static int iwork_len = 0;
-#pragma omp threadprivate(iwork_len)
-
-	if (n > iwork_len) {
-		Free(iwork);
-		iwork_len = n;
-		iwork = Calloc(iwork_len, int);
+	static int **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, int *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(iwork, 0, n * sizeof(int));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+	if (n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], int);
+	}
+	int *iwork = wwork[cache_idx];
+	Memset(iwork, 0, wwork_len[cache_idx] * sizeof(int));
 
 	perm = iwork;
 	for (i = 0; i < n; i++) {
@@ -844,7 +853,6 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
-			CODE_BLOCK_SET_THREAD_ID();			\
 			int ic = ic_idx[i];				\
 			double val = Qfunc(i, i, NULL, Qfunc_arg);	\
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
@@ -857,7 +865,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 			}						\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		RUN_CODE_BLOCK(1, 0, 0);
 #undef CODE_BLOCK
 
 		Free(ic_idx);
@@ -957,17 +965,28 @@ int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFL
 
 int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
 {
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (graph->n > work_len) {
-		Free(work);
-		work_len = graph->n;
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(work, 0, graph->n * sizeof(double));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (graph->n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = graph->n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	double *b = work;
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
@@ -1014,17 +1033,28 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	 * 
 	 */
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (graph->n > work_len) {
-		Free(work);
-		work_len = graph->n;
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(work, 0, graph->n * sizeof(double));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (graph->n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = graph->n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	double *b = work;
 	if (!remapped) {
@@ -1048,17 +1078,28 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	 * findx and toindx is in mapped world.  if remapped, do not remap/remap-back the rhs before solving.
 	 */
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (graph->n > work_len) {
-		Free(work);
-		work_len = graph->n;
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(work, 0, graph->n * sizeof(double));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (graph->n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = graph->n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	double *b = work;
 	if (!remapped) {
@@ -1093,17 +1134,28 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 
 	n = L->n;
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (n > work_len) {
-		Free(work);
-		work_len = n;
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(work, 0, n * sizeof(double));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 	y = work;
 
 	if (use_new_code) {
@@ -1217,8 +1269,6 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
 
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
 {
-	int id = GMRFLib_thread_id;
-
 	double *ptr = NULL, value, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
 	    NULL, *Zj_set, nset;
@@ -1261,7 +1311,6 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 	Qinv_L = Calloc(n, map_id *);
 #pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
-		GMRFLib_thread_id = id;
 		qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);	/* needed? */
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
@@ -1371,7 +1420,6 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
-			GMRFLib_thread_id = id;
 			iii = inv_remap[i];
 			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;
@@ -1474,17 +1522,28 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (n > work_len) {
-		Free(work);
-		work_len = n;
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(work, 0, n * sizeof(double));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0,  wwork_len[cache_idx] * sizeof(double));
 
 	double *y = work;
 	if (n > 0) {
@@ -1550,16 +1609,28 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		return 0;
 	}
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (nrhs * (n + 1) > work_len) {
-		Free(work);
-		work_len = nrhs * (n + 1);
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (nrhs * (n + 1) > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = nrhs * (n + 1);
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	Memcpy(work, x, n * nrhs * sizeof(double));
 	Memset(x, 0, n * nrhs * sizeof(double));
@@ -1634,17 +1705,28 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 	int n = L->n;
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-	if (n > work_len) {
-		Free(work);
-		work_len = n;
-		work = Calloc(work_len, double);
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
 	}
-	Memset(work, 0, n * sizeof(double));
+
+	int cache_idx;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (n > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = n;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+	}
+	double *work = wwork[cache_idx];
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	double *y = work;
 	if (n > 0) {

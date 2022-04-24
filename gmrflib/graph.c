@@ -687,7 +687,6 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
-		CODE_BLOCK_SET_THREAD_ID();				\
 		int k = graph->nnbs[i];					\
 		for (int jj = 0; jj < graph->nnbs[i]; jj++) {		\
 			int j = graph->nbs[i][jj];			\
@@ -736,7 +735,6 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	}
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
-		CODE_BLOCK_SET_THREAD_ID();				\
 		if (graph->nnbs[i]) {					\
 			int k = 0;					\
 			for (int j = 1; j < graph->nnbs[i]; j++) {	\
@@ -766,7 +764,6 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	}
 #define CODE_BLOCK							\
 	for (int i = 0; i < graph->n; i++) {				\
-		CODE_BLOCK_SET_THREAD_ID();				\
 		if (graph->nnbs[i]) {					\
 			int j, is_sorted = 1;				\
 			if (graph->nnbs[i]) {				\
@@ -1183,16 +1180,28 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 			destination[remap[i]] = source[i];
 		}
 	} else {
-		static double *work = NULL;
-#pragma omp threadprivate(work)
-		static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-		if (graph->n > work_len) {
-			Free(work);
-			work_len = graph->n;
-			work = Calloc(work_len, double);
+		static double **wwork = NULL;
+		static int *wwork_len = NULL;
+		double *work = NULL;
+		if (!wwork) {
+#pragma omp critical
+			{
+				if (!wwork) {
+					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				}
+			}
 		}
+
+		int cache_idx;
+	
+		GMRFLib_CACHE_SET_ID(cache_idx);
+		if (graph->n > wwork_len[cache_idx]) {
+			Free(wwork[cache_idx]);
+			wwork_len[cache_idx] = graph->n;
+			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		}
+		work = wwork[cache_idx];
 
 		Memcpy(work, destination, graph->n * sizeof(double));
 		for (int i = 0; i < graph->n; i++) {
@@ -1212,16 +1221,28 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 			destination[i] = source[remap[i]];
 		}
 	} else {
-		static double *work = NULL;
-#pragma omp threadprivate(work)
-		static int work_len = 0;
-#pragma omp threadprivate(work_len)
-
-		if (graph->n > work_len) {
-			Free(work);
-			work_len = graph->n;
-			work = Calloc(work_len, double);
+		static double **wwork = NULL;
+		static int *wwork_len = NULL;
+		double *work = NULL;
+		if (!wwork) {
+#pragma omp critical
+			{
+				if (!wwork) {
+					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				}
+			}
 		}
+
+		int cache_idx;
+	
+		GMRFLib_CACHE_SET_ID(cache_idx);
+		if (graph->n > wwork_len[cache_idx]) {
+			Free(wwork[cache_idx]);
+			wwork_len[cache_idx] = graph->n;
+			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		}
+		work = wwork[cache_idx];
 
 		Memcpy(work, destination, graph->n * sizeof(double));
 		for (int i = 0; i < graph->n; i++) {
@@ -1293,7 +1314,6 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				FIXME("Qx2: run parallel");
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_SET_THREAD_ID();		\
 				double qij;				\
 				result[i] += (Qfunc(i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
@@ -1303,7 +1323,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				}					\
 			}
 
-			RUN_CODE_BLOCK(max_t, 0, 0);
+			RUN_CODE_BLOCK(1, 0, 0);
 #undef CODE_BLOCK
 		} else {
 			if (debug)
@@ -1326,7 +1346,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_SET_THREAD_ID();		\
+				CODE_BLOCK_INIT();			\
 				double *r, *local_values;		\
 				int tnum = omp_get_thread_num();	\
 				r = local_result + tnum * graph->n;	\
@@ -1341,7 +1361,7 @@ int GMRFLib_Qx2(double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfu
 				}					\
 			}
 
-			RUN_CODE_BLOCK(max_t, 1, m + 1);
+			RUN_CODE_BLOCK(1, 1, m + 1);
 #undef CODE_BLOCK
 
 			for (int j = 0; j < max_t; j++) {

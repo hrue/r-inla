@@ -428,7 +428,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	 * setup the hash-table for storing Qinv_L 
 	 */
 	Qinv_L = Calloc(n, map_id *);
-#pragma omp parallel for private(i)
+//#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
 		GMRFLib_thread_id = id;
 		Qinv_L[i] = Calloc(1, map_id);

@@ -2230,7 +2230,7 @@ int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-double Qfunc_bym(int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_bym(int thread_id,  int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2242,7 +2242,7 @@ double Qfunc_bym(int i, int j, double *UNUSED(values), void *arg)
 
 	inla_bym_Qfunc_arg_tp *a = (inla_bym_Qfunc_arg_tp *) arg;
 	int n = a->n;
-	double prec_iid = map_precision(a->log_prec_iid[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double prec_iid = map_precision(a->log_prec_iid[thread_id][0], MAP_FORWARD, NULL);
 
 	if (IMAX(i, j) < n) {
 		/*
@@ -2269,7 +2269,7 @@ double Qfunc_bym(int i, int j, double *UNUSED(values), void *arg)
 	return 0.0;
 }
 
-double Qfunc_bym2(int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_bym2(int thread_id,  int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2277,8 +2277,8 @@ double Qfunc_bym2(int i, int j, double *UNUSED(values), void *arg)
 
 	inla_bym2_Qfunc_arg_tp *a = (inla_bym2_Qfunc_arg_tp *) arg;
 	int n = a->n;
-	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double phi = map_probability(a->logit_phi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double phi = map_probability(a->logit_phi[thread_id][0], MAP_FORWARD, NULL);
 	if (IMAX(i, j) < n) {
 		return prec / (1.0 - phi);
 	}
@@ -2288,7 +2288,7 @@ double Qfunc_bym2(int i, int j, double *UNUSED(values), void *arg)
 	return -sqrt(phi * prec) / (1.0 - phi);
 }
 
-double Qfunc_rw2diid(int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_rw2diid(int thread_id,  int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -2296,8 +2296,8 @@ double Qfunc_rw2diid(int i, int j, double *UNUSED(values), void *arg)
 
 	inla_rw2diid_Qfunc_arg_tp *a = (inla_rw2diid_Qfunc_arg_tp *) arg;
 	int n = a->n;
-	double prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
-	double phi = map_probability(a->logit_phi[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	double prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
+	double phi = map_probability(a->logit_phi[thread_id][0], MAP_FORWARD, NULL);
 	if (IMAX(i, j) < n) {
 		return prec / (1.0 - phi);
 	}
@@ -5771,9 +5771,7 @@ int loglikelihood_circular_normal(double *logll, double *x, int m, int idx, doub
 	 * store the normalising constant as it involves bessel_I0: -log(2 Pi BesselI0(kappa)),
 	 * which is ok as long as the scalings 'w' do not change to often.
 	 */
-	static double log_norm_const = 0.0, log_norm_const_arg = INLA_REAL_BIG;
-#pragma omp threadprivate(log_norm_const, log_norm_const_arg)
-
+	double log_norm_const = 0.0, log_norm_const_arg = INLA_REAL_BIG;
 	if (!ISEQUAL(prec, log_norm_const_arg)) {
 		log_norm_const_arg = prec;
 		log_norm_const = -log(2.0 * M_PI * gsl_sf_bessel_I0(prec));
@@ -6525,14 +6523,9 @@ int loglikelihood_t(double *logll, double *x, int m, int idx, double *UNUSED(x_v
 	prec = map_precision(ds->data_observations.log_prec_t[GMRFLib_thread_id][0], MAP_FORWARD, NULL) * w;
 	fac = sqrt((dof / (dof - 2.0)) * prec);
 
-	// cache the values of lg1 and lg2
-	static double lg1 = 0.0, lg2 = 0.0, dof_cache = -1.0;
-#pragma omp threadprivate (lg1, lg2, dof_cache)
-	if (dof != dof_cache) {
-		dof_cache = dof;
-		lg1 = gsl_sf_lngamma(dof / 2.0);
-		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
-	}
+	double lg1 = 0.0, lg2 = 0.0;
+	lg1 = gsl_sf_lngamma(dof / 2.0);
+	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
@@ -6590,14 +6583,9 @@ int loglikelihood_tstrata(double *logll, double *x, int m, int idx, double *UNUS
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
-	// cache the values of lg1 and lg2
-	static double lg1 = 0.0, lg2 = 0.0, dof_cache = -1.0;
-#pragma omp threadprivate (lg1, lg2, dof_cache)
-	if (dof != dof_cache) {
-		dof_cache = dof;
-		lg1 = gsl_sf_lngamma(dof / 2.0);
-		lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
-	}
+	double lg1 = 0.0, lg2 = 0.0;
+	lg1 = gsl_sf_lngamma(dof / 2.0);
+	lg2 = gsl_sf_lngamma((dof + 1.0) / 2.0);
 
 	int use_tail_correction;
 
@@ -8656,13 +8644,24 @@ int inla_mix_int_simpson_gaussian(double **x, double **w, int *n, void *arg)
 		double *x, *w;
 	} lcache_t;
 
-	static lcache_t *lcache = NULL;
-#pragma omp threadprivate(lcache)
+	static lcache_t **llcache = NULL;
 
-	if (!lcache) {
-		lcache = Calloc(1, lcache_t);
+	if (!llcache) {
+#pragma omp critical 
+		{
+			if (!llcache) {
+				llcache = Calloc(GMRFLib_CACHE_LEN, lcache_t *);
+			}
+		}
+	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+	if (!llcache) {
+		llcache[idx] = Calloc(1, lcache_t);
 	}
 
+	lcache_t *lcache = llcache[idx];
+	
 	if (lcache->n != *n) {
 
 		if (lcache->n > 0) {
@@ -8741,12 +8740,23 @@ int inla_mix_int_simpson_loggamma(double **x, double **w, int *n, void *arg)
 		double shape, *x, *w;
 	} lcache_t;
 
-	static lcache_t *lcache = NULL;
-#pragma omp threadprivate(lcache)
+	static lcache_t **llcache = NULL;
 
-	if (!lcache) {
-		lcache = Calloc(1, lcache_t);
+	if (!llcache) {
+#pragma omp critical
+		{
+			if (!llcache) {
+				llcache = Calloc(GMRFLib_CACHE_LEN, lcache_t *);
+			}
+		}
 	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+
+	if (!llcache[idx]) {
+		llcache[idx] = Calloc(1, lcache_t);
+	}
+	lcache_t *lcache = llcache[idx];
 
 	if (lcache->n != *n || lcache->shape != shape) {
 		Free(lcache->x);
@@ -31992,14 +32002,25 @@ double extra(double *theta, int ntheta, void *argument)
 				inla_besag_proper_Qfunc_arg_tp *def;
 				GMRFLib_problem_tp *problem;
 			} Hold_tp;
-			static Hold_tp **hold = NULL;
-#pragma omp threadprivate(hold)
+			static Hold_tp ***hhold = NULL;
 
+			if (!hhold) {
+#pragma omp critical 
+				{
+					if (!hhold){
+						hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
+					}
+				}
+			}
+			int idx;
+			GMRFLib_CACHE_SET_ID(idx);
+			
 			int jj;
-			Hold_tp *h;
+			Hold_tp *h = NULL, **hold = NULL;
 
+			hold = hhold[idx];
 			if (!hold) {
-				hold = Calloc(mb->nf, Hold_tp *);
+				hold= Calloc(mb->nf, Hold_tp *);
 			}
 
 			if (!hold[i]) {
@@ -32082,19 +32103,27 @@ double extra(double *theta, int ntheta, void *argument)
 				inla_besag_proper2_Qfunc_arg_tp *def;
 				GMRFLib_problem_tp *problem;
 			} Hold_tp;
-			static Hold_tp **hold = NULL;
-#pragma omp threadprivate(hold)
+			static Hold_tp ***hhold = NULL;
+
+			if (!hhold){
+#pragma omp critical
+				if (!hhold) {
+					hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
+				}
+			}
+			int idx;
+			GMRFLib_CACHE_SET_ID(idx);
 
 			int jj;
-			Hold_tp *h;
+			Hold_tp *h= NULL, **hold = NULL;
 
+			hold = hhold[idx];
 			if (!hold) {
 				hold = Calloc(mb->nf, Hold_tp *);
 			}
 
 			if (!hold[i]) {
 				h = hold[i] = Calloc(1, Hold_tp);
-
 				h->nrep = mb->f_nrep[i];
 				h->ngroup = mb->f_ngroup[i];
 				h->n = mb->f_n[i] / h->ngroup;
@@ -34393,7 +34422,6 @@ int inla_output(inla_tp * mb)
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < 2; i++) {
-		GMRFLib_thread_id = id;
 		if (i == 0 && mb->density) {
 			for (int ii = 0; ii < N; ii++) {
 				GMRFLib_free_density(mb->density[ii]);
@@ -36801,7 +36829,7 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-		break;
+	break;
 
 	case 1:
 	{
@@ -36809,7 +36837,7 @@ int testit(int argc, char **argv)
 			P(GMRFLib_rng_uniform());
 		}
 	}
-		break;
+	break;
 
 	case 2:
 	{
@@ -36819,7 +36847,7 @@ int testit(int argc, char **argv)
 		P(priorfunc_pc_cor1(&theta, par));
 		exit(0);
 	}
-		break;
+	break;
 
 	case 3:
 	{
@@ -36833,7 +36861,7 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-		break;
+	break;
 
 	case 4:
 	{
@@ -36844,7 +36872,7 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-		break;
+	break;
 
 	case 5:
 	{
@@ -36859,7 +36887,7 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-		break;
+	break;
 
 	case 6:
 	{
@@ -36880,7 +36908,7 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-		break;
+	break;
 
 	case 7:
 	{
@@ -36896,7 +36924,7 @@ int testit(int argc, char **argv)
 		GMRFLib_printf_graph(stdout, g);
 		exit(0);
 	}
-		break;
+	break;
 
 	case 8:
 	{
@@ -36944,7 +36972,7 @@ int testit(int argc, char **argv)
 #undef _MODEL
 #undef _PPP
 	}
-		break;
+	break;
 
 	case 9:
 	{
@@ -36966,7 +36994,7 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-		break;
+	break;
 
 	case 10:
 	{
@@ -37022,7 +37050,7 @@ int testit(int argc, char **argv)
 		}
 		P(sum * pow(dx, 3.0));
 	}
-		break;
+	break;
 
 	case 11:
 	{
@@ -37049,7 +37077,7 @@ int testit(int argc, char **argv)
 
 		exit(0);
 	}
-		break;
+	break;
 
 	case 12:
 	{
@@ -37091,7 +37119,7 @@ int testit(int argc, char **argv)
 		}
 		GMRFLib_write_fmesher_file(Q, "Q", 0, -1);
 	}
-		break;
+	break;
 
 	case 13:
 	{
@@ -37100,7 +37128,7 @@ int testit(int argc, char **argv)
 		GMRFLib_graph_read_ascii(&graph, "zones.graph");
 		exit(0);
 	}
-		break;
+	break;
 
 	case 14:
 	{
@@ -37120,34 +37148,34 @@ int testit(int argc, char **argv)
 
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case 15:
 	{
 	}
-		break;
+	break;
 
 	case 16:
 	{
 		ar_test1();
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case 17:
 	{
 	}
-		break;
+	break;
 
 	case 18:
 	{
 	}
-		break;
+	break;
 
 	case 19:
 	{
 	}
-		break;
+	break;
 
 	case 20:
 	{
@@ -37157,7 +37185,7 @@ int testit(int argc, char **argv)
 		inla_write_file_contents("bb.dat", fc);
 		exit(EXIT_SUCCESS);
 	}
-		break;
+	break;
 
 	case 21:
 	{
@@ -37210,7 +37238,7 @@ int testit(int argc, char **argv)
 		GMRFLib_matrix_free(M);
 		GMRFLib_matrix_free(N);
 	}
-		break;
+	break;
 
 	case 22:
 	{
@@ -37220,7 +37248,7 @@ int testit(int argc, char **argv)
 		}
 		exit(0);
 	}
-		break;
+	break;
 
 	case 23:
 	{
@@ -37293,22 +37321,18 @@ int testit(int argc, char **argv)
 #undef FUN2
 #undef FUN4
 	}
-		break;
+	break;
 
 	case 24:
-		my_pardiso_test1();
 		break;
 
 	case 25:
-		my_pardiso_test2();
 		break;
 
 	case 26:
-		my_pardiso_test3();
 		break;
 
 	case 27:
-		my_pardiso_test4();
 		break;
 
 	case 28:
@@ -37525,7 +37549,6 @@ int testit(int argc, char **argv)
 	}
 
 	case 38:
-		my_pardiso_test5();
 		break;
 
 	case 39:
@@ -37598,7 +37621,7 @@ int testit(int argc, char **argv)
 		printf("\n");
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.4f");
 	}
-		break;
+	break;
 
 	case 44:
 	{
@@ -37620,7 +37643,6 @@ int testit(int argc, char **argv)
 
 	case 45:
 	{
-		my_pardiso_test5();
 		break;
 	}
 
@@ -37686,11 +37708,10 @@ int testit(int argc, char **argv)
 			GMRFLib_printf_gsl_vector(stdout, val, " %8.4f");
 		}
 	}
-		break;
+	break;
 
 	case 47:
 	{
-		my_pardiso_test7();
 		break;
 	}
 
@@ -37956,7 +37977,7 @@ int testit(int argc, char **argv)
 		printf("sn  %f %f %f\n", p.xi, p.omega, p.alpha);
 		printf("mom %f %f %f\n", mom[0], mom[1], mom[2]);
 	}
-		break;
+	break;
 
 	case 63:
 	{
@@ -38419,6 +38440,38 @@ int testit(int argc, char **argv)
 				       omp_get_level(),  omp_get_ancestor_thread_num(omp_get_level()-1),
 				       omp_get_team_size(omp_get_level()),
 				       omp_get_team_size(omp_get_level()-1));
+			}
+		}
+		break;
+	}
+
+	case 81:
+	{
+		FIXME("run with 2:2:2 threads");
+		omp_set_nested(1);
+		int n = 2;
+		
+		printf("serial_level %d\n",  omp_get_level());
+#pragma omp parallel for num_threads(2)
+		for (int i = 0; i < n; i++) {
+#pragma omp critical
+			printf("i %d tnum %d level %d\n",
+			       i, omp_get_thread_num(), omp_get_level());
+#pragma omp parallel for num_threads(2)
+			for (int j = 0; j < n; j++) {
+#pragma omp critical
+				printf("\ti %d j %d tnum %d level %d parent_tnum %d\n",
+				       i, j, omp_get_thread_num(), omp_get_level(),
+				       omp_get_ancestor_thread_num(omp_get_level()-1));
+
+#pragma omp parallel for num_threads(2)
+				for (int k = 0; k < n; k++) {
+#pragma omp critical
+					printf("\t\ti %d j %d k %d tnum %d level %d p_tnum %d pp_tnum %d\n",
+					       i, j, k, omp_get_thread_num(), omp_get_level(),
+					       omp_get_ancestor_thread_num(omp_get_level()-1), 
+					       omp_get_ancestor_thread_num(omp_get_level()-2));
+				}
 			}
 		}
 		break;

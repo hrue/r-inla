@@ -151,29 +151,34 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	 * an internal storage is used to store previously computed abscissas and weights 
 	 */
 
-	static map_ivp abscissas;			       /* keep previous computed elements here */
+	static map_ivp **abscissas = NULL;			       /* keep previous computed elements here */
+	static map_ivp **weights = NULL;				       /* keep previous computed elements here */
 
-#pragma omp threadprivate(abscissas)
-	static map_ivp weights;				       /* keep previous computed elements here */
+	if (!abscissas) {
+#pragma omp critical
+		{
+			if (!abscissas) {
+				abscissas = Calloc(GMRFLib_CACHE_LEN, map_ivp *);
+				weights = Calloc(GMRFLib_CACHE_LEN, map_ivp *);
+			}
+		}
+	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
 
-#pragma omp threadprivate(weights)
-	static int first = 1;
-
-#pragma omp threadprivate(first)
+	if (!abscissas[idx]){
+		abscissas[idx] = Calloc(1, map_ivp);
+		weights[idx] = Calloc(1, map_ivp);
+		map_ivp_init(abscissas[idx]);
+		map_ivp_init(weights[idx]);
+	}
 
 	int i;
 	double *x, *w;
 	void *ptr, *pptr;
 
 	GMRFLib_ASSERT(n > 0, GMRFLib_EINVARG);
-
-	if (first) {
-		first = 0;
-		map_ivp_init(&abscissas);		       /* init the hash-table */
-		map_ivp_init(&weights);			       /* init the hash-table */
-	}
-
-	if ((ptr = map_ivp_ptr(&abscissas, n))) {
+	if ((ptr = map_ivp_ptr(abscissas[idx], n))) {
 		/*
 		 * use previously computed. note that map_ivp_ptr returns a ptr to the stored ptr. 
 		 */
@@ -185,7 +190,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		 * the weights should now be stored as well 
 		 */
 		if (wp) {
-			pptr = map_ivp_ptr(&weights, n);
+			pptr = map_ivp_ptr(weights[idx], n);
 			GMRFLib_ASSERT(pptr, GMRFLib_ESNH);
 			*wp = *((double **) pptr);
 		}
@@ -212,8 +217,8 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 		 */
 		GMRFLib_qsorts((void *) x, (size_t) n, sizeof(double), w, sizeof(double), NULL, 0, GMRFLib_dcmp);
 
-		map_ivp_set(&abscissas, n, (void *) x);
-		map_ivp_set(&weights, n, (void *) w);
+		map_ivp_set(abscissas[idx], n, (void *) x);
+		map_ivp_set(weights[idx], n, (void *) w);
 
 		if (xp) {
 			*xp = x;			       /* return a ptr only */

@@ -215,7 +215,6 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 	}
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
-		CODE_BLOCK_SET_THREAD_ID();				\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;	\
 		double value;						\
 		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
@@ -277,7 +276,6 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 	}
 #define CODE_BLOCK							\
 	for (int k = 0; k < storage[id]->K; k++) {			\
-		CODE_BLOCK_SET_THREAD_ID();				\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, jf, je, jlen; \
 		double value;						\
 		jf = IMAX(constr->jfirst[i], constr->jfirst[j]);	\
@@ -305,7 +303,6 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < nc; i++) {					\
-		CODE_BLOCK_SET_THREAD_ID();				\
 		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); \
 	}
 
@@ -321,28 +318,37 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 
 	GMRFLib_ENTER_ROUTINE;
 
-	static double *work = NULL;
-#pragma omp threadprivate(work)
-	static int work_len = 0;
-#pragma omp threadprivate(work_len)
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical
+		{
+			if (!wwork) {
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+			}
+		}
+	}
 
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 	double *xx = NULL;
-
-	if (n + nc > work_len) {
-		Free(work);
-		work_len = n + nc;
-		work = Calloc(work_len, double);
+	int cache_idx;
+	
+	GMRFLib_CACHE_SET_ID(cache_idx);
+	if (n + nc > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = n + nc;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 	}
-	xx = work;
+	xx = wwork[cache_idx];
 
 	Memcpy(xx, b, n * sizeof(double));
 	GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int nc = problem->sub_constr->nc, inc = 1;
-		double alpha = -1.0, beta = 1.0, *t_vector = work + n;
+		double alpha = -1.0, beta = 1.0, *t_vector = wwork[cache_idx] + n;
 		GMRFLib_eval_constr0(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
 		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
 	}
@@ -1811,9 +1817,6 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	COPY(bandwidth);
 	DUPLICATE(remap, ns, int, 0);
 
-	int id = omp_get_thread_num();
-	GMRFLib_meminfo_thread_id = id;
-
 	if (copy_ptr == GMRFLib_TRUE) {
 		/*
 		 * just copy ptr's; read only 
@@ -1830,7 +1833,6 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 		GMRFLib_duplicate_pardiso_store(&(new_store->PARDISO_fact), store->PARDISO_fact, copy_ptr, copy_pardiso_ptr);
 	}
 
-	GMRFLib_meminfo_thread_id *= -1;
 	char *tmp = Calloc(1, char);
 	Free(tmp);
 

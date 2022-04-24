@@ -285,11 +285,21 @@ int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
 int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 {
 	char *tok = NULL;
-	static char *line = NULL;
-#pragma omp threadprivate(line)
+	static char **lline = NULL;
+
+	if (!lline) {
+#pragma omp critical
+		{
+			if (!lline){
+				lline = Calloc(GMRFLib_CACHE_LEN, char *);
+			}
+		}
+	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
 
 	if (io == NULL) {				       /* special: reset strtok */
-		Free(line);
+		Free(lline[idx]);
 		return GMRFLib_SUCCESS;
 	}
 
@@ -309,11 +319,11 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 	/*
 	 * no token. read next line and extract the first token 
 	 */
-	Free(line);
+	Free(lline[idx]);
 
-	GMRFLib_EWRAP0(GMRFLib_io_nextline(&line, io));
-	if (line) {
-		tok = GMRFLib_strtok_r(line, GMRFLib_IO_SEP, &(io->strtok_ptr));
+	GMRFLib_io_nextline(&(lline[idx]), io);
+	if (lline[idx]) {
+		tok = GMRFLib_strtok_r(lline[idx], GMRFLib_IO_SEP, &(io->strtok_ptr));
 		io->tokens_read++;
 		*ptr = tok;
 		return GMRFLib_SUCCESS;

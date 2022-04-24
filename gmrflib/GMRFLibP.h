@@ -425,14 +425,14 @@ typedef enum {
 					 (omp_get_thread_num() + GMRFLib_MAX_THREADS() * GMRFLib_thread_id)); \
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
-
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
 // GMRFLib_thread_id in the parallel loop and GMRFLib_thread_id is reset automatically afterwards
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
-#define CODE_BLOCK_SET_THREAD_ID() GMRFLib_thread_id = id__; if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+#define CODE_BLOCK_SET_THREAD_ID() GMRFLib_thread_id = id__
+#define CODE_BLOCK_INIT() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int id__ = GMRFLib_thread_id;				\
@@ -450,7 +450,7 @@ typedef enum {
 			CODE_BLOCK;					\
 		}							\
 		Free(work__);						\
-		CODE_BLOCK_SET_THREAD_ID();				\
+		assert(id__ < GMRFLib_MAX_THREADS());			\
         }
 
 

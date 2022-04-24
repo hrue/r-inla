@@ -147,10 +147,6 @@ int GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
 */
 GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
 
-/* 
-   default uniform(0,1) generator and support utilities. these routines are defined in random.c. make the rng_ptr threadprivate,
-   so each thread has its own copy.
- */
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
@@ -185,11 +181,8 @@ int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
 
 
-/* 
-   OpenMP spesifics
- */
-int GMRFLib_thread_id = 0;
-#pragma omp threadprivate(GMRFLib_thread_id)
+//int GMRFLib_thread_id = 0;
+//#pragma omp threadprivate(GMRFLib_thread_id)
 
 /*
   Signal USR2: Stop optimiser and present results
@@ -210,12 +203,6 @@ int GMRFLib_bitmap_swap = 0;
    Holds the thread strategy
  */
 GMRFLib_openmp_tp *GMRFLib_openmp = NULL;
-
-/* 
-   Holds the MemInfo flag
- */
-int GMRFLib_meminfo_thread_id = 0;
-#pragma omp threadprivate(GMRFLib_meminfo_thread_id)
 
 /* 
    define global nodes = {factor, degree}. factor: a node is defined to be global if nneig(i) >= (n-1) *factor degree :node is define to be global if nneig(i) >=
