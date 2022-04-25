@@ -290,7 +290,7 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 	if (!lline) {
 #pragma omp critical
 		{
-			if (!lline){
+			if (!lline) {
 				lline = Calloc(GMRFLib_CACHE_LEN, char *);
 			}
 		}

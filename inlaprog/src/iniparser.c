@@ -309,7 +309,7 @@ double iniparser_getdouble(dictionary * d, const char *key, double notfound)
 
 	str = iniparser_getstring(d, key, INI_INVALID_KEY);
 	assert(str);
-	
+
 	if (str == INI_INVALID_KEY)
 		return notfound;
 

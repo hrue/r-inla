@@ -151,8 +151,8 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	 * an internal storage is used to store previously computed abscissas and weights 
 	 */
 
-	static map_ivp **abscissas = NULL;			       /* keep previous computed elements here */
-	static map_ivp **weights = NULL;				       /* keep previous computed elements here */
+	static map_ivp **abscissas = NULL;		       /* keep previous computed elements here */
+	static map_ivp **weights = NULL;		       /* keep previous computed elements here */
 
 	if (!abscissas) {
 #pragma omp critical
@@ -166,7 +166,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	int idx;
 	GMRFLib_CACHE_SET_ID(idx);
 
-	if (!abscissas[idx]){
+	if (!abscissas[idx]) {
 		abscissas[idx] = Calloc(1, map_ivp);
 		weights[idx] = Calloc(1, map_ivp);
 		map_ivp_init(abscissas[idx]);

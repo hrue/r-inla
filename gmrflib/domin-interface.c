@@ -64,6 +64,7 @@ static Best_tp B = {
 static opt_dir_params_tp Opt_dir_params = {
 	NULL,
 	NULL,
+	0,
 	0
 };
 
@@ -123,9 +124,11 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.ai_par = ai_par;
 	G.ai_store = ai_store;
 
+	int thread_id = 0;
+	assert(omp_get_thread_num() == 0);
 	theta = Calloc(nhyper, double);
 	for (i = 0; i < nhyper; i++) {
-		theta[i] = hyperparam[i][GMRFLib_thread_id][0];
+		theta[i] = hyperparam[i][thread_id][0];
 	}
 	Free(theta);
 
@@ -165,17 +168,17 @@ int GMRFLib_opt_exit(void)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
+int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
 	 * this function is called only for thread=0!!! 
 	 */
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
-	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
+	GMRFLib_ASSERT(thread_id == 0, GMRFLib_ESNH);
 	GMRFLib_ASSERT(omp_get_thread_num() == 0, GMRFLib_ESNH);
 
-	GMRFLib_opt_f_intern(x, fx, ierr, G.ai_store, tabQfunc, bnew);
+	GMRFLib_opt_f_intern(thread_id, x, fx, ierr, G.ai_store, tabQfunc, bnew);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -201,21 +204,19 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	ai_store_reference = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nx; i++) {
-		GMRFLib_thread_id = omp_get_thread_num();
-
+		int thread_id = omp_get_thread_num();
 		int local_err;
 		GMRFLib_ai_store_tp *ais = NULL;
 
-		if (GMRFLib_thread_id == 0) {
+		if (thread_id == 0) {
 			ais = G.ai_store;
 		} else {
-			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] =
-				    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+			if (!ai_store[thread_id]) {
+				ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
-			ais = ai_store[GMRFLib_thread_id];
+			ais = ai_store[thread_id];
 		}
-		GMRFLib_opt_f_intern(x[i], &f[i], &local_err, ais, NULL, NULL);
+		GMRFLib_opt_f_intern(thread_id, x[i], &f[i], &local_err, ais, NULL, NULL);
 		err[i] = err[i] || local_err;
 	}
 	for (i = 0; i < nx; i++) {
@@ -234,7 +235,8 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
+int GMRFLib_opt_f_intern(int thread_id,
+			 double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
 {
 	/*
 	 * this version controls AI_STORE 
@@ -252,8 +254,6 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 	GMRFLib_tabulate_Qfunc_tp **tabQfunc_local = NULL;
 	double **bnew_local = NULL;
 
-	int id = GMRFLib_thread_id;
-
 	if (!tabQfunc) {
 		tabQfunc_local = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_tabulate_Qfunc_tp *);
 	}
@@ -261,31 +261,31 @@ int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *
 		bnew_local = Calloc(GMRFLib_MAX_THREADS(), double *);
 	}
 
-	GMRFLib_thread_id = id;
 	for (i = 0; i < G.nhyper; i++) {
-		G.hyperparam[i][GMRFLib_thread_id][0] = x[i];
+		G.hyperparam[i][thread_id][0] = x[i];
 	}
 
 	// yes, this also works with 'preopt' as tabulate_Qfunc do not tabulate but just return a ptr-copy
-	GMRFLib_tabulate_Qfunc((tabQfunc ? tabQfunc : &(tabQfunc_local[GMRFLib_thread_id])), G.graph,
-			       G.Qfunc[GMRFLib_thread_id], G.Qfunc_arg[GMRFLib_thread_id], NULL);
+	GMRFLib_tabulate_Qfunc(thread_id, (tabQfunc ? tabQfunc : &(tabQfunc_local[thread_id])), G.graph,
+			       G.Qfunc[thread_id], G.Qfunc_arg[thread_id], NULL);
 
 	double con, *bnew_ptr = NULL;
 
-	GMRFLib_bnew(&bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
+	GMRFLib_bnew(thread_id, &bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
 	if (bnew) {
 		*bnew = bnew_ptr;
 	} else {
-		bnew_local[GMRFLib_thread_id] = bnew_ptr;
+		bnew_local[thread_id] = bnew_ptr;
 	}
 
-	GMRFLib_ai_marginal_hyperparam(fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg,
+	GMRFLib_ai_marginal_hyperparam(thread_id,
+				       fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg,
 				       G.graph,
-				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[GMRFLib_thread_id]->Qfunc),
-				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[GMRFLib_thread_id]->Qfunc_arg), G.constr, G.ai_par, ais,
+				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local[thread_id]->Qfunc),
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local[thread_id]->Qfunc_arg), G.constr, G.ai_par, ais,
 				       G.preopt);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
-	ffx = G.log_extra(x, G.nhyper, G.log_extra_arg);
+	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg);
 
 	if (tabQfunc_local) {
 		for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
@@ -379,7 +379,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	 * new implementation more suited for OpenMP. return also, optionally, also a better estimate for f0.
 	 */
 
-	int i, tmax, debug = 0, id_save;
+	int i, tmax, debug = 0;
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	GMRFLib_ai_store_tp *ai_store_reference = NULL;
@@ -387,7 +387,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
-	id_save = GMRFLib_thread_id;
 
 	/*
 	 * this is the one to be copied 
@@ -405,7 +404,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < G.nhyper + 1; i++) {
-			GMRFLib_thread_id = omp_get_thread_num();
+			int thread_id = omp_get_thread_num();
 
 			double *xx = NULL;
 			int j, err;
@@ -415,14 +414,14 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (GMRFLib_OPENMP_IN_PARALLEL()) {
-				if (GMRFLib_thread_id == 0) {
+				if (thread_id == 0) {
 					ais = G.ai_store;
 				} else {
-					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] =
+					if (!ai_store[thread_id]) {
+						ai_store[thread_id] =
 						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
-					ais = ai_store[GMRFLib_thread_id];
+					ais = ai_store[thread_id];
 				}
 			} else {
 				ais = G.ai_store;
@@ -434,13 +433,12 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			j = i;
 			if (j < G.nhyper) {
 				GMRFLib_opt_dir_step(xx, j, h);
-				GMRFLib_opt_f_intern(xx, &f[j], &err, ais, NULL, NULL);
+				GMRFLib_opt_f_intern(thread_id, xx, &f[j], &err, ais, NULL, NULL);
 			} else {
-				GMRFLib_opt_f_intern(xx, &f[G.nhyper], &err, ais, NULL, NULL);
+				GMRFLib_opt_f_intern(thread_id, xx, &f[G.nhyper], &err, ais, NULL, NULL);
 			}
 			Free(xx);
 		}
-		GMRFLib_thread_id = id_save;
 
 		/*
 		 * then compute the gradient where f0 = f[G.nhyper] 
@@ -474,7 +472,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		}
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < 2 * G.nhyper; i++) {
-			GMRFLib_thread_id = omp_get_thread_num();
+			int thread_id = omp_get_thread_num();
 
 			int j, err;
 			double *xx = NULL;
@@ -486,14 +484,14 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			Memcpy(xx, x, G.nhyper * sizeof(double));
 
 			if (GMRFLib_OPENMP_IN_PARALLEL()) {
-				if (GMRFLib_thread_id == 0) {
+				if (thread_id == 0) {
 					ais = G.ai_store;
 				} else {
-					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] =
+					if (!ai_store[thread_id]) {
+						ai_store[thread_id] =
 						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
-					ais = ai_store[GMRFLib_thread_id];
+					ais = ai_store[thread_id];
 				}
 			} else {
 				ais = G.ai_store;
@@ -501,21 +499,20 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 			if (i < G.nhyper) {
 				GMRFLib_opt_dir_step(xx, j, h);
-				GMRFLib_opt_f_intern(xx, &f[j], &err, ais, NULL, NULL);
+				GMRFLib_opt_f_intern(thread_id, xx, &f[j], &err, ais, NULL, NULL);
 				if (use_five_point) {
 					GMRFLib_opt_dir_step(xx, j, h);
-					GMRFLib_opt_f_intern(xx, &ff[j], &err, ais, NULL, NULL);
+					GMRFLib_opt_f_intern(thread_id, xx, &ff[j], &err, ais, NULL, NULL);
 				}
 			} else {
 				GMRFLib_opt_dir_step(xx, j, -h);
-				GMRFLib_opt_f_intern(xx, &fm[j], &err, ais, NULL, NULL);
+				GMRFLib_opt_f_intern(thread_id, xx, &fm[j], &err, ais, NULL, NULL);
 				if (use_five_point) {
 					GMRFLib_opt_dir_step(xx, j, -h);
-					GMRFLib_opt_f_intern(xx, &ffm[j], &err, ais, NULL, NULL);
+					GMRFLib_opt_f_intern(thread_id, xx, &ffm[j], &err, ais, NULL, NULL);
 				}
 			}
 			Free(xx);
-			GMRFLib_thread_id = 0;
 		}
 
 		if (use_five_point) {
@@ -551,8 +548,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		Free(ff);
 		Free(ffm);
 	}
-
-	GMRFLib_thread_id = id_save;
 
 	GMRFLib_free_ai_store(ai_store_reference);
 	for (i = 0; i < tmax; i++) {
@@ -594,7 +589,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		xx = Calloc(G.nhyper, double);			        \
 		Memcpy(xx, x, G.nhyper*sizeof(double));			\
 		GMRFLib_opt_dir_step(xx, idx, step);			\
-		GMRFLib_opt_f_intern(xx, &(result), &err, ais, NULL, NULL); \
+		GMRFLib_opt_f_intern(thread_id, xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
 			int iii;					\
 			printf("Estimate Hessian x=[");			\
@@ -617,7 +612,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		Memcpy(xx, x, G.nhyper*sizeof(double));			\
 		GMRFLib_opt_dir_step(xx, idx, step);			\
 		GMRFLib_opt_dir_step(xx, iidx, sstep);			\
-		GMRFLib_opt_f_intern(xx, &(result), &err, ais, NULL, NULL); \
+		GMRFLib_opt_f_intern(thread_id, xx, &(result), &err, ais, NULL, NULL); \
 		if (debug){						\
 			int iii;					\
 			printf("Estimate Hessian x=[");			\
@@ -646,10 +641,9 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
-	int i, n = G.nhyper, tmax, id, ok = 0, debug = 0, len_xx_hold;
+	int i, n = G.nhyper, tmax, ok = 0, debug = 0, len_xx_hold;
 
 	tmax = GMRFLib_MAX_THREADS();
-	id = omp_get_thread_num();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);
 	Memset(hessian, 0, ISQR(n) * sizeof(double));
@@ -669,8 +663,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	}
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < 2 * n + 1; i++) {
-		GMRFLib_thread_id = omp_get_thread_num();
-
+		int thread_id = omp_get_thread_num();
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
 
@@ -681,11 +674,11 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 
 		if (GMRFLib_OPENMP_IN_PARALLEL()) {
-			if (!ai_store[GMRFLib_thread_id]) {
-				ai_store[GMRFLib_thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+			if (!ai_store[thread_id]) {
+				ai_store[thread_id] = GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 			}
-			ais = ai_store[GMRFLib_thread_id];
-			i2thread[i] = GMRFLib_thread_id;
+			ais = ai_store[thread_id];
+			i2thread[i] = thread_id;
 		} else {
 			ais = G.ai_store;
 			i2thread[i] = -1;
@@ -701,7 +694,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			F1(f0, 0, 0.0, xx_hold[i]);
 		}
 	}
-	GMRFLib_thread_id = id;
 
 	/*
 	 * If the mode is ok, then all neigbouring points are larger; just check. otherwise, set f0 as the minimum value. 
@@ -807,18 +799,18 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 #pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (k = 0; k < nn; k++) {
-				GMRFLib_thread_id = omp_get_thread_num();
+				int thread_id = omp_get_thread_num();
 
 				int ii, jj;
 				double f11, fm11, f1m1, fm1m1;
 				GMRFLib_ai_store_tp *ais = NULL;
 
 				if (GMRFLib_OPENMP_IN_PARALLEL()) {
-					if (!ai_store[GMRFLib_thread_id]) {
-						ai_store[GMRFLib_thread_id] =
+					if (!ai_store[thread_id]) {
+						ai_store[thread_id] =
 						    GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
-					ais = ai_store[GMRFLib_thread_id];
+					ais = ai_store[thread_id];
 				} else {
 					ais = G.ai_store;
 				}
@@ -836,7 +828,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					hessian[ii + jj * n] = hessian[jj + ii * n] = (f11 - fm11 - f1m1 + fm1m1) / 4.0 / SQR(h);
 				}
 			}
-			GMRFLib_thread_id = id;
 			Free(idx);
 		}
 		if (G.ai_par->fp_log) {
@@ -868,7 +859,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 	}
 	Free(ai_store);
-	GMRFLib_thread_id = id;
 
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 #undef F1
@@ -911,13 +901,9 @@ int GMRFLib_opt_get_f_count(void)
 	}
 }
 
-double GMRFLib_gsl_f(const gsl_vector * v, void *UNUSED(params))
+double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 {
-	/*
-	 * this function is called only for thread=0!!! 
-	 */
-	GMRFLib_ASSERT(GMRFLib_thread_id == 0, GMRFLib_ESNH);
-
+	opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 	double fx, *x;
 	int ierr, i;
 
@@ -925,7 +911,7 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *UNUSED(params))
 	for (i = 0; i < G.nhyper; i++) {
 		x[i] = gsl_vector_get(v, i);
 	}
-	GMRFLib_opt_f(x, &fx, &ierr, NULL, NULL);
+	GMRFLib_opt_f(par->thread_id, x, &fx, &ierr, NULL, NULL);
 	Free(x);
 
 	return fx;
@@ -933,10 +919,7 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *UNUSED(params))
 
 void GMRFLib_gsl_df(const gsl_vector * v, void *UNUSED(params), gsl_vector * df)
 {
-	/*
-	 * this function is called only for thread=0!!! 
-	 */
-	GMRFLib_ASSERT_RETVAL(GMRFLib_thread_id == 0, GMRFLib_ESNH, (void) NULL);
+	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 
 	double *x, *gradx;
 	int ierr, i;
@@ -960,11 +943,8 @@ void GMRFLib_gsl_fdf(const gsl_vector * v, void *UNUSED(params), double *f, gsl_
 	/*
 	 * This function is a merge of the _f and _df function, but we can compute the 'f' value through the gradient
 	 * routine and save one function evaluation.
-	 *
-	 * This function is called only for thread=0!!!
 	 */
-	GMRFLib_ASSERT_RETVAL(GMRFLib_thread_id == 0, GMRFLib_ESNH, (void) NULL);
-
+	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 	double *x, *gradx;
 	int ierr, i;
 
@@ -1100,6 +1080,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 
 	Opt_dir_params.A = A;
 	Opt_dir_params.tAinv = tAinv;
+	Opt_dir_params.thread_id = 0;
 
 	my_func.n = G.nhyper;
 	my_func.f = &GMRFLib_gsl_f;
@@ -1109,7 +1090,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 
 	x = gsl_vector_alloc(G.nhyper);
 	for (i = 0; i < (size_t) G.nhyper; i++) {
-		gsl_vector_set(x, i, G.hyperparam[i][GMRFLib_thread_id][0]);
+		gsl_vector_set(x, i, G.hyperparam[i][Opt_dir_params.thread_id][0]);
 	}
 
 	// T = gsl_multimin_fdfminimizer_vector_bfgs2; /* GSL version */

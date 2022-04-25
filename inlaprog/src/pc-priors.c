@@ -189,7 +189,7 @@ double inla_pcp_dof_dof(double d)
 			xx[i] = dof;
 			yy[i] = inla_pcp_dof_d(dof);
 		}
-		sspline[idx] = GMRFLib_spline_create(yy, xx, n); // yes, we want the inverse
+		sspline[idx] = GMRFLib_spline_create(yy, xx, n);	// yes, we want the inverse
 		Free(xx);
 		Free(yy);
 	}
@@ -232,7 +232,7 @@ double inla_pc_sn_core(int code, double arg)
 	static GMRFLib_spline_tp **sspline_a2s = NULL;
 
 	if (!sspline_s2a) {
-#pragma omp critical 
+#pragma omp critical
 		{
 			if (!sspline_s2a) {
 				sspline_s2a = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
@@ -251,8 +251,7 @@ double inla_pc_sn_core(int code, double arg)
 		for (i = 0; i < n; i++) {
 			alpha[i] = 0.0 + 25.0 / (n - 1.0) * i;
 			delta = alpha[i] / sqrt(1.0 + SQR(alpha[i]));
-			skew[i] = (4.0 - M_PI) / 2.0 * gsl_pow_3(delta * sqrt(2.0 / M_PI)) /
-				pow(1.0 - 2.0 * SQR(delta) / M_PI, 3.0 / 2.0);
+			skew[i] = (4.0 - M_PI) / 2.0 * gsl_pow_3(delta * sqrt(2.0 / M_PI)) / pow(1.0 - 2.0 * SQR(delta) / M_PI, 3.0 / 2.0);
 		}
 		sspline_a2s[idx] = GMRFLib_spline_create(alpha, skew, n);
 		sspline_s2a[idx] = GMRFLib_spline_create(skew, alpha, n);

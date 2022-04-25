@@ -106,7 +106,8 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap,
+int GMRFLib_build_sparse_matrix_BAND(int thread_id,
+				     double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap,
 				     int bandwidth)
 {
 #define BIDX(i,j) ((i)+(j)*nrow)			       /* band index'ing */
@@ -115,24 +116,19 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 	 * return a band-matrix BMATRIX in L-storage defining the precision matrix 
 	 */
 
-	int i, ncol, nrow, id, nan_error = 0;
+	int i, ncol, nrow, nan_error = 0;
 
-	id = GMRFLib_thread_id;
 	ncol = graph->n;
 	nrow = bandwidth + 1;
 	*bandmatrix = Calloc(ncol * nrow, double);
 
 #pragma omp parallel for private(i)
 	for (i = 0; i < graph->n; i++) {
-		GMRFLib_thread_id = id;
-
 		int node = remap[i];
 		int j;
 		double val;
 
-		GMRFLib_thread_id = id;
-
-		val = Qfunc(i, i, NULL, Qfunc_arg);
+		val = Qfunc(thread_id, i, i, NULL, Qfunc_arg);
 		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
 		(*bandmatrix)[BIDX(0, node)] = val;
 
@@ -141,7 +137,7 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 			int nnode = remap[jj];
 
 			if (nnode > node) {
-				val = Qfunc(i, jj, NULL, Qfunc_arg);
+				val = Qfunc(thread_id, i, jj, NULL, Qfunc_arg);
 				GMRFLib_STOP_IF_NAN_OR_INF(val, i, jj);
 				(*bandmatrix)[BIDX(nnode - node, node)] = val;
 			}
@@ -151,7 +147,6 @@ int GMRFLib_build_sparse_matrix_BAND(double **bandmatrix, GMRFLib_Qfunc_tp * Qfu
 	if (nan_error) {
 		return !GMRFLib_SUCCESS;
 	}
-	GMRFLib_thread_id = id;
 
 	return GMRFLib_SUCCESS;
 #undef BIDX
@@ -414,7 +409,6 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	int i, j, k, kk, iii, jjj, bw, ldim, n, *inv_remap = NULL, *rremove = NULL, nrremove;
 	double tmp, Lii_inv, value, *Lmatrix, *cov;
 	map_id **Qinv_L = NULL;
-	int id = GMRFLib_thread_id;
 
 	bw = problem->sub_sm_fact.bandwidth;
 	ldim = bw + 1;
@@ -430,7 +424,6 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	Qinv_L = Calloc(n, map_id *);
 //#pragma omp parallel for private(i)
 	for (i = 0; i < n; i++) {
-		GMRFLib_thread_id = id;
 		Qinv_L[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv_L[i], ldim);
 	}
@@ -547,8 +540,6 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	if (problem->sub_constr && problem->sub_constr->nc > 0) {
 #pragma omp parallel for private(i, iii, k, j, jjj, kk, value)
 		for (i = 0; i < n; i++) {
-			GMRFLib_thread_id = id;
-
 			iii = inv_remap[i];
 			for (k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
 				j = Qinv_L[i]->contents[k].key;

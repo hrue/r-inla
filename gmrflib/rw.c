@@ -36,7 +36,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-double GMRFLib_rw(int node, int nnode, double *UNUSED(values), void *def)
+double GMRFLib_rw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -154,7 +154,7 @@ double GMRFLib_rw(int node, int nnode, double *UNUSED(values), void *def)
 	return 0.0;
 }
 
-double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
+double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -535,7 +535,7 @@ double GMRFLib_crw(int node, int nnode, double *UNUSED(values), void *def)
 	return NAN;
 }
 
-double GMRFLib_rw2d(int node, int nnode, double *UNUSED(values), void *def)
+double GMRFLib_rw2d(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -810,7 +810,7 @@ int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_crw_scale(void *def)
+int GMRFLib_crw_scale(int thread_id, void *def)
 {
 	/*
 	 * This approach uses the constrained sampling approach, much faster
@@ -905,7 +905,7 @@ int GMRFLib_crw_scale(void *def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, constr);
+		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_crw, (void *) crwdef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -954,7 +954,7 @@ int GMRFLib_crw_scale(void *def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_rw_scale(void *def)
+int GMRFLib_rw_scale(int thread_id, void *def)
 {
 	GMRFLib_rwdef_tp *rwdef = Calloc(1, GMRFLib_rwdef_tp);
 	GMRFLib_rwdef_tp *odef = (GMRFLib_rwdef_tp *) def;
@@ -1036,7 +1036,7 @@ int GMRFLib_rw_scale(void *def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, constr);
+		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw, (void *) rwdef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {
@@ -1080,7 +1080,7 @@ int GMRFLib_rw_scale(void *def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_rw2d_scale(void *def)
+int GMRFLib_rw2d_scale(int thread_id, void *def)
 {
 	GMRFLib_rw2ddef_tp *rw2ddef = Calloc(1, GMRFLib_rw2ddef_tp);
 	GMRFLib_rw2ddef_tp *odef = (GMRFLib_rw2ddef_tp *) def;
@@ -1141,7 +1141,7 @@ int GMRFLib_rw2d_scale(void *def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, constr);
+		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_rw2d, (void *) rw2ddef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < graph->n; i++) {

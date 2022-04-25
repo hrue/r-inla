@@ -158,21 +158,21 @@ int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact)
 /*
   \brief Build a sparse matrix
 */
-int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph)
+int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph)
 {
 	GMRFLib_ENTER_ROUTINE;
 	int ret;
 
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
-		ret = GMRFLib_build_sparse_matrix_BAND(&(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth);
+		ret = GMRFLib_build_sparse_matrix_BAND(thread_id, &(sm_fact->bchol), Qfunc, Qfunc_arg, graph, sm_fact->remap, sm_fact->bandwidth);
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
 		}
 		break;
 
 	case GMRFLib_SMTP_TAUCS:
-		ret = GMRFLib_build_sparse_matrix_TAUCS(&(sm_fact->TAUCS_L), Qfunc, Qfunc_arg, graph, sm_fact->remap);
+		ret = GMRFLib_build_sparse_matrix_TAUCS(thread_id, &(sm_fact->TAUCS_L), Qfunc, Qfunc_arg, graph, sm_fact->remap);
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
 		}
@@ -183,7 +183,7 @@ int GMRFLib_build_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp *
 			GMRFLib_pardiso_init(&(sm_fact->PARDISO_fact));
 			GMRFLib_pardiso_reorder(sm_fact->PARDISO_fact, graph);
 		}
-		ret = GMRFLib_pardiso_build(sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg);
+		ret = GMRFLib_pardiso_build(thread_id, sm_fact->PARDISO_fact, graph, Qfunc, Qfunc_arg);
 		if (ret != GMRFLib_SUCCESS) {
 			return ret;
 		}

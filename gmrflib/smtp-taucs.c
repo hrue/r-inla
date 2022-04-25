@@ -151,94 +151,6 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 	return C;
 }
 
-taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs_ORIG(void *vL)
-{
-	/*
-	 * this is to be called for a lower triangular double matrix only.
-	 * 
-	 * it includes also zero terms as long as i>=j.
-	 * 
-	 */
-
-	supernodal_factor_matrix *L = (supernodal_factor_matrix *) vL;
-	taucs_ccs_matrix *C = NULL;
-	int n, nnz;
-	int i, j, ip, jp, sn, next;
-	taucs_datatype v;
-	int *len = NULL;
-
-	n = L->n;
-
-	len = Malloc(n, int);
-
-	if (!len) {
-		return NULL;
-	}
-	nnz = 0;
-	for (sn = 0; sn < L->n_sn; sn++) {
-		for (jp = 0; jp < L->sn_size[sn]; jp++) {
-			j = L->sn_struct[sn][jp];
-			len[j] = 0;
-
-			for (ip = jp; ip < L->sn_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
-				if (i >= j) {
-					len[j]++;
-					nnz++;
-				}
-			}
-			for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
-				if (i >= j) {
-					len[j]++;
-					nnz++;
-				}
-			}
-		}
-	}
-	C = taucs_dccs_create(n, n, nnz);
-	if (!C) {
-		free(len);
-		return NULL;
-	}
-	C->flags = TAUCS_DOUBLE;
-	C->flags |= TAUCS_TRIANGULAR | TAUCS_LOWER;	       /* this was a bug in version 2.0 of taucs */
-
-	(C->colptr)[0] = 0;
-	for (j = 1; j <= n; j++) {
-		(C->colptr)[j] = (C->colptr)[j - 1] + len[j - 1];
-	}
-
-	free(len);
-	for (sn = 0; sn < L->n_sn; sn++) {
-		for (jp = 0; jp < L->sn_size[sn]; jp++) {
-			j = L->sn_struct[sn][jp];
-			next = (C->colptr)[j];
-
-			for (ip = jp; ip < L->sn_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
-				v = L->sn_blocks[sn][jp * L->sn_blocks_ld[sn] + ip];
-
-				if (i >= j) {
-					(C->rowind)[next] = i;
-					(C->values.d)[next] = v;
-					next++;
-				}
-			}
-			for (ip = L->sn_size[sn]; ip < L->sn_up_size[sn]; ip++) {
-				i = L->sn_struct[sn][ip];
-				v = L->up_blocks[sn][jp * L->up_blocks_ld[sn] + (ip - L->sn_size[sn])];
-
-				if (i >= j) {
-					(C->rowind)[next] = i;
-					(C->values.d)[next] = v;
-					next++;
-				}
-			}
-		}
-	}
-	return C;
-}
 
 supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
 {
@@ -710,111 +622,8 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_build_sparse_matrix_TAUCS_ORIG(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
-{
-	int id = GMRFLib_thread_id;
-	int i, j, k, ic, ne, n = 0, nnz, *perm = NULL, *iperm = NULL, nan_error = 0;
-	taucs_ccs_matrix *Q = NULL;
-
-	if (!graph || graph->n == 0) {
-		*L = NULL;
-		return GMRFLib_SUCCESS;
-	}
-
-	n = graph->n;
-	for (i = 0, nnz = n; i < n; i++) {
-		nnz += graph->nnbs[i];
-	}
-
-	Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
-	GMRFLib_ASSERT(Q, GMRFLib_EMEMORY);
-	Q->flags = (TAUCS_DOUBLE | TAUCS_SYMMETRIC | TAUCS_TRIANGULAR | TAUCS_LOWER);
-	Q->colptr[0] = 0;
-
-	/*
-	 * first, do a first pass to set the indices; then fill the matrix using omp 
-	 */
-	int *ic_idx = Calloc(n, int);
-
-	for (i = 0, ic = 0; i < n; i++) {
-		Q->rowind[ic] = i;
-		ic_idx[i] = ic;
-		ic++;
-		ne = 1;
-
-		for (k = 0; k < graph->nnbs[i]; k++) {
-			j = graph->nbs[i][k];
-			if (j > i) {
-				break;
-			}
-			Q->rowind[ic] = j;
-			ic++;
-			ne++;
-		}
-		Q->colptr[i + 1] = Q->colptr[i] + ne;
-	}
-#pragma omp parallel for private(i, ic, k, j) num_threads(GMRFLib_openmp->max_threads_inner)
-	for (i = 0; i < n; i++) {
-		GMRFLib_thread_id = id;
-		double val;
-
-		ic = ic_idx[i];
-		val = Qfunc(i, i, NULL, Qfunc_arg);
-		GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);
-		Q->values.d[ic++] = val;
-
-		for (k = 0; k < graph->nnbs[i]; k++) {
-			j = graph->nbs[i][k];
-			if (j > i) {
-				break;
-			}
-
-			val = Qfunc(i, j, NULL, Qfunc_arg);
-			GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);
-			Q->values.d[ic++] = val;
-		}
-	}
-	GMRFLib_thread_id = id;
-	Free(ic_idx);
-
-	if (nan_error) {
-		return !GMRFLib_SUCCESS;
-	}
-	iperm = remap;					       /* yes, this is correct */
-
-	static int **wwork = NULL;
-	static int *wwork_len = NULL;
-	if (!wwork) {
-#pragma omp critical
-		{
-			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, int *);
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-			}
-		}
-	}
-
-	int cache_idx;
-	GMRFLib_CACHE_SET_ID(cache_idx);
-	if (n > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
-		wwork_len[cache_idx] = n;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], int);
-	}
-	int *iwork = wwork[cache_idx];
-	Memset(iwork, 0, wwork_len[cache_idx] * sizeof(int));
-
-	perm = iwork;
-	for (i = 0; i < n; i++) {
-		perm[iperm[i]] = i;
-	}
-	*L = taucs_ccs_permute_symmetrically(Q, perm, iperm);  /* permute the matrix */
-	taucs_ccs_free(Q);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph,
+				      int *remap)
 {
 	int n = 0, *iperm = NULL, nan_error = 0;
 	taucs_ccs_matrix *Q = NULL;
@@ -854,12 +663,12 @@ int GMRFLib_build_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * 
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
 			int ic = ic_idx[i];				\
-			double val = Qfunc(i, i, NULL, Qfunc_arg);	\
+			double val = Qfunc(thread_id, i, i, NULL, Qfunc_arg);	\
 			GMRFLib_STOP_IF_NAN_OR_INF(val, i, i);		\
 			Q->values.d[ic++] = val;			\
 			for (int k = 0; k < graph->snnbs[i]; k++) {	\
 				int j = graph->snbs[i][k];		\
-				val = Qfunc(i, j, NULL, Qfunc_arg);	\
+				val = Qfunc(thread_id, i, j, NULL, Qfunc_arg);	\
 				GMRFLib_STOP_IF_NAN_OR_INF(val, i, j);	\
 				Q->values.d[ic++] = val;		\
 			}						\
@@ -1543,7 +1352,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0,  wwork_len[cache_idx] * sizeof(double));
+	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	double *y = work;
 	if (n > 0) {

@@ -42,7 +42,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-double GMRFLib_seasonal(int node, int nnode, double *UNUSED(values), void *def)
+double GMRFLib_seasonal(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -85,7 +85,7 @@ double GMRFLib_seasonal(int node, int nnode, double *UNUSED(values), void *def)
 	return val * prec;
 }
 
-int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
+int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp * def)
 {
 	GMRFLib_seasonaldef_tp *sdef = Calloc(1, GMRFLib_seasonaldef_tp);
 
@@ -137,7 +137,7 @@ int GMRFLib_seasonal_scale(GMRFLib_seasonaldef_tp * def)
 	GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
 	while (!ok) {
-		retval = GMRFLib_init_problem(&problem, NULL, NULL, c, NULL, graph, GMRFLib_seasonal, (void *) sdef, constr);
+		retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL, graph, GMRFLib_seasonal, (void *) sdef, constr);
 		switch (retval) {
 		case GMRFLib_EPOSDEF:
 			for (i = 0; i < n; i++) {

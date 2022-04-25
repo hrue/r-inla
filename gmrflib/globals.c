@@ -181,9 +181,6 @@ int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
 
 
-//int GMRFLib_thread_id = 0;
-//#pragma omp threadprivate(GMRFLib_thread_id)
-
 /*
   Signal USR2: Stop optimiser and present results
 */
@@ -234,4 +231,4 @@ double GMRFLib_aqat_m_diag_add = 0.0;
 
 int GMRFLib_preopt_like_strategy = 0;			       // 0 = plain, 1 = group.
 int GMRFLib_Qx_strategy = 0;				       // 0 = serial, 1 = parallel
-int GMRFLib_preopt_predictor_strategy = 0;                     // 0 = !data_rich, 1 = data_rich
+int GMRFLib_preopt_predictor_strategy = 0;		       // 0 = !data_rich, 1 = data_rich

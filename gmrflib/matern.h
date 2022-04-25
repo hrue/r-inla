@@ -90,24 +90,11 @@ __BEGIN_DECLS
 	 */
 	int cyclic;
 
-	/**
-	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
-	 * 
-	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
-	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
-	 */
 	double **log_prec_omp;
-
-	/**
-	 *  \brief A (possible) ppointer to the log-range where each tread has its own value.
-	 * 
-	 * If \c log_range_omp !=\c NULL, then \c log_range_omp[ID] points to the log-range, where ID is \c GMRFLib_thread_id.
-	 * if \c log_range_omp is \c NULL, then \c log-range is 0.
-	 */
 	double **log_range_omp;
 } GMRFLib_matern2ddef_tp;
 
-double GMRFLib_matern2d(int node, int nnode, double *values, void *def);
+double GMRFLib_matern2d(int thread_id, int node, int nnode, double *values, void *def);
 int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_tp * def);
 
 __END_DECLS

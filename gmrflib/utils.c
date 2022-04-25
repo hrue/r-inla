@@ -1682,7 +1682,7 @@ int GMRFLib_debug_functions(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
-	
+
 	if (!ddefs) {
 #pragma omp critical
 		{
@@ -1779,7 +1779,7 @@ int GMRFLib_trace_functions(const char *name)
 
 	static map_stri **ddefs = NULL;
 	static int *first = NULL;
-	
+
 	if (!ddefs) {
 #pragma omp critical
 		{

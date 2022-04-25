@@ -103,7 +103,7 @@ int GMRFLib_init_constr_store_logdet(void)
 	return GMRFLib_SUCCESS;
 }
 
-double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments)
+double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double *values, void *arguments)
 {
 	int node, nnode;
 	double val;
@@ -119,20 +119,20 @@ double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *
 	if (nnode >= 0) {
 		// the normal case, nothing spesific to do
 		if (node == nnode) {
-			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
+			val = (*(args->user_Qfunc)) (thread_id, node, nnode, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
 		} else {
-			val = (*(args->user_Qfunc)) (node, nnode, NULL, args->user_Qfunc_args);
+			val = (*(args->user_Qfunc)) (thread_id, node, nnode, NULL, args->user_Qfunc_args);
 		}
 	} else {
 		// this is the multi-case
-		val = (*(args->user_Qfunc)) (node, -1, values, args->user_Qfunc_args);
+		val = (*(args->user_Qfunc)) (thread_id, node, -1, values, args->user_Qfunc_args);
 		if (ISNAN(val)) {
 			// the Qfunction does not support it, move on doing it manually
 			int j, jj, k = 0;
-			values[k++] = (*(args->user_Qfunc)) (node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
+			values[k++] = (*(args->user_Qfunc)) (thread_id, node, node, NULL, args->user_Qfunc_args) + args->diagonal_adds[node];
 			for (jj = 0; jj < args->graph->lnnbs[node]; jj++) {
 				j = args->graph->lnbs[node][jj];
-				values[k++] = (*(args->user_Qfunc)) (node, j, NULL, args->user_Qfunc_args);
+				values[k++] = (*(args->user_Qfunc)) (thread_id, node, j, NULL, args->user_Qfunc_args);
 			}
 		} else {
 			values[0] += args->diagonal_adds[node];
@@ -334,7 +334,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 	double *xx = NULL;
 	int cache_idx;
-	
+
 	GMRFLib_CACHE_SET_ID(cache_idx);
 	if (n + nc > wwork_len[cache_idx]) {
 		Free(wwork[cache_idx]);
@@ -359,18 +359,19 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_init_problem(GMRFLib_problem_tp ** problem,
+int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp ** problem,
 			 double *x,
 			 double *b,
 			 double *c, double *mean, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constr)
 {
 	GMRFLib_ENTER_ROUTINE;
-	GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, b, c, mean, graph, Qfunc, Qfunc_args, constr, NULL));
+	GMRFLib_EWRAP1(GMRFLib_init_problem_store(thread_id, problem, x, b, c, mean, graph, Qfunc, Qfunc_args, constr, NULL));
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
+int GMRFLib_init_problem_store(int thread_id,
+			       GMRFLib_problem_tp ** problem,
 			       double *x,
 			       double *b,
 			       double *c,
@@ -540,7 +541,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	}
 	sub_Qfunc_arg->user_Qfunc = Qfunc;
 	sub_Qfunc_arg->user_Qfunc_args = Qfunc_args;
-	GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc(&((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL));
+	GMRFLib_EWRAP1(GMRFLib_tabulate_Qfunc(thread_id, &((*problem)->tab), (*problem)->sub_graph, sub_Qfunc, (void *) sub_Qfunc_arg, NULL));
 
 	Free(sub_Qfunc_arg->diagonal_adds);
 	Free(sub_Qfunc_arg);
@@ -567,7 +568,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 
 		tmp = Calloc(sub_n, double);
 
-		GMRFLib_Qx(tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
+		GMRFLib_Qx(thread_id, tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
 		for (i = 0; i < sub_n; i++) {
 			bb[i] += tmp[i];
 		}
@@ -603,7 +604,7 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 	}
 
 	int ret;
-	ret = GMRFLib_build_sparse_matrix(&((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
+	ret = GMRFLib_build_sparse_matrix(thread_id, &((*problem)->sub_sm_fact), (*problem)->tab->Qfunc,
 					  (char *) ((*problem)->tab->Qfunc_arg), (*problem)->sub_graph);
 	if (ret != GMRFLib_SUCCESS) {
 		return ret;
@@ -787,7 +788,8 @@ int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem,
 						}
 #pragma omp critical
 						{
-							map_strd_set(&constr_store_logdet, GMRFLib_strdup((char *) con->sha), (*problem)->logdet_aat);
+							map_strd_set(&constr_store_logdet, GMRFLib_strdup((char *) con->sha),
+								     (*problem)->logdet_aat);
 						}
 					}
 				}
@@ -927,6 +929,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 	 */
 
 	int i, n;
+	int thread_id = -1;
 	double sqrterm, *xx = NULL, *yy = NULL, *work = NULL;
 
 	if (!problem) {
@@ -945,7 +948,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp * problem, int compute_const)
 		problem->sub_sample[i] = problem->sample[i];
 		xx[i] = problem->sub_sample[i] - problem->sub_mean[i];
 	}
-	GMRFLib_Qx(yy, xx, problem->sub_graph, problem->tab->Qfunc, (void *) problem->tab->Qfunc_arg);
+	GMRFLib_Qx(thread_id, yy, xx, problem->sub_graph, problem->tab->Qfunc, (void *) problem->tab->Qfunc_arg);
 	for (i = 0, sqrterm = 0.0; i < n; i++) {
 		sqrterm += yy[i] * xx[i];
 	}
@@ -1136,7 +1139,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 	if (!constr) {
 		return GMRFLib_SUCCESS;
 	}
-	
+
 	if (constr_store_use && constr->sha) {
 		void *p;
 		p = map_strvp_ptr(&constr_store, (char *) constr->sha);
@@ -1437,7 +1440,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp 
 
 	GMRFLib_recomp_constr(new_constr, constr, NULL, NULL, NULL, graph, NULL);
 
-	
+
 	if (constr_store_use && constr->sha) {
 		if (constr_store_debug) {
 			printf("\t[%1d] constr_store: store constr 0x%p\n", omp_get_thread_num(), (void *) *new_constr);
@@ -1861,7 +1864,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 	return new_store;
 }
 
-double GMRFLib_Qfunc_generic(int i, int j, double *UNUSED(values), void *arg)
+double GMRFLib_Qfunc_generic(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;

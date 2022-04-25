@@ -181,7 +181,7 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	// create a upper triangular csr matrix from Q
 #define M (*csr)
@@ -239,13 +239,13 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 
 	if (!used_fast_tab) {
 		// a bit more manual work
-		double val = Qfunc(0, -1, &(M->a[0]), Qfunc_arg);
+		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				for (int k = M->ia[i]; k < M->ia[i + 1]; k++) { \
 					int j = M->ja[k];	\
-					M->a[k] = Qfunc(i, j, NULL, Qfunc_arg);	\
+					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);	\
 				}					\
 			}
 
@@ -255,7 +255,7 @@ int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				int k = M->ia[i];			\
-				Qfunc(i, -1, &(M->a[k]), Qfunc_arg);	\
+				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
 
 			RUN_CODE_BLOCK(1, 0, 0);
@@ -533,7 +533,7 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 	return (err_code == 0 ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
 
-double GMRFLib_pardiso_Qfunc_default(int i, int j, double *UNUSED(values), void *arg)
+double GMRFLib_pardiso_Qfunc_default(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -560,7 +560,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 
 	GMRFLib_graph_duplicate(&(store->graph), graph);
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_REORDER, store, NULL);
-	GMRFLib_Q2csr(&Q, store->graph, GMRFLib_pardiso_Qfunc_default, (void *) store->graph);
+	GMRFLib_Q2csr(0, &Q, store->graph, GMRFLib_pardiso_Qfunc_default, (void *) store->graph);
 
 	if (S.csr_check) {
 		GMRFLib_csr_check(Q);
@@ -663,7 +663,7 @@ int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -672,7 +672,7 @@ int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * g
 	if (store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE && store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q) {
 		GMRFLib_csr_free(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q));
 	}
-	GMRFLib_Q2csr(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q), graph, Qfunc, (void *) Qfunc_arg);
+	GMRFLib_Q2csr(thread_id, &(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q), graph, Qfunc, (void *) Qfunc_arg);
 
 	if (S.csr_check) {
 		GMRFLib_csr_check(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q);

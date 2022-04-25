@@ -113,7 +113,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	double **Qijlist = NULL, value, **ww = NULL;
 	GMRFLib_hgmrfm_arg_tp *arg = NULL;
 	GMRFLib_constr_tp *fc = NULL;
-	int id = GMRFLib_thread_id;
 
 	if (!hgmrfm) {
 		return GMRFLib_SUCCESS;
@@ -302,8 +301,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	{
 #pragma omp section
 		{
-			GMRFLib_thread_id = id;
-
 			/*
 			 * \eta_i^2 = 1 
 			 */
@@ -316,8 +313,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 #pragma omp section
 		{
-			GMRFLib_thread_id = id;
-
 			/*
 			 * \eta_i f_jk = - 1_{c_j(i) = k} 
 			 */
@@ -338,8 +333,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp section
 		{
-			GMRFLib_thread_id = id;
-
 			/*
 			 * \eta_i \beta_j 
 			 */
@@ -356,8 +349,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 		}
 #pragma omp section
 		{
-			GMRFLib_thread_id = id;
-
 			/*
 			 * f_jk beta_m = \sum z_ki, for all i: c_j[i] = k 
 			 */
@@ -383,8 +374,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp section
 		{
-			GMRFLib_thread_id = id;
-
 			/*
 			 * beta_k beta_m = sum_i z_ki z_mi 
 			 */
@@ -445,8 +434,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp parallel for private(k, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 				for (k = 0; k < f_graph[j]->n; k++) {
-					GMRFLib_thread_id = id;
-
 					int thread = omp_get_thread_num();
 					for (l = 0; l < f_graph[m]->n; l++) {
 						value = 0.0;
@@ -478,7 +465,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 
 #pragma omp parallel for private(jm_idx, j, k, m, l, value, ii, i) num_threads(GMRFLib_openmp->max_threads_outer)
 			for (jm_idx = 0; jm_idx < jm; jm_idx++) {
-				GMRFLib_thread_id = id;
 				int thread = omp_get_thread_num();
 
 				j = j_idx[jm_idx];
@@ -713,7 +699,9 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			}
 		}
 
-		GMRFLib_printf_Qfunc(stdout, h->graph, h->Qfunc, h->Qfunc_arg);
+		int thread_id = 0;
+		assert(omp_get_thread_num() == 0);
+		GMRFLib_printf_Qfunc(thread_id, stdout, h->graph, h->Qfunc, h->Qfunc_arg);
 	}
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
@@ -748,7 +736,7 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 	return t;
 }
 
-double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *arg)
+double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	if (node >= 0 && nnode < 0) {
 		return NAN;
@@ -771,10 +759,10 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 	jt = a->what_type[jj];
 
 	if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_graph)) {
-		value += a->eta_Q->Qfunc(ii, jj, NULL, a->eta_Q->Qfunc_arg);
+		value += a->eta_Q->Qfunc(thread_id, ii, jj, NULL, a->eta_Q->Qfunc_arg);
 	}
 	if (a->lc_Q && ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->lc_graph))) {
-		value += a->lc_Q->Qfunc(ii, jj, NULL, a->lc_Q->Qfunc_arg);
+		value += a->lc_Q->Qfunc(thread_id, ii, jj, NULL, a->lc_Q->Qfunc_arg);
 	}
 	switch (it.tp) {
 	case GMRFLib_HGMRFM_TP_ETA:
@@ -782,7 +770,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 		case GMRFLib_HGMRFM_TP_ETA:
 			if (a->eta_ext_graph) {
 				if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_ext_graph)) {
-					value += a->eta_ext_Q->Qfunc(ii, jj, NULL, a->eta_ext_Q->Qfunc_arg);
+					value += a->eta_ext_Q->Qfunc(thread_id, ii, jj, NULL, a->eta_ext_Q->Qfunc_arg);
 				}
 			}
 			return value;
@@ -797,7 +785,9 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 		case GMRFLib_HGMRFM_TP_F:
 			if (it.tp_idx == jt.tp_idx) {
 				if ((it.idx == jt.idx) || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
-					value += a->f_Qfunc[it.tp_idx] (it.idx, jt.idx, NULL, (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
+					value +=
+					    a->f_Qfunc[it.tp_idx] (thread_id, it.idx, jt.idx, NULL,
+								   (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
 				}
 			}
 			/*
@@ -806,7 +796,7 @@ double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *UNUSED(values), void *a
 			if (a->ff_Qfunc) {
 				if ((it.idx == jt.idx) && (it.tp_idx != jt.tp_idx) && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value +=
-					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (it.idx, jt.idx, NULL,
+					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (thread_id, it.idx, jt.idx, NULL,
 									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
 				}
 			}
