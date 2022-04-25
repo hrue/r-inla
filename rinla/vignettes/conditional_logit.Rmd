@@ -12,9 +12,9 @@ vignette: >
 ```{r setup, include=FALSE}
 set.seed(123)
 library(INLA)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
+if (file.exists("myinit.R")) source("myinit.R")
 library(knitr)
 library(rmarkdown)
 knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE,warning=FALSE)

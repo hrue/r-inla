@@ -1131,3 +1131,11 @@
     }
     return(sn.map(mean, variance, skew))
 }
+
+`inla.ensure.spd` <- function(A, tol = sqrt(.Machine$double.eps)) {
+    ## ensure A is spd,  by ensuring that eigenvalues are no smaller than
+    ## tol * max.eigenvalue
+    e <- eigen(A)
+    e$values <- pmax(e$values[1] * tol, e$values)
+    return (e$vectors %*% diag(e$values) %*% t(e$vectors))
+}

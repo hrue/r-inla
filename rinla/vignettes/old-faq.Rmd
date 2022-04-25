@@ -11,10 +11,10 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(INLA)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(smtp='taucs')
 inla.setOption(num.threads="1:1")
 inla.setOption(inla.mode="experimental")
+if (file.exists("myinit.R")) source("myinit.R")
 knitr::opts_chunk$set(fig.path="figures/old-faq/")
 set.seed(123)
 source("render_toc.R")

@@ -21,10 +21,10 @@ knitr::opts_chunk$set(echo = TRUE, results = 'show',
 knitr::opts_chunk$set(fig.path="figures/bgev/")
 
 library(INLA)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(smtp="taucs")
 inla.setOption(num.threads="1:1")
 inla.setOption(inla.mode="experimental")
+if (file.exists("myinit.R")) source("myinit.R")
 ```
 
 

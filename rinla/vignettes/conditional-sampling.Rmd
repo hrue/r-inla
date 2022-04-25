@@ -12,10 +12,10 @@ vignette: >
 ```{r setup, include=FALSE}
 set.seed(123)
 library(INLA)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 inla.setOption(inla.mode="classic")
+if (file.exists("myinit.R")) source("myinit.R")
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE)
 knitr::opts_chunk$set(fig.path="figures/conditional-sampling/")
 ```
