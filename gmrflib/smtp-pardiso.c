@@ -249,7 +249,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 				}					\
 			}
 
-			RUN_CODE_BLOCK(1, 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		} else {
 #define CODE_BLOCK							\
@@ -258,7 +258,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
 
-			RUN_CODE_BLOCK(1, 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
 	}

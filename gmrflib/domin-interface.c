@@ -86,9 +86,6 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt)
 {
-	double *theta;
-	int i;
-
 	opt_setup = 1;
 	fncall_timing.time_used = 0.0;
 	fncall_timing.num_fncall = 0;
@@ -115,7 +112,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.parallel_linesearch = ai_par->parallel_linesearch;
 	G.Qfunc = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_Qfunc_tp *);
 	G.Qfunc_arg = Calloc(GMRFLib_MAX_THREADS(), void *);
-	for (i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+	for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
 		G.Qfunc[i] = Qfunc;
 		G.Qfunc_arg[i] = Qfunc_arg;
 	}
@@ -124,14 +121,16 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 	G.ai_par = ai_par;
 	G.ai_store = ai_store;
 
-	int thread_id = 0;
-	assert(omp_get_thread_num() == 0);
-	theta = Calloc(nhyper, double);
-	for (i = 0; i < nhyper; i++) {
-		theta[i] = hyperparam[i][thread_id][0];
+	if (0) {
+		int thread_id = 0;
+		assert(omp_get_thread_num() == 0);
+		double *theta = Calloc(nhyper, double);
+		for (int i = 0; i < nhyper; i++) {
+			theta[i] = hyperparam[i][thread_id][0];
+		}
+		Free(theta);
 	}
-	Free(theta);
-
+	
 	return GMRFLib_SUCCESS;
 
 }
@@ -244,7 +243,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, debug = 0;
+	int i, debug = 1;
 	double ffx, fx_local;
 	double tref = GMRFLib_cpu();
 
@@ -304,7 +303,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	fx_local = *fx;
 
 	if (debug) {
-		printf("\t%d: fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), fx_local, B.f_best,
+		printf("\t%d: thread_id %d fx_local %.12g where f_best %.12g (%s)\n", omp_get_thread_num(), thread_id, fx_local, B.f_best,
 		       (fx_local < B.f_best ? "BETTER!" : ""));
 	}
 

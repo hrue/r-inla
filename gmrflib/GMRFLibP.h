@@ -429,6 +429,7 @@ typedef enum {
 #define GMRFLib_CACHE_LEN (2*GMRFLib_MAX_THREADS())
 #define GMRFLib_CACHE_SET_ID(__id) __id = (omp_get_level() == 0 ? 0 : ((omp_get_level() -1) * GMRFLib_MAX_THREADS() +  omp_get_thread_num()))
 
+
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
 

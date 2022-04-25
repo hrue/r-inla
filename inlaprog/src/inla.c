@@ -33591,22 +33591,19 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	double time_used_pred[2] = { 0.0, 0.0 };
 
 	if (1) {
+		//cannot run this in parallel as we're changing global variables
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-#pragma omp parallel for
 		for (int time = 0; time < 8; time++) {
 			for (int met = 0; met < 2; met++) {
 				for (int mett = 0; mett < 2; mett++) {
 					GMRFLib_preopt_like_strategy = met;
 					GMRFLib_Qx_strategy = mett;
 					double *cpu = GMRFLib_preopt_measure_time(thread_id, preopt);
-#pragma omp critical
-					{
-						time_used_like[met] += cpu[0];
-						time_used_Qx[mett] += cpu[1];
-						// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
-					}
+					time_used_like[met] += cpu[0];
+					time_used_Qx[mett] += cpu[1];
+					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
 					Free(cpu);
 				}
 			}
@@ -33614,18 +33611,14 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.1 ? 0 : 1);
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
-
+		
 		// do this alone as this strategy depends on the previous choices
-#pragma omp parallel for
 		for (int time = 0; time < 8; time++) {
 			for (int mettt = 0; mettt < 2; mettt++) {
 				GMRFLib_preopt_predictor_strategy = mettt;
 				double *cpu = GMRFLib_preopt_measure_time2(preopt);
-#pragma omp critical
-				{
-					time_used_pred[mettt] += cpu[0];
-					// printf("%d %f\n", mettt, cpu[0]);
-				}
+				time_used_pred[mettt] += cpu[0];
+				// printf("%d %f\n", mettt, cpu[0]);
 				Free(cpu);
 			}
 		}
@@ -33637,6 +33630,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_preopt_predictor_strategy = 0;
 	}
 
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
 		printf("\tSetup...................... [%.2fs]\n", GMRFLib_cpu() - tref);

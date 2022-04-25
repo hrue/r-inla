@@ -1202,7 +1202,8 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 		}
 		work = wwork[cache_idx];
-
+		assert(work);
+		
 		Memcpy(work, destination, graph->n * sizeof(double));
 		for (int i = 0; i < graph->n; i++) {
 			destination[remap[i]] = work[i];
@@ -1243,6 +1244,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 		}
 		work = wwork[cache_idx];
+		assert(work);
 
 		Memcpy(work, destination, graph->n * sizeof(double));
 		for (int i = 0; i < graph->n; i++) {
@@ -1298,7 +1300,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 
-	Calloc_init(m + 1 + (diag ? 0 : graph->n));
+	Calloc_init(m + 1 + (!diag ? graph->n : 0));
 	values = Calloc_get(m + 1);
 	assert(values);
 	if (!diag) {
@@ -1323,7 +1325,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				}					\
 			}
 
-			RUN_CODE_BLOCK(1, 0, 0);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		} else {
 			if (debug)
@@ -1361,7 +1363,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				}					\
 			}
 
-			RUN_CODE_BLOCK(1, 1, m + 1);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m + 1);
 #undef CODE_BLOCK
 
 			for (int j = 0; j < max_t; j++) {

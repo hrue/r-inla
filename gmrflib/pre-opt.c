@@ -971,7 +971,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK(2, 0, 0);
 #undef CODE_BLOCK
 		} else {
 			// one loop
@@ -1011,7 +1011,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 				}					\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			RUN_CODE_BLOCK(2, 0, 0);
 #undef CODE_BLOCK
 
 		} else {
@@ -1024,7 +1024,6 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 					DOT_PRODUCT_SERIAL(pred_offset[i], elm, latent); \
 				}					\
 			}
-
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		}
@@ -1302,7 +1301,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	GMRFLib_Qfunc_tp *like_Qfunc = preopt->like_Qfunc;
 	GMRFLib_graph_tp *like_graph = preopt->like_graph;
 	void *like_Qfunc_arg = preopt->like_Qfunc_arg;
-
+		
 	// this will be measure with serial or with group
 	cpu[0] = -GMRFLib_cpu();
 	for (int i = 0; i < like_graph->n; i++) {
@@ -1314,11 +1313,11 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	}
 	cpu[0] += GMRFLib_cpu();
 	assert(!ISNAN(value));
-
+	
 	GMRFLib_Qfunc_tp *Qfunc = preopt->preopt_Qfunc;
 	GMRFLib_graph_tp *graph = preopt->preopt_graph;
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
-
+	
 	Calloc_init(2 * graph->n);
 	assert(calloc_work_);
 	double *x = Calloc_get(graph->n);
@@ -1336,7 +1335,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	cpu[1] += GMRFLib_cpu();
 
 	Calloc_free();
-	GMRFLib_free_tabulate_Qfunc(tab);
+	//GMRFLib_free_tabulate_Qfunc(tab);
 
 	return cpu;
 }
@@ -1346,16 +1345,17 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
 	// cpu[0] measure predictor calculations for !data_rich and data_rich case
 	double *cpu = Calloc(1, double);
 
-	double *pred = Calloc(2 * preopt->mnpred, double);
-	double *lat = pred + preopt->mnpred;
+	Calloc_init(preopt->mnpred + preopt->n);
+	double *pred = Calloc_get(preopt->mnpred);
+	double *lat = Calloc_get(preopt->n);
 
-	for (int i = 0; i < preopt->mnpred; i++) {
+	for (int i = 0; i < preopt->n; i++) {
 		lat[i] = GMRFLib_uniform();
 	}
 	cpu[0] = -GMRFLib_cpu();
 	GMRFLib_preopt_full_predictor(pred, lat, preopt);
 	cpu[0] += GMRFLib_cpu();
-	Free(pred);
+	Calloc_free();
 
 	return cpu;
 }

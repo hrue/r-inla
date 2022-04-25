@@ -2070,7 +2070,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
 
-		RUN_CODE_BLOCK(1, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		for (i = 0; i < nidx; i++) {
@@ -7493,7 +7493,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		gsl_matrix_free(Q);					\
 	}
 
-	RUN_CODE_BLOCK(1, 5, IMAX(np, max_ng));
+	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, IMAX(np, max_ng));
 #undef CODE_BLOCK
 
 	Calloc_free();
@@ -7791,7 +7791,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 			}						\
 		}
 
-		RUN_CODE_BLOCK(1, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		double *c_diag = Calloc(graph->n, double);
@@ -7843,7 +7843,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 			}						\
 		}
 
-		RUN_CODE_BLOCK(1, 2, graph->n);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
 #undef CODE_BLOCK
 
 		gsl_matrix *MM = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
@@ -8105,7 +8105,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
 		}
 
-		RUN_CODE_BLOCK(1, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_update(thread_id, preopt, BB, CC);
