@@ -243,7 +243,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, debug = 1;
+	int i, debug = 0;
 	double ffx, fx_local;
 	double tref = GMRFLib_cpu();
 

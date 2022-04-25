@@ -259,6 +259,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 			}
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+			//RUN_CODE_BLOCK(1, 0, 0);
 #undef CODE_BLOCK
 		}
 	}

@@ -426,8 +426,19 @@ typedef enum {
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN (2*GMRFLib_MAX_THREADS())
-#define GMRFLib_CACHE_SET_ID(__id) __id = (omp_get_level() == 0 ? 0 : ((omp_get_level() -1) * GMRFLib_MAX_THREADS() +  omp_get_thread_num()))
+#define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
+#define GMRFLib_CACHE_SET_ID(__id) \
+	if (1) {							\
+		int level = omp_get_level();				\
+		int tnum = omp_get_thread_num();			\
+		if (level <= 1)	{					\
+			__id =  tnum;					\
+		} else if (level == 2) {				\
+			__id = omp_get_ancestor_thread_num(level-1) * GMRFLib_MAX_THREADS() + tnum; \
+		} else {						\
+			assert(0 == 1);					\
+		}							\
+	}
 
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
