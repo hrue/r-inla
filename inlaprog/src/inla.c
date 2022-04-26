@@ -36745,8 +36745,18 @@ int testit(int argc, char **argv)
 
 	case 5:
 	{
-		break;
+		// this force a race-condition
+#define NN 10
+		int x[NN];
+#pragma omp parallel for
+		for(int i = 0; i < NN; i++) {
+			*(x + i) = i;
+		}
+		P((double) x[0]);
+		P((double) x[NN-1]);
+#undef NN
 	}
+		break;
 
 	case 6:
 	{

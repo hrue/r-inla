@@ -102,6 +102,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
 			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
 {
+	assert(omp_get_thread_num() == 0);
+
 #define SHOW_TIME(_msg)							\
 	if (debug) {							\
 		printf("\t\tGMRFLib_preopt_init: %-16s %7.2fs\n", _msg, GMRFLib_cpu() - tref); \
