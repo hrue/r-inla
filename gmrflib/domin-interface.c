@@ -796,8 +796,22 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				}
 			}
 
-#pragma omp parallel for private(k) num_threads(GMRFLib_openmp->max_threads_outer)
-			for (k = 0; k < nn; k++) {
+#define CHECK_FOR_EARLY_STOP \
+			if (G.ai_par->stupid_search_mode && \
+			    !G.ai_par->mode_known && \
+			    !ISEQUAL(f_best_save, B.f_best))	\
+			{					\
+				early_stop = 1;			\
+				continue;			\
+			}
+
+			int early_stop = 0;
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+			for (int k = 0; k < nn; k++) {
+				if (early_stop) {
+					continue;
+				}
+				
 				int thread_id = omp_get_thread_num();
 
 				int ii, jj;
@@ -818,20 +832,28 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				jj = idx[k].j;
 				if (G.ai_par->hessian_forward_finite_difference) {
 					F2(f11, ii, h, jj, h);
+					CHECK_FOR_EARLY_STOP;
 					hessian[ii + jj * n] = hessian[jj + ii * n] = (f11 - f1[ii] - f1[jj] + f0) / SQR(h);
 				} else {
 					F2(f11, ii, h, jj, h);
+					CHECK_FOR_EARLY_STOP;
 					F2(fm11, ii, -h, jj, h);
+					CHECK_FOR_EARLY_STOP;
 					F2(f1m1, ii, h, jj, -h);
+					CHECK_FOR_EARLY_STOP;
 					F2(fm1m1, ii, -h, jj, -h);
+					CHECK_FOR_EARLY_STOP;
 					hessian[ii + jj * n] = hessian[jj + ii * n] = (f11 - fm11 - f1m1 + fm1m1) / 4.0 / SQR(h);
 				}
 			}
 			Free(idx);
 		}
+#undef CHECK_FOR_EARLY_STOP
+
 		if (G.ai_par->fp_log) {
 			fprintf(G.ai_par->fp_log, "\n");
 		}
+
 		if (G.ai_par->stupid_search_mode && !G.ai_par->mode_known && !ISEQUAL(f_best_save, B.f_best)) {
 			/*
 			 * There is a change 
@@ -1014,10 +1036,8 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 				tmp = 0.0;
 				for (ii = 0; ii < n; ii++) {
 					for (jj = 0; jj < n; jj++) {
-						tmp += gsl_matrix_get(Opt_dir_params.tAinv, i, ii) * hessian[ii + jj * n] * gsl_matrix_get(Opt_dir_params.tAinv, j, jj);	/* yes, 
-																						 * swap 
-																						 * arguments 
-																						 */
+						// yes, swap arguments
+						tmp += gsl_matrix_get(Opt_dir_params.tAinv, i, ii) * hessian[ii + jj * n] * gsl_matrix_get(Opt_dir_params.tAinv, j, jj);
 					}
 				}
 				h[i + j * n] = h[j + i * n] = tmp;
