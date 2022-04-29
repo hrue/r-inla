@@ -107,6 +107,7 @@ int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr);
 int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count);
 int GMRFLib_opt_get_f_count(void);
 int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
+int GMRFLib_opt_get_hyper(double *x);
 
 GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);

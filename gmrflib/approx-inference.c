@@ -5475,7 +5475,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 					}
 					break;
 				}
-				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 				log_dens_mode_save = log_dens_mode;
 
 				if (GMRFLib_request_optimiser_to_stop) {
