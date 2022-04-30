@@ -78,10 +78,10 @@ int idamax_(int *, double *, int *);
 int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *logdet, int ecode);
 int GMRFLib_comp_chol_semidef(double **chol, int **map, int *rank, double *matrix, int dim, double *logdet, double eps);
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim);
-int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol);
-int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol);
-int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method);
-int GMRFLib_ensure_spd(double *A, int dim, double tol);
+int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol, char **msg);
+int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol, char **msg);
+int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **msg);
+int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg);
 int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int nrhs);
 
 int daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);

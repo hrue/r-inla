@@ -3416,7 +3416,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						ttheta = Calloc(nhyper, double);
 						Memset(zz, 0, nhyper * sizeof(double));
 
-						if (GMRFLib_OPENMP_IN_PARALLEL()) {
+						if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 							if (!ais[thread_id]) {
 								ais[thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -3455,7 +3455,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						ttheta = Calloc(nhyper, double);
 						Memset(zz, 0, nhyper * sizeof(double));
 
-						if (GMRFLib_OPENMP_IN_PARALLEL()) {
+						if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 							if (!ais[thread_id]) {
 								ais[thread_id] =
 								    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -3668,7 +3668,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				dens_count = k;
 				hyper_count = k;
 
-				if (GMRFLib_OPENMP_IN_PARALLEL()) {
+				if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 					if (!ais[thread_id]) {
 						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
@@ -3879,7 +3879,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				 */
 				if (err == GMRFLib_SUCCESS) {
 					tref = GMRFLib_cpu();
-					if (GMRFLib_OPENMP_IN_PARALLEL()) {
+					if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 						if (!ais[thread_id]) {
 							ais[thread_id] =
 							    GMRFLib_duplicate_ai_store(ai_store, GMRFLib_FALSE, GMRFLib_TRUE, GMRFLib_FALSE);
@@ -5732,7 +5732,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			ttheta = Calloc(nhyper, double);
 			Memset(zz, 0, nhyper * sizeof(double));
 
-			if (GMRFLib_OPENMP_IN_PARALLEL()) {
+			if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 				if (!ais[thread_id]) {
 					ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 				}
@@ -7317,7 +7317,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		}							\
 									\
 		/* this computed Q = prec.matrix */			\
-		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps);		\
+		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL);	\
 		GMRFLib_gsl_mv(Q, mean_old, b);				\
 		if (corr_hypar) {					\
 			gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL); \
@@ -7340,7 +7340,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
 		}							\
 									\
-		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps);		\
+		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL);	\
 		gsl_matrix *S = Q;					\
 		GMRFLib_gsl_mv(S, b, mean);				\
 		if (corr_hypar) {					\
@@ -7777,7 +7777,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 
 		// need pivoting to solve the system
-		GMRFLib_gsl_ensure_spd(MM, GMRFLib_eps(0.5));
+		GMRFLib_gsl_ensure_spd(MM, GMRFLib_eps(0.5), NULL);
 		gsl_linalg_pcholesky_decomp(MM, perm);
 		gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);

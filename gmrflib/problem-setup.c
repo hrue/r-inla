@@ -711,7 +711,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
 			if (retval != GMRFLib_SUCCESS) {
 				GMRFLib_WARNING("Matrix AQA^t is numerical singular, remove singularity and move on");
-				GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.5));
+				GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.5), NULL);
 				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 			}
@@ -770,7 +770,7 @@ int GMRFLib_init_problem_store(int thread_id,
 				retval = GMRFLib_comp_chol_general(&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2);
 				if (retval != GMRFLib_SUCCESS) {
 					GMRFLib_WARNING("Matrix AA^t is numerical singular, remove singularity and move on");
-					GMRFLib_ensure_spd(aat_m, nc, GMRFLib_eps(0.5));
+					GMRFLib_ensure_spd(aat_m, nc, GMRFLib_eps(0.5), NULL);
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2));
 				}

@@ -303,11 +303,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	// build up structure for the likelihood part
 
 	int nt = -1;
-	if (GMRFLib_OPENMP_IN_PARALLEL()) {
-		nt = GMRFLib_openmp->max_threads_inner;
-	} else {
-		nt = GMRFLib_openmp->max_threads_outer;
-	}
+	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
+	nt = GMRFLib_openmp->max_threads_outer;
 	nt = IMIN(GMRFLib_MAX_THREADS(), nt);
 
 	A_idxval = GMRFLib_idxval_ncreate(npred);

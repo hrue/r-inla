@@ -38275,10 +38275,10 @@ int testit(int argc, char **argv)
 		gsl_matrix_set(Q, 2, 1, -3);
 
 		gsl_matrix *S = GMRFLib_gsl_duplicate_matrix(Q);
-		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5));
+		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
 		GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f");
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
-		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5));
+		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
 		break;
 	}
