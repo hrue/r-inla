@@ -6,7 +6,7 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 /* multimin/vector_bfgs2.c
  * 
@@ -35,6 +35,7 @@
 /* Thanks to Alan Irwin irwin@beluga.phys.uvic.ca. for suggesting this
    algorithm and providing sample fortran benchmarks */
 
+#include <assert.h>
 #include <errno.h>
 #include <stddef.h>
 #include <float.h>
@@ -51,10 +52,77 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_poly.h>
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_randist.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/bfgs3.h"
+
 static int debug = 0;
+
+static int bfgs3_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X, const gsl_vector * y, gsl_vector * c, gsl_matrix * cov)
+{
+	gsl_multifit_robust_workspace *work = gsl_multifit_robust_alloc(T, X->size1, X->size2);
+	int s = gsl_multifit_robust(X, y, c, cov, work);
+	gsl_multifit_robust_free(work);
+	return s;
+}
+
+int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *y, int order)
+{
+	FIXME("THIS ONE IS NOT YET TESTED");
+	exit(1);
+	
+	// input n pairs of (x_i, y_i), fit a robust regression model of given order
+	// and return the x* and optional y* that minimize the fitted model.
+
+	size_t n = (size_t) nn, i, j, p = order + 1;
+	gsl_matrix *X, *cov;
+	gsl_vector *yy, *c;
+
+	X = gsl_matrix_alloc(n, p);
+	yy = gsl_vector_alloc(n);
+	c = gsl_vector_alloc(p);
+	cov = gsl_matrix_alloc(p, p);
+
+	for (i = 0; i < n; ++i) {
+		gsl_vector_set(yy, i, y[i]);
+		double xi = x[i], xxi = xi;
+		gsl_matrix_set(X, i, 0, 1.0);
+		for (j = 1; j < p; j++) {
+			gsl_matrix_set(X, i, j, xxi);
+			xxi *= xi;
+		}
+	}
+
+	gsl_set_error_handler_off();
+	int err = bfgs3_dofit(gsl_multifit_robust_bisquare, X, yy, c, cov);
+	if (err == GSL_EMAXITER) {
+		assert(!err);
+	}
+	gsl_set_error_handler(NULL);
+
+	gsl_vector *xx = gsl_vector_alloc(order);
+	gsl_vector_set(xx, 0, 1.0);
+	double xev = x_eval;
+	for(size_t i = 1; i < (size_t) order; i++) {
+		gsl_vector_set(xx, i, xev);
+		xev *= x_eval;
+	}
+	double y_err;
+
+	//gsl_multifit_robust_est(const gsl_vector *x, const gsl_vector *c, const gsl_matrix *cov, double *y, double*y_err)
+	gsl_multifit_robust_est(xx, c, cov, y_eval, &y_err);
+
+	gsl_matrix_free(X);
+	gsl_vector_free(yy);
+	gsl_vector_free(c);
+	gsl_vector_free(xx);
+	gsl_matrix_free(cov);
+
+	return GMRFLib_SUCCESS;
+}
 
 /* Find a minimum in x=[0,1] of the interpolating quadratic through
  * (0,f0) (1,f1) with derivative fp0 at x=0.  The interpolating
@@ -185,12 +253,45 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	const size_t bracket_iters = 50, section_iters = 50;
 	size_t i = 0;
 
+	static double *hold_alpha = NULL;
+	static double *hold_func = NULL;
+	static double *hold_dalpha = NULL;
+	static double *hold_dfunc = NULL;
+	int hold_n = 0;
+	int hold_dn = 0;
+	
+	if (hold_alpha == NULL) {
+		hold_alpha = Calloc(bracket_iters + section_iters + 2, double);
+		hold_func = Calloc(bracket_iters + section_iters + 2, double);
+		hold_dalpha = Calloc(bracket_iters + section_iters + 2, double);
+		hold_dfunc = Calloc(bracket_iters + section_iters + 2, double);
+	}
+
+	static int count = 0;
+	char *name = NULL;
+	FILE *fp = NULL;
+	
+	if (0) {
+		GMRFLib_sprintf(&name, "./line-%.5d.txt", count++);
+		printf("Open file %s\n", name);
+		FILE *fp = fopen(name, "w");
+		assert(fp);
+	}
+		
 	if (debug)
 		printf("...enter minimize() sigma = %.12g\n", sigma);
 
 	GSL_FN_FDF_EVAL_F_DF(fn, 0.0, &f0, &fp0);
 	if (debug)
 		printf("..eval F_DF %g %g \n", f0, fp0);
+
+	hold_alpha[hold_n] = 0.0;
+	hold_func[hold_n++] = f0;
+	hold_dalpha[hold_dn] = 0.0;
+	hold_dfunc[hold_dn++] = fp0;
+
+	if (fp) fprintf(fp, "F %f %f\n", 0.0, f0);
+	if (fp) fprintf(fp, "DF %f %f\n", 0.0, fp0);
 
 	falpha_prev = f0;
 	fpalpha_prev = fp0;
@@ -217,11 +318,16 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("...begin bracketing: eval f %.12g\n", falpha);
 
+		hold_alpha[hold_n] = alpha;
+		hold_func[hold_n++] = falpha;
+
+		if (fp) fprintf(fp, "F %f %f\n", alpha, falpha);
+
 		/*
 		 * Fletcher's rho test 
 		 */
 
-		if (falpha > f0 + alpha * rho * fp0 || falpha >= falpha_prev || GMRFLib_request_optimiser_to_stop) {
+		if (falpha > f0 + alpha * rho * fp0 || falpha >= falpha_prev) {
 			a = alpha_prev;
 			fa = falpha_prev;
 			fpa = fpalpha_prev;
@@ -233,18 +339,24 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 
 		fpalpha = GSL_FN_FDF_EVAL_DF(fn, alpha);
 		if (debug)
-			printf("...begin bracketing: eval df %.12g\n", falpha);
+			printf("...begin bracketing: eval df %.12g\n", fpalpha);
+
+		hold_dalpha[hold_dn] = alpha;
+		hold_dfunc[hold_dn++] = fpalpha;
+
+		if (fp) fprintf(fp, "DF %f %f\n", alpha, fpalpha);
 
 		/*
 		 * Fletcher's sigma test 
 		 */
 
-		if (fabs(fpalpha) <= -sigma * fp0 || GMRFLib_request_optimiser_to_stop) {
+		if (fabs(fpalpha) <= -sigma * fp0) {
 			*alpha_new = alpha;
+			if (fp) fclose(fp);
 			return GSL_SUCCESS;
 		}
 
-		if (fpalpha >= 0 || GMRFLib_request_optimiser_to_stop) {
+		if (fpalpha >= 0) {
 			a = alpha;
 			fa = falpha;
 			fpa = fpalpha;
@@ -267,14 +379,6 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		falpha_prev = falpha;
 		fpalpha_prev = fpalpha;
 		alpha = alpha_next;
-
-		if (GMRFLib_request_optimiser_to_stop)
-			break;
-	}
-
-	if (GMRFLib_request_optimiser_to_stop) {
-		*alpha_new = alpha;
-		return GSL_SUCCESS;			       /* terminate */
 	}
 
 	/*
@@ -299,27 +403,53 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("...eval F %.12g\n", falpha);
 
+		hold_alpha[hold_n] = alpha;
+		hold_func[hold_n++] = falpha;
+
+		if (fp) fprintf(fp, "F %f %f\n", alpha, falpha);
+
 		if (debug)
 			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
 
-		if ((a - alpha) * fpa <= GMRFLib_eps(2.0 / 3.0)) {	/* hrue */
+		if ((a - alpha) * fpa <= GMRFLib_eps(0.2)) {	/* hrue */
 			/*
 			 * roundoff prevents progress 
 			 */
-			if (debug)
-				printf("BFGS3: minimizer: abort search as we do not seem to get any longer...\n");
+			int ldebug = (1 || debug);
+			if (ldebug)
+				printf("BFGS3: minimizer: abort search. do a robust fit and update\n");
 
-			*alpha_new = alpha;		       /* hrue */
-			return GSL_ENOPROG;
+			if (ldebug) {
+				printf("BFGS3: do a robust fit with %d points\n", hold_n);
+				for(int i = 0; i < hold_n; i++) {
+					printf("\talpha = %f \tfunc = %f\n", hold_alpha[i], hold_func[i]);
+				}
+				for(int i = 0; i < hold_dn; i++) {
+					printf("\tdalpha = %f \tdfunc = %f\n", hold_dalpha[i], hold_dfunc[i]);
+				}
+			}
+			
+			double amin, fmin;
+			int robust_regression = 1, order = 2;
+			bfgs4_robust_minimize(&amin, &fmin, hold_n, hold_alpha, hold_func, hold_dn, hold_dalpha, hold_dfunc, order);
+
+			if (amin < GMRFLib_min_value(hold_alpha, hold_n, NULL) || amin > GMRFLib_max_value(hold_alpha, hold_n, NULL)) {
+				int idx_min;
+				GMRFLib_min_value(hold_func, hold_n, &idx_min);
+				amin = hold_alpha[idx_min];
+				robust_regression = 0;
+			}
+			if (ldebug) {
+				printf("BFGS3: \tamin %f fmin %f (%s)\n", amin, fmin,
+				       (robust_regression ? "robust regression, internal minimum" : "enable emergency mode"));
+			}
+			*alpha_new = amin;
+			if (fp) fclose(fp);
+			return GSL_SUCCESS;
 		}
 
 		if (debug)
 			printf("...TEST %.12g > %.12g || %.12g >= %.12g\n", falpha, f0 + rho * alpha * fp0, falpha, fa);
-
-		if (GMRFLib_request_optimiser_to_stop) {
-			*alpha_new = alpha;
-			return GSL_SUCCESS;		       /* terminate */
-		}
 
 		if (falpha > f0 + rho * alpha * fp0 || falpha >= fa) {
 			/*
@@ -333,10 +463,16 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			if (debug)
 				printf("...eval DF %.12g\n", fpalpha);
 
+			hold_dalpha[hold_dn] = alpha;
+			hold_dfunc[hold_dn++] = fpalpha;
+
+			if (fp) fprintf(fp, "DF %f %f\n", alpha, fpalpha);
+
 			if (debug)
 				printf("... TEST %.12g <= %.12g\n", fabs(fpalpha), -sigma * fp0);
-			if (fabs(fpalpha) <= -sigma * fp0 || GMRFLib_request_optimiser_to_stop) {
+			if (fabs(fpalpha) <= -sigma * fp0) {
 				*alpha_new = alpha;
+				if (fp) fclose(fp);
 				return GSL_SUCCESS;	       /* terminate */
 			}
 
@@ -355,10 +491,11 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		}
 	}
 
+	if (fp) fclose(fp);
 	return GSL_SUCCESS;
 }
 
-static void moveto(double alpha, wrapper_t * w)
+static void moveto(double alpha, bfgs3_wrapper_t * w)
 {
 	if (alpha == w->x_cache_key) {			       /* using previously cached position */
 		return;
@@ -374,7 +511,7 @@ static void moveto(double alpha, wrapper_t * w)
 	w->x_cache_key = alpha;
 }
 
-static double slope(wrapper_t * w)
+static double slope(bfgs3_wrapper_t * w)
 {							       /* compute gradient . direction */
 	double df;
 	gsl_blas_ddot(w->g_alpha, w->p, &df);
@@ -383,7 +520,7 @@ static double slope(wrapper_t * w)
 
 static double wrap_f(double alpha, void *params)
 {
-	wrapper_t *w = (wrapper_t *) params;
+	bfgs3_wrapper_t *w = (bfgs3_wrapper_t *) params;
 	if (alpha == w->f_cache_key) {			       /* using previously cached f(alpha) */
 		return w->f_alpha;
 	}
@@ -398,7 +535,7 @@ static double wrap_f(double alpha, void *params)
 
 static double wrap_df(double alpha, void *params)
 {
-	wrapper_t *w = (wrapper_t *) params;
+	bfgs3_wrapper_t *w = (bfgs3_wrapper_t *) params;
 	if (alpha == w->df_cache_key) {			       /* using previously cached df(alpha) */
 		return w->df_alpha;
 	}
@@ -418,7 +555,7 @@ static double wrap_df(double alpha, void *params)
 
 static void wrap_fdf(double alpha, void *params, double *f, double *df)
 {
-	wrapper_t *w = (wrapper_t *) params;
+	bfgs3_wrapper_t *w = (bfgs3_wrapper_t *) params;
 
 	/*
 	 * Check for previously cached values 
@@ -449,7 +586,7 @@ static void wrap_fdf(double alpha, void *params, double *f, double *df)
 }
 
 static void
-prepare_wrapper(wrapper_t * w, gsl_multimin_function_fdf * fdf,
+prepare_wrapper(bfgs3_wrapper_t * w, gsl_multimin_function_fdf * fdf,
 		const gsl_vector * x, double f, const gsl_vector * g, const gsl_vector * p, gsl_vector * x_alpha, gsl_vector * g_alpha)
 {
 	w->fdf_linear.f = &wrap_f;
@@ -479,7 +616,7 @@ prepare_wrapper(wrapper_t * w, gsl_multimin_function_fdf * fdf,
 	w->df_cache_key = 0.0;
 }
 
-static void update_position(wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g)
+static void update_position(bfgs3_wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g)
 {
 	/*
 	 * ensure that everything is fully cached 
@@ -494,7 +631,7 @@ static void update_position(wrapper_t * w, double alpha, gsl_vector * x, double 
 	gsl_vector_memcpy(g, w->g_alpha);
 }
 
-static void change_direction(wrapper_t * w)
+static void change_direction(bfgs3_wrapper_t * w)
 {
 	/*
 	 * Convert the cache values from the end of the current minimisation to those needed for the start of the next minimisation, alpha=0 

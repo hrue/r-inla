@@ -176,7 +176,7 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 	return alpha;
 }
 
-static void moveto(double alpha, wrapper_t * w)
+static void moveto(double alpha, bfgs4_wrapper_t * w)
 {
 	if (alpha == w->x_cache_key) {			       /* using previously cached position */
 		return;
@@ -192,7 +192,7 @@ static void moveto(double alpha, wrapper_t * w)
 	w->x_cache_key = alpha;
 }
 
-static double slope(wrapper_t * w)
+static double slope(bfgs4_wrapper_t * w)
 {							       /* compute gradient . direction */
 	double df;
 	gsl_blas_ddot(w->g_alpha, w->p, &df);
@@ -201,7 +201,7 @@ static double slope(wrapper_t * w)
 
 static double wrap_f(double alpha, void *params)
 {
-	wrapper_t *w = (wrapper_t *) params;
+	bfgs4_wrapper_t *w = (bfgs4_wrapper_t *) params;
 	if (alpha == w->f_cache_key) {			       /* using previously cached f(alpha) */
 		return w->f_alpha;
 	}
@@ -216,7 +216,7 @@ static double wrap_f(double alpha, void *params)
 
 static double wrap_df(double alpha, void *params)
 {
-	wrapper_t *w = (wrapper_t *) params;
+	bfgs4_wrapper_t *w = (bfgs4_wrapper_t *) params;
 	if (alpha == w->df_cache_key) {			       /* using previously cached df(alpha) */
 		return w->df_alpha;
 	}
@@ -236,7 +236,7 @@ static double wrap_df(double alpha, void *params)
 
 static void wrap_fdf(double alpha, void *params, double *f, double *df)
 {
-	wrapper_t *w = (wrapper_t *) params;
+	bfgs4_wrapper_t *w = (bfgs4_wrapper_t *) params;
 
 	/*
 	 * Check for previously cached values 
@@ -267,7 +267,7 @@ static void wrap_fdf(double alpha, void *params, double *f, double *df)
 }
 
 static void
-prepare_wrapper(wrapper_t * w, gsl_multimin_function_fdf * fdf,
+prepare_wrapper(bfgs4_wrapper_t * w, gsl_multimin_function_fdf * fdf,
 		const gsl_vector * x, double f, const gsl_vector * g, const gsl_vector * p, gsl_vector * x_alpha, gsl_vector * g_alpha)
 {
 	w->fdf_linear.f = &wrap_f;
@@ -297,7 +297,7 @@ prepare_wrapper(wrapper_t * w, gsl_multimin_function_fdf * fdf,
 	w->df_cache_key = 0.0;
 }
 
-static void update_position(wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g)
+static void update_position(bfgs4_wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g)
 {
 	/*
 	 * ensure that everything is fully cached 
@@ -312,7 +312,7 @@ static void update_position(wrapper_t * w, double alpha, gsl_vector * x, double 
 	gsl_vector_memcpy(g, w->g_alpha);
 }
 
-static void change_direction(wrapper_t * w)
+static void change_direction(bfgs4_wrapper_t * w)
 {
 	/*
 	 * Convert the cache values from the end of the current minimisation to those needed for the start of the next minimisation, alpha=0 
@@ -611,8 +611,7 @@ static const gsl_multimin_fdfminimizer_type vector_bfgs4_type = {
 
 const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs4 = &vector_bfgs4_type;
 
-
-static int bfgs4_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X, const gsl_vector * y, gsl_vector * c, gsl_matrix * cov)
+int bfgs4_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X, const gsl_vector * y, gsl_vector * c, gsl_matrix * cov)
 {
 	int s;
 	gsl_multifit_robust_workspace *work = gsl_multifit_robust_alloc(T, X->size1, X->size2);
@@ -689,27 +688,39 @@ int gsl_bfgs4_test1(size_t n)
 	return 0;
 }
 
-int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order)
+int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order)
 {
 	// input n pairs of (x_i, y_i), fit a robust regression model of given order
 	// and return the x* and optional y* that minimize the fitted model.
 
-	size_t n = (size_t) nn, i, j, p = order + 1;
+	size_t n = (size_t) nn, m = (size_t) mm, i, j, p = order + 1;
+	size_t nm = n + m, idx = 0;
 	gsl_matrix *X, *cov;
 	gsl_vector *yy, *c;
 	double xtmp, xtmp2, ytmp, val, x_min = 0.0, y_min = 0.0;
 
-	X = gsl_matrix_alloc(n, p);
-	yy = gsl_vector_alloc(n);
+	X = gsl_matrix_alloc(nm, p);
+	yy = gsl_vector_alloc(nm);
 	c = gsl_vector_alloc(p);
 	cov = gsl_matrix_alloc(p, p);
 
 	for (i = 0; i < n; ++i) {
-		gsl_vector_set(yy, i, y[i]);
+		gsl_vector_set(yy, idx + i, y[i]);
 		double xi = x[i], xxi = xi;
-		gsl_matrix_set(X, i, 0, 1.0);
+		gsl_matrix_set(X, idx + i, 0, 1.0);
 		for (j = 1; j < p; j++) {
-			gsl_matrix_set(X, i, j, xxi);
+			gsl_matrix_set(X, idx + i, j, xxi);
+			xxi *= xi;
+		}
+	}
+
+	idx = n;
+	for (i = 0; i < m; ++i) {
+		gsl_vector_set(yy, idx + i, yd[i]);
+		double xi = xd[i], xxi = 1.0;
+		gsl_matrix_set(X, idx + i, 0, 0.0);
+		for (j = 1; j < p; j++) {
+			gsl_matrix_set(X, idx + i, j, j * xxi);
 			xxi *= xi;
 		}
 	}
@@ -734,11 +745,20 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 		return GMRFLib_SUCCESS;
 	}
 
-	size_t m = 50;
-	double dx = (x[n - 1] - x[0]) / (m - 1.0);
+	size_t mp = 50;
+	double dx = 0.0, xx_max = 0.0, xx_min = 0.0;
 
-	for (i = 0; i < m; ++i) {
-		xtmp = xtmp2 = x[0] + dx * i;
+	if (xd) {
+		xx_max = DMAX(GMRFLib_max_value(x, nn, NULL), GMRFLib_max_value(xd, mm, NULL));
+		xx_min = DMIN(GMRFLib_min_value(x, nn, NULL), GMRFLib_min_value(xd, mm, NULL));
+	} else {
+		xx_max = GMRFLib_max_value(x, nn, NULL);
+		xx_min = GMRFLib_min_value(x, nn, NULL);
+	}
+	dx = (xx_max -  xx_min) / (mp - 1.0);
+
+	for (i = 0; i < mp; ++i) {
+		xtmp = xtmp2 = xx_min + dx * i;
 		ytmp = gsl_vector_get(c, 0);
 		for (j = 1; j < p; j++) {
 			ytmp += gsl_vector_get(c, j) * xtmp2;
@@ -770,7 +790,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 		dx = -val / grad;
 		x_min += dx;
-		if (iter == max_iter - 1 || ABS(dx) < GMRFLib_eps(2.0 / 3.0)) {
+		if (iter == max_iter - 1 || ABS(dx) < GMRFLib_eps(1.0 / 3.0)) {
 			break;
 		}
 	}
@@ -935,7 +955,7 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	double amin, fmin;
 	int robust_regression = 1, order = 2;
 
-	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, order);
+	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 0, NULL, NULL, order);
 	if (amin < DMIN(aa[0], aa[na - 1]) || amin > DMAX(aa[0], aa[na - 1])) {
 		int idx_min;
 		GMRFLib_min_value(fun, na, &idx_min);

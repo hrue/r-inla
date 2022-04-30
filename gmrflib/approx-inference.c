@@ -430,22 +430,22 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	int Npred = (preopt ? preopt->Npred : graph->n);
 	ai_store->Npred = Npred;
 
-	static int **nnr_step_factor_first_time_only = NULL;
+	static int *nnr_step_factor_first_time_only = NULL;
 	if (!nnr_step_factor_first_time_only) {
 #pragma omp critical
 		{
 			if (!nnr_step_factor_first_time_only) {
-				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN, int *);
+				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN, int);
+				for(int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+					nnr_step_factor_first_time_only[i] = 1;
+				}
 			}
 		}
 	}
 	int idx;
 	GMRFLib_CACHE_SET_ID(idx);
-	if (!nnr_step_factor_first_time_only[idx]) {
-		nnr_step_factor_first_time_only[idx] = Calloc(1, int);
-		nnr_step_factor_first_time_only[idx][0] = 1;
-	}
-	int nr_step_factor_first_time_only = nnr_step_factor_first_time_only[idx][0];
+
+	int *nr_step_factor_first_time_only = &(nnr_step_factor_first_time_only[idx]);
 
 	GMRFLib_problem_tp *problem = NULL;
 	GMRFLib_optimize_param_tp *optpar = NULL;
@@ -471,9 +471,9 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		/*
 		 *  then do this only the first time for each thread. This would improve initial values
 		 */
-		if (nr_step_factor_first_time_only) {
+		if (*nr_step_factor_first_time_only) {
 			optpar->nr_step_factor = -ai_par->optpar_nr_step_factor;
-			nr_step_factor_first_time_only = 0;
+			*nr_step_factor_first_time_only = 0;
 		} else {
 			optpar->nr_step_factor = 1.0;
 		}
@@ -2070,7 +2070,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		RUN_CODE_BLOCK(1, 0, 0);
 #undef CODE_BLOCK
 
 		for (i = 0; i < nidx; i++) {
@@ -2223,7 +2224,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		// about comparing with err_previous, then we're already in the good regime, and another iteration will not give anything new.
 		// this assumes err_i = m * (err_{i-1})^2
 		double m = err / SQR(err_previous);
-		int almost_there = ((iter > 1) && (f >= 1.0) && (err > optpar->abserr_step) &&
+		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
 				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
 		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
@@ -5364,6 +5365,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			case GMRFLib_AI_OPTIMISER_GSL:
 			case GMRFLib_AI_OPTIMISER_DEFAULT:
 			{
+				int retval;
 				int fd_save = ai_par->gradient_forward_finite_difference;
 				if (ai_par->optimise_smart) {
 					ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
@@ -5372,7 +5374,22 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 					}
 				}
 
-				GMRFLib_gsl_optimize(ai_par);
+				double gsl_epsg = ai_par->gsl_epsg;
+				double gsl_epsf = ai_par->gsl_epsf;
+				double gsl_epsx = ai_par->gsl_epsx;
+
+				ai_par->gsl_epsg *= 5.0;
+				ai_par->gsl_epsf *= 5.0;
+				ai_par->gsl_epsx *= 5.0;
+
+				retval = GMRFLib_gsl_optimize(ai_par);
+				if (retval != GMRFLib_SUCCESS) {
+					retval = GMRFLib_gsl_optimize(ai_par);
+				}
+
+				ai_par->gsl_epsg = gsl_epsg;
+				ai_par->gsl_epsf = gsl_epsf;
+				ai_par->gsl_epsx = gsl_epsx;
 
 				if (ai_par->optimise_smart) {
 					ai_par->restart = IMAX(1, ai_par->restart);
@@ -5385,7 +5402,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 				if (ai_par->restart) {
 					for (k = 0; k < IMAX(0, ai_par->restart); k++) {
-						GMRFLib_gsl_optimize(ai_par);	/* restart */
+						retval = GMRFLib_gsl_optimize(ai_par);	/* restart */
+						if (retval != GMRFLib_SUCCESS) {
+							retval = GMRFLib_gsl_optimize(ai_par);
+						}
 					}
 				}
 
@@ -5451,115 +5471,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		int fd_save = ai_par->hessian_forward_finite_difference;
 
 		hessian = Calloc(ISQR(nhyper), double);
-
-		// SMART MODE: we try to be smart. do a prerun using forward differences. if its ok, keep it.
-		if (ai_par->optimise_smart) {
-			ai_par->hessian_forward_finite_difference = GMRFLib_TRUE;
-			smart_success = 1;
-			if (ai_par->fp_log) {
-				fprintf(ai_par->fp_log, "Smart optimise part III: estimate Hessian using forward differences\n");
-			}
-			while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
-				smart_success = 0;
-				if (!stupid_mode_iter) {
-					if (ai_par->fp_log)
-						fprintf(ai_par->fp_log,
-							"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
-				}
-				stupid_mode_iter++;
-
-				if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
-					if (ai_par->fp_log) {
-						fprintf(stderr,
-							"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
-					}
-					break;
-				}
-				log_dens_mode_save = log_dens_mode;
-
-				if (GMRFLib_request_optimiser_to_stop) {
-					fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-					break;
-				}
-				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
-					fprintf(stderr,
-						"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
-					fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "\n\n");
-					break;
-					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
-				}
-				smart_success = 1;
-			}
-			ai_par->hessian_forward_finite_difference = fd_save;
-
-			if (smart_success) {
-				// check if the hessian is valid. if its ok, we accept, otherwise, we retry with central differences
-				double *chol_tmp = NULL;
-				int ecode = 99, ret_ecode;
-
-				ret_ecode = GMRFLib_comp_chol_general(&chol_tmp, hessian, nhyper, NULL, ecode);
-				Free(chol_tmp);
-				if (ret_ecode == ecode) {
-					// we failed, at least one eigenvalue is negative...
-					smart_success = 0;
-				}
-			}
-
-			/*
-			 * do this again to get the ai_store set correctly.
-			 */
-			SET_THETA_MODE;
-			if (x_mode) {
-				Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-			}
-
-			if (stupid_mode_iter) {
-				// FIXME("------------> do one function call");
-				for (i = 0; i < nhyper; i++) {
-					theta_mode[i] = hyperparam[i][0][0];
-				}
-				int thread_id = 0;
-				assert(omp_get_thread_num() == 0);
-				GMRFLib_opt_f(thread_id, theta_mode, &log_dens_mode, &ierr, NULL, NULL);
-				log_dens_mode *= -1.0;
-				SET_THETA_MODE;
-				if (x_mode) {
-					Memcpy(x_mode, ai_store->mode, graph->n * sizeof(double));
-				}
-			}
-
-			if (ai_par->fp_log) {
-				if (ai_par->optimise_smart) {
-					if (smart_success) {
-						fprintf(ai_par->fp_log, "Smart optimise part III: Hessian seems fine, keep it\n");
-					} else {
-						fprintf(ai_par->fp_log, "Smart optimise part III: detected trouble with the Hessian...\n");
-						fprintf(ai_par->fp_log, "Smart optimise part III: try a restart before trying again.\n");
-					}
-				}
-			}
-
-			if (!smart_success) {
-				// we'll try to compute the Hessian again, but before that, lets restart the optimizer
-				GMRFLib_gsl_optimize(ai_par);  /* restart */
-				GMRFLib_gsl_get_results(theta_mode, &log_dens_mode);
-			}
-		}
-
-		stupid_mode_iter = 0;			       /* reset it */
 		if (!(ai_par->optimise_smart) || !smart_success) {
 
 			if (ai_par->optimise_smart) {
 				ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
 				if (ai_par->fp_log) {
-					fprintf(ai_par->fp_log, "Smart optimise part IV: re-estimate Hessian using central differences\n");
+					fprintf(ai_par->fp_log, "Smart optimise part IV: estimate Hessian using central differences\n");
 				}
 			}
 

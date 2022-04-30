@@ -37923,7 +37923,7 @@ int testit(int argc, char **argv)
 
 	case 65:
 	{
-		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int order);
+		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
 
 		double x[] = { -0.200, -0.075, 0.000, 0.040, 0.160, 0.360, 0.640, 1.000 };
 		double y[] = { 14960.675457, 14934.327851, 14927.976542, 14943.616530, 14945.530949, 15000.597367, 15140.861227, 15412.165108 };
@@ -37933,7 +37933,7 @@ int testit(int argc, char **argv)
 		double ymin;
 
 		for (int order = 2; order <= 4; order += 2) {
-			bfgs4_robust_minimize(&xmin, &ymin, n, x, y, order);
+			bfgs4_robust_minimize(&xmin, &ymin, n, x, y, 0, NULL, NULL, order);
 			printf("xmin = %f ymin= %f when order = %d\n", xmin, ymin, order);
 		}
 		break;

@@ -82,7 +82,8 @@ __BEGIN_DECLS
 	double df_cache_key;
 	double x_cache_key;
 	double g_cache_key;
-} wrapper_t;
+} bfgs3_wrapper_t;
+
 typedef struct {
 	int iter;
 	double step;
@@ -103,7 +104,7 @@ typedef struct {
 	/*
 	 * wrapper function 
 	 */
-	wrapper_t wrap;
+	bfgs3_wrapper_t wrap;
 	/*
 	 * minimization parameters 
 	 */
@@ -122,21 +123,27 @@ static double interp_cubic(double f0, double fp0, double f1, double fp1, double 
 static double interpolate(double a, double fa, double fpa, double b, double fb, double fpb, double xmin, double xmax, int order);
 static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
 		    double *alpha_new);
-static void moveto(double alpha, wrapper_t * w);
-static double slope(wrapper_t * w);
+static void moveto(double alpha, bfgs3_wrapper_t * w);
+static double slope(bfgs3_wrapper_t * w);
 static double wrap_f(double alpha, void *params);
 static double wrap_df(double alpha, void *params);
 static void wrap_fdf(double alpha, void *params, double *f, double *df);
-static void prepare_wrapper(wrapper_t * w, gsl_multimin_function_fdf * fdf,
+static void prepare_wrapper(bfgs3_wrapper_t * w, gsl_multimin_function_fdf * fdf,
 			    const gsl_vector * x, double f, const gsl_vector * g, const gsl_vector * p, gsl_vector * x_alpha, gsl_vector * g_alpha);
-static void update_position(wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g);
-static void change_direction(wrapper_t * w);
+static void update_position(bfgs3_wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g);
+static void change_direction(bfgs3_wrapper_t * w);
 static int vector_bfgs3_alloc(void *vstate, size_t n);
 static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size,
 			    double tol);
 static void vector_bfgs3_free(void *vstate);
 static int vector_bfgs3_restart(void *vstate);
 static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf * fdf, gsl_vector * x, double *f, gsl_vector * gradient, gsl_vector * dx);
+
+int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *y, int order);
+
+// these ones I need from bfgs4
+int bfgs4_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X, const gsl_vector * y, gsl_vector * c, gsl_matrix * cov);
+int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
 
 __END_DECLS
 #endif
