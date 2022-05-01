@@ -33595,14 +33595,16 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-		for (int time = 0; time < 8; time++) {
+		for (int time = 0; time < 3; time++) {
 			for (int met = 0; met < 2; met++) {
 				for (int mett = 0; mett < 2; mett++) {
 					GMRFLib_preopt_like_strategy = met;
 					GMRFLib_Qx_strategy = mett;
 					double *cpu = GMRFLib_preopt_measure_time(thread_id, preopt);
-					time_used_like[met] += cpu[0];
-					time_used_Qx[mett] += cpu[1];
+					if (time) {
+						time_used_like[met] += cpu[0];
+						time_used_Qx[mett] += cpu[1];
+					}
 					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
 					Free(cpu);
 				}
@@ -33613,11 +33615,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
 		
 		// do this alone as this strategy depends on the previous choices
-		for (int time = 0; time < 8; time++) {
+		for (int time = 0; time < 3; time++) {
 			for (int mettt = 0; mettt < 2; mettt++) {
 				GMRFLib_preopt_predictor_strategy = mettt;
 				double *cpu = GMRFLib_preopt_measure_time2(preopt);
-				time_used_pred[mettt] += cpu[0];
+				if (time) {
+					time_used_pred[mettt] += cpu[0];
+				}
 				// printf("%d %f\n", mettt, cpu[0]);
 				Free(cpu);
 			}

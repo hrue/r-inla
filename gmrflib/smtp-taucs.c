@@ -674,8 +674,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRF
 			}						\
 		}
 
-		//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
-		RUN_CODE_BLOCK(1, 0, 0);
+		RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
 #undef CODE_BLOCK
 
 		Free(ic_idx);
