@@ -266,7 +266,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 
 	case GMRFLib_OPENMP_PLACES_TIMING:
 		nested = 0;
-		GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[1]; /* YES! */
+		GMRFLib_openmp->max_threads_outer = GMRFLib_openmp->max_threads_nested[1];	/* YES! */
 		GMRFLib_openmp->max_threads_inner = GMRFLib_openmp->max_threads_nested[1];
 		break;
 

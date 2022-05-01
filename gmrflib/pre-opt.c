@@ -524,7 +524,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		P((*preopt)->Npred);
 		P((*preopt)->n);
 	}
-
 	// we have to create AtA from "At" & "A". the matrix 'AtA' is for the likelihood only and is either "At %*% A", or "pAAt %*% pAA",
 	// depending if "pA" is there or not
 
@@ -1290,7 +1289,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	GMRFLib_Qfunc_tp *like_Qfunc = preopt->like_Qfunc;
 	GMRFLib_graph_tp *like_graph = preopt->like_graph;
 	void *like_Qfunc_arg = preopt->like_Qfunc_arg;
-		
+
 	// this will be measure with serial or with group
 	cpu[0] = -GMRFLib_cpu();
 	for (int i = 0; i < like_graph->n; i++) {
@@ -1302,11 +1301,11 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	}
 	cpu[0] += GMRFLib_cpu();
 	assert(!ISNAN(value));
-	
+
 	GMRFLib_Qfunc_tp *Qfunc = preopt->preopt_Qfunc;
 	GMRFLib_graph_tp *graph = preopt->preopt_graph;
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
-	
+
 	Calloc_init(2 * graph->n);
 	assert(calloc_work_);
 	double *x = Calloc_get(graph->n);
@@ -1324,7 +1323,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	cpu[1] += GMRFLib_cpu();
 
 	Calloc_free();
-	//GMRFLib_free_tabulate_Qfunc(tab);
+	// GMRFLib_free_tabulate_Qfunc(tab);
 
 	return cpu;
 }

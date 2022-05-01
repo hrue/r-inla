@@ -755,7 +755,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 		xx_max = GMRFLib_max_value(x, nn, NULL);
 		xx_min = GMRFLib_min_value(x, nn, NULL);
 	}
-	dx = (xx_max -  xx_min) / (mp - 1.0);
+	dx = (xx_max - xx_min) / (mp - 1.0);
 
 	for (i = 0; i < mp; ++i) {
 		xtmp = xtmp2 = xx_min + dx * i;

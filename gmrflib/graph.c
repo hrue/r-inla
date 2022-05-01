@@ -1203,7 +1203,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		}
 		work = wwork[cache_idx];
 		assert(work);
-		
+
 		Memcpy(work, destination, graph->n * sizeof(double));
 		for (int i = 0; i < graph->n; i++) {
 			destination[remap[i]] = work[i];

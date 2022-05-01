@@ -130,7 +130,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		}
 		Free(theta);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 
 }
@@ -275,8 +275,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	}
 
 	// yes, this also works with 'preopt' as tabulate_Qfunc do not tabulate but just return a ptr-copy
-	GMRFLib_tabulate_Qfunc(thread_id, (tabQfunc ? tabQfunc : &tabQfunc_local), G.graph,
-			       G.Qfunc[thread_id], G.Qfunc_arg[thread_id], NULL);
+	GMRFLib_tabulate_Qfunc(thread_id, (tabQfunc ? tabQfunc : &tabQfunc_local), G.graph, G.Qfunc[thread_id], G.Qfunc_arg[thread_id], NULL);
 
 	double con, *bnew_ptr = NULL;
 	GMRFLib_bnew(thread_id, &bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
@@ -288,8 +287,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 				       fx, G.x, bnew_ptr, G.c, G.mean, G.d, G.loglFunc, G.loglFunc_arg,
 				       G.graph,
 				       (tabQfunc ? (*tabQfunc)->Qfunc : tabQfunc_local->Qfunc),
-				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais,
-				       G.preopt);
+				       (tabQfunc ? (*tabQfunc)->Qfunc_arg : tabQfunc_local->Qfunc_arg), G.constr, G.ai_par, ais, G.preopt);
 	*fx += con;					       /* add missing constant due to b = b(theta) */
 	ffx = G.log_extra(thread_id, x, G.nhyper, G.log_extra_arg);
 
@@ -379,7 +377,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	 */
 
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	int i, tmax, debug = 0;
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	double *mode_reference = NULL;
@@ -416,7 +414,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 		double *f = Calloc(G.nhyper + 1, double);
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-		for (i = 0; i <  G.nhyper + 1; i++) {
+		for (i = 0; i < G.nhyper + 1; i++) {
 			int thread_id = omp_get_thread_num();
 
 			double *xx = NULL;
@@ -432,7 +430,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				} else {
 					if (!ai_store[thread_id]) {
 						ai_store[thread_id] =
-							GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[thread_id];
 				}
@@ -443,7 +441,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			if (mode_reference) {
 				Memcpy(ais->mode, mode_reference, G.graph->n * sizeof(double));
 			}
-			
+
 			/*
 			 * j is the point 
 			 */
@@ -487,7 +485,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			ff = Calloc(G.nhyper, double);
 			ffm = Calloc(G.nhyper, double);
 		}
-
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < 2 * G.nhyper; i++) {
 			int thread_id = omp_get_thread_num();
@@ -507,7 +504,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 				} else {
 					if (!ai_store[thread_id]) {
 						ai_store[thread_id] =
-							GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+						    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 					}
 					ais = ai_store[thread_id];
 				}
@@ -518,7 +515,7 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 			if (mode_reference) {
 				Memcpy(ais->mode, mode_reference, G.graph->n * sizeof(double));
 			}
-			
+
 			if (i < G.nhyper) {
 				GMRFLib_opt_dir_step(xx, j, h);
 				GMRFLib_opt_f_intern(thread_id, xx, &f[j], &err, ais, NULL, NULL);
@@ -694,20 +691,20 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	len_xx_hold = 2 * n + 1;
 	ALLOC_XX_HOLD(len_xx_hold);
 
-        int *i2thread = Calloc(len_xx_hold, int);
-	for(i = 0; i < n; i++) {
+	int *i2thread = Calloc(len_xx_hold, int);
+	for (i = 0; i < n; i++) {
 		f0 = f1[i] = fm1[i] = NAN;
 	}
 
 	int early_stop = 0;
-	
-	GMRFLib_ai_store_tp * ai_store_reference = (GMRFLib_openmp->max_threads_outer > 1 ? 
-						    GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE) : NULL);
+
+	GMRFLib_ai_store_tp *ai_store_reference = (GMRFLib_openmp->max_threads_outer > 1 ?
+						   GMRFLib_duplicate_ai_store(G.ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE) : NULL);
 	double *mode_reference = Calloc(G.graph->n, double);
 	GMRFLib_opt_get_latent(mode_reference);
 
 	mode_reference = NULL;
-	
+
 	// do the loop in reverse so that the last configuration, f0, have a high chance to come early (in the case the loop is interupted)
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 2 * n; i >= 0; i--) {
@@ -718,7 +715,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		if (EARLY_STOP_ENABLED) {
 			continue;
 		}
-		
+
 		if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
 			if (thread_id == 0) {
 				ais = G.ai_store;
@@ -726,7 +723,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			} else {
 				assert(ai_store_reference);
 				if (!ai_store[thread_id]) {
-					ai_store[thread_id] = GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+					ai_store[thread_id] =
+					    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
 				}
 				ais = ai_store[thread_id];
 				i2thread[i] = thread_id;
@@ -756,7 +754,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 		if (CHECK_FOR_EARLY_STOP) {
 			// we need to have f0 computed to check
-			if (!ISNAN(f0) && (ff0 > ff)) { /* yes, used ff0 */
+			if (!ISNAN(f0) && (ff0 > ff)) {	       /* yes, used ff0 */
 				if (G.ai_par->fp_log || debug)
 					fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop ff < f0: %f < %f\n", ff, ff0);
 				ff0 = ff;
@@ -818,7 +816,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			GMRFLib_opt_set_latent(ai_store[thread_min]->mode);
 		}
 		GMRFLib_opt_get_latent(G.ai_store->mode);
-		B.f_best =  f0min;
+		B.f_best = f0min;
 		*log_dens_mode = -B.f_best;
 
 		ok = 0;
@@ -904,7 +902,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					} else {
 						if (!ai_store[thread_id]) {
 							ai_store[thread_id] =
-								GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+							    GMRFLib_duplicate_ai_store(ai_store_reference, GMRFLib_TRUE, GMRFLib_TRUE,
+										       GMRFLib_FALSE);
 						}
 						ais = ai_store[thread_id];
 					}
@@ -920,7 +919,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					F2(f11, ii, h, jj, h);
 					if (CHECK_FOR_EARLY_STOP && (f11 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
-							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop f11 < f_best_save: %f < %f\n", f11, f_best_save);
+							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+								"enable early_stop f11 < f_best_save: %f < %f\n", f11, f_best_save);
 						early_stop = 1;
 						continue;
 					}
@@ -929,7 +929,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					F2(f11, ii, h, jj, h);
 					if (CHECK_FOR_EARLY_STOP && (f11 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
-							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop f11 < f_best_save: %f < %f\n", f11, f_best_save);
+							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+								"enable early_stop f11 < f_best_save: %f < %f\n", f11, f_best_save);
 						early_stop = 1;
 						continue;
 					}
@@ -940,7 +941,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					F2(fm11, ii, -h, jj, h);
 					if (CHECK_FOR_EARLY_STOP && (fm11 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
-							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop fm11 < f_best_save: %f < %f\n", fm11, f_best_save);
+							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+								"enable early_stop fm11 < f_best_save: %f < %f\n", fm11, f_best_save);
 						early_stop = 1;
 						continue;
 					}
@@ -951,7 +953,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					F2(f1m1, ii, h, jj, -h);
 					if (CHECK_FOR_EARLY_STOP && (f1m1 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
-							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop f1m1 < f_best_save: %f < %f\n", f1m1, f_best_save);
+							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+								"enable early_stop f1m1 < f_best_save: %f < %f\n", f1m1, f_best_save);
 						early_stop = 1;
 						continue;
 					}
@@ -962,7 +965,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 					F2(fm1m1, ii, -h, jj, -h);
 					if (CHECK_FOR_EARLY_STOP && (fm1m1 < f_best_save) && !early_stop && enable_early_stop) {
 						if (G.ai_par->fp_log || debug)
-							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop fm1m1 < f_best_save: %f < %f\n", fm1m1, f_best_save);
+							fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+								"enable early_stop fm1m1 < f_best_save: %f < %f\n", fm1m1, f_best_save);
 						early_stop = 1;
 						continue;
 					}
@@ -982,7 +986,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			 * There is a change 
 			 */
 			if (debug) {
-				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f_best_save, B.f_best);
+				fprintf(stderr, "\n%s: (II) Mode not found sufficiently accurate %.8g %.8g\n", __GMRFLib_FuncName, f_best_save,
+					B.f_best);
 			}
 			GMRFLib_opt_get_hyper(x);
 			GMRFLib_opt_get_latent(G.ai_store->mode);
@@ -996,10 +1001,11 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	GMRFLib_opt_dir_transform_hessian(hessian);
 	if (ok) {
 		char *msg = NULL;
-		GMRFLib_ensure_spd(hessian, n, -1.0, &msg);	
+		GMRFLib_ensure_spd(hessian, n, -1.0, &msg);
 		if (msg) {
 			if (G.ai_par->fp_log || debug) {
-				fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "%s: ensure spd for Hessian: mode seems fine\n", __GMRFLib_FuncName);
+				fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "%s: ensure spd for Hessian: mode seems fine\n",
+					__GMRFLib_FuncName);
 				fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "%s: %s\n\n", __GMRFLib_FuncName, msg);
 			}
 		}
@@ -1017,8 +1023,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	}
 	Free(ai_store);
 
-#undef EARLY_STOP_ENABLED 
-#undef CHECK_FOR_EARLY_STOP 
+#undef EARLY_STOP_ENABLED
+#undef CHECK_FOR_EARLY_STOP
 #undef F1
 #undef F2
 #undef ALLOC_XX_HOLD
@@ -1186,7 +1192,9 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 				for (ii = 0; ii < n; ii++) {
 					for (jj = 0; jj < n; jj++) {
 						// yes, swap arguments
-						tmp += gsl_matrix_get(Opt_dir_params.tAinv, i, ii) * hessian[ii + jj * n] * gsl_matrix_get(Opt_dir_params.tAinv, j, jj);
+						tmp +=
+						    gsl_matrix_get(Opt_dir_params.tAinv, i,
+								   ii) * hessian[ii + jj * n] * gsl_matrix_get(Opt_dir_params.tAinv, j, jj);
 					}
 				}
 				h[i + j * n] = h[j + i * n] = tmp;

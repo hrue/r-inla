@@ -436,7 +436,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		{
 			if (!nnr_step_factor_first_time_only) {
 				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN, int);
-				for(int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+				for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
 					nnr_step_factor_first_time_only[i] = 1;
 				}
 			}
@@ -2070,7 +2070,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
 
-		//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		// RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 		RUN_CODE_BLOCK(1, 0, 0);
 #undef CODE_BLOCK
 

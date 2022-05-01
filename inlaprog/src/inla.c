@@ -8856,9 +8856,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -33591,7 +33591,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	double time_used_pred[2] = { 0.0, 0.0 };
 
 	if (1) {
-		//cannot run this in parallel as we're changing global variables
+		// cannot run this in parallel as we're changing global variables
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
@@ -33613,7 +33613,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.1 ? 0 : 1);
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
-		
+
 		// do this alone as this strategy depends on the previous choices
 		for (int time = 0; time < 3; time++) {
 			for (int mettt = 0; mettt < 2; mettt++) {
@@ -36753,11 +36753,11 @@ int testit(int argc, char **argv)
 #define NN 10
 		int x[NN];
 #pragma omp parallel for
-		for(int i = 0; i < NN; i++) {
+		for (int i = 0; i < NN; i++) {
 			*(x + i) = i;
 		}
 		P((double) x[0]);
-		P((double) x[NN-1]);
+		P((double) x[NN - 1]);
 #undef NN
 	}
 		break;

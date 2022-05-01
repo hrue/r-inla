@@ -73,7 +73,7 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 {
 	FIXME("THIS ONE IS NOT YET TESTED");
 	exit(1);
-	
+
 	// input n pairs of (x_i, y_i), fit a robust regression model of given order
 	// and return the x* and optional y* that minimize the fitted model.
 
@@ -106,13 +106,13 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	gsl_vector *xx = gsl_vector_alloc(order);
 	gsl_vector_set(xx, 0, 1.0);
 	double xev = x_eval;
-	for(size_t i = 1; i < (size_t) order; i++) {
+	for (size_t i = 1; i < (size_t) order; i++) {
 		gsl_vector_set(xx, i, xev);
 		xev *= x_eval;
 	}
 	double y_err;
 
-	//gsl_multifit_robust_est(const gsl_vector *x, const gsl_vector *c, const gsl_matrix *cov, double *y, double*y_err)
+	// gsl_multifit_robust_est(const gsl_vector *x, const gsl_vector *c, const gsl_matrix *cov, double *y, double*y_err)
 	gsl_multifit_robust_est(xx, c, cov, y_eval, &y_err);
 
 	gsl_matrix_free(X);
@@ -259,7 +259,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	static double *hold_dfunc = NULL;
 	int hold_n = 0;
 	int hold_dn = 0;
-	
+
 	if (hold_alpha == NULL) {
 		hold_alpha = Calloc(bracket_iters + section_iters + 2, double);
 		hold_func = Calloc(bracket_iters + section_iters + 2, double);
@@ -270,14 +270,14 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	static int count = 0;
 	char *name = NULL;
 	FILE *fp = NULL;
-	
+
 	if (0) {
 		GMRFLib_sprintf(&name, "./line-%.5d.txt", count++);
 		printf("Open file %s\n", name);
 		FILE *fp = fopen(name, "w");
 		assert(fp);
 	}
-		
+
 	if (debug)
 		printf("...enter minimize() sigma = %.12g\n", sigma);
 
@@ -290,8 +290,10 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	hold_dalpha[hold_dn] = 0.0;
 	hold_dfunc[hold_dn++] = fp0;
 
-	if (fp) fprintf(fp, "F %f %f\n", 0.0, f0);
-	if (fp) fprintf(fp, "DF %f %f\n", 0.0, fp0);
+	if (fp)
+		fprintf(fp, "F %f %f\n", 0.0, f0);
+	if (fp)
+		fprintf(fp, "DF %f %f\n", 0.0, fp0);
 
 	falpha_prev = f0;
 	fpalpha_prev = fp0;
@@ -321,7 +323,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		hold_alpha[hold_n] = alpha;
 		hold_func[hold_n++] = falpha;
 
-		if (fp) fprintf(fp, "F %f %f\n", alpha, falpha);
+		if (fp)
+			fprintf(fp, "F %f %f\n", alpha, falpha);
 
 		/*
 		 * Fletcher's rho test 
@@ -344,7 +347,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		hold_dalpha[hold_dn] = alpha;
 		hold_dfunc[hold_dn++] = fpalpha;
 
-		if (fp) fprintf(fp, "DF %f %f\n", alpha, fpalpha);
+		if (fp)
+			fprintf(fp, "DF %f %f\n", alpha, fpalpha);
 
 		/*
 		 * Fletcher's sigma test 
@@ -352,7 +356,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 
 		if (fabs(fpalpha) <= -sigma * fp0) {
 			*alpha_new = alpha;
-			if (fp) fclose(fp);
+			if (fp)
+				fclose(fp);
 			return GSL_SUCCESS;
 		}
 
@@ -406,12 +411,13 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		hold_alpha[hold_n] = alpha;
 		hold_func[hold_n++] = falpha;
 
-		if (fp) fprintf(fp, "F %f %f\n", alpha, falpha);
+		if (fp)
+			fprintf(fp, "F %f %f\n", alpha, falpha);
 
 		if (debug)
 			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
 
-		if ((a - alpha) * fpa <= GMRFLib_eps(0.2)) {	/* hrue */
+		if ((a - alpha) * fpa <= GMRFLib_eps(0.2)) {   /* hrue */
 			/*
 			 * roundoff prevents progress 
 			 */
@@ -421,14 +427,14 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 
 			if (ldebug) {
 				printf("BFGS3: do a robust fit with %d points\n", hold_n);
-				for(int i = 0; i < hold_n; i++) {
+				for (int i = 0; i < hold_n; i++) {
 					printf("\talpha = %f \tfunc = %f\n", hold_alpha[i], hold_func[i]);
 				}
-				for(int i = 0; i < hold_dn; i++) {
+				for (int i = 0; i < hold_dn; i++) {
 					printf("\tdalpha = %f \tdfunc = %f\n", hold_dalpha[i], hold_dfunc[i]);
 				}
 			}
-			
+
 			double amin, fmin;
 			int robust_regression = 1, order = 2;
 			bfgs4_robust_minimize(&amin, &fmin, hold_n, hold_alpha, hold_func, hold_dn, hold_dalpha, hold_dfunc, order);
@@ -444,7 +450,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 				       (robust_regression ? "robust regression, internal minimum" : "enable emergency mode"));
 			}
 			*alpha_new = amin;
-			if (fp) fclose(fp);
+			if (fp)
+				fclose(fp);
 			return GSL_SUCCESS;
 		}
 
@@ -466,13 +473,15 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			hold_dalpha[hold_dn] = alpha;
 			hold_dfunc[hold_dn++] = fpalpha;
 
-			if (fp) fprintf(fp, "DF %f %f\n", alpha, fpalpha);
+			if (fp)
+				fprintf(fp, "DF %f %f\n", alpha, fpalpha);
 
 			if (debug)
 				printf("... TEST %.12g <= %.12g\n", fabs(fpalpha), -sigma * fp0);
 			if (fabs(fpalpha) <= -sigma * fp0) {
 				*alpha_new = alpha;
-				if (fp) fclose(fp);
+				if (fp)
+					fclose(fp);
 				return GSL_SUCCESS;	       /* terminate */
 			}
 
@@ -491,7 +500,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		}
 	}
 
-	if (fp) fclose(fp);
+	if (fp)
+		fclose(fp);
 	return GSL_SUCCESS;
 }
 

@@ -570,7 +570,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **m
 	if (tol < 0.0 && s_max > 0.0) {
 		int n_neg = 0;
 		s_min = s_max;
-		for(i = 0; i < A->size1; i++) {
+		for (i = 0; i < A->size1; i++) {
 			double s = gsl_vector_get(S, i);
 			if (s <= 0.0) {
 				n_neg++;
