@@ -1187,8 +1187,8 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 #pragma omp critical
 			{
 				if (!wwork) {
-					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				}
 			}
 		}
@@ -1229,8 +1229,8 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 #pragma omp critical
 			{
 				if (!wwork) {
-					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				}
 			}
 		}

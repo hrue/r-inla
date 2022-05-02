@@ -1241,11 +1241,11 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 #pragma omp critical
 		{
 			if (S.static_pstores == NULL) {
-				S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
-				S.busy = Calloc(PSTORES_NUM, int);
 				if (S.s_verbose) {
 					printf("==> init static_pstores\n");
 				}
+				S.busy = Calloc(PSTORES_NUM, int);
+				S.static_pstores = Calloc(PSTORES_NUM, GMRFLib_pardiso_store_tp *);
 			}
 		}
 	}

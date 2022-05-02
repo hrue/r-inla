@@ -1687,8 +1687,8 @@ int GMRFLib_debug_functions(const char *name)
 #pragma omp critical
 		{
 			if (!ddefs) {
-				ddefs = Calloc(GMRFLib_CACHE_LEN, map_stri *);
 				first = Calloc(GMRFLib_CACHE_LEN, int);
+				ddefs = Calloc(GMRFLib_CACHE_LEN, map_stri *);
 			}
 		}
 	}
@@ -1784,8 +1784,8 @@ int GMRFLib_trace_functions(const char *name)
 #pragma omp critical
 		{
 			if (!ddefs) {
-				ddefs = Calloc(GMRFLib_CACHE_LEN, map_stri *);
 				first = Calloc(GMRFLib_CACHE_LEN, int);
+				ddefs = Calloc(GMRFLib_CACHE_LEN, map_stri *);
 			}
 		}
 	}

@@ -421,7 +421,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			/*
 			 * roundoff prevents progress 
 			 */
-			int ldebug = (1 || debug);
+			int ldebug = (0 || debug);
 			if (ldebug)
 				printf("BFGS3: minimizer: abort search. do a robust fit and update\n");
 

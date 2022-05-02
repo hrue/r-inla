@@ -780,8 +780,8 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
@@ -848,8 +848,8 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
@@ -893,8 +893,8 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
@@ -949,8 +949,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
@@ -1337,8 +1337,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
@@ -1424,8 +1424,8 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
@@ -1520,8 +1520,8 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}

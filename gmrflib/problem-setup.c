@@ -324,8 +324,8 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 #pragma omp critical
 		{
 			if (!wwork) {
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
 			}
 		}
 	}
