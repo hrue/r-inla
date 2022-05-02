@@ -4275,6 +4275,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		}
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	}
+
 	if (dlin && nlin) {
 		GMRFLib_density_tp **dtmp, *dcombine;
 
@@ -6189,7 +6190,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max);
-
+	
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
@@ -6205,7 +6206,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			GMRFLib_density_tp *dens_combine = NULL;
 			GMRFLib_density_combine(&dens_combine, dens[i], probs);
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
-
 			if (tfunc && tfunc[i]) {
 				GMRFLib_density_tp *dens_c = NULL;
 				GMRFLib_density_combine(&dens_c, dens_transform[i], probs);
@@ -6213,6 +6213,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 		}
 	}
+	
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	if (dlin && nlin) {
@@ -6476,9 +6477,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		/*
 		 * need this for loglFunc() we need that compute is TRUE for all indices that enters loglFunc. There is no way to check this here. 
 		 */
-		x_vec = Calloc(graph->n, double);
-		for (j = 0; j < graph->n; j++) {
-			x_vec[j] = (*density)[j]->user_mean;
+		x_vec = Calloc(preopt->mnpred, double);
+		for (j = 0; j < preopt->mnpred; j++) {
+			if ((*density)[j]) {
+				x_vec[j] = (*density)[j]->user_mean;
+			} else {
+				x_vec[j] = NAN;
+			}
 		}
 
 		/*

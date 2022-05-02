@@ -108,16 +108,17 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
 
 	ww_sum = 0;
 	nn = 0;
-	for (int i = 0; i < n; i++) {
-		if (ww_sum + ww[perm[i]] < 1.0 - WEIGHT_PROB) {
-			ww[perm[i]] = 0.0;
-		} else {
+	for (int i = n-1; i >= 0; i--) {		       /* since 'perm' is increasing */
+		int j = perm[i];
+		if (ww_sum < WEIGHT_PROB) {
+			ww_sum += ww[j];
 			nn++;
+		} else {
+			ww[j] = 0.0;
 		}
-		ww_sum += ww[perm[i]];
 	}
 	GMRFLib_normalize(n, ww);
-
+	
 	GMRFLib_idxval_tp *idxval = NULL;
 	GMRFLib_idxval_create_x(&idxval, nn);
 
