@@ -47,6 +47,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+
+#define OPENSSL_API_COMPAT 0x10101000L
 #include <openssl/sha.h>
 
 #undef __BEGIN_DECLS
@@ -96,7 +98,6 @@ typedef enum {
 			       (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "TwoStage Part2" : \
 				(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL ? "Experimental" : "(UNKNOWN MODE)")))))
 
-#define OPENSSL_API_COMPAT     "100000"
 #define GMRFLib_SHA_TP         SHA256_CTX
 #define GMRFLib_SHA_DIGEST_LEN SHA256_DIGEST_LENGTH
 #define GMRFLib_SHA_Init       SHA256_Init
