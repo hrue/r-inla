@@ -47,6 +47,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
+
+#define OPENSSL_API_COMPAT 0x10101000L
 #include <openssl/sha.h>
 
 #undef __BEGIN_DECLS
