@@ -75,10 +75,10 @@ library(numDeriv)
 library(fields)
 library(INLA)
 set.seed(123)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
 inla.setOption(inla.mode="experimental")
+if (file.exists("myinit.R")) source("myinit.R")
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
                fig.path='figures/scale-model/')
 @

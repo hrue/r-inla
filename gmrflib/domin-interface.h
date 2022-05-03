@@ -58,6 +58,7 @@ __BEGIN_DECLS
 	gsl_matrix *A;
 	gsl_matrix *tAinv;
 	int reset_directions;
+	int thread_id;
 } opt_dir_params_tp;
 
 typedef struct {
@@ -98,13 +99,18 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
 		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt);
 int GMRFLib_opt_exit(void);
-int GMRFLib_opt_f_intern(double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
-int GMRFLib_opt_f(double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
+int GMRFLib_opt_f_intern(int thread_id, double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc,
+			 double **bnew);
+int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew);
 int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr);
 int GMRFLib_opt_gradf(double *x, double *gradx, int *ierr);
 int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mode, int count);
 int GMRFLib_opt_get_f_count(void);
 int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr);
+int GMRFLib_opt_get_hyper(double *x);
+int GMRFLib_opt_get_latent(double *latent);
+int GMRFLib_opt_set_hyper(double *x);
+int GMRFLib_opt_set_latent(double *latent);
 
 GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);

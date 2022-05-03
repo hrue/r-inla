@@ -148,9 +148,9 @@ typedef struct {
 		close(XX_stderrBackupFd);				\
 	}
 
-double GMRFLib_pardiso_Qfunc_default(int i, int j, double *values, void *arg);
+double GMRFLib_pardiso_Qfunc_default(int thread_id, int i, int j, double *values, void *arg);
 double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store);
-int GMRFLib_Q2csr(GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr);
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
 int GMRFLib_csr_check(GMRFLib_csr_tp * M);
@@ -164,7 +164,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_Qinv_INLA();
 int GMRFLib_pardiso_bitmap(void);
-int GMRFLib_pardiso_build(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
+int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_pardiso_check_install(int quiet, int no_err);
 int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store);
 int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store);

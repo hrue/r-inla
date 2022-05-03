@@ -127,18 +127,23 @@ double inla_pcp_dof_d(double dof)
 {
 	double dof_lim = 9.0, kld;
 
-	static GMRFLib_spline_tp *spline = NULL;
-#pragma omp threadprivate(spline)
-
-	if (!spline) {
+	static GMRFLib_spline_tp **sspline = NULL;
+	if (!sspline) {
 #pragma omp critical
 		{
-			if (!spline) {
-				spline = inla_pcp_dof_create_spline();
+			if (!sspline) {
+				sspline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
 			}
 		}
 	}
 
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+	if (!sspline[idx]) {
+		sspline[idx] = inla_pcp_dof_create_spline();
+	}
+
+	GMRFLib_spline_tp *spline = sspline[idx];
 	if (dof < dof_lim) {
 		kld = GMRFLib_spline_eval(dof, spline);
 	} else {
@@ -161,93 +166,106 @@ double inla_pcp_dof_dof(double d)
 	int not_yet_tested = 1;
 	assert(not_yet_tested == 0);
 
-	static GMRFLib_spline_tp *spline = NULL;
-#pragma omp threadprivate(spline)
-
-	if (!spline) {
+	static GMRFLib_spline_tp **sspline = NULL;
+	if (!sspline) {
 #pragma omp critical
 		{
-			if (!spline) {
-				double ldof_from = -5.0, ldof_to = 11.0, dof;
-				int n = 10000, i;
-				double *xx = Calloc(n, double), *yy = Calloc(n, double);
-
-				for (i = 0; i < n; i++) {
-					dof = exp(ldof_from + i * (ldof_to - ldof_from) / (n - 1.0));
-					xx[i] = dof;
-					yy[i] = inla_pcp_dof_d(dof);
-				}
-				spline = GMRFLib_spline_create(yy, xx, n);	// yes, we want the inverse
-				Free(xx);
-				Free(yy);
+			if (!sspline) {
+				sspline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
 			}
 		}
 	}
 
-	return (GMRFLib_spline_eval(d, spline));
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+
+	if (!sspline[idx]) {
+		double ldof_from = -5.0, ldof_to = 11.0, dof;
+		int n = 10000, i;
+		double *xx = Calloc(n, double), *yy = Calloc(n, double);
+
+		for (i = 0; i < n; i++) {
+			dof = exp(ldof_from + i * (ldof_to - ldof_from) / (n - 1.0));
+			xx[i] = dof;
+			yy[i] = inla_pcp_dof_d(dof);
+		}
+		sspline[idx] = GMRFLib_spline_create(yy, xx, n);	// yes, we want the inverse
+		Free(xx);
+		Free(yy);
+	}
+
+	return (GMRFLib_spline_eval(d, sspline[idx]));
 }
 
 double inla_pc_sn_d(double skew, double *deriv)
 {
 	double skew_max = GMRFLib_SN_SKEWMAX, dist;
 
-	static GMRFLib_spline_tp *spline = NULL;
-#pragma omp threadprivate(spline)
-
-	if (!spline) {
+	static GMRFLib_spline_tp **sspline = NULL;
+	if (!sspline) {
 #pragma omp critical
 		{
-			if (!spline) {
-				spline = inla_pc_sn_create_spline();
+			if (!sspline) {
+				sspline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
 			}
 		}
 	}
 
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+	if (!sspline[idx]) {
+		sspline[idx] = inla_pc_sn_create_spline();
+	}
+
 	skew = DMIN(skew_max, ABS(skew));
-	dist = GMRFLib_spline_eval(skew, spline);
+	dist = GMRFLib_spline_eval(skew, sspline[idx]);
 	if (deriv) {
-		*deriv = GMRFLib_spline_eval_deriv(skew, spline);
+		*deriv = GMRFLib_spline_eval_deriv(skew, sspline[idx]);
 	}
 	return dist;
 }
 
 double inla_pc_sn_core(int code, double arg)
 {
-	static GMRFLib_spline_tp *spline_s2a = NULL;
-#pragma omp threadprivate(spline_s2a)
-	static GMRFLib_spline_tp *spline_a2s = NULL;
-#pragma omp threadprivate(spline_a2s)
 
-	if (!spline_s2a) {
+	static GMRFLib_spline_tp **sspline_s2a = NULL;
+	static GMRFLib_spline_tp **sspline_a2s = NULL;
+
+	if (!sspline_s2a) {
 #pragma omp critical
 		{
-			if (!spline_s2a) {
-				int n = 1024, i;
-				double *work = Calloc(2 * n, double), delta;
-				double *alpha = work, *skew = work + n;
-
-				for (i = 0; i < n; i++) {
-					alpha[i] = 0.0 + 25.0 / (n - 1.0) * i;
-					delta = alpha[i] / sqrt(1.0 + SQR(alpha[i]));
-					skew[i] = (4.0 - M_PI) / 2.0 * gsl_pow_3(delta * sqrt(2.0 / M_PI)) /
-					    pow(1.0 - 2.0 * SQR(delta) / M_PI, 3.0 / 2.0);
-				}
-				spline_a2s = GMRFLib_spline_create(alpha, skew, n);
-				spline_s2a = GMRFLib_spline_create(skew, alpha, n);
+			if (!sspline_s2a) {
+				sspline_s2a = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				sspline_a2s = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
 			}
 		}
+	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+
+	if (!sspline_s2a[idx]) {
+		int n = 1024, i;
+		double *work = Calloc(2 * n, double), delta;
+		double *alpha = work, *skew = work + n;
+
+		for (i = 0; i < n; i++) {
+			alpha[i] = 0.0 + 25.0 / (n - 1.0) * i;
+			delta = alpha[i] / sqrt(1.0 + SQR(alpha[i]));
+			skew[i] = (4.0 - M_PI) / 2.0 * gsl_pow_3(delta * sqrt(2.0 / M_PI)) / pow(1.0 - 2.0 * SQR(delta) / M_PI, 3.0 / 2.0);
+		}
+		sspline_a2s[idx] = GMRFLib_spline_create(alpha, skew, n);
+		sspline_s2a[idx] = GMRFLib_spline_create(skew, alpha, n);
 	}
 
 	double value, sign = INLA_SIGN(arg);
 	if (code < 0) {
-		value = sign * GMRFLib_spline_eval(ABS(arg), spline_a2s);
+		value = sign * GMRFLib_spline_eval(ABS(arg), sspline_a2s[idx]);
 	} else {
-		value = sign * GMRFLib_spline_eval(ABS(arg), spline_s2a);
+		value = sign * GMRFLib_spline_eval(ABS(arg), sspline_s2a[idx]);
 	}
 
 	return value;
 }
-
 
 GMRFLib_spline_tp *inla_pcp_dof_create_spline(void)
 {

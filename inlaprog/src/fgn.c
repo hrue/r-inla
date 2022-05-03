@@ -90,7 +90,7 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 	return (GMRFLib_SUCCESS);
 }
 
-double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -132,8 +132,8 @@ double Qfunc_fgn(int i, int j, double *UNUSED(values), void *arg)
 	phi = phi_cache[id];
 	w = w_cache[id];
 
-	H_intern = a->H_intern[GMRFLib_thread_id][0];
-	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	H_intern = a->H_intern[thread_id][0];
+	prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	kappa = a->prec_eps * prec;
 
 	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
@@ -200,7 +200,7 @@ double inla_fgn2_helper(int i, int j, int n, double phi)
 	return 0.0;
 }
 
-double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -234,8 +234,8 @@ double Qfunc_fgn2(int i, int j, double *UNUSED(values), void *arg)
 	phi = phi_cache[id];
 	w = w_cache[id];
 
-	H_intern = a->H_intern[GMRFLib_thread_id][0];
-	prec = map_precision(a->log_prec[GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+	H_intern = a->H_intern[thread_id][0];
+	prec = map_precision(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
 
 	if (!ISEQUAL(H_intern, H_intern_cache[id])) {
 		if (debug) {

@@ -507,7 +507,7 @@ int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ensure_spd(double *A, int dim, double tol)
+int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg)
 {
 	// this just a plain interface to the GMRFLib_gsl_ensure_spd
 
@@ -520,7 +520,7 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol)
 			gsl_matrix_set(AA, j, i, A[i + j * dim]);
 		}
 	}
-	GMRFLib_gsl_ensure_spd(AA, tol);
+	GMRFLib_gsl_ensure_spd(AA, tol, msg);
 	for (i = 0; i < (size_t) dim; i++) {
 		for (j = 0; j <= i; j++) {
 			A[i + j * dim] = gsl_matrix_get(AA, i, j);
@@ -531,14 +531,28 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
+int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol, char **msg)
+{
+	return GMRFLib_gsl_ensure_spd_core(A, tol, 0, msg);
+}
+
+int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol, char **msg)
+{
+	return GMRFLib_gsl_ensure_spd_core(A, tol, 1, msg);
+}
+
+int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **msg)
 {
 	/*
 	 * replace n x n matrix A with its SPD matrix, replacing small eigenvalues with 'tol' * max(|eigenvalue|).
+	 *
+	 * if tol < 0, then use tol = (min(eigenvalue > 0) / max(eigenvalue)
+	 *
+	 * method=0: s=max(min,s)
+	 * method=1: s=1/max(min,s)
 	 */
 
 	assert(A && (A->size1 == A->size2));
-	assert(tol >= 0.0);
 	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(A);
 	gsl_vector *S = gsl_vector_alloc(A->size1);
 	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(A->size1);
@@ -548,17 +562,46 @@ int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol)
 	size_t i;
 	double one = 1.0, zero = 0.0, s;
 
-	double s_max = ABS(gsl_vector_max(S));
+	double s_min, s_max = gsl_vector_max(S);
+	if (s_max <= 0.0) {
+		s_max = 0.0;				       /* then the whole matrix is zero or INF, as all is wrong... */
+	}
+
+	if (tol < 0.0 && s_max > 0.0) {
+		int n_neg = 0;
+		s_min = s_max;
+		for (i = 0; i < A->size1; i++) {
+			double s = gsl_vector_get(S, i);
+			if (s <= 0.0) {
+				n_neg++;
+			}
+			if (s > 0.0 && s < s_min) {
+				s_min = s;
+			}
+		}
+		tol = s_min / s_max;
+		if (msg) {
+			GMRFLib_sprintf(msg, "set tol=[%.4g]. number of negative eigenvalues=[%1d]", tol, n_neg);
+		}
+	}
+
 	gsl_matrix *M1 = gsl_matrix_alloc(A->size1, A->size2);
 	gsl_matrix *M2 = gsl_matrix_alloc(A->size1, A->size2);
 
 	gsl_matrix_set_zero(M1);
 	gsl_matrix_set_zero(M2);
 
-	double s_min = tol * s_max;
-	for (i = 0; i < A->size1; i++) {
-		s = gsl_vector_get(S, i);
-		gsl_matrix_set(M2, i, i, DMAX(s_min, s));
+	s_min = tol * s_max;
+	if (method == 0) {
+		for (i = 0; i < A->size1; i++) {
+			s = gsl_vector_get(S, i);
+			gsl_matrix_set(M2, i, i, DMAX(s_min, s));
+		}
+	} else {
+		for (i = 0; i < A->size1; i++) {
+			s = gsl_vector_get(S, i);
+			gsl_matrix_set(M2, i, i, 1.0 / DMAX(s_min, s));
+		}
 	}
 
 	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);

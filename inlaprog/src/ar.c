@@ -248,7 +248,7 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -260,7 +260,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 		return 0.0;
 	}
 	if (def->p == 0) {
-		return exp(def->log_prec[GMRFLib_thread_id][0]);
+		return exp(def->log_prec[thread_id][0]);
 	}
 
 	int debug = 0, ii, jj, eq, dimQ, id;
@@ -271,7 +271,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 	eq = 1;
 
 	for (ii = 0; ii < def->p && eq; ii++) {
-		if (def->pacf_intern[ii][GMRFLib_thread_id][0] != def->hold_pacf_intern[id][ii]) {
+		if (def->pacf_intern[ii][thread_id][0] != def->hold_pacf_intern[id][ii]) {
 			eq = 0;
 		}
 	}
@@ -300,7 +300,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 		assert(LEGAL(ii, dimQ));
 		assert(LEGAL(jj, dimQ));
 
-		val = exp(def->log_prec[GMRFLib_thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
+		val = exp(def->log_prec[thread_id][0]) * (Qmarg_contrib + def->hold_Q[id][ii + jj * dimQ]);
 		return (val);
 	} else {
 		/*
@@ -316,7 +316,7 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 		Qmarg = Calloc(ISQR(def->p), double);
 
 		for (ii = 0; ii < def->p; ii++) {
-			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][GMRFLib_thread_id][0], MAP_FORWARD, NULL);
+			pacf[ii] = ar_map_pacf(def->pacf_intern[ii][thread_id][0], MAP_FORWARD, NULL);
 		}
 		ar_marginal_distribution(def->p, pacf, &prec, Qmarg);
 		PMATRIX(Qmarg, def->p, def->p, "Qmarg");
@@ -362,29 +362,29 @@ double Qfunc_ar(int i, int j, double *UNUSED(values), void *arg)
 		def->hold_Q[id] = Q;
 
 		for (ii = 0; ii < def->p; ii++) {
-			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][GMRFLib_thread_id][0];
+			def->hold_pacf_intern[id][ii] = def->pacf_intern[ii][thread_id][0];
 		}
 
 		Free(phi);
 		Free(pacf);
 		Free(L);
 
-		return Qfunc_ar(i, j, NULL, arg);	       /* recursive call */
+		return Qfunc_ar(thread_id, i, j, NULL, arg);   /* recursive call */
 	}
 	assert(0 == 1);
 
 	return 0.0;
 }
+
 int ar_test1()
 {
-	int id = GMRFLib_thread_id;
-
 	if (1) {
 		GMRFLib_graph_tp *g;
 		ar_def_tp def;
 		double pacf[2] = { 0.5, 0.25 };
 
 		int i, j, k;
+		int thread_id = 0;
 
 		def.n = 10;
 		def.p = 2;
@@ -410,23 +410,21 @@ int ar_test1()
 		}
 
 		GMRFLib_graph_mk_linear(&g, def.n, def.p, 0);
-		GMRFLib_printf_Qfunc(stdout, g, Qfunc_ar, &def);
+		GMRFLib_printf_Qfunc(thread_id, stdout, g, Qfunc_ar, &def);
 
 		if (0) {
 			FILE *fp = fopen("Q.dat", "w");
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++)
-					fprintf(fp, "%.12g\n", Qfunc_ar(i, j, NULL, &def));
+					fprintf(fp, "%.12g\n", Qfunc_ar(thread_id, i, j, NULL, &def));
 			fclose(fp);
 		}
 
 		double val = 0.0;
-#pragma omp parallel for private(k, i, j) reduction(+: val)
 		for (k = 0; k < 1000; k++) {
-			GMRFLib_thread_id = id;
 			for (i = 0; i < def.n; i++)
 				for (j = 0; j < def.n; j++) {
-					val += Qfunc_ar(i, j, NULL, &def);
+					val += Qfunc_ar(thread_id, i, j, NULL, &def);
 				}
 		}
 		P(val);

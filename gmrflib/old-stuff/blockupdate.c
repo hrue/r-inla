@@ -1137,3 +1137,626 @@ int GMRFLib_blockupdate_hidden_store(double *laccept,
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_blockupdate(double *laccept,
+			double *x_new, double *x_old,
+			double *b_new, double *b_old,
+			double *c_new, double *c_old,
+			double *mean_new, double *mean_old,
+			double *d_new, double *d_old,
+			GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
+			GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
+			GMRFLib_graph_tp * graph,
+			GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
+			GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
+			GMRFLib_Qfunc_tp * Qfunc_old2new, void *Qfunc_arg_old2new,
+			GMRFLib_Qfunc_tp * Qfunc_new2old, void *Qfunc_arg_new2old,
+			GMRFLib_constr_tp * constr_new, GMRFLib_constr_tp * constr_old,
+			GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par)
+{
+	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_EWRAP1(GMRFLib_blockupdate_store
+		       (laccept, x_new, x_old, b_new, b_old, c_new, c_old, mean_new, mean_old, d_new, d_old, loglFunc_new,
+			loglFunc_arg_new, loglFunc_old, loglFunc_arg_old, graph, Qfunc_new, Qfunc_arg_new,
+			Qfunc_old, Qfunc_arg_old, Qfunc_old2new, Qfunc_arg_old2new, Qfunc_new2old, Qfunc_arg_new2old,
+			constr_new, constr_old, optpar, blockupdate_par, NULL));
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_blockupdate_store(double *laccept,
+			      double *x_new, double *x_old,
+			      double *b_new, double *b_old,
+			      double *c_new, double *c_old,
+			      double *mean_new, double *mean_old,
+			      double *d_new, double *d_old,
+			      GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
+			      GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
+			      GMRFLib_graph_tp * graph,
+			      GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
+			      GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
+			      GMRFLib_Qfunc_tp * Qfunc_old2new, void *Qfunc_arg_old2new,
+			      GMRFLib_Qfunc_tp * Qfunc_new2old, void *Qfunc_arg_new2old,
+			      GMRFLib_constr_tp * constr_new, GMRFLib_constr_tp * constr_old,
+			      GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store)
+{
+	/*
+	 * do a blockupdate, and return the proposed new state in 'x' and the corresponding log-acceptrate in 'laccept'
+	 * 
+	 * the density is
+	 * 
+	 * exp[ -1/2 (x-mean)'(Q+diag(c))(x-mean) + b'x + \sum d_i f(x_i) ]
+	 * 
+	 * where values are fixed if fixed_value[i] are true, and where a constraint, Ax=b can be spesified in 'constr' with
+	 * optional noise
+	 * 
+	 * it's now ok that all values in fixed are 1, then none are updated, just the acceptrate is computed.
+	 * 
+	 */
+
+	int n, i, free_block, id;
+	double *mode = NULL, *bb = NULL, *cc = NULL, old2new, new2old, old, neww, *xx = NULL, *yy = NULL, logll;
+	GMRFLib_problem_tp *problem = NULL;
+	GMRFLib_blockupdate_param_tp *blockpar = NULL;
+
+	GMRFLib_ASSERT(laccept, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(x_new, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(Qfunc_new, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(Qfunc_old, GMRFLib_EINVARG);
+
+	GMRFLib_ENTER_ROUTINE;
+
+	id = GMRFLib_thread_id;
+
+	if (constr_new) {
+		GMRFLib_prepare_constr(constr_new, graph, 0);  /* no scaleing */
+	}
+	if (constr_old) {
+		GMRFLib_prepare_constr(constr_old, graph, 0);  /* no scaleing */
+	}
+
+	/*
+	 * use default choices if these are not specified. 
+	 */
+	if (!Qfunc_old2new) {
+		Qfunc_old2new = Qfunc_new;
+		if (!Qfunc_arg_old2new) {
+			Qfunc_arg_old2new = Qfunc_arg_new;
+		}
+	}
+	if (!Qfunc_new2old) {
+		Qfunc_new2old = Qfunc_old;
+		if (!Qfunc_arg_new2old) {
+			Qfunc_arg_new2old = Qfunc_arg_old;
+		}
+	}
+
+	if (blockupdate_par) {
+		blockpar = blockupdate_par;
+		free_block = 0;
+	} else {
+		GMRFLib_default_blockupdate_param(&blockpar);
+		free_block = 1;
+	}
+
+	n = graph->n;
+	mode = Calloc(n, double);
+	xx = bb = Calloc(n, double);			       /* two names for the same storage */
+	yy = cc = Calloc(n, double);			       /* two names for the same storage */
+
+	/*
+	 * fix storage accoring to reject or accept if use_more is ON 
+	 */
+	if (store && store->store_problems) {
+		if (store->fixed_hyperparameters) {
+			/*
+			 * This is feature experimental for the moment. if the hyperparameters are the same, then keep both
+			 * problems. by def, they are the same 
+			 */
+			if (store->decision == GMRFLib_STORE_ACCEPT) {
+				if (store->old_logdens && store->new_logdens) {
+					*(store->old_logdens) = *(store->new_logdens);
+				}
+			}
+			if (store->decision == GMRFLib_STORE_REJECT) {
+				/*
+				 * nothing for the moment 
+				 */
+			}
+		} else {
+			if (store->decision == GMRFLib_STORE_ACCEPT) {
+				if (store->problem_new2old)
+					GMRFLib_free_problem(store->problem_new2old);
+				store->problem_new2old = store->problem_old2new;
+				store->problem_old2new = NULL;
+
+				if (store->old_logdens && store->new_logdens) {
+					*(store->old_logdens) = *(store->new_logdens);
+				}
+			}
+			if (store->decision == GMRFLib_STORE_REJECT) {
+				if (store->problem_old2new) {
+					GMRFLib_free_problem(store->problem_old2new);
+				}
+				store->problem_old2new = NULL;
+			}
+		}
+	}
+
+	if (store && store->store_problems && store->fixed_hyperparameters && store->problem_old2new) {
+		/*
+		 * use copy 
+		 */
+		problem = store->problem_old2new;
+	} else {
+		/*
+		 * first, find the point to expand around
+		 * 
+		 * note that i use Qfunc_old2new if we have constraints as the Qfunc_new can then be singular!
+		 * 
+		 * this step is always performed, not matter store->use_more 
+		 */
+		Memcpy(mode, x_old, n * sizeof(double));
+		if (blockpar->modeoption == GMRFLib_MODEOPTION_MODE && d_new) {
+			GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b_new, c_new, mean_new, graph,
+							      (constr_new ? Qfunc_old2new : Qfunc_new),
+							      (constr_new ? Qfunc_arg_old2new : Qfunc_arg_new),
+							      constr_new, d_new, loglFunc_new, loglFunc_arg_new, optpar, store));
+		}
+
+		/*
+		 * compute the terms from loglFunc 
+		 */
+		if (d_new) {
+#pragma omp parallel for private(i)
+			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id;
+				double cmin = 0.0;
+				if (d_new[i]) {
+					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d_new[i], mode[i], i,
+							      mode, loglFunc_new, loglFunc_arg_new, &(blockpar->step_len), &(blockpar->stencil),
+							      &cmin);
+				}
+			}
+			GMRFLib_thread_id = id;
+		}
+
+		/*
+		 * add the linear and quadratic term to the general model. note that we need to correct the b-term due to the mean. 
+		 */
+		if (b_new) {
+			if (mean_new) {
+				for (i = 0; i < n; i++) {
+					bb[i] += b_new[i] - cc[i] * mean_new[i];
+				}
+			} else {
+				for (i = 0; i < n; i++) {
+					bb[i] += b_new[i];
+				}
+			}
+		} else {
+			if (mean_new) {
+				for (i = 0; i < n; i++) {
+					bb[i] -= cc[i] * mean_new[i];
+				}
+			}
+		}
+
+		if (c_new) {
+			for (i = 0; i < n; i++) {
+				cc[i] += c_new[i];
+			}
+		}
+
+		GMRFLib_EWRAP1(GMRFLib_init_problem_store(&problem, x_old, bb, cc, mean_new, graph,
+							  Qfunc_old2new, Qfunc_arg_old2new, constr_new, store));
+	}
+
+	if (problem) {
+		GMRFLib_EWRAP1(GMRFLib_sample(problem));
+		old2new = problem->sub_logdens;
+		Memcpy(x_new, problem->sample, n * sizeof(double));
+
+		if (store && store->store_problems) {
+			store->problem_old2new = problem;
+		} else {
+			GMRFLib_free_problem(problem);
+		}
+		problem = NULL;
+	} else {
+		/*
+		 * nothing to do really, just make sure that the x_new equals x_old 
+		 */
+		old2new = 0.0;
+		Memcpy(x_new, x_old, n * sizeof(double));
+	}
+
+	/*
+	 * now, go backwards
+	 * 
+	 * note: no need to optimize if there is no data.
+	 * 
+	 * note that i use Qfunc_new2old we have constraints as then the Qfunc_old can be singular! 
+	 */
+
+	if (store && store->store_problems && store->problem_new2old) {
+		/*
+		 * use copy 
+		 */
+		problem = store->problem_new2old;
+	} else {
+		Memcpy(mode, x_new, n * sizeof(double));
+		if (blockpar->modeoption == GMRFLib_MODEOPTION_MODE && d_old) {
+			GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b_old, c_old, mean_old, graph,
+							      (constr_old ? Qfunc_new2old : Qfunc_old),
+							      (constr_old ? Qfunc_arg_new2old : Qfunc_arg_old),
+							      constr_old, d_old, loglFunc_old, loglFunc_arg_old, optpar, store));
+		}
+
+		Memset(bb, 0, n * sizeof(double));
+		Memset(cc, 0, n * sizeof(double));
+		if (d_old) {
+#pragma omp parallel for private(i)
+			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id;
+				double cmin = 0.0;
+				if (d_old[i]) {
+					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d_old[i], mode[i], i, mode,
+							      loglFunc_old, loglFunc_arg_old, &(blockpar->step_len), &(blockpar->stencil), &cmin);
+				}
+			}
+			GMRFLib_thread_id = id;
+		}
+
+		/*
+		 * add the linear and quadratic term to the general model. note that we need to correct the b-term due to the
+		 * mean. 
+		 */
+		if (b_old) {
+			if (mean_old) {
+				for (i = 0; i < n; i++) {
+					bb[i] += b_old[i] - cc[i] * mean_old[i];
+				}
+			} else {
+				for (i = 0; i < n; i++) {
+					bb[i] += b_old[i];
+				}
+			}
+		} else {
+			if (mean_old) {
+				for (i = 0; i < n; i++) {
+					bb[i] -= cc[i] * mean_old[i];
+				}
+			}
+		}
+		if (c_old) {
+			for (i = 0; i < n; i++) {
+				cc[i] += c_old[i];
+			}
+		}
+
+		GMRFLib_EWRAP1(GMRFLib_init_problem_store
+			       (&problem, x_new, bb, cc, mean_old, graph, Qfunc_new2old, Qfunc_arg_new2old, constr_old, store));
+	}
+
+	if (problem) {
+		Memcpy(problem->sample, x_old, n * sizeof(double));
+		GMRFLib_EWRAP1(GMRFLib_evaluate(problem));
+		new2old = problem->sub_logdens;
+
+		if (store && store->store_problems) {
+			store->problem_new2old = problem;      /* just set it back [this is OK] */
+		} else {
+			GMRFLib_free_problem(problem);
+		}
+		problem = NULL;
+	} else {
+		/*
+		 * nothing to do 
+		 */
+		new2old = 0.0;
+	}
+
+	bb = cc = NULL;					       /* not used anymore */
+
+	/*
+	 * compute the density at x and x_old.
+	 * 
+	 * FIXME: here i do not use subgraph, but that require big tests to see if the results would be the same. is it worth
+	 * it really? 
+	 */
+
+	neww = 0.0;
+	if (mean_new) {
+		for (i = 0; i < n; i++) {
+			xx[i] = x_new[i] - mean_new[i];
+		}
+	} else {
+		Memcpy(xx, x_new, n * sizeof(double));
+	}
+	GMRFLib_Qx(yy, xx, graph, Qfunc_new, Qfunc_arg_new);
+	if (c_new) {
+		for (i = 0; i < n; i++) {
+			neww += yy[i] * xx[i] + c_new[i] * SQR(xx[i]);
+		}
+	} else {
+		for (i = 0; i < n; i++) {
+			neww += yy[i] * xx[i];
+		}
+	}
+	neww *= -0.5;
+	if (b_new) {
+		for (i = 0; i < n; i++) {
+			neww += b_new[i] * x_new[i];
+		}
+	}
+	if (d_new) {
+		double sum = 0.0;
+
+#pragma omp parallel for private(i) reduction(+: sum)
+		for (i = 0; i < n; i++) {
+			GMRFLib_thread_id = id;
+			if (d_new[i]) {
+				loglFunc_new(&logll, &x_new[i], 1, i, x_new, NULL, loglFunc_arg_new);
+				sum += d_new[i] * logll;
+			}
+		}
+		GMRFLib_thread_id = id;
+		neww += sum;
+	}
+
+	/*
+	 * store the new value 
+	 */
+	if (store && store->store_problems) {
+		if (!(store->new_logdens)) {
+			store->new_logdens = Calloc(1, double);
+		}
+		*(store->new_logdens) = neww;
+	}
+
+	if (store && store->store_problems && store->old_logdens) {
+		old = *(store->old_logdens);
+	} else {
+		old = 0.0;
+		if (mean_old) {
+			for (i = 0; i < n; i++) {
+				xx[i] = x_old[i] - mean_old[i];
+			}
+		} else {
+			Memcpy(xx, x_old, n * sizeof(double));
+		}
+		GMRFLib_Qx(yy, xx, graph, Qfunc_old, Qfunc_arg_old);
+		if (c_old) {
+			for (i = 0; i < n; i++) {
+				old += yy[i] * xx[i] + c_old[i] * SQR(xx[i]);
+			}
+		} else {
+			for (i = 0; i < n; i++) {
+				old += yy[i] * xx[i];
+			}
+		}
+		old *= -0.5;
+		if (b_old) {
+			for (i = 0; i < n; i++) {
+				old += b_old[i] * x_old[i];
+			}
+		}
+		if (d_old) {
+			double sum = 0.0;
+
+#pragma omp parallel for private(i) reduction(+: sum)
+			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id;
+				if (d_old[i]) {
+					loglFunc_old(&logll, &x_old[i], 1, i, x_old, NULL, loglFunc_arg_old);
+					sum += d_old[i] * logll;
+				}
+			}
+			GMRFLib_thread_id = id;
+			old += sum;
+		}
+	}
+
+	/*
+	 * store the old value 
+	 */
+	if (store && store->store_problems) {
+		if (!(store->old_logdens)) {
+			store->old_logdens = Calloc(1, double);
+		}
+		*(store->old_logdens) = old;
+	}
+
+	/*
+	 * finally.... 
+	 */
+	*laccept = neww + new2old - (old + old2new);
+
+	if (blockpar->fp) {
+		fprintf(blockpar->fp, "\n%s: laccept %f\n", __GMRFLib_FuncName, *laccept);
+		fprintf(blockpar->fp, "\tnew_ldens %12.6f\n", neww);
+		fprintf(blockpar->fp, "\told_ldens %12.6f\n", old);
+		fprintf(blockpar->fp, "\tnew2old   %12.6f\n", new2old);
+		fprintf(blockpar->fp, "\told2new   %12.6f\n", old2new);
+	}
+
+	Free(xx);
+	Free(yy);
+	Free(mode);
+	if (free_block) {
+		Free(blockpar);
+	}
+
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_init_GMRF_approximation(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, double *d,
+				    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				    GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+				    GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par)
+{
+	GMRFLib_ENTER_ROUTINE;
+	GMRFLib_EWRAP1(GMRFLib_init_GMRF_approximation_store(problem, x, b, c, mean, d, loglFunc, loglFunc_arg,
+							     graph, Qfunc, Qfunc_arg, constr, optpar, blockupdate_par, NULL));
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
+					  double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+					  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
+					  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
+					  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store)
+{
+	int i, j, free_x = 0, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, n, id;
+	double *bb = NULL, *cc = NULL, *mode = NULL;
+
+#define FREE_ALL if (1) { if (free_x) Free(x); if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
+	if (free_mean) Free(mean); if (free_blockpar) Free(blockupdate_par); Free(bb); Free(cc); Free(mode);}
+
+	id = GMRFLib_thread_id;
+	GMRFLib_ASSERT(problem, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(graph, GMRFLib_EINVARG);
+	GMRFLib_ASSERT(Qfunc, GMRFLib_EINVARG);
+	GMRFLib_ENTER_ROUTINE;
+
+	n = graph->n;
+	if (n == 0) {
+		*problem = NULL;
+		GMRFLib_LEAVE_ROUTINE;
+		return GMRFLib_SUCCESS;
+	}
+
+	if (!x) {
+		free_x = 1;
+		x = Calloc(n, double);
+	}
+	if (!b) {
+		free_b = 1;
+		b = Calloc(n, double);
+	}
+	if (!c) {
+		free_c = 1;
+		c = Calloc(n, double);
+	}
+	if (!d) {
+		free_d = 1;
+		d = Calloc(n, double);
+	}
+	if (!mean) {
+		free_mean = 1;
+		mean = Calloc(n, double);
+	}
+
+	bb = Calloc(n, double);
+	cc = Calloc(n, double);
+	mode = Calloc(n, double);
+
+	if (!blockupdate_par) {
+		GMRFLib_default_blockupdate_param(&blockupdate_par);
+		free_blockpar = 1;
+	}
+
+	Memcpy(mode, x, n * sizeof(double));
+	if (blockupdate_par->modeoption == GMRFLib_MODEOPTION_MODE && d)
+		GMRFLib_EWRAP1(GMRFLib_optimize_store(mode, b, c, mean, graph, Qfunc, Qfunc_arg, constr, d, loglFunc, loglFunc_arg, optpar, store));
+
+	if (!(store && store->sub_graph)) {
+		/*
+		 * compute the terms from loglFunc 
+		 */
+		if (d) {
+#pragma omp parallel for private(i)
+			for (i = 0; i < n; i++) {
+				GMRFLib_thread_id = id;
+				double cmin = 0.0;
+				if (d[i]) {
+					GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[i], mode[i], i, mode, loglFunc, loglFunc_arg,
+							      &(blockupdate_par->step_len), &(blockupdate_par->stencil), &cmin);
+				}
+			}
+			GMRFLib_thread_id = id;
+		}
+		if (b) {
+			if (mean) {
+				for (i = 0; i < n; i++) {
+					bb[i] += b[i] - cc[i] * mean[i];
+				}
+			} else {
+				for (i = 0; i < n; i++) {
+					bb[i] += b[i];
+				}
+			}
+		} else {
+			if (mean) {
+				for (i = 0; i < n; i++) {
+					bb[i] -= cc[i] * mean[i];
+				}
+			}
+		}
+		if (c) {
+			for (i = 0; i < n; i++) {
+				cc[i] += c[i];
+			}
+		}
+	} else {
+		/*
+		 * do the same as above, but only for those 'i' which is not fixed. this is faster if we have fixed values and
+		 * the sub_graph is available. 
+		 */
+
+		int ns = store->sub_graph->n;
+
+#pragma omp parallel for private(i, j)
+		for (j = 0; j < ns; j++) {
+			GMRFLib_thread_id = id;
+			double cmin = 0.0;
+			i = j;
+			if (d[i]) {
+				GMRFLib_2order_approx(NULL, &bb[i], &cc[i], NULL, d[i], mode[i], i, mode, loglFunc, loglFunc_arg,
+						      &(blockupdate_par->step_len), &(blockupdate_par->stencil), &cmin);
+			}
+		}
+		GMRFLib_thread_id = id;
+
+		if (b) {
+			if (mean) {
+				for (j = 0; j < ns; j++) {
+					i = j;
+					bb[i] += b[i] - cc[i] * mean[i];
+				}
+			} else {
+				for (j = 0; j < ns; j++) {
+					i = j;
+					bb[i] += b[i];
+				}
+			}
+		} else {
+			if (mean) {
+				for (j = 0; j < ns; j++) {
+					i = j;
+					bb[i] -= cc[i] * mean[i];
+				}
+			}
+		}
+
+		if (c) {
+			for (j = 0; j < ns; j++) {
+				i = j;
+				cc[i] += c[i];
+			}
+		}
+	}
+
+	GMRFLib_EWRAP1(GMRFLib_init_problem_store(problem, x, bb, cc, mean, graph, Qfunc, Qfunc_arg, constr, store));
+
+	FREE_ALL;
+	GMRFLib_LEAVE_ROUTINE;
+
+	return GMRFLib_SUCCESS;
+
+#undef FREE_ALL
+}

@@ -394,8 +394,8 @@ struct GMRFLib_store_struct {
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
-double GMRFLib_Qfunc_generic(int i, int j, double *values, void *arg);
-double GMRFLib_Qfunc_wrapper(int sub_node, int sub_nnode, double *values, void *arguments);
+double GMRFLib_Qfunc_generic(int thread_id, int i, int j, double *values, void *arg);
+double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem);
 int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem);
 int GMRFLib_constr_add_sha(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph);
@@ -410,10 +410,11 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr);
 int GMRFLib_free_problem(GMRFLib_problem_tp * problem);
 int GMRFLib_free_store(GMRFLib_store_tp * store);
 int GMRFLib_info_problem(FILE * fp, GMRFLib_problem_tp * problem);
+int GMRFLib_init_constr_store_logdet(void);
 int GMRFLib_init_constr_store(void);
-int GMRFLib_init_problem(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
+int GMRFLib_init_problem(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
 			 GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args, GMRFLib_constr_tp * constraint);
-int GMRFLib_init_problem_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
+int GMRFLib_init_problem_store(int thread_id, GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean,
 			       GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_args,
 			       GMRFLib_constr_tp * constr, GMRFLib_store_tp * store);
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr);

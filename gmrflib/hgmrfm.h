@@ -131,7 +131,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_ai_param_tp * ai_par);
 GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a);
-double GMRFLib_hgmrfm_Qfunc(int node, int nnode, double *values, void *arg);
+double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
 int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm);
 
 __END_DECLS

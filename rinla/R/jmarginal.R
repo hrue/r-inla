@@ -121,15 +121,16 @@
     }
 
     ## the setup depends on 'constr' or not
+    cov.matrix <- inla.ensure.spd(jmarginal$cov.matrix)
     if (missing(constr)) {
         constr <- NULL
-        Q <- solve(jmarginal$cov.matrix)
-        Qi <- jmarginal$cov.matrix
+        Q <- solve(cov.matrix)
+        Qi <- cov.matrix
         mm <- jmarginal$mean
     } else {
         constr$nc <- nrow(constr$A) ## this is required in the 'configs'
-        Q <- solve(jmarginal$cov.matrix)
-        Qi <- jmarginal$cov.matrix
+        Q <- solve(cov.matrix)
+        Qi <- cov.matrix
         QiA <- Qi %*% t(constr$A)
         SS <- solve(constr$A %*% QiA)
         Qi <- Qi - QiA %*% SS %*% t(QiA)
@@ -290,7 +291,7 @@
     } else {
         names.sel <- rownames(A)
     }
-                            
+    
     skew.max <- 0.99
     moments <- jmarginal$.private$moments
     skewness.sel <- jmarginal$skewness
@@ -321,8 +322,8 @@
         skew.tjoint[lc] <- skew.m
     }
     sn.par <- inla.sn.reparam(moments = list(mean = as.numeric(mu.tjoint),
-                                          variance = diag(S.tjoint),
-                                          skewness = skew.tjoint))
+                                             variance = diag(S.tjoint),
+                                             skewness = skew.tjoint))
     output <- list()
     output$names <- names.sel
     output$mean <- mu.tjoint

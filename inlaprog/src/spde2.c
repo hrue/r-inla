@@ -44,7 +44,7 @@
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
-double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
 	if (i >= 0 && j < 0) {
 		return NAN;
@@ -75,7 +75,7 @@ double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
 			}
 			phi_j[k] = phi_i[k];		       /* they are equal in this case */
 		} else {
@@ -90,8 +90,8 @@ double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 				/*
 				 * '-1' is the correction for the first intercept column in B 
 				 */
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
-				phi_j[k] += row_j[kk] * model->theta[kk - 1][GMRFLib_thread_id][0];
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
+				phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
 			}
 		}
 	}
@@ -146,7 +146,7 @@ double inla_spde2_Qfunction(int i, int j, double *UNUSED(values), void *arg)
 	return value;
 }
 
-int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform)
+int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const char *prefix, const char *transform)
 {
 	int i, debug = 0;
 	inla_spde2_tp *model = NULL;

@@ -29,9 +29,9 @@ More details about it are on the paber at
 <<setting,include=FALSE>>=
 library(knitr);  library(INLA);  library(fields) 
 set.seed(123)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
+if (file.exists("myinit.R")) source("myinit.R")
 opts_chunk$set(message=FALSE, warning=FALSE, tidy=FALSE,
 fig.path="figures/SPDE1d/")
 knit_hooks$set(small.mar = function(before, options, envir) {

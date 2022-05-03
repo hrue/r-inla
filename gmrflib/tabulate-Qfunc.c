@@ -103,32 +103,61 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		}							\
 	 }
 
-double GMRFLib_tabulate_Qfunction(int node, int nnode, double *values, void *arg)
+double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *values, void *arg)
 {
-	static int guess[] = { 0, 0 };
-#pragma omp threadprivate(guess)
+	static int **gguess = NULL;
+	if (!gguess) {
+#pragma omp critical
+		{
+			if (!gguess) {
+				gguess = Calloc(GMRFLib_CACHE_LEN, int *);
+			}
+		}
+	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+	if (!gguess[idx]) {
+		gguess[idx] = Calloc(2, int);
+	}
+	int *guess = gguess[idx];
 
 	double val = 0.0;
 	TAB_FUNC_CORE(1);
 	return val;
 }
 
-double GMRFLib_tabulate_Qfunction_std(int node, int nnode, double *values, void *arg)
+double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double *values, void *arg)
 {
-	static int guess[] = { 0, 0 };
-#pragma omp threadprivate(guess)
+	static int **gguess = NULL;
+	if (!gguess) {
+#pragma omp critical
+		{
+			if (!gguess) {
+				gguess = Calloc(GMRFLib_CACHE_LEN, int *);
+			}
+		}
+	}
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
+	if (!gguess[idx]) {
+		gguess[idx] = Calloc(2, int);
+	}
+	int *guess = gguess[idx];
 
 	double val = 0.0;
 	TAB_FUNC_CORE(0);
 	return val;
 }
 
-int GMRFLib_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
+int GMRFLib_tabulate_Qfunc(int thread_id,
+			   GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp)
 {
-	return (GMRFLib_tabulate_Qfunc_core(tabulate_Qfunc, graph, Qfunc, Qfunc_arg, log_prec_omp, 0));
+	return (GMRFLib_tabulate_Qfunc_core(thread_id, tabulate_Qfunc, graph, Qfunc, Qfunc_arg, log_prec_omp, 0));
 }
-int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
+
+int GMRFLib_tabulate_Qfunc_core(int thread_id,
+				GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
 				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
 {
 	int i, j, k;
@@ -163,16 +192,13 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 	}
 
 	if (GMRFLib_smtp == GMRFLib_SMTP_PARDISO || GMRFLib_smtp == GMRFLib_SMTP_TAUCS) {
-		GMRFLib_Q2csr(&(arg->Q), graph, Qfunc, Qfunc_arg);
+		GMRFLib_Q2csr(thread_id, &(arg->Q), graph, Qfunc, Qfunc_arg);
 		if (arg->Q->a[0] < 0.0 || ISNAN(arg->Q->a[0]) || ISINF(arg->Q->a[0])) {
 			P(arg->Q->a[0]);
 		}
 		assert(arg->Q->a[0] >= 0.0);
 		GMRFLib_graph_duplicate(&(arg->graph), graph);
 	} else {
-		int id, mem_id;
-		id = GMRFLib_thread_id;
-		mem_id = GMRFLib_meminfo_thread_id;
 		arg->values = Calloc(graph->n, map_id *);
 		map_id *work = Calloc(graph->n, map_id);
 		for (i = 0; i < graph->n; i++) {
@@ -180,20 +206,16 @@ int GMRFLib_tabulate_Qfunc_core(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMR
 		}
 
 		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner)
+//#pragma omp parallel for private(i, j, k) num_threads(GMRFLib_openmp->max_threads_inner)
 		for (i = 0; i < graph->n; i++) {
-			GMRFLib_thread_id = id;
-			GMRFLib_meminfo_thread_id = mem_id;
 			map_id_init_hint(arg->values[i], graph->lnnbs[i] + 1);
-			map_id_set(arg->values[i], i, (*Qfunc) (i, i, NULL, Qfunc_arg));	/* diagonal */
+			map_id_set(arg->values[i], i, (*Qfunc) (thread_id, i, i, NULL, Qfunc_arg));	/* diagonal */
 
 			for (j = 0; j < graph->lnnbs[i]; j++) {
 				k = graph->lnbs[i][j];
-				map_id_set(arg->values[i], k, (*Qfunc) (i, k, NULL, Qfunc_arg));
+				map_id_set(arg->values[i], k, (*Qfunc) (thread_id, i, k, NULL, Qfunc_arg));
 			}
 		}
-		GMRFLib_thread_id = id;
-		GMRFLib_meminfo_thread_id = mem_id;
 	}
 
 	return GMRFLib_SUCCESS;
@@ -466,7 +488,6 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	 * 
 	 */
 
-	int id = GMRFLib_thread_id;
 	int i, imin = INT_MAX, jmin = INT_MAX, off;
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 
@@ -528,9 +549,8 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 		arg->values[i] = work + i;
 	}
 
-#pragma omp parallel for private(i)
+//#pragma omp parallel for private(i)
 	for (i = 0; i < (*graph)->n; i++) {
-		GMRFLib_thread_id = id;
 		int j, jj;
 		map_id_init_hint(arg->values[i], (*graph)->lnnbs[i] + 1);
 		map_id_set(arg->values[i], i, 0.0);

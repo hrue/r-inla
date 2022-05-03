@@ -4,6 +4,18 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.05.03}{
+  \subsection{CHANGES}{
+    \itemize Code improvement, cleanup and bug-fixes
+    \itemize More work on the \code{gcpo}-feature
+    \itemize Removed threadprivate from code (almost), which was a huge rewrite.
+    \itemize Made linesearch in the optimization more robust and stable
+    \itemize Improved \code{stupid}-search
+    \itemize Internal changes in the \code{smart}-optimization
+    \itemize (This is likely the last build with R-4.1 before we switch to R-4.2)
+  }
+}
+
 \section{CHANGES IN VERSION 22.04.16}{
   \subsection{CHANGES}{
     \itemize Added \code{theta}-correction for \code{gcpo} computations

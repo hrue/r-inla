@@ -108,16 +108,17 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
 
 	ww_sum = 0;
 	nn = 0;
-	for (int i = 0; i < n; i++) {
-		if (ww_sum + ww[perm[i]] < 1.0 - WEIGHT_PROB) {
-			ww[perm[i]] = 0.0;
-		} else {
+	for (int i = n-1; i >= 0; i--) {		       /* since 'perm' is increasing */
+		int j = perm[i];
+		if (ww_sum < WEIGHT_PROB) {
+			ww_sum += ww[j];
 			nn++;
+		} else {
+			ww[j] = 0.0;
 		}
-		ww_sum += ww[perm[i]];
 	}
 	GMRFLib_normalize(n, ww);
-
+	
 	GMRFLib_idxval_tp *idxval = NULL;
 	GMRFLib_idxval_create_x(&idxval, nn);
 
@@ -519,7 +520,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	// GMRFLib_ENTER_ROUTINE;
 
 	Calloc_init(4 * npm + 2 * np);
 
@@ -557,14 +558,14 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
-		GMRFLib_LEAVE_ROUTINE;
+		// GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
 	if (!lookup_tables && density->type != GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 		Calloc_free();
 		density->P = density->Pinv = NULL;
-		GMRFLib_LEAVE_ROUTINE;
+		// GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -703,7 +704,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	Calloc_free();
-	GMRFLib_LEAVE_ROUTINE;
+	// GMRFLib_LEAVE_ROUTINE;
 
 	return GMRFLib_SUCCESS;
 }
@@ -1044,7 +1045,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
+	// GMRFLib_ENTER_ROUTINE;
 
 	// this actually happens like for 'eb' and is also how 'duplicate' is implemented
 	if (n == 1) {
@@ -1073,7 +1074,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 			P((*densities)->type);
 			assert(0 == 1);
 		}
-		GMRFLib_LEAVE_ROUTINE;
+		// GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1117,7 +1118,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 
 	Calloc_free();
 
-	GMRFLib_LEAVE_ROUTINE;
+	// GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -1762,13 +1763,23 @@ double GMRFLib_sn_mode(double skew)
 {
 	// return the mode for a skew-normal with moments=c(0,1,skew)
 
-	static GMRFLib_spline_tp *spline = NULL;
-#pragma omp threadprivate(spline)
+	static GMRFLib_spline_tp **spline = NULL;
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!spline) {
 #pragma omp critical
 		{
 			if (!spline) {
+				spline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+			}
+		}
+	}
+
+	if (!spline[idx]) {
+#pragma omp critical
+		{
+			if (!spline[idx]) {
 
 				// find.sn.mode <- function(skew, mode.initial = NULL) {
 				// dp <- unlist(INLA:::inla.sn.reparam(moments = c(0, 1, skew)))
@@ -1875,26 +1886,36 @@ double GMRFLib_sn_mode(double skew)
 					-0.9910483779, -1.021200258, -1.05723934, -1.103375097, -1.114585842
 				};
 
-				spline = GMRFLib_spline_create(skews, modes, (int) sizeof(skews) / sizeof(double));
+				spline[idx] = GMRFLib_spline_create(skews, modes, (int) sizeof(skews) / sizeof(double));
 			}
 		}
 	}
 
 	skew = TRUNCATE(skew, -GMRFLib_SN_SKEWMAX, GMRFLib_SN_SKEWMAX);
-	return (GMRFLib_spline_eval(skew, spline));
+	return (GMRFLib_spline_eval(skew, spline[idx]));
 }
 
 double GMRFLib_sn_d3_to_skew(double d3)
 {
 	// find the skewness for a given third order derivative at the model, with mean=0 and var=1.
 
-	static GMRFLib_spline_tp *spline = NULL;
-#pragma omp threadprivate(spline)
+	static GMRFLib_spline_tp **spline = NULL;
+	int idx;
+	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!spline) {
 #pragma omp critical
 		{
 			if (!spline) {
+				spline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+			}
+		}
+	}
+
+	if (!spline[idx]) {
+#pragma omp critical
+		{
+			if (!spline[idx]) {
 				// both skew and d3 have been POWER13 transformed, as this gives a much better function to interpolate
 				double skew3s[] = {
 					-0.9959838925, -0.9943009155, -0.9926122218, -0.9909177627, -0.9892174886, -0.9875113495, -0.9857992945,
@@ -2044,7 +2065,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 				};
 
 				int n = (int) sizeof(skew3s) / sizeof(double);
-				spline = GMRFLib_spline_create(d33s, skew3s, n);
+				spline[idx] = GMRFLib_spline_create(d33s, skew3s, n);
 			}
 		}
 	}
@@ -2055,7 +2076,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 	double skew;
 
 	d3 = POWER13(d3);
-	skew = GMRFLib_spline_eval(d3, spline);
+	skew = GMRFLib_spline_eval(d3, spline[idx]);
 	skew = iPOWER13(skew);
 	skew = TRUNCATE(skew, -GMRFLib_SN_SKEWMAX, GMRFLib_SN_SKEWMAX);
 

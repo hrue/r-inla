@@ -85,12 +85,6 @@ __BEGIN_DECLS
 	 */
 	int cyclic;
 
-	/**
-	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
-	 * 
-	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
-	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
-	 */
 	double **log_prec_omp;
 
 	/*
@@ -244,26 +238,19 @@ typedef struct {
 	 */
 	int bvalue;
 
-	/**
-	 *  \brief A (possible) ppointer to the log-precision where each tread has its own value.
-	 * 
-	 * If \c log_prec_omp !=\c NULL, then \c log_prec_omp[ID] points to the log-precision, where ID is \c GMRFLib_thread_id.
-	 * if \c log_prec_omp is \c NULL, then a unit precision is used.
-	 */
 	double **log_prec_omp;
-
 	double *prec_scale;
 } GMRFLib_rw2ddef_tp;
 
-double GMRFLib_rw(int node, int nnode, double *values, void *rwdef);
-double GMRFLib_crw(int node, int nnode, double *values, void *crwdef);
-double GMRFLib_rw2d(int node, int nnode, double *values, void *rw2ddef);
+double GMRFLib_rw(int thread_id, int node, int nnode, double *values, void *rwdef);
+double GMRFLib_crw(int thread_id, int node, int nnode, double *values, void *crwdef);
+double GMRFLib_rw2d(int thread_id, int node, int nnode, double *values, void *rw2ddef);
 int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def);
 int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def);
 int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def);
-int GMRFLib_crw_scale(void *def);
-int GMRFLib_rw_scale(void *def);
-int GMRFLib_rw2d_scale(void *def);
+int GMRFLib_crw_scale(int thread_id, void *def);
+int GMRFLib_rw_scale(int thread_id, void *def);
+int GMRFLib_rw2d_scale(int thread_id, void *def);
 
 __END_DECLS
 #endif

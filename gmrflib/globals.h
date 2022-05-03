@@ -108,8 +108,8 @@ typedef double GMRFLib_cpu_tp(void);
 /* 
    the userfunc's
  */
-typedef double *GMRFLib_ai_INLA_userfunc0_tp(GMRFLib_problem_tp * problem, double *theta, int nhyper);
-typedef double *GMRFLib_ai_INLA_userfunc1_tp(double *theta, int nhyper, double *covmat);
+typedef double *GMRFLib_ai_INLA_userfunc0_tp(int thread_id, GMRFLib_problem_tp * problem, double *theta, int nhyper);
+typedef double *GMRFLib_ai_INLA_userfunc1_tp(int thread_id, double *theta, int nhyper, double *covmat);
 typedef double *GMRFLib_ai_INLA_userfunc2_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 typedef double *GMRFLib_ai_INLA_userfunc3_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 
@@ -185,12 +185,6 @@ extern int GMRFLib_ai_INLA_userfunc3_n;
 extern int *GMRFLib_ai_INLA_userfunc3_len;
 extern char **GMRFLib_ai_INLA_userfunc3_tag;
 
-/* 
-   OpenMP spesifics.
- */
-extern int GMRFLib_thread_id;
-#pragma omp threadprivate(GMRFLib_thread_id)
-
 /*
   Signal USR2: Stop optimiser and present results
 */
@@ -211,12 +205,6 @@ extern int GMRFLib_bitmap_swap;
    Holds the thread strategy
  */
 extern GMRFLib_openmp_tp *GMRFLib_openmp;
-
-/*
-  Holds the on/off of meminfo collection
-*/
-extern int GMRFLib_meminfo_thread_id;
-#pragma omp threadprivate(GMRFLib_meminfo_thread_id)
 
 /* 
    define global nodes
@@ -251,6 +239,7 @@ extern int GMRFLib_preopt_like_strategy;		       // 0 = plain, 1 = group.
 
 extern int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel
 
+extern int GMRFLib_preopt_predictor_strategy;		       // 0 = !data_rich, 1 = data_rich
 #endif
 __END_DECLS
 #endif

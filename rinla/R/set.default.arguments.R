@@ -485,7 +485,7 @@
             tolerance.x = NULL,
 
             ## :ARGUMENT: tolerance.step Numerical The tolerance for the change in root-mean_squre in the inner Newton-like optimisation of the latent field.
-            tolerance.step = 0.0005,
+            tolerance.step = 0.001,
 
             ## :ARGUMENT: restart Numerical To improve the optimisation, the optimiser is restarted at the found optimum 'restart' number of times.
             restart = 0L,

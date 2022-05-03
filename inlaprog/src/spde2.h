@@ -75,8 +75,8 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 } inla_spde2_tp;
 
-double inla_spde2_Qfunction(int node, int nnode, double *values, void *arg);
-int inla_spde2_build_model(inla_spde2_tp ** smodel, const char *prefix, const char *transform);
+double inla_spde2_Qfunction(int thread_id, int node, int nnode, double *values, void *arg);
+int inla_spde2_build_model(int thread_id, inla_spde2_tp ** smodel, const char *prefix, const char *transform);
 double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg);
 
 __END_DECLS

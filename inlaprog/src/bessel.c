@@ -44,4 +44,3 @@
 static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "bessel.h"
-

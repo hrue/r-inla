@@ -113,51 +113,12 @@ __BEGIN_DECLS
 } GMRFLib_blockupdate_param_tp;
 
 int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp ** blockupdate_par);
-int GMRFLib_2order_approx(double *a, double *b, double *c, double *dd, double d, double x0, int indx,
+int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int indx,
 			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil, double *cmin);
-int GMRFLib_2order_taylor(double *a, double *b, double *c, double *dd, double d, double x0, int indx,
+int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int indx,
 			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil);
-int GMRFLib_2order_approx_core(double *a, double *b, double *c, double *dd, double x0, int indx,
+int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int indx,
 			       double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil);
-int GMRFLib_blockupdate(double *laccept,
-			double *x_new, double *x_old,
-			double *b_new, double *b_old,
-			double *c_new, double *c_old,
-			double *mean_new, double *mean_old,
-			double *d_new, double *d_old,
-			GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
-			GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
-			GMRFLib_graph_tp * graph,
-			GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
-			GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
-			GMRFLib_Qfunc_tp * Qfunc_old2new, void *Qfunc_arg_old2new,
-			GMRFLib_Qfunc_tp * Qfunc_new2old, void *Qfunc_arg_new2old,
-			GMRFLib_constr_tp * constr_new, GMRFLib_constr_tp * constr_old,
-			GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par);
-int GMRFLib_blockupdate_store(double *laccept,
-			      double *x_new, double *x_old,
-			      double *b_new, double *b_old,
-			      double *c_new, double *c_old,
-			      double *mean_new, double *mean_old,
-			      double *d_new, double *d_old,
-			      GMRFLib_logl_tp * loglFunc_new, void *loglFunc_arg_new,
-			      GMRFLib_logl_tp * loglFunc_old, void *loglFunc_arg_old,
-			      GMRFLib_graph_tp * graph,
-			      GMRFLib_Qfunc_tp * Qfunc_new, void *Qfunc_arg_new,
-			      GMRFLib_Qfunc_tp * Qfunc_old, void *Qfunc_arg_old,
-			      GMRFLib_Qfunc_tp * Qfunc_old2new, void *Qfunc_arg_old2new,
-			      GMRFLib_Qfunc_tp * Qfunc_new2old, void *Qfunc_arg_new2old,
-			      GMRFLib_constr_tp * constr_new, GMRFLib_constr_tp * constr_old,
-			      GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store);
-int GMRFLib_init_GMRF_approximation(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, double *d,
-				    GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_graph_tp * graph,
-				    GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_constr_tp * constr,
-				    GMRFLib_optimize_param_tp * optpar, GMRFLib_blockupdate_param_tp * blockupdate_par);
-int GMRFLib_init_GMRF_approximation_store(GMRFLib_problem_tp ** problem, double *x, double *b, double *c, double *mean, double *d,
-					  GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					  GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-					  GMRFLib_constr_tp * constr, GMRFLib_optimize_param_tp * optpar,
-					  GMRFLib_blockupdate_param_tp * blockupdate_par, GMRFLib_store_tp * store);
 
 __END_DECLS
 #endif

@@ -15,9 +15,9 @@ knitr::opts_chunk$set(echo=TRUE, message=FALSE, warning=FALSE)
 knitr::opts_chunk$set(fig.path="figures/stack-with-factors/")
 set.seed(123)
 library(INLA)
-if (file.exists("myinit.R")) source("myinit.R")
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
+if (file.exists("myinit.R")) source("myinit.R")
 ```
 
 ## Introduction

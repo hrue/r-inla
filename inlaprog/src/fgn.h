@@ -69,8 +69,8 @@ double inla_fgn2_helper(int i, int j, int n, double phi);
 
 int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def);
 int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def);
-double Qfunc_fgn(int i, int j, double *values, void *arg);
-double Qfunc_fgn2(int i, int j, double *values, void *arg);
+double Qfunc_fgn(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_fgn2(int thread_id, int i, int j, double *values, void *arg);
 
 int inla_fgn_get(double *phi, double *w, double H_intern, int k);
 double priorfunc_fgn_priorH(double *H_intern, double *param);
