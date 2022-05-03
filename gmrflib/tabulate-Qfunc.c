@@ -114,7 +114,7 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 			}
 		}
 	}
-	int idx;
+	int idx = -1;
 	GMRFLib_CACHE_SET_ID(idx);
 	if (!gguess[idx]) {
 		gguess[idx] = Calloc(2, int);
@@ -137,7 +137,7 @@ double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double
 			}
 		}
 	}
-	int idx;
+	int idx = -1;
 	GMRFLib_CACHE_SET_ID(idx);
 	if (!gguess[idx]) {
 		gguess[idx] = Calloc(2, int);
