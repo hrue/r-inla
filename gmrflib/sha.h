@@ -1,3 +1,4 @@
+
 /* sha.h
  * 
  * Copyright (C) 2022-2022 Havard Rue
@@ -34,7 +35,7 @@
 /* Don't warn about deprecated functions, */
 #ifndef OPENSSL_API_COMPAT
   // 0x10101000L == 1.1.1, 30000 == 3.0.0
-  #define OPENSSL_API_COMPAT 0x10101000L
+#define OPENSSL_API_COMPAT 0x10101000L
 #endif
 #include <openssl/sha.h>
 
@@ -49,9 +50,7 @@
 #endif
 
 __BEGIN_DECLS
-
 //
-
 #define GMRFLib_SHA_TP         SHA256_CTX
 #define GMRFLib_SHA_DIGEST_LEN SHA256_DIGEST_LENGTH
 #define GMRFLib_SHA_Init       SHA256_Init
@@ -73,6 +72,5 @@ __BEGIN_DECLS
 	}
 #define GMRFLib_SHA_IUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, int)
 #define GMRFLib_SHA_DUPDATE(_x, _len) GMRFLib_SHA_UPDATE_CORE(_x, _len, double)
-
-__END_DECLS
+    __END_DECLS
 #endif
