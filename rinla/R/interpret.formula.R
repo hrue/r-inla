@@ -7,22 +7,20 @@
                                      data = NULL,
                                      data.model = NULL,
                                      parent.frame = NULL) {
+    if (missing(parent.frame)) {
+        p.env <- environment(gf)
+    } else {
+        p.env <- parent.frame
+    }
     ## use a copy if data.model is !NULL, as we have to assign an
     ## entry to it. otherwise, just use the
     if (!is.null(data.model)) {
-        ## make a copy of the environment
-        p.env <- new.env(hash = TRUE, parent = environment(gf))
+        ## make a new environment, linking to the previous
+        p.env <- new.env(hash = TRUE, parent = p.env)
         ## then add the entries in data.model to that environment
         for (nm in names(data.model)) {
             idx <- which(names(data.model) == nm)
             assign(nm, data.model[[idx]], envir = p.env)
-        }
-    } else {
-        ## otherwise, just use (for read-only) this environment
-        if (missing(parent.frame)) {
-            p.env <- environment(gf)
-        } else {
-            p.env <- parent.frame
         }
     }
 
