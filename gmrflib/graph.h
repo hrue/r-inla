@@ -44,8 +44,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define OPENSSL_API_COMPAT 0x10101000L
-#include <openssl/sha.h>
+#include "GMRFLib/sha.h"
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS

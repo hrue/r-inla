@@ -42,9 +42,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <string.h>
 #include <stdio.h>
 
-#define OPENSSL_API_COMPAT 0x10101000L
-#include <openssl/sha.h>
-
+#include "GMRFLib/sha.h"
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 

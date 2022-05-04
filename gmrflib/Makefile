@@ -56,7 +56,7 @@ HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
 	smtp-band.h smtp-taucs.h sparse-interface.h rw.h \
 	bitmap.h hashP.h taucs.h taucs_private.h ghq.h \
-	tabulate-Qfunc.h io.h \
+	tabulate-Qfunc.h io.h sha.h \
 	approx-inference.h density.h utils.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
