@@ -37022,6 +37022,10 @@ int testit(int argc, char **argv)
 
 	case 15:
 	{
+		P(sizeof(void *));
+		P(sizeof(double));
+		P(sizeof(double *));
+		P(sizeof(int *));
 	}
 		break;
 

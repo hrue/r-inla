@@ -781,6 +781,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	void **ppt = NULL;
 
 	if (need_workaround) {
+		size_t siz = sizeof(void *);		       /* to prevent compiler warning */
 		ppt = Calloc(max_nt, void *);
 		init_done = Calloc(max_nt, int);
 		iiparm = Calloc(max_nt, int *);
@@ -790,7 +791,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		iiparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, int);
 		ddparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, double);
 		for (int i = 1; i < max_nt; i++) {
-			ppt[i] = ppt[i - 1] + GMRFLib_PARDISO_PLEN * sizeof(void *);
+			ppt[i] = ppt[i - 1] + GMRFLib_PARDISO_PLEN * siz;
 			iiparm[i] = iiparm[i - 1] + GMRFLib_PARDISO_PLEN;
 			ddparm[i] = ddparm[i - 1] + GMRFLib_PARDISO_PLEN;
 			factor[i] = 0;
