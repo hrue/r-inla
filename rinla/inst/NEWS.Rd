@@ -4,6 +4,12 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.05.07}{
+  \subsection{CHANGES}{
+    \itemize Minor changes to move to R-4.2
+  }
+}
+
 \section{CHANGES IN VERSION 22.05.03}{
   \subsection{CHANGES}{
     \itemize Code improvement, cleanup and bug-fixes
