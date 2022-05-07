@@ -55,7 +55,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 #define Probit_Pinv(_prob, _power) (-log1p(exp(-log(_prob)/(_power))-2.0))
 #define Probit_P(_x, _power) exp(-(_power) * log1p(exp(-(_x))))
 
-	int id;
+	int id = -1;
 	GMRFLib_CACHE_SET_ID(id);
 
 	static inla_powerlink_table_tp **table = NULL;

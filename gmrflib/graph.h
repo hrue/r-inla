@@ -43,7 +43,8 @@
 #endif
 #include <stdlib.h>
 #include <stdio.h>
-#include <openssl/sha.h>
+
+#include "GMRFLib/sha.h"
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS

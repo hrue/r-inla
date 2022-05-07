@@ -109,7 +109,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	double a = -p2 / p1, a1 = 1.0 / p1;
 	double cc, w, sum_ww = 0.0, ww_max = 0.0, lsum_ww, ly;
 	double jmax, logz, logz_stripped;
-	int id, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, verbose = 0, show_stat = 0;
+	int id = -1, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, verbose = 0, show_stat = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	dtweedie_cache_tp *cache_ptr = cache[id];

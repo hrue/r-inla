@@ -6190,7 +6190,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max);
-	
+
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
@@ -6213,7 +6213,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 		}
 	}
-	
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	if (dlin && nlin) {

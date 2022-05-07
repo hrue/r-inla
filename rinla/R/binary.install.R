@@ -12,7 +12,7 @@
 ## !                               "CentOS Stream-8",
 ## !                               "Fedora-33", "Fedora-34", "Fedora Linux-35",
 ## !                               "Manjaro Linux",
-## !                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04"), 
+## !                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04", "Ubuntu-22.04"), 
 ## !                        path = NULL, verbose = TRUE, md5.check = TRUE)
 ## ! }
 ## ! \arguments{
@@ -51,7 +51,8 @@
                                          "Manjaro Linux", 
                                          "Ubuntu-16.04", 
                                          "Ubuntu-18.04", 
-                                         "Ubuntu-20.04"),
+                                         "Ubuntu-20.04", 
+                                         "Ubuntu-22.04"),
                                   path = NULL, 
                                   verbose = TRUE,
                                   md5.check = TRUE) {
