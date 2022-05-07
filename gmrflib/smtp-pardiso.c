@@ -853,7 +853,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	GMRFLib_csr_tp *Q = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q;
 #define CODE_BLOCK							\
 	for (int i = 0; i < nsolve; i++) {				\
-		CODE_BLOCK_INIT();					\
+		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int idum = 0;						\
 		int tnum = omp_get_thread_num();			\
 		int offset = i * n * block_nrhs;			\

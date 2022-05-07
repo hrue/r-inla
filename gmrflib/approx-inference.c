@@ -7154,6 +7154,14 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	double zero = 0.0;
 	double spd_eps = GMRFLib_eps(0.5);
 
+	if (gcpo_param->verbose || detailed_output) {
+		printf("enter _gcpo with...\n");
+		for(int i = 0; i < Npred; i++) {
+			printf("\ti %d lpred_mean %f lpred_mode %f lpred_variance %f\n",
+			       i, lpred_mean[i], lpred_mode[i], lpred_variance[i]);
+		}
+	}
+
 	Calloc_init(mnpred);
 	assert(calloc_work_);
 	double *sd = Calloc_get(mnpred);
@@ -7276,6 +7284,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			gcpo[node]->value = NAN;			\
 			continue;					\
 		}							\
+		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int ng = gcpo[node]->idxs->n;				\
 		int *idxs = gcpo[node]->idxs->idx;			\
 		size_t idx_node = gcpo[node]->idx_node;			\
