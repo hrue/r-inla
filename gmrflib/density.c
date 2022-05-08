@@ -47,8 +47,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static double WEIGHT_PROB = 0.98;
-
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
 #define CONST_2 (-0.69314718055994528623)		       // log(0.5);
 
@@ -91,9 +89,9 @@ int GMRFLib_sn_moments2par(GMRFLib_sn_param_tp * p, double *mean, double *stdev,
 }
 
 
-GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
+GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n, double prob)
 {
-	// return an idxval with some of the weights pruned off, so that the sum is at least WEIGHT_PROB
+	// return an idxval with some of the weights pruned off, so that the sum is at least prob
 
 	size_t one = 1;
 	int nn;
@@ -106,11 +104,12 @@ GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n)
 	size_t *perm = Calloc(n, size_t);
 	gsl_sort_index(perm, ww, one, (size_t) n);
 
+	prob = TRUNCATE(prob, 0.0, 1.0);
 	ww_sum = 0;
 	nn = 0;
 	for (int i = n - 1; i >= 0; i--) {		       /* since 'perm' is increasing */
 		int j = perm[i];
-		if (ww_sum < WEIGHT_PROB) {
+		if (ww_sum < prob) {
 			ww_sum += ww[j];
 			nn++;
 		} else {
@@ -961,7 +960,7 @@ int GMRFLib_evaluate_densities(double *dens, double x_user, int n, GMRFLib_densi
 	 */
 	int i, j;
 	double d_tmp = 0.0, d = 0.0, x_std, p;
-	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(weights, n);
+	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(weights, n, GMRFLib_weight_prob);
 
 	for (j = 0; j < probs->n; j++) {
 		i = probs->idx[j];

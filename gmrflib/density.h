@@ -278,7 +278,7 @@ typedef struct {
 	double prob;					       /* probability; for solving P(X<x)=prob */
 } GMRFLib_density_properties_tp;
 
-GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n);
+GMRFLib_idxval_tp *GMRFLib_density_prune_weights(double *weights, int n, double prob);
 double GMRFLib_density_Pinv_df(double x, void *param);
 double GMRFLib_density_Pinv_f(double x, void *param);
 double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density);

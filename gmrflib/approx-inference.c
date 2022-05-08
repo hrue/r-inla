@@ -4247,7 +4247,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 
 	GMRFLib_normalize(dens_count, adj_weights);
-	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_count);
+	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_count, GMRFLib_weight_prob);
 
 	if (density) {
 		/*
@@ -6189,17 +6189,20 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 	}
 
-	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max);
+	/* to keep the same code as before */
+	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max, GMRFLib_weight_prob_one);
+	GMRFLib_idxval_tp *probs_combine = GMRFLib_density_prune_weights(adj_weights, dens_max, GMRFLib_weight_prob);
 
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
+	// add a special one here
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < preopt->mnpred + graph->n; ii++) {
 		int i;
 		if (ii < preopt->mnpred) {
 			i = ii;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, lpred[i], probs);
+			GMRFLib_density_combine(&dens_combine, lpred[i], probs_combine);
 			(*density)[i] = dens_combine;
 		} else {
 			i = ii - preopt->mnpred;
@@ -6208,12 +6211,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
 			if (tfunc && tfunc[i]) {
 				GMRFLib_density_tp *dens_c = NULL;
-				GMRFLib_density_combine(&dens_c, dens_transform[i], probs);
+				GMRFLib_density_combine(&dens_c, dens_transform[i], probs_combine);
 				(*density_transform)[i] = dens_c;
 			}
 		}
 	}
-
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
 	if (dlin && nlin) {
@@ -6228,7 +6230,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (k = 0; k < dens_max; k++) {
 				dtmp[k] = lin_dens[k][j];
 			}
-			GMRFLib_density_combine(&dcombine, dtmp, probs);
+			GMRFLib_density_combine(&dcombine, dtmp, probs_combine);
 			(*dlin)[j] = dcombine;
 		}
 		Free(dtmp);
@@ -6284,8 +6286,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 			for (int jjj = 0; jjj < dens_max; jjj++) {
 				gcpo_theta[jjj][j]->marg_theta_correction -= lcorr_max;
-				// prevent the corrections to be to large for robustness. exp(-1)=0.367...
-				gcpo_theta[jjj][j]->marg_theta_correction = DMAX(-5.0, gcpo_theta[jjj][j]->marg_theta_correction);
+				// prevent the corrections to be to large for robustness. exp(-15)=3.1E-07..
+				gcpo_theta[jjj][j]->marg_theta_correction = DMAX(-15.0, gcpo_theta[jjj][j]->marg_theta_correction);
 				// P(exp(gcpo_theta[jjj][j]->marg_theta_correction));
 			}
 

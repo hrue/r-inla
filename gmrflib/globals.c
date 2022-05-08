@@ -232,3 +232,6 @@ double GMRFLib_aqat_m_diag_add = 0.0;
 int GMRFLib_preopt_like_strategy = 0;			       // 0 = plain, 1 = group.
 int GMRFLib_Qx_strategy = 0;				       // 0 = serial, 1 = parallel
 int GMRFLib_preopt_predictor_strategy = 0;		       // 0 = !data_rich, 1 = data_rich
+
+double GMRFLib_weight_prob = 0.975;			       // for pruning weights for densities
+double GMRFLib_weight_prob_one = 0.999;			       // for pruning weights otherwise

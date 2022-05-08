@@ -240,6 +240,10 @@ extern int GMRFLib_preopt_like_strategy;		       // 0 = plain, 1 = group.
 extern int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel
 
 extern int GMRFLib_preopt_predictor_strategy;		       // 0 = !data_rich, 1 = data_rich
+
+extern double GMRFLib_weight_prob;
+extern double GMRFLib_weight_prob_one;
+
 #endif
 __END_DECLS
 #endif
