@@ -231,9 +231,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 			}
 		}
 	}
-	if (GMRFLib_verify_graph_read_from_disc) {
-		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
-	}
+	GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 
 	GMRFLib_graph_prepare(*graph);			       /* prepare the graph for computations */
 #undef TO_INT

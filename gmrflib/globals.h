@@ -67,101 +67,40 @@
 __BEGIN_DECLS
 #if !defined(GMRFLib_FALSE)
 
-/*!
-  \brief Define GMRFLib_FALSE as (0)
-*/
 #define GMRFLib_FALSE (0)
 #endif
 #if !defined(GMRFLib_TRUE)
 
-/*!
-  \brief Define GMRFLib_TRUE as (1)
-*/
 #define GMRFLib_TRUE  (1)
 #endif
 
-/*!
-  \brief RNG get
-*/
 typedef double GMRFLib_uniform_tp(void);
-
-/*!
-  \brief RNG init
-*/
 typedef int GMRFLib_uniform_init_tp(unsigned long int seed);
-
-/*!
-  \brief RNG getstate
-*/
 typedef void *GMRFLib_uniform_getstate_tp(size_t *siz);
-
-/*!
-  \brief RNG setstate
-*/
 typedef int GMRFLib_uniform_setstate_tp(void *state);
-
-/*!
-  \brief The CPU timing routine
-*/
 typedef double GMRFLib_cpu_tp(void);
 
-/* 
-   the userfunc's
- */
 typedef double *GMRFLib_ai_INLA_userfunc0_tp(int thread_id, GMRFLib_problem_tp * problem, double *theta, int nhyper);
 typedef double *GMRFLib_ai_INLA_userfunc1_tp(int thread_id, double *theta, int nhyper, double *covmat);
 typedef double *GMRFLib_ai_INLA_userfunc2_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 typedef double *GMRFLib_ai_INLA_userfunc3_tp(int number, double *theta, int nhyper, double *covmat, void *arg);
 
-/* 
-   define the global variables, unless __GMRFLib_DONT_DEFINE_GLOBALS is set
- */
 #ifndef __GMRFLib_DONT_DEFINE_GLOBALS
 
 extern char GMRFLib_path[];
 
 extern int GMRFLib_blas_level;
-extern int GMRFLib_collect_timer_statistics;
 extern GMRFLib_smtp_tp GMRFLib_smtp;
 extern GMRFLib_reorder_tp GMRFLib_reorder;
-extern int GMRFLib_use_wa_table_lookup;
-extern int GMRFLib_verify_graph_read_from_disc;
 
 extern gsl_rng *GMRFLib_rng_ptr;
 #pragma omp threadprivate(GMRFLib_rng_ptr)
 
-/*!
-  \brief Define the function of type GMRFLib_uniform_tp
-*/
 extern GMRFLib_uniform_tp *GMRFLib_uniform;
-
-/*!
-  \brief Hold the pointer to the function of type GMRFLib_init_tp
-  \sa random.c
-*/
 extern GMRFLib_uniform_init_tp *GMRFLib_uniform_init;
-
-/*!
-  \brief Hold the pointer to the function of type GMRFLib_getstate_tp
-  \sa random.c
-*/
 extern GMRFLib_uniform_getstate_tp *GMRFLib_uniform_getstate;
-
-/*!
-  \brief Hold the pointer to the function of type GMRFLib_setstate_tp
-  \sa random.c
-*/
 extern GMRFLib_uniform_setstate_tp *GMRFLib_uniform_setstate;
-
-/*!
-  \brief Hold the pointer to the function of type GMRFLib_cpu_tp
-  \sa globals.c
-*/
 extern GMRFLib_cpu_tp *GMRFLib_cpu;
-
-/* 
-   define types for a user-defined function; compute E_{\theta|y} userfunc
-*/
 
 extern GMRFLib_ai_INLA_userfunc0_tp *GMRFLib_ai_INLA_userfunc0;	/* points to the function */
 extern int GMRFLib_ai_INLA_userfunc0_dim;		       /* dimension of func() */
@@ -185,62 +124,19 @@ extern int GMRFLib_ai_INLA_userfunc3_n;
 extern int *GMRFLib_ai_INLA_userfunc3_len;
 extern char **GMRFLib_ai_INLA_userfunc3_tag;
 
-/*
-  Signal USR2: Stop optimiser and present results
-*/
-extern int GMRFLib_request_optimiser_to_stop;
-
-
-/* 
-   Maximum dimension of bitmap; unlimited if size <= 0
- */
 extern int GMRFLib_bitmap_max_dimension;
-
-/* 
-   Swap bitmap-file ?
- */
 extern int GMRFLib_bitmap_swap;
-
-/* 
-   Holds the thread strategy
- */
 extern GMRFLib_openmp_tp *GMRFLib_openmp;
-
-/* 
-   define global nodes
- */
 extern GMRFLib_global_node_tp GMRFLib_global_node;
-
-/* 
-   storage strategy for density
- */
 extern GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy;
-
-/* 
-   internal use only; for debugging
- */
-extern int GMRFLib_debug_code;
-
-/* 
-   tell if we have a working pardiso library, -1, is for 'not checked yet'
- */
 extern int GMRFLib_pardiso_ok;
 
-// use jfirst/jlen computing with the constraint matrix
 extern int GMRFLib_faster_constr;
-
-// add stability to AQ^-1A^T
 extern double GMRFLib_aqat_m_diag_add;
-
 extern int GMRFLib_inla_mode;
-
-
 extern int GMRFLib_preopt_like_strategy;		       // 0 = plain, 1 = group.
-
 extern int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel
-
 extern int GMRFLib_preopt_predictor_strategy;		       // 0 = !data_rich, 1 = data_rich
-
 extern double GMRFLib_weight_prob;
 extern double GMRFLib_weight_prob_one;
 

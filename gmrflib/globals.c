@@ -98,53 +98,9 @@ GMRFLib_smtp_tp GMRFLib_smtp = GMRFLib_SMTP_TAUCS;
 */
 GMRFLib_reorder_tp GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 
-/*! 
-  \brief Set the blas level in the Lapack routines using the band solver.
-
-  When \c GMRFLib_smtp is set to #GMRFLib_SMTP_BAND, then there is an additional option of chosing
-  the blas level for the routines used.  The two options are
-  - level 2 (#BLAS_LEVEL2),  and
-  - level 3 (#BLAS_LEVEL3)
-  
-  Use level 2 for smaller problems and level 3 for larger problems. Default is #BLAS_LEVEL3.
-
-  \remark For larger problems you may want to use the TAUCS library instead.
- */
 int GMRFLib_blas_level = BLAS_LEVEL3;
-
-/*!
-  \brief Use internal lookup-tables or not.
-
-  GMRFLib use in the file wa.c internal lookup-tables to speed up the calculations (default).  This
-  feature can be turned off by setting \c GMRFLib_use_wa_table_lookup() to \c #GMRFLib_FALSE.\n\n
-*/
-int GMRFLib_use_wa_table_lookup = GMRFLib_TRUE;
-
-/*! 
-  \brief Verify graph after reading.
-
-  GMRFLib can automatically verify a graph after reading it from file. By default this feature is
-  off, but can be turned on setting \c GMRFLib_verify_graph_read_from_disc() to \c #GMRFLib_TRUE \n\n
-*/
 int GMRFLib_verify_graph_read_from_disc = GMRFLib_FALSE;
 
-/*!
-  \brief Collect timing statistics
-
-  GMRFLib collects by default various internal statistics of the CPU demanding functions.  This
-  statistics can be extracted using the functions \c GMRFLib_timer_full_report() or
-  \c GMRFLib_timer_report(). This feature can be turned off by setting 
-  \c GMRFLib_collect_timer_statistics()
-  to \c #GMRFLib_FALSE. \n\n
-*/
-int GMRFLib_collect_timer_statistics = GMRFLib_TRUE;
-
-/*!
-  \brief The CPU timing function
-
-  Writing a function that (correctly) returns the used CPU time from a fixed reference, is often OS dependent. You may override
-  the GMRFLib's implementation by letting \c GMRFLib_cpu() point to your function. \n\n
-*/
 GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
 
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
@@ -181,19 +137,7 @@ int *GMRFLib_ai_INLA_userfunc3_len = NULL;
 char **GMRFLib_ai_INLA_userfunc3_tag = NULL;
 
 
-/*
-  Signal USR2: Stop optimiser and present results
-*/
-int GMRFLib_request_optimiser_to_stop = GMRFLib_FALSE;
-
-/* 
-   Maximum dimension of bitmap-files, or unlimited if <= 0
- */
 int GMRFLib_bitmap_max_dimension = -1;
-
-/* 
-   Swap bitmap-file ?
- */
 int GMRFLib_bitmap_swap = 0;
 
 /* 
@@ -211,11 +155,6 @@ GMRFLib_global_node_tp GMRFLib_global_node = { 2.0, INT_MAX };
    storage strategy for density
  */
 GMRFLib_density_storage_strategy_tp GMRFLib_density_storage_strategy = GMRFLib_DENSITY_STORAGE_STRATEGY_DEFAULT;
-
-/* 
-   internal use only; for debugging
- */
-int GMRFLib_debug_code = 0;
 
 /* 
    tell if we have a working pardiso library, -1, is for 'not checked yet'

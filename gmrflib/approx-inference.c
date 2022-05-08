@@ -2996,10 +2996,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 					log_dens_mode_save = log_dens_mode;
 
-					if (GMRFLib_request_optimiser_to_stop) {
-						fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-						break;
-					}
 					if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
 						fprintf(stderr, "\n\n");
 						fprintf(stderr, "***\n");
@@ -3100,10 +3096,6 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 					log_dens_mode_save = log_dens_mode;
 
-					if (GMRFLib_request_optimiser_to_stop) {
-						fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-						break;
-					}
 					if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
 						fprintf(stderr, "\n\n");
 						fprintf(stderr, "***\n");
@@ -5499,10 +5491,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
 				log_dens_mode_save = log_dens_mode;
 
-				if (GMRFLib_request_optimiser_to_stop) {
-					fprintf(stderr, "\n\n*** Optimiser requested to stop; stop local search..\n");
-					break;
-				}
 				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
 					fprintf(stderr, "\n\n");
 					fprintf(stderr, "***\n");

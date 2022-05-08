@@ -35853,7 +35853,6 @@ void inla_signal(int sig)
 	switch (sig) {
 	case SIGUSR1:
 	case SIGUSR2:
-		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
 	default:
 		_exit(sig);
@@ -36993,10 +36992,6 @@ int testit(int argc, char **argv)
 
 	case 13:
 	{
-		GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
-		GMRFLib_graph_tp *graph;
-		GMRFLib_graph_read_ascii(&graph, "zones.graph");
-		exit(0);
 	}
 		break;
 
@@ -38359,8 +38354,6 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
-	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
-	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
 	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
