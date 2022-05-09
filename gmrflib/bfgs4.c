@@ -57,7 +57,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/bfgs4.h"
-static int debug = 1;
+static int debug = 0;
 
 /* Find a minimum in x=[0,1] of the interpolating quadratic through
  * (0,f0) (1,f1) with derivative fp0 at x=0.  The interpolating
@@ -823,12 +823,19 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	const size_t bracket_iters = 25;
 	size_t i = 0, j;
 
+	double *dfalphas = Calloc(bracket_iters + 1, double);
+	double *dfunval = Calloc(bracket_iters + 1, double);
+	size_t ndfunval = 0;
+
 	if (debug)
 		printf("...enter minimize() sigma = %.12g\n", sigma);
 
 	GSL_FN_FDF_EVAL_F_DF(fn, 0.0, &f0, &fp0);
 	if (debug)
 		printf("..eval F_DF %g %g \n", f0, fp0);
+
+	dfalphas[ndfunval] = 0.0;
+	dfunval[ndfunval++] = fp0;
 
 	falpha_prev = f0;
 	fpalpha_prev = fp0;
@@ -864,6 +871,9 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 		fpalpha = GSL_FN_FDF_EVAL_DF(fn, alpha);
 		if (debug)
 			printf("...begin bracketing: eval df %.12g\n", falpha);
+
+		dfalphas[ndfunval] = alpha;
+		dfunval[ndfunval++] = fpalpha;
 
 		/*
 		 * Fletcher's sigma test 
@@ -906,12 +916,12 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	double **thetas = Calloc(na, double *);
 	double *pos = Calloc(na, double);
 
-	// layout points on [0,1], adding two left points outside for stability. make points close to each other close to 0 compared to 1.
-	int idx_zero = 2;
+	// layout points on [0,1], adding one left point outside for stability. make points close to each other close to 0 compared to 1. since
+	// the gradient information is available now at alpha=0, we can reduce the two points to the left into one point to the left
+	int idx_zero = 1;
 	double dzero = (double) idx_zero;
 
-	pos[0] = -0.20;
-	pos[1] = -0.075;
+	pos[0] = -0.15;
 	pos[idx_zero] = 0.0;
 	for (i = idx_zero + 1; i < na; i++) {
 		pos[i] = SQR((i - dzero) / ((na - 1.0) - dzero));
@@ -942,32 +952,53 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	na = j;
 	assert(na > 2);
 
-	if (debug) {
-		for (i = 0; i < na; i++) {
-			printf("\t i=%1zu aa=%.3f ", i, aa[i]);
-			for (j = 0; j < dim; j++) {
-				printf(" %6.3f", thetas[i][j]);
-			}
-			printf(" %10.6f\n", fun[i]);
+	// include derivative information within the range of alphas
+	double amax = GMRFLib_max_value(aa, na, NULL);
+	double amin = GMRFLib_min_value(aa, na, NULL);
+	int nd = 0;
+	for (i = j = 0; i < ndfunval; i++) {
+		if ((amin <= dfalphas[i]) && (dfalphas[i] <= amax)) {
+			dfalphas[j] = dfalphas[i];
+			dfunval[j] = dfunval[i];
+			j++;
+			nd++;
 		}
 	}
 
-	double amin, fmin;
+	if (1 || debug) {
+		printf("\tparallel linesearch:\n");
+		for (i = 0; i < na; i++) {
+			printf("\t\tfun  i=%1zu aa=%6.2f ", i, aa[i]);
+			for (j = 0; j < dim; j++) {
+				printf(" %6.2f", thetas[i][j]);
+			}
+			printf(" %10.6f\n", fun[i]);
+		}
+		for (i = 0; i < (size_t) nd; i++) {
+			printf("\t\tdfun i=%1zu aa=%6.2f ", i, dfalphas[i]);
+			for (j = 0; j < dim; j++) {
+				printf(" %6s", "");
+			}
+			printf("  %10.6f\n", dfunval[i]);
+		}
+	}
+
+	double fmin, aa_min;
 	int robust_regression = 1, order = 2;
 
-	bfgs4_robust_minimize(&amin, &fmin, na, aa, fun, 0, NULL, NULL, order);
-	if (amin < DMIN(aa[0], aa[na - 1]) || amin > DMAX(aa[0], aa[na - 1])) {
+	bfgs4_robust_minimize(&aa_min, &fmin, na, aa, fun, nd, dfalphas, dfunval, order);
+	if (aa_min > amax || aa_min < amin) {
 		int idx_min;
 		GMRFLib_min_value(fun, na, &idx_min);
-		amin = aa[idx_min];
+		aa_min = aa[idx_min];
 		robust_regression = 0;
 	}
 
-	if (debug) {
-		printf("\tamin %f fmin %f (%s)\n", amin, fmin,
+	if (1 || debug) {
+		printf("\tamin %f fmin %f (%s)\n", aa_min, fmin,
 		       (robust_regression ? "robust regression, internal minimum" : "enable emergency mode"));
 	}
-	*alpha_new = amin;
+	*alpha_new = aa_min;
 
 	for (i = 0; i < na; i++) {
 		Free(thetas[i]);
@@ -976,6 +1007,9 @@ static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double 
 	Free(aa);
 	Free(fun);
 	Free(pos);
+
+	Free(dfalphas);
+	Free(dfunval);
 
 	return GSL_SUCCESS;
 }
