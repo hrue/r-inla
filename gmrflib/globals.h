@@ -66,14 +66,11 @@
 
 __BEGIN_DECLS
 #if !defined(GMRFLib_FALSE)
-
 #define GMRFLib_FALSE (0)
 #endif
 #if !defined(GMRFLib_TRUE)
-
 #define GMRFLib_TRUE  (1)
 #endif
-
 typedef double GMRFLib_uniform_tp(void);
 typedef int GMRFLib_uniform_init_tp(unsigned long int seed);
 typedef void *GMRFLib_uniform_getstate_tp(size_t *siz);

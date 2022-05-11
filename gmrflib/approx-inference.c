@@ -6177,7 +6177,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 	}
 
-	/* to keep the same code as before */
+	/*
+	 * to keep the same code as before 
+	 */
 	GMRFLib_idxval_tp *probs = GMRFLib_density_prune_weights(adj_weights, dens_max, GMRFLib_weight_prob_one);
 	GMRFLib_idxval_tp *probs_combine = GMRFLib_density_prune_weights(adj_weights, dens_max, GMRFLib_weight_prob);
 
@@ -7081,7 +7083,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 				GMRFLib_DEBUG_i("levels_ok", levels_ok); \
 			}						\
 			GMRFLib_idxval_sort(groups[node]);		\
-		}	
+		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);
 #undef CODE_BLOCK
@@ -7180,9 +7182,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 
 	if (gcpo_param->verbose || detailed_output) {
 		printf("enter _gcpo with...\n");
-		for(int i = 0; i < Npred; i++) {
-			printf("\ti %d lpred_mean %f lpred_mode %f lpred_variance %f\n",
-			       i, lpred_mean[i], lpred_mode[i], lpred_variance[i]);
+		for (int i = 0; i < Npred; i++) {
+			printf("\ti %d lpred_mean %f lpred_mode %f lpred_variance %f\n", i, lpred_mean[i], lpred_mode[i], lpred_variance[i]);
 		}
 	}
 
