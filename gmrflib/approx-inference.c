@@ -7004,6 +7004,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
+			CODE_BLOCK_ALL_WORK_ZERO();			\
 			int node = selection->idx[ii];			\
 									\
 			if (gcpo_param->group_size == -1) {		\
@@ -7013,18 +7014,15 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 									\
 			GMRFLib_idxval_tp *v = A_idx(node);		\
 			double *cor = CODE_BLOCK_WORK_PTR(0);		\
-			CODE_BLOCK_WORK_ZERO(0);			\
 			double *a = CODE_BLOCK_WORK_PTR(1);		\
-			CODE_BLOCK_WORK_ZERO(1);			\
 			double *Sa = CODE_BLOCK_WORK_PTR(2);		\
-			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(3); \
-			CODE_BLOCK_WORK_ZERO(3);			\
+			double *cor_abs = CODE_BLOCK_WORK_PTR(3);	\
+			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(4); \
 									\
 			for (int k = 0; k < v->n; k++) {		\
 				a[v->idx[k]] = v->val[k];		\
 			}						\
 			GMRFLib_Qsolve(Sa, a, ai_store->problem);	\
-			int num_ones = 0;				\
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				if (nnode == node) continue;		\
@@ -7037,19 +7035,55 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 					}				\
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
-				cor[nnode] = ABS(cor[nnode]);		\
-				num_ones += ISEQUAL_x(cor[nnode], 1.0, gcpo_param->epsilon); \
+				cor_abs[nnode] = ABS(cor[nnode]);	\
 			}						\
-			int siz_g = IMIN(Npred, IABS(gcpo_param->group_size) + num_ones); \
-			GMRFLib_DEBUG_iii("siz_g Npred num_ones", siz_g, Npred, num_ones); \
-			gsl_sort_largest_index(largest, (size_t) siz_g, cor, (size_t) 1, (size_t) Npred); \
-			for (int i = 0; i < siz_g; i++) {		\
-				GMRFLib_idxval_add(&(groups[node]), (int) largest[i], cor[(int) largest[i]]); \
+			int levels_ok = 0;				\
+			int levels_magnify = 1;				\
+			cor[node] = cor_abs[node] = 1.0;		\
+			while (!levels_ok) {				\
+				GMRFLib_idxval_free(groups[node]);	\
+				groups[node] = NULL;			\
+				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->group_size) + 4L)); \
+				levels_magnify *= 2;			\
+				GMRFLib_DEBUG_i_v("node siz_g Npred group_size levels_magnify", node, siz_g, Npred, gcpo_param->group_size, levels_magnify); \
+				gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
+				int nlevels = 1;			\
+				int i_prev = 0;				\
+				double cor_abs_prev = 1.0;		\
+				GMRFLib_idxval_add(&(groups[node]), (int) largest[i_prev], cor_abs_prev); \
+				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
+					int i_new = (int) largest[i];	\
+					double cor_abs_new = cor_abs[i_new]; \
+					if (!ISEQUAL_x(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
+						nlevels++;		\
+						i_prev = i;		\
+						cor_abs_prev = cor_abs_new; \
+						if (nlevels <= gcpo_param->group_size) { \
+							GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new); \
+							GMRFLib_idxval_add(&(groups[node]), i_new , cor[i_new]); \
+						} else {		\
+							levels_ok = 1;	\
+						}			\
+					} else {			\
+						cor_abs[i_new] = cor_abs_prev; \
+						cor[i_new] = SIGN(cor[i_new]) * cor_abs_prev; \
+						GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
+						GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
+					}				\
+				}					\
+				if (siz_g == Npred) levels_ok = 1;	\
+				if (levels_ok && (siz_g == Npred) && (nlevels < gcpo_param->group_size)) { \
+					if (gcpo_param->verbose || detailed_output) { \
+						printf("%s[%1d]: for node=%1d, I only find %d levels\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  nlevels); \
+					}				\
+				}					\
+				GMRFLib_DEBUG_i("found nlevels", nlevels); \
+				GMRFLib_DEBUG_i("levels_ok", levels_ok); \
 			}						\
 			GMRFLib_idxval_sort(groups[node]);		\
-		}
+		}	
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 4, N);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);
 #undef CODE_BLOCK
 
 		if (free_selection) {

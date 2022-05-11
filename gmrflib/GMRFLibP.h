@@ -248,6 +248,16 @@ typedef enum {
 		printf("\t[%1d] %s (%s:%1d): %s %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_); \
 	}
 
+#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_, iv_); \
+	}
+
+#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d %d %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_, iv_, v_); \
+	}
+
 #define GMRFLib_DEBUG_d(msg_, d_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
 		printf("\t[%1d] %s (%s:%1d): %s %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_); \
