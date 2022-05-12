@@ -7046,7 +7046,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 				GMRFLib_idxval_free(groups[node]);	\
 				groups[node] = NULL;			\
 				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->group_size) + 4L)); \
-				levels_magnify *= 2;			\
+				levels_magnify *= 10;			\
 				GMRFLib_DEBUG_i_v("node siz_g Npred group_size levels_magnify", node, siz_g, Npred, gcpo_param->group_size, levels_magnify); \
 				gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
 				int nlevels = 1;			\
