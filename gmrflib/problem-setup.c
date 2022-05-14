@@ -149,6 +149,7 @@ int validate_constr1(GMRFLib_constr_tp * constr, int n)
 	g->n = n;
 
 	GMRFLib_duplicate_constr(&new, constr, g);
+	assert(new);
 	for (int j = 0; j < constr->nc; j++) {
 		if ((new->jfirst[j] != constr->jfirst[j]) || (new->jlen[j] != constr->jlen[j])) {
 			printf("CONSTR jfirst/jlen ERROR: i= %d new->jfirst= %d old->jfirst= %d new->jlen= %d old->jlen= %d\n",

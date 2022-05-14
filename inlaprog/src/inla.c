@@ -5371,7 +5371,7 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	 *
 	 * if xx exists, then read into xx. otherwise, read into ix. return number of reads, in *nx
 	 */
-	int nx, ndata, i, j, ii, ncol_true;
+	int nx = 0, ndata, i, j, ii, ncol_true;
 	double *x = NULL;
 
 	assert(xx || ix);
@@ -5379,6 +5379,9 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	 * first read all entries in the file 
 	 */
 	inla_read_data_all(&x, &nx, filename, NULL);
+	if (nx) {
+		assert(x);
+	}
 	if (verbose) {
 		printf("\t\tread n=[%1d] entries from file=[%s]\n", nx, filename);
 	}
@@ -11511,6 +11514,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(idim > 0);
 
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx == inla_iid_wishart_nparam(idim) + 1);	/* this must be TRUE */
 
@@ -11528,6 +11532,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 2;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11554,6 +11559,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 3;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11580,6 +11586,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 4;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11606,6 +11613,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 5;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11632,6 +11640,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 6;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11658,6 +11667,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 7;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11684,6 +11694,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 8;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11710,6 +11721,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 9;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11736,6 +11748,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 10;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);

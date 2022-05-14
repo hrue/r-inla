@@ -264,6 +264,8 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	double *w_hess = work + 3 * n;
 
 	GMRFLib_ghq(&xxp, &wwp, n);
+	assert(xxp);
+	assert(wwp);
 	Memcpy(nodes, xxp, n * sizeof(double));
 	Memcpy(w, wwp, n * sizeof(double));
 
