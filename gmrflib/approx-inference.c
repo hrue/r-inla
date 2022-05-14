@@ -622,6 +622,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			int *idxs = NULL, nidx;
 			Calloc_init(n);
 			idxs = (int *) Calloc_get(n);
+			assert(idxs);
 			nidx = 0;
 
 			// why isn't this precomputed as its the same all the time ?
@@ -1702,7 +1703,6 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	 * setup workspace for small-mem's for the hole routine here. 
 	 */
 	Calloc_init(n + ncc + (nc ? n + nc + nc + ISQR(nc) : 0));
-	assert(calloc_work_);
 	c = Calloc_get(n);
 	t_vec = Calloc_get(ncc);
 	if (nc) {
@@ -2504,6 +2504,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				_improved_mean[_i] = (_store)->problem->mean_constr[_i]; \
 			}						\
 		}							\
+		assert(_store);						\
 		GMRFLib_ai_store_config(thread_id, misc_output, nhyper, _theta, _log_posterior, _log_posterior_orig, _improved_mean, _skewness, (_store)->problem, Qfunc, Qfunc_arg, c, dens_count); \
 		Free(_improved_mean);					\
 		Free(_skewness);					\
@@ -3333,6 +3334,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			hessian = rpreopt->hessian;
 			inverse_hessian = rpreopt->inverse_hessian;
 			H = rpreopt->H;
+			assert(misc_output);
 			misc_output->nhyper = nhyper;
 			eigen_vectors = rpreopt->eigen_vectors;
 			eigen_values = rpreopt->eigen_values;
@@ -3798,6 +3800,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				}
 
 				if (GMRFLib_ai_INLA_userfunc0) {
+					assert(ai_store_id);
 					userfunc_values[dens_count] =
 					    GMRFLib_ai_INLA_userfunc0(thread_id, ai_store_id->problem, theta_local, nhyper);
 				}
@@ -3860,7 +3863,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				    NULL, *po3_theta_local = NULL, *pit_theta_local = NULL, *failure_theta_local =
 				    NULL, *deviance_theta_local = NULL;
 				int err, *iz_local = NULL;
-				size_t idx;
+				size_t idx = 0;
 				GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
 				double *bnew = NULL;
 
@@ -4140,6 +4143,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		}
 
 		if (GMRFLib_ai_INLA_userfunc0) {
+			assert(userfunc_values);
 			userfunc_values[dens_count] = GMRFLib_ai_INLA_userfunc0(thread_id, ai_store->problem, theta, nhyper);
 		}
 		COMPUTE_LINDENS(ai_store, GMRFLib_TRUE);
@@ -5313,6 +5317,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 	if (dic) {
 		deviance_theta = Calloc(preopt->Npred, double *);	/* mean of deviance conditioned on theta */
+		assert(d_idx);
 		for (jj = 0; jj < d_idx->n; jj++) {
 			j = d_idx->idx[jj];
 			deviance_theta[j] = Calloc(dens_max, double);
@@ -7188,7 +7193,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	}
 
 	Calloc_init(mnpred);
-	assert(calloc_work_);
 	double *sd = Calloc_get(mnpred);
 	GMRFLib_gcpo_elm_tp **gcpo = Calloc(Npred, GMRFLib_gcpo_elm_tp *);
 	for (int i = 0; i < Npred; i++) {
@@ -7730,7 +7734,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 					mode[i] = density[i][dens_count]->user_mean;
 				}
 			} else {
-				if (dens_local[i]) {
+				if (dens_local && dens_local[i]) {
 					mode[i] = dens_local[i]->user_mean;
 				}
 			}
@@ -7746,6 +7750,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 			}						\
 		}
 
+		assert(d_idx);
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 
@@ -7789,6 +7794,8 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 		for (int j = 0; j < vb_idx->n; j++) {			\
 			double *col = CODE_BLOCK_WORK_PTR(0);		\
 			double *res = CODE_BLOCK_WORK_PTR(1);		\
+			assert(col);					\
+			assert(res);					\
 			for (int i = 0; i < graph->n; i++) {		\
 				col[i] = gsl_matrix_get(M, i, j);	\
 			}						\
@@ -7840,7 +7847,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 			}
 		} else {
 			for (i = 0; i < graph->n; i++) {
-				if (dens_local[i]) {
+				if (dens_local && dens_local[i]) {
 					GMRFLib_density_new_user_mean(dens_local[i], dens_local[i]->user_mean + gsl_vector_get(delta_mu, i));
 				}
 			}
@@ -7945,7 +7952,8 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			GMRFLib_idx_add(&d_idx, i);
 		}
 	}
-
+	assert(d_idx);
+	
 	int ii, jj;
 	double *sd = Calloc_get(graph->n);
 
@@ -8049,7 +8057,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
-			GMRFLib_vb_coofs_tp vb_coof;			\
+			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
 			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
 			GMRFLib_ai_vb_prepare(thread_id, &vb_coof, i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
 			if (debug) {					\
@@ -8519,6 +8527,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	 * terms in 'a'.
 	 */
 
+	assert(ai_store);
 	GMRFLib_problem_tp *problem = ai_store->problem;
 	int *remap = problem->sub_sm_fact.remap;
 	int i, j, k, n, nc = 0, one = 1;

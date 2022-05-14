@@ -128,11 +128,15 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 {
 	// the same for a given mean and stdev. Allocated new memory for xp and wp
 	int i;
-	double *xxp, *wwp;
+	double *xxp = NULL, *wwp = NULL;
 	GMRFLib_ghq(&xxp, &wwp, n);
-
+	assert(xxp);
+	assert(wwp);
+	
 	*xp = Calloc(n, double);
 	*wp = Calloc(n, double);
+	assert(*xp);
+	assert(*wp);
 	for (i = 0; i < n; i++) {
 		(*xp)[i] = xxp[i] * stdev + mean;
 		(*wp)[i] = wwp[i];

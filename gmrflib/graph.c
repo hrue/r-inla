@@ -1579,7 +1579,7 @@ int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gr
 
 	Calloc_init(graph->n);
 	y = Calloc_get(graph->n);
-
+	
 	GMRFLib_Qx2(thread_id, y, x, graph, Qfunc, Qfunc_arg, diag);
 	for (i = 0, res = 0.0; i < graph->n; i++) {
 		res += y[i] * x[i];

@@ -97,7 +97,7 @@ __BEGIN_DECLS
 #define GMRFLib_gsl_integration_wrapper(My_F, My_lower, My_upper, My_epsrel, My_epsabs, My_result, My_error) \
 	if (1) {							\
 		int My_i, My_ndiv = 3;					\
-		double My_newlower, My_newupper, My_res, My_err, My_step; \
+		double My_newlower = 0.0, My_newupper = 0.0, My_res = 0.0, My_err = 0.0, My_step = 0.0; \
 									\
 		GMRFLib_gsl_integration_fix_limits(&My_newlower, &My_newupper, My_F, My_lower, My_upper); \
 		My_step = (My_newupper-My_newlower)/(double)My_ndiv;	\

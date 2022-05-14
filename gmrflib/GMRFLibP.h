@@ -296,12 +296,15 @@ typedef enum {
 #define Calloc_init(n_)							\
 	size_t calloc_len_ = (size_t)(n_);				\
 	size_t calloc_offset_ = 0;					\
-	double *calloc_work_ = (calloc_len_ ? Calloc(calloc_len_, double) : NULL); \
-	if (calloc_len_) assert(calloc_work_)
+	double *calloc_work_ = Calloc(IMAX(1, calloc_len_), double);	\
+	assert(calloc_work_)
+
 #define iCalloc_init(n_)						\
 	size_t icalloc_len_ = (size_t)(n_);				\
 	size_t icalloc_offset_ = 0;					\
-	int *icalloc_work_ = (icalloc_len_ ? Calloc(icalloc_len_, int) : NULL)
+	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int);	\
+	assert(icalloc_work_)
+
 #define Calloc_get(_n)				\
 	calloc_work_ + calloc_offset_;		\
 	calloc_offset_ += (size_t)(_n);		\
@@ -439,10 +442,10 @@ typedef enum {
 		int l1_cacheline = 8;					\
 		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = len_work_ + l1_cacheline;		\
-		int n_work__ = n_work_;					\
+		int len_work__ = IMAX(1, len_work_ + l1_cacheline);	\
+		int n_work__ = IMAX(1, n_work_);			\
 		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
-		double * work__ = ((len_work__ * n_work__) > 0 ? Calloc(len_work__ * n_work__ * nt__, double) : NULL); \
+		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\

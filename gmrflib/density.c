@@ -300,7 +300,8 @@ int GMRFLib_normal_fit(double *mean, double *variance, double *fval, double *x, 
 	 */
 
 	int retval;
-	GMRFLib_sn_param_tp param;
+	GMRFLib_sn_param_tp param = {0.0, 0.0, 0.0};
+	
 
 	retval = GMRFLib_sn_fit__intern((void *) &param, fval, x, log_density, (size_t) n, (size_t) 3);
 	if (retval == GMRFLib_SUCCESS) {
@@ -791,7 +792,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 
 int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * density)
 {
-	double ldens;
+	double ldens = 0.0;
 
 	GMRFLib_evaluate_logdensity(&ldens, x, density);
 	*dens = exp(ldens);
@@ -863,10 +864,8 @@ double GMRFLib_evaluate_density_kld__intern(double x, void *param)
 	static double norm_const_gaussian = 0.398942280401432677939946059934;	/* 1.0/sqrt(2.0*M_PI) */
 	static double log_norm_const_gaussian = -0.918938533204672741780329736407;	/* log(1.0/sqrt(2.0*M_PI)) */
 	GMRFLib_density_properties_tp *prop = (GMRFLib_density_properties_tp *) param;
-	double ldens;
-
+	double ldens = 0.0;
 	GMRFLib_evaluate_logdensity(&ldens, x, prop->density);
-
 	return norm_const_gaussian * exp(-0.5 * SQR(x)) * (log_norm_const_gaussian - 0.5 * SQR(x) - ldens);
 }
 
@@ -1056,7 +1055,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 			GMRFLib_density_create_sn(density, *((*densities)->sn_param),
 						  (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
 		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
-			int m;
+			int m = 0;
 			double *x = NULL, *ld = NULL;
 
 			GMRFLib_density_layout_x(NULL, &m, NULL);
@@ -1191,10 +1190,9 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	 */
 	int i, j, debug = 0;
 	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
-	GMRFLib_sn_param_tp sn_param;
+	GMRFLib_sn_param_tp sn_param = {0, 0, 0};
 
 	Calloc_init(2 * n);
-	assert(calloc_work_);
 	xx = Calloc_get(n);
 	ldens = Calloc_get(n);
 
@@ -1405,7 +1403,7 @@ double GMRFLib_evaluate_density_kld2__intern(double x, void *param)
 	/*
 	 * x is in user-scale. compute the log(f(x)/g(x))f(x) in user-scale 
 	 */
-	double x_std0, x_std1, ld0, ld1, ld0u, ld1u;
+	double x_std0, x_std1, ld0 = 0.0, ld1 = 0.0, ld0u, ld1u;
 	GMRFLib_density_tp **d = (GMRFLib_density_tp **) param;
 
 	x_std0 = GMRFLib_density_user2std(x, d[0]);
@@ -1475,7 +1473,7 @@ int GMRFLib_kld_sym(double *kld_sym, GMRFLib_density_tp * density, GMRFLib_densi
 	/*
 	 * compute the symmetric KLD distance between density and ddensity 
 	 */
-	double kld0, kld1;
+	double kld0 = NAN, kld1 = NAN;
 	GMRFLib_kld(&kld0, density, ddensity);
 	GMRFLib_kld(&kld1, ddensity, density);
 	*kld_sym = DMAX(0.0, (kld0 + kld1) / 2.0);

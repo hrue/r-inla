@@ -697,7 +697,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	size_t nm = n + m, idx = 0;
 	gsl_matrix *X, *cov;
 	gsl_vector *yy, *c;
-	double xtmp, xtmp2, ytmp, val, x_min = 0.0, y_min = 0.0;
+	double xtmp, xtmp2, ytmp, x_min = 0.0, y_min = 0.0;
 
 	X = gsl_matrix_alloc(nm, p);
 	yy = gsl_vector_alloc(nm);
@@ -798,7 +798,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	y_min = gsl_vector_get(c, 0);
 	xtmp = x_min;
 	for (j = 1; j < p; j++) {
-		val += gsl_vector_get(c, j) * xtmp;
+		y_min += gsl_vector_get(c, j) * xtmp;
 		xtmp *= x_min;
 	}
 

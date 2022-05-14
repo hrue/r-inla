@@ -221,7 +221,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < nx; i++) {
 		int thread_id = omp_get_thread_num();
-		int local_err;
+		int local_err = 0;
 		GMRFLib_ai_store_tp *ais = NULL;
 
 		if (thread_id == 0) {
@@ -677,7 +677,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 #define CHECK_FOR_EARLY_STOP (G.ai_par->stupid_search_mode && !G.ai_par->mode_known)
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
-	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, ff0, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
+	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, ff0 = NAN, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
 	int i, n = G.nhyper, tmax, ok = 0, debug = 0, len_xx_hold;
 
 	debug = GMRFLib_DEBUG_IF();
@@ -885,7 +885,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 				int thread_id = omp_get_thread_num();
 
 				int ii, jj;
-				double f11, fm11, f1m1, fm1m1;
+				double f11 = NAN, fm11 = NAN, f1m1 = NAN, fm1m1 = NAN;
 				GMRFLib_ai_store_tp *ais = NULL;
 
 				ii = idx[k].i;
@@ -1078,7 +1078,7 @@ int GMRFLib_opt_get_f_count(void)
 double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 {
 	opt_dir_params_tp *par = (opt_dir_params_tp *) params;
-	double fx, *x;
+	double fx = NAN, *x;
 	int ierr, i;
 
 	x = Calloc(G.nhyper, double);
