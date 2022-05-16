@@ -1897,7 +1897,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 	// find the skewness for a given third order derivative at the model, with mean=0 and var=1.
 
 	static GMRFLib_spline_tp **spline = NULL;
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!spline) {

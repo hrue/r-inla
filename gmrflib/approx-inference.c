@@ -442,7 +442,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	int *nr_step_factor_first_time_only = &(nnr_step_factor_first_time_only[idx]);
@@ -8551,7 +8551,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	}
 	assert(remap);
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	assert(problem != NULL);

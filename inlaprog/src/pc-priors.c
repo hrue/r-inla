@@ -137,7 +137,7 @@ double inla_pcp_dof_d(double dof)
 		}
 	}
 
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 	if (!sspline[idx]) {
 		sspline[idx] = inla_pcp_dof_create_spline();
@@ -176,7 +176,7 @@ double inla_pcp_dof_dof(double d)
 		}
 	}
 
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!sspline[idx]) {
@@ -211,7 +211,7 @@ double inla_pc_sn_d(double skew, double *deriv)
 		}
 	}
 
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 	if (!sspline[idx]) {
 		sspline[idx] = inla_pc_sn_create_spline();
@@ -240,7 +240,7 @@ double inla_pc_sn_core(int code, double arg)
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!sspline_s2a[idx]) {

@@ -334,7 +334,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 	double *xx = NULL;
-	int cache_idx;
+	int cache_idx = 0;
 
 	GMRFLib_CACHE_SET_ID(cache_idx);
 	if (n + nc > wwork_len[cache_idx]) {
