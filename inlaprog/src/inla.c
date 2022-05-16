@@ -8666,7 +8666,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 	if (!llcache) {
 		llcache[idx] = Calloc(1, lcache_t);
@@ -8762,7 +8762,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!llcache[idx]) {
@@ -32048,7 +32048,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					}
 				}
 			}
-			int idx;
+			int idx = 0;
 			GMRFLib_CACHE_SET_ID(idx);
 
 			int jj;
@@ -32147,7 +32147,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
 				}
 			}
-			int idx;
+			int idx = 0;
 			GMRFLib_CACHE_SET_ID(idx);
 
 			int jj;
