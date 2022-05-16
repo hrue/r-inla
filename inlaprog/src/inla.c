@@ -553,7 +553,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	static inla_sn_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, j, id, debug = 0;
+	int i, j, id = 0, debug = 0;
 	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = GMRFLib_SN_SKEWMAX;
 	double **par, intercept, intercept_intern, intercept_alpha;
 
@@ -1485,7 +1485,7 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	static inla_loga_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, id, debug = 0;
+	int i, id = 0, debug = 0;
 	double dx = 0.1, xx, range = 25.0, p, pp;
 
 	if (first) {
@@ -2738,7 +2738,7 @@ double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 
@@ -2859,7 +2859,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -2956,7 +2956,7 @@ double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *
 
 	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
 	double prec = map_exp(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
-	int rebuild, debug = 0, id;
+	int rebuild, debug = 0, id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -3018,7 +3018,7 @@ double mfunc_ar1(int thread_id, int UNUSED(i), void *arg)
 double mfunc_rgeneric(int thread_id, int i, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	// possible fast return ?
 	if (a->mu_zero) {
@@ -3084,7 +3084,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 double mfunc_cgeneric(int thread_id, int i, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	// possible fast return ?
 	if (a->mu_zero) {
@@ -3327,7 +3327,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int i, j, k, n_theta, dim, debug = 0, id;
+	int i, j, k, n_theta, dim, debug = 0, id = 0;
 	double *vec = NULL;
 	inla_wishart_hold_tp *hold = NULL;
 
@@ -3433,7 +3433,7 @@ double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(val
 	}
 
 	inla_iid_wishartk_arg_tp *a = (inla_iid_wishartk_arg_tp *) arg;
-	int i, n_theta, dim, id;
+	int i, n_theta, dim, id = 0;
 	inla_wishartk_hold_tp *hold = NULL;
 	double *vec = NULL;
 
@@ -6927,7 +6927,7 @@ int loglikelihood_qcontpoisson(int thread_id, double *logll, double *x, int m, i
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i, id;
+	int i, id = 0;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], lambda, q;
 
@@ -7294,7 +7294,7 @@ int loglikelihood_pom(int thread_id, double *logll, double *x, int m, int idx, d
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (nclasses > nclass[id]) {
@@ -8453,7 +8453,7 @@ int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, 
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (m > 0) {
@@ -8547,7 +8547,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (m > 0) {
@@ -9870,7 +9870,7 @@ int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int id
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (m > 0) {
@@ -19694,7 +19694,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
+	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id = 0, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
 	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
@@ -34971,7 +34971,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
-		int id, header = 0, nconfig = 0;
+		int id = 0, header = 0, nconfig = 0;
 		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs[id]) {
 				nconfig += mo->configs[id]->nconfig;	/* need the accumulated one! */
@@ -35063,7 +35063,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
-		int id, header = 0, nconfig = 0;
+		int id = 0, header = 0, nconfig = 0;
 		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs_preopt[id]) {
 				nconfig += mo->configs_preopt[id]->nconfig;	/* need the accumulated one! */
@@ -38351,7 +38351,9 @@ int main(int argc, char **argv)
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
-	double eff_nt;
+#if !defined(WINDOWS)
+	double eff_nt = 0.0;
+#endif
 	clock_t atime_used[4] = { 0, 0, 0, 0 };
 	inla_tp *mb = NULL;
 
