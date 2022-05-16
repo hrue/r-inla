@@ -189,7 +189,7 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (!storage[id]) {
@@ -250,7 +250,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (!storage[id]) {

@@ -1191,7 +1191,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 			}
 		}
 
-		int cache_idx;
+		int cache_idx = 0;
 
 		GMRFLib_CACHE_SET_ID(cache_idx);
 		if (graph->n > wwork_len[cache_idx]) {
@@ -1233,7 +1233,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 			}
 		}
 
-		int cache_idx;
+		int cache_idx = 0;
 
 		GMRFLib_CACHE_SET_ID(cache_idx);
 		if (graph->n > wwork_len[cache_idx]) {

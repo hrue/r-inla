@@ -1761,7 +1761,7 @@ double GMRFLib_sn_mode(double skew)
 	// return the mode for a skew-normal with moments=c(0,1,skew)
 
 	static GMRFLib_spline_tp **spline = NULL;
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!spline) {

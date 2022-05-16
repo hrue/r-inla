@@ -1723,7 +1723,7 @@ int GMRFLib_debug_functions(const char *name)
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!ddefs[idx]) {
@@ -1820,7 +1820,7 @@ int GMRFLib_trace_functions(const char *name)
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!ddefs[idx]) {

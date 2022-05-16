@@ -62,7 +62,6 @@ int GMRFLib_rng_set_default_seed(void)
 	unsigned long int seed_default = (unsigned long int) time(NULL);
 	unsigned long int seed;
 	int fd, debug = 0;
-	ssize_t nb;
 	size_t len = sizeof(unsigned long int);
 #pragma omp critical					       /* only one at the time */
 	{
@@ -86,7 +85,7 @@ int GMRFLib_rng_set_default_seed(void)
 		{
 			fd = open("/dev/urandom", O_RDONLY);
 			if (fd > 0) {
-				nb = read(fd, (void *) &seed, len);
+				ssize_t nb = read(fd, (void *) &seed, len);
 				if (nb != (ssize_t) len) {
 					seed = seed_default;
 				}

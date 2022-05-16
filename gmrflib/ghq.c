@@ -167,7 +167,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!abscissas[idx]) {

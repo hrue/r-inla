@@ -781,7 +781,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 				}
 			}
 		}
-		int idx;
+		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
 		if (!guess[idx]) {
 			guess[idx] = Calloc(2, int);
