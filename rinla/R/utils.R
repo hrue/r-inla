@@ -187,6 +187,9 @@
     } else if (Sys.getenv("USER") %in% "rueh") {
         dir.default <- "~/build64/r-inla/rinla/R"
         bin.default <- "~/build64/local/bin"
+    } else if (Sys.getenv("USER") %in% "zhedong") {
+        dir.default <- "~/inla_prog/build64/r-inla/rinla/R"
+        bin.default <- "~/inla_prog/build64/local/bin"
     } else if (Sys.getenv("USER") %in% "elias") {
         dir.default <- "~/inla-project/source/inla/rinla/R"
         bin.default <- "~/inla-project/compile/local/bin"
