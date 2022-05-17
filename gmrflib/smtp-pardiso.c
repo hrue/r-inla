@@ -536,7 +536,7 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 
 double GMRFLib_pardiso_Qfunc_default(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

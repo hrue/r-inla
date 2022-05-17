@@ -738,7 +738,7 @@ GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp 
 
 double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 

@@ -1867,7 +1867,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 
 double GMRFLib_Qfunc_generic(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

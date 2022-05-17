@@ -92,7 +92,7 @@ int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
 
 double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
@@ -202,7 +202,7 @@ double inla_fgn2_helper(int i, int j, int n, double phi)
 
 double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 	// the x^i's are the scaled AR1's, and FGN is the cummulative sum of the components.

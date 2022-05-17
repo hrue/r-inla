@@ -2235,7 +2235,7 @@ int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 
 double Qfunc_bym(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2274,7 +2274,7 @@ double Qfunc_bym(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 double Qfunc_bym2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2293,7 +2293,7 @@ double Qfunc_bym2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 
 double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2312,7 +2312,7 @@ double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *
 
 double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2558,7 +2558,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 double Qfunc_generic1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2571,7 +2571,7 @@ double Qfunc_generic1(int thread_id, int i, int j, double *UNUSED(values), void 
 
 double Qfunc_generic2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2619,7 +2619,7 @@ double Qfunc_generic2(int thread_id, int i, int j, double *UNUSED(values), void 
 
 double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2641,7 +2641,7 @@ double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void 
 
 double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2678,7 +2678,7 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 
 double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2702,7 +2702,7 @@ double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2950,7 +2950,7 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 
 double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3146,7 +3146,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 
 double Qfunc_clinear(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3157,7 +3157,7 @@ double Qfunc_clinear(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 double Qfunc_sigm(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3168,7 +3168,7 @@ double Qfunc_sigm(int UNUSED(thread_id), int i, int j, double *UNUSED(values), v
 
 double Qfunc_log1exp(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3179,7 +3179,7 @@ double Qfunc_log1exp(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 double Qfunc_logdist(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3256,7 +3256,7 @@ double mfunc_logdist(int thread_id, int i, void *arg)
 
 double Qfunc_mec(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3285,7 +3285,7 @@ double mfunc_mec(int thread_id, int i, void *arg)
 
 double Qfunc_meb(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3317,7 +3317,7 @@ int inla_iid_wishart_nparam(int dim)
 
 double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -3428,7 +3428,7 @@ int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L
 
 double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -3466,7 +3466,7 @@ double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(val
 
 double Qfunc_iid2d(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3490,7 +3490,7 @@ double Qfunc_iid2d(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 double Qfunc_2diid(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3514,7 +3514,7 @@ double Qfunc_2diid(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 double Qfunc_2diid_wishart(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3548,7 +3548,7 @@ int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 
 double Qfunc_ar1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3585,7 +3585,7 @@ double Qfunc_ar1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 double Qfunc_ar1c(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3635,7 +3635,7 @@ double Qfunc_ar1c(int thread_id, int i, int j, double *UNUSED(values), void *arg
 
 double Qfunc_ou(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4810,7 +4810,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 
 double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4842,7 +4842,7 @@ double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 double Qfunc_besag2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4871,7 +4871,7 @@ double Qfunc_besag2(int thread_id, int i, int j, double *UNUSED(values), void *a
 
 double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4890,7 +4890,7 @@ double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), vo
 
 double Qfunc_besagproper2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -19510,7 +19510,7 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 
 double Qfunc_intslope(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -27472,7 +27472,7 @@ double iid_mfunc(int idx, void *UNUSED(arg))
 
 double Qfunc_copy_part00(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -27488,7 +27488,7 @@ double Qfunc_copy_part00(int thread_id, int i, int j, double *UNUSED(values), vo
 
 double Qfunc_copy_part01(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -27500,7 +27500,7 @@ double Qfunc_copy_part01(int thread_id, int i, int j, double *UNUSED(values), vo
 
 double Qfunc_copy_part11(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

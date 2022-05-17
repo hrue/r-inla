@@ -87,7 +87,7 @@ int inla_spde_free_points(inla_spde_points_tp * p)
 }
 double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 

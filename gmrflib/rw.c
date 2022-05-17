@@ -38,7 +38,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 double GMRFLib_rw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -156,7 +156,7 @@ double GMRFLib_rw(int thread_id, int node, int nnode, double *UNUSED(values), vo
 
 double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -537,7 +537,7 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 
 double GMRFLib_rw2d(int thread_id, int node, int nnode, double *UNUSED(values), void *def)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 

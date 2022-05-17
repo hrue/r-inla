@@ -250,7 +250,7 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 
 double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

@@ -1990,7 +1990,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 
 double GMRFLib_offset_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 

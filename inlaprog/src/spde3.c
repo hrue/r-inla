@@ -213,7 +213,7 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp ** smodel, const
 
 double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

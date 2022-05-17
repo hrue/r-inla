@@ -682,10 +682,6 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * pr
 
 double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	// if (node >= 0 && nnode < 0) {
-	// return NAN;
-        //}
-
 	/*
 	 * this is Qfunction for the preopt-function 
 	 */
@@ -798,7 +794,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 
 double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -824,7 +820,7 @@ double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNU
 {
 	// this function is special. the graph is preopt, but only the prior is returned.
 
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -846,7 +842,7 @@ double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNU
 double GMRFLib_preopt_Qfunc_like(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// standalone function to return the likelihood part only
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -868,7 +864,7 @@ double GMRFLib_preopt_Qfunc_like(int thread_id, int node, int nnode, double *UNU
 double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// standalone function to return the prior part
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
