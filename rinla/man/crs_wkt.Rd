@@ -126,6 +126,4 @@ if (inla.has_PROJ6()) {
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}
-
-Finn Lindgren \email{finn.lindgren@gmail.com}
 }
