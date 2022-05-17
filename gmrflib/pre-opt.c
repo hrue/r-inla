@@ -834,6 +834,13 @@ double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNU
 
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
 		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
+
+		if (a->gcpo_mask) {
+			value *= a->gcpo_mask[imin] * a->gcpo_mask[imax];
+			if (diag) {
+				value += a->gcpo_diag[imin];
+			}
+		}
 	}
 
 	return value;

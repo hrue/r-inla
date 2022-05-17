@@ -263,7 +263,7 @@
             graph = FALSE,
 
             ## :ARGUMENT: control.gcpo Set control variables for the gcpo
-            control.gcpo = list(enable = FALSE, group.size = -1, strategy = c("posterior", "prior"), groups = NULL, selection = NULL, verbose = FALSE, epsilon = 0.005, correct.hyperpar = TRUE)
+            control.gcpo = list(enable = FALSE, group.size = -1, strategy = c("posterior", "prior"), groups = NULL, selection = NULL, verbose = FALSE, epsilon = 0.005, correct.hyperpar = TRUE, keep = NULL, remove = NULL, remove.fixed = TRUE)
         )
 
         ## :SEEALSO: inla

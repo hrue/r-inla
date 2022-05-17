@@ -803,6 +803,16 @@ typedef struct {
 	GMRFLib_gcpo_build_strategy_tp build_strategy;	       /* 0=posterior, 1=prior (see above) */
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
+
+	int remove_fixed;
+	GMRFLib_str_tp *remove;				       /* only one of these can be !NULL */
+	GMRFLib_str_tp *keep;
+
+	// this is to build the strategy="prior" corrections. these are just copy of ptr's, do not free!
+	int idx_tot;
+	int *idx_start;
+	int *idx_n;
+	char **idx_tag;
 } GMRFLib_gcpo_param_tp;
 
 typedef struct {

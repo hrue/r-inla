@@ -33,8 +33,6 @@
 #endif
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: approx-inference.c,v 1.713 2010/04/10 20:07:01 hrue Exp $ */
-
 #include <stdint.h>
 #include <assert.h>
 #include <time.h>
@@ -6979,16 +6977,130 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		GMRFLib_ai_store_tp *local_ai_store = NULL;
 
 		if (gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_PRIOR) {
+
+			int nn = ai_store->problem->n;
+			double *mask = Calloc(nn, double);
+			double *diag = Calloc(nn, double);
+
+			int n_offset;
+			int idx_offset;
+			if (!strcmp(gcpo_param->idx_tag[0], "APredictor")) {
+				assert(!strcmp(gcpo_param->idx_tag[1], "Predictor"));
+				n_offset = gcpo_param->idx_n[0] + gcpo_param->idx_n[1];
+				idx_offset = 2;
+			} else {
+				assert(!strcmp(gcpo_param->idx_tag[0], "Predictor"));
+				n_offset = gcpo_param->idx_n[0];
+				idx_offset = 1;
+			}
+
+			double big = 1.0 / GMRFLib_eps(1.0);
+
+			// default
+			for (int i = 0; i < nn; i++) {
+				mask[i] = 1.0;
+				diag[i] = 0.0;
+			}
+
+
+			if (gcpo_param->remove) {
+				int *visited = Calloc(gcpo_param->remove->n, int);
+				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
+					char *tag = gcpo_param->idx_tag[j];
+					int idx_found = -1;
+					if (GMRFLib_str_is_member(gcpo_param->remove, tag, 0, &idx_found)) {
+						for (int i = 0; i < gcpo_param->idx_n[j]; i++) {
+							int k = gcpo_param->idx_start[j] - n_offset + i;
+							mask[k] = 0.0;
+							diag[k] = big;
+						}
+						visited[idx_found] = 1;
+					}
+				}
+
+				int err = 0;
+				for (int j = 0; j < gcpo_param->remove->n; j++) {
+					if (!visited[j]) {
+						err++;
+						printf("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
+						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+					}
+				}
+				assert(err == 0);
+				Free(visited);
+			}
+
+			if (gcpo_param->keep) {
+				int *visited = Calloc(gcpo_param->remove->n, int);
+				// create a new default
+				for (int i = 0; i < nn; i++) {
+					mask[i] = 0.0;
+					diag[i] = big;
+				}
+				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
+					char *tag = gcpo_param->idx_tag[j];
+					int idx_found = -1;
+					if (GMRFLib_str_is_member(gcpo_param->keep, tag, 0, NULL)) {
+						for (int i = 0; i < gcpo_param->idx_n[j]; i++) {
+							int k = gcpo_param->idx_start[j] - n_offset + i;
+							mask[k] = 1.0;
+							diag[k] = 0.0;
+						}
+						visited[idx_found] = 1;
+					}
+				}
+
+				int err = 0;
+				for (int j = 0; j < gcpo_param->remove->n; j++) {
+					if (!visited[j]) {
+						err++;
+						printf("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
+						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+					}
+				}
+				assert(err == 0);
+				Free(visited);
+			}
+
+			if (gcpo_param->remove_fixed) {
+				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
+					if (gcpo_param->idx_n[j] == 1) {
+						int k = gcpo_param->idx_start[j] - n_offset;
+						mask[k] = 0.0;
+						diag[k] = big;
+					}
+				}
+			}
+
+			if (0) {
+				for (int i = 0; i < gcpo_param->idx_tot; i++) {
+					printf("\t\t%-30s %10d %10d\n", gcpo_param->idx_tag[i], gcpo_param->idx_start[i], gcpo_param->idx_n[i]);
+				}
+				for (int i = 0; i < nn; i++) {
+					printf("i %d mask %g diag %g\n", i, mask[i], diag[i]);
+				}
+			}
+
+			// pass args to gcpo_Qfunc
+			preopt->gcpo_mask = mask;
+			preopt->gcpo_diag = diag;
+
 			GMRFLib_problem_tp *problem = NULL;
-			double *c = Calloc(ai_store->problem->n, double);
-			for (int i = 0; i < ai_store->problem->n; i++) {
+			double *c = Calloc(nn, double);
+			for (int i = 0; i < nn; i++) {
 				c[i] = 1.0;
 			}
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL,
 					     preopt->preopt_graph, preopt->gcpo_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr);
 			local_ai_store = Calloc(1, GMRFLib_ai_store_tp);
 			local_ai_store->problem = problem;
+			preopt->gcpo_mask = NULL;	       /* set it back */
+			preopt->gcpo_diag = NULL;	       /* set it back */
+
 			Free(c);
+			Free(mask);
+			Free(diag);
+
 			build_ai_store = local_ai_store;
 		} else {
 			assert(gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR);

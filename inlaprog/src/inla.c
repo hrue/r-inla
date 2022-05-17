@@ -11473,7 +11473,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 	} else if (!strcasecmp(prior->name, "FLAT") || !strcasecmp(prior->name, "UNIFORM")) {
 		/*
-		 * do not care about the range for the FLAT/UNIFORM prior, as the parameters are already transformed to R. 
+		 * do not care about the range for the FLAT/UNI prior, as the parameters are already transformed to R. 
 		 */
 		prior->id = P_FLAT;
 		prior->priorfunc = priorfunc_flat;
@@ -12343,6 +12343,14 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		for (i = 0; i < mb->idx_tot; i++) {
 			printf("\t\t%-30s %10d %10d\n", mb->idx_tag[i], mb->idx_start[i], mb->idx_n[i]);
 		}
+	}
+
+	// copy ptr to these, in case we need to correct in strategy="prior" later with gcpo
+	if (mb->gcpo_param) {
+		mb->gcpo_param->idx_tot = mb->idx_tot;
+		mb->gcpo_param->idx_tag = mb->idx_tag;
+		mb->gcpo_param->idx_start = mb->idx_start;
+		mb->gcpo_param->idx_n = mb->idx_n;
 	}
 
 	/*
@@ -27486,7 +27494,7 @@ double Qfunc_copy_part00(int thread_id, int i, int j, double *UNUSED(values), vo
 	}
 }
 
-double Qfunc_copy_part01(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_copy_part01(int thread_id, int UNUSED(i), int j, double *UNUSED(values), void *arg)
 {
 	if (j < 0) {
 		return NAN;
@@ -27498,7 +27506,7 @@ double Qfunc_copy_part01(int thread_id, int i, int j, double *UNUSED(values), vo
 	return -a->precision * beta;
 }
 
-double Qfunc_copy_part11(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_copy_part11(int UNUSED(thread_id), int UNUSED(i), int j, double *UNUSED(values), void *arg)
 {
 	if (j < 0) {
 		return NAN;
@@ -33851,7 +33859,25 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
+		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
+
+		char *str = NULL;
+		char *str_ptr = NULL;
+		char *token = NULL;
+		const char *delim = " \t";
+		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+			str = NULL;
+			GMRFLib_str_add(&(mb->gcpo_param->keep), token);
+		}
+		
+		str_ptr = NULL;
+		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.REMOVE"), NULL));
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+			str = NULL;
+			GMRFLib_str_add(&(mb->gcpo_param->remove), token);
+		}
 
 		char *tstr = NULL;
 		tstr = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.STRATEGY"), GMRFLib_strdup("posterior")));
@@ -33997,6 +34023,30 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			if (mb->gcpo_param->selection) {
 				printf("\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
 			}
+
+			if (mb->gcpo_param->keep) {
+				printf("\t\t\tgcpo.keep=[");
+				for(int i = 0; i < mb->gcpo_param->keep->n; i++) {
+					if (i) printf(" ");
+					printf("%s", mb->gcpo_param->keep->str[i]);
+				}
+				printf("]\n");
+			} else {
+				printf("\t\t\tgcpo.keep=[]\n");
+			}
+				
+			printf("\t\t\tgcpo.remove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
+			if (mb->gcpo_param->remove) {
+				printf("\t\t\tgcpo.remove=[");
+				for(int i = 0; i < mb->gcpo_param->remove->n; i++) {
+					if (i) printf(" ");
+					printf("%s", mb->gcpo_param->remove->str[i]);
+				}
+				printf("]\n");
+			} else {
+				printf("\t\t\tgcpo.remove=[]\n");
+			}
+
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);
 			printf("\t\t\tpo=[%1d]\n", (*out)->po);
 			printf("\t\t\tdic=[%1d]\n", (*out)->dic);

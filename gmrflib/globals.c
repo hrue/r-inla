@@ -38,8 +38,6 @@
 #endif
 //static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: globals.c,v 1.43 2010/02/15 08:26:37 hrue Exp $ */
-
 #define __GMRFLib_DONT_DEFINE_GLOBALS
 #include <limits.h>
 #include <time.h>

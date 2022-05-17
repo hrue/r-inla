@@ -31,8 +31,6 @@
 #define GITCOMMIT
 #endif
 
-/* Pre-hg-Id: $Id: spde.c,v 1.41 2010/03/01 17:43:07 hrue Exp $ */
-
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif

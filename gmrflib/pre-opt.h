@@ -142,6 +142,11 @@ typedef struct {
 
 	double *mode_theta;
 	double *mode_x;
+
+	// this is for gcpo with strategy = prior. DO NOT FREE!
+	double *gcpo_mask;
+	double *gcpo_diag;
+
 } GMRFLib_preopt_tp;
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
