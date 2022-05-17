@@ -174,49 +174,27 @@
     return(paste(strings, collapse = sep, sep = ""))
 }
 
-`inla.only.for.developers` <- function(msg = "<<<ADD MESSAGE HERE>>>", strict = FALSE) {
-    if (!(Sys.getenv("USER") %in%
-        c("hrue", "rueh", "finnkrl", "finn", "cristian", "chiuchc", "elias", "vanniej"))) {
-        if (strict) {
-            stop(paste0("This function/feature [", msg, "] is for developers only."))
-        } else {
-            warning(paste0("This function/feature [", msg, "] is for developers only."))
-        }
-    }
-    return(invisible())
-}
-
 `inla.my.update` <- function(dir, binaries = FALSE, ignore.regexp = NULL) {
     ## Set binaries=TRUE to set the inla.call and fmesher.call options
     ## To override the default binaries path, set binaries="/the/path/bin"
-
-    inla.only.for.developers(msg = "inla.my.update", strict = TRUE)
 
     a <- inla.models()
     rm(a)
         
     if (Sys.getenv("USER") %in% "hrue") {
         dir.default <- "~/p/inla/r-inla/rinla/R"
-        bin.default <- "~/bin/inla.debug"
+        bin.default <- "~/p/inla/work/local/bin"
     } else if (Sys.getenv("USER") %in% "rueh") {
         dir.default <- "~/build64/r-inla/rinla/R"
         bin.default <- "~/build64/local/bin"
     } else if (Sys.getenv("USER") %in% "elias") {
         dir.default <- "~/inla-project/source/inla/rinla/R"
         bin.default <- "~/inla-project/compile/local/bin"
-    } else if (Sys.getenv("USER") %in% "fuglstad") {
-        dir.default <- "~/build64/rinla/R"
-        bin.default <- "~/build64/local/bin"
-    } else if (Sys.getenv("USER") %in% c("rieblera", "ariebler")) {
-        dir.default <- "~/inla/rinla/R"
-        bin.default <- "~/local/bin"
-    } else if (Sys.getenv("USER") %in% c("cristian", "chiuchc")) {
-        dir.default <- "~/Desktop/r-inla/rinla/R"
-        bin.default <- "~/local/bin"
     } else {
         dir.default <- "~/github/r-inla/rinla/R"
         bin.default <- "~/local/bin"
     }
+
     if (!missing(binaries)) {
         if (is.character(binaries)) {
             bin.default <- binaries

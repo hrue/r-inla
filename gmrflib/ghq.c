@@ -132,7 +132,7 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 	GMRFLib_ghq(&xxp, &wwp, n);
 	assert(xxp);
 	assert(wwp);
-	
+
 	*xp = Calloc(n, double);
 	*wp = Calloc(n, double);
 	assert(*xp);

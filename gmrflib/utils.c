@@ -104,7 +104,7 @@ int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 
 void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
 {
-	//assert(n < PTRDIFF_MAX);
+	// assert(n < PTRDIFF_MAX);
 	memcpy(dest, src, n);
 	return NULL;
 }

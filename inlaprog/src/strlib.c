@@ -69,7 +69,7 @@ char *strlwc(const char *s)
 	static char *l = NULL;
 	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
 	assert(l);
-	
+
 	size_t i;
 	i = 0;
 	while (i < strlen(s) && s[i]) {
@@ -167,7 +167,7 @@ char *strcrop(char *s)
 	static char *l = NULL;
 	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
 	assert(l);
-	
+
 	char *last;
 	strcpy(l, s);
 	last = l + strlen(l);

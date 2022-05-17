@@ -869,12 +869,6 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 
 	GMRFLib_ENTER_ROUTINE;
 
-	if (0) {
-		FILE *fffp = fopen("constr.dat", "w");
-		GMRFLib_printf_constr(fffp, constr, graph);
-		exit(0);
-	}
-
 	if (!ai_store) {				       /* use a temporary storage? */
 		free_ai_store = 1;
 		ai_store = Calloc(1, GMRFLib_ai_store_tp);
@@ -6963,7 +6957,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
+GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
 					   GMRFLib_gcpo_param_tp * gcpo_param)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -6977,14 +6971,39 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 
 	if (!(gcpo_param->groups)) {
 		if (gcpo_param->verbose || detailed_output) {
-			printf("%s[%1d]: Build groups\n", __GMRFLib_FuncName, omp_get_thread_num());
+			printf("%s[%1d]: Build groups, strategy[%s]\n", __GMRFLib_FuncName, omp_get_thread_num(),
+			       GMRFLib_GCPO_BUILD_STRATEGY_NAME(gcpo_param->build_strategy));
 		}
+
+		GMRFLib_ai_store_tp *build_ai_store = NULL;
+		GMRFLib_ai_store_tp *local_ai_store = NULL;
+
+		if (gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_PRIOR) {
+			GMRFLib_problem_tp *problem = NULL;
+			double *c = Calloc(ai_store->problem->n, double);
+			for (int i = 0; i < ai_store->problem->n; i++) {
+				c[i] = 1.0;
+			}
+			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL,
+					     preopt->preopt_graph, preopt->gcpo_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr);
+			local_ai_store = Calloc(1, GMRFLib_ai_store_tp);
+			local_ai_store->problem = problem;
+			Free(c);
+			build_ai_store = local_ai_store;
+		} else {
+			assert(gcpo_param->build_strategy == GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR);
+			build_ai_store = ai_store;
+		}
+		assert(build_ai_store != NULL);
+
 		// build the groups
 		double *isd = Calloc(mnpred, double);
 
 		groups = GMRFLib_idxval_ncreate_x(Npred, IABS(gcpo_param->group_size));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
-		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, ai_store->problem, NULL);
+		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
+
+		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL);
 		for (int i = 0; i < Npred; i++) {
 			isd[i] = 1.0 / sqrt(isd[i]);
 		}
@@ -7029,7 +7048,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 			for (int k = 0; k < v->n; k++) {		\
 				a[v->idx[k]] = v->val[k];		\
 			}						\
-			GMRFLib_Qsolve(Sa, a, ai_store->problem);	\
+			GMRFLib_Qsolve(Sa, a, build_ai_store->problem);	\
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				if (nnode == node) continue;		\
@@ -7097,6 +7116,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int UNUSED(thread_id), GMRFLib_ai_sto
 			GMRFLib_idx_free(selection);
 		}
 		Free(isd);
+		GMRFLib_free_ai_store(local_ai_store);
 	} else {
 		if (gcpo_param->verbose || detailed_output) {
 			printf("%s[%1d]: Use user-defined groups\n", __GMRFLib_FuncName, omp_get_thread_num());
@@ -7953,7 +7973,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 	}
 	assert(d_idx);
-	
+
 	int ii, jj;
 	double *sd = Calloc_get(graph->n);
 

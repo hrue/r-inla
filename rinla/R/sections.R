@@ -1222,6 +1222,10 @@
     inla.write.boolean.field("gcpo.correct.hyperpar", gcpo$correct.hyperpar, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
 
+    gcpo$strategy <- match.arg(gcpo$strategy, several.ok = FALSE, 
+                               choices = inla.set.control.compute.default()$control.gcpo$strategy)
+    cat("gcpo.strategy =", gcpo$strategy, "\n", file = file, append = TRUE)
+
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
         stopifnot(is.null(gcpo$selection))

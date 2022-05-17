@@ -563,7 +563,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_REORDER, store, NULL);
 	GMRFLib_Q2csr(0, &Q, store->graph, GMRFLib_pardiso_Qfunc_default, (void *) store->graph);
 	assert(Q);
-	
+
 	if (S.csr_check) {
 		GMRFLib_csr_check(Q);
 	}

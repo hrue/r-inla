@@ -8859,9 +8859,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -33852,6 +33852,18 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
+
+		char *tstr = NULL;
+		tstr = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.STRATEGY"), GMRFLib_strdup("posterior")));
+		if (!strcasecmp(tstr, "posterior")) {
+			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR;
+		} else if (!strcasecmp(tstr, "prior")) {
+			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_PRIOR;
+		} else {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "gcpo.strategy", tstr);
+			assert(0 == 1);
+		}
+
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
 		assert(!(gfile && sfile));
@@ -33976,6 +33988,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
+			printf("\t\t\tgcpo.strategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
 			printf("\t\t\tgcpo.correct.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
 			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
 			if (mb->gcpo_param->groups) {

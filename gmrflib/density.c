@@ -300,8 +300,8 @@ int GMRFLib_normal_fit(double *mean, double *variance, double *fval, double *x, 
 	 */
 
 	int retval;
-	GMRFLib_sn_param_tp param = {0.0, 0.0, 0.0};
-	
+	GMRFLib_sn_param_tp param = { 0.0, 0.0, 0.0 };
+
 
 	retval = GMRFLib_sn_fit__intern((void *) &param, fval, x, log_density, (size_t) n, (size_t) 3);
 	if (retval == GMRFLib_SUCCESS) {
@@ -1190,7 +1190,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	 */
 	int i, j, debug = 0;
 	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
-	GMRFLib_sn_param_tp sn_param = {0, 0, 0};
+	GMRFLib_sn_param_tp sn_param = { 0, 0, 0 };
 
 	Calloc_init(2 * n);
 	xx = Calloc_get(n);

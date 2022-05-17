@@ -641,6 +641,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
+	(*preopt)->gcpo_Qfunc = GMRFLib_preopt_gcpo_Qfunc;
 
 	for (int i = 0; i < nf; i++) {
 		Free(ww[i]);
@@ -681,9 +682,9 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * pr
 
 double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	// as this one is always called through preopt_Qfunc
-	// assert(nnode >= node);
-	// if (node >= 0 && nnode < 0) return NAN;
+	// if (node >= 0 && nnode < 0) {
+	// return NAN;
+        //}
 
 	/*
 	 * this is Qfunction for the preopt-function 
@@ -812,6 +813,29 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
 		value += a->like_Qfunc(thread_id, imin, imax, NULL, a->like_Qfunc_arg);
 	}
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
+		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
+	}
+
+	return value;
+}
+
+double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
+{
+	// this function is special. the graph is preopt, but only the prior is returned.
+
+	if (node >= 0 && nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	int imin, imax, diag;
+	double value = 0.0;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
 		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
 	}
