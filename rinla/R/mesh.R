@@ -2,7 +2,7 @@
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 
 
-#' @title Constraint segments for inla.mesh
+#' Constraint segments for inla.mesh
 #'
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].

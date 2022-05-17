@@ -6,10 +6,7 @@
 \alias{inla.spde2.precision}
 \alias{inla.spde.precision.inla.spde1}
 \alias{inla.spde.precision.inla.spde2}
-\title{Precision matrices for SPDE models
-
-Calculates the precision matrix for given parameter values based on an
-\code{inla.spde} model object.}
+\title{Precision matrices for SPDE models}
 \usage{
 inla.spde.precision(...)
 
@@ -52,10 +49,8 @@ inla.spde2.precision(
 A sparse precision matrix.
 }
 \description{
-Precision matrices for SPDE models
-
-Calculates the precision matrix for given parameter values based on an
-\code{inla.spde} model object.
+Calculates the precision matrix for given parameter
+values based on an \code{inla.spde} model object.
 }
 \seealso{
 \code{\link[=inla.spde.models]{inla.spde.models()}}, \code{\link[=inla.spde2.generic]{inla.spde2.generic()}},
