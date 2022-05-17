@@ -6982,8 +6982,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			double *mask = Calloc(nn, double);
 			double *diag = Calloc(nn, double);
 
-			int n_offset;
-			int idx_offset;
+			int n_offset = 0;
+			int idx_offset = 0;
 			if (!strcmp(gcpo_param->idx_tag[0], "APredictor")) {
 				assert(!strcmp(gcpo_param->idx_tag[1], "Predictor"));
 				n_offset = gcpo_param->idx_n[0] + gcpo_param->idx_n[1];
@@ -7001,7 +7001,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				mask[i] = 1.0;
 				diag[i] = 0.0;
 			}
-
 
 			if (gcpo_param->remove) {
 				int *visited = Calloc(gcpo_param->remove->n, int);
