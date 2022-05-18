@@ -56,7 +56,7 @@ for m in 64; do
     rm -f $DIR/libm.so*
     rm -f $DIR/libdl.so*
     ## those we like be be first
-    for f in $DIR/libjemalloc* $DIR/libopenblas* $DIR/libblas* $DIR/liblapack* $DIR/libstdc* $DIR/libgcc* $DIR/libpardiso* $DIR/libicu*; do
+    for f in $DIR/libjemalloc* $DIR/libopenblas* $DIR/libblas* $DIR/liblapack* $DIR/libstdc* $DIR/libgcc* $DIR/libpardiso* $DIR/libR*; do
 	test -f "$f" && mv -f -v "$f" $DIR/first
     done
 done
