@@ -46,7 +46,7 @@ extern G_tp G;						       /* import some global parametes from inla */
 
 double inla_spde2_Qfunction(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

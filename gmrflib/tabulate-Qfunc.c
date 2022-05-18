@@ -73,7 +73,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			assert(j >= offset);				\
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
-			int ii;						\
+			int ii = -1;					\
 			map_ii_get(args->Q_idx[imin], imax, &ii);	\
 			dp = &(args->Q->a[ii]);				\
 		} else {						\

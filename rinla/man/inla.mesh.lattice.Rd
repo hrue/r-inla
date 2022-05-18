@@ -8,7 +8,11 @@ inla.mesh.lattice(
   x = seq(0, 1, length.out = 2),
   y = seq(0, 1, length.out = 2),
   z = NULL,
-  dims = if (is.matrix(x)) {     dim(x) } else {     c(length(x), length(y)) },
+  dims = if (is.matrix(x)) {
+     dim(x)
+ } else {
+     c(length(x), length(y))
+ },
   units = NULL,
   crs = NULL
 )

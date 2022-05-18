@@ -459,9 +459,8 @@ inla.spde.sample.inla.spde <-
 
 #' @title Precision matrices for SPDE models
 #'
-#' Calculates the precision matrix for given parameter values based on an
-#' `inla.spde` model object.
-#'
+#' @description Calculates the precision matrix for given parameter
+#'  values based on an `inla.spde` model object.
 #'
 #' @aliases inla.spde.precision inla.spde1.precision inla.spde2.precision
 #' inla.spde.precision.inla.spde1 inla.spde.precision.inla.spde2

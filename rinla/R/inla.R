@@ -2291,7 +2291,7 @@
     file.env <- paste0(inla.dir, "/environment")
     cat(file = file.env)
     for (i in seq_along(env.list)) {
-        cat(names(env.list[i]), "=\"", env.list[i], "\"\n", sep = "", file = file.env, append = TRUE)
+        cat("export ", names(env.list[i]), "='", env.list[i], "'\n", sep = "", file = file.env, append = TRUE)
     }
 
     timeout <- inla.getOption("inla.timeout")

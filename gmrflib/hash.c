@@ -38,8 +38,6 @@
 #endif
 //static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
-/* Pre-hg-Id: $Id: hash.c,v 1.13 2009/06/03 09:04:54 hrue Exp $ */
-
 #include <string.h>
 #if !defined(__FreeBSD__)
 #include <malloc.h>

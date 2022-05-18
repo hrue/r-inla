@@ -553,7 +553,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	static inla_sn_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, j, id, debug = 0;
+	int i, j, id = 0, debug = 0;
 	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = GMRFLib_SN_SKEWMAX;
 	double **par, intercept, intercept_intern, intercept_alpha;
 
@@ -1485,7 +1485,7 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	static inla_loga_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, id, debug = 0;
+	int i, id = 0, debug = 0;
 	double dx = 0.1, xx, range = 25.0, p, pp;
 
 	if (first) {
@@ -2235,7 +2235,7 @@ int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
 
 double Qfunc_bym(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2274,7 +2274,7 @@ double Qfunc_bym(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 double Qfunc_bym2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2293,7 +2293,7 @@ double Qfunc_bym2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 
 double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2312,7 +2312,7 @@ double Qfunc_rw2diid(int thread_id, int i, int j, double *UNUSED(values), void *
 
 double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2558,7 +2558,7 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 
 double Qfunc_generic1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2571,7 +2571,7 @@ double Qfunc_generic1(int thread_id, int i, int j, double *UNUSED(values), void 
 
 double Qfunc_generic2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2619,7 +2619,7 @@ double Qfunc_generic2(int thread_id, int i, int j, double *UNUSED(values), void 
 
 double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2641,7 +2641,7 @@ double Qfunc_generic3(int thread_id, int i, int j, double *UNUSED(values), void 
 
 double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2678,7 +2678,7 @@ int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
 
 double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2702,7 +2702,7 @@ double Qfunc_z(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -2738,7 +2738,7 @@ double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 
@@ -2859,7 +2859,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -2950,13 +2950,13 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 
 double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
 	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
 	double prec = map_exp(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
-	int rebuild, debug = 0, id;
+	int rebuild, debug = 0, id = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -3018,7 +3018,7 @@ double mfunc_ar1(int thread_id, int UNUSED(i), void *arg)
 double mfunc_rgeneric(int thread_id, int i, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	// possible fast return ?
 	if (a->mu_zero) {
@@ -3084,7 +3084,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 double mfunc_cgeneric(int thread_id, int i, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id;
+	int rebuild, ii, debug = 0, id = 0;
 
 	// possible fast return ?
 	if (a->mu_zero) {
@@ -3146,7 +3146,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 
 double Qfunc_clinear(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3157,7 +3157,7 @@ double Qfunc_clinear(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 double Qfunc_sigm(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3168,7 +3168,7 @@ double Qfunc_sigm(int UNUSED(thread_id), int i, int j, double *UNUSED(values), v
 
 double Qfunc_log1exp(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3179,7 +3179,7 @@ double Qfunc_log1exp(int UNUSED(thread_id), int i, int j, double *UNUSED(values)
 
 double Qfunc_logdist(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3256,7 +3256,7 @@ double mfunc_logdist(int thread_id, int i, void *arg)
 
 double Qfunc_mec(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3285,7 +3285,7 @@ double mfunc_mec(int thread_id, int i, void *arg)
 
 double Qfunc_meb(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3317,7 +3317,7 @@ int inla_iid_wishart_nparam(int dim)
 
 double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -3327,7 +3327,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int i, j, k, n_theta, dim, debug = 0, id;
+	int i, j, k, n_theta, dim, debug = 0, id = 0;
 	double *vec = NULL;
 	inla_wishart_hold_tp *hold = NULL;
 
@@ -3428,12 +3428,12 @@ int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L
 
 double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
 	inla_iid_wishartk_arg_tp *a = (inla_iid_wishartk_arg_tp *) arg;
-	int i, n_theta, dim, id;
+	int i, n_theta, dim, id = 0;
 	inla_wishartk_hold_tp *hold = NULL;
 	double *vec = NULL;
 
@@ -3466,7 +3466,7 @@ double Qfunc_iid_wishartk(int thread_id, int node, int nnode, double *UNUSED(val
 
 double Qfunc_iid2d(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3490,7 +3490,7 @@ double Qfunc_iid2d(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 double Qfunc_2diid(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3514,7 +3514,7 @@ double Qfunc_2diid(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 double Qfunc_2diid_wishart(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3548,7 +3548,7 @@ int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
 
 double Qfunc_ar1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3585,7 +3585,7 @@ double Qfunc_ar1(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 
 double Qfunc_ar1c(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -3635,7 +3635,7 @@ double Qfunc_ar1c(int thread_id, int i, int j, double *UNUSED(values), void *arg
 
 double Qfunc_ou(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4810,7 +4810,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 
 double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4842,7 +4842,7 @@ double Qfunc_besag(int thread_id, int i, int j, double *UNUSED(values), void *ar
 
 double Qfunc_besag2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4871,7 +4871,7 @@ double Qfunc_besag2(int thread_id, int i, int j, double *UNUSED(values), void *a
 
 double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -4890,7 +4890,7 @@ double Qfunc_besagproper(int thread_id, int i, int j, double *UNUSED(values), vo
 
 double Qfunc_besagproper2(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -5371,7 +5371,7 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	 *
 	 * if xx exists, then read into xx. otherwise, read into ix. return number of reads, in *nx
 	 */
-	int nx, ndata, i, j, ii, ncol_true;
+	int nx = 0, ndata, i, j, ii, ncol_true;
 	double *x = NULL;
 
 	assert(xx || ix);
@@ -5379,6 +5379,9 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	 * first read all entries in the file 
 	 */
 	inla_read_data_all(&x, &nx, filename, NULL);
+	if (nx) {
+		assert(x);
+	}
 	if (verbose) {
 		printf("\t\tread n=[%1d] entries from file=[%s]\n", nx, filename);
 	}
@@ -6924,7 +6927,7 @@ int loglikelihood_qcontpoisson(int thread_id, double *logll, double *x, int m, i
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i, id;
+	int i, id = 0;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], lambda, q;
 
@@ -7291,7 +7294,7 @@ int loglikelihood_pom(int thread_id, double *logll, double *x, int m, int idx, d
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (nclasses > nclass[id]) {
@@ -8450,7 +8453,7 @@ int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, 
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (m > 0) {
@@ -8544,7 +8547,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (m > 0) {
@@ -8663,7 +8666,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 	if (!llcache) {
 		llcache[idx] = Calloc(1, lcache_t);
@@ -8759,7 +8762,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!llcache[idx]) {
@@ -9867,7 +9870,7 @@ int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int id
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (m > 0) {
@@ -11470,7 +11473,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		}
 	} else if (!strcasecmp(prior->name, "FLAT") || !strcasecmp(prior->name, "UNIFORM")) {
 		/*
-		 * do not care about the range for the FLAT/UNIFORM prior, as the parameters are already transformed to R. 
+		 * do not care about the range for the FLAT/UNI prior, as the parameters are already transformed to R. 
 		 */
 		prior->id = P_FLAT;
 		prior->priorfunc = priorfunc_flat;
@@ -11511,6 +11514,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		assert(idim > 0);
 
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx == inla_iid_wishart_nparam(idim) + 1);	/* this must be TRUE */
 
@@ -11528,6 +11532,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 2;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11554,6 +11559,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 3;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11580,6 +11586,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 4;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11606,6 +11613,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 5;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11632,6 +11640,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 6;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11658,6 +11667,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 7;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11684,6 +11694,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 8;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11710,6 +11721,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 9;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -11736,6 +11748,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		int nxx;
 		int idim = 10;
 		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
 		prior->parameters = xx;
 		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
 		nxx = INLA_WISHARTK_NPARAM(idim);
@@ -12330,6 +12343,14 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		for (i = 0; i < mb->idx_tot; i++) {
 			printf("\t\t%-30s %10d %10d\n", mb->idx_tag[i], mb->idx_start[i], mb->idx_n[i]);
 		}
+	}
+
+	// copy ptr to these, in case we need to correct in strategy="prior" later with gcpo
+	if (mb->gcpo_param) {
+		mb->gcpo_param->idx_tot = mb->idx_tot;
+		mb->gcpo_param->idx_tag = mb->idx_tag;
+		mb->gcpo_param->idx_start = mb->idx_start;
+		mb->gcpo_param->idx_n = mb->idx_n;
 	}
 
 	/*
@@ -19497,7 +19518,7 @@ GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRF
 
 double Qfunc_intslope(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -19681,7 +19702,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = ffield 
 	 */
-	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
+	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id = 0, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
 	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
@@ -27459,7 +27480,7 @@ double iid_mfunc(int idx, void *UNUSED(arg))
 
 double Qfunc_copy_part00(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -27473,9 +27494,9 @@ double Qfunc_copy_part00(int thread_id, int i, int j, double *UNUSED(values), vo
 	}
 }
 
-double Qfunc_copy_part01(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_copy_part01(int thread_id, int UNUSED(i), int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -27485,9 +27506,9 @@ double Qfunc_copy_part01(int thread_id, int i, int j, double *UNUSED(values), vo
 	return -a->precision * beta;
 }
 
-double Qfunc_copy_part11(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_copy_part11(int UNUSED(thread_id), int UNUSED(i), int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -32035,7 +32056,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					}
 				}
 			}
-			int idx;
+			int idx = 0;
 			GMRFLib_CACHE_SET_ID(idx);
 
 			int jj;
@@ -32134,7 +32155,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
 				}
 			}
-			int idx;
+			int idx = 0;
 			GMRFLib_CACHE_SET_ID(idx);
 
 			int jj;
@@ -33838,7 +33859,37 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
+		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
+
+		char *str = NULL;
+		char *str_ptr = NULL;
+		char *token = NULL;
+		const char *delim = " \t";
+		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+			str = NULL;
+			GMRFLib_str_add(&(mb->gcpo_param->keep), token);
+		}
+		
+		str_ptr = NULL;
+		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.REMOVE"), NULL));
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+			str = NULL;
+			GMRFLib_str_add(&(mb->gcpo_param->remove), token);
+		}
+
+		char *tstr = NULL;
+		tstr = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.STRATEGY"), GMRFLib_strdup("posterior")));
+		if (!strcasecmp(tstr, "posterior")) {
+			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR;
+		} else if (!strcasecmp(tstr, "prior")) {
+			mb->gcpo_param->build_strategy = GMRFLib_GCPO_BUILD_STRATEGY_PRIOR;
+		} else {
+			inla_error_field_is_void(__GMRFLib_FuncName, secname, "gcpo.strategy", tstr);
+			assert(0 == 1);
+		}
+
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
 		assert(!(gfile && sfile));
@@ -33963,6 +34014,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
 			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
+			printf("\t\t\tgcpo.strategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
 			printf("\t\t\tgcpo.correct.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
 			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
 			if (mb->gcpo_param->groups) {
@@ -33971,6 +34023,30 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			if (mb->gcpo_param->selection) {
 				printf("\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
 			}
+
+			if (mb->gcpo_param->keep) {
+				printf("\t\t\tgcpo.keep=[");
+				for(int i = 0; i < mb->gcpo_param->keep->n; i++) {
+					if (i) printf(" ");
+					printf("%s", mb->gcpo_param->keep->str[i]);
+				}
+				printf("]\n");
+			} else {
+				printf("\t\t\tgcpo.keep=[]\n");
+			}
+				
+			printf("\t\t\tgcpo.remove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
+			if (mb->gcpo_param->remove) {
+				printf("\t\t\tgcpo.remove=[");
+				for(int i = 0; i < mb->gcpo_param->remove->n; i++) {
+					if (i) printf(" ");
+					printf("%s", mb->gcpo_param->remove->str[i]);
+				}
+				printf("]\n");
+			} else {
+				printf("\t\t\tgcpo.remove=[]\n");
+			}
+
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);
 			printf("\t\t\tpo=[%1d]\n", (*out)->po);
 			printf("\t\t\tdic=[%1d]\n", (*out)->dic);
@@ -34958,7 +35034,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
-		int id, header = 0, nconfig = 0;
+		int id = 0, header = 0, nconfig = 0;
 		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs[id]) {
 				nconfig += mo->configs[id]->nconfig;	/* need the accumulated one! */
@@ -35050,7 +35126,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 
 		GMRFLib_sprintf(&nnndir, "%s/%s", nndir, "configs.dat");
 		fp = fopen(nnndir, "wb");
-		int id, header = 0, nconfig = 0;
+		int id = 0, header = 0, nconfig = 0;
 		for (id = 0; id < GMRFLib_MAX_THREADS(); id++) {
 			if (mo->configs_preopt[id]) {
 				nconfig += mo->configs_preopt[id]->nconfig;	/* need the accumulated one! */
@@ -35853,7 +35929,6 @@ void inla_signal(int sig)
 	switch (sig) {
 	case SIGUSR1:
 	case SIGUSR2:
-		GMRFLib_request_optimiser_to_stop = GMRFLib_TRUE;
 		break;
 	default:
 		_exit(sig);
@@ -36993,10 +37068,6 @@ int testit(int argc, char **argv)
 
 	case 13:
 	{
-		GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
-		GMRFLib_graph_tp *graph;
-		GMRFLib_graph_read_ascii(&graph, "zones.graph");
-		exit(0);
 	}
 		break;
 
@@ -38343,7 +38414,9 @@ int main(int argc, char **argv)
 	int blas_num_threads_default = 1;
 	char *program = argv[0];
 	double time_used[4] = { -1, -1, -1, -1 };
-	double eff_nt;
+#if !defined(WINDOWS)
+	double eff_nt = 0.0;
+#endif
 	clock_t atime_used[4] = { 0, 0, 0, 0 };
 	inla_tp *mb = NULL;
 
@@ -38359,8 +38432,6 @@ int main(int argc, char **argv)
 	GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_DEFAULT;
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
-	GMRFLib_verify_graph_read_from_disc = GMRFLib_TRUE;
-	GMRFLib_collect_timer_statistics = GMRFLib_FALSE;
 	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
 	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);

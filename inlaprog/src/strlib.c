@@ -25,6 +25,13 @@
    								Includes
  ---------------------------------------------------------------------------*/
 
+#include <assert.h>
+#include <stddef.h>
+#include <stdio.h>
+#if !defined(__FreeBSD__)
+#include <malloc.h>
+#endif
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -61,6 +68,7 @@ char *strlwc(const char *s)
 
 	static char *l = NULL;
 	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
+	assert(l);
 
 	size_t i;
 	i = 0;
@@ -94,9 +102,10 @@ char *strupc(char *s)
 		return NULL;
 	}
 
+	assert(s);
 	static char *l = NULL;
 	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
-
+	assert(l);
 	size_t i;
 	i = 0;
 	while (i < strlen(s) && s[i]) {
@@ -154,11 +163,12 @@ char *strcrop(char *s)
 		return NULL;
 	}
 
+	assert(s);
 	static char *l = NULL;
 	l = (char *) realloc(l, (size_t) (strlen(s) + 1) * sizeof(char));
+	assert(l);
 
 	char *last;
-
 	strcpy(l, s);
 	last = l + strlen(l);
 	while (last > l) {

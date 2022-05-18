@@ -231,9 +231,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 			}
 		}
 	}
-	if (GMRFLib_verify_graph_read_from_disc) {
-		GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
-	}
+	GMRFLib_EWRAP0(GMRFLib_graph_validate(stderr, *graph));
 
 	GMRFLib_graph_prepare(*graph);			       /* prepare the graph for computations */
 #undef TO_INT
@@ -1193,7 +1191,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 			}
 		}
 
-		int cache_idx;
+		int cache_idx = 0;
 
 		GMRFLib_CACHE_SET_ID(cache_idx);
 		if (graph->n > wwork_len[cache_idx]) {
@@ -1235,7 +1233,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 			}
 		}
 
-		int cache_idx;
+		int cache_idx = 0;
 
 		GMRFLib_CACHE_SET_ID(cache_idx);
 		if (graph->n > wwork_len[cache_idx]) {
@@ -1348,7 +1346,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 			double *local_result = Calloc(max_t * graph->n, double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_INIT();			\
+				CODE_BLOCK_ALL_WORK_ZERO();		\
 				double *r, *local_values;		\
 				int tnum = omp_get_thread_num();	\
 				r = local_result + tnum * graph->n;	\
@@ -1992,7 +1990,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 
 double GMRFLib_offset_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 

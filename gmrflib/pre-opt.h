@@ -99,6 +99,8 @@ typedef struct {
 	GMRFLib_Qfunc_tp *preopt_Qfunc;
 	void *preopt_Qfunc_arg;
 
+	GMRFLib_Qfunc_tp *gcpo_Qfunc;
+
 	GMRFLib_graph_tp *latent_graph;
 	GMRFLib_Qfunc_tp *latent_Qfunc;
 	void *latent_Qfunc_arg;
@@ -140,15 +142,21 @@ typedef struct {
 
 	double *mode_theta;
 	double *mode_x;
+
+	// this is for gcpo with strategy = prior. DO NOT FREE!
+	double *gcpo_mask;
+	double *gcpo_diag;
+
 } GMRFLib_preopt_tp;
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
-double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
-double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
-double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
-double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
 double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt);
 double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt);
+double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
+double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
+double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
+double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
+double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg);

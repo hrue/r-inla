@@ -149,6 +149,7 @@ int validate_constr1(GMRFLib_constr_tp * constr, int n)
 	g->n = n;
 
 	GMRFLib_duplicate_constr(&new, constr, g);
+	assert(new);
 	for (int j = 0; j < constr->nc; j++) {
 		if ((new->jfirst[j] != constr->jfirst[j]) || (new->jlen[j] != constr->jlen[j])) {
 			printf("CONSTR jfirst/jlen ERROR: i= %d new->jfirst= %d old->jfirst= %d new->jlen= %d old->jlen= %d\n",
@@ -188,7 +189,7 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (!storage[id]) {
@@ -249,7 +250,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if (!storage[id]) {
@@ -333,7 +334,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	int n = problem->sub_graph->n;
 	int nc = (problem->sub_constr && problem->sub_constr->nc > 0 ? problem->sub_constr->nc : 0);
 	double *xx = NULL;
-	int cache_idx;
+	int cache_idx = 0;
 
 	GMRFLib_CACHE_SET_ID(cache_idx);
 	if (n + nc > wwork_len[cache_idx]) {
@@ -1866,7 +1867,7 @@ GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton
 
 double GMRFLib_Qfunc_generic(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 

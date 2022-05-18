@@ -641,6 +641,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 	(*preopt)->preopt_Qfunc = GMRFLib_preopt_Qfunc;
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
+	(*preopt)->gcpo_Qfunc = GMRFLib_preopt_gcpo_Qfunc;
 
 	for (int i = 0; i < nf; i++) {
 		Free(ww[i]);
@@ -681,10 +682,6 @@ GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * pr
 
 double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	// as this one is always called through preopt_Qfunc
-	// assert(nnode >= node);
-	// if (node >= 0 && nnode < 0) return NAN;
-
 	/*
 	 * this is Qfunction for the preopt-function 
 	 */
@@ -781,7 +778,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 				}
 			}
 		}
-		int idx;
+		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
 		if (!guess[idx]) {
 			guess[idx] = Calloc(2, int);
@@ -797,7 +794,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 
 double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -819,10 +816,40 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	return value;
 }
 
+double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
+{
+	// this function is special. the graph is preopt, but only the prior is returned.
+
+	if (nnode < 0) {
+		return NAN;
+	}
+
+	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+	int imin, imax, diag;
+	double value = 0.0;
+
+	imin = IMIN(node, nnode);
+	imax = IMAX(node, nnode);
+	diag = (imin == imax);
+
+	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
+		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
+
+		if (a->gcpo_mask) {
+			value *= a->gcpo_mask[imin] * a->gcpo_mask[imax];
+			if (diag) {
+				value += a->gcpo_diag[imin];
+			}
+		}
+	}
+
+	return value;
+}
+
 double GMRFLib_preopt_Qfunc_like(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// standalone function to return the likelihood part only
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -844,7 +871,7 @@ double GMRFLib_preopt_Qfunc_like(int thread_id, int node, int nnode, double *UNU
 double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
 	// standalone function to return the prior part
-	if (node >= 0 && nnode < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -1307,7 +1334,6 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
 
 	Calloc_init(2 * graph->n);
-	assert(calloc_work_);
 	double *x = Calloc_get(graph->n);
 	double *xx = Calloc_get(graph->n);
 	for (int i = 0; i < graph->n; i++) {

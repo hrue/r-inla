@@ -128,11 +128,15 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev)
 {
 	// the same for a given mean and stdev. Allocated new memory for xp and wp
 	int i;
-	double *xxp, *wwp;
+	double *xxp = NULL, *wwp = NULL;
 	GMRFLib_ghq(&xxp, &wwp, n);
+	assert(xxp);
+	assert(wwp);
 
 	*xp = Calloc(n, double);
 	*wp = Calloc(n, double);
+	assert(*xp);
+	assert(*wp);
 	for (i = 0; i < n; i++) {
 		(*xp)[i] = xxp[i] * stdev + mean;
 		(*wp)[i] = wwp[i];
@@ -163,7 +167,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 			}
 		}
 	}
-	int idx;
+	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!abscissas[idx]) {
@@ -260,6 +264,8 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	double *w_hess = work + 3 * n;
 
 	GMRFLib_ghq(&xxp, &wwp, n);
+	assert(xxp);
+	assert(wwp);
 	Memcpy(nodes, xxp, n * sizeof(double));
 	Memcpy(w, wwp, n * sizeof(double));
 

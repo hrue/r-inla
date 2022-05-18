@@ -250,7 +250,7 @@ double ar_map_pacf(double arg, map_arg_tp typ, void *UNUSED(param))
 
 double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -263,7 +263,7 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		return exp(def->log_prec[thread_id][0]);
 	}
 
-	int debug = 0, ii, jj, eq, dimQ, id;
+	int debug = 0, ii, jj, eq, dimQ, id = 0;
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;

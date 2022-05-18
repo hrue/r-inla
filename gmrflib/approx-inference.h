@@ -785,14 +785,34 @@ typedef struct {
 	double **failure;
 } GMRFLib_ai_cpo_tp;
 
+typedef enum {
+	GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR = 0,
+	GMRFLib_GCPO_BUILD_STRATEGY_PRIOR = 1
+} GMRFLib_gcpo_build_strategy_tp;
+
+#define GMRFLib_GCPO_BUILD_STRATEGY_NAME(arg_) ((arg_) == GMRFLib_GCPO_BUILD_STRATEGY_POSTERIOR ? "Posterior" : \
+						 ((arg_) == GMRFLib_GCPO_BUILD_STRATEGY_PRIOR ? "Prior" : \
+						  "UNKNOWN"))
+
 typedef struct {
 	int group_size;
 	int ngroups;
 	int verbose;
 	int correct_hyperpar;
 	double epsilon;
+	GMRFLib_gcpo_build_strategy_tp build_strategy;	       /* 0=posterior, 1=prior (see above) */
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
+
+	int remove_fixed;
+	GMRFLib_str_tp *remove;				       /* only one of these can be !NULL */
+	GMRFLib_str_tp *keep;
+
+	// this is to build the strategy="prior" corrections. these are just copy of ptr's, do not free!
+	int idx_tot;
+	int *idx_start;
+	int *idx_n;
+	char **idx_tag;
 } GMRFLib_gcpo_param_tp;
 
 typedef struct {

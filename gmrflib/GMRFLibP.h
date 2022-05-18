@@ -248,6 +248,16 @@ typedef enum {
 		printf("\t[%1d] %s (%s:%1d): %s %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_); \
 	}
 
+#define GMRFLib_DEBUG_i_iv(msg_, i_, ii_, iii_, iv_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_, iv_); \
+	}
+
+#define GMRFLib_DEBUG_i_v(msg_, i_, ii_, iii_, iv_, v_)			\
+	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d %d %d %d %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, ii_, iii_, iv_, v_); \
+	}
+
 #define GMRFLib_DEBUG_d(msg_, d_)					\
 	if (debug_ && !((debug_count_ - 1) % debug_)) {			\
 		printf("\t[%1d] %s (%s:%1d): %s %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, d_); \
@@ -286,12 +296,15 @@ typedef enum {
 #define Calloc_init(n_)							\
 	size_t calloc_len_ = (size_t)(n_);				\
 	size_t calloc_offset_ = 0;					\
-	double *calloc_work_ = (calloc_len_ ? Calloc(calloc_len_, double) : NULL); \
-	if (calloc_len_) assert(calloc_work_)
+	double *calloc_work_ = Calloc(IMAX(1, calloc_len_), double);	\
+	assert(calloc_work_)
+
 #define iCalloc_init(n_)						\
 	size_t icalloc_len_ = (size_t)(n_);				\
 	size_t icalloc_offset_ = 0;					\
-	int *icalloc_work_ = (icalloc_len_ ? Calloc(icalloc_len_, int) : NULL)
+	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int);	\
+	assert(icalloc_work_)
+
 #define Calloc_get(_n)				\
 	calloc_work_ + calloc_offset_;		\
 	calloc_offset_ += (size_t)(_n);		\
@@ -423,16 +436,16 @@ typedef enum {
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
-#define CODE_BLOCK_INIT() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+#define CODE_BLOCK_ALL_WORK_ZERO() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int l1_cacheline = 8;					\
 		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
-		int len_work__ = len_work_ + l1_cacheline;		\
-		int n_work__ = n_work_;					\
+		int len_work__ = IMAX(1, len_work_ + l1_cacheline);	\
+		int n_work__ = IMAX(1, n_work_);			\
 		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
-		double * work__ = ((len_work__ * n_work__) > 0 ? Calloc(len_work__ * n_work__ * nt__, double) : NULL); \
+		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
 				CODE_BLOCK;				\

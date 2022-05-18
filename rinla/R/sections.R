@@ -1220,7 +1220,22 @@
     inla.write.boolean.field("gcpo.enable", gcpo$enable, file)
     inla.write.boolean.field("gcpo.verbose", gcpo$verbose, file)
     inla.write.boolean.field("gcpo.correct.hyperpar", gcpo$correct.hyperpar, file)
+    inla.write.boolean.field("gcpo.remove.fixed", gcpo$remove.fixed, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
+
+    if (!is.null(gcpo$keep) && !is.null(gcpo$remove)) {
+        stop("control.gcpo$keep and $remove cannot be used at the same time.")
+    }
+    if (!is.null(gcpo$keep)) {
+        cat("gcpo.keep =", paste(gcpo$keep, collapse = " ", sep = ""), "\n", file = file, append = TRUE)
+    }
+    if (!is.null(gcpo$remove)) {
+        cat("gcpo.remove =", paste(gcpo$remove, collapse = " ", sep = ""), "\n", file = file, append = TRUE)
+    }
+
+    gcpo$strategy <- match.arg(gcpo$strategy, several.ok = FALSE, 
+                               choices = inla.set.control.compute.default()$control.gcpo$strategy)
+    cat("gcpo.strategy =", gcpo$strategy, "\n", file = file, append = TRUE)
 
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)

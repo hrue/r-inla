@@ -174,6 +174,7 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M)
 {
 	int mtype = S.mtype, error = 0;
 
+	assert(M);
 	pardiso_chkmatrix(&mtype, &(M->n), M->a, M->ia1, M->ja, &error);
 	if (error != 0) {
 		GMRFLib_ERROR(GMRFLib_ESNH);
@@ -535,7 +536,7 @@ int GMRFLib_pardiso_check_install(int quiet, int no_err)
 
 double GMRFLib_pardiso_Qfunc_default(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *arg)
 {
-	if (i >= 0 && j < 0) {
+	if (j < 0) {
 		return NAN;
 	}
 
@@ -561,6 +562,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	GMRFLib_graph_duplicate(&(store->graph), graph);
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_REORDER, store, NULL);
 	GMRFLib_Q2csr(0, &Q, store->graph, GMRFLib_pardiso_Qfunc_default, (void *) store->graph);
+	assert(Q);
 
 	if (S.csr_check) {
 		GMRFLib_csr_check(Q);
@@ -568,6 +570,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	if (0 && S.debug) {
 		GMRFLib_csr_print(stdout, Q);
 	}
+
 
 	n = Q->n;
 	store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm = Calloc(n, int);
@@ -853,7 +856,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	GMRFLib_csr_tp *Q = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q;
 #define CODE_BLOCK							\
 	for (int i = 0; i < nsolve; i++) {				\
-		CODE_BLOCK_INIT();					\
+		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int idum = 0;						\
 		int tnum = omp_get_thread_num();			\
 		int offset = i * n * block_nrhs;			\
@@ -985,7 +988,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 #define CODE_BLOCK							\
 		for (int i = 0; i < n; i++) {				\
 			for (int k = -1; (k = (int) map_id_next(Qinv[i], k)) != -1;) { \
-				double value;				\
+				double value = 0.0;			\
 				int j = Qinv[i]->contents[k].key;	\
 				map_id_get(Qinv[i], j, &value);		\
 				for (int kk = 0; kk < problem->sub_constr->nc; kk++) { \

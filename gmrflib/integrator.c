@@ -556,6 +556,7 @@ static unsigned rule15gauss_evalError(rule * UNUSED(r), integrand f, void *fdata
 		0.209482141084727828012999174891714
 	};
 
+	assert(h->data);
 	const double center = h->data[0];
 	const double halfwidth = h->data[1];
 	double fv1[7], fv2[7];
@@ -683,6 +684,8 @@ static void heap_push(heap * h, heap_item hi)
 {
 	int insert;
 
+	assert(h);
+	assert(h->items);
 	h->ee.val += hi.ee.val;
 	h->ee.err += hi.ee.err;
 	insert = h->n;
