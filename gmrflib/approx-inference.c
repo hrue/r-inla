@@ -7337,6 +7337,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		} else {
 			gcpo[i]->cov_mat = NULL;
 		}
+
+		// this matrix is alone, just set it here
+		if (gcpo[i]->idxs->n == 1 && gcpo[i]->idxs->idx[0] == i) {
+			gcpo[i]->node_min = i;
+			gcpo[i]->node_max = i;
+			gsl_matrix_set(gcpo[i]->cov_mat, 0, 0, lpred_variance[i]);
+		}
 	}
 
 #define CODE_BLOCK							\
@@ -7355,11 +7362,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			if (gcpo_param->verbose || detailed_output) {	\
 				printf("%s[%1d]: node %d is singleton, skip solve\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 			}						\
-			gcpo[node]->node_min = node;			\
-			gcpo[node]->node_max = node;			\
-			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n, guess); \
-			assert(gcpo[node]->idx_node >= 0);		\
-			gsl_matrix_set(gcpo[node]->cov_mat, 0, 0, lpred_variance[node]); \
 			continue;					\
 		}							\
 		for (int k = 0; k < v->n; k++) {			\
@@ -7396,7 +7398,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n, guess); \
 			int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n, guess); \
 			assert(ii >= 0 && jj >= 0);			\
-									\
 			gsl_matrix_set(mat, ii, ii, cov[node]);		\
 			if (jj != ii) {					\
 				gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
@@ -7416,6 +7417,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
 					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
 					       (int) gcpo[node]->idx_node);
+					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "nodes in this group");
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}
@@ -7474,7 +7476,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			int nnode = idxs[i];				\
 			gsl_vector_set(mean_old, (size_t) i, lpred_mode[nnode]); \
 			double ll = 0.0, local_bb = 0.0, local_cc = 0.0; \
-			if (d[i]) {					\
+			if (d[nnode]) {					\
 				if (corr_hypar) loglFunc(thread_id, &ll, &(lpred_mode[nnode]), 1, nnode, lpred_mode, NULL, loglFunc_arg); \
 				GMRFLib_2order_approx(thread_id, NULL, &local_bb, &local_cc, NULL, d[nnode], lpred_mode[nnode], nnode, \
 						      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil, &zero); \
