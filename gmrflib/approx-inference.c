@@ -7030,7 +7030,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			}
 
 			if (gcpo_param->keep) {
-				int *visited = Calloc(gcpo_param->remove->n, int);
+				int *visited = Calloc(gcpo_param->keep->n, int);
 				// create a new default
 				for (int i = 0; i < nn; i++) {
 					mask[i] = 0.0;
@@ -7039,7 +7039,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
 					char *tag = gcpo_param->idx_tag[j];
 					int idx_found = -1;
-					if (GMRFLib_str_is_member(gcpo_param->keep, tag, 0, NULL)) {
+					if (GMRFLib_str_is_member(gcpo_param->keep, tag, 0, &idx_found)) {
 						for (int i = 0; i < gcpo_param->idx_n[j]; i++) {
 							int k = gcpo_param->idx_start[j] - n_offset + i;
 							mask[k] = 1.0;
@@ -7050,11 +7050,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				}
 
 				int err = 0;
-				for (int j = 0; j < gcpo_param->remove->n; j++) {
+				for (int j = 0; j < gcpo_param->keep->n; j++) {
 					if (!visited[j]) {
 						err++;
-						printf("\n[%1d] %s:%1d: *** error *** gcpo_param->remove[%1d]=[%s] is not found, abort!\n\n",
-						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->remove->str[j]);
+						printf("\n[%1d] %s:%1d: *** error *** gcpo_param->keep[%1d]=[%s] is not found, abort!\n\n",
+						       omp_get_thread_num(), __GMRFLib_FuncName, __LINE__, j, gcpo_param->keep->str[j]);
 					}
 				}
 				assert(err == 0);
