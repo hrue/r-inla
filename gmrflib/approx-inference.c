@@ -10080,7 +10080,9 @@ GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, 
 	if (1) {							\
 		if (ai_store->name_ && (len_) && !(skeleton_)){		\
 			new_ai_store->name_ = Calloc(len_, tp_);	\
-			Memcpy(new_ai_store->name_, ai_store->name_, (len_)*sizeof(tp_)); \
+			size_t len = (len_) * sizeof(tp_);		\
+			assert(len < PTRDIFF_MAX);			\
+			Memcpy(new_ai_store->name_, ai_store->name_, len); \
 		} else {						\
 			new_ai_store->name_ = NULL;			\
 	 	}							\
