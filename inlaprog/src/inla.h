@@ -1677,6 +1677,7 @@ double eval_logsum_safe(double lA, double lB);
 double exp_taylor(double x, double x0, int order);
 double extra(int thread_id, double *theta, int ntheta, void *argument);
 double iid_mfunc(int idx, void *arg);
+double inla_interpolate_mode(double *x, double *y);
 double inla_Phi(double x);
 double inla_Phi_fast(double x);
 double inla_ar1_cyclic_logdet(int N_orig, double phi);

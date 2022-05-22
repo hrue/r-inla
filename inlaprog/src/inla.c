@@ -208,6 +208,20 @@ extern double R_rgeneric_cputime;
 #define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
+forceinline double inla_interpolate_mode(double *x, double *y)
+{
+	// give 3 values (x,y), return the mode. truncate at the boundary
+
+	double xm = (y[0] * x[1] * x[1] - y[0] * x[2] * x[2] - y[1] * x[0] * x[0] + y[1] * x[2] * x[2] + y[2] * x[0] * x[0] - y[2] * x[1] * x[1]) /
+	    (y[0] * x[1] - y[0] * x[2] - y[1] * x[0] + y[1] * x[2] + y[2] * x[0] - x[1] * y[2]) / 0.2e1;
+
+	double xmin = DMIN(x[0], DMIN(x[1], x[2]));
+	double xmax = DMAX(x[0], DMAX(x[1], x[2]));
+	xm = TRUNCATE(xm, xmin, xmax);
+
+	return (xm);
+}
+
 int inla_ncpu(void)
 {
 #if defined(_SC_NPROCESSORS_ONLN)			       /* Linux, Solaris, AIX */
@@ -8859,9 +8873,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -33867,14 +33881,14 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		char *token = NULL;
 		const char *delim = " \t";
 		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
-		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
 			GMRFLib_str_add(&(mb->gcpo_param->keep), token);
 		}
-		
+
 		str_ptr = NULL;
 		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.REMOVE"), NULL));
-		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
 			GMRFLib_str_add(&(mb->gcpo_param->remove), token);
 		}
@@ -34026,20 +34040,22 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 
 			if (mb->gcpo_param->keep) {
 				printf("\t\t\tgcpo.keep=[");
-				for(int i = 0; i < mb->gcpo_param->keep->n; i++) {
-					if (i) printf(" ");
+				for (int i = 0; i < mb->gcpo_param->keep->n; i++) {
+					if (i)
+						printf(" ");
 					printf("%s", mb->gcpo_param->keep->str[i]);
 				}
 				printf("]\n");
 			} else {
 				printf("\t\t\tgcpo.keep=[]\n");
 			}
-				
+
 			printf("\t\t\tgcpo.remove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
 			if (mb->gcpo_param->remove) {
 				printf("\t\t\tgcpo.remove=[");
-				for(int i = 0; i < mb->gcpo_param->remove->n; i++) {
-					if (i) printf(" ");
+				for (int i = 0; i < mb->gcpo_param->remove->n; i++) {
+					if (i)
+						printf(" ");
 					printf("%s", mb->gcpo_param->remove->str[i]);
 				}
 				printf("]\n");
@@ -35408,6 +35424,44 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
 				    void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
+	// this require 'i_max', 'np', 'z' and 'ldz'
+#define COMPUTE_MODE()							\
+	if (d_mode) {							\
+		int ii = i_max;						\
+		if (ii > 0 && ii < np - 1) {				\
+			ii--;						\
+		} else if (ii == np - 1) {				\
+			ii -= 2;					\
+		}							\
+		double zm = inla_interpolate_mode(z + ii, ldz + ii);	\
+		double zm_orig = zm;					\
+		int m = 5;						\
+		int low = IMAX(0, i_max - m);				\
+		int high = IMIN(np-1, i_max + m);			\
+		int len = high - low + 1;				\
+		GMRFLib_spline_tp *lds = GMRFLib_spline_create(z + low, ldz + low, len); \
+		double step_size[] = {0.0, 0.0};			\
+		for(int iter = 0; iter < 2; iter++) {			\
+			step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
+			zm -= step_size[iter];				\
+		}							\
+		if ((ABS(step_size[0]) >= ABS(step_size[1]))) {		\
+			*d_mode = zm;					\
+		} else {						\
+			/* emergency option */				\
+			*d_mode = zm_orig;				\
+		}							\
+		GMRFLib_spline_free(lds);				\
+	}
+
+#define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
+			 (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
+			  (_x_user)))
+
+#define _MAP_DX(_x_user) (func ? func(_x_user, MAP_DFORWARD, func_arg) :	\
+			  (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov) : \
+			   SIGN(_x_user)))
+
 	int thread_id = 0;
 
 	/*
@@ -35432,25 +35486,16 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		return GMRFLib_SUCCESS;
 	}
 
-#define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
-			 (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
-			  (_x_user)))
-
-#define _TRANSFORMED_LOGDENS(_x, _logdens) (func ? ((_logdens) - log(ABS(func(_x, MAP_DFORWARD, func_arg)))) : \
-					    (tfunc ? ((_logdens) - log(ABS(tfunc->func(thread_id, _x, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov)))) : \
-					     (_logdens)))
-
 	int i;
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
-	// GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_ROUTINE;
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// then we can do better
-
 		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = density->user_mean;
@@ -35458,24 +35503,45 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 
 		GMRFLib_ghq(&xp, &wp, np);
 
+		Calloc_init(2 * np);
+		double *ldz = Calloc_get(np);
+		double *z = Calloc_get(np);
+
+		int i_max = 0;
 		m1 = 0.0;
 		m2 = 0.0;
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for (int i = 0; i < np; i++) {
-			double x = xp[i] * stdev + mean;
-			double f = _MAP_X(x);
-			m1 += wp[i] * f;
-			m2 += wp[i] * SQR(f);
+
+		if (d_mode) {
+			for (int i = 0; i < np; i++) {
+				double x = xp[i] * stdev + mean;
+				double f = _MAP_X(x);
+				double df = _MAP_DX(x);
+				m1 += wp[i] * f;
+				m2 += wp[i] * SQR(f);
+
+				z[i] = f;
+				ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+				if ((i == 0) || ldz[i] > ldz[i_max]) {
+					i_max = i;
+				}
+			}
+		} else {
+			for (int i = 0; i < np; i++) {
+				double x = xp[i] * stdev + mean;
+				double f = _MAP_X(x);
+				double df = _MAP_DX(x);
+				m1 += wp[i] * f;
+				m2 += wp[i] * SQR(f);
+			}
 		}
+
 		*d_mean = m1;
 		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
-		if (d_mode) {
-			*d_mode = NAN;
-		}
+		COMPUTE_MODE();
+		Calloc_free();
 	} else {
-		Calloc_init(3 * npm + 2 * np);
+		Calloc_init(3 * npm + 4 * np);
 		low = density->x_min;
 		high = density->x_max;
 		dx = (high - low) / (np - 1.0);
@@ -35488,6 +35554,22 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 			xp[i] = xval;
 		}
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
+
+		int i_max = 0;
+		double *z = Calloc_get(np);
+		double *ldz = Calloc_get(np);
+
+		if (d_mode) {
+			// reusing 'z' for x_user here
+			GMRFLib_density_std2user_n(z, xp, np, density);
+			for (i = 0; i < np; i++) {
+				ldz[i] = ld[i] - log(ABS(_MAP_DX(z[i])));
+				z[i] = _MAP_X(z[i]);
+				if (i == 0 || ldz[i] > ldz[i_max]) {
+					i_max = i;
+				}
+			}
+		}
 
 		// interpolate
 		xpm = Calloc_get(npm);
@@ -35562,17 +35644,14 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		*d_mean = m1;
 		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
-		if (d_mode) {
-			*d_mode = NAN;
-		}
-
+		COMPUTE_MODE();
 		Calloc_free();
 	}
 
+#undef COMPUTE_MODE
 #undef _MAP_X
-#undef _TRANSFORMED_LOGDENS
 
-	// GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -35605,7 +35684,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	double x, p = 0.0, xp;
-	double *d_mode = NULL;
 	int i, j, ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
@@ -35613,8 +35691,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	assert(nrep > 0);
 	ndiv = n / nrep;
 
-	// d_mode = Calloc(n, double);
-	// for(int i = 0; i < n; i++) d_mode[i] = NAN;
+	double *d_mode = Calloc(n, double);
+	for (int i = 0; i < n; i++)
+		d_mode[i] = NAN;
 
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
@@ -35665,7 +35744,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 			for (int i = 0; i < n; i++) {			\
 				double dm = 0.0, ds = 0.0;		\
 				if (density[i]) {			\
-					inla_integrate_func(&dm, &ds, (d_mode ? &d_mode[i] : NULL), density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
+					inla_integrate_func(&dm, &ds, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
 					if (locations) {		\
 						D3W_r(i, 0, locations[i % ndiv], dm, ds); \
 					} else {			\
@@ -35849,7 +35928,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					} else {
 						D1W(i);
 					}
-					D3W(1.0, NAN, (d_mode ? d_mode[i] : NAN));
+					D3W(1.0, NAN, d_mode[i]);
 				} else {
 					if (add_empty) {
 						if (locations) {
@@ -38364,6 +38443,34 @@ int testit(int argc, char **argv)
 
 	case 80:
 	{
+		/*
+		 * fun = function(x) -x^2 + (x-1)^3 - 0.5 * (x+1)^4 plot(xx, fun(xx)) xx[which.max(fun(xx))] [1] 0.07507507508 
+		 */
+
+		double xx1[] = { 0, 1, 2 };
+		double yy1[] = { -1.5, -9.0, -43.5 };
+		double xm;
+		xm = inla_interpolate_mode(xx1, yy1);
+		P(xm);
+
+		double xx2[] = { -1, 0, 0.5 };
+		double yy2[] = { -9.00000, -1.50000, -2.90625 };
+
+		xm = inla_interpolate_mode(xx2, yy2);
+		P(xm);
+
+		double xx3[] = { 0, 0.1, 0.12 };
+		double yy3[] = { -1.50000000, -1.47105000, -1.48263168 };
+
+		xm = inla_interpolate_mode(xx3, yy3);
+		P(xm);
+
+		double xx4[] = { 0.12, 0.0, 0.1 };
+		double yy4[] = { -1.48263168, -1.50000000, -1.47105000 };
+
+		xm = inla_interpolate_mode(xx4, yy4);
+		P(xm);
+
 		break;
 	}
 
