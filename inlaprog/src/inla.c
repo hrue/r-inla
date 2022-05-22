@@ -35529,7 +35529,6 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 			for (int i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
-				double df = _MAP_DX(x);
 				m1 += wp[i] * f;
 				m2 += wp[i] * SQR(f);
 			}
