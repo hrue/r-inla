@@ -7207,12 +7207,15 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 						GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
 						GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 					}				\
+					if (gcpo_param->group_size_max > 0 && groups[node]->n >= gcpo_param->group_size_max) { \
+						levels_ok = 1;		\
+					}				\
 				}					\
 				if (siz_g == Npred) levels_ok = 1;	\
-				if (levels_ok && (siz_g == Npred) && (nlevels < gcpo_param->group_size)) { \
+				if (levels_ok) {			\
 					if (gcpo_param->verbose || detailed_output) { \
-						printf("%s[%1d]: for node=%1d, I only find %d levels\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  nlevels); \
-					}				\
+						printf("%s[%1d]: for node=%1d, number of levels is %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  nlevels); \
+						printf("%s[%1d]: either because there are no more levels, or group.size.max is reached.\n", __GMRFLib_FuncName, omp_get_thread_num()); } \
 				}					\
 				GMRFLib_DEBUG_i("found nlevels", nlevels); \
 				GMRFLib_DEBUG_i("levels_ok", levels_ok); \

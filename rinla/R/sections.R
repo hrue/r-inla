@@ -1273,6 +1273,10 @@
         if (gsiz == 0 || gsiz < -1) gsiz <- 1
         cat("gcpo.group.size", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
 
+        gsiz.max <- round(gcpo$group.size.max)
+        if (gsiz.max <= 0) gsiz.max <- -1
+        cat("gcpo.group.size.max", "=", gsiz.max, "\n", sep = " ", file = file, append = TRUE)
+
         if (!is.null(gcpo$selection)) {
             selection <- gcpo$selection[!is.na(gcpo$selection)]
             selection <- unique(sort(selection))

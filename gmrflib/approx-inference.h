@@ -796,6 +796,7 @@ typedef enum {
 
 typedef struct {
 	int group_size;
+	int group_size_max;
 	int ngroups;
 	int verbose;
 	int correct_hyperpar;
