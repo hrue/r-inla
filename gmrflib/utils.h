@@ -57,10 +57,8 @@
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
-
 // ********
-
-typedef struct {
+    typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -185,11 +183,11 @@ int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);
-int GMRFLib_str_add(GMRFLib_str_tp ** hold, char * s);
+int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s);
 int GMRFLib_str_create(GMRFLib_str_tp ** hold);
 int GMRFLib_str_create_x(GMRFLib_str_tp ** hold, int len);
 int GMRFLib_str_free(GMRFLib_str_tp * hold);
-int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char * s, int case_sensitive, int * idx_match);
+int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match);
 int GMRFLib_str_nprune(GMRFLib_str_tp ** a, int n);
 int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, char *msg);
 int GMRFLib_str_prune(GMRFLib_str_tp * hold);

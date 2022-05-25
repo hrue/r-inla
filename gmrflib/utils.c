@@ -1887,7 +1887,7 @@ int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_str_add(GMRFLib_str_tp ** hold, char * s)
+int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s)
 {
 	if (*hold == NULL) {
 		GMRFLib_str_create(hold);
@@ -1997,14 +1997,14 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char * s, int case_sensitive, int * idx_match)
+int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match)
 {
 	if (hold == NULL) {
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
-	for(int i = 0; i < hold->n; i++) {
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
 				*idx_match = i;
@@ -2022,4 +2022,3 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char * s, int case_sensitive, i
 #undef MEMINFO
 #undef IDX_ALLOC_ADD
 #undef IDX_ALLOC_INITIAL
-
