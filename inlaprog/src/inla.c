@@ -33870,8 +33870,8 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	}
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
-		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
-		mb->gcpo_param->group_size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE.MAX"), -1);
+		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
+		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
@@ -34028,41 +34028,43 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		printf("\t\toutput:\n");
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
-			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
-			printf("\t\t\tgcpo.group.size.max=[%1d]\n", mb->gcpo_param->group_size_max);
-			printf("\t\t\tgcpo.strategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
-			printf("\t\t\tgcpo.correct.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
-			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
+			printf("\t\t\t\tnum.level.sets=[%1d]\n", mb->gcpo_param->num_level_sets);
+			printf("\t\t\t\tsize.max=[%1d]\n", mb->gcpo_param->size_max);
+			printf("\t\t\t\tstrategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
+			printf("\t\t\t\tcorrect.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
+			printf("\t\t\t\tepsilon=[%g]\n", mb->gcpo_param->epsilon);
 			if (mb->gcpo_param->groups) {
-				printf("\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
+				printf("\t\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
 			}
 			if (mb->gcpo_param->selection) {
-				printf("\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
+				printf("\t\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
 			}
 
 			if (mb->gcpo_param->keep) {
-				printf("\t\t\tgcpo.keep=[");
+				printf("\t\t\t\tkeep=[");
 				for (int i = 0; i < mb->gcpo_param->keep->n; i++) {
-					if (i)
+					if (i) {
 						printf(" ");
+					}
 					printf("%s", mb->gcpo_param->keep->str[i]);
 				}
 				printf("]\n");
 			} else {
-				printf("\t\t\tgcpo.keep=[]\n");
+				printf("\t\t\t\tkeep=[]\n");
 			}
 
-			printf("\t\t\tgcpo.remove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
+			printf("\t\t\t\tremove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
 			if (mb->gcpo_param->remove) {
-				printf("\t\t\tgcpo.remove=[");
+				printf("\t\t\t\tremove=[");
 				for (int i = 0; i < mb->gcpo_param->remove->n; i++) {
-					if (i)
+					if (i) {
 						printf(" ");
+					}
 					printf("%s", mb->gcpo_param->remove->str[i]);
 				}
 				printf("]\n");
 			} else {
-				printf("\t\t\tgcpo.remove=[]\n");
+				printf("\t\t\t\tremove=[]\n");
 			}
 
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);

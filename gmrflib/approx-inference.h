@@ -795,8 +795,8 @@ typedef enum {
 						  "UNKNOWN"))
 
 typedef struct {
-	int group_size;
-	int group_size_max;
+	int num_level_sets;
+	int size_max;
 	int ngroups;
 	int verbose;
 	int correct_hyperpar;

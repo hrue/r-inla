@@ -7110,7 +7110,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		// build the groups
 		double *isd = Calloc(mnpred, double);
 
-		groups = GMRFLib_idxval_ncreate_x(Npred, IABS(gcpo_param->group_size));
+		groups = GMRFLib_idxval_ncreate_x(Npred, IABS(gcpo_param->num_level_sets));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
@@ -7134,8 +7134,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		}
 		if (gcpo_param->verbose || detailed_output) {
 			assert(selection);
-			printf("%s[%1d]: Use selection of %1d indices and group.size %1d\n", __GMRFLib_FuncName,
-			       omp_get_thread_num(), selection->n, gcpo_param->group_size);
+			printf("%s[%1d]: Use selection of %1d indices and num.level.sets %1d\n", __GMRFLib_FuncName,
+			       omp_get_thread_num(), selection->n, gcpo_param->num_level_sets);
 		}
 		assert(selection);
 
@@ -7144,7 +7144,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			CODE_BLOCK_ALL_WORK_ZERO();			\
 			int node = selection->idx[ii];			\
 									\
-			if (gcpo_param->group_size == -1) {		\
+			if (gcpo_param->num_level_sets == -1) {		\
 				GMRFLib_idxval_add(&(groups[node]), node, 1.0); \
 				continue;				\
 			}						\
@@ -7180,9 +7180,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			while (!levels_ok) {				\
 				GMRFLib_idxval_free(groups[node]);	\
 				groups[node] = NULL;			\
-				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->group_size) + 4L)); \
+				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)); \
 				levels_magnify *= 10;			\
-				GMRFLib_DEBUG_i_v("node siz_g Npred group_size levels_magnify", node, siz_g, Npred, gcpo_param->group_size, levels_magnify); \
+				GMRFLib_DEBUG_i_v("node siz_g Npred num_level_sets levels_magnify", node, siz_g, Npred, gcpo_param->num_level_sets, levels_magnify); \
 				gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
 				int nlevels = 1;			\
 				int i_prev = 0;				\
@@ -7195,7 +7195,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 						nlevels++;		\
 						i_prev = i;		\
 						cor_abs_prev = cor_abs_new; \
-						if (nlevels <= gcpo_param->group_size) { \
+						if (nlevels <= gcpo_param->num_level_sets) { \
 							GMRFLib_DEBUG_id("add new level  i_new cor_abs_new", i_new, cor_abs_new); \
 							GMRFLib_idxval_add(&(groups[node]), i_new , cor[i_new]); \
 						} else {		\
@@ -7207,7 +7207,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 						GMRFLib_idxval_add(&(groups[node]), i_new, cor[i_new]); \
 						GMRFLib_DEBUG_id("add to old level  i_new cor_abs_prev", i_new, cor_abs_prev); \
 					}				\
-					if (gcpo_param->group_size_max > 0 && groups[node]->n >= gcpo_param->group_size_max) { \
+					if (gcpo_param->size_max > 0 && groups[node]->n >= gcpo_param->size_max) { \
 						levels_ok = 1;		\
 					}				\
 				}					\
@@ -7215,7 +7215,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				if (levels_ok) {			\
 					if (gcpo_param->verbose || detailed_output) { \
 						printf("%s[%1d]: for node=%1d, number of levels is %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node,  nlevels); \
-						printf("%s[%1d]: either because there are no more levels, or group.size.max is reached.\n", __GMRFLib_FuncName, omp_get_thread_num()); } \
+						printf("%s[%1d]: either because there are no more levels, or size.max is reached.\n", __GMRFLib_FuncName, omp_get_thread_num()); } \
 				}					\
 				GMRFLib_DEBUG_i("found nlevels", nlevels); \
 				GMRFLib_DEBUG_i("levels_ok", levels_ok); \
@@ -7240,7 +7240,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		if (gcpo_param->ngroups < Npred) {
 			gcpo_param->groups = Realloc(gcpo_param->groups, Npred, GMRFLib_idxval_tp *);
 			for (int i = gcpo_param->ngroups; i < Npred; i++) {
-				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), IABS(gcpo_param->group_size));
+				GMRFLib_idxval_create_x(&(gcpo_param->groups[i]), IABS(gcpo_param->num_level_sets));
 			}
 		} else if (gcpo_param->ngroups > Npred) {
 			assert(gcpo_param->ngroups > Npred);
@@ -7250,7 +7250,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 
 
 	// add first off-diagonals
-	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, IABS(gcpo_param->group_size));
+	GMRFLib_idx2_tp **missing = GMRFLib_idx2_ncreate_x(Npred, IABS(gcpo_param->num_level_sets));
 	for (int node = 0; node < Npred; node++) {
 		if (groups[node]->n > 1) {
 			for (int i = 0; i < groups[node]->n; i++) {
