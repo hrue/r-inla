@@ -8144,7 +8144,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default identity'}
-								\item{status = }{`experimental'}
+								\item{status = }{`disabled: Use likelihood model 'bgev' instead; see inla.doc('bgev')'}
 								\item{pdf = }{`gev'}
 							 }
 						 }
