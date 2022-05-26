@@ -6266,18 +6266,11 @@ int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, d
 			for (i = 0; i < -m; i++) {
 				ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				xx = sprec * (yy - ypred);
-				if (xi > 0.0) {
-					if (1.0 + xi * xx > 0.0) {
-						logll[i] = exp(-pow(xx, -xi));
-					} else {
-						logll[i] = 0.0;
-					}
+				double a = 1.0 + xi * xx;
+				if (a > 0.0) {
+					logll[i] = exp(-pow(a, -1.0 / xi));
 				} else {
-					if (1.0 + xi * xx > 0.0) {
-						logll[i] = exp(-pow(xx, xi));
-					} else {
-						logll[i] = 1.0;
-					}
+					logll[i] = (xi > 0.0 ? 0.0 : 1.0);
 				}
 			}
 		}
