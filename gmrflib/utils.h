@@ -98,6 +98,8 @@ typedef struct {
 /*
  */
 
+void GMRFLib_delay_random(int msec_low, int msec_high);
+void GMRFLib_delay(int msec);
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);

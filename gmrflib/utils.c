@@ -57,6 +57,23 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
 
+void GMRFLib_delay(int msec)
+{
+	long pause;
+	clock_t now, then;
+
+	pause = msec * (CLOCKS_PER_SEC / 1000);
+	now = then = clock();
+	while ((now - then) < pause) {
+		now = clock();
+	}
+}
+
+void GMRFLib_delay_random(int msec_low, int msec_high) 
+{
+	GMRFLib_delay(msec_low + (int) ((msec_high - msec_low) * GMRFLib_uniform()));
+}
+
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 {
 	/*
