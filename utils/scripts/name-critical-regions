@@ -5,7 +5,7 @@ for f in "$@"; do
     echo $f
     rm -rf tt
     {
-	for i in {1..20}; do
+	for i in {1..50}; do
 	    echo $RANDOM | shasum
 	done
     } > tt
@@ -14,10 +14,9 @@ for f in "$@"; do
     	getline name < "tt"
     	gsub(/ +/,"",name)
     	gsub(/-+/,"",name)
-    	print $0 " (Name_" name ")"; 
+    	print $1, $2, $3, "(Name_" name ")"; 
 	next; }
     	{print}' $f > $f.NEW && mv -f $f.NEW $f
 done
 
-
-
+rm -f tt

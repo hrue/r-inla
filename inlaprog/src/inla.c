@@ -591,7 +591,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	}
 
 	if (first) {
-#pragma omp critical (Name_6a500b7e1bbef6967b33cc782cf89f041f83d54e)
+#pragma omp critical (Name_375605f5a0a02853485931b7541aa2de0692bb42)
 		if (first) {
 			if (debug) {
 				fprintf(stderr, "map_invsn: build table\n");
@@ -1503,7 +1503,7 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	double dx = 0.1, xx, range = 25.0, p, pp;
 
 	if (first) {
-#pragma omp critical (Name_efe1884b943209bd4a540fea6540532017418ef7)
+#pragma omp critical (Name_a862df53446b09ea53b4bd233636df42f8acd1ff)
 		if (first) {
 			if (debug) {
 				fprintf(stderr, "link_loga: init tables\n");
@@ -1872,7 +1872,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 		static int do_check[2] = { 1, 1 };
 
 		if (do_check[lparam->variant]) {
-#pragma omp critical (Name_a7a180a215d997d940ff40343fcb94189a66ac1d)
+#pragma omp critical (Name_e77483d42a508f8162880242479cd58817992341)
 			if (do_check[lparam->variant]) {
 				if (ret_val !=
 				    (link_qweibull(thread_id, x + 1.0, INVLINK, param, cov) >
@@ -2761,7 +2761,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	if (0 && a->reset_cache >= 0) {
 		if (a->reset_cache || (id == 0 && omp_get_level() == 0 && i == 0 && j <= 0)) {
 			a->reset_cache = 1;
-#pragma omp critical (Name_8f1913af5bed3553c6a8f77a05e21659b7b3f6ae)
+#pragma omp critical (Name_d9d5fe823d2b17d465f4c6c0d56442c45ef50e40)
 			{
 				if (a->reset_cache) {
 					// yes, start loops at 1 to reset the rest of the cache, but not for id=0.
@@ -2790,7 +2790,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	if (rebuild) {
 		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out, jj;
 		double *Qijlist = NULL, *x_out = NULL;
-#pragma omp critical (Name_8e28160b2258dd234cc7700b2f7a7d958ad99586)
+#pragma omp critical (Name_297cd7aba8c5dafefcb1c93779913d23a945ce9e)
 		{
 			rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 			if (!rebuild) {
@@ -2980,7 +2980,7 @@ double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *
 	}
 
 	if (rebuild) {
-#pragma omp critical (Name_7d58dd005afa51c401583acebd36f45dc32b0078)
+#pragma omp critical (Name_8b586dffc9258cff507f5f6098e240cbacd2c571)
 		{
 			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
@@ -3046,7 +3046,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 	}
 
 	if (rebuild) {
-#pragma omp critical (Name_2dd7082856fb242b2de5e8b71c36d1f68b4037bf)
+#pragma omp critical (Name_a878b76a6db370a6183df8d897b3a03b15039501)
 		{
 			int n, n_out, jj;
 			double *x_out = NULL;
@@ -7288,7 +7288,7 @@ int loglikelihood_pom(int thread_id, double *logll, double *x, int m, int idx, d
 	static int *nclass = NULL;
 
 	if (!calpha) {
-#pragma omp critical (Name_f66a29cc54a9b116ee864c6f4db496d59279bb69)
+#pragma omp critical (Name_0e94df4562241e37d016a0edfddb0588df8765f1)
 		{
 			if (!calpha) {
 				nclass = Calloc(GMRFLib_CACHE_LEN, int);
@@ -8447,7 +8447,7 @@ int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, 
 	static int *ncy = NULL;
 
 	if (!cy) {
-#pragma omp critical (Name_02b74478767c1e682f5ab100a7e6d5d1a3d0fb88)
+#pragma omp critical (Name_1d71960e99b4e67a36228891d1af914edbfd3dc3)
 		{
 			if (!cy) {
 				ncy = Calloc(GMRFLib_CACHE_LEN, int);
@@ -8541,7 +8541,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 	static int *ncy = NULL;
 
 	if (!cy) {
-#pragma omp critical (Name_86412d56204b37a8c8620e02f0565ab48c7bbd5f)
+#pragma omp critical (Name_0b245bce3bb8f2007cc26fbbb141a5a0c7559165)
 		{
 			if (!cy) {
 				ncy = Calloc(GMRFLib_CACHE_LEN, int);
@@ -8666,7 +8666,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 	static lcache_t **llcache = NULL;
 
 	if (!llcache) {
-#pragma omp critical (Name_733fc9a322ef30b369b496d1825c3f0e09f69e18)
+#pragma omp critical (Name_f0fed30114239788701d492c4202a46b68cc060a)
 		{
 			if (!llcache) {
 				llcache = Calloc(GMRFLib_CACHE_LEN, lcache_t *);
@@ -8762,7 +8762,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 	static lcache_t **llcache = NULL;
 
 	if (!llcache) {
-#pragma omp critical (Name_0cddebfa40f53964494e8776c4c4001c67da1e8b)
+#pragma omp critical (Name_ba31fe1f20db2ec14750ea49f488e614a1920cb7)
 		{
 			if (!llcache) {
 				llcache = Calloc(GMRFLib_CACHE_LEN, lcache_t *);
@@ -9864,7 +9864,7 @@ int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int id
 	static int *ncmu = NULL;
 
 	if (!cmu) {
-#pragma omp critical (Name_733fc9a322ef30b369b496d1825c3f0e09f69e18)
+#pragma omp critical (Name_f541b1464beaa9132d8c3f70fc8dc2de724ab8a5)
 		{
 			if (!cmu) {
 				ncmu = Calloc(GMRFLib_CACHE_LEN, int);
@@ -19616,7 +19616,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 {
 	int i, n, m;
 
-#pragma omp critical (Name_e60a35e8a857731800058e98f67ef6cf2d213cfb)
+#pragma omp critical (Name_3bf40dfd2018962c499124a04e65c58fff8542a3)
 	{
 		fprintf(fp, "cgeneric[ %s ]  cmd = %s\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
 		switch (cmd) {
@@ -22353,7 +22353,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * we need to know ntheta, therefore we need to initialise and load files etc, here...
 		 */
-#pragma omp critical (Name_febf52e2ad30ed5f5e7c8d33ae5e28bbe4cc50dc)
+#pragma omp critical (Name_4dc2f57513bfff130bbf6befdb6223652c8569da)
 		{
 			inla_R_library("INLA");
 			inla_R_load(rgeneric_filename);
@@ -26126,7 +26126,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int n_out;
 		double *x_out;
-#pragma omp critical (Name_4e724d4b7a390bc5a9e0257194db2500bf5b7b72)
+#pragma omp critical (Name_0c216629b47f30b75846e1131aec8233bfdd80bb)
 		{
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, 0, NULL);
 		}
@@ -28836,7 +28836,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	static void *jp_vec_sexp = NULL;
 
 	if (mb->jp) {
-#pragma omp critical (Name_9072a5652929e70e1b339a8c7ea07c35c5e880f0)
+#pragma omp critical (Name_886e56613636db7114635f9aacba5e4fc01cca40)
 		{
 			if (jp_first_time) {
 				char **vec_str = NULL;
@@ -31052,7 +31052,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 			}
 
-#pragma omp critical (Name_25652edce77cc132686642e48f02953ba6c5ec63)
+#pragma omp critical (Name_58ab1229a36b0d20f9c714d7896ab4820282193b)
 			{
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
@@ -31084,7 +31084,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
 				double *Qijlist = NULL;
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-#pragma omp critical (Name_4cc652c639dddcab6c9208b9fa0d8d8eb4b746b4)
+#pragma omp critical (Name_94438d8a0faa6fe9957180657829e121c750f1f2)
 				{
 					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
 				}
@@ -32056,7 +32056,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			static Hold_tp ***hhold = NULL;
 
 			if (!hhold) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_35784cb53aa98d636cf2d0897410586e2705f61e)
 				{
 					if (!hhold) {
 						hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
@@ -32157,7 +32157,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			static Hold_tp ***hhold = NULL;
 
 			if (!hhold) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_7acab2f371bbea723e9820a667f70647967dbd17)
 				if (!hhold) {
 					hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
 				}
@@ -34555,7 +34555,7 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 	{
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_2f68597610da063cce30cec1d19ac794527bc57e)
 			{
 				printf("\t\tstore gcpo-results in[%s]\n", nndir);
 			}
@@ -34614,7 +34614,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	{
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_6931944003ec5b67e4101e7995e2a5baab470602)
 			{
 				printf("\t\tstore cpo-results in[%s]\n", nndir);
 			}
@@ -34636,7 +34636,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "pit.dat");
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_dbf18c17124ff85ed3fce2d13d88ad663accb843)
 			{
 				printf("\t\tstore pit-results in[%s]\n", nndir);
 			}
@@ -34657,7 +34657,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "failure.dat");
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_f742aaba395a3aa285064964ce668d0be3e5e7ef)
 			{
 				printf("\t\tstore failure-results in[%s]\n", nndir);
 			}
@@ -34678,7 +34678,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	{
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_dfd5be6da1007dda6dbb7abfb479ffb6fdd5c005)
 			{
 				printf("\t\tstore summary of cpo-results in[%s]\n", nndir);
 			}
@@ -34714,7 +34714,7 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "po.dat");
 	Dinit(nndir);
 	if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_879176a6e21c1dedb4becf90d4f21dd37210e46f)
 		{
 			printf("\t\tstore po-results in[%s]\n", nndir);
 		}
@@ -34765,7 +34765,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "dic.dat");
 	Dinit(nndir);
 	if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_19769e5d041b18c2ff6bee313efb503ad5ad5aef)
 		{
 			printf("\t\tstore dic-results in[%s]\n", nndir);
 		}
@@ -34840,7 +34840,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_f2b4e6c2e966340fa5f0b42b80cc8d45f1910623)
 		{
 			printf("\t\tstore misc-output in[%s]\n", ndir);
 		}
@@ -35232,7 +35232,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-likelihood.dat");
 	Dinit_s(nndir);
 	if (verbose) {
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_9dd76c0b6445188affe98f4c81bec8e5c5e3a95b)
 		{
 			printf("\t\tstore marginal-likelihood results in[%s]\n", nndir);
 		}
@@ -36951,7 +36951,7 @@ int testit(int argc, char **argv)
 
 	case 8:
 	{
-#pragma omp critical (Name_bb77c34ac5f6b4eb26984539faf514382553ddaf)
+#pragma omp critical (Name_5f0e63e7e6c4127b4e2e50c9002880440da56212)
 		{
 #define _MODEL "rgeneric.model"
 			printf("test rgeneric\n");

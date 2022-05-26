@@ -287,7 +287,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 		count++;
 
 		if (show_stat) {
-#pragma omp critical (Name_d8aed7ad90abf143e5b1483e493beae184191d0a)
+#pragma omp critical (Name_a5c97756f6b00566ba28b5dce73bc4447f991240)
 			printf("\tdtweedie: ntimes=%zu rebuild=%.3f%%  adjust=%.3f%% reuse=%.3f%% mean.nterms=%1d\n",
 			       ntot,
 			       100.0 * (double) cache_count[0] / (double) ntot,

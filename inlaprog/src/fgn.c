@@ -104,7 +104,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	if (!arg) {
 		assert(i < 0 && j < 0);			       /* safety check */
 		if (phi_cache == NULL) {
-#pragma omp critical (Name_0a32a3c12999c1a8eb4edc67716b16da06326ece)
+#pragma omp critical (Name_6cee800e55124771d0e7fd552ae7e48a27e4f94e)
 			{
 				if (phi_cache == NULL) {
 					phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
@@ -285,7 +285,7 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 	// return the log-prior for H_intern
 	double lprior;
 #include "fgn-prior-tables.h"
-#pragma omp critical (Name_48f404a9d9893e7f20ea21a764d1a165695b7105)
+#pragma omp critical (Name_f88269b9720b21345f72723d8de2fc329de96a39)
 	{
 		static GMRFLib_spline_tp *dist_spline = NULL;
 		if (!dist_spline) {

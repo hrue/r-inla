@@ -103,7 +103,7 @@ double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(va
 	OC_tp *a;
 
 	if (!OC) {
-#pragma omp critical (Name_88161a8b9e0a91d54da2220268312528d97118ac)
+#pragma omp critical (Name_2605e6f8037552855d97df46966e3c070414466a)
 		{
 			if (!OC) {
 				OC = Calloc(GMRFLib_MAX_THREADS(), OC_tp);
