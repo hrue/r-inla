@@ -991,7 +991,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 		if (graph_store_debug) {
 			printf("\t[%1d] graph_store: store graph 0x%p\n", omp_get_thread_num(), (void *) g);
 		}
-#pragma omp critical
+#pragma omp critical (Name_c524502943d363cb45e15d587b32804a133415b2)
 		{
 			map_strvp_set(&graph_store, (char *) g->sha, (void *) g);
 		}
@@ -1182,7 +1182,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 		static int *wwork_len = NULL;
 		double *work = NULL;
 		if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_3fd48b64af36f6b6464b44ae9bf0fc94062b77fc)
 			{
 				if (!wwork) {
 					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1224,7 +1224,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 		static int *wwork_len = NULL;
 		double *work = NULL;
 		if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_1a7225070120a13086515e5c250e27a43a27bdd8)
 			{
 				if (!wwork) {
 					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);

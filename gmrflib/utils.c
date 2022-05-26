@@ -639,7 +639,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 {
 	// A is m x n matrix
-#pragma omp critical
+#pragma omp critical (Name_bb051132870d1f0b90133946052e91194aa163a5)
 	{
 		fprintf(fp, "\n\n");
 		for (int i = 0; i < m; i++) {
@@ -1149,7 +1149,7 @@ int GMRFLib_debug_functions(const char *name)
 	static int *first = NULL;
 
 	if (!ddefs) {
-#pragma omp critical
+#pragma omp critical (Name_30c48b516c7b1cce1be137af0e429a5e3b52a645)
 		{
 			if (!ddefs) {
 				first = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1246,7 +1246,7 @@ int GMRFLib_trace_functions(const char *name)
 	static int *first = NULL;
 
 	if (!ddefs) {
-#pragma omp critical
+#pragma omp critical (Name_3a266edf254a33111bcf4ab49b3acc5833850a29)
 		{
 			if (!ddefs) {
 				first = Calloc(GMRFLib_CACHE_LEN, int);

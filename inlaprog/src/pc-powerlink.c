@@ -75,7 +75,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	}
 
 	if (first) {
-#pragma omp critical
+#pragma omp critical (Name_8c3654ec5ed3ee1e39094753423c1519205de208)
 		if (first) {
 			if (1) {
 				fprintf(stderr, "map_inv_powerlink: build table with power=%f\n", power);

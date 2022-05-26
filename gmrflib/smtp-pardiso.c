@@ -1242,7 +1242,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	}
 
 	if (S.static_pstores == NULL) {
-#pragma omp critical
+#pragma omp critical (Name_046c40f5fd2e202479d5c486dfdf986558c6e681)
 		{
 			if (S.static_pstores == NULL) {
 				if (S.s_verbose) {
@@ -1255,7 +1255,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	}
 
 	int found = 0, idx = -1, ok = 0;
-#pragma omp critical
+#pragma omp critical (Name_29873421a20baf5374230cb83067fb5810469371)
 	{
 		for (int i = 0; i < PSTORES_NUM && !found; i++) {
 			if (!S.busy[i]) {

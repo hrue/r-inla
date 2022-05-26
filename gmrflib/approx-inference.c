@@ -430,7 +430,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 
 	static int *nnr_step_factor_first_time_only = NULL;
 	if (!nnr_step_factor_first_time_only) {
-#pragma omp critical
+#pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
 		{
 			if (!nnr_step_factor_first_time_only) {
 				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN, int);
@@ -879,7 +879,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 	 */
 	if (d) {
 		if (!ai_store->d_idx) {
-#pragma omp critical
+#pragma omp critical (Name_55d88ef833913b76c8f458812b76256a0492204c)
 			if (!ai_store->d_idx) {
 				for (i = nd = 0; i < n; i++) {
 					if (d[i]) {
@@ -922,7 +922,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 	if ((strategy == GMRFLib_AI_STRATEGY_MEANCORRECTED_GAUSSIAN || strategy == GMRFLib_AI_STRATEGY_MEANSKEWCORRECTED_GAUSSIAN)
 	    && ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_OFF) {
 		if (ai_par->fast) {
-#pragma omp critical
+#pragma omp critical (Name_2e9be797bbf18c2c12a4e333407447077e7a0eae)
 			{
 				if (ai_par->fast) {
 					ai_par->linear_correction = GMRFLib_AI_LINEAR_CORRECTION_FAST;
@@ -1061,7 +1061,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 	store = Calloc(1, GMRFLib_store_tp);		       /* this can be used ;-) */
 
 	if ((ai_par->linear_correction == GMRFLib_AI_LINEAR_CORRECTION_FAST) && !(ai_store->correction_term)) {
-#pragma omp critical
+#pragma omp critical (Name_c92a8d89dec4a7d11c6665a243937d76391084de)
 		{
 			if (!(ai_store->correction_term)) {
 				ai_store->correction_term = Calloc(n, double);	/* compute this */
@@ -1747,7 +1747,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 				       &n, &beta, m, &nc, F_ONE, F_ONE);
 			}
 			GMRFLib_comp_posdef_inverse(m, nc);
-#pragma omp critical
+#pragma omp critical (Name_c13803f68f931b7ce671391d062203d502409e15)
 			{
 				if (!problem->inv_aqat_m) {
 					problem->inv_aqat_m = m;
@@ -3800,7 +3800,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens_orig);
 				tu = GMRFLib_cpu() - tref;
 				if (ai_par->fp_log) {
-#pragma omp critical
+#pragma omp critical (Name_ef0a51d4c8b775aad87f67bb17dd269e61620fab)
 					{
 						fprintf(ai_par->fp_log, "config %2d/%1d=[", config_count++, design->nexperiments);
 						for (i = 0; i < nhyper; i++) {
@@ -3889,7 +3889,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					if ((ISINF(val) || ISNAN(val)) || -val > ai_par->diff_log_dens) {
 						GMRFLib_ai_pool_set(pool, idx, val);
 						if (ai_par->fp_log) {
-#pragma omp critical
+#pragma omp critical (Name_241fb67d09a4cff6907d0608d097c348251195e9)
 							{
 								fprintf(ai_par->fp_log, "config %2d=[", config_count++);
 								for (i = 0; i < nhyper; i++) {
@@ -3957,7 +3957,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						}
 						tu = GMRFLib_cpu() - tref;
 
-#pragma omp critical
+#pragma omp critical (Name_36b1b7dfeb7a205ea072f283e7f5ed9408c3aca1)
 						{
 							int ii;
 							if (ai_par->fp_log) {
@@ -6082,7 +6082,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 		tu = GMRFLib_cpu() - tref;
 		if (ai_par->fp_log) {
-#pragma omp critical
+#pragma omp critical (Name_8a7254c4a570078955ae0e221dd0594e23386e57)
 			{
 				fprintf(ai_par->fp_log, "config %2d/%1d=[", config_count++, design->nexperiments);
 				for (i = 0; i < nhyper; i++) {
@@ -7277,7 +7277,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 	ggroups->missing = missing;
 
 	if (detailed_output) {
-#pragma omp critical
+#pragma omp critical (Name_0c006e103a84c0a6e6169eed5e739b8065a95b95)
 		{
 			for (int node = 0; node < Npred; node++) {
 				char *msg;
@@ -7414,7 +7414,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 #undef CODE_BLOCK
 
 	if (detailed_output) {
-#pragma omp critical
+#pragma omp critical (Name_0139eb204165e8e82ee3aaaaff59eab1d5b3cc14)
 		{
 			for (int node = 0; node < Npred; node++) {
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
@@ -7628,7 +7628,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 		}
 		np = np_new;
 		if (debug) {
-#pragma omp critical
+#pragma omp critical (Name_6bbd084d591e27d9aacdb520c3e898945c242003)
 			{
 				for (itmp = 0; itmp < np; itmp++)
 					printf("xp[%1d] = %.3f\n", itmp, xp[itmp]);
@@ -7642,7 +7642,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 			logcor[i] *= d;
 		}
 		if (debug && np) {
-#pragma omp critical
+#pragma omp critical (Name_45542d32821a8fbfd2cec71e8219d7eeb4b423f2)
 			{
 				for (i = 0; i < np; i++)
 					printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
@@ -7660,7 +7660,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 		}
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
 		if (debug && np) {
-#pragma omp critical
+#pragma omp critical (Name_c6e59ebf504f17645e98f57731cc4de48bd2748a)
 			{
 				for (i = 0; i < np; i++)
 					printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);
@@ -9711,7 +9711,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 			value = DMAX(DBL_MIN, value);
 			ldens_values[i] = log(value);
 			if (retval) {
-#pragma omp critical
+#pragma omp critical (Name_8a7281e161252d30ef221c00a3554c5a81e762b4)
 				{
 					fprintf(stderr, "\n\tGMRFLib_ai_marginal_one_hyperparamter: warning:\n");
 					fprintf(stderr, "\t\tMaximum number of function evaluations is reached\n");
@@ -10345,7 +10345,7 @@ int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx, doub
 	int retval = 0;
 
 	GMRFLib_ASSERT(idx, GMRFLib_EPARAMETER);
-#pragma omp critical					       /* yes, only one at the time */
+#pragma omp critical (Name_bbcc3bdca5c5de72f4e6fce04148a03434b2c017)
 	{
 		size_t i, j, k;
 

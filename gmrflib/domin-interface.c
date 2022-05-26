@@ -314,7 +314,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	G.f_count[omp_get_thread_num()]++;
 
 	if (B.f_best == 0.0 || (!(ISNAN(fx_local) || ISINF(fx_local)) && (fx_local < B.f_best))) {
-#pragma omp critical
+#pragma omp critical (Name_316329ff2ef2da7cb6c97db9463fde6c8c6d654d)
 		{
 			if (B.f_best == 0.0 || fx_local < B.f_best) {
 

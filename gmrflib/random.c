@@ -63,7 +63,7 @@ int GMRFLib_rng_set_default_seed(void)
 	unsigned long int seed;
 	int debug = 0;
 	size_t len = sizeof(unsigned long int);
-#pragma omp critical					       /* only one at the time */
+#pragma omp critical (Name_96da5f632ecbd97ae1e5504794f8724fabfdee73)
 	{
 #if defined(WINDOWS)
 		{

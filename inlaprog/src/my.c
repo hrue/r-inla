@@ -108,7 +108,7 @@ double my_gsl_sf_lnfact(int x)
 	static double *lng = NULL;
 
 	if (first) {
-#pragma omp critical
+#pragma omp critical (Name_f231e51d9e362f9cca16a5eef0dd3c1db68e2367)
 		if (first) {
 			lng = Calloc(nmax, double);
 			lng[0] = 0.0;
@@ -141,7 +141,7 @@ double my_gsl_sf_lngamma(double x)
 		static double *lng = NULL;
 
 		if (first) {
-#pragma omp critical
+#pragma omp critical (Name_4a533633abba791ba5b20f9762a49cf31c37631d)
 			if (first) {
 				lng = Calloc(nmax, double);
 				lng[0] = NAN;

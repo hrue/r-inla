@@ -1765,7 +1765,7 @@ double GMRFLib_sn_mode(double skew)
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!spline) {
-#pragma omp critical
+#pragma omp critical (Name_f7f083055f5255ebc7e4aae6b1b8f1baa3991d18)
 		{
 			if (!spline) {
 				spline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
@@ -1774,7 +1774,7 @@ double GMRFLib_sn_mode(double skew)
 	}
 
 	if (!spline[idx]) {
-#pragma omp critical
+#pragma omp critical (Name_948ad03ea9be172f0a7c5a6c9a6445f21830dd19)
 		{
 			if (!spline[idx]) {
 
@@ -1901,7 +1901,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 	GMRFLib_CACHE_SET_ID(idx);
 
 	if (!spline) {
-#pragma omp critical
+#pragma omp critical (Name_06501c73f0089b8702336f89a7e7c85e10465cf1)
 		{
 			if (!spline) {
 				spline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
@@ -1910,7 +1910,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 	}
 
 	if (!spline[idx]) {
-#pragma omp critical
+#pragma omp critical (Name_0b84ff96beeead8255ba5c20d89eda3f5360f93c)
 		{
 			if (!spline[idx]) {
 				// both skew and d3 have been POWER13 transformed, as this gives a much better function to interpolate

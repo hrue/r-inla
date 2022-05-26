@@ -771,7 +771,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		// use also this [low, high] guess, which is updated automatically
 		static int **guess = NULL;
 		if (!guess) {
-#pragma omp critical
+#pragma omp critical (Name_fe9d8706ee0c641d1955fda09b4189a1f2fab9b1)
 			{
 				if (!guess) {
 					guess = Calloc(GMRFLib_CACHE_LEN, int *);

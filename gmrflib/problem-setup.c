@@ -181,7 +181,7 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 	static storage_t **storage = NULL;
 
 	if (!storage) {
-#pragma omp critical
+#pragma omp critical (Name_e4b888063524c281c8bef772bc2579873731fa49)
 		{
 			if (!storage) {
 				storage = Calloc(GMRFLib_CACHE_LEN, storage_t *);
@@ -242,7 +242,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 	static storage_t **storage = NULL;
 
 	if (!storage) {
-#pragma omp critical
+#pragma omp critical (Name_756fb3e47fb1205cd5e595775867506d805d78f6)
 		{
 			if (!storage) {
 				storage = Calloc(GMRFLib_CACHE_LEN, storage_t *);
@@ -322,7 +322,7 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_415e5dc8137b4c7fc43dd511591be71a0710d398)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -787,7 +787,7 @@ int GMRFLib_init_problem_store(int thread_id,
 						if (constr_store_logdet_debug) {
 							printf("constr_store_logdet: store value %f\n", (*problem)->logdet_aat);
 						}
-#pragma omp critical
+#pragma omp critical (Name_8c313c5cb0ba5eb20ede5a81e455580200ca1348)
 						{
 							map_strd_set(&constr_store_logdet, GMRFLib_strdup((char *) con->sha),
 								     (*problem)->logdet_aat);
@@ -1446,7 +1446,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp 
 		if (constr_store_debug) {
 			printf("\t[%1d] constr_store: store constr 0x%p\n", omp_get_thread_num(), (void *) *new_constr);
 		}
-#pragma omp critical
+#pragma omp critical (Name_94faae67756d65c5760e5596c1b377f8844e3f00)
 		{
 			map_strvp_set(&constr_store, (char *) (*new_constr)->sha, (void *) *new_constr);
 		}
@@ -1994,7 +1994,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use
 				cputime[k] = GMRFLib_cpu() - cputime[k];
 
 				if (debug) {
-#pragma omp critical
+#pragma omp critical (Name_4dc800d9b856792e63baa1e9a01d82865c857322)
 					{
 						printf("%s: reorder=[%s] \tnnz=%zu \tUseGlobalNodes=%1d cpu=%.4f\n",
 						       __GMRFLib_FuncName, GMRFLib_reorder_name(rs[kkk]), nnzs[k], use_global_nodes, cputime[k]);

@@ -777,7 +777,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_4e65f9abac12404e1d9633582ec69bc86e375bd2)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -845,7 +845,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_9c6d559b5470558ef474f5640951d6b63990a46d)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -890,7 +890,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_a3dba7d9a29b2dbf1981362774e31bd1c94148ec)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -946,7 +946,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_ae25603ba826d85ac7ffa0b88a9f11d5c2246a83)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1334,7 +1334,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_d9197654023e1055f6344b57013d23d0644561ce)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1421,7 +1421,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_a6127e3869440eef186b3a8f5bcabf4a462809c9)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1517,7 +1517,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
-#pragma omp critical
+#pragma omp critical (Name_adb454feb2a421a0a2effd2a5298f308a1c3f192)
 		{
 			if (!wwork) {
 				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
