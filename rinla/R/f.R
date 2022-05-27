@@ -939,8 +939,8 @@
         ## check
         A <- extraconstr$A
         e <- extraconstr$e
-        if (!is.matrix(A)) {
-            stop("A(extraconstr) has to be a matrix")
+        if ((!is.matrix(A) && !is(A, "Matrix"))) {
+            stop("extraconstr$A has to be a dense or sparse matrix")
         } else {
             if (nrow(A) != length(e)) {
                 stop("Dimension of A and e do not correspond")
