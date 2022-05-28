@@ -37143,6 +37143,38 @@ int testit(int argc, char **argv)
 
 	case 13:
 	{
+		int n = 100;
+		if (nargs) {
+			n = atoi(args[0]);
+		}
+
+		printf("Build matrix with dim = %1d\n", n);
+		double *A = Calloc(SQR(n), double);
+		for(int i = 0; i < n; i++) {
+			for(int j = i + 1; j < n; j++) {
+				int k = i + j * n;
+				int kk = j + i * n;
+				A[k] = A[kk] = GMRFLib_uniform();
+			}
+		}
+		for(int i = 0; i < n; i++) {
+			int k = i + i * n;
+			A[k] = n + 1.0;
+		}
+
+		printf("Call ...ensure_spd ");
+		double tref = GMRFLib_cpu();
+		GMRFLib_ensure_spd(A, n, FLT_EPSILON, NULL);
+		printf("%f seconds\n", GMRFLib_cpu() - tref);
+
+		printf("Call ...chol ");
+		tref = GMRFLib_cpu();
+		double *chol = NULL;
+		GMRFLib_comp_chol_general(&chol, A, n, NULL, 1);
+		printf("%f seconds\n", GMRFLib_cpu() - tref);
+
+		Free(A);
+		Free(chol);
 	}
 		break;
 
