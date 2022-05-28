@@ -151,13 +151,13 @@
     }
     if (length(mcall$control.st$diagonal) == 0) diagonal <- 1e-5
     ## cat('diagonal =', diagonal, '\n')
-    m <- n <- NULL
+    .no.of.t <- .no.of.s <- NULL
     nst <- length(unique(spacetime))
     if (!is.null(mcall$control.st$graph)) {
         graph <- eval(mcall$control.st$graph)
-        n <- nrow(graph <- inla.graph2matrix(graph))
-        R.s <- inla.scale.model(Diagonal(n, colSums(graph)) - graph,
-            constr = list(A = matrix(1, 1, n), e = 0)
+        .no.of.s <- nrow(graph <- inla.graph2matrix(graph))
+        R.s <- inla.scale.model(Diagonal(.no.of.s, colSums(graph)) - graph,
+            constr = list(A = matrix(1, 1, .no.of.s), e = 0)
         )
         assign('R.s', R.s,
                envir=environment(formula))
@@ -175,24 +175,24 @@
         n <- length(unique(space))
     }
     if (!is.null(time)) {
-        m <- length(unique(time))
+        .no.of.t <- length(unique(time))
         if (any(substr(type, 1, 1) %in% c("2", "4"))) {
             R.t <- inla.scale.model(
-                       crossprod(diff(Diagonal(m))),
-                constr = list(A = matrix(1, 1, m), e = 0))
+                       crossprod(diff(Diagonal(.no.of.t))),
+                constr = list(A = matrix(1, 1, .no.of.t), e = 0))
             assign('R.t', R.t,
                    envir=environment(formula))
         }
     }
-    if (is.null(m)) m <- nst / n
-    if (is.null(n)) n <- nst / m
+    if (is.null(.no.of.t)) .no.of.t <- nst / .no.of.s
+    if (is.null(.no.of.s)) .no.of.s <- nst / .no.of.t
 
-    assign('n', n,
+    assign('.no.of.s', .no.of.s,
            envir=environment(formula))
-    assign('m', m,
+    assign('.no.of.t', .no.of.t,
            envir=environment(formula))
 
-    ## cat('m = ', m, ', n = ', n, ', nst = ', nst, '\n', sep='')
+    ## cat('.no.of.t = ', .no.of.t, ', .no.of.s = ', .no.of.s, ', nst = ', nst, '\n', sep='')
     if (TRUE) { ## working in progress: identify need of constraints from the formula
         etemp <- INLA:::inla.interpret.formula(formula, data, debug = FALSE)
         rterms <- attr(terms(etemp[[1]]), "term.labels")
@@ -201,8 +201,8 @@
             r.rankdef <- which(sapply(etemp$random.spec[id.r], function(x) is.null(x$rankdef)))
             if (length(r.rankdef) > 0) {
                 r.size <- sapply(etemp$random.spec[id.r[r.rankdef]], function(x) x$n)
-                j.s <- which(r.size == n)
-                j.t <- which(r.size == m)
+                j.s <- which(r.size == .no.of.s)
+                j.t <- which(r.size == .no.of.t)
                 if (length(j.s) > 1) {
                     stop("Too many spatial effects with rank deficiency.")
                 }
@@ -215,8 +215,8 @@
         lc3.on <- any(rterms == tname)
     }
     ## cat('lc2 =', lc2.on, ' and lc3 =', lc3.on, '\n')
-    M2 <- kronecker(matrix(1 / m, 1, m), diag(n))
-    M3 <- kronecker(diag(m), matrix(1 / n, 1, n))
+    M2 <- kronecker(matrix(1 / .no.of.t, 1, .no.of.t), diag(.no.of.s))
+    M3 <- kronecker(diag(.no.of.t), matrix(1 / .no.of.s, 1, .no.of.s))
     assign('M2', M2,
            envir=environment(formula))
     assign('M3', M3,
@@ -244,8 +244,8 @@
     if (any(type %in% "2")) {
         add2 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t, Diagonal(n)), ",
-            "extraconstr=list(A=M2, e=rep(0,n))", add0, ")"
+            "Cmatrix=kronecker(R.t, Diagonal(.no.of.s)), ",
+            "extraconstr=list(A=M2, e=rep(0,.no.of.s))", add0, ")"
         )
         res$"2" <- inla(update(formula, paste(".~.+", add2)), ...)
     }
@@ -255,8 +255,8 @@
     if (any(type %in% "3")) {
         add3 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(Diagonal(m), R.s), ",
-            "extraconstr=list(A=M3, e=rep(0,m))", add0, ")"
+            "Cmatrix=kronecker(Diagonal(.no.of.t), R.s), ",
+            "extraconstr=list(A=M3, e=rep(0,.no.of.t))", add0, ")"
         )
         res$"3" <- inla(update(formula, paste(".~.+", add3)), ...)
     }
@@ -267,7 +267,7 @@
         add4 <- paste0(
             "f(", stname, ', model="generic0", constr=FALSE, ',
             "Cmatrix=kronecker(R.t, R.s), ",
-            "extraconstr=list(A=rbind(M2,M3)[-1,], e=rep(0,n+m-1))", add0, ")"
+            "extraconstr=list(A=rbind(M2,M3)[-1,], e=rep(0,.no.of.s+.no.of.t-1))", add0, ")"
         )
         res$"4" <- inla(update(formula, paste(".~.+", add4)), ...)
     }
@@ -277,7 +277,7 @@
     if (any(type %in% "2c")) {
         add2c <- paste0(
             'f(st2, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(R.t[-timeref, -timeref], Diagonal(n))", add0, ")"
+            "Cmatrix=kronecker(R.t[-timeref, -timeref], Diagonal(.no.of.s))", add0, ")"
         )
         if (is.null(time)) {
             st2 <- spacetime
@@ -287,11 +287,11 @@
         assign('st2', st2, environment(formula))
         id2 <- which(!is.na(st2))
         lc2 <- inla.make.lincombs(
-            st2 = Diagonal(n * m)[, id2] - M2[space, id2]
+            st2 = Diagonal(.no.of.s * .no.of.t)[, id2] - M2[space, id2]
         )
         names(lc2) <- gsub("lc", "st", names(lc2))
         if (lc2.on) {
-            lc2args <- list(cbind(Diagonal(n), Diagonal(n, 0)), st2 = M2[, id2] - 1 / (n * m))
+            lc2args <- list(cbind(Diagonal(.no.of.s), Diagonal(.no.of.s, 0)), st2 = M2[, id2] - 1 / (.no.of.s * .no.of.t))
             names(lc2args)[1] <- sname
             lcc2 <- do.call("inla.make.lincombs", lc2args)
             names(lcc2) <- gsub("lc", "s", names(lcc2))
@@ -307,7 +307,7 @@
     if (any(type %in% "3c")) {
         add3c <- paste0(
             'f(st3, model="generic0", constr=FALSE, ',
-            "Cmatrix=kronecker(Diagonal(m), R.s[-spaceref, -spaceref])", add0, ")"
+            "Cmatrix=kronecker(Diagonal(.no.of.t), R.s[-spaceref, -spaceref])", add0, ")"
         )
         if (is.null(space)) {
             st3 <- spacetime
@@ -317,11 +317,11 @@
         assign('st3', st3, environment(formula))
         id3 <- which(!is.na(st3))
         lc3 <- inla.make.lincombs(
-            st3 = Diagonal(n * m)[, id3] - M3[time, id3]
+            st3 = Diagonal(.no.of.s * .no.of.t)[, id3] - M3[time, id3]
         )
         names(lc3) <- gsub("lc", "st", names(lc3))
         if (lc3.on) {
-            lc3args <- list(Diagonal(m), st3 = M3[, id3] - 1 / (n * m))
+            lc3args <- list(Diagonal(.no.of.t), st3 = M3[, id3] - 1 / (.no.of.s * .no.of.t))
             names(lc3args)[1] <- tname
             lcc3 <- do.call("inla.make.lincombs", lc3args)
             names(lcc3) <- gsub("lc", "t", names(lcc3))
@@ -359,19 +359,19 @@
         assign('st4', st4, environment(formula))
         id4 <- which(!is.na(st4))
         lc4 <- inla.make.lincombs(
-            st4 = (Diagonal(n * m)[, id4] - M2[space, id4] - M3[time, id4] + 1 / (n * m))
+            st4 = (Diagonal(.no.of.s * .no.of.t)[, id4] - M2[space, id4] - M3[time, id4] + 1 / (.no.of.s * .no.of.t))
         )
         names(lc4) <- gsub("lc", "st", names(lc4))
         if (lc3.on) {
-            lc3args <- list(Diagonal(m), st4 = M3[, id4] - 1 / (n * m))
+            lc3args <- list(Diagonal(.no.of.t), st4 = M3[, id4] - 1 / (.no.of.s * .no.of.t))
             names(lc3args)[1] <- tname
             lcc3 <- do.call("inla.make.lincombs", lc3args)
             names(lcc3) <- gsub("lc", "t", names(lcc3))
             lc4 <- c(lcc3, lc4)
         }
         if (lc2.on) {
-            lc2args <- list(cbind(Diagonal(n), Diagonal(n, 0)),
-                st4 = M2[, id4] - 1 / (n * m)
+            lc2args <- list(cbind(Diagonal(.no.of.s), Diagonal(.no.of.s, 0)),
+                st4 = M2[, id4] - 1 / (.no.of.s * .no.of.t)
             )
             names(lc2args)[1] <- sname
             lcc2 <- do.call("inla.make.lincombs", lc2args)
@@ -388,26 +388,26 @@
     if (any(type %in% c("2d", "3d", "4d"))) {
         lcd2 <- lcd3 <- NULL
         if (lc2.on) {
-            lc2args <- list(cbind(Diagonal(n), Diagonal(n, 0)), M2)
+            lc2args <- list(cbind(Diagonal(.no.of.s), Diagonal(.no.of.s, 0)), M2)
             names(lc2args) <- c(sname, stname)
             lcd2 <- do.call("inla.make.lincombs", lc2args)
         }
         if (lc3.on) {
-            lc3args <- list(Diagonal(m), M3)
+            lc3args <- list(Diagonal(.no.of.t), M3)
             names(lc3args) <- c(tname, stname)
             lcd3 <- do.call("inla.make.lincombs", lc3args)
         }
-        dd <- Diagonal(m * n, diagonal)
+        dd <- Diagonal(.no.of.t * .no.of.s, diagonal)
         assign('dd', dd, environment(formula))
     }
     if (any(type %in% "2d")) {
-        lcd2args <- list(Diagonal(n * m) - M2[space, ])
+        lcd2args <- list(Diagonal(.no.of.s * .no.of.t) - M2[space, ])
         names(lcd2args) <- stname
         lcd <- do.call("inla.make.lincombs", lcd2args)
         add2d <- paste0(
             "f(", stname, ', model="generic0", ',
-            "constr=TRUE, rankdef=n, ",
-            "Cmatrix=kronecker(R.t, Diagonal(n)) + dd", add0, ")"
+            "constr=TRUE, rankdef=.no.of.s, ",
+            "Cmatrix=kronecker(R.t, Diagonal(.no.of.s)) + dd", add0, ")"
         )
         res$"2d" <- inla(update(formula, paste(".~.+", add2d)),
             lincomb = c(lcd2, lcd), ...
@@ -417,14 +417,14 @@
         cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
     }
     if (any(type %in% "3d")) {
-        lcd3args <- list(Diagonal(n * m) - M3[time, ])
+        lcd3args <- list(Diagonal(.no.of.s * .no.of.t) - M3[time, ])
         names(lcd3args) <- stname
         lcd <- do.call("inla.make.lincombs", lcd3args)
         names(lcd) <- gsub("lc", "st", names(lcd))
         add3d <- paste0(
             "f(", stname, ', model="generic0", ',
-            "constr=TRUE, rankdef=m, ",
-            "Cmatrix=kronecker(Diagonal(m), R.s) + dd", add0, ")"
+            "constr=TRUE, rankdef=.no.of.t, ",
+            "Cmatrix=kronecker(Diagonal(.no.of.t), R.s) + dd", add0, ")"
         )
         res$"3d" <- inla(update(formula, paste(".~.+", add3d)),
             lincomb = c(lcd3, lcd), ...
@@ -436,24 +436,24 @@
     if (any(type %in% "4d")) {
         lcd3args <- lcd2args <- NULL
         if (lc2.on) {
-            lcd2args <- list(cbind(Diagonal(n), Diagonal(n, 0)), M2)
+            lcd2args <- list(cbind(Diagonal(.no.of.s), Diagonal(.no.of.s, 0)), M2)
             names(lcd2args) <- c(sname, stname)
             lcd2 <- do.call("inla.make.lincombs", lcd2args)
             names(lcd2) <- gsub("lc", "s", names(lcd2))
         }
         if (lc3.on) {
-            lcd3args <- list(Diagonal(m), M3)
+            lcd3args <- list(Diagonal(.no.of.t), M3)
             names(lcd3args) <- c(tname, stname)
             lcd3 <- do.call("inla.make.lincombs", lcd3args)
             names(lcd3) <- gsub("lc", "t", names(lcd3))
         }
-        lcdargs <- list(Diagonal(n * m) - M2[space, ] - M3[time, ] + 1 / (n * m))
+        lcdargs <- list(Diagonal(.no.of.s * .no.of.t) - M2[space, ] - M3[time, ] + 1 / (.no.of.s * .no.of.t))
         names(lcdargs) <- stname
         lcd <- do.call("inla.make.lincombs", lcdargs)
         names(lcd) <- gsub("lc", "st", names(lcd))
         add4d <- paste0(
             "f(", stname, ', model="generic0", ',
-            "constr=TRUE, rankdef=n+m, ",
+            "constr=TRUE, rankdef=.no.of.s+.no.of.t, ",
             "Cmatrix=kronecker(R.t, R.s) + dd", add0, ")"
         )
         res$"4d" <- inla(update(formula, paste(".~.+", add4d)),
