@@ -4,6 +4,14 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.06.01}{
+  \subsection{CHANGES}{
+    \itemize The \code{mode} in the output summary is back.
+    \itemize Family \code{gev} is disabled, using \code{bgev} instead
+    \itemize Code improvement, cleanup and bug-fixes
+  }
+}
+
 \section{CHANGES IN VERSION 22.05.18}{
   \subsection{CHANGES}{
     \itemize Changes in work-in-progress features
