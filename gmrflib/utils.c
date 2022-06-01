@@ -57,6 +57,23 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
 
+void GMRFLib_delay(int msec)
+{
+	long pause;
+	clock_t now, then;
+
+	pause = msec * (CLOCKS_PER_SEC / 1000);
+	now = then = clock();
+	while ((now - then) < pause) {
+		now = clock();
+	}
+}
+
+void GMRFLib_delay_random(int msec_low, int msec_high)
+{
+	GMRFLib_delay(msec_low + (int) ((msec_high - msec_low) * GMRFLib_uniform()));
+}
+
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...)
 {
 	/*
@@ -622,7 +639,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 {
 	// A is m x n matrix
-#pragma omp critical
+#pragma omp critical (Name_bb051132870d1f0b90133946052e91194aa163a5)
 	{
 		fprintf(fp, "\n\n");
 		for (int i = 0; i < m; i++) {
@@ -1132,7 +1149,7 @@ int GMRFLib_debug_functions(const char *name)
 	static int *first = NULL;
 
 	if (!ddefs) {
-#pragma omp critical
+#pragma omp critical (Name_30c48b516c7b1cce1be137af0e429a5e3b52a645)
 		{
 			if (!ddefs) {
 				first = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1229,7 +1246,7 @@ int GMRFLib_trace_functions(const char *name)
 	static int *first = NULL;
 
 	if (!ddefs) {
-#pragma omp critical
+#pragma omp critical (Name_3a266edf254a33111bcf4ab49b3acc5833850a29)
 		{
 			if (!ddefs) {
 				first = Calloc(GMRFLib_CACHE_LEN, int);
@@ -1887,7 +1904,7 @@ int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_str_add(GMRFLib_str_tp ** hold, char * s)
+int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s)
 {
 	if (*hold == NULL) {
 		GMRFLib_str_create(hold);
@@ -1997,14 +2014,14 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char * s, int case_sensitive, int * idx_match)
+int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match)
 {
 	if (hold == NULL) {
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
-	for(int i = 0; i < hold->n; i++) {
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
 				*idx_match = i;
@@ -2022,4 +2039,3 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char * s, int case_sensitive, i
 #undef MEMINFO
 #undef IDX_ALLOC_ADD
 #undef IDX_ALLOC_INITIAL
-

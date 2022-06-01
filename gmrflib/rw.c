@@ -211,7 +211,7 @@ double GMRFLib_crw(int thread_id, int node, int nnode, double *UNUSED(values), v
 		 * to avoid that this workspace is note allocated several times 
 		 */
 		if (!crwdef->work) {
-#pragma omp critical
+#pragma omp critical (Name_7b79c5928d913fdbaa9b3335cf6f26f060cef587)
 			{
 				/*
 				 */

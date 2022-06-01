@@ -1222,6 +1222,7 @@
     inla.write.boolean.field("gcpo.correct.hyperpar", gcpo$correct.hyperpar, file)
     inla.write.boolean.field("gcpo.remove.fixed", gcpo$remove.fixed, file)
     cat("gcpo.epsilon =", max(0, gcpo$epsilon), "\n", file = file, append = TRUE)
+    cat("gcpo.prior.diagonal =", max(0, gcpo$prior.diagonal), "\n", file = file, append = TRUE)
 
     if (!is.null(gcpo$keep) && !is.null(gcpo$remove)) {
         stop("control.gcpo$keep and $remove cannot be used at the same time.")
@@ -1269,9 +1270,13 @@
         cat("gcpo.groups =", fnm, "\n", file = file, append = TRUE)
     } else {
         ## gsiz = -1 is CPO,  gsiz = 0 or gsiz < -1 means the default value 1
-        gsiz <- round(gcpo$group.size)
-        if (gsiz == 0 || gsiz < -1) gsiz <- 1
-        cat("gcpo.group.size", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
+        gsiz <- round(gcpo$num.level.sets)
+        if (gsiz <= 0) gsiz <- -1
+        cat("gcpo.num.level.sets", "=", gsiz, "\n", sep = " ", file = file, append = TRUE)
+
+        gsiz.max <- round(gcpo$size.max)
+        if (gsiz.max <= 0) gsiz.max <- -1
+        cat("gcpo.size.max", "=", gsiz.max, "\n", sep = " ", file = file, append = TRUE)
 
         if (!is.null(gcpo$selection)) {
             selection <- gcpo$selection[!is.na(gcpo$selection)]

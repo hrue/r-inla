@@ -135,7 +135,7 @@ double inla_qgamma_cache(double shape, double quantile, int id)
 	int debug = 0;
 
 	if (id < 0) {
-#pragma omp critical
+#pragma omp critical (Name_df5bc0b4b7c0228087ccbab810a0d2b558ac8eb3)
 		{
 			double log_shape_min = -7.0, log_shape_max = 10.0, by = 0.2, *xy, *x, *y;
 			int id_max = GMRFLib_MAX_THREADS(), i, n, nn;

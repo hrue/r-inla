@@ -159,7 +159,7 @@ int GMRFLib_ghq(double **xp, double **wp, int n)
 	static map_ivp **weights = NULL;		       /* keep previous computed elements here */
 
 	if (!abscissas) {
-#pragma omp critical
+#pragma omp critical (Name_57dd787c76d8e98b908fbe47a9af2b183bc7a84a)
 		{
 			if (!abscissas) {
 				weights = Calloc(GMRFLib_CACHE_LEN, map_ivp *);

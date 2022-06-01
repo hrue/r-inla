@@ -6931,7 +6931,7 @@
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "identity"),
-                    status = "experimental",
+                    status = "disabled: Use likelihood model 'bgev' instead; see inla.doc('bgev')",
                     pdf = "gev"
                 ),
 

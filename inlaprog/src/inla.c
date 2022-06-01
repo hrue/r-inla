@@ -208,6 +208,20 @@ extern double R_rgeneric_cputime;
 #define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
+forceinline double inla_interpolate_mode(double *x, double *y)
+{
+	// give 3 values (x,y), return the mode. truncate at the boundary
+
+	double xm = (y[0] * x[1] * x[1] - y[0] * x[2] * x[2] - y[1] * x[0] * x[0] + y[1] * x[2] * x[2] + y[2] * x[0] * x[0] - y[2] * x[1] * x[1]) /
+	    (y[0] * x[1] - y[0] * x[2] - y[1] * x[0] + y[1] * x[2] + y[2] * x[0] - x[1] * y[2]) / 0.2e1;
+
+	double xmin = DMIN(x[0], DMIN(x[1], x[2]));
+	double xmax = DMAX(x[0], DMAX(x[1], x[2]));
+	xm = TRUNCATE(xm, xmin, xmax);
+
+	return (xm);
+}
+
 int inla_ncpu(void)
 {
 #if defined(_SC_NPROCESSORS_ONLN)			       /* Linux, Solaris, AIX */
@@ -577,7 +591,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	}
 
 	if (first) {
-#pragma omp critical
+#pragma omp critical (Name_375605f5a0a02853485931b7541aa2de0692bb42)
 		if (first) {
 			if (debug) {
 				fprintf(stderr, "map_invsn: build table\n");
@@ -1489,7 +1503,7 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	double dx = 0.1, xx, range = 25.0, p, pp;
 
 	if (first) {
-#pragma omp critical
+#pragma omp critical (Name_a862df53446b09ea53b4bd233636df42f8acd1ff)
 		if (first) {
 			if (debug) {
 				fprintf(stderr, "link_loga: init tables\n");
@@ -1858,7 +1872,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 		static int do_check[2] = { 1, 1 };
 
 		if (do_check[lparam->variant]) {
-#pragma omp critical
+#pragma omp critical (Name_e77483d42a508f8162880242479cd58817992341)
 			if (do_check[lparam->variant]) {
 				if (ret_val !=
 				    (link_qweibull(thread_id, x + 1.0, INVLINK, param, cov) >
@@ -2747,7 +2761,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	if (0 && a->reset_cache >= 0) {
 		if (a->reset_cache || (id == 0 && omp_get_level() == 0 && i == 0 && j <= 0)) {
 			a->reset_cache = 1;
-#pragma omp critical
+#pragma omp critical (Name_d9d5fe823d2b17d465f4c6c0d56442c45ef50e40)
 			{
 				if (a->reset_cache) {
 					// yes, start loops at 1 to reset the rest of the cache, but not for id=0.
@@ -2776,7 +2790,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	if (rebuild) {
 		int *ilist = NULL, *jlist = NULL, n, len, k = 0, n_out, jj;
 		double *Qijlist = NULL, *x_out = NULL;
-#pragma omp critical
+#pragma omp critical (Name_297cd7aba8c5dafefcb1c93779913d23a945ce9e)
 		{
 			rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 			if (!rebuild) {
@@ -2966,7 +2980,7 @@ double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *
 	}
 
 	if (rebuild) {
-#pragma omp critical
+#pragma omp critical (Name_8b586dffc9258cff507f5f6098e240cbacd2c571)
 		{
 			// yes, log_prec is ...[0], so we start at 1
 			double range, nu;
@@ -3032,7 +3046,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 	}
 
 	if (rebuild) {
-#pragma omp critical
+#pragma omp critical (Name_a878b76a6db370a6183df8d897b3a03b15039501)
 		{
 			int n, n_out, jj;
 			double *x_out = NULL;
@@ -6252,18 +6266,11 @@ int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, d
 			for (i = 0; i < -m; i++) {
 				ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				xx = sprec * (yy - ypred);
-				if (xi > 0.0) {
-					if (1.0 + xi * xx > 0.0) {
-						logll[i] = exp(-pow(xx, -xi));
-					} else {
-						logll[i] = 0.0;
-					}
+				double a = 1.0 + xi * xx;
+				if (a > 0.0) {
+					logll[i] = exp(-pow(a, -1.0 / xi));
 				} else {
-					if (1.0 + xi * xx > 0.0) {
-						logll[i] = exp(-pow(xx, xi));
-					} else {
-						logll[i] = 1.0;
-					}
+					logll[i] = (xi > 0.0 ? 0.0 : 1.0);
 				}
 			}
 		}
@@ -7281,7 +7288,7 @@ int loglikelihood_pom(int thread_id, double *logll, double *x, int m, int idx, d
 	static int *nclass = NULL;
 
 	if (!calpha) {
-#pragma omp critical
+#pragma omp critical (Name_0e94df4562241e37d016a0edfddb0588df8765f1)
 		{
 			if (!calpha) {
 				nclass = Calloc(GMRFLib_CACHE_LEN, int);
@@ -8440,7 +8447,7 @@ int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, 
 	static int *ncy = NULL;
 
 	if (!cy) {
-#pragma omp critical
+#pragma omp critical (Name_1d71960e99b4e67a36228891d1af914edbfd3dc3)
 		{
 			if (!cy) {
 				ncy = Calloc(GMRFLib_CACHE_LEN, int);
@@ -8534,7 +8541,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 	static int *ncy = NULL;
 
 	if (!cy) {
-#pragma omp critical
+#pragma omp critical (Name_0b245bce3bb8f2007cc26fbbb141a5a0c7559165)
 		{
 			if (!cy) {
 				ncy = Calloc(GMRFLib_CACHE_LEN, int);
@@ -8659,7 +8666,7 @@ int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n,
 	static lcache_t **llcache = NULL;
 
 	if (!llcache) {
-#pragma omp critical
+#pragma omp critical (Name_f0fed30114239788701d492c4202a46b68cc060a)
 		{
 			if (!llcache) {
 				llcache = Calloc(GMRFLib_CACHE_LEN, lcache_t *);
@@ -8755,7 +8762,7 @@ int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n,
 	static lcache_t **llcache = NULL;
 
 	if (!llcache) {
-#pragma omp critical
+#pragma omp critical (Name_ba31fe1f20db2ec14750ea49f488e614a1920cb7)
 		{
 			if (!llcache) {
 				llcache = Calloc(GMRFLib_CACHE_LEN, lcache_t *);
@@ -8859,9 +8866,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9857,7 +9864,7 @@ int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int id
 	static int *ncmu = NULL;
 
 	if (!cmu) {
-#pragma omp critical
+#pragma omp critical (Name_f541b1464beaa9132d8c3f70fc8dc2de724ab8a5)
 		{
 			if (!cmu) {
 				ncmu = Calloc(GMRFLib_CACHE_LEN, int);
@@ -19609,7 +19616,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 {
 	int i, n, m;
 
-#pragma omp critical
+#pragma omp critical (Name_3bf40dfd2018962c499124a04e65c58fff8542a3)
 	{
 		fprintf(fp, "cgeneric[ %s ]  cmd = %s\n", secname, INLA_CGENERIC_CMD_NAME(cmd));
 		switch (cmd) {
@@ -22346,7 +22353,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		/*
 		 * we need to know ntheta, therefore we need to initialise and load files etc, here...
 		 */
-#pragma omp critical
+#pragma omp critical (Name_4dc2f57513bfff130bbf6befdb6223652c8569da)
 		{
 			inla_R_library("INLA");
 			inla_R_load(rgeneric_filename);
@@ -26119,7 +26126,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		int n_out;
 		double *x_out;
-#pragma omp critical
+#pragma omp critical (Name_0c216629b47f30b75846e1131aec8233bfdd80bb)
 		{
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, 0, NULL);
 		}
@@ -28829,7 +28836,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 	static void *jp_vec_sexp = NULL;
 
 	if (mb->jp) {
-#pragma omp critical
+#pragma omp critical (Name_886e56613636db7114635f9aacba5e4fc01cca40)
 		{
 			if (jp_first_time) {
 				char **vec_str = NULL;
@@ -31045,7 +31052,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 			}
 
-#pragma omp critical
+#pragma omp critical (Name_58ab1229a36b0d20f9c714d7896ab4820282193b)
 			{
 				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
 				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
@@ -31077,7 +31084,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
 				double *Qijlist = NULL;
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
-#pragma omp critical
+#pragma omp critical (Name_94438d8a0faa6fe9957180657829e121c750f1f2)
 				{
 					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
 				}
@@ -32049,7 +32056,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			static Hold_tp ***hhold = NULL;
 
 			if (!hhold) {
-#pragma omp critical
+#pragma omp critical (Name_35784cb53aa98d636cf2d0897410586e2705f61e)
 				{
 					if (!hhold) {
 						hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
@@ -32150,7 +32157,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			static Hold_tp ***hhold = NULL;
 
 			if (!hhold) {
-#pragma omp critical
+#pragma omp critical (Name_7acab2f371bbea723e9820a667f70647967dbd17)
 				if (!hhold) {
 					hhold = Calloc(GMRFLib_CACHE_LEN, Hold_tp **);
 				}
@@ -33856,9 +33863,11 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	}
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
-		mb->gcpo_param->group_size = iniparser_getint(ini, inla_string_join(secname, "GCPO.GROUP.SIZE"), 1);
+		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
+		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
 		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
+		mb->gcpo_param->prior_diagonal = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.PRIOR.DIAGONAL"), 1.0);
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
 
@@ -33867,14 +33876,14 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		char *token = NULL;
 		const char *delim = " \t";
 		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.KEEP"), NULL));
-		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
 			GMRFLib_str_add(&(mb->gcpo_param->keep), token);
 		}
-		
+
 		str_ptr = NULL;
 		str = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.REMOVE"), NULL));
-		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))){
+		while ((token = GMRFLib_strtok_r(str, delim, &str_ptr))) {
 			str = NULL;
 			GMRFLib_str_add(&(mb->gcpo_param->remove), token);
 		}
@@ -34013,38 +34022,44 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		printf("\t\toutput:\n");
 		if (use_defaults) {
 			printf("\t\t\tgcpo=[%1d]\n", (*out)->gcpo);
-			printf("\t\t\tgcpo.group.size=[%1d]\n", mb->gcpo_param->group_size);
-			printf("\t\t\tgcpo.strategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
-			printf("\t\t\tgcpo.correct.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
-			printf("\t\t\tgcpo.epsilon=[%g]\n", mb->gcpo_param->epsilon);
+			printf("\t\t\t\tnum.level.sets=[%1d]\n", mb->gcpo_param->num_level_sets);
+			printf("\t\t\t\tsize.max=[%1d]\n", mb->gcpo_param->size_max);
+			printf("\t\t\t\tstrategy=[%s]\n", GMRFLib_GCPO_BUILD_STRATEGY_NAME(mb->gcpo_param->build_strategy));
+			printf("\t\t\t\tcorrect.hyperpar=[%1d]\n", mb->gcpo_param->correct_hyperpar);
+			printf("\t\t\t\tepsilon=[%g]\n", mb->gcpo_param->epsilon);
+			printf("\t\t\t\tprior.diagonal=[%g]\n", mb->gcpo_param->prior_diagonal);
 			if (mb->gcpo_param->groups) {
-				printf("\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
+				printf("\t\t\t\tUse user-defined gcpo-groups, ngroups.eff=[%1d]\n", ngroups_eff);
 			}
 			if (mb->gcpo_param->selection) {
-				printf("\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
+				printf("\t\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
 			}
 
 			if (mb->gcpo_param->keep) {
-				printf("\t\t\tgcpo.keep=[");
-				for(int i = 0; i < mb->gcpo_param->keep->n; i++) {
-					if (i) printf(" ");
+				printf("\t\t\t\tkeep=[");
+				for (int i = 0; i < mb->gcpo_param->keep->n; i++) {
+					if (i) {
+						printf(" ");
+					}
 					printf("%s", mb->gcpo_param->keep->str[i]);
 				}
 				printf("]\n");
 			} else {
-				printf("\t\t\tgcpo.keep=[]\n");
+				printf("\t\t\t\tkeep=[]\n");
 			}
-				
-			printf("\t\t\tgcpo.remove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
+
+			printf("\t\t\t\tremove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
 			if (mb->gcpo_param->remove) {
-				printf("\t\t\tgcpo.remove=[");
-				for(int i = 0; i < mb->gcpo_param->remove->n; i++) {
-					if (i) printf(" ");
+				printf("\t\t\t\tremove=[");
+				for (int i = 0; i < mb->gcpo_param->remove->n; i++) {
+					if (i) {
+						printf(" ");
+					}
 					printf("%s", mb->gcpo_param->remove->str[i]);
 				}
 				printf("]\n");
 			} else {
-				printf("\t\t\tgcpo.remove=[]\n");
+				printf("\t\t\t\tremove=[]\n");
 			}
 
 			printf("\t\t\tcpo=[%1d]\n", (*out)->cpo);
@@ -34542,7 +34557,7 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 	{
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_2f68597610da063cce30cec1d19ac794527bc57e)
 			{
 				printf("\t\tstore gcpo-results in[%s]\n", nndir);
 			}
@@ -34601,7 +34616,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	{
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_6931944003ec5b67e4101e7995e2a5baab470602)
 			{
 				printf("\t\tstore cpo-results in[%s]\n", nndir);
 			}
@@ -34623,7 +34638,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "pit.dat");
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_dbf18c17124ff85ed3fce2d13d88ad663accb843)
 			{
 				printf("\t\tstore pit-results in[%s]\n", nndir);
 			}
@@ -34644,7 +34659,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "failure.dat");
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_f742aaba395a3aa285064964ce668d0be3e5e7ef)
 			{
 				printf("\t\tstore failure-results in[%s]\n", nndir);
 			}
@@ -34665,7 +34680,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	{
 		Dinit(nndir);
 		if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_dfd5be6da1007dda6dbb7abfb479ffb6fdd5c005)
 			{
 				printf("\t\tstore summary of cpo-results in[%s]\n", nndir);
 			}
@@ -34701,7 +34716,7 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "po.dat");
 	Dinit(nndir);
 	if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_879176a6e21c1dedb4becf90d4f21dd37210e46f)
 		{
 			printf("\t\tstore po-results in[%s]\n", nndir);
 		}
@@ -34752,7 +34767,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "dic.dat");
 	Dinit(nndir);
 	if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_19769e5d041b18c2ff6bee313efb503ad5ad5aef)
 		{
 			printf("\t\tstore dic-results in[%s]\n", nndir);
 		}
@@ -34827,7 +34842,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	}
 
 	if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_f2b4e6c2e966340fa5f0b42b80cc8d45f1910623)
 		{
 			printf("\t\tstore misc-output in[%s]\n", ndir);
 		}
@@ -35219,7 +35234,7 @@ int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *
 	GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-likelihood.dat");
 	Dinit_s(nndir);
 	if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_9dd76c0b6445188affe98f4c81bec8e5c5e3a95b)
 		{
 			printf("\t\tstore marginal-likelihood results in[%s]\n", nndir);
 		}
@@ -35408,6 +35423,44 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
 				    void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
+	// this require 'i_max', 'np', 'z' and 'ldz'
+#define COMPUTE_MODE()							\
+	if (d_mode) {							\
+		int ii = i_max;						\
+		if (ii > 0 && ii < np - 1) {				\
+			ii--;						\
+		} else if (ii == np - 1) {				\
+			ii -= 2;					\
+		}							\
+		double zm = inla_interpolate_mode(z + ii, ldz + ii);	\
+		double zm_orig = zm;					\
+		int m = 5;						\
+		int low = IMAX(0, i_max - m);				\
+		int high = IMIN(np-1, i_max + m);			\
+		int len = high - low + 1;				\
+		GMRFLib_spline_tp *lds = GMRFLib_spline_create(z + low, ldz + low, len); \
+		double step_size[] = {0.0, 0.0};			\
+		for(int iter = 0; iter < 2; iter++) {			\
+			step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
+			zm -= step_size[iter];				\
+		}							\
+		if ((ABS(step_size[0]) >= ABS(step_size[1]))) {		\
+			*d_mode = zm;					\
+		} else {						\
+			/* emergency option */				\
+			*d_mode = zm_orig;				\
+		}							\
+		GMRFLib_spline_free(lds);				\
+	}
+
+#define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
+			 (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
+			  (_x_user)))
+
+#define _MAP_DX(_x_user) (func ? func(_x_user, MAP_DFORWARD, func_arg) :	\
+			  (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov) : \
+			   SIGN(_x_user)))
+
 	int thread_id = 0;
 
 	/*
@@ -35432,25 +35485,16 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		return GMRFLib_SUCCESS;
 	}
 
-#define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
-			 (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
-			  (_x_user)))
-
-#define _TRANSFORMED_LOGDENS(_x, _logdens) (func ? ((_logdens) - log(ABS(func(_x, MAP_DFORWARD, func_arg)))) : \
-					    (tfunc ? ((_logdens) - log(ABS(tfunc->func(thread_id, _x, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov)))) : \
-					     (_logdens)))
-
 	int i;
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
-	// GMRFLib_ENTER_ROUTINE;
+	GMRFLib_ENTER_ROUTINE;
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// then we can do better
-
 		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = density->user_mean;
@@ -35458,24 +35502,44 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 
 		GMRFLib_ghq(&xp, &wp, np);
 
+		Calloc_init(2 * np);
+		double *ldz = Calloc_get(np);
+		double *z = Calloc_get(np);
+
+		int i_max = 0;
 		m1 = 0.0;
 		m2 = 0.0;
-#pragma GCC ivdep
-#pragma GCC unroll 8
-		for (int i = 0; i < np; i++) {
-			double x = xp[i] * stdev + mean;
-			double f = _MAP_X(x);
-			m1 += wp[i] * f;
-			m2 += wp[i] * SQR(f);
+
+		if (d_mode) {
+			for (int i = 0; i < np; i++) {
+				double x = xp[i] * stdev + mean;
+				double f = _MAP_X(x);
+				double df = _MAP_DX(x);
+				m1 += wp[i] * f;
+				m2 += wp[i] * SQR(f);
+
+				z[i] = f;
+				ldz[i] = -0.5 * SQR(xp[i]) - log(ABS(df));
+				if ((i == 0) || ldz[i] > ldz[i_max]) {
+					i_max = i;
+				}
+			}
+		} else {
+			for (int i = 0; i < np; i++) {
+				double x = xp[i] * stdev + mean;
+				double f = _MAP_X(x);
+				m1 += wp[i] * f;
+				m2 += wp[i] * SQR(f);
+			}
 		}
+
 		*d_mean = m1;
 		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
-		if (d_mode) {
-			*d_mode = NAN;
-		}
+		COMPUTE_MODE();
+		Calloc_free();
 	} else {
-		Calloc_init(3 * npm + 2 * np);
+		Calloc_init(3 * npm + 4 * np);
 		low = density->x_min;
 		high = density->x_max;
 		dx = (high - low) / (np - 1.0);
@@ -35488,6 +35552,22 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 			xp[i] = xval;
 		}
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
+
+		int i_max = 0;
+		double *z = Calloc_get(np);
+		double *ldz = Calloc_get(np);
+
+		if (d_mode) {
+			// reusing 'z' for x_user here
+			GMRFLib_density_std2user_n(z, xp, np, density);
+			for (i = 0; i < np; i++) {
+				ldz[i] = ld[i] - log(ABS(_MAP_DX(z[i])));
+				z[i] = _MAP_X(z[i]);
+				if (i == 0 || ldz[i] > ldz[i_max]) {
+					i_max = i;
+				}
+			}
+		}
 
 		// interpolate
 		xpm = Calloc_get(npm);
@@ -35562,17 +35642,14 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		*d_mean = m1;
 		*d_stdev = sqrt(DMAX(0.0, m2 - SQR(m1)));
 
-		if (d_mode) {
-			*d_mode = NAN;
-		}
-
+		COMPUTE_MODE();
 		Calloc_free();
 	}
 
+#undef COMPUTE_MODE
 #undef _MAP_X
-#undef _TRANSFORMED_LOGDENS
 
-	// GMRFLib_LEAVE_ROUTINE;
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -35605,7 +35682,6 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
 	double x, p = 0.0, xp;
-	double *d_mode = NULL;
 	int i, j, ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
@@ -35613,8 +35689,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	assert(nrep > 0);
 	ndiv = n / nrep;
 
-	// d_mode = Calloc(n, double);
-	// for(int i = 0; i < n; i++) d_mode[i] = NAN;
+	double *d_mode = Calloc(n, double);
+	for (int i = 0; i < n; i++)
+		d_mode[i] = NAN;
 
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
@@ -35665,7 +35742,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 			for (int i = 0; i < n; i++) {			\
 				double dm = 0.0, ds = 0.0;		\
 				if (density[i]) {			\
-					inla_integrate_func(&dm, &ds, (d_mode ? &d_mode[i] : NULL), density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
+					inla_integrate_func(&dm, &ds, &d_mode[i], density[i], _FUNC, _FUNC_ARG, _TFUNC(i)); \
 					if (locations) {		\
 						D3W_r(i, 0, locations[i % ndiv], dm, ds); \
 					} else {			\
@@ -35849,7 +35926,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 					} else {
 						D1W(i);
 					}
-					D3W(1.0, NAN, (d_mode ? d_mode[i] : NAN));
+					D3W(1.0, NAN, d_mode[i]);
 				} else {
 					if (add_empty) {
 						if (locations) {
@@ -36876,7 +36953,7 @@ int testit(int argc, char **argv)
 
 	case 8:
 	{
-#pragma omp critical
+#pragma omp critical (Name_5f0e63e7e6c4127b4e2e50c9002880440da56212)
 		{
 #define _MODEL "rgeneric.model"
 			printf("test rgeneric\n");
@@ -37068,6 +37145,38 @@ int testit(int argc, char **argv)
 
 	case 13:
 	{
+		int n = 100;
+		if (nargs) {
+			n = atoi(args[0]);
+		}
+
+		printf("Build matrix with dim = %1d\n", n);
+		double *A = Calloc(SQR(n), double);
+		for(int i = 0; i < n; i++) {
+			for(int j = i + 1; j < n; j++) {
+				int k = i + j * n;
+				int kk = j + i * n;
+				A[k] = A[kk] = GMRFLib_uniform();
+			}
+		}
+		for(int i = 0; i < n; i++) {
+			int k = i + i * n;
+			A[k] = n + 1.0;
+		}
+
+		printf("Call ...ensure_spd ");
+		double tref = GMRFLib_cpu();
+		GMRFLib_ensure_spd(A, n, FLT_EPSILON, NULL);
+		printf("%f seconds\n", GMRFLib_cpu() - tref);
+
+		printf("Call ...chol ");
+		tref = GMRFLib_cpu();
+		double *chol = NULL;
+		GMRFLib_comp_chol_general(&chol, A, n, NULL, 1);
+		printf("%f seconds\n", GMRFLib_cpu() - tref);
+
+		Free(A);
+		Free(chol);
 	}
 		break;
 
@@ -38364,6 +38473,34 @@ int testit(int argc, char **argv)
 
 	case 80:
 	{
+		/*
+		 * fun = function(x) -x^2 + (x-1)^3 - 0.5 * (x+1)^4 plot(xx, fun(xx)) xx[which.max(fun(xx))] [1] 0.07507507508 
+		 */
+
+		double xx1[] = { 0, 1, 2 };
+		double yy1[] = { -1.5, -9.0, -43.5 };
+		double xm;
+		xm = inla_interpolate_mode(xx1, yy1);
+		P(xm);
+
+		double xx2[] = { -1, 0, 0.5 };
+		double yy2[] = { -9.00000, -1.50000, -2.90625 };
+
+		xm = inla_interpolate_mode(xx2, yy2);
+		P(xm);
+
+		double xx3[] = { 0, 0.1, 0.12 };
+		double yy3[] = { -1.50000000, -1.47105000, -1.48263168 };
+
+		xm = inla_interpolate_mode(xx3, yy3);
+		P(xm);
+
+		double xx4[] = { 0.12, 0.0, 0.1 };
+		double yy4[] = { -1.48263168, -1.50000000, -1.47105000 };
+
+		xm = inla_interpolate_mode(xx4, yy4);
+		P(xm);
+
 		break;
 	}
 

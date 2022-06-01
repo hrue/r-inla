@@ -140,7 +140,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 
 	int tnum = omp_get_thread_num();
 	if (!(s->accel[tnum])) {
-#pragma omp critical
+#pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
 		{
 			if (!(s->accel[tnum])) {
 				s->accel[tnum] = gsl_interp_accel_alloc();

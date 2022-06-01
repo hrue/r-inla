@@ -169,7 +169,7 @@ double inla_eval_expression(char *expression, double *x, double *theta, int nthe
 	/*
 	 * I need this until the muparser-library is thread-safe....
 	 */
-#pragma omp critical
+#pragma omp critical (Name_0fa7f09460b3fe66b3508c1154b27762dbfac4e8)
 	{
 		int i;
 		muParserHandle_t hParser;
@@ -256,7 +256,7 @@ double inla_eval_table(char *expression, double *xval, double *UNUSED(theta), in
 
 	if (0) {
 		// a check of the interpolation
-#pragma omp critical
+#pragma omp critical (Name_e578aec88a26ae580f841592d1651b595dac46e4)
 		{
 			double xx;
 			for (xx = -20; xx < 20; xx += .1)

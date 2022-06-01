@@ -415,6 +415,7 @@ typedef enum {
 					 (omp_get_thread_num() + GMRFLib_MAX_THREADS() * thread_id)); \
 	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
 
+#define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
 #define GMRFLib_CACHE_SET_ID(__id) \
