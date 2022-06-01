@@ -35439,18 +35439,22 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		int high = IMIN(np-1, i_max + m);			\
 		int len = high - low + 1;				\
 		GMRFLib_spline_tp *lds = GMRFLib_spline_create(z + low, ldz + low, len); \
-		double step_size[] = {0.0, 0.0};			\
-		for(int iter = 0; iter < 2; iter++) {			\
-			step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
-			zm -= step_size[iter];				\
-		}							\
-		if ((ABS(step_size[0]) >= ABS(step_size[1]))) {		\
-			*d_mode = zm;					\
-		} else {						\
-			/* emergency option */				\
+		if (lds == NULL) {					\
 			*d_mode = zm_orig;				\
-		}							\
-		GMRFLib_spline_free(lds);				\
+		} else {						\
+			double step_size[] = {0.0, 0.0};		\
+			for(int iter = 0; iter < 2; iter++) {		\
+				step_size[iter] = GMRFLib_spline_eval_deriv(zm, lds) / GMRFLib_spline_eval_deriv2(zm, lds); \
+				zm -= step_size[iter];			\
+			}						\
+			if ((ABS(step_size[0]) >= ABS(step_size[1]))) {	\
+				*d_mode = zm;				\
+			} else {					\
+				/* emergency option */			\
+				*d_mode = zm_orig;			\
+			}						\
+			GMRFLib_spline_free(lds);			\
+			}						\
 	}
 
 #define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
