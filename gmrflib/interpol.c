@@ -88,6 +88,11 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	}
 	GMRFLib_unique_additive2(&nn, xx, yy, GMRFLib_eps(0.5));
 
+	if (nn < 3) {
+		Calloc_free();
+		return NULL;
+	}
+
 	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
