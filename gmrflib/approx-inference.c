@@ -7087,7 +7087,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			GMRFLib_problem_tp *problem = NULL;
 			double *c = Calloc(nn, double);
 			for (int i = 0; i < nn; i++) {
-				c[i] = 1.0;
+				c[i] = gcpo_param->prior_diagonal;
 			}
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c, NULL,
 					     preopt->preopt_graph, preopt->gcpo_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr);

@@ -801,6 +801,7 @@ typedef struct {
 	int verbose;
 	int correct_hyperpar;
 	double epsilon;
+	double prior_diagonal;
 	GMRFLib_gcpo_build_strategy_tp build_strategy;	       /* 0=posterior, 1=prior (see above) */
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
