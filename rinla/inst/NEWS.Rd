@@ -4,7 +4,7 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
-\section{CHANGES IN VERSION 22.06.01}{
+\section{CHANGES IN VERSION 22.06.02}{
   \subsection{CHANGES}{
     \itemize The \code{mode} in the output summary is back.
     \itemize Family \code{gev} is disabled, using \code{bgev} instead
