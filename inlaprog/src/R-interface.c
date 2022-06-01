@@ -58,6 +58,7 @@ int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
+void GMRFLib_delay(int msec);
 
 #include "R-interface.h"
 static int R_init = 1;
@@ -65,42 +66,16 @@ static int R_debug = 0;
 static int R_busy = 0;
 double R_rgeneric_cputime = 0.0;
 
-#define CHECK_IN				\
-	if (1) {				\
-		inla_R_init();			\
-		while(R_busy)			\
-			delay(100);		\
-		R_busy = 1;			\
-	}
-#define CHECK_OUT						\
-	if (1) {						\
-		if (R_debug) {					\
-			fprintf(stderr, "set R_busy=0\n");	\
-			fflush(stderr);				\
-		}						\
-		R_busy=0;					\
-	}
+#define CHECK_IN					\
+	inla_R_init();					\
+	while(R_busy) {					\
+		GMRFLib_delay(10);			\
+	}						\
+	R_busy = 1
 
-// this function is adapted from
-//      http://c-for-dummies.com/blog/?p=69
-void delay(int milliseconds);
-void delay(int milliseconds)
-{
-	long pause;
-	clock_t now, then;
 
-	pause = milliseconds * (CLOCKS_PER_SEC / 1000);
-	now = then = clock();
-	while ((now - then) < pause) {
-		if (0) {
-			fprintf(stderr, "thread %d is waiting as R_busy=%d\n", omp_get_thread_num(), R_busy);
-			fflush(stderr);
-		}
-		if (R_busy == 0)			       /* leave early if ok */
-			break;
-		now = clock();
-	}
-}
+#define CHECK_OUT R_busy=0
+
 
 void inla_R_exit(void)
 {

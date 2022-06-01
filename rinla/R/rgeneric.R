@@ -357,14 +357,7 @@
             model = "rgeneric",
             n = dim(model(cmd = "graph", theta = NULL))[1],
             rgeneric = list(
-                definition = if (!compile) {
-                                 model
-                             } else {
-                                 inla.require("compiler", stop.on.error = TRUE)
-                                 compiler::cmpfun(model,
-                                                  options = list(optimize = 3L,
-                                                                 suppressUndefined = TRUE))
-                             },
+                definition = if (compile) compiler::cmpfun(model, options = list(optimize = 3L)) else model, 
                 debug = debug,
                 optimize = optimize
             )
