@@ -28684,6 +28684,9 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 	return (logdet);
 }
 
+// disable '-O3' in this function
+#pragma GCC push_options
+#pragma GCC optimize ("O2")
 double extra(int thread_id, double *theta, int ntheta, void *argument)
 {
 	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, debug = 0, evaluate_hyper_prior = 1;
@@ -32353,6 +32356,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 #undef _NOT_FIXED
 	return val;
 }
+#pragma GCC pop_options
 
 double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
