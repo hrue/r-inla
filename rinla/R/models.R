@@ -4029,7 +4029,7 @@
                             initial = inla.special.number(),
                             fixed = FALSE,
                             prior = "wishartkd",
-                            param = c(100, rep(inla.special.number(), (10*11)/2)), 
+                            param = c(11, rep(inla.special.number(), (10*11)/2)), 
                             to.theta = function(x) x,
                             from.theta = function(x) x
                         ),

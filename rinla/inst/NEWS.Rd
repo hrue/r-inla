@@ -4,6 +4,12 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.06.03}{
+  \subsection{CHANGES}{
+    \itemize Bug-fix release
+  }
+}
+
 \section{CHANGES IN VERSION 22.06.02}{
   \subsection{CHANGES}{
     \itemize The \code{mode} in the output summary is back.
