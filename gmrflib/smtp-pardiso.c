@@ -41,6 +41,10 @@
 #include <string.h>
 #include <stdio.h>
 
+#if defined(WINDOWS)
+#include <io.h>
+#endif
+
 #if !defined(__FreeBSD__)
 #include <malloc.h>
 #endif
