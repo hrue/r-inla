@@ -3956,7 +3956,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 							    GMRFLib_ai_INLA_userfunc0(thread_id, ai_store_id->problem, theta_local, nhyper);
 						}
 						tu = GMRFLib_cpu() - tref;
-
+// this construction is no good. it is possible to do this without the critical region, if initialize the storage with pool->nconfig, and then
+// fill then sparsely, and then 'compress them afterwards.
 #pragma omp critical (Name_36b1b7dfeb7a205ea072f283e7f5ed9408c3aca1)
 						{
 							int ii;
