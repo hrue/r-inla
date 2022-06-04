@@ -41,7 +41,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(WINDOWS)
+#if defined(WIN32) || defined(WINDOWS)
 #include <io.h>
 #endif
 

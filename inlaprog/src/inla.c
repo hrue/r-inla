@@ -85,6 +85,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <stdlib.h>
 #if defined(WIN32) || defined(WINDOWS)
 #include <windows.h>
+#include <direct.h>
 #endif
 
 #include "inla.h"
