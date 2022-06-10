@@ -2469,9 +2469,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 #define COMPUTE_LINDENS(_store, _lookup_tables)				\
 	if (nlin) {							\
-		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
-		for(_i = 0; _i<graph->n; _i++) {			\
+		for(int _i = 0; _i<graph->n; _i++) {			\
 			if (dens && dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
 			} else {					\
@@ -2482,12 +2481,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		Free(_improved_mean);					\
 	}
 
+#define COMPUTE_LINDENS_LOCAL(_store, _lookup_tables)			\
+	if (nlin) {							\
+		double *_improved_mean = Calloc(graph->n, double);	\
+		for(int _i = 0; _i<graph->n; _i++) {			\
+			if (dens_local && dens_local[_i]){		\
+				_improved_mean[_i] = dens_local[_i]->user_mean; \
+			} else {					\
+				_improved_mean[_i] = _store->problem->mean_constr[_i]; \
+			}						\
+		}							\
+		GMRFLib_ai_compute_lincomb(&lin_dens_local, (lin_cross ? &lin_cross_local : NULL), nlin, Alin, _store, _improved_mean, _lookup_tables); \
+		Free(_improved_mean);					\
+	}
+
 #define ADD_CONFIG(_store, _theta, _log_posterior, _log_posterior_orig)	\
 	if (1) {							\
-		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
 		double *_skewness = Calloc(graph->n, double);		\
-		for(_i = 0; _i<graph->n; _i++) {			\
+		for(int _i = 0; _i<graph->n; _i++) {			\
 			_skewness[_i] = NAN;				\
 			if (dens && dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
@@ -3950,14 +3962,18 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 										   ai_par, ai_store_id, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 						}
+						
+						GMRFLib_density_tp ** lin_dens_local = NULL;
+						double * lin_cross_local = NULL;
+						COMPUTE_LINDENS_LOCAL(ai_store_id, GMRFLib_FALSE);
 
 						if (GMRFLib_ai_INLA_userfunc0) {
 							userfunc_values_local =
 							    GMRFLib_ai_INLA_userfunc0(thread_id, ai_store_id->problem, theta_local, nhyper);
 						}
 						tu = GMRFLib_cpu() - tref;
-// this construction is no good. it is possible to do this without the critical region, if initialize the storage with pool->nconfig, and then
-// fill then sparsely, and then 'compress them afterwards.
+
+// not the best, but at least now its all about storing only...
 #pragma omp critical (Name_36b1b7dfeb7a205ea072f283e7f5ed9408c3aca1)
 						{
 							int ii;
@@ -3989,7 +4005,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 									dens_transform[ii][dens_count] = dens_local_transform[ii];
 								}
 							}
-							COMPUTE_LINDENS(ai_store_id, GMRFLib_FALSE);
+							if (nlin) {
+								lin_dens[dens_count] = lin_dens_local;
+								if (lin_cross) {
+									lin_cross[dens_count] = lin_cross_local;
+								}
+							}
 							ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens);
 							if (cpo) {
 								for (i = 0; i < compute_n; i++) {
