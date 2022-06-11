@@ -4,6 +4,13 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.06.11}{
+  \subsection{CHANGES}{
+    \itemize Added more to \code{gcpo}-output
+    \itemize Code-improvement
+  }
+}
+
 \section{CHANGES IN VERSION 22.06.03}{
   \subsection{CHANGES}{
     \itemize Bug-fix release
