@@ -2469,9 +2469,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 #define COMPUTE_LINDENS(_store, _lookup_tables)				\
 	if (nlin) {							\
-		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
-		for(_i = 0; _i<graph->n; _i++) {			\
+		for(int _i = 0; _i<graph->n; _i++) {			\
 			if (dens && dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
 			} else {					\
@@ -2482,12 +2481,25 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		Free(_improved_mean);					\
 	}
 
+#define COMPUTE_LINDENS_LOCAL(_store, _lookup_tables)			\
+	if (nlin) {							\
+		double *_improved_mean = Calloc(graph->n, double);	\
+		for(int _i = 0; _i<graph->n; _i++) {			\
+			if (dens_local && dens_local[_i]){		\
+				_improved_mean[_i] = dens_local[_i]->user_mean; \
+			} else {					\
+				_improved_mean[_i] = _store->problem->mean_constr[_i]; \
+			}						\
+		}							\
+		GMRFLib_ai_compute_lincomb(&lin_dens_local, (lin_cross ? &lin_cross_local : NULL), nlin, Alin, _store, _improved_mean, _lookup_tables); \
+		Free(_improved_mean);					\
+	}
+
 #define ADD_CONFIG(_store, _theta, _log_posterior, _log_posterior_orig)	\
 	if (1) {							\
-		int _i;							\
 		double *_improved_mean = Calloc(graph->n, double);	\
 		double *_skewness = Calloc(graph->n, double);		\
-		for(_i = 0; _i<graph->n; _i++) {			\
+		for(int _i = 0; _i<graph->n; _i++) {			\
 			_skewness[_i] = NAN;				\
 			if (dens && dens[_i] && dens[_i][dens_count]){		\
 				_improved_mean[_i] = dens[_i][dens_count]->user_mean; \
@@ -3950,6 +3962,10 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 										   ai_par, ai_store_id, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 						}
+						
+						GMRFLib_density_tp ** lin_dens_local = NULL;
+						double * lin_cross_local = NULL;
+						COMPUTE_LINDENS_LOCAL(ai_store_id, GMRFLib_FALSE);
 
 						if (GMRFLib_ai_INLA_userfunc0) {
 							userfunc_values_local =
@@ -3957,6 +3973,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 						}
 						tu = GMRFLib_cpu() - tref;
 
+// not the best, but at least now its all about storing only...
 #pragma omp critical (Name_36b1b7dfeb7a205ea072f283e7f5ed9408c3aca1)
 						{
 							int ii;
@@ -3988,7 +4005,12 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 									dens_transform[ii][dens_count] = dens_local_transform[ii];
 								}
 							}
-							COMPUTE_LINDENS(ai_store_id, GMRFLib_FALSE);
+							if (nlin) {
+								lin_dens[dens_count] = lin_dens_local;
+								if (lin_cross) {
+									lin_cross[dens_count] = lin_cross_local;
+								}
+							}
 							ADD_CONFIG(ai_store_id, theta_local, log_dens, log_dens);
 							if (cpo) {
 								for (i = 0; i < compute_n; i++) {
@@ -6016,9 +6038,18 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			GMRFLib_density_create_normal(&lpred[i][dens_count], 0.0, 1.0, lpred_mean[i], sqrt(lpred_variance[i]), 0);
 		}
 
+		double *gcpodens_moments = NULL;
 		if (gcpo) {
+
+			if (misc_output->configs_preopt) {
+				gcpodens_moments = Calloc(3 * preopt->Npred, double);
+				for (int ii = 0; ii < 3 * preopt->Npred; ii++) {
+					gcpodens_moments[ii] = NAN;
+				}
+			}
+
 			gcpo_theta[dens_count] = GMRFLib_gcpo(thread_id, ai_store_id, lpred_mean, lpred_mode, lpred_variance, preopt, gcpo_groups,
-							      d, loglFunc, loglFunc_arg, ai_par, gcpo_param);
+							      d, loglFunc, loglFunc_arg, ai_par, gcpo_param, gcpodens_moments);
 		}
 
 		if (GMRFLib_ai_INLA_userfunc0) {
@@ -6031,7 +6062,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 
 		double *cpodens_moments = NULL;
-		if (misc_output->configs_preopt) {
+		if (misc_output->configs_preopt && cpo) {
 			cpodens_moments = Calloc(3 * preopt->Npred, double);
 			for (int ii = 0; ii < 3 * preopt->Npred; ii++) {
 				cpodens_moments[ii] = NAN;
@@ -6078,7 +6109,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 
 		GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
-					       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments);
+					       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments);
 
 		tu = GMRFLib_cpu() - tref;
 		if (ai_par->fp_log) {
@@ -7302,7 +7333,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
 				   double *lpred_variance, GMRFLib_preopt_tp * preopt,
 				   GMRFLib_gcpo_groups_tp * groups, double *d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param)
+				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param, double *gcpodens_moments)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
@@ -7540,6 +7571,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		gcpo[node]->kld =  0.5 * (SQR(gcpo[node]->lpred_sd) / lpred_variance[node] - 1.0 + \
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
+									\
+		if (gcpodens_moments) {					\
+			gcpodens_moments[node * 3 + 0] = gcpo[node]->lpred_mean; \
+			gcpodens_moments[node * 3 + 1] = SQR(gcpo[node]->lpred_sd); \
+			gcpodens_moments[node * 3 + 2] = gcpo[node]->marg_theta_correction; \
+		}							\
+									\
 		if (d[node]) {						\
 			/* do the integral by approximating phi(x)*exp(ll(x)) with a normal, and */ \
 			/* then do the GHQ with respect to that normal as the kernel, with the */ \
@@ -8500,7 +8538,8 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
-				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *cpodens_moments)
+				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *cpodens_moments,
+				   double *gcpodens_moments)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -8614,6 +8653,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo
 	cfg->log_posterior = log_posterior;		       /* may include integration weights */
 	cfg->log_posterior_orig = log_posterior_orig;	       /* do NOT include integration weights */
 	cfg->cpodens_moments = cpodens_moments;
+	cfg->gcpodens_moments = gcpodens_moments;
 	if (ntheta) {
 		cfg->theta = Calloc(ntheta, double);
 		Memcpy(cfg->theta, theta, ntheta * sizeof(double));

@@ -85,6 +85,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <stdlib.h>
 #if defined(WIN32) || defined(WINDOWS)
 #include <windows.h>
+#include <direct.h>
 #endif
 
 #include "inla.h"
@@ -8866,9 +8867,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -35210,8 +35211,21 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 					       (size_t) mo->configs_preopt[id]->nz, fp);
 					fwrite((void *) mo->configs_preopt[id]->config[i]->Qprior, sizeof(double),
 					       (size_t) mo->configs_preopt[id]->prior_nz, fp);
-					fwrite((void *) mo->configs_preopt[id]->config[i]->cpodens_moments, sizeof(double),
-					       (size_t) mo->configs_preopt[id]->Npred * 3, fp);
+
+					double output[2] = {
+						(mo->configs_preopt[id]->config[i]->cpodens_moments ? 1.0 : 0.0),
+						(mo->configs_preopt[id]->config[i]->gcpodens_moments ? 1.0 : 0.0)
+					};
+
+					fwrite((void *) output, sizeof(double), (size_t) 2L, fp);
+					if (output[0]) {
+						fwrite((void *) mo->configs_preopt[id]->config[i]->cpodens_moments, sizeof(double),
+						       (size_t) mo->configs_preopt[id]->Npred * 3, fp);
+					}
+					if (output[1]) {
+						fwrite((void *) mo->configs_preopt[id]->config[i]->gcpodens_moments, sizeof(double),
+						       (size_t) mo->configs_preopt[id]->Npred * 3, fp);
+					}
 				}
 			}
 		}
@@ -37160,14 +37174,14 @@ int testit(int argc, char **argv)
 
 		printf("Build matrix with dim = %1d\n", n);
 		double *A = Calloc(SQR(n), double);
-		for(int i = 0; i < n; i++) {
-			for(int j = i + 1; j < n; j++) {
+		for (int i = 0; i < n; i++) {
+			for (int j = i + 1; j < n; j++) {
 				int k = i + j * n;
 				int kk = j + i * n;
 				A[k] = A[kk] = GMRFLib_uniform();
 			}
 		}
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			int k = i + i * n;
 			A[k] = n + 1.0;
 		}

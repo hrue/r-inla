@@ -41,35 +41,26 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int integer_one = 1;
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
 
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
+		int integer_one = 1;					\
 		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
 			int istart_ = ELM_->g_i[g_];			\
 			int *ii_ = &(ELM_->idx[istart_]);		\
+			int len_ = ELM_->g_len[g_];			\
 			double *vv_ = &(ELM_->val[istart_]);		\
-			switch(ELM_->g_len[g_])				\
-			{						\
-			case 1:						\
-				value_ +=				\
-					vv_[0] * ARR_[ii_[0]];		\
-				break;					\
-			case 2:						\
-				value_ +=				\
-					vv_[0] * ARR_[ii_[0]] +		\
-					vv_[1] * ARR_[ii_[1]];		\
-				break;					\
-			case 3:						\
-				value_ +=				\
-					vv_[0] * ARR_[ii_[0]] +		\
-					vv_[1] * ARR_[ii_[1]] +		\
-					vv_[2] * ARR_[ii_[2]];		\
-				break;					\
-			default:					\
-				value_ += DDOT(ELM_->g_len[g_], vv_, &(ARR_[ii_[0]])); \
+			double *aa_ = &(ARR_[ii_[0]]);			\
+			if (len_ < 8) {					\
+				_Pragma("GCC ivdep")			\
+					_Pragma("GCC unroll 8")		\
+					for (int i_ = 0; i_ < len_; i_++) { \
+						value_ +=  vv_[i_] * aa_[i_]; \
+					}				\
+			} else {					\
+				value_ += DDOT(len_, vv_, aa_);		\
 			}						\
 		}							\
 		VALUE_ = value_;					\
@@ -78,10 +69,13 @@ int integer_one = 1;
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
+		double *vv_ = ELM_->val;				\
+		double *aa_ = ARR_;					\
+		int *idx_ = ELM_->idx;					\
 		_Pragma("GCC ivdep")					\
 			_Pragma("GCC unroll 8")				\
-			for (int i_= 0; i_ < ELM_->n; i_++) {		\
-				value_ += ELM_->val[i_] * ARR_[ELM_->idx[i_]]; \
+			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
+				value_ += vv_[i_] * aa_[idx_[i_]];	\
 			}						\
 		VALUE_ = value_;					\
 	}

@@ -554,8 +554,22 @@
                 Q <- readBin(fp, numeric(), configs$nz)
                 Qinv <- readBin(fp, numeric(), configs$nz)
                 Qprior <- readBin(fp, numeric(), configs$prior_nz)
-                cpodens.moments <- matrix(readBin(fp, numeric(), configs$Npred * 3), ncol = 3, byrow = TRUE)
+
+                output <- readBin(fp, numeric(), 2)
+                if (output[1]) {
+                    cpodens.moments <- matrix(readBin(fp, numeric(), configs$Npred * 3), ncol = 3, byrow = TRUE)
+                } else {
+                    cpodens.moments <- matrix(1, nrow = 0, ncol = 3)
+                }
                 colnames(cpodens.moments) <- c("mean", "variance", "skewness")
+
+                if (output[2]) {
+                    gcpodens.moments <- matrix(readBin(fp, numeric(), configs$Npred * 3), ncol = 3, byrow = TRUE)
+                } else {
+                    gcpodens.moments <- matrix(1, nrow = 0, ncol = 3)
+                }
+                colnames(gcpodens.moments) <- c("mean", "variance", "log.theta.correction")
+                
                 dif <- which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd <- configs.j[dif] ## yes, its the transpose part
@@ -610,7 +624,8 @@
                         index1 = FALSE,
                         repr = "C"
                     ),
-                    cpodens.moments = cpodens.moments
+                    cpodens.moments = cpodens.moments,
+                    gcpodens.moments = gcpodens.moments
                 )
             }
 
