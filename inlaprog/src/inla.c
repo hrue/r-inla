@@ -37240,6 +37240,11 @@ int testit(int argc, char **argv)
 
 	case 17:
 	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		printf("n = %d\t m = %d\n", m, n);
+		GMRFLib_preopt_test1(n, m);
 	}
 		break;
 

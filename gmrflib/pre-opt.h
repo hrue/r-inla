@@ -174,6 +174,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				     GMRFLib_problem_tp * problem, double *optional_mean);
 int GMRFLib_preopt_test(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp * preopt, double *like_b, double *like_c);
+int GMRFLib_preopt_test1(int n, int m);
 
 __END_DECLS
 #endif
