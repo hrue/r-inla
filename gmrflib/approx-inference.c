@@ -8247,7 +8247,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	for (int iter = 0; iter < niter; iter++) {
 		int update_MM = ((iter == 0) || !keep_MM);
-		double err_dx;
+		double err_dx = 0.0;
 		double ratio = NAN;
 		double time_grad = 0.0, time_hess = 0.0, time_ref_grad, time_ref_hess;
 
