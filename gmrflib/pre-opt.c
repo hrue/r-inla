@@ -55,7 +55,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 			double *aa_ = &(ARR_[ii_[0]]);			\
 			if (len_ < 5) {					\
 				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 8")		\
+					_Pragma("GCC unroll 4")		\
 					for (int i_ = 0; i_ < len_; i_++) { \
 						value_ +=  vv_[i_] * aa_[i_]; \
 					}				\

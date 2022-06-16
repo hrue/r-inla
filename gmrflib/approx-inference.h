@@ -1180,6 +1180,17 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id, GMRFLib_density_tp *** dens
 				      GMRFLib_graph_tp * graph,
 				      GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				      GMRFLib_preopt_tp * preopt);
+int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
+					  GMRFLib_density_tp *** density,
+					  int dens_count,
+					  double *UNUSED(c),
+					  double *d,
+					  GMRFLib_ai_param_tp * ai_par,
+					  GMRFLib_ai_store_tp * ai_store,
+					  GMRFLib_graph_tp * graph,
+					  GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+					  GMRFLib_preopt_tp * preopt);
+
 double GMRFLib_bfunc_eval(int thread_id, double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(int thread_id, double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
