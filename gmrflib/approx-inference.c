@@ -8765,15 +8765,11 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			for (int ii = 0; ii < vb_idx->n; ii++) {
 				printf("[%1d]Iter [%1d/%1d] delta[%1d] = %.12f\n", tn, iter, niter, ii, gsl_vector_get(delta, ii));
 			}
-			for (int ii = 0; ii < vb_idx->n; ii++) {
-				int i = vb_idx->idx[ii];
-				theta[ii] -= TRUNCATE(gsl_vector_get(delta, ii), -DELTA_LIMIT, DELTA_LIMIT);
-				printf("[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
-			}
 		}
 		for (int ii = 0; ii < vb_idx->n; ii++) {
+			int i = vb_idx->idx[ii];
 			theta[ii] -= TRUNCATE(gsl_vector_get(delta, ii), -DELTA_LIMIT, DELTA_LIMIT);
-			printf("iteration %d theta[%1d] = %.12f\n", iter, ii, theta[ii]);
+			if (debug) printf("[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
 		}
 	}
 
