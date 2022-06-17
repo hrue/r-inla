@@ -8521,10 +8521,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	double *sd_prev = Calloc_get(graph->n);
 	double *sd_orig = Calloc_get(graph->n);
 
-	double **cov_latent = Calloc(graph->n, double *);
-	for (int i = 0; i < graph->n; i++) {
-		cov_latent[i] = Calloc(graph->n, double);
-	}
+	//double **cov_latent = Calloc(graph->n, double *);
+	//for (int i = 0; i < graph->n; i++) {
+	//cov_latent[i] = Calloc(graph->n, double);
+        //}
 
 #define STORAGE_TYPE float
 	STORAGE_TYPE **S = Calloc(vb_idx->n, STORAGE_TYPE *);
@@ -8631,7 +8631,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			Memcpy(cov_latent[j], cov, graph->n * sizeof(double)); \
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
+		//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
 #undef CODE_BLOCK
 
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, problem, x_mean);
@@ -8659,7 +8659,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			A = preopt->A_idxval;
 		}
 
-#define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
+#define DOT_PRODUCT_SERIAL_OLD(VALUE_, ELM_, ARR_)			\
 		if (1) {						\
 			double value_ = 0.0;				\
 			double *vv_ = ELM_->val;			\
@@ -8673,7 +8673,23 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			VALUE_ = (typeof(VALUE_)) value_;		\
 		}
 
-#define COV_ETA_LATENT(value_, k_, i_) DOT_PRODUCT_SERIAL(value_, A[k_], cov_latent[i_])
+#define COV_ETA_LATENT_OLD(value_, k_, i_) DOT_PRODUCT_SERIAL(value_, A[k_], cov_latent[i_])
+
+#define DOT_PRODUCT_SERIAL(VALUE_, ELM_, IDX_)				\
+		if (1) {						\
+			int k_ = IDX_;					\
+			double value_ = 0.0;				\
+			double *vv_ = ELM_->val;			\
+			int *idx_ = ELM_->idx;				\
+			_Pragma("GCC ivdep")				\
+				_Pragma("GCC unroll 8")			\
+				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
+					value_ += vv_[i_] * GMRFLib_Qinv_get0(problem, k_, idx_[i_]); \
+				}					\
+			VALUE_ = (typeof(VALUE_)) value_;		\
+		}
+
+#define COV_ETA_LATENT(value_, k_, i_) DOT_PRODUCT_SERIAL(value_, A[k_], i_)
 
 		// store all Cov(eta_k, x_i)'s
 #define CODE_BLOCK							\
@@ -8692,21 +8708,20 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
 			int i = vb_idx->idx[ii];			\
 			double param_correction_i = c_like[i] * FUN_DERIV(theta[ii]); \
-			double *cov_latent_i = cov_latent[i];		\
 			double mell = 0.0;				\
 			for (int kk = 0; kk < d_idx->n; kk++) {		\
 				int k = d_idx->idx[kk];			\
 				double S_ki = (double) S[ii][kk];	\
 				mell += BB[k] * (-SQR(S_ki));		\
 			}						\
-			double ldet = cov_latent_i[i];			\
+			double ldet = GMRFLib_Qinv_get0(problem, i, i); \
 			double trace = 0.0;				\
 			for (int j = 0; j < graph->n; j++) {		\
-				trace += GMRFLib_preopt_Qfunc_prior(thread_id, j, j, NULL, Qfunc_arg) * (-SQR(cov_latent_i[j])); \
+				trace += GMRFLib_preopt_Qfunc_prior(thread_id, j, j, NULL, Qfunc_arg) * (-SQR(GMRFLib_Qinv_get0(problem, i, j))); \
 				for (int jjj = 0; jjj < graph->lnnbs[j]; jjj++) { \
 					int jj = graph->lnbs[j][jjj];	\
 					trace += 2.0 * GMRFLib_preopt_Qfunc_prior(thread_id, j, jj, NULL, Qfunc_arg) * \
-						(-cov_latent_i[j] * cov_latent_i[jj]); \
+						(- GMRFLib_Qinv_get0(problem, i, j) * GMRFLib_Qinv_get0(problem, i, jj)); \
 				}					\
 			}						\
 			gsl_vector_set(gradient, (size_t) ii, (mell + 0.5 * (trace + ldet)) * param_correction_i); \
@@ -8715,23 +8730,23 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				for (int jj = ii; jj < vb_idx->n; jj++) { \
 					int j = vb_idx->idx[jj];	\
 					double param_correction_j = c_like[j] * FUN_DERIV(theta[jj]);	\
-					double *cov_latent_j = cov_latent[j]; \
 					double mell = 0.0;		\
 					for (int kk = 0; kk < d_idx->n; kk++) {	\
 						int k = d_idx->idx[kk];	\
 						double S_ki = (double) S[ii][kk]; \
 						double S_kj = (double) S[jj][kk]; \
-						mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * cov_latent_i[j]; \
+						mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * GMRFLib_Qinv_get0(problem, i, j); \
 					}				\
-					double ldet = -SQR(cov_latent_i[j]); \
+					double ldet = -SQR(GMRFLib_Qinv_get0(problem, i, j)); \
 					double trace = 0.0;		\
 					for (int k = 0; k < graph->n; k++) { \
 						trace += GMRFLib_preopt_Qfunc_prior(thread_id, k, k, NULL, Qfunc_arg) * \
-							cov_latent_i[j] * cov_latent_i[k] * cov_latent_j[k]; \
+							GMRFLib_Qinv_get0(problem, i, j) * GMRFLib_Qinv_get0(problem, i, k) * GMRFLib_Qinv_get0(problem, j, k); \
 						for (int kkk = 0; kkk < graph->lnnbs[k]; kkk++) { \
 							int kk = graph->lnbs[k][kkk]; \
 							trace += GMRFLib_preopt_Qfunc_prior(thread_id, k, kk, NULL, Qfunc_arg) * \
-								cov_latent_i[j] * (cov_latent_i[k] * cov_latent_j[kk] + cov_latent_i[kk] * cov_latent_j[k]); \
+								GMRFLib_Qinv_get0(problem, i, j) * (GMRFLib_Qinv_get0(problem, i, k) * GMRFLib_Qinv_get0(problem, j, kk) + \
+												    GMRFLib_Qinv_get0(problem, i, kk) * GMRFLib_Qinv_get0(problem, j, k)); \
 						}			\
 					}				\
 					trace *= 2.0;			\

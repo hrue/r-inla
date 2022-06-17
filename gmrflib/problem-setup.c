@@ -1127,6 +1127,14 @@ double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j)
 	return map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
 }
 
+double GMRFLib_Qinv_get0(GMRFLib_problem_tp * problem, int i, int j)
+{
+	int ii = problem->sub_inverse->mapping[i];
+	int jj = problem->sub_inverse->mapping[j];
+	double *d = map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
+	return (d ? *d : 0.0);
+}
+
 int GMRFLib_make_empty_constr(GMRFLib_constr_tp ** constr)
 {
 	if (constr) {
