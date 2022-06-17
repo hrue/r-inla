@@ -8521,18 +8521,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	double *sd_prev = Calloc_get(graph->n);
 	double *sd_orig = Calloc_get(graph->n);
 
-	//double **cov_latent = Calloc(graph->n, double *);
-	//for (int i = 0; i < graph->n; i++) {
-	//cov_latent[i] = Calloc(graph->n, double);
-        //}
-
-//#define STORAGE_TYPE float
-//	STORAGE_TYPE **S = Calloc(vb_idx->n, STORAGE_TYPE *);
-//	for (int i = 0; i < vb_idx->n; i++) {
-//		S[i] = Calloc(d_idx->n, STORAGE_TYPE);
-//	}
-//#undef STORAGE_TYPE
-
 	gsl_vector *delta = gsl_vector_alloc(vb_idx->n);
 	gsl_vector *gradient = gsl_vector_alloc(vb_idx->n);
 	gsl_matrix *hessian = gsl_matrix_alloc(vb_idx->n, vb_idx->n);
@@ -8543,12 +8531,16 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #define FUN(theta_) (theta_)
 #define FUN_DERIV(th_) (1.0)
 	
+	for (int i = 0; i < graph->n; i++) {
+		sd_orig[i] = sd_prev[i] = sqrt(*GMRFLib_Qinv_get(ai_store->problem, i, i));
+	}
+
 	// the gradient of variance wrt theta (additive) is -var()^2, which sugguests c_like = 1/var()^2, but it seems a little to much. we add
 	// a scaleing depending on the marginal stdev and normalize them to unit geometric mean.
 	double csum = 0.0;
 	for (int jj = 0; jj < vb_idx->n; jj++) {
 		int j = vb_idx->idx[jj];
-		c_like[j] = 1.0 / sqrt(*GMRFLib_Qinv_get(ai_store->problem, j, j));
+		c_like[j] = 1.0 / sd_orig[j];
 		csum += log(c_like[j]);
 	}
 	csum = 1.0 / exp(csum/vb_idx->n);		       /* normalize the scalings */
@@ -8585,11 +8577,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		GMRFLib_set_error_handler(old_handler);
 		GMRFLib_Qinv(problem);
 
-		if (iter == 0) {
-			for (int i = 0; i < graph->n; i++) {
-				sd_orig[i] = sd_prev[i] = sqrt(*GMRFLib_Qinv_get(problem, i, i));
-			}
-		} else {
+		if (iter > 0) {
 			diff_sigma = 0.0;
 			for (int i = 0; i < graph->n; i++) {
 				double sd_new = sqrt(*GMRFLib_Qinv_get(problem, i, i));
