@@ -394,6 +394,7 @@ struct GMRFLib_store_struct {
 GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_store_tp *GMRFLib_duplicate_store(GMRFLib_store_tp * store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 double *GMRFLib_Qinv_get(GMRFLib_problem_tp * problem, int i, int j);
+double GMRFLib_Qinv_get0(GMRFLib_problem_tp * problem, int i, int j);
 double GMRFLib_Qfunc_generic(int thread_id, int i, int j, double *values, void *arg);
 double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double *values, void *arguments);
 int GMRFLib_Qinv(GMRFLib_problem_tp * problem);
