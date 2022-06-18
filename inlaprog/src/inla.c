@@ -28300,21 +28300,20 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 
 	mb->ai_par->vb_enable = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.ENABLE"), 0);
 	mb->ai_par->vb_verbose = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.VERBOSE"), 0);
-	mb->ai_par->vb_hyperpar_correct = iniparser_getboolean(ini, inla_string_join(secname, "CONTROL.VB.HYPERPAR.CORRECT"), 0);
-	mb->ai_par->vb_nodes = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
-	mb->ai_par->vb_max_correct = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.MAX.CORRECT"), 0.25);
-	mb->ai_par->vb_max_correct = DMAX(0.0, mb->ai_par->vb_max_correct);
-	mb->ai_par->vb_refinement = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.REFINEMENT"), 20);
-	mb->ai_par->vb_refinement = IMAX(0, mb->ai_par->vb_refinement);
-	mb->ai_par->vb_f_enable_limit = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT"), 20);
+	mb->ai_par->vb_nodes_mean = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
+	mb->ai_par->vb_nodes_variance = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
+	mb->ai_par->vb_iter_max = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.ITER.MAX"), 5);
+	mb->ai_par->vb_iter_max = IMAX(1, mb->ai_par->vb_iter_max);
+	mb->ai_par->vb_f_enable_limit_mean = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN"), 20);
+	mb->ai_par->vb_f_enable_limit_variance = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE"), 5);
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), NULL));
-	if (opt) {
-		if (!strcasecmp(opt, "MEAN")) {
-			mb->ai_par->vb_strategy = GMRFLib_AI_VB_MEAN;
-		} else {
-			inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
-		}
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), GMRFLib_strdup("MEAN")));
+	if (!strcasecmp(opt, "MEAN")) {
+		mb->ai_par->vb_strategy = GMRFLib_AI_VB_MEAN;
+	} else if (!strcasecmp(opt, "VARIANCE")) {
+		mb->ai_par->vb_strategy = GMRFLib_AI_VB_VARIANCE;
+	} else {
+		inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
 	}
 
 	// default value is set in main()
@@ -32629,8 +32628,8 @@ int inla_INLA(inla_tp * mb)
 
 	// VB correct 
 	char *vb_nodes = NULL;
-	local_count = 0;
 
+	local_count = 0;
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		if (mb->predictor_vb_correct) {
@@ -32647,7 +32646,7 @@ int inla_INLA(inla_tp * mb)
 		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -32664,7 +32663,43 @@ int inla_INLA(inla_tp * mb)
 			vb_nodes = NULL;
 		}
 	}
-	mb->ai_par->vb_nodes = vb_nodes;
+	mb->ai_par->vb_nodes_mean = vb_nodes;
+
+	local_count = 0;
+	if (mb->ai_par->vb_enable) {
+		vb_nodes = Calloc(N, char);
+		if (mb->predictor_vb_correct) {
+			// I think this is for testing only
+			if (mb->predictor_m == 0) {
+				for (i = 0; i < mb->predictor_n; i++) {
+					vb_nodes[i] = (char) 1;
+				}
+			} else {
+				for (i = 0; i < mb->predictor_m; i++) {
+					vb_nodes[i] = (char) 1;
+				}
+			}
+		}
+		count = mb->predictor_n + mb->predictor_m;
+		for (i = 0; i < mb->nf; i++) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_variance) || mb->f_vb_correct[i] > 0) {
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					vb_nodes[count + j] = (char) 1;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			vb_nodes[count++] = (char) 1;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(vb_nodes);
+			vb_nodes = NULL;
+		}
+	}
+	mb->ai_par->vb_nodes_variance = vb_nodes;
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
@@ -32932,7 +32967,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		vb_nodes = Calloc(N, char);
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -32949,7 +32984,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			vb_nodes = NULL;
 		}
 	}
-	mb->ai_par->vb_nodes = vb_nodes;
+	mb->ai_par->vb_nodes_mean = vb_nodes;
 
 	double tref = GMRFLib_cpu();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
@@ -33285,7 +33320,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		}
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -33302,7 +33337,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			vb_nodes = NULL;
 		}
 	}
-	mb->ai_par->vb_nodes = vb_nodes;
+	mb->ai_par->vb_nodes_mean = vb_nodes;
 
 	// define the adaptive strategy
 	GMRFLib_ai_strategy_tp *adapt = NULL;
@@ -33579,7 +33614,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		vb_nodes = Calloc(N, char);
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
-			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit) || mb->f_vb_correct[i] > 0) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean) || mb->f_vb_correct[i] > 0) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -33587,9 +33622,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			} else if (mb->f_vb_correct[i] < 0) {
 				// chose vb_f_enable_limit points for correction with random start
 				int len, k, jj;
-				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit);	/* integer division */
+				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
-				for (j = 0; j < mb->ai_par->vb_f_enable_limit; j++) {
+				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
 					local_count++;
@@ -33606,7 +33641,42 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			vb_nodes = NULL;
 		}
 	}
-	mb->ai_par->vb_nodes = vb_nodes;
+	mb->ai_par->vb_nodes_mean = vb_nodes;
+
+	local_count = 0;
+	if (mb->ai_par->vb_enable) {
+		vb_nodes = Calloc(N, char);
+		count = 0;
+		for (i = 0; i < mb->nf; i++) {
+			if ((mb->f_vb_correct[i] < 0 && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_variance) || mb->f_vb_correct[i] > 0) {
+				for (j = 0; j < mb->f_Ntotal[i]; j++) {
+					vb_nodes[count + j] = (char) 1;
+					local_count++;
+				}
+			} else if (mb->f_vb_correct[i] < 0) {
+				// chose vb_f_enable_limit points for correction with random start
+				int len, k, jj;
+				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
+				k = IMAX(1, len / 2);	       /* integer division */
+				for (j = 0; j < mb->ai_par->vb_f_enable_limit_variance; j++) {
+					jj = (j * len + k) % mb->f_Ntotal[i];
+					vb_nodes[count + jj] = (char) 1;
+					local_count++;
+				}
+			}
+			count += mb->f_Ntotal[i];
+		}
+		for (i = 0; i < mb->nlinear; i++) {
+			vb_nodes[count++] = (char) 1;
+			local_count++;
+		}
+		if (local_count == 0) {			       /* then there is nothting to correct for */
+			Free(vb_nodes);
+			vb_nodes = NULL;
+		}
+	}
+	mb->ai_par->vb_nodes_variance = vb_nodes;
+
 	double tref = GMRFLib_cpu();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,

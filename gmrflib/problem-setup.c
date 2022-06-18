@@ -1132,7 +1132,8 @@ double GMRFLib_Qinv_get0(GMRFLib_problem_tp * problem, int i, int j)
 	int ii = problem->sub_inverse->mapping[i];
 	int jj = problem->sub_inverse->mapping[j];
 	double *d = map_id_ptr(problem->sub_inverse->Qinv[IMIN(ii, jj)], IMAX(ii, jj));
-	if (d == NULL) printf("i j NULL %d %d\n", i, j);
+	if (d == NULL)
+		printf("i j NULL %d %d\n", i, j);
 	return (d ? *d : 0.0);
 }
 

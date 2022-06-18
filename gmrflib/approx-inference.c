@@ -191,13 +191,13 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	 * default is no correction of any kind
 	 */
 	(*ai_par)->vb_enable = 0;
-	(*ai_par)->vb_strategy = 0;
+	(*ai_par)->vb_strategy = GMRFLib_AI_VB_MEAN;
 	(*ai_par)->vb_verbose = 0;
-	(*ai_par)->vb_hyperpar_correct = 0;
-	(*ai_par)->vb_refinement = 25;
-	(*ai_par)->vb_max_correct = 0.25;
-	(*ai_par)->vb_f_enable_limit = 20;
-	(*ai_par)->vb_nodes = NULL;
+	(*ai_par)->vb_iter_max = 5;
+	(*ai_par)->vb_f_enable_limit_mean = 20;
+	(*ai_par)->vb_f_enable_limit_variance = 10;
+	(*ai_par)->vb_nodes_mean = NULL;
+	(*ai_par)->vb_nodes_variance = NULL;
 
 	return GMRFLib_SUCCESS;
 }
@@ -397,12 +397,12 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 
 	if (ai_par->vb_enable) {
 		fprintf(fp, "\tVB correction is [Enabled]\n");
-		fprintf(fp, "\t\tstrategy         = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ? "mean" : "unknown"));
-		fprintf(fp, "\t\tverbose          = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
-		fprintf(fp, "\t\tcorrect hyperpar = [%s]\n", (ai_par->vb_hyperpar_correct ? "Yes" : "No"));
-		fprintf(fp, "\t\trefinement       = [%1d]\n", ai_par->vb_refinement);
-		fprintf(fp, "\t\tmax_correct      = [%.2f]\n", ai_par->vb_max_correct);
-		fprintf(fp, "\t\tf_enable_limit   = [%1d]\n", ai_par->vb_f_enable_limit);
+		fprintf(fp, "\t\tstrategy            = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ? "mean" :
+							      (ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE ? "mean and variance" : "UNKNOWN")));
+		fprintf(fp, "\t\tverbose             = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
+		fprintf(fp, "\t\tf_enable_limit_mean = [%1d]\n", ai_par->vb_f_enable_limit_mean);
+		fprintf(fp, "\t\tf_enable_limit_var  = [%1d]\n", ai_par->vb_f_enable_limit_variance);
+		fprintf(fp, "\t\titer_max            = [%1d]\n", ai_par->vb_iter_max);
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
@@ -3601,7 +3601,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			}
 			Free(ai_store_id);
 
-			for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+			if (ai_par->vb_enable) {
 				GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL,
 							   c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg, loglFunc, loglFunc_arg, preopt);
 			}
@@ -3797,7 +3797,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					COMPUTE;
 					GMRFLib_free_density(cpodens);
 				}
-				for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+				if (ai_par->vb_enable) {
 					GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL,
 								   c, d, ai_par, ai_store_id, graph, tabQfunc->Qfunc,
 								   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, preopt);
@@ -3957,7 +3957,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 							COMPUTE_LOCAL;
 							GMRFLib_free_density(cpodens);
 						}
-						for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+						if (ai_par->vb_enable) {
 							GMRFLib_ai_vb_correct_mean(thread_id, NULL, -1, dens_local, c, d,
 										   ai_par, ai_store_id, graph, tabQfunc->Qfunc,
 										   tabQfunc->Qfunc_arg, loglFunc, loglFunc_arg, preopt);
@@ -4151,7 +4151,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		Free(ai_store_id);
 		Free(bnew);
 
-		for (i = 0; i < 1 + ai_par->vb_refinement; i++) {
+		if (ai_par->vb_enable) {
 			GMRFLib_ai_vb_correct_mean(thread_id, dens, dens_count, NULL, c, d, ai_par, ai_store, graph, Qfunc, Qfunc_arg,
 						   loglFunc, loglFunc_arg, preopt);
 		}
@@ -6017,16 +6017,19 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 		}
 
-		GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count,
-						  c, d, ai_par, ai_store_id, graph,
-						  (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-						  loglFunc, loglFunc_arg, preopt);
+		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN || ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
+			GMRFLib_ai_vb_correct_mean_preopt(thread_id, dens, dens_count,
+							  c, d, ai_par, ai_store_id, graph,
+							  (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
+							  loglFunc, loglFunc_arg, preopt);
+		}
 
-		GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
-						      c, d, ai_par, ai_store_id, graph,
-						      (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-						      loglFunc, loglFunc_arg, preopt);
-
+		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
+			GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
+							      c, d, ai_par, ai_store_id, graph,
+							      (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
+							      loglFunc, loglFunc_arg, preopt);
+		}
 
 		double *mean_corrected = Calloc(graph->n, double);
 		double *lpred_mean = Calloc(preopt->mnpred, double);
@@ -7918,8 +7921,9 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 
 	int i, j;
 	double one = 1.0, mone = -1.0, zero = 0.0;
+	double max_correct = 1.0;
 
-	if (!(ai_par->vb_enable && ai_par->vb_nodes))
+	if (!(ai_par->vb_enable && ai_par->vb_nodes_mean))
 		return GMRFLib_SUCCESS;
 
 	// need the idx's for the vb correction and the data locations
@@ -7928,7 +7932,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 	GMRFLib_idx_create(&vb_idx);
 	assert(vb_idx);
 	for (i = 0; i < graph->n; i++) {
-		if (ai_par->vb_nodes[i]) {
+		if (ai_par->vb_nodes_mean[i]) {
 			GMRFLib_idx_add(&vb_idx, i);
 		}
 	}
@@ -8057,12 +8061,10 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
 		int num_trunc = 0;
-		if (ai_par->vb_max_correct > 0) {
-			for (i = 0; i < graph->n; i++) {
-				if (ABS(gsl_vector_get(delta_mu, i) / sd[i]) > ai_par->vb_max_correct) {
-					gsl_vector_set(delta_mu, i, ai_par->vb_max_correct * sd[i] * SIGN(gsl_vector_get(delta_mu, i)));
-					num_trunc++;
-				}
+		for (i = 0; i < graph->n; i++) {
+			if (ABS(gsl_vector_get(delta_mu, i) / sd[i]) > max_correct) {
+				gsl_vector_set(delta_mu, i, max_correct * sd[i] * SIGN(gsl_vector_get(delta_mu, i)));
+				num_trunc++;
 			}
 		}
 
@@ -8084,8 +8086,8 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 		if (ai_par->vb_verbose) {
 			printf("\tVB correct with strategy [mean] in [%.3f]seconds\n", GMRFLib_cpu() - tref);
 			printf("\t\tNumber of nodes corrected for [%1d]\n", (int) delta->size);
-			printf("\t\tRefinement [%1d]\n", (int) ai_par->vb_refinement);
-			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, ai_par->vb_max_correct);
+			printf("\t\tIter.max [%1d]\n", (int) ai_par->vb_iter_max);
+			printf("\t\tNumber of corrections truncated [%1d] with max.correct[%.2f]\n", num_trunc, max_correct);
 			for (jj = 0; jj < vb_idx->n; jj++) {
 				j = vb_idx->idx[jj];
 				printf("\t\tNode[%1d] delta[%.3f] correction[%.3f] correction/stdev[%.3f]\n",
@@ -8151,13 +8153,14 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
 	int keep_MM = 1, ratio_ok = 0;
 
-	int niter = 1 + ai_par->vb_refinement;
+	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
+	double max_correct = 1.0;
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
-	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
+	if (!(ai_par->vb_enable && ai_par->vb_nodes_mean)) {
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
@@ -8166,7 +8169,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
 
 	for (int i = 0; i < graph->n; i++) {
-		if (ai_par->vb_nodes[i]) {
+		if (ai_par->vb_nodes_mean[i]) {
 			GMRFLib_idx_add(&vb_idx, i);
 		}
 	}
@@ -8365,13 +8368,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
-		double mc = ai_par->vb_max_correct;
 		for (int i = 0, err_dx = 0.0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
 			err_dx += SQR(dx[i] / sd[i]);
 			// truncate individual components
-			if (ABS(dx[i]) > sd[i] * mc) {
-				dx[i] = mc * sd[i] * SIGN(dx[i]);
+			if (ABS(dx[i]) > sd[i] * max_correct) {
+				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
 		err_dx = sqrt(err_dx / graph->n);
@@ -8453,13 +8455,11 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_ENTER_ROUTINE;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
 
-	int niter = 1 + ai_par->vb_refinement;
+	int niter = ai_par->vb_iter_max;
 	int debug = 1 || GMRFLib_DEBUG_IF();
 	int tn = omp_get_thread_num();
-		
-	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
-	if (!(ai_par->vb_enable && ai_par->vb_nodes)) {
+	if (!(ai_par->vb_enable && ai_par->vb_nodes_variance)) {
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
 	}
@@ -8468,7 +8468,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_idx_tp *vb_idx = NULL, *d_idx = NULL;
 
 	for (int i = 0; i < graph->n; i++) {
-		if (ai_par->vb_nodes[i]) {
+		if (ai_par->vb_nodes_variance[i]) {
 			GMRFLib_idx_add(&vb_idx, i);
 		}
 	}
@@ -8497,8 +8497,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 	}
 
-	GMRFLib_density_tp **dens_local = NULL;
-	dens_local = Calloc(preopt->Npred, GMRFLib_density_tp *);
 	double *BB = Calloc_get(preopt->Npred);
 	double *CC = Calloc_get(preopt->Npred);
 
@@ -8512,7 +8510,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	Memcpy(like_b_save, preopt->like_b[thread_id], preopt->Npred * sizeof(double));
 	Memcpy(like_c_save, preopt->like_c[thread_id], preopt->Npred * sizeof(double));
 
-	GMRFLib_tabulate_Qfunc_core(thread_id, &tabQ, graph, Qfunc, Qfunc_arg, NULL, 1);
 	GMRFLib_tabulate_Qfunc_core(thread_id, &prior, preopt->latent_graph, GMRFLib_preopt_Qfunc_prior, Qfunc_arg, NULL, 1);
 
 	double *theta = Calloc_get(vb_idx->n);
@@ -8529,8 +8526,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	gsl_matrix_set_zero(hessian);
 
 #define FUN(theta_) (theta_)
-#define FUN_DERIV(th_) (1.0)
-	
+#define FUN_DERIV(theta_) (1.0)
+
 	for (int i = 0; i < graph->n; i++) {
 		sd_orig[i] = sd_prev[i] = sqrt(*GMRFLib_Qinv_get(ai_store->problem, i, i));
 	}
@@ -8543,17 +8540,36 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		c_like[j] = 1.0 / sd_orig[j];
 		csum += log(c_like[j]);
 	}
-	csum = 1.0 / exp(csum/vb_idx->n);		       /* normalize the scalings */
+	csum = 1.0 / exp(csum / vb_idx->n);		       /* normalize the scalings */
 	for (int jj = 0; jj < vb_idx->n; jj++) {
 		int j = vb_idx->idx[jj];
 		c_like[j] *= csum;
 	}
-	
-	int update_hessian = 4;				       /* update it 'k' times */
+
+	int update_hessian = 2;				       /* update it 'k' times */
 	double tref = GMRFLib_cpu();
 	double diff_sigma = 0.0;
 	double diff_sigma_limit = 0.001;
 	GMRFLib_problem_tp *problem = NULL;
+
+
+	// can define shorter storage, but it should be fine really, I hope
+//#define STORAGE_TP float
+//#define TYPE_CAST (double)
+#define STORAGE_TP double
+#define STORAGE_TYPE_CAST 
+
+	printf("\tStore COV_ETA_LATENT in %.2fMb\n", d_idx->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0));
+	printf("\tStore COV_LATENT in %.2fMb\n", graph->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0));
+
+	STORAGE_TP **cov_eta_latent_store = Calloc(d_idx->n, STORAGE_TP *);
+	for(int kk = 0; kk < d_idx->n; kk++) {
+		cov_eta_latent_store[kk] = Calloc(vb_idx->n, STORAGE_TP);
+	}
+	STORAGE_TP **cov_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
+	for(int ii = 0; ii < vb_idx->n; ii++) {
+		cov_latent_store[ii] = Calloc(graph->n, STORAGE_TP);
+	}
 
 	for (int iter = 0; iter < niter + 1; iter++) {	       /* yes, +1 */
 
@@ -8569,7 +8585,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 
 		GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-		int retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg, ai_store->problem->sub_constr);
+		int retval =
+		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg, ai_store->problem->sub_constr);
 		if (retval != GMRFLib_SUCCESS) {
 			problem = NULL;
 			break;
@@ -8581,7 +8598,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			diff_sigma = 0.0;
 			for (int i = 0; i < graph->n; i++) {
 				double sd_new = sqrt(*GMRFLib_Qinv_get(problem, i, i));
-				diff_sigma += 0.5 * ( SQR(sd_new / sd_prev[i]) - 1.0 + 2.0 * log(sd_prev[i] / sd_new));
+				diff_sigma += 0.5 * (SQR(sd_new / sd_prev[i]) - 1.0 + 2.0 * log(sd_prev[i] / sd_new));
 				sd_prev[i] = sd_new;
 			}
 			diff_sigma = sqrt(diff_sigma / graph->n);
@@ -8595,7 +8612,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				if (pass) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
 						int j = vb_idx->idx[jj];
-						printf("\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]), 
+						printf("\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]),
 						       sd_prev[j] / sd_orig[j], sd_prev[j]);
 					}
 					printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
@@ -8606,34 +8623,22 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				break;
 			}
 		}
-
-#define CODE_BLOCK							\
-		for (int jj = 0; jj < vb_idx->n; jj++) {		\
-			int j = vb_idx->idx[jj];			\
-			double *b = CODE_BLOCK_WORK_PTR(0);		\
-			double *cov = CODE_BLOCK_WORK_PTR(1);		\
-			CODE_BLOCK_WORK_ZERO(0);			\
-			b[j] = 1.0;					\
-			GMRFLib_Qsolve(cov, b, problem);		\
-			Memcpy(cov_latent[j], cov, graph->n * sizeof(double)); \
-		}
-
-		//RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
-#undef CODE_BLOCK
-
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, problem, x_mean);
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
+			GMRFLib_density_tp *dens_local = NULL;		\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
-			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
+			GMRFLib_density_create_normal(&dens_local, 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
+			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, dens_local, d[i], loglFunc, loglFunc_arg, x_mean); \
 			if (debug && 0) {				\
-				printf("[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", tn, i, \
+				printf("\t[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", tn, i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
+			GMRFLib_free_density(dens_local);		\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -8646,84 +8651,149 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			A = preopt->A_idxval;
 		}
 
+		int UNUSED(integer_one) = 1;
+// this one is the same as in pre-opt.c
+#define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
+#define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
+	if (1) {							\
+		double value_ = 0.0;					\
+		int integer_one = 1;					\
+		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
+			int istart_ = ELM_->g_i[g_];			\
+			int *ii_ = &(ELM_->idx[istart_]);		\
+			int len_ = ELM_->g_len[g_];			\
+			double *vv_ = &(ELM_->val[istart_]);		\
+			double *aa_ = &(ARR_[ii_[0]]);			\
+			if (len_ < 5) {					\
+				_Pragma("GCC ivdep")			\
+					_Pragma("GCC unroll 4")		\
+					for (int i_ = 0; i_ < len_; i_++) { \
+						value_ +=  vv_[i_] * aa_[i_]; \
+					}				\
+			} else {					\
+				value_ += DDOT(len_, vv_, aa_);		\
+			}						\
+		}							\
+		VALUE_ = (typeof(VALUE_)) value_;			\
+	}
+		
+// this one is the same as in pre-opt.c
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 		if (1) {						\
 			double value_ = 0.0;				\
 			double *vv_ = ELM_->val;			\
-			double *aa = ARR_;				\
+			double *aa_ = ARR_;				\
 			int *idx_ = ELM_->idx;				\
 			_Pragma("GCC ivdep")				\
 				_Pragma("GCC unroll 8")			\
 				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
-					value_ += vv_[i_] * aa[idx_[i_]]; \
+					value_ += vv_[i_] * aa_[idx_[i_]]; \
 				}					\
 			VALUE_ = (typeof(VALUE_)) value_;		\
 		}
 
+//#define COV_ETA_LATENT(value_, k_, cov_latent_) DOT_PRODUCT_GROUP(value_, A[k_], cov_latent_)
 #define COV_ETA_LATENT(value_, k_, cov_latent_) DOT_PRODUCT_SERIAL(value_, A[k_], cov_latent_)
 
-#define COMPUTE_COV_LATENT(cov_latent_, j_)				\
-	if (1) {							\
-		int _j = j_;						\
-		double *_bb = Calloc(graph->n, double);			\
-		_bb[_j] = 1.0;						\
-		GMRFLib_Qsolve(cov_latent_, _bb, problem);		\
-		Free(_bb);						\
-	}
-		
+#define COMPUTE_COV_LATENT(cov_latent_, j_, b_)				\
+		if (1) {						\
+			int _j = j_;					\
+			Memset(b_, 0, graph->n * sizeof(double));	\
+			b_[_j] = 1.0;					\
+			GMRFLib_Qsolve(cov_latent_, b_, problem);	\
+		}
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
 			int i = vb_idx->idx[ii];			\
 			double *cov_latent_i = CODE_BLOCK_WORK_PTR(0);	\
-			double *cov_latent_j = CODE_BLOCK_WORK_PTR(1);	\
-			double *S_ki_s = CODE_BLOCK_WORK_PTR(2);	\
+			double *b_i = CODE_BLOCK_WORK_PTR(1);		\
+			COMPUTE_COV_LATENT(cov_latent_i, i, b_i);	\
+									\
+			if (sizeof(STORAGE_TP) == sizeof(double)) {	\
+				Memcpy(cov_latent_store[ii], cov_latent_i, graph->n * sizeof(double)); \
+			} else {					\
+				for(int k = 0; k < graph->n; k++) {	\
+					cov_latent_store[ii][k] = (typeof(STORAGE_TP)) cov_latent_i[k];	\
+				}					\
+			}						\
+									\
+			for (int kk = 0; kk < d_idx->n; kk++) {		\
+				int k = d_idx->idx[kk];			\
+				COV_ETA_LATENT(cov_eta_latent_store[kk][ii], k, cov_latent_i); \
+			}						\
+		}
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
+#undef CODE_BLOCK
+		
+#define CODE_BLOCK							\
+		for (int ii = 0; ii < vb_idx->n; ii++) {		\
+			int i = vb_idx->idx[ii];			\
+			STORAGE_TP *cov_latent_i = cov_latent_store[ii]; \
+			STORAGE_TP *cov_latent_j = NULL;		\
+			double *values= CODE_BLOCK_WORK_PTR(0);		\
 			double param_correction_i = c_like[i] * FUN_DERIV(theta[ii]); \
 			double mell = 0.0;				\
-			COMPUTE_COV_LATENT(cov_latent_i, i);		\
 			for (int kk = 0; kk < d_idx->n; kk++) {		\
 				int k = d_idx->idx[kk];			\
 				double S_ki;				\
-				COV_ETA_LATENT(S_ki, k, cov_latent_i);	\
-				S_ki_s[kk] = S_ki;			\
+				S_ki = STORAGE_TYPE_CAST cov_eta_latent_store[kk][ii]; \
 				mell += BB[k] * (-SQR(S_ki));		\
 			}						\
-			double ldet = GMRFLib_Qinv_get0(problem, i, i); \
-			double trace = 0.0;				\
+			double ldet = STORAGE_TYPE_CAST cov_latent_i[i];		\
+			double trace0 = 0.0;				\
+			double trace1 = 0.0;				\
 			for (int j = 0; j < preopt->latent_graph->n; j++) { \
-				trace += GMRFLib_preopt_Qfunc_prior(thread_id, j, j, NULL, Qfunc_arg) * (-SQR(cov_latent_i[j])); \
+				prior->Qfunc(thread_id, j, -1, values, prior->Qfunc_arg); \
+				trace0 += values[0] * (-SQR(STORAGE_TYPE_CAST cov_latent_i[j])); \
+				double trace_tmp = 0.0;			\
 				for (int jjj = 0; jjj < preopt->latent_graph->lnnbs[j]; jjj++) { \
 					int jj = preopt->latent_graph->lnbs[j][jjj]; \
-					trace += 2.0 * GMRFLib_preopt_Qfunc_prior(thread_id, j, jj, NULL, Qfunc_arg) * (- cov_latent_i[j] * cov_latent_i[jj]); \
+					trace_tmp += values[1 + jjj] * (- STORAGE_TYPE_CAST cov_latent_i[jj]); \
 				}					\
+				trace1 += 2.0 * STORAGE_TYPE_CAST cov_latent_i[j] * trace_tmp; \
 			}						\
-			gsl_vector_set(gradient, (size_t) ii, (mell + 0.5 * (trace + ldet)) * param_correction_i); \
-			if (debug) printf("[%1d] iter[%1d/%1d] gradient[%1d] = %f\n", tn, iter, niter, ii, gsl_vector_get(gradient, (size_t) ii)); \
+			gsl_vector_set(gradient, (size_t) ii, (mell + 0.5 * (trace0 + trace1 + ldet)) * param_correction_i); \
+			if (debug) {					\
+				printf("\t[%1d]Iter [%1d/%1d] gradient[%1d] = %f\n", tn, iter, niter, ii, gsl_vector_get(gradient, (size_t) ii)); \
+			}						\
 			if (iter == 0 || (iter < update_hessian)) {	\
+				if (debug && ii == 0) {			\
+					printf("\t[%1d]Iter [%1d/%1d] update hessian\n", tn, iter, niter); \
+				}					\
 				for (int jj = ii; jj < vb_idx->n; jj++) { \
 					int j = vb_idx->idx[jj];	\
-					COMPUTE_COV_LATENT(cov_latent_j, j); \
-					double param_correction_j = c_like[j] * FUN_DERIV(theta[jj]);	\
+					double C1 = STORAGE_TYPE_CAST cov_latent_i[j]; \
+					cov_latent_j = cov_latent_store[jj]; \
+					double param_correction_j = c_like[j] * FUN_DERIV(theta[jj]); \
 					double mell = 0.0;		\
 					for (int kk = 0; kk < d_idx->n; kk++) {	\
 						int k = d_idx->idx[kk];	\
-						double S_ki = S_ki_s[kk]; \
-						double S_kj;		\
-						COV_ETA_LATENT(S_kj, k, cov_latent_j); \
-						mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * cov_latent_i[j]; \
+						double S_ki = STORAGE_TYPE_CAST cov_eta_latent_store[kk][ii]; \
+						double S_kj = STORAGE_TYPE_CAST cov_eta_latent_store[kk][jj]; \
+						mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * C1; \
 					}				\
-					double ldet = -SQR(cov_latent_i[j]); \
-					double trace = 0.0;		\
+					double ldet = -SQR(STORAGE_TYPE_CAST cov_latent_i[j]); \
+					double trace0 = 0.0;		\
+					double trace1 = 0.0;		\
 					for (int k = 0; k < preopt->latent_graph->n; k++) { \
-						trace += GMRFLib_preopt_Qfunc_prior(thread_id, k, k, NULL, Qfunc_arg) * cov_latent_i[j] * cov_latent_i[k] * cov_latent_j[k]; \
+						double C2 = STORAGE_TYPE_CAST cov_latent_i[k]; \
+						double C3 = STORAGE_TYPE_CAST cov_latent_j[k]; \
+						prior->Qfunc(thread_id, k, -1, values, prior->Qfunc_arg); \
+						trace0 += values[0] * C2 * C3; \
+						double trace_tmp = 0.0;	\
 						for (int kkk = 0; kkk < preopt->latent_graph->lnnbs[k]; kkk++) { \
 							int kk = preopt->latent_graph->lnbs[k][kkk]; \
-							trace += GMRFLib_preopt_Qfunc_prior(thread_id, k, kk, NULL, Qfunc_arg) * \
-								cov_latent_i[j] * (cov_latent_i[k] * cov_latent_j[kk] + cov_latent_i[kk] * cov_latent_j[k]); \
+							trace_tmp += values[1 + kkk] * (C2 * STORAGE_TYPE_CAST cov_latent_j[kk] + C3 * STORAGE_TYPE_CAST cov_latent_i[kk]); \
 						}			\
+						trace1 += trace_tmp;	\
 					}				\
-					trace *= 2.0;			\
-					double val = (mell + 0.5 * (trace + ldet)) * param_correction_i * param_correction_j; \
-					if (ii == jj) val = DMAX(0.0, val); \
+					trace0 *= 2.0 * C1;		\
+					trace1 *= 2.0 * C1;		\
+					double val = (mell + 0.5 * (trace0 + trace1 + ldet)) * param_correction_i * param_correction_j; \
+					if (ii == jj) {			\
+						val = DMAX(0.0, val);	\
+					}				\
 					gsl_matrix_set(hessian, (size_t) ii, (size_t) jj, val);	\
 					gsl_matrix_set(hessian, (size_t) jj, (size_t) ii, val);	\
 				}					\
@@ -8732,17 +8802,14 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		if (iter == 0 || (iter < update_hessian)) {
 			// as we have a triagular double loop
-			RUN_CODE_BLOCK_DYNAMIC(GMRFLib_MAX_THREADS(), 3, IMAX(d_idx->n, graph->n));
+			RUN_CODE_BLOCK_DYNAMIC(GMRFLib_MAX_THREADS(), 1, graph->n);
 		} else {
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, IMAX(d_idx->n, graph->n));
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, graph->n);
 		}
 #undef CODE_BLOCK
 
 		if (iter == 0 || update_hessian) {
-			// in this case, keep the inv of MM through the iterations
-			if (update_hessian) {
-				GMRFLib_gsl_spd_inv(hessian, GMRFLib_eps(1.0 / 3.0));
-			}
+			GMRFLib_gsl_spd_inv(hessian, GMRFLib_eps(1.0 / 3.0));
 		}
 
 		double one = 1.0, zero = 0.0;
@@ -8750,23 +8817,49 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		if (debug) {
 			for (int ii = 0; ii < vb_idx->n; ii++) {
-				printf("[%1d]Iter [%1d/%1d] delta[%1d] = %.12f\n", tn, iter, niter, ii, gsl_vector_get(delta, ii));
+				printf("\t[%1d]Iter [%1d/%1d] delta[%1d] = %.12f\n", tn, iter, niter, ii, gsl_vector_get(delta, ii));
 			}
 		}
 		for (int ii = 0; ii < vb_idx->n; ii++) {
 			int i = vb_idx->idx[ii];
 			theta[ii] -= gsl_vector_get(delta, ii);
-			if (debug) printf("[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
+			if (debug)
+				printf("\t[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
 		}
 	}
 
-	GMRFLib_free_problem(ai_store->problem);
-	ai_store->problem = problem;
-	
+	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save);
+	if (problem) {
+		GMRFLib_free_problem(ai_store->problem);
+		ai_store->problem = problem;
+		for (int i = 0; i < graph->n; i++) {
+			if (density[i][dens_count]) {
+				GMRFLib_density_new_user_stdev(density[i][dens_count], sd_prev[i]);
+			}
+		}
+	}
+
+	if (cov_eta_latent_store) {
+		for(int kk = 0; kk < d_idx->n; kk++) {
+			Free(cov_eta_latent_store[kk]);
+		}
+		Free(cov_eta_latent_store);
+	}
+	if (cov_latent_store) {
+		for(int ii = 0; ii < vb_idx->n; ii++) {
+			Free(cov_latent_store[ii]);
+		}
+		Free(cov_latent_store);
+	}
+
 #undef FUN
 #undef FUN_DERIV
-#undef DELTA_LIMIT
 
+	gsl_matrix_free(hessian);
+	gsl_vector_free(delta);
+	gsl_vector_free(gradient);
+
+	GMRFLib_free_tabulate_Qfunc(prior);
 	GMRFLib_idx_free(d_idx);
 	GMRFLib_idx_free(vb_idx);
 	Calloc_free();

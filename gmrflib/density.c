@@ -1353,6 +1353,17 @@ int GMRFLib_density_new_user_mean(GMRFLib_density_tp * density, double new_user_
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_density_new_user_stdev(GMRFLib_density_tp * density, double new_user_stdev)
+{
+	assert(density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN);
+	if (density) {
+		double diff = new_user_stdev / density->user_stdev;
+		density->stdev *= diff;
+		density->user_stdev *= diff;
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 {
 	/*

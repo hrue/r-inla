@@ -112,7 +112,9 @@ typedef enum {
 } GMRFLib_ai_strategy_tp;
 
 typedef enum {
-	GMRFLib_AI_VB_MEAN = 0
+	GMRFLib_AI_VB_INVALID = 0, 
+	GMRFLib_AI_VB_MEAN, 
+	GMRFLib_AI_VB_VARIANCE
 } GMRFLib_ai_vb_strategy_tp;
 
 typedef enum {
@@ -539,29 +541,21 @@ typedef struct {
 	int vb_verbose;
 
 	/**
-	 * \brief Correct the log-density of the hyperparameters?
-	 */
-	int vb_hyperpar_correct;
-
-	/**
 	 * \brief Number of extra refinement iterations (>= 0)
 	 */
-	int vb_refinement;
-
-	/**
-	 * \brief Maximum allowed correction (=1.0)
-	 */
-	double vb_max_correct;
+	int vb_iter_max;
 
 	/**
 	 * \brief N-limit when to enable a f() component
 	 */
-	int vb_f_enable_limit;
+	int vb_f_enable_limit_mean;
+	int vb_f_enable_limit_variance;
 
 	/**
 	 * \brief List of nodes to VB correct for, if any.
 	 */
-	char *vb_nodes;
+	char *vb_nodes_mean;
+	char *vb_nodes_variance;
 
 	/** 
 	 * Try to be smart when optimizing in INLA?   

@@ -436,8 +436,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			}
 
 			int new_n = 0;
-			for(int i = 0, j = 0; i < hold_n; i++) {
-				if (!(ISNAN(hold_func[i]) || ISINF(hold_func[i]))){
+			for (int i = 0, j = 0; i < hold_n; i++) {
+				if (!(ISNAN(hold_func[i]) || ISINF(hold_func[i]))) {
 					hold_alpha[j] = hold_alpha[i];
 					hold_func[j] = hold_func[i];
 					j++;
@@ -447,8 +447,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 			hold_n = new_n;
 
 			new_n = 0;
-			for(int i = 0, j = 0; i < hold_dn; i++) {
-				if (!(ISNAN(hold_dfunc[i]) || ISINF(hold_dfunc[i]))){
+			for (int i = 0, j = 0; i < hold_dn; i++) {
+				if (!(ISNAN(hold_dfunc[i]) || ISINF(hold_dfunc[i]))) {
 					hold_dalpha[j] = hold_dalpha[i];
 					hold_dfunc[j] = hold_dfunc[i];
 					j++;

@@ -63,7 +63,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 				value_ += DDOT(len_, vv_, aa_);		\
 			}						\
 		}							\
-		VALUE_ = value_;					\
+		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
 
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
@@ -77,7 +77,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
 				value_ += vv_[i_] * aa_[idx_[i_]];	\
 			}						\
-		VALUE_ = value_;					\
+		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
@@ -1368,14 +1368,14 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
 	return cpu;
 }
 
-int GMRFLib_preopt_test1(int n, int m) 
+int GMRFLib_preopt_test1(int n, int m)
 {
 	int k = 0;
 	GMRFLib_idxval_tp *idxval = NULL;
 	for (int i = 0; i < n; i++) {
 		int mm = (int) (GMRFLib_uniform() * (m + 1.0));
-		for(int j = 0; j < mm; j++) {
-			GMRFLib_idxval_add(&idxval, k+j, GMRFLib_uniform());
+		for (int j = 0; j < mm; j++) {
+			GMRFLib_idxval_add(&idxval, k + j, GMRFLib_uniform());
 		}
 		k += mm + 10;
 
@@ -1385,7 +1385,7 @@ int GMRFLib_preopt_test1(int n, int m)
 	GMRFLib_idxval_sort(idxval);
 
 	double *x = Calloc(n, double);
-	for(int i = 0; i < k; i++) {
+	for (int i = 0; i < k; i++) {
 		x[i] = GMRFLib_uniform();
 	}
 
@@ -1400,7 +1400,7 @@ int GMRFLib_preopt_test1(int n, int m)
 		DOT_PRODUCT_GROUP(val, idxval, x);
 		printf("group \t%f %f\n", tref + GMRFLib_cpu(), val);
 	}
-	
+
 	Free(x);
 	GMRFLib_idxval_free(idxval);
 
