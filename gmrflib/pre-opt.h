@@ -44,6 +44,53 @@
 
 __BEGIN_DECLS
 
+#define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
+
+#define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
+	if (1) {							\
+		double value_ = 0.0;					\
+		int integer_one = 1;					\
+		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
+			int istart_ = ELM_->g_i[g_];			\
+			int *ii_ = &(ELM_->idx[istart_]);		\
+			int len_ = ELM_->g_len[g_];			\
+			double *vv_ = &(ELM_->val[istart_]);		\
+			double *aa_ = &(ARR_[ii_[0]]);			\
+			if (len_ < 5) {					\
+				_Pragma("GCC ivdep")			\
+					_Pragma("GCC unroll 4")		\
+					for (int i_ = 0; i_ < len_; i_++) { \
+						value_ +=  vv_[i_] * aa_[i_]; \
+					}				\
+			} else {					\
+				value_ += DDOT(len_, vv_, aa_);		\
+			}						\
+		}							\
+		VALUE_ = (typeof(VALUE_)) value_;			\
+	}
+
+#define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
+	if (1) {							\
+		double value_ = 0.0;					\
+		double *vv_ = ELM_->val;				\
+		double *aa_ = ARR_;					\
+		int *idx_ = ELM_->idx;					\
+		_Pragma("GCC ivdep")					\
+			_Pragma("GCC unroll 8")				\
+			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
+				value_ += vv_[i_] * aa_[idx_[i_]];	\
+			}						\
+		VALUE_ = (typeof(VALUE_)) value_;			\
+	}
+
+#define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
+	if (GMRFLib_preopt_like_strategy == 0) {	\
+		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
+	} else {					\
+		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
+	}
+
+
 /* 
  * 
  */

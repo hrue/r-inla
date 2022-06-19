@@ -1054,6 +1054,7 @@
                           choices = tolower(inla.set.control.inla.default()$control.vb$strategy),
                           several.ok = FALSE)
     cat("control.vb.strategy = ", strategy, "\n", file = file, append = TRUE)
+    cat("control.vb.update.hessian = ", max(1, round(inla.spec$control.vb$update.hessian)), "\n", file = file, append = TRUE)
 
     lim <- inla.spec$control.vb$f.enable.limit
     if (length(lim) == 1) lim <- c(lim[1], ceiling(sqrt(lim[1])))

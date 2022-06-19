@@ -112,8 +112,8 @@ typedef enum {
 } GMRFLib_ai_strategy_tp;
 
 typedef enum {
-	GMRFLib_AI_VB_INVALID = 0, 
-	GMRFLib_AI_VB_MEAN, 
+	GMRFLib_AI_VB_INVALID = 0,
+	GMRFLib_AI_VB_MEAN,
 	GMRFLib_AI_VB_VARIANCE
 } GMRFLib_ai_vb_strategy_tp;
 
@@ -541,9 +541,14 @@ typedef struct {
 	int vb_verbose;
 
 	/**
-	 * \brief Number of extra refinement iterations (>= 0)
+	 * \brief Number of max iterations (>= 0)
 	 */
 	int vb_iter_max;
+
+	/**
+	 * \brief update_hessian
+	 */
+	int vb_update_hessian;
 
 	/**
 	 * \brief N-limit when to enable a f() component
@@ -1123,9 +1128,12 @@ double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFL
 			  double *x_vec, double mean_add, double var_scale);
 int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
 			  void *loglFunc_arg, double *x_vec);
+int GMRFLib_ai_vb_prepare_mean(int thread_id,
+			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
+			       void *loglFunc_arg, double *x_vec, double mean, double sd);
 int GMRFLib_ai_vb_prepare_variance(int thread_id,
-				   GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
-				   void *loglFunc_arg, double *x_vec);
+				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
+				   void *loglFunc_arg, double *x_vec, double mean, double sd);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);

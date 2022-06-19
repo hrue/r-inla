@@ -398,11 +398,13 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 	if (ai_par->vb_enable) {
 		fprintf(fp, "\tVB correction is [Enabled]\n");
 		fprintf(fp, "\t\tstrategy            = [%s]\n", (ai_par->vb_strategy == GMRFLib_AI_VB_MEAN ? "mean" :
-							      (ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE ? "mean and variance" : "UNKNOWN")));
+								 (ai_par->vb_strategy ==
+								  GMRFLib_AI_VB_VARIANCE ? "mean and variance" : "UNKNOWN")));
 		fprintf(fp, "\t\tverbose             = [%s]\n", (ai_par->vb_verbose ? "Yes" : "No"));
 		fprintf(fp, "\t\tf_enable_limit_mean = [%1d]\n", ai_par->vb_f_enable_limit_mean);
 		fprintf(fp, "\t\tf_enable_limit_var  = [%1d]\n", ai_par->vb_f_enable_limit_variance);
 		fprintf(fp, "\t\titer_max            = [%1d]\n", ai_par->vb_iter_max);
+		fprintf(fp, "\t\tupdate_hessian      = [%1d]\n", ai_par->vb_update_hessian);
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
@@ -7837,9 +7839,54 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 	}
 }
 
-int GMRFLib_ai_vb_prepare_variance(int thread_id,
-				   GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
-				   void *loglFunc_arg, double *x_vec)
+int GMRFLib_ai_vb_prepare_mean(int thread_id,
+			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
+			       void *loglFunc_arg, double *x_vec, double mean, double sd)
+{
+	/*
+	 * compute the Taylor-expansion of -loglikelihood * density(x), around the mean of x
+	 */
+
+	// Normal kernel: deriv: ... * (x-m)/s^2
+	// dderiv: ... * ((x-m)^2 - s^2)/s^4
+	// GMRFLib_density_type_tp type;
+
+	if (ISZERO(d)) {
+		coofs->coofs[0] = coofs->coofs[1] = coofs->coofs[2] = 0.0;
+		return GMRFLib_SUCCESS;
+	}
+
+	const int np = GMRFLib_INT_GHQ_POINTS;
+	Calloc_init(2 * np);
+	double *x_user = Calloc_get(np);
+	double *loglik = Calloc_get(np);
+	double *xp = NULL;
+	double *wp = NULL;
+
+	GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
+	for (int i = 0; i < np; i++) {
+		x_user[i] = mean + sd * xp[i];
+	}
+
+	loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
+	double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp;
+	for (int i = 0; i < np; i++) {
+		tmp = wp[i] * loglik[i];
+		A -= tmp;
+		B -= tmp * xp[i];
+		C -= tmp * (SQR(xp[i]) - 1.0);
+	}
+	coofs->coofs[0] = d * A;
+	coofs->coofs[1] = d * B * s_inv;
+	coofs->coofs[2] = d * C * s2_inv;
+
+	Calloc_free();
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, double d,
+				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec,
+				   double mean, double sd)
 {
 	/*
 	 * compute the Taylor-expansion of -loglikelihood * density(x), for the variance of x (assuming its N())
@@ -7850,28 +7897,22 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
-	assert(density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN);
-
 	const int np = GMRFLib_INT_GHQ_POINTS;
-	double m = density->user_mean;
-	double s = density->user_stdev;
 
-	Calloc_init(3 * np);
+	Calloc_init(2 * np);
+	double *x_user = Calloc_get(np);
+	double *loglik = Calloc_get(np);
 	double *xp = NULL;
 	double *wp = NULL;
-	double *x_user = Calloc_get(np);
-	double *x_std = Calloc_get(np);
-	double *loglik = Calloc_get(np);
 
 	GMRFLib_ghq(&xp, &wp, np);			       /* just give ptr to storage */
 
 	for (int i = 0; i < np; i++) {
-		x_user[i] = m + s * xp[i];
+		x_user[i] = mean + sd * xp[i];
 	}
-	GMRFLib_density_user2std_n(x_std, x_user, density, np);
 	loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
 
-	double A = 0.0, B = 0.0, C = 0.0, s2_inv = 1.0 / SQR(s);
+	double A = 0.0, B = 0.0, C = 0.0, s2_inv = 1.0 / SQR(sd);
 	for (int i = 0; i < np; i++) {
 		double z2 = SQR(xp[i]);
 		double tmp = wp[i] * loglik[i];
@@ -8140,10 +8181,12 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 {
 	GMRFLib_ENTER_ROUTINE;
 	Calloc_init(4 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred);
+	FILE * fp = (ai_par->fp_log ? ai_par->fp_log : stdout);
+	int verbose = ai_par->vb_verbose && ai_par->fp_log;
 
 #define SHOW_TIME(msg_)							\
 	if (debug) {							\
-		printf("[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_cpu()-_tref); \
+		fprintf(fp, "[%1d] vb_preopt: %s %.3f\n", omp_get_thread_num(), msg_, GMRFLib_cpu()-_tref); \
 		_tref = GMRFLib_cpu();					\
 	}
 
@@ -8204,9 +8247,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			x_mean[i] = ai_store->problem->mean_constr[i];
 		}
 	}
-
-	GMRFLib_density_tp **dens_local;
-	dens_local = Calloc(preopt->Npred, GMRFLib_density_tp *);
 
 	double *tmp = Calloc_get(graph->n);
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
@@ -8287,10 +8327,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_density_create_normal(&(dens_local[i]), 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
-			GMRFLib_ai_vb_prepare(thread_id, &vb_coof, i, dens_local[i], d[i], loglFunc, loglFunc_arg, x_mean); \
+			GMRFLib_ai_vb_prepare_mean(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i])); \
 			if (debug) {					\
-				printf("[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
+				fprintf(fp, "[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", omp_get_thread_num(), i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
@@ -8388,19 +8427,19 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			do_break = 1;
 		}
 
-		if (ai_par->vb_verbose) {
-#pragma omp critical 
+		if (verbose) {
+#pragma omp critical
 			{
-				printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec] hess/grad[%.3f]\n",
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec] hess/grad[%.3f]\n",
 				       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
-				printf("\t\tNumber of nodes corrected for [%1d] rms(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
+				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] rms(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
 						int j = vb_idx->idx[jj];
-						printf("\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] |x-mode|/sd[%.3f]\n", j, gsl_vector_get(delta_mu, j),
+						fprintf(fp, "\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] |x-mode|/sd[%.3f]\n", j, gsl_vector_get(delta_mu, j),
 						       dx[j] / sd[j], (x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j]);
 					}
-					printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
+					fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 				}
 			}
 		}
@@ -8419,13 +8458,6 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	GMRFLib_free_tabulate_Qfunc(tabQ);
 	GMRFLib_free_tabulate_Qfunc(prior);
-	dens_local = Calloc(preopt->Npred, GMRFLib_density_tp *);
-	for (int ii = 0; ii < d_idx->n; ii++) {
-		int i = d_idx->idx[ii];
-		GMRFLib_free_density(dens_local[i]);
-	}
-	Free(dens_local);
-
 	gsl_matrix_free(M);
 	gsl_matrix_free(MM);
 	gsl_matrix_free(QM);
@@ -8458,10 +8490,13 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_ENTER_ROUTINE;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
 
+	double tref = GMRFLib_cpu();
 	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
 	int tn = omp_get_thread_num();
-
+	FILE * fp = (ai_par->fp_log ? ai_par->fp_log : stdout);
+	int verbose = ai_par->vb_verbose && ai_par->fp_log;
+	
 	if (!(ai_par->vb_enable && ai_par->vb_nodes_variance)) {
 		GMRFLib_LEAVE_ROUTINE;
 		return GMRFLib_SUCCESS;
@@ -8549,36 +8584,38 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		c_like[j] *= csum;
 	}
 
-	int update_hessian = 1;				       /* update it 'k' times */
-	double tref = GMRFLib_cpu();
+	// can define shorter storage, but it should be fine really, I hope... this is properly verified yet
+#if 0
+#  define STORAGE_TP float
+#  define TYPE_CAST (double)
+#else
+#  define STORAGE_TP double
+#  define STORAGE_TYPE_CAST
+#endif
+	
+	static int print_once_only = 1;
+	if (verbose && print_once_only) {
+		print_once_only = 0;
+		fprintf(fp, "\t[%1d]Cache cov(eta, latent)[%.1fMb] and cov(latent)[%.1fMb]\n", tn,
+		       d_idx->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0), graph->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0));
+	}
+
+	STORAGE_TP **cov_eta_latent_store = Calloc(d_idx->n, STORAGE_TP *);
+	for (int kk = 0; kk < d_idx->n; kk++) {
+		cov_eta_latent_store[kk] = Calloc(vb_idx->n, STORAGE_TP);
+	}
+	STORAGE_TP **cov_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
+	for (int ii = 0; ii < vb_idx->n; ii++) {
+		cov_latent_store[ii] = Calloc(graph->n, STORAGE_TP);
+	}
+
+	int update_hessian = ai_par->vb_update_hessian;
 	double diff_sigma = 0.0;
 	double diff_sigma_limit = 0.001;
 	GMRFLib_problem_tp *problem = NULL;
 
-
-	// can define shorter storage, but it should be fine really, I hope
-//#define STORAGE_TP float
-//#define TYPE_CAST (double)
-#define STORAGE_TP double
-#define STORAGE_TYPE_CAST 
-
-	static int print_once = 1;
-	if (ai_par->vb_verbose && print_once) {
-		print_once = 0;
-		printf("\t[%1d]Cache cov(eta, latent)[%.1fMb] and cov(latent)[%.1fMb]\n", tn, d_idx->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0), 
-		       graph->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0));
-	}
-
-	STORAGE_TP **cov_eta_latent_store = Calloc(d_idx->n, STORAGE_TP *);
-	for(int kk = 0; kk < d_idx->n; kk++) {
-		cov_eta_latent_store[kk] = Calloc(vb_idx->n, STORAGE_TP);
-	}
-	STORAGE_TP **cov_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
-	for(int ii = 0; ii < vb_idx->n; ii++) {
-		cov_latent_store[ii] = Calloc(graph->n, STORAGE_TP);
-	}
-
-	for (int iter = 0; iter < niter + 1; iter++) {	       /* yes, +1 */
+	// main loop
+	for (int iter = 0; iter < niter + 1; iter++) {	       /* yes, it should be '+1' */
 
 		// first we need to define a new 'problem' with the current values of thetas
 		Memcpy(c_add, c, graph->n * sizeof(double));
@@ -8586,7 +8623,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			int j = vb_idx->idx[jj];
 			c_add[j] += c_like[j] * FUN(theta[jj]);
 		}
-
 		GMRFLib_free_problem(problem);
 		GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 		int retval =
@@ -8609,19 +8645,19 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			diff_sigma = sqrt(diff_sigma / graph->n);
 			int pass = (diff_sigma < diff_sigma_limit || iter == niter);
 
-			if (ai_par->vb_verbose) {
-#pragma omp critical 
+			if (verbose) {
+#pragma omp critical
 				{
-					printf("\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
+					fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
 					       tn, iter, niter, GMRFLib_cpu() - tref);
-					printf("\t\tNumber of nodes corrected for [%1d] step.sigma[%.4g](%s)\n", (int) vb_idx->n, diff_sigma,
+					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] step.sigma[%.4g](%s)\n", (int) vb_idx->n, diff_sigma,
 					       (pass ? "PASS" : "FAIL"));
 					for (int jj = 0; jj < vb_idx->n; jj++) {
 						int j = vb_idx->idx[jj];
-						printf("\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]),
+						fprintf(fp, "\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]),
 						       sd_prev[j] / sd_orig[j], sd_prev[j]);
 					}
-					printf("\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
+					fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 				}
 			}
 			if (pass) {
@@ -8633,17 +8669,14 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
-			GMRFLib_density_tp *dens_local = NULL;		\
 			GMRFLib_vb_coofs_tp vb_coof = {.coofs = {NAN, NAN, NAN}}; \
-			GMRFLib_density_create_normal(&dens_local, 0.0, 1.0, pmean[i], sqrt(pvar[i]), 0); \
-			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, dens_local, d[i], loglFunc, loglFunc_arg, x_mean); \
+			GMRFLib_ai_vb_prepare_variance(thread_id, &vb_coof, i, d[i], loglFunc, loglFunc_arg, x_mean, pmean[i], sqrt(pvar[i])); \
 			if (debug && 0) {				\
-				printf("\t[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", tn, i, \
+				fprintf(fp, "\t[%1d] i %d (mean,sd) = %.6f %.6f (A,B,C) = %.6f %.6f %.6f\n", tn, i, \
 				       pmean[i], sqrt(pvar[i]), vb_coof.coofs[0], vb_coof.coofs[1], vb_coof.coofs[2]); \
 			}						\
 			BB[i] = vb_coof.coofs[1];			\
 			CC[i] = DMAX(0.0, vb_coof.coofs[2]);		\
-			GMRFLib_free_density(dens_local);		\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -8657,48 +8690,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 
 		int UNUSED(integer_one) = 1;
-// this one is the same as in pre-opt.c
-#define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
-#define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		double value_ = 0.0;					\
-		int integer_one = 1;					\
-		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
-			int istart_ = ELM_->g_i[g_];			\
-			int *ii_ = &(ELM_->idx[istart_]);		\
-			int len_ = ELM_->g_len[g_];			\
-			double *vv_ = &(ELM_->val[istart_]);		\
-			double *aa_ = &(ARR_[ii_[0]]);			\
-			if (len_ < 5) {					\
-				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 4")		\
-					for (int i_ = 0; i_ < len_; i_++) { \
-						value_ +=  vv_[i_] * aa_[i_]; \
-					}				\
-			} else {					\
-				value_ += DDOT(len_, vv_, aa_);		\
-			}						\
-		}							\
-		VALUE_ = (typeof(VALUE_)) value_;			\
-	}
-		
-// this one is the same as in pre-opt.c
-#define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
-		if (1) {						\
-			double value_ = 0.0;				\
-			double *vv_ = ELM_->val;			\
-			double *aa_ = ARR_;				\
-			int *idx_ = ELM_->idx;				\
-			_Pragma("GCC ivdep")				\
-				_Pragma("GCC unroll 8")			\
-				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
-					value_ += vv_[i_] * aa_[idx_[i_]]; \
-				}					\
-			VALUE_ = (typeof(VALUE_)) value_;		\
-		}
 
-//#define COV_ETA_LATENT(value_, k_, cov_latent_) DOT_PRODUCT_GROUP(value_, A[k_], cov_latent_)
-#define COV_ETA_LATENT(value_, k_, cov_latent_) DOT_PRODUCT_SERIAL(value_, A[k_], cov_latent_)
+#define COV_ETA_LATENT(value_, k_, cov_latent_) DOT_PRODUCT(value_, A[k_], cov_latent_)
 
 #define COMPUTE_COV_LATENT(cov_latent_, j_, b_)				\
 		if (1) {						\
@@ -8730,7 +8723,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
 #undef CODE_BLOCK
-		
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
 			int i = vb_idx->idx[ii];			\
@@ -8760,12 +8753,12 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			}						\
 			gsl_vector_set(gradient, (size_t) ii, (mell + 0.5 * (trace0 + trace1 + ldet)) * param_correction_i); \
 			if (debug) {					\
-				printf("\t[%1d]Iter [%1d/%1d] gradient[%1d] = %f\n", tn, iter, niter, ii, gsl_vector_get(gradient, (size_t) ii)); \
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] gradient[%1d] = %f\n", tn, iter, niter, ii, gsl_vector_get(gradient, (size_t) ii)); \
 			}						\
 									\
 			if (iter == 0 || (iter < update_hessian)) {	\
-				if (ai_par->vb_verbose && ii == 0) {	\
-					printf("\t[%1d]Iter [%1d/%1d] update Hessian\n", tn, iter, niter); \
+				if (verbose && ii == 0) {	\
+					fprintf(fp, "\t[%1d]Iter [%1d/%1d] update Hessian\n", tn, iter, niter); \
 				}					\
 				for (int jj = ii; jj < vb_idx->n; jj++) { \
 					int j = vb_idx->idx[jj];	\
@@ -8815,12 +8808,12 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 #undef CODE_BLOCK
 
 		double grad_err = 0.0;
-		for(int i = 0; i < vb_idx->n; i++) {
+		for (int i = 0; i < vb_idx->n; i++) {
 			grad_err += SQR(gsl_vector_get(gradient, (size_t) i));
 		}
-		grad_err =  sqrt(grad_err / (double) vb_idx->n);
-		if (ai_par->vb_verbose) {
-			printf("\t[%1d]Iter [%1d/%1d] gradient.rms[%.4g]\n", tn, iter, niter, grad_err);
+		grad_err = sqrt(grad_err / (double) vb_idx->n);
+		if (verbose) {
+			fprintf(fp, "\t[%1d]Iter [%1d/%1d] gradient.rms[%.4g]\n", tn, iter, niter, grad_err);
 		}
 
 		if (iter == 0 || update_hessian) {
@@ -8832,14 +8825,14 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		if (debug) {
 			for (int ii = 0; ii < vb_idx->n; ii++) {
-				printf("\t[%1d]Iter [%1d/%1d] delta[%1d] = %.12f\n", tn, iter, niter, ii, gsl_vector_get(delta, ii));
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] delta[%1d] = %.12f\n", tn, iter, niter, ii, gsl_vector_get(delta, ii));
 			}
 		}
 		for (int ii = 0; ii < vb_idx->n; ii++) {
 			int i = vb_idx->idx[ii];
 			theta[ii] -= gsl_vector_get(delta, ii);
 			if (debug) {
-				printf("\t[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
+				fprintf(fp, "\t[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
 			}
 		}
 	}
@@ -8856,13 +8849,13 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	}
 
 	if (cov_eta_latent_store) {
-		for(int kk = 0; kk < d_idx->n; kk++) {
+		for (int kk = 0; kk < d_idx->n; kk++) {
 			Free(cov_eta_latent_store[kk]);
 		}
 		Free(cov_eta_latent_store);
 	}
 	if (cov_latent_store) {
-		for(int ii = 0; ii < vb_idx->n; ii++) {
+		for (int ii = 0; ii < vb_idx->n; ii++) {
 			Free(cov_latent_store[ii]);
 		}
 		Free(cov_latent_store);
