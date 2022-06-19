@@ -1008,13 +1008,25 @@
         cont.compute$control.gcpo$enable <- FALSE
         cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
     }
-
+    for (nm in names(control.compute$control.gcpo)) {
+        if (!(nm %in% names(inla.set.control.compute.default()$control.gcpo))) {
+            stop(paste0("'control.compute$control.gcpo': Unknown argument '", nm, "' is void. Valid ones are: ",
+                        paste0(names(inla.set.control.compute.default()$control.gcpo), collapse=", ")))
+        }
+    }
+    
     ## control inla
     cont.inla <- cont.inla.def <- inla.set.control.inla.default(family = family)
     cont.inla[names(control.inla)] <- control.inla
     ## because we have 'control' within a 'control', we have to process them spesifically
     cont.inla$control.vb <- cont.inla.def$control.vb
     cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
+    for (nm in names(control.inla$control.vb)) {
+        if (!(nm %in% names(inla.set.control.inla.default()$control.vb))) {
+            stop(paste0("'control.inla$control.vb': Unknown argument '", nm, "' is void. Valid ones are: ",
+                        paste0(names(inla.set.control.inla.default()$control.vb), collapse=", ")))
+        }
+    }
 
     ## control predictor section
     cont.predictor <- inla.set.control.predictor.default()
