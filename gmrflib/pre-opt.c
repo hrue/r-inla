@@ -41,51 +41,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-#define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
-
-#define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		double value_ = 0.0;					\
-		int integer_one = 1;					\
-		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
-			int istart_ = ELM_->g_i[g_];			\
-			int *ii_ = &(ELM_->idx[istart_]);		\
-			int len_ = ELM_->g_len[g_];			\
-			double *vv_ = &(ELM_->val[istart_]);		\
-			double *aa_ = &(ARR_[ii_[0]]);			\
-			if (len_ < 8) {					\
-				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 8")		\
-					for (int i_ = 0; i_ < len_; i_++) { \
-						value_ +=  vv_[i_] * aa_[i_]; \
-					}				\
-			} else {					\
-				value_ += DDOT(len_, vv_, aa_);		\
-			}						\
-		}							\
-		VALUE_ = value_;					\
-	}
-
-#define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		double value_ = 0.0;					\
-		double *vv_ = ELM_->val;				\
-		double *aa_ = ARR_;					\
-		int *idx_ = ELM_->idx;					\
-		_Pragma("GCC ivdep")					\
-			_Pragma("GCC unroll 8")				\
-			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
-				value_ += vv_[i_] * aa_[idx_[i_]];	\
-			}						\
-		VALUE_ = value_;					\
-	}
-
-#define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
-	if (GMRFLib_preopt_like_strategy == 0) {	\
-		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
-	} else {					\
-		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
-	}
 
 int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int npred, int nf, int **c, double **w,
@@ -1366,4 +1321,43 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
 	Calloc_free();
 
 	return cpu;
+}
+
+int GMRFLib_preopt_test1(int n, int m)
+{
+	int k = 0;
+	GMRFLib_idxval_tp *idxval = NULL;
+	for (int i = 0; i < n; i++) {
+		int mm = (int) (GMRFLib_uniform() * (m + 1.0));
+		for (int j = 0; j < mm; j++) {
+			GMRFLib_idxval_add(&idxval, k + j, GMRFLib_uniform());
+		}
+		k += mm + 10;
+
+		if (k > n)
+			break;
+	}
+	GMRFLib_idxval_sort(idxval);
+
+	double *x = Calloc(n, double);
+	for (int i = 0; i < k; i++) {
+		x[i] = GMRFLib_uniform();
+	}
+
+	for (int j = 0; j < 4; j++) {
+		double tref = -GMRFLib_cpu();
+		double val = 0.0;
+		DOT_PRODUCT_SERIAL(val, idxval, x);
+		printf("serial \t%f %f\n", tref + GMRFLib_cpu(), val);
+
+		tref = -GMRFLib_cpu();
+		val = 0.0;
+		DOT_PRODUCT_GROUP(val, idxval, x);
+		printf("group \t%f %f\n", tref + GMRFLib_cpu(), val);
+	}
+
+	Free(x);
+	GMRFLib_idxval_free(idxval);
+
+	return GMRFLib_SUCCESS;
 }

@@ -17,7 +17,8 @@ control.pom(cdf, fast)
 \arguments{
 \item{...}{Possible arguments}
 \item{cdf}{   character The cdf to use, "logit" (default) or "probit"}
-\item{fast}{   Logical Use a faster but approximate form for the probit cdf (default \code{FALSE})?}
+\item{fast}{   Logical Use a faster but approximate form for the probit cdf  (default \code{FALSE})?}
+
 }
 \value{
    The \code{control.pom} -list is set within the corresponding \code{control.family}

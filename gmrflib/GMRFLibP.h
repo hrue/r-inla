@@ -456,6 +456,24 @@ typedef enum {
 		Free(work__);						\
         }
 
+#define RUN_CODE_BLOCK_DYNAMIC(thread_max_, n_work_, len_work_)		\
+	if (1) {							\
+		int l1_cacheline = 8;					\
+		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
+		int tmax__ = thread_max_;				\
+		int len_work__ = IMAX(1, len_work_ + l1_cacheline);	\
+		int n_work__ = IMAX(1, n_work_);			\
+		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
+		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
+		if (nt__ > 1) {						\
+			_Pragma("omp parallel for num_threads(nt__) schedule(dynamic)") \
+				CODE_BLOCK;				\
+		} else {						\
+			CODE_BLOCK;					\
+		}							\
+		Free(work__);						\
+        }
+
 #define GMRFLib_INT_NUM_POINTS   (60)			       /* number of points for integration,... */
 #define GMRFLib_INT_NUM_INTERPOL  (2)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (13)			       /* for the quadrature */

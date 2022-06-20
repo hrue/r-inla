@@ -1050,11 +1050,17 @@
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
-    inla.write.boolean.field("control.vb.hyperpar.correct", inla.spec$control.vb$hyperpar.correct, file)
-    cat("control.vb.strategy = ", inla.spec$control.vb$strategy, "\n", file = file, append = TRUE)
-    cat("control.vb.refinement = ", inla.spec$control.vb$refinement, "\n", file = file, append = TRUE)
-    cat("control.vb.max.correct = ", inla.spec$control.vb$max.correct, "\n", file = file, append = TRUE)
-    cat("control.vb.f.enable.limit = ", inla.spec$control.vb$f.enable.limit, "\n", file = file, append = TRUE)
+    strategy <- match.arg(tolower(inla.spec$control.vb$strategy),
+                          choices = tolower(inla.set.control.inla.default()$control.vb$strategy),
+                          several.ok = FALSE)
+    cat("control.vb.strategy = ", strategy, "\n", file = file, append = TRUE)
+    cat("control.vb.update.hessian = ", max(1, round(inla.spec$control.vb$update.hessian)), "\n", file = file, append = TRUE)
+
+    lim <- inla.spec$control.vb$f.enable.limit
+    if (length(lim) == 1) lim <- c(lim[1], ceiling(sqrt(lim[1])))
+    cat("control.vb.f.enable.limit.mean = ", lim[1], "\n", file = file, append = TRUE)
+    cat("control.vb.f.enable.limit.variance = ", lim[2], "\n", file = file, append = TRUE)
+    cat("control.vb.iter.max = ", inla.spec$control.vb$iter.max, "\n", file = file, append = TRUE)
 
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))

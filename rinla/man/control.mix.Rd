@@ -16,14 +16,21 @@ control.mix(fixed, hyper, initial, integrator, model, npoints, param, prior)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{model}{   The model for the random effect. Currently, only \code{model='gaussian'} is implemented}
-\item{hyper}{   Definition of the hyperparameter(s) for the random effect model chosen}
+\item{model}{   The model for the random effect. Currently, only  \code{model='gaussian'} is implemented}
+
+\item{hyper}{   Definition of the hyperparameter(s) for the random effect model  chosen}
+
 \item{initial}{   (OBSOLETE!) The initial value(s) for the hyperparameter(s)}
-\item{fixed}{   (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed or random}
-\item{prior}{   (OBSOLETE!) The name of the prior distribution(s) for the hyperparmater(s)}
-\item{param}{   (OBSOLETE!) The parameters for the prior distribution(s) for the hyperparmater(s)}
-\item{npoints}{   Number of points used to do the numerical integration (default 101)}
-\item{integrator}{   The integration scheme to use (\code{default}, \code{quadrature}, \code{simpson})}
+\item{fixed}{   (OBSOLETE!) A boolean variable if hyperparmater(s) is/are fixed  or random}
+
+\item{prior}{   (OBSOLETE!) The name of the prior distribution(s) for the  hyperparmater(s)}
+
+\item{param}{   (OBSOLETE!) The parameters for the prior distribution(s) for the  hyperparmater(s)}
+
+\item{npoints}{   Number of points used to do the numerical integration (default  101)}
+
+\item{integrator}{   The integration scheme to use (\code{default},  \code{quadrature}, \code{simpson})}
+
 }
 \value{
    The \code{control.mix} -list is set within the corresponding \code{control.family}-list a the mixture of the likelihood is likelihood spesific. (This option is EXPERIMENTAL.)

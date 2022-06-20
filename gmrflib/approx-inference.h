@@ -112,7 +112,9 @@ typedef enum {
 } GMRFLib_ai_strategy_tp;
 
 typedef enum {
-	GMRFLib_AI_VB_MEAN = 0
+	GMRFLib_AI_VB_INVALID = 0,
+	GMRFLib_AI_VB_MEAN,
+	GMRFLib_AI_VB_VARIANCE
 } GMRFLib_ai_vb_strategy_tp;
 
 typedef enum {
@@ -539,29 +541,26 @@ typedef struct {
 	int vb_verbose;
 
 	/**
-	 * \brief Correct the log-density of the hyperparameters?
+	 * \brief Number of max iterations (>= 0)
 	 */
-	int vb_hyperpar_correct;
+	int vb_iter_max;
 
 	/**
-	 * \brief Number of extra refinement iterations (>= 0)
+	 * \brief update_hessian
 	 */
-	int vb_refinement;
-
-	/**
-	 * \brief Maximum allowed correction (=1.0)
-	 */
-	double vb_max_correct;
+	int vb_update_hessian;
 
 	/**
 	 * \brief N-limit when to enable a f() component
 	 */
-	int vb_f_enable_limit;
+	int vb_f_enable_limit_mean;
+	int vb_f_enable_limit_variance;
 
 	/**
 	 * \brief List of nodes to VB correct for, if any.
 	 */
-	char *vb_nodes;
+	char *vb_nodes_mean;
+	char *vb_nodes_variance;
 
 	/** 
 	 * Try to be smart when optimizing in INLA?   
@@ -1129,6 +1128,12 @@ double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFL
 			  double *x_vec, double mean_add, double var_scale);
 int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,
 			  void *loglFunc_arg, double *x_vec);
+int GMRFLib_ai_vb_prepare_mean(int thread_id,
+			       GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
+			       void *loglFunc_arg, double *x_vec, double mean, double sd);
+int GMRFLib_ai_vb_prepare_variance(int thread_id,
+				   GMRFLib_vb_coofs_tp * coofs, int idx, double d, GMRFLib_logl_tp * loglFunc,
+				   void *loglFunc_arg, double *x_vec, double mean, double sd);
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
@@ -1177,6 +1182,17 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id, GMRFLib_density_tp *** dens
 				      GMRFLib_graph_tp * graph,
 				      GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 				      GMRFLib_preopt_tp * preopt);
+int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
+					  GMRFLib_density_tp *** density,
+					  int dens_count,
+					  double *UNUSED(c),
+					  double *d,
+					  GMRFLib_ai_param_tp * ai_par,
+					  GMRFLib_ai_store_tp * ai_store,
+					  GMRFLib_graph_tp * graph,
+					  GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+					  GMRFLib_preopt_tp * preopt);
+
 double GMRFLib_bfunc_eval(int thread_id, double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(int thread_id, double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
