@@ -31,3 +31,13 @@ control.fixed(cdf, compute, correlation.matrix, expand.factor.strategy, mean, me
 
 \item{remove.names}{   A vector of names of expanded fixed effects to remove  from the model-matrix. This is an expert option, and should only be used if you  know what you are doing.}
 
+}
+\value{
+  
+The function \code{control.fixed} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.fixed.default} returns a list with all the default values of all parameters within this control statement.
+}
+\seealso{
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{inla}}
+}
