@@ -18,17 +18,25 @@ control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, cont
 \item{...}{Possible arguments}
 \item{dummy}{   A dummy argument that can be used as a workaround}
 \item{hyper}{   Definition of the hyperparameters}
-\item{initial}{   (OBSOLETE!) Initial value for the hyperparameter(s) of the likelihood in the internal scale.}
-\item{prior}{   (OBSOLETE!) The name of the prior distribution(s) for othe hyperparameter(s).}
+\item{initial}{   (OBSOLETE!) Initial value for the hyperparameter(s) of the  likelihood in the internal scale.}
+
+\item{prior}{   (OBSOLETE!) The name of the prior distribution(s) for othe  hyperparameter(s).}
+
 \item{param}{   (OBSOLETE!) The parameters for the prior distribution}
-\item{fixed}{   (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s) is fixed or random.}
-\item{link}{   (OBSOLETE! Use \code{control.link=list(model=)} instead.) The link function to use.}
-\item{sn.shape.max}{   Maximum value for the shape-parameter for Skew Normal observations (default 5.0)}
-\item{gev.scale.xi}{   (Expert option, do not use unless you know what you are doing.) The internal scaling of the shape-parameter for the GEV distribution. (default 0.1)}
+\item{fixed}{   (OBSOLETE!) Boolean variable(s) to say if the hyperparameter(s)  is fixed or random.}
+
+\item{link}{   (OBSOLETE! Use \code{control.link=list(model=)} instead.) The  link function to use.}
+
+\item{sn.shape.max}{   Maximum value for the shape-parameter for Skew Normal  observations (default 5.0)}
+
+\item{gev.scale.xi}{   (Expert option, do not use unless you know what you are  doing.) The internal scaling of the shape-parameter for the GEV distribution.  (default 0.1)}
+
 \item{control.bgev}{   See \code{?control.bgev}}
 \item{cenpoisson.I}{   The censoring interval for the censored Poisson}
-\item{beta.censor.value}{   The censor value for the Beta-likelihood \code{(0 <= beta.censor.value < 1/2)}}
-\item{variant}{   This variable is used to give options for various variants of the likelihood, like chosing different parameterisations for example. See the relevant likelihood documentations for options (does only apply to some likelihoods).}
+\item{beta.censor.value}{   The censor value for the Beta-likelihood \code{(0  <= beta.censor.value < 1/2)}}
+
+\item{variant}{   This variable is used to give options for various variants of  the likelihood, like chosing different parameterisations for example. See the  relevant likelihood documentations for options (does only apply to some  likelihoods).}
+
 \item{control.mix}{   See \code{?control.mix}}
 \item{control.pom}{   See \code{?control.pom}}
 \item{control.link}{   See \code{?control.link}}

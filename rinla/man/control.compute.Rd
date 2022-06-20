@@ -16,20 +16,34 @@ control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.st
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{openmp.strategy}{   The computational strategy to use: 'small', 'medium', 'large', 'huge', 'default' and 'pardiso'.}
-\item{hyperpar}{   A boolean variable if the marginal for the hyperparameters should be computed. Default TRUE.}
-\item{return.marginals}{   A boolean variable if the marginals for the latent field should be returned (although it is computed). Default TRUE}
-\item{return.marginals.predictor}{   A boolean variable if the marginals for the linear predictor should be returned (although it is computed). Default FALSE}
-\item{dic}{   A boolean variable if the DIC-value should be computed. Default FALSE.}
-\item{mlik}{   A boolean variable if the marginal likelihood should be computed. Default \code{TRUE}.}
-\item{cpo}{   A boolean variable if the cross-validated predictive measures (cpo, pit) should be computed (default \code{FALSE})}
-\item{po}{   A boolean variable if the predictive ordinate should be computed (default \code{FALSE})}
-\item{waic}{   A boolean variable if the Watanabe-Akaike information criteria should be computed (default \code{FALSE})}
-\item{q}{   A boolean variable if binary images of the precision matrix, the reordered precision matrix and the Cholesky triangle should be generated. (Default FALSE.)}
-\item{config}{   A boolean variable if the internal GMRF approximations be stored. (Default FALSE. EXPERIMENTAL)}
-\item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies \code{openmp.strategy='pardiso'}.}
-\item{graph}{   A boolean variable if the graph itself should be returned. (Default FALSE.)}
-\item{control.gcpo}{   Set control variables for the gcpo}
+\item{openmp.strategy}{   The computational strategy to use: 'small', 'medium',  'large', 'huge', 'default' and 'pardiso'.}
+
+\item{hyperpar}{   A boolean variable if the marginal for the hyperparameters  should be computed. Default TRUE.}
+
+\item{return.marginals}{   A boolean variable if the marginals for the latent  field should be returned (although it is computed). Default TRUE}
+
+\item{return.marginals.predictor}{   A boolean variable if the marginals for  the linear predictor should be returned (although it is computed).  Default FALSE}
+
+\item{dic}{   A boolean variable if the DIC-value should be computed. Default  FALSE.}
+
+\item{mlik}{   A boolean variable if the marginal likelihood should be computed.  Default \code{TRUE}.}
+
+\item{cpo}{   A boolean variable if the cross-validated predictive measures  (cpo, pit) should be computed (default \code{FALSE})}
+
+\item{po}{   A boolean variable if the predictive ordinate should be computed  (default \code{FALSE})}
+
+\item{waic}{   A boolean variable if the Watanabe-Akaike information criteria  should be computed (default \code{FALSE})}
+
+\item{q}{   A boolean variable if binary images of the precision matrix, the  reordered precision matrix and the Cholesky triangle should be generated.  (Default FALSE.)}
+
+\item{config}{   A boolean variable if the internal GMRF approximations be  stored. (Default FALSE. EXPERIMENTAL)}
+
+\item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or  'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies  \code{openmp.strategy='pardiso'}.}
+
+\item{graph}{   A boolean variable if the graph itself should be returned.  (Default FALSE.)}
+
+\item{control.gcpo}{   Set control variables for the gcpo  \code{enable} Logical Enable feature?  \code{num.level.sets} Number of level-sets used to construct groups.  \code{size.max} Maximum number of nodes in one group.  \code{strategy} Strategy used to construct groups.  Either \code{"posterior"} or \code{"prior"}.  \code{groups} A list of user-defined groups (see vignette).  \code{selection} A list of user-defined locations (see vignette).  \code{verbose} Be verbose?  \code{epsilon} Tolerance for two correlations to be equal.  \code{prior.diagonal} Value added to the diagonal for  \code{strategy="prior"}.  \code{keep} model components to keep with automatic group  construction using \code{strategy="prior"}.  \code{remove} model components to remove with automatic group  construction using \code{strategy="prior"}.  \code{remove.fixed} Remove all fixed effects (this is done last)  with automatic group  construction using \code{strategy="prior"}.}
+
 }
 \value{
   
