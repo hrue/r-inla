@@ -752,7 +752,7 @@
             ## :ARGUMENT+:         model component for \code{strategy="variance"}.
             ## :ARGUMENT+: \code{update.hesssian}: How many times the Hessian is updated for each
             ## :ARGUMENT+:         correction (\code{strategy="variance"} only).
-            contol.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE, iter.max = 9, f.enable.limit = c(20, 10), update.hessian = 1),
+            control.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE, iter.max = 9, f.enable.limit = c(20, 10), update.hessian = 1),
 
             ## :ARGUMENT+: num.gradient Character Set the numerical scheme to compute the
             ## :ARGUMENT+: gradient,  one of \code{"forward"} or \code{"central"} (default).
