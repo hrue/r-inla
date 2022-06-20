@@ -522,6 +522,7 @@
             ## :ARGUMENT+: know what you are doing.
             remove.names = NULL
         )
+
         ## :SEEALSO: inla
     }
 
@@ -882,6 +883,7 @@
             ## :ARGUMENT+: fixed, and if FALSE then treat all thetas as unknown and random (default).
             fixed = FALSE
         )
+
         ## :SEEALSO: inla
     }
 
@@ -935,6 +937,7 @@
             ## :ARGUMENT+: \code{inla.getOption("scale.model.default")}.)
             scale.model = NULL
         )
+
         ## :SEEALSO: inla
     }
 

@@ -36,3 +36,13 @@ control.hazard(constr, cutpoints, diagonal, fixed, hyper, initial, model, n.inte
 
 \item{scale.model}{   Scale the baseline hazard model (RW1, RW2) so the  generalized variance is 1. (Default  \code{inla.getOption("scale.model.default")}.)}
 
+}
+\value{
+  
+The function \code{control.hazard} is used to TAB-complete arguments and returns a list of given arguments.
+The function \code{inla.set.control.hazard.default} returns a list with all the default values of all parameters within this control statement.
+}
+\seealso{
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{inla}}
+}
