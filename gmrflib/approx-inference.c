@@ -1371,7 +1371,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 		 */
 
 		GMRFLib_problem_tp **problem = &pproblem;
-		int i, j, sub_n, nc, k, kk, inc = 1, n, use_old_code = 0;
+		int i, j, sub_n, nc, k, kk, inc = 1, n;
 		double alpha, beta, *aqat_m, *tmp_vector, *qi_at_m_store = NULL, *t_vector, *constr_m;
 
 		assert((*problem)->sub_constr == constr);
@@ -1471,175 +1471,17 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 		(*problem)->constr_m = Calloc(sub_n * nc, double);
 		tmp_vector = Calloc(sub_n * nc, double);
 
-		if (use_old_code) {
-			for (i = 0, k = 0; i < sub_n; i++) {
-				for (j = 0; j < nc; j++) {
-					tmp_vector[k++] = (*problem)->qi_at_m[i + j * sub_n];
-				}
-			}
-		} else {
-			switch (nc) {
-			case 1:
-				for (i = 0, k = 0; i < sub_n; i++, k++) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-				}
-				break;
-			case 2:
-				for (i = 0, k = 0; i < sub_n; i++, k += 2) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-				}
-				break;
-			case 3:
-				for (i = 0, k = 0; i < sub_n; i++, k += 3) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-					tmp_vector[k + 2] = (*problem)->qi_at_m[i + 2 * sub_n];
-				}
-				break;
-			case 4:
-				for (i = 0, k = 0; i < sub_n; i++, k += 4) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-					tmp_vector[k + 2] = (*problem)->qi_at_m[i + 2 * sub_n];
-					tmp_vector[k + 3] = (*problem)->qi_at_m[i + 3 * sub_n];
-				}
-				break;
-			case 5:
-				for (i = 0, k = 0; i < sub_n; i++, k += 5) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-					tmp_vector[k + 2] = (*problem)->qi_at_m[i + 2 * sub_n];
-					tmp_vector[k + 3] = (*problem)->qi_at_m[i + 3 * sub_n];
-					tmp_vector[k + 4] = (*problem)->qi_at_m[i + 4 * sub_n];
-				}
-				break;
-			case 6:
-				for (i = 0, k = 0; i < sub_n; i++, k += 6) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-					tmp_vector[k + 2] = (*problem)->qi_at_m[i + 2 * sub_n];
-					tmp_vector[k + 3] = (*problem)->qi_at_m[i + 3 * sub_n];
-					tmp_vector[k + 4] = (*problem)->qi_at_m[i + 4 * sub_n];
-					tmp_vector[k + 5] = (*problem)->qi_at_m[i + 5 * sub_n];
-				}
-				break;
-			case 7:
-				for (i = 0, k = 0; i < sub_n; i++, k += 7) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-					tmp_vector[k + 2] = (*problem)->qi_at_m[i + 2 * sub_n];
-					tmp_vector[k + 3] = (*problem)->qi_at_m[i + 3 * sub_n];
-					tmp_vector[k + 4] = (*problem)->qi_at_m[i + 4 * sub_n];
-					tmp_vector[k + 5] = (*problem)->qi_at_m[i + 5 * sub_n];
-					tmp_vector[k + 6] = (*problem)->qi_at_m[i + 6 * sub_n];
-				}
-				break;
-			case 8:
-				for (i = 0, k = 0; i < sub_n; i++, k += 8) {
-					tmp_vector[k] = (*problem)->qi_at_m[i];
-					tmp_vector[k + 1] = (*problem)->qi_at_m[i + sub_n];
-					tmp_vector[k + 2] = (*problem)->qi_at_m[i + 2 * sub_n];
-					tmp_vector[k + 3] = (*problem)->qi_at_m[i + 3 * sub_n];
-					tmp_vector[k + 4] = (*problem)->qi_at_m[i + 4 * sub_n];
-					tmp_vector[k + 5] = (*problem)->qi_at_m[i + 5 * sub_n];
-					tmp_vector[k + 6] = (*problem)->qi_at_m[i + 6 * sub_n];
-					tmp_vector[k + 7] = (*problem)->qi_at_m[i + 7 * sub_n];
-				}
-				break;
-			default:
-				for (i = 0, k = 0; i < sub_n; i++) {
-					for (j = 0; j < nc; j++) {
-						tmp_vector[k++] = (*problem)->qi_at_m[i + j * sub_n];
-					}
-				}
+		for (i = 0, k = 0; i < sub_n; i++) {
+			for (j = 0; j < nc; j++) {
+				tmp_vector[k++] = (*problem)->qi_at_m[i + j * sub_n];
 			}
 		}
 
 		GMRFLib_EWRAP1(GMRFLib_solveAxb_posdef(tmp_vector, (*problem)->l_aqat_m, tmp_vector, nc, sub_n));
 
-		if (use_old_code) {
-			for (i = 0, k = 0; i < sub_n; i++) {
-				for (j = 0; j < nc; j++) {
-					(*problem)->constr_m[i + j * sub_n] = tmp_vector[k++];
-				}
-			}
-		} else {
-			switch (nc) {
-			case 1:
-				for (i = 0, k = 0; i < sub_n; i++, k++) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-				}
-				break;
-			case 2:
-				for (i = 0, k = 0; i < sub_n; i++, k += 2) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-				}
-				break;
-			case 3:
-				for (i = 0, k = 0; i < sub_n; i++, k += 3) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-					(*problem)->constr_m[i + 2 * sub_n] = tmp_vector[k + 2];
-				}
-				break;
-			case 4:
-				for (i = 0, k = 0; i < sub_n; i++, k += 4) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-					(*problem)->constr_m[i + 2 * sub_n] = tmp_vector[k + 2];
-					(*problem)->constr_m[i + 3 * sub_n] = tmp_vector[k + 3];
-				}
-				break;
-			case 5:
-				for (i = 0, k = 0; i < sub_n; i++, k += 5) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-					(*problem)->constr_m[i + 2 * sub_n] = tmp_vector[k + 2];
-					(*problem)->constr_m[i + 3 * sub_n] = tmp_vector[k + 3];
-					(*problem)->constr_m[i + 4 * sub_n] = tmp_vector[k + 4];
-				}
-				break;
-			case 6:
-				for (i = 0, k = 0; i < sub_n; i++, k += 6) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-					(*problem)->constr_m[i + 2 * sub_n] = tmp_vector[k + 2];
-					(*problem)->constr_m[i + 3 * sub_n] = tmp_vector[k + 3];
-					(*problem)->constr_m[i + 4 * sub_n] = tmp_vector[k + 4];
-					(*problem)->constr_m[i + 5 * sub_n] = tmp_vector[k + 5];
-				}
-				break;
-			case 7:
-				for (i = 0, k = 0; i < sub_n; i++, k += 7) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-					(*problem)->constr_m[i + 2 * sub_n] = tmp_vector[k + 2];
-					(*problem)->constr_m[i + 3 * sub_n] = tmp_vector[k + 3];
-					(*problem)->constr_m[i + 4 * sub_n] = tmp_vector[k + 4];
-					(*problem)->constr_m[i + 5 * sub_n] = tmp_vector[k + 5];
-					(*problem)->constr_m[i + 6 * sub_n] = tmp_vector[k + 6];
-				}
-				break;
-			case 8:
-				for (i = 0, k = 0; i < sub_n; i++, k += 8) {
-					(*problem)->constr_m[i] = tmp_vector[k];
-					(*problem)->constr_m[i + sub_n] = tmp_vector[k + 1];
-					(*problem)->constr_m[i + 2 * sub_n] = tmp_vector[k + 2];
-					(*problem)->constr_m[i + 3 * sub_n] = tmp_vector[k + 3];
-					(*problem)->constr_m[i + 4 * sub_n] = tmp_vector[k + 4];
-					(*problem)->constr_m[i + 5 * sub_n] = tmp_vector[k + 5];
-					(*problem)->constr_m[i + 6 * sub_n] = tmp_vector[k + 6];
-					(*problem)->constr_m[i + 7 * sub_n] = tmp_vector[k + 7];
-				}
-				break;
-			default:
-				for (i = 0, k = 0; i < sub_n; i++) {
-					for (j = 0; j < nc; j++) {
-						(*problem)->constr_m[i + j * sub_n] = tmp_vector[k++];
-					}
-				}
+		for (i = 0, k = 0; i < sub_n; i++) {
+			for (j = 0; j < nc; j++) {
+				(*problem)->constr_m[i + j * sub_n] = tmp_vector[k++];
 			}
 		}
 
@@ -1677,14 +1519,12 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	 * 
 	 */
 
-/* 
-   this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
- */
+	//this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
 #define IDX(i, j, n) ((i) + (j)*(n))
 
 	int i, k, n, nc, ncc, one = 1, ndiv;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
-	    NULL, *tmp_m = NULL, val;
+		NULL, *tmp_m = NULL, val;
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1799,15 +1639,8 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		}
 
 		k = (ncc - 1) * n;
-		ndiv = 4 * (n / 4);
-		for (i = 0; i < ndiv; i += 4) {
-			constr_m_new[i + k] = b22 * (c[i] - z[i]);
-			constr_m_new[i + k + 1] = b22 * (c[i + 1] - z[i + 1]);
-			constr_m_new[i + k + 2] = b22 * (c[i + 2] - z[i + 2]);
-			constr_m_new[i + k + 3] = b22 * (c[i + 3] - z[i + 3]);
-		}
-		for (i = ndiv; i < n; i++) {
-			constr_m_new[i + k] = b22 * (c[i] - z[i]);
+		for (i = 0; i < n; i++) {
+			constr_m_new[k + i] = b22 * (c[i] - z[i]);
 		}
 
 		// No longer needed: GMRFLib_eval_constr(t_vec, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph);
