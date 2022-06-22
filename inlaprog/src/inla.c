@@ -37321,6 +37321,12 @@ int testit(int argc, char **argv)
 
 	case 18:
 	{
+		double x[] =  {-2, -1, 0, 1, 2};
+		double ld[] = {-2.0, -0.5, 0.0, -0.5, -2.0};
+		double m = 0.0, sd = 0.0;
+		GMRFLib_vb_fit_gaussian(5, x, ld, &m, &sd);
+		P(m);
+		P(sd);
 	}
 		break;
 

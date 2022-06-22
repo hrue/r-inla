@@ -1522,7 +1522,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	//this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
 #define IDX(i, j, n) ((i) + (j)*(n))
 
-	int i, k, n, nc, ncc, one = 1, ndiv;
+	int i, k, n, nc, ncc, one = 1;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
 		NULL, *tmp_m = NULL, val;
 
@@ -7700,8 +7700,15 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	for (int i = 0; i < np; i++) {
 		x_user[i] = mean + sd * xp[i];
 	}
-
 	loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
+
+	if (0) {
+		double mm = 0;
+		double ss = 0.0;
+		GMRFLib_vb_fit_gaussian(np, x_user, loglik, &mm, &ss);
+		P(ss/sd);
+	}
+
 	double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp;
 	for (int i = 0; i < np; i++) {
 		tmp = wp[i] * loglik[i];
@@ -7761,6 +7768,53 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_vb_fit_gaussian(int n, double *x, double *ld, double *mean, double *sd) 
+{
+	// do a quick fit of a sequence of (x,ld) to get an approximate mean and sd.
+	// assume 'x' is sorted
+
+	int imax = -1;
+	GMRFLib_max_value(ld, n, &imax);
+	assert(imax >= 0);
+	
+	int istart = IMAX(0, imax - 2);
+	int nn =  IMIN(n-1, imax + 2) - istart + 1;
+	
+	gsl_matrix *X = gsl_matrix_alloc(nn, 3);
+	gsl_matrix *cov = gsl_matrix_alloc(3, 3);
+	gsl_vector *c = gsl_vector_alloc(3);
+	gsl_vector *y = gsl_vector_alloc(nn);
+
+	for (int i = 0; i < nn; i++)
+	{
+		double xi = x[istart + i];
+		gsl_matrix_set(X, i, 0, 1.0);
+		gsl_matrix_set(X, i, 1, xi);
+		gsl_matrix_set(X, i, 2, - 0.5 * SQR(xi));
+		gsl_vector_set(y, i, ld[istart + i]);
+	}
+
+	double chisq = 0.0;
+	gsl_multifit_linear_workspace *work = gsl_multifit_linear_alloc(nn, 3);
+	gsl_multifit_linear (X, y, c, cov, &chisq, work);
+
+	double c2 = gsl_vector_get(c, 2);
+	if (c2 > 0.0) {
+		*mean = gsl_vector_get(c, 1) / c2;
+		*sd = sqrt(1.0 / c2);
+	} else {
+		*mean = NAN;
+		*sd = NAN;
+	}
+
+	gsl_multifit_linear_free(work);	
+	gsl_matrix_free(X);
+	gsl_vector_free(y);
+	gsl_vector_free(c);
+	gsl_matrix_free(cov);	
+
+	return GMRFLib_SUCCESS;
+}
 int GMRFLib_ai_vb_correct_mean(int thread_id, GMRFLib_density_tp *** density,	// need two types
 			       int dens_count,
 			       GMRFLib_density_tp ** dens_local,
