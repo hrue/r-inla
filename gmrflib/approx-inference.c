@@ -7781,6 +7781,13 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 		return GMRFLib_SUCCESS;
 	}
 
+	if (ISNAN(mean) || ISNAN(sd) || sd == 0.0) {
+		P(thread_id);
+		P(idx);
+		P(mean);
+		P(sd);
+	}
+
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
@@ -8400,7 +8407,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 
 		if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_d9343cf5e9cd69d222c869579102b5231d628874)
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec] hess/grad[%.3f]\n",
 				       omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
@@ -8598,8 +8605,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		GMRFLib_free_problem(problem);
 		GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 		int retval =
-		    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg, ai_store->problem->sub_constr);
+			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg, ai_store->problem->sub_constr);
 		if (retval != GMRFLib_SUCCESS) {
+			P(retval);
 			problem = NULL;
 			break;
 		}
@@ -8618,7 +8626,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			int pass = (diff_sigma < diff_sigma_limit || iter == niter);
 
 			if (verbose) {
-#pragma omp critical
+#pragma omp critical (Name_665f8b032e79706ed21a89a78c139f0eac1f454a)
 				{
 					fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
 					       tn, iter, niter, GMRFLib_cpu() - tref);

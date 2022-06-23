@@ -621,7 +621,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 									\
 		if (debug){						\
 			int iii;					\
-			_Pragma("omp critical")				\
+			_Pragma("omp critical (Name_2e8e2833326725fba5e90f00121fa2f4837da9e0)")	\
 			{						\
 				printf("Estimate Hessian x=[");		\
 				for(iii=0; iii<G.nhyper; iii++)		\
@@ -647,7 +647,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 									\
 		if (debug){						\
 			int iii;					\
-			_Pragma("omp critical")				\
+			_Pragma("omp critical (Name_8d6d4b931060e9c58869abe48e57ad09db50094f)") \
 			{						\
 				printf("Estimate Hessian x=[");		\
 				for(iii=0; iii<G.nhyper; iii++)		\
