@@ -1316,8 +1316,9 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 			for (int i = 0; i < graph->n; i++) {		\
 				double qij;				\
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
+				int *j_a = graph->nbs[i];		\
 				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
-					j = graph->nbs[i][jj];		\
+					j = j_a[jj];			\
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
 					result[i] += qij * x[j];	\
 				}					\
@@ -1331,8 +1332,9 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 			for (int i = 0; i < graph->n; i++) {
 				double qij;
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
+				int *j_a = graph->lnbs[i];
 				for (int jj = 0, j; jj < graph->lnnbs[i]; jj++) {
-					j = graph->lnbs[i][jj];
+					j = j_a[jj];
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 					result[i] += qij * x[j];
 					result[j] += qij * x[i];
@@ -1353,11 +1355,11 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				local_values = CODE_BLOCK_WORK_PTR(0); \
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
-				for (int k = 1, jj = 0, j = 0; jj < graph->lnnbs[i]; jj++) { \
-					j = graph->lnbs[i][jj];		\
+				int *j_a = graph->lnbs[i];		\
+				for (int k = 1, jj = 0, j = 0; jj < graph->lnnbs[i]; jj++, k++) { \
+					j = j_a[jj];			\
 					r[i] += local_values[k] * x[j];	\
 					r[j] += local_values[k] * x[i];	\
-					k++;				\
 				}					\
 			}
 
@@ -1378,11 +1380,11 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 			for (int i = 0; i < graph->n; i++) {
 				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
 				result[i] += (values[0] + diag[i]) * x[i];
-				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++) {
-					j = graph->lnbs[i][jj];
+				int *j_a = graph->lnbs[i];
+				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++, k++) {
+					j = j_a[jj];
 					result[i] += values[k] * x[j];
 					result[j] += values[k] * x[i];
-					k++;
 				}
 			}
 		}
@@ -1418,8 +1420,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 				for (int i = 0; i < graph->n; i++) {
 					double qij = Qfunc(thread_id, i, i, NULL, Qfunc_arg);
 					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * qij);
+					int *j_a = graph->lnbs[i];
 					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-						int j = graph->lnbs[i][jj];
+						int j = j_a[jj];
 						qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
 						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
@@ -1435,9 +1438,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 				p3 = gsl_matrix_ptr(x, i, 0);
 				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * qij;
 				daxpy_(&ncol, &qij, p3, &one, p1, &one);
-
+				int *j_a = graph->lnbs[i];
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-					int j = graph->lnbs[i][jj];
+					int j = j_a[jj];
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 					p2 = gsl_matrix_ptr(result, j, 0);
 					p4 = gsl_matrix_ptr(x, j, 0);
@@ -1460,8 +1463,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 				for (int i = 0; i < graph->n; i++) {
 					Qfunc(thread_id, i, -1, val, Qfunc_arg);
 					ADDTO(result, i, k, gsl_matrix_get(x, i, k) * val[0]);
+					int *j_a = graph->lnbs[i];
 					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-						int j = graph->lnbs[i][jj];
+						int j = j_a[jj];
 						double qij = val[1 + jj];
 						ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
 						ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));
@@ -1478,9 +1482,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 				p3 = gsl_matrix_ptr(x, i, 0);
 				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * values[0];
 				daxpy_(&ncol, &(values[0]), p3, &one, p1, &one);
-
+				int *j_a = graph->lnbs[i];
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-					int j = graph->lnbs[i][jj];
+					int j = j_a[jj];
 					double qij = values[1 + jj];
 					p2 = gsl_matrix_ptr(result, j, 0);
 					p4 = gsl_matrix_ptr(x, j, 0);
@@ -1502,8 +1506,9 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 					for (int k = 0; k < ncol; k++) {
 						ADDTO(result, i, k, gsl_matrix_get(x, i, k) * values[0]);
 					}
+					int *j_a = graph->lnbs[i];
 					for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-						int j = graph->lnbs[i][jj];
+						int j = j_a[jj];
 						double qij = values[1 + jj];
 #pragma GCC ivdep
 #pragma GCC unroll 8

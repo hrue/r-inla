@@ -8867,9 +8867,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -28306,7 +28306,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->vb_iter_max = IMAX(1, mb->ai_par->vb_iter_max);
 	mb->ai_par->vb_f_enable_limit_mean = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN"), 20);
 	mb->ai_par->vb_f_enable_limit_variance = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE"), 5);
-	mb->ai_par->vb_update_hessian = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.UPDATE.HESSIAN"), 1);
+	mb->ai_par->vb_hessian_update = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.UPDATE"), 1);
 
 	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.STRATEGY"), GMRFLib_strdup("MEAN")));
 	if (!strcasecmp(opt, "MEAN")) {
@@ -28315,6 +28315,17 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		mb->ai_par->vb_strategy = GMRFLib_AI_VB_VARIANCE;
 	} else {
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
+	}
+
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), GMRFLib_strdup("PARTIAL")));
+	if (!strcasecmp(opt, "FULL")) {
+		mb->ai_par->vb_hessian_strategy = GMRFLib_VB_HESSIAN_STRATEGY_FULL;
+	} else if (!strcasecmp(opt, "PARTIAL")) {
+		mb->ai_par->vb_hessian_strategy = GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL;
+	} else if (!strcasecmp(opt, "DIAGONAL")) {
+		mb->ai_par->vb_hessian_strategy = GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL;
+	} else {
+		inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.hessian.strategy", opt);
 	}
 
 	// default value is set in main()
@@ -37321,8 +37332,8 @@ int testit(int argc, char **argv)
 
 	case 18:
 	{
-		double x[] =  {-2, -1, 0, 1, 2};
-		double ld[] = {-2.0, -0.5, 0.0, -0.5, -2.0};
+		double x[] = { -2, -1, 0, 1, 2 };
+		double ld[] = { -2.0, -0.5, 0.0, -0.5, -2.0 };
 		double m = 0.0, sd = 0.0;
 		GMRFLib_vb_fit_gaussian(5, x, ld, &m, &sd);
 		P(m);

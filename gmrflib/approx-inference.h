@@ -83,6 +83,7 @@ typedef struct {
 /** 
  * Available strategies
  */
+
 typedef enum {
 
 	/**
@@ -116,6 +117,17 @@ typedef enum {
 	GMRFLib_AI_VB_MEAN,
 	GMRFLib_AI_VB_VARIANCE
 } GMRFLib_ai_vb_strategy_tp;
+
+typedef enum {
+	GMRFLib_VB_HESSIAN_STRATEGY_INVALID = 0,
+	GMRFLib_VB_HESSIAN_STRATEGY_FULL,
+	GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL,
+	GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL
+} GMRFLib_ai_vb_hessian_strategy_tp;
+
+#define VB_HESSIAN_STRATEGY_NAME(v_) ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_FULL ? "full" : \
+				      ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL ? "partial" : \
+				       ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL ? "diagonal" : "invalid")))
 
 typedef enum {
 
@@ -548,7 +560,12 @@ typedef struct {
 	/**
 	 * \brief update_hessian
 	 */
-	int vb_update_hessian;
+	int vb_hessian_update;
+
+	/**
+	 * \brief strategy for hessian
+	 */
+	GMRFLib_ai_vb_hessian_strategy_tp vb_hessian_strategy;
 
 	/**
 	 * \brief N-limit when to enable a f() component

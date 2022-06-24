@@ -1050,11 +1050,20 @@
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
+
     strategy <- match.arg(tolower(inla.spec$control.vb$strategy),
                           choices = tolower(inla.set.control.inla.default()$control.vb$strategy),
                           several.ok = FALSE)
     cat("control.vb.strategy = ", strategy, "\n", file = file, append = TRUE)
-    cat("control.vb.update.hessian = ", max(1, round(inla.spec$control.vb$update.hessian)), "\n", file = file, append = TRUE)
+    cat("control.vb.hessian.update = ", max(1, round(inla.spec$control.vb$hessian.update)), "\n", file = file, append = TRUE)
+
+    choices <- tolower(inla.set.control.inla.default()$control.vb$hessian.strategy)
+    stopifnot(choices[1] == "default")
+    hessian.strategy <- match.arg(tolower(inla.spec$control.vb$hessian.strategy), choices = choices, several.ok = FALSE)
+    if (hessian.strategy == "default") {
+        hessian.strategy <- choices[2]
+    }
+    cat("control.vb.hessian.strategy = ", hessian.strategy, "\n", file = file, append = TRUE)
 
     lim <- inla.spec$control.vb$f.enable.limit
     if (length(lim) == 1) lim <- c(lim[1], ceiling(sqrt(lim[1])))

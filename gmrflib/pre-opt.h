@@ -43,9 +43,7 @@
 #endif
 
 __BEGIN_DECLS
-
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
-
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
@@ -68,7 +66,6 @@ __BEGIN_DECLS
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
@@ -82,14 +79,12 @@ __BEGIN_DECLS
 			}						\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
 	if (GMRFLib_preopt_like_strategy == 0) {	\
 		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
 	} else {					\
 		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
 	}
-
 
 /* 
  * 

@@ -750,9 +750,14 @@
             ## :ARGUMENT+:         Second element is for \code{strategy="mean"}.
             ## :ARGUMENT+: \code{f.enable.limit.variance}: The size limit to correct for a \code{f()}
             ## :ARGUMENT+:         model component for \code{strategy="variance"}.
-            ## :ARGUMENT+: \code{update.hesssian}: How many times the Hessian is updated for each
+            ## :ARGUMENT+: \code{hesssian.update}: How many times the Hessian is updated for each
             ## :ARGUMENT+:         correction (\code{strategy="variance"} only).
-            control.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE, iter.max = 9, f.enable.limit = c(20, 10), update.hessian = 1),
+            ## :ARGUMENT+: \code{hesssian.strategy}: Select strategy for computing the Hessian
+            ## :ARGUMENT+:         matrix for \code{strategy="variance"}, one of \code{"full"}, 
+            ## :ARGUMENT+:         \code{"diagonal"}, \code{"partial"} and \code{"default"}.
+            control.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE,
+                              iter.max = 10, f.enable.limit = c(20, 15), hessian.update = 1,
+                              hessian.strategy = c("default", "partial", "full", "diagonal")), 
 
             ## :ARGUMENT+: num.gradient Character Set the numerical scheme to compute the
             ## :ARGUMENT+: gradient,  one of \code{"forward"} or \code{"central"} (default).
