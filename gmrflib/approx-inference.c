@@ -8470,7 +8470,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
 
 	static double tref_a[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	static int enable_tref_a = 1;			       /* only for testing */
+	static double count_tref_a = 0.0;			       /* only for testing */
+	static int enable_tref_a = 0;			       /* only for testing */
 
 	int hessian_diagonal = (ai_par->vb_hessian_strategy == GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL);
 	int hessian_partial = (ai_par->vb_hessian_strategy == GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL);
@@ -8589,19 +8590,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			d_idx->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0), graph->n * vb_idx->n * sizeof(STORAGE_TP) / SQR(1024.0));
 	}
 
-	int NEW = 0;
-
 	STORAGE_TP **cov_eta_latent_store = NULL;
-	if (NEW) {
-		cov_eta_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
-		for (int ii = 0; ii < vb_idx->n; ii++) {
-			cov_eta_latent_store[ii] = Calloc(d_idx->n, STORAGE_TP);
-		}
-	} else {
-		cov_eta_latent_store = Calloc(d_idx->n, STORAGE_TP *);
-		for (int kk = 0; kk < d_idx->n; kk++) {
-			cov_eta_latent_store[kk] = Calloc(vb_idx->n, STORAGE_TP);
-		}
+	cov_eta_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
+	for (int ii = 0; ii < vb_idx->n; ii++) {
+		cov_eta_latent_store[ii] = Calloc(d_idx->n, STORAGE_TP);
 	}
 	
 	STORAGE_TP **cov_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
@@ -8614,10 +8606,12 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	GMRFLib_problem_tp *problem = NULL;
 
 	// main loop
-	for (int iter = 0; iter < niter + 1; iter++) {	       /* yes, it should be '+1': we 'break' at the top */
+	int iter = 0;
+	for (iter = 0; iter < niter + 1; iter++) {	       /* yes, it should be '+1': we 'break' at the top */
 
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[0] -= GMRFLib_cpu();
+		}
 		// first we need to define a new 'problem' with the current values of thetas
 		Memcpy(c_add, c, graph->n * sizeof(double));
 		for (int jj = 0; jj < vb_idx->n; jj++) {
@@ -8644,8 +8638,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			GMRFLib_set_error_handler(old_handler);
 			GMRFLib_Qinv(problem);
 		}
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[0] += GMRFLib_cpu();
+		}
 
 		if (iter > 0) {
 			diff_sigma = 0.0;
@@ -8679,8 +8674,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 		GMRFLib_preopt_predictor_moments(pmean, pvar, preopt, problem, x_mean);
 
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[1] -= GMRFLib_cpu();
+		}
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < d_idx->n; ii++) {			\
 			int i = d_idx->idx[ii];				\
@@ -8696,8 +8693,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
-		if (enable_tref_a)
+
+		if (enable_tref_a) {
 			tref_a[1] += GMRFLib_cpu();
+		}
 
 		GMRFLib_idxval_tp **A = NULL;
 		if (preopt->pA_idxval) {
@@ -8718,8 +8717,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			GMRFLib_Qsolve(cov_latent_, b_, problem);	\
 		}
 
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[2] -= GMRFLib_cpu();
+		}
+		
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
 			int i = vb_idx->idx[ii];			\
@@ -8735,39 +8736,36 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				}					\
 			}						\
 									\
+			STORAGE_TP *cov_eta_latent_i = cov_eta_latent_store[ii]; \
 			for (int kk = 0; kk < d_idx->n; kk++) {		\
 				int k = d_idx->idx[kk];			\
-				if (NEW) {				\
-					COV_ETA_LATENT(cov_eta_latent_store[ii][kk], k, cov_latent_i); \
-				} else {				\
-					COV_ETA_LATENT(cov_eta_latent_store[kk][ii], k, cov_latent_i); \
-				}					\
+				COV_ETA_LATENT(cov_eta_latent_i[kk], k, cov_latent_i); \
 			}						\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, graph->n);
 #undef CODE_BLOCK
 
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[2] += GMRFLib_cpu();
+		}
 
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
-			if (enable_tref_a) tref_a[3] -= GMRFLib_cpu();	\
+			if (enable_tref_a) {				\
+				tref_a[3] -= GMRFLib_cpu();		\
+			}						\
 			int i = vb_idx->idx[ii];			\
 			STORAGE_TP *cov_latent_i = cov_latent_store[ii]; \
 			STORAGE_TP *cov_latent_j = NULL;		\
 			double *values= CODE_BLOCK_WORK_PTR(0);		\
 			double param_correction_i = c_like[i] * FUN_DERIV(theta[ii]); \
 			double mell = 0.0;				\
+			STORAGE_TP *cov_eta_latent_i = cov_eta_latent_store[ii]; \
 			for (int kk = 0; kk < d_idx->n; kk++) {		\
 				int k = d_idx->idx[kk];			\
 				double S_ki;				\
-				if (NEW) {				\
-					S_ki = STORAGE_TYPE_CAST cov_eta_latent_store[ii][kk]; \
-				} else {				\
-					S_ki = STORAGE_TYPE_CAST cov_eta_latent_store[kk][ii]; \
-				}					\
+				S_ki = STORAGE_TYPE_CAST cov_eta_latent_i[kk]; \
 				mell += BB[k] * (-SQR(S_ki));		\
 			}						\
 			double ldet = STORAGE_TYPE_CAST cov_latent_i[i]; \
@@ -8785,12 +8783,16 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				trace1 += 2.0 * STORAGE_TYPE_CAST cov_latent_i[j] * trace_tmp; \
 			}						\
 			gsl_vector_set(gradient, (size_t) ii, (mell + 0.5 * (trace0 + trace1 + ldet)) * param_correction_i); \
-			if (enable_tref_a) tref_a[3] += GMRFLib_cpu();	\
+			if (enable_tref_a) {				\
+				tref_a[3] += GMRFLib_cpu();		\
+			}						\
 			if (debug) {					\
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] gradient[%1d] = %f\n", tn, iter, niter, ii, gsl_vector_get(gradient, (size_t) ii)); \
 			}						\
 									\
-			if (enable_tref_a) tref_a[4] -= GMRFLib_cpu();	\
+			if (enable_tref_a) {				\
+				tref_a[4] -= GMRFLib_cpu();		\
+			}						\
 			if (iter < hessian_update) {			\
 				if (verbose && ii == 0) {	\
 					fprintf(fp, "\t[%1d]Iter [%1d/%1d] update Hessian\n", tn, iter, niter); \
@@ -8798,26 +8800,20 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				int jj_upper = (hessian_diagonal ? ii + 1 : vb_idx->n); \
 				for (int jj = ii; jj < jj_upper; jj++) { \
 					int j = vb_idx->idx[jj];	\
+					STORAGE_TP *cov_eta_latent_j = cov_eta_latent_store[jj]; \
 					double C1 = STORAGE_TYPE_CAST cov_latent_i[j]; \
 					cov_latent_j = cov_latent_store[jj]; \
 					double param_correction_j = c_like[j] * FUN_DERIV(theta[jj]); \
 					double mell = 0.0;		\
 					/* in the PARTIAL strategy, just use the diagonal from the likelihood term */ \
 					if ((hessian_partial && (ii == jj)) || hessian_full) { \
-						if (NEW) {		\
-							for (int kk = 0; kk < d_idx->n; kk++) { \
-								int k = d_idx->idx[kk];	\
-								double S_ki = STORAGE_TYPE_CAST cov_eta_latent_store[ii][kk]; \
-								double S_kj = STORAGE_TYPE_CAST cov_eta_latent_store[jj][kk]; \
-								mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * C1; \
-							}		\
-						} else {		\
-							for (int kk = 0; kk < d_idx->n; kk++) { \
-								int k = d_idx->idx[kk];	\
-								double S_ki = STORAGE_TYPE_CAST cov_eta_latent_store[kk][ii]; \
-								double S_kj = STORAGE_TYPE_CAST cov_eta_latent_store[kk][jj]; \
-								mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * C1; \
-							}		\
+						for (int kk = 0; kk < d_idx->n; kk++) { \
+							int k = d_idx->idx[kk];	\
+							double S_ki = STORAGE_TYPE_CAST cov_eta_latent_i[kk]; \
+							double S_kj = STORAGE_TYPE_CAST cov_eta_latent_j[kk]; \
+							double S_kikj = S_ki * S_kj; \
+							if (0) mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * C1; \
+							mell += S_kikj * (CC[k] * S_kikj  + BB[k] * 2.0 * C1); \
 						}			\
 					}				\
 					double ldet = -SQR(STORAGE_TYPE_CAST cov_latent_i[j]); \
@@ -8848,7 +8844,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					}				\
 				}					\
 			}						\
-			if (enable_tref_a) tref_a[4] += GMRFLib_cpu();	\
+			if (enable_tref_a) {				\
+				tref_a[4] += GMRFLib_cpu();		\
+			}						\
 		}
 
 		if (iter < hessian_update) {
@@ -8864,8 +8862,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		// GMRFLib_printf_gsl_matrix(stdout, hessian, "%.2g ");
 
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[5] -= GMRFLib_cpu();
+		}
 		double grad_err = 0.0;
 		for (int i = 0; i < vb_idx->n; i++) {
 			grad_err += SQR(gsl_vector_get(gradient, (size_t) i));
@@ -8894,13 +8893,16 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] c_add[%1d] = %.12f\n", tn, iter, niter, ii, c_like[i] * FUN(theta[ii]));
 			}
 		}
-		if (enable_tref_a)
+		if (enable_tref_a) {
 			tref_a[5] += GMRFLib_cpu();
+		}
 	}
 
 	if (enable_tref_a) {
-		for (int i = 0; i < 6; i++) {
-			printf("%s: accumulated time [%1d] = %.3f\n", __GMRFLib_FuncName, i, tref_a[i]);
+		count_tref_a++;
+ 		for (int i = 0; i < 6; i++) {
+			printf("%s: accumulated time [%1d] = %.3f   mean time [%.8f]\n", __GMRFLib_FuncName, i, tref_a[i],
+			       tref_a[i] / count_tref_a);
 		}
 	}
 
@@ -8916,14 +8918,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	}
 
 	if (cov_eta_latent_store) {
-		if (NEW) {
-			for (int ii = 0; ii < vb_idx->n; ii++) {
-				Free(cov_eta_latent_store[ii]);
-			}
-		} else {
-			for (int kk = 0; kk < d_idx->n; kk++) {
-				Free(cov_eta_latent_store[kk]);
-			}
+		for (int ii = 0; ii < vb_idx->n; ii++) {
+			Free(cov_eta_latent_store[ii]);
 		}
 		Free(cov_eta_latent_store);
 	}
