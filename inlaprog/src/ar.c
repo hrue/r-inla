@@ -127,7 +127,8 @@ int ar_marginal_distribution(int p, double *pacf, double *prec, double *Q)
 	 * for the first p components
 	 */
 
-	size_t i, j, lag, lag_idx, pdim, debug = 0;
+	size_t i, j, lag, lag_idx, pdim;
+	const int debug = 0;
 	double *phi;
 
 	assert(p > 0);
@@ -263,7 +264,8 @@ double Qfunc_ar(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 		return exp(def->log_prec[thread_id][0]);
 	}
 
-	int debug = 0, ii, jj, eq, dimQ, id = 0;
+	const int debug = 0;
+	int ii, jj, eq, dimQ, id = 0;
 	assert(def->n >= 2 * def->p);
 
 	dimQ = 2 * def->p + 1;

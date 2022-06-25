@@ -443,7 +443,7 @@ char *iniparser_getline(FILE * fp)
 		return NULL;
 	}
 
-	int debug = 0;
+	const int debug = 0;
 	size_t len = 0, len_buf = 0;
 	char *buf = NULL;
 	int c;

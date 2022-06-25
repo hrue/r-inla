@@ -43,7 +43,6 @@
 #endif
 
 __BEGIN_DECLS
-
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
 
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
@@ -89,7 +88,6 @@ __BEGIN_DECLS
 	} else {					\
 		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
 	}
-
 
 /* 
  * 

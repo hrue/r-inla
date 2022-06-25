@@ -367,7 +367,8 @@ int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, debug = 0, *idx = NULL;
+	const int debug = 0;
+	int i, *idx = NULL;
 	double *w = NULL, sumw = 0.0;
 
 	w = Calloc(design->nexperiments, double);

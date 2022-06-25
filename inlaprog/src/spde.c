@@ -388,7 +388,8 @@ double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp * UNUSED(problem),
 	assert(func_smodel->Tmodel->theta_extra[thread_id] == NULL);
 	assert(func_smodel->Kmodel->theta_extra[thread_id] == NULL);
 
-	int i, n = func_smodel->n, debug = 0;
+	int i, n = func_smodel->n;
+	const int debug = 0;
 	double *deformations;
 
 	GMRFLib_ai_INLA_userfunc0_dim = 2 * n;		       /* set this variable, yes */

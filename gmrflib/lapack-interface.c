@@ -626,7 +626,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, d
 	 *
 	 */
 
-	int debug = 0;
+	const int debug = 0;
 	assert(A && (A->size1 == A->size2));
 	assert(tol >= 0.0);
 
@@ -689,7 +689,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 	 * A=inv(A) for symmetric A, ignoring contributions from eigenvalues < tol*max(eigenval)
 	 */
 
-	int debug = 0;
+	const int debug = 0;
 	assert(A && (A->size1 == A->size2));
 	assert(tol >= 0.0);
 

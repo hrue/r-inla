@@ -98,7 +98,7 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	// the model (z,x1,x2,x3,...), where z = 1/\sqrt{prec} * \sum_i \sqrt{w_i} x_i + tiny.noise,
 	// where each x is standard AR1
 
-	int debug = 0;
+	const int debug = 0;
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
 	if (!arg) {
@@ -207,7 +207,7 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	}
 	// the x^i's are the scaled AR1's, and FGN is the cummulative sum of the components.
 
-	int debug = 0;
+	const int debug = 0;
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
 	if (!arg) {

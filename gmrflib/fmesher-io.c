@@ -103,7 +103,8 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	char *msg = NULL;
 	int *header = NULL;
 	int len_header = 0;
-	int verbose = 0, debug = 0, i, j, k;
+	int verbose = 0, i, j, k;
+	const int debug = 0;
 	GMRFLib_matrix_tp *M = NULL;
 
 	if (debug) {

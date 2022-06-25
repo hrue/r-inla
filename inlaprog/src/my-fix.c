@@ -33,7 +33,8 @@ char *my_strlwc(const char *s)
 	/*
 	 * str = A:B only lowercase part B. 
 	 */
-	long int i, start, debug = 0;
+	long int i, start;
+	const int debug = 0;
 	char *f, *str;
 
 	str = GMRFLib_strdup(s);

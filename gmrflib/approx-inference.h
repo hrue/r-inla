@@ -83,6 +83,7 @@ typedef struct {
 /** 
  * Available strategies
  */
+
 typedef enum {
 
 	/**
@@ -116,6 +117,17 @@ typedef enum {
 	GMRFLib_AI_VB_MEAN,
 	GMRFLib_AI_VB_VARIANCE
 } GMRFLib_ai_vb_strategy_tp;
+
+typedef enum {
+	GMRFLib_VB_HESSIAN_STRATEGY_INVALID = 0,
+	GMRFLib_VB_HESSIAN_STRATEGY_FULL,
+	GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL,
+	GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL
+} GMRFLib_ai_vb_hessian_strategy_tp;
+
+#define VB_HESSIAN_STRATEGY_NAME(v_) ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_FULL ? "full" : \
+				      ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL ? "partial" : \
+				       ((v_) == GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL ? "diagonal" : "invalid")))
 
 typedef enum {
 
@@ -548,7 +560,12 @@ typedef struct {
 	/**
 	 * \brief update_hessian
 	 */
-	int vb_update_hessian;
+	int vb_hessian_update;
+
+	/**
+	 * \brief strategy for hessian
+	 */
+	GMRFLib_ai_vb_hessian_strategy_tp vb_hessian_strategy;
 
 	/**
 	 * \brief N-limit when to enable a f() component
@@ -1196,6 +1213,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 double GMRFLib_bfunc_eval(int thread_id, double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(int thread_id, double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
+int GMRFLib_vb_fit_gaussian(int n, double *x, double *ld, double *mean, double *sd);
 
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
 				   double *lpred_variance, GMRFLib_preopt_tp * preopt,

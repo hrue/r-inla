@@ -46,7 +46,8 @@ extern G_tp G;						       /* import some global parametes from inla */
 
 int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp ** smodel, const char *prefix, const char *transform)
 {
-	int i, debug = 0;
+	int i;
+	const int debug = 0;
 	inla_spde3_tp *model = NULL;
 	char *fnm = NULL;
 
@@ -223,7 +224,8 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	double phi_j[3] = { 0.0, 0.0, 0.0 };
 	double d_i[3] = { 0.0, 0.0, 0.0 };
 	double d_j[3] = { 0.0, 0.0, 0.0 };
-	int k, kk, use_store = 1, debug = 0;
+	int k, kk, use_store = 1;
+	const int debug = 0;
 
 	/*
 	 * to hold the i'th and j'th and k'th row of the B-matrices. use one storage only
