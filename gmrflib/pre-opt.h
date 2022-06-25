@@ -58,18 +58,16 @@ __BEGIN_DECLS
 			int len_ = ELM_->g_len[g_];			\
 			double *vv_ = &(ELM_->val[istart_]);		\
 			double *aa_ = &(ARR_[ii_[0]]);			\
-			if (1) {					\
+			if (0) {					\
 				int istart_next_ = ELM_->g_i[g_+1];	\
 				int ii_next_ = ELM_->idx[istart_next_]; \
-				__builtin_prefetch(&(ELM_->val[istart_next_]), 0, 3); \
-				__builtin_prefetch(&(ARR_[ii_next_]), 0, 3);	\
+				__builtin_prefetch(&(ELM_->val[istart_next_])); \
+				__builtin_prefetch(&(ARR_[ii_next_]));	\
 			}						\
 			if (len_ < 5) {					\
-				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 4")		\
-					for (int i_ = 0; i_ < len_; i_++) { \
-						value_ +=  vv_[i_] * aa_[i_]; \
-					}				\
+				for (int i_ = 0; i_ < len_; i_++) {	\
+					value_ +=  vv_[i_] * aa_[i_];	\
+				}					\
 			} else {					\
 				value_ += DDOT(len_, vv_, aa_);		\
 			}						\
@@ -87,13 +85,13 @@ __BEGIN_DECLS
 		double *aa_ = ARR_;					\
 		int *idx_ = ELM_->idx;					\
 		_Pragma("GCC ivdep")					\
-			_Pragma("GCC unroll 8")				\
+			_Pragma("GCC unroll 4")				\
 			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
 				value_ += vv_[i_] * aa_[idx_[i_]];	\
 			}						\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-
+		 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
 	if (GMRFLib_preopt_like_strategy == 0) {	\
 		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\

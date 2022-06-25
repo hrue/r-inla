@@ -7040,11 +7040,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				if (nnode == node) continue;		\
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
-				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 8")		\
-					for (int k = 0; k < v->n; k++) { \
-						sum += Sa[v->idx[k]] * v->val[k]; \
-					}				\
+				DOT_PRODUCT(sum, v, Sa);		\
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
@@ -7253,12 +7249,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		for (int nnode = 0; nnode < Npred; nnode++) {		\
 			double sum = 0.0;				\
 			v = A_idx(nnode);				\
-									\
-			_Pragma("GCC ivdep")				\
-				_Pragma("GCC unroll 8")			\
-				for (int k = 0; k < v->n; k++) {	\
-					sum += Sa[v->idx[k]] * v->val[k]; \
-				}					\
+			DOT_PRODUCT(sum, v, Sa);			\
 			double f = sd[node] * sd[nnode];		\
 			sum /= f;					\
 			cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f;	\
