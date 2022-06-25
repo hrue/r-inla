@@ -404,7 +404,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\t\tf_enable_limit_mean = [%1d]\n", ai_par->vb_f_enable_limit_mean);
 		fprintf(fp, "\t\tf_enable_limit_var  = [%1d]\n", ai_par->vb_f_enable_limit_variance);
 		fprintf(fp, "\t\titer_max            = [%1d]\n", ai_par->vb_iter_max);
-		fprintf(fp, "\t\\thessian_update     = [%1d]\n", ai_par->vb_hessian_update);
+		fprintf(fp, "\t\thessian_update      = [%1d]\n", ai_par->vb_hessian_update);
 		fprintf(fp, "\t\thessian_strategy    = [%s]\n", VB_HESSIAN_STRATEGY_NAME(ai_par->vb_hessian_strategy));
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
