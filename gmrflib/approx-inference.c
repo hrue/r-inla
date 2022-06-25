@@ -7034,7 +7034,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			for (int k = 0; k < v->n; k++) {		\
 				a[v->idx[k]] = v->val[k];		\
 			}						\
-			GMRFLib_Qsolve(Sa, a, build_ai_store->problem);	\
+			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				if (nnode == node) continue;		\
@@ -7248,7 +7248,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		if (gcpo_param->verbose || detailed_output) {		\
 			printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 		}							\
-		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);		\
+		GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1);	\
 									\
 		for (int nnode = 0; nnode < Npred; nnode++) {		\
 			double sum = 0.0;				\
@@ -8263,7 +8263,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		double *cov = CODE_BLOCK_WORK_PTR(1);			\
 		CODE_BLOCK_WORK_ZERO(0);				\
 		b[j] = 1.0;						\
-		GMRFLib_Qsolve(cov, b, ai_store->problem);		\
+		GMRFLib_Qsolve(cov, b, ai_store->problem, j);		\
 		for (int i = 0; i < graph->n; i++) {			\
 			gsl_matrix_set(M, i, jj, cov[i]);		\
 		}							\
@@ -8715,7 +8715,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			int _j = j_;					\
 			Memset(b_, 0, graph->n * sizeof(double));	\
 			b_[_j] = 1.0;					\
-			GMRFLib_Qsolve(cov_latent_, b_, problem);	\
+			GMRFLib_Qsolve(cov_latent_, b_, problem, _j);	\
 		}
 
 		if (enable_tref_a) {

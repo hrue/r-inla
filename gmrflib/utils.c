@@ -1797,8 +1797,10 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 				ng++;					\
 			}						\
 		}							\
-		int *g_i = Calloc(ng, int);				\
-		int *g_len = Calloc(ng, int);				\
+		/* yes, add +1 for prefetch */				\
+		int *g_i = Calloc(ng + 1, int);				\
+		int *g_len = Calloc(ng + 1, int);			\
+									\
 		int k = 0;						\
 		g_i[0] = 0;						\
 		for(int j = 1; j < h->n; j++) {				\
@@ -1809,6 +1811,10 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 			}						\
 		}							\
 		g_len[ng-1] = h->n - g_i[ng - 1];			\
+									\
+		/* define the extra one to be harmless */		\
+		g_len[ng] = 0;						\
+		g_i[ng] = g_i[ng - 1];					\
 									\
 		if (debug) {						\
 			printf("h->idx \t");				\

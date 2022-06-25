@@ -47,6 +47,9 @@ __BEGIN_DECLS
 
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
+		/* static double tim = 0.0; */				\
+		/* static unsigned int ntimes = 0; */			\
+		/* tim -= GMRFLib_cpu(); */				\
 		double value_ = 0.0;					\
 		int integer_one = 1;					\
 		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
@@ -55,6 +58,12 @@ __BEGIN_DECLS
 			int len_ = ELM_->g_len[g_];			\
 			double *vv_ = &(ELM_->val[istart_]);		\
 			double *aa_ = &(ARR_[ii_[0]]);			\
+			if (1) {					\
+				int istart_next_ = ELM_->g_i[g_+1];	\
+				int ii_next_ = ELM_->idx[istart_next_]; \
+				__builtin_prefetch(&(ELM_->val[istart_next_]), 0, 3); \
+				__builtin_prefetch(&(ARR_[ii_next_]), 0, 3);	\
+			}						\
 			if (len_ < 5) {					\
 				_Pragma("GCC ivdep")			\
 					_Pragma("GCC unroll 4")		\
@@ -66,6 +75,9 @@ __BEGIN_DECLS
 			}						\
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
+		/* tim += GMRFLib_cpu(); */				\
+		/* ntimes++; */						\
+		/* if (ntimes % 100000 == 0) printf("%s:%d: time = %.6g %.12g\n", __FILE__, __LINE__,  tim, tim / ntimes); */ \
 	}
 
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\

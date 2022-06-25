@@ -313,9 +313,11 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
+int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem, int idx)
 {
 	// solve Q x = b, but correct for constraints, like eq 2.30 in the GMRF-book, x := x - Q^-1A^T(AQ^-1A^T)^-1 (Ax-e).
+
+	// if IDX >=0 then assume only b[idx] != 0, if IDX < 0, then assume a general B
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -345,7 +347,11 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem)
 	xx = wwork[cache_idx];
 
 	Memcpy(xx, b, n * sizeof(double));
-	GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
+	if (idx >= 0) {
+		GMRFLib_solve_llt_sparse_matrix_special(xx, &(problem->sub_sm_fact), problem->sub_graph, idx);
+	} else {
+		GMRFLib_solve_llt_sparse_matrix(xx, 1, &(problem->sub_sm_fact), problem->sub_graph);
+	}
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
 		int nc = problem->sub_constr->nc, inc = 1;

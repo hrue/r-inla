@@ -28333,7 +28333,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
 	}
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), GMRFLib_strdup("PARTIAL")));
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), GMRFLib_strdup("FULL")));
 	if (!strcasecmp(opt, "FULL")) {
 		mb->ai_par->vb_hessian_strategy = GMRFLib_VB_HESSIAN_STRATEGY_FULL;
 	} else if (!strcasecmp(opt, "PARTIAL")) {
@@ -33729,7 +33729,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-		for (int time = 0; time < 3; time++) {
+		for (int time = 0; time < 4; time++) {
 			for (int met = 0; met < 2; met++) {
 				for (int mett = 0; mett < 2; mett++) {
 					GMRFLib_preopt_like_strategy = met;
@@ -33745,11 +33745,11 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 		}
 		// we have a slight preference for the simpler/serial ones
-		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.1 ? 0 : 1);
-		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
+		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.05 ? 0 : 1);
+		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.05 ? 0 : 1);
 
 		// do this alone as this strategy depends on the previous choices
-		for (int time = 0; time < 3; time++) {
+		for (int time = 0; time < 4; time++) {
 			for (int mettt = 0; mettt < 2; mettt++) {
 				GMRFLib_preopt_predictor_strategy = mettt;
 				double *cpu = GMRFLib_preopt_measure_time2(preopt);
@@ -33761,7 +33761,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 		}
 		// we have a slight preference for the simpler/serial ones
-		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
+		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.05 ? 0 : 1);
 	} else {
 		GMRFLib_preopt_like_strategy = 0;
 		GMRFLib_Qx_strategy = 0;
