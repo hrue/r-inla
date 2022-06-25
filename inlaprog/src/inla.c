@@ -568,7 +568,8 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	static inla_sn_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, j, id = 0, debug = 0;
+	int i, j, id = 0;
+	const int debug = 0;
 	double alpha, dx = 0.02, range = 10.0, p, pp, omega, delta, xi, skew, skew_intern, skew_max = GMRFLib_SN_SKEWMAX;
 	double **par, intercept, intercept_intern, intercept_alpha;
 
@@ -1500,7 +1501,8 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	static inla_loga_table_tp **table = NULL;
 	static char first = 1;
 
-	int i, id = 0, debug = 0;
+	int i, id = 0;
+	const int debug = 0;
 	double dx = 0.1, xx, range = 25.0, p, pp;
 
 	if (first) {
@@ -2462,7 +2464,8 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order,
 			  GMRFLib_graph_tp * group_graph)
 {
-	int i, j, n = graph->n, debug = 0;
+	int i, j, n = graph->n;
+	const int debug = 0;
 	GMRFLib_ged_tp *ged = NULL;
 
 	GMRFLib_ged_init(&ged, NULL);
@@ -2753,7 +2756,8 @@ double Qfunc_slm(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id = 0;
+	int rebuild, ii, id = 0;
+	const int debug = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 
@@ -2874,7 +2878,8 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id = 0;
+	int rebuild, ii, id = 0;
+	const int debug = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -2971,7 +2976,8 @@ double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *
 
 	dmatern_arg_tp *a = (dmatern_arg_tp *) arg;
 	double prec = map_exp(a->log_prec[thread_id][0], MAP_FORWARD, NULL);
-	int rebuild, debug = 0, id = 0;
+	int rebuild, id = 0;
+	const int debug = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
@@ -3033,7 +3039,8 @@ double mfunc_ar1(int thread_id, int UNUSED(i), void *arg)
 double mfunc_rgeneric(int thread_id, int i, void *arg)
 {
 	inla_rgeneric_tp *a = (inla_rgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id = 0;
+	int rebuild, ii, id = 0;
+	const int debug = 0;
 
 	// possible fast return ?
 	if (a->mu_zero) {
@@ -3099,7 +3106,8 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 double mfunc_cgeneric(int thread_id, int i, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, debug = 0, id = 0;
+	int rebuild, ii, id = 0;
+	const int debug = 0;
 
 	// possible fast return ?
 	if (a->mu_zero) {
@@ -3342,7 +3350,8 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	 */
 
 	inla_iid_wishart_arg_tp *a = (inla_iid_wishart_arg_tp *) arg;
-	int i, j, k, n_theta, dim, debug = 0, id = 0;
+	int i, j, k, n_theta, dim, id = 0;
+	const int debug = 0;
 	double *vec = NULL;
 	inla_wishart_hold_tp *hold = NULL;
 
@@ -3416,8 +3425,8 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 
 int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L)
 {
-	int i, j, k = 0, debug = 0, n_theta = INLA_WISHARTK_NTHETA(dim);
-
+	int i, j, k = 0, n_theta = INLA_WISHARTK_NTHETA(dim);
+	const int debug = 0;
 	gsl_matrix_set_zero(L);
 	for (i = 0; i < dim; i++) {
 		gsl_matrix_set(L, i, i, exp(theta[k++]));
@@ -3737,7 +3746,7 @@ double priorfunc_pc_gevtail(double *x, double *parameters)
 double priorfunc_pc_spde_ga(double *x, double *parameters)
 {
 	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2;
-	int debug = 0;
+	const int debug = 0;
 
 	lam1 = -par[0] * log(par[1]);
 	lam2 = -log(par[3]) / par[2];
@@ -3755,7 +3764,7 @@ double priorfunc_pc_spde_ga(double *x, double *parameters)
 double priorfunc_pc_matern(double *x, double *parameters)
 {
 	double theta1 = x[0], theta2 = x[1], *par = parameters, ldens, lam1, lam2, dHalf;
-	int debug = 0;
+	const int debug = 0;
 
 	lam1 = parameters[0];
 	lam2 = parameters[1];
@@ -3783,7 +3792,7 @@ double priorfunc_pc_matern(double *x, double *parameters)
 double priorfunc_pc_range(double *x, double *parameters)
 {
 	double theta1 = x[0], ldens, lam, dHalf;
-	int debug = 0;
+	const int debug = 0;
 
 	lam = parameters[0];
 	dHalf = parameters[1] / 2.0;
@@ -3885,7 +3894,8 @@ double priorfunc_pc_gammacount(double *x, double *parameters)
 double priorfunc_pc_dof(double *x, double *parameters)
 {
 #define _NP 5
-	int k, debug = 0;
+	int k;
+	const int debug = 0;
 	double u = parameters[0], alpha = parameters[1], lambda, dof, val, deriv;
 	double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 	double step, dofs[_NP], f[_NP];
@@ -3947,7 +3957,7 @@ double priorfunc_pc_prec(double *x, double *parameters)
 double priorfunc_pc_cor0(double *x, double *parameters)
 {
 	// alpha = Prob(|rho| > u)
-	int debug = 0;
+	const int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
 	double rho = map_rho(*x, MAP_FORWARD, NULL);
 	double ldens, lambda, ljac, val, mu;
@@ -3975,7 +3985,7 @@ double priorfunc_pc_cor0(double *x, double *parameters)
 double priorfunc_pc_cor1(double *x, double *parameters)
 {
 	// alpha = Prob(rho > u)
-	int debug = 0;
+	const int debug = 0;
 	double u = parameters[0], alpha = parameters[1];
 	double lambda, rho, ljac, ldens, val, mu;
 
@@ -4255,7 +4265,8 @@ double priorfunc_dirichlet(double *x, double *parameters)
 
 	double alpha = parameters[0], nclasses = parameters[1], ld;
 	int cdf_logit = ((inla_pom_cdf_tp) parameters[2] == POM_CDF_LOGIT);
-	int K = (int) nclasses, k, debug = 0;
+	int K = (int) nclasses, k;
+	const int debug = 0;
 	double *work = Calloc(4 * K, double);
 	double *xx = work, *alphas = work + K, *qs = work + 2 * K, *v = work + 3 * K;
 
@@ -4423,7 +4434,8 @@ int inla_iid_wishart_adjust(int dim, double *theta)
 	 */
 #define _IDX(_i, _j) ((_i) + (_j)*(dim))
 
-	int i, j, k, ok = 0, debug = 0;
+	int i, j, k, ok = 0;
+	const int debug = 0;
 	int n_theta = inla_iid_wishart_nparam(dim);
 	double f = 0.95, *S = NULL, *chol = NULL;
 
@@ -4521,7 +4533,8 @@ double priorfunc_wishart_generic(int idim, double *x, double *parameters)
 	 */
 	gsl_matrix *R = NULL, *Q = NULL;
 	double r, val;
-	int debug = 0, fail;
+	const int debug = 0;
+	int fail;
 	size_t i, ii, j, k, dim = (size_t) idim;
 
 	size_t n_x = (size_t) inla_iid_wishart_nparam(idim);
@@ -4717,7 +4730,7 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 	 */
 	gsl_matrix *R = NULL, *Q = NULL, *QQ, *L = NULL;
 	double r, val;
-	int debug = 0;
+	const int debug = 0;
 	size_t i, ii, j, k, dim = (size_t) idim;
 
 	size_t n_x = (size_t) INLA_WISHARTK_NTHETA(idim);
@@ -8867,9 +8880,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -10659,7 +10672,7 @@ int inla_sread(void *x, int nx, const char *str, int code)
 	double *dx = (double *) x;
 	int *ix = (int *) x;
 	int count = 0;
-	int debug = 0;
+	const int debug = 0;
 	int ok;
 
 	if (debug)
@@ -10713,7 +10726,7 @@ int inla_sread_q(void **x, int *nx, const char *str, int code)
 	double dx_try;
 	int *ix = NULL;
 	int count = 0;
-	int debug = 0;
+	const int debug = 0;
 	int ix_try;
 	int ok;
 
@@ -10802,7 +10815,8 @@ int inla_is_NAs(int nx, const char *string)
 	 */
 	char *scopy, *p;
 	const char *sep = " \t", *NA = "NA";
-	int k = 0, nna = 0, debug = 0;
+	int k = 0, nna = 0;
+	const int debug = 0;
 
 	if (debug) {
 		printf("call inla_is_NAs: nx %d string %s\n", nx, string);
@@ -12593,7 +12607,8 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * parse section = LINCOMB. Here we assume the binary files are written by Rinla, so they are index-1 based!!!!!
 	 */
-	int *ip = NULL, num_sections, sec_no, n, npairs, debug = 0, offset, i;
+	int *ip = NULL, num_sections, sec_no, n, npairs, offset, i;
+	const int debug = 0;
 	size_t fileoffset = 0;
 	char *filename = NULL, *secname = NULL, *ptr = NULL, *msg = NULL;
 	GMRFLib_io_tp *io = NULL;
@@ -27527,7 +27542,8 @@ double Qfunc_copy_part11(int UNUSED(thread_id), int UNUSED(i), int j, double *UN
 
 int inla_add_copyof(inla_tp * mb)
 {
-	int i, k, kk, kkk, debug = 0, nf = mb->nf;
+	int i, k, kk, kkk, nf = mb->nf;
+	const int debug = 0;
 	char *msg;
 
 	if (debug) {
@@ -28701,7 +28717,8 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 #pragma GCC optimize ("O2")
 double extra(int thread_id, double *theta, int ntheta, void *argument)
 {
-	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, debug = 0, evaluate_hyper_prior = 1;
+	int i, j, count = 0, nfixed = 0, fail, fixed0, fixed1, fixed2, fixed3, evaluate_hyper_prior = 1;
+	const int debug = 0;
 
 	double val = 0.0, log_precision, log_precision0, log_precision1, rho, rho_intern, beta, beta_intern, logit_rho,
 	    group_rho = NAN, group_rho_intern = NAN, ngroup = NAN, normc_g = 0.0, n_orig = NAN, N_orig = NAN, rankdef_orig = NAN,
@@ -30167,7 +30184,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_SPDE2:
 		{
-			int k, kk, debug = 0;
+			int k, kk;
+			const int debug = 0;
 			inla_spde2_tp *spde2;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
@@ -32377,7 +32395,8 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 	 */
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double prec, prec_max = 1.0E6, prec_min = 10.0, w, x, xnew, f, deriv, dderiv, arr[3], eps = 1.0E-4, steplen = 1.0E-4, mean = -OFFSET(idx);
-	int niter = 0, niter_min = 25, niter_max = 100, debug = 0, stencil = 5;
+	int niter = 0, niter_min = 25, niter_max = 100, stencil = 5;
+	const int debug = 0;
 
 	int thread_id = 0;
 	x = xnew = mean;
@@ -32389,7 +32408,6 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 		f = arr[0] - 0.5 * prec * SQR((x - mean));
 		deriv = arr[1] - prec * (x - mean);
 		dderiv = DMIN(0.0, arr[2]) - prec;
-
 		xnew = x - DMIN(0.25 + niter * 0.25, 1.0) * deriv / dderiv;
 		if (debug) {
 			printf("idx %d x %.4g xnew %.4g f %.4g deriv %.4g dderiv %.4g mean %.6g prec %.2g\n",
@@ -32420,7 +32438,8 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 {
 	double prec_high = 1.0E6, prec_low = 1.0E-6, eps = 1.0E-4;
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
-	int niter, niter_min = 25, niter_max = 100, debug = 0, stencil = 5;
+	int niter, niter_min = 25, niter_max = 100, stencil = 5;
+	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL);
 	x = xnew = xsol = 0.0;
@@ -36589,7 +36608,8 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int 
 {
 	// if VERBOSE, write out the scalings.
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
-	int i, k, debug = 0, *cc = NULL, n = arg->graph->n;
+	int i, k, *cc = NULL, n = arg->graph->n;
+	const int debug = 0;
 	arg->prec_scale = Calloc(arg->graph->n, double);
 
 	if (debug)

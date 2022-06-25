@@ -456,7 +456,8 @@ char *dictionary_replace_variables(dictionary * d, char *str)
 	}
 
 	char *first = NULL, *last = NULL, *newstr = NULL, *envvar = NULL, *var = NULL, *newvar = NULL;
-	int c, debug = 0;
+	int c;
+	const debug = 0;
 	size_t len;
 	int i;
 

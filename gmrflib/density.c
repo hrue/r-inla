@@ -347,7 +347,8 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 	GMRFLib_sn_fit_data_tp data;
 	GMRFLib_sn_param_tp *p = (GMRFLib_sn_param_tp *) param;
 
-	int iter = 0, status, debug = 0, i, imax;
+	const int debug = 0;
+	int iter = 0, status, i, imax;
 	double eps = GMRFLib_eps(1. / 3.), *log_density_scaled;
 
 	GMRFLib_EWRAP0_GSL_PTR(xx = gsl_vector_alloc(m));
@@ -1188,7 +1189,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	 *
 	 * make lookup_tables if LOOKUP_TABLES is TRUE
 	 */
-	int i, j, debug = 0;
+	int i, j;
+	const int debug = 0;
 	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
 	GMRFLib_sn_param_tp sn_param = { 0, 0, 0 };
 
@@ -1537,7 +1539,8 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 	 *  compute new and improver lower and upper limits for the integration. skip parts with |feval| < eps. 
 	 */
 	double eps = 1.0e-10, min_step = GMRFLib_eps(1. / 3.), step, x, val;
-	int nstep = 20, debug = 0, i;
+	int nstep = 20, i;
+	const int debug = 0;
 
 	if (lower == upper) {
 		*new_lower = lower;

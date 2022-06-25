@@ -132,7 +132,7 @@ double inla_qgamma_cache(double shape, double quantile, int id)
 	static struct inla_qgamma_cache_tp **cache = NULL;
 	static int cache_len = 0;
 	double invalid_value = -1.0;
-	int debug = 0;
+	const int debug = 0;
 
 	if (id < 0) {
 #pragma omp critical (Name_df5bc0b4b7c0228087ccbab810a0d2b558ac8eb3)

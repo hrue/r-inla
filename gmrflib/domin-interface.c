@@ -261,7 +261,8 @@ int GMRFLib_opt_f_intern(int thread_id,
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, debug = 0;
+	int i;
+	const int debug = 0;
 	double ffx, fx_local;
 	double tref = GMRFLib_cpu();
 
@@ -378,7 +379,8 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 
 	GMRFLib_ENTER_ROUTINE;
 
-	int i, tmax, debug = 0;
+	int i, tmax;
+	int debug = GMRFLib_DEBUG_IF();
 	double h = G.ai_par->gradient_finite_difference_step_len, f_zero;
 	double *mode_reference = NULL;
 	GMRFLib_ai_store_tp **ai_store = NULL;
@@ -387,8 +389,6 @@ int GMRFLib_opt_gradf_intern(double *x, double *gradx, double *f0, int *ierr)
 	GMRFLib_ASSERT(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD() == 0, GMRFLib_ESNH);
 	tmax = GMRFLib_MAX_THREADS();
 	ai_store = Calloc(tmax, GMRFLib_ai_store_tp *);
-
-	debug = GMRFLib_DEBUG_IF();
 
 	/*
 	 * this is the one to be copied 
@@ -678,9 +678,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, ff0 = NAN, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
-	int i, n = G.nhyper, tmax, ok = 0, debug = 0, len_xx_hold;
+	int i, n = G.nhyper, tmax, ok = 0, debug = GMRFLib_DEBUG_IF(), len_xx_hold;
 
-	debug = GMRFLib_DEBUG_IF();
 	tmax = GMRFLib_MAX_THREADS();
 	f1 = Calloc(n, double);
 	fm1 = Calloc(n, double);

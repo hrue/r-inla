@@ -794,8 +794,9 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 		if (d[idx]) {						\
 			double *xp = NULL, *xp_tmp = NULL,		\
 				*ld = NULL, *logcor = NULL, *x_user = NULL, _alpha=-1.0; \
+			const int _debug =  0;				\
 			int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, \
-				_debug = 0, _one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
+				_one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
 			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
 									\
 			Calloc_init(4*np_new);				\
@@ -1259,7 +1260,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 			 * this require the Skew-Normal 
 			 */
 
-			int debug = 0;
+			const int debug = 0;
 			if (!(ai_par->improved_simplified_laplace)) {
 				a_sigma = GMRFLib_signed_pow(third_order_derivative / 0.2180136141449902, 1. / 3.);
 				cc = 1.0 / a_sigma;
@@ -7487,7 +7488,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 		return GMRFLib_SUCCESS;
 	}
 
-	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, debug = 0, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
+	const int debug = 0;
+	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
 	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, alpha = -1.0;
 	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
 
@@ -8470,8 +8472,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
 
 	static double tref_a[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	static double count_tref_a = 0.0;			       /* only for testing */
-	static int enable_tref_a = 0;			       /* only for testing */
+	static double count_tref_a = 0.0;		       /* only for testing */
+	const int enable_tref_a = 0;			       /* only for testing */
 
 	int hessian_diagonal = (ai_par->vb_hessian_strategy == GMRFLib_VB_HESSIAN_STRATEGY_DIAGONAL);
 	int hessian_partial = (ai_par->vb_hessian_strategy == GMRFLib_VB_HESSIAN_STRATEGY_PARTIAL);
@@ -8595,7 +8597,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	for (int ii = 0; ii < vb_idx->n; ii++) {
 		cov_eta_latent_store[ii] = Calloc(d_idx->n, STORAGE_TP);
 	}
-	
+
 	STORAGE_TP **cov_latent_store = Calloc(vb_idx->n, STORAGE_TP *);
 	for (int ii = 0; ii < vb_idx->n; ii++) {
 		cov_latent_store[ii] = Calloc(graph->n, STORAGE_TP);
@@ -8627,9 +8629,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				GMRFLib_free_problem(problem);
 			}
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
-			int retval =
-			    GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg,
-						 ai_store->problem->sub_constr);
+			int retval = GMRFLib_init_problem(thread_id, &problem, NULL, NULL, c_add, x_mean, graph, Qfunc, Qfunc_arg,
+							  ai_store->problem->sub_constr);
 			if (retval != GMRFLib_SUCCESS) {
 				P(retval);
 				problem = NULL;
@@ -8720,7 +8721,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		if (enable_tref_a) {
 			tref_a[2] -= GMRFLib_cpu();
 		}
-		
+
 #define CODE_BLOCK							\
 		for (int ii = 0; ii < vb_idx->n; ii++) {		\
 			int i = vb_idx->idx[ii];			\
@@ -8762,12 +8763,13 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			double param_correction_i = c_like[i] * FUN_DERIV(theta[ii]); \
 			double mell = 0.0;				\
 			STORAGE_TP *cov_eta_latent_i = cov_eta_latent_store[ii]; \
-			for (int kk = 0; kk < d_idx->n; kk++) {		\
-				int k = d_idx->idx[kk];			\
-				double S_ki;				\
-				S_ki = STORAGE_TYPE_CAST cov_eta_latent_i[kk]; \
-				mell += BB[k] * (-SQR(S_ki));		\
-			}						\
+			_Pragma("GCC ivdep")				\
+				_Pragma("GCC unroll 8")			\
+				for (int kk = 0; kk < d_idx->n; kk++) {	\
+					int k = d_idx->idx[kk];		\
+					double S_ki = STORAGE_TYPE_CAST cov_eta_latent_i[kk]; \
+					mell -= BB[k] * SQR(S_ki);	\
+				}					\
 			double ldet = STORAGE_TYPE_CAST cov_latent_i[i]; \
 			double trace0 = 0.0;				\
 			double trace1 = 0.0;				\
@@ -8775,10 +8777,11 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				prior->Qfunc(thread_id, j, -1, values, prior->Qfunc_arg); \
 				trace0 += values[0] * (-SQR(STORAGE_TYPE_CAST cov_latent_i[j])); \
 				double trace_tmp = 0.0;			\
+				double *valuesp1 = values + 1;		\
 				int *jj_a = preopt->latent_graph->lnbs[j]; \
 				for (int jjj = 0; jjj < preopt->latent_graph->lnnbs[j]; jjj++) { \
 					int jj = jj_a[jjj];		\
-					trace_tmp += values[1 + jjj] * (- STORAGE_TYPE_CAST cov_latent_i[jj]); \
+					trace_tmp -= valuesp1[jjj] * STORAGE_TYPE_CAST cov_latent_i[jj]; \
 				}					\
 				trace1 += 2.0 * STORAGE_TYPE_CAST cov_latent_i[j] * trace_tmp; \
 			}						\
@@ -8801,20 +8804,19 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				for (int jj = ii; jj < jj_upper; jj++) { \
 					int j = vb_idx->idx[jj];	\
 					STORAGE_TP *cov_eta_latent_j = cov_eta_latent_store[jj]; \
-					double C1 = STORAGE_TYPE_CAST cov_latent_i[j]; \
+					double twoC1 = 2.0 * STORAGE_TYPE_CAST cov_latent_i[j]; \
 					cov_latent_j = cov_latent_store[jj]; \
 					double param_correction_j = c_like[j] * FUN_DERIV(theta[jj]); \
 					double mell = 0.0;		\
 					/* in the PARTIAL strategy, just use the diagonal from the likelihood term */ \
 					if ((hessian_partial && (ii == jj)) || hessian_full) { \
-						for (int kk = 0; kk < d_idx->n; kk++) { \
-							int k = d_idx->idx[kk];	\
-							double S_ki = STORAGE_TYPE_CAST cov_eta_latent_i[kk]; \
-							double S_kj = STORAGE_TYPE_CAST cov_eta_latent_j[kk]; \
-							double S_kikj = S_ki * S_kj; \
-							if (0) mell += CC[k] * (-SQR(S_ki)) * (-SQR(S_kj)) + BB[k] * 2.0 * S_ki * S_kj * C1; \
-							mell += S_kikj * (CC[k] * S_kikj  + BB[k] * 2.0 * C1); \
-						}			\
+						_Pragma("GCC ivdep")	\
+							_Pragma("GCC unroll 8")	\
+							for (int kk = 0; kk < d_idx->n; kk++) { \
+								int k = d_idx->idx[kk];	\
+								double S_kikj = STORAGE_TYPE_CAST cov_eta_latent_i[kk] * STORAGE_TYPE_CAST cov_eta_latent_j[kk]; \
+								mell += S_kikj * (CC[k] * S_kikj  + BB[k] * twoC1); \
+							}		\
 					}				\
 					double ldet = -SQR(STORAGE_TYPE_CAST cov_latent_i[j]); \
 					double trace0 = 0.0;		\
@@ -8825,15 +8827,16 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 						prior->Qfunc(thread_id, k, -1, values, prior->Qfunc_arg); \
 						trace0 += values[0] * C2 * C3; \
 						double trace_tmp = 0.0;	\
+						double *valuesp1 = values + 1; \
 						int *kk_a =  preopt->latent_graph->lnbs[k]; \
 						for (int kkk = 0; kkk < preopt->latent_graph->lnnbs[k]; kkk++) { \
 							int kk = kk_a[kkk]; \
-							trace_tmp += values[1 + kkk] * (C2 * STORAGE_TYPE_CAST cov_latent_j[kk] + C3 * STORAGE_TYPE_CAST cov_latent_i[kk]); \
+							trace_tmp += valuesp1[kkk] * (C2 * STORAGE_TYPE_CAST cov_latent_j[kk] + C3 * STORAGE_TYPE_CAST cov_latent_i[kk]); \
 						}			\
 						trace1 += trace_tmp;	\
 					}				\
-					trace0 *= 2.0 * C1;		\
-					trace1 *= 2.0 * C1;		\
+					trace0 *= twoC1;		\
+					trace1 *= twoC1;		\
 					double val = (mell + 0.5 * (trace0 + trace1 + ldet)) * param_correction_i * param_correction_j; \
 					if (ii == jj) {			\
 						val = DMAX(0.0, val);	\
@@ -8900,7 +8903,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 	if (enable_tref_a) {
 		count_tref_a++;
- 		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 6; i++) {
 			printf("%s: accumulated time [%1d] = %.3f   mean time [%.8f]\n", __GMRFLib_FuncName, i, tref_a[i],
 			       tref_a[i] / count_tref_a);
 		}
@@ -8967,7 +8970,7 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 		return GMRFLib_SUCCESS;
 	}
 
-	int debug = 0;
+	const int debug = 0;
 	int id = omp_get_thread_num();
 
 	if (!(mo->configs[id])) {
@@ -10768,7 +10771,8 @@ GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_a
 
 int GMRFLib_ai_pool_init(GMRFLib_ai_pool_tp ** pool, GMRFLib_ai_param_tp * ai_par, int nhyper)
 {
-	size_t i, j, k, debug = 0;
+	size_t i, j, k;
+	const int debug = 0;
 	int len, half_len;
 	GMRFLib_ai_pool_tp *p;
 	int *iz, *izz;
@@ -10942,7 +10946,7 @@ int GMRFLib_ai_pool_set(GMRFLib_ai_pool_tp * pool, size_t idx, double logdens)
 
 int GMRFLib_ai_pool_intern(GMRFLib_ai_pool_tp * pool, int *iz, size_t *idx, double logdens, int action)
 {
-	int debug = 0;
+	const int debug = 0;
 	int retval = 0;
 
 	GMRFLib_ASSERT(idx, GMRFLib_EPARAMETER);

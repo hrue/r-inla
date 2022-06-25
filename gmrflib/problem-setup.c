@@ -1257,7 +1257,8 @@ int GMRFLib_prepare_constr_ORIG(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * g
 	/*
 	 * prepare a constraint
 	 */
-	int i, j, nc, k, n, debug = 0;
+	int i, j, nc, k, n;
+	const int debug = 0;
 	double *scale = NULL;
 
 	if (!constr) {
@@ -1904,8 +1905,9 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		*nnz_opt = 0;
 	} else {
+		static int debug = 0;
 		size_t *nnzs = NULL, nnz_best;
-		int k, debug = 0, n = -1, nk, r, i, ne = 0, use_global_nodes;
+		int k, n = -1, nk, r, i, ne = 0, use_global_nodes;
 		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMDC };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;

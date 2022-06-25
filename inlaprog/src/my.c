@@ -67,7 +67,7 @@ int my_setenv(char *str, int prefix)
 	 * set a variable in the enviroment; if PREFIX prepend with inla_, so that a=b yields inla_a=b. 
 	 */
 	char *p = NULL, *var = NULL;
-	int debug = 0;
+	const int debug = 0;
 
 	if (debug)
 		printf("enter my_setenv with [%s]\n", str);

@@ -61,7 +61,8 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	static inla_powerlink_table_tp **table = NULL;
 	static int first = 1, x_len = 256;
 
-	int i, j, debug = 0;
+	int i, j;
+	const int debug = 0;
 	double **par, intercept_intern, power, power_intern, sd;
 	double eps = GMRFLib_eps(0.5);
 

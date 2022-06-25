@@ -756,8 +756,8 @@
             ## :ARGUMENT+:         matrix for \code{strategy="variance"}, one of \code{"full"}, 
             ## :ARGUMENT+:         \code{"diagonal"}, \code{"partial"} and \code{"default"}.
             control.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE,
-                              iter.max = 10, f.enable.limit = c(20, 15), hessian.update = 1,
-                              hessian.strategy = c("default", "partial", "full", "diagonal")), 
+                              iter.max = 25, f.enable.limit = c(25, 20), hessian.update = 2,
+                              hessian.strategy = c("default", "full", "partial", "diagonal")), 
 
             ## :ARGUMENT+: num.gradient Character Set the numerical scheme to compute the
             ## :ARGUMENT+: gradient,  one of \code{"forward"} or \code{"central"} (default).
