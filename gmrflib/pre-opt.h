@@ -90,7 +90,11 @@ __BEGIN_DECLS
 		/* static double tim = 0.0; */				\
 		/* static unsigned int ntimes = 0; */			\
 		/* tim -= GMRFLib_cpu(); */				\
-		if (GMRFLib_preopt_like_strategy == 0) {		\
+		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else if (GMRFLib_preopt_like_strategy == 0) {		\
 			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 		} else {						\
 			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
