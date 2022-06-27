@@ -37837,6 +37837,13 @@ int testit(int argc, char **argv)
 
 	case 45:
 	{
+		int n = 20;
+		GMRFLib_idxval_tp * h = NULL;
+		for(int i = 0, j = 0; i < n; i++) {
+			j += 1 + (i % 3 == 0) + (GMRFLib_uniform() < 0.3);
+ 			GMRFLib_idxval_add(&h, j, (double)j);
+		}
+		GMRFLib_idxval_sort(h);
 		break;
 	}
 
@@ -37908,6 +37915,47 @@ int testit(int argc, char **argv)
 
 	case 47:
 	{
+		GMRFLib_idxval_tp *h= NULL;
+		GMRFLib_idxval_add(&h, 23, 1.000000);
+		GMRFLib_idxval_add(&h, 61, 1.000000);
+		GMRFLib_idxval_add(&h, 67, 1.000000);
+		GMRFLib_idxval_add(&h, 127, 1.000000);
+		GMRFLib_idxval_add(&h, 128, 1.000000);
+		GMRFLib_idxval_add(&h, 162, 1.000000);
+		GMRFLib_idxval_add(&h, 177, 1.000000);
+		if (1) {
+			GMRFLib_idxval_add(&h, 189, 1.000000);
+			GMRFLib_idxval_add(&h, 223, 1.000000);
+			GMRFLib_idxval_add(&h, 235, 1.000000);
+			GMRFLib_idxval_add(&h, 360, 1.000000);
+			GMRFLib_idxval_add(&h, 423, 1.000000);
+			GMRFLib_idxval_add(&h, 432, 1.000000);
+			GMRFLib_idxval_add(&h, 433, 1.000000);
+			GMRFLib_idxval_add(&h, 443, 1.000000);
+			GMRFLib_idxval_add(&h, 455, 1.000000);
+			GMRFLib_idxval_add(&h, 492, 1.000000);
+			GMRFLib_idxval_add(&h, 581, 1.000000);
+			GMRFLib_idxval_add(&h, 620, 1.000000);
+			GMRFLib_idxval_add(&h, 646, 1.000000);
+			GMRFLib_idxval_add(&h, 675, 1.000000);
+			GMRFLib_idxval_add(&h, 694, 1.000000);
+			GMRFLib_idxval_add(&h, 730, 1.000000);
+			GMRFLib_idxval_add(&h, 734, 1.000000);
+			GMRFLib_idxval_add(&h, 754, 1.000000);
+			GMRFLib_idxval_add(&h, 769, 1.000000);
+			GMRFLib_idxval_add(&h, 781, 1.000000);
+			GMRFLib_idxval_add(&h, 792, 1.000000);
+			GMRFLib_idxval_add(&h, 822, 1.000000);
+			GMRFLib_idxval_add(&h, 826, 1.000000);
+			GMRFLib_idxval_add(&h, 896, 1.000000);
+			GMRFLib_idxval_add(&h, 947, 1.000000);
+			GMRFLib_idxval_add(&h, 966, 1.000000);
+			GMRFLib_idxval_add(&h, 998, 1.000000);
+			GMRFLib_idxval_add(&h, 1013, 1.000000);
+		}
+		
+		GMRFLib_idxval_sort(h);
+		GMRFLib_idxval_printf(stdout, h, "test47");
 		break;
 	}
 

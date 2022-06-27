@@ -47,9 +47,6 @@ __BEGIN_DECLS
 
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
-		/* static double tim = 0.0; */				\
-		/* static unsigned int ntimes = 0; */			\
-		/* tim -= GMRFLib_cpu(); */				\
 		double value_ = 0.0;					\
 		int integer_one = 1;					\
 		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
@@ -57,25 +54,21 @@ __BEGIN_DECLS
 			int *ii_ = &(ELM_->idx[istart_]);		\
 			int len_ = ELM_->g_len[g_];			\
 			double *vv_ = &(ELM_->val[istart_]);		\
-			double *aa_ = &(ARR_[ii_[0]]);			\
-			if (0) {					\
-				int istart_next_ = ELM_->g_i[g_+1];	\
-				int ii_next_ = ELM_->idx[istart_next_]; \
-				__builtin_prefetch(&(ELM_->val[istart_next_])); \
-				__builtin_prefetch(&(ARR_[ii_next_]));	\
-			}						\
-			if (len_ < 5) {					\
-				for (int i_ = 0; i_ < len_; i_++) {	\
-					value_ +=  vv_[i_] * aa_[i_];	\
+									\
+			if (len_ > 0) {					\
+				double *aaa_ = &(ARR_[0]);		\
+				for (int i_ = 0; i_ < IABS(len_); i_++) { \
+					value_ += vv_[i_] * aaa_[ii_[i_]]; \
 				}					\
+			} else if (len_ < 0) {				\
+				int llen_ = - len_;			\
+				double *aa_ = &(ARR_[istart_]);		\
+				value_ += DDOT(llen_, vv_, aa_);	\
 			} else {					\
-				value_ += DDOT(len_, vv_, aa_);		\
+				assert(0 == 1);				\
 			}						\
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
-		/* tim += GMRFLib_cpu(); */				\
-		/* ntimes++; */						\
-		/* if (ntimes % 100000 == 0) printf("%s:%d: time = %.6g %.12g\n", __FILE__, __LINE__,  tim, tim / ntimes); */ \
 	}
 
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
@@ -91,12 +84,20 @@ __BEGIN_DECLS
 			}						\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-		 
-#define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
-	if (GMRFLib_preopt_like_strategy == 0) {	\
-		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
-	} else {					\
-		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
+
+#define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
+	if (1) {							\
+		/* static double tim = 0.0; */				\
+		/* static unsigned int ntimes = 0; */			\
+		/* tim -= GMRFLib_cpu(); */				\
+		if (GMRFLib_preopt_like_strategy == 0) {		\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else {						\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		}							\
+		/* tim += GMRFLib_cpu(); */				\
+		/* ntimes++; */						\
+		/* if (ntimes % 100000 == 0) printf("%s:%d: time = %.6g %.12g\n", __FILE__, __LINE__,  tim, tim / ntimes);*/ \
 	}
 
 /* 
