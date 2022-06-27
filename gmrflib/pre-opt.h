@@ -57,9 +57,11 @@ __BEGIN_DECLS
 									\
 			if (len_ > 0) {					\
 				double *aaa_ = &(ARR_[0]);		\
-				for (int i_ = 0; i_ < IABS(len_); i_++) { \
-					value_ += vv_[i_] * aaa_[ii_[i_]]; \
-				}					\
+				_Pragma("GCC ivdep")			\
+					_Pragma("GCC unroll 4")		\
+					for (int i_ = 0; i_ < IABS(len_); i_++) { \
+						value_ += vv_[i_] * aaa_[ii_[i_]]; \
+					}				\
 			} else if (len_ < 0) {				\
 				int llen_ = - len_;			\
 				double *aa_ = &(ARR_[istart_]);		\
