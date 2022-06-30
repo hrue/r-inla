@@ -1795,6 +1795,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
 	int debug = 0;
 
+
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
 		if (hold[i] && hold[i]->n > 1) {			\
@@ -1808,8 +1809,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 				ng++;					\
 			}						\
 		}							\
-		int *g_i = Calloc(ng, int);				\
-		int *g_len = Calloc(ng, int);				\
+		int *g_i = Calloc(ng + 1, int);				\
+		int *g_len = Calloc(ng + 1, int);			\
 									\
 		int k = 0;						\
 		g_i[0] = 0;						\
