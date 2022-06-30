@@ -8381,9 +8381,10 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		err_dx = 0.0;
 		for (int i = 0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
-			err_dx = DMAX(err_dx, ABS(dx[i] / sd[i]));
+			double adx = ABS(dx[i] / sd[i]);
+			err_dx = DMAX(err_dx, adx);
 			// truncate individual components
-			if (ABS(dx[i]) > sd[i] * max_correct) {
+			if (adx >  max_correct) {
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
@@ -8641,9 +8642,10 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				double sd_new = sqrt(*GMRFLib_Qinv_get(problem, i, i));
 				// KLD
 				double kld = 0.5 * (SQR(sd_new / sd_prev[i]) - 1.0 + 2.0 * log(sd_prev[i] / sd_new));
-				diff_sigma_max = DMAX(diff_sigma_max, sqrt(kld));
+				diff_sigma_max = DMAX(diff_sigma_max, kld);
 				sd_prev[i] = sd_new;
 			}
+			diff_sigma_max = sqrt(diff_sigma_max);
 			int pass = (diff_sigma_max < diff_sigma_max_limit || iter == niter);
 
 			if (verbose) {
