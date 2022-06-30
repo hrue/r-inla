@@ -4,6 +4,12 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.07.01}{
+  \subsection{CHANGES}{
+    \itemize Code-improvement/fix
+  }
+}
+
 \section{CHANGES IN VERSION 22.06.30}{
   \subsection{CHANGES}{
     \itemize Code-improvement
