@@ -1795,6 +1795,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
 	int debug = 0;
 
+
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
 		if (hold[i] && hold[i]->n > 1) {			\
@@ -1865,8 +1866,6 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 			}						\
 		}							\
 		h->g_n = gg + irregular;				\
-		h->g_i[h->g_n] = h->g_i[h->g_n - 1];			\
-		h->g_len[h->g_n] = 0;					\
         }
 
 	RUN_CODE_BLOCK(nt, 0, 0);
