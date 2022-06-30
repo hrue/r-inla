@@ -37513,6 +37513,38 @@ int testit(int argc, char **argv)
 		break;
 
 	case 24:
+	{
+		int n = 1024 * 1024 * 32;
+		double *xx = Calloc(n, double);
+		double *yy = Calloc(n, double);
+
+		for(int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+			yy[i] = GMRFLib_uniform();
+		}
+
+		int one = 1;
+		double sum1 = 0.0, sum2 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0;
+		for(int k = 0; k < 10; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for(int i = 0; i < n; i++) {
+				sum1 += xx[i] * yy[i];
+			}
+			tref1 += GMRFLib_cpu();
+			tref2 -= GMRFLib_cpu();
+			sum2 += ddot_(&n, xx, &one, yy, &one);
+			tref2 += GMRFLib_cpu();
+			if (k == 0) P(sum1 - sum2);
+		}
+		printf("loop %.3f ddot %.3f (%.3f, %.3f)\n",  tref1, tref2,  tref1 / (tref1 + tref2),
+		       tref2 / (tref1 + tref2));
+		Free(xx);
+		Free(yy);
+	}
 		break;
 
 	case 25:
