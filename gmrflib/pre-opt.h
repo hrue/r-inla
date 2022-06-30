@@ -98,22 +98,14 @@ __BEGIN_DECLS
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
-		if (1)	{						\
-			if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {	\
-				DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
-			} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) { \
-				DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
-			} else if (ELM_->n / IMAX(1, ELM_->g_n) >= 8L) { \
-				DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
-			} else {					\
-				DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
-			}						\
+		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else if (GMRFLib_preopt_like_strategy == 0) {		\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 		} else {						\
-			if (GMRFLib_preopt_like_strategy == 0) {	\
-				DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
-			} else {					\
-				DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
-			}						\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
 		}							\
 	}
 
