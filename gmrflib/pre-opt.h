@@ -54,15 +54,20 @@ __BEGIN_DECLS
 			int *ii_ = &(ELM_->idx[istart_]);		\
 			int len_ = ELM_->g_len[g_];			\
 			double *vv_ = &(ELM_->val[istart_]);		\
-			double *aa_ = &(ARR_[ii_[0]]);			\
-			if (len_ < 5) {					\
+									\
+			if (len_ > 0) {					\
+				double *aaa_ = &(ARR_[0]);		\
 				_Pragma("GCC ivdep")			\
 					_Pragma("GCC unroll 4")		\
-					for (int i_ = 0; i_ < len_; i_++) { \
-						value_ +=  vv_[i_] * aa_[i_]; \
+					for (int i_ = 0; i_ < IABS(len_); i_++) { \
+						value_ += vv_[i_] * aaa_[ii_[i_]]; \
 					}				\
+			} else if (len_ < 0) {				\
+				int llen_ = - len_;			\
+				double *aa_ = &(ARR_[istart_]);		\
+				value_ += DDOT(llen_, vv_, aa_);	\
 			} else {					\
-				value_ += DDOT(len_, vv_, aa_);		\
+				assert(0 == 1);				\
 			}						\
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
@@ -75,18 +80,30 @@ __BEGIN_DECLS
 		double *aa_ = ARR_;					\
 		int *idx_ = ELM_->idx;					\
 		_Pragma("GCC ivdep")					\
-			_Pragma("GCC unroll 8")				\
+			_Pragma("GCC unroll 4")				\
 			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
 				value_ += vv_[i_] * aa_[idx_[i_]];	\
 			}						\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
 
-#define DOT_PRODUCT(VALUE_, ELM_, ARR_)			\
-	if (GMRFLib_preopt_like_strategy == 0) {	\
-		DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
-	} else {					\
-		DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
+#define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
+	if (1) {							\
+		/* static double tim = 0.0; */				\
+		/* static unsigned int ntimes = 0; */			\
+		/* tim -= GMRFLib_cpu(); */				\
+		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else if (GMRFLib_preopt_like_strategy == 0) {		\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else {						\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		}							\
+		/* tim += GMRFLib_cpu(); */				\
+		/* ntimes++; */						\
+		/* if (ntimes % 100000 == 0) printf("%s:%d: time = %.6g %.12g\n", __FILE__, __LINE__,  tim, tim / ntimes);*/ \
 	}
 
 /* 

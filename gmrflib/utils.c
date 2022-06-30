@@ -1582,6 +1582,17 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 		for (int i = 0; i < hold->n; i++) {
 			fprintf(fp, "\t(idx, val)[%1d] = (%d, %g)\n", i, hold->idx[i], hold->val[i]);
 		}
+		if (hold->g_i) {
+			fprintf(fp, "\tg_n = %1d\n", hold->g_n);
+			for(int g = 0; g < hold->g_n; g++) {			
+				fprintf(fp, "\tgroup %d has length %d and start at index %d\n", g, hold->g_len[g], hold->g_i[g]); 
+				fprintf(fp, "\t\t");				
+				for(int k = 0; k < IABS(hold->g_len[g]); k++) {
+					fprintf(fp, " %1d", hold->idx[hold->g_i[g] + k]);
+				}
+				fprintf(fp, "\n");				
+			}
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1782,7 +1793,7 @@ int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
-	const int debug = 0;
+	int debug = 0;
 
 #define CODE_BLOCK							\
 	for(int i = 0; i < n; i++) {					\
@@ -1799,6 +1810,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 		}							\
 		int *g_i = Calloc(ng, int);				\
 		int *g_len = Calloc(ng, int);				\
+									\
 		int k = 0;						\
 		g_i[0] = 0;						\
 		for(int j = 1; j < h->n; j++) {				\
@@ -1828,6 +1840,31 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 		h->g_n = ng;						\
 		h->g_i = g_i;						\
 		h->g_len = g_len;					\
+									\
+		/* PART 2 */						\
+									\
+		int gg = 0;						\
+		int irregular = 0;					\
+		for(int g = 0; g < h->g_n; g++) {			\
+			if (h->g_len[g] == 1) {				\
+				if (irregular) {			\
+					h->g_len[gg]++;			\
+				} else {				\
+					h->g_len[gg] = 1;		\
+					h->g_i[gg] = h->g_i[g];		\
+				}					\
+				irregular = 1;				\
+			} else if (IABS(h->g_len[g]) > 0) {		\
+				if (irregular) gg++;			\
+				irregular = 0;				\
+				h->g_len[gg] = - IABS(h->g_len[g]);	\
+				h->g_i[gg] = h->g_i[g];			\
+				gg++;					\
+			} else {					\
+				continue;				\
+			}						\
+		}							\
+		h->g_n = gg + irregular;				\
         }
 
 	RUN_CODE_BLOCK(nt, 0, 0);

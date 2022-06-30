@@ -7034,17 +7034,13 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			for (int k = 0; k < v->n; k++) {		\
 				a[v->idx[k]] = v->val[k];		\
 			}						\
-			GMRFLib_Qsolve(Sa, a, build_ai_store->problem);	\
+			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
 			cor[node] = 1.0;				\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				if (nnode == node) continue;		\
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
-				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 8")		\
-					for (int k = 0; k < v->n; k++) { \
-						sum += Sa[v->idx[k]] * v->val[k]; \
-					}				\
+				DOT_PRODUCT(sum, v, Sa);		\
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
@@ -7248,17 +7244,12 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		if (gcpo_param->verbose || detailed_output) {		\
 			printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 		}							\
-		GMRFLib_Qsolve(Sa, a, ai_store_id->problem);		\
+		GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1);	\
 									\
 		for (int nnode = 0; nnode < Npred; nnode++) {		\
 			double sum = 0.0;				\
 			v = A_idx(nnode);				\
-									\
-			_Pragma("GCC ivdep")				\
-				_Pragma("GCC unroll 8")			\
-				for (int k = 0; k < v->n; k++) {	\
-					sum += Sa[v->idx[k]] * v->val[k]; \
-				}					\
+			DOT_PRODUCT(sum, v, Sa);			\
 			double f = sd[node] * sd[nnode];		\
 			sum /= f;					\
 			cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f;	\
@@ -8179,7 +8170,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
 	double one = 1.0, mone = -1.0, zero = 0.0;
-	double max_correct = 1.0;
+	double max_correct = 10.0;
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
@@ -8263,7 +8254,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		double *cov = CODE_BLOCK_WORK_PTR(1);			\
 		CODE_BLOCK_WORK_ZERO(0);				\
 		b[j] = 1.0;						\
-		GMRFLib_Qsolve(cov, b, ai_store->problem);		\
+		GMRFLib_Qsolve(cov, b, ai_store->problem, j);		\
 		for (int i = 0; i < graph->n; i++) {			\
 			gsl_matrix_set(M, i, jj, cov[i]);		\
 		}							\
@@ -8387,15 +8378,16 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
 
-		for (int i = 0, err_dx = 0.0; i < graph->n; i++) {
+		err_dx = 0.0;
+		for (int i = 0; i < graph->n; i++) {
 			dx[i] = gsl_vector_get(delta_mu, i);
-			err_dx += SQR(dx[i] / sd[i]);
+			double adx = ABS(dx[i] / sd[i]);
+			err_dx = DMAX(err_dx, adx);
 			// truncate individual components
-			if (ABS(dx[i]) > sd[i] * max_correct) {
+			if (adx >  max_correct) {
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
-		err_dx = sqrt(err_dx / graph->n);
 		for (int i = 0; i < graph->n; i++) {
 			x_mean[i] += dx[i];
 		}
@@ -8403,7 +8395,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		// this is RMS standardized change between the iterations, otherwise, just run the max iterations.
 		// test this here so we can adjust the verbose output below
 		int do_break = 0;
-		if (err_dx < 0.005 || iter == niter - 1) {
+		if (err_dx < 0.01 || iter == niter - 1) {
 			do_break = 1;
 		}
 
@@ -8412,7 +8404,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			{
 				fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [MEAN] in total[%.3fsec] hess/grad[%.3f]\n",
 					omp_get_thread_num(), iter, niter, GMRFLib_cpu() - tref, ratio);
-				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] rms(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
+				fprintf(fp, "\t\tNumber of nodes corrected for [%1d] max(dx/sd)[%.4f]\n", (int) delta->size, err_dx);
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
 						int j = vb_idx->idx[jj];
@@ -8482,6 +8474,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	assert(hessian_update > 0);
 
 	double tref = GMRFLib_cpu();
+	double grad_err = 0.0;
 	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
 	int tn = omp_get_thread_num();
@@ -8603,8 +8596,8 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		cov_latent_store[ii] = Calloc(graph->n, STORAGE_TP);
 	}
 
-	double diff_sigma = 0.0;
-	double diff_sigma_limit = 0.001;
+	double diff_sigma_max = 0.0;
+	double diff_sigma_max_limit = 0.01;
 	GMRFLib_problem_tp *problem = NULL;
 
 	// main loop
@@ -8644,29 +8637,32 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 
 		if (iter > 0) {
-			diff_sigma = 0.0;
+			diff_sigma_max = 0.0;
 			for (int i = 0; i < graph->n; i++) {
 				double sd_new = sqrt(*GMRFLib_Qinv_get(problem, i, i));
 				// KLD
-				diff_sigma += 0.5 * (SQR(sd_new / sd_prev[i]) - 1.0 + 2.0 * log(sd_prev[i] / sd_new));
+				double kld = 0.5 * (SQR(sd_new / sd_prev[i]) - 1.0 + 2.0 * log(sd_prev[i] / sd_new));
+				diff_sigma_max = DMAX(diff_sigma_max, kld);
 				sd_prev[i] = sd_new;
 			}
-			diff_sigma = sqrt(diff_sigma / graph->n);
-			int pass = (diff_sigma < diff_sigma_limit || iter == niter);
+			diff_sigma_max = sqrt(diff_sigma_max);
+			int pass = (diff_sigma_max < diff_sigma_max_limit || iter == niter);
 
 			if (verbose) {
 #pragma omp critical (Name_665f8b032e79706ed21a89a78c139f0eac1f454a)
 				{
 					fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
 						tn, iter, niter, GMRFLib_cpu() - tref);
-					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] step.sigma[%.4g](%s)\n", (int) vb_idx->n, diff_sigma,
-						(pass ? "PASS" : "FAIL"));
-					for (int jj = 0; jj < vb_idx->n; jj++) {
-						int j = vb_idx->idx[jj];
-						fprintf(fp, "\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]),
-							sd_prev[j] / sd_orig[j], sd_prev[j]);
+					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] |gradient|[%.4g] max.step.sigma[%.4g](%s)\n", (int) vb_idx->n,
+						grad_err,  diff_sigma_max, (pass ? "PASS" : "FAIL"));
+					if (pass) {
+						for (int jj = 0; jj < vb_idx->n; jj++) {
+							int j = vb_idx->idx[jj];
+							fprintf(fp, "\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]),
+								sd_prev[j] / sd_orig[j], sd_prev[j]);
+						}
+						fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 					}
-					fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 				}
 			}
 			if (pass) {
@@ -8715,7 +8711,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			int _j = j_;					\
 			Memset(b_, 0, graph->n * sizeof(double));	\
 			b_[_j] = 1.0;					\
-			GMRFLib_Qsolve(cov_latent_, b_, problem);	\
+			GMRFLib_Qsolve(cov_latent_, b_, problem, _j);	\
 		}
 
 		if (enable_tref_a) {
@@ -8797,9 +8793,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				tref_a[4] -= GMRFLib_cpu();		\
 			}						\
 			if (iter < hessian_update) {			\
-				if (verbose && ii == 0) {	\
-					fprintf(fp, "\t[%1d]Iter [%1d/%1d] update Hessian\n", tn, iter, niter); \
-				}					\
 				int jj_upper = (hessian_diagonal ? ii + 1 : vb_idx->n); \
 				for (int jj = ii; jj < jj_upper; jj++) { \
 					int j = vb_idx->idx[jj];	\
@@ -8868,14 +8861,12 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		if (enable_tref_a) {
 			tref_a[5] -= GMRFLib_cpu();
 		}
-		double grad_err = 0.0;
+
+		grad_err = 0.0;
 		for (int i = 0; i < vb_idx->n; i++) {
 			grad_err += SQR(gsl_vector_get(gradient, (size_t) i));
 		}
 		grad_err = sqrt(grad_err / (double) vb_idx->n);
-		if (verbose) {
-			fprintf(fp, "\t[%1d]Iter [%1d/%1d] gradient.rms[%.4g]\n", tn, iter, niter, grad_err);
-		}
 
 		if (iter < hessian_update) {
 			GMRFLib_gsl_spd_inv(hessian, GMRFLib_eps(1.0 / 3.0));

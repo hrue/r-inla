@@ -4,6 +4,13 @@
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.06.30}{
+  \subsection{CHANGES}{
+    \itemize Code-improvement
+    \itemize Changed stopping criteria for VB corrections
+  }
+}
+
 \section{CHANGES IN VERSION 22.06.25}{
   \subsection{CHANGES}{
     \itemize Code-improvement

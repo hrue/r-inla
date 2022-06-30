@@ -28333,7 +28333,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		inla_error_field_is_void(__GMRFLib_FuncName, secname, "control.vb.strategy", opt);
 	}
 
-	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), GMRFLib_strdup("PARTIAL")));
+	opt = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "CONTROL.VB.HESSIAN.STRATEGY"), GMRFLib_strdup("FULL")));
 	if (!strcasecmp(opt, "FULL")) {
 		mb->ai_par->vb_hessian_strategy = GMRFLib_VB_HESSIAN_STRATEGY_FULL;
 	} else if (!strcasecmp(opt, "PARTIAL")) {
@@ -33729,7 +33729,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-		for (int time = 0; time < 3; time++) {
+		for (int time = 0; time < 4; time++) {
 			for (int met = 0; met < 2; met++) {
 				for (int mett = 0; mett < 2; mett++) {
 					GMRFLib_preopt_like_strategy = met;
@@ -33749,7 +33749,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
 
 		// do this alone as this strategy depends on the previous choices
-		for (int time = 0; time < 3; time++) {
+		for (int time = 0; time < 4; time++) {
 			for (int mettt = 0; mettt < 2; mettt++) {
 				GMRFLib_preopt_predictor_strategy = mettt;
 				double *cpu = GMRFLib_preopt_measure_time2(preopt);
@@ -37513,6 +37513,38 @@ int testit(int argc, char **argv)
 		break;
 
 	case 24:
+	{
+		int n = 1024 * 1024 * 32;
+		double *xx = Calloc(n, double);
+		double *yy = Calloc(n, double);
+
+		for(int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+			yy[i] = GMRFLib_uniform();
+		}
+
+		int one = 1;
+		double sum1 = 0.0, sum2 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0;
+		for(int k = 0; k < 10; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+#pragma GCC ivdep
+#pragma GCC unroll 8
+			for(int i = 0; i < n; i++) {
+				sum1 += xx[i] * yy[i];
+			}
+			tref1 += GMRFLib_cpu();
+			tref2 -= GMRFLib_cpu();
+			sum2 += ddot_(&n, xx, &one, yy, &one);
+			tref2 += GMRFLib_cpu();
+			if (k == 0) P(sum1 - sum2);
+		}
+		printf("loop %.3f ddot %.3f (%.3f, %.3f)\n",  tref1, tref2,  tref1 / (tref1 + tref2),
+		       tref2 / (tref1 + tref2));
+		Free(xx);
+		Free(yy);
+	}
 		break;
 
 	case 25:
@@ -37837,6 +37869,13 @@ int testit(int argc, char **argv)
 
 	case 45:
 	{
+		int n = 20;
+		GMRFLib_idxval_tp * h = NULL;
+		for(int i = 0, j = 0; i < n; i++) {
+			j += 1 + (i % 3 == 0) + (GMRFLib_uniform() < 0.3);
+ 			GMRFLib_idxval_add(&h, j, (double)j);
+		}
+		GMRFLib_idxval_sort(h);
 		break;
 	}
 
@@ -37908,6 +37947,47 @@ int testit(int argc, char **argv)
 
 	case 47:
 	{
+		GMRFLib_idxval_tp *h= NULL;
+		GMRFLib_idxval_add(&h, 23, 1.000000);
+		GMRFLib_idxval_add(&h, 61, 1.000000);
+		GMRFLib_idxval_add(&h, 67, 1.000000);
+		GMRFLib_idxval_add(&h, 127, 1.000000);
+		GMRFLib_idxval_add(&h, 128, 1.000000);
+		GMRFLib_idxval_add(&h, 162, 1.000000);
+		GMRFLib_idxval_add(&h, 177, 1.000000);
+		if (1) {
+			GMRFLib_idxval_add(&h, 189, 1.000000);
+			GMRFLib_idxval_add(&h, 223, 1.000000);
+			GMRFLib_idxval_add(&h, 235, 1.000000);
+			GMRFLib_idxval_add(&h, 360, 1.000000);
+			GMRFLib_idxval_add(&h, 423, 1.000000);
+			GMRFLib_idxval_add(&h, 432, 1.000000);
+			GMRFLib_idxval_add(&h, 433, 1.000000);
+			GMRFLib_idxval_add(&h, 443, 1.000000);
+			GMRFLib_idxval_add(&h, 455, 1.000000);
+			GMRFLib_idxval_add(&h, 492, 1.000000);
+			GMRFLib_idxval_add(&h, 581, 1.000000);
+			GMRFLib_idxval_add(&h, 620, 1.000000);
+			GMRFLib_idxval_add(&h, 646, 1.000000);
+			GMRFLib_idxval_add(&h, 675, 1.000000);
+			GMRFLib_idxval_add(&h, 694, 1.000000);
+			GMRFLib_idxval_add(&h, 730, 1.000000);
+			GMRFLib_idxval_add(&h, 734, 1.000000);
+			GMRFLib_idxval_add(&h, 754, 1.000000);
+			GMRFLib_idxval_add(&h, 769, 1.000000);
+			GMRFLib_idxval_add(&h, 781, 1.000000);
+			GMRFLib_idxval_add(&h, 792, 1.000000);
+			GMRFLib_idxval_add(&h, 822, 1.000000);
+			GMRFLib_idxval_add(&h, 826, 1.000000);
+			GMRFLib_idxval_add(&h, 896, 1.000000);
+			GMRFLib_idxval_add(&h, 947, 1.000000);
+			GMRFLib_idxval_add(&h, 966, 1.000000);
+			GMRFLib_idxval_add(&h, 998, 1.000000);
+			GMRFLib_idxval_add(&h, 1013, 1.000000);
+		}
+		
+		GMRFLib_idxval_sort(h);
+		GMRFLib_idxval_printf(stdout, h, "test47");
 		break;
 	}
 
