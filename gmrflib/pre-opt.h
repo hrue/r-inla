@@ -77,7 +77,7 @@ __BEGIN_DECLS
 					value_ += DDOT(llen_, vv_, aa_); \
 				}					\
 			}						\
-			if(1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]]), 0); \
+			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]]), 0); \
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
