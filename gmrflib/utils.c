@@ -1808,8 +1808,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 				ng++;					\
 			}						\
 		}							\
-		int *g_i = Calloc(ng, int);				\
-		int *g_len = Calloc(ng, int);				\
+		int *g_i = Calloc(ng + 1, int);				\
+		int *g_len = Calloc(ng + 1, int);			\
 									\
 		int k = 0;						\
 		g_i[0] = 0;						\
@@ -1865,6 +1865,8 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 			}						\
 		}							\
 		h->g_n = gg + irregular;				\
+		h->g_i[h->g_n] = h->g_i[h->g_n - 1];			\
+		h->g_len[h->g_n] = 0;					\
         }
 
 	RUN_CODE_BLOCK(nt, 0, 0);

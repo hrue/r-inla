@@ -55,6 +55,7 @@ __BEGIN_DECLS
 			int len_ = ELM_->g_len[g_];			\
 			double *vv_ = &(ELM_->val[istart_]);		\
 									\
+			if (len_ == 0) continue;			\
 			if (len_ > 0) {					\
 				double *aa_ = &(ARR_[0]);		\
 				_Pragma("GCC ivdep")			\
@@ -75,9 +76,8 @@ __BEGIN_DECLS
 					double *aa_ = &(ARR_[ii_[0]]);	\
 					value_ += DDOT(llen_, vv_, aa_); \
 				}					\
-			} else {					\
-				assert(0 == 1);				\
 			}						\
+			if(1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]]), 0); \
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
