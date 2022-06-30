@@ -64,10 +64,10 @@ __BEGIN_DECLS
 					}				\
 			} else if (len_ < 0) {				\
 				int llen_ = - len_;			\
-				if (llen_ < 5) {			\
+				if (llen_ < 9L) {			\
 					double *aa_ = &(ARR_[0]);	\
 					_Pragma("GCC ivdep")		\
-						_Pragma("GCC unroll 4")	\
+						_Pragma("GCC unroll 8")	\
 						for (int i_ = 0; i_ < llen_; i_++) { \
 							value_ += vv_[i_] * aa_[ii_[i_]]; \
 						}			\
@@ -98,14 +98,22 @@ __BEGIN_DECLS
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
-		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
-			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
-		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
-			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
-		} else if (GMRFLib_preopt_like_strategy == 0) {		\
-			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		if (1)	{						\
+			if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {	\
+				DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
+			} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) { \
+				DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
+			} else if (ELM_->n / IMAX(1, ELM_->g_n) >= 8L) { \
+				DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
+			} else {					\
+				DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
+			}						\
 		} else {						\
-			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+			if (GMRFLib_preopt_like_strategy == 0) {	\
+				DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);	\
+			} else {					\
+				DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);	\
+			}						\
 		}							\
 	}
 
