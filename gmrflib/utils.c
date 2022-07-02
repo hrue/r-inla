@@ -2115,7 +2115,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		}							\
 		h->g_1 = g_1;						\
 									\
-		if (debug) GMRFLib_idxval_info_printf(stdout, h, "h");	\
+		if (1||debug) GMRFLib_idxval_info_printf(stdout, h, "\t");	\
 	}
 
 	RUN_CODE_BLOCK(nt, 0, 0);						

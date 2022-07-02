@@ -58,12 +58,10 @@ __BEGIN_DECLS
 			double *vv_ = &(ELM_->val[istart_]);		\
 									\
 			if (len_ == 0) continue;			\
-									\
 			if (len_ > 0) {					\
-									\
 				double *aa_ = &(ARR_[0]);		\
 				if (ELM_->g_1[g_]) {			\
-					if (0) {			\
+					if (len_ < 8L) {		\
 						_Pragma("GCC ivdep")	\
 							for (int i_ = 0; i_ < len_; i_++) { \
 								value_ += aa_[ii_[i_]]; \
@@ -72,7 +70,7 @@ __BEGIN_DECLS
 						value_ += my_dsum_idx(len_, aa_, ii_); \
 					}				\
 				} else {				\
-					if (0) {			\
+					if (len_ < 8L) {		\
 						_Pragma("GCC ivdep")	\
 							for (int i_ = 0; i_ < len_; i_++) { \
 								value_ += vv_[i_] * aa_[ii_[i_]]; \
@@ -81,9 +79,7 @@ __BEGIN_DECLS
 						value_ += my_ddot_idx(len_, vv_, aa_, ii_); \
 					}				\
 				}					\
-									\
 			} else if (len_ < 0) {				\
-									\
 				int llen_ = - len_;			\
 				double *aa_ = &(ARR_[ii_[0]]);		\
 				if (ELM_->g_1[g_]) {			\
@@ -92,7 +88,6 @@ __BEGIN_DECLS
 					value_ += DDOT(llen_, vv_, aa_); \
 				}					\
 			}						\
-									\
 			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]])); \
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
