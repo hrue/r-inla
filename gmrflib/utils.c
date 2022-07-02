@@ -1818,18 +1818,39 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	// prune_zeros, 0=do nothing, >0 remove duplicate with same index within each group, <0 remove all zeros
 	int debug = GMRFLib_DEBUG_IF_TRUE();
 	
-#define CODE_BLOCK				\
-	for (int i = 0; i < n; i++) {		\
-		GMRFLib_idxval_tp *h = hold[i];	\
-						\
-		if (h && h->n > 1) {					\
-			GMRFLib_qsorts((void *) h->idx, (size_t) h->n, sizeof(int), \
-				       (void *) h->val, sizeof(double), NULL, (size_t) 0, GMRFLib_icmp); \
+	int nmax = 1;
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = hold[i];
+		nmax = IMAX(nmax, h->n);
+	}
+
+#define CODE_BLOCK							\
+	for (int i = 0; i < n; i++) {					\
+		GMRFLib_idxval_tp *h = hold[i];				\
+		if (!h) continue;					\
+		double tref[5] =  {0, 0, 0, 0, 0};			\
+		if (debug) tref[0] -= GMRFLib_cpu();			\
+		if (h->n > 1) {						\
+			if (0) {					\
+				GMRFLib_qsorts((void *) h->idx, (size_t) h->n, sizeof(int), \
+					       (void *) h->val, sizeof(double), NULL, (size_t) 0, GMRFLib_icmp); \
+			} else {					\
+				double *idx_tmp = CODE_BLOCK_WORK_PTR(0); \
+				for(int j = 0; j < h->n; j++) {		\
+					idx_tmp[j] = (double) h->idx[j]; \
+				}					\
+				gsl_sort2(idx_tmp, (size_t) 1, h->val, (size_t) 1, (size_t) h->n); \
+				for(int j = 0; j < h->n; j++) {		\
+					h->idx[j] = (int) idx_tmp[j];	\
+				}					\
+			}						\
 		}							\
+		if (debug) tref[0] += GMRFLib_cpu();			\
 									\
 		/*							\
 		 * build basic groups with one group for each sequence and then one for each individual \
 		 */							\
+		if (debug) tref[1] -= GMRFLib_cpu();			\
 		int ng = 1;						\
 		for (int j = 1; j < h->n; j++) {			\
 			if (h->idx[j] != h->idx[j - 1] + 1) {		\

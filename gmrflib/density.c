@@ -1205,7 +1205,11 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
-		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
+		if (0) {
+			GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
+		} else {
+			gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
+		}
 	}
 	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1.0 / 2.0));
 	GMRFLib_adjust_vector(ldens, n);
