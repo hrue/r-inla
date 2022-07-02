@@ -283,7 +283,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_add(&(At_idxval[elm->idx[k]]), i, elm->val[k]);
 		}
 	}
-	GMRFLib_idxval_nsort_x(At_idxval, N, GMRFLib_openmp->max_threads_outer, -1);
+	GMRFLib_idxval_nsort_x(At_idxval, N, GMRFLib_MAX_THREADS(), -1);
 
 	SHOW_TIME("At_idxval");
 	if (debug_detailed) {
@@ -319,7 +319,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int j = pA->j[k];
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
-		GMRFLib_idxval_nsort_x(pA_idxval, nrow, GMRFLib_openmp->max_threads_outer, -1);
+		GMRFLib_idxval_nsort_x(pA_idxval, nrow, GMRFLib_MAX_THREADS(), -1);
 		(*preopt)->pA = pA;
 		SHOW_TIME("create pA_idxval");
 

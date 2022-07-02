@@ -33714,7 +33714,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	assert(preopt->latent_graph->n == N);
 
 	// time the two versions of Qfunc_like
-	double time_used_like[2] = { 0.0, 0.0 };
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
 
@@ -33724,22 +33723,17 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
 		for (int time = -2; time < 4; time++) {
-			for (int met = 0; met < 2; met++) {
-				for (int mett = 0; mett < 2; mett++) {
-					GMRFLib_preopt_like_strategy = met;
-					GMRFLib_Qx_strategy = mett;
-					double *cpu = GMRFLib_preopt_measure_time(thread_id, preopt);
-					if (time > 0) {
-						time_used_like[met] += cpu[0];
-						time_used_Qx[mett] += cpu[1];
-					}
-					// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
-					Free(cpu);
+			for (int mett = 0; mett < 2; mett++) {
+				GMRFLib_Qx_strategy = mett;
+				double *cpu = GMRFLib_preopt_measure_time(thread_id, preopt);
+				if (time > 0) {
+					time_used_Qx[mett] += cpu[1];
 				}
+				// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
+				Free(cpu);
 			}
 		}
 		// we have a slight preference for the simpler/serial ones
-		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.0/1.1 ? 0 : 1);
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
 
 		// do this alone as this strategy depends on the previous choices
@@ -33757,7 +33751,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
 	} else {
-		GMRFLib_preopt_like_strategy = 0;
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
 	}
@@ -33777,8 +33770,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tTiming of Qlike-strategy... plain/group = %.2f choose[%s]\n", time_used_like[0] / time_used_like[1],
-		       (GMRFLib_preopt_like_strategy == 0 ? "plain" : "group"));
 		printf("\tTiming of Qx-strategy...... serial/parallel = %.2f choose[%s]\n", time_used_Qx[0] / time_used_Qx[1],
 		       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 		printf("\tTiming of pred-strategy.... plain/data-rich = %.2f choose[%s]\n", time_used_pred[0] / time_used_pred[1],

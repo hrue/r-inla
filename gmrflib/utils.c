@@ -1870,6 +1870,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			}						\
 		}							\
 		g_len[ng - 1] = h->n - g_i[ng - 1];			\
+		if (debug) tref[1] += GMRFLib_cpu();			\
 									\
 		if (debug) {						\
 			GMRFLib_idxval_printf(stdout, h, "OLD");	\
@@ -1878,13 +1879,14 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		k = h->n;				       /* so the code below works */ \
 		int kg = ng;				       /* so the code below works */ \
 									\
+		if (debug) tref[2] -= GMRFLib_cpu();			\
 		if (prune_zeros) {					\
 			/*						\
 			 * remove zeros in 'val', either all or all but the first one \
 			 */						\
 			k = 0;						\
 			kg = 0;						\
-									\
+			int nskip = 0;					\
 			for (int g = 0; g < ng; g++) {			\
 									\
 				int gl = IABS(g_len[g]);		\
@@ -1898,9 +1900,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 									\
 					if (prune_zeros < 0) {		\
 						if (ISZERO(h->val[g_i[g] + j])) { \
-							/*		\
-							 * skip		\
-							 */		\
+							nskip++;	\
 						} else {		\
 							h->idx[k] = idx_z; \
 							h->val[k] = h->val[g_i[g] + j];	\
@@ -1917,9 +1917,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 									k++; \
 									gn++; \
 								} else { \
-									/* \
-									 * skip \
-									 */ \
+									nskip++; \
 								}	\
 							} else {	\
 								h->idx[k] = idx_z; \
@@ -1941,7 +1939,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 					}				\
 				}					\
 				if (debug && (g_len[g] != gn)) {	\
-					printf("modify group %d from %d to %d\n", g, gl, gn); \
+					printf("modify group %d from %d to %d, nskip=%1d\n", g, gl, gn, nskip); \
 				}					\
 				if (gn) {				\
 					g_i[kg] = kk;			\
@@ -1955,13 +1953,16 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		h->g_i = g_i;						\
 		h->g_len = g_len;					\
 									\
+		if (debug) tref[2] += GMRFLib_cpu();			\
+									\
 		if (debug) {						\
 			GMRFLib_idxval_printf(stdout, h, "NEW");	\
 		}							\
 									\
 		/*							\
-		 * grow the groups together by merging individual groups and sequential groups \
+		 * grow the groups together by merging individual groups, and merging sequential groups \
 		 */							\
+		if (debug) tref[3] -= GMRFLib_cpu();			\
 		int gg = 0;						\
 		int irregular = 0;					\
 		for (int g = 0; g < h->g_n; g++) {			\
@@ -2122,10 +2123,12 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 				h->n_alloc = n_new;			\
 			}						\
 		}							\
+		if (debug) tref[3] += GMRFLib_cpu();			\
 									\
 		/*							\
 		 * add a boolean for all(val[]==1), which makes dot-products into sums \
 		 */							\
+		if (debug) tref[4] -= GMRFLib_cpu();			\
 		int *g_1 = Calloc(h->g_n + 1, int);			\
 		for (int g = 0; g < h->g_n; g++) {			\
 			int all_1 = 1;					\
@@ -2135,12 +2138,86 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			g_1[g] = (all_1 ? 1 : 0);			\
 		}							\
 		h->g_1 = g_1;						\
+		if (debug) tref[4] += GMRFLib_cpu();			\
 									\
-		if (1||debug) GMRFLib_idxval_info_printf(stdout, h, "\t");	\
+		if (debug) {						\
+			GMRFLib_idxval_info_printf(stdout, h, "\t");	\
+		}							\
+		if (debug) {						\
+			double sum = tref[0] + tref[1] + tref[2] + tref[3] + tref[4]; \
+			printf("%.3f %.3f %.3f %.3f %.3f\n", tref[0]/sum, tref[1]/sum, tref[2]/sum, tref[3]/sum, tref[4]/sum); \
+		}							\
 	}
 
-	RUN_CODE_BLOCK(nt, 0, 0);						
+	RUN_CODE_BLOCK(nt, 1, nmax);						
 #undef CODE_BLOCK
+
+	/* 
+	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'
+	 */
+	
+	nmax = 1;
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = hold[i];
+		if (h->n > 0) {
+			nmax = IMAX(nmax, h->idx[h->n - 1]);
+		}
+	}
+
+	double *x = Calloc(nmax, double);
+	for(int i = 0; i < nmax; i++) {
+		x[i] = GMRFLib_uniform();
+	}
+	
+	double time_min = 0.0;
+	double time_max = 0.0;
+	int ntimes = 2;
+	
+	for(int i = 0; i < n; i++) {
+		double tref[2] = {0.0, 0.0};
+		double value[2] = {0.0, 0.0};
+		
+		if (debug) printf("start testing for hold[%1d]...\n", i);
+		for(int time = -1; time < ntimes; time++) {
+			if (time >= 0) {
+				tref[0] -= GMRFLib_cpu();
+			}
+			DOT_PRODUCT_SERIAL(value[0], hold[i], x);
+			if (time >= 0) {
+				tref[0] += GMRFLib_cpu();
+			}
+			
+			if (time >= 0) {
+				tref[1] -= GMRFLib_cpu();
+			}
+			DOT_PRODUCT_GROUP(value[1], hold[i], x);
+			if (time >= 0) {
+				tref[1] += GMRFLib_cpu();
+			}
+		}
+
+		if ((ABS(value[1] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[1]))/2.0)) > 1.0E-6) {
+			P(value[0]);
+			P(value[1]);
+			assert(0 == 1);
+		}
+		if (debug) {
+			printf("for h[%1d] with n= %1d : time serial= %.3f  group= %.3f\n", i, hold[i]->n,
+			       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		}
+
+		hold[i]->preference = (tref[0] < tref[1] ? IDXVAL_SERIAL : IDXVAL_GROUP);
+
+		time_min += DMIN(tref[0], tref[1]) / ntimes;
+		time_max += DMAX(tref[0], tref[1]) / ntimes;
+	}
+
+	if (debug) {
+		printf("idxval opt: saving %.6f seconds/M.eval, %.2f%% improvement\n",
+		       (time_max - time_min) * ISQR(1024), 100.0 * (1.0 - time_min / time_max));
+	}
+	
+	Free(x);
 									
 GMRFLib_LEAVE_ROUTINE;							
 	return GMRFLib_SUCCESS;

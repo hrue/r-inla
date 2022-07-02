@@ -82,12 +82,20 @@ typedef struct {
 	double *val;
 } GMRFLib_val_tp;
 
+typedef enum {
+	IDXVAL_UNKNOWN = 0,
+	IDXVAL_SERIAL,
+	IDXVAL_GROUP
+}
+	GMRFLib_idxval_preference_tp;
+	
 typedef struct {
 	int n;
 	int n_alloc;
 	int iaddto;
 	int *idx;
-
+	GMRFLib_idxval_preference_tp preference;
+	
 	int g_n;					       /* number of groups with sequential indices */
 	int *g_len;					       /* their length */
 	int *g_i;					       /* and their starting index */

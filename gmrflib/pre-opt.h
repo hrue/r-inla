@@ -129,10 +129,8 @@ __BEGIN_DECLS
 									\
 		if (ELM_->g_n == 1) {					\
 			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
-		} else if (GMRFLib_preopt_like_strategy == 0) {		\
-			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 		} else {						\
-			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 		}							\
 									\
 		tref += GMRFLib_cpu();					\
@@ -143,14 +141,17 @@ __BEGIN_DECLS
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
-		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
-			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
-		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
+		switch(ELM_->preference) {				\
+		case IDXVAL_SERIAL:					\
 			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
-		} else if (GMRFLib_preopt_like_strategy == 0) {		\
-			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
-		} else {						\
+			break;						\
+		case IDXVAL_GROUP:					\
 			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+			break;						\
+		case IDXVAL_UNKNOWN:					\
+		default:						\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+			break;						\
 		}							\
 	}
 

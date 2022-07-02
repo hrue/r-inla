@@ -858,3 +858,4 @@ forceinline double my_dsum_idx(int n, double *a, int *idx)
 
 	return (s0 + s1 + s2 + s3);
 }
+

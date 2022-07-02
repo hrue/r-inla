@@ -131,7 +131,6 @@ extern int GMRFLib_pardiso_ok;
 extern int GMRFLib_faster_constr;
 extern double GMRFLib_aqat_m_diag_add;
 extern int GMRFLib_inla_mode;
-extern int GMRFLib_preopt_like_strategy;		       // 0 = plain, 1 = group.
 extern int GMRFLib_Qx_strategy;				       // 0 = serial, 1 = parallel
 extern int GMRFLib_preopt_predictor_strategy;		       // 0 = !data_rich, 1 = data_rich
 extern double GMRFLib_weight_prob;
