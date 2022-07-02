@@ -116,12 +116,12 @@ __BEGIN_DECLS
 	}
 
 // this is for testing only
-#define x_DOT_PRODUCT(VALUE_, ELM_, ARR_)				\
+#define x_DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
 		double v1, v2;						\
 		DOT_PRODUCT_GROUP(v1, ELM_, ARR_);			\
 		DOT_PRODUCT_SERIAL(v2, ELM_, ARR_);			\
-		if (ABS(v1-v2) > 1E-08) {				\
+		if (ABS(v1-v2)/(1.0+ABS(v1)/2.0+ABS(v2)/2.0) > 1E-06) {	\
 			P(v1);						\
 			P(v2);						\
 			P(v1-v2);					\
@@ -132,10 +132,8 @@ __BEGIN_DECLS
 		static size_t ntimes = 0.0;				\
 		tref -= GMRFLib_cpu();					\
 									\
-		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
+		if (ELM_->g_n == 1) {					\
 			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
-		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
-			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 		} else if (GMRFLib_preopt_like_strategy == 0) {		\
 			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 		} else {						\

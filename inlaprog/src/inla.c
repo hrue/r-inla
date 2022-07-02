@@ -33739,7 +33739,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 		}
 		// we have a slight preference for the simpler/serial ones
-		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 0.9 ? 0 : 1);
+		GMRFLib_preopt_like_strategy = (time_used_like[0] / time_used_like[1] < 1.0/1.1 ? 0 : 1);
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
 
 		// do this alone as this strategy depends on the previous choices

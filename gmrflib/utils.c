@@ -1601,7 +1601,7 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 {
 	if (hold) {
-		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
+		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto);
 		if (hold->g_i) {
 			for (int g = 0; g < hold->g_n; g++) {
 				fprintf(fp, "\tgroup %1d/%1d: len=%1d one=%s\n", g, hold->g_n, hold->g_len[g], 
@@ -1817,7 +1817,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 	// prune_zeros, 0=do nothing, >0 remove duplicate with same index within each group, <0 remove all zeros
 	int debug = GMRFLib_DEBUG_IF_TRUE();
-
+	
 #define CODE_BLOCK				\
 	for (int i = 0; i < n; i++) {		\
 		GMRFLib_idxval_tp *h = hold[i];	\
@@ -2114,7 +2114,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			g_1[g] = (all_1 ? 1 : 0);			\
 		}							\
 		h->g_1 = g_1;						\
-		GMRFLib_idxval_info_printf(stdout, h, "h");		\
+									\
+		if (debug) GMRFLib_idxval_info_printf(stdout, h, "h");	\
 	}
 
 	RUN_CODE_BLOCK(nt, 0, 0);						
