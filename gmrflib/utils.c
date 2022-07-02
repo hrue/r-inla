@@ -1872,7 +1872,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		g_len[ng - 1] = h->n - g_i[ng - 1];			\
 		if (debug) tref[1] += GMRFLib_cpu();			\
 									\
-		if (debug) {						\
+		if (0 && debug) {					\
 			GMRFLib_idxval_printf(stdout, h, "OLD");	\
 		}							\
 									\
@@ -1955,7 +1955,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 									\
 		if (debug) tref[2] += GMRFLib_cpu();			\
 									\
-		if (debug) {						\
+		if (0 && debug) {					\
 			GMRFLib_idxval_printf(stdout, h, "NEW");	\
 		}							\
 									\
@@ -2019,6 +2019,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 									\
 				Memcpy(idx_new + kk, h->idx, this_alen * sizeof(int)); \
 				Memcpy(val_new + kk, h->val, this_alen * sizeof(double)); \
+									\
 				kk += this_alen;			\
 				h->g_i[gg] = h->g_i[0];			\
 				h->g_len[gg] = h->g_len[0];		\
@@ -2028,7 +2029,6 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 				int gg_first_i = h->g_i[gg];		\
 				int gg_last_i = gg_first_i + gg_alen - 1; \
 				int gg_last_idx = idx_new[gg_last_i];	\
-									\
 				int pending = 0;			\
 									\
 				if (debug) {				\
@@ -2036,6 +2036,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 				}					\
 									\
 				for (int g = 1; g < h->g_n; g++) {	\
+									\
 					if (debug) {			\
 						printf("\tprocess group=%1d with len=%d kk=%1d\n", g, h->g_len[g], kk);	\
 					}				\
@@ -2153,7 +2154,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 #undef CODE_BLOCK
 
 	/* 
-	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'
+	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing this within
+	 * the parallel loop. Usually, this is a quick procedure.
 	 */
 	
 	nmax = 1;
@@ -2193,6 +2195,13 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			DOT_PRODUCT_GROUP(value[1], hold[i], x);
 			if (time >= 0) {
 				tref[1] += GMRFLib_cpu();
+			}
+
+			// no need to do another one, as the decision is pretty clear
+			if (time >= 0) {
+				if (ABS(tref[0] - tref[1]) / (tref[0] + tref[1]) > 0.2) {
+					break;
+				}
 			}
 		}
 
