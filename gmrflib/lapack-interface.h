@@ -89,6 +89,11 @@ int dcopy_(int *n, double *x, int *incx, double *y, int *incy);
 int dscal_(int *n, double *alpha, double *x, int *inc);
 double ddot_(int *n, double *x, int *incx, double *y, int *incy);
 double dnrm2_(int *n, double *x, int *inc);
+double dasum_(int *n, double *x, int *inc);
+
+double my_ddot_idx(int n, double *v, double *a, int *idx);
+double my_dsum(int n, double *x);
+double my_dsum_idx(int n, double *a, int *idx);
 
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);

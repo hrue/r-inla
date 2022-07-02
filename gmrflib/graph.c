@@ -1502,7 +1502,6 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 				for (int i = 0; i < graph->n; i++) {
 					Qfunc(thread_id, i, -1, values, Qfunc_arg);
 #pragma GCC ivdep
-#pragma GCC unroll 8
 					for (int k = 0; k < ncol; k++) {
 						ADDTO(result, i, k, gsl_matrix_get(x, i, k) * values[0]);
 					}
@@ -1511,7 +1510,6 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 						int j = j_a[jj];
 						double qij = values[1 + jj];
 #pragma GCC ivdep
-#pragma GCC unroll 8
 						for (int k = 0; k < ncol; k++) {
 							ADDTO(result, i, k, qij * gsl_matrix_get(x, j, k));
 							ADDTO(result, j, k, qij * gsl_matrix_get(x, i, k));

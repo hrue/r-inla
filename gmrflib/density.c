@@ -585,7 +585,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	ld = Calloc_get(np);
 
 #pragma GCC ivdep
-#pragma GCC unroll 8
 	for (xval = low, i = 0; i < np; xval += dx, i++) {
 		xp[i] = xval;
 	}
@@ -614,7 +613,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 		for (i = 0; i < np - 1; i++) {
 			xpm[3 * i + 0] = xp[i];
 			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
@@ -628,7 +626,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 		for (i = 0; i < np - 1; i++) {
 			xpm[2 * i + 0] = xp[i];
 			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
@@ -661,7 +658,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	mm[3] = gsl_pow_3(xx[0]) * d0 + gsl_pow_3(xx[1]) * d1;
 
 #pragma GCC ivdep
-#pragma GCC unroll 8
 	for (i = 1; i < npm - 1; i++) {
 		double d = ldm[i] * w[(i - 1) % 2];
 		xx[1] = xpm[i];

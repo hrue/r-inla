@@ -43,7 +43,9 @@
 #endif
 
 __BEGIN_DECLS
+
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
+#define DSUM(N_, X_) my_dsum(N_, X_)
 
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
@@ -56,28 +58,42 @@ __BEGIN_DECLS
 			double *vv_ = &(ELM_->val[istart_]);		\
 									\
 			if (len_ == 0) continue;			\
+									\
 			if (len_ > 0) {					\
+									\
 				double *aa_ = &(ARR_[0]);		\
-				_Pragma("GCC ivdep")			\
-					_Pragma("GCC unroll 8")		\
-					for (int i_ = 0; i_ < IABS(len_); i_++) { \
-						value_ += vv_[i_] * aa_[ii_[i_]]; \
+				if (ELM_->g_1[g_]) {			\
+					if (0) {			\
+						_Pragma("GCC ivdep")	\
+							for (int i_ = 0; i_ < len_; i_++) { \
+								value_ += aa_[ii_[i_]]; \
+							}		\
+					} else {			\
+						value_ += my_dsum_idx(len_, aa_, ii_); \
 					}				\
-			} else if (len_ < 0) {				\
-				int llen_ = - len_;			\
-				if (llen_ < 9L) {			\
-					double *aa_ = &(ARR_[0]);	\
-					_Pragma("GCC ivdep")		\
-						_Pragma("GCC unroll 8")	\
-						for (int i_ = 0; i_ < llen_; i_++) { \
-							value_ += vv_[i_] * aa_[ii_[i_]]; \
-						}			\
 				} else {				\
-					double *aa_ = &(ARR_[ii_[0]]);	\
+					if (0) {			\
+						_Pragma("GCC ivdep")	\
+							for (int i_ = 0; i_ < len_; i_++) { \
+								value_ += vv_[i_] * aa_[ii_[i_]]; \
+							}		\
+					} else {			\
+						value_ += my_ddot_idx(len_, vv_, aa_, ii_); \
+					}				\
+				}					\
+									\
+			} else if (len_ < 0) {				\
+									\
+				int llen_ = - len_;			\
+				double *aa_ = &(ARR_[ii_[0]]);		\
+				if (ELM_->g_1[g_]) {			\
+					value_ += DSUM(llen_, aa_);	\
+				} else {				\
 					value_ += DDOT(llen_, vv_, aa_); \
 				}					\
 			}						\
-			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]]), 0); \
+									\
+			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]])); \
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
@@ -88,13 +104,49 @@ __BEGIN_DECLS
 		double *vv_ = ELM_->val;				\
 		double *aa_ = ARR_;					\
 		int *idx_ = ELM_->idx;					\
-		_Pragma("GCC ivdep")					\
-			_Pragma("GCC unroll 8")				\
-			for (int i_ = 0; i_ < ELM_->n; i_++) {		\
-				value_ += vv_[i_] * aa_[idx_[i_]];	\
-			}						\
+		if (0) {						\
+			_Pragma("GCC ivdep")				\
+				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
+					value_ += vv_[i_] * aa_[idx_[i_]]; \
+				}					\
+		} else {						\
+			value_ += my_ddot_idx(ELM_->n, vv_, aa_, idx_);	\
+		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
+
+// this is for testing only
+#define x_DOT_PRODUCT(VALUE_, ELM_, ARR_)				\
+	if (1) {							\
+		double v1, v2;						\
+		DOT_PRODUCT_GROUP(v1, ELM_, ARR_);			\
+		DOT_PRODUCT_SERIAL(v2, ELM_, ARR_);			\
+		if (ABS(v1-v2) > 1E-08) {				\
+			P(v1);						\
+			P(v2);						\
+			P(v1-v2);					\
+			abort();					\
+		}							\
+									\
+		static double tref = 0.0;				\
+		static size_t ntimes = 0.0;				\
+		tref -= GMRFLib_cpu();					\
+									\
+		if (ELM_->g_n == 1 && ELM_->g_len[0] < 0) {		\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		} else if (ELM_->g_n == 1 && ELM_->g_len[0] > 0) {	\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else if (GMRFLib_preopt_like_strategy == 0) {		\
+			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
+		} else {						\
+			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		}							\
+									\
+		tref += GMRFLib_cpu();					\
+		ntimes++;						\
+		if (ntimes % 1000000L == 0) P(tref);			\
+	}
+
 
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
@@ -108,6 +160,7 @@ __BEGIN_DECLS
 			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
 		}							\
 	}
+
 
 /* 
  * 
