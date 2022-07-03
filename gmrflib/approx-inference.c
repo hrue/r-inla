@@ -9022,8 +9022,8 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 		GMRFLib_tabulate_Qfunc_arg_tp *aa;
 		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
 		if (aa->Q) {
-			assert(mo->configs[id]->nz == aa->Q->na);
-			Memcpy(Q, aa->Q->a, aa->Q->na * sizeof(double));
+			assert(mo->configs[id]->nz == aa->Q->s->na);
+			Memcpy(Q, aa->Q->a, aa->Q->s->na * sizeof(double));
 			found = 1;
 		}
 	}

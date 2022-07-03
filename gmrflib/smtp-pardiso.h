@@ -207,7 +207,7 @@ void pardiso_printstats(int *, int *, double *, int *, int *, int *, double *, i
 void pardiso_residual(int *mtype, int *n, double *a, int *ia, int *ja, double *b, double *x, double *y, double *norm_b, double *norm_res);
 void pardisoinit(void *, int *, int *, int *, double *, int *);
 
-GMRFLib_csr_tp * GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph);
+GMRFLib_csr_skeleton_tp * GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph);
 int GMRFLib_csr_init_store(void);
 
 __END_DECLS

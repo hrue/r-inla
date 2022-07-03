@@ -105,6 +105,11 @@ typedef struct {
 	int *ja;
 	int *ja1;
 	int *iwork;
+	unsigned char *sha;
+} GMRFLib_csr_skeleton_tp;
+
+typedef struct {
+	GMRFLib_csr_skeleton_tp *s;
 	double *a;
 } GMRFLib_csr_tp;
 
