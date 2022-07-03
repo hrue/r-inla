@@ -1604,7 +1604,7 @@ int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto);
 		if (hold->g_i) {
 			for (int g = 0; g < hold->g_n; g++) {
-				fprintf(fp, "\tgroup %1d/%1d: len=%1d one=%s\n", g, hold->g_n, hold->g_len[g], 
+				fprintf(fp, "\tgroup %1d/%1d: len=%1d one=%s\n", g, hold->g_n, hold->g_len[g],
 					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"));
 			}
 		}
@@ -1817,7 +1817,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 	// prune_zeros, 0=do nothing, >0 remove duplicate with same index within each group, <0 remove all zeros
 	int debug = GMRFLib_DEBUG_IF_TRUE();
-	
+
 	int nmax = 1;
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
@@ -2150,14 +2150,14 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		}							\
 	}
 
-	RUN_CODE_BLOCK(nt, 1, nmax);						
+	RUN_CODE_BLOCK(nt, 1, nmax);
 #undef CODE_BLOCK
 
-	/* 
+	/*
 	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing this within
 	 * the parallel loop. Usually, this is a quick procedure.
 	 */
-	
+
 	nmax = 1;
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
@@ -2167,20 +2167,21 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	}
 
 	double *x = Calloc(nmax, double);
-	for(int i = 0; i < nmax; i++) {
+	for (int i = 0; i < nmax; i++) {
 		x[i] = GMRFLib_uniform();
 	}
-	
+
 	double time_min = 0.0;
 	double time_max = 0.0;
 	int ntimes = 2;
-	
-	for(int i = 0; i < n; i++) {
-		double tref[2] = {0.0, 0.0};
-		double value[2] = {0.0, 0.0};
-		
-		if (debug) printf("start testing for hold[%1d]...\n", i);
-		for(int time = -1; time < ntimes; time++) {
+
+	for (int i = 0; i < n; i++) {
+		double tref[2] = { 0.0, 0.0 };
+		double value[2] = { 0.0, 0.0 };
+
+		if (debug)
+			printf("start testing for hold[%1d]...\n", i);
+		for (int time = -1; time < ntimes; time++) {
 			if (time >= 0) {
 				tref[0] -= GMRFLib_cpu();
 			}
@@ -2188,7 +2189,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (time >= 0) {
 				tref[0] += GMRFLib_cpu();
 			}
-			
+
 			if (time >= 0) {
 				tref[1] -= GMRFLib_cpu();
 			}
@@ -2196,7 +2197,6 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (time >= 0) {
 				tref[1] += GMRFLib_cpu();
 			}
-
 			// no need to do another one, as the decision is pretty clear
 			if (time >= 0) {
 				if (ABS(tref[0] - tref[1]) / (tref[0] + tref[1]) > 0.2) {
@@ -2205,7 +2205,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			}
 		}
 
-		if ((ABS(value[1] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[1]))/2.0)) > 1.0E-6) {
+		if ((ABS(value[1] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[1])) / 2.0)) > 1.0E-6) {
 			P(value[0]);
 			P(value[1]);
 			assert(0 == 1);
@@ -2225,10 +2225,10 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		printf("idxval opt: saving %.6f seconds/M.eval, %.2f%% improvement\n",
 		       (time_max - time_min) * ISQR(1024), 100.0 * (1.0 - time_min / time_max));
 	}
-	
+
 	Free(x);
-									
-GMRFLib_LEAVE_ROUTINE;							
+
+	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
 
@@ -2419,7 +2419,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

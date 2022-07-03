@@ -8874,9 +8874,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -37498,7 +37498,7 @@ int testit(int argc, char **argv)
 		double *xx = Calloc(n, double);
 		double *yy = Calloc(n, double);
 
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			xx[i] = GMRFLib_uniform();
 			yy[i] = GMRFLib_uniform();
 		}
@@ -37506,21 +37506,21 @@ int testit(int argc, char **argv)
 		int one = 1;
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
-		for(int k = 0; k < 10; k++) {
+		for (int k = 0; k < 10; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
 #pragma GCC ivdep
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				sum1 += xx[i] * yy[i];
 			}
 			tref1 += GMRFLib_cpu();
 			tref2 -= GMRFLib_cpu();
 			sum2 += ddot_(&n, xx, &one, yy, &one);
 			tref2 += GMRFLib_cpu();
-			if (k == 0) P(sum1 - sum2);
+			if (k == 0)
+				P(sum1 - sum2);
 		}
-		printf("loop %.3f ddot %.3f (%.3f, %.3f)\n",  tref1, tref2,  tref1 / (tref1 + tref2),
-		       tref2 / (tref1 + tref2));
+		printf("loop %.3f ddot %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 		Free(yy);
 	}
@@ -37531,23 +37531,24 @@ int testit(int argc, char **argv)
 		int n = 256 * 512;
 		double *xx = Calloc(n, double);
 
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			xx[i] = GMRFLib_uniform();
 		}
 
-		GMRFLib_idxval_tp * h = NULL;
-		for(int i = 0, j = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
 			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : (int) (GMRFLib_uniform() * 8));
-			if (j >= n) break;
- 			GMRFLib_idxval_add(&h, j, xx[j]);
+			if (j >= n)
+				break;
+			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_sort(h);
 		P(h->g_n);
 		P(h->n / h->g_n);
-		
+
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
-		for(int k = 0; k < 10000; k++) {
+		for (int k = 0; k < 10000; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
 			DOT_PRODUCT_SERIAL(sum1, h, xx);
@@ -37555,14 +37556,13 @@ int testit(int argc, char **argv)
 			tref2 -= GMRFLib_cpu();
 			DOT_PRODUCT_GROUP(sum2, h, xx);
 			tref2 += GMRFLib_cpu();
-			if (ABS(sum1-sum2) >  1e-8) {
+			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
 				P(sum2);
 				exit(88);
 			}
 		}
-		printf("serial %.3f group %.3f (%.3f, %.3f)\n",  tref1, tref2,  tref1 / (tref1 + tref2),
-		       tref2 / (tref1 + tref2));
+		printf("serial %.3f group %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 	}
 		break;
@@ -37887,10 +37887,10 @@ int testit(int argc, char **argv)
 	case 45:
 	{
 		int n = 10;
-		GMRFLib_idxval_tp * h = NULL;
-		for(int i = 0, j = 0; i < n; i++) {
-			j = (i <  n/2 ? 0 :  1);
- 			GMRFLib_idxval_add(&h, j, (double)j);
+		GMRFLib_idxval_tp *h = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
+			j = (i < n / 2 ? 0 : 1);
+			GMRFLib_idxval_add(&h, j, (double) j);
 		}
 		GMRFLib_idxval_sort(h);
 		GMRFLib_idxval_printf(stdout, h, "case 45");
@@ -37965,7 +37965,7 @@ int testit(int argc, char **argv)
 
 	case 47:
 	{
-		GMRFLib_idxval_tp *h= NULL;
+		GMRFLib_idxval_tp *h = NULL;
 		GMRFLib_idxval_add(&h, 23, 1.000000);
 		GMRFLib_idxval_add(&h, 61, 1.000000);
 		GMRFLib_idxval_add(&h, 67, 1.000000);
@@ -38003,7 +38003,7 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&h, 998, 1.000000);
 			GMRFLib_idxval_add(&h, 1013, 1.000000);
 		}
-		
+
 		GMRFLib_idxval_sort(h);
 		GMRFLib_idxval_printf(stdout, h, "test47");
 		break;
@@ -38739,384 +38739,384 @@ int testit(int argc, char **argv)
 
 	case 81:
 	{
-		GMRFLib_idxval_tp *h= NULL;
-		GMRFLib_idxval_add(&h,22830,1);
-		GMRFLib_idxval_add(&h,22832,1);
-		GMRFLib_idxval_add(&h,22847,1);
-		GMRFLib_idxval_add(&h,22850,1);
-		GMRFLib_idxval_add(&h,22856,1);
-		GMRFLib_idxval_add(&h,22861,1);
-		GMRFLib_idxval_add(&h,22869,1);
-		GMRFLib_idxval_add(&h,22877,1);
-		GMRFLib_idxval_add(&h,22885,1);
-		GMRFLib_idxval_add(&h,22892,1);
-		GMRFLib_idxval_add(&h,22893,1);
-		GMRFLib_idxval_add(&h,22904,1);
-		GMRFLib_idxval_add(&h,22905,1);
-		GMRFLib_idxval_add(&h,22918,1);
-		GMRFLib_idxval_add(&h,22922,1);
-		GMRFLib_idxval_add(&h,22933,1);
-		GMRFLib_idxval_add(&h,22946,1);
-		GMRFLib_idxval_add(&h,22949,1);
-		GMRFLib_idxval_add(&h,22950,1);
-		GMRFLib_idxval_add(&h,22965,1);
-		GMRFLib_idxval_add(&h,22969,1);
-		GMRFLib_idxval_add(&h,22980,1);
-		GMRFLib_idxval_add(&h,22982,1);
-		GMRFLib_idxval_add(&h,22983,1);
-		GMRFLib_idxval_add(&h,22995,1);
-		GMRFLib_idxval_add(&h,23009,1);
-		GMRFLib_idxval_add(&h,23014,1);
-		GMRFLib_idxval_add(&h,23015,1);
-		GMRFLib_idxval_add(&h,23017,1);
-		GMRFLib_idxval_add(&h,23032,1);
-		GMRFLib_idxval_add(&h,23033,1);
-		GMRFLib_idxval_add(&h,23045,1);
-		GMRFLib_idxval_add(&h,23060,1);
-		GMRFLib_idxval_add(&h,23070,1);
-		GMRFLib_idxval_add(&h,23084,1);
-		GMRFLib_idxval_add(&h,23093,1);
-		GMRFLib_idxval_add(&h,23106,1);
-		GMRFLib_idxval_add(&h,23107,1);
-		GMRFLib_idxval_add(&h,23117,1);
-		GMRFLib_idxval_add(&h,23124,1);
-		GMRFLib_idxval_add(&h,23139,1);
-		GMRFLib_idxval_add(&h,23143,1);
-		GMRFLib_idxval_add(&h,23158,1);
-		GMRFLib_idxval_add(&h,23173,1);
-		GMRFLib_idxval_add(&h,23183,1);
-		GMRFLib_idxval_add(&h,23197,1);
-		GMRFLib_idxval_add(&h,23204,1);
-		GMRFLib_idxval_add(&h,23214,1);
-		GMRFLib_idxval_add(&h,23229,1);
-		GMRFLib_idxval_add(&h,23232,1);
-		GMRFLib_idxval_add(&h,23240,1);
-		GMRFLib_idxval_add(&h,23252,1);
-		GMRFLib_idxval_add(&h,23259,1);
-		GMRFLib_idxval_add(&h,23262,1);
-		GMRFLib_idxval_add(&h,23267,1);
-		GMRFLib_idxval_add(&h,23271,1);
-		GMRFLib_idxval_add(&h,23277,1);
-		GMRFLib_idxval_add(&h,23287,1);
-		GMRFLib_idxval_add(&h,23302,1);
-		GMRFLib_idxval_add(&h,23309,1);
-		GMRFLib_idxval_add(&h,23324,1);
-		GMRFLib_idxval_add(&h,23339,1);
-		GMRFLib_idxval_add(&h,23348,1);
-		GMRFLib_idxval_add(&h,23351,1);
-		GMRFLib_idxval_add(&h,23356,1);
-		GMRFLib_idxval_add(&h,23370,1);
-		GMRFLib_idxval_add(&h,23383,1);
-		GMRFLib_idxval_add(&h,23391,1);
-		GMRFLib_idxval_add(&h,23405,1);
-		GMRFLib_idxval_add(&h,23409,1);
-		GMRFLib_idxval_add(&h,23420,1);
-		GMRFLib_idxval_add(&h,23434,1);
-		GMRFLib_idxval_add(&h,23448,1);
-		GMRFLib_idxval_add(&h,23462,1);
-		GMRFLib_idxval_add(&h,23468,1);
-		GMRFLib_idxval_add(&h,23472,1);
-		GMRFLib_idxval_add(&h,23473,1);
-		GMRFLib_idxval_add(&h,23474,1);
-		GMRFLib_idxval_add(&h,23479,1);
-		GMRFLib_idxval_add(&h,23492,1);
-		GMRFLib_idxval_add(&h,23495,1);
-		GMRFLib_idxval_add(&h,23503,1);
-		GMRFLib_idxval_add(&h,23514,1);
-		GMRFLib_idxval_add(&h,23528,1);
-		GMRFLib_idxval_add(&h,23542,1);
-		GMRFLib_idxval_add(&h,23552,1);
-		GMRFLib_idxval_add(&h,23557,1);
-		GMRFLib_idxval_add(&h,23558,1);
-		GMRFLib_idxval_add(&h,23567,1);
-		GMRFLib_idxval_add(&h,23572,1);
-		GMRFLib_idxval_add(&h,23580,1);
-		GMRFLib_idxval_add(&h,23582,1);
-		GMRFLib_idxval_add(&h,23584,1);
-		GMRFLib_idxval_add(&h,23598,1);
-		GMRFLib_idxval_add(&h,23601,1);
-		GMRFLib_idxval_add(&h,23602,1);
-		GMRFLib_idxval_add(&h,23615,1);
-		GMRFLib_idxval_add(&h,23617,1);
-		GMRFLib_idxval_add(&h,23630,1);
-		GMRFLib_idxval_add(&h,23643,1);
-		GMRFLib_idxval_add(&h,23645,1);
-		GMRFLib_idxval_add(&h,23658,1);
-		GMRFLib_idxval_add(&h,23669,1);
-		GMRFLib_idxval_add(&h,23670,1);
-		GMRFLib_idxval_add(&h,23679,1);
-		GMRFLib_idxval_add(&h,23688,1);
-		GMRFLib_idxval_add(&h,23698,1);
-		GMRFLib_idxval_add(&h,23710,1);
-		GMRFLib_idxval_add(&h,23718,1);
-		GMRFLib_idxval_add(&h,23728,1);
-		GMRFLib_idxval_add(&h,23734,1);
-		GMRFLib_idxval_add(&h,23741,1);
-		GMRFLib_idxval_add(&h,23751,1);
-		GMRFLib_idxval_add(&h,23754,1);
-		GMRFLib_idxval_add(&h,23764,1);
-		GMRFLib_idxval_add(&h,23776,1);
-		GMRFLib_idxval_add(&h,23788,1);
-		GMRFLib_idxval_add(&h,23792,1);
-		GMRFLib_idxval_add(&h,23799,1);
-		GMRFLib_idxval_add(&h,23801,1);
-		GMRFLib_idxval_add(&h,23807,1);
-		GMRFLib_idxval_add(&h,23808,1);
-		GMRFLib_idxval_add(&h,23820,1);
-		GMRFLib_idxval_add(&h,23823,1);
-		GMRFLib_idxval_add(&h,23835,1);
-		GMRFLib_idxval_add(&h,23843,1);
-		GMRFLib_idxval_add(&h,23846,1);
-		GMRFLib_idxval_add(&h,23858,1);
-		GMRFLib_idxval_add(&h,23861,1);
-		GMRFLib_idxval_add(&h,23873,1);
-		GMRFLib_idxval_add(&h,23878,1);
-		GMRFLib_idxval_add(&h,23881,1);
-		GMRFLib_idxval_add(&h,23892,1);
-		GMRFLib_idxval_add(&h,23901,1);
-		GMRFLib_idxval_add(&h,23912,1);
-		GMRFLib_idxval_add(&h,23923,1);
-		GMRFLib_idxval_add(&h,23934,1);
-		GMRFLib_idxval_add(&h,23945,1);
-		GMRFLib_idxval_add(&h,23949,1);
-		GMRFLib_idxval_add(&h,23956,1);
-		GMRFLib_idxval_add(&h,23967,1);
-		GMRFLib_idxval_add(&h,23978,1);
-		GMRFLib_idxval_add(&h,23985,1);
-		GMRFLib_idxval_add(&h,23988,1);
-		GMRFLib_idxval_add(&h,23991,1);
-		GMRFLib_idxval_add(&h,24002,1);
-		GMRFLib_idxval_add(&h,24011,1);
-		GMRFLib_idxval_add(&h,24021,1);
-		GMRFLib_idxval_add(&h,24026,1);
-		GMRFLib_idxval_add(&h,24029,1);
-		GMRFLib_idxval_add(&h,24040,1);
-		GMRFLib_idxval_add(&h,24051,1);
-		GMRFLib_idxval_add(&h,24055,1);
-		GMRFLib_idxval_add(&h,24066,1);
-		GMRFLib_idxval_add(&h,24067,1);
-		GMRFLib_idxval_add(&h,24078,1);
-		GMRFLib_idxval_add(&h,24081,1);
-		GMRFLib_idxval_add(&h,24092,1);
-		GMRFLib_idxval_add(&h,24100,1);
-		GMRFLib_idxval_add(&h,24105,1);
-		GMRFLib_idxval_add(&h,24115,1);
-		GMRFLib_idxval_add(&h,24125,1);
-		GMRFLib_idxval_add(&h,24126,1);
-		GMRFLib_idxval_add(&h,24132,1);
-		GMRFLib_idxval_add(&h,24133,1);
-		GMRFLib_idxval_add(&h,24137,1);
-		GMRFLib_idxval_add(&h,24147,1);
-		GMRFLib_idxval_add(&h,24152,1);
-		GMRFLib_idxval_add(&h,24162,1);
-		GMRFLib_idxval_add(&h,24166,1);
-		GMRFLib_idxval_add(&h,24176,1);
-		GMRFLib_idxval_add(&h,24186,1);
-		GMRFLib_idxval_add(&h,24195,1);
-		GMRFLib_idxval_add(&h,24205,1);
-		GMRFLib_idxval_add(&h,24215,1);
-		GMRFLib_idxval_add(&h,24225,1);
-		GMRFLib_idxval_add(&h,24230,1);
-		GMRFLib_idxval_add(&h,24240,1);
-		GMRFLib_idxval_add(&h,24250,1);
-		GMRFLib_idxval_add(&h,24260,1);
-		GMRFLib_idxval_add(&h,24270,1);
-		GMRFLib_idxval_add(&h,24280,1);
-		GMRFLib_idxval_add(&h,24290,1);
-		GMRFLib_idxval_add(&h,24297,1);
-		GMRFLib_idxval_add(&h,24300,1);
-		GMRFLib_idxval_add(&h,24309,1);
-		GMRFLib_idxval_add(&h,24314,1);
-		GMRFLib_idxval_add(&h,24317,1);
-		GMRFLib_idxval_add(&h,24325,1);
-		GMRFLib_idxval_add(&h,24334,1);
-		GMRFLib_idxval_add(&h,24344,1);
-		GMRFLib_idxval_add(&h,24345,1);
-		GMRFLib_idxval_add(&h,24354,1);
-		GMRFLib_idxval_add(&h,24357,1);
-		GMRFLib_idxval_add(&h,24366,1);
-		GMRFLib_idxval_add(&h,24375,1);
-		GMRFLib_idxval_add(&h,24383,1);
-		GMRFLib_idxval_add(&h,24392,1);
-		GMRFLib_idxval_add(&h,24401,1);
-		GMRFLib_idxval_add(&h,24410,1);
-		GMRFLib_idxval_add(&h,24419,1);
-		GMRFLib_idxval_add(&h,24428,1);
-		GMRFLib_idxval_add(&h,24437,1);
-		GMRFLib_idxval_add(&h,24446,1);
-		GMRFLib_idxval_add(&h,24452,1);
-		GMRFLib_idxval_add(&h,24458,1);
-		GMRFLib_idxval_add(&h,24467,1);
-		GMRFLib_idxval_add(&h,24476,1);
-		GMRFLib_idxval_add(&h,24479,1);
-		GMRFLib_idxval_add(&h,24488,1);
-		GMRFLib_idxval_add(&h,24497,1);
-		GMRFLib_idxval_add(&h,24506,1);
-		GMRFLib_idxval_add(&h,24515,1);
-		GMRFLib_idxval_add(&h,24522,1);
-		GMRFLib_idxval_add(&h,24528,1);
-		GMRFLib_idxval_add(&h,24532,1);
-		GMRFLib_idxval_add(&h,24539,1);
-		GMRFLib_idxval_add(&h,24542,1);
-		GMRFLib_idxval_add(&h,24551,1);
-		GMRFLib_idxval_add(&h,24560,1);
-		GMRFLib_idxval_add(&h,24564,1);
-		GMRFLib_idxval_add(&h,24572,1);
-		GMRFLib_idxval_add(&h,24574,1);
-		GMRFLib_idxval_add(&h,24575,1);
-		GMRFLib_idxval_add(&h,24583,1);
-		GMRFLib_idxval_add(&h,24591,1);
-		GMRFLib_idxval_add(&h,24599,1);
-		GMRFLib_idxval_add(&h,24602,1);
-		GMRFLib_idxval_add(&h,24610,1);
-		GMRFLib_idxval_add(&h,24611,1);
-		GMRFLib_idxval_add(&h,24619,1);
-		GMRFLib_idxval_add(&h,24623,1);
-		GMRFLib_idxval_add(&h,24631,1);
-		GMRFLib_idxval_add(&h,24639,1);
-		GMRFLib_idxval_add(&h,24647,1);
-		GMRFLib_idxval_add(&h,24654,1);
-		GMRFLib_idxval_add(&h,24662,1);
-		GMRFLib_idxval_add(&h,24668,1);
-		GMRFLib_idxval_add(&h,24674,1);
-		GMRFLib_idxval_add(&h,24676,1);
-		GMRFLib_idxval_add(&h,24684,1);
-		GMRFLib_idxval_add(&h,24687,1);
-		GMRFLib_idxval_add(&h,24694,1);
-		GMRFLib_idxval_add(&h,24697,1);
-		GMRFLib_idxval_add(&h,24702,1);
-		GMRFLib_idxval_add(&h,24710,1);
-		GMRFLib_idxval_add(&h,24715,1);
-		GMRFLib_idxval_add(&h,24718,1);
-		GMRFLib_idxval_add(&h,24726,1);
-		GMRFLib_idxval_add(&h,24734,1);
-		GMRFLib_idxval_add(&h,24741,1);
-		GMRFLib_idxval_add(&h,24748,1);
-		GMRFLib_idxval_add(&h,24756,1);
-		GMRFLib_idxval_add(&h,24763,1);
-		GMRFLib_idxval_add(&h,24766,1);
-		GMRFLib_idxval_add(&h,24773,1);
-		GMRFLib_idxval_add(&h,24780,1);
-		GMRFLib_idxval_add(&h,24787,1);
-		GMRFLib_idxval_add(&h,24794,1);
-		GMRFLib_idxval_add(&h,24801,1);
-		GMRFLib_idxval_add(&h,24806,1);
-		GMRFLib_idxval_add(&h,24813,1);
-		GMRFLib_idxval_add(&h,24819,1);
-		GMRFLib_idxval_add(&h,24823,1);
-		GMRFLib_idxval_add(&h,24828,1);
-		GMRFLib_idxval_add(&h,24832,1);
-		GMRFLib_idxval_add(&h,24839,1);
-		GMRFLib_idxval_add(&h,24840,1);
-		GMRFLib_idxval_add(&h,24844,1);
-		GMRFLib_idxval_add(&h,24850,1);
-		GMRFLib_idxval_add(&h,24856,1);
-		GMRFLib_idxval_add(&h,24863,1);
-		GMRFLib_idxval_add(&h,24870,1);
-		GMRFLib_idxval_add(&h,24875,1);
-		GMRFLib_idxval_add(&h,24880,1);
-		GMRFLib_idxval_add(&h,24886,1);
-		GMRFLib_idxval_add(&h,24893,1);
-		GMRFLib_idxval_add(&h,24900,1);
-		GMRFLib_idxval_add(&h,24906,1);
-		GMRFLib_idxval_add(&h,24913,1);
-		GMRFLib_idxval_add(&h,24919,1);
-		GMRFLib_idxval_add(&h,24920,1);
-		GMRFLib_idxval_add(&h,24925,1);
-		GMRFLib_idxval_add(&h,24932,1);
-		GMRFLib_idxval_add(&h,24938,1);
-		GMRFLib_idxval_add(&h,24944,1);
-		GMRFLib_idxval_add(&h,24950,1);
-		GMRFLib_idxval_add(&h,24955,1);
-		GMRFLib_idxval_add(&h,24959,1);
-		GMRFLib_idxval_add(&h,24962,1);
-		GMRFLib_idxval_add(&h,24968,1);
-		GMRFLib_idxval_add(&h,24971,1);
-		GMRFLib_idxval_add(&h,24977,1);
-		GMRFLib_idxval_add(&h,24983,1);
-		GMRFLib_idxval_add(&h,24989,1);
-		GMRFLib_idxval_add(&h,24992,1);
-		GMRFLib_idxval_add(&h,24998,1);
-		GMRFLib_idxval_add(&h,25000,1);
-		GMRFLib_idxval_add(&h,25006,1);
-		GMRFLib_idxval_add(&h,25012,1);
-		GMRFLib_idxval_add(&h,25013,1);
-		GMRFLib_idxval_add(&h,25019,1);
-		GMRFLib_idxval_add(&h,25025,1);
-		GMRFLib_idxval_add(&h,25030,1);
-		GMRFLib_idxval_add(&h,25036,0);
-		GMRFLib_idxval_add(&h,25037,0);
-		GMRFLib_idxval_add(&h,25038,0);
-		GMRFLib_idxval_add(&h,25039,0);
-		GMRFLib_idxval_add(&h,25040,0);
-		GMRFLib_idxval_add(&h,25042,1);
-		GMRFLib_idxval_add(&h,25048,1);
-		GMRFLib_idxval_add(&h,25054,1);
-		GMRFLib_idxval_add(&h,25060,1);
-		GMRFLib_idxval_add(&h,25065,1);
-		GMRFLib_idxval_add(&h,25070,1);
-		GMRFLib_idxval_add(&h,25075,1);
+		GMRFLib_idxval_tp *h = NULL;
+		GMRFLib_idxval_add(&h, 22830, 1);
+		GMRFLib_idxval_add(&h, 22832, 1);
+		GMRFLib_idxval_add(&h, 22847, 1);
+		GMRFLib_idxval_add(&h, 22850, 1);
+		GMRFLib_idxval_add(&h, 22856, 1);
+		GMRFLib_idxval_add(&h, 22861, 1);
+		GMRFLib_idxval_add(&h, 22869, 1);
+		GMRFLib_idxval_add(&h, 22877, 1);
+		GMRFLib_idxval_add(&h, 22885, 1);
+		GMRFLib_idxval_add(&h, 22892, 1);
+		GMRFLib_idxval_add(&h, 22893, 1);
+		GMRFLib_idxval_add(&h, 22904, 1);
+		GMRFLib_idxval_add(&h, 22905, 1);
+		GMRFLib_idxval_add(&h, 22918, 1);
+		GMRFLib_idxval_add(&h, 22922, 1);
+		GMRFLib_idxval_add(&h, 22933, 1);
+		GMRFLib_idxval_add(&h, 22946, 1);
+		GMRFLib_idxval_add(&h, 22949, 1);
+		GMRFLib_idxval_add(&h, 22950, 1);
+		GMRFLib_idxval_add(&h, 22965, 1);
+		GMRFLib_idxval_add(&h, 22969, 1);
+		GMRFLib_idxval_add(&h, 22980, 1);
+		GMRFLib_idxval_add(&h, 22982, 1);
+		GMRFLib_idxval_add(&h, 22983, 1);
+		GMRFLib_idxval_add(&h, 22995, 1);
+		GMRFLib_idxval_add(&h, 23009, 1);
+		GMRFLib_idxval_add(&h, 23014, 1);
+		GMRFLib_idxval_add(&h, 23015, 1);
+		GMRFLib_idxval_add(&h, 23017, 1);
+		GMRFLib_idxval_add(&h, 23032, 1);
+		GMRFLib_idxval_add(&h, 23033, 1);
+		GMRFLib_idxval_add(&h, 23045, 1);
+		GMRFLib_idxval_add(&h, 23060, 1);
+		GMRFLib_idxval_add(&h, 23070, 1);
+		GMRFLib_idxval_add(&h, 23084, 1);
+		GMRFLib_idxval_add(&h, 23093, 1);
+		GMRFLib_idxval_add(&h, 23106, 1);
+		GMRFLib_idxval_add(&h, 23107, 1);
+		GMRFLib_idxval_add(&h, 23117, 1);
+		GMRFLib_idxval_add(&h, 23124, 1);
+		GMRFLib_idxval_add(&h, 23139, 1);
+		GMRFLib_idxval_add(&h, 23143, 1);
+		GMRFLib_idxval_add(&h, 23158, 1);
+		GMRFLib_idxval_add(&h, 23173, 1);
+		GMRFLib_idxval_add(&h, 23183, 1);
+		GMRFLib_idxval_add(&h, 23197, 1);
+		GMRFLib_idxval_add(&h, 23204, 1);
+		GMRFLib_idxval_add(&h, 23214, 1);
+		GMRFLib_idxval_add(&h, 23229, 1);
+		GMRFLib_idxval_add(&h, 23232, 1);
+		GMRFLib_idxval_add(&h, 23240, 1);
+		GMRFLib_idxval_add(&h, 23252, 1);
+		GMRFLib_idxval_add(&h, 23259, 1);
+		GMRFLib_idxval_add(&h, 23262, 1);
+		GMRFLib_idxval_add(&h, 23267, 1);
+		GMRFLib_idxval_add(&h, 23271, 1);
+		GMRFLib_idxval_add(&h, 23277, 1);
+		GMRFLib_idxval_add(&h, 23287, 1);
+		GMRFLib_idxval_add(&h, 23302, 1);
+		GMRFLib_idxval_add(&h, 23309, 1);
+		GMRFLib_idxval_add(&h, 23324, 1);
+		GMRFLib_idxval_add(&h, 23339, 1);
+		GMRFLib_idxval_add(&h, 23348, 1);
+		GMRFLib_idxval_add(&h, 23351, 1);
+		GMRFLib_idxval_add(&h, 23356, 1);
+		GMRFLib_idxval_add(&h, 23370, 1);
+		GMRFLib_idxval_add(&h, 23383, 1);
+		GMRFLib_idxval_add(&h, 23391, 1);
+		GMRFLib_idxval_add(&h, 23405, 1);
+		GMRFLib_idxval_add(&h, 23409, 1);
+		GMRFLib_idxval_add(&h, 23420, 1);
+		GMRFLib_idxval_add(&h, 23434, 1);
+		GMRFLib_idxval_add(&h, 23448, 1);
+		GMRFLib_idxval_add(&h, 23462, 1);
+		GMRFLib_idxval_add(&h, 23468, 1);
+		GMRFLib_idxval_add(&h, 23472, 1);
+		GMRFLib_idxval_add(&h, 23473, 1);
+		GMRFLib_idxval_add(&h, 23474, 1);
+		GMRFLib_idxval_add(&h, 23479, 1);
+		GMRFLib_idxval_add(&h, 23492, 1);
+		GMRFLib_idxval_add(&h, 23495, 1);
+		GMRFLib_idxval_add(&h, 23503, 1);
+		GMRFLib_idxval_add(&h, 23514, 1);
+		GMRFLib_idxval_add(&h, 23528, 1);
+		GMRFLib_idxval_add(&h, 23542, 1);
+		GMRFLib_idxval_add(&h, 23552, 1);
+		GMRFLib_idxval_add(&h, 23557, 1);
+		GMRFLib_idxval_add(&h, 23558, 1);
+		GMRFLib_idxval_add(&h, 23567, 1);
+		GMRFLib_idxval_add(&h, 23572, 1);
+		GMRFLib_idxval_add(&h, 23580, 1);
+		GMRFLib_idxval_add(&h, 23582, 1);
+		GMRFLib_idxval_add(&h, 23584, 1);
+		GMRFLib_idxval_add(&h, 23598, 1);
+		GMRFLib_idxval_add(&h, 23601, 1);
+		GMRFLib_idxval_add(&h, 23602, 1);
+		GMRFLib_idxval_add(&h, 23615, 1);
+		GMRFLib_idxval_add(&h, 23617, 1);
+		GMRFLib_idxval_add(&h, 23630, 1);
+		GMRFLib_idxval_add(&h, 23643, 1);
+		GMRFLib_idxval_add(&h, 23645, 1);
+		GMRFLib_idxval_add(&h, 23658, 1);
+		GMRFLib_idxval_add(&h, 23669, 1);
+		GMRFLib_idxval_add(&h, 23670, 1);
+		GMRFLib_idxval_add(&h, 23679, 1);
+		GMRFLib_idxval_add(&h, 23688, 1);
+		GMRFLib_idxval_add(&h, 23698, 1);
+		GMRFLib_idxval_add(&h, 23710, 1);
+		GMRFLib_idxval_add(&h, 23718, 1);
+		GMRFLib_idxval_add(&h, 23728, 1);
+		GMRFLib_idxval_add(&h, 23734, 1);
+		GMRFLib_idxval_add(&h, 23741, 1);
+		GMRFLib_idxval_add(&h, 23751, 1);
+		GMRFLib_idxval_add(&h, 23754, 1);
+		GMRFLib_idxval_add(&h, 23764, 1);
+		GMRFLib_idxval_add(&h, 23776, 1);
+		GMRFLib_idxval_add(&h, 23788, 1);
+		GMRFLib_idxval_add(&h, 23792, 1);
+		GMRFLib_idxval_add(&h, 23799, 1);
+		GMRFLib_idxval_add(&h, 23801, 1);
+		GMRFLib_idxval_add(&h, 23807, 1);
+		GMRFLib_idxval_add(&h, 23808, 1);
+		GMRFLib_idxval_add(&h, 23820, 1);
+		GMRFLib_idxval_add(&h, 23823, 1);
+		GMRFLib_idxval_add(&h, 23835, 1);
+		GMRFLib_idxval_add(&h, 23843, 1);
+		GMRFLib_idxval_add(&h, 23846, 1);
+		GMRFLib_idxval_add(&h, 23858, 1);
+		GMRFLib_idxval_add(&h, 23861, 1);
+		GMRFLib_idxval_add(&h, 23873, 1);
+		GMRFLib_idxval_add(&h, 23878, 1);
+		GMRFLib_idxval_add(&h, 23881, 1);
+		GMRFLib_idxval_add(&h, 23892, 1);
+		GMRFLib_idxval_add(&h, 23901, 1);
+		GMRFLib_idxval_add(&h, 23912, 1);
+		GMRFLib_idxval_add(&h, 23923, 1);
+		GMRFLib_idxval_add(&h, 23934, 1);
+		GMRFLib_idxval_add(&h, 23945, 1);
+		GMRFLib_idxval_add(&h, 23949, 1);
+		GMRFLib_idxval_add(&h, 23956, 1);
+		GMRFLib_idxval_add(&h, 23967, 1);
+		GMRFLib_idxval_add(&h, 23978, 1);
+		GMRFLib_idxval_add(&h, 23985, 1);
+		GMRFLib_idxval_add(&h, 23988, 1);
+		GMRFLib_idxval_add(&h, 23991, 1);
+		GMRFLib_idxval_add(&h, 24002, 1);
+		GMRFLib_idxval_add(&h, 24011, 1);
+		GMRFLib_idxval_add(&h, 24021, 1);
+		GMRFLib_idxval_add(&h, 24026, 1);
+		GMRFLib_idxval_add(&h, 24029, 1);
+		GMRFLib_idxval_add(&h, 24040, 1);
+		GMRFLib_idxval_add(&h, 24051, 1);
+		GMRFLib_idxval_add(&h, 24055, 1);
+		GMRFLib_idxval_add(&h, 24066, 1);
+		GMRFLib_idxval_add(&h, 24067, 1);
+		GMRFLib_idxval_add(&h, 24078, 1);
+		GMRFLib_idxval_add(&h, 24081, 1);
+		GMRFLib_idxval_add(&h, 24092, 1);
+		GMRFLib_idxval_add(&h, 24100, 1);
+		GMRFLib_idxval_add(&h, 24105, 1);
+		GMRFLib_idxval_add(&h, 24115, 1);
+		GMRFLib_idxval_add(&h, 24125, 1);
+		GMRFLib_idxval_add(&h, 24126, 1);
+		GMRFLib_idxval_add(&h, 24132, 1);
+		GMRFLib_idxval_add(&h, 24133, 1);
+		GMRFLib_idxval_add(&h, 24137, 1);
+		GMRFLib_idxval_add(&h, 24147, 1);
+		GMRFLib_idxval_add(&h, 24152, 1);
+		GMRFLib_idxval_add(&h, 24162, 1);
+		GMRFLib_idxval_add(&h, 24166, 1);
+		GMRFLib_idxval_add(&h, 24176, 1);
+		GMRFLib_idxval_add(&h, 24186, 1);
+		GMRFLib_idxval_add(&h, 24195, 1);
+		GMRFLib_idxval_add(&h, 24205, 1);
+		GMRFLib_idxval_add(&h, 24215, 1);
+		GMRFLib_idxval_add(&h, 24225, 1);
+		GMRFLib_idxval_add(&h, 24230, 1);
+		GMRFLib_idxval_add(&h, 24240, 1);
+		GMRFLib_idxval_add(&h, 24250, 1);
+		GMRFLib_idxval_add(&h, 24260, 1);
+		GMRFLib_idxval_add(&h, 24270, 1);
+		GMRFLib_idxval_add(&h, 24280, 1);
+		GMRFLib_idxval_add(&h, 24290, 1);
+		GMRFLib_idxval_add(&h, 24297, 1);
+		GMRFLib_idxval_add(&h, 24300, 1);
+		GMRFLib_idxval_add(&h, 24309, 1);
+		GMRFLib_idxval_add(&h, 24314, 1);
+		GMRFLib_idxval_add(&h, 24317, 1);
+		GMRFLib_idxval_add(&h, 24325, 1);
+		GMRFLib_idxval_add(&h, 24334, 1);
+		GMRFLib_idxval_add(&h, 24344, 1);
+		GMRFLib_idxval_add(&h, 24345, 1);
+		GMRFLib_idxval_add(&h, 24354, 1);
+		GMRFLib_idxval_add(&h, 24357, 1);
+		GMRFLib_idxval_add(&h, 24366, 1);
+		GMRFLib_idxval_add(&h, 24375, 1);
+		GMRFLib_idxval_add(&h, 24383, 1);
+		GMRFLib_idxval_add(&h, 24392, 1);
+		GMRFLib_idxval_add(&h, 24401, 1);
+		GMRFLib_idxval_add(&h, 24410, 1);
+		GMRFLib_idxval_add(&h, 24419, 1);
+		GMRFLib_idxval_add(&h, 24428, 1);
+		GMRFLib_idxval_add(&h, 24437, 1);
+		GMRFLib_idxval_add(&h, 24446, 1);
+		GMRFLib_idxval_add(&h, 24452, 1);
+		GMRFLib_idxval_add(&h, 24458, 1);
+		GMRFLib_idxval_add(&h, 24467, 1);
+		GMRFLib_idxval_add(&h, 24476, 1);
+		GMRFLib_idxval_add(&h, 24479, 1);
+		GMRFLib_idxval_add(&h, 24488, 1);
+		GMRFLib_idxval_add(&h, 24497, 1);
+		GMRFLib_idxval_add(&h, 24506, 1);
+		GMRFLib_idxval_add(&h, 24515, 1);
+		GMRFLib_idxval_add(&h, 24522, 1);
+		GMRFLib_idxval_add(&h, 24528, 1);
+		GMRFLib_idxval_add(&h, 24532, 1);
+		GMRFLib_idxval_add(&h, 24539, 1);
+		GMRFLib_idxval_add(&h, 24542, 1);
+		GMRFLib_idxval_add(&h, 24551, 1);
+		GMRFLib_idxval_add(&h, 24560, 1);
+		GMRFLib_idxval_add(&h, 24564, 1);
+		GMRFLib_idxval_add(&h, 24572, 1);
+		GMRFLib_idxval_add(&h, 24574, 1);
+		GMRFLib_idxval_add(&h, 24575, 1);
+		GMRFLib_idxval_add(&h, 24583, 1);
+		GMRFLib_idxval_add(&h, 24591, 1);
+		GMRFLib_idxval_add(&h, 24599, 1);
+		GMRFLib_idxval_add(&h, 24602, 1);
+		GMRFLib_idxval_add(&h, 24610, 1);
+		GMRFLib_idxval_add(&h, 24611, 1);
+		GMRFLib_idxval_add(&h, 24619, 1);
+		GMRFLib_idxval_add(&h, 24623, 1);
+		GMRFLib_idxval_add(&h, 24631, 1);
+		GMRFLib_idxval_add(&h, 24639, 1);
+		GMRFLib_idxval_add(&h, 24647, 1);
+		GMRFLib_idxval_add(&h, 24654, 1);
+		GMRFLib_idxval_add(&h, 24662, 1);
+		GMRFLib_idxval_add(&h, 24668, 1);
+		GMRFLib_idxval_add(&h, 24674, 1);
+		GMRFLib_idxval_add(&h, 24676, 1);
+		GMRFLib_idxval_add(&h, 24684, 1);
+		GMRFLib_idxval_add(&h, 24687, 1);
+		GMRFLib_idxval_add(&h, 24694, 1);
+		GMRFLib_idxval_add(&h, 24697, 1);
+		GMRFLib_idxval_add(&h, 24702, 1);
+		GMRFLib_idxval_add(&h, 24710, 1);
+		GMRFLib_idxval_add(&h, 24715, 1);
+		GMRFLib_idxval_add(&h, 24718, 1);
+		GMRFLib_idxval_add(&h, 24726, 1);
+		GMRFLib_idxval_add(&h, 24734, 1);
+		GMRFLib_idxval_add(&h, 24741, 1);
+		GMRFLib_idxval_add(&h, 24748, 1);
+		GMRFLib_idxval_add(&h, 24756, 1);
+		GMRFLib_idxval_add(&h, 24763, 1);
+		GMRFLib_idxval_add(&h, 24766, 1);
+		GMRFLib_idxval_add(&h, 24773, 1);
+		GMRFLib_idxval_add(&h, 24780, 1);
+		GMRFLib_idxval_add(&h, 24787, 1);
+		GMRFLib_idxval_add(&h, 24794, 1);
+		GMRFLib_idxval_add(&h, 24801, 1);
+		GMRFLib_idxval_add(&h, 24806, 1);
+		GMRFLib_idxval_add(&h, 24813, 1);
+		GMRFLib_idxval_add(&h, 24819, 1);
+		GMRFLib_idxval_add(&h, 24823, 1);
+		GMRFLib_idxval_add(&h, 24828, 1);
+		GMRFLib_idxval_add(&h, 24832, 1);
+		GMRFLib_idxval_add(&h, 24839, 1);
+		GMRFLib_idxval_add(&h, 24840, 1);
+		GMRFLib_idxval_add(&h, 24844, 1);
+		GMRFLib_idxval_add(&h, 24850, 1);
+		GMRFLib_idxval_add(&h, 24856, 1);
+		GMRFLib_idxval_add(&h, 24863, 1);
+		GMRFLib_idxval_add(&h, 24870, 1);
+		GMRFLib_idxval_add(&h, 24875, 1);
+		GMRFLib_idxval_add(&h, 24880, 1);
+		GMRFLib_idxval_add(&h, 24886, 1);
+		GMRFLib_idxval_add(&h, 24893, 1);
+		GMRFLib_idxval_add(&h, 24900, 1);
+		GMRFLib_idxval_add(&h, 24906, 1);
+		GMRFLib_idxval_add(&h, 24913, 1);
+		GMRFLib_idxval_add(&h, 24919, 1);
+		GMRFLib_idxval_add(&h, 24920, 1);
+		GMRFLib_idxval_add(&h, 24925, 1);
+		GMRFLib_idxval_add(&h, 24932, 1);
+		GMRFLib_idxval_add(&h, 24938, 1);
+		GMRFLib_idxval_add(&h, 24944, 1);
+		GMRFLib_idxval_add(&h, 24950, 1);
+		GMRFLib_idxval_add(&h, 24955, 1);
+		GMRFLib_idxval_add(&h, 24959, 1);
+		GMRFLib_idxval_add(&h, 24962, 1);
+		GMRFLib_idxval_add(&h, 24968, 1);
+		GMRFLib_idxval_add(&h, 24971, 1);
+		GMRFLib_idxval_add(&h, 24977, 1);
+		GMRFLib_idxval_add(&h, 24983, 1);
+		GMRFLib_idxval_add(&h, 24989, 1);
+		GMRFLib_idxval_add(&h, 24992, 1);
+		GMRFLib_idxval_add(&h, 24998, 1);
+		GMRFLib_idxval_add(&h, 25000, 1);
+		GMRFLib_idxval_add(&h, 25006, 1);
+		GMRFLib_idxval_add(&h, 25012, 1);
+		GMRFLib_idxval_add(&h, 25013, 1);
+		GMRFLib_idxval_add(&h, 25019, 1);
+		GMRFLib_idxval_add(&h, 25025, 1);
+		GMRFLib_idxval_add(&h, 25030, 1);
+		GMRFLib_idxval_add(&h, 25036, 0);
+		GMRFLib_idxval_add(&h, 25037, 0);
+		GMRFLib_idxval_add(&h, 25038, 0);
+		GMRFLib_idxval_add(&h, 25039, 0);
+		GMRFLib_idxval_add(&h, 25040, 0);
+		GMRFLib_idxval_add(&h, 25042, 1);
+		GMRFLib_idxval_add(&h, 25048, 1);
+		GMRFLib_idxval_add(&h, 25054, 1);
+		GMRFLib_idxval_add(&h, 25060, 1);
+		GMRFLib_idxval_add(&h, 25065, 1);
+		GMRFLib_idxval_add(&h, 25070, 1);
+		GMRFLib_idxval_add(&h, 25075, 1);
 
 		GMRFLib_idxval_nsort_x(&h, 1, 1, -1);
 		break;
 	}
 
-	case 82: 
+	case 82:
 	{
 		int n = atoi(args[0]);
 		double *x = Calloc(n, double);
-		for(int i = 0; i < n; i++){
+		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
-			//x[i] = i+1;
+			// x[i] = i+1;
 		}
 
-		double tref[2] = {0.0, 0.0};
+		double tref[2] = { 0.0, 0.0 };
 		double r = 0.0, rr = 0.0;
 		int ntimes = 256;
 
-		for(int time = 0; time <  ntimes; time++) {
+		for (int time = 0; time < ntimes; time++) {
 
 			tref[0] -= GMRFLib_cpu();
 			r += my_dsum(n, x);
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				rr += x[i];
 			}
 			tref[1] += GMRFLib_cpu();
 		}
 
-		printf("dsum %.3f plain %.3f (r-rr=%f, %1d)\n", tref[0]/(tref[0] + tref[1]),
-		       tref[1]/(tref[0] + tref[1]), r-rr, r == rr);
+		printf("dsum %.3f plain %.3f (r-rr=%f, %1d)\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), r - rr, r == rr);
 
 		Free(x);
 		break;
 	}
-		
+
 	case 83:
 	{
 		int n = atoi(args[0]);
 		double *xx = Calloc(n, double);
 
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			xx[i] = GMRFLib_uniform();
 		}
 
-		GMRFLib_idxval_tp * h = NULL;
-		for(int i = 0, j = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
 			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : 1 + (int) (GMRFLib_uniform() * 31));
-			if (j >= n) break;
- 			GMRFLib_idxval_add(&h, j, xx[j]);
+			if (j >= n)
+				break;
+			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
 		P(n);
 		P(h->g_n);
 		P(h->n / h->g_n);
-		
+
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
-		for(int k = 0; k < 128; k++) {
+		for (int k = 0; k < 128; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
 			DOT_PRODUCT_SERIAL(sum1, h, xx);
@@ -39125,14 +39125,13 @@ int testit(int argc, char **argv)
 			tref2 -= GMRFLib_cpu();
 			DOT_PRODUCT_GROUP(sum2, h, xx);
 			tref2 += GMRFLib_cpu();
-			if (ABS(sum1-sum2) >  1e-8) {
+			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
 				P(sum2);
 				exit(88);
 			}
 		}
-		printf("serial %.3f group %.3f (%.3f, %.3f)\n",  tref1, tref2,  tref1 / (tref1 + tref2),
-		       tref2 / (tref1 + tref2));
+		printf("serial %.3f group %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 	}
 		break;
@@ -39142,24 +39141,25 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		double *xx = Calloc(n, double);
 
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			xx[i] = GMRFLib_uniform();
 		}
 
-		GMRFLib_idxval_tp * h = NULL;
-		for(int i = 0, j = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
 			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : 1 + (int) (GMRFLib_uniform() * 31));
-			if (j >= n) break;
- 			GMRFLib_idxval_add(&h, j, xx[j]);
+			if (j >= n)
+				break;
+			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
 		P(n);
 		P(h->g_n);
 		P(h->n / h->g_n);
-		
+
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
-		for(int k = 0; k < 1024*8; k++) {
+		for (int k = 0; k < 1024 * 8; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
 			sum1 = my_ddot_idx(h->n, h->val, xx, h->idx);
@@ -39168,14 +39168,13 @@ int testit(int argc, char **argv)
 			tref2 -= GMRFLib_cpu();
 			DOT_PRODUCT_SERIAL(sum2, h, xx);
 			tref2 += GMRFLib_cpu();
-			if (ABS(sum1-sum2) >  1e-8) {
+			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
 				P(sum2);
 				exit(88);
 			}
 		}
-		printf("dot_idx %.3f serial %.3f (%.3f, %.3f)\n",  tref1, tref2,  tref1 / (tref1 + tref2),
-		       tref2 / (tref1 + tref2));
+		printf("dot_idx %.3f serial %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
 		Free(xx);
 	}
 		break;

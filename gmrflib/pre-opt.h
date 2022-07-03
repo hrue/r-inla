@@ -43,10 +43,8 @@
 #endif
 
 __BEGIN_DECLS
-
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
 #define DSUM(N_, X_) my_dsum(N_, X_)
-
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
@@ -92,7 +90,6 @@ __BEGIN_DECLS
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
@@ -109,7 +106,6 @@ __BEGIN_DECLS
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-
 // this is for testing only
 #define x_DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
@@ -137,8 +133,6 @@ __BEGIN_DECLS
 		ntimes++;						\
 		if (ntimes % 1000000L == 0) P(tref);			\
 	}
-
-
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
 	if (1) {							\
 		switch(ELM_->preference) {				\
@@ -154,7 +148,6 @@ __BEGIN_DECLS
 			break;						\
 		}							\
 	}
-
 
 /* 
  * 

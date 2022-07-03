@@ -789,14 +789,14 @@ forceinline double my_dsum(int n, double *x)
 
 	for (int i = 0, j = 0; i < d.quot * roll; i += roll) {
 		j = i;
-		s0 += x[j++]; 
-		s1 += x[j++]; 
-		s2 += x[j++]; 
-		s3 += x[j++]; 
+		s0 += x[j++];
+		s1 += x[j++];
+		s2 += x[j++];
+		s3 += x[j++];
 
-		s0 += x[j++]; 
-		s1 += x[j++]; 
-		s2 += x[j++]; 
+		s0 += x[j++];
+		s1 += x[j++];
+		s2 += x[j++];
 		s3 += x[j];
 	}
 
@@ -815,14 +815,21 @@ forceinline double my_ddot_idx(int n, double *v, double *a, int *idx)
 	int m = d.quot * roll;
 	for (int i = 0, j = 0; i < m; i += roll) {
 		j = i;
-		s0 += v[j] * a[idx[j]]; j++;
-		s1 += v[j] * a[idx[j]]; j++;
-		s2 += v[j] * a[idx[j]]; j++;
-		s3 += v[j] * a[idx[j]]; j++;
+		s0 += v[j] * a[idx[j]];
+		j++;
+		s1 += v[j] * a[idx[j]];
+		j++;
+		s2 += v[j] * a[idx[j]];
+		j++;
+		s3 += v[j] * a[idx[j]];
+		j++;
 
-		s0 += v[j] * a[idx[j]]; j++;
-		s1 += v[j] * a[idx[j]]; j++;
-		s2 += v[j] * a[idx[j]]; j++;
+		s0 += v[j] * a[idx[j]];
+		j++;
+		s1 += v[j] * a[idx[j]];
+		j++;
+		s2 += v[j] * a[idx[j]];
+		j++;
 		s3 += v[j] * a[idx[j]];
 	}
 
@@ -858,4 +865,3 @@ forceinline double my_dsum_idx(int n, double *a, int *idx)
 
 	return (s0 + s1 + s2 + s3);
 }
-
