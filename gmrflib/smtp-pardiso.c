@@ -89,6 +89,29 @@ GMRFLib_static_pardiso_tp S = {
 
 #define PSTORES_NUM (16384)
 
+static int csr_store_use = 0;
+static map_strvp csr_store;
+static int csr_store_must_init = 1;
+static int csr_store_debug = 0;
+
+int GMRFLib_csr_init_store(void)
+{
+	GMRFLib_ENTER_ROUTINE;
+	csr_store_debug = GMRFLib_DEBUG_IF_TRUE();
+
+	if (csr_store_use) {
+		if (csr_store_must_init) {
+			map_strvp_init_hint(&csr_store, 128);
+			csr_store_must_init = 0;
+			if (csr_store_debug) {
+				printf("\tcsr_store: init storage\n");
+			}
+		}
+	}
+	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_pardiso_set_parallel_reordering(int value)
 {
 	if (value > 0) {
@@ -165,12 +188,17 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	(*csr_to)->ja1 = (*csr_to)->iwork + len + n + 1;
 	Memcpy((void *) ((*csr_to)->iwork), (void *) (csr_from->iwork), (size_t) (2 * len) * sizeof(int));
 
-	if (csr_from->copy_only) {
-		(*csr_to)->a = csr_from->a;
+	if (csr_from->a) {
+		if (csr_from->copy_only) {
+			(*csr_to)->a = csr_from->a;
+		} else {
+			(*csr_to)->a = Calloc(csr_from->na, double);
+			Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->na) * sizeof(double));
+		}
 	} else {
-		(*csr_to)->a = Calloc(csr_from->na, double);
-		Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->na) * sizeof(double));
+		(*csr_to)->a = NULL;
 	}
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -186,11 +214,28 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+GMRFLib_csr_tp * GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 {
-	// create a upper triangular csr matrix from Q
-#define M (*csr)
-	int i, k, n, na, nan_error = 0, len;
+	GMRFLib_csr_tp * M = NULL;
+	GMRFLib_csr_tp * MM = NULL;
+	int i, k, n, na, len;
+
+	if (csr_store_use && graph->sha) {
+		void **p;
+		p = map_strvp_ptr(&csr_store, (char *) graph->sha);
+		if (csr_store_debug) {
+			if (p) {
+				printf("\t[%1d] csr_store: crs is found in store: do not duplicate.\n", omp_get_thread_num());
+			} else {
+				printf("\t[%1d] csr_store: crs is not found in store: duplicate.\n", omp_get_thread_num());
+			}
+		}
+		if (p) {
+			M = (GMRFLib_csr_tp *) * p;
+			GMRFLib_csr_duplicate(&MM, M);
+			return (MM);
+		}
+	}
 
 	M = Calloc(1, GMRFLib_csr_tp);
 	n = graph->n;
@@ -226,7 +271,29 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 	RUN_CODE_BLOCK(1, 0, 0);			       /* TO QUICK TO DO IN PARALLEL */
 #undef CODE_BLOCK
 	Free(k_arr);
+	
+	if (csr_store_use && graph->sha) {
+		if (csr_store_debug) {
+			printf("\t[%1d] csr_store: store crs 0x%p\n", omp_get_thread_num(), (void *) M);
+		}
+#pragma omp critical (Name_488cde57983063f09dc9ddf7c473d77c79ea2929)
+		{
+			map_strvp_set(&csr_store, (char *) graph->sha, (void *) M);
+		}
+	}
 
+	GMRFLib_csr_duplicate(&MM, M);
+	
+	return (MM);
+}
+
+int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+{
+	GMRFLib_ENTER_ROUTINE;
+	
+#define M (*csr)
+
+	M = GMRFLib_csr_skeleton(graph);
 	// when this is true, we can just copy the pointer to the matrix.
 	int used_fast_tab = 0;
 	if (Qfunc == GMRFLib_tabulate_Qfunction) {
@@ -239,7 +306,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 		}
 	}
 	if (!used_fast_tab) {
-		M->a = Calloc(na, double);
+		M->a = Calloc(M->na, double);
 	}
 
 	if (!used_fast_tab) {
@@ -247,7 +314,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
 #define CODE_BLOCK							\
-			for (int i = 0; i < n; i++) {			\
+			for (int i = 0; i < M->n; i++) {		\
 				for (int k = M->ia[i]; k < M->ia[i + 1]; k++) { \
 					int j = M->ja[k];	\
 					M->a[k] = Qfunc(thread_id, i, j, NULL, Qfunc_arg);	\
@@ -258,7 +325,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 #undef CODE_BLOCK
 		} else {
 #define CODE_BLOCK							\
-			for (int i = 0; i < n; i++) {			\
+			for (int i = 0; i < M->n; i++) {		\
 				int k = M->ia[i];			\
 				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
@@ -268,24 +335,29 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 		}
 	}
 
-	for (i = 0; i < n + 1; i++) {
+	for (int i = 0; i < M->n + 1; i++) {
 		M->ia1[i] = M->ia[i] + 1;
 	}
-	for (i = 0; i < na; i++) {
+	for (int i = 0; i < M->na; i++) {
 		M->ja1[i] = M->ja[i] + 1;
 	}
 
-	for (i = 0; i < na; i++) {
+	int nan_error = 0;
+	for (int i = 0; i < M->na; i++) {
 		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
 			break;
 		}
 	}
-
+	
 	if (nan_error) {
+		GMRFLib_LEAVE_ROUTINE;
 		return !GMRFLib_SUCCESS;
 	}
 #undef M
+
+	GMRFLib_LEAVE_ROUTINE;
+	
 	return GMRFLib_SUCCESS;
 }
 

@@ -39246,6 +39246,7 @@ int main(int argc, char **argv)
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */
 	GMRFLib_graph_init_store();			       /* no need to reset this with pretop */
+	GMRFLib_csr_init_store();
 	GMRFLib_trace_functions(NULL);
 	GMRFLib_debug_functions(NULL);
 	GMRFLib_reorder = G.reorder;
