@@ -1872,7 +1872,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		g_len[ng - 1] = h->n - g_i[ng - 1];			\
 		if (debug) tref[1] += GMRFLib_cpu();			\
 									\
-		if (0 && debug) {					\
+		if (1 && debug) {					\
 			GMRFLib_idxval_printf(stdout, h, "OLD");	\
 		}							\
 									\
@@ -1955,7 +1955,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 									\
 		if (debug) tref[2] += GMRFLib_cpu();			\
 									\
-		if (0 && debug) {					\
+		if (1 && debug) {					\
 			GMRFLib_idxval_printf(stdout, h, "NEW");	\
 		}							\
 									\
@@ -2162,10 +2162,10 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
 		if (h->n > 0) {
-			nmax = IMAX(nmax, h->idx[h->n - 1]);
+			nmax = IMAX(nmax, h->idx[h->n - 1] + 1);
 		}
 	}
-
+	
 	double *x = Calloc(nmax, double);
 	for (int i = 0; i < nmax; i++) {
 		x[i] = GMRFLib_uniform();
