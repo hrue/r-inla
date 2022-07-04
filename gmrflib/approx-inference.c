@@ -9018,7 +9018,7 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
-	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction) {
+	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *aa;
 		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
 		if (aa->Q) {

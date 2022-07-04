@@ -334,7 +334,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 
 	// when this is true, we can just copy the pointer to the matrix.
 	int used_fast_tab = 0;
-	if (Qfunc == GMRFLib_tabulate_Qfunction) {
+	if (Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *arg = (GMRFLib_tabulate_Qfunc_arg_tp *) Qfunc_arg;
 		if (arg->Q) {
 			M->a = arg->Q->a;
@@ -345,9 +345,6 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 	}
 	if (!used_fast_tab) {
 		M->a = Calloc(M->s->na, double);
-	}
-
-	if (!used_fast_tab) {
 		// a bit more manual work
 		double val = Qfunc(thread_id, 0, -1, &(M->a[0]), Qfunc_arg);
 		if (ISNAN(val)) {
@@ -390,7 +387,6 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 #undef M
 
 	GMRFLib_LEAVE_ROUTINE;
-	
 	return GMRFLib_SUCCESS;
 }
 
