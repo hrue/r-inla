@@ -154,7 +154,7 @@ int GMRFLib_pardiso_set_debug(int debug)
 int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 {
 	if (*csr) {
-		//Free((*csr)->s->iwork);
+		// Free((*csr)->s->iwork);
 		if ((*csr)->s->copy_only) {
 			// do not free
 		} else {
@@ -173,7 +173,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	}
 
 	*csr_to = Calloc(1, GMRFLib_csr_tp);
-	void ** p = NULL;
+	void **p = NULL;
 
 	if (csr_store_use && csr_from->s->sha) {
 		p = map_strvp_ptr(&csr_store, (char *) csr_from->s->sha);
@@ -186,7 +186,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 		}
 	} else {
 		if (csr_store_debug) {
-			printf("\t[%1d] csr_duplicate: no sha or no store\n", omp_get_thread_num());
+			printf("\t[%1d] csr_duplicate: no sha\n", omp_get_thread_num());
 		}
 	}
 
@@ -222,7 +222,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	} else {
 		assert(0 == 1);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -238,26 +238,26 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_csr_skeleton_tp * GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
+GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 {
-	GMRFLib_csr_skeleton_tp * Ms = NULL;
+	GMRFLib_csr_skeleton_tp *Ms = NULL;
 
 	int i, k, n, na, len;
 
 	if (csr_store_use && graph->sha) {
-		void ** p = NULL;
+		void **p = NULL;
 		p = map_strvp_ptr(&csr_store, (char *) graph->sha);
 		if (csr_store_debug) {
 			if (p) {
-				printf("\t[%1d] csr_skeleton: crs is found in store: do not duplicate.\n", omp_get_thread_num());
+				printf("\t[%1d] csr_skeleton: crs is found in store\n", omp_get_thread_num());
 			} else {
-				printf("\t[%1d] csr_skeleton: crs is not found in store: duplicate.\n", omp_get_thread_num());
+				printf("\t[%1d] csr_skeleton: crs is not found in store\n", omp_get_thread_num());
 			}
 		}
 		if (p) {
 			Ms = (GMRFLib_csr_skeleton_tp *) * p;
 			return (Ms);
-		} 
+		}
 	} else {
 		if (csr_store_debug) {
 			printf("\t[%1d] csr_skeleton: no sha\n", omp_get_thread_num());
@@ -302,7 +302,7 @@ GMRFLib_csr_skeleton_tp * GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 	RUN_CODE_BLOCK(1, 0, 0);			       /* TO QUICK TO DO IN PARALLEL */
 #undef CODE_BLOCK
 	Free(k_arr);
-	
+
 	for (int i = 0; i < n + 1; i++) {
 		Ms->ia1[i] = Ms->ia[i] + 1;
 	}
@@ -326,7 +326,7 @@ GMRFLib_csr_skeleton_tp * GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
-	
+
 #define M (*csr)
 
 	M = Calloc(1, GMRFLib_csr_tp);
@@ -343,6 +343,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 			used_fast_tab = 1;
 		}
 	}
+
 	if (!used_fast_tab) {
 		M->a = Calloc(M->s->na, double);
 		// a bit more manual work
@@ -364,28 +365,22 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 				int k = M->s->ia[i];			\
 				Qfunc(thread_id, i, -1, &(M->a[k]), Qfunc_arg);	\
 			}
-			
+
 			RUN_CODE_BLOCK((GMRFLib_Qx_strategy ? GMRFLib_MAX_THREADS() : 1), 0, 0);
 #undef CODE_BLOCK
 		}
 	}
 
-	if (0) {
-		int nan_error = 0;
-		for (int i = 0; i < M->s->na; i++) {
-			GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
-			if (nan_error) {
-				break;
-			}
-		}
+	int nan_error = 0;
+	for (int i = 0; i < M->s->na; i++) {
+		GMRFLib_STOP_IF_NAN_OR_INF(M->a[i], i, -1);
 		if (nan_error) {
 			GMRFLib_LEAVE_ROUTINE;
 			return !GMRFLib_SUCCESS;
 		}
 	}
-	
-#undef M
 
+#undef M
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }

@@ -2165,7 +2165,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			nmax = IMAX(nmax, h->idx[h->n - 1] + 1);
 		}
 	}
-	
+
 	double *x = Calloc(nmax, double);
 	for (int i = 0; i < nmax; i++) {
 		x[i] = GMRFLib_uniform();
@@ -2419,7 +2419,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
