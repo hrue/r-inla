@@ -19853,6 +19853,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	_SET(group_graph, NULL);
 	_SET(id_names, NULL);
 	_SET(correct, -1);
+	_SET(vb_correct, NULL);
 
 	sprintf(default_tag, "default tag for ffield %d", mb->nf);
 	mb->f_tag[mb->nf] = GMRFLib_strdup((secname ? secname : default_tag));

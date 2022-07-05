@@ -1816,6 +1816,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	GMRFLib_ENTER_ROUTINE;
 
 	// prune_zeros, 0=do nothing, >0 remove duplicate with same index within each group, <0 remove all zeros
+	// prune_zeros and 'group'-indexing is limited to vectors with length > 'limit'
+	const int limit = 16;
 	int debug = GMRFLib_DEBUG_IF_TRUE();
 
 	int nmax = 1;
@@ -1831,21 +1833,32 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		double tref[5] =  {0, 0, 0, 0, 0};			\
 		if (debug) tref[0] -= GMRFLib_cpu();			\
 		if (h->n > 1) {						\
-			if (0) {					\
-				GMRFLib_qsorts((void *) h->idx, (size_t) h->n, sizeof(int), \
-					       (void *) h->val, sizeof(double), NULL, (size_t) 0, GMRFLib_icmp); \
-			} else {					\
-				double *idx_tmp = CODE_BLOCK_WORK_PTR(0); \
-				for(int j = 0; j < h->n; j++) {		\
-					idx_tmp[j] = (double) h->idx[j]; \
-				}					\
-				gsl_sort2(idx_tmp, (size_t) 1, h->val, (size_t) 1, (size_t) h->n); \
-				for(int j = 0; j < h->n; j++) {		\
-					h->idx[j] = (int) idx_tmp[j];	\
+			int is_sorted = 1;				\
+			for(int j = 1; j < h->n && is_sorted; j++) {	\
+				is_sorted = is_sorted && (h->idx[j] >= h->idx[j-1]); \
+			}						\
+			if (!is_sorted) {				\
+				if (0) {				\
+					GMRFLib_qsorts((void *) h->idx, (size_t) h->n, sizeof(int), \
+						       (void *) h->val, sizeof(double), NULL, (size_t) 0, GMRFLib_icmp); \
+				} else {				\
+					double *idx_tmp = CODE_BLOCK_WORK_PTR(0); \
+					for(int j = 0; j < h->n; j++) {	\
+						idx_tmp[j] = (double) h->idx[j]; \
+					}				\
+					gsl_sort2(idx_tmp, (size_t) 1, h->val, (size_t) 1, (size_t) h->n); \
+					for(int j = 0; j < h->n; j++) {	\
+						h->idx[j] = (int) idx_tmp[j]; \
+					}				\
 				}					\
 			}						\
 		}							\
 		if (debug) tref[0] += GMRFLib_cpu();			\
+									\
+		if (h->n <= limit) {					\
+			h->preference = IDXVAL_SERIAL;			\
+			continue;					\
+		}							\
 									\
 		/*							\
 		 * build basic groups with one group for each sequence and then one for each individual \
@@ -2161,44 +2174,74 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	nmax = 1;
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
-		if (h->n > 0) {
-			nmax = IMAX(nmax, h->idx[h->n - 1] + 1);
+		if (h->n) {
+			nmax = IMAX(nmax, h->idx[h->n - 1]);
+		}
+	}
+	nmax++;
+	
+	static double **wwork = NULL;
+	static int *wwork_len = NULL;
+	if (!wwork) {
+#pragma omp critical (Name_5904d3e1eebd4db435c9b26e0854ee01328b78b2)
+		{
+			if (!wwork) {
+				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
+				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+			}
 		}
 	}
 
-	double *x = Calloc(nmax, double);
-	for (int i = 0; i < nmax; i++) {
-		x[i] = GMRFLib_uniform();
+	int cache_idx = 0;
+	GMRFLib_CACHE_SET_ID(cache_idx);
+
+	if (nmax > wwork_len[cache_idx]) {
+		Free(wwork[cache_idx]);
+		wwork_len[cache_idx] = nmax + 1024L;
+		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
+		wwork[cache_idx][0] = 1.828468273684723;
+		for(int j = 1; j < wwork_len[cache_idx]; j++) {
+			wwork[cache_idx][j] = wwork[cache_idx][j-1] + 0.8762138872634874;
+		}
 	}
+	double *x = wwork[cache_idx];
 
 	double time_min = 0.0;
 	double time_max = 0.0;
 	int ntimes = 2;
 
 	for (int i = 0; i < n; i++) {
+
+		if (hold[i]->preference != IDXVAL_UNKNOWN) {
+			continue;
+		}
+		
 		double tref[2] = { 0.0, 0.0 };
 		double value[2] = { 0.0, 0.0 };
 
-		if (debug)
+		if (debug) {
 			printf("start testing for hold[%1d]...\n", i);
+		}
 		for (int time = -1; time < ntimes; time++) {
-			if (time >= 0) {
+			int measure = (time >= 0);
+			if (measure) {
 				tref[0] -= GMRFLib_cpu();
 			}
 			DOT_PRODUCT_SERIAL(value[0], hold[i], x);
-			if (time >= 0) {
+			if (measure) {
 				tref[0] += GMRFLib_cpu();
 			}
 
-			if (time >= 0) {
+			if (measure) {
 				tref[1] -= GMRFLib_cpu();
 			}
 			DOT_PRODUCT_GROUP(value[1], hold[i], x);
-			if (time >= 0) {
+			if (measure) {
 				tref[1] += GMRFLib_cpu();
 			}
+
 			// no need to do another one, as the decision is pretty clear
-			if (time >= 0) {
+			if (measure) {
 				if (ABS(tref[0] - tref[1]) / (tref[0] + tref[1]) > 0.2) {
 					break;
 				}
@@ -2222,11 +2265,11 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	}
 
 	if (debug) {
-		printf("idxval opt: saving %.6f seconds/M.eval, %.2f%% improvement\n",
-		       (time_max - time_min) * ISQR(1024), 100.0 * (1.0 - time_min / time_max));
+		if (time_min > 0.0 && time_max > 0.0) {
+			printf("idxval opt: saving %.6f seconds/M.eval, %.2f%% improvement\n",
+			       (time_max - time_min) * ISQR(1024), 100.0 * (1.0 - time_min / time_max));
+		}
 	}
-
-	Free(x);
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;

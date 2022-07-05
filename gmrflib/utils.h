@@ -83,7 +83,7 @@ typedef struct {
 } GMRFLib_val_tp;
 
 typedef enum {
-	IDXVAL_UNKNOWN = 0,
+	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
 	IDXVAL_GROUP
 } GMRFLib_idxval_preference_tp;
