@@ -845,10 +845,17 @@
         cat("order = ", random.spec$order, "\n", append = TRUE, sep = " ", file = file)
     }
 
-    if (is.null(random.spec$vb.correct)) {
+    if (is.numeric(random.spec$vb.correct)) {
+        ## convert from R to C
+        random.spec$vb.correct <- random.spec$vb.correct - 1
+        stopifnot(all(random.spec$vb.correct >= 0))
+    } else if (as.logical(random.spec$vb.correct) == TRUE) {
         random.spec$vb.correct <- -1L ## code for ``make the default choice''
+    } else if (as.logical(random.spec$vb.correct) == FALSE) {
+        random.spec$vb.correct <- -2L ## code for disable
     }
-    cat("vb.correct = ", as.numeric(random.spec$vb.correct), "\n", append = TRUE, sep = "", file = file)
+
+    cat("vb.correct = ", sort(as.numeric(random.spec$vb.correct)), "\n", append = TRUE, sep = " ", file = file)
     cat("\n", sep = " ", file = file, append = TRUE)
 
     ## need to store the updated one
@@ -1178,9 +1185,7 @@
         cat("AextPrecision = ", predictor.spec$precision, "\n", append = TRUE, sep = " ", file = file)
     }
 
-    inla.write.boolean.field("vb.correct", predictor.spec$vb.correct, file)
-
-   cat("\n", sep = " ", file = file, append = TRUE)
+    cat("\n", sep = " ", file = file, append = TRUE)
 }
 
 `inla.lp.scale.section` <- function(file, contr, data.dir, write.hyper = TRUE) {
