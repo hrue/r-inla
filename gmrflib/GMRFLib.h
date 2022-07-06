@@ -97,6 +97,7 @@ __BEGIN_DECLS
 #include "GMRFLib/init.h"
 #include "GMRFLib/error-handler.h"
 #include "GMRFLib/utils.h"
+#include "GMRFLib/idxval.h"
 #include "GMRFLib/timer.h"
 #include "GMRFLib/io.h"
 #include "GMRFLib/taucs.h"
