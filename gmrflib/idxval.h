@@ -57,10 +57,7 @@
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLibP.h"
-
-
-
-typedef struct {
+    typedef struct {
 	int n;
 	int n_alloc;
 	int *idx;
@@ -228,7 +225,7 @@ int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold);
 int GMRFLib_str_add(GMRFLib_str_tp ** hold, char *s);
-nt GMRFLib_str_create_x(GMRFLib_str_tp ** hold, int len);
+int GMRFLib_str_create_x(GMRFLib_str_tp ** hold, int len);
 int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, int *idx_match);
 int GMRFLib_str_prune(GMRFLib_str_tp * hold);
 int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val);

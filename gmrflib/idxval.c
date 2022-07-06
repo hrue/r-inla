@@ -54,7 +54,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-#define IDX_ALLOC_INITIAL 64
+#define IDX_ALLOC_INITIAL 32
 #define IDX_ALLOC_ADD     512
 
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
@@ -900,7 +900,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		}
 	}
 	nmax++;
-	
+
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
 	if (!wwork) {
@@ -921,8 +921,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		wwork_len[cache_idx] = nmax + 1024L;
 		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 		wwork[cache_idx][0] = 1.828468273684723;
-		for(int j = 1; j < wwork_len[cache_idx]; j++) {
-			wwork[cache_idx][j] = wwork[cache_idx][j-1] + 0.8762138872634874;
+		for (int j = 1; j < wwork_len[cache_idx]; j++) {
+			wwork[cache_idx][j] = wwork[cache_idx][j - 1] + 0.8762138872634874;
 		}
 	}
 	double *x = wwork[cache_idx];
@@ -936,7 +936,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		if (hold[i]->preference != IDXVAL_UNKNOWN) {
 			continue;
 		}
-		
+
 		double tref[2] = { 0.0, 0.0 };
 		double value[2] = { 0.0, 0.0 };
 
@@ -960,7 +960,6 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[1] += GMRFLib_cpu();
 			}
-
 			// no need to do another one, as the decision is pretty clear
 			if (measure) {
 				if (ABS(tref[0] - tref[1]) / (tref[0] + tref[1]) > 0.2) {
@@ -1184,7 +1183,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
@@ -1195,4 +1194,3 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 	}
 	return 0;
 }
-
