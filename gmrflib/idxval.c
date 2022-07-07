@@ -889,7 +889,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 	/*
 	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing this within
-	 * the parallel loop. Usually, this is a quick procedure.
+	 * the parallel loop. Usually, this is a very quick procedure, so it does not really matter...
 	 */
 
 	nmax = 1;
@@ -929,7 +929,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 	double time_min = 0.0;
 	double time_max = 0.0;
-	int ntimes = 2;
+	int ntimes = 1;
 
 	for (int i = 0; i < n; i++) {
 
@@ -960,14 +960,9 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[1] += GMRFLib_cpu();
 			}
-			// no need to do another one, as the decision is pretty clear
-			if (measure) {
-				if (ABS(tref[0] - tref[1]) / (tref[0] + tref[1]) > 0.2) {
-					break;
-				}
-			}
 		}
 
+		// without cost, we can validate that the results is the same...
 		if ((ABS(value[1] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[1])) / 2.0)) > 1.0E-6) {
 			P(value[0]);
 			P(value[1]);
