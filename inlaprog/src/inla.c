@@ -39230,6 +39230,16 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 86: 
+	{
+		double x = 0.0;
+		double param[] = {1, 0.001};
+		for(x = 0;; x++) {
+			printf("x %f ldens %f\n", x, priorfunc_loggamma(&x, param));
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
