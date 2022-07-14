@@ -218,13 +218,6 @@ int GMRFLib_gsl_mm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C)
-{
-	// C = A B
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, (const gsl_matrix *) A, (const gsl_matrix *) B, 0.0, (gsl_matrix *) C);
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 {
 	/*
