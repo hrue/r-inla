@@ -39111,15 +39111,18 @@ int testit(int argc, char **argv)
 	case 82:
 	{
 		int n = atoi(args[0]);
+		int ntimes = atoi(args[1]);
 		double *x = Calloc(n, double);
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 			// x[i] = i+1;
 		}
 
+		P(n);
+		P(ntimes);
+		
 		double tref[2] = { 0.0, 0.0 };
 		double r = 0.0, rr = 0.0;
-		int ntimes = 256;
 
 		for (int time = 0; time < ntimes; time++) {
 

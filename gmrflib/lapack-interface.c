@@ -787,162 +787,8 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	return (GMRFLib_SUCCESS);
 }
 
+double my_dsum(int n, double * __restrict x)
 double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef)
-{
-	// compute the KLD between two mult-var normals, where either or both matrices can be numerical singular. Make sure that the rank is the
-	// same for both, and return the computed rank-deficiency in 'rankdef' if given
-
-	FIXME("gsl_kld is not tested");
-
-	size_t n = Q_base->size1;
-	assert(n == Q_base->size2);
-	assert(n == Q->size2);
-	assert(n == Q->size2);
-
-	gsl_matrix *U_base = GMRFLib_gsl_duplicate_matrix(Q_base);
-	gsl_matrix *U = GMRFLib_gsl_duplicate_matrix(Q);
-	gsl_vector *S_base = gsl_vector_alloc(n);
-	gsl_vector *S = gsl_vector_alloc(n);
-	gsl_eigen_symmv_workspace *work_base = gsl_eigen_symmv_alloc(n);
-	gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(n);
-	double tolerance_base = tol;
-	double tolerance = tol;
-	double one = 1.0, zero = 0.0;
-
-	gsl_vector_set_zero(S_base);
-	gsl_vector_set_zero(S);
-
-	gsl_eigen_symmv(Q_base, S_base, U_base, work_base);
-	gsl_eigen_symmv(Q, S, U, work);
-
-	size_t i;
-	double s = 0.0, s_min_base = 0.0, s_max_base = gsl_vector_max(S_base);
-	s_max_base = DMAX(0.0, s_max_base);
-
-	if (s_max_base > 0.0) {
-		s_min_base = s_max_base;
-		for (i = 0; i < n; i++) {
-			double s = gsl_vector_get(S_base, i);
-			if (s > 0.0 && s < s_min_base) {
-				s_min_base = s;
-			}
-		}
-		tolerance_base = s_min_base / s_max_base;
-	}
-
-	double s_min = 0.0, s_max = gsl_vector_max(S);
-	s_max = DMAX(0.0, s_max);
-
-	if (s_max > 0.0) {
-		s_min = s_max;
-		for (i = 0; i < n; i++) {
-			double s = gsl_vector_get(S, i);
-			if (s > 0.0 && s < s_min) {
-				s_min = s;
-			}
-		}
-		tolerance = s_min / s_max;
-	}
-
-	int rdef_base = 0;
-	int rdef = 0;
-
-	s_min_base = tolerance_base * s_max_base;
-	s_min = tolerance * s_max;
-
-	for (i = 0; i < n; i++) {
-		s = gsl_vector_get(S_base, i);
-		rdef_base += (s < s_min_base);
-		if (s < s_min_base)
-			s = 0.0;
-		gsl_vector_set(S_base, i, s);
-
-		s = gsl_vector_get(S, i);
-		rdef += (s < s_min);
-		if (s < s_min)
-			s = 0.0;
-		gsl_vector_set(S, i, s);
-	}
-
-	rdef = IMAX(rdef_base, rdef);
-
-	double ldet_base = 0.0;
-	double ldet = 0.0;
-	for (i = 0; i < n - rdef; i++) {
-		ldet_base += log(gsl_vector_get(S_base, i));
-		ldet += log(gsl_vector_get(S, i));
-	}
-
-	gsl_matrix *Cov_base = GMRFLib_gsl_duplicate_matrix(Q_base);
-	gsl_matrix *M1 = gsl_matrix_alloc(n, n);
-	gsl_matrix *M2 = gsl_matrix_alloc(n, n);
-	gsl_matrix_set_zero(M1);
-	gsl_matrix_set_zero(M2);
-
-	for (i = 0; i < n - rdef; i++) {
-		gsl_matrix_set(M2, i, i, 1.0 / gsl_vector_get(S_base, i));
-	}
-	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U_base, zero, M1);
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U_base, M1, zero, M2);
-	gsl_matrix_memcpy(Cov_base, M2);
-
-	gsl_matrix *Q_corr = GMRFLib_gsl_duplicate_matrix(Q);
-	gsl_matrix_set_zero(M1);
-	gsl_matrix_set_zero(M2);
-	for (i = 0; i < n - rdef; i++) {
-		gsl_matrix_set(M2, i, i, gsl_vector_get(S, i));
-	}
-	gsl_blas_dgemm(CblasNoTrans, CblasTrans, one, M2, U, zero, M1);
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, one, U, M1, zero, M2);
-	gsl_matrix_memcpy(Q_corr, M2);
-
-	double kld = 0.0;
-
-	// trace-term
-	gsl_matrix_set_zero(M1);
-	gsl_matrix_set_zero(M2);
-
-	GMRFLib_gsl_mm(Cov_base, Q_corr, M1);
-	for (i = 0; i < n; i++) {
-		kld += gsl_matrix_get(M1, i, i);
-	}
-	kld *= (double) (n - rdef) / (double) n;
-
-	// quadratic term
-	gsl_vector *v1 = gsl_vector_alloc(n);
-	gsl_vector *v2 = gsl_vector_alloc(n);
-	gsl_vector_set_zero(v1);
-	gsl_vector_set_zero(v2);
-
-	for (i = 0; i < n; i++) {
-		gsl_vector_set(v1, i, gsl_vector_get(m_base, i) - gsl_vector_get(m, i));
-	}
-	GMRFLib_gsl_mv(Cov_base, v1, v2);
-	double quadratic = 0.0;
-	gsl_blas_ddot(v1, v2, &quadratic);
-	kld += quadratic;
-
-	kld = 0.5 * (kld - (double) (n - rdef) + (ldet_base - ldet));
-	if (rankdef) {
-		*rankdef = rdef;
-	}
-
-	gsl_eigen_symmv_free(work_base);
-	gsl_eigen_symmv_free(work);
-	gsl_matrix_free(M1);
-	gsl_matrix_free(M2);
-	gsl_matrix_free(Q_corr);
-	gsl_matrix_free(U);
-	gsl_matrix_free(U_base);
-	gsl_vector_free(S);
-	gsl_vector_free(S_base);
-	gsl_vector_free(v1);
-	gsl_vector_free(v2);
-
-	return kld;
-}
-
-forceinline double my_dsum(int n, double *x)
 {
 	const int roll = 8L;
 	div_t d;
@@ -969,12 +815,13 @@ forceinline double my_dsum(int n, double *x)
 	return (s0 + s1 + s2 + s3);
 }
 
-forceinline double my_ddot_idx(int n, double *v, double *a, int *idx)
+double my_ddot_idx(int n, double * __restrict v, double * __restrict a, int * __restrict idx)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
+
 	for (int i = 0, j = 0; i < m; i += roll) {
 		j = i;
 		s0 += v[j] * a[idx[j]];
@@ -1002,13 +849,14 @@ forceinline double my_ddot_idx(int n, double *v, double *a, int *idx)
 	return (s0 + s1 + s2 + s3);
 }
 
-forceinline double my_dsum_idx(int n, double *a, int *idx)
+double my_dsum_idx(int n, double * __restrict a, int * __restrict idx)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 
-	for (int i = 0, j = 0; i < d.quot * roll; i += roll) {
+	int j = 0;
+	for (int i = 0; i < d.quot * roll; i += roll) {
 		j = i;
 		s0 += a[idx[j++]];
 		s1 += a[idx[j++]];
