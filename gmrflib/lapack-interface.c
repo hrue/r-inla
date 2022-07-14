@@ -780,7 +780,7 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	return (GMRFLib_SUCCESS);
 }
 
-forceinline double my_dsum(int n, double *x)
+double my_dsum(int n, double * __restrict x)
 {
 	const int roll = 8L;
 	div_t d;
@@ -807,12 +807,13 @@ forceinline double my_dsum(int n, double *x)
 	return (s0 + s1 + s2 + s3);
 }
 
-forceinline double my_ddot_idx(int n, double *v, double *a, int *idx)
+double my_ddot_idx(int n, double * __restrict v, double * __restrict a, int * __restrict idx)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
+
 	for (int i = 0, j = 0; i < m; i += roll) {
 		j = i;
 		s0 += v[j] * a[idx[j]];
@@ -840,13 +841,14 @@ forceinline double my_ddot_idx(int n, double *v, double *a, int *idx)
 	return (s0 + s1 + s2 + s3);
 }
 
-forceinline double my_dsum_idx(int n, double *a, int *idx)
+double my_dsum_idx(int n, double * __restrict a, int * __restrict idx)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 
-	for (int i = 0, j = 0; i < d.quot * roll; i += roll) {
+	int j = 0;
+	for (int i = 0; i < d.quot * roll; i += roll) {
 		j = i;
 		s0 += a[idx[j++]];
 		s1 += a[idx[j++]];
