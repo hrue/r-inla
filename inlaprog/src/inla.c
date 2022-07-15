@@ -6845,7 +6845,12 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 					assert(!ISZERO(y));
 				}
 			} else {
-				logll[i] = gsl_cdf_poisson_P((unsigned int) y, E * lambda);
+				double m = E * lambda;
+				if (m > 10000.0) {
+					logll[i] = gsl_cdf_ugaussian_P((y + 0.5 - m) / sqrt(m));
+				} else {
+					logll[i] = gsl_cdf_poisson_P((unsigned int) y, E * lambda);
+				}
 			}
 		}
 	}
