@@ -585,7 +585,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	ld = Calloc_get(np);
 
 #pragma GCC ivdep
-#pragma GCC unroll 8
 	for (xval = low, i = 0; i < np; xval += dx, i++) {
 		xp[i] = xval;
 	}
@@ -614,7 +613,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 		for (i = 0; i < np - 1; i++) {
 			xpm[3 * i + 0] = xp[i];
 			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
@@ -628,7 +626,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 		for (i = 0; i < np - 1; i++) {
 			xpm[2 * i + 0] = xp[i];
 			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
@@ -661,7 +658,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	mm[3] = gsl_pow_3(xx[0]) * d0 + gsl_pow_3(xx[1]) * d1;
 
 #pragma GCC ivdep
-#pragma GCC unroll 8
 	for (i = 1; i < npm - 1; i++) {
 		double d = ldm[i] * w[(i - 1) % 2];
 		xx[1] = xpm[i];
@@ -1209,7 +1205,11 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
-		GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
+		if (0) {
+			GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
+		} else {
+			gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
+		}
 	}
 	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1.0 / 2.0));
 	GMRFLib_adjust_vector(ldens, n);

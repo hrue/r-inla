@@ -89,15 +89,22 @@ int dcopy_(int *n, double *x, int *incx, double *y, int *incy);
 int dscal_(int *n, double *alpha, double *x, int *inc);
 double ddot_(int *n, double *x, int *incx, double *y, int *incy);
 double dnrm2_(int *n, double *x, int *inc);
+double dasum_(int *n, double *x, int *inc);
+
+double my_ddot_idx(int n, double * __restrict v, double * __restrict a, int * __restrict idx);
+double my_dsum(int n, double * __restrict x);
+double my_dsum_idx(int n, double * __restrict a, int * __restrict idx);
 
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);
 double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S);
+double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gsl_matrix *Q, double tol, int *rankdef);
 gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A);
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon);
 int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef);
 int GMRFLib_gsl_mgs(gsl_matrix * A);
 int GMRFLib_gsl_mv(gsl_matrix * A, gsl_vector * x, gsl_vector * b);
+int GMRFLib_gsl_mm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C);
 int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol);
 int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol);
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A);

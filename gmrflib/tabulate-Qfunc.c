@@ -68,8 +68,8 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		int imax = IMAX(node, nnode);				\
 		double *dp = NULL;					\
 		if (args->Q) {						\
-			int offset = args->Q->ia[imin];			\
-			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->ja, args->Q->ia[imin + 1] - offset, guess); \
+			int offset = args->Q->s->ia[imin];		\
+			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->s->ja, args->Q->s->ia[imin + 1] - offset, guess); \
 			assert(j >= offset);				\
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
@@ -89,8 +89,8 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 	} else {							\
 		int len = 0;						\
 		if (args->Q) {						\
-			int j = args->Q->ia[node];			\
-			len = args->Q->ia[node + 1] - j;		\
+			int j = args->Q->s->ia[node];			\
+			len = args->Q->s->ia[node + 1] - j;		\
 			Memcpy(values, &(args->Q->a[j]), len * sizeof(double)); \
 		} else {						\
 			val = NAN;					\

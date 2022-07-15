@@ -8384,7 +8384,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			double adx = ABS(dx[i] / sd[i]);
 			err_dx = DMAX(err_dx, adx);
 			// truncate individual components
-			if (adx >  max_correct) {
+			if (adx > max_correct) {
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
@@ -8653,13 +8653,13 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 				{
 					fprintf(fp, "\t[%1d]Iter [%1d/%1d] VB correct with strategy [VARIANCE] in total[%.3fsec]\n",
 						tn, iter, niter, GMRFLib_cpu() - tref);
-					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] |gradient|[%.4g] max.step.sigma[%.4g](%s)\n", (int) vb_idx->n,
-						grad_err,  diff_sigma_max, (pass ? "PASS" : "FAIL"));
+					fprintf(fp, "\t\tNumber of nodes corrected for [%1d] |gradient|[%.4g] max.step.sigma[%.4g](%s)\n",
+						(int) vb_idx->n, grad_err, diff_sigma_max, (pass ? "PASS" : "FAIL"));
 					if (pass) {
 						for (int jj = 0; jj < vb_idx->n; jj++) {
 							int j = vb_idx->idx[jj];
-							fprintf(fp, "\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j, c_like[j] * FUN(theta[jj]),
-								sd_prev[j] / sd_orig[j], sd_prev[j]);
+							fprintf(fp, "\t\tNode[%1d] delta[%.4f] sd/sd.orig[%.4f] sd[%.4f]\n", j,
+								c_like[j] * FUN(theta[jj]), sd_prev[j] / sd_orig[j], sd_prev[j]);
 						}
 						fprintf(fp, "\t\tImplied correction for [%1d] nodes\n", preopt->mnpred + graph->n - vb_idx->n);
 					}
@@ -8760,7 +8760,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			double mell = 0.0;				\
 			STORAGE_TP *cov_eta_latent_i = cov_eta_latent_store[ii]; \
 			_Pragma("GCC ivdep")				\
-				_Pragma("GCC unroll 8")			\
 				for (int kk = 0; kk < d_idx->n; kk++) {	\
 					int k = d_idx->idx[kk];		\
 					double S_ki = STORAGE_TYPE_CAST cov_eta_latent_i[kk]; \
@@ -8804,7 +8803,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					/* in the PARTIAL strategy, just use the diagonal from the likelihood term */ \
 					if ((hessian_partial && (ii == jj)) || hessian_full) { \
 						_Pragma("GCC ivdep")	\
-							_Pragma("GCC unroll 8")	\
 							for (int kk = 0; kk < d_idx->n; kk++) { \
 								int k = d_idx->idx[kk];	\
 								double S_kikj = STORAGE_TYPE_CAST cov_eta_latent_i[kk] * STORAGE_TYPE_CAST cov_eta_latent_j[kk]; \
@@ -9020,12 +9018,12 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 	GMRFLib_graph_tp *g = gmrf_approx->sub_graph;
 
 	Q = Calloc(mo->configs[id]->nz, double);
-	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction) {
+	if (gmrf_approx->tab->Qfunc == GMRFLib_tabulate_Qfunction_std) {
 		GMRFLib_tabulate_Qfunc_arg_tp *aa;
 		aa = (GMRFLib_tabulate_Qfunc_arg_tp *) gmrf_approx->tab->Qfunc_arg;
 		if (aa->Q) {
-			assert(mo->configs[id]->nz == aa->Q->na);
-			Memcpy(Q, aa->Q->a, aa->Q->na * sizeof(double));
+			assert(mo->configs[id]->nz == aa->Q->s->na);
+			Memcpy(Q, aa->Q->a, aa->Q->s->na * sizeof(double));
 			found = 1;
 		}
 	}
@@ -9783,7 +9781,6 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 			for (i = 0; i < np - 1; i++) {
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
@@ -9797,7 +9794,6 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 			for (i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
@@ -9917,7 +9913,6 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 			for (i = 0; i < np - 1; i++) {
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
@@ -9931,7 +9926,6 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 			assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
-#pragma GCC unroll 8
 			for (i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;

@@ -105,6 +105,11 @@ typedef struct {
 	int *ja;
 	int *ja1;
 	int *iwork;
+	unsigned char *sha;
+} GMRFLib_csr_skeleton_tp;
+
+typedef struct {
+	GMRFLib_csr_skeleton_tp *s;
 	double *a;
 } GMRFLib_csr_tp;
 
@@ -393,8 +398,17 @@ typedef enum {
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 
-#define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
+#define Orig_GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)		\
 	if (ISNAN(value) || ISINF(value)) {				\
+		if (!nan_error)						\
+			fprintf(stdout,					\
+				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
+				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+		nan_error = 1;						\
+	}
+
+#define GMRFLib_STOP_IF_NAN_OR_INF(value, idx, jdx)			\
+	if (!gsl_finite(value)) {					\
 		if (!nan_error)						\
 			fprintf(stdout,					\
 				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \

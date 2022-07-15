@@ -848,13 +848,7 @@
             ## :ARGUMENT+: responce vector. If an element of the responce vector is \code{!NA} then the
             ## :ARGUMENT+: corresponding entry in \code{link} is not used (but must still be a legal value).
             ## :ARGUMENT+: Setting this variable implies \code{compute=TRUE}.
-            link = NULL,
-
-            ## :ARGUMENT+: vb.correct Logical Add this model component to the list of variables
-            ## :ARGUMENT+: to be used for the vb corrected Laplace approximation? If \code{NULL} use default
-            ## :ARGUMENT+: choice,  otherwise correct if \code{TRUE} and do not if \code{FALSE} (expert
-            ## :ARGUMENT+: option)
-            vb.correct = NULL
+            link = NULL
         )
 
         ## :SEEALSO: inla
