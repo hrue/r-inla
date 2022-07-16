@@ -109,14 +109,15 @@ typedef struct {
 		double value_ = 0.0;					\
 		int integer_one = 1;					\
 		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
-			int istart_ = ELM_->g_i[g_];			\
-			int *ii_ = &(ELM_->idx[istart_]);		\
 			int len_ = ELM_->g_len[g_];			\
-			double *vv_ = &(ELM_->val[istart_]);		\
-									\
 			if (len_ == 0) continue;			\
+									\
+			int istart_ = ELM_->g_i[g_];			\
+			int * __restrict ii_ = &(ELM_->idx[istart_]);	\
+			double * __restrict vv_ = &(ELM_->val[istart_]); \
+									\
 			if (len_ > 0) {					\
-				double *aa_ = &(ARR_[0]);		\
+				double * __restrict aa_ = &(ARR_[0]);	\
 				if (ELM_->g_1[g_]) {			\
 					if (len_ < 8L) {		\
 						_Pragma("GCC ivdep")	\
@@ -138,7 +139,7 @@ typedef struct {
 				}					\
 			} else if (len_ < 0) {				\
 				int llen_ = - len_;			\
-				double *aa_ = &(ARR_[ii_[0]]);		\
+				double * __restrict aa_ = &(ARR_[ii_[0]]); \
 				if (ELM_->g_1[g_]) {			\
 					value_ += DSUM(llen_, aa_);	\
 				} else {				\
@@ -152,9 +153,9 @@ typedef struct {
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
-		double *vv_ = ELM_->val;				\
-		double *aa_ = ARR_;					\
-		int *idx_ = ELM_->idx;					\
+		double * __restrict vv_ = ELM_->val;			\
+		double * __restrict aa_ = ARR_;				\
+		int * __restrict idx_ = ELM_->idx;			\
 		if (ELM_->n < 8L) {					\
 			_Pragma("GCC ivdep")				\
 				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
