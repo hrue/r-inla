@@ -419,32 +419,21 @@ typedef enum {
 #define GMRFLib_SET_PREC(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[thread_id])) : 1.0)
 #define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[thread_id])) : 1.0)
 
-// This is for internal caching
-#define OLD_GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
-#define OLD_GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
-					 ((omp_get_ancestor_thread_num(omp_get_level()-1) * \
-					   omp_get_team_size(omp_get_level()) + \
-					   omp_get_thread_num()) +	\
-					  GMRFLib_MAX_THREADS() * thread_id) : \
-					 (omp_get_thread_num() + GMRFLib_MAX_THREADS() * thread_id)); \
-	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
-
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
-#define GMRFLib_CACHE_SET_ID(__id) \
+#define GMRFLib_CACHE_SET_ID(__id)					\
 	if (1) {							\
-		int level = omp_get_level();				\
-		int tnum = omp_get_thread_num();			\
-		if (level <= 1)	{					\
-			__id =  tnum;					\
+		int level_ = omp_get_level();				\
+		int tnum_ = omp_get_thread_num();			\
+		if (level_ <= 1)	{				\
+			__id =  tnum_;					\
 		} else if (level == 2) {				\
-			__id = omp_get_ancestor_thread_num(level-1) * GMRFLib_MAX_THREADS() + tnum; \
+			__id = omp_get_ancestor_thread_num(level_ -1) * GMRFLib_MAX_THREADS() + tnum_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\
 	}
-
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
