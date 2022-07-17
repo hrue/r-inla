@@ -166,7 +166,7 @@ typedef struct {
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-#define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
+#define DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		switch(ELM_->preference) {				\
 		case IDXVAL_SERIAL:					\
@@ -181,8 +181,22 @@ typedef struct {
 			break;						\
 		}							\
 	}
-
-
+#define DOT_PRODUCT_TIMING(VALUE_, ELM_, ARR_)				\
+	if (1) {							\
+		static double time_used = 0.0;				\
+		static size_t time_n = 0;				\
+		time_used -= GMRFLib_cpu();				\
+									\
+		DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_);			\
+									\
+		time_used += GMRFLib_cpu();				\
+		if (!(++time_n % 16384L)) {				\
+			P(time_used);					\
+			P(time_used / time_n);				\
+		}							\
+	}
+//#define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_TIMING(VALUE_, ELM_, ARR_)
+#define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);

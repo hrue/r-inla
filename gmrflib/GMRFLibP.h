@@ -359,18 +359,18 @@ typedef enum {
 #define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 #define ISQR(x) ((x)*(x))
 #define MOD(i,n)  (((i)+(n))%(n))
-#define FIXME( msg) if (1) { printf("\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
-#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
-#define P(x)        if (1) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
-#define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
-#define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define PP(msg,pt)  if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
-#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
-#define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
-#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
+#define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
+#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
+#define PP(msg,pt)  if (1) { fprintf(stdout, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
+#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
+#define PPg(msg,pt) if (1) { fprintf(stdout, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
+#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
