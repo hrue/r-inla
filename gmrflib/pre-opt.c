@@ -719,12 +719,12 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		DOT_PRODUCT(value, elm, lc);
 	} else {
 		// use also this [low, high] guess, which is updated automatically
-		static int * guess = NULL;
+		static int *guess = NULL;
 		if (!guess) {
 #pragma omp critical (Name_fe9d8706ee0c641d1955fda09b4189a1f2fab9b1)
 			{
 				if (!guess) {
-					guess  = Calloc(GMRFLib_CACHE_LEN * 2L, int);
+					guess = Calloc(GMRFLib_CACHE_LEN * 2L, int);
 				}
 			}
 		}

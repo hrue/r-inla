@@ -545,15 +545,15 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	}
 
 	int imin, imax;
-	if (node <= nnode){
+	if (node <= nnode) {
 		imin = node;
 		imax = nnode;
 	} else {
 		imin = nnode;
 		imax = node;
 	}
-	//int imin = IMIN(node, nnode);
-	//int imax = IMAX(node, nnode);
+	// int imin = IMIN(node, nnode);
+	// int imax = IMAX(node, nnode);
 
 	int m = graph->lnnbs[imin];
 	if ((!m || imax > graph->lnbs[imin][m - 1])) {
@@ -572,7 +572,7 @@ int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
 	}
 
 	graph->guess = Calloc(GMRFLib_CACHE_LEN, int *);
-	int * iwork = Calloc(GMRFLib_CACHE_LEN * 2L, int);
+	int *iwork = Calloc(GMRFLib_CACHE_LEN * 2L, int);
 	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
 		graph->guess[i] = iwork + 2L * i;
 	}

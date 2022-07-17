@@ -220,7 +220,7 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted(int val, int * __restrict ix, int len, int * __restrict guess)
+int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict guess)
 {
 	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
 	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe
@@ -229,9 +229,9 @@ int GMRFLib_iwhich_sorted(int val, int * __restrict ix, int len, int * __restric
 		return -1;
 	}
 
-	int low, high; 
+	int low, high;
 	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
-	if (guess[1] <= guess[0] || guess[1] == 0 || guess[1] >= len){
+	if (guess[1] <= guess[0] || guess[1] == 0 || guess[1] >= len) {
 		// invalid values for 'guess', no need to check
 		low = 0;
 		high = len - 1;
@@ -254,7 +254,7 @@ int GMRFLib_iwhich_sorted(int val, int * __restrict ix, int len, int * __restric
 			guess[1] = high;
 			return -1;
 		} else {
-			int mid = low + range / 2L;		       /* integer division */
+			int mid = low + range / 2L;	       /* integer division */
 			if (ix[mid] > val) {
 				high = mid;
 			} else {

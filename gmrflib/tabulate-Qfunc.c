@@ -132,7 +132,7 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 
 double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double *values, void *arg)
 {
-	static int * gguess = NULL;
+	static int *gguess = NULL;
 	if (!gguess) {
 #pragma omp critical (Name_b56890f7ff5cd3567a3aff6f33a6c54d2abc91dc)
 		{
