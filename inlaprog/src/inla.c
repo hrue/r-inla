@@ -39238,6 +39238,52 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 85: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		double time = -GMRFLib_cpu();
+		double sum = 0.0;
+		int imin, imax;
+		for(int k = 0; k < m; k++) {
+			for(int i = 0; i < n; i++) {
+				int ii = GMRFLib_uniform() * n;
+				for(int j = 0; j < n; j++) {
+					int jj = GMRFLib_uniform() * n;
+					imin = IMIN(ii, jj);
+					imax = IMAX(ii, jj);
+					sum += imin - imax;
+				}
+			}
+		}
+		time += GMRFLib_cpu();
+		printf("IMAX/MIN %.12f\n", time);
+
+		sum = 0.0;
+		time = -GMRFLib_cpu();
+		for(int k = 0; k < m; k++) {
+			for(int i = 0; i < n; i++) {
+				int ii = GMRFLib_uniform() * n;
+				for(int j = 0; j < n; j++) {
+					int jj = GMRFLib_uniform() * n;
+					if (ii <= jj) {
+						imin = ii;
+						imax = jj;
+					} else {
+						imin = jj;
+						imax = ii;
+					}
+					sum += imin - imax;
+				}
+			}
+		}
+		time += GMRFLib_cpu();
+		printf("if/ %.12f\n", time);
+
+		break;
+	}
+		
 	case 86:
 	{
 		double x = 0.0;
