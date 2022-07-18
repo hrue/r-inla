@@ -720,17 +720,18 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	} else {
 		// use also this [low, high] guess, which is updated automatically
 		static int *guess = NULL;
+		int l1_cacheline = 8;
 		if (!guess) {
 #pragma omp critical (Name_fe9d8706ee0c641d1955fda09b4189a1f2fab9b1)
 			{
 				if (!guess) {
-					guess = Calloc(GMRFLib_CACHE_LEN * 2L, int);
+					guess = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
 				}
 			}
 		}
 		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
-		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess + 2L * idx);
+		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess + (2L + l1_cacheline) * idx);
 		elm = a->AtA_idxval[node][k];
 		DOT_PRODUCT(value, elm, lc);
 	}

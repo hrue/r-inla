@@ -428,7 +428,7 @@ typedef enum {
 		int tnum_ = omp_get_thread_num();			\
 		if (level_ <= 1)	{				\
 			__id =  tnum_;					\
-		} else if (level == 2) {				\
+		} else if (level_ == 2) {				\
 			__id = omp_get_ancestor_thread_num(level_ -1) * GMRFLib_MAX_THREADS() + tnum_; \
 		} else {						\
 			assert(0 == 1);					\

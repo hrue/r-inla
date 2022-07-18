@@ -571,10 +571,11 @@ int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
 		return GMRFLib_SUCCESS;
 	}
 
+	int l1_cacheline = 8;
 	graph->guess = Calloc(GMRFLib_CACHE_LEN, int *);
-	int *iwork = Calloc(GMRFLib_CACHE_LEN * 2L, int);
+	int *iwork = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
 	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-		graph->guess[i] = iwork + 2L * i;
+		graph->guess[i] = iwork + (2L + l1_cacheline) * i;
 	}
 	return GMRFLib_SUCCESS;
 }
