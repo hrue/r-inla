@@ -720,7 +720,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	} else {
 		// use also this [low, high] guess, which is updated automatically
 		static int *guess = NULL;
-		int l1_cacheline = 8;
+		int l1_cacheline = 8L;
 		if (!guess) {
 #pragma omp critical (Name_fe9d8706ee0c641d1955fda09b4189a1f2fab9b1)
 			{
