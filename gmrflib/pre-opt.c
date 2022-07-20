@@ -495,12 +495,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_graph_tp *g = NULL;
 	ged = NULL;
 	GMRFLib_ged_init2(&ged, N);
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < gen_len_At; i++) {
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {
 				int j = gen_A[k]->idx[jj];
-				GMRFLib_ged_add(ged, i, j);
+				if (j > i) {
+					GMRFLib_ged_add(ged, i, j);
+				}
 			}
 		}
 	}
