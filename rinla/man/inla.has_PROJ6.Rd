@@ -33,19 +33,19 @@ Detect whether PROJ6 is available for INLA
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.not_for_PROJ6}: Called to warn about using old PROJ4
+\item \code{inla.not_for_PROJ6()}: Called to warn about using old PROJ4
 features even though PROJ6 is available
 
-\item \code{inla.not_for_PROJ4}: Called to give an error when
+\item \code{inla.not_for_PROJ4()}: Called to give an error when
 calling methods that are only available for PROJ6
 
-\item \code{inla.fallback_PROJ6}: Called to warn about falling back
+\item \code{inla.fallback_PROJ6()}: Called to warn about falling back
 to using old PROJ4 methods when a RPOJ6 method hasn't been implemented
 
-\item \code{inla.requires_PROJ6}: Called to give an error when PROJ6
+\item \code{inla.requires_PROJ6()}: Called to give an error when PROJ6
 is required but not available
-}}
 
+}}
 \examples{
 
 inla.has_PROJ6()

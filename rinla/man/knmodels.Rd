@@ -8,8 +8,8 @@
 inla.knmodels(
   formula,
   progress = FALSE,
-  control.st = list(time, space, spacetime, graph, type = c(paste(1:4), paste0(2:4,
-    "c"), paste0(2:4, "d")), diagonal = 1e-05, timeref = 1, spaceref = 1, ...),
+  control.st = list(time, space, spacetime, graph, type = c(paste(1:4), paste0(2:4, "c"),
+    paste0(2:4, "d")), diagonal = 1e-05, timeref = 1, spaceref = 1, ...),
   ...
 )
 }

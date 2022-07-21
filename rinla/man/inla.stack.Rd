@@ -134,27 +134,27 @@ and for each block \eqn{l}{l}, any missing
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.stack.remove.unused}: Remove unused entries from an existing stack
+\item \code{inla.stack.remove.unused()}: Remove unused entries from an existing stack
 
-\item \code{inla.stack.compress}: Compress an existing stack by removing duplicates
+\item \code{inla.stack.compress()}: Compress an existing stack by removing duplicates
 
-\item \code{inla.stack.sum}: Create data stack as a sum of predictors
+\item \code{inla.stack.sum()}: Create data stack as a sum of predictors
 
-\item \code{inla.stack.join}: Join two or more data stacks
+\item \code{inla.stack.join()}: Join two or more data stacks
 
-\item \code{inla.stack.index}: Extract tagged indices
+\item \code{inla.stack.index()}: Extract tagged indices
 
-\item \code{inla.stack.LHS}: Extract data associated with the "left hand side" of the model
+\item \code{inla.stack.LHS()}: Extract data associated with the "left hand side" of the model
 (e.g. the data itself, \code{Ntrials}, \code{link}, \code{E})
 
-\item \code{inla.stack.RHS}: Extract data associated with the "right hand side" of the model
+\item \code{inla.stack.RHS()}: Extract data associated with the "right hand side" of the model
 (all the covariates/predictors)
 
-\item \code{inla.stack.data}: Extract data for an inla call, and optionally join with other variables
+\item \code{inla.stack.data()}: Extract data for an inla call, and optionally join with other variables
 
-\item \code{inla.stack.A}: Extract the "A matrix" for control.predictor
+\item \code{inla.stack.A()}: Extract the "A matrix" for control.predictor
+
 }}
-
 \section{Functions}{
  \itemize{
 \item \code{inla.stack.remove.unused}: Remove
