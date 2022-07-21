@@ -126,16 +126,16 @@ which also interact with \code{n.iid.group}.
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.spde2.theta2phi0}: Convert from theta vector to phi0 values in
+\item \code{inla.spde2.theta2phi0()}: Convert from theta vector to phi0 values in
 the internal spde2 model representation
 
-\item \code{inla.spde2.theta2phi1}: Convert from theta vector to phi1 values in
+\item \code{inla.spde2.theta2phi1()}: Convert from theta vector to phi1 values in
 the internal spde2 model representation
 
-\item \code{inla.spde2.theta2phi2}: Convert from theta vector to phi2 values in
+\item \code{inla.spde2.theta2phi2()}: Convert from theta vector to phi2 values in
 the internal spde2 model representation
+
 }}
-
 \examples{
 
 n = 100

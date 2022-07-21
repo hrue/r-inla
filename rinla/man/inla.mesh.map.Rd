@@ -36,9 +36,9 @@ Calculates coordinate mappings for \code{inla.mesh} projections.
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.mesh.map.lim}: Projection extent limit calculations
-}}
+\item \code{inla.mesh.map.lim()}: Projection extent limit calculations
 
+}}
 \seealso{
 \code{\link[=inla.mesh.project]{inla.mesh.project()}}
 }
