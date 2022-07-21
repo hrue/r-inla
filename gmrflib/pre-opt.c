@@ -495,12 +495,15 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	GMRFLib_graph_tp *g = NULL;
 	ged = NULL;
 	GMRFLib_ged_init2(&ged, N);
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < gen_len_At; i++) {
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {
 				int j = gen_A[k]->idx[jj];
-				GMRFLib_ged_add(ged, i, j);
+				if (j > i) {
+					GMRFLib_ged_add(ged, i, j);
+				}
 			}
 		}
 	}
@@ -518,7 +521,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < gen_len_At; i++) {
-		int guess[] = { 0, 0 };
+		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {
@@ -719,22 +722,19 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		DOT_PRODUCT(value, elm, lc);
 	} else {
 		// use also this [low, high] guess, which is updated automatically
-		static int **guess = NULL;
+		static int *guess = NULL;
+		int l1_cacheline = 8L;
 		if (!guess) {
 #pragma omp critical (Name_fe9d8706ee0c641d1955fda09b4189a1f2fab9b1)
 			{
 				if (!guess) {
-					guess = Calloc(GMRFLib_CACHE_LEN, int *);
+					guess = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
 				}
 			}
 		}
 		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
-		if (!guess[idx]) {
-			guess[idx] = Calloc(2, int);
-		}
-
-		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess[idx]);
+		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess + (2L + l1_cacheline) * idx);
 		elm = a->AtA_idxval[node][k];
 		DOT_PRODUCT(value, elm, lc);
 	}
@@ -752,8 +752,13 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	double value = 0.0;
 	int imin, imax, diag;
 
-	imin = IMIN(node, nnode);
-	imax = IMAX(node, nnode);
+	if (node <= nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		imin = nnode;
+		imax = node;
+	}
 	diag = (imin == imax);
 
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
@@ -778,8 +783,13 @@ double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNU
 	int imin, imax, diag;
 	double value = 0.0;
 
-	imin = IMIN(node, nnode);
-	imax = IMAX(node, nnode);
+	if (node <= nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		imin = nnode;
+		imax = node;
+	}
 	diag = (imin == imax);
 
 	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
@@ -806,8 +816,13 @@ double GMRFLib_preopt_Qfunc_like(int thread_id, int node, int nnode, double *UNU
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 	int imin, imax, diag;
 
-	imin = IMIN(node, nnode);
-	imax = IMAX(node, nnode);
+	if (node <= nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		imin = nnode;
+		imax = node;
+	}
 	diag = (imin == imax);
 
 	double value = 0.0;
@@ -828,8 +843,13 @@ double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UN
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 	int imin, imax, diag;
 
-	imin = IMIN(node, nnode);
-	imax = IMAX(node, nnode);
+	if (node <= nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		imin = nnode;
+		imax = node;
+	}
 	diag = (imin == imax);
 
 	double value = 0.0;

@@ -7229,7 +7229,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
 		double *cov = CODE_BLOCK_WORK_PTR(2);			\
 		CODE_BLOCK_WORK_ZERO(2);				\
-		int guess[2] = {0, 0};					\
+		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};		\
 		if (groups->missing[node]->n == 1 &&			\
 		    groups->missing[node]->idx[0][0] == node &&		\
 		    groups->missing[node]->idx[1][0] == node) {		\

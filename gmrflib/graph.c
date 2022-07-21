@@ -484,6 +484,10 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	Free(graph->colptr);
 	Free(graph->rowidx);
 	Free(graph->colidx);
+	if (graph->guess) {
+		Free(graph->guess[0]);
+		Free(graph->guess);
+	}
 	Free(graph);
 
 	return GMRFLib_SUCCESS;
@@ -540,12 +544,25 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 		return GMRFLib_FALSE;
 	}
 
-	int imin = IMIN(node, nnode);
-	int imax = IMAX(node, nnode);
+	int imin, imax;
+	if (node <= nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		imin = nnode;
+		imax = node;
+	}
+	// int imin = IMIN(node, nnode);
+	// int imax = IMAX(node, nnode);
 
 	int m = graph->lnnbs[imin];
-	return ((!m || imax > graph->lnbs[imin][m - 1] ||
-		 GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[omp_get_thread_num()]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+	if ((!m || imax > graph->lnbs[imin][m - 1])) {
+		return GMRFLib_FALSE;
+	}
+
+	int idx = 0;
+	GMRFLib_CACHE_SET_ID(idx);
+	return ((GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
 int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
@@ -554,9 +571,11 @@ int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
 		return GMRFLib_SUCCESS;
 	}
 
-	graph->guess = Calloc(GMRFLib_MAX_THREADS(), int *);
-	for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
-		graph->guess[i] = Calloc(2, int);
+	int l1_cacheline = 8;
+	graph->guess = Calloc(GMRFLib_CACHE_LEN, int *);
+	int *iwork = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
+	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+		graph->guess[i] = iwork + (2L + l1_cacheline) * i;
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -631,8 +650,8 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 	for (int i = 0, k = 0; i < n; i++) {
 		row2col[k++] = Q(i, i, 0);
+		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};	
 		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
-			int guess[2] = { 0, 0 };
 			int j = graph->snbs[i][jj];
 			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j], guess);
 			row2col[k++] = Q(i, j, kk);

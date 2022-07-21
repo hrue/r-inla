@@ -8879,9 +8879,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -20406,13 +20406,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	if (n_idxs == 0) {
 		GMRFLib_idx_add(&(mb->f_vb_correct[mb->nf]), -1);
 	} else {
-		for(int i = 0; i < n_idxs; i++) {
+		for (int i = 0; i < n_idxs; i++) {
 			GMRFLib_idx_add(&(mb->f_vb_correct[mb->nf]), idxs[i]);
 		}
 	}
 	if (mb->verbose) {
 		printf("\t\tvb.correct n[%1d] ", mb->f_vb_correct[mb->nf]->n);
-		for(int i = 0; i < mb->f_vb_correct[mb->nf]->n; i++){
+		for (int i = 0; i < mb->f_vb_correct[mb->nf]->n; i++) {
 			printf(" %1d", mb->f_vb_correct[mb->nf]->idx[i]);
 		}
 		printf("\n");
@@ -32674,7 +32674,7 @@ int inla_INLA(inla_tp * mb)
 		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			GMRFLib_idx_tp * vb = mb->f_vb_correct[i];
+			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
 			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
@@ -32691,13 +32691,13 @@ int inla_INLA(inla_tp * mb)
 				}
 			} else if (vb->idx[0] >= 0) {
 				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i]-1)] = (char) 1;
+					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
 					local_count++;
 				}
 			}
 			count += mb->f_Ntotal[i];
 		}
-		
+
 		for (i = 0; i < mb->nlinear; i++) {
 			vb_nodes[count++] = (char) 1;
 			local_count++;
@@ -32714,15 +32714,15 @@ int inla_INLA(inla_tp * mb)
 		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
-			GMRFLib_idx_tp * vb = mb->f_vb_correct[i];
-			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_variance)){
+			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_variance)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
 			} else if (vb->idx[i] == -1L) {
 				int len, k, jj;
-				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance); /* integer division */
+				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_variance; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
@@ -32731,11 +32731,11 @@ int inla_INLA(inla_tp * mb)
 				}
 			} else if (vb->idx[0] >= 0) {
 				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i]-1)] = (char) 1;
+					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
 					local_count++;
 				}
 			}
-			
+
 			count += mb->f_Ntotal[i];
 		}
 		for (i = 0; i < mb->nlinear; i++) {
@@ -33016,7 +33016,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		count = 0;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
-			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)){
+			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
@@ -33032,7 +33032,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 				}
 			} else if (vb->idx[0] >= 0) {
 				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i]-1)] = (char) 1;
+					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
 					local_count++;
 				}
 			}
@@ -33388,7 +33388,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 				}
 			} else if (vb->idx[0] >= 0) {
 				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i]-1)] = (char) 1;
+					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
 					local_count++;
 				}
 			}
@@ -33697,7 +33697,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				}
 			} else if (vb->idx[0] >= 0) {
 				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i]-1)] = (char) 1;
+					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
 					local_count++;
 				}
 			}
@@ -33737,7 +33737,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				}
 			} else if (vb->idx[0] >= 0) {
 				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i]-1)] = (char) 1;
+					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
 					local_count++;
 				}
 			}
@@ -39125,7 +39125,7 @@ int testit(int argc, char **argv)
 
 		P(n);
 		P(ntimes);
-		
+
 		double tref[2] = { 0.0, 0.0 };
 		double r = 0.0, rr = 0.0;
 
@@ -39223,7 +39223,7 @@ int testit(int argc, char **argv)
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			for(int i = 0; i < h->n; i++) {
+			for (int i = 0; i < h->n; i++) {
 				sum2 += h->val[i] * xx[h->idx[i]];
 			}
 			tref2 += GMRFLib_cpu();
@@ -39238,15 +39238,61 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 86: 
+	case 85: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		double time = -GMRFLib_cpu();
+		double sum = 0.0;
+		int imin, imax;
+		for(int k = 0; k < m; k++) {
+			for(int i = 0; i < n; i++) {
+				int ii = GMRFLib_uniform() * n;
+				for(int j = 0; j < n; j++) {
+					int jj = GMRFLib_uniform() * n;
+					imin = IMIN(ii, jj);
+					imax = IMAX(ii, jj);
+					sum += imin - imax;
+				}
+			}
+		}
+		time += GMRFLib_cpu();
+		printf("IMAX/MIN %.12f\n", time);
+
+		sum = 0.0;
+		time = -GMRFLib_cpu();
+		for(int k = 0; k < m; k++) {
+			for(int i = 0; i < n; i++) {
+				int ii = GMRFLib_uniform() * n;
+				for(int j = 0; j < n; j++) {
+					int jj = GMRFLib_uniform() * n;
+					if (ii <= jj) {
+						imin = ii;
+						imax = jj;
+					} else {
+						imin = jj;
+						imax = ii;
+					}
+					sum += imin - imax;
+				}
+			}
+		}
+		time += GMRFLib_cpu();
+		printf("if/ %.12f\n", time);
+
+		break;
+	}
+		
+	case 86:
 	{
 		double x = 0.0;
-		double param[] = {1, 0.001};
-		for(x = 0;; x++) {
+		double param[] = { 1, 0.001 };
+		for (x = 0;; x++) {
 			printf("x %f ldens %f\n", x, priorfunc_loggamma(&x, param));
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{

@@ -92,7 +92,6 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 
 	if (imin != imax) {
 		map_ii_set(&(ged->Q[imin]), imax, 1);
-		map_ii_set(&(ged->Q[imax]), imin, 1);
 	}
 	ged->n = IMAX(ged->n, imax + 1);
 
@@ -113,13 +112,15 @@ int GMRFLib_ged_insert_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int
 int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_i_node, int at_j_node)
 {
 	if (graph) {
-		int i, j, jj;
-
-		for (i = 0; i < graph->n; i++) {
+		for (int i = 0; i < graph->n; i++) {
+			int ii = i + at_i_node;
 			GMRFLib_ged_add(ged, i + at_i_node, i + at_j_node);
-			for (jj = 0; jj < graph->nnbs[i]; jj++) {
-				j = graph->nbs[i][jj];
-				GMRFLib_ged_add(ged, i + at_i_node, j + at_j_node);
+			for (int jj = 0; jj < graph->nnbs[i]; jj++) {
+				int j = graph->nbs[i][jj];
+				int jjj = j + at_j_node;
+				if (jjj > ii) {
+					GMRFLib_ged_add(ged, ii, jjj);
+				}
 			}
 		}
 	}
@@ -135,6 +136,14 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	n = ged->n;
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
+
+	for (int i = 0; i < n; i++) {					
+		for (map_ii_storage * p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {	
+			if (p->key > i) {
+				map_ii_set(&(ged->Q[p->key]), i, 1);
+			}
+		}
+	}
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\

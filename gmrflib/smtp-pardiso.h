@@ -155,7 +155,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 int GMRFLib_csr_base(int base, GMRFLib_csr_tp * M);
 int GMRFLib_csr_check(GMRFLib_csr_tp * M);
 int GMRFLib_csr_convert(GMRFLib_csr_tp * M);
-int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from);
+int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, int skeleton);
 int GMRFLib_csr_free(GMRFLib_csr_tp ** csr);
 int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr);
 int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr);

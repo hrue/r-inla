@@ -165,8 +165,9 @@ int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
+int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, int skeleton)
 {
+	// skeleton: if TRUE, point to the copy of 'a' if its a copy, otherwise alloc. if FALSE, always alloc.
 	if (csr_from == NULL) {
 		*csr_to = NULL;
 		return GMRFLib_SUCCESS;
@@ -213,9 +214,15 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from)
 	}
 
 	if (csr_from->a) {
-		if (csr_from->s->copy_only) {
-			(*csr_to)->a = csr_from->a;
+		if (skeleton) {
+			if (csr_from->s->copy_only) {
+				(*csr_to)->a = csr_from->a;
+			} else {
+				(*csr_to)->a = Calloc(csr_from->s->na, double);
+				Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
+			}
 		} else {
+			(*csr_to)->s->copy_only = 0;
 			(*csr_to)->a = Calloc(csr_from->s->na, double);
 			Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 		}
@@ -1126,7 +1133,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 		GMRFLib_csr_free(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv));
 	}
 
-	GMRFLib_csr_duplicate(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv), store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q);
+	GMRFLib_csr_duplicate(&(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv), store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q, 0);
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_QINV, store, NULL);
 	int mnum1 = 1;
 

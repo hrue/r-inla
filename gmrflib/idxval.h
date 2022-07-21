@@ -109,14 +109,15 @@ typedef struct {
 		double value_ = 0.0;					\
 		int integer_one = 1;					\
 		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
-			int istart_ = ELM_->g_i[g_];			\
-			int *ii_ = &(ELM_->idx[istart_]);		\
 			int len_ = ELM_->g_len[g_];			\
-			double *vv_ = &(ELM_->val[istart_]);		\
-									\
 			if (len_ == 0) continue;			\
+									\
+			int istart_ = ELM_->g_i[g_];			\
+			int * __restrict ii_ = &(ELM_->idx[istart_]);	\
+			double * __restrict vv_ = &(ELM_->val[istart_]); \
+									\
 			if (len_ > 0) {					\
-				double *aa_ = &(ARR_[0]);		\
+				double * __restrict aa_ = &(ARR_[0]);	\
 				if (ELM_->g_1[g_]) {			\
 					if (len_ < 8L) {		\
 						_Pragma("GCC ivdep")	\
@@ -138,7 +139,7 @@ typedef struct {
 				}					\
 			} else if (len_ < 0) {				\
 				int llen_ = - len_;			\
-				double *aa_ = &(ARR_[ii_[0]]);		\
+				double * __restrict aa_ = &(ARR_[ii_[0]]); \
 				if (ELM_->g_1[g_]) {			\
 					value_ += DSUM(llen_, aa_);	\
 				} else {				\
@@ -152,9 +153,9 @@ typedef struct {
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
-		double *vv_ = ELM_->val;				\
-		double *aa_ = ARR_;					\
-		int *idx_ = ELM_->idx;					\
+		double * __restrict vv_ = ELM_->val;			\
+		double * __restrict aa_ = ARR_;				\
+		int * __restrict idx_ = ELM_->idx;			\
 		if (ELM_->n < 8L) {					\
 			_Pragma("GCC ivdep")				\
 				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
@@ -165,7 +166,7 @@ typedef struct {
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
-#define DOT_PRODUCT(VALUE_, ELM_, ARR_)					\
+#define DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		switch(ELM_->preference) {				\
 		case IDXVAL_SERIAL:					\
@@ -180,8 +181,22 @@ typedef struct {
 			break;						\
 		}							\
 	}
-
-
+#define DOT_PRODUCT_TIMING(VALUE_, ELM_, ARR_)				\
+	if (1) {							\
+		static double time_used = 0.0;				\
+		static size_t time_n = 0;				\
+		time_used -= GMRFLib_cpu();				\
+									\
+		DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_);			\
+									\
+		time_used += GMRFLib_cpu();				\
+		if (!(++time_n % 16384L)) {				\
+			P(time_used);					\
+			P(time_used / time_n);				\
+		}							\
+	}
+//#define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_TIMING(VALUE_, ELM_, ARR_)
+#define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);

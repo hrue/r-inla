@@ -359,18 +359,18 @@ typedef enum {
 #define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
 #define ISQR(x) ((x)*(x))
 #define MOD(i,n)  (((i)+(n))%(n))
-#define FIXME( msg) if (1) { printf("\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
-#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n[%1d]:%s:%1d:%s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
-#define P(x)        if (1) { printf("line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
-#define Pstderr(x)  if (1) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n",__LINE__,(double)(x)); }
-#define P1(x)       if (1) { static int first=1;  if (first) { printf("line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "line[%1d] " #x " = [ %.12f ]\n", __LINE__, (double)(x)); first=0; }}
-#define PP(msg,pt)  if (1) { fprintf(stdout, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
-#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "%d: %s ptr " #pt " = %p\n", __LINE__, msg, pt); }
-#define PPg(msg,pt) if (1) { fprintf(stdout, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
-#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "%d: %s value " #pt " = %g\n", __LINE__, msg, pt); }
+#define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
+#define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
+#define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
+#define PP(msg,pt)  if (1) { fprintf(stdout, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
+#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
+#define PPg(msg,pt) if (1) { fprintf(stdout, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
+#define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
 #define ISINF(x) gsl_isinf(x)
 #define ISNAN(x) gsl_isnan(x)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
@@ -419,32 +419,21 @@ typedef enum {
 #define GMRFLib_SET_PREC(arg_) (arg_->log_prec_omp ? exp(*(arg_->log_prec_omp[thread_id])) : 1.0)
 #define GMRFLib_SET_RANGE(arg_) (arg_->log_range_omp ? exp(*(arg_->log_range_omp[thread_id])) : 1.0)
 
-// This is for internal caching
-#define OLD_GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
-#define OLD_GMRFLib_CACHE_SET_ID(_id) _id = (omp_get_level() == 2 ? \
-					 ((omp_get_ancestor_thread_num(omp_get_level()-1) * \
-					   omp_get_team_size(omp_get_level()) + \
-					   omp_get_thread_num()) +	\
-					  GMRFLib_MAX_THREADS() * thread_id) : \
-					 (omp_get_thread_num() + GMRFLib_MAX_THREADS() * thread_id)); \
-	assert((_id) < GMRFLib_CACHE_LEN); assert((_id) >= 0)
-
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
 #define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
-#define GMRFLib_CACHE_SET_ID(__id) \
+#define GMRFLib_CACHE_SET_ID(__id)					\
 	if (1) {							\
-		int level = omp_get_level();				\
-		int tnum = omp_get_thread_num();			\
-		if (level <= 1)	{					\
-			__id =  tnum;					\
-		} else if (level == 2) {				\
-			__id = omp_get_ancestor_thread_num(level-1) * GMRFLib_MAX_THREADS() + tnum; \
+		int level_ = omp_get_level();				\
+		int tnum_ = omp_get_thread_num();			\
+		if (level_ <= 1)	{				\
+			__id =  tnum_;					\
+		} else if (level_ == 2) {				\
+			__id = omp_get_ancestor_thread_num(level_ -1) * GMRFLib_MAX_THREADS() + tnum_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\
 	}
-
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set

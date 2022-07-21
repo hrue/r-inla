@@ -64,13 +64,18 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		prec = GMRFLib_SET_PREC(args);				\
 	}								\
 	if (nnode >= 0) {						\
-		int imin = IMIN(node, nnode);				\
-		int imax = IMAX(node, nnode);				\
+		int imin, imax;						\
+		if (node <= nnode) {					\
+			imin = node;					\
+			imax = nnode;					\
+		} else {						\
+			imin = nnode;					\
+			imax = node;					\
+		}							\
 		double *dp = NULL;					\
 		if (args->Q) {						\
 			int offset = args->Q->s->ia[imin];		\
 			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->s->ja, args->Q->s->ia[imin + 1] - offset, guess); \
-			assert(j >= offset);				\
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
 			int ii = -1;					\
@@ -80,7 +85,6 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 			dp = map_id_ptr(args->values[imin], imax);	\
 		}							\
 									\
-		assert(dp);						\
 		if (_prec_scale) {					\
 			val = prec * (*dp);				\
 		} else {						\
@@ -105,21 +109,20 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *values, void *arg)
 {
-	static int **gguess = NULL;
+	static int *gguess = NULL;
+	int l1_cacheline = 8L;
+
 	if (!gguess) {
 #pragma omp critical (Name_ed019f1aad7e7d2a67d1fbc75e1e79976657700b)
 		{
 			if (!gguess) {
-				gguess = Calloc(GMRFLib_CACHE_LEN, int *);
+				gguess = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
 			}
 		}
 	}
 	int idx = -1;
 	GMRFLib_CACHE_SET_ID(idx);
-	if (!gguess[idx]) {
-		gguess[idx] = Calloc(2, int);
-	}
-	int *guess = gguess[idx];
+	int *guess = gguess + (2L + l1_cacheline) * idx;
 
 	double val = 0.0;
 	TAB_FUNC_CORE(1);
@@ -128,21 +131,19 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 
 double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double *values, void *arg)
 {
-	static int **gguess = NULL;
+	static int *gguess = NULL;
+	int l1_cacheline = 8L;
 	if (!gguess) {
 #pragma omp critical (Name_b56890f7ff5cd3567a3aff6f33a6c54d2abc91dc)
 		{
 			if (!gguess) {
-				gguess = Calloc(GMRFLib_CACHE_LEN, int *);
+				gguess = Calloc((2L + l1_cacheline) * GMRFLib_CACHE_LEN, int);
 			}
 		}
 	}
 	int idx = -1;
 	GMRFLib_CACHE_SET_ID(idx);
-	if (!gguess[idx]) {
-		gguess[idx] = Calloc(2, int);
-	}
-	int *guess = gguess[idx];
+	int *guess = gguess + (2L + l1_cacheline) * idx;
 
 	double val = 0.0;
 	TAB_FUNC_CORE(0);

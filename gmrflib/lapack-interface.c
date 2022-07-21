@@ -942,7 +942,7 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	return kld;
 }
 
-double my_dsum(int n, double * __restrict x)
+double my_dsum(int n, double *__restrict x)
 {
 	const int roll = 8L;
 	div_t d;
@@ -969,7 +969,7 @@ double my_dsum(int n, double * __restrict x)
 	return (s0 + s1 + s2 + s3);
 }
 
-double my_ddot_idx(int n, double * __restrict v, double * __restrict a, int * __restrict idx)
+double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
@@ -1003,7 +1003,7 @@ double my_ddot_idx(int n, double * __restrict v, double * __restrict a, int * __
 	return (s0 + s1 + s2 + s3);
 }
 
-double my_dsum_idx(int n, double * __restrict a, int * __restrict idx)
+double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
