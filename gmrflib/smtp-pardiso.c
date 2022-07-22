@@ -155,7 +155,7 @@ int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 {
 	if (*csr) {
 		// Free((*csr)->s->iwork);
-		if ((*csr)->s->copy_only) {
+		if ((*csr)->copy_only) {
 			// do not free
 		} else {
 			Free((*csr)->a);
@@ -198,13 +198,13 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, i
 		int na = csr_from->s->na;
 		int len = n + 1 + na;
 
+		(*csr_to)->copy_only = csr_from->copy_only;
+
 		(*csr_to)->s = Calloc(1, GMRFLib_csr_skeleton_tp);
 		(*csr_to)->s->sha = NULL;
 		(*csr_to)->s = Calloc(1, GMRFLib_csr_skeleton_tp);
 		(*csr_to)->s->n = n;
 		(*csr_to)->s->na = na;
-		(*csr_to)->s->copy_only = csr_from->s->copy_only;
-
 		(*csr_to)->s->iwork = Calloc(2 * len, int);
 		(*csr_to)->s->ia = (*csr_to)->s->iwork;
 		(*csr_to)->s->ja = (*csr_to)->s->iwork + n + 1;
@@ -215,14 +215,14 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, i
 
 	if (csr_from->a) {
 		if (skeleton) {
-			if (csr_from->s->copy_only) {
+			if (csr_from->copy_only) {
 				(*csr_to)->a = csr_from->a;
 			} else {
 				(*csr_to)->a = Calloc(csr_from->s->na, double);
 				Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 			}
 		} else {
-			(*csr_to)->s->copy_only = 0;
+			(*csr_to)->copy_only = 0;
 			(*csr_to)->a = Calloc(csr_from->s->na, double);
 			Memcpy((void *) ((*csr_to)->a), (void *) (csr_from->a), (size_t) (csr_from->s->na) * sizeof(double));
 		}
@@ -346,7 +346,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 		if (arg->Q) {
 			M->a = arg->Q->a;
 			// mark this a copy only, not to be free'd.
-			M->s->copy_only = 1;
+			M->copy_only = 1;
 			used_fast_tab = 1;
 		}
 	}
@@ -446,7 +446,7 @@ int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr)
 	int i, j, k, jj, nnb;
 	double value;
 
-	fprintf(fp, "Q->s->n = %1d, Q->s->na = %1d copy_only= %1d \n", csr->s->n, csr->s->na, csr->s->copy_only);
+	fprintf(fp, "Q->s->n = %1d, Q->s->na = %1d copy_only= %1d \n", csr->s->n, csr->s->na, csr->copy_only);
 	for (i = k = 0; i < csr->s->n; i++) {
 		nnb = csr->s->ia[i + 1] - csr->s->ia[i];
 		for (jj = 0; jj < nnb; jj++) {

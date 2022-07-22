@@ -99,7 +99,6 @@ typedef enum {
 typedef struct {
 	int n;
 	int na;
-	int copy_only;
 	int *ia;
 	int *ia1;
 	int *ja;
@@ -111,6 +110,7 @@ typedef struct {
 typedef struct {
 	GMRFLib_csr_skeleton_tp *s;
 	double *a;
+	int copy_only;
 } GMRFLib_csr_tp;
 
 typedef struct {
