@@ -4,6 +4,12 @@ a\newcommand{\PR}{\Sexpr[results=rd]{tools:::Rd_expr_PR(#1)}}
 \title{R-INLA News}
 \encoding{UTF-8}
 
+\section{CHANGES IN VERSION 22.07.23}{
+  \subsection{CHANGES}{
+    \itemize Fixed regression from \code{Version_22.07.15}
+  }
+}
+
 \section{CHANGES IN VERSION 22.07.21}{
   \subsection{CHANGES}{
     \itemize Code-improvement and minor fixes
