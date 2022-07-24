@@ -34098,8 +34098,8 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 				for (int i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
-						GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
 					}
+					GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
 				}
 				fclose(fp);
 				Free(buffer);
