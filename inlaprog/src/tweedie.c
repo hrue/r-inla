@@ -246,8 +246,8 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 	double term_removed = -a * ly - a1 * log(phi);	       // the terms we have removed from 'logz'
 	double lim = -20.72326584;			       // log(1.0e-9)
-	int idx_max = -1;
 
+	int idx_max = 0;
 	sum_ww = 0.0;
 	ww_max = cache_ptr->wwork[0] + one * term_removed;
 	for (k = 0; k < nterms; k++) {
