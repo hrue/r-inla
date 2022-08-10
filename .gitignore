@@ -797,6 +797,8 @@ rinla/vignettes/figures/*
 rinla/vignettes/*-figs/*
 rinla/vignettes/*-figures/*
 rinla/vignettes/*-img/*
+rinla/vignettes/*_files/*
+rinla/vignettes/*_cache/*
 rinla/vignettes/Old/*
 
 rinla/inst/NEWS.pdf
