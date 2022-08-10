@@ -99,6 +99,14 @@ options(max.print=99999)
 options(stringsAsFactors=F)
 ```
 
+```{r echo=F}
+library(INLA)
+inla.setOption(num.threads="1:1")
+inla.setOption(smtp="taucs")
+inla.setOption(inla.mode="experimental")
+if (file.exists("myinit.R")) source("myinit.R")
+```
+
 Next we define a coordinate reference system (CRS) for spatial
 analysis and create a base map for later use. The CRS uses the USA
 Contiguous Albers Equal-Area Conic projection, and is identified by
@@ -415,8 +423,6 @@ use the Variational Bayes approximation as detailed in Van Niekerk and
 Rue (2021) and Van Niekerk et. al. (2022).
 
 ```{r run, eval=T, cache=TRUE}
-# run model, takes about 5 minutes
-inla.setOption(inla.mode="experimental")
 res <- inla(svc_form,
             family="nbinomial",
             data=inla.stack.data(stack_fit), # stack the stack
