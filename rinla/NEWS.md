@@ -1,4 +1,7 @@
+# INLA 99.99.99
 
+## BUG FIXES
+* Avoid deprecated class coercions in `inla.as.dgTMatrix()`
 
 
 
