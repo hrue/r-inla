@@ -10,7 +10,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE, cache=TRUE}
-knitr::opts_chunk$set(echo = TRUE, warning=FALSE, error=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE)
 ```
 
 ## Introduction
@@ -57,11 +57,11 @@ trends for robins that account for spatial and temporal variation in count effor
 
 The model used to analyze these data assumes that counts come from a
 negative binomial distribution with an expected count and dispersion
-parameter. The expected count has a linear predictor:
+parameter. The expected count has a log-linear predictor:
 
-$$log(\lambda_{st}) = \kappa_{s} + \alpha_s + \epsilon_{s}(log[Effort_{st}]) + \tau_{s}(Year_{st})$$
+$$\log(\lambda_{st}) = \kappa_{s} + \alpha_s + \epsilon_{s} \log[\text{Effort}_{st}] + \tau_{s} \text{Year}_{st}$$
 
-where the natural log of expected count, $log(\lambda_{st})$, at site
+where the natural log of expected count, $\log(\lambda_{st})$, at site
 $s$ during year $t$, is modeled with a zero-centered, normally
 distributed intercept per site, $\kappa_s$, a spatially varying
 intercept, $\alpha_s$, a spatially varying effect of the log of count
@@ -81,29 +81,33 @@ site.
 
 ## Environment
 
-To get started with data analysis, we set up the environment, which
-involves setting working directories, loading some packages, and
+To get started with data analysis, we set up the environment,
+by
+loading some packages, and
 setting some options.
 ```{r libs, warning=FALSE, message=FALSE, errors=FALSE}
-# working directory
-setwd(getwd())
-
 # libraries
-library(maps); library(ggplot2); library(sf); library(raster);
-library(tidyr); library(scales); library(inlabru); library(INLA); library(dplyr)
+library(maps)
+library(ggplot2)
+library(sf)
+library(raster)
+library(tidyr)
+library(scales)
+library(inlabru)
+library(INLA)
+library(dplyr)
 
 # set option
 select <- dplyr::select
-options(scipen=99999)
-options(max.print=99999)
-options(stringsAsFactors=F)
+options(scipen = 99999)
+options(max.print = 99999)
+options(stringsAsFactors = FALSE)
 ```
 
 ```{r echo=F}
-library(INLA)
-inla.setOption(num.threads="1:1")
-inla.setOption(smtp="taucs")
-inla.setOption(inla.mode="experimental")
+inla.setOption(num.threads = "1:1")
+inla.setOption(smtp = "taucs")
+inla.setOption(inla.mode = "experimental")
 if (file.exists("myinit.R")) source("myinit.R")
 ```
 
@@ -116,61 +120,84 @@ especially large numbers (Krainski et al. 2018).
 
 ```{r proj, warning=F, message=FALSE}
 # define a crs
-epsg6703km <- paste("+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5", 
-                    "+lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83", 
-                    "+units=km +no_defs")
+epsg6703km <- paste(
+  "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5",
+  "+lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83",
+  "+units=km +no_defs"
+)
 
 # make a base map
-states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE)) %>% 
-  filter(ID %in% c("texas", "oklahoma", "kansas", "missouri",
-                   "arkansas", "louisiana")) %>% 
+states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE)) %>%
+  filter(ID %in% c(
+    "texas", "oklahoma", "kansas", "missouri",
+    "arkansas", "louisiana"
+  )) %>%
   st_transform(epsg6703km)
 ```
 
 ## Import data
 
 Next we import some bird count data from the GitHub repository
-associated with Meehan et al. (2019), and turn the dataset into
+associated with Meehan et al. (2019), and turn the data set into
 spatially referenced points. We use a subset of the data (30 years, 6
-US states) for this analysis to reduce computing time (~ 1 min).
+US states) for this analysis to reduce computing time (~ 1 min). Note 
+that site selection and zero filling, important components of trend 
+analyses, have already been conducted and this is the resulting data set.
 
 ```{r data, eval=T, cache=T}
 # get data
-download_dat <- read.csv(paste0("https://raw.github.com/tmeeha/inlaSVCBC",
-                  "/master/code/modeling_data.csv"))
+download_dat <- read.csv(paste0(
+  "https://raw.github.com/tmeeha/inlaSVCBC",
+  "/master/code/modeling_data.csv"
+))
 
 # select subset
-count_dat <- download_dat %>% 
-  select(circle, bcr, state, year, std_yr, count, log_hrs, 
-         lon, lat, obs) %>% 
-  mutate(year=year+1899) %>% 
-  filter(state %in% c("TEXAS", "OKLAHOMA", "KANSAS", "MISSOURI",
-                      "ARKANSAS", "LOUISIANA"), 
-         year>=1987) %>% 
-  mutate(site_idx=as.numeric(factor(paste(circle, lon, lat)))) %>% 
-  group_by(site_idx) %>% mutate(n_years=n()) %>% 
-  filter(n_years>=20) %>% ungroup() %>% 
-  mutate(std_yr=year-max(year), obs=1:nrow(.), 
-         site_idx=as.numeric(factor(paste(circle, lon, lat))), 
-         year_idx=as.numeric(factor(year)),
-         site_year_idx=as.numeric(factor(paste(circle, lon, lat, year)))) %>%
-  st_as_sf(coords=c("lon", "lat"), crs=4326, remove=F) %>% 
-  st_transform(epsg6703km) %>% 
-  mutate(lon=st_coordinates(.)[,1], lat=st_coordinates(.)[,2]) %>% 
+count_dat <- download_dat %>%
+  select(
+    circle, bcr, state, year, std_yr, count, log_hrs,
+    lon, lat, obs
+  ) %>%
+  mutate(year = year + 1899) %>%
+  filter(
+    state %in% c(
+      "TEXAS", "OKLAHOMA", "KANSAS", "MISSOURI",
+      "ARKANSAS", "LOUISIANA"
+    ),
+    year >= 1987
+  ) %>%
+  mutate(site_idx = as.numeric(factor(paste(circle, lon, lat)))) %>%
+  group_by(site_idx) %>%
+  mutate(n_years = n()) %>%
+  filter(n_years >= 20) %>%
+  ungroup() %>%
+  mutate(
+    std_yr = year - max(year), obs = 1:nrow(.),
+    site_idx = as.numeric(factor(paste(circle, lon, lat))),
+    year_idx = as.numeric(factor(year)),
+    site_year_idx = as.numeric(factor(paste(circle, lon, lat, year)))
+  ) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F) %>%
+  st_transform(epsg6703km) %>%
+  mutate(lon = st_coordinates(.)[, 1], lat = st_coordinates(.)[, 2]) %>%
   arrange(circle, year)
 ```
 
-A rough view of changes in robin relative abundance that does not
-account for variation in count effort can be seen by plotting raw
+A rough view of changes in robin relative abundance, which does not
+account for variation in count effort, can be seen by plotting raw
 counts per site and year.
 
 ```{r data_map, fig.pos='b', fig.align='center'}
 # map it
-ggplot() + 
-  geom_sf(data=count_dat %>% filter(year_idx %in% seq(1, 30, 3)), 
-          aes(col=log(count+1))) + 
-  geom_sf(data=states, fill=NA) + coord_sf(datum = NA) +
-  facet_wrap(~year) + scale_color_distiller(palette="Spectral") + theme_bw()
+ggplot() +
+  geom_sf(
+    data = count_dat %>% filter(year_idx %in% seq(1, 30, 3)),
+    aes(col = log(count + 1))
+  ) +
+  geom_sf(data = states, fill = NA) +
+  coord_sf(datum = NA) +
+  facet_wrap(~year) +
+  scale_color_distiller(palette = "Spectral") +
+  theme_bw()
 ```
 
 ## Make spatial data
@@ -181,12 +208,18 @@ later spatial modeling.
 
 ```{r spat_dat}
 # make a set of distinct study sites for mapping
-site_map <- count_dat %>% select(circle, lon, lat) %>%  
-  distinct() %>% select(circle, lon, lat)
+site_map <- count_dat %>%
+  select(circle, lon, lat) %>%
+  distinct() %>%
+  select(circle, lon, lat)
 
 # save coordinates as matrices for later
-unique_coords <- count_dat %>% select(circle, lon, lat) %>%  
-  distinct() %>% select(lon, lat) %>%  st_drop_geometry %>% as.matrix()
+unique_coords <- count_dat %>%
+  select(circle, lon, lat) %>%
+  distinct() %>%
+  select(lon, lat) %>%
+  st_drop_geometry() %>%
+  as.matrix()
 all_coords <- as.matrix(st_coordinates(count_dat))
 ```
 
@@ -195,8 +228,8 @@ all_coords <- as.matrix(st_coordinates(count_dat))
 Computing a continuous-space model with `R-INLA` using the SPDE
 approach requires construction of four distinct sets of data and model
 objects (Blangiardo and Cameletti 2015, Krainski et al. 2018). First,
-we create a **modeling mesh**, which is considered for a
-representation of the continuous spatial surface based on
+we create a **modeling mesh**, which is used to provide a piecewise
+linear representation of the continuous spatial surface, based on a
 triangulation of the modeled region. Here, the same mesh will get
 reused for each of the spatial and spatio-temporal terms in the model.
 Second, we construct an **SPDE model object** that specifies
@@ -215,46 +248,55 @@ and `inla.spde.make.A()`.
 
 ## Modeling mesh
 
-There are things to consider when constructing a mesh (Lindgren and
-Rue 2015, Blangiardo and Cameletti 2015, Krainski et al. 2018, Bakka
-et al. 2018). In constructing one, we balance a trade-off between
-capturing fine-scaled features of the Gaussian random field and
-computing times. Here, we create a non-convex hull around the count
-sites, and then build a triangular mesh by specifying minimum and
-maximum edge lengths within and slightly outside the hull.
+There are various things to consider when constructing a mesh 
+(Lindgren and Rue 2015, Blangiardo and Cameletti 2015, Krainski 
+et al. 2018, Bakka et al. 2018). In constructing one, we balance a 
+trade-off between capturing fine-scaled features of the Gaussian 
+random field and computing times. Here, we create a non-convex 
+hull around the count sites, and then build a triangular mesh by 
+specifying minimum and maximum edge lengths within and slightly 
+outside the hull.
 
 ```{r mesh, warning=F, message=F, fig.pos='t', fig.align='center'}
 # make a hull and mesh for spatial model
-hull <- inla.nonconvex.hull(points=unique_coords, 200, 350)
-mesh <- inla.mesh.2d(boundary=hull, max.edge=c(100, 600), # km inside and outside
-                       cutoff=50, offset=c(100, 300)) # cutoff is min edge
+hull <- inla.nonconvex.hull(points = unique_coords, 200, 350)
+mesh <- inla.mesh.2d(
+  boundary = hull, max.edge = c(100, 600), # km inside and outside
+  cutoff = 50, offset = c(100, 300)
+) # cutoff is min edge
 
 # plot it
-ggplot() + gg(data=mesh) +
-  geom_sf(data=site_map, col="darkgreen", size=1) +
-  geom_sf(data=states, fill=NA) + theme_bw() +
-  labs(x="", y="")
+ggplot() +
+  gg(data = mesh) +
+  geom_sf(data = site_map, col = "darkgreen", size = 1) +
+  geom_sf(data = states, fill = NA) +
+  theme_bw() +
+  labs(x = "", y = "")
 ```
 
 ## SPDE model object
 
-Next we create an SPDE object to define the model smoothness, to
-provide prior distributions for the variance and range parameters and
-the mesh. Here we assume a Gaussian random field characterized with a
-Matérn covariance function with penalized complexity priors (Simpson
-et al. 2017) for the practical range (distance where spatial
+Next we create an SPDE object to define the model smoothness, with 
+prior distributions for the variance and range parameters, and the 
+mesh. Here we assume a Gaussian random field characterized with a 
+Matérn covariance function with penalized complexity priors 
+(Simpson et al. 2017) for the practical range (distance where spatial
 correlation approaches 0.1) and variation explained by the function
 (Fuglstad et al. 2019). The prior for the spatial range is set such
 that the probability of a range exceeding 500 km is 0.5. The prior for
 the variance explained by the spatial effect is set such that the
 probability of a standard deviation exceeding 1 is 0.5 (Krainski et
-al. 2018).
+al. 2018). If one wants to constrain this kind of spatial effect to integrate
+to zero, `constr=TRUE` should be added at this stage.
 
 ```{r spde}
 # make spde
-spde <- inla.spde2.pcmatern(mesh=mesh, prior.rang=c(500, 0.5), prior.sigma=c(1, 0.5)) 
+spde <- inla.spde2.pcmatern(
+  mesh = mesh,
+  prior.range = c(500, 0.5),
+  prior.sigma = c(1, 0.5)
+)
 ```
-
 
 ## Index sets
 
@@ -266,9 +308,9 @@ number of nodes on the mesh.
 
 ```{r indices}
 # make index sets
-alpha_idx <- inla.spde.make.index(name='alpha', n.spde=mesh$n) 
-eps_idx <- inla.spde.make.index(name='eps', n.spde=mesh$n) 
-tau_idx <- inla.spde.make.index(name='tau', n.spde=mesh$n) 
+alpha_idx <- inla.spde.make.index(name = "alpha", n.spde = mesh$n)
+eps_idx <- inla.spde.make.index(name = "eps", n.spde = mesh$n)
+tau_idx <- inla.spde.make.index(name = "tau", n.spde = mesh$n)
 ```
 
 ## Projector matrices
@@ -291,11 +333,15 @@ contexts.
 
 ```{r projector}
 # make projector matrices
-A_alpha <- inla.spde.make.A(mesh=mesh, loc=all_coords) 
-A_eps <- inla.spde.make.A(mesh=mesh, loc=all_coords, 
-                          weights=count_dat$log_hrs) # note weights argument
-A_tau <- inla.spde.make.A(mesh=mesh, loc=all_coords, 
-                          weights=count_dat$std_yr) # note weights argument
+A_alpha <- inla.spde.make.A(mesh = mesh, loc = all_coords)
+A_eps <- inla.spde.make.A(
+  mesh = mesh, loc = all_coords,
+  weights = count_dat$log_hrs
+) # note weights argument
+A_tau <- inla.spde.make.A(
+  mesh = mesh, loc = all_coords,
+  weights = count_dat$std_yr
+) # note weights argument
 ```
 
 ## Data stack for model fitting
@@ -335,17 +381,22 @@ effects.
 ```{r stack1}
 # stack observed data
 stack_fit <- inla.stack(
-  tag = 'obs',
+  tag = "obs",
   data = list(count = as.vector(count_dat$count)), # response from data frame
-  effects = list(data.frame(intercept=1, 
-                            kappa = count_dat$site_idx), # predictors from data frame 
-                 alpha = alpha_idx,          # or index sets if spatial
-                 eps = eps_idx,
-                 tau = tau_idx),
-  A = list(1,        # a value of 1 is given for non-spatial terms
-           A_alpha,  
-           A_eps, 
-           A_tau)
+  effects = list(data.frame(
+    intercept = 1,
+    kappa = count_dat$site_idx
+  ), # predictors from data frame
+  alpha = alpha_idx, # or index sets if spatial
+  eps = eps_idx,
+  tau = tau_idx
+  ),
+  A = list(
+    1, # a value of 1 is given for non-spatial terms
+    A_alpha,
+    A_eps,
+    A_tau
+  )
 )
 ```
 
@@ -355,19 +406,19 @@ The last required input for the analysis is the model formula, which
 includes information on the prior for explained variation for the
 unstructured random intercept. We define the prior for $\kappa_s$ as a
 penalized complexity prior (Simpson et al. 2017), set such that
-probability of the standard deviation associated with the random
+the probability of the standard deviation associated with the random
 effect exceeding 1 is 0.01.
 
 ```{r prior}
 # iid prior
-pc_prec <- list(prior = 'pcprec', param = c(1, 0.1))
+pc_prec <- list(prior = "pcprec", param = c(1, 0.1))
 ```
 
-Notice that if one wants to constrain this kind of spatial effect to
-sum to zero, it should be added `constr=TRUE` in the SPDE model
+Notice that if one wants to constrain a spatial spde effect to
+integrate to zero, it should be added `constr=TRUE` in the SPDE model
 definition rather than in the `f()` terms. As we want to constrain
 $\kappa_s$ and it is a non-spatial term we can use `constr=TRUE` in
-its corresponding `f()`.
+its corresponding `f()` below, which imposes a sum-to-zero constraint.
 
 The model described above is translated to `R-INLA` modeling syntax
 as:
@@ -375,9 +426,9 @@ as:
 ```{r form}
 # formula
 svc_form <- count ~ -1 +
-  f(kappa, model ="iid", constr = T, hyper = list(prec = pc_prec)) + 
-  f(alpha, model = spde) + 
-  f(eps, model = spde) + 
+  f(kappa, model = "iid", constr = TRUE, hyper = list(prec = pc_prec)) +
+  f(alpha, model = spde) +
+  f(eps, model = spde) +
   f(tau, model = spde)
 ```
 
@@ -424,14 +475,16 @@ Rue (2021) and Van Niekerk et. al. (2022).
 
 ```{r run, eval=T, cache=TRUE}
 res <- inla(svc_form,
-            family="nbinomial",
-            data=inla.stack.data(stack_fit), # stack the stack
-            control.predictor=list(A=inla.stack.A(stack_fit), 
-                                   compute=F), # must define A
-            control.compute=list(waic=T, cpo=T, config=T),
-            control.inla=list(strategy='adaptive', int.strategy='eb'),
-            verbose=F)
-            
+  family = "nbinomial",
+  data = inla.stack.data(stack_fit), # stack the stack
+  control.predictor = list(
+    A = inla.stack.A(stack_fit),
+    compute = F
+  ), # must define A
+  control.compute = list(waic = T, cpo = T, config = T),
+  control.inla = list(strategy = "adaptive", int.strategy = "eb"),
+  verbose = F
+)
 ```
 
 ```{r load_res, echo=F, eval=F}
@@ -447,16 +500,17 @@ spatial ranges of the spatially structured parameters.
 
 ```{r vc}
 # view results
-res$summary.hyperpar[-1, c(1,2)]
+res$summary.hyperpar[-1, c(1, 2)]
 ```
 
 Next we examine some summaries of the random effect estimates,
-starting with $\alpha_s$, which is effort-corrected relative abundance
+starting with $\exp(\alpha_s)$, which is effort-corrected relative abundance
 at year = 0 (1987), given 1 hour of count effort (i.e., log[1]=0). 
 
 ```{r alpha_res}
-summary(exp(res$summary.random$alp$mean)) # alpha
+summary(exp(res$summary.random$alp$"0.5quant")) # exp(alpha) posterior median
 ```
+Note that to avoid issues due to $E[\exp(x)|y]\neq\exp[E(x|y)]$, we use the posterior median instead of the posterior mean.
 
 The summary for $\epsilon_s$ shows variation in the exponent for the
 effort correction function across space.
@@ -467,10 +521,10 @@ summary(res$summary.random$eps$mean) # epsilon
 
 The $\tau_s$ summary shows how long-term, log-linear trends of robin
 relative abundance have varied across space, from annual decreases of
-nearly 10% to annual increases of roughly 11%.
+around 10% to annual increases of around 10%.
 
 ```{r tau_res}
-summary((exp(res$summary.random$tau$mean)-1)*100) # tau
+summary((exp(res$summary.random$tau$"0.5quant") - 1) * 100) # (exp(tau)-1)*100
 ```
 
 ## SVC maps
@@ -484,84 +538,183 @@ grid to the modeling mesh.
 # get lon and lat limits
 xlim <- range(hull$loc[, 1])
 ylim <- range(hull$loc[, 2])
-grd_dims <- round(c(x=diff(range(xlim)), y=diff(range(ylim)))/25)
+grd_dims <- round(c(x = diff(range(xlim)), y = diff(range(ylim))) / 25)
 
 # make mesh projector to get model summaries from the mesh to the mapping grid
 mesh_proj <- inla.mesh.projector(
-    mesh, xlim=xlim, ylim=ylim, dims=grd_dims)
+  mesh,
+  xlim = xlim, ylim = ylim, dims = grd_dims
+)
 ```
 
 Then we populate the mapping grids with parameter estimates (posterior
-mean and SD), turn them into a raster stack, and mask the raster stack
+median and range95), turn them into a raster stack, and mask the raster stack
 to the study area.
 
 ```{r map_vals}
 # pull data
-alph <- exp(res$summary.random$alp[, c(2:3)])
-epsi <- res$summary.random$eps[, c(2:3)]
-taus <- (exp(res$summary.random$tau[, c(2:3)]) - 1) * 100
+kappa <- data.frame(
+  median = exp(res$summary.random$kappa$"0.5quant"),
+  range95 = exp(res$summary.random$kappa$"0.975quant") -
+    exp(res$summary.random$kappa$"0.025quant")
+)
+alph <- data.frame(
+  median = exp(res$summary.random$alpha$"0.5quant"),
+  range95 = exp(res$summary.random$alpha$"0.975quant") -
+    exp(res$summary.random$alpha$"0.025quant")
+)
+epsi <- data.frame(
+  median = exp(res$summary.random$eps$"0.5quant"),
+  range95 = (res$summary.random$eps$"0.975quant" -
+    res$summary.random$eps$"0.025quant")
+)
+taus <- data.frame(
+  median = (exp(res$summary.random$tau$"0.5quant") - 1) * 100,
+  range95 = (exp(res$summary.random$tau$"0.975quant") -
+    exp(res$summary.random$tau$"0.025quant")) * 100
+)
 
 # loop to get estimates on a mapping grid
-pred_grids <- lapply(list(alpha=alph, epsilon=epsi, tau=taus),
-                 function(x) as.matrix(inla.mesh.project(mesh_proj, x)))
+pred_grids <- lapply(
+  list(alpha = alph, epsilon = epsi, tau = taus),
+  function(x) as.matrix(inla.mesh.project(mesh_proj, x))
+)
 
-# make a raster stack with the posterior mean and SD
+# make a raster stack with the posterior median and range95
 out_stk <- stack()
-for(j in 1:3){
-  mean_j <- cbind(expand.grid(X=mesh_proj$x, Y=mesh_proj$y), 
-            Z=c(matrix(pred_grids[[j]][,1], grd_dims[1])))
-  mean_j <- rasterFromXYZ(mean_j, crs=epsg6703km)
-  sd_j <- cbind(expand.grid(X=mesh_proj$x, Y=mesh_proj$y), 
-            Z=c(matrix(pred_grids[[j]][,2], grd_dims[1])))
-  sd_j <- rasterFromXYZ(sd_j, crs=epsg6703km)
-  out_j <- stack(mean_j, sd_j)
+for (j in 1:3) {
+  mean_j <- cbind(expand.grid(X = mesh_proj$x, Y = mesh_proj$y),
+    Z = c(matrix(pred_grids[[j]][, 1], grd_dims[1]))
+  )
+  mean_j <- rasterFromXYZ(mean_j, crs = epsg6703km)
+  range95_j <- cbind(expand.grid(X = mesh_proj$x, Y = mesh_proj$y),
+    Z = c(matrix(pred_grids[[j]][, 2], grd_dims[1]))
+  )
+  range95_j <- rasterFromXYZ(range95_j, crs = epsg6703km)
+  out_j <- stack(mean_j, range95_j)
   out_stk <- addLayer(out_stk, out_j)
 }
-names(out_stk) <- c("alpha_mean", "alpha_sd", "epsilon_mean", 
-                    "epsilon_sd", "tau_mean", "tau_sd")
+names(out_stk) <- c(
+  "alpha_median", "alpha_range95", "epsilon_median",
+  "epsilon_range95", "tau_median", "tau_range95"
+)
 out_stk <- mask(out_stk, as(states, "Spatial"))
 ```
 
-Finally, we plot the SVCs with the following code.
+Finally, we plot the SVCs with the following code. We plot the posterior median and 95% uncertainty width ("range95")
+for $\exp(\kappa_s)$, $\exp(\alpha_s)$, $\epsilon_s$, and $100(\exp(\tau_s)-1)$.
 
-```{r svc_plots, warning=F, message=F}
+```{r svc_plot_construction, warning=F, message=F}
 # alpha_s
-alpha_spdf <- as(out_stk[[1]], "SpatialPixelsDataFrame")
+alpha_spdf <- as(out_stk[["alpha_median"]], "SpatialPixelsDataFrame")
 alpha_df <- as.data.frame(alpha_spdf)
 colnames(alpha_df) <- c("value", "x", "y")
-pa <- ggplot(states) + geom_sf(fill=NA) + coord_sf(datum = NA) +
-  geom_tile(data=alpha_df, aes(x=x, y=y, fill=value)) +
-  labs(x="", y="") +
-  scale_fill_distiller("alpha_mean", palette="Spectral") +
-  theme_bw() + geom_sf(fill=NA) 
+pa <- ggplot(states) +
+  geom_sf(fill = NA) +
+  coord_sf(datum = NA) +
+  geom_tile(data = alpha_df, aes(x = x, y = y, fill = value)) +
+  labs(x = "", y = "") +
+  scale_fill_distiller("posterior\nmedian\nexp(alpha_s)", palette = "Spectral") +
+  theme_bw() +
+  geom_sf(fill = NA)
 
 # epsilon_s
-eps_spdf <- as(out_stk[[3]], "SpatialPixelsDataFrame")
+eps_spdf <- as(out_stk[["epsilon_median"]], "SpatialPixelsDataFrame")
 eps_df <- as.data.frame(eps_spdf)
 colnames(eps_df) <- c("value", "x", "y")
-pe <- ggplot(states) + geom_sf(fill=NA) + coord_sf(datum = NA) +
-  geom_tile(data=eps_df, aes(x=x, y=y, fill=value)) +
-  labs(x="", y="") +
-  scale_fill_distiller("epsilon_mean", palette="Spectral") +
-  theme_bw() + geom_sf(fill=NA) 
+pe <- ggplot(states) +
+  geom_sf(fill = NA) +
+  coord_sf(datum = NA) +
+  geom_tile(data = eps_df, aes(x = x, y = y, fill = value)) +
+  labs(x = "", y = "") +
+  scale_fill_distiller("posterior\nmedian\nepsilon_s", palette = "Spectral") +
+  theme_bw() +
+  geom_sf(fill = NA)
 
 # tau_s
-tau_spdf <- as(out_stk[[5]], "SpatialPixelsDataFrame")
+tau_spdf <- as(out_stk[["tau_median"]], "SpatialPixelsDataFrame")
 tau_df <- as.data.frame(tau_spdf)
 colnames(tau_df) <- c("value", "x", "y")
-pt <- ggplot(states) + geom_sf(fill=NA) + coord_sf(datum = NA) +
-  geom_tile(data=tau_df, aes(x=x, y=y, fill=value)) +
-  labs(x="", y="") +
-  scale_fill_distiller("tau_mean", palette="Spectral") +
-  theme_bw() + geom_sf(fill=NA) 
+pt <- ggplot(states) +
+  geom_sf(fill = NA) +
+  coord_sf(datum = NA) +
+  geom_tile(data = tau_df, aes(x = x, y = y, fill = value)) +
+  labs(x = "", y = "") +
+  scale_fill_distiller("posterior\nmedian\n100(exp(tau_s)-1)", palette = "Spectral") +
+  theme_bw() +
+  geom_sf(fill = NA)
 
-# sites
-ps <- ggplot(states) + geom_sf() + coord_sf(datum = NA) +
-  geom_sf(data=site_map, size=0.5) +
-  labs(x="", y="") +
-  theme_bw() + geom_sf(fill=NA) 
+# sites kappa_s median
+ps <- ggplot(states) +
+  geom_sf() +
+  coord_sf(datum = NA) +
+  geom_sf(data = site_map, size = 1, mapping = aes(colour = kappa$median)) +
+  scale_colour_distiller("posterior\nmedian\nexp(kappa_s)", palette = "Spectral") +
+  labs(x = "", y = "") +
+  theme_bw() +
+  geom_sf(fill = NA)
 
-multiplot(ps, pa, pt, pe, cols=2)
+# alpha_s range95
+alpha_spdf <- as(out_stk[["alpha_range95"]], "SpatialPixelsDataFrame")
+alpha_df <- as.data.frame(alpha_spdf)
+colnames(alpha_df) <- c("value", "x", "y")
+pa_range95 <- ggplot(states) +
+  geom_sf(fill = NA) +
+  coord_sf(datum = NA) +
+  geom_tile(data = alpha_df, aes(x = x, y = y, fill = value)) +
+  labs(x = "", y = "") +
+  scale_fill_distiller("posterior\nrange95\nexp(alpha_s)", palette = "Spectral") +
+  theme_bw() +
+  geom_sf(fill = NA)
+
+# epsilon_s range95
+eps_spdf <- as(out_stk[["epsilon_range95"]], "SpatialPixelsDataFrame")
+eps_df <- as.data.frame(eps_spdf)
+colnames(eps_df) <- c("value", "x", "y")
+pe_range95 <- ggplot(states) +
+  geom_sf(fill = NA) +
+  coord_sf(datum = NA) +
+  geom_tile(data = eps_df, aes(x = x, y = y, fill = value)) +
+  labs(x = "", y = "") +
+  scale_fill_distiller("posterior\nrange95\nepsilon_s", palette = "Spectral") +
+  theme_bw() +
+  geom_sf(fill = NA)
+
+# tau_s
+tau_spdf <- as(out_stk[["tau_range95"]], "SpatialPixelsDataFrame")
+tau_df <- as.data.frame(tau_spdf)
+colnames(tau_df) <- c("value", "x", "y")
+pt_range95 <- ggplot(states) +
+  geom_sf(fill = NA) +
+  coord_sf(datum = NA) +
+  geom_tile(data = tau_df, aes(x = x, y = y, fill = value)) +
+  labs(x = "", y = "") +
+  scale_fill_distiller("posterior\nrange95\n100(exp(tau_s)-1)", palette = "Spectral") +
+  theme_bw() +
+  geom_sf(fill = NA)
+
+# sites kappa_s range95
+ps_range95 <- ggplot(states) +
+  geom_sf() +
+  coord_sf(datum = NA) +
+  geom_sf(data = site_map, size = 1, mapping = aes(colour = kappa$range95)) +
+  scale_colour_distiller("posterior\nrange95\nexp(kappa_s)", palette = "Spectral") +
+  labs(x = "", y = "") +
+  theme_bw() +
+  geom_sf(fill = NA)
+```
+```{r svc_plots, warning=F, message=F, fig.width=8, fig.align='center'}
+# plot together
+multiplot(ps, pa, pe, pt, cols = 2)
+```
+The map for the posterior mean of $\tau_s$ shows that robins have 
+decreased in the southern part of the study area and increased in 
+the northern part. This demonstrates how the wintering range of robins 
+is shifting northward as winters become warmer due to climate change.
+
+```{r svc_plots_range95, warning=F, message=F, fig.width=8, fig.align='center'}
+# plot together
+multiplot(ps_range95, pa_range95, pe_range95, pt_range95, cols = 2)
 ```
 
 ## More information
