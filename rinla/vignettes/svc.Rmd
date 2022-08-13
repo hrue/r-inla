@@ -564,7 +564,7 @@ alph <- data.frame(
     exp(res$summary.random$alpha$"0.025quant")
 )
 epsi <- data.frame(
-  median = exp(res$summary.random$eps$"0.5quant"),
+  median = res$summary.random$eps$"0.5quant",
   range95 = (res$summary.random$eps$"0.975quant" -
     res$summary.random$eps$"0.025quant")
 )
