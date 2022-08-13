@@ -1,12 +1,12 @@
 ---
-title: 'Building a Spatially Varying Coefficient Model in Continuous Space Using R-INLA'
-author: "Timothy D. Meehan (tmeeha@gmail.com)"
-date: "`r Sys.Date()`"
+title: 'Spatially Varying Coefficient Models with R-INLA'
+author: "Timothy D. Meehan (tmeeha@gmail.com), Elias T. Krainski, Finn Lindgren, and Håvard Rue"
+date: "Generated on `r Sys.Date()`"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Spatially Varying Coefficient Models}
+  %\VignetteIndexEntry{Spatially Varying Coefficient Models with R-INLA}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8} 
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE, cache=TRUE}
@@ -41,7 +41,7 @@ a Matérn covariance function. The benefits of a continuous-space
 versus a discrete-space SVC include the potential for finer resolution
 estimation and prediction, a better understanding of the range of
 spatial correlation, and a reduction in boundary effects associated
-with discreet-space analyses.
+with discrete-space analyses.
 
 We build the model using a subset of the data described in Meehan et
 al. (2019). 
@@ -176,9 +176,9 @@ count_dat <- download_dat %>%
     year_idx = as.numeric(factor(year)),
     site_year_idx = as.numeric(factor(paste(circle, lon, lat, year)))
   ) %>%
-  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE) %>%
   st_transform(epsg6703km) %>%
-  mutate(lon = st_coordinates(.)[, 1], lat = st_coordinates(.)[, 2]) %>%
+  mutate(easting = st_coordinates(.)[, 1], northing = st_coordinates(.)[, 2]) %>%
   arrange(circle, year)
 ```
 
@@ -209,15 +209,15 @@ later spatial modeling.
 ```{r spat_dat}
 # make a set of distinct study sites for mapping
 site_map <- count_dat %>%
-  select(circle, lon, lat) %>%
+  select(circle, easting, northing) %>%
   distinct() %>%
-  select(circle, lon, lat)
+  select(circle, easting, northing)
 
 # save coordinates as matrices for later
 unique_coords <- count_dat %>%
-  select(circle, lon, lat) %>%
+  select(circle, easting, northing) %>%
   distinct() %>%
-  select(lon, lat) %>%
+  select(easting, northing) %>%
   st_drop_geometry() %>%
   as.matrix()
 all_coords <- as.matrix(st_coordinates(count_dat))
@@ -436,7 +436,7 @@ Here, we define the response as `count`, remove the automatic global
 intercept with a `-1`, and then specify the other terms in the model
 with `f()` statements. The first `f()` statement defines $\kappa_s$,
 the site effect, as a normally distributed (`model="iid"`),
-zero-centered (`constr=T`), deviation from $\alpha_s$. The name
+zero-centered (`constr=TRUE`), deviation from $\alpha_s$. The name
 'kappa' given in the `f()` argument is associated with the effect
 'kappa' defined in the estimation stack. The second `f()` statement
 defines $\alpha_s$ as a spatially varying intercept with spatial
@@ -479,11 +479,11 @@ res <- inla(svc_form,
   data = inla.stack.data(stack_fit), # stack the stack
   control.predictor = list(
     A = inla.stack.A(stack_fit),
-    compute = F
+    compute = FALSE
   ), # must define A
-  control.compute = list(waic = T, cpo = T, config = T),
+  control.compute = list(waic = TRUE, cpo = TRUE, config = TRUE),
   control.inla = list(strategy = "adaptive", int.strategy = "eb"),
-  verbose = F
+  verbose = FALSE
 )
 ```
 
@@ -535,7 +535,7 @@ by creating a 25-km mapping grid, and then projecting this mapping
 grid to the modeling mesh.
 
 ```{r map_grid}
-# get lon and lat limits
+# get easting and northing limits
 xlim <- range(hull$loc[, 1])
 ylim <- range(hull$loc[, 2])
 grd_dims <- round(c(x = diff(range(xlim)), y = diff(range(ylim))) / 25)
