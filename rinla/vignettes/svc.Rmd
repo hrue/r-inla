@@ -171,14 +171,16 @@ count_dat <- download_dat %>%
   filter(n_years >= 20) %>%
   ungroup() %>%
   mutate(
-    std_yr = year - max(year), obs = 1:nrow(.),
+    std_yr = year - max(year),
+    obs = 1:nrow(.),
     site_idx = as.numeric(factor(paste(circle, lon, lat))),
     year_idx = as.numeric(factor(year)),
     site_year_idx = as.numeric(factor(paste(circle, lon, lat, year)))
   ) %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE) %>%
   st_transform(epsg6703km) %>%
-  mutate(easting = st_coordinates(.)[, 1], northing = st_coordinates(.)[, 2]) %>%
+  mutate(easting = st_coordinates(.)[, 1],
+         northing = st_coordinates(.)[, 2]) %>%
   arrange(circle, year)
 ```
 
@@ -204,7 +206,7 @@ ggplot() +
 
 Next we use the count data to make a map of distinct count sites and
 save the coordinates of the sites, unique and across all years, for
-later spatial modeling.
+later spatial modeling and plotting.
 
 ```{r spat_dat}
 # make a set of distinct study sites for mapping
@@ -259,7 +261,10 @@ outside the hull.
 
 ```{r mesh, warning=F, message=F, fig.pos='t', fig.align='center'}
 # make a hull and mesh for spatial model
-hull <- inla.nonconvex.hull(points = unique_coords, 200, 350)
+hull <- inla.nonconvex.hull(
+  points = as.matrix(st_coordinates(count_dat)),
+  convex = 200, concave = 350
+)
 mesh <- inla.mesh.2d(
   boundary = hull, max.edge = c(100, 600), # km inside and outside
   cutoff = 50, offset = c(100, 300)
@@ -605,103 +610,68 @@ Finally, we plot the SVCs with the following code. We plot the posterior median 
 for $\exp(\kappa_s)$, $\exp(\alpha_s)$, $\epsilon_s$, and $100(\exp(\tau_s)-1)$.
 
 ```{r svc_plot_construction, warning=F, message=F}
-# alpha_s
-alpha_spdf <- as(out_stk[["alpha_median"]], "SpatialPixelsDataFrame")
-alpha_df <- as.data.frame(alpha_spdf)
-colnames(alpha_df) <- c("value", "x", "y")
-pa <- ggplot(states) +
-  geom_sf(fill = NA) +
-  coord_sf(datum = NA) +
-  geom_tile(data = alpha_df, aes(x = x, y = y, fill = value)) +
-  labs(x = "", y = "") +
-  scale_fill_distiller("posterior\nmedian\nexp(alpha_s)", palette = "Spectral") +
-  theme_bw() +
-  geom_sf(fill = NA)
+make_plot_field <- function(data_stk, scale_label) {
+  spdf <- as(data_stk, "SpatialPixelsDataFrame")
+  df <- as.data.frame(spdf)
+  colnames(df) <- c("value", "x", "y")
+  ggplot(states) +
+    geom_sf(fill = NA) +
+    coord_sf(datum = NA) +
+    geom_tile(data = df, aes(x = x, y = y, fill = value)) +
+    labs(x = "", y = "") +
+    scale_fill_distiller(scale_label, palette = "Spectral") +
+    theme_bw() +
+    geom_sf(fill = NA)
+}
+make_plot_site <- function(data, scale_label) {
+  ggplot(states) +
+    geom_sf() +
+    coord_sf(datum = NA) +
+    geom_sf(data = data, size = 1, mapping = aes(colour = value)) +
+    scale_colour_distiller(scale_label, palette = "Spectral") +
+    labs(x = "", y = "") +
+    theme_bw() +
+    geom_sf(fill = NA)
+}
 
-# epsilon_s
-eps_spdf <- as(out_stk[["epsilon_median"]], "SpatialPixelsDataFrame")
-eps_df <- as.data.frame(eps_spdf)
-colnames(eps_df) <- c("value", "x", "y")
-pe <- ggplot(states) +
-  geom_sf(fill = NA) +
-  coord_sf(datum = NA) +
-  geom_tile(data = eps_df, aes(x = x, y = y, fill = value)) +
-  labs(x = "", y = "") +
-  scale_fill_distiller("posterior\nmedian\nepsilon_s", palette = "Spectral") +
-  theme_bw() +
-  geom_sf(fill = NA)
-
-# tau_s
-tau_spdf <- as(out_stk[["tau_median"]], "SpatialPixelsDataFrame")
-tau_df <- as.data.frame(tau_spdf)
-colnames(tau_df) <- c("value", "x", "y")
-pt <- ggplot(states) +
-  geom_sf(fill = NA) +
-  coord_sf(datum = NA) +
-  geom_tile(data = tau_df, aes(x = x, y = y, fill = value)) +
-  labs(x = "", y = "") +
-  scale_fill_distiller("posterior\nmedian\n100(exp(tau_s)-1)", palette = "Spectral") +
-  theme_bw() +
-  geom_sf(fill = NA)
-
-# sites kappa_s median
-ps <- ggplot(states) +
-  geom_sf() +
-  coord_sf(datum = NA) +
-  geom_sf(data = site_map, size = 1, mapping = aes(colour = kappa$median)) +
-  scale_colour_distiller("posterior\nmedian\nexp(kappa_s)", palette = "Spectral") +
-  labs(x = "", y = "") +
-  theme_bw() +
-  geom_sf(fill = NA)
-
-# alpha_s range95
-alpha_spdf <- as(out_stk[["alpha_range95"]], "SpatialPixelsDataFrame")
-alpha_df <- as.data.frame(alpha_spdf)
-colnames(alpha_df) <- c("value", "x", "y")
-pa_range95 <- ggplot(states) +
-  geom_sf(fill = NA) +
-  coord_sf(datum = NA) +
-  geom_tile(data = alpha_df, aes(x = x, y = y, fill = value)) +
-  labs(x = "", y = "") +
-  scale_fill_distiller("posterior\nrange95\nexp(alpha_s)", palette = "Spectral") +
-  theme_bw() +
-  geom_sf(fill = NA)
-
-# epsilon_s range95
-eps_spdf <- as(out_stk[["epsilon_range95"]], "SpatialPixelsDataFrame")
-eps_df <- as.data.frame(eps_spdf)
-colnames(eps_df) <- c("value", "x", "y")
-pe_range95 <- ggplot(states) +
-  geom_sf(fill = NA) +
-  coord_sf(datum = NA) +
-  geom_tile(data = eps_df, aes(x = x, y = y, fill = value)) +
-  labs(x = "", y = "") +
-  scale_fill_distiller("posterior\nrange95\nepsilon_s", palette = "Spectral") +
-  theme_bw() +
-  geom_sf(fill = NA)
-
-# tau_s
-tau_spdf <- as(out_stk[["tau_range95"]], "SpatialPixelsDataFrame")
-tau_df <- as.data.frame(tau_spdf)
-colnames(tau_df) <- c("value", "x", "y")
-pt_range95 <- ggplot(states) +
-  geom_sf(fill = NA) +
-  coord_sf(datum = NA) +
-  geom_tile(data = tau_df, aes(x = x, y = y, fill = value)) +
-  labs(x = "", y = "") +
-  scale_fill_distiller("posterior\nrange95\n100(exp(tau_s)-1)", palette = "Spectral") +
-  theme_bw() +
-  geom_sf(fill = NA)
-
-# sites kappa_s range95
-ps_range95 <- ggplot(states) +
-  geom_sf() +
-  coord_sf(datum = NA) +
-  geom_sf(data = site_map, size = 1, mapping = aes(colour = kappa$range95)) +
-  scale_colour_distiller("posterior\nrange95\nexp(kappa_s)", palette = "Spectral") +
-  labs(x = "", y = "") +
-  theme_bw() +
-  geom_sf(fill = NA)
+# medians
+# fields alpha_s, epsilon_s, tau_s
+pa <- make_plot_field(
+  data_stk = out_stk[["alpha_median"]],
+  scale_label = "posterior\nmedian\nexp(alpha_s)"
+)
+pe <- make_plot_field(
+  data_stk = out_stk[["epsilon_median"]],
+  scale_label = "posterior\nmedian\nepsilon_s"
+)
+pt <- make_plot_field(
+  data_stk = out_stk[["tau_median"]],
+  scale_label = "posterior\nmedian\n100(exp(tau_s)-1)"
+)
+# sites kappa_s
+ps <- make_plot_site(
+  data = cbind(site_map, data.frame(value = kappa$median)),
+  scale_label = "posterior\nmedian\nexp(kappa_s)"
+)
+# range95
+# fields alpha_s, epsilon_s, tau_s
+pa_range95 <- make_plot_field(
+  data_stk = out_stk[["alpha_range95"]],
+  scale_label = "posterior\nrange95\nexp(alpha_s)"
+)
+pe_range95 <- make_plot_field(
+  data_stk = out_stk[["epsilon_range95"]],
+  scale_label = "posterior\nrange95\nepsilon_s"
+)
+pt_range95 <- make_plot_field(
+  data_stk = out_stk[["tau_range95"]],
+  scale_label = "posterior\nrange95\n100(exp(tau_s)-1)"
+)
+# sites kappa_s
+ps_range95 <- make_plot_site(
+  data = cbind(site_map, data.frame(value = kappa$range95)),
+  scale_label = "posterior\nrange95\nexp(kappa_s)"
+)
 ```
 ```{r svc_plots, warning=F, message=F, fig.width=8, fig.align='center'}
 # plot together
