@@ -949,17 +949,16 @@ double my_dsum(int n, double *__restrict x)
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	d = div(n, roll);
 
-	for (int i = 0, j = 0; i < d.quot * roll; i += roll) {
-		j = i;
-		s0 += x[j++];
-		s1 += x[j++];
-		s2 += x[j++];
-		s3 += x[j++];
+	for (int i = 0; i < d.quot * roll; i += roll) {
+		s0 += x[i];
+		s1 += x[i+1];
+		s2 += x[i+2];
+		s3 += x[i+3];
 
-		s0 += x[j++];
-		s1 += x[j++];
-		s2 += x[j++];
-		s3 += x[j];
+		s0 += x[i+4];
+		s1 += x[i+5];
+		s2 += x[i+6];
+		s3 += x[i+7];
 	}
 
 	for (int i = d.quot * roll; i < n; i++) {
@@ -976,24 +975,16 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	for (int i = 0, j = 0; i < m; i += roll) {
-		j = i;
-		s0 += v[j] * a[idx[j]];
-		j++;
-		s1 += v[j] * a[idx[j]];
-		j++;
-		s2 += v[j] * a[idx[j]];
-		j++;
-		s3 += v[j] * a[idx[j]];
-		j++;
+	for (int i = 0; i < m; i += roll) {
+		s0 += v[i] * a[idx[i]];
+		s1 += v[i+1] * a[idx[i+1]];
+		s2 += v[i+2] * a[idx[i+2]];
+		s3 += v[i+3] * a[idx[i+3]];
 
-		s0 += v[j] * a[idx[j]];
-		j++;
-		s1 += v[j] * a[idx[j]];
-		j++;
-		s2 += v[j] * a[idx[j]];
-		j++;
-		s3 += v[j] * a[idx[j]];
+		s0 += v[i+4] * a[idx[i+4]];
+		s1 += v[i+5] * a[idx[i+5]];
+		s2 += v[i+6] * a[idx[i+6]];
+		s3 += v[i+7] * a[idx[i+7]];
 	}
 
 	for (int i = d.quot * roll; i < n; i++) {
@@ -1009,18 +1000,16 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 
-	int j = 0;
 	for (int i = 0; i < d.quot * roll; i += roll) {
-		j = i;
-		s0 += a[idx[j++]];
-		s1 += a[idx[j++]];
-		s2 += a[idx[j++]];
-		s3 += a[idx[j++]];
+		s0 += a[idx[i]];
+		s1 += a[idx[i+1]];
+		s2 += a[idx[i+2]];
+		s3 += a[idx[i+3]];
 
-		s0 += a[idx[j++]];
-		s1 += a[idx[j++]];
-		s2 += a[idx[j++]];
-		s3 += a[idx[j]];
+		s0 += a[idx[i+4]];
+		s1 += a[idx[i+5]];
+		s2 += a[idx[i+6]];
+		s3 += a[idx[i+7]];
 	}
 
 	for (int i = d.quot * roll; i < n; i++) {
