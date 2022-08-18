@@ -1303,7 +1303,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	GMRFLib_graph_tp *graph = preopt->preopt_graph;
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
 
-	Calloc_init(2 * graph->n);
+	Calloc_init(2 * graph->n, 2);
 	double *x = Calloc_get(graph->n);
 	double *xx = Calloc_get(graph->n);
 	for (int i = 0; i < graph->n; i++) {
@@ -1329,7 +1329,7 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
 	// cpu[0] measure predictor calculations for !data_rich and data_rich case
 	double *cpu = Calloc(1, double);
 
-	Calloc_init(preopt->mnpred + preopt->n);
+	Calloc_init(preopt->mnpred + preopt->n, 2);
 	double *pred = Calloc_get(preopt->mnpred);
 	double *lat = Calloc_get(preopt->n);
 

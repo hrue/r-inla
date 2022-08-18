@@ -10175,7 +10175,7 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 
 	if (m > 0) {
 		// by default, all these are set to zero due to Calloc
-		Calloc_init(4 * m);
+		Calloc_init(4 * m, 4);
 		double *log_dens = Calloc_get(m);
 		double *prob_lower = Calloc_get(m);
 		double *prob_upper = Calloc_get(m);
@@ -33638,7 +33638,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		ntot += mb->f_graph[i]->n;
 	}
 	N = ntot;
-	Calloc_init(3 * N);
+	Calloc_init(3 * N, 3);
 
 	ntot += mb->predictor_m + mb->predictor_n;
 	if (mb->strategy == GMRFLib_OPENMP_STRATEGY_DEFAULT) {
@@ -35662,7 +35662,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 
 		GMRFLib_ghq(&xp, &wp, np);
 
-		Calloc_init(2 * np);
+		Calloc_init(2 * np, 2);
 		double *ldz = Calloc_get(np);
 		double *z = Calloc_get(np);
 
@@ -35699,7 +35699,7 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 		COMPUTE_MODE();
 		Calloc_free();
 	} else {
-		Calloc_init(3 * npm + 4 * np);
+		Calloc_init(3 * npm + 4 * np, 7);
 		low = density->x_min;
 		high = density->x_max;
 		dx = (high - low) / (np - 1.0);
@@ -38655,7 +38655,7 @@ int testit(int argc, char **argv)
 	{
 		int n = 111;
 		double dx = 12.0 / (n - 1);
-		Calloc_init(2 * n);
+		Calloc_init(2 * n, 2);
 		double *x = Calloc_get(n);
 		double *y = Calloc_get(n);
 

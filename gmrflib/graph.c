@@ -1317,7 +1317,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 	Memset(result, 0, graph->n * sizeof(double));
 	m = GMRFLib_graph_max_nnbs(graph);
 
-	Calloc_init(m + 1 + (!diag ? graph->n : 0));
+	Calloc_init(m + 1 + (!diag ? graph->n : 0), 2);
 	values = Calloc_get(m + 1);
 	assert(values);
 	if (!diag) {
@@ -1599,7 +1599,7 @@ int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gr
 	int i;
 	double *y = NULL, res;
 
-	Calloc_init(graph->n);
+	Calloc_init(graph->n, 1);
 	y = Calloc_get(graph->n);
 
 	GMRFLib_Qx2(thread_id, y, x, graph, Qfunc, Qfunc_arg, diag);
