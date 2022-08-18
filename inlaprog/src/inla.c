@@ -39151,6 +39151,7 @@ int testit(int argc, char **argv)
 	case 83:
 	{
 		int n = atoi(args[0]);
+		int ntimes = atoi(args[1]);
 		double *xx = Calloc(n, double);
 
 		for (int i = 0; i < n; i++) {
@@ -39171,7 +39172,7 @@ int testit(int argc, char **argv)
 
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
-		for (int k = 0; k < 128; k++) {
+		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
 			DOT_PRODUCT_SERIAL(sum1, h, xx);
