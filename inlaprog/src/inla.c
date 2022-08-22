@@ -2822,7 +2822,7 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 				if (debug) {
 					printf("\tCall rgeneric\n");
 				}
-				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, a->ntheta, a_tmp);
+				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_Q, a->model, &(a->ntheta), a_tmp);
 				if (debug) {
 					printf("\tReturn from rgeneric with n_out= %1d\n", n_out);
 				}
@@ -3075,7 +3075,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 			if (debug) {
 				printf("Call rgeneric\n");
 			}
-			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_MU, a->model, a->ntheta, a->mu_param[id]);
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_MU, a->model, &(a->ntheta), a->mu_param[id]);
 			if (debug) {
 				printf("Return from rgeneric with n_out= %1d\n", n_out);
 			}
@@ -22382,8 +22382,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		{
 			inla_R_library("INLA");
 			inla_R_load(rgeneric_filename);
-			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, 0, NULL);
-			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, 0, NULL);	/* need graph->n */
+			int zero = 0;
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_INITIAL, rgeneric_model, &zero, NULL);
+			inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_GRAPH, rgeneric_model, &zero, NULL);	/* need graph->n */
 		}
 
 		nn = (int) xx_out[0];
@@ -26153,7 +26154,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		double *x_out;
 #pragma omp critical (Name_0c216629b47f30b75846e1131aec8233bfdd80bb)
 		{
-			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, 0, NULL);
+			int zero = 0;
+			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, &zero, NULL);
 		}
 
 		int n, len, *ilist, *jlist, k = 0;
@@ -28908,7 +28910,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				int n_out = 0;
 				double *lprior = NULL;
 
-				inla_R_funcall_jp(&n_out, &lprior, (const char *) mb->jp->model, ntheta, theta, jp_vec_sexp);
+				inla_R_funcall_jp(&n_out, &lprior, (const char *) mb->jp->model, &ntheta, theta, jp_vec_sexp);
 				assert(n_out == 1);
 				assert(lprior);
 				val += *lprior;
@@ -31096,8 +31098,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 #pragma omp critical (Name_58ab1229a36b0d20f9c714d7896ab4820282193b)
 			{
-				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, ntheta, param);
-				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, ntheta, param);
+				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, &ntheta, param);
+				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, &ntheta, param);
 			}
 
 			switch (nn_out) {
@@ -31128,7 +31130,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
 #pragma omp critical (Name_94438d8a0faa6fe9957180657829e121c750f1f2)
 				{
-					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, ntheta, param);
+					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, &ntheta, param);
 				}
 				assert(nn_out >= 2);
 
@@ -37131,22 +37133,22 @@ int testit(int argc, char **argv)
 			};						\
 			Free(x_out)
 
-			inla_R_rgeneric(&n_out, &x_out, "graph", _MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "graph", _MODEL, &ntheta, theta);
 			_PPP("graph");
 
-			inla_R_rgeneric(&n_out, &x_out, "Q", _MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "Q", _MODEL, &ntheta, theta);
 			_PPP("Q");
 
-			inla_R_rgeneric(&n_out, &x_out, "initial", _MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "initial", _MODEL, &ntheta, theta);
 			_PPP("initial");
 
-			inla_R_rgeneric(&n_out, &x_out, "log.norm.const", _MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "log.norm.const", _MODEL,  &ntheta, theta);
 			_PPP("log.norm.const");
 
-			inla_R_rgeneric(&n_out, &x_out, "log.prior", _MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "log.prior", _MODEL, &ntheta, theta);
 			_PPP("log.prior");
 
-			inla_R_rgeneric(&n_out, &x_out, "quit", _MODEL, ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "quit", _MODEL, &ntheta, theta);
 			_PPP("quit");
 		}
 
@@ -37167,7 +37169,7 @@ int testit(int argc, char **argv)
 		int nxx;
 		int i;
 
-		inla_R_assign("x", nx, x);
+		inla_R_assign("x", &nx, x);
 		inla_R_get(&nxx, &xx, "x");
 		for (i = 0; i < nxx; i++) {
 			printf("xx[%1d] = %f\n", i, xx[i]);
@@ -37244,9 +37246,9 @@ int testit(int argc, char **argv)
 		int i;
 #pragma omp parallel for
 		for (int i = 0; i < 10; i++) {
-			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", nx, x);
+			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", &nx, x);
 		}
-		inla_R_funcall2(&nxx, &xx, "lprior2", NULL, nx, x);
+		inla_R_funcall2(&nxx, &xx, "lprior2", NULL, &nx, x);
 
 		for (i = 0; i < nxx; i++) {
 			printf("lprior2[%1d] = %f\n", i, xx[i]);

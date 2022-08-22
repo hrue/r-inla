@@ -1,7 +1,7 @@
 
 /* R-interface.h
  * 
- * Copyright (C) 2014 Havard Rue
+ * Copyright (C) 2014-2022 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,19 +44,60 @@ __BEGIN_DECLS
 /*
  *
  */
-int inla_R_assign(const char *variable, int n, double *x);
-int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x);
-int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x);
-int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp);
-int inla_R_get(int *n_out, double **x_out, const char *variable);
-int inla_R_init(void);
-int inla_R_inlaload(const char *filename);
-int inla_R_library(const char *library);
-int inla_R_load(const char *filename);
-int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta);
-int inla_R_source(const char *filename);
+    typedef enum {
+	INLA_R_INIT = 1,
+	INLA_R_ASSIGN,
+	INLA_R_FUNCALL1,
+	INLA_R_FUNCALL2,
+	INLA_R_FUNCALL_JP,
+	INLA_R_GET,
+	INLA_R_INLALOAD,
+	INLA_R_LIBRARY,
+	INLA_R_LOAD,
+	INLA_R_RGENERIC,
+	INLA_R_SOURCE,
+	INLA_R_EXIT
+} inla_R_cmd_tp;
+
+int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6);
+
+#define inla_R_assign(a1, a2, a3) inla_R_do_(INLA_R_ASSIGN, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_assign_(const char *variable, int *n, double *x);
+
+#define inla_R_funcall1(a1, a2, a3, a4, a5) inla_R_do_(INLA_R_FUNCALL1, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) NULL)
+int inla_R_funcall1_(int *n_out, double **x_out, const char *function, int *n, double *x);
+
+#define inla_R_funcall2(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_FUNCALL2, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
+int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const char *tag, int *n, double *x);
+
+#define inla_R_funcall_jp(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_FUNCALL_JP, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
+int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n, double *x, void *sexp);
+
+#define inla_R_get(a1, a2, a3) inla_R_do_(INLA_R_GET, (void *) (a1), (void *) (a2), (void *) (a3), (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_get_(int *n_out, double **x_out, const char *variable);
+
+#define inla_R_init() inla_R_do_(INLA_R_INIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_init_(void);
+
+#define inla_R_inlaload(a1) inla_R_do_(INLA_R_INLALOAD, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_inlaload_(const char *filename);
+
+#define inla_R_library(a1) inla_R_do_(INLA_R_LIBRARY, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_library_(const char *filename);
+
+#define inla_R_load(a1) inla_R_do_(INLA_R_LOAD, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_load_(const char *filename);
+
+#define inla_R_rgeneric(a1, a2, a3, a4, a5, a6) inla_R_do_(INLA_R_RGENERIC, (void *) (a1), (void *) (a2), (void *) (a3), (void *) (a4), (void *) (a5), (void *) (a6))
+int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *model, int *n, double *theta);
+
+#define inla_R_source(a1) inla_R_do_(INLA_R_SOURCE, (void *) (a1), (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_source_(const char *filename);
+
+#define inla_R_exit() inla_R_do_(INLA_R_EXIT, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL, (void *) NULL)
+int inla_R_exit_(void);
+
 void *inla_R_vector_of_strings(int n, char **s);
-void inla_R_exit(void);
 
 __END_DECLS
 #endif
