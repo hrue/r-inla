@@ -1,10 +1,10 @@
-# INLA 99.99.99
-
+# INLA 22.08.23
 ## BUG FIXES
 * Avoid deprecated class coercions in `inla.as.dgTMatrix()`
-
-
-
+* Fixed an issue with `rgeneric` 
+## CHANGES
+* New vignette added
+* Various code improvements
 
 
 # INLA 22.07.23
