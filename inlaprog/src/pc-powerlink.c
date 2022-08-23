@@ -122,7 +122,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		int x_len_extra = sizeof(pp) / sizeof(double);
 		len = x_len + x_len_extra;
 
-		Calloc_init(2 * len);
+		Calloc_init(2 * len, 2);
 		x = Calloc_get(len);
 		cdf = Calloc_get(len);
 

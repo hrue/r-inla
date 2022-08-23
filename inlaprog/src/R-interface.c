@@ -1,4 +1,3 @@
-#if defined(INLA_LIBR)
 
 /* R-interface.c
  * 
@@ -63,91 +62,158 @@ void GMRFLib_delay(int msec);
 #include "R-interface.h"
 static int R_init = 1;
 static int R_debug = 0;
-static int R_busy = 0;
 double R_rgeneric_cputime = 0.0;
 
-#define CHECK_IN					\
-	inla_R_init();					\
-	while(R_busy) {					\
-		GMRFLib_delay(10);			\
-	}						\
-	R_busy = 1
 
-
-#define CHECK_OUT R_busy=0
-
-
-void inla_R_exit(void)
-{
-	if (R_debug) {
-		fprintf(stderr, "R-interface: exit\n");
-		fflush(stderr);
-	}
-
-	Rf_endEmbeddedR(0);
-	R_init = 1;
-	R_busy = 0;
-}
-
-int inla_R_init(void)
+int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6)
 {
 	if (R_init) {
-		/*
-		 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
-		 */
-		char *rhome = getenv((const char *) "R_HOME");
+		inla_R_init_();
+	}
 
-		if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
-			if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
-				GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
-			} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
-				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
-			} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
-				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
-			} else if (my_dir_exists("/usr/lib32/R") == INLA_OK) {
-				GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib32/R");
-			} else {
-				fprintf(stderr, "\n\n");
-				fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
-				fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
-				fprintf(stderr, "\n\n");
-				fflush(stderr);
-				exit(1);
-			}
-			fprintf(stderr, "\n\n");
-			fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
-			fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
-			fflush(stderr);
-			my_setenv(rhome, 0);
-			Free(rhome);
+	int ret = 0;
+#pragma omp critical (Name_95227b3fc78ae25be9b977b6385cae68f179f781)
+	{
+		R_rgeneric_cputime -= omp_get_wtime();
+
+		switch (cmd) {
+		case INLA_R_INIT:
+			break;
+
+		case INLA_R_ASSIGN:
+			ret = inla_R_assign_((const char *) a1, (int *) a2, (double *) a3);
+			break;
+
+		case INLA_R_FUNCALL1:
+			ret = inla_R_funcall1_((int *) a1, (double **) a2, (const char *) a3, (int *) a4, (double *) a5);
+			break;
+
+		case INLA_R_FUNCALL2:
+			ret = inla_R_funcall2_((int *) a1, (double **) a2, (const char *) a3, (const char *) a4, (int *) a5, (double *) a6);
+			break;
+
+		case INLA_R_FUNCALL_JP:
+			ret = inla_R_funcall_jp_((int *) a1, (double **) a2, (const char *) a3, (int *) a4, (double *) a5, (void *) a6);
+			break;
+
+		case INLA_R_GET:
+			ret = inla_R_get_((int *) a1, (double **) a2, (const char *) a3);
+			break;
+
+		case INLA_R_INLALOAD:
+			ret = inla_R_inlaload_((const char *) a1);
+			break;
+
+		case INLA_R_LIBRARY:
+			ret = inla_R_library_((const char *) a1);
+			break;
+
+		case INLA_R_LOAD:
+			ret = inla_R_load_((const char *) a1);
+			break;
+
+		case INLA_R_RGENERIC:
+			ret = inla_R_rgeneric_((int *) a1, (double **) a2, (const char *) a3, (const char *) a4, (int *) a5, (double *) a6);
+			break;
+
+		case INLA_R_SOURCE:
+			ret = inla_R_source_((const char *) a1);
+			break;
+
+		case INLA_R_EXIT:
+			ret = inla_R_exit_();
+			break;
+
+		default:
+			assert(0 == 1);
 		}
-		// char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
-		char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save", "--no-restore" };
-		int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
-		Rf_initEmbeddedR(Rargc, Rargv);
 
-		// Disable C stack limit check
-		R_CStackLimit = (uintptr_t) (-1);
-		R_init = 0;
+		R_rgeneric_cputime += omp_get_wtime();
+	}
+
+	return ret;
+}
+
+int inla_R_exit_(void)
+{
+	if (!R_init) {
 		if (R_debug) {
-			fprintf(stderr, "R-interface: init\n");
+			fprintf(stderr, "R-interface: exit\n");
 			fflush(stderr);
+		}
+
+		Rf_endEmbeddedR(0);
+		R_rgeneric_cputime = 0.0;
+		R_init = 1;
+	}
+
+	return INLA_OK;
+}
+
+int inla_R_init_(void)
+{
+	if (R_init) {
+#pragma omp critical (Name_aac7e80b592e4a6319788827c44116e831460cd6)
+		{
+			if (R_init) {
+				/*
+				 * Check if R_HOME is set. If not, try to guess it, otherwise fail.
+				 */
+				char *rhome = getenv((const char *) "R_HOME");
+
+				if (!rhome || (rhome && (my_dir_exists(rhome) != INLA_OK))) {
+					if (my_dir_exists("/Library/Frameworks/R.framework/Resources") == INLA_OK) {
+						GMRFLib_sprintf(&rhome, "R_HOME=/Library/Frameworks/R.framework/Resources");
+					} else if (my_dir_exists("/usr/lib64/R") == INLA_OK) {
+						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib64/R");
+					} else if (my_dir_exists("/usr/lib/R") == INLA_OK) {
+						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib/R");
+					} else if (my_dir_exists("/usr/lib32/R") == INLA_OK) {
+						GMRFLib_sprintf(&rhome, "R_HOME=/usr/lib32/R");
+					} else {
+						fprintf(stderr, "\n\n");
+						fprintf(stderr, "*** R-interface  ERROR: Environment variable R_HOME is not set or invalid.\n");
+						fprintf(stderr, "*** R_interface  ERROR: Evaluate this in R:  Sys.getenv(\"R_HOME\")\n");
+						fprintf(stderr, "\n\n");
+						fflush(stderr);
+						exit(1);
+					}
+					fprintf(stderr, "\n\n");
+					fprintf(stderr, "*** R-interface WARNING: Environment variable R_HOME is not set or invalid.\n");
+					fprintf(stderr, "*** R-interface WARNING: Set it to a _GUESSED_ value [%s]\n\n", rhome);
+					fflush(stderr);
+					my_setenv(rhome, 0);
+					Free(rhome);
+				}
+				// char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
+				char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save", "--no-restore" };
+				int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
+				Rf_initEmbeddedR(Rargc, Rargv);
+
+				if (R_debug) {
+					fprintf(stderr, "R-interface: init\n");
+					fflush(stderr);
+				}
+				// Disable C stack limit check
+				R_CStackLimit = (uintptr_t) (-1);
+				R_init = 0;
+			}
 		}
 	}
 
 	return (INLA_OK);
 }
 
-int inla_R_library(const char *library)
+int inla_R_library_(const char *library)
 {
-	if (!library)
+	if (!library) {
 		return (INLA_OK);
+	}
 
 	if (R_debug) {
 		fprintf(stderr, "R-interface[%1d]: enter: load library [%s]\n", omp_get_thread_num(), library);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	SEXP e, result, yy;
 	int error;
@@ -165,12 +231,11 @@ int inla_R_library(const char *library)
 		fprintf(stderr, "R-interface[%1d]: leave: load library [%s]\n", omp_get_thread_num(), library);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_source(const char *filename)
+int inla_R_source_(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
@@ -179,7 +244,6 @@ int inla_R_source(const char *filename)
 		fprintf(stderr, "R-interface: enter: source file [%s]\n", filename);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	SEXP e, result, yy, false, true;
 	int error;
@@ -199,12 +263,11 @@ int inla_R_source(const char *filename)
 		fprintf(stderr, "R-interface: leave: source file [%s]\n", filename);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_load(const char *filename)
+int inla_R_load_(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
@@ -213,7 +276,6 @@ int inla_R_load(const char *filename)
 		fprintf(stderr, "R-interface: enter: load file [%s]\n", filename);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	SEXP e, result, yy;
 	int error;
@@ -231,12 +293,11 @@ int inla_R_load(const char *filename)
 		fprintf(stderr, "R-interface: leave: load file [%s]\n", filename);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_inlaload(const char *filename)
+int inla_R_inlaload_(const char *filename)
 {
 	if (!filename)
 		return (INLA_OK);
@@ -245,7 +306,6 @@ int inla_R_inlaload(const char *filename)
 		fprintf(stderr, "R-interface: enter: load file [%s]\n", filename);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	SEXP e, result, yy;
 	int error;
@@ -263,28 +323,26 @@ int inla_R_inlaload(const char *filename)
 		fprintf(stderr, "R-interface: leave: load file [%s]\n", filename);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x)
+int inla_R_funcall2_(int *n_out, double **x_out, const char *function, const char *tag, int *n, double *x)
 {
 	/*
 	 * Call function(tag,x), where x is a double vector of length n. output is 'x_out' with length 'n_out'
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
+		fprintf(stderr, "R-interface[%1d]: enter: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, *n);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	int error, i;
 	SEXP xx, result, e;
 
-	xx = PROTECT(allocVector(REALSXP, n));
-	for (i = 0; i < n; i++) {
+	xx = PROTECT(allocVector(REALSXP, *n));
+	for (i = 0; i < *n; i++) {
 		REAL(xx)[i] = x[i];
 	}
 	if (tag) {
@@ -295,7 +353,7 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	}
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
-		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with tag [%s] and [%1d] arguments\n", function, tag, n);
+		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with tag [%s] and [%1d] arguments\n", function, tag, *n);
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
@@ -312,20 +370,19 @@ int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char
 	UNPROTECT((tag ? 4 : 3));
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, n);
+		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] tag [%s] n [%1d]\n", omp_get_thread_num(), function, tag, *n);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
+int inla_R_funcall1_(int *n_out, double **x_out, const char *function, int *n, double *x)
 {
-	return inla_R_funcall2(n_out, x_out, function, NULL, n, x);
+	return inla_R_funcall2_(n_out, x_out, function, NULL, n, x);
 }
 
-int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp)
+int inla_R_funcall_jp_(int *n_out, double **x_out, const char *function, int *n, double *x, void *sexp)
 {
 	/*
 	 * Call function(x, sexp), where x is a double vector of length n, and 'sexp' is some SEXP ptr.
@@ -333,23 +390,22 @@ int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, d
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: funcall_jp: function[%s] n[%1d]\n", omp_get_thread_num(), function, n);
+		fprintf(stderr, "R-interface[%1d]: enter: funcall_jp: function[%s] n[%1d]\n", omp_get_thread_num(), function, *n);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	int error, i;
 	SEXP xx, result, e;
 
-	xx = PROTECT(allocVector(REALSXP, n));
-	for (i = 0; i < n; i++) {
+	xx = PROTECT(allocVector(REALSXP, *n));
+	for (i = 0; i < *n; i++) {
 		REAL(xx)[i] = x[i];
 	}
 
 	e = PROTECT(lang3(install(function), xx, (SEXP) sexp));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
-		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with [%1d] arguments\n", function, n);
+		fprintf(stderr, "\n *** ERROR *** Calling R-function [%s] with [%1d] arguments\n", function, *n);
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
@@ -366,52 +422,49 @@ int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, d
 	UNPROTECT(3);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] n[%1d]\n", omp_get_thread_num(), function, n);
+		fprintf(stderr, "R-interface[%1d]: leave: funcall2: function [%s] n[%1d]\n", omp_get_thread_num(), function, *n);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_assign(const char *variable, int n, double *x)
+int inla_R_assign_(const char *variable, int *n, double *x)
 {
 	/*
 	 * variable = x
 	 */
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: enter: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
+		fprintf(stderr, "R-interface[%1d]: enter: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, *n);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	int error, i;
 	SEXP xx, result, e, yy;
 
 	yy = PROTECT(mkString(variable));
-	xx = PROTECT(allocVector(REALSXP, n));
-	for (i = 0; i < n; i++) {
+	xx = PROTECT(allocVector(REALSXP, *n));
+	for (i = 0; i < *n; i++) {
 		REAL(xx)[i] = x[i];
 	}
 	e = PROTECT(lang3(install("assign"), yy, xx));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
-		fprintf(stderr, "\n *** ERROR *** assign [%s] with n [%1d] failed\n", variable, n);
+		fprintf(stderr, "\n *** ERROR *** assign [%s] with n [%1d] failed\n", variable, *n);
 		exit(1);
 	}
 	UNPROTECT(4);
 
 	if (R_debug) {
-		fprintf(stderr, "R-interface[%1d]: leave: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, n);
+		fprintf(stderr, "R-interface[%1d]: leave: assign: [%s] n [%1d]\n", omp_get_thread_num(), variable, *n);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_get(int *n_out, double **x_out, const char *variable)
+int inla_R_get_(int *n_out, double **x_out, const char *variable)
 {
 	/*
 	 * return variable
@@ -421,7 +474,6 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		fprintf(stderr, "R-interface[%1d]: enter: get: [%s]\n", omp_get_thread_num(), variable);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
 	int error, i;
 	SEXP result, e, yy;
@@ -450,12 +502,11 @@ int inla_R_get(int *n_out, double **x_out, const char *variable)
 		fprintf(stderr, "R-interface[%1d]: leave: get: [%s]\n", omp_get_thread_num(), variable);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
 
-int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
+int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *model, int *n, double *theta)
 {
 	/*
 	 * do the rgeneric call with CMD and THETA and given MODEL name for the model definition
@@ -465,14 +516,12 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 		fprintf(stderr, "R-interface[%1d]: enter: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
 		fflush(stderr);
 	}
-	CHECK_IN;
 
-	double tref = omp_get_wtime();
 	int error, i;
 	SEXP xx_theta, result, e, yy, yyy;
 
-	PROTECT(xx_theta = allocVector(REALSXP, n));
-	for (i = 0; i < n; i++) {
+	PROTECT(xx_theta = allocVector(REALSXP, *n));
+	for (i = 0; i < *n; i++) {
 		REAL(xx_theta)[i] = theta[i];
 	}
 
@@ -496,13 +545,11 @@ int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *mod
 	}
 
 	UNPROTECT(5);
-	R_rgeneric_cputime += omp_get_wtime() - tref;
 
 	if (R_debug) {
 		fprintf(stderr, "R-interface[%1d]: leave: rgeneric: cmd [%s] model [%s]\n", omp_get_thread_num(), cmd, model);
 		fflush(stderr);
 	}
-	CHECK_OUT;
 
 	return (INLA_OK);
 }
@@ -523,100 +570,3 @@ void *inla_R_vector_of_strings(int n, char **s)
 
 	return ((void *) sexp);
 }
-
-#else
-
-#include <stdlib.h>
-#include <stdio.h>
-double R_rgeneric_cputime = 0.0;
-
-#define ERROR_MESSAGE \
-	if (1) {							\
-		fprintf(stderr, "\n\n\n\t*** ERROR ***: The R-interface was not enabled at compile time: please recompile.\n\n\n"); \
-		abort();						\
-		exit(1);						\
-	}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-void inla_R_exit(void)
-{
-	ERROR_MESSAGE;
-}
-
-int inla_R_init(void)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_source(const char *filename)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_library(const char *filename)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_funcall1(int *n_out, double **x_out, const char *function, int n, double *x)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_funcall2(int *n_out, double **x_out, const char *function, const char *tag, int n, double *x)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_assign(const char *variable, int n, double *x)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_get(int *n_out, double **x_out, const char *variable)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_load(const char *filename)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_rgeneric(int *n_out, double **x_out, const char *cmd, const char *model, int n, double *theta)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-int inla_R_inlaload(const char *filename)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-void *inla_R_vector_of_strings(int n, char **s)
-{
-	ERROR_MESSAGE;
-}
-
-int inla_R_funcall_jp(int *n_out, double **x_out, const char *function, int n, double *x, void *sexp)
-{
-	ERROR_MESSAGE;
-	return 1;
-}
-
-#pragma GCC diagnostic pop
-#undef ERROR_MESSAGE
-
-#endif

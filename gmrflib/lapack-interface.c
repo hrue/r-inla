@@ -949,17 +949,18 @@ double my_dsum(int n, double *__restrict x)
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	d = div(n, roll);
 
-	for (int i = 0, j = 0; i < d.quot * roll; i += roll) {
-		j = i;
-		s0 += x[j++];
-		s1 += x[j++];
-		s2 += x[j++];
-		s3 += x[j++];
+	for (int i = 0; i < d.quot * roll; i += roll) {
+		double *xx = x + i;
 
-		s0 += x[j++];
-		s1 += x[j++];
-		s2 += x[j++];
-		s3 += x[j];
+		s0 += xx[0];
+		s1 += xx[1];
+		s2 += xx[2];
+		s3 += xx[3];
+
+		s0 += xx[4];
+		s1 += xx[5];
+		s2 += xx[6];
+		s3 += xx[7];
 	}
 
 	for (int i = d.quot * roll; i < n; i++) {
@@ -976,24 +977,19 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-	for (int i = 0, j = 0; i < m; i += roll) {
-		j = i;
-		s0 += v[j] * a[idx[j]];
-		j++;
-		s1 += v[j] * a[idx[j]];
-		j++;
-		s2 += v[j] * a[idx[j]];
-		j++;
-		s3 += v[j] * a[idx[j]];
-		j++;
+	for (int i = 0; i < m; i += roll) {
+		double *vv = v + i;
+		int *iidx = idx + i;
 
-		s0 += v[j] * a[idx[j]];
-		j++;
-		s1 += v[j] * a[idx[j]];
-		j++;
-		s2 += v[j] * a[idx[j]];
-		j++;
-		s3 += v[j] * a[idx[j]];
+		s0 += vv[0] * a[iidx[0]];
+		s1 += vv[1] * a[iidx[1]];
+		s2 += vv[2] * a[iidx[2]];
+		s3 += vv[3] * a[iidx[3]];
+
+		s0 += vv[4] * a[iidx[4]];
+		s1 += vv[5] * a[iidx[5]];
+		s2 += vv[6] * a[iidx[6]];
+		s3 += vv[7] * a[iidx[7]];
 	}
 
 	for (int i = d.quot * roll; i < n; i++) {
@@ -1009,18 +1005,18 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 
-	int j = 0;
 	for (int i = 0; i < d.quot * roll; i += roll) {
-		j = i;
-		s0 += a[idx[j++]];
-		s1 += a[idx[j++]];
-		s2 += a[idx[j++]];
-		s3 += a[idx[j++]];
+		int *iidx = idx + i;
+		
+		s0 += a[iidx[0]];
+		s1 += a[iidx[1]];
+		s2 += a[iidx[2]];
+		s3 += a[iidx[3]];
 
-		s0 += a[idx[j++]];
-		s1 += a[idx[j++]];
-		s2 += a[idx[j++]];
-		s3 += a[idx[j]];
+		s0 += a[iidx[4]];
+		s1 += a[iidx[5]];
+		s2 += a[iidx[6]];
+		s3 += a[iidx[7]];
 	}
 
 	for (int i = d.quot * roll; i < n; i++) {

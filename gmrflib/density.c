@@ -523,7 +523,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 	// GMRFLib_ENTER_ROUTINE;
 
-	Calloc_init(4 * npm + 2 * np);
+	Calloc_init(4 * npm + 2 * np, 6);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// density->mean = density->mean_gaussian;
@@ -984,7 +984,7 @@ int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_de
 	int i, j, k, n_alloc = IMAX(nd, nx);
 	double *d_tmp = NULL, *x_std = NULL, p;
 
-	Calloc_init(2 * n_alloc);
+	Calloc_init(2 * n_alloc, 2);
 	d_tmp = Calloc_get(n_alloc);
 	x_std = Calloc_get(n_alloc);
 
@@ -1056,7 +1056,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 			double *x = NULL, *ld = NULL;
 
 			GMRFLib_density_layout_x(NULL, &m, NULL);
-			Calloc_init(2 * m);
+			Calloc_init(2 * m, 2);
 			x = Calloc_get(m);
 			ld = Calloc_get(m);
 			GMRFLib_density_layout_x(x, &m, *densities);
@@ -1093,7 +1093,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	mean = m1 / sum_w;
 	stdev = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean)));
 
-	Calloc_init(2 * nx);
+	Calloc_init(2 * nx, 2);
 
 	/*
 	 * compute the weighted density. note that we have to go through the user/real-scale to get this right 
@@ -1190,7 +1190,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	double *xx = NULL, *ldens = NULL, g_mean = 0.0, g_var = 1.0;
 	GMRFLib_sn_param_tp sn_param = { 0, 0, 0 };
 
-	Calloc_init(2 * n);
+	Calloc_init(2 * n, 2);
 	xx = Calloc_get(n);
 	ldens = Calloc_get(n);
 
@@ -1287,7 +1287,7 @@ int GMRFLib_density_new_mean(GMRFLib_density_tp ** new_density, GMRFLib_density_
 	int i, n = N + 2 * M;
 	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
-	Calloc_init(2 * n);
+	Calloc_init(2 * n, 2);
 	x = Calloc_get(n);
 	ld = Calloc_get(n);
 
@@ -1321,7 +1321,7 @@ int GMRFLib_density_new_meansd(GMRFLib_density_tp ** new_density, GMRFLib_densit
 	int i, n = N + 2 * M;
 	double *x, *ld, alpha, eps[M] = { 1e-6, 1e-5, 1e-4, 1e-3 };
 
-	Calloc_init(2 * n);
+	Calloc_init(2 * n, 2);
 	x = Calloc_get(n);
 	ld = Calloc_get(n);
 
