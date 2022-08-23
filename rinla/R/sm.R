@@ -46,6 +46,10 @@
     ## flag it TRUE. (ie no double triplets etc).
     ## if na.rm then replace NA's with zeros.
     ## if zeros.rm then remove zeros.
+    
+    if (!inherits(A, "Matrix")) {
+        A <- as(A, "Matrix")
+    }
 
     if (unique) {
         ## Convert via double, general, Tsparse Matrix classes, following
