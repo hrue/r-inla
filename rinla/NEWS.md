@@ -1,3 +1,8 @@
+# INLA 22.08.24
+## BUG FIXES
+* Fixed an issue with the deprecated class coercions in `inla.as.dgTMatrix()`
+
+
 # INLA 22.08.23
 ## BUG FIXES
 * Avoid deprecated class coercions in `inla.as.dgTMatrix()`
