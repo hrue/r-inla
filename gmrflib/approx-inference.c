@@ -5718,12 +5718,27 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	if (gcpo) {
+		// build the gcpo-groups, but change the openmp-strategy, temporary, as _gcpo_build() parallelise in one level only
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
+		int place = GMRFLib_openmp->place;
+		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param);
+		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 
+
+	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
+	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
+	int place_save = 0; 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
+	if (GMRFLib_openmp->max_threads_outer > design->nexperiments) {
+		int outer = design->nexperiments;
+		int inner = IMAX(1, GMRFLib_MAX_THREADS() / outer);
+		place_save = GMRFLib_openmp->place;
+		GMRFLib_openmp_implement_strategy_special(outer, inner);
+	}
+		
 #pragma omp parallel for private(k, i, log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
@@ -5982,6 +5997,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		// do not free cpodens_moments!!!
 	}
 
+	if (place_save) {
+		GMRFLib_openmp_implement_strategy(place_save, NULL, NULL);
+	}
+	
 	if (nlin) {
 		// revert back as it was before
 		for (i = 0; i < nlin; i++) {
@@ -6057,7 +6076,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
-	// add a special one here
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < preopt->mnpred + graph->n; ii++) {
 		int i;
@@ -7094,7 +7112,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			GMRFLib_idxval_sort(groups[node]);		\
 		}
 
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N); 
 #undef CODE_BLOCK
 
 		if (free_selection) {
@@ -7220,9 +7238,27 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		}
 	}
 
+	GMRFLib_idx_tp *node_idx = NULL;
+	for(int node = 0; node < Npred; node++) {
+		// this case does not need to be computed
+		if (groups->missing[node]->n == 1 &&			
+		    groups->missing[node]->idx[0][0] == node &&
+		    groups->missing[node]->idx[1][0] == node) {		
+			if (gcpo_param->verbose || detailed_output) {
+				printf("%s[%1d]: node %d is singleton, skip solve\n", __GMRFLib_FuncName, omp_get_thread_num(), node); 
+			}						
+			continue;					
+		}
+		// compute this case
+		if (groups->missing[node]->n > 0) {
+			GMRFLib_idx_add(&node_idx, node);
+		}
+	}
+
 #define CODE_BLOCK							\
-	for (int node = 0; node < Npred; node++) {			\
-		if (groups->missing[node]->n == 0) continue;		\
+	for (int inode = 0; inode < node_idx->n; inode++) {		\
+		int node = node_idx->idx[inode];			\
+									\
 		GMRFLib_idxval_tp *v = A_idx(node);			\
 		double *a = CODE_BLOCK_WORK_PTR(0);			\
 		CODE_BLOCK_WORK_ZERO(0);				\
@@ -7230,14 +7266,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		double *cov = CODE_BLOCK_WORK_PTR(2);			\
 		CODE_BLOCK_WORK_ZERO(2);				\
 		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};		\
-		if (groups->missing[node]->n == 1 &&			\
-		    groups->missing[node]->idx[0][0] == node &&		\
-		    groups->missing[node]->idx[1][0] == node) {		\
-			if (gcpo_param->verbose || detailed_output) {	\
-				printf("%s[%1d]: node %d is singleton, skip solve\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
-			}						\
-			continue;					\
-		}							\
+									\
 		for (int k = 0; k < v->n; k++) {			\
 			a[v->idx[k]] = v->val[k];			\
 		}							\
@@ -7279,6 +7308,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
 #undef CODE_BLOCK
 
+	GMRFLib_idx_free(node_idx);
+
 	if (detailed_output) {
 #pragma omp critical (Name_0139eb204165e8e82ee3aaaaff59eab1d5b3cc14)
 		{
@@ -7309,12 +7340,19 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	}
 	assert(num_error == 0);
 
+	GMRFLib_idx_tp *node_idx2 = NULL;
+	for(int node = 0; node < Npred; node++) {			
+		if (gcpo[node]->cov_mat) {
+			GMRFLib_idx_add(&node_idx2, node);
+		} else {
+			gcpo[node]->value = NAN;
+		}
+	}
+	
 #define CODE_BLOCK							\
-	for(int node = 0; node < Npred; node++) {			\
-		if (gcpo[node]->cov_mat == NULL) {			\
-			gcpo[node]->value = NAN;			\
-			continue;					\
-		}							\
+	for(int inode = 0; inode < node_idx2->n; inode++) {		\
+		int node = node_idx2->idx[inode];			\
+									\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
 		int ng = gcpo[node]->idxs->n;				\
 		int *idxs = gcpo[node]->idxs->idx;			\
@@ -7464,6 +7502,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, IMAX(np, max_ng));
 #undef CODE_BLOCK
 
+	GMRFLib_idx_free(node_idx2);
 	Calloc_free();
 #undef A_idx
 

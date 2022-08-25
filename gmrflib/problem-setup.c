@@ -222,7 +222,14 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
-	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1), 0, 0);
+	int nt = 0;
+	if (omp_get_level() > 2) {
+		nt = 1;
+	} else {
+		nt = (m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1); 
+	}
+
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -290,7 +297,14 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
-	RUN_CODE_BLOCK((m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1), 0, 0);
+	int nt = 0;
+	if (omp_get_level() > 2) {
+		nt = 1;
+	} else {
+		nt = (m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1);
+	}
+
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
@@ -307,7 +321,15 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); \
 	}
 
-	RUN_CODE_BLOCK((nc > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1), 0, 0);
+	int nt = 0;
+
+	// can be used on third level
+	if (omp_get_level() > 2) {
+		nt = 1;
+	} else {
+		nt = (nc > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1);
+	}
+	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
 	return GMRFLib_SUCCESS;
