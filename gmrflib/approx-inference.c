@@ -8545,8 +8545,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	}
 	assert(d_idx);
 
-	Calloc_init(6 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred + 1 * vb_idx->n, 13);
+	Calloc_init(7 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred + 1 * vb_idx->n, 13);
 	double *x_mean = Calloc_get(graph->n);
+	double *mean_constr = Calloc_get(graph->n);
 	double *pmean = Calloc_get(preopt->mnpred);
 	double *pvar = Calloc_get(preopt->mnpred);
 
@@ -8557,6 +8558,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 			x_mean[i] = ai_store->problem->mean_constr[i];
 		}
 	}
+	Memcpy(mean_constr, ai_store->problem->mean_constr, graph->n * sizeof(double));
 
 	double *BB = Calloc_get(preopt->Npred);
 	double *CC = Calloc_get(preopt->Npred);
@@ -8941,6 +8943,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	if (problem) {
 		GMRFLib_free_problem(ai_store->problem);
 		ai_store->problem = problem;
+		Memcpy(problem->mean_constr, mean_constr, graph->n * sizeof(double));
 		for (int i = 0; i < graph->n; i++) {
 			if (density[i][dens_count]) {
 				GMRFLib_density_new_user_stdev(density[i][dens_count], sd_prev[i]);
