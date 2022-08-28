@@ -12890,6 +12890,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\t\tR-INLA build date = [%s]\n", build_date);
 		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
 		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
+		printf("\t\tCores = [%1d] (Physical= %1d, Logical= %1d)\n", UTIL_countCores(), UTIL_countPhysicalCores(), UTIL_countLogicalCores());
 	}
 
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
@@ -37397,6 +37398,10 @@ int testit(int argc, char **argv)
 
 	case 19:
 	{
+		printf("cores= %1d physical= %1d logical= %1d\n",
+		       UTIL_countPhysicalCores(), 
+		       UTIL_countCores(), 
+		       UTIL_countLogicalCores());
 	}
 		break;
 
