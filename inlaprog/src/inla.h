@@ -2080,7 +2080,7 @@ double testit_Qfunc(int thread_id, int i, int j, double *values, void *arg);
 
 // defined in cores.c
 int UTIL_countPhysicalCores(void);
-int UTIL_countCores(void);
+int UTIL_countCores(int);
 int UTIL_countLogicalCores(void);
 
 /* 
