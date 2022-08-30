@@ -7252,6 +7252,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_idx_add(&node_idx, node);
 		}
 	}
+	assert(node_idx);
 
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\

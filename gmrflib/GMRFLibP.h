@@ -81,6 +81,10 @@ typedef int fortran_charlen_t;
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
+#if defined(NDEBUG)
+#error The code assume that NDEBUG is *NOT* defined
+#endif
+
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
 	GMRFLib_MODE_TWOSTAGE,

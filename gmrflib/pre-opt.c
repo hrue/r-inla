@@ -1359,6 +1359,7 @@ int GMRFLib_preopt_test1(int n, int m)
 			break;
 	}
 	GMRFLib_idxval_sort(idxval);
+	assert(idxval);
 
 	double *x = Calloc(n, double);
 	for (int i = 0; i < k; i++) {

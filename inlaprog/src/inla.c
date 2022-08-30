@@ -37601,9 +37601,9 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_sort(h);
+		assert(h);
 		P(h->g_n);
 		P(h->n / h->g_n);
-
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
 		for (int k = 0; k < 10000; k++) {
@@ -39172,6 +39172,7 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		assert(h);
 		P(n);
 		P(h->g_n);
 		P(h->n / h->g_n);
