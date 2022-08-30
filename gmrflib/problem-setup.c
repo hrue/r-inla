@@ -226,7 +226,7 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 	if (omp_get_level() > 2) {
 		nt = 1;
 	} else {
-		nt = (m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1); 
+		nt = (m > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1);
 	}
 
 	RUN_CODE_BLOCK(nt, 0, 0);

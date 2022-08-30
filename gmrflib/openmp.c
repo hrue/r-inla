@@ -66,7 +66,7 @@ int GMRFLib_set_blas_num_threads(int threads)
 	return 0;
 }
 
-int GMRFLib_openmp_implement_strategy_special(int outer, int inner) 
+int GMRFLib_openmp_implement_strategy_special(int outer, int inner)
 {
 	GMRFLib_openmp->place = GMRFLib_OPENMP_PLACES_SPECIAL;
 	GMRFLib_openmp->max_threads_outer = outer;
@@ -325,7 +325,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		break;
 
 	case GMRFLib_OPENMP_PLACES_NONE:
-	case GMRFLib_OPENMP_PLACES_SPECIAL: 
+	case GMRFLib_OPENMP_PLACES_SPECIAL:
 		switch (strategy) {
 		case GMRFLib_OPENMP_STRATEGY_NONE:	       /* only one option allowed */
 			break;

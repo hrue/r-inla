@@ -565,7 +565,7 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	store->pstore[tnum]->nrhs = 0;
 	store->pstore[tnum]->err_code = 0;
 	store->pstore[tnum]->iparm[2] = store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2] = GMRFLib_PARDISO_MAX_NUM_THREADS();
-	
+
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
@@ -690,7 +690,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 			omp_set_num_threads(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		} else {
 			omp_set_num_threads(IMIN(GMRFLib_openmp->max_threads_inner, store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]));
-			//assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+			// assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		}
 	}
 
@@ -821,7 +821,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		omp_set_num_threads(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	} else {
 		omp_set_num_threads(IMIN(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2], GMRFLib_openmp->max_threads_inner));
-		//assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+		// assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	}
 
 	GMRFLib_csr_tp *Q = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q;
@@ -925,7 +925,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 			} else {
 				nt = GMRFLib_openmp->max_threads_inner;
 			}
-			//assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+			// assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 		}
 	}
 	// printf("possible nt %d S.nrhs_max %d\n", nt, S.nrhs_max);
@@ -1148,7 +1148,7 @@ int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
 		omp_set_num_threads(store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	} else {
 		omp_set_num_threads(IMIN(GMRFLib_openmp->max_threads_inner, store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]));
-		//assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
+		// assert(GMRFLib_openmp->max_threads_inner <= store->pstore[GMRFLib_PSTORE_TNUM_REF]->iparm[2]);
 	}
 	GMRFLib_csr_tp *Qinv = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv;
 

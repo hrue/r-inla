@@ -18,8 +18,8 @@
 #define __BEGIN_DECLS extern "C" {
 #define __END_DECLS }
 #else
-#define __BEGIN_DECLS                                          /* empty */
-#define __END_DECLS                                            /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
 __BEGIN_DECLS
@@ -27,7 +27,6 @@ __BEGIN_DECLS
 /*-****************************************
 *  Dependencies
 ******************************************/
-
 #include <stddef.h>					       /* size_t, ptrdiff_t */
 #include <sys/types.h>					       /* stat, utime */
 #include <sys/stat.h>					       /* stat, chmod */
@@ -81,4 +80,3 @@ int UTIL_countLogicalCores(void);
 
 __END_DECLS
 #endif
-
