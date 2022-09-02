@@ -81,6 +81,10 @@ typedef int fortran_charlen_t;
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
+#if defined(NDEBUG)
+#error The code assume that NDEBUG is *NOT* defined
+#endif
+
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
 	GMRFLib_MODE_TWOSTAGE,
@@ -460,11 +464,12 @@ typedef enum {
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int l1_cacheline = 8;					\
-		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
+		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
+			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
 		int len_work__ = IMAX(1, len_work_ + l1_cacheline);	\
 		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
+		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
 		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(static)") \
@@ -478,11 +483,12 @@ typedef enum {
 #define RUN_CODE_BLOCK_DYNAMIC(thread_max_, n_work_, len_work_)		\
 	if (1) {							\
 		int l1_cacheline = 8;					\
-		int nt__ = (GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL() ? GMRFLib_openmp->max_threads_outer : GMRFLib_openmp->max_threads_inner); \
+		int nt__ = ((GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD() || GMRFLib_OPENMP_IN_SERIAL()) ? \
+			    IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer) : GMRFLib_openmp->max_threads_inner); \
 		int tmax__ = thread_max_;				\
 		int len_work__ = IMAX(1, len_work_ + l1_cacheline);	\
 		int n_work__ = IMAX(1, n_work_);			\
-		nt__ = IMAX(1, IMIN(nt__, tmax__));			\
+		nt__ = (tmax__ < 0 ? -tmax__ : IMAX(1, IMIN(nt__, tmax__))); \
 		double * work__ = Calloc(len_work__ * n_work__ * nt__, double);	\
 		if (nt__ > 1) {						\
 			_Pragma("omp parallel for num_threads(nt__) schedule(dynamic)") \

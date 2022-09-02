@@ -78,11 +78,13 @@ typedef enum {
 	GMRFLib_OPENMP_PLACES_COMBINE,
 	GMRFLib_OPENMP_PLACES_EXTERNAL,
 	GMRFLib_OPENMP_PLACES_TIMING,
+	GMRFLib_OPENMP_PLACES_GCPO_BUILD,
+	GMRFLib_OPENMP_PLACES_SPECIAL,
 	GMRFLib_OPENMP_PLACES_DEFAULT,
 	GMRFLib_OPENMP_PLACES_NONE
 } GMRFLib_openmp_place_tp;
 
-#define GMRFLib_OPENMP_PLACE_NAME(num) \
+#define GMRFLib_OPENMP_PLACE_NAME(num)					\
 	((num) == GMRFLib_OPENMP_PLACES_PARSE_MODEL ? "parse.model" :	\
 	 ((num) == GMRFLib_OPENMP_PLACES_BUILD_MODEL ? "build.model" :	\
 	  ((num) == GMRFLib_OPENMP_PLACES_OPTIMIZE ? "optimize" :	\
@@ -91,8 +93,10 @@ typedef enum {
 	     ((num) == GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR ? "integrate.hyperpar" : \
 	      ((num) == GMRFLib_OPENMP_PLACES_COMBINE ? "combine" :	\
 	       ((num) == GMRFLib_OPENMP_PLACES_EXTERNAL ? "external" :	\
-		 ((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" :	\
-		  ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))
+		((num) == GMRFLib_OPENMP_PLACES_GCPO_BUILD ? "gcpo_build" : \
+		 ((num) == GMRFLib_OPENMP_PLACES_SPECIAL ? "special" : \
+		  ((num) == GMRFLib_OPENMP_PLACES_DEFAULT ? "default" :	\
+		   ((num) == GMRFLib_OPENMP_PLACES_NONE ? "none" : "THIS SHOULD NOT HAPPEN"))))))))))))
 
 typedef struct {
 	GMRFLib_openmp_place_tp place;
@@ -123,6 +127,7 @@ typedef struct {
 int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp);
+int GMRFLib_openmp_implement_strategy_special(int outer, int inner);
 
 __END_DECLS
 #endif

@@ -1007,7 +1007,7 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 
 	for (int i = 0; i < d.quot * roll; i += roll) {
 		int *iidx = idx + i;
-		
+
 		s0 += a[iidx[0]];
 		s1 += a[iidx[1]];
 		s2 += a[iidx[2]];

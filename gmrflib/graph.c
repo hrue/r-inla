@@ -650,7 +650,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 	for (int i = 0, k = 0; i < n; i++) {
 		row2col[k++] = Q(i, i, 0);
-		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};	
+		int guess[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 			int j = graph->snbs[i][jj];
 			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j], guess);
