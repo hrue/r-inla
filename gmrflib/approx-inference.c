@@ -5641,9 +5641,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	if (nlin > 0) {
-		lin_dens = Calloc(hyper_len, GMRFLib_density_tp **);
+		lin_dens = Calloc(dens_max, GMRFLib_density_tp **);
 		if (misc_output && misc_output->compute_corr_lin) {
-			lin_cross = Calloc(hyper_len, double *);
+			lin_cross = Calloc(dens_max, double *);
 		}
 	} else {
 		nlin = 0;

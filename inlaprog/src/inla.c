@@ -12717,9 +12717,9 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		GMRFLib_io_read(io, w, npairs * sizeof(double));
-		lc->weight = Realloc(lc->weight, lc->n + npairs, float);	/* YES! */
+		lc->weight = Realloc(lc->weight, lc->n + npairs, double);
 		for (i = 0; i < npairs; i++) {
-			lc->weight[lc->n + i] = (float) w[i];
+			lc->weight[lc->n + i] = w[i];
 			all_weights_are_zero &= (w[i] == 0.0);
 		}
 
@@ -12747,7 +12747,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
 	 */
-	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
+	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(double), NULL, 0, GMRFLib_icmp);
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
 		printf("\t\tLincomb = \tidx \tweight\n");
@@ -33926,7 +33926,45 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
-	GMRFLib_ai_INLA_experimental(&(mb->density),
+	if (mb->nlc > 0) {
+		// postprocess the lincombs to convert APredictor and Predictor into sums of the latent
+		int debug = 0;
+		int mpred = preopt->mpred; // length(pApredictor)
+		int mnpred = preopt->mnpred; // length(c(pApredictor, Apredictor))
+
+		for(int k = 0; k < mb->nlc; k++) {
+			GMRFLib_idxval_tp *idx = NULL;
+			GMRFLib_lc_tp *lc = mb->lc_lc[k];
+			for(int ii = 0; ii < lc->n; ii++) {
+				int i = lc->idx[ii];
+				double w = lc->weight[ii];
+				if (debug) {
+					printf("lc[%1d] decode [idx= %1d, weight= %.8f]\n", k, i, w);
+				}
+				if (lc->idx[ii] < mnpred) {
+					// replace this statement with a row of either pAA or A
+					GMRFLib_idxval_tp *AA = (lc->idx[ii] < mpred ? preopt->pAA_idxval[lc->idx[ii]] : preopt->A_idxval[lc->idx[ii] - mpred]);
+					for(int j = 0; j < AA->n; j++) {
+						GMRFLib_idxval_addto(&idx, AA->idx[j] + mnpred, w * AA->val[j]);
+					}
+				} else {
+					GMRFLib_idxval_addto(&idx, i, w);
+				}
+			}
+			GMRFLib_idxval_uniq(idx);
+			if (debug) {
+				GMRFLib_idxval_printf(stdout, idx, "");
+			}
+			
+			Free(lc->idx);
+			Free(lc->weight);
+			lc->n = idx->n;
+			lc->idx = idx->idx;
+			lc->weight = idx->val;
+		}
+	}
+
+        GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 				     (mb->output->gcpo ? &(mb->gcpo) : NULL), mb->gcpo_param,
@@ -37894,11 +37932,6 @@ int testit(int argc, char **argv)
 
 	case 42:
 	{
-		float x[2] = { 0, 0 };
-		printf("x= %f %f\n", x[0], x[1]);
-		x[0] = NAN;
-		printf("x= %f %f (x[1]==0 %1d) sizeof()=%zu\n", x[0], x[1], x[1] == 0, sizeof(float));
-		break;
 	}
 
 	case 43:
