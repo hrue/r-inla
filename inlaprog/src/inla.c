@@ -33929,13 +33929,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	if (mb->nlc > 0) {
 		// postprocess the lincombs to convert APredictor and Predictor into sums of the latent
 		int debug = 0;
-		int mpred = preopt->mpred; // length(pApredictor)
-		int mnpred = preopt->mnpred; // length(c(pApredictor, Apredictor))
+		int mpred = preopt->mpred;		       // length(pApredictor)
+		int mnpred = preopt->mnpred;		       // length(c(pApredictor, Apredictor))
 
-		for(int k = 0; k < mb->nlc; k++) {
+		for (int k = 0; k < mb->nlc; k++) {
 			GMRFLib_idxval_tp *idx = NULL;
 			GMRFLib_lc_tp *lc = mb->lc_lc[k];
-			for(int ii = 0; ii < lc->n; ii++) {
+			for (int ii = 0; ii < lc->n; ii++) {
 				int i = lc->idx[ii];
 				double w = lc->weight[ii];
 				if (debug) {
@@ -33943,8 +33943,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				}
 				if (lc->idx[ii] < mnpred) {
 					// replace this statement with a row of either pAA or A
-					GMRFLib_idxval_tp *AA = (lc->idx[ii] < mpred ? preopt->pAA_idxval[lc->idx[ii]] : preopt->A_idxval[lc->idx[ii] - mpred]);
-					for(int j = 0; j < AA->n; j++) {
+					GMRFLib_idxval_tp *AA =
+					    (lc->idx[ii] < mpred ? preopt->pAA_idxval[lc->idx[ii]] : preopt->A_idxval[lc->idx[ii] - mpred]);
+					for (int j = 0; j < AA->n; j++) {
 						GMRFLib_idxval_addto(&idx, AA->idx[j] + mnpred, w * AA->val[j]);
 					}
 				} else {
@@ -33955,7 +33956,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			if (debug) {
 				GMRFLib_idxval_printf(stdout, idx, "");
 			}
-			
+
 			Free(lc->idx);
 			Free(lc->weight);
 			lc->n = idx->n;
@@ -33964,7 +33965,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
-        GMRFLib_ai_INLA_experimental(&(mb->density),
+	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
 				     (mb->output->gcpo ? &(mb->gcpo) : NULL), mb->gcpo_param,

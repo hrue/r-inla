@@ -994,7 +994,7 @@ typedef struct {
 typedef struct {
 	int n;						       /* length */
 	int *idx;					       /* list of indices */
-	double *weight;					       
+	double *weight;
 	GMRFLib_lc_tinfo_tp *tinfo;			       /* thread-info */
 } GMRFLib_lc_tp;
 
