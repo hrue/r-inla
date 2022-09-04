@@ -33943,8 +33943,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				}
 				if (lc->idx[ii] < mnpred) {
 					// replace this statement with a row of either pAA or A
-					GMRFLib_idxval_tp *AA =
-					    (lc->idx[ii] < mpred ? preopt->pAA_idxval[lc->idx[ii]] : preopt->A_idxval[lc->idx[ii] - mpred]);
+					GMRFLib_idxval_tp *AA = NULL;
+					if (lc->idx[ii] < mpred) {
+						AA = preopt->pAA_idxval[lc->idx[ii]];
+					} else {
+						AA = preopt->A_idxval[lc->idx[ii] - mpred];
+					}
+
 					for (int j = 0; j < AA->n; j++) {
 						GMRFLib_idxval_addto(&idx, AA->idx[j] + mnpred, w * AA->val[j]);
 					}
