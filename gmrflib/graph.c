@@ -556,13 +556,14 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	// int imax = IMAX(node, nnode);
 
 	int m = graph->lnnbs[imin];
-	if ((!m || imax > graph->lnbs[imin][m - 1])) {
+	int *nb = graph->lnbs[imin];
+	if ((!m || imax > nb[m - 1])) {
 		return GMRFLib_FALSE;
 	}
 
 	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
-	return ((GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+	return ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
 int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
