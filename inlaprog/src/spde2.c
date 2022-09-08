@@ -72,9 +72,9 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	/*
 	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
 	 */
+	int nc = model->B[0]->ncol;
+	double *row = (new_code ? GMRFLib_vmatrix_get(model->vmatrix, i, j) : NULL);
 	if (new_code) {
-		int nc = model->B[0]->ncol;
-		double *row = GMRFLib_vmatrix_get(model->Bvmatrix, i, j);
 		double *row_i = NULL;
 		double *row_j = NULL;
 
@@ -203,7 +203,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	}
 
 	if (new_code) {
-		double *v = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+		double *v = row + (i == j ? 3 * nc : 6 * nc);
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	} else {
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
@@ -317,42 +317,29 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 
 	// add better storage
 
+	int nc = model->B[0]->ncol;
 	GMRFLib_vmatrix_init(&(model->vmatrix), model->n, model->graph);
 	for(int i = 0; i < model->n; i++) {
 		int j = i;
-		double *v = Calloc(4, double);
-		v[0] = GMRFLib_matrix_get(i, j, model->M[0]);
-		v[1] = GMRFLib_matrix_get(i, j, model->M[1]);
-		v[2] = GMRFLib_matrix_get(j, i, model->M[1]);
-		v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
-		GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
-
-		for(int jj = 0; jj < model->graph->lnnbs[i]; jj++){
-			j = model->graph->lnbs[i][jj];
-			v = Calloc(4, double);
-			v[0] = GMRFLib_matrix_get(i, j, model->M[0]);
-			v[1] = GMRFLib_matrix_get(i, j, model->M[1]);
-			v[2] = GMRFLib_matrix_get(j, i, model->M[1]);
-			v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
-			GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
-		}
-	}
-
-	int nc = model->B[0]->ncol;
-	GMRFLib_vmatrix_init(&(model->Bvmatrix), model->n, model->graph);
-	for(int i = 0; i < model->n; i++) {
-		int j = i;
 		
-		double *v = Calloc(3 * nc, double);
+		double *v = Calloc(3 * nc + 4, double);
+		assert(v);
+		
 		GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
 		GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
 		GMRFLib_matrix_get_row(v + 2 * nc, i, model->B[2]);
 
-		GMRFLib_vmatrix_set(model->Bvmatrix, i, j, v);
+		double *vv = v + 3 * nc;
+		vv[0] = GMRFLib_matrix_get(i, j, model->M[0]);
+		vv[1] = GMRFLib_matrix_get(i, j, model->M[1]);
+		vv[2] = GMRFLib_matrix_get(j, i, model->M[1]);
+		vv[3] = GMRFLib_matrix_get(i, j, model->M[2]);
+
+		GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
 
 		for(int jj = 0; jj < model->graph->lnnbs[i]; jj++){
 			j = model->graph->lnbs[i][jj];
-			v = Calloc(6 * nc, double);
+			v = Calloc(6 * nc + 4, double);
 
 			GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
 			GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
@@ -362,7 +349,13 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 			GMRFLib_matrix_get_row(v + 4 * nc, j, model->B[1]);
 			GMRFLib_matrix_get_row(v + 5 * nc, j, model->B[2]);
 			
-			GMRFLib_vmatrix_set(model->Bvmatrix, i, j, v);
+			double *vv = v + 6 * nc;
+			vv[0] = GMRFLib_matrix_get(i, j, model->M[0]);
+			vv[1] = GMRFLib_matrix_get(i, j, model->M[1]);
+			vv[2] = GMRFLib_matrix_get(j, i, model->M[1]);
+			vv[3] = GMRFLib_matrix_get(i, j, model->M[2]);
+
+			GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
 		}
 	}
 
