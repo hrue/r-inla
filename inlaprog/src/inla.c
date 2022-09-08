@@ -37670,6 +37670,24 @@ int testit(int argc, char **argv)
 		break;
 
 	case 26:
+		int nrow = 10;
+		GMRFLib_vmatrix_tp *m = NULL;
+		GMRFLib_vmatrix_init(&m, nrow, NULL);
+
+		for(int i = 0; i < nrow; i++) {
+			for(int j = i; j < nrow; j++) {
+				double *val = Calloc(1, double);
+				*val = (double)j;
+				GMRFLib_vmatrix_set(m, i, j, val);
+			}
+		}
+		for(int i = 0; i < nrow; i++) {
+			for(int j = i; j < nrow; j++) {
+				double *val = GMRFLib_vmatrix_get(m, i, j);
+				printf("i %d j %d val %g\n", i, j, *val);
+			}
+		}
+		GMRFLib_vmatrix_free(m, 1);
 		break;
 
 	case 27:
