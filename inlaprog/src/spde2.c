@@ -313,9 +313,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 	HYPER_NEW2(model->theta, 0.0, model->ntheta);
 	*smodel = model;
 
-
 	// add better storage
-
 	int nc = model->B[0]->ncol;
 	GMRFLib_vmatrix_init(&(model->vmatrix), model->n, model->graph);
 	for (int i = 0; i < model->n; i++) {
@@ -339,7 +337,8 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 		for (int jj = 0; jj < model->graph->lnnbs[i]; jj++) {
 			j = model->graph->lnbs[i][jj];
 			v = Calloc(6 * nc + 4, double);
-
+			assert(v);
+			
 			GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
 			GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
 			GMRFLib_matrix_get_row(v + 2 * nc, i, model->B[2]);
