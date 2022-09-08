@@ -8879,9 +8879,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -37674,15 +37674,15 @@ int testit(int argc, char **argv)
 		GMRFLib_vmatrix_tp *m = NULL;
 		GMRFLib_vmatrix_init(&m, nrow, NULL);
 
-		for(int i = 0; i < nrow; i++) {
-			for(int j = i; j < nrow; j++) {
+		for (int i = 0; i < nrow; i++) {
+			for (int j = i; j < nrow; j++) {
 				double *val = Calloc(1, double);
-				*val = (double)j;
+				*val = (double) j;
 				GMRFLib_vmatrix_set(m, i, j, val);
 			}
 		}
-		for(int i = 0; i < nrow; i++) {
-			for(int j = i; j < nrow; j++) {
+		for (int i = 0; i < nrow; i++) {
+			for (int j = i; j < nrow; j++) {
 				double *val = GMRFLib_vmatrix_get(m, i, j);
 				printf("i %d j %d val %g\n", i, j, *val);
 			}

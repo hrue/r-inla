@@ -50,7 +50,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		return NAN;
 	}
 
-	int new_code = 1;
+	int new_code = 1;				       /* switch for the new code */
 	int i, j;
 
 	if (ii <= jj) {
@@ -85,12 +85,12 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				for (kk = 1; kk < nc; kk++) {
 					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
 				}
-				phi_j[k] = phi_i[k];		       /* they are equal in this case */
+				phi_j[k] = phi_i[k];	       /* they are equal in this case */
 			}
 		} else {
 			for (k = 0; k < 3; k++) {
 				row_i = row + k * nc;
-				row_j = row + 3 * nc  + k * nc;
+				row_j = row + 3 * nc + k * nc;
 				phi_i[k] = row_i[0];
 				phi_j[k] = row_j[0];
 				for (kk = 1; kk < nc; kk++) {
@@ -140,7 +140,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 					 */
 					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
 				}
-				phi_j[k] = phi_i[k];		       /* they are equal in this case */
+				phi_j[k] = phi_i[k];	       /* they are equal in this case */
 			} else {
 				/*
 				 * i != j 
@@ -159,7 +159,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			}
 		}
 	}
-	
+
 	for (k = 0; k < 2; k++) {
 		d_i[k] = exp(phi_i[k]);
 		d_j[k] = exp(phi_j[k]);
@@ -208,8 +208,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	} else {
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
 					   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
-					   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) +
-					   GMRFLib_matrix_get(i, j, model->M[2]));
+					   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
 	}
 
 	return value;
@@ -319,12 +318,12 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 
 	int nc = model->B[0]->ncol;
 	GMRFLib_vmatrix_init(&(model->vmatrix), model->n, model->graph);
-	for(int i = 0; i < model->n; i++) {
+	for (int i = 0; i < model->n; i++) {
 		int j = i;
-		
+
 		double *v = Calloc(3 * nc + 4, double);
 		assert(v);
-		
+
 		GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
 		GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
 		GMRFLib_matrix_get_row(v + 2 * nc, i, model->B[2]);
@@ -337,7 +336,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 
 		GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
 
-		for(int jj = 0; jj < model->graph->lnnbs[i]; jj++){
+		for (int jj = 0; jj < model->graph->lnnbs[i]; jj++) {
 			j = model->graph->lnbs[i][jj];
 			v = Calloc(6 * nc + 4, double);
 
@@ -348,7 +347,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 			GMRFLib_matrix_get_row(v + 3 * nc, j, model->B[0]);
 			GMRFLib_matrix_get_row(v + 4 * nc, j, model->B[1]);
 			GMRFLib_matrix_get_row(v + 5 * nc, j, model->B[2]);
-			
+
 			double *vv = v + 6 * nc;
 			vv[0] = GMRFLib_matrix_get(i, j, model->M[0]);
 			vv[1] = GMRFLib_matrix_get(i, j, model->M[1]);
