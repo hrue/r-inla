@@ -170,14 +170,14 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	 */
 	if (i == j) {
 		switch (model->transform) {
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+		case SPDE2_TRANSFORM_IDENTITY:
+			d_i[2] = phi_i[2];
 			break;
 		case SPDE2_TRANSFORM_LOG:
 			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
 			break;
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
+		case SPDE2_TRANSFORM_LOGIT:
+			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
 			break;
 		default:
 			assert(0 == 1);
@@ -185,17 +185,17 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		d_j[2] = d_i[2];
 	} else {
 		switch (model->transform) {
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
+		case SPDE2_TRANSFORM_IDENTITY:
+			d_i[2] = phi_i[2];
+			d_j[2] = phi_j[2];
 			break;
 		case SPDE2_TRANSFORM_LOG:
 			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
 			d_j[2] = 2 * exp(phi_j[2]) - 1.0;
 			break;
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
-			d_j[2] = phi_j[2];
+		case SPDE2_TRANSFORM_LOGIT:
+			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
 			break;
 		default:
 			assert(0 == 1);
