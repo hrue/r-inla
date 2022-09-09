@@ -50,7 +50,6 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		return NAN;
 	}
 
-	int new_code = 1;				       /* switch for the new code */
 	int i, j;
 
 	if (ii <= jj) {
@@ -73,89 +72,28 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
 	 */
 	int nc = model->B[0]->ncol;
-	double *row = (new_code ? GMRFLib_vmatrix_get(model->vmatrix, i, j) : NULL);
-	if (new_code) {
-		double *row_i = NULL;
-		double *row_j = NULL;
+	double *row = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *row_i = NULL;
+	double *row_j = NULL;
 
-		if (i == j) {
-			for (k = 0; k < 3; k++) {
-				row_i = row + k * nc;
-				phi_i[k] = row_i[0];
-				for (kk = 1; kk < nc; kk++) {
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-				}
-				phi_j[k] = phi_i[k];	       /* they are equal in this case */
+	if (i == j) {
+		for (k = 0; k < 3; k++) {
+			row_i = row + k * nc;
+			phi_i[k] = row_i[0];
+			for (kk = 1; kk < nc; kk++) {
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
 			}
-		} else {
-			for (k = 0; k < 3; k++) {
-				row_i = row + k * nc;
-				row_j = row + 3 * nc + k * nc;
-				phi_i[k] = row_i[0];
-				phi_j[k] = row_j[0];
-				for (kk = 1; kk < nc; kk++) {
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-					phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
-				}
-			}
+			phi_j[k] = phi_i[k];	       /* they are equal in this case */
 		}
 	} else {
-		static double **wwork = NULL;
-		static int *wwork_len = NULL;
-		if (!wwork) {
-#pragma omp critical (Name_84bb273519e44e6e71eb9eac1d4e094b709425b4)
-			{
-				if (!wwork) {
-					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
-				}
-			}
-		}
-
-		int cache_idx = 0;
-		GMRFLib_CACHE_SET_ID(cache_idx);
-
-		int wlen = model->B[0]->ncol;
-		if (2 * wlen > wwork_len[cache_idx]) {
-			Free(wwork[cache_idx]);
-			wwork_len[cache_idx] = 2 * wlen;
-			wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
-		}
-		double *work = wwork[cache_idx];
-		Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
-
-		double *row_i = work;
-		double *row_j = &work[wlen];
-
 		for (k = 0; k < 3; k++) {
-			if (i == j) {
-				/*
-				 * some savings for i == j 
-				 */
-				GMRFLib_matrix_get_row(row_i, i, model->B[k]);
-				phi_i[k] = row_i[0];
-				for (kk = 1; kk < model->B[k]->ncol; kk++) {
-					/*
-					 * '-1' is the correction for the first intercept column in B 
-					 */
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-				}
-				phi_j[k] = phi_i[k];	       /* they are equal in this case */
-			} else {
-				/*
-				 * i != j 
-				 */
-				GMRFLib_matrix_get_row(row_i, i, model->B[k]);
-				GMRFLib_matrix_get_row(row_j, j, model->B[k]);
-				phi_i[k] = row_i[0];
-				phi_j[k] = row_j[0];
-				for (kk = 1; kk < model->B[k]->ncol; kk++) {
-					/*
-					 * '-1' is the correction for the first intercept column in B 
-					 */
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-					phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
-				}
+			row_i = row + k * nc;
+			row_j = row + 3 * nc + k * nc;
+			phi_i[k] = row_i[0];
+			phi_j[k] = row_j[0];
+			for (kk = 1; kk < nc; kk++) {
+				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
+				phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
 			}
 		}
 	}
@@ -202,14 +140,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		}
 	}
 
-	if (new_code) {
-		double *v = row + (i == j ? 3 * nc : 6 * nc);
-		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
-	} else {
-		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
-					   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
-					   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
-	}
+	double *v = row + (i == j ? 3 * nc : 6 * nc);
+	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 
 	return value;
 }
