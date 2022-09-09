@@ -137,8 +137,8 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	nbs = Calloc(n, int *);
 	nnbs = Calloc(n, int);
 
-	for (int i = 0; i < n; i++) {					
-		for (map_ii_storage * p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {	
+	for (int i = 0; i < n; i++) {
+		for (map_ii_storage * p = NULL; (p = map_ii_nextptr(&(ged->Q[i]), p)) != NULL;) {
 			if (p->key > i) {
 				map_ii_set(&(ged->Q[p->key]), i, 1);
 			}

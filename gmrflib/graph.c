@@ -556,13 +556,14 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	// int imax = IMAX(node, nnode);
 
 	int m = graph->lnnbs[imin];
-	if ((!m || imax > graph->lnbs[imin][m - 1])) {
+	int *nb = graph->lnbs[imin];
+	if ((!m || imax > nb[m - 1])) {
 		return GMRFLib_FALSE;
 	}
 
 	int idx = 0;
 	GMRFLib_CACHE_SET_ID(idx);
-	return ((GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+	return ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
 int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
@@ -650,7 +651,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 	for (int i = 0, k = 0; i < n; i++) {
 		row2col[k++] = Q(i, i, 0);
-		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};	
+		int guess[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 			int j = graph->snbs[i][jj];
 			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j], guess);

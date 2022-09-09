@@ -435,7 +435,16 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         } else {
             pnam <- paste0("Predictor:", seq_len(nrow(result$misc$configs$A)))
         }
-        attr(xx, ".contents") <- result$misc$configs$contents
+
+        cont.A <- NULL
+        cont.pA <- NULL
+        if (!is.null(result$misc$configs$A)) {
+            cont.A <- result$misc$configs$A
+        }
+        if (!is.null(result$misc$configs$pA)) {
+            cont.pA <- result$misc$configs$pA
+        }
+        attr(xx, ".contents") <- c(result$misc$configs$contents, A = cont.A, pA = cont.pA)
 
         off <- result$misc$configs$offsets
         for(i in seq_along(xx)) {
@@ -986,6 +995,12 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
         env <- new.env()
         theta <- as.vector(a.sample$hyperpar)
         assign("theta", theta, envir = env)
+        if (!is.null(.contents$A)) {
+            assign("A", .contents$A, envir = env)
+        }
+        if (!is.null(.contents$pA)) {
+            assign("pA", .contents$pA, envir = env)
+        }
         for (i in seq_along(.contents$tag)) {
             assign(.contents$tag[i],
                 as.vector(a.sample$latent[.contents$start[i]:(.contents$start[i] +
@@ -1064,7 +1079,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
     }
 
     if (length(selection) > 0) {
-        warning(paste0(
+        stop(paste0(
             "Some selections are not used: ",
             paste(names(selection), collapse = ", ", sep = "")
         ))

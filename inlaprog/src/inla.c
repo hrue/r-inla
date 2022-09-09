@@ -8879,9 +8879,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -12717,9 +12717,9 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		GMRFLib_io_read(io, w, npairs * sizeof(double));
-		lc->weight = Realloc(lc->weight, lc->n + npairs, float);	/* YES! */
+		lc->weight = Realloc(lc->weight, lc->n + npairs, double);
 		for (i = 0; i < npairs; i++) {
-			lc->weight[lc->n + i] = (float) w[i];
+			lc->weight[lc->n + i] = w[i];
 			all_weights_are_zero &= (w[i] == 0.0);
 		}
 
@@ -12747,7 +12747,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
 	 */
-	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
+	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(double), NULL, 0, GMRFLib_icmp);
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
 		printf("\t\tLincomb = \tidx \tweight\n");
@@ -12890,6 +12890,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\t\tR-INLA build date = [%s]\n", build_date);
 		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
 		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
+		printf("\t\tCores = (Physical= %1d, Logical= %1d)\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
 	}
 
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
@@ -32672,6 +32673,7 @@ int inla_INLA(inla_tp * mb)
 	char *vb_nodes = NULL;
 
 	local_count = 0;
+
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
@@ -33622,7 +33624,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 int inla_INLA_preopt_experimental(inla_tp * mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
-	int N, i, j, count;
+	int N, count, i, j;
 	GMRFLib_bfunc_tp **bfunc;
 	GMRFLib_preopt_tp *preopt = NULL;
 
@@ -33636,7 +33638,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	int ntot = 0;
 
 	ntot = mb->nlinear;
-	for (i = 0; i < mb->nf; i++) {
+	for (int i = 0; i < mb->nf; i++) {
 		ntot += mb->f_graph[i]->n;
 	}
 	N = ntot;
@@ -33675,86 +33677,87 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		count += mb->f_Ntotal[i];
 	}
 
-	// VB correct 
-	char *vb_nodes = NULL;
-	int local_count = 0;
+	// VB corrections
 	if (mb->ai_par->vb_enable) {
-		vb_nodes = Calloc(N, char);
-		count = 0;
-		for (i = 0; i < mb->nf; i++) {
-			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
-			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
-				for (j = 0; j < mb->f_Ntotal[i]; j++) {
-					vb_nodes[count + j] = (char) 1;
-					local_count++;
-				}
-			} else if (vb->idx[i] == -1L) {
-				int len, k, jj;
-				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
-				k = IMAX(1, len / 2);	       /* integer division */
-				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
-					jj = (j * len + k) % mb->f_Ntotal[i];
-					vb_nodes[count + jj] = (char) 1;
-					local_count++;
-				}
-			} else if (vb->idx[0] >= 0) {
-				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
-					local_count++;
-				}
-			}
-			count += mb->f_Ntotal[i];
-		}
-		for (i = 0; i < mb->nlinear; i++) {
-			vb_nodes[count++] = (char) 1;
-			local_count++;
-		}
-		if (local_count == 0) {			       /* then there is nothting to correct for */
-			Free(vb_nodes);
-			vb_nodes = NULL;
-		}
-	}
-	mb->ai_par->vb_nodes_mean = vb_nodes;
+		// tp = 0 is mean, tp = 0 is variance
+		for (int tp = 0; tp < 2; tp++) {
+			char *vb_nodes = Calloc(N, char);
+			int debug = 0;
+			int local_count = 0;
+			int count = 0;
+			for (int i = 0; i < mb->nf; i++) {
 
-	local_count = 0;
-	if (mb->ai_par->vb_enable) {
-		vb_nodes = Calloc(N, char);
-		count = 0;
-		for (i = 0; i < mb->nf; i++) {
-			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
-			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_variance)) {
-				for (j = 0; j < mb->f_Ntotal[i]; j++) {
-					vb_nodes[count + j] = (char) 1;
-					local_count++;
+				int n = mb->f_N[i] / mb->f_ngroup[i];
+				int ngroup = mb->f_ngroup[i];
+				int nrep = mb->f_Ntotal[i] / mb->f_N[i];
+				int ntot = mb->f_Ntotal[i];
+				int lim = (tp == 0 ? mb->ai_par->vb_f_enable_limit_mean : mb->ai_par->vb_f_enable_limit_variance);
+				int nngroup = n * ngroup;
+				assert(ntot == n * ngroup * nrep);
+
+				if (debug) {
+					P(n);
+					P(ngroup);
+					P(nrep);
+					P(ntot);
 				}
-			} else if (vb->idx[i] == -1L) {
-				// chose vb_f_enable_limit points 
-				int len, k, jj;
-				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
-				k = IMAX(1, len / 2);	       /* integer division */
-				for (j = 0; j < mb->ai_par->vb_f_enable_limit_variance; j++) {
-					jj = (j * len + k) % mb->f_Ntotal[i];
-					vb_nodes[count + jj] = (char) 1;
-					local_count++;
+
+				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
+
+				if ((vb->idx[0] == -1L && n <= lim)) {
+					for (int j = 0; j < ntot; j++) {
+						vb_nodes[count + j] = (char) 1;
+						local_count++;
+					}
+				} else if (vb->idx[i] == -1L) {
+					int len = IMAX(1, n / lim);
+					int k = IMAX(1, len / 2);
+					for (int r = 0; r < nrep; r++) {
+						for (int g = 0; g < ngroup; g++) {
+							for (int j = 0; j < lim; j++) {
+								int jj = (j * len + k) % n + g * n + r * nngroup;
+								if (debug)
+									printf("%d %d %d %d\n", g, r, j, jj);
+								vb_nodes[count + jj] = (char) 1;
+								local_count++;
+							}
+						}
+					}
+				} else if (vb->idx[0] >= 0) {
+					for (int r = 0; r < nrep; r++) {
+						for (int g = 0; g < ngroup; g++) {
+							for (int j = 0; j < vb->n; j++) {
+								if (LEGAL(vb->idx[j], n)) {
+									int jj = vb->idx[j] + g * n + r * nngroup;
+									if (debug)
+										printf("%d %d %d %d\n", g, r, j, jj);
+									vb_nodes[count + jj] = (char) 1;
+									local_count++;
+								}
+							}
+						}
+					}
 				}
-			} else if (vb->idx[0] >= 0) {
-				for (j = 0; j < vb->n; j++) {
-					vb_nodes[count + IMIN(vb->idx[j], mb->f_Ntotal[i] - 1)] = (char) 1;
-					local_count++;
-				}
+				count += mb->f_Ntotal[i];
 			}
-			count += mb->f_Ntotal[i];
-		}
-		for (i = 0; i < mb->nlinear; i++) {
-			vb_nodes[count++] = (char) 1;
-			local_count++;
-		}
-		if (local_count == 0) {			       /* then there is nothting to correct for */
-			Free(vb_nodes);
-			vb_nodes = NULL;
+			for (i = 0; i < mb->nlinear; i++) {
+				vb_nodes[count++] = (char) 1;
+				local_count++;
+			}
+			if (local_count == 0) {		       /* then there is nothting to correct for */
+				Free(vb_nodes);
+				vb_nodes = NULL;
+			}
+
+			if (tp == 0) {
+				mb->ai_par->vb_nodes_mean = vb_nodes;
+			} else if (tp == 1) {
+				mb->ai_par->vb_nodes_variance = vb_nodes;
+			} else {
+				assert(0 == 1);
+			}
 		}
 	}
-	mb->ai_par->vb_nodes_variance = vb_nodes;
 
 	double tref = GMRFLib_cpu();
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
@@ -33920,6 +33923,50 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			mb->transform_funcs[i]->func = (GMRFLib_transform_func_tp *) link_identity;
 			mb->transform_funcs[i]->arg = NULL;
 			mb->transform_funcs[i]->cov = NULL;
+		}
+	}
+
+	if (mb->nlc > 0) {
+		// postprocess the lincombs to convert APredictor and Predictor into sums of the latent
+		int debug = 0;
+		int mpred = preopt->mpred;		       // length(pApredictor)
+		int mnpred = preopt->mnpred;		       // length(c(pApredictor, Apredictor))
+
+		for (int k = 0; k < mb->nlc; k++) {
+			GMRFLib_idxval_tp *idx = NULL;
+			GMRFLib_lc_tp *lc = mb->lc_lc[k];
+			for (int ii = 0; ii < lc->n; ii++) {
+				int i = lc->idx[ii];
+				double w = lc->weight[ii];
+				if (debug) {
+					printf("lc[%1d] decode [idx= %1d, weight= %.8f]\n", k, i, w);
+				}
+				if (lc->idx[ii] < mnpred) {
+					// replace this statement with a row of either pAA or A
+					GMRFLib_idxval_tp *AA = NULL;
+					if (lc->idx[ii] < mpred) {
+						AA = preopt->pAA_idxval[lc->idx[ii]];
+					} else {
+						AA = preopt->A_idxval[lc->idx[ii] - mpred];
+					}
+
+					for (int j = 0; j < AA->n; j++) {
+						GMRFLib_idxval_addto(&idx, AA->idx[j] + mnpred, w * AA->val[j]);
+					}
+				} else {
+					GMRFLib_idxval_addto(&idx, i, w);
+				}
+			}
+			GMRFLib_idxval_uniq(idx);
+			if (debug) {
+				GMRFLib_idxval_printf(stdout, idx, "");
+			}
+
+			Free(lc->idx);
+			Free(lc->weight);
+			lc->n = idx->n;
+			lc->idx = idx->idx;
+			lc->weight = idx->val;
 		}
 	}
 
@@ -37142,7 +37189,7 @@ int testit(int argc, char **argv)
 			inla_R_rgeneric(&n_out, &x_out, "initial", _MODEL, &ntheta, theta);
 			_PPP("initial");
 
-			inla_R_rgeneric(&n_out, &x_out, "log.norm.const", _MODEL,  &ntheta, theta);
+			inla_R_rgeneric(&n_out, &x_out, "log.norm.const", _MODEL, &ntheta, theta);
 			_PPP("log.norm.const");
 
 			inla_R_rgeneric(&n_out, &x_out, "log.prior", _MODEL, &ntheta, theta);
@@ -37397,6 +37444,7 @@ int testit(int argc, char **argv)
 
 	case 19:
 	{
+		printf("physical= %1d logical= %1d\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
 	}
 		break;
 
@@ -37597,9 +37645,9 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_sort(h);
+		assert(h);
 		P(h->g_n);
 		P(h->n / h->g_n);
-
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
 		for (int k = 0; k < 10000; k++) {
@@ -37890,11 +37938,6 @@ int testit(int argc, char **argv)
 
 	case 42:
 	{
-		float x[2] = { 0, 0 };
-		printf("x= %f %f\n", x[0], x[1]);
-		x[0] = NAN;
-		printf("x= %f %f (x[1]==0 %1d) sizeof()=%zu\n", x[0], x[1], x[1] == 0, sizeof(float));
-		break;
 	}
 
 	case 43:
@@ -39168,6 +39211,7 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
 		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		assert(h);
 		P(n);
 		P(h->g_n);
 		P(h->n / h->g_n);
@@ -39241,7 +39285,7 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 85: 
+	case 85:
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
@@ -39249,10 +39293,10 @@ int testit(int argc, char **argv)
 		double time = -GMRFLib_cpu();
 		double sum = 0.0;
 		int imin, imax;
-		for(int k = 0; k < m; k++) {
-			for(int i = 0; i < n; i++) {
+		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
 				int ii = GMRFLib_uniform() * n;
-				for(int j = 0; j < n; j++) {
+				for (int j = 0; j < n; j++) {
 					int jj = GMRFLib_uniform() * n;
 					imin = IMIN(ii, jj);
 					imax = IMAX(ii, jj);
@@ -39265,10 +39309,10 @@ int testit(int argc, char **argv)
 
 		sum = 0.0;
 		time = -GMRFLib_cpu();
-		for(int k = 0; k < m; k++) {
-			for(int i = 0; i < n; i++) {
+		for (int k = 0; k < m; k++) {
+			for (int i = 0; i < n; i++) {
 				int ii = GMRFLib_uniform() * n;
-				for(int j = 0; j < n; j++) {
+				for (int j = 0; j < n; j++) {
 					int jj = GMRFLib_uniform() * n;
 					if (ii <= jj) {
 						imin = ii;
@@ -39286,7 +39330,7 @@ int testit(int argc, char **argv)
 
 		break;
 	}
-		
+
 	case 86:
 	{
 		double x = 0.0;
@@ -39661,7 +39705,7 @@ int main(int argc, char **argv)
 	 */
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
-		printf("export OMP_NUM_THREADS=%1d,%1d,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
+		printf("export OMP_NUM_THREADS=%1d,%1d,1,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		printf("export OMP_NESTED=TRUE; ");
 		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS());
 		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
