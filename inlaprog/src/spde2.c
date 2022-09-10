@@ -65,25 +65,25 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	double d_i[3] = { 0.0, 0.0, 0.0 };
 
 	int nc = model->B[0]->ncol;
-	double *row = GMRFLib_vmatrix_get(model->vmatrix, i, j);
-	double *row_i0 = NULL;
-	double *row_i1 = NULL;
-	double *row_i2 = NULL;
+	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *vals_i0 = NULL;
+	double *vals_i1 = NULL;
+	double *vals_i2 = NULL;
 
 	if (i == j) {
-		row_i0 = row;
-		row_i1 = row + nc;
-		row_i2 = row + 2 * nc;
+		vals_i0 = vals;
+		vals_i1 = vals + nc;
+		vals_i2 = vals + 2 * nc;
 
-		phi_i[0] = row_i0[0];
-		phi_i[1] = row_i1[0];
-		phi_i[2] = row_i2[0];
+		phi_i[0] = vals_i0[0];
+		phi_i[1] = vals_i1[0];
+		phi_i[2] = vals_i2[0];
 
-		for (int kk = 1; kk < nc; kk++) {
-			double theta = model->theta[kk - 1][thread_id][0];
-			phi_i[0] += row_i0[kk] * theta;
-			phi_i[1] += row_i1[kk] * theta;
-			phi_i[2] += row_i2[kk] * theta;
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			phi_i[0] += vals_i0[k] * theta;
+			phi_i[1] += vals_i1[k] * theta;
+			phi_i[2] += vals_i2[k] * theta;
 		}
 
 		d_i[0] = exp(phi_i[0]);
@@ -103,38 +103,38 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			assert(0 == 1);
 		}
 
-		double *v = row + 3 * nc;
+		double *v = vals + 3 * nc;
 		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 	} else {
 		double phi_j[3] = { 0.0, 0.0, 0.0 };
 		double d_j[3] = { 0.0, 0.0, 0.0 };
 
-		double *row_j0 = NULL;
-		double *row_j1 = NULL;
-		double *row_j2 = NULL;
+		double *vals_j0 = NULL;
+		double *vals_j1 = NULL;
+		double *vals_j2 = NULL;
 
-		row_i0 = row;
-		row_i1 = row + nc;
-		row_i2 = row + 2 * nc;
-		row_j0 = row + 3 * nc;
-		row_j1 = row + 4 * nc;
-		row_j2 = row + 5 * nc;
+		vals_i0 = vals;
+		vals_i1 = vals + nc;
+		vals_i2 = vals + 2 * nc;
+		vals_j0 = vals + 3 * nc;
+		vals_j1 = vals + 4 * nc;
+		vals_j2 = vals + 5 * nc;
 
-		phi_i[0] = row_i0[0];
-		phi_i[1] = row_i1[0];
-		phi_i[2] = row_i2[0];
-		phi_j[0] = row_j0[0];
-		phi_j[1] = row_j1[0];
-		phi_j[2] = row_j2[0];
+		phi_i[0] = vals_i0[0];
+		phi_i[1] = vals_i1[0];
+		phi_i[2] = vals_i2[0];
+		phi_j[0] = vals_j0[0];
+		phi_j[1] = vals_j1[0];
+		phi_j[2] = vals_j2[0];
 
-		for (int kk = 1; kk < nc; kk++) {
-			double theta = model->theta[kk - 1][thread_id][0];
-			phi_i[0] += row_i0[kk] * theta;
-			phi_i[1] += row_i1[kk] * theta;
-			phi_i[2] += row_i2[kk] * theta;
-			phi_j[0] += row_j0[kk] * theta;
-			phi_j[1] += row_j1[kk] * theta;
-			phi_j[2] += row_j2[kk] * theta;
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			phi_i[0] += vals_i0[k] * theta;
+			phi_i[1] += vals_i1[k] * theta;
+			phi_i[2] += vals_i2[k] * theta;
+			phi_j[0] += vals_j0[k] * theta;
+			phi_j[1] += vals_j1[k] * theta;
+			phi_j[2] += vals_j2[k] * theta;
 		}
 
 		d_i[0] = exp(phi_i[0]);
@@ -159,7 +159,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			assert(0 == 1);
 		}
 
-		double *v = row + 6 * nc;
+		double *v = vals + 6 * nc;
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
