@@ -7252,7 +7252,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_idx_add(&node_idx, node);
 		}
 	}
-	assert(node_idx);
 
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
@@ -7304,7 +7303,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		}							\
 	}
 
-	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
+	if (node_idx) {
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
+	}
 #undef CODE_BLOCK
 
 	GMRFLib_idx_free(node_idx);
