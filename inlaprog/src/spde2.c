@@ -74,39 +74,44 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	int nc = model->B[0]->ncol;
 	double *row = GMRFLib_vmatrix_get(model->vmatrix, i, j);
 	double *row_i = NULL;
+	double *row_i0 = NULL;
+	double *row_i1 = NULL;
+	double *row_i2 = NULL;
 	double *row_j = NULL;
+	double *row_j0 = NULL;
+	double *row_j1 = NULL;
+	double *row_j2 = NULL;
 
 	if (i == j) {
-		for (k = 0; k < 3; k++) {
-			row_i = row + k * nc;
-			phi_i[k] = row_i[0];
-			for (kk = 1; kk < nc; kk++) {
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-			}
-			phi_j[k] = phi_i[k];	       /* they are equal in this case */
-		}
-	} else {
-		for (k = 0; k < 3; k++) {
-			row_i = row + k * nc;
-			row_j = row + 3 * nc + k * nc;
-			phi_i[k] = row_i[0];
-			phi_j[k] = row_j[0];
-			for (kk = 1; kk < nc; kk++) {
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-				phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
-			}
-		}
-	}
 
-	for (k = 0; k < 2; k++) {
-		d_i[k] = exp(phi_i[k]);
-		d_j[k] = exp(phi_j[k]);
-	}
+		row_i0 = row;
+		row_i1 = row + nc;
+		row_i2 = row + 2 *nc;
+		
+		if (1) {
+			phi_i[0] = row_i0[0];
+			phi_i[1] = row_i1[0];
+			phi_i[2] = row_i2[0];
+			for (kk = 1; kk < nc; kk++) {
+				double theta = model->theta[kk - 1][thread_id][0];
+				phi_i[0] += row_i0[kk] * theta;
+				phi_i[1] += row_i1[kk] * theta;
+				phi_i[2] += row_i2[kk] * theta;
+			}
+		} else {
+			for (k = 0; k < 3; k++) {
+				row_i = row + k * nc;
+				phi_i[k] = row_i[0];
+				for (kk = 1; kk < nc; kk++) {
+					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
+				}
+				phi_j[k] = phi_i[k];	       /* they are equal in this case */
+			}
+		}
 
-	/*
-	 * change this later on, need an option here for various 'link' functions. some savings possible for i==j.
-	 */
-	if (i == j) {
+		d_i[0] = exp(phi_i[0]);
+		d_i[1] = exp(phi_i[1]);
+
 		switch (model->transform) {
 		case SPDE2_TRANSFORM_IDENTITY:
 			d_i[2] = phi_i[2];
@@ -120,8 +125,49 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		default:
 			assert(0 == 1);
 		}
-		d_j[2] = d_i[2];
+
 	} else {
+		row_i0 = row;
+		row_i1 = row + nc;
+		row_i2 = row + 2*nc;
+		row_j0 = row + 3*nc;
+		row_j1 = row + 4*nc; 
+		row_j2 = row + 5*nc; 
+
+		if (1) {
+			phi_i[0] = row_i0[0];
+			phi_i[1] = row_i1[0];
+			phi_i[2] = row_i2[0];
+			phi_j[0] = row_j0[0];
+			phi_j[1] = row_j1[0];
+			phi_j[2] = row_j2[0];
+			for (kk = 1; kk < nc; kk++) {
+				double theta = model->theta[kk - 1][thread_id][0];
+				phi_i[0] += row_i0[kk] * theta;
+				phi_i[1] += row_i1[kk] * theta;
+				phi_i[2] += row_i2[kk] * theta;
+				phi_j[0] += row_j0[kk] * theta;
+				phi_j[1] += row_j1[kk] * theta;
+				phi_j[2] += row_j2[kk] * theta;
+			}
+		} else {
+			for (k = 0; k < 3; k++) {
+				row_i = row + k * nc;
+				row_j = row + 3 * nc + k * nc;
+				phi_i[k] = row_i[0];
+				phi_j[k] = row_j[0];
+				for (kk = 1; kk < nc; kk++) {
+					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
+					phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
+				}
+			}
+		}
+
+		d_i[0] = exp(phi_i[0]);
+		d_i[1] = exp(phi_i[1]);
+		d_j[0] = exp(phi_j[0]);
+		d_j[1] = exp(phi_j[1]);
+
 		switch (model->transform) {
 		case SPDE2_TRANSFORM_IDENTITY:
 			d_i[2] = phi_i[2];
@@ -139,9 +185,13 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			assert(0 == 1);
 		}
 	}
-
+	
 	double *v = row + (i == j ? 3 * nc : 6 * nc);
-	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	if (i == j) {
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+	} else {
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	}
 
 	return value;
 }
