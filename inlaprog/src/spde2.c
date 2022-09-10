@@ -51,7 +51,6 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	}
 
 	int i, j;
-
 	if (ii <= jj) {
 		i = ii;
 		j = jj;
@@ -61,52 +60,30 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	}
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
-	double value;
+	double value = 0.0;
 	double phi_i[3] = { 0.0, 0.0, 0.0 };
-	double phi_j[3] = { 0.0, 0.0, 0.0 };
 	double d_i[3] = { 0.0, 0.0, 0.0 };
-	double d_j[3] = { 0.0, 0.0, 0.0 };
-	int k, kk;
 
-	/*
-	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
-	 */
 	int nc = model->B[0]->ncol;
 	double *row = GMRFLib_vmatrix_get(model->vmatrix, i, j);
-	double *row_i = NULL;
 	double *row_i0 = NULL;
 	double *row_i1 = NULL;
 	double *row_i2 = NULL;
-	double *row_j = NULL;
-	double *row_j0 = NULL;
-	double *row_j1 = NULL;
-	double *row_j2 = NULL;
 
 	if (i == j) {
-
 		row_i0 = row;
 		row_i1 = row + nc;
-		row_i2 = row + 2 *nc;
-		
-		if (1) {
-			phi_i[0] = row_i0[0];
-			phi_i[1] = row_i1[0];
-			phi_i[2] = row_i2[0];
-			for (kk = 1; kk < nc; kk++) {
-				double theta = model->theta[kk - 1][thread_id][0];
-				phi_i[0] += row_i0[kk] * theta;
-				phi_i[1] += row_i1[kk] * theta;
-				phi_i[2] += row_i2[kk] * theta;
-			}
-		} else {
-			for (k = 0; k < 3; k++) {
-				row_i = row + k * nc;
-				phi_i[k] = row_i[0];
-				for (kk = 1; kk < nc; kk++) {
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-				}
-				phi_j[k] = phi_i[k];	       /* they are equal in this case */
-			}
+		row_i2 = row + 2 * nc;
+
+		phi_i[0] = row_i0[0];
+		phi_i[1] = row_i1[0];
+		phi_i[2] = row_i2[0];
+
+		for (int kk = 1; kk < nc; kk++) {
+			double theta = model->theta[kk - 1][thread_id][0];
+			phi_i[0] += row_i0[kk] * theta;
+			phi_i[1] += row_i1[kk] * theta;
+			phi_i[2] += row_i2[kk] * theta;
 		}
 
 		d_i[0] = exp(phi_i[0]);
@@ -126,41 +103,38 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			assert(0 == 1);
 		}
 
+		double *v = row + 3 * nc;
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 	} else {
+		double phi_j[3] = { 0.0, 0.0, 0.0 };
+		double d_j[3] = { 0.0, 0.0, 0.0 };
+
+		double *row_j0 = NULL;
+		double *row_j1 = NULL;
+		double *row_j2 = NULL;
+
 		row_i0 = row;
 		row_i1 = row + nc;
-		row_i2 = row + 2*nc;
-		row_j0 = row + 3*nc;
-		row_j1 = row + 4*nc; 
-		row_j2 = row + 5*nc; 
+		row_i2 = row + 2 * nc;
+		row_j0 = row + 3 * nc;
+		row_j1 = row + 4 * nc;
+		row_j2 = row + 5 * nc;
 
-		if (1) {
-			phi_i[0] = row_i0[0];
-			phi_i[1] = row_i1[0];
-			phi_i[2] = row_i2[0];
-			phi_j[0] = row_j0[0];
-			phi_j[1] = row_j1[0];
-			phi_j[2] = row_j2[0];
-			for (kk = 1; kk < nc; kk++) {
-				double theta = model->theta[kk - 1][thread_id][0];
-				phi_i[0] += row_i0[kk] * theta;
-				phi_i[1] += row_i1[kk] * theta;
-				phi_i[2] += row_i2[kk] * theta;
-				phi_j[0] += row_j0[kk] * theta;
-				phi_j[1] += row_j1[kk] * theta;
-				phi_j[2] += row_j2[kk] * theta;
-			}
-		} else {
-			for (k = 0; k < 3; k++) {
-				row_i = row + k * nc;
-				row_j = row + 3 * nc + k * nc;
-				phi_i[k] = row_i[0];
-				phi_j[k] = row_j[0];
-				for (kk = 1; kk < nc; kk++) {
-					phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-					phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
-				}
-			}
+		phi_i[0] = row_i0[0];
+		phi_i[1] = row_i1[0];
+		phi_i[2] = row_i2[0];
+		phi_j[0] = row_j0[0];
+		phi_j[1] = row_j1[0];
+		phi_j[2] = row_j2[0];
+
+		for (int kk = 1; kk < nc; kk++) {
+			double theta = model->theta[kk - 1][thread_id][0];
+			phi_i[0] += row_i0[kk] * theta;
+			phi_i[1] += row_i1[kk] * theta;
+			phi_i[2] += row_i2[kk] * theta;
+			phi_j[0] += row_j0[kk] * theta;
+			phi_j[1] += row_j1[kk] * theta;
+			phi_j[2] += row_j2[kk] * theta;
 		}
 
 		d_i[0] = exp(phi_i[0]);
@@ -184,12 +158,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		default:
 			assert(0 == 1);
 		}
-	}
-	
-	double *v = row + (i == j ? 3 * nc : 6 * nc);
-	if (i == j) {
-		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
-	} else {
+
+		double *v = row + 6 * nc;
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
@@ -320,7 +290,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 			j = model->graph->lnbs[i][jj];
 			v = Calloc(6 * nc + 4, double);
 			assert(v);
-			
+
 			GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
 			GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
 			GMRFLib_matrix_get_row(v + 2 * nc, i, model->B[2]);
