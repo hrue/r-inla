@@ -138,7 +138,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon)
 {
 	// give a covariance matrix S with mid-node 'idx_node', then detect those indices singular with 'idx_node'.
-	// idx_map will map contribution from likelihood to which node.
+	// idx_map will map contribution from likelihood to that node.
 	// S will be overwritten with a 'fixed' version which is non-singular and partly fake.
 
 #define MAT_SYM_SET(M_, i_, j_, val_)		  \

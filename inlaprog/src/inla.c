@@ -37690,8 +37690,18 @@ int testit(int argc, char **argv)
 		GMRFLib_vmatrix_free(m, 1);
 		break;
 
-	case 27:
-		break;
+	case 27: 
+	{
+		double eps = atof(args[0]);
+		for(double val = 0.99; val < 1.0; val += eps/1000.0) {
+			int eq = ISEQUAL_x(val, 1.0, eps);
+			if (eq) {
+				printf("eps %.12f val %.12f %d\n", eps, val, ISEQUAL_x(val, 1.0, eps));
+				break;
+			}
+		}
+	}
+	break;
 
 	case 28:
 	{

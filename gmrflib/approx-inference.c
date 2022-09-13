@@ -7207,6 +7207,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	const int np = GMRFLib_INT_GHQ_POINTS;
 	double zero = 0.0;
 	double spd_eps = GMRFLib_eps(0.5);
+	double diag_eps = GMRFLib_eps(0.236);		       /* gives 0.0002, so the stdev is scaled with 1.0001 */
 
 	if (gcpo_param->verbose || detailed_output) {
 		printf("enter _gcpo with...\n");
@@ -7384,7 +7385,16 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
 		}							\
 		int *idx_map = (int *) CODE_BLOCK_WORK_PTR(4);		\
-		GMRFLib_gsl_gcpo_singular_fix(idx_map, idx_node, Q, gcpo_param->epsilon); \
+		if (0) {						\
+			/* it seems better to scale the diagonal than to do this */ \
+			assert(0 == 1);					\
+			GMRFLib_gsl_gcpo_singular_fix(idx_map, idx_node, Q, gcpo_param->epsilon); \
+		} else {						\
+			/* disable this feature by using the identity mapping */ \
+			for(int i = 0; i < ng; i++) {			\
+				idx_map[i] = i;				\
+			}						\
+		}							\
 		if (detailed_output) {					\
 			for(int i = 0; i < ng; i++) {			\
 				printf("idx_map[%1d]=%1d\n", i, idx_map[i]); \
@@ -7412,13 +7422,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			}						\
 		}							\
 									\
-		double var_max = lpred_variance[idxs[0]];		\
-		for(int i = 1; i < ng; i++) {				\
-			var_max = DMAX(var_max, lpred_variance[idxs[i]]); \
-		}							\
-		double diag_add = 1.0 / var_max * spd_eps;		\
+		/* this scaling assumes that the idx_map feature is disabled above */ \
+		double diag_scale = 1.0 + diag_eps;			\
 		for(size_t i = 0; i < (size_t) ng; i++) {		\
-			gsl_matrix_set(Q, i, i, gsl_matrix_get(Q, i, i) + diag_add); \
+			gsl_matrix_set(Q, i, i, gsl_matrix_get(Q, i, i) * diag_scale); \
 		}							\
 		GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL);	\
 		GMRFLib_gsl_mv(Q, mean_old, b);				\
@@ -7458,9 +7465,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_printf_gsl_vector(stdout, mean, " %.8f "); \
 		}							\
 									\
-		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + lpred_mean[node] - lpred_mode[node]); \
+		gsl_vector_set(mean, idx_node, gsl_vector_get(mean, idx_node) + (lpred_mean[node] - lpred_mode[node])); \
 		gcpo[node]->lpred_mean = gsl_vector_get(mean, idx_node); \
-		gcpo[node]->lpred_sd = sqrt(DMAX(DBL_EPSILON, gsl_matrix_get(S, idx_node, idx_node))); \
+		gcpo[node]->lpred_sd = sqrt(DMAX(DBL_EPSILON, gsl_matrix_get(S, idx_node, idx_node) / diag_scale)); \
 		gcpo[node]->kld =  0.5 * (SQR(gcpo[node]->lpred_sd) / lpred_variance[node] - 1.0 + \
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
