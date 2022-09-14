@@ -37759,6 +37759,22 @@ int testit(int argc, char **argv)
 
 	case 30:
 	{
+		double ta[] = {
+			2.8457954755, -0.4965452301, -1.645446141, -1.128319792, 1.262602638, 
+			-0.4965452301, 9.5273534221, 6.998890429, 4.924730852, -2.979131713, 
+			-1.6454461413, 6.9988904291, 6.648388858, 3.208607495, -2.034296532, 
+			-1.1283197920, 4.9247308523, 3.208607495, 3.515410801, -2.453892405, 
+			1.2626026384, -2.9791317133, -2.034296532, -2.453892405, 1.833029623};
+
+		gsl_matrix_view m = gsl_matrix_view_array(ta, 5, 5);
+		gsl_matrix *A = GMRFLib_gsl_duplicate_matrix(&m.matrix);
+
+		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
+		printf("\n");
+		gsl_matrix *B = GMRFLib_gsl_low_rank(A, 1.0E-8);
+		GMRFLib_printf_gsl_matrix(stdout, B, " %.12f");
+		gsl_matrix_free(A);
+		gsl_matrix_free(B);
 		break;
 	}
 
