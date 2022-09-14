@@ -7412,8 +7412,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_printf_gsl_vector(stdout, mean_old, " %.8f "); \
 		}							\
 									\
-		if (1) {						\
-			double low_rank_eps = GMRFLib_eps(0.3833);		\
+		if (1) { /* the new low-rank solution... */		\
+			double low_rank_eps = GMRFLib_eps(0.3833);	\
 			/* new low-rank approach */			\
 			size_t n = (size_t) ng;				\
 			gsl_matrix *Cov = S;				\
@@ -7444,7 +7444,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 									\
 			gsl_matrix_set_zero(QQ);			\
 			for(size_t i = 0; i < m; i++) {			\
-				for(size_t j = 0; j < m; j++){		\
+				for(size_t j = 0; j < m; j++) {		\
 					if (i == j) {			\
 						gsl_matrix_set(QQ, i, j, DMAX(0, 1.0 - gsl_matrix_get(BtHB, i, j))); \
 					} else {			\

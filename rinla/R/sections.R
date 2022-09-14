@@ -1281,7 +1281,7 @@
                 ## back to C indexing
                 writeBin(as.integer(g - 1), fp.binary)
                 if (!(i %in% g)) {
-                    stop(paste0("Node ", i,  "is not in group ",  i,  ". This is not supported."))
+                    stop(paste0("Node ", i,  " is not in group ",  i,  ". This is not supported."))
                 }
             }
         }

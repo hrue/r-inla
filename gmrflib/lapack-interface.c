@@ -855,7 +855,6 @@ gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
 
 	gsl_matrix *D = gsl_matrix_alloc(n, m);
 	gsl_matrix_set_zero(D);
-
 	for (size_t i = 0; i < m; i++) {
 		gsl_matrix_set(D, i, i, sqrt(gsl_vector_get(S, i)));
 	}
