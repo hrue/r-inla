@@ -7460,8 +7460,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 									\
 			if (detailed_output) {				\
 				printf("node %d, cov.mat and mean after correction (low-rank)\n", node); \
-				GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f ");	\
-				GMRFLib_printf_gsl_vector(stdout, b, " %.8f "); \
+				GMRFLib_printf_gsl_matrix(stdout, SS, " %.8f ");	\
+				GMRFLib_printf_gsl_vector(stdout, zmean, " %.8f "); \
 			}						\
 									\
 			gsl_vector *Bzmean = gsl_vector_alloc(n);	\

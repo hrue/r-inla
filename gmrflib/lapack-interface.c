@@ -218,7 +218,7 @@ int GMRFLib_gsl_mm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mmm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, gsl_matrix *D)
+int GMRFLib_gsl_mmm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, gsl_matrix * D)
 {
 	// D = A B C
 	gsl_matrix *T = gsl_matrix_alloc(A->size1, B->size2);
@@ -391,7 +391,7 @@ gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A)
 	if (A) {
 		B = gsl_matrix_alloc(A->size1, A->size2);
 		gsl_matrix_memcpy(B, A);
-	} 
+	}
 	return B;
 }
 
@@ -411,13 +411,13 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix * A)
 		gsl_matrix_transpose(At);
 	} else {
 		At = gsl_matrix_alloc(A->size2, A->size1);
-		for(size_t i = 0; i < A->size1; i++) {
-			for(size_t j = 0; j < A->size2; j++) {
+		for (size_t i = 0; i < A->size1; i++) {
+			for (size_t j = 0; j < A->size2; j++) {
 				gsl_matrix_set(At, j, i, gsl_matrix_get(A, i, j));
 			}
 		}
 	}
-	
+
 	return At;
 }
 
@@ -821,7 +821,7 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	return (GMRFLib_SUCCESS);
 }
 
-gsl_matrix * GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
+gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
 {
 	/*
 	 * Compute the low-rank representation in terms of x=Bz from a given possible singular covariance matrix.
@@ -845,8 +845,8 @@ gsl_matrix * GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
 
 	size_t m = 0;
 	double s_min = tol * s_max;
-	for(size_t i = 0; i < n; i++) {
-		if (gsl_vector_get(S, i) >= s_min){
+	for (size_t i = 0; i < n; i++) {
+		if (gsl_vector_get(S, i) >= s_min) {
 			m++;
 		} else {
 			break;
@@ -855,8 +855,8 @@ gsl_matrix * GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
 
 	gsl_matrix *D = gsl_matrix_alloc(n, m);
 	gsl_matrix_set_zero(D);
-	
-	for(size_t i = 0; i < m; i++) {
+
+	for (size_t i = 0; i < m; i++) {
 		gsl_matrix_set(D, i, i, sqrt(gsl_vector_get(S, i)));
 	}
 	gsl_matrix *B = gsl_matrix_alloc(n, m);

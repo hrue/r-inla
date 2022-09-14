@@ -8879,9 +8879,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -37690,10 +37690,10 @@ int testit(int argc, char **argv)
 		GMRFLib_vmatrix_free(m, 1);
 		break;
 
-	case 27: 
+	case 27:
 	{
 		double eps = atof(args[0]);
-		for(double val = 0.99; val < 1.0; val += eps/1000.0) {
+		for (double val = 0.99; val < 1.0; val += eps / 1000.0) {
 			int eq = ISEQUAL_x(val, 1.0, eps);
 			if (eq) {
 				printf("eps %.12f val %.12f %d\n", eps, val, ISEQUAL_x(val, 1.0, eps));
@@ -37701,7 +37701,7 @@ int testit(int argc, char **argv)
 			}
 		}
 	}
-	break;
+		break;
 
 	case 28:
 	{
@@ -37760,11 +37760,12 @@ int testit(int argc, char **argv)
 	case 30:
 	{
 		double ta[] = {
-			2.8457954755, -0.4965452301, -1.645446141, -1.128319792, 1.262602638, 
-			-0.4965452301, 9.5273534221, 6.998890429, 4.924730852, -2.979131713, 
-			-1.6454461413, 6.9988904291, 6.648388858, 3.208607495, -2.034296532, 
-			-1.1283197920, 4.9247308523, 3.208607495, 3.515410801, -2.453892405, 
-			1.2626026384, -2.9791317133, -2.034296532, -2.453892405, 1.833029623};
+			2.8457954755, -0.4965452301, -1.645446141, -1.128319792, 1.262602638,
+			-0.4965452301, 9.5273534221, 6.998890429, 4.924730852, -2.979131713,
+			-1.6454461413, 6.9988904291, 6.648388858, 3.208607495, -2.034296532,
+			-1.1283197920, 4.9247308523, 3.208607495, 3.515410801, -2.453892405,
+			1.2626026384, -2.9791317133, -2.034296532, -2.453892405, 1.833029623
+		};
 
 		gsl_matrix_view m = gsl_matrix_view_array(ta, 5, 5);
 		gsl_matrix *A = GMRFLib_gsl_duplicate_matrix(&m.matrix);
