@@ -1,3 +1,11 @@
+# INLA 22.09.15
+* Added support for `Predictor` and `APredictor` in lincomb for
+  experimental mode
+* Code improvement for `spde2` models
+* Add support for ELLIPSOID radius get/set for epsg:4326
+* Improved `gcpo` with singular covariance matrices
+* Various minor tweaks
+
 # INLA 22.09.02
 * Make argument `f.enable.limit` work the replications and groups
 * Fixed an issue with `vb` variance correction (experimental code)

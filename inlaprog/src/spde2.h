@@ -73,6 +73,8 @@ typedef struct {
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
 	GMRFLib_graph_tp *graph;
+
+	GMRFLib_vmatrix_tp *vmatrix;
 } inla_spde2_tp;
 
 double inla_spde2_Qfunction(int thread_id, int node, int nnode, double *values, void *arg);

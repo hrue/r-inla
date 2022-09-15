@@ -1079,7 +1079,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
     }
 
     if (length(selection) > 0) {
-        warning(paste0(
+        stop(paste0(
             "Some selections are not used: ",
             paste(names(selection), collapse = ", ", sep = "")
         ))

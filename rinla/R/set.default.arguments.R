@@ -331,7 +331,7 @@
                                 groups = NULL,
                                 selection = NULL,
                                 verbose = FALSE,
-                                epsilon = 0.001,
+                                epsilon = 0.0025,
                                 prior.diagonal = 1e-4, 
                                 correct.hyperpar = TRUE,
                                 keep = NULL,

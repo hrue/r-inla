@@ -1327,3 +1327,59 @@ int GMRFLib_trace_functions(const char *name)
 		return (p ? *p : 0);
 	}
 }
+
+
+// ******************************************************************************************
+
+int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_tp * graph)
+{
+	// graph is optional. If given, the initialise with lnnbs+1
+
+	*vmatrix = Calloc(1, GMRFLib_vmatrix_tp);
+	(*vmatrix)->nrow = nrow;
+	(*vmatrix)->vmat = Calloc(nrow, map_ivp);
+	if (graph) {
+		for (int i = 0; i < nrow; i++) {
+			map_ivp_init_hint(&((*vmatrix)->vmat[i]), (mapkit_size_t) (graph->lnnbs[i] + 1));
+		}
+	} else {
+		for (int i = 0; i < nrow; i++) {
+			map_ivp_init(&((*vmatrix)->vmat[i]));
+		}
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec)
+{
+	map_ivp_set(&(vmatrix->vmat[i]), j, (void *) vec);
+	return GMRFLib_SUCCESS;
+}
+
+double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j)
+{
+	void *p = NULL;
+	map_ivp_get(&(vmatrix->vmat[i]), j, &p);
+	return ((double *) p);
+}
+
+int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content)
+{
+	if (free_content) {
+		for (int i = 0; i < vmatrix->nrow; i++) {
+			for (int j = -1; (j = map_ivp_next(&(vmatrix->vmat[i]), j)) != -1;) {
+				Free(vmatrix->vmat[i].contents[j].value);
+			}
+		}
+	}
+
+	for (int i = 0; i < vmatrix->nrow; i++) {
+		map_ivp_free((map_ivp *) & (vmatrix->vmat[i]));
+	}
+
+	Free(vmatrix->vmat);
+	Free(vmatrix);
+
+	return GMRFLib_SUCCESS;
+}

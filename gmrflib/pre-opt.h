@@ -76,15 +76,15 @@ typedef struct {
 typedef struct {
 
 	/*
-	 * eta* = B %*% eta length(eta*) = mpred eta = A %*% x length(eta) = npred
+	 * eta* = pA %*% eta length(eta*) = mpred eta = A %*% x, length(eta) = npred
 	 * 
 	 * B = mpred x npred might be given, this is pA... A = npred x n this matrix is constructed online
 	 * 
 	 * mnpred = mpred + npred total length for transfering mode_x etc
 	 * 
-	 * length of data is Npred: - Npred = mpred if mpred > 0 - Npred = npred if mpred = 0
+	 * length of data is Npred: Npred = mpred if mpred > 0,  Npred = npred if mpred = 0
 	 * 
-	 * the AtA matrix is the matrix that goes into the likelihood, and its either buildt from t(A)A or t(BA)BA
+	 * the AtA matrix is the matrix that goes into the likelihood, and its either buildt from t(A)A or t(pAA)pAA
 	 * 
 	 */
 	int mpred;

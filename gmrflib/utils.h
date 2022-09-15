@@ -56,7 +56,14 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
+#include "GMRFLib/graph.h"
 #include "GMRFLib/GMRFLibP.h"
+    typedef struct {
+	int nrow;
+	map_ivp *vmat;
+} GMRFLib_vmatrix_tp;
+
+
 char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
 char *GMRFLib_rindex(const char *p, int ch);
 char *GMRFLib_strdup(const char *ptr);
@@ -118,6 +125,11 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void GMRFLib_delay(int msec);
 void GMRFLib_delay_random(int msec_low, int msec_high);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+
+int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_tp * graph);
+int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec);
+double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j);
+int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content);
 
 __END_DECLS
 #endif

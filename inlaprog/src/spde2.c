@@ -44,104 +44,124 @@
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
-double inla_spde2_Qfunction(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
-	if (j < 0) {
+	if (jj < 0) {
 		return NAN;
 	}
 
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
-	double value;
+	double value = 0.0;
 	double phi_i[3] = { 0.0, 0.0, 0.0 };
-	double phi_j[3] = { 0.0, 0.0, 0.0 };
 	double d_i[3] = { 0.0, 0.0, 0.0 };
-	double d_j[3] = { 0.0, 0.0, 0.0 };
-	int k, kk;
 
-	/*
-	 * to hold the i'th and j'th row of the B-matrices. use one storage only 
-	 */
-	double *row_i = Calloc(2 * model->B[0]->ncol, double);
-	double *row_j = &row_i[model->B[0]->ncol];
+	int nc = model->B[0]->ncol;
+	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *vals_i0 = NULL;
+	double *vals_i1 = NULL;
+	double *vals_i2 = NULL;
 
-	for (k = 0; k < 3; k++) {
-		if (i == j) {
-			/*
-			 * some savings for i == j 
-			 */
-			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
-			phi_i[k] = row_i[0];
-			for (kk = 1; kk < model->B[k]->ncol; kk++) {
-				/*
-				 * '-1' is the correction for the first intercept column in B 
-				 */
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-			}
-			phi_j[k] = phi_i[k];		       /* they are equal in this case */
-		} else {
-			/*
-			 * i != j 
-			 */
-			GMRFLib_matrix_get_row(row_i, i, model->B[k]);
-			GMRFLib_matrix_get_row(row_j, j, model->B[k]);
-			phi_i[k] = row_i[0];
-			phi_j[k] = row_j[0];
-			for (kk = 1; kk < model->B[k]->ncol; kk++) {
-				/*
-				 * '-1' is the correction for the first intercept column in B 
-				 */
-				phi_i[k] += row_i[kk] * model->theta[kk - 1][thread_id][0];
-				phi_j[k] += row_j[kk] * model->theta[kk - 1][thread_id][0];
-			}
-		}
-	}
-	Free(row_i);
-
-	for (k = 0; k < 2; k++) {
-		d_i[k] = exp(phi_i[k]);
-		d_j[k] = exp(phi_j[k]);
-	}
-
-	/*
-	 * change this later on, need an option here for various 'link' functions. some savings possible for i==j.
-	 */
 	if (i == j) {
+		vals_i0 = vals;
+		vals_i1 = vals + nc;
+		vals_i2 = vals + 2 * nc;
+
+		phi_i[0] = vals_i0[0];
+		phi_i[1] = vals_i1[0];
+		phi_i[2] = vals_i2[0];
+
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			phi_i[0] += vals_i0[k] * theta;
+			phi_i[1] += vals_i1[k] * theta;
+			phi_i[2] += vals_i2[k] * theta;
+		}
+
+		d_i[0] = exp(phi_i[0]);
+		d_i[1] = exp(phi_i[1]);
+
 		switch (model->transform) {
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+		case SPDE2_TRANSFORM_IDENTITY:
+			d_i[2] = phi_i[2];
 			break;
 		case SPDE2_TRANSFORM_LOG:
 			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
 			break;
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
+		case SPDE2_TRANSFORM_LOGIT:
+			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
 			break;
 		default:
 			assert(0 == 1);
 		}
-		d_j[2] = d_i[2];
+
+		double *v = vals + 3 * nc;
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 	} else {
+		double phi_j[3] = { 0.0, 0.0, 0.0 };
+		double d_j[3] = { 0.0, 0.0, 0.0 };
+
+		double *vals_j0 = NULL;
+		double *vals_j1 = NULL;
+		double *vals_j2 = NULL;
+
+		vals_i0 = vals;
+		vals_i1 = vals + nc;
+		vals_i2 = vals + 2 * nc;
+		vals_j0 = vals + 3 * nc;
+		vals_j1 = vals + 4 * nc;
+		vals_j2 = vals + 5 * nc;
+
+		phi_i[0] = vals_i0[0];
+		phi_i[1] = vals_i1[0];
+		phi_i[2] = vals_i2[0];
+		phi_j[0] = vals_j0[0];
+		phi_j[1] = vals_j1[0];
+		phi_j[2] = vals_j2[0];
+
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			phi_i[0] += vals_i0[k] * theta;
+			phi_i[1] += vals_i1[k] * theta;
+			phi_i[2] += vals_i2[k] * theta;
+			phi_j[0] += vals_j0[k] * theta;
+			phi_j[1] += vals_j1[k] * theta;
+			phi_j[2] += vals_j2[k] * theta;
+		}
+
+		d_i[0] = exp(phi_i[0]);
+		d_i[1] = exp(phi_i[1]);
+		d_j[0] = exp(phi_j[0]);
+		d_j[1] = exp(phi_j[1]);
+
 		switch (model->transform) {
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
+		case SPDE2_TRANSFORM_IDENTITY:
+			d_i[2] = phi_i[2];
+			d_j[2] = phi_j[2];
 			break;
 		case SPDE2_TRANSFORM_LOG:
 			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
 			d_j[2] = 2 * exp(phi_j[2]) - 1.0;
 			break;
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
-			d_j[2] = phi_j[2];
+		case SPDE2_TRANSFORM_LOGIT:
+			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
+			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
 			break;
 		default:
 			assert(0 == 1);
 		}
-	}
 
-	value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * GMRFLib_matrix_get(i, j, model->M[0]) +
-				   d_i[2] * d_i[1] * GMRFLib_matrix_get(i, j, model->M[1]) +
-				   d_j[1] * d_j[2] * GMRFLib_matrix_get(j, i, model->M[1]) + GMRFLib_matrix_get(i, j, model->M[2]));
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	}
 
 	return value;
 }
@@ -244,6 +264,50 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 
 	HYPER_NEW2(model->theta, 0.0, model->ntheta);
 	*smodel = model;
+
+	// add better storage
+	int nc = model->B[0]->ncol;
+	GMRFLib_vmatrix_init(&(model->vmatrix), model->n, model->graph);
+	for (int i = 0; i < model->n; i++) {
+		int j = i;
+
+		double *v = Calloc(3 * nc + 4, double);
+		assert(v);
+
+		GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
+		GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
+		GMRFLib_matrix_get_row(v + 2 * nc, i, model->B[2]);
+
+		double *vv = v + 3 * nc;
+		vv[0] = GMRFLib_matrix_get(i, j, model->M[0]);
+		vv[1] = GMRFLib_matrix_get(i, j, model->M[1]);
+		vv[2] = GMRFLib_matrix_get(j, i, model->M[1]);
+		vv[3] = GMRFLib_matrix_get(i, j, model->M[2]);
+
+		GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
+
+		for (int jj = 0; jj < model->graph->lnnbs[i]; jj++) {
+			j = model->graph->lnbs[i][jj];
+			v = Calloc(6 * nc + 4, double);
+			assert(v);
+
+			GMRFLib_matrix_get_row(v + 0 * nc, i, model->B[0]);
+			GMRFLib_matrix_get_row(v + 1 * nc, i, model->B[1]);
+			GMRFLib_matrix_get_row(v + 2 * nc, i, model->B[2]);
+
+			GMRFLib_matrix_get_row(v + 3 * nc, j, model->B[0]);
+			GMRFLib_matrix_get_row(v + 4 * nc, j, model->B[1]);
+			GMRFLib_matrix_get_row(v + 5 * nc, j, model->B[2]);
+
+			double *vv = v + 6 * nc;
+			vv[0] = GMRFLib_matrix_get(i, j, model->M[0]);
+			vv[1] = GMRFLib_matrix_get(i, j, model->M[1]);
+			vv[2] = GMRFLib_matrix_get(j, i, model->M[1]);
+			vv[3] = GMRFLib_matrix_get(i, j, model->M[2]);
+
+			GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
+		}
+	}
 
 	return INLA_OK;
 }

@@ -296,7 +296,7 @@ inla.wkt_get_ellipsoid_radius <- function(wkt) {
         stop("Ellipsoid settings not found")
     }
 
-    datum <- inla.wkt_tree_get_item(wt, "DATUM")
+    datum <- inla.wkt_tree_get_item(wt, c("DATUM", "ENSEMBLE"))
     if (is.null(datum)) {
         stop("Ellipsoid settings not found")
     }
@@ -330,9 +330,9 @@ inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
         if (is.null(wt)) {
             stop("Ellipsoid settings not found")
         } else if (wt[["label"]] %in% geo_crs_items) {
-            datum <- inla.wkt_tree_get_item(wt, "DATUM")
+            datum <- inla.wkt_tree_get_item(wt, c("DATUM", "ENSEMBLE"))
             null_datum <- is.null(datum)
-            if (is.null(datum)) {
+            if (null_datum) {
                 stop("Ellipsoid settings not found")
             }
             ellipsoid <- inla.wkt_tree_get_item(datum, "ELLIPSOID")

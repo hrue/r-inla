@@ -8879,9 +8879,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -12717,9 +12717,9 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		GMRFLib_io_read(io, w, npairs * sizeof(double));
-		lc->weight = Realloc(lc->weight, lc->n + npairs, float);	/* YES! */
+		lc->weight = Realloc(lc->weight, lc->n + npairs, double);
 		for (i = 0; i < npairs; i++) {
-			lc->weight[lc->n + i] = (float) w[i];
+			lc->weight[lc->n + i] = w[i];
 			all_weights_are_zero &= (w[i] == 0.0);
 		}
 
@@ -12747,7 +12747,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	/*
 	 * sort them with increasing idx's (and carry the weights along) to speed things up later on. 
 	 */
-	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(float), NULL, 0, GMRFLib_icmp);
+	GMRFLib_qsorts((void *) lc->idx, (size_t) lc->n, sizeof(int), (void *) lc->weight, sizeof(double), NULL, 0, GMRFLib_icmp);
 	if (mb->verbose) {
 		printf("\t\tNumber of non-zero weights [%1d]\n", lc->n);
 		printf("\t\tLincomb = \tidx \tweight\n");
@@ -33926,6 +33926,50 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
+	if (mb->nlc > 0) {
+		// postprocess the lincombs to convert APredictor and Predictor into sums of the latent
+		int debug = 0;
+		int mpred = preopt->mpred;		       // length(pApredictor)
+		int mnpred = preopt->mnpred;		       // length(c(pApredictor, Apredictor))
+
+		for (int k = 0; k < mb->nlc; k++) {
+			GMRFLib_idxval_tp *idx = NULL;
+			GMRFLib_lc_tp *lc = mb->lc_lc[k];
+			for (int ii = 0; ii < lc->n; ii++) {
+				int i = lc->idx[ii];
+				double w = lc->weight[ii];
+				if (debug) {
+					printf("lc[%1d] decode [idx= %1d, weight= %.8f]\n", k, i, w);
+				}
+				if (lc->idx[ii] < mnpred) {
+					// replace this statement with a row of either pAA or A
+					GMRFLib_idxval_tp *AA = NULL;
+					if (lc->idx[ii] < mpred) {
+						AA = preopt->pAA_idxval[lc->idx[ii]];
+					} else {
+						AA = preopt->A_idxval[lc->idx[ii] - mpred];
+					}
+
+					for (int j = 0; j < AA->n; j++) {
+						GMRFLib_idxval_addto(&idx, AA->idx[j] + mnpred, w * AA->val[j]);
+					}
+				} else {
+					GMRFLib_idxval_addto(&idx, i, w);
+				}
+			}
+			GMRFLib_idxval_uniq(idx);
+			if (debug) {
+				GMRFLib_idxval_printf(stdout, idx, "");
+			}
+
+			Free(lc->idx);
+			Free(lc->weight);
+			lc->n = idx->n;
+			lc->idx = idx->idx;
+			lc->weight = idx->val;
+		}
+	}
+
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
@@ -37626,9 +37670,37 @@ int testit(int argc, char **argv)
 		break;
 
 	case 26:
+		int nrow = 10;
+		GMRFLib_vmatrix_tp *m = NULL;
+		GMRFLib_vmatrix_init(&m, nrow, NULL);
+
+		for (int i = 0; i < nrow; i++) {
+			for (int j = i; j < nrow; j++) {
+				double *val = Calloc(1, double);
+				*val = (double) j;
+				GMRFLib_vmatrix_set(m, i, j, val);
+			}
+		}
+		for (int i = 0; i < nrow; i++) {
+			for (int j = i; j < nrow; j++) {
+				double *val = GMRFLib_vmatrix_get(m, i, j);
+				printf("i %d j %d val %g\n", i, j, *val);
+			}
+		}
+		GMRFLib_vmatrix_free(m, 1);
 		break;
 
 	case 27:
+	{
+		double eps = atof(args[0]);
+		for (double val = 0.99; val < 1.0; val += eps / 1000.0) {
+			int eq = ISEQUAL_x(val, 1.0, eps);
+			if (eq) {
+				printf("eps %.12f val %.12f %d\n", eps, val, ISEQUAL_x(val, 1.0, eps));
+				break;
+			}
+		}
+	}
 		break;
 
 	case 28:
@@ -37687,6 +37759,23 @@ int testit(int argc, char **argv)
 
 	case 30:
 	{
+		double ta[] = {
+			2.8457954755, -0.4965452301, -1.645446141, -1.128319792, 1.262602638,
+			-0.4965452301, 9.5273534221, 6.998890429, 4.924730852, -2.979131713,
+			-1.6454461413, 6.9988904291, 6.648388858, 3.208607495, -2.034296532,
+			-1.1283197920, 4.9247308523, 3.208607495, 3.515410801, -2.453892405,
+			1.2626026384, -2.9791317133, -2.034296532, -2.453892405, 1.833029623
+		};
+
+		gsl_matrix_view m = gsl_matrix_view_array(ta, 5, 5);
+		gsl_matrix *A = GMRFLib_gsl_duplicate_matrix(&m.matrix);
+
+		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
+		printf("\n");
+		gsl_matrix *B = GMRFLib_gsl_low_rank(A, 1.0E-8);
+		GMRFLib_printf_gsl_matrix(stdout, B, " %.12f");
+		gsl_matrix_free(A);
+		gsl_matrix_free(B);
 		break;
 	}
 
@@ -37894,11 +37983,6 @@ int testit(int argc, char **argv)
 
 	case 42:
 	{
-		float x[2] = { 0, 0 };
-		printf("x= %f %f\n", x[0], x[1]);
-		x[0] = NAN;
-		printf("x= %f %f (x[1]==0 %1d) sizeof()=%zu\n", x[0], x[1], x[1] == 0, sizeof(float));
-		break;
 	}
 
 	case 43:
@@ -38722,17 +38806,17 @@ int testit(int argc, char **argv)
 		gsl_vector_set(mean, 1, 3.45);
 		gsl_vector_set(mean, 2, 1.25);
 
-		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0));
 		break;
 	}
 
