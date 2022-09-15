@@ -38806,17 +38806,17 @@ int testit(int argc, char **argv)
 		gsl_vector_set(mean, 1, 3.45);
 		gsl_vector_set(mean, 2, 1.25);
 
-		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(x, mean, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(x, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(x, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(x, NULL, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(NULL, mean, Q, NULL, 0));
 
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S));
-		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL));
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S, 0));
+		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0));
 		break;
 	}
 

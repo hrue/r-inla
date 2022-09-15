@@ -66,29 +66,43 @@ double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q)
 	return sqr;
 }
 
-double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S)
+double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity)
 {
+	// 'identity' says that Q=S=I
+	
 	gsl_matrix *L_Q = NULL, *L_S = NULL;
 	double log_det_Q = 0.0;
-	size_t n;
-	if (Q) {
-		n = Q->size1;
-		L_Q = GMRFLib_gsl_duplicate_matrix(Q);
-		gsl_linalg_cholesky_decomp(L_Q);
-		for (size_t i = 0; i < n; i++) {
-			log_det_Q += log(gsl_matrix_get(L_Q, i, i));
-		}
-		log_det_Q *= 2.0;
-	} else {
-		n = S->size1;
-		L_S = GMRFLib_gsl_duplicate_matrix(S);
-		gsl_linalg_cholesky_decomp(L_S);
-		for (size_t i = 0; i < n; i++) {
-			log_det_Q += log(gsl_matrix_get(L_S, i, i));
-		}
-		log_det_Q *= (-2.0);
-	}
+	size_t n = 0;
 
+	if (identity) {
+		if (Q) {
+			n = Q->size1;
+		} else if (S) {
+			n = S->size1;
+		} else {
+			assert(0 == 1);
+		}
+		log_det_Q = 1.0;
+	} else {
+		if (Q) {
+			n = Q->size1;
+			L_Q = GMRFLib_gsl_duplicate_matrix(Q);
+			gsl_linalg_cholesky_decomp(L_Q);
+			for (size_t i = 0; i < n; i++) {
+				log_det_Q += log(gsl_matrix_get(L_Q, i, i));
+			}
+			log_det_Q *= 2.0;
+		} else {
+			n = S->size1;
+			L_S = GMRFLib_gsl_duplicate_matrix(S);
+			gsl_linalg_cholesky_decomp(L_S);
+			for (size_t i = 0; i < n; i++) {
+				log_det_Q += log(gsl_matrix_get(L_S, i, i));
+			}
+			log_det_Q *= (-2.0);
+		}
+	}
+	
 	gsl_vector *xx = gsl_vector_alloc(n);
 	if (x && mean) {
 		for (size_t i = 0; i < n; i++) {
@@ -103,27 +117,29 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 			gsl_vector_set(xx, i, -gsl_vector_get(mean, i));
 		}
 	} else {
-		for (size_t i = 0; i < n; i++) {
-			gsl_vector_set(xx, i, 0.0);
-		}
+		gsl_vector_set_zero(xx);
 	}
 
 	double sqr = 0.0;
-	if (Q) {
-		sqr = GMRFLib_gsl_xQx(xx, Q);
-	} else {
-		// copy from randist/mvgauss.c
-
-		/*
-		 * compute: work = L^{-1} * (x - mu) 
-		 */
-		gsl_blas_dtrsv(CblasLower, CblasNoTrans, CblasNonUnit, L_S, xx);
-		/*
-		 * compute: quadForm = (x - mu)' Sigma^{-1} (x - mu) 
-		 */
+	if (identity) {
 		gsl_blas_ddot(xx, xx, &sqr);
-	}
+	} else {
+		if (Q) {
+			sqr = GMRFLib_gsl_xQx(xx, Q);
+		} else {
+			// copy from randist/mvgauss.c
 
+			/*
+			 * compute: work = L^{-1} * (x - mu) 
+			 */
+			gsl_blas_dtrsv(CblasLower, CblasNoTrans, CblasNonUnit, L_S, xx);
+			/*
+			 * compute: quadForm = (x - mu)' Sigma^{-1} (x - mu) 
+			 */
+			gsl_blas_ddot(xx, xx, &sqr);
+		}
+	}
+	
 	if (L_S) {
 		gsl_matrix_free(L_S);
 	}
@@ -132,7 +148,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 	}
 	gsl_vector_free(xx);
 
-	return (-(double) n / 2.0 * log(2.0 * M_PI) + 0.5 * log_det_Q - 0.5 * sqr);
+	return ((-(double) n * 1.83787706640934548356065947281 + log_det_Q - sqr) * 0.5);
 }
 
 int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon)

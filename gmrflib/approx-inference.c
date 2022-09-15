@@ -7437,12 +7437,10 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			gsl_matrix *BtHB = gsl_matrix_calloc(m, m);	\
 			GMRFLib_gsl_mmm(Bt, H, B, BtHB);		\
 			gsl_matrix *QQ = gsl_matrix_alloc(m, m);	\
-			gsl_matrix_set_identity(QQ);			\
-			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, QQ, NULL); \
-			}						\
-									\
 			gsl_matrix_set_zero(QQ);			\
+			if (corr_hypar) {				\
+				gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, QQ, NULL, 1); \
+			}						\
 			for(size_t i = 0; i < m; i++) {			\
 				for(size_t j = 0; j < m; j++) {		\
 					if (i == j) {			\
@@ -7452,7 +7450,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 					}				\
 				}					\
 			}						\
-			gsl_matrix *SS = GMRFLib_gsl_duplicate_matrix(QQ); \
+			/* same ptr */					\
+			gsl_matrix *SS = QQ;				\
 			GMRFLib_gsl_ensure_spd_inverse(SS, low_rank_eps, NULL); \
 									\
 			gsl_vector *zmean = gsl_vector_alloc(m);	\
@@ -7472,7 +7471,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_gsl_mmm(B, SS, Bt, S);			\
 									\
 			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(NULL, zmean, NULL, SS); \
+				gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(NULL, zmean, NULL, SS, 0); \
 				/* we define the correction to be multiplicative */ \
 				gcpo[node]->marg_theta_correction *= -1.0; \
 			}						\
@@ -7482,7 +7481,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			gsl_matrix_free(H);				\
 			gsl_matrix_free(BtHB);				\
 			gsl_matrix_free(QQ);				\
-			gsl_matrix_free(SS);				\
 			gsl_vector_free(ztmp);				\
 			gsl_vector_free(zb);				\
 			gsl_vector_free(zmean);				\
@@ -7496,7 +7494,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL); \
 			GMRFLib_gsl_mv(Q, mean_old, b);			\
 			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL); \
+				gcpo[node]->marg_theta_correction -= GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0); \
 			}						\
 									\
 			for(size_t i = 0; i < (size_t) ng; i++) {	\
@@ -7513,7 +7511,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			GMRFLib_gsl_ensure_spd_inverse(Q, spd_eps, NULL); \
 			GMRFLib_gsl_mv(S, b, mean);			\
 			if (corr_hypar) {				\
-				gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(mean_old, mean, NULL, S); \
+				gcpo[node]->marg_theta_correction += GMRFLib_gsl_log_dnorm(mean_old, mean, NULL, S, 0); \
 				/* we define the correction to be multiplicative */ \
 				gcpo[node]->marg_theta_correction *= -1.0; \
 			}						\
@@ -7531,8 +7529,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		gcpo[node]->kld =  0.5 * (SQR(gcpo[node]->lpred_sd) / lpred_variance[node] - 1.0 + \
 					  SQR(gcpo[node]->lpred_mean - lpred_mean[node]) / lpred_variance[node] + \
 					  log(lpred_variance[node] / SQR(gcpo[node]->lpred_sd))); \
-									\
-		P(gcpo[node]->marg_theta_correction);			\
 									\
 		if (gcpodens_moments) {					\
 			gcpodens_moments[node * 3 + 0] = gcpo[node]->lpred_mean; \
