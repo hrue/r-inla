@@ -127,6 +127,8 @@ char *keywords[] = {
 // defined in R-interface.c
 extern double R_rgeneric_cputime;
 
+double *G_norm_const = NULL;				       /* store static normalization constants for likelihoods */
+
 /* 
    default values for priors
  */
@@ -6769,11 +6771,15 @@ int loglikelihood_gpoisson(int thread_id, double *logll, double *x, int m, int i
 	int i, yy;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
-	double log_y_fact = my_gsl_sf_lnfact(y);
 	double phi = map_exp(ds->data_observations.gpoisson_overdispersion[thread_id][0], MAP_FORWARD, NULL);
 	double p = map_identity(ds->data_observations.gpoisson_p[thread_id][0], MAP_FORWARD, NULL);
 	double E = ds->data_observations.E[idx];
 	double a, b, lambda, mu;
+
+	if (gsl_isnan(G_norm_const[idx])) {
+		G_norm_const[idx] = my_gsl_sf_lnfact(y);
+	}
+	double log_y_fact = G_norm_const[idx];
 
 	LINK_INIT;
 	if (m > 0) {
@@ -6815,11 +6821,16 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
-	double normc = my_gsl_sf_lnfact(y);
+	double normc; 
+
+	if (gsl_isnan(G_norm_const[idx])) {
+		G_norm_const[idx] = y * _logE(E) - my_gsl_sf_lnfact(y);
+	}
+	normc = G_norm_const[idx];
 
 	LINK_INIT;
 	if (m > 0) {
-		double ylEmn = y * _logE(E) - normc;
+		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			double off = OFFSET(idx);
 #pragma GCC ivdep
@@ -6857,6 +6868,7 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 
 	LINK_END;
 #undef _logE
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -8223,6 +8235,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
+
 	int status;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
@@ -8250,14 +8263,18 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		if (ds->variant == 0) {
-			// binomial
-			status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-		} else {
-			// neg binomial
-			status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
-		}
-		assert(status == GSL_SUCCESS);
+		if (gsl_isnan(G_norm_const[idx])) {
+			if (ds->variant == 0) {
+				// binomial
+				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+			} else {
+				// neg binomial
+				status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
+			}
+			assert(status == GSL_SUCCESS);
+			G_norm_const[idx] = res.val;
+		} 
+		res.val = G_norm_const[idx];
 
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 			double off = OFFSET(idx);
@@ -8363,14 +8380,19 @@ int loglikelihood_xbinomial(int thread_id, double *logll, double *x, int m, int 
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		if (ds->variant == 0) {
-			// binomial
-			status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
-		} else {
-			// neg binomial
-			status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
-		}
-		assert(status == GSL_SUCCESS);
+		if (gsl_isnan(G_norm_const[idx])){
+			if (ds->variant == 0) {
+				// binomial
+				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+			} else {
+				// neg binomial
+				status = gsl_sf_lnchoose_e((unsigned int) (n - 1.0), (unsigned int) (y - 1.0), &res);
+			}
+			assert(status == GSL_SUCCESS);
+			G_norm_const[idx] = res.val;
+		} 
+		res.val = G_norm_const[idx];
+		
 		for (i = 0; i < m; i++) {
 			p = p_scale * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = DMIN(1.0 - FLT_EPSILON, p);
@@ -8414,8 +8436,13 @@ int loglikelihood_nbinomial2(int thread_id, double *logll, double *x, int m, int
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		status = gsl_sf_lnchoose_e((unsigned int) (y + n - 1.0), (unsigned int) (n - 1.0), &res);
-		assert(status == GSL_SUCCESS);
+		if (gsl_isnan(G_norm_const[idx])) {
+			status = gsl_sf_lnchoose_e((unsigned int) (y + n - 1.0), (unsigned int) (n - 1.0), &res);
+			assert(status == GSL_SUCCESS);
+			G_norm_const[idx] = res.val;
+		}
+		res.val = G_norm_const[idx];
+
 		for (i = 0; i < m; i++) {
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = TRUNCATE(p, 0.0, 1.0);
@@ -9729,7 +9756,12 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 
 	double rho = map_probability(ds->data_observations.betabinomial_overdispersion_intern[thread_id][0], MAP_FORWARD, NULL);
 	double p, a, b;
-	double normc = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
+	double normc;
+
+	if (gsl_isnan(G_norm_const[idx])) {
+		G_norm_const[idx] = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
+	}
+	normc = G_norm_const[idx];
 
 	LINK_INIT;
 	if (m > 0) {
@@ -33968,6 +34000,11 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			lc->idx = idx->idx;
 			lc->weight = idx->val;
 		}
+	}
+
+	G_norm_const = Calloc(preopt->Npred, double);
+	for(int i = 0; i < preopt->Npred; i++) {
+		G_norm_const[i] = NAN;
 	}
 
 	GMRFLib_ai_INLA_experimental(&(mb->density),
