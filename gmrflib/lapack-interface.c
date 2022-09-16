@@ -69,7 +69,7 @@ double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q)
 double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity)
 {
 	// 'identity' says that Q=S=I
-	
+
 	gsl_matrix *L_Q = NULL, *L_S = NULL;
 	double log_det_Q = 0.0;
 	size_t n = 0;
@@ -102,7 +102,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 			log_det_Q *= (-2.0);
 		}
 	}
-	
+
 	gsl_vector *xx = gsl_vector_alloc(n);
 	if (x && mean) {
 		for (size_t i = 0; i < n; i++) {
@@ -139,7 +139,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 			gsl_blas_ddot(xx, xx, &sqr);
 		}
 	}
-	
+
 	if (L_S) {
 		gsl_matrix_free(L_S);
 	}
@@ -1044,7 +1044,7 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 double my_dsum(int n, double *__restrict x)
 {
 	double s = 0.0;
-#pragma omp simd reduction(+: s)		
+#pragma omp simd reduction(+: s)
 	for (int i = 0; i < n; i++) {
 		s += x[i];
 	}
@@ -1076,7 +1076,7 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}
-	
+
 	return (s0 + s1 + s2 + s3);
 }
 
@@ -1103,6 +1103,6 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += a[idx[i]];
 	}
-	
+
 	return (s0 + s1 + s2 + s3);
 }
