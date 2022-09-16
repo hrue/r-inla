@@ -39310,7 +39310,7 @@ int testit(int argc, char **argv)
 			tref[1] += GMRFLib_cpu();
 		}
 
-		printf("dsum %.3f plain %.3f (r-rr=%f, %1d)\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), r - rr, r == rr);
+		printf("dsum %.3f plain %.3f (r-rr=%.12f, %1d)\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), r - rr, r == rr);
 
 		Free(x);
 		break;
