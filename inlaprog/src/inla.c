@@ -128,6 +128,7 @@ char *keywords[] = {
 extern double R_rgeneric_cputime;
 
 double *G_norm_const = NULL;				       /* store static normalization constants for likelihoods */
+char *G_norm_const_compute = NULL;			       /* to be computed */
 
 /* 
    default values for priors
@@ -6776,8 +6777,9 @@ int loglikelihood_gpoisson(int thread_id, double *logll, double *x, int m, int i
 	double E = ds->data_observations.E[idx];
 	double a, b, lambda, mu;
 
-	if (gsl_isnan(G_norm_const[idx])) {
+	if (G_norm_const_compute[idx]) {
 		G_norm_const[idx] = my_gsl_sf_lnfact(y);
+		G_norm_const_compute[idx] = 0;
 	}
 	double log_y_fact = G_norm_const[idx];
 
@@ -6821,10 +6823,11 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
-	double normc; 
+	double normc;
 
-	if (gsl_isnan(G_norm_const[idx])) {
+	if (G_norm_const_compute[idx]) {
 		G_norm_const[idx] = y * _logE(E) - my_gsl_sf_lnfact(y);
+		G_norm_const_compute[idx] = 0;
 	}
 	normc = G_norm_const[idx];
 
@@ -8263,7 +8266,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		if (gsl_isnan(G_norm_const[idx])) {
+		if (G_norm_const_compute[idx]) {
 			if (ds->variant == 0) {
 				// binomial
 				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -8273,7 +8276,8 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			}
 			assert(status == GSL_SUCCESS);
 			G_norm_const[idx] = res.val;
-		} 
+			G_norm_const_compute[idx] = 0;
+		}
 		res.val = G_norm_const[idx];
 
 		if (PREDICTOR_LINK_EQ(link_logit)) {
@@ -8380,7 +8384,7 @@ int loglikelihood_xbinomial(int thread_id, double *logll, double *x, int m, int 
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		if (gsl_isnan(G_norm_const[idx])){
+		if (G_norm_const_compute[idx]) {
 			if (ds->variant == 0) {
 				// binomial
 				status = gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
@@ -8390,9 +8394,10 @@ int loglikelihood_xbinomial(int thread_id, double *logll, double *x, int m, int 
 			}
 			assert(status == GSL_SUCCESS);
 			G_norm_const[idx] = res.val;
-		} 
+			G_norm_const_compute[idx] = 0;
+		}
 		res.val = G_norm_const[idx];
-		
+
 		for (i = 0; i < m; i++) {
 			p = p_scale * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = DMIN(1.0 - FLT_EPSILON, p);
@@ -8436,10 +8441,11 @@ int loglikelihood_nbinomial2(int thread_id, double *logll, double *x, int m, int
 	LINK_INIT;
 	if (m > 0) {
 		gsl_sf_result res;
-		if (gsl_isnan(G_norm_const[idx])) {
+		if (G_norm_const_compute[idx]) {
 			status = gsl_sf_lnchoose_e((unsigned int) (y + n - 1.0), (unsigned int) (n - 1.0), &res);
 			assert(status == GSL_SUCCESS);
 			G_norm_const[idx] = res.val;
+			G_norm_const_compute[idx] = 0;
 		}
 		res.val = G_norm_const[idx];
 
@@ -8906,9 +8912,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9758,8 +9764,9 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 	double p, a, b;
 	double normc;
 
-	if (gsl_isnan(G_norm_const[idx])) {
+	if (G_norm_const_compute[idx]) {
 		G_norm_const[idx] = _LOGGAMMA_INT(n + 1) - _LOGGAMMA_INT(y + 1) - _LOGGAMMA_INT(n - y + 1);
+		G_norm_const_compute[idx] = 0;
 	}
 	normc = G_norm_const[idx];
 
@@ -32847,8 +32854,18 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * compute a 'reasonable' initial value for \eta, unless its there from before.
 	 */
-	x = Calloc(N, double);
 
+	int mm = mb->predictor_n + mb->predictor_m;
+	Free(G_norm_const_compute);
+	Free(G_norm_const);
+	G_norm_const_compute = Calloc(mm, char);
+	G_norm_const = Calloc(mm, double);
+	for (int i = 0; i < mm; i++) {
+		G_norm_const[i] = NAN;
+		G_norm_const_compute[i] = 1;
+	}
+
+	x = Calloc(N, double);
 	if (mb->reuse_mode && mb->x_file) {
 		if (N != mb->nx_file) {
 			char *msg;
@@ -33160,6 +33177,15 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	int nparam_eff = mb->ai_par->compute_nparam_eff;
 	mb->ai_par->compute_nparam_eff = 0;
 	compute = Calloc(N, char);
+
+	Free(G_norm_const_compute);
+	Free(G_norm_const);
+	G_norm_const_compute = Calloc(preopt->Npred, char);
+	G_norm_const = Calloc(preopt->Npred, double);
+	for (int i = 0; i < preopt->Npred; i++) {
+		G_norm_const[i] = NAN;
+		G_norm_const_compute[i] = 1;
+	}
 
 	GMRFLib_ai_INLA(&(mb->density),
 			NULL, NULL,
@@ -33503,6 +33529,17 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	/*
 	 * compute a 'reasonable' initial value for \eta, unless its there from before.
 	 */
+
+	int mm = mb->predictor_n + mb->predictor_m;
+	Free(G_norm_const_compute);
+	Free(G_norm_const);
+	G_norm_const_compute = Calloc(mm, char);
+	G_norm_const = Calloc(mm, double);
+	for (int i = 0; i < mm; i++) {
+		G_norm_const[i] = NAN;
+		G_norm_const_compute[i] = 1;
+	}
+
 	x = Calloc(N, double);
 	if (mb->reuse_mode && mb->x_file) {
 		if (N != mb->nx_file) {
@@ -34002,9 +34039,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
+	Free(G_norm_const_compute);
+	Free(G_norm_const);
+	G_norm_const_compute = Calloc(preopt->Npred, char);
 	G_norm_const = Calloc(preopt->Npred, double);
-	for(int i = 0; i < preopt->Npred; i++) {
+	for (int i = 0; i < preopt->Npred; i++) {
 		G_norm_const[i] = NAN;
+		G_norm_const_compute[i] = 1;
 	}
 
 	GMRFLib_ai_INLA_experimental(&(mb->density),
