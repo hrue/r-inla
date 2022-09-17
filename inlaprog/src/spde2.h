@@ -52,13 +52,11 @@ __BEGIN_DECLS
 	SPDE2_TRANSFORM_IDENTITY			       /* x */
 } spde2_transform_tp;
 
-typedef struct 
-{
+typedef struct {
 	int i;
 	double *theta;
 	double *vals;
-}
-	spde2_cache_tp;
+} spde2_cache_tp;
 
 typedef struct {
 	int n;

@@ -52,7 +52,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		return NAN;
 	}
 
-	const int enable_cache = 1;
+	const int enable_cache = 0;
 	const int debug = 0;
 	const int debug_details = 0;
 
