@@ -60,20 +60,17 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	}
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
-	double value = 0.0;
+	double value;
 	double phi_i[3] = { 0.0, 0.0, 0.0 };
 	double d_i[3] = { 0.0, 0.0, 0.0 };
 
 	int nc = model->B[0]->ncol;
 	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
-	double *vals_i0 = NULL;
-	double *vals_i1 = NULL;
-	double *vals_i2 = NULL;
 
 	if (i == j) {
-		vals_i0 = vals;
-		vals_i1 = vals + nc;
-		vals_i2 = vals + 2 * nc;
+		double * vals_i0 = vals;
+		double * vals_i1 = vals + nc;
+		double * vals_i2 = vals + 2 * nc;
 
 		phi_i[0] = vals_i0[0];
 		phi_i[1] = vals_i1[0];
@@ -109,16 +106,12 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		double phi_j[3] = { 0.0, 0.0, 0.0 };
 		double d_j[3] = { 0.0, 0.0, 0.0 };
 
-		double *vals_j0 = NULL;
-		double *vals_j1 = NULL;
-		double *vals_j2 = NULL;
-
-		vals_i0 = vals;
-		vals_i1 = vals + nc;
-		vals_i2 = vals + 2 * nc;
-		vals_j0 = vals + 3 * nc;
-		vals_j1 = vals + 4 * nc;
-		vals_j2 = vals + 5 * nc;
+		double * vals_i0 = vals;
+		double * vals_i1 = vals + nc;
+		double * vals_i2 = vals + 2 * nc;
+		double * vals_j0 = vals + 3 * nc;
+		double * vals_j1 = vals + 4 * nc;
+		double * vals_j2 = vals + 5 * nc;
 
 		phi_i[0] = vals_i0[0];
 		phi_i[1] = vals_i1[0];

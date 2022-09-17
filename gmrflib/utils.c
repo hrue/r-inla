@@ -224,14 +224,11 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 {
 	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
 	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe
-
-	if (len == 0) {
-		return -1;
-	}
-
+	
 	int low, high;
+
 	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
-	if (guess[1] <= guess[0] || guess[1] == 0 || guess[1] >= len) {
+	if (guess[1] == guess[0] || guess[1] >= len) {
 		// invalid values for 'guess', no need to check
 		low = 0;
 		high = len - 1;
@@ -242,10 +239,10 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 
 	while (1) {
 		int range = high - low;
-		if (range < 8L) {
-			guess[1] = high + 1;
+		if (range < 4L) {
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
+					guess[1] = high + 1;
 					guess[0] = i + 1;
 					return i;
 				}
@@ -262,7 +259,6 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 			}
 		}
 	}
-
 	return -1;
 }
 int GMRFLib_find_nonzero(double *array, int len, int direction)
