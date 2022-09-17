@@ -52,6 +52,14 @@ __BEGIN_DECLS
 	SPDE2_TRANSFORM_IDENTITY			       /* x */
 } spde2_transform_tp;
 
+typedef struct 
+{
+	int i;
+	double *theta;
+	double *vals;
+}
+	spde2_cache_tp;
+
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
@@ -75,6 +83,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_vmatrix_tp *vmatrix;
+	spde2_cache_tp **cache;
 } inla_spde2_tp;
 
 double inla_spde2_Qfunction(int thread_id, int node, int nnode, double *values, void *arg);
