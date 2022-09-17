@@ -91,8 +91,10 @@ double ddot_(int *n, double *x, int *incx, double *y, int *incy);
 double dnrm2_(int *n, double *x, int *inc);
 double dasum_(int *n, double *x, int *inc);
 
+int my_isum(int n, int * ix);
+double my_ddot(int n, double * __restrict x, double * __restrict y);
 double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double my_dsum(int n, double *__restrict x);
+double my_dsum(int n, double * x);
 double my_dsum_idx(int n, double *__restrict a, int *__restrict idx);
 
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);

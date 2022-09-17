@@ -514,14 +514,13 @@ int GMRFLib_normalize(int n, double *x)
 {
 	// scale x so the sum is 1
 
-	double sum = 0.0;
-	for (int i = 0; i < n; i++) {
-		sum += x[i];
-	}
+	double sum = my_dsum(n, x);
 	sum = 1.0 / sum;
+#pragma omp simd
 	for (int i = 0; i < n; i++) {
 		x[i] *= sum;
 	}
+
 	return GMRFLib_SUCCESS;
 }
 int GMRFLib_unique_relative(int *n, double *x, double eps)
@@ -991,17 +990,15 @@ int GMRFLib_scale_vector(double *x, int n)
 	/*
 	 * x := x/max(x)
 	 */
-	int i;
-	double scale;
-
 	if (n <= 0 || !x) {
 		return GMRFLib_SUCCESS;
 	}
 
-	scale = GMRFLib_max_value(x, n, NULL);
+	double scale = GMRFLib_max_value(x, n, NULL);
 	if (!ISZERO(scale)) {
 		scale = 1.0 / scale;
-		for (i = 0; i < n; i++) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
 			x[i] *= scale;
 		}
 	}

@@ -1041,7 +1041,17 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	return kld;
 }
 
-double my_dsum(int n, double *__restrict x)
+int my_isum(int n, int * ix)
+{
+	int s = 0;
+#pragma omp simd reduction(+: s)
+	for (int i = 0; i < n; i++) {
+		s += ix[i];
+	}
+	return (s);
+}
+
+double my_dsum(int n, double * x)
 {
 	double s = 0.0;
 #pragma omp simd reduction(+: s)
@@ -1049,6 +1059,12 @@ double my_dsum(int n, double *__restrict x)
 		s += x[i];
 	}
 	return (s);
+}
+
+double my_ddot(int n, double * __restrict x, double * __restrict y) 
+{
+	int one = 1;
+	return ddot_(&n, x, &one, y, &one);
 }
 
 double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)

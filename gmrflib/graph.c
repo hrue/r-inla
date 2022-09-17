@@ -193,7 +193,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 			(*graph)->nbs[im] = (*graph)->nbs[i];
 
 			if ((*graph)->nnbs[im]) {
-				for (j = 0; j < (*graph)->nnbs[im]; j++) {
+				for (int j = 0; j < (*graph)->nnbs[im]; j++) {
 					(*graph)->nbs[im][j]--;
 				}
 			}
@@ -414,7 +414,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 			g->nnbs[i] = g->nnbs[i + 1];
 			g->nbs[i] = g->nbs[i + 1];
 			g->nbs[i + 1] = NULL;
-			for (j = 0; j < g->nnbs[i]; j++) {
+			for (int j = 0; j < g->nnbs[i]; j++) {
 				g->nbs[i][j]--;
 			}
 		}
@@ -669,11 +669,7 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
-	int nnz = 0;
-	for (int i = 0; i < graph->n; i++) {
-		nnz += graph->nnbs[i];
-	}
-	graph->nnz = nnz;
+	graph->nnz = my_isum(graph->n, graph->nnbs);
 
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
 	GMRFLib_graph_add_lnbs_info(graph);		       /* must be before sha */
@@ -733,12 +729,9 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
 #undef CODE_BLOCK
 
-	graph->lnnz = graph->snnz = 0;
-	for (int i = 0; i < graph->n; i++) {
-		graph->lnnz += graph->lnnbs[i];
-		graph->snnz += graph->snnbs[i];
-	}
-
+	graph->lnnz = my_isum(graph->n, graph->lnnbs);
+	graph->snnz = my_isum(graph->n, graph->snnbs);
+	
 	return GMRFLib_SUCCESS;
 }
 
@@ -931,9 +924,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 	/*
 	 * rearrange into linear storage and free temporary storage 
 	 */
-	for (i = 0, nnb = 0; i < (*ngraph)->n; i++) {
-		nnb += (*ngraph)->nnbs[i];
-	}
+	nnb = my_isum((*ngraph)->n, (*ngraph)->nnbs);
 	if (nnb) {
 		hold = Calloc(nnb, int);
 	} else {
@@ -1032,13 +1023,10 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	}
 
 	size_t siz = 0;
-	int i, m, n;
+	int m, n;
 
 	n = graph->n;
-	for (i = m = 0; i < n; i++) {
-		m += graph->nnbs[i];
-	}
-
+	m = my_isum(n, graph->nnbs);
 	siz += sizeof(int) + m * sizeof(int) + 2 * n * sizeof(int) + 2 * n * sizeof(int *);
 
 	return siz;
@@ -1049,6 +1037,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 	if (!remove_flag) {
 		if (node_map) {
 			*node_map = Calloc(graph->n, int);
+#pragma omp simd
 			for (int i = 0; i < graph->n; i++) {
 				(*node_map)[i] = i;
 			}
@@ -1093,10 +1082,13 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 
 		GMRFLib_graph_mk_empty(subgraph);
 
-		for (i = 0, nn = 0; i < graph->n; i++) {
+		nn = 0;
+#pragma omp simd reduction(+: nn)
+		for (int i = 0; i < graph->n; i++) {
 			nn += (!remove_flag[i]);
 		}
 		(*subgraph)->n = nn;
+
 		if (!((*subgraph)->n)) {
 			GMRFLib_LEAVE_ROUTINE;
 			if (node_map) {
@@ -1135,7 +1127,9 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 		 */
 		for (i = 0, k = 0, n_neig_tot = 0; i < graph->n; i++) {
 			if (!remove_flag[i]) {
-				for (j = 0, nneig = 0; j < graph->nnbs[i]; j++) {
+				nneig = 0;
+#pragma omp simd reduction(+: nneig)
+				for (int j = 0; j < graph->nnbs[i]; j++) {
 					nneig += (!remove_flag[graph->nbs[i][j]]);
 				}
 				n_neig_tot += nneig;
@@ -1389,6 +1383,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 			for (int j = 0; j < max_t; j++) {
 				int offset = j * graph->n;
 				double *r = local_result + offset;
+#pragma omp simd
 				for (int i = 0; i < graph->n; i++) {
 					result[i] += r[i];
 				}
@@ -1597,19 +1592,14 @@ int GMRFLib_xQx(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 
 int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag)
 {
-	int i;
-	double *y = NULL, res;
-
+	double *y = NULL;
 	Calloc_init(graph->n, 1);
 	y = Calloc_get(graph->n);
 
 	GMRFLib_Qx2(thread_id, y, x, graph, Qfunc, Qfunc_arg, diag);
-	for (i = 0, res = 0.0; i < graph->n; i++) {
-		res += y[i] * x[i];
-	}
-	Calloc_free();
+	*result = my_ddot(graph->n, x, y);
 
-	*result = res;
+	Calloc_free();
 	return GMRFLib_SUCCESS;
 }
 
@@ -1810,10 +1800,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 	/*
 	 * rearrange into linear storage and free temporary storage 
 	 */
-	for (i = 0, nnb = 0; i < newg->n; i++) {
-		nnb += newg->nnbs[i];
-	}
-
+	nnb = my_isum(newg->n, newg->nnbs);
 	if (nnb) {
 		hold = Calloc(nnb, int);
 	} else
@@ -1976,13 +1963,10 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 	 * new_graph->n' 
 	 */
 
-	int i, ii, j, n_neig, *hold = NULL, hold_idx;
+	int n_neig, *hold = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
-	for (i = 0, n_neig = 0; i < graph->n; i++) {
-		n_neig += graph->nnbs[i];
-	}
-
+	n_neig = my_isum(graph->n, graph->nnbs);
 	GMRFLib_graph_mk_empty(&g);
 	g->n = n_new;
 	g->nnbs = Calloc(n_new, int);
@@ -1994,13 +1978,13 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 		hold = NULL;
 	}
 
-	for (i = 0, hold_idx = 0; i < graph->n; i++) {
-		ii = i + offset;
+	for (int i = 0, hold_idx = 0; i < graph->n; i++) {
+		int ii = i + offset;
 		g->nnbs[ii] = graph->nnbs[i];
 		g->nbs[ii] = &hold[hold_idx];
 		hold_idx += graph->nnbs[i];
 
-		for (j = 0; j < graph->nnbs[i]; j++) {
+		for (int j = 0; j < graph->nnbs[i]; j++) {
 			g->nbs[ii][j] = graph->nbs[i][j] + offset;
 		}
 	}
@@ -2064,7 +2048,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
 		return NULL;
 	}
 
-	int i, n, *cc, ccc;
+	int n, *cc, ccc;
 	char *visited;
 
 	n = g->n;
@@ -2072,7 +2056,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
 	ccc = -1;					       /* the counter. yes, start at -1 */
 	visited = Calloc(n, char);
 
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		if (!visited[i]) {
 			ccc++;
 			GMRFLib_graph_cc_do(i, g, cc, visited, &ccc);
@@ -2093,9 +2077,8 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 	visited[node] = 1;
 	cc[node] = *ccc;
 
-	int i, nnode;
-	for (i = 0; i < g->nnbs[node]; i++) {
-		nnode = g->nbs[node][i];
+	for (int i = 0; i < g->nnbs[node]; i++) {
+		int nnode = g->nbs[node][i];
 		if (!visited[nnode]) {			       /* faster to do a check here than to doit inside the funcall */
 			GMRFLib_graph_cc_do(nnode, g, cc, visited, ccc);
 		}

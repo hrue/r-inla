@@ -144,8 +144,6 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 				if (i != j) {
 					if (ff_Qfunc[i][j]) {
 						GMRFLib_ASSERT(ff_Qfunc[i][j] == ff_Qfunc[j][i], GMRFLib_EPARAMETER);
-					}
-					if (ff_Qfunc_arg) {
 						GMRFLib_ASSERT(ff_Qfunc_arg[i][j] == ff_Qfunc_arg[j][i], GMRFLib_EPARAMETER);
 					}
 				}
@@ -785,9 +783,7 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 		case GMRFLib_HGMRFM_TP_F:
 			if (it.tp_idx == jt.tp_idx) {
 				if ((it.idx == jt.idx) || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
-					value +=
-					    a->f_Qfunc[it.tp_idx] (thread_id, it.idx, jt.idx, NULL,
-								   (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
+					value += a->f_Qfunc[it.tp_idx] (thread_id, it.idx, jt.idx, NULL, a->f_Qfunc_arg[it.tp_idx]);
 				}
 			}
 			/*
@@ -797,7 +793,7 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 				if ((it.idx == jt.idx) && (it.tp_idx != jt.tp_idx) && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value +=
 					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (thread_id, it.idx, jt.idx, NULL,
-									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+									       a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx]);
 				}
 			}
 			return value;
