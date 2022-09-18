@@ -21658,7 +21658,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * for B and M matrices and BLC. maybe do later
 		 */
 		inla_spde2_build_model(thread_id, &spde2_model_orig, (const char *) spde2_prefix, (const char *) transform);
-		spde2_model_orig->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 		mb->f_model[mb->nf] = (void *) spde2_model_orig;
 
 		inla_spde2_build_model(thread_id, &spde2_model, (const char *) spde2_prefix, (const char *) transform);
@@ -25690,7 +25689,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case F_SPDE2:
-		((inla_spde2_tp *) (spde2_model->Qfunc_arg))->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 		mb->f_Qfunc[mb->nf] = spde2_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde2_model->Qfunc_arg;
 		mb->f_graph[mb->nf] = spde2_model->graph;

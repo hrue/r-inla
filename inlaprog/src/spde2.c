@@ -54,7 +54,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 
 	const int debug = 0;
 	const int debug_details = 0;
-	const int use_ddot = 0;
+	const int use_ddot = 0;				       /* ran slower with 'ddot' */
 	
 	int i, j;
 	if (ii <= jj) {
@@ -86,7 +86,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				double *work = Calloc(3 + nc, double);
 				model->cache[idx]->theta = work;
 				model->cache[idx]->vals = work + nc;
-				model->cache[idx]->theta[0] = 1.0; /* always */
+				// add theta[0] = 1.0 here, and append other 'thetas' after, so we can make cleaner loops
+				model->cache[idx]->theta[0] = 1.0; 
 			}
 		}
 	}
@@ -147,6 +148,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		double *v = vals + 3 * nc;
 		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 
+		// store in cache. 'theta' is done already
 		cache->i = i;
 		Memcpy(cache->vals, d_i, 3 * sizeof(double));
 
@@ -195,6 +197,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			}
 		}
 
+		// check hit/miss rates... might be useful in the future again, so I keep it here
 		if (0) {
 			static double cache_hit = 0.0;
 			static double cache_miss = 0.0;
@@ -481,6 +484,8 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 			GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
 		}
 	}
+
+	model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 
 	return INLA_OK;
 }
