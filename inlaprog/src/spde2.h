@@ -54,6 +54,7 @@ __BEGIN_DECLS
 
 typedef struct {
 	int i;
+	int need_transform;
 	double *theta;
 	double *vals;
 } spde2_cache_tp;
