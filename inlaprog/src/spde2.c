@@ -366,27 +366,16 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 			}
 			double *theta = cache->theta;
 
-			if (use_ddot) {
-				int dim = nc, ione = 1;
-				d_i[0] = ddot_(&dim, vals_i0, &ione, theta, &ione);
-				d_i[1] = ddot_(&dim, vals_i1, &ione, theta, &ione);
-				d_i[2] = ddot_(&dim, vals_i2, &ione, theta, &ione);
-				d_j[0] = ddot_(&dim, vals_j0, &ione, theta, &ione);
-				d_j[1] = ddot_(&dim, vals_j1, &ione, theta, &ione);
-				d_j[2] = ddot_(&dim, vals_j2, &ione, theta, &ione);
-			} else {
 #pragma GCC ivdep
-				for (int k = 0; k < nc; k++) {
-					double th = theta[k];
-					d_i[0] += vals_i0[k] * th;
-					d_i[1] += vals_i1[k] * th;
-					d_i[2] += vals_i2[k] * th;
-					d_j[0] += vals_j0[k] * th;
-					d_j[1] += vals_j1[k] * th;
-					d_j[2] += vals_j2[k] * th;
-				}
+			for (int k = 0; k < nc; k++) {
+				double th = theta[k];
+				d_i[0] += vals_i0[k] * th;
+				d_i[1] += vals_i1[k] * th;
+				d_i[2] += vals_i2[k] * th;
+				d_j[0] += vals_j0[k] * th;
+				d_j[1] += vals_j1[k] * th;
+				d_j[2] += vals_j2[k] * th;
 			}
-
 #pragma GCC ivdep
 			for (int k = 0; k < 2; k++) {
 				d_i[k] = exp(d_i[k]);
