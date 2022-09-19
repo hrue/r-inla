@@ -40,7 +40,10 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "cgeneric.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
 
 #if !defined(Calloc)
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))

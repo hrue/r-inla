@@ -41,23 +41,135 @@
 #include "inla.h"
 #include "spde2.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
+
 extern G_tp G;						       /* import some global parametes from inla */
 
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+{
+	if (jj < 0) {
+		return NAN;
+	}
+
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	double value = 0.0;
+	double d_i[3];
+	double d_j[3];
+
+	int nc = model->B[0]->ncol;
+	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+
+	double *vals_i0 = vals;
+	double *vals_i1 = vals + nc;
+	double *vals_i2 = vals + 2 * nc;
+
+	d_i[0] = vals_i0[0];
+	d_i[1] = vals_i1[0];
+	d_i[2] = vals_i2[0];
+
+	if (i == j) {
+#pragma GCC ivdep
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			d_i[0] += vals_i0[k] * theta;
+			d_i[1] += vals_i1[k] * theta;
+			d_i[2] += vals_i2[k] * theta;
+		}
+		d_i[0] = exp(d_i[0]);
+		d_i[1] = exp(d_i[1]);
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				break;
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				break;
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 3 * nc;
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+	} else {
+		double *vals_j0 = vals + 3 * nc;
+		double *vals_j1 = vals + 4 * nc;
+		double *vals_j2 = vals + 5 * nc;
+
+		d_j[0] = vals_j0[0];
+		d_j[1] = vals_j1[0];
+		d_j[2] = vals_j2[0];
+#pragma GCC ivdep
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+
+			d_i[0] += vals_i0[k] * theta;
+			d_i[1] += vals_i1[k] * theta;
+			d_i[2] += vals_i2[k] * theta;
+
+			d_j[0] += vals_j0[k] * theta;
+			d_j[1] += vals_j1[k] * theta;
+			d_j[2] += vals_j2[k] * theta;
+		}
+
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+			d_j[k] = exp(d_j[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				d_j[2] = 2 * exp(d_j[2]) - 1.0;
+				break;
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+				break;
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	}
+
+	return value;
+}
 double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i.
-	
+
 	// recall to enable init in 'build_model below' before enable this function, and remove this assert...
 	assert(0 == 1);
-	
+
 	if (jj < 0) {
 		return NAN;
 	}
 
 	const int debug = 0;
 	const int debug_details = 0;
-	const int use_ddot = 0;				       /* ran slower with 'ddot' */
 
 	int i, j;
 	if (ii <= jj) {
@@ -112,19 +224,12 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		}
 		double *theta = cache->theta;
 
-		if (use_ddot) {
-			int dim = nc, ione = 1;
-			d_i[0] = ddot_(&dim, vals_i0, &ione, theta, &ione);
-			d_i[1] = ddot_(&dim, vals_i1, &ione, theta, &ione);
-			d_i[2] = ddot_(&dim, vals_i2, &ione, theta, &ione);
-		} else {
 #pragma GCC ivdep
-			for (int k = 0; k < nc; k++) {
-				double th = theta[k];
-				d_i[0] += vals_i0[k] * th;
-				d_i[1] += vals_i1[k] * th;
-				d_i[2] += vals_i2[k] * th;
-			}
+		for (int k = 0; k < nc; k++) {
+			double th = theta[k];
+			d_i[0] += vals_i0[k] * th;
+			d_i[1] += vals_i1[k] * th;
+			d_i[2] += vals_i2[k] * th;
 		}
 
 #pragma GCC ivdep
@@ -223,21 +328,13 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 			Memcpy(d_i, cache->vals, 3 * sizeof(double));
 			double *theta = cache->theta;
 
-			if (use_ddot) {
-				int dim = nc, ione = 1;
-				d_j[0] = ddot_(&dim, vals_j0, &ione, theta, &ione);
-				d_j[1] = ddot_(&dim, vals_j1, &ione, theta, &ione);
-				d_j[2] = ddot_(&dim, vals_j2, &ione, theta, &ione);
-			} else {
 #pragma GCC ivdep
-				for (int k = 0; k < nc; k++) {
-					double th = theta[k];
-					d_j[0] += vals_j0[k] * th;
-					d_j[1] += vals_j1[k] * th;
-					d_j[2] += vals_j2[k] * th;
-				}
+			for (int k = 0; k < nc; k++) {
+				double th = theta[k];
+				d_j[0] += vals_j0[k] * th;
+				d_j[1] += vals_j1[k] * th;
+				d_j[2] += vals_j2[k] * th;
 			}
-
 #pragma GCC ivdep
 			for (int k = 0; k < 2; k++) {
 				d_j[k] = exp(d_j[k]);
@@ -342,14 +439,14 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 	return value;
 }
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_new(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
-	// no-cache-version
+	// no-cache-version, alternative version. not faster than the old one
 
 	if (jj < 0) {
 		return NAN;
 	}
-	
+
 	int i, j;
 	if (ii <= jj) {
 		i = ii;

@@ -41,7 +41,11 @@
 #include "inla.h"
 #include "spde3.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
+
 extern G_tp G;						       /* import some global parametes from inla */
 
 int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp ** smodel, const char *prefix, const char *transform)

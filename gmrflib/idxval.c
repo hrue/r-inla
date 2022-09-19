@@ -31,7 +31,11 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
 
 #if !defined(__FreeBSD__)
 #include <assert.h>

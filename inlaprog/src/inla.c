@@ -3131,6 +3131,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 			printf("Rebuild mu-hash for id %d\n", id);
 		}
 		if (!(a->mu_param[id])) {
+			assert(a->ntheta >= 0 && a->ntheta < 1000000);
 			a->mu_param[id] = Calloc(a->ntheta, double);
 		}
 		for (jj = 0; jj < a->ntheta; jj++) {
@@ -11952,7 +11953,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
 			}
 		} else {
-			prior->parameters = Calloc(0, double);
+			prior->parameters = Calloc(2, double);
 			prior->parameters[0] = 0.0;
 			prior->parameters[1] = 0.0;
 		}
@@ -12037,7 +12038,7 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
 			prior->parameters[2] = NAN;	       /* cdf, added later */
 		} else {
-			prior->parameters = Calloc(2, double);
+			prior->parameters = Calloc(3, double);
 			prior->parameters[0] = 0.5;	       /* alpha */
 			prior->parameters[1] = NAN;	       /* number of classes, added later */
 			prior->parameters[2] = NAN;	       /* number of classes, added later */
@@ -37500,13 +37501,6 @@ int testit(int argc, char **argv)
 		break;
 
 	case 17:
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-
-		printf("n = %d\t m = %d\n", m, n);
-		GMRFLib_preopt_test1(n, m);
-	}
 		break;
 
 	case 18:

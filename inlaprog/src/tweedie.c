@@ -45,7 +45,10 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "tweedie.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
 
 // the 'dtweedie'-code is inspired from tweedie.c in the (GPL'ed) cplm_0.7-9.tar.gz package of Wayne Zhang
 // <actuary_zhang@hotmail.com>, but got largly rewritten to incorporate caching and interpolation and other optimization

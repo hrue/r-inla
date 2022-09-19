@@ -46,11 +46,12 @@
 #ifndef GITCOMMIT
 #define GITCOMMIT
 #endif
-static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
 
-/* 
-   if we have openmp, then use this function
- */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
+
 #if defined(_OPENMP)
 #include <sys/time.h>
 #include <omp.h>
