@@ -44,10 +44,13 @@
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 extern G_tp G;						       /* import some global parametes from inla */
 
-// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i.
-
 double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
+	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i.
+	
+	// recall to enable init in 'build_model below' before enable this function, and remove this assert...
+	assert(0 == 1);
+	
 	if (jj < 0) {
 		return NAN;
 	}
@@ -95,7 +98,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 
 	int need_transform = cache->need_transform;
 	double value;
-	double d_i[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double d_i[10] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	double *d_j = d_i + 3;
 
 	if (i == j) {
@@ -341,12 +344,12 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
-	// no cache-version
+	// no-cache-version
 
 	if (jj < 0) {
 		return NAN;
 	}
-
+	
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -366,9 +369,11 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 
 	if (i == j) {
 		if (1) {
+#pragma GCC ivdep
 			for (int k = 0, kk = 0; k < 3; k++, kk += nc) {
 				d_i[k] = vals[kk];
 			}
+
 			for (int k = 1; k < nc; k++) {
 				double th = model->theta[k - 1][thread_id][0];
 				double *v = vals + k;
@@ -419,9 +424,11 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 
 	} else {
 		if (1) {
+#pragma GCC ivdep
 			for (int k = 0, kk = 0; k < 6; k++, kk += nc) {
 				d_i[k] = vals[kk];
 			}
+
 			for (int k = 1; k < nc; k++) {
 				double th = model->theta[k - 1][thread_id][0];
 				double *v = vals + k;
@@ -629,6 +636,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 		}
 	}
 
+	// recall to enable this if using cache
 	model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 
 	return INLA_OK;

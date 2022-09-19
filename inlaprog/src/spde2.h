@@ -57,6 +57,9 @@ typedef struct {
 	int need_transform;
 	double *theta;
 	double *vals;
+
+	// need a buffer...
+	double l1_cachline[4L];
 } spde2_cache_tp;
 
 typedef struct {
