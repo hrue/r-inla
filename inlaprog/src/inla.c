@@ -39464,6 +39464,39 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 87:
+	{
+		int n = atoi(args[0]);
+		int ntimes = atoi(args[1]);
+		double *x = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		P(n);
+		P(ntimes);
+
+		double tref[2] = { 0.0, 0.0 };
+		double r = 0.0, rr = 0.0;
+
+		for (int time = 0; time < ntimes; time++) {
+
+			tref[0] -= GMRFLib_cpu();
+			r += my_dsum(n, x);
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			rr += my_dsum2(n, x);
+			tref[1] += GMRFLib_cpu();
+		}
+
+		printf("dsum %.3f dsum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P((r-rr)/r);
+	
+		Free(x);
+		break;
+	}
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
