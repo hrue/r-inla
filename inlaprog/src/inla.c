@@ -13287,11 +13287,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	Data_section_tp *ds;
 
 	mb->nds++;
-	if (mb->data_sections) {
-		mb->data_sections = Realloc(mb->data_sections, mb->nds, Data_section_tp);
-	} else {
-		mb->data_sections = Calloc(1, Data_section_tp);
-	}
+	mb->data_sections = Realloc(mb->data_sections, mb->nds, Data_section_tp);
 	ds = &(mb->data_sections[mb->nds - 1]);		       /* shorthand */
 	Memset(ds, 0, sizeof(Data_section_tp));
 

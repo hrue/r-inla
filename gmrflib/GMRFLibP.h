@@ -357,7 +357,9 @@ typedef enum {
 #undef  GMRFLib_TRACE_MEMORY
 #define Calloc(n, type)         (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type))
 #define Malloc(n, type)         (type *)malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
-#define Realloc(ptr, n, type)   (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char))
+#define Realloc(ptr, n, type)   ((ptr) ? \
+				 (type *)realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char)) : \
+				 (type *)calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type)))
 #define Free(ptr)               if (ptr) {free((void *)(ptr)); ptr=NULL;}
 #define Memcpy(dest, src, n)    memcpy((void *) (dest), (void *) (src), GMRFLib_ALLOC_SAFE_SIZE(n, char))
 #endif
