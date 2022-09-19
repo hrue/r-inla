@@ -46,7 +46,7 @@ extern G_tp G;						       /* import some global parametes from inla */
 
 // use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i.
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	if (jj < 0) {
 		return NAN;
@@ -55,7 +55,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	const int debug = 0;
 	const int debug_details = 0;
 	const int use_ddot = 0;				       /* ran slower with 'ddot' */
-	
+
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -87,15 +87,15 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				model->cache[idx]->theta = work;
 				model->cache[idx]->vals = work + nc;
 				// add theta[0] = 1.0 here, and append other 'thetas' after, so we can make cleaner loops
-				model->cache[idx]->theta[0] = 1.0; 
+				model->cache[idx]->theta[0] = 1.0;
 			}
 		}
 	}
-	spde2_cache_tp *cache = model->cache[idx]; 
+	spde2_cache_tp *cache = model->cache[idx];
 
 	int need_transform = cache->need_transform;
 	double value;
-	double d_i[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	double d_i[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	double *d_j = d_i + 3;
 
 	if (i == j) {
@@ -104,8 +104,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		double *vals_i2 = vals + 2 * nc;
 
 #pragma GCC ivdep
-		for (int k = 0; k < nc-1; k++) {
-			cache->theta[k+1] = model->theta[k][thread_id][0];
+		for (int k = 0; k < nc - 1; k++) {
+			cache->theta[k + 1] = model->theta[k][thread_id][0];
 		}
 		double *theta = cache->theta;
 
@@ -125,14 +125,14 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		}
 
 #pragma GCC ivdep
-		for(int k = 0; k < 2; k++){
+		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 		}
 
 		if (need_transform) {
 			switch (model->transform) {
 			case SPDE2_TRANSFORM_IDENTITY:
-				//d_i[2] = d_i[2];
+				// d_i[2] = d_i[2];
 				break;
 			case SPDE2_TRANSFORM_LOG:
 				d_i[2] = 2 * exp(d_i[2]) - 1.0;
@@ -144,7 +144,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				assert(0 == 1);
 			}
 		}
-		
+
 		double *v = vals + 3 * nc;
 		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 
@@ -171,7 +171,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		int in_cache = (i == cache->i);
 		if (in_cache) {
 			for (int k = 0; k < nc - 1; k++) {
-				if (cache->theta[1+k] != model->theta[k][thread_id][0]) {
+				if (cache->theta[1 + k] != model->theta[k][thread_id][0]) {
 					in_cache = 0;
 					break;
 				}
@@ -196,7 +196,6 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				}
 			}
 		}
-
 		// check hit/miss rates... might be useful in the future again, so I keep it here
 		if (0) {
 			static double cache_hit = 0.0;
@@ -208,13 +207,11 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				cache_hit += in_cache;
 				cache_miss += (1 - in_cache);
 
-				if (!((int)cache_count % 100000))
-					printf("hit %.3f miss %.3f\n",
-					       cache_hit / (cache_hit + cache_miss),
-					       cache_miss / (cache_hit + cache_miss));
+				if (!((int) cache_count % 100000))
+					printf("hit %.3f miss %.3f\n", cache_hit / (cache_hit + cache_miss), cache_miss / (cache_hit + cache_miss));
 			}
 		}
-		
+
 		double *vals_j0 = vals + 3 * nc;
 		double *vals_j1 = vals + 4 * nc;
 		double *vals_j2 = vals + 5 * nc;
@@ -237,9 +234,9 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 					d_j[2] += vals_j2[k] * th;
 				}
 			}
-			
+
 #pragma GCC ivdep
-			for(int k = 0; k < 2; k++){
+			for (int k = 0; k < 2; k++) {
 				d_j[k] = exp(d_j[k]);
 			}
 
@@ -257,15 +254,15 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 					assert(0 == 1);
 				}
 			}
-			
+
 		} else {
 			// not in_cache
 			double *vals_i0 = vals;
 			double *vals_i1 = vals + nc;
 			double *vals_i2 = vals + 2 * nc;
-			
-			for (int k = 0; k < nc-1; k++) {
-				cache->theta[1+k] = model->theta[k][thread_id][0];
+
+			for (int k = 0; k < nc - 1; k++) {
+				cache->theta[1 + k] = model->theta[k][thread_id][0];
 			}
 			double *theta = cache->theta;
 
@@ -289,9 +286,9 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 					d_j[2] += vals_j2[k] * th;
 				}
 			}
-				
+
 #pragma GCC ivdep
-			for(int k = 0; k < 2; k++){
+			for (int k = 0; k < 2; k++) {
 				d_i[k] = exp(d_i[k]);
 				d_j[k] = exp(d_j[k]);
 			}
@@ -337,6 +334,153 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				}
 			}
 		}
+	}
+
+	return value;
+}
+
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+{
+	// no cache-version
+
+	if (jj < 0) {
+		return NAN;
+	}
+
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+
+	double value;
+	double d_i[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double *d_j = d_i + 3;
+
+	if (i == j) {
+		if (1) {
+			for (int k = 0, kk = 0; k < 3; k++, kk += nc) {
+				d_i[k] = vals[kk];
+			}
+			for (int k = 1; k < nc; k++) {
+				double th = model->theta[k - 1][thread_id][0];
+				double *v = vals + k;
+#pragma GCC ivdep
+				for (int kk = 0, kkk = 0; kk < 3; kk++, kkk += nc) {
+					d_i[kk] += v[kkk] * th;
+				}
+			}
+		} else {
+			double *vals_i0 = vals;
+			double *vals_i1 = vals + nc;
+			double *vals_i2 = vals + 2 * nc;
+
+			d_i[0] = vals_i0[0];
+			d_i[1] = vals_i1[0];
+			d_i[2] = vals_i2[0];
+#pragma GCC ivdep
+			for (int k = 1; k < nc; k++) {
+				double th = model->theta[k - 1][thread_id][0];
+				d_i[0] += vals_i0[k] * th;
+				d_i[1] += vals_i1[k] * th;
+				d_i[2] += vals_i2[k] * th;
+			}
+		}
+
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				break;
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				break;
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 3 * nc;
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
+	} else {
+		if (1) {
+			for (int k = 0, kk = 0; k < 6; k++, kk += nc) {
+				d_i[k] = vals[kk];
+			}
+			for (int k = 1; k < nc; k++) {
+				double th = model->theta[k - 1][thread_id][0];
+				double *v = vals + k;
+#pragma GCC ivdep
+				for (int kk = 0, kkk = 0; kk < 6; kk++, kkk += nc) {
+					d_i[kk] += v[kkk] * th;
+				}
+			}
+		} else {
+			double *vals_i0 = vals;
+			double *vals_i1 = vals + nc;
+			double *vals_i2 = vals + 2 * nc;
+			double *vals_j0 = vals + 3 * nc;
+			double *vals_j1 = vals + 4 * nc;
+			double *vals_j2 = vals + 5 * nc;
+
+			d_i[0] = vals_i0[0];
+			d_i[1] = vals_i1[0];
+			d_i[2] = vals_i2[0];
+			d_j[0] = vals_j0[0];
+			d_j[1] = vals_j1[0];
+			d_j[2] = vals_j2[0];
+#pragma GCC ivdep
+			for (int k = 1; k < nc; k++) {
+				double th = model->theta[k - 1][thread_id][0];
+				d_i[0] += vals_i0[k] * th;
+				d_i[1] += vals_i1[k] * th;
+				d_i[2] += vals_i2[k] * th;
+				d_j[0] += vals_j0[k] * th;
+				d_j[1] += vals_j1[k] * th;
+				d_j[2] += vals_j2[k] * th;
+			}
+		}
+
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+			d_j[k] = exp(d_j[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2.0 * exp(d_i[2]) - 1.0;
+				d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+				break;
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+				break;
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
 	return value;
