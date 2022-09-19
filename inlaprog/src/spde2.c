@@ -373,7 +373,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			for (int k = 0, kk = 0; k < 3; k++, kk += nc) {
 				d_i[k] = vals[kk];
 			}
-
+#pragma GCC ivdep
 			for (int k = 1; k < nc; k++) {
 				double th = model->theta[k - 1][thread_id][0];
 				double *v = vals + k;
@@ -428,7 +428,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 			for (int k = 0, kk = 0; k < 6; k++, kk += nc) {
 				d_i[k] = vals[kk];
 			}
-
+#pragma GCC ivdep
 			for (int k = 1; k < nc; k++) {
 				double th = model->theta[k - 1][thread_id][0];
 				double *v = vals + k;
@@ -637,7 +637,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 	}
 
 	// recall to enable this if using cache
-	model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
+	// model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 
 	return INLA_OK;
 }
