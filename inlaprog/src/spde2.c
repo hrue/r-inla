@@ -48,12 +48,14 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	if (jj < 0) {
 		return NAN;
 	}
 
+	GMRFLib_ENTER_ROUTINE;
+	
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -65,8 +67,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	double value = 0.0;
-	double d_i[3];
-	double d_j[3];
+	double d_i[3], d_j[3]; 
 
 	int nc = model->B[0]->ncol;
 	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
@@ -80,15 +81,15 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	d_i[2] = vals_i2[0];
 
 	if (i == j) {
-#pragma GCC ivdep
 		for (int k = 1; k < nc; k++) {
 			double theta = model->theta[k - 1][thread_id][0];
 			d_i[0] += vals_i0[k] * theta;
 			d_i[1] += vals_i1[k] * theta;
 			d_i[2] += vals_i2[k] * theta;
 		}
-		d_i[0] = exp(d_i[0]);
-		d_i[1] = exp(d_i[1]);
+		for(int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
 
 		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
 			switch (model->transform) {
@@ -115,20 +116,18 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		d_j[0] = vals_j0[0];
 		d_j[1] = vals_j1[0];
 		d_j[2] = vals_j2[0];
-#pragma GCC ivdep
+
 		for (int k = 1; k < nc; k++) {
 			double theta = model->theta[k - 1][thread_id][0];
-
 			d_i[0] += vals_i0[k] * theta;
 			d_i[1] += vals_i1[k] * theta;
 			d_i[2] += vals_i2[k] * theta;
-
+			
 			d_j[0] += vals_j0[k] * theta;
 			d_j[1] += vals_j1[k] * theta;
 			d_j[2] += vals_j2[k] * theta;
 		}
-
-#pragma GCC ivdep
+		
 		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 			d_j[k] = exp(d_j[k]);
@@ -155,6 +154,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
+	GMRFLib_LEAVE_ROUTINE;
 	return value;
 }
 double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
@@ -428,14 +428,13 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 	return value;
 }
 
-double inla_spde2_Qfunction_new(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
-	// no-cache-version, alternative version. not faster than the old one
-
 	if (jj < 0) {
 		return NAN;
 	}
 
+	GMRFLib_ENTER_ROUTINE;
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -450,45 +449,27 @@ double inla_spde2_Qfunction_new(int thread_id, int ii, int jj, double *UNUSED(va
 	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
 
 	double value;
-	double d_i[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double d_i[6]; 
 	double *d_j = d_i + 3;
 
 	if (i == j) {
-		if (1) {
-#pragma GCC ivdep
-			for (int k = 0, kk = 0; k < 3; k++, kk += nc) {
-				d_i[k] = vals[kk];
-			}
-#pragma GCC ivdep
-			for (int k = 1; k < nc; k++) {
-				double th = model->theta[k - 1][thread_id][0];
-				double *v = vals + k;
-#pragma GCC ivdep
-				for (int kk = 0, kkk = 0; kk < 3; kk++, kkk += nc) {
-					d_i[kk] += v[kkk] * th;
-				}
-			}
-		} else {
-			double *vals_i0 = vals;
-			double *vals_i1 = vals + nc;
-			double *vals_i2 = vals + 2 * nc;
 
-			d_i[0] = vals_i0[0];
-			d_i[1] = vals_i1[0];
-			d_i[2] = vals_i2[0];
 #pragma GCC ivdep
-			for (int k = 1; k < nc; k++) {
-				double th = model->theta[k - 1][thread_id][0];
-				d_i[0] += vals_i0[k] * th;
-				d_i[1] += vals_i1[k] * th;
-				d_i[2] += vals_i2[k] * th;
+		for(int k = 0; k < 3; k++) {
+			d_i[k] = vals[k * nc];
+		}
+#pragma GCC ivdep
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma GCC ivdep
+			for (int kk = 0; kk < 3; kk++) {
+				d_i[kk] += v[kk * nc] * th;
 			}
 		}
 
-#pragma GCC ivdep
-		for (int k = 0; k < 2; k++) {
-			d_i[k] = exp(d_i[k]);
-		}
+		d_i[0] = exp(d_i[0]);
+		d_i[1] = exp(d_i[1]);
 
 		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
 			switch (model->transform) {
@@ -509,48 +490,22 @@ double inla_spde2_Qfunction_new(int thread_id, int ii, int jj, double *UNUSED(va
 		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 
 	} else {
-		if (1) {
 #pragma GCC ivdep
-			for (int k = 0, kk = 0; k < 6; k++, kk += nc) {
-				d_i[k] = vals[kk];
-			}
+		for (int k = 0; k < 6; k++) {
+			d_i[k] = vals[k * nc];
+		}
 #pragma GCC ivdep
-			for (int k = 1; k < nc; k++) {
-				double th = model->theta[k - 1][thread_id][0];
-				double *v = vals + k;
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
 #pragma GCC ivdep
-				for (int kk = 0, kkk = 0; kk < 6; kk++, kkk += nc) {
-					d_i[kk] += v[kkk] * th;
-				}
-			}
-		} else {
-			double *vals_i0 = vals;
-			double *vals_i1 = vals + nc;
-			double *vals_i2 = vals + 2 * nc;
-			double *vals_j0 = vals + 3 * nc;
-			double *vals_j1 = vals + 4 * nc;
-			double *vals_j2 = vals + 5 * nc;
-
-			d_i[0] = vals_i0[0];
-			d_i[1] = vals_i1[0];
-			d_i[2] = vals_i2[0];
-			d_j[0] = vals_j0[0];
-			d_j[1] = vals_j1[0];
-			d_j[2] = vals_j2[0];
-#pragma GCC ivdep
-			for (int k = 1; k < nc; k++) {
-				double th = model->theta[k - 1][thread_id][0];
-				d_i[0] += vals_i0[k] * th;
-				d_i[1] += vals_i1[k] * th;
-				d_i[2] += vals_i2[k] * th;
-				d_j[0] += vals_j0[k] * th;
-				d_j[1] += vals_j1[k] * th;
-				d_j[2] += vals_j2[k] * th;
+			for (int kk = 0; kk < 6; kk++) {
+				d_i[kk] += v[kk * nc] * th;
 			}
 		}
 
 #pragma GCC ivdep
-		for (int k = 0; k < 2; k++) {
+		for(int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 			d_j[k] = exp(d_j[k]);
 		}
@@ -576,6 +531,7 @@ double inla_spde2_Qfunction_new(int thread_id, int ii, int jj, double *UNUSED(va
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
+	GMRFLib_LEAVE_ROUTINE;
 	return value;
 }
 
