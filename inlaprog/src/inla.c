@@ -37742,6 +37742,7 @@ int testit(int argc, char **argv)
 		break;
 
 	case 26:
+	{
 		int nrow = 10;
 		GMRFLib_vmatrix_tp *m = NULL;
 		GMRFLib_vmatrix_init(&m, nrow, NULL);
@@ -37760,7 +37761,8 @@ int testit(int argc, char **argv)
 			}
 		}
 		GMRFLib_vmatrix_free(m, 1);
-		break;
+	}
+	break;
 
 	case 27:
 	{
