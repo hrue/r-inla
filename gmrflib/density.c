@@ -365,7 +365,7 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 	log_density_scaled = Calloc(n, double);
 
 	double ld_max = log_density[imax];
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < (int) n; i++) {
 		log_density_scaled[i] = log_density[i] - ld_max;
 	}
@@ -613,7 +613,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	pm = Calloc_get(npm);
 
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < np - 1; i++) {
 			xpm[3 * i + 0] = xp[i];
 			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
@@ -626,7 +626,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		ldm[3 * (np - 2) + 3] = ld[np - 1];
 		assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < np - 1; i++) {
 			xpm[2 * i + 0] = xp[i];
 			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
@@ -729,7 +729,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		double c1 = log_norm_const_gaussian - log(density->stdev);
 		double c2 = -0.5 / SQR(density->stdev);
 		double m = density->mean;
-#pragma omp simd
+#pragma GCC ivdep
 		for (int i = 0; i < n; i++) {
 			// logdens[i] = log_norm_const_gaussian - log(density->stdev) - 0.5 * SQR(x[i] - density->mean) / SQR(density->stdev);
 			logdens[i] = c1 + c2 * SQR(x[i] - m);
@@ -805,7 +805,7 @@ int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp
 	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		dens[i] = exp(dens[i]);
 	}
@@ -1104,13 +1104,13 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	xx_real = Calloc_get(nx);
 	ddens = Calloc_get(nx);
 	log_dens = ddens;				       /* same storage */
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < nx; i++) {
 		xx_real[i] = xx[i] * stdev + mean;
 	}
 
 	GMRFLib_evaluate_ndensities(ddens, xx_real, nx, densities, probs);
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < nx; i++) {
 		log_dens[i] = (ddens[i] > 0.0 ? log(ddens[i]) : -FLT_MAX);
 	}
@@ -1265,7 +1265,8 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
 			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
-#pragma omp simd
+
+#pragma GCC ivdep
 			for (int i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
@@ -1518,7 +1519,7 @@ double GMRFLib_density_std2user_n(double * __restrict x_user, double * __restric
 {
 	double m = density->std_mean;
 	double s = density->std_stdev;
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		x_user[i] = m + x[i] * s;
 	}
@@ -1534,7 +1535,7 @@ int GMRFLib_density_user2std_n(double * __restrict x_std, double * __restrict x,
 {
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		x_std[i] = a * x[i] + b;
 	}

@@ -7658,7 +7658,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 		if (itry == 1 && cor_eps > 0.0) {
 			flag = 1;
 			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
-#pragma omp simd
+#pragma GCC ivdep
 			for (int i = 0; i < np; i++) {
 				ld[i] += logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 			}
@@ -7727,7 +7727,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
 
-#pragma omp simd
+#pragma GCC ivdep
 		for (int i = 0; i < np; i++) {
 			x_user[i] = m + s * xp[i];
 		}
@@ -7764,7 +7764,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		xp[0] = low;
 		xpi[0] = density->x_min;
-#pragma omp simd
+#pragma GCC ivdep
 		for (int i = 1; i < np; i++) {
 			xp[i] = xp[0] + i * dx;
 			xpi[i] = xpi[0] + i * dxi;
@@ -7772,7 +7772,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
 		loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
-#pragma omp simd
+#pragma GCC ivdep
 		for (int i = 0; i < np; i++) {
 			loglik[i] *= d;
 		}
@@ -7950,7 +7950,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 		}
 	}
 
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
 		x_user[i] = mean + sd * xp[i];
 	}
