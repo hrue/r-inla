@@ -54,8 +54,6 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 		return NAN;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
-
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -158,7 +156,6 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
 	return value;
 }
 double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
@@ -438,7 +435,6 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		return NAN;
 	}
 
-	GMRFLib_ENTER_ROUTINE;
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -539,7 +535,6 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 	}
 
-	GMRFLib_LEAVE_ROUTINE;
 	return value;
 }
 
