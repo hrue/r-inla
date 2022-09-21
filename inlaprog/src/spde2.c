@@ -55,7 +55,7 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 	}
 
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	int i, j;
 	if (ii <= jj) {
 		i = ii;
@@ -67,7 +67,7 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	double value = 0.0;
-	double d_i[3], d_j[3]; 
+	double d_i[3], d_j[3];
 
 	int nc = model->B[0]->ncol;
 	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
@@ -81,13 +81,15 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 	d_i[2] = vals_i2[0];
 
 	if (i == j) {
+#pragma GCC ivdep
 		for (int k = 1; k < nc; k++) {
 			double theta = model->theta[k - 1][thread_id][0];
 			d_i[0] += vals_i0[k] * theta;
 			d_i[1] += vals_i1[k] * theta;
 			d_i[2] += vals_i2[k] * theta;
 		}
-		for(int k = 0; k < 2; k++) {
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 		}
 
@@ -117,17 +119,19 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 		d_j[1] = vals_j1[0];
 		d_j[2] = vals_j2[0];
 
+#pragma GCC ivdep
 		for (int k = 1; k < nc; k++) {
 			double theta = model->theta[k - 1][thread_id][0];
 			d_i[0] += vals_i0[k] * theta;
 			d_i[1] += vals_i1[k] * theta;
 			d_i[2] += vals_i2[k] * theta;
-			
+
 			d_j[0] += vals_j0[k] * theta;
 			d_j[1] += vals_j1[k] * theta;
 			d_j[2] += vals_j2[k] * theta;
 		}
-		
+
+#pragma GCC ivdep
 		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 			d_j[k] = exp(d_j[k]);
@@ -446,16 +450,20 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
-	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+
+	// manual inline
+	// double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[i]), j);
+
 
 	double value;
-	double d_i[6]; 
+	double d_i[6];
 	double *d_j = d_i + 3;
 
 	if (i == j) {
 
 #pragma GCC ivdep
-		for(int k = 0; k < 3; k++) {
+		for (int k = 0; k < 3; k++) {
 			d_i[k] = vals[k * nc];
 		}
 #pragma GCC ivdep
@@ -505,7 +513,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		}
 
 #pragma GCC ivdep
-		for(int k = 0; k < 2; k++) {
+		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 			d_j[k] = exp(d_j[k]);
 		}
