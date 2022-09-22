@@ -85,7 +85,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	for (int i = 0; i < nf; i++) {
 		ww[i] = Calloc(npred, double);
 		double *ww_tmp = ww[i];
-#pragma omp simd
+#pragma GCC ivdep
 		for (int j = 0; j < npred; j++) {
 			ww_tmp[j] = 1.0;
 		}

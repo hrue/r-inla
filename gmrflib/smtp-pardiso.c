@@ -310,11 +310,11 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 #undef CODE_BLOCK
 	Free(k_arr);
 
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < n + 1; i++) {
 		Ms->ia1[i] = Ms->ia[i] + 1;
 	}
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < na; i++) {
 		Ms->ja1[i] = Ms->ja[i] + 1;
 	}
@@ -836,7 +836,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	}
 	// Revert back to C indexing ?
 	if (GMRFLib_imin_value(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm, n, NULL) == 1) {
-#pragma omp simd
+#pragma GCC ivdep
 		for (int i = 0; i < n; i++) {
 			store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]--;
 		}
@@ -1122,7 +1122,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 
 	subQinv->Qinv = Qinv;
 	subQinv->mapping = Calloc(n, int);
-#pragma omp simd
+#pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		subQinv->mapping[i] = i;
 	}
