@@ -731,7 +731,7 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 
 	graph->lnnz = my_isum(graph->n, graph->lnnbs);
 	graph->snnz = my_isum(graph->n, graph->snnbs);
-	
+
 	return GMRFLib_SUCCESS;
 }
 

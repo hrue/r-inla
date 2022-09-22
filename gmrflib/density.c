@@ -1521,7 +1521,7 @@ double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density)
 	return density->std_mean + x * density->std_stdev;
 }
 
-double GMRFLib_density_std2user_n(double * __restrict x_user, double * __restrict x, int n, GMRFLib_density_tp * __restrict density)
+double GMRFLib_density_std2user_n(double *__restrict x_user, double *__restrict x, int n, GMRFLib_density_tp * __restrict density)
 {
 	double m = density->std_mean;
 	double s = density->std_stdev;
@@ -1537,7 +1537,7 @@ double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density)
 	return (x - density->std_mean) / density->std_stdev;
 }
 
-int GMRFLib_density_user2std_n(double * __restrict x_std, double * __restrict x, GMRFLib_density_tp * __restrict density, int n)
+int GMRFLib_density_user2std_n(double *__restrict x_std, double *__restrict x, GMRFLib_density_tp * __restrict density, int n)
 {
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;

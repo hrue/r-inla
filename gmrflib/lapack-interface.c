@@ -1041,7 +1041,7 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	return kld;
 }
 
-int my_isum(int n, int * ix)
+int my_isum(int n, int *ix)
 {
 	const int roll = 8L;
 	int s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
@@ -1068,10 +1068,10 @@ int my_isum(int n, int * ix)
 		s0 += ix[i];
 	}
 
-	return (s0+s1+s2+s3);
+	return (s0 + s1 + s2 + s3);
 }
 
-int my_isum2(int n, int * ix)
+int my_isum2(int n, int *ix)
 {
 	int s = 0;
 	if (0) {
@@ -1085,11 +1085,11 @@ int my_isum2(int n, int * ix)
 			s += ix[i];
 		}
 	}
-	
+
 	return (s);
 }
 
-double my_dsum(int n, double * x)
+double my_dsum(int n, double *x)
 {
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
@@ -1116,10 +1116,10 @@ double my_dsum(int n, double * x)
 		s0 += x[i];
 	}
 
-	return (s0+s1+s2+s3);
+	return (s0 + s1 + s2 + s3);
 }
 
-double my_dsum2(int n, double * x)
+double my_dsum2(int n, double *x)
 {
 	double s = 0.0;
 	if (0) {
@@ -1133,11 +1133,11 @@ double my_dsum2(int n, double * x)
 			s += x[i];
 		}
 	}
-	
+
 	return (s);
 }
 
-double my_ddot(int n, double * __restrict x, double * __restrict y) 
+double my_ddot(int n, double *__restrict x, double *__restrict y)
 {
 	int one = 1;
 	return ddot_(&n, x, &one, y, &one);

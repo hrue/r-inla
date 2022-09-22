@@ -8913,9 +8913,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -37768,7 +37768,7 @@ int testit(int argc, char **argv)
 		}
 		GMRFLib_vmatrix_free(m, 1);
 	}
-	break;
+		break;
 
 	case 27:
 	{
@@ -39494,8 +39494,8 @@ int testit(int argc, char **argv)
 		}
 
 		printf("dsum %.3f dsum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
-		P((r-rr)/r);
-	
+		P((r - rr) / r);
+
 		Free(x);
 		break;
 	}
@@ -39518,13 +39518,13 @@ int testit(int argc, char **argv)
 			tref1 -= GMRFLib_cpu();
 			double s = GMRFLib_uniform();
 #pragma omp simd reduction(+: s)
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				s += xx[i];
 			}
 			tref1 += GMRFLib_cpu();
 			tref2 -= GMRFLib_cpu();
-#pragma GCC ivdep 
-			for(int i = 0; i < n; i++) {
+#pragma GCC ivdep
+			for (int i = 0; i < n; i++) {
 				s += xx[i];
 			}
 			tref2 += GMRFLib_cpu();
