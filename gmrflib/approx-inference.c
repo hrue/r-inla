@@ -2005,7 +2005,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		double err = 0.0;
-#pragma omp simd reduction(+: err)		
+#pragma GCC ivdep
 		for (int i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
 		}
@@ -9924,6 +9924,9 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
 				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
@@ -9936,6 +9939,9 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			for (i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
 			}
@@ -10056,6 +10062,9 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
 				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
@@ -10068,6 +10077,9 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 			for (i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
 			}

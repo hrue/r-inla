@@ -35866,6 +35866,9 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 				xpm[3 * i + 0] = xp[i];
 				xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
 				xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				ldm[3 * i + 0] = ld[i];
 				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
 				ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
@@ -35878,6 +35881,9 @@ forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_m
 			for (i = 0; i < np - 1; i++) {
 				xpm[2 * i + 0] = xp[i];
 				xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				ldm[2 * i + 0] = ld[i];
 				ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
 			}
@@ -39300,6 +39306,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
+#pragma GCC ivdep
 			for (int i = 0; i < n; i++) {
 				rr += x[i];
 			}
@@ -39492,6 +39499,40 @@ int testit(int argc, char **argv)
 		Free(x);
 		break;
 	}
+
+	case 88:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *xx = Calloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+
+		P(n);
+		P(m);
+
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			tref1 -= GMRFLib_cpu();
+			double s = GMRFLib_uniform();
+#pragma omp simd reduction(+: s)
+			for(int i = 0; i < n; i++) {
+				s += xx[i];
+			}
+			tref1 += GMRFLib_cpu();
+			tref2 -= GMRFLib_cpu();
+#pragma GCC ivdep 
+			for(int i = 0; i < n; i++) {
+				s += xx[i];
+			}
+			tref2 += GMRFLib_cpu();
+		}
+		printf("simd %.3f opt %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		Free(xx);
+	}
+		break;
 
 	case 999:
 	{

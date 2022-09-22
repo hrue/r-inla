@@ -92,6 +92,7 @@ double dnrm2_(int *n, double *x, int *inc);
 double dasum_(int *n, double *x, int *inc);
 
 int my_isum(int n, int * ix);
+int my_isum2(int n, int * ix);
 double my_ddot(int n, double * __restrict x, double * __restrict y);
 double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double my_dsum(int n, double * x);

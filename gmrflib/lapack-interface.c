@@ -1043,36 +1043,60 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 
 int my_isum(int n, int * ix)
 {
-	int s = 0;
+	const int roll = 8L;
+	int s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
 
-#pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += ix[i];
+#pragma GCC ivdep
+	for (int i = 0; i < m; i += roll) {
+		int *xx = ix + i;
+
+		s0 += xx[0];
+		s1 += xx[1];
+		s2 += xx[2];
+		s3 += xx[3];
+
+		s0 += xx[4];
+		s1 += xx[5];
+		s2 += xx[6];
+		s3 += xx[7];
 	}
 
+#pragma GCC ivdep
+	for (int i = d.quot * roll; i < n; i++) {
+		s0 += ix[i];
+	}
+
+	return (s0+s1+s2+s3);
+}
+
+int my_isum2(int n, int * ix)
+{
+	int s = 0;
+	if (0) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
+			s += ix[i];
+		}
+	} else {
+#pragma omp simd reduction(+: s)
+		for (int i = 0; i < n; i++) {
+			s += ix[i];
+		}
+	}
+	
 	return (s);
 }
 
 double my_dsum(int n, double * x)
 {
-	double s = 0.0;
-
-#pragma omp simd reduction(+: s)
-	for (int i = 0; i < n; i++) {
-		s += x[i];
-	}
-
-	return (s);
-}
-
-double my_dsum2(int n, double * x)
-{
-	// my_dsum() is slightly faster
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
+#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		double *xx = x + i;
 
@@ -1086,11 +1110,31 @@ double my_dsum2(int n, double * x)
 		s2 += xx[6];
 		s3 += xx[7];
 	}
+
+#pragma GCC ivdep
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += x[i];
 	}
 
 	return (s0+s1+s2+s3);
+}
+
+double my_dsum2(int n, double * x)
+{
+	double s = 0.0;
+	if (0) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
+			s += x[i];
+		}
+	} else {
+#pragma omp simd reduction(+: s)
+		for (int i = 0; i < n; i++) {
+			s += x[i];
+		}
+	}
+	
+	return (s);
 }
 
 double my_ddot(int n, double * __restrict x, double * __restrict y) 
@@ -1106,6 +1150,7 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
+#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		double *vv = v + i;
 		int *iidx = idx + i;
@@ -1121,6 +1166,7 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 		s3 += vv[7] * a[iidx[7]];
 	}
 
+#pragma GCC ivdep
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}
@@ -1134,6 +1180,7 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 
+#pragma GCC ivdep
 	for (int i = 0; i < d.quot * roll; i += roll) {
 		int *iidx = idx + i;
 
@@ -1148,6 +1195,7 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 		s3 += a[iidx[7]];
 	}
 
+#pragma GCC ivdep
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += a[idx[i]];
 	}
