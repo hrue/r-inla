@@ -7044,15 +7044,22 @@ int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, in
 
 	LINK_INIT;
 	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if (int_low < 0) {
-				// code for low=INF
+		if (int_low < 0) {
+			for (i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = y * log(mu) - mu - normc;
-			} else if (y >= int_low && (int_high < 0 || y <= int_high)) {
+			}
+		} else if (y >= int_low && (int_high < 0 || y <= int_high)) {
+			for (i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = log(inla_poisson_interval(mu, int_low, int_high));
-			} else {
+			}
+		} else {
+			for (i = 0; i < m; i++) {
+				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				mu = E * lambda;
 				logll[i] = y * log(mu) - mu - normc;
 			}
 		}
