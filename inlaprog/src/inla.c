@@ -5107,7 +5107,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
 		break;
-	case L_CENNBINOMIAL2: 
+	case L_CENNBINOMIAL2:
 		idiv = 6;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
@@ -7050,7 +7050,7 @@ double inla_negative_binomial_interval(double size, double mu, int y_from, int y
 		assert(y_to >= y_from);
 		p = p_sum = gsl_ran_negative_binomial_pdf((unsigned int) y_from, prob, size);
 		double pp = 1.0 - prob;
-		for(int y = y_from + 1; y <= y_to; y++) {
+		for (int y = y_from + 1; y <= y_to; y++) {
 			double yy = (double) y;
 			p *= (yy + size - 1.0) / yy * pp;
 			p_sum += p;
@@ -7854,7 +7854,7 @@ int loglikelihood_negative_binomial_cen2(int thread_id, double *logll, double *x
 
 	LINK_INIT;
 	if (m > 0) {
-		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);	
+		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
 		if ((y >= int_low && int_low >= 0) && (int_high < 0 || y <= int_high)) {
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -9025,9 +9025,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -29557,7 +29557,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case L_NBINOMIAL:
-			case L_CENNBINOMIAL2: 
+			case L_CENNBINOMIAL2:
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
