@@ -6693,6 +6693,49 @@
                     pdf = "gaussian"
                 ),
 
+                gaussianjw = list(
+                    doc = "The GaussianJW likelihoood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 65101,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 65102,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(1, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ), 
+                        theta2 = list(
+                            hyperid = 65103,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = -1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-1, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "logit", "probit"), 
+                    pdf = "gaussianjw"
+                ),
+
                 agaussian = list(
                     doc = "The aggregated Gaussian likelihoood",
                     hyper = list(

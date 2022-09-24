@@ -416,7 +416,7 @@
         response <- cbind(ind, E, y.orig)
         stopifnot(ncol(response) == 5)
         null.dat <- is.na(response[, 3L])
-        response <- response[!null.dat, ]
+        response <- response[!null.dat,, drop = FALSE]
         colnames(response) <- c("IDX", "E", "Y1", "Y2", "Y3")
         idx.inf <- (is.infinite(response$Y3) | (response$Y3 < 0))
         response[idx.inf, "Y3"] <- -1 ## code for infinite
@@ -450,7 +450,7 @@
         response <- cbind(ind, E, scale, y.orig)
         stopifnot(ncol(response) == 6)
         null.dat <- is.na(response[, 4L])
-        response <- response[!null.dat, ]
+        response <- response[!null.dat,, drop = FALSE ]
         colnames(response) <- c("IDX", "E", "S", "Y1", "Y2", "Y3")
         idx.inf <- (is.infinite(response$Y3) | (response$Y3 < 0))
         response[idx.inf, "Y3"] <- -1 ## code for infinite
@@ -465,6 +465,21 @@
         response <- response[!na.y, , drop = FALSE]
         ## format: IDX, E, S, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, S = response$S, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
+    } else if (inla.one.of(family, c("gaussianjw"))) {
+
+        response <- cbind(ind, y.orig)
+        stopifnot(ncol(response) == 5)
+        null.dat <- is.na(response[, 2L])
+        response <- response[!null.dat,, drop = FALSE]
+        null.dat <- is.na(response[, 3L])
+        response <- response[!null.dat,, drop = FALSE]
+        
+        colnames(response) <- c("IDX", "Y1", "Y2", "Y3", "Y4")
+        col.y <- 2:5
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) all(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        ## format: IDX, N, DF, VAR, Y
+        response <- cbind(IDX = response$IDX, N = response$Y3, DF = response$Y4, VAR = response$Y2, Y = response$Y1)
     } else if (inla.one.of(family, c("bgev"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)

@@ -241,6 +241,7 @@ typedef enum {
 	L_STOCHVOL_SN,
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
+	L_GAUSSIANJW, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -714,6 +715,11 @@ typedef struct {
 	double **fmri_lprec;
 	double **fmri_ldof;
 	double *fmri_scale;
+
+	/* 
+	 * gaussianjw  
+	 */
+	double ***gjw_beta;
 
 } Data_tp;
 
