@@ -6003,26 +6003,6 @@
                     pdf = "poisson"
                 ),
 
-                ## contpoisson = list(
-                ## doc = "The Cont Poisson likelihood",
-                ## hyper = list(
-                ## ),
-                ## survival = FALSE,
-                ## discrete = TRUE,
-                ## link = c("default", "log"),
-                ## pdf = "contpoisson"
-                ## ),
-                ##
-                ## qcontpoisson = list(
-                ## doc = "The quantile Cont Poisson likelihood",
-                ## hyper = list(
-                ## ),
-                ## survival = FALSE,
-                ## discrete = TRUE,
-                ## link = c("default", "log"),
-                ## pdf = "qcontpoisson"
-                ## ),
-
                 cenpoisson = list(
                     doc = "Then censored Poisson likelihood",
                     hyper = list(),
@@ -6038,7 +6018,6 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
-                    status = "experimental",
                     pdf = "cenpoisson2"
                 ),
 
@@ -6638,6 +6617,27 @@
                     discrete = TRUE,
                     link = c("default", "logit", "loga", "cauchit", "probit", "cloglog", "loglog"),
                     pdf = "nbinomial"
+                ),
+
+                cennbinomial2 = list(
+                    doc = "The CenNegBinomial2 likelihood (similar to cenpoisson2)",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 63101,
+                            name = "size",
+                            short.name = "size",
+                            initial = log(10),
+                            fixed = FALSE,
+                            prior = "pc.mgamma",
+                            param = 7,
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log", "logoffset", "quantile"),
+                    pdf = "cennbinomial2"
                 ),
 
                 simplex = list(

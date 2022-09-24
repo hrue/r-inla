@@ -7769,6 +7769,34 @@ inla.models()
 				 }
 				\item{Model `nbinomial2'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `cennbinomial2'.}{Number of hyperparmeters are 1.
+					 \describe{
+						\item{Hyperparameter `theta'}{
+							 \describe{
+							\item{hyperid = }{`63101'}
+							\item{name = }{`size'}
+							\item{short.name = }{`size'}
+							\item{initial = }{`2.30258509299405'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`pc.mgamma'}
+							\item{param = }{`7'}
+							\item{to.theta = }{`\code{function(x) log(x)}'}
+							\item{from.theta = }{`\code{function(x) exp(x)}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`The CenNegBinomial2 likelihood (similar to cenpoisson2)'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`TRUE'}
+								\item{link = }{`default log logoffset quantile'}
+								\item{pdf = }{`cennbinomial2'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `simplex'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{

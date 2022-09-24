@@ -5107,6 +5107,13 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
 		break;
+	case L_CENNBINOMIAL2: 
+		idiv = 6;
+		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
+		a[3] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
+		break;
 	case L_CBINOMIAL:
 		idiv = 4;
 		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
@@ -7021,6 +7028,37 @@ double inla_poisson_interval(double mean, int ifrom, int ito)
 	return (prob_sum);
 }
 
+double inla_negative_binomial_interval(double size, double mu, int y_from, int y_to)
+{
+	// Compute Prob(y_from <= Y <= y_to) for nbinomial(size,prob).
+	// NOTE1: Both ends of the interval are included.
+	// NOTE2: if y_to < 0, then 'y_to' is interpreted as INFINITY
+	// NOTE3: if y_from < 0, then 'y_from' is interpreted as INFINITY
+
+	double prob = size / (size + mu);
+	double p, p_sum = 0.0;
+
+	if (y_from < 0) {
+		p_sum = 0.0;
+	} else if (y_to < 0) {
+		if (y_from == 0) {
+			p_sum = 1.0;
+		} else {
+			p_sum = 1.0 - gsl_cdf_negative_binomial_P((unsigned int) (y_from - 1), prob, size);
+		}
+	} else {
+		assert(y_to >= y_from);
+		p = p_sum = gsl_ran_negative_binomial_pdf((unsigned int) y_from, prob, size);
+		double pp = 1.0 - prob;
+		for(int y = y_from + 1; y <= y_to; y++) {
+			double yy = (double) y;
+			p *= (yy + size - 1.0) / yy * pp;
+			p_sum += p;
+		}
+	}
+	return (p_sum);
+}
+
 int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
 {
 	/*
@@ -7771,6 +7809,73 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 				 */
 				logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
 			}
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_negative_binomial_cen2(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg)
+{
+	/*
+	 * y ~ NegativeBinomial(size, p) where E(y) = E*exp(x); same definition as in R and GSL, similar parameterisation as for the Poisson.
+	 *
+	 * this version allow for cencoring in the interval cen_low, cen_high, like 'cenpoisson2'
+	 */
+
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double size = 0.0;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.E[idx];
+	double S = ds->data_observations.S[idx];
+	double cen_low = ds->data_observations.cen_low[idx];
+	double cen_high = ds->data_observations.cen_high[idx];
+	int int_low = (int) cen_low;
+	int int_high = (int) cen_high;
+
+	switch (ds->variant) {
+	case 0:
+		size = exp(ds->data_observations.log_size[thread_id][0]);
+		break;
+	case 1:
+		size = E * exp(ds->data_observations.log_size[thread_id][0]);
+		break;
+	case 2:
+		size = S * exp(ds->data_observations.log_size[thread_id][0]);
+		break;
+	default:
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+	}
+
+	LINK_INIT;
+	if (m > 0) {
+		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);	
+		if ((y >= int_low && int_low >= 0) && (int_high < 0 || y <= int_high)) {
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double mu = E * lambda;
+				logll[i] = log(inla_negative_binomial_interval(size, mu, int_low, int_high));
+			}
+		} else {
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double mu = E * lambda;
+				double p = size / (size + mu);
+				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double mu = E * lambda;
+			double p = size / (size + mu);
+			logll[i] = gsl_cdf_negative_binomial_P((unsigned int) y, p, size);
 		}
 	}
 
@@ -13374,6 +13479,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_cenpoisson2;
 		ds->data_id = L_CENPOISSON2;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "CENNBINOMIAL2")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_negative_binomial_cen2;
+		ds->data_id = L_CENNBINOMIAL2;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
@@ -13900,8 +14009,31 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 				if ((ds->data_observations.cen_high[i] > 0 &&
 				     (ds->data_observations.cen_high[i] < ds->data_observations.cen_low[i]))) {
-					GMRFLib_sprintf(&msg, "%s: CPoisson2 (idx,low,high) = (%d,%g,%g) is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: CenPoisson2 (idx,low,high) = (%d,%g,%g) is void\n", secname, i,
 							ds->data_observations.cen_low[i], ds->data_observations.cen_high[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_CENNBINOMIAL2:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: CenNBinomial2 data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+				if ((ds->data_observations.cen_high[i] > 0 &&
+				     (ds->data_observations.cen_high[i] < ds->data_observations.cen_low[i]))) {
+					GMRFLib_sprintf(&msg, "%s: CenNBinomial2 (idx,low,high) = (%d,%g,%g) is void\n", secname, i,
+							ds->data_observations.cen_low[i], ds->data_observations.cen_high[i]);
+					inla_error_general(msg);
+				}
+				if (ds->data_observations.S[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: CenNBinomial2 data[%1d] S = %g is void\n", secname, i,
+							ds->data_observations.S[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -16248,6 +16380,59 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag[mb->ntheta] = inla_make_tag("log size for the nbinomial observations (1/overdispersion)", mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] =
 				    inla_make_tag("size for the nbinomial observations (1/overdispersion)", mb->ds);
+			} else {
+				assert(0 == 1);
+			}
+			GMRFLib_sprintf(&msg, "%s-parameter", secname);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_prior.from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_prior.to_theta);
+
+			mb->theta[mb->ntheta] = ds->data_observations.log_size;
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_exp;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+			mb->theta_map_arg[mb->ntheta] = NULL;
+			mb->ntheta++;
+			ds->data_ntheta++;
+		}
+		break;
+
+	case L_CENNBINOMIAL2:
+		/*
+		 * get options related to the cen negative binomial 2
+		 */
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), log(10.0));
+		ds->data_fixed = iniparser_getboolean(ini, inla_string_join(secname, "FIXED"), 0);
+		if (!ds->data_fixed && mb->reuse_mode) {
+			tmp = mb->theta_file[mb->theta_counter_file++];
+		}
+		HYPER_NEW(ds->data_observations.log_size, tmp);
+		assert(ds->variant == 0 || ds->variant == 1 || ds->variant == 2);
+		if (mb->verbose) {
+			printf("\t\tinitialise log_size[%g]\n", ds->data_observations.log_size[0][0]);
+			printf("\t\tfixed=[%1d]\n", ds->data_fixed);
+			printf("\t\tuse parameterization variant=[%1d]; see doc for details\n", ds->variant);
+		}
+		inla_read_prior(mb, ini, sec, &(ds->data_prior), "LOGGAMMA", NULL);
+
+		/*
+		 * add theta 
+		 */
+		if (!ds->data_fixed) {
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = ds->data_prior.hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			if (ds->variant == 0 || ds->variant == 1 || ds->variant == 2) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log size for the cennbinomial2 observations (1/overdispersion)", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] =
+				    inla_make_tag("size for the cennbinomial2 observations (1/overdispersion)", mb->ds);
 			} else {
 				assert(0 == 1);
 			}
@@ -29372,6 +29557,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case L_NBINOMIAL:
+			case L_CENNBINOMIAL2: 
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood

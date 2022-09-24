@@ -240,6 +240,7 @@ typedef enum {
 	L_GOMPERTZSURV,
 	L_STOCHVOL_SN,
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
+	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -1692,6 +1693,7 @@ double inla_log_Phi(double x);
 double inla_log_Phi_fast(double x);
 double inla_logit_Phi(double x);
 double inla_poisson_interval(double lambda, int y_from, int y_to);
+double inla_negative_binomial_interval(double size, double mu, int y_from, int y_to);
 double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output);
 double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);

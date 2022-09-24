@@ -431,6 +431,40 @@
         response <- response[!na.y, , drop = FALSE]
         ## format: IDX, E, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
+    } else if (inla.one.of(family, c("cennbinomial2"))) {
+
+        if (is.null(scale)) {
+            scale <- rep(1.0, n.data)
+        }
+        if (length(scale) == 1L) {
+            scale <- rep(scale, n.data)
+        }
+
+        if (is.null(E)) {
+            E <- rep(1, n.data)
+        }
+        if (length(E) == 1L) {
+            E <- rep(E, n.data)
+        }
+
+        response <- cbind(ind, E, scale, y.orig)
+        stopifnot(ncol(response) == 6)
+        null.dat <- is.na(response[, 4L])
+        response <- response[!null.dat, ]
+        colnames(response) <- c("IDX", "E", "S", "Y1", "Y2", "Y3")
+        idx.inf <- (is.infinite(response$Y3) | (response$Y3 < 0))
+        response[idx.inf, "Y3"] <- -1 ## code for infinite
+        idx.inf <- (is.infinite(response$Y2) | (response$Y2 < 0))
+        response[idx.inf, "Y2"] <- -1 ## code for infinite
+        col.idx <- grep("^IDX$", names(response))
+        col.y <- grep("^Y[0-9]+", names(response))
+        m.y <- length(col.y)
+        stopifnot(m.y == 3L)
+        ## remove entries with NA's in all responses
+        na.y <- apply(response[, col.y, drop = FALSE], 1, function(x) all(is.na(x)))
+        response <- response[!na.y, , drop = FALSE]
+        ## format: IDX, E, S, LOW, HIGH, Y
+        response <- cbind(IDX = response$IDX, E = response$E, S = response$S, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
     } else if (inla.one.of(family, c("bgev"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
