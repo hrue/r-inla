@@ -720,7 +720,9 @@ typedef struct {
 	 * gaussianjw  
 	 */
 	double ***gjw_beta;
-
+	double *gjw_n;
+	double *gjw_df;
+	double *gjw_var;
 } Data_tp;
 
 typedef struct {
@@ -2006,6 +2008,7 @@ int loglikelihood_gammasurv(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_gammasurvjw(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gammacount(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
+int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg);
 int loglikelihood_gompertz(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gompertzsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

@@ -7866,6 +7866,60 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `gaussianjw'.}{Number of hyperparmeters are 3.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`65101'}
+							\item{name = }{`beta1'}
+							\item{short.name = }{`beta1'}
+							\item{initial = }{`0'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`0 100'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`65102'}
+							\item{name = }{`beta2'}
+							\item{short.name = }{`beta2'}
+							\item{initial = }{`1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`1 100'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`65103'}
+							\item{name = }{`beta3'}
+							\item{short.name = }{`beta3'}
+							\item{initial = }{`-1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`normal'}
+							\item{param = }{`-1 100'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`The GaussianJW likelihoood'}
+								\item{survival = }{`FALSE'}
+								\item{discrete = }{`FALSE'}
+								\item{link = }{`default logit probit'}
+								\item{pdf = }{`gaussianjw'}
+							 }
+						 }
+					 }
+				 }
 				\item{Model `agaussian'.}{Number of hyperparmeters are 1.
 					 \describe{
 						\item{Hyperparameter `theta'}{

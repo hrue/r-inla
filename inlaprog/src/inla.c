@@ -5107,6 +5107,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
 		break;
+
 	case L_CENNBINOMIAL2:
 		idiv = 6;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
@@ -5114,10 +5115,18 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[2] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
 		a[3] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
 		break;
+
 	case L_CBINOMIAL:
 		idiv = 4;
 		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.cbinomial_n = Calloc(mb->predictor_ndata, double);
+		break;
+
+	case L_GAUSSIANJW:
+		idiv = 5;
+		a[0] = ds->data_observations.gjw_n = Calloc(mb->predictor_ndata, double);
+		a[1] = ds->data_observations.gjw_df = Calloc(mb->predictor_ndata, double);
+		a[2] = ds->data_observations.gjw_var = Calloc(mb->predictor_ndata, double);
 		break;
 
 	case L_GAMMA:
@@ -5671,6 +5680,48 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 			double ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi((y - ypred) * sqrt(prec));
 		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *UNUSED(y_cdf), void *arg)
+{
+	if (m == 0) {
+		return GMRFLib_SUCCESS;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+
+	double y = ds->data_observations.y[idx];
+	double var_obs = ds->data_observations.gjw_var[idx];
+	double log_n = log(ds->data_observations.gjw_n[idx]);
+	double df = ds->data_observations.gjw_df[idx];
+	double df2 = df / 2.0;
+	double beta_0 = ds->data_observations.gjw_beta[0][thread_id][0];
+	double beta_1 = ds->data_observations.gjw_beta[1][thread_id][0];
+	double beta_2 = ds->data_observations.gjw_beta[2][thread_id][0];
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = LOG_NORMC_GAUSSIAN - df2 * M_LN2 - gsl_sf_lngamma(df2);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+	if (m > 0) {
+#pragma GCC ivdep
+		for (int i = 0; i < m; i++) {
+			double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double var = exp(beta_0 + beta_1 * log(p * (1.0 - p)) + beta_2 * log_n);
+			double prec = 1.0 / var;
+			logll[i] = normc + 0.5 * (log(prec) - (SQR(p - y) * prec));
+			
+			double chi_sqr = df * var_obs * prec;
+			logll[i] += (df2 - 1.0) * log(chi_sqr) - chi_sqr / 2.0;
+		}
+	} else {
+		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 
 	LINK_END;
@@ -13483,6 +13534,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_negative_binomial_cen2;
 		ds->data_id = L_CENNBINOMIAL2;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "GAUSSIANJW")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussianjw;
+		ds->data_id = L_GAUSSIANJW;
+		discrete_data = 0;
 	} else if (!strcasecmp(ds->data_likelihood, "GPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gpoisson;
 		ds->data_id = L_GPOISSON;
@@ -14034,6 +14089,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if (ds->data_observations.S[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: CenNBinomial2 data[%1d] S = %g is void\n", secname, i,
 							ds->data_observations.S[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+		break;
+
+	case L_GAUSSIANJW:
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.gjw_n[i] <= 0.0 || ds->data_observations.gjw_df[i] <= 0.0 ||
+				    ds->data_observations.gjw_var[i] <= 0.0) {
+					GMRFLib_sprintf(&msg, "%s: GaussianJW data[%1d] (n,df,var) = (%g,%g,%g) is void\n", secname, i,
+							ds->data_observations.gjw_n[i],
+							ds->data_observations.gjw_df[i], 
+							ds->data_observations.gjw_var[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -14628,6 +14698,214 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+		break;
+
+		/*
+		 * THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10 
+		 */
+		ds->data_observations.probN_intern = Calloc(STRATA_MAXTHETA, double **);
+		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
+		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
+
+		for (int count = 0; count < STRATA_MAXTHETA; count++) {
+			char *ctmp = NULL;
+
+			/*
+			 * the zeroinflation prob-parameter
+			 */
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count + 1);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", count + 1);
+			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(ds->data_observations.probN_intern[count], tmp);
+
+			if (mb->verbose) {
+				printf("\t\tinitialise prob%1d_intern[%g]\n", count + 1, ds->data_observations.probN_intern[count][0][0]);
+				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count + 1, NULL);
+
+			/*
+			 * add theta 
+			 */
+			if (!ds->data_nfixed[count]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[count].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count + 1);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_probability;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+		break;
+
+		/*
+		 * THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10 
+		 */
+		ds->data_observations.probN_intern = Calloc(STRATA_MAXTHETA, double **);
+		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
+		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
+
+		for (int count = 0; count < STRATA_MAXTHETA; count++) {
+			char *ctmp = NULL;
+
+			/*
+			 * the zeroinflation prob-parameter
+			 */
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count + 1);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", count + 1);
+			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[count] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+			HYPER_NEW(ds->data_observations.probN_intern[count], tmp);
+
+			if (mb->verbose) {
+				printf("\t\tinitialise prob%1d_intern[%g]\n", count + 1, ds->data_observations.probN_intern[count][0][0]);
+				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count + 1, NULL);
+
+			/*
+			 * add theta 
+			 */
+			if (!ds->data_nfixed[count]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[count].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count + 1);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+				mb->theta_map[mb->ntheta] = map_probability;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+		break;
+
+	case L_GAUSSIANJW:
+	{
+		for (i = 0; i < 3; i++) {
+			char *ctmp;
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		ds->data_observations.gjw_beta = Calloc(3, double **);
+		ds->data_nfixed = Calloc(3, int);
+		ds->data_nprior = Calloc(3, Prior_tp);
+		for (int i = 0; i < 3; i++) {
+			char *ctmp;
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_NEW(ds->data_observations.gjw_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i+1, ds->data_observations.gjw_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+				GMRFLib_sprintf(&ctmp, "beta%1d for GaussianJW observations", i);
+
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.gjw_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+	}
 		break;
 
 	case L_SIMPLEX:
@@ -29211,6 +29489,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 				break;
 
+			case L_GAUSSIANJW:
+				for(int k = 0; k < 3; k++) {
+					if (!ds->data_nfixed[k]) {
+						double beta = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
+						count++;
+					}
+				}
+				break;
+				
 			case L_AGAUSSIAN:
 				if (!ds->data_fixed0) {
 					/*

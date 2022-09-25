@@ -6718,7 +6718,7 @@
                             to.theta = function(x) x,
                             from.theta = function(x) x
                         ), 
-                        theta2 = list(
+                        theta3 = list(
                             hyperid = 65103,
                             name = "beta3",
                             short.name = "beta3",

@@ -16,7 +16,7 @@ First a Gaussian observation $y$
 \end{displaymath}
 with mean (probability) $p$ and a variance function
 \begin{displaymath}
-    \log(V(p, n)) = \beta_1 + \beta_2 \log(p(1-p)) + \beta_3 \log(n),
+    V(p, n) = \exp\left(\beta_1 + \beta_2 \log(p(1-p)) + \beta_3 \log(n)\right)
 \end{displaymath}
 and then an (conditional independent) observed variance $v$, where
 \begin{displaymath}
@@ -66,6 +66,7 @@ and the prior is defined on $(\theta_1, \theta_2, \theta_3)$.
 \input{../hyper/likelihood/gaussianjw.tex}
 
 \subsection*{Example}
+\verbatiminput{example-gaussianjw.R}
 
 \end{document}
 

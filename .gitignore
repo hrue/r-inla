@@ -1051,3 +1051,7 @@ r-inla.org/doc/likelihood/gaussianjw.aux
 r-inla.org/doc/likelihood/gaussianjw.log
 
 r-inla.org/doc/likelihood/gaussianjw.synctex.gz
+
+*.fdb_latexmk
+
+*.fls
