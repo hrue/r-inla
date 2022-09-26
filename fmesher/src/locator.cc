@@ -5,11 +5,11 @@
 #include <sstream>
 #include <cmath>
 
-#include "locator.hh"
+#include "locator.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-
-#define LOG_(msg) std::cout << WHEREAMI << msg;
+#ifndef LOG_
+#define LOG_(msg) FMLOG_(msg)
+#endif
 #ifdef DEBUG
 #define LOG(msg) LOG_(msg)
 #else
@@ -17,14 +17,11 @@
 #endif
 
 
-using std::cout;
-using std::endl;
-
 namespace fmesh {
 
   TriangleLocator::TriangleLocator(const Mesh* mesh,
 				   const std::vector<int>& dimensions,
-				   bool use_interval_tree) : 
+				   bool use_interval_tree) :
     mesh_(mesh),
     dim_(dimensions),
     bbox_(),
@@ -35,7 +32,7 @@ namespace fmesh {
       for (size_t i=0; i<dim_.size(); ++i) {
 	bbox_[i].resize(mesh_->nT());
       }
-      
+
       /* Build boxes: */
       int d;
       Point mini;
@@ -51,7 +48,7 @@ namespace fmesh {
 	}
       }
     }
-    
+
     bbox_locator_.init(bbox_.begin());
   }
 
@@ -96,7 +93,7 @@ namespace fmesh {
   {
     return bbox_locator_.print(output);
   }
- 
+
   std::ostream& operator<<(std::ostream& output, TriangleLocator& locator)
   {
     return locator.print(output);

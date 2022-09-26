@@ -121,7 +121,7 @@
 #if defined(LINUX)
 #include <fpu_control.h>
 #endif
-#include "predicates.hh"
+#include "predicates.h"
 
 namespace fmesh {
 namespace predicates {

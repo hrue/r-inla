@@ -1,20 +1,12 @@
 #ifndef _FMESH_LOCATOR_T_
 #define _FMESH_LOCATOR_T_ 1
 
-#ifndef WHEREAMI
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-#endif
+#include "fmesher_debuglog.h"
 
 #ifndef LOG_
-#define LOG_(msg) std::cout << WHEREAMI << msg;
+#define LOG_(msg) FMLOG_(msg);
 #endif
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout                                      \
-                         << WHEREAMI    \
-                         << "NOT IMPLEMENTED: "                         \
-                         << __PRETTY_FUNCTION__ << std::endl);
-#endif
 
 namespace fmesh {
 
@@ -139,7 +131,7 @@ namespace fmesh {
 	}
     }
   }
-  
+
 
   template <class T>
   std::ostream& BBoxLocator<T>::Search_tree_type::print(std::ostream& output)
