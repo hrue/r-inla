@@ -17,7 +17,6 @@
 ## !          verbose = FALSE, 
 ## !          epsilon = 0.0025, 
 ## !          prior.diagonal = 1e-04, 
-## !          correct.hyperpar = TRUE, 
 ## !          keep = NULL, 
 ## !          remove = NULL, 
 ## !          remove.fixed = TRUE)
@@ -62,10 +61,6 @@
              ## !is added to the diagonal of the prior precision matrix to avoid singularities}
              prior.diagonal = 1e-4, 
 
-             ## !\item{correct.hyperpar}{Correct the marginal of the hyperparmeters
-             ## !for removing data-points?}
-             correct.hyperpar = TRUE,
-
              ## !\item{keep}{For \code{strategy="prior"}, then this gives a vector of 
              ## !the name of model-components TO USE when computing the groups.
              ## !See the  vignette for details.
@@ -104,7 +99,7 @@
                       verbose = verbose, 
                       epsilon = epsilon, 
                       prior.diagonal = prior.diagonal, 
-                      correct.hyperpar = correct.hyperpar, 
+                      correct.hyperpar = FALSE, 
                       keep = keep, 
                       remove = remove, 
                       remove.fixed = remove.fixed)
