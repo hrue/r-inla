@@ -305,25 +305,9 @@
             ## :ARGUMENT+: (Default FALSE.)
             graph = FALSE,
 
-            ## :ARGUMENT+: control.gcpo Set control variables for the gcpo
-            ## :ARGUMENT+: \code{enable} Logical Enable feature?
-            ## :ARGUMENT+: \code{num.level.sets} Number of level-sets used to construct groups.
-            ## :ARGUMENT+: \code{size.max} Maximum number of nodes in one group.
-            ## :ARGUMENT+: \code{strategy} Strategy used to construct groups.
-            ## :ARGUMENT+:      Either \code{"posterior"} or \code{"prior"}.
-            ## :ARGUMENT+: \code{groups} A list of user-defined groups (see vignette).
-            ## :ARGUMENT+: \code{selection} A list of user-defined locations (see vignette).
-            ## :ARGUMENT+: \code{verbose} Be verbose?
-            ## :ARGUMENT+: \code{epsilon} Tolerance for two correlations to be equal.
-            ## :ARGUMENT+: \code{prior.diagonal} Value added to the diagonal for
-            ## :ARGUMENT+:     \code{strategy="prior"}.
-            ## :ARGUMENT+: \code{keep} model components to keep with automatic group
-            ## :ARGUMENT+:     construction using \code{strategy="prior"}.
-            ## :ARGUMENT+: \code{remove} model components to remove with automatic group
-            ## :ARGUMENT+:     construction using \code{strategy="prior"}.
-            ## :ARGUMENT+: \code{remove.fixed} Remove all fixed effects (this is done last)
-            ## :ARGUMENT+:     with automatic group 
-            ## :ARGUMENT+:     construction using \code{strategy="prior"}.
+            ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
+            ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.
+            ## :ARGUMENT+: Refer to \code{?inla.group.cv} and the vignette for details.
             control.gcpo = list(enable = FALSE,
                                 num.level.sets = -1,
                                 size.max = 32,
@@ -331,7 +315,7 @@
                                 groups = NULL,
                                 selection = NULL,
                                 verbose = FALSE,
-                                epsilon = 0.0025,
+                                epsilon = 0.005,
                                 prior.diagonal = 1e-4, 
                                 correct.hyperpar = TRUE,
                                 keep = NULL,

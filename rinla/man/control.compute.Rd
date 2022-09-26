@@ -42,7 +42,7 @@ control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.st
 
 \item{graph}{   A boolean variable if the graph itself should be returned.  (Default FALSE.)}
 
-\item{control.gcpo}{   Set control variables for the gcpo  \code{enable} Logical Enable feature?  \code{num.level.sets} Number of level-sets used to construct groups.  \code{size.max} Maximum number of nodes in one group.  \code{strategy} Strategy used to construct groups.  Either \code{"posterior"} or \code{"prior"}.  \code{groups} A list of user-defined groups (see vignette).  \code{selection} A list of user-defined locations (see vignette).  \code{verbose} Be verbose?  \code{epsilon} Tolerance for two correlations to be equal.  \code{prior.diagonal} Value added to the diagonal for  \code{strategy="prior"}.  \code{keep} model components to keep with automatic group  construction using \code{strategy="prior"}.  \code{remove} model components to remove with automatic group  construction using \code{strategy="prior"}.  \code{remove.fixed} Remove all fixed effects (this is done last)  with automatic group  construction using \code{strategy="prior"}.}
+\item{control.gcpo}{   (For experts only!) Set control variables for the gcpo.  The intended use is to use \code{inla.group.cv}.  Refer to \code{?inla.group.cv} and the vignette for details.}
 
 }
 \value{
