@@ -99,6 +99,7 @@ Collate:
     'graph.convert.R'
     'graph.matrix.R'
     'group.R'
+    'group.cv.R'
     'hyper.R'
     'hyperpar.R'
     'idx.R'

@@ -6854,6 +6854,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 {
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define EQUAL_COR(c1_, c2_) (ABS((c1_) - (c2_)) < gcpo_param->epsilon)
 
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
@@ -7086,7 +7087,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
-					if (!ISEQUAL_x(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
+					if (!EQUAL_COR(cor_abs_new, cor_abs_prev)) { \
 						nlevels++;		\
 						i_prev = i;		\
 						cor_abs_prev = cor_abs_new; \
@@ -7189,6 +7190,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 	}
 
 #undef A_idx
+#undef EQUAL_COR
 
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
