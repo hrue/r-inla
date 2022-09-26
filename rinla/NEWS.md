@@ -1,3 +1,10 @@
+# INLA 22.09.26
+* Various code-improvement and cleanup
+* Code-optimization of spde2-models
+* New likelihood model `cennbinomial2` (experimental)
+* New likelihood model `gaussianjw` (experimental)
+* New function `inla.group.cv` (experimental)
+
 # INLA 22.09.15
 * Added support for `Predictor` and `APredictor` in lincomb for
   experimental mode
