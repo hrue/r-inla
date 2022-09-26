@@ -1,5 +1,10 @@
+# By default assumes that
+#   R
+# calls the working R binary.
 # Override the R binary with
-#  make R=path-to-R-binary
+#   make R=path-to-R-binary
+# 
+# This information must also be sent onwards to make-man-pages
 R=R
 
 all: TAGS make-man-pages.timestamp ../NAMESPACE
@@ -11,7 +16,7 @@ roxygen: ../NAMESPACE.roxygen
 homebrew: ../NAMESPACE.ours
 
 make-man-pages.timestamp: $(wildcard *.R) ../man/models.Rd
-	./make-man-pages
+	./make-man-pages $(R)
 	touch $@
 
 clean :
