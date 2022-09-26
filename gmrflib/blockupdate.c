@@ -254,8 +254,8 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			df = 0.5 * (f[2] - f[0]) / step;
 			ddf = (f[2] - 2.0 * f[1] + f[0]) / SQR(step);
 			ERR;
-			break;
 		}
+			break;
 
 		case 5:
 		{
@@ -276,8 +276,8 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			if (dd) {
 				dddf = (wfff[0] * f[0] + wfff[1] * f[1] + wfff[2] * f[2] + wfff[3] * f[3] + wfff[4] * f[4]) / gsl_pow_3(step);
 			}
-			break;
 		}
+			break;
 
 		case 7:
 		{
@@ -302,8 +302,8 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 				dddf = (wfff[0] * f[0] + wfff[1] * f[1] + wfff[2] * f[2] + wfff[3] * f[3] + wfff[4] * f[4] + wfff[5] * f[5] +
 					wfff[6] * f[6]) / gsl_pow_3(step);
 			}
-			break;
 		}
+			break;
 
 		case 9:
 		{
@@ -334,8 +334,8 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 				dddf = (wfff[0] * f[0] + wfff[1] * f[1] + wfff[2] * f[2] + wfff[3] * f[3] + wfff[4] * f[4] + wfff[5] * f[5] +
 					wfff[6] * f[6] + wfff[7] * f[7] + wfff[8] * f[8]) / gsl_pow_3(step);
 			}
-			break;
 		}
+			break;
 
 		default:
 			GMRFLib_ASSERT(num_points == 3 || num_points == 5 || num_points == 7 || num_points == 9, GMRFLib_EINVARG);

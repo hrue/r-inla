@@ -774,16 +774,16 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 			}
 			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
 		}
-		break;
 	}
+		break;
 
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		for (i = 0; i < n; i++) {
 			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
 		}
-		break;
 	}
+		break;
 
 	default:
 
@@ -846,11 +846,15 @@ int GMRFLib_free_density(GMRFLib_density_tp * density)
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+		{
 			Free(density->sn_param);
+		}
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
+		{
 			GMRFLib_spline_free(density->log_correction);
+		}
 			break;
 
 		default:
@@ -1236,22 +1240,27 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	} else {
 		switch (type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
+		{
 			/*
 			 * fit a gaussian 
 			 */
 			GMRFLib_normal_fit(&g_mean, &g_var, NULL, xx, ldens, n);
 			GMRFLib_density_create_normal(density, g_mean, sqrt(g_var), std_mean, std_stdev, lookup_tables);
+		}
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+		{
 			/*
 			 * fit skew-normal 
 			 */
 			GMRFLib_sn_fit(&sn_param, NULL, xx, ldens, n);
 			GMRFLib_density_create_sn(density, sn_param, std_mean, std_stdev, lookup_tables);
+		}
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
+		{
 			/*
 			 * fit spline-corrected gaussian 
 			 */
@@ -1278,6 +1287,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			}
 			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
 			GMRFLib_init_density(*density, lookup_tables);
+		}
 			break;
 
 		default:
@@ -1398,21 +1408,32 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 		fprintf(fp, "%-35s %16.10f\n", "Standarisation: stdev", density->std_stdev);
 		switch (density->type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
+		{
 			fprintf(fp, "%-35s %-20s\n", "Density type", "Gaussian");
 			fprintf(fp, "     %-30s %16.10f\n", "mean", density->mean);
 			fprintf(fp, "     %-30s %16.10f\n", "stdev", density->stdev);
+		}
 			break;
+
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+		{
 			fprintf(fp, "%-35s %-20s\n", "Density type", "Skew Normal");
 			fprintf(fp, "\t%-35s %16.10f\n", "xi", density->sn_param->xi);
 			fprintf(fp, "     %-30s %16.10f\n", "omega", density->sn_param->omega);
 			fprintf(fp, "     %-30s %16.10f\n", "alpha", density->sn_param->alpha);
+		}
 			break;
+
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
+		{
 			fprintf(fp, "%-26s %-30s\n", "Density type", "Spline corrected Gaussian");
 			fprintf(fp, "     %-30s %16.10f\n", "Log normalisation constant", density->log_norm_const);
 			fprintf(fp, "     %-30s %16.10f\n", "x_min", density->x_min);
 			fprintf(fp, "     %-30s %16.10f\n", "x_max", density->x_max);
+		}
+			break;
+
+		default:
 			break;
 		}
 

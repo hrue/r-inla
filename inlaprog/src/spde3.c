@@ -281,20 +281,35 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	if (i == j) {
 		switch (model->transform) {
 		case SPDE3_TRANSFORM_IDENTITY:
+		{
 			d_i[2] = phi_i[2];
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOG:
+		{
 			d_i[2] = exp(phi_i[2]);
+		}
 			break;
+
 		case SPDE3_TRANSFORM_SHIFTEDLOG:
+		{
 			d_i[2] = 2.0 * exp(phi_i[2]) - 1.0;
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOGIT:
+		{
 			d_i[2] = (1.0 - exp(phi_i[2])) / (1.0 + exp(phi_i[2]));
+		}
 			break;
+
 		case SPDE3_TRANSFORM_OLDLOGIT:
+		{
 			d_i[2] = cos(M_PI / (1.0 + exp(-phi_i[2])));
+		}
 			break;
+
 		default:
 			assert(0 == 1);
 		}
@@ -302,24 +317,38 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	} else {
 		switch (model->transform) {
 		case SPDE3_TRANSFORM_IDENTITY:
+		{
 			d_i[2] = phi_i[2];
 			d_j[2] = phi_j[2];
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOG:
+		{
 			d_i[2] = exp(phi_i[2]);
 			d_j[2] = exp(phi_j[2]);
+		}
 			break;
+
 		case SPDE3_TRANSFORM_SHIFTEDLOG:
+		{
 			d_i[2] = 2.0 * exp(phi_i[2]) - 1.0;
 			d_j[2] = 2.0 * exp(phi_j[2]) - 1.0;
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOGIT:
+		{
 			d_i[2] = (1.0 - exp(phi_i[2])) / (1.0 + exp(phi_i[2]));
 			d_j[2] = (1.0 - exp(phi_j[2])) / (1.0 + exp(phi_j[2]));
+		}
 			break;
+
 		case SPDE3_TRANSFORM_OLDLOGIT:
+		{
 			d_i[2] = cos(M_PI / (1.0 + exp(-phi_i[2])));
 			d_j[2] = cos(M_PI / (1.0 + exp(-phi_j[2])));
+		}
 			break;
 		default:
 			assert(0 == 1);

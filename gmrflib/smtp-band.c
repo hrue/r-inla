@@ -165,10 +165,15 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
+	{
 		dpbtf2_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
+	}
 		break;
+
 	case BLAS_LEVEL3:
+	{
 		dpbtrf_("L", &(graph->n), &nband, band, &ldim, &error, F_ONE);
+	}
 		break;
 	}
 	if (error) {

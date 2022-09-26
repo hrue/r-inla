@@ -1104,6 +1104,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 		break;					       /* including this; warnings in gcc */
 
 	case GMRFLib_AI_LINEAR_CORRECTION_FAST:
+	{
 		/*
 		 * here, the term for i=idx will be zero, so we do not need to test for it.  it is a small hack to get the
 		 * Qinv-values. Qinv_get only use the sub_inverse points, so we make a fake one and just retrive the elements we
@@ -1138,12 +1139,18 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 			}
 		}
 		deriv_log_dens_cond *= x_sd / 2.0;
+	}
 		break;
 
 	case GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE:
+	{
 
 		FIXME("option GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE is no longer supported.");
 		assert(0 == 1);
+	}
+		break;
+
+	default:
 		break;
 	}
 
@@ -10515,20 +10522,35 @@ double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg)
 	switch (a->interpolator) {
 	case GMRFLib_AI_INTERPOLATOR_CCD:
 	case GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE:
+	{
 		val = GMRFLib_interpolator_ccd(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) a);
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_NEAREST:
+	{
 		val = GMRFLib_interpolator_nearest(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_LINEAR:
+	{
 		val = GMRFLib_interpolator_linear(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_QUADRATIC:
+	{
 		val = GMRFLib_interpolator_quadratic(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE:
+	{
 		val = GMRFLib_interpolator_wdistance(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}

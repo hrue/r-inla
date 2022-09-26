@@ -653,8 +653,10 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *U
 
 	switch (it.tp) {
 	case GMRFLib_PREOPT_TP_F:
+	{
 		switch (jt.tp) {
 		case GMRFLib_PREOPT_TP_F:
+		{
 			if (same_tp) {
 				if (same_idx || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
 					value += a->f_Qfunc[it.tp_idx] (thread_id, it.idx, jt.idx, NULL, a->f_Qfunc_arg[it.tp_idx]);
@@ -675,25 +677,36 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *U
 				}
 			}
 			return value;
+		}
+
 		case GMRFLib_PREOPT_TP_BETA:
 			return value;
+
 		default:
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
+
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	case GMRFLib_PREOPT_TP_BETA:
+	{
 		switch (jt.tp) {
 		case GMRFLib_PREOPT_TP_BETA:
+		{
 			if (same_tp) {
 				value += (a->prior_precision ? a->prior_precision[it.tp_idx] : 0.0);
 			}
 			return value;
+		}
+
 		default:
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
+
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	default:

@@ -56,8 +56,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	case INLA_CGENERIC_VOID:
 	{
 		assert(!(cmd == INLA_CGENERIC_VOID));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_GRAPH:
 	{
@@ -79,8 +79,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 			ret[2 + i] = i;			       /* i */
 			ret[2 + N + i] = i;		       /* j */
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_Q:
 	{
@@ -93,8 +93,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		for (int i = 0; i < M; i++) {
 			ret[2 + i] = prec;
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_MU:
 	{
@@ -103,8 +103,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = 0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_INITIAL:
 	{
@@ -114,8 +114,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		assert(ret);
 		ret[0] = 1;
 		ret[1] = 4.0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
@@ -123,8 +123,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
@@ -132,8 +132,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = -prec + lprec;			       // prec ~ gamma(1,1)
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_QUIT:
 	default:
@@ -166,8 +166,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	case INLA_CGENERIC_VOID:
 	{
 		assert(!(cmd == INLA_CGENERIC_VOID));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_GRAPH:
 	{
@@ -194,8 +194,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 				ret[offset + M + k++] = i + 1; /* j */
 			}
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_Q:
 	{
@@ -217,8 +217,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 				ret[offset + k++] = -param * rho;
 			}
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_MU:
 	{
@@ -228,8 +228,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = 0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_INITIAL:
 	{
@@ -241,8 +241,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret[0] = 2;
 		ret[1] = 1.0;
 		ret[2] = 1.0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
@@ -252,8 +252,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
@@ -262,8 +262,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_QUIT:
 	default:
@@ -307,8 +307,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	case INLA_CGENERIC_VOID:
 	{
 		assert(!(cmd == INLA_CGENERIC_VOID));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_GRAPH:
 	{
@@ -331,8 +331,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 			ret[offset + k] = Cmatrix->i[k];       /* i */
 			ret[offset + M + k] = Cmatrix->j[k];   /* j */
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_Q:
 	{
@@ -350,8 +350,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		for (int k = 0; k < M; k++) {
 			ret[offset + k] = prec * Cmatrix->x[k];
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_MU:
 	{
@@ -361,8 +361,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = 0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_INITIAL:
 	{
@@ -373,8 +373,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		assert(ret);
 		ret[0] = 1;
 		ret[1] = 4.0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
@@ -382,8 +382,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = N / 2.0 * (lprec - log(2.0 * M_PI));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
@@ -392,8 +392,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = -prec + lprec;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_QUIT:
 	default:

@@ -571,37 +571,49 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
+	{
 		store->pstore[tnum]->phase = 11;	       // analysis
 		store->pstore[tnum]->iparm[4] = 0;	       /* 0 = compute the permutation */
 		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation */
 		store->pstore[tnum]->nrhs = S.nrhs_max;	       /* this is how it is, apparently */
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_CHOL:
+	{
 		store->pstore[tnum]->phase = 22;	       // numerical factorization
 		store->pstore[tnum]->iparm[32] = 1;	       /* determinant */
 		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation (does not do that anymore) */
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_QINV:
+	{
 		store->pstore[tnum]->phase = -22;
 		store->pstore[tnum]->iparm[35] = 1;	       /* do not overwrite internal factor L with selected inversion */
 		store->pstore[tnum]->iparm[36] = 0;	       /* return upper triangular Qinv */
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
+	{
 		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 1 : -12);
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
+	{
 		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 2 : -23);
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
+	{
 		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = 0;
+	}
 		break;
 
 	default:

@@ -764,6 +764,7 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	}
 	switch (it.tp) {
 	case GMRFLib_HGMRFM_TP_ETA:
+	{
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_ETA:
 			if (a->eta_ext_graph) {
@@ -776,9 +777,11 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 			return value;
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	case GMRFLib_HGMRFM_TP_F:
+	{
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_F:
 			if (it.tp_idx == jt.tp_idx) {
@@ -805,9 +808,11 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	case GMRFLib_HGMRFM_TP_BETA:
+	{
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_BETA:
 			if (it.tp_idx == jt.tp_idx) {
@@ -820,10 +825,13 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	case GMRFLib_HGMRFM_TP_LC:
+	{
 		return value;
+	}
 		break;
 
 	default:

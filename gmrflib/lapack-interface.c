@@ -253,11 +253,17 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
+	{
 		dpotf2_("L", &dim, matrix, &dim, &info, F_ONE);
+	}
 		break;
+
 	case BLAS_LEVEL3:
+	{
 		dpotrf_("L", &dim, matrix, &dim, &info, F_ONE);
+	}
 		break;
+
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
 		break;
@@ -347,11 +353,17 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
+	{
 		dpotf2_("L", &dim, a, &dim, &info, F_ONE);
+	}
 		break;
+
 	case BLAS_LEVEL3:
+	{
 		dpotrf_("L", &dim, a, &dim, &info, F_ONE);
+	}
 		break;
+
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
 		break;

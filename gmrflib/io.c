@@ -149,14 +149,21 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 
 	switch (error) {
 	case GMRFLib_IO_ERR_OPEN:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to open file[%s] with mode[%s]", io->filename, io->mode));
 		ecode = GMRFLib_EOPENFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_NOLINE:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read line[%1d] in file[%s]", io->lines_read + 1, io->filename));
 		ecode = GMRFLib_EREADFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_READLINE:
+	{
 		if (io->tokens_read) {
 			GMRFLib_EWRAP0(GMRFLib_sprintf
 				       (&msg, "Fail to read from or get, line[%1d] token[%1d] in file[%s]", io->lines_read, io->tokens_read,
@@ -165,15 +172,22 @@ int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
 			GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read from or get, line[%1d] in file[%s]", io->lines_read, io->filename));
 		}
 		ecode = GMRFLib_EREADFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_READBYTES:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf(&msg, "Fail to read more after [%1d] bytes are read in file[%s]", io->bytes_read, io->filename));
 		ecode = GMRFLib_EREADFILE;
+	}
 		break;
+
 	case GMRFLib_IO_ERR_WRITEBYTES:
+	{
 		GMRFLib_EWRAP0(GMRFLib_sprintf
 			       (&msg, "Fail to write more after [%1d] bytes are written to file[%s]", io->bytes_written, io->filename));
 		ecode = GMRFLib_EWRITE;
+	}
 		break;
 
 	default:
