@@ -1841,10 +1841,14 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	{
 		switch (lparam->variant) {
 		case 0:
+		{
 			ret = -1.0 / pow(exp(x), alpha) * LOG_ONE_MINUS(lparam->quantile);
+		}
 			break;
 		case 1:
+		{
 			ret = 1.0 / exp(x) * pow(-LOG_ONE_MINUS(lparam->quantile), 1.0 / alpha);
+		}
 			break;
 		default:
 			assert(0 == 1);
@@ -1914,12 +1918,16 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 
 	switch (typ) {
 	case INVLINK:
+	{
 		// ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
 		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile, 0);
+	}
 		break;
 
 	case LINK:
+	{
 		CODE_NEEDED;
+	}
 		break;
 
 	case DINVLINK:
@@ -1937,7 +1945,9 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 		break;
 
 	case LINKINCREASING:
+	{
 		ret = 1;
+	}
 		break;
 
 	default:
@@ -2083,20 +2093,34 @@ forceinline double link_special1(int thread_id, double x, map_arg_tp typ, void *
 
 	switch (typ) {
 	case MAP_FORWARD:
+	{
 		return gsl_cdf_lognormal_Pinv(inla_Phi(x), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec));
+	}
 		break;
+
 	case MAP_BACKWARD:
+	{
 		return gsl_cdf_ugaussian_Pinv(gsl_cdf_lognormal_P(x, covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)));
+	}
 		break;
+
 	case MAP_DFORWARD:
+	{
 		return (gsl_cdf_lognormal_Pinv(inla_Phi(x + h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)) -
 			gsl_cdf_lognormal_Pinv(inla_Phi(x - h), covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec))) / (2.0 * h);
+	}
 		break;
+
 	case MAP_INCREASING:
+	{
 		return 1.0;
+	}
+		break;
+
 	default:
 		abort();
 	}
+
 	abort();
 	return 0.0;
 }
@@ -2383,36 +2407,48 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 		switch (a->type) {
 		case G_EXCHANGEABLE:
 		case G_EXCHANGEABLE_POS:
+		{
 			fac = -((ngroup - 2.0) * rho + 1.0) / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
+		}
 			break;
 
 		case G_AR1:
+		{
 			if (!(a->cyclic) && (igroup == 0 || igroup == ngroup - 1)) {
 				fac = 1.0 / (1.0 - SQR(rho));
 			} else {
 				fac = (1.0 + SQR(rho)) / (1.0 - SQR(rho));
 			}
+		}
 			break;
 
 		case G_AR:
+		{
 			fac = Qfunc_ar(thread_id, igroup, jgroup, NULL, (void *) ardef);
+		}
 			break;
 
 		case G_RW1:
 		case G_RW2:
+		{
 			if (a->crwdef) {
 				fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
 			} else {
 				fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
 			}
+		}
 			break;
 
 		case G_BESAG:
+		{
 			fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
+		}
 			break;
 
 		case G_IID:
+		{
 			fac = prec;
+		}
 			break;
 
 		default:
@@ -2425,32 +2461,44 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 		switch (a->type) {
 		case G_EXCHANGEABLE:
 		case G_EXCHANGEABLE_POS:
+		{
 			fac = rho / ((rho - 1.0) * ((ngroup - 1.0) * rho + 1.0));
+		}
 			break;
 
 		case G_AR1:
+		{
 			fac = -rho / (1.0 - SQR(rho));
+		}
 			break;
 
 		case G_AR:
+		{
 			fac = Qfunc_ar(thread_id, igroup, jgroup, NULL, (void *) ardef);
+		}
 			break;
 
 		case G_RW1:
 		case G_RW2:
+		{
 			if (a->crwdef) {
 				fac = prec * GMRFLib_crw(thread_id, igroup, jgroup, NULL, (void *) (a->crwdef));
 			} else {
 				fac = prec * GMRFLib_rw(thread_id, igroup, jgroup, NULL, (void *) (a->rwdef));
 			}
+		}
 			break;
 
 		case G_BESAG:
+		{
 			fac = prec * Qfunc_besag(thread_id, igroup, jgroup, NULL, (void *) (a->besagdef));
+		}
 			break;
 
 		case G_IID:
+		{
 			fac = prec * 0.0;
+		}
 			break;
 
 		default:
@@ -2488,15 +2536,18 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 	switch (type) {
 	case G_EXCHANGEABLE:
 	case G_EXCHANGEABLE_POS:
+	{
 		assert(cyclic == 0);
 		for (i = 0; i < ngroup; i++) {
 			for (j = i + 1; j < ngroup; j++) {
 				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
 			}
 		}
+	}
 		break;
 
 	case G_AR1:
+	{
 		assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
@@ -2504,9 +2555,11 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		if (cyclic) {
 			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 1) * n);
 		}
+	}
 		break;
 
 	case G_AR:
+	{
 		assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			for (j = 1; j <= order; j++) {
@@ -2515,9 +2568,11 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 				}
 			}
 		}
+	}
 		break;
 
 	case G_RW1:
+	{
 		assert(ngroup >= 2);
 		for (i = 0; i < ngroup - 1; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
@@ -2525,9 +2580,11 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 		if (cyclic) {
 			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 1) * n);
 		}
+	}
 		break;
 
 	case G_RW2:
+	{
 		assert(ngroup >= 3);
 		for (i = 0; i < ngroup - 2; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, (i + 1) * n);
@@ -2539,9 +2596,11 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 			GMRFLib_ged_insert_graph2(ged, graph, 0 * n, (ngroup - 2) * n);
 			GMRFLib_ged_insert_graph2(ged, graph, 1 * n, (ngroup - 1) * n);
 		}
+	}
 		break;
 
 	case G_BESAG:
+	{
 		assert(group_graph);
 		for (i = 0; i < group_graph->n; i++) {
 			int jj;
@@ -2550,13 +2609,16 @@ int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * grap
 				GMRFLib_ged_insert_graph2(ged, graph, i * n, j * n);
 			}
 		}
+	}
 		break;
 
 	case G_IID:
+	{
 		assert(ngroup >= 1);
 		for (i = 0; i < ngroup; i++) {
 			GMRFLib_ged_insert_graph2(ged, graph, i * n, i * n);
 		}
+	}
 		break;
 
 	default:
@@ -4207,21 +4269,28 @@ double priorfunc_ref_ar(double *x, double *parameters)
 
 	switch (p) {
 	case 0:
+	{
 		ldens = 0.0;
+	}
 		break;
 	case 1:
+	{
 		ldens = -log(M_PI)
 		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[0]))
 		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)));
+	}
 		break;
 	case 2:
+	{
 		ldens = -2.0 * log(M_PI)
 		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[0]))
 		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[1]))
 		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)))
 		    + log(ABS(map_phi(x[1], MAP_DFORWARD, NULL)));
+	}
 		break;
 	case 3:
+	{
 		ldens = -2.0 * log(M_PI)
 		    - log(1.12)
 		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[0]))
@@ -4231,6 +4300,7 @@ double priorfunc_ref_ar(double *x, double *parameters)
 		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)))
 		    + log(ABS(map_phi(x[1], MAP_DFORWARD, NULL)))
 		    + log(ABS(map_phi(x[2], MAP_DFORWARD, NULL)));
+	}
 		break;
 	default:
 		ldens = NAN;
@@ -5035,44 +5105,60 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
 	case L_LOGNORMAL:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gaussian = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_SIMPLEX:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_simplex = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_IID_GAMMA:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.iid_gamma_scale = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_LOGISTIC:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_logistic = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_SKEWNORMAL:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.sn_scale = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_GEV:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_gev = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_T:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_t = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_TSTRATA:
+	{
 		idiv = 4;
 		a[0] = ds->data_observations.weight_tstrata = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.strata_tstrata = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_CENPOISSON:
@@ -5091,52 +5177,68 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_ZEROINFLATEDPOISSON1:
 	case L_ZEROINFLATEDPOISSON2:
 	case L_POISSON_SPECIAL1:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_NBINOMIAL:
+	{
 		idiv = 4;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_CENPOISSON2:
+	{
 		idiv = 5;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_CENNBINOMIAL2:
+	{
 		idiv = 6;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.S = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.cen_low = Calloc(mb->predictor_ndata, double);
 		a[3] = ds->data_observations.cen_high = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_CBINOMIAL:
+	{
 		idiv = 4;
 		a[0] = ds->data_observations.cbinomial_k = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.cbinomial_n = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_GAUSSIANJW:
+	{
 		idiv = 5;
 		a[0] = ds->data_observations.gjw_n = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.gjw_df = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.gjw_var = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_GAMMA:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.gamma_scale = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_GAMMAJW:
+	{
 		idiv = 2;
 		a[0] = NULL;
+	}
 		break;
 
 	case L_DGP:
@@ -5155,25 +5257,33 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_STOCHVOL_T:
 	case L_WEIBULL:
 	case L_GOMPERTZ:
+	{
 		idiv = 2;
 		a[0] = NULL;
+	}
 		break;
 
 	case L_BETA:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.beta_weight = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_BETABINOMIALNA:
+	{
 		idiv = 4;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.betabinomialnb_scale = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_XBINOMIAL:
+	{
 		idiv = 4;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.p_scale = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_BETABINOMIAL:
@@ -5187,15 +5297,19 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_ZEROINFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL3:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.nb = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL1STRATA2:
 	case L_ZEROINFLATEDNBINOMIAL1STRATA3:
+	{
 		idiv = 4;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
 		a[1] = ds->data_observations.strata = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_EXPONENTIALSURV:
@@ -5208,6 +5322,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_WEIBULL_CURE:
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
+	{
 		idiv = 6;
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
 		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
@@ -5215,26 +5330,35 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		a[3] = ds->data_observations.upper = Calloc(mb->predictor_ndata, double);
 		ds->data_observations.weight_gaussian = NULL;
 		ds->data_observations.fmri_scale = NULL;
+	}
 		break;
 
 	case L_CIRCULAR_NORMAL:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_circular_normal = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_WRAPPED_CAUCHY:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.weight_wrapped_cauchy = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_TWEEDIE:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.tweedie_w = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_FMRI:
+	{
 		idiv = 3;
 		a[0] = ds->data_observations.fmri_scale = Calloc(mb->predictor_ndata, double);
+	}
 		break;
 
 	case L_NMIX:
@@ -5259,8 +5383,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			ds->data_observations.nmix_y[dim_y][i] = NAN;
 		}
-		break;
 	}
+		break;
 
 	case L_BGEV:
 	{
@@ -5273,8 +5397,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		for (i = 1; i < na; i++) {
 			a[i] = ds->data_observations.bgev_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
-		break;
 	}
+		break;
 
 	case L_AGAUSSIAN:
 	{
@@ -5286,8 +5410,8 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 			ds->data_observations.agaussian[i] = Calloc(mb->predictor_ndata, double);
 			a[i] = ds->data_observations.agaussian[i];
 		}
-		break;
 	}
+		break;
 
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -5357,37 +5481,49 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		if (mb->verbose && j < PREVIEW) {
 			switch (na) {
 			case 0:
+			{
 				printf("\t\t\t%1d/%1d  (idx,y,d) = (%1d, %g, %g)\n", j, ds->data_observations.ndata, ii,
 				       ds->data_observations.y[ii], ds->data_observations.d[ii]);
+			}
 				break;
 
 			case 1:
+			{
 				printf("\t\t\t%1d/%1d  (idx,a,y,d) = (%1d, %g, %g, %g)\n", j,
 				       ds->data_observations.ndata, ii, a[0][ii], ds->data_observations.y[ii], ds->data_observations.d[ii]);
+			}
 				break;
 
 			case 2:
+			{
 				printf("\t\t\t%1d/%1d (idx,a[0],a[1],y,d) = (%1d, %g, %g, %g, %g)\n", j,
 				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], ds->data_observations.y[ii],
 				       ds->data_observations.d[ii]);
+			}
 				break;
 
 			case 3:
+			{
 				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],y,d) = (%1d, %g, %g, %g, %g, %g)\n", j,
 				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], ds->data_observations.y[ii],
 				       ds->data_observations.d[ii]);
+			}
 				break;
 
 			case 4:
+			{
 				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],a[3],y,d) = (%1d, %g, %g, %g, %g, %g, %g)\n", j,
 				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], a[3][ii],
 				       ds->data_observations.y[ii], ds->data_observations.d[ii]);
+			}
 				break;
 
 			case 5:
+			{
 				printf("\t\t\t%1d/%1d (idx,a[0],a[1],a[2],a[3],a[4],y,d) = (%1d, %g, %g, %g, %g, %g, %g, %g)\n", j,
 				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], a[2][ii], a[3][ii], a[4][ii],
 				       ds->data_observations.y[ii], ds->data_observations.d[ii]);
+			}
 				break;
 
 			default:
@@ -5716,7 +5852,7 @@ int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int
 			double var = exp(beta_0 + beta_1 * log(p * (1.0 - p)) + beta_2 * log_n);
 			double prec = 1.0 / var;
 			logll[i] = normc + 0.5 * (log(prec) - (SQR(p - y) * prec));
-			
+
 			double chi_sqr = df * var_obs * prec;
 			logll[i] += (df2 - 1.0) * log(chi_sqr) - chi_sqr / 2.0;
 		}
@@ -6660,11 +6796,15 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 
 	switch (bit_fac) {
 	case 0:
+	{
 		fac = sqrt(prec);
+	}
 		break;
 
 	case 1:
+	{
 		fac = sqrt((dof / (dof - 2.0)) * prec);
+	}
 		break;
 
 	default:
@@ -6679,11 +6819,15 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 
 	switch (bit_tail) {
 	case 0:
+	{
 		use_tail_correction = GMRFLib_FALSE;
+	}
 		break;
 
 	case 1:
+	{
 		use_tail_correction = GMRFLib_TRUE;
+	}
 		break;
 
 	default:
@@ -6743,22 +6887,28 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 
 					switch (dcode) {
 					case 0:
+					{
 						logll[i] =
 						    lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log1p(SQR(tail_start) / dof) + log(fac);
 						logll[i] += -0.5 * tail_prec * SQR(dev) + diff * dev;
 						logll[i] -= log_normc;
+					}
 						break;
 
 					case 1:
+					{
 						if (y_std > tail_start) {
 							logll[i] = tail_prec * dev * fac - diff * fac;
 						} else {
 							logll[i] = tail_prec * dev * fac + diff * fac;
 						}
+					}
 						break;
 
 					case 2:
+					{
 						logll[i] = -tail_prec * SQR(fac);
+					}
 						break;
 
 					default:
@@ -6767,17 +6917,23 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 				} else {
 					switch (dcode) {
 					case 0:
+					{
 						logll[i] =
 						    lg2 - lg1 - 0.5 * log(M_PI * dof) - (dof + 1.0) / 2.0 * log1p(SQR(y_std) / dof) + log(fac);
 						logll[i] -= log_normc;
+					}
 						break;
 
 					case 1:
+					{
 						logll[i] = (dof + 1.0) * fac * y_std / (dof + SQR(y_std));
+					}
 						break;
 
 					case 2:
+					{
 						logll[i] = -(dof + 1.0) * SQR(fac) * (dof - SQR(y_std)) / SQR(dof + SQR(y_std));
+					}
 						break;
 
 					default:
@@ -7810,13 +7966,19 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 
 	switch (ds->variant) {
 	case 0:
+	{
 		size = exp(ds->data_observations.log_size[thread_id][0]);
+	}
 		break;
 	case 1:
+	{
 		size = E * exp(ds->data_observations.log_size[thread_id][0]);
+	}
 		break;
 	case 2:
+	{
 		size = S * exp(ds->data_observations.log_size[thread_id][0]);
+	}
 		break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -7891,13 +8053,19 @@ int loglikelihood_negative_binomial_cen2(int thread_id, double *logll, double *x
 
 	switch (ds->variant) {
 	case 0:
+	{
 		size = exp(ds->data_observations.log_size[thread_id][0]);
+	}
 		break;
 	case 1:
+	{
 		size = E * exp(ds->data_observations.log_size[thread_id][0]);
+	}
 		break;
 	case 2:
+	{
 		size = S * exp(ds->data_observations.log_size[thread_id][0]);
+	}
 		break;
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -9076,9 +9244,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -9093,6 +9261,7 @@ int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int i
 	np = ds->mix_npoints;				       /* 'np' is the maximum number of points */
 	switch (ds->mix_integrator) {
 	case MIX_INT_QUADRATURE:
+	{
 		if (func_quadrature) {
 			/*
 			 * we can get back few points, as small weights are removed
@@ -9101,9 +9270,11 @@ int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int i
 		} else {
 			assert(0 == 1);
 		}
+	}
 		break;
 	case MIX_INT_DEFAULT:
 	case MIX_INT_SIMPSON:
+	{
 		if (func_simpson) {
 			/*
 			 * we can get back few points, as small weights are removed
@@ -9112,6 +9283,7 @@ int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int i
 		} else {
 			assert(0 == 1);
 		}
+	}
 		break;
 	default:
 		assert(0 == 1);
@@ -10396,13 +10568,16 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
+		{
 			loglfun(thread_id, log_dens, x, m, idx, x_vec, NULL, arg);
 			for (i = 0; i < m; i++) {
 				logll[i] = log_dens[i] - LOG_ONE_MINUS(prob_truncation[i]);
 			}
+		}
 			break;
 
 		case SURV_EVENT_RIGHT:
+		{
 			if (!ISZERO(lower)) {
 				loglfun(thread_id, prob_lower, x, -m, idx, x_vec, &lower, arg);
 				SAFEGUARD(prob_lower, m);
@@ -10412,9 +10587,11 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 				logll[i] = LOG_ONE_MINUS(prob_lower[i]) - LOG_ONE_MINUS(prob_truncation[i]);
 			}
 
+		}
 			break;
 
 		case SURV_EVENT_LEFT:
+		{
 			if (!ISINF(upper)) {
 				loglfun(thread_id, prob_upper, x, -m, idx, x_vec, &upper, arg);
 				SAFEGUARD(prob_upper, m);
@@ -10424,9 +10601,11 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 				logll[i] =
 				    log(prob_upper[i]) + LOG_ONE_MINUS(prob_truncation[i] / prob_upper[i]) - LOG_ONE_MINUS(prob_truncation[i]);
 			}
+		}
 			break;
 
 		case SURV_EVENT_INTERVAL:
+		{
 			if (!ISZERO(lower)) {
 				loglfun(thread_id, prob_lower, x, -m, idx, x_vec, &lower, arg);
 				SAFEGUARD(prob_lower, m);
@@ -10440,9 +10619,11 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 				// - ((prob_lower[i] - prob_truncation[i]) / (1.0 - prob_truncation[i])));
 				logll[i] = log(prob_upper[i]) + LOG_ONE_MINUS(prob_lower[i] / prob_upper[i]) - LOG_ONE_MINUS(prob_truncation[i]);
 			}
+		}
 			break;
 
 		case SURV_EVENT_ININTERVAL:
+		{
 			if (!ISZERO(lower)) {
 				loglfun(thread_id, prob_lower, x, -m, idx, x_vec, &lower, arg);
 				SAFEGUARD(prob_lower, m);
@@ -10456,6 +10637,7 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 				// logll[i] = log_dens[i] - log(prob_upper[i] - prob_lower[i]);
 				logll[i] = log_dens[i] - (log(prob_upper[i]) + LOG_ONE_MINUS(prob_lower[i] / prob_upper[i]));
 			}
+		}
 			break;
 
 		default:
@@ -10509,8 +10691,8 @@ int loglikelihood_weibull(int thread_id, double *logll, double *x, int m, int id
 			}
 
 		}
-		break;
 	}
+		break;
 	case 1:
 	{
 		if (m > 0) {
@@ -10527,8 +10709,8 @@ int loglikelihood_weibull(int thread_id, double *logll, double *x, int m, int id
 				logll[i] = ONE_MINUS_EXP(-ypow);
 			}
 		}
-		break;
 	}
+		break;
 	default:
 		assert(0 == 1);
 	}
@@ -10604,6 +10786,7 @@ int loglikelihood_loglogistic(int thread_id, double *logll, double *x, int m, in
 
 	switch (ds->variant) {
 	case 0:
+	{
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -10616,9 +10799,11 @@ int loglikelihood_loglogistic(int thread_id, double *logll, double *x, int m, in
 				logll[i] = 1.0 / (1.0 + lambda * pow(yy, -alpha));
 			}
 		}
+	}
 		break;
 
 	case 1:
+	{
 		if (m > 0) {
 			double lam_y;
 			for (i = 0; i < m; i++) {
@@ -10633,6 +10818,7 @@ int loglikelihood_loglogistic(int thread_id, double *logll, double *x, int m, in
 				logll[i] = 1.0 / (1.0 + pow(lambda * yy, -alpha));
 			}
 		}
+	}
 		break;
 
 	default:
@@ -10671,6 +10857,7 @@ int loglikelihood_qloglogistic(int thread_id, double *logll, double *x, int m, i
 
 	switch (ds->variant) {
 	case 0:
+	{
 		if (m > 0) {
 			for (i = 0; i < m; i++) {
 				yq = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -10685,9 +10872,11 @@ int loglikelihood_qloglogistic(int thread_id, double *logll, double *x, int m, i
 				logll[i] = 1.0 / (1.0 + lambda * pow(yy, -alpha));
 			}
 		}
+	}
 		break;
 
 	case 1:
+	{
 		if (m > 0) {
 			double lam_y, qqinv = 1.0 / qq;
 			for (i = 0; i < m; i++) {
@@ -10704,6 +10893,7 @@ int loglikelihood_qloglogistic(int thread_id, double *logll, double *x, int m, i
 				logll[i] = 1.0 / (1.0 + pow(lambda * yy, -alpha));
 			}
 		}
+	}
 		break;
 
 	default:
@@ -10753,37 +10943,45 @@ int loglikelihood_weibull_cure(int thread_id, double *logll, double *x, int m, i
 	if (m > 0) {
 		switch (ievent) {
 		case SURV_EVENT_FAILURE:
+		{
 			ypow = pow(y, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(gama) + log(alpha) + (alpha - 1.0) * log(y) - gama * ypow - log(podds + exp(-gama * truncationpow)
 				    );
 			}
+		}
 			break;
 
 		case SURV_EVENT_RIGHT:
+		{
 			lowerpow = pow(lower, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(p + onemp * exp(-gama * lowerpow)) - log(p + onemp * exp(-gama * truncationpow));
 			}
+		}
 			break;
 
 		case SURV_EVENT_LEFT:
+		{
 			upperpow = pow(upper, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(onemp) - gama * (upperpow - truncationpow) - LOG_ONE_MINUS(onemp * exp(-gama * truncationpow));
 			}
+		}
 			break;
 
 		case SURV_EVENT_INTERVAL:
+		{
 			lowerpow = pow(lower, alpha);
 			upperpow = pow(upper, alpha);
 			for (i = 0; i < m; i++) {
 				gama = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(onemp) - gama * (upperpow - lowerpow) - LOG_ONE_MINUS(onemp * exp(-gama * truncationpow));
 			}
+		}
 			break;
 		default:
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -13785,6 +13983,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
@@ -13794,9 +13993,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_LOGNORMAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gaussian[i] <= 0.0) {
@@ -13810,9 +14011,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_SIMPLEX:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_simplex[i] <= 0.0) {
@@ -13826,9 +14029,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_CIRCULAR_NORMAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_circular_normal[i] <= 0.0) {
@@ -13845,9 +14050,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_WRAPPED_CAUCHY:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_wrapped_cauchy[i] <= 0.0 || ds->data_observations.weight_wrapped_cauchy[i] > 1.0) {
@@ -13864,9 +14071,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_TWEEDIE:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.tweedie_w[i] <= 0.0) {
@@ -13883,9 +14092,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_FMRI:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.fmri_scale[i] <= 0.0) {
@@ -13901,10 +14112,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GP:
 	case L_DGP:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
@@ -13914,17 +14127,21 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_IID_GAMMA:
 	case L_IID_LOGITBETA:
 	case L_LOGGAMMA_FRAILTY:
+	{
 		/*
 		 * ok...
 		 */
+	}
 		break;
 
 	case L_LOGISTIC:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_logistic[i] <= 0.0) {
@@ -13934,9 +14151,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_SKEWNORMAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.sn_scale[i] <= 0.0) {
@@ -13946,9 +14165,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GEV:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_gev[i] <= 0.0) {
@@ -13958,9 +14179,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_BGEV:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.bgev_scale[i] <= 0.0) {
@@ -13970,9 +14193,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_AGAUSSIAN:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.agaussian[0][i] < 0.0 ||
@@ -13985,9 +14210,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_T:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_t[i] <= 0.0) {
@@ -13997,9 +14224,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_TSTRATA:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.weight_tstrata[i] <= 0.0) {
@@ -14014,10 +14243,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_POISSON:
 	case L_XPOISSON:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14027,10 +14258,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_CONTPOISSON:
 	case L_QCONTPOISSON:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] <= 0.0) {
@@ -14040,9 +14273,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_CENPOISSON:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14052,9 +14287,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_CENPOISSON2:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14070,9 +14307,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_CENNBINOMIAL2:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14093,24 +14332,27 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GAUSSIANJW:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.gjw_n[i] <= 0.0 || ds->data_observations.gjw_df[i] <= 0.0 ||
 				    ds->data_observations.gjw_var[i] <= 0.0) {
 					GMRFLib_sprintf(&msg, "%s: GaussianJW data[%1d] (n,df,var) = (%g,%g,%g) is void\n", secname, i,
 							ds->data_observations.gjw_n[i],
-							ds->data_observations.gjw_df[i], 
-							ds->data_observations.gjw_var[i]);
+							ds->data_observations.gjw_df[i], ds->data_observations.gjw_var[i]);
 					inla_error_general(msg);
 				}
 			}
 		}
+	}
 		break;
 
 	case L_POISSON_SPECIAL1:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 1.0) {
@@ -14120,6 +14362,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_POM:
@@ -14163,6 +14406,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_GAMMACOUNT:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14172,9 +14416,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_EXPONENTIAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
@@ -14184,9 +14430,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_WEIBULL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0) {
@@ -14195,9 +14443,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GOMPERTZ:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] < 0.0) {
@@ -14207,6 +14457,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GPOISSON:
@@ -14218,6 +14469,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDNBINOMIAL0:
 	case L_ZEROINFLATEDNBINOMIAL1:
 	case L_ZEROINFLATEDNBINOMIAL2:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14227,9 +14479,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_NBINOMIAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14244,10 +14498,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL1STRATA2:
 	case L_ZEROINFLATEDNBINOMIAL1STRATA3:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14257,9 +14513,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GAMMA:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.gamma_scale[i] <= 0.0) {
@@ -14269,9 +14527,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_GAMMAJW:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0) {
@@ -14281,9 +14541,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_QKUMAR:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0 || ds->data_observations.y[i] >= 1.0) {
@@ -14292,10 +14554,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_LOGLOGISTIC:
 	case L_QLOGLOGISTIC:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] <= 0.0) {
@@ -14305,9 +14569,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_BETA:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.y[i] == 0.0 || ds->data_observations.y[i] == 1.0) {
@@ -14320,10 +14586,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	case L_ZERO_N_INFLATEDBINOMIAL3:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -14337,9 +14605,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_XBINOMIAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -14352,9 +14622,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_BINOMIAL:
+	{
 		if (ds->variant == 0) {
 			for (i = 0; i < mb->predictor_ndata; i++) {
 				if (ds->data_observations.d[i]) {
@@ -14382,9 +14654,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_NBINOMIAL2:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -14394,10 +14668,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_NMIX:
 	case L_NMIXNB:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				for (j = 0; j > -1; j++) {
@@ -14413,6 +14689,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				assert(ds->data_observations.y[i] < 0);	/* have to be void */
 			}
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDBINOMIAL0:
@@ -14422,6 +14699,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_ZEROINFLATEDBETABINOMIAL1:
 	case L_ZEROINFLATEDBETABINOMIAL2:
 	case L_BETABINOMIAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.nb[i] <= 0.0 ||
@@ -14432,9 +14710,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_BETABINOMIALNA:
+	{
 		// Since we're using a normal approximation, the data can be negative and also larger then nb
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -14446,9 +14726,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_CBINOMIAL:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.cbinomial_n[i] <= 0.0 ||
@@ -14461,6 +14743,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
 		break;
 
 	case L_EXPONENTIALSURV:
@@ -14473,6 +14756,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_LOGNORMALSURV:
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
+	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				int event;
@@ -14492,24 +14776,32 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 				switch (event) {
 				case SURV_EVENT_FAILURE:
+				{
 					if (ttime < truncation)
 						_SERR;
+				}
 					break;
 				case SURV_EVENT_RIGHT:
 					if (lower < truncation)
 						_SERR;
 					break;
 				case SURV_EVENT_LEFT:
+				{
 					if (upper < truncation)
 						_SERR;
+				}
 					break;
 				case SURV_EVENT_INTERVAL:
+				{
 					if (DMIN(lower, upper) < truncation || upper < lower)
 						_SERR;
+				}
 					break;
 				case SURV_EVENT_ININTERVAL:
+				{
 					if (DMIN(lower, upper) < truncation || upper < lower || ttime < lower || ttime > upper)
 						_SERR;
+				}
 					break;
 				default:
 					_SERR;
@@ -14518,6 +14810,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 #undef _SERR
 			}
 		}
+	}
 		break;
 
 	default:
@@ -14543,6 +14836,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	 */
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
+	{
 		/*
 		 * get options related to the gaussian 
 		 */
@@ -14599,9 +14893,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		if (!ds->data_fixed1) {
 			inla_error_field_is_void(__GMRFLib_FuncName, secname, "FIXED1", "1");
 		}
+	}
 		break;
 
 	case L_AGAUSSIAN:
+	{
 		/*
 		 * get options related to the agaussian 
 		 */
@@ -14645,10 +14941,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_LOGNORMAL:
 	case L_LOGNORMALSURV:
+	{
 		/*
 		 * get options related to the lognormal
 		 */
@@ -14698,132 +14996,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
-
-		/*
-		 * THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10 
-		 */
-		ds->data_observations.probN_intern = Calloc(STRATA_MAXTHETA, double **);
-		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
-		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
-
-		for (int count = 0; count < STRATA_MAXTHETA; count++) {
-			char *ctmp = NULL;
-
-			/*
-			 * the zeroinflation prob-parameter
-			 */
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count + 1);
-			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
-
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", count + 1);
-			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[count] && mb->reuse_mode) {
-				tmp = mb->theta_file[mb->theta_counter_file++];
-			}
-			HYPER_NEW(ds->data_observations.probN_intern[count], tmp);
-
-			if (mb->verbose) {
-				printf("\t\tinitialise prob%1d_intern[%g]\n", count + 1, ds->data_observations.probN_intern[count][0][0]);
-				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
-			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count + 1, NULL);
-
-			/*
-			 * add theta 
-			 */
-			if (!ds->data_nfixed[count]) {
-				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[count].hyperid;
-				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-
-				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
-				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
-				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
-				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count + 1);
-				mb->theta_dir[mb->ntheta] = msg;
-
-				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
-
-				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
-				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-				mb->theta_map[mb->ntheta] = map_probability;
-				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-				mb->theta_map_arg[mb->ntheta] = NULL;
-				mb->ntheta++;
-				ds->data_ntheta++;
-			}
-		}
-		break;
-
-		/*
-		 * THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10 
-		 */
-		ds->data_observations.probN_intern = Calloc(STRATA_MAXTHETA, double **);
-		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
-		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
-
-		for (int count = 0; count < STRATA_MAXTHETA; count++) {
-			char *ctmp = NULL;
-
-			/*
-			 * the zeroinflation prob-parameter
-			 */
-			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count + 1);
-			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), -1.0);
-
-			GMRFLib_sprintf(&ctmp, "FIXED%1d", count + 1);
-			ds->data_nfixed[count] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
-			if (!ds->data_nfixed[count] && mb->reuse_mode) {
-				tmp = mb->theta_file[mb->theta_counter_file++];
-			}
-			HYPER_NEW(ds->data_observations.probN_intern[count], tmp);
-
-			if (mb->verbose) {
-				printf("\t\tinitialise prob%1d_intern[%g]\n", count + 1, ds->data_observations.probN_intern[count][0][0]);
-				printf("\t\tfixed%1d=[%1d]\n", count + 1, ds->data_nfixed[count]);
-			}
-			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[count]), "GAUSSIAN-std", count + 1, NULL);
-
-			/*
-			 * add theta 
-			 */
-			if (!ds->data_nfixed[count]) {
-				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
-				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
-				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[count].hyperid;
-				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
-				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
-				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-
-				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
-				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
-				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
-				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
-				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count + 1);
-				mb->theta_dir[mb->ntheta] = msg;
-
-				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
-				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
-				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].from_theta);
-				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[count].to_theta);
-
-				mb->theta[mb->ntheta] = ds->data_observations.probN_intern[count];
-				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-				mb->theta_map[mb->ntheta] = map_probability;
-				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
-				mb->theta_map_arg[mb->ntheta] = NULL;
-				mb->ntheta++;
-				ds->data_ntheta++;
-			}
-		}
+	}
 		break;
 
 	case L_GAUSSIANJW:
@@ -14870,7 +15043,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			HYPER_NEW(ds->data_observations.gjw_beta[i], tmp);
 			if (mb->verbose) {
-				printf("\t\tbeta[%1d] = %g\n", i+1, ds->data_observations.gjw_beta[i][0][0]);
+				printf("\t\tbeta[%1d] = %g\n", i + 1, ds->data_observations.gjw_beta[i][0][0]);
 				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
 			}
 			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
@@ -14909,6 +15082,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_SIMPLEX:
+	{
 		/*
 		 * get options related to the gaussian 
 		 */
@@ -14952,21 +15126,23 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_POISSON:
 	case L_XPOISSON:
-		break;
-
 	case L_CONTPOISSON:
 		break;
 
 	case L_QCONTPOISSON:
+	{
 		GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
 		ds->data_observations.qcontpoisson_func = inla_qcontpois_func(ds->data_observations.quantile, GMRFLib_CACHE_LEN);
+	}
 		break;
 
 	case L_CENPOISSON:
+	{
 		/*
 		 * get options related to the cenpoisson 
 		 */
@@ -14980,15 +15156,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			       ds->data_observations.cenpoisson_interval[0], ds->data_observations.cenpoisson_interval[1]);
 		}
 		Free(ctmp);
+	}
 		break;
 
 	case L_CENPOISSON2:
+	{
 		/*
 		 * get options related to the cenpoisson2
 		 */
+	}
 		break;
 
 	case L_GPOISSON:
+	{
 		/*
 		 * get options related to the gpoisson 
 		 */
@@ -15076,6 +15256,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_FMRI:
@@ -15301,6 +15482,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_CIRCULAR_NORMAL:
+	{
 		/*
 		 * get options related to the circular normal
 		 */
@@ -15344,9 +15526,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_WRAPPED_CAUCHY:
+	{
 		/*
 		 * get options related to the circular cauchy
 		 */
@@ -15390,9 +15574,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_TWEEDIE:
+	{
 		/*
 		 * get options related to the tweedie
 		 */
@@ -15484,10 +15670,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_GP:
 	case L_DGP:
+	{
 		/*
 		 * get options related to the gp/dgp
 		 */
@@ -15558,9 +15746,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_IID_GAMMA:
+	{
 		/*
 		 * get options related to the iid_gamma
 		 */
@@ -15648,9 +15838,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_IID_LOGITBETA:
+	{
 		/*
 		 * get options related to the iid_logitbeta. first log(a)
 		 */
@@ -15738,9 +15930,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_LOGGAMMA_FRAILTY:
+	{
 		/*
 		 * get options related to the loggammafrailty
 		 */
@@ -15785,9 +15979,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_LOGISTIC:
+	{
 		/*
 		 * get options related to the logistic 
 		 */
@@ -15831,9 +16027,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_SKEWNORMAL:
+	{
 		/*
 		 * get options related to the skew-normal
 		 */
@@ -15921,9 +16119,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_GEV:
+	{
 		/*
 		 * get options related to the gev
 		 */
@@ -16021,9 +16221,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_BGEV:
+	{
 		/*
 		 * get options related to the bgev
 		 */
@@ -16276,10 +16478,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
+	}
 		break;
 
 	case L_GAMMA:
 	case L_GAMMASURV:
+	{
 		/*
 		 * get options related to the gamma
 		 */
@@ -16323,16 +16527,20 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_GAMMAJW:
 	case L_GAMMAJWSURV:
+	{
 		/*
 		 * get options related to the gammajw
 		 */
+	}
 		break;
 
 	case L_GAMMACOUNT:
+	{
 		/*
 		 * get options related to the gammacount
 		 */
@@ -16376,9 +16584,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_QKUMAR:
+	{
 		/*
 		 * get options related to the qkumar-distribution
 		 */
@@ -16424,12 +16634,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_QLOGLOGISTIC:
 	case L_QLOGLOGISTICSURV:
 	case L_LOGLOGISTIC:
 	case L_LOGLOGISTICSURV:
+	{
 
 		if (ds->data_id == L_QLOGLOGISTIC || ds->data_id == L_QLOGLOGISTICSURV) {
 			GMRFLib_ASSERT(ds->data_observations.quantile > 0.0 && ds->data_observations.quantile < 1.0, GMRFLib_EPARAMETER);
@@ -16474,9 +16686,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_BETA:
+	{
 		/*
 		 * get options related to the beta
 		 */
@@ -16532,9 +16746,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_BETABINOMIAL:
+	{
 		/*
 		 * get options related to the betabinomial
 		 */
@@ -16578,9 +16794,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_BETABINOMIALNA:
+	{
 		/*
 		 * get options related to the betabinomialna
 		 */
@@ -16624,9 +16842,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_NBINOMIAL:
+	{
 		/*
 		 * get options related to the negative binomial
 		 */
@@ -16677,9 +16897,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_CENNBINOMIAL2:
+	{
 		/*
 		 * get options related to the cen negative binomial 2
 		 */
@@ -16730,10 +16952,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL0:
 	case L_ZEROINFLATEDNBINOMIAL1:
+	{
 		/*
 		 * get options related to the zeroinflated negative binomial_0/1
 		 */
@@ -16830,10 +17054,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDBETABINOMIAL0:
 	case L_ZEROINFLATEDBETABINOMIAL1:
+	{
 		/*
 		 * get options related to the zeroinflated beta binomial_0/1
 		 */
@@ -16930,9 +17156,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL1STRATA2:
+	{
 		/*
 		 * get options related to the zeroinflated negative binomial_0/1, strata2
 		 */
@@ -17038,9 +17266,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				ds->data_ntheta++;
 			}
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL1STRATA3:
+	{
 		/*
 		 * get options related to the zeroinflated negative binomial_0/1, strata3
 		 */
@@ -17146,9 +17376,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				ds->data_ntheta++;
 			}
 		}
+	}
 		break;
 
 	case L_ZEROINFLATEDNBINOMIAL2:
+	{
 		/*
 		 * get options related to the zeroinflated negative binomial_2
 		 */
@@ -17236,9 +17468,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_T:
+	{
 		/*
 		 * get options related to the t
 		 */
@@ -17326,6 +17560,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
+	}
 		break;
 
 	case L_TSTRATA:
@@ -17466,8 +17701,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			Free(hyperid);
 			Free(ctmp);
 		}
-		break;
 	}
+		break;
 
 	case L_STOCHVOL:
 	{
@@ -17516,8 +17751,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_STOCHVOL_SN:
 	{
@@ -17609,8 +17844,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_STOCHVOL_T:
 	{
@@ -17659,8 +17894,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_STOCHVOL_NIG:
 	{
@@ -17749,8 +17984,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 		ds->data_ntheta = (ds->data_fixed0 ? 0 : 1) + (ds->data_fixed1 ? 0 : 1);
-		break;
 	}
+		break;
 
 	case L_WEIBULL:
 	case L_WEIBULLSURV:
@@ -17806,8 +18041,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_GOMPERTZ:
 	case L_GOMPERTZSURV:
@@ -17863,8 +18098,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_WEIBULL_CURE:
 	{
@@ -17955,8 +18190,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_POISSON_SPECIAL1:
 	{
@@ -18002,8 +18237,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZEROINFLATEDPOISSON0:
 	case L_ZEROINFLATEDPOISSON1:
@@ -18097,8 +18332,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZEROINFLATEDPOISSON2:
 	{
@@ -18146,8 +18381,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZEROINFLATEDBINOMIAL2:
 	{
@@ -18196,8 +18431,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZERO_N_INFLATEDBINOMIAL2:
 	{
@@ -18285,8 +18520,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZERO_N_INFLATEDBINOMIAL3:
 	{
@@ -18374,8 +18609,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZEROINFLATEDBETABINOMIAL2:
 	{
@@ -18466,8 +18701,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_ZEROINFLATEDBINOMIAL0:
 	case L_ZEROINFLATEDBINOMIAL1:
@@ -18524,11 +18759,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case L_NMIX:
 	case L_NMIXNB:
+	{
 		/*
 		 * get options related to the nmix and nmixnb
 		 */
@@ -18673,6 +18909,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				ds->data_ntheta++;
 			}
 		}
+	}
 		break;
 
 	default:
@@ -18773,37 +19010,49 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		switch (ds->data_id) {
 		case L_POISSON:
 		case L_XPOISSON:
+		{
 			ds->link_id = LINK_QPOISSON;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qpoisson;
+		}
 			break;
 		case L_BINOMIAL:
 		case L_XBINOMIAL:
+		{
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qbinomial;
+		}
 			break;
 		case L_WEIBULL:
 		case L_WEIBULLSURV:
+		{
 			ds->link_id = LINK_QWEIBULL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qweibull;
+		}
 			break;
 		case L_GAMMA:
+		{
 			ds->link_id = LINK_QGAMMA;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qgamma;
 			inla_qgamma_cache(0.0, ds->data_observations.quantile, -1);
+		}
 			break;
 		case L_GP:
+		{
 			ds->link_id = LINK_LOG;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_log;
+		}
 			break;
 		case L_DGP:
+		{
 			ds->link_id = LINK_LOG;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_log;
+		}
 			break;
 		default:
 			assert(0 == 1);
@@ -18813,9 +19062,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		switch (ds->data_id) {
 		case L_BINOMIAL:
 		case L_XBINOMIAL:
+		{
 			ds->link_id = LINK_QBINOMIAL;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_pqbinomial;
+		}
 			break;
 		default:
 			assert(0 == 1);
@@ -19763,6 +20014,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		switch (ds->mix_id) {
 		case MIX_GAUSSIAN:
+		{
 			/*
 			 * get options related to the gaussian 
 			 */
@@ -19809,10 +20061,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			ds->mix_loglikelihood = ds->loglikelihood;
 			ds->loglikelihood = loglikelihood_mix_gaussian;
+		}
 			break;
 
 		case MIX_LOGGAMMA:
 		case MIX_MLOGGAMMA:
+		{
 			/*
 			 * get options related to the loggamma
 			 */
@@ -19866,6 +20120,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 			ds->mix_loglikelihood = ds->loglikelihood;
 			ds->loglikelihood = (ds->mix_id == MIX_LOGGAMMA ? loglikelihood_mix_loggamma : loglikelihood_mix_mloggamma);
+		}
 			break;
 
 		default:
@@ -20076,13 +20331,19 @@ double Qfunc_intslope(int thread_id, int node, int nnode, double *UNUSED(values)
 			}
 			switch (icase) {
 			case 0:
+			{
 				xval += SQR(gam);
+			}
 				break;
 			case 1:
+			{
 				xval += SQR(gam * z);
+			}
 				break;
 			case 2:
+			{
 				xval += SQR(gam) * z;
+			}
 				break;
 			}
 		}
@@ -20156,8 +20417,8 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 				assert(jj >= ii);
 				fprintf(fp, "\tidx = %1d i = %1d j = %1d\n", i, (int) out[2 + i], (int) out[2 + m + i]);
 			}
-			break;
 		}
+			break;
 
 		case INLA_CGENERIC_Q:
 		{
@@ -20175,8 +20436,8 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 						out[2 + 2 * n + i]);
 				}
 			}
-			break;
 		}
+			break;
 
 		case INLA_CGENERIC_MU:
 		{
@@ -20185,8 +20446,8 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 			for (i = 0; i < n; i++) {
 				fprintf(fp, "\ti = %1d mu_i = %.8f\n", i, out[1 + i]);
 			}
-			break;
 		}
+			break;
 
 		case INLA_CGENERIC_INITIAL:
 		{
@@ -20195,22 +20456,22 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 			for (i = 0; i < n; i++) {
 				fprintf(fp, "\tidx = %1d initial = %.8f\n", i, out[1 + i]);
 			}
-			break;
 		}
+			break;
 
 		case INLA_CGENERIC_LOG_NORM_CONST:
 		{
 			fprintf(fp, "\tlog.norm.const = %.8f\n", (out ? out[0] : NAN));
-			break;
 		}
+			break;
 
 		case INLA_CGENERIC_LOG_PRIOR:
 		{
 			if (out) {
 				fprintf(fp, "\tlog.prior = %.8f\n", out[0]);
 			}
-			break;
 		}
+			break;
 
 		default:
 			break;
@@ -20641,47 +20902,64 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	case F_RW2:
 	case F_CRW2:
 	case F_Z:
+	{
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);
+	}
 		break;
 
 	case F_SLM:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// kappa
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL", NULL);	// rho
+	}
 		break;
 
 	case F_BESAG2:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// kappa
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL-a", NULL);	// a
+	}
 		break;
 
 	case F_BESAGPROPER:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// precision
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	// weight
+	}
 		break;
 
 	case F_BESAGPROPER2:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	// precision
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	// lambda
+	}
 		break;
 
 	case F_SPDE:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	// T[0]
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL", NULL);	// K[0]
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL", NULL);	// the rest
 		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "FLAT", NULL);	// the ocillating cooef
+	}
 		break;
 
 	case F_SPDE2:
+	{
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM", NULL);	// Just one prior...
+	}
 		break;
 
 	case F_SPDE3:
+	{
 		mb->f_prior[mb->nf] = Calloc(1, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "MVNORM", NULL);	// Just one prior...
+	}
 		break;
 
 	case F_AR:
+	{
 		mb->f_prior[mb->nf] = Calloc(11, Prior_tp);
 		assert(11 == AR_MAXTHETA + 1);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC", NULL);	// log precision
@@ -20695,23 +20973,30 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "PCRHO0", NULL);	// the pacf
 		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "PCRHO0", NULL);	// the pacf
 		inla_read_prior10(mb, ini, sec, &(mb->f_prior[mb->nf][10]), "PCRHO0", NULL);	// the pacf
+	}
 		break;
 
 	case F_COPY:
+	{
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL-1", NULL);
+	}
 		break;
 
 	case F_CLINEAR:
+	{
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);
+	}
 		break;
 
 	case F_LOG1EXP:
 	case F_LOGDIST:
 	case F_SIGM:
 	case F_REVSIGM:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	// beta
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NORMAL", NULL);	// log_halflife
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL", NULL);	// log_shape
+	}
 		break;
 
 	case F_IID1D:
@@ -20817,89 +21102,119 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			Free(to_theta);
 			Free(hyperid);
 		}
-		break;
 	}
+		break;
 
 	case F_BYM:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision0 iid */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* precision1 spatial */
+	}
 		break;
 
 	case F_BYM2:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* phi */
+	}
 		break;
 
 	case F_RW2DIID:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* phi */
+	}
 		break;
 
 	case F_AR1:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho", NULL);	/* phi (lag-1 correlation) */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN", NULL);	/* mean */
+	}
 		break;
 
 	case F_AR1C:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN-rho", NULL);	/* phi (lag-1 correlation) */
+	}
 		break;
 
 	case F_FGN:
 	case F_FGN2:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* H */
+	}
 		break;
 
 	case F_OU:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* marginal precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* log(phi) */
+	}
 		break;
 
 	case F_GENERIC1:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "GAUSSIAN", NULL);	/* beta */
+	}
 		break;
 
 	case F_GENERIC2:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision Cmatrix */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* the other precision, but theta1 = h^2 */
+	}
 		break;
 
 	case F_GENERIC3:
+	{
 		for (i = 0; i < GENERIC3_MAXTHETA; i++) {
 			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][i]), "LOGGAMMA", i, NULL);
 		}
+	}
 		break;
 
 	case F_2DIID:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision0 */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* precision1 */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "GAUSSIAN-rho", NULL);	/* rho */
+	}
 		break;
 
 	case F_MATERN2D:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* range */
+	}
 		break;
 
 	case F_DMATERN:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "LOGGAMMA", NULL);	/* precision */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* range */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "LOGGAMMA", NULL);	/* nu */
+	}
 		break;
 
 	case F_MEC:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	/* beta */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* prec.u */
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NORMAL", NULL);	/* mean */
 		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "LOGGAMMA", NULL);	/* prec.x */
+	}
 		break;
 
 	case F_MEB:
+	{
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);	/* beta */
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "LOGGAMMA", NULL);	/* prec.u */
+	}
 		break;
 
 	case F_R_GENERIC:
@@ -21112,8 +21427,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\t\tQ(%1d,%1d) = %g\n", i, i, tab->Qfunc(thread_id, i, i, NULL, tab->Qfunc_arg));
 				}
 			}
-			break;
 		}
+			break;
 
 		case F_GENERIC1:
 		{
@@ -21185,8 +21500,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\t\tC(%1d,%1d) = %g\n", i, i, arg->tab->Qfunc(thread_id, i, i, NULL, arg->tab->Qfunc_arg));
 				}
 			}
-			break;
 		}
+			break;
 
 		case F_GENERIC2:
 		{
@@ -21233,8 +21548,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\t\tC(%1d,%1d) = %g\n", i, i, arg->tab->Qfunc(thread_id, i, i, NULL, arg->tab->Qfunc_arg));
 				}
 			}
-			break;
 		}
+			break;
 
 		case F_GENERIC3:
 		{
@@ -21282,10 +21597,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_n[mb->nf] = arg->n;
 			mb->f_N[mb->nf] = arg->n;
 			mb->f_rankdef[mb->nf] = 0.0;	       /* default */
-			break;
 		}
+			break;
 
 		case F_BESAG:
+		{
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
@@ -21304,9 +21620,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
+		}
 			break;
 
 		case F_BESAG2:
+		{
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
@@ -21328,10 +21646,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = 2 * mb->f_graph[mb->nf]->n;	/* YES */
+		}
 			break;
 
 		case F_BYM:
 		case F_BYM2:
+		{
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
@@ -21350,10 +21670,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 			mb->f_N[mb->nf] = 2 * mb->f_n[mb->nf]; /* yes */
+		}
 			break;
 
 		case F_BESAGPROPER:
 		case F_BESAGPROPER2:
+		{
 			/*
 			 * use field: GRAPH. use this to set field N 
 			 */
@@ -21372,9 +21694,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
+		}
 			break;
 
 		case F_SEASONAL:
+		{
 			/*
 			 * seasonal component; need length N, seasonal length SEASON, and a boolean CYCLIC
 			 */
@@ -21412,10 +21736,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			Free(ptmp);
 			mb->f_locations[mb->nf] = NULL;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		}
 			break;
 
 		case F_FGN:
 		case F_FGN2:
+		{
 			/*
 			 * FGN/FGN2-model; need length N 
 			 */
@@ -21442,9 +21768,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		}
 			break;
 
 		case F_AR1:
+		{
 			/*
 			 * AR1-model; need length N and a boolean CYCLIC
 			 */
@@ -21465,9 +21793,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 			}
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		}
 			break;
 
 		case F_AR:
+		{
 			/*
 			 * AR(p)-model; need length N and order P
 			 */
@@ -21490,9 +21820,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			mb->f_order[mb->nf] = order;
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		}
 			break;
 
 		case F_AR1C:
+		{
 			/*
 			 * AR1-model; need length N and a boolean CYCLIC
 			 */
@@ -21515,9 +21847,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			assert(mb->f_cyclic[mb->nf] == 0);     /* not implemented */
 
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		}
 			break;
 
 		case F_Z:
+		{
 			/*
 			 * Z-model. Here Z is a n x m matrix, and the dimension of the model is (Z*z,z) which is n+m
 			 */
@@ -21544,9 +21878,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tz.m=[%1d]\n", zm);
 			}
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = zn + zm;	/* Yes, this is correct */
+		}
 			break;
 
 		case F_SLM:
+		{
 			/*
 			 * SLM-model. 
 			 */
@@ -21582,9 +21918,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = slm_n + slm_m;	/* Yes, this is correct */
+		}
 			break;
 
 		case F_2DIID:
+		{
 			/*
 			 * 2DIID-model; need length N
 			 */
@@ -21601,6 +21939,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			Free(ptmp);
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
+		}
 			break;
 
 		case F_IID1D:
@@ -21634,8 +21973,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			Free(ptmp);
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-			break;
 		}
+			break;
 
 		case F_IIDKD:
 		{
@@ -21662,8 +22001,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 			Free(ptmp);
 			mb->f_N[mb->nf] = mb->f_n[mb->nf] = n;
-			break;
 		}
+			break;
 
 		case F_INTSLOPE:
 		{
@@ -21701,20 +22040,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					       GMRFLib_matrix_get(i, INTSLOPE_Z, intslope_def));
 				}
 			}
-
-			break;
 		}
+			break;
 
 		case F_SPDE:
-			// nothing to do
-			break;
-
 		case F_SPDE2:
-			// nothing to do
-			break;
-
 		case F_SPDE3:
-			// nothing to do
 			break;
 
 		case F_IID:
@@ -21805,8 +22136,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tcyclic=[%1d]\n", mb->f_cyclic[mb->nf]);
 				}
 			}
-			break;
 		}
+			break;
 
 		default:
 			/*
@@ -21900,8 +22231,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_SPDE:
 	{
@@ -22105,8 +22436,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->ntheta++;
 			}
 		}
-		break;
 	}
+		break;
 
 	case F_SPDE2:
 	{
@@ -22293,8 +22624,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 		}
 
-		break;
 	}
+		break;
 
 	case F_SPDE3:
 	{
@@ -22437,8 +22768,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_AR:
 	{
@@ -22456,10 +22787,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		switch (mb->f_prior[mb->nf][1].id) {
 		case P_REF_AR:
+		{
 			/*
 			 * add the order as the first parameter in the ref-prior! 
 			 */
 			mb->f_prior[mb->nf][1].parameters[0] = mb->f_order[mb->nf];
+		}
 			break;
 		default:
 			break;
@@ -22589,8 +22922,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tntheta = [%1d]\n", mb->ntheta - ntheta_ref);
 		}
-		break;
 	}
+		break;
 
 	case F_MEC:
 	{
@@ -22771,8 +23104,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_MEB:
 	{
@@ -22870,8 +23203,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_R_GENERIC:
 	{
@@ -23002,8 +23335,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-		break;
 	}
+		break;
 
 	case F_C_GENERIC:
 	{
@@ -23227,8 +23560,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-		break;
 	}
+		break;
 
 	case F_FGN:
 	case F_FGN2:
@@ -23316,8 +23649,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_AR1:
 	{
@@ -23446,8 +23779,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-		break;
 	}
+		break;
 
 	case F_AR1C:
 	{
@@ -23534,8 +23867,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_SLM:
 	{
@@ -23622,8 +23955,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_OU:
 	{
@@ -23710,8 +24043,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_BESAG2:
 	{
@@ -23797,8 +24130,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_BESAGPROPER:
 	{
@@ -23884,8 +24217,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_BESAGPROPER2:
 	{
@@ -23971,8 +24304,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_GENERIC1:
 	{
@@ -24058,8 +24391,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_GENERIC2:
 	{
@@ -24145,8 +24478,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_GENERIC3:
 	{
@@ -24210,8 +24543,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				mb->ntheta++;
 			}
 		}
-		break;
 	}
+		break;
 
 	case F_COPY:
 	{
@@ -24302,8 +24635,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_CLINEAR:
 	{
@@ -24374,8 +24707,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = (void *) range;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_SIGM:
 	case F_REVSIGM:
@@ -24509,8 +24842,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-		break;
 	}
+		break;
 
 	case F_LOG1EXP:
 	{
@@ -24643,8 +24976,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-		break;
 	}
+		break;
 
 	case F_LOGDIST:
 	{
@@ -24777,8 +25110,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->ntheta++;
 		}
 
-		break;
 	}
+		break;
 
 	case F_BYM:
 	{
@@ -24857,8 +25190,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_BYM2:
 	{
@@ -24940,8 +25273,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_RW2DIID:
 	{
@@ -25023,8 +25356,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_2DIID:
 	{
@@ -25142,8 +25475,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_IID1D:
 	case F_IID2D:
@@ -25268,8 +25601,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		assert(k == n_theta);
-		break;
 	}
+		break;
 
 	case F_IIDKD:
 	{
@@ -25342,8 +25675,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		assert(k == n_theta);
-		break;
 	}
+		break;
 
 	case F_INTSLOPE:
 	{
@@ -25514,8 +25847,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		assert(k == n_theta + INTSLOPE_MAXTHETA);
-		break;
 	}
+		break;
 
 	case F_MATERN2D:
 	{
@@ -25608,8 +25941,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	case F_DMATERN:
 	{
@@ -25739,8 +26072,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
 		}
-		break;
 	}
+		break;
 
 	default:
 		abort();
@@ -25752,22 +26085,31 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	switch (mb->f_id[mb->nf]) {
 	case F_GENERIC0:
+	{
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+	}
 		break;
 
 	case F_GENERIC1:
+	{
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
+	}
 		break;
 
 	case F_GENERIC2:
+	{
 		assert(mb->f_N[mb->nf] == 2 * mb->f_n[mb->nf]);
+	}
 		break;
 
 	case F_GENERIC3:
+	{
 		assert(mb->f_N[mb->nf] == mb->f_n[mb->nf]);
+	}
 		break;
 
 	case F_COPY:
+	{
 		/*
 		 * to be filled in later 
 		 */
@@ -25776,6 +26118,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = -1;
 		mb->f_id[mb->nf] = F_COPY;
+	}
 		break;
 
 	case F_CLINEAR:
@@ -25801,8 +26144,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		break;
 	}
+		break;
 
 	case F_SIGM:
 	case F_REVSIGM:
@@ -25830,8 +26173,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		break;
 	}
+		break;
 
 	case F_LOG1EXP:
 	{
@@ -25857,8 +26200,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		break;
 	}
+		break;
 
 	case F_LOGDIST:
 	{
@@ -25884,8 +26227,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		break;
 	}
+		break;
 
 	case F_BESAG:
 	{
@@ -25916,8 +26259,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// arg->log_prec[0][0] = 0;
 		// GMRFLib_printf_Qfunc(stderr, mb->f_graph[mb->nf], mb->f_Qfunc[mb->nf], mb->f_Qfunc_arg[mb->nf]);
-		break;
 	}
+		break;
 
 	case F_BESAG2:
 	{
@@ -25958,8 +26301,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 1.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAG2;
-		break;
 	}
+		break;
 
 	case F_BYM:
 	{
@@ -26048,8 +26391,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0.0;		       /* since constr=T is converted to extraconstr this will be corrected further below
 							        * to 1 */
-		break;
 	}
+		break;
 
 	case F_BYM2:
 	{
@@ -26104,8 +26447,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_rankdef[mb->nf] = 0.0;		       /* since constr=T is converted to extraconstr this will be corrected further below
 							        * to 1 */
-		break;
 	}
+		break;
 
 	case F_BESAGPROPER:
 	{
@@ -26126,8 +26469,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAGPROPER;
-		break;
 	}
+		break;
 
 	case F_BESAGPROPER2:
 	{
@@ -26148,31 +26491,37 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0.0;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_BESAGPROPER;
-		break;
 	}
+		break;
 
 	case F_SPDE:
+	{
 		mb->f_Qfunc[mb->nf] = spde_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde_model->Qfunc_arg;
 		mb->f_graph[mb->nf] = spde_model->graph;
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde_model->n;
+	}
 		break;
 
 	case F_SPDE2:
+	{
 		mb->f_Qfunc[mb->nf] = spde2_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde2_model->Qfunc_arg;
 		mb->f_graph[mb->nf] = spde2_model->graph;
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde2_model->n;
+	}
 		break;
 
 	case F_SPDE3:
+	{
 		mb->f_Qfunc[mb->nf] = spde3_model->Qfunc;
 		mb->f_Qfunc_arg[mb->nf] = spde3_model->Qfunc_arg;
 		mb->f_graph[mb->nf] = spde3_model->graph;
 		mb->f_rankdef[mb->nf] = 0;
 		mb->f_n[mb->nf] = mb->f_N[mb->nf] = spde3_model->n;
+	}
 		break;
 
 	case F_AR:
@@ -26202,8 +26551,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0.0;
 		mb->f_graph[mb->nf] = g;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
-		break;
 	}
+		break;
 
 	case F_RW2D:
 	{
@@ -26234,8 +26583,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_RW2D;
 		GMRFLib_make_rw2d_graph(&(mb->f_graph[mb->nf]), arg);
-		break;
 	}
+		break;
 
 	case F_Z:
 	{
@@ -26276,8 +26625,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0;		       /* default value */
 		GMRFLib_graph_duplicate(&(mb->f_graph[mb->nf]), graph_AB);
 		GMRFLib_graph_duplicate(&(mb->f_graph_orig[mb->nf]), graph_AB);
-		break;
 	}
+		break;
 
 	case F_SLM:
 	{
@@ -26336,8 +26685,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_rankdef[mb->nf] = 0;		       /* default value */
 		GMRFLib_graph_duplicate(&(mb->f_graph[mb->nf]), graph_slm);
 		GMRFLib_graph_duplicate(&(mb->f_graph_orig[mb->nf]), graph_slm);
-		break;
 	}
+		break;
 
 	case F_2DIID:
 	{
@@ -26358,8 +26707,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_make_2diid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
 		}
 		mb->f_rankdef[mb->nf] = 0;
-		break;
 	}
+		break;
 
 	case F_IID1D:
 	case F_IID2D:
@@ -26384,8 +26733,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishart;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		inla_make_iid_wishart_graph(&(mb->f_graph[mb->nf]), arg);
-		break;
 	}
+		break;
 
 	case F_IIDKD:
 	{
@@ -26409,8 +26758,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc[mb->nf] = Qfunc_iid_wishartk;
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		inla_make_iid_wishartk_graph(&(mb->f_graph[mb->nf]), arg);
-		break;
 	}
+		break;
 
 	case F_INTSLOPE:
 	{
@@ -26449,9 +26798,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) arg;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) arg;   /* need access to the internals later */
 		inla_make_intslope_graph(&(mb->f_graph[mb->nf]), arg);
-
-		break;
 	}
+		break;
 
 	case F_SEASONAL:
 	{
@@ -26510,8 +26858,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_id[mb->nf] = F_SEASONAL;
-		break;
 	}
+		break;
 
 	case F_MEC:
 	{
@@ -26564,8 +26912,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		break;
 	}
+		break;
 
 	case F_MEB:
 	{
@@ -26616,8 +26964,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-		break;
 	}
+		break;
 
 	case F_R_GENERIC:
 	{
@@ -26761,9 +27109,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-
-		break;
 	}
+		break;
 
 	case F_C_GENERIC:
 	{
@@ -26898,9 +27245,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-
-		break;
 	}
+		break;
 
 	case F_FGN:
 	{
@@ -26953,8 +27299,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// initialize the cache
 		Qfunc_fgn(thread_id, -1, -1, NULL, NULL);
-		break;
 	}
+		break;
 
 	case F_FGN2:
 	{
@@ -27005,9 +27351,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// initialize the cache
 		Qfunc_fgn2(thread_id, -1, -1, NULL, NULL);
-
-		break;
 	}
+		break;
 
 	case F_AR1:
 	{
@@ -27039,9 +27384,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_bfunc2[mb->nf]->n = mb->f_n[mb->nf];
 		mb->f_bfunc2[mb->nf]->nreplicate = 1;
 		mb->f_bfunc2[mb->nf]->ngroup = 1;
-
-		break;
 	}
+		break;
 
 	case F_AR1C:
 	{
@@ -27114,8 +27458,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def_orig;
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
-		break;
 	}
+		break;
 
 	case F_OU:
 	{
@@ -27142,8 +27486,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		mb->f_N[mb->nf] = mb->f_n[mb->nf];
 		mb->f_rankdef[mb->nf] = 0.0;
-		break;
 	}
+		break;
 
 	case F_MATERN2D:
 	{
@@ -27173,8 +27517,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_id[mb->nf] = F_MATERN2D;
 		GMRFLib_make_matern2d_graph(&(mb->f_graph[mb->nf]), arg);
 		GMRFLib_make_matern2d_graph(&(mb->f_graph_orig[mb->nf]), arg);
-		break;
 	}
+		break;
 
 	case F_DMATERN:
 	{
@@ -27250,9 +27594,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
-
-		break;
 	}
+		break;
 
 	default:
 	{
@@ -27575,21 +27918,27 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				switch (mb->f_group_model[mb->nf]) {
 				case G_EXCHANGEABLE:
 				case G_EXCHANGEABLE_POS:
+				{
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-group", NULL);
 					mb->f_ntheta[mb->nf]++;
+				}
 					break;
 
 				case G_AR1:
+				{
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "GAUSSIAN-rho", NULL);
 					mb->f_ntheta[mb->nf]++;
+				}
 					break;
 
 				case G_IID:
 				case G_RW1:
 				case G_RW2:
 				case G_BESAG:
+				{
 					inla_read_prior_group(mb, ini, sec, &(mb->f_prior[mb->nf][mb->f_ntheta[mb->nf]]), "LOGGAMMA", NULL);
 					mb->f_ntheta[mb->nf]++;
+				}
 					break;
 
 				default:
@@ -27636,32 +27985,40 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					int *ngp = NULL;
 					switch (mb->f_group_model[mb->nf]) {
 					case G_EXCHANGEABLE:
+					{
 						mb->theta_map[mb->ntheta] = map_group_rho;
 						// need to add a pointer that stays fixed, mb->theta_map_arg[mb->nf] does not!
 						ngp = Calloc(1, int);
 						*ngp = mb->f_ngroup[mb->nf];
 						mb->theta_map_arg[mb->ntheta] = (void *) ngp;
+					}
 						break;
 
 					case G_EXCHANGEABLE_POS:
+					{
 						mb->theta_map[mb->ntheta] = map_probability;
 						// need to add a pointer that stays fixed, mb->theta_map_arg[mb->nf] does not!
 						ngp = Calloc(1, int);
 						*ngp = mb->f_ngroup[mb->nf];
 						mb->theta_map_arg[mb->ntheta] = (void *) ngp;
+					}
 						break;
 
 					case G_AR1:
+					{
 						mb->theta_map[mb->ntheta] = map_rho;
 						mb->theta_map_arg[mb->ntheta] = NULL;
+					}
 						break;
 
 					case G_IID:
 					case G_RW1:
 					case G_RW2:
 					case G_BESAG:
+					{
 						mb->theta_map[mb->ntheta] = map_precision;
 						mb->theta_map_arg[mb->ntheta] = NULL;
+					}
 						break;
 
 					default:
@@ -27832,8 +28189,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 						}
 					}
 				}
-				break;
 			}
+				break;
 
 			default:
 				GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
@@ -28379,8 +28736,10 @@ int inla_setup_ai_par_default(inla_tp * mb)
 			switch (mb->ntheta) {
 			case 0:
 			case 1:
+			{
 				mb->ai_par->dz = 0.75;
 				mb->ai_par->diff_log_dens = 6;
+			}
 				break;
 
 			default:
@@ -28481,15 +28840,21 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 
 	switch (mb->ai_par->int_strategy) {
 	case GMRFLib_AI_INT_STRATEGY_AUTO:
+	{
 		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_AUTO");
+	}
 		break;
 
 	case GMRFLib_AI_INT_STRATEGY_GRID:
+	{
 		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_GRID");
+	}
 		break;
 
 	case GMRFLib_AI_INT_STRATEGY_CCD:
+	{
 		default_int_strategy = GMRFLib_strdup("GMRFLib_AI_INT_STRATEGY_CCD");
+	}
 		break;
 
 	default:
@@ -29471,6 +29836,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			check += ds->data_ntheta;
 			switch (ds->data_id) {
 			case L_GAUSSIAN:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29487,19 +29853,23 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_GAUSSIANJW:
-				for(int k = 0; k < 3; k++) {
+			{
+				for (int k = 0; k < 3; k++) {
 					if (!ds->data_nfixed[k]) {
 						double beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
 						count++;
 					}
 				}
+			}
 				break;
-				
+
 			case L_AGAUSSIAN:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29509,10 +29879,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_LOGNORMAL:
 			case L_LOGNORMALSURV:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29522,9 +29894,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_SIMPLEX:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29534,9 +29908,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_GPOISSON:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29555,9 +29931,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &p);
 					count++;
 				}
+			}
 				break;
 
 			case L_CIRCULAR_NORMAL:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29567,9 +29945,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_WRAPPED_CAUCHY:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29579,9 +29959,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_TWEEDIE:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29600,10 +29982,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_phi);
 					count++;
 				}
+			}
 				break;
 
 			case L_FMRI:
 			case L_FMRISURV:
+			{
 				if (!ds->data_fixed0) {
 					double lprec = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &lprec);
@@ -29614,10 +29998,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &ldof);
 					count++;
 				}
+			}
 				break;
 
 			case L_GP:
 			case L_DGP:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29627,9 +30013,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_tail);
 					count++;
 				}
+			}
 				break;
 
 			case L_IID_GAMMA:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29648,9 +30036,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_rate);
 					count++;
 				}
+			}
 				break;
 
 			case L_IID_LOGITBETA:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29669,9 +30059,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_b);
 					count++;
 				}
+			}
 				break;
 
 			case L_LOGGAMMA_FRAILTY:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29681,9 +30073,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_LOGISTIC:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29693,9 +30087,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_SKEWNORMAL:
+			{
 				if (!ds->data_fixed0) {
 					log_precision = theta[count];
 
@@ -29708,9 +30104,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &skewness);
 					count++;
 				}
+			}
 				break;
 
 			case L_GEV:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29731,32 +30129,35 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &xi) + log(ds->data_observations.gev_scale_xi);
 					count++;
 				}
+			}
 				break;
 
 			case L_BGEV:
 			{
-				if (!ds->data_nfixed[0]) {
-					double spread = theta[count];
-					val += PRIOR_EVAL(ds->data_nprior[0], &spread);
-					count++;
-				}
-				if (!ds->data_nfixed[1]) {
-					double intern_tail = theta[count];
-					val += PRIOR_EVAL(ds->data_nprior[1], &intern_tail);
-					count++;
-				}
-
-				int nbetas = ds->data_observations.bgev_nbetas[0] + ds->data_observations.bgev_nbetas[1];
-				int off = 2;
-				for (int k = off; k < off + nbetas; k++) {
-					if (!ds->data_nfixed[k]) {
-						double b = theta[count];
-						if (k < ds->data_observations.bgev_nbetas[0]) {
-							val += PRIOR_EVAL(ds->data_nprior[k], &b);
-						} else {
-							val += PRIOR_EVAL(ds->data_nprior[k], &b);
-						}
+				{
+					if (!ds->data_nfixed[0]) {
+						double spread = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[0], &spread);
 						count++;
+					}
+					if (!ds->data_nfixed[1]) {
+						double intern_tail = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[1], &intern_tail);
+						count++;
+					}
+
+					int nbetas = ds->data_observations.bgev_nbetas[0] + ds->data_observations.bgev_nbetas[1];
+					int off = 2;
+					for (int k = off; k < off + nbetas; k++) {
+						if (!ds->data_nfixed[k]) {
+							double b = theta[count];
+							if (k < ds->data_observations.bgev_nbetas[0]) {
+								val += PRIOR_EVAL(ds->data_nprior[k], &b);
+							} else {
+								val += PRIOR_EVAL(ds->data_nprior[k], &b);
+							}
+							count++;
+						}
 					}
 				}
 			}
@@ -29764,6 +30165,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_GAMMA:
 			case L_GAMMASURV:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29774,6 +30176,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_GAMMAJW:
@@ -29781,6 +30184,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case L_GAMMACOUNT:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29791,9 +30195,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_alpha);
 					count++;
 				}
+			}
 				break;
 
 			case L_QKUMAR:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29804,20 +30210,24 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_LOGLOGISTIC:
 			case L_LOGLOGISTICSURV:
 			case L_QLOGLOGISTIC:
 			case L_QLOGLOGISTICSURV:
+			{
 				if (!ds->data_fixed) {
 					double alpha_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_BETA:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29828,10 +30238,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &precision_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_BETABINOMIAL:
 			case L_BETABINOMIALNA:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29842,10 +30254,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &intern_overdispersion);
 					count++;
 				}
+			}
 				break;
 
 			case L_NBINOMIAL:
 			case L_CENNBINOMIAL2:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29856,10 +30270,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_size);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDNBINOMIAL0:
 			case L_ZEROINFLATEDNBINOMIAL1:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29879,9 +30295,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDNBINOMIAL2:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29901,10 +30319,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &alpha_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDBETABINOMIAL0:
 			case L_ZEROINFLATEDBETABINOMIAL1:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29924,9 +30344,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &prob_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDNBINOMIAL1STRATA2:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29946,9 +30368,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 						count++;
 					}
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDNBINOMIAL1STRATA3:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29968,9 +30392,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 						count++;
 					}
 				}
+			}
 				break;
 
 			case L_ZERO_N_INFLATEDBINOMIAL2:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -29987,9 +30413,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_alpha2);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZERO_N_INFLATEDBINOMIAL3:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
@@ -30006,9 +30434,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_alphaN);
 					count++;
 				}
+			}
 				break;
 
 			case L_T:
+			{
 				/*
 				 * we only need to add the prior, since the normalisation constant due to the likelihood, is
 				 * included in the likelihood function. 
@@ -30023,6 +30453,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &dof_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_TSTRATA:
@@ -30039,10 +30470,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 						count++;
 					}
 				}
-				break;
 			}
+				break;
 
 			case L_STOCHVOL:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is
@@ -30052,9 +30484,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &log_precision);
 					count++;
 				}
+			}
 				break;
 
 			case L_STOCHVOL_SN:
+			{
 				if (!ds->data_fixed0) {
 					double skew_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &skew_intern);
@@ -30065,9 +30499,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &log_prec_offset);
 					count++;
 				}
+			}
 				break;
 
 			case L_STOCHVOL_T:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is
@@ -30077,9 +30513,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &dof_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_STOCHVOL_NIG:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * this is the skewness 
@@ -30098,27 +30536,33 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &shape_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_WEIBULL:
 			case L_WEIBULLSURV:
+			{
 				if (!ds->data_fixed) {
 					double alpha_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_GOMPERTZ:
 			case L_GOMPERTZSURV:
+			{
 				if (!ds->data_fixed) {
 					double alpha_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_WEIBULL_CURE:
+			{
 				if (!ds->data_fixed0) {
 					double alpha_intern = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &alpha_intern);
@@ -30129,6 +30573,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &p_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDPOISSON0:
@@ -30136,6 +30581,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_ZEROINFLATEDCENPOISSON0:
 			case L_ZEROINFLATEDCENPOISSON1:
 			case L_POISSON_SPECIAL1:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * this is the probability-parameter in the zero-inflated Poisson_0/1 or special1
@@ -30145,9 +30591,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &prob_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDPOISSON2:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * this is the probability-parameter in the zero-inflated Poisson_2
@@ -30157,6 +30605,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &alpha_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDBINOMIAL2:
@@ -30173,6 +30622,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_ZEROINFLATEDBINOMIAL0:
 			case L_ZEROINFLATEDBINOMIAL1:
+			{
 				if (!ds->data_fixed) {
 					/*
 					 * this is the probability-parameter in the zero-inflated Binomial_0/1
@@ -30182,9 +30632,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior, &prob_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_ZEROINFLATEDBETABINOMIAL2:
+			{
 				if (!ds->data_fixed0) {
 					/*
 					 * this is the probability-related-parameter 
@@ -30203,9 +30655,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->data_prior1, &delta_intern);
 					count++;
 				}
+			}
 				break;
 
 			case L_NMIX:
+			{
 				for (int k = 0; k < NMIX_MMAX; k++) {
 					if (!ds->data_nfixed[k]) {
 						beta = theta[count];
@@ -30213,9 +30667,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 						count++;
 					}
 				}
+			}
 				break;
 
 			case L_NMIXNB:
+			{
 				/*
 				 *  the last one here is the log_overdispersion, which I do not rename to, for simplicity
 				 */
@@ -30226,6 +30682,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 						count++;
 					}
 				}
+			}
 				break;
 
 			case L_BINOMIAL:
@@ -30296,22 +30753,27 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				break;
 
 			case LINK_LOGOFFSET:
+			{
 				if (!ds->link_fixed[0]) {
 					double beta_intern = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta_intern);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_LOGITOFFSET:
+			{
 				if (!ds->link_fixed[0]) {
 					double prob_intern = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &prob_intern);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_SSLOGIT:
+			{
 				if (!ds->link_fixed[0]) {
 					double sensitivity_intern = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &sensitivity_intern);
@@ -30322,17 +30784,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->link_prior[1], &specificity_intern);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_ROBIT:
+			{
 				if (!ds->link_fixed[0]) {
 					double dof_intern = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &dof_intern);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_SN:
+			{
 				if (!ds->link_fixed[0]) {
 					double skew = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &skew);
@@ -30343,9 +30809,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->link_prior[1], &intercept);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_POWER_LOGIT:
+			{
 				if (!ds->link_fixed[0]) {
 					double power = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &power);
@@ -30356,25 +30824,31 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->link_prior[1], &intercept);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_TEST1:
+			{
 				if (!ds->link_fixed[0]) {
 					double beta = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_SPECIAL2:
+			{
 				if (!ds->link_fixed[0]) {
 					double beta = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta);
 					count++;
 				}
+			}
 				break;
 
 			case LINK_SPECIAL1:
+			{
 				if (!ds->link_fixed[0]) {
 					double log_precision;
 					log_precision = theta[count];
@@ -30397,6 +30871,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(ds->link_prior[1], beta);
 					Free(beta);
 				}
+			}
 				break;
 
 			default:
@@ -30468,8 +30943,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
 			}
-			break;
 		}
+			break;
 
 		case F_SPDE:
 		{
@@ -30712,8 +31187,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			GMRFLib_free_problem(problem);
 			Free(Tpar);
 			Free(Kpar);
-			break;
 		}
+			break;
 
 		case F_SPDE2:
 		{
@@ -30825,8 +31300,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_SPDE3:
 		{
@@ -30912,8 +31387,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_AR:
 		{
@@ -30979,9 +31454,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			Free(marginal_Q);
 			Free(param);
 			Free(zero);
-
-			break;
 		}
+			break;
 
 		case F_GENERIC1:
 		{
@@ -31015,8 +31489,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &beta_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_GENERIC2:
 		{
@@ -31058,8 +31532,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			 * 
 			 * | d log_prec_unstruct / d h2_intern | = 1, so no need to correct for the Jacobian from the change of variables. 
 			 */
-			break;
 		}
+			break;
 
 		case F_FGN:
 		{
@@ -31111,11 +31585,13 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					for (ii = 0; ii < arg->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 					}
-					break;
 				}
+					break;
 
 				case GMRFLib_SUCCESS:
+				{
 					ok = 1;
+				}
 					break;
 
 				default:
@@ -31145,8 +31621,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
 			}
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_FGN2:
 		{
@@ -31235,8 +31711,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][1], &H_intern);
 			}
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_Z:
 		{
@@ -31313,8 +31789,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_GENERIC3:
 		{
@@ -31407,8 +31883,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			Free(a->log_prec);
 			Free(a);
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_SLM:
 		{
@@ -31490,8 +31966,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][1], &logit_rho);
 			}
 			GMRFLib_free_problem(problem);
-			break;
 		}
+			break;
 
 		case F_MEC:
 		{
@@ -31551,8 +32027,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 								    * not scaled with f_N that already is corrected for ngroup.
 								    */
 								   - mb->f_ngroup[i] * 0.5 * CC));
-			break;
 		}
+			break;
 
 		case F_MEB:
 		{
@@ -31592,8 +32068,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i]) +
 								   (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * (log_precision +
 													    scale_correction - log(SQR(beta)))));
-			break;
 		}
+			break;
 
 		case F_R_GENERIC:
 		{
@@ -31757,8 +32233,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (n_out) {
 				Free(x_out);
 			}
-			break;
 		}
+			break;
 
 		case F_C_GENERIC:
 		{
@@ -31796,12 +32272,16 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			nn_out = (xx_out ? 1 : 0);
 			switch (nn_out) {
 			case 0:
+			{
 				log_prior = 0.0;
+			}
 				break;
 			case 1:
+			{
 				// we need to add a check for 'all_fixed' here, as with control.mode=list(...,fixed=TRUE) will
 				// trigger all_fixed=1.
 				log_prior = (evaluate_hyper_prior && !all_fixed ? xx_out[0] : 0.0);
+			}
 				break;
 			default:
 				assert(0 == 1);
@@ -31903,8 +32383,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case 1:
 			{
 				log_norm_const = x_out[0];
-				break;
 			}
+				break;
 
 			default:
 				assert(0 == 1);
@@ -31922,8 +32402,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			Free(param);
 			Free(x_out);
-			break;
 		}
+			break;
 
 		case F_AR1:
 		{
@@ -31976,8 +32456,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][2])) {
 				val += PRIOR_EVAL(mb->f_prior[i][2], &mean_x);
 			}
-			break;
 		}
+			break;
 
 		case F_AR1C:
 		{
@@ -32012,8 +32492,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_OU:
 		{
@@ -32047,8 +32527,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_BESAG2:
 		{
@@ -32080,8 +32560,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &a_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_BYM:
 		{
@@ -32109,8 +32589,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &log_precision1);
 			}
-			break;
 		}
+			break;
 
 		case F_RW2DIID:
 		{
@@ -32139,8 +32619,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_BYM2:
 		{
@@ -32169,8 +32649,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][1])) {
 				val += PRIOR_EVAL(mb->f_prior[i][1], &phi_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_2DIID:
 		{
@@ -32215,8 +32695,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][2])) {
 				val += PRIOR_EVAL(mb->f_prior[i][2], &rho_intern);
 			}
-			break;
 		}
+			break;
 
 		case F_IID1D:
 		case F_IID2D:
@@ -32314,8 +32794,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				 */
 				val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec) + log_jacobian;
 			}
-			break;
 		}
+			break;
 
 		case F_IIDKD:
 		{
@@ -32350,8 +32830,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])
 								   + (n - mb->f_rankdef[i]) / 2.0 * logdet));
 			val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec);
-			break;
 		}
+			break;
 
 		case F_INTSLOPE:
 		{
@@ -32452,9 +32932,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (fail) {
 				val += PENALTY;
 			}
-
-			break;
 		}
+			break;
 
 		case F_MATERN2D:
 		{
@@ -32542,8 +33021,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			Free(h->matern2ddef);
 			GMRFLib_free_problem(h->problem);
 			Free(h);
-			break;
 		}
+			break;
 
 		case F_DMATERN:
 		{
@@ -32601,9 +33080,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (_NOT_FIXED(f_fixed[i][2])) {
 				val += PRIOR_EVAL(mb->f_prior[i][2], &log_nu);
 			}
-
-			break;
 		}
+			break;
 
 		case F_BESAGPROPER:
 		{
@@ -32703,8 +33181,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			GMRFLib_free_problem(h->problem);
 			h->problem = NULL;
-			break;
 		}
+			break;
 
 		case F_BESAGPROPER2:
 		{
@@ -32797,8 +33275,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			GMRFLib_free_problem(h->problem);
 			h->problem = NULL;
-			break;
 		}
+			break;
 
 		case F_COPY:
 		{
@@ -32808,8 +33286,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
 			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
-			break;
 		}
+			break;
 
 		case F_CLINEAR:
 		{
@@ -32819,8 +33297,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta);
 			}
 			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
-			break;
 		}
+			break;
 
 		case F_SIGM:
 		case F_REVSIGM:
@@ -32841,8 +33319,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][2], &log_shape);
 			}
 			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
-			break;
 		}
+			break;
 
 		case F_LOG1EXP:
 		{
@@ -32862,8 +33340,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][2], &gama);
 			}
 			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
-			break;
 		}
+			break;
 
 		case F_LOGDIST:
 		{
@@ -32883,13 +33361,15 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += PRIOR_EVAL(mb->f_prior[i][2], &alpha2);
 			}
 			val += mb->f_Ntotal[i] * (LOG_NORMC_GAUSSIAN + 0.5 * log(mb->f_precision[i]));
-			break;
 		}
+			break;
 
 		default:
+		{
 			P(mb->f_id[i]);
 			abort();
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
+		}
 			break;
 		}
 	}
@@ -37348,17 +37828,23 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int 
 						c[i] *= 10.0;
 					}
 					problem = NULL;
-					break;
 				}
+					break;
+
 				case GMRFLib_SUCCESS:
+				{
 					ok = 1;
+				}
 					break;
 				default:
+				{
 					GMRFLib_set_error_handler(old_handler);
 					GMRFLib_ERROR(retval);
 					abort();
+				}
 					break;
 				}
+
 				if (++num_try >= num_try_max) {
 					FIXME("This should not happen. Contact developers...");
 					abort();
@@ -38278,9 +38764,8 @@ int testit(int argc, char **argv)
 				pow(dd, nu) * MATHLIB_FUN(bessel_k) (dd, nu, 1.0));
 			printf("dmatern nu %.3f range %.3f dist %.3f dd %.5f corf %.5f\n", nu, range, d, dd, corf);
 		}
-
-		break;
 	}
+		break;
 
 	case 29:
 	{
@@ -38314,9 +38799,8 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_prune(h3);
 		GMRFLib_idxval_printf(stdout, h3, "VAL-test");
 		GMRFLib_idxval_free(h3);
-
-		break;
 	}
+		break;
 
 	case 30:
 	{
@@ -38337,8 +38821,8 @@ int testit(int argc, char **argv)
 		GMRFLib_printf_gsl_matrix(stdout, B, " %.12f");
 		gsl_matrix_free(A);
 		gsl_matrix_free(B);
-		break;
 	}
+		break;
 
 	case 31:
 	{
@@ -38388,8 +38872,8 @@ int testit(int argc, char **argv)
 				printf("\txx= %.6f  back= %.6f forw= %.6f dforw = %.6f\n", xx, back, forw, dforw);
 			}
 		}
-		break;
 	}
+		break;
 
 	case 32:
 	{
@@ -38413,8 +38897,8 @@ int testit(int argc, char **argv)
 			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a, b, c, d, c - d);
 
 		}
-		break;
 	}
+		break;
 
 	case 33:
 	{
@@ -38436,8 +38920,8 @@ int testit(int argc, char **argv)
 			       map_phi(xx, MAP_DFORWARD, (void *) &range),
 			       (map_phi(xx + h, MAP_FORWARD, (void *) &range) - map_phi(xx - h, MAP_FORWARD, (void *) &range)) / 2.0 / h);
 		}
-		break;
 	}
+		break;
 
 	case 34:
 	{
@@ -38446,9 +38930,8 @@ int testit(int argc, char **argv)
 		for (theta = -5; theta <= 5; theta += 0.01) {
 			printf("theta %g logprior %g\n", theta, priorfunc_pc_sn(&theta, &lambda));
 		}
-
-		break;
 	}
+		break;
 
 	case 35:
 	{
@@ -38457,8 +38940,8 @@ int testit(int argc, char **argv)
 		for (y = 0.0; y <= 3.0; y += 0.1) {
 			printf("y=%g  eval_log_contpoisson= %g\n", y, eval_log_contpoisson(y + 1, lambda));
 		}
-		break;
 	}
+		break;
 
 	case 36:
 	{
@@ -38470,8 +38953,8 @@ int testit(int argc, char **argv)
 
 		GMRFLib_design_eb(&design, nf);
 		GMRFLib_design_print(stdout, design);
-		break;
 	}
+		break;
 
 	case 37:
 	{
@@ -38494,8 +38977,8 @@ int testit(int argc, char **argv)
 			     link_loga(thread_id, xx - h, MAP_FORWARD, (void *) arg, NULL)) / (2.0 * h);
 			printf("xx = %.8f forw=%.12f backw=%.8f dforw=%.12f fdiff=%.12f (derr=%.12f)\n", xx, a, b, c, d, c - d);
 		}
-		break;
 	}
+		break;
 
 	case 38:
 		break;
@@ -38525,26 +39008,24 @@ int testit(int argc, char **argv)
 		stencil = 9;
 		GMRFLib_2order_approx(thread_id, &a, &b, &c, &dd, 1.0, x0, 0, &x0, loglikelihood_testit, NULL, NULL, &stencil, NULL);
 		printf("approx: stencil= %d a= %.10g b= %.10g c= %.10g dd= %.10g\n", stencil, a, b, c, dd);
-
-		break;
 	}
+		break;
 
 	case 40:
 	{
 		printf("eps= %.12g\n", GMRFLib_eps(1.0));
-		break;
 	}
+		break;
 
 	case 41:
 	{
 		inla_sn_intercept(0.43, 0.123);
 		inla_sn_intercept(0.823, -0.123);
-		break;
 	}
+		break;
 
 	case 42:
-	{
-	}
+		break;
 
 	case 43:
 	{
@@ -38584,8 +39065,8 @@ int testit(int argc, char **argv)
 			printf("  pbeta %f ", MATHLIB_FUN(pbeta) (y, a, b, 1, 1));
 			printf("  1-pbeta %f\n", MATHLIB_FUN(pbeta) (y, a, b, 0, 1));
 		}
-		break;
 	}
+		break;
 
 	case 45:
 	{
@@ -38597,8 +39078,8 @@ int testit(int argc, char **argv)
 		}
 		GMRFLib_idxval_sort(h);
 		GMRFLib_idxval_printf(stdout, h, "case 45");
-		break;
 	}
+		break;
 
 	case 46:
 	{
@@ -38709,8 +39190,8 @@ int testit(int argc, char **argv)
 
 		GMRFLib_idxval_sort(h);
 		GMRFLib_idxval_printf(stdout, h, "test47");
-		break;
 	}
+		break;
 
 	case 48:
 	{
@@ -38718,8 +39199,8 @@ int testit(int argc, char **argv)
 			printf("x= %f log(gsl_sf_psi_1(x)= %f  -log(x)= %f diff= %f\n",
 			       x, log(gsl_sf_psi_1(x)), -log(x), log(gsl_sf_psi_1(x)) + log(x));
 		}
-		break;
 	}
+		break;
 
 	case 49:
 	{
@@ -38731,8 +39212,8 @@ int testit(int argc, char **argv)
 			printf("x= %f log(gsl_sf_psi_1(x)-1/x)= %f  %f %f\n",
 			       x, log(gsl_sf_psi_1(x) - 1 / x), SPECIAL(x), log(gsl_sf_psi_1(x) - 1 / x) - SPECIAL(x));
 		}
-		break;
 	}
+		break;
 
 	case 50:
 	{
@@ -38748,8 +39229,8 @@ int testit(int argc, char **argv)
 		printf("CDF(%.8f)= %.8f\n", x, MATHLIB_FUN(pnchisq) (x, df, ncp, 1, 0));
 		printf("iCDF(CDF(%.8f))= %.8f\n", x, MATHLIB_FUN(qnchisq) (MATHLIB_FUN(pnchisq) (x, df, ncp, 1, 0), df, ncp, 1, 0));
 
-		break;
 	}
+		break;
 
 	case 51:
 	{
@@ -38799,8 +39280,8 @@ int testit(int argc, char **argv)
 			printf("LMU %f %f\n", lmu, ldens);
 		}
 
-		break;
 	}
+		break;
 
 	case 52:
 	{
@@ -38809,8 +39290,8 @@ int testit(int argc, char **argv)
 			       x, gsl_sf_lngamma(x), inla_lgamma_fast(x), gsl_sf_lngamma(x) - inla_lgamma_fast(x));
 		}
 
-		break;
 	}
+		break;
 
 	case 53:
 	{
@@ -38827,8 +39308,8 @@ int testit(int argc, char **argv)
 			printf("LDENS %f %f %f\n", y, pphi, ldens);
 		}
 
-		break;
 	}
+		break;
 
 	case 54:
 	{
@@ -38838,8 +39319,8 @@ int testit(int argc, char **argv)
 			printf("x %f exp %.12f exp_taylor %.12f %.12f\n", v, exp(v), exp_taylor(v, x0, 6), exp_taylor(v, x0, 12));
 		}
 
-		break;
 	}
+		break;
 
 	case 55:
 	{
@@ -38862,9 +39343,8 @@ int testit(int argc, char **argv)
 		printf("sin(x): value= %.8f deriv= %.8f dderiv= %.8f\n", fun, fund, fundd);
 
 		GMRFLib_snq_free(q);
-
-		break;
 	}
+		break;
 
 	case 56:
 	{
@@ -38881,8 +39361,8 @@ int testit(int argc, char **argv)
 			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
 			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n", lambda, i, j, new, gsl, new - gsl);
 		}
-		break;
 	}
+		break;
 
 	case 57:
 	{
@@ -38900,8 +39380,8 @@ int testit(int argc, char **argv)
 			printf("eta %f shape %f qpoisson %f qgamma %f\n", eta, shape,
 			       link_qpoisson(thread_id, eta, INVLINK, lparam, NULL), MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 0, 0));
 		}
-		break;
 	}
+		break;
 
 	case 58:
 	{
@@ -38913,9 +39393,8 @@ int testit(int argc, char **argv)
 			ncp = SQR(ncp_sqrt);
 			printf("sqrt(ncp) inla_dnchisq %f %f\n", sqrt(ncp), inla_dnchisq(x, df, ncp));
 		}
-
-		break;
 	}
+		break;
 
 	case 59:
 	{
@@ -38931,9 +39410,8 @@ int testit(int argc, char **argv)
 
 		printf("%s%.12f%s%s\n", "R --vanilla --quiet -e 'library(pracma);x=",
 		       x, ";print(x); print(pnorm(x)); print(qnorm(x)); print(erf(x));", "print(erfinv(x)); print(erfc(x)); print(erfcinv(x))'\n");
-
-		break;
 	}
+		break;
 
 	case 60:
 	{
@@ -38945,8 +39423,8 @@ int testit(int argc, char **argv)
 		printf("sn_inv= %.12f\n", GMRFLib_sn_Pinv(x, a));
 
 		printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);x=", x, "; a=", a, "; print(qsn(x,alpha=a))'\n");
-		break;
 	}
+		break;
 
 	case 61:
 	{
@@ -38963,8 +39441,8 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < g->n; i++) {
 			printf("Qinv[%1d]=  %f\n", i, *GMRFLib_Qinv_get(problem, i, i));
 		}
-		break;
 	}
+		break;
 
 	case 62:
 	{
@@ -39033,17 +39511,16 @@ int testit(int argc, char **argv)
 			fclose(fp);
 			printf("setvbuf %f\n", (GMRFLib_cpu() - tref));
 		}
-
-		break;
 	}
+		break;
 
 	case 64:
 	{
 		int n = atoi(args[0]);
 		int gsl_bfgs4_test1(size_t);
 		gsl_bfgs4_test1((size_t) n);
-		break;
 	}
+		break;
 
 	case 65:
 	{
@@ -39060,8 +39537,8 @@ int testit(int argc, char **argv)
 			bfgs4_robust_minimize(&xmin, &ymin, n, x, y, 0, NULL, NULL, order);
 			printf("xmin = %f ymin= %f when order = %d\n", xmin, ymin, order);
 		}
-		break;
 	}
+		break;
 
 	case 66:
 	{
@@ -39079,9 +39556,8 @@ int testit(int argc, char **argv)
 		param[1] = &intercept_intern;
 
 		map_inv_powerlink_core(0.0, MAP_FORWARD, (void *) param, NULL);
-
-		break;
 	}
+		break;
 
 	case 67:
 	{
@@ -39106,8 +39582,8 @@ int testit(int argc, char **argv)
 			printf("xx = %.8g forw=%.8g backw=%.8g dforw=%.8g fdiff=%.8g (derr=%.8g)\n", xx, a, b, c, d, c - d);
 
 		}
-		break;
 	}
+		break;
 
 	case 68:
 	{
@@ -39135,9 +39611,8 @@ int testit(int argc, char **argv)
 		double x = atof(args[2]);
 		printf("fun(%g) = %g\n", x, fun(x));
 		lt_dlclose(handle);
-
-		break;
 	}
+		break;
 
 	case 69:
 	{
@@ -39171,8 +39646,8 @@ int testit(int argc, char **argv)
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONE_THREAD());
 			P(GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD());
 		}
-		break;
 	}
+		break;
 
 	case 70:
 	{
@@ -39180,8 +39655,8 @@ int testit(int argc, char **argv)
 		int nf = atoi(args[0]);
 		GMRFLib_design_grid(&design, nf);
 		GMRFLib_design_print(stdout, design);
-		break;
 	}
+		break;
 
 	case 71:
 	{
@@ -39197,9 +39672,8 @@ int testit(int argc, char **argv)
 		GMRFLib_density_tp *dens = NULL;
 		GMRFLib_density_create(&dens, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, 0.0, 1.0, 1);
 		GMRFLib_density_printf(stdout, dens);
-
-		break;
 	}
+		break;
 
 	case 72:
 	{
@@ -39207,8 +39681,8 @@ int testit(int argc, char **argv)
 		P(omp_get_max_threads());
 		P(omp_get_thread_num());
 		P(GMRFLib_OPENMP_IN_SERIAL());
-		break;
 	}
+		break;
 
 	case 73:
 	{
@@ -39244,9 +39718,8 @@ int testit(int argc, char **argv)
 
 		GMRFLib_free_density(dens);
 		GMRFLib_free_density(dens_dup);
-
-		break;
 	}
+		break;
 
 	case 74:
 	{
@@ -39260,8 +39733,8 @@ int testit(int argc, char **argv)
 		P(OVERLAP(p, pp, 10));
 		P(OVERLAP(p, pp, 11));
 		P(OVERLAP(p, pp, 15));
-		break;
 	}
+		break;
 
 	case 75:
 	{
@@ -39290,17 +39763,16 @@ int testit(int argc, char **argv)
 			double xx2 = GMRFLib_spline_eval(p2, Pinv);
 			printf("XX %.20f %.20f %.20f %.20f\n", xx, p1, p2, xx2);
 		}
-
-		break;
 	}
+		break;
 
 	case 76:
 	{
 		for (int i = 0; i < 10; i++) {
 			printf("%d %f %f\n", i, gsl_sf_lnfact((unsigned int) i), my_gsl_sf_lnfact(i));
 		}
-		break;
 	}
+		break;
 
 	case 77:
 	{
@@ -39328,9 +39800,8 @@ int testit(int argc, char **argv)
 			GMRFLib_evaluate_logdensity(&yy, x[i], density);
 			printf("Evaluate x %f true %f scg %f\n", x[i], y[i], yy);
 		}
-
-		break;
 	}
+		break;
 
 	case 78:
 	{
@@ -39378,8 +39849,8 @@ int testit(int argc, char **argv)
 
 		P(GMRFLib_gsl_log_dnorm(NULL, NULL, NULL, S, 0));
 		P(GMRFLib_gsl_log_dnorm(NULL, NULL, Q, NULL, 0));
-		break;
 	}
+		break;
 
 	case 79:
 	{
@@ -39404,8 +39875,8 @@ int testit(int argc, char **argv)
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
 		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
-		break;
 	}
+		break;
 
 	case 80:
 	{
@@ -39436,9 +39907,8 @@ int testit(int argc, char **argv)
 
 		xm = inla_interpolate_mode(xx4, yy4);
 		P(xm);
-
-		break;
 	}
+		break;
 
 	case 81:
 	{
@@ -39761,8 +40231,8 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_add(&h, 25075, 1);
 
 		GMRFLib_idxval_nsort_x(&h, 1, 1, -1);
-		break;
 	}
+		break;
 
 	case 82:
 	{
@@ -39797,8 +40267,8 @@ int testit(int argc, char **argv)
 		printf("dsum %.3f plain %.3f (r-rr=%.12f, %1d)\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), r - rr, r == rr);
 
 		Free(x);
-		break;
 	}
+		break;
 
 	case 83:
 	{
@@ -39934,9 +40404,8 @@ int testit(int argc, char **argv)
 		}
 		time += GMRFLib_cpu();
 		printf("if/ %.12f\n", time);
-
-		break;
 	}
+		break;
 
 	case 86:
 	{
@@ -39978,8 +40447,8 @@ int testit(int argc, char **argv)
 		P((r - rr) / r);
 
 		Free(x);
-		break;
 	}
+		break;
 
 	case 88:
 	{
@@ -40018,14 +40487,14 @@ int testit(int argc, char **argv)
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
-		break;
 	}
+		break;
 
 	default:
 	{
 		printf("\nNo such test: %d\n", test_no);
-		break;
 	}
+		break;
 	}
 	exit(EXIT_SUCCESS);
 }
@@ -40106,6 +40575,7 @@ int main(int argc, char **argv)
 	while ((opt = getopt(argc, argv, "vVe:t:B:m:S:z:hsfr:R:cpLP:")) != -1) {
 		switch (opt) {
 		case 'P':
+		{
 			if (!strcasecmp(optarg, "CLASSIC") || !strcasecmp(optarg, "CLASSICAL")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 			} else if (!strcasecmp(optarg, "TWOSTAGE")) {
@@ -40115,24 +40585,32 @@ int main(int argc, char **argv)
 			} else {
 				assert(0 == 1);
 			}
+		}
 			break;
 
 		case 'v':
+		{
 			silent = 1;
 			verbose++;
+		}
 			break;
 
 		case 'V':
+		{
 			printf("This program has version:\n\t%s\nand is linked with ", GitID);
 			GMRFLib_version(stdout);
 			_BUGS;
 			exit(EXIT_SUCCESS);
-
+		}
+			break;
 		case 'e':
+		{
 			my_setenv(optarg, 1);
+		}
 			break;
 
 		case 'B':
+		{
 			if (inla_sread_ints(&blas_num_threads_default, 1, optarg) == INLA_OK) {
 				blas_num_threads_default = IMAX(blas_num_threads_default, 1);
 				GMRFLib_openmp->blas_num_threads = blas_num_threads_default;
@@ -40141,9 +40619,11 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Fail to read BLAS_NUM_THREADS from %s\n", optarg);
 				exit(EXIT_SUCCESS);
 			}
+		}
 			break;
 
 		case 'm':
+		{
 			if (!strncasecmp(optarg, "HYPER", 5)) {
 				G.mode = INLA_MODE_HYPER;
 			} else if (!strncasecmp(optarg, "QINV", 4)) {
@@ -40172,9 +40652,11 @@ int main(int argc, char **argv)
 				fprintf(stderr, "\n*** Error: Unknown mode (argument to '-m') : %s\n", optarg);
 				exit(EXIT_FAILURE);
 			}
+		}
 			break;
 
 		case 'S':
+		{
 			// this option is only used for other MODES than INLA, like qsample
 			inla_tolower(optarg);
 			if (!strcasecmp(optarg, "default")) {
@@ -40192,9 +40674,11 @@ int main(int argc, char **argv)
 				GMRFLib_openmp->strategy = GMRFLib_OPENMP_STRATEGY_PARDISO;
 			}
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_EXTERNAL, NULL, &GMRFLib_smtp);
+		}
 			break;
 
 		case 't':
+		{
 			if (inla_sread_colon_ints(&ntt[0], &ntt[1], optarg) == INLA_OK || inla_sread(ntt, 1, optarg, 0) == INLA_OK) {
 
 				if (verbose > 0) {
@@ -40269,9 +40753,11 @@ int main(int argc, char **argv)
 			}
 			omp_set_num_threads(GMRFLib_MAX_THREADS());
 			GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
+		}
 			break;
 
 		case 'z':
+		{
 			if (!(G.mode == INLA_MODE_FINN || G.mode == INLA_MODE_QSAMPLE || G.mode == INLA_MODE_TESTIT)) {
 				fprintf(stderr, "\n *** ERROR *** Option `-z seed' only available in selected modes\n");
 				exit(EXIT_FAILURE);
@@ -40290,31 +40776,38 @@ int main(int argc, char **argv)
 					GMRFLib_rng_init((unsigned long int) int_seed);
 				}
 			}
+		}
 			break;
 
 		case 'h':
+		{
 			_HELP;
 			_BUGS;
 			exit(EXIT_SUCCESS);
-			/*
-			 * some private options goes here. 
-			 */
+		}
+			break;
 
 		case 's':
+		{
 			verbose = 0;
 			silent = 1;
+		}
 			break;
 
 		case 'f':
+		{
 			GMRFLib_fpe();
+		}
 			break;
 
 		case 'r':
+		{
 			err = inla_sread_ints(&G.reorder, 1, optarg);
 			if (err) {
 				G.reorder = GMRFLib_reorder_id((const char *) optarg);
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
+		}
 			break;
 
 		case 'R':
@@ -40330,9 +40823,11 @@ int main(int argc, char **argv)
 			break;
 
 		case 'c':
+		{
 #if !defined(WINDOWS)
 			enable_core_file = 1;		       /* allow for core files */
 #endif
+		}
 			break;
 
 		case 'p':
@@ -40379,67 +40874,92 @@ int main(int argc, char **argv)
 	 */
 	switch (G.mode) {
 	case INLA_MODE_OPENMP:
+	{
 		printf("export OMP_NUM_THREADS=%1d,%1d,1,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
 		printf("export OMP_NESTED=TRUE; ");
 		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS());
 		printf("export MKL_NUM_THREADS=%1d; export OPENBLAS_NUM_THREADS=%1d;", GMRFLib_openmp->blas_num_threads,
 		       GMRFLib_openmp->blas_num_threads);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_QINV:
+	{
 		inla_qinv(argv[optind], argv[optind + 1], argv[optind + 2]);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_QSOLVE:
+	{
 		inla_qsolve(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3]);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_QREORDERING:
+	{
 		inla_qreordering(argv[optind]);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_QSAMPLE:
+	{
 		inla_qsample(argv[optind], argv[optind + 1], argv[optind + 2], argv[optind + 3], argv[optind + 4], argv[optind + 5],
 			     argv[optind + 6], argv[optind + 7], argv[optind + 8], argv[optind + 9], verbose);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_FINN:
+	{
 		inla_finn(argv[optind]);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_GRAPH:
+	{
 		inla_read_graph(argv[optind]);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_R:
+	{
 		inla_R(&(argv[optind]));
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_FGN:
+	{
 		inla_fgn(argv[optind], argv[optind + 1]);
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_PARDISO:
+	{
 		inla_check_pardiso();
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_TESTIT:
+	{
 		testit(argc - optind, &(argv[optind]));
 		exit(EXIT_SUCCESS);
+	}
 		break;
 
 	case INLA_MODE_HYPER:
 	case INLA_MODE_DEFAULT:
+		break;
+
+	default:
 		break;
 	}
 
