@@ -6,19 +6,17 @@
 #include <cmath>
 #include <vector>
 
-#include "predicates.hh"
-#include "meshc.hh"
+#include "fmesher_debuglog.h"
+#include "predicates.h"
+#include "meshc.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-
-#define MESHC_LOG_(msg) cout << WHEREAMI << msg;
+#define MESHC_LOG_(msg) FMLOG_(msg)
 #ifdef DEBUG
 #define MESHC_LOG(msg) MESHC_LOG_(msg)
 #else
 #define MESHC_LOG(msg)
 #endif
 
-using std::cout;
 using std::endl;
 
 namespace fmesh {
@@ -157,12 +155,12 @@ namespace fmesh {
   {
     return MC_->skinnyQuality(d.t());
   }
-  
+
   double MCQbig::calcQtri(const Dart& d) const
   {
     return MC_->bigQuality(d.t());
   }
-  
+
   double MCQsegm::calcQ(const Dart& d) const
   {
     double quality_ = MC_->encroachedQuality(d);
@@ -202,13 +200,13 @@ namespace fmesh {
       return meta_type();
     return meta_.find(d)->second;
   }
-  
+
   void MCQsegm::clear()
   {
     meta_.clear();
     MCQ::clear();
   }
-  
+
   void MCQsegm::insert(const Dart& d, const meta_type& meta)
   {
     MCQ::insert(d);
@@ -305,7 +303,7 @@ namespace fmesh {
 
     Dart dh(d);
     dh.orbit2rev();
-    
+
     double encr = M_->edgeEncroached(d,M_->S(dh.v()));
 
     dh.orbit2rev();
@@ -337,7 +335,7 @@ namespace fmesh {
 	     (M_->TT(t)[(argmin+2)%3] < 0));
 
     if (ok)
-      skinny = (M_->triangleCircumcircleRadius(t) / 
+      skinny = (M_->triangleCircumcircleRadius(t) /
 		len[argmin]);
     else
       skinny = 0.0;
@@ -472,9 +470,9 @@ namespace fmesh {
     d1.alpha1();
     if (d1.onBoundary()) d1 = Dart(); else d1.alpha2();
     d2 = d0;
-    d2.orbit2rev().alpha1(); 
+    d2.orbit2rev().alpha1();
     if (d2.onBoundary()) d2 = Dart(); else d2.alpha2();
-    
+
     //    MESHC_LOG("TVpre  = " << endl << M_->TVO());
     swapEdge(d0);
     //    MESHC_LOG("TVpost = " << endl << M_->TVO());
@@ -494,22 +492,22 @@ namespace fmesh {
     if (td.isnull()) { return Dart(); }; /* ERROR */
     /* Get opposing darts. */
     d = td;
-    if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();} 
+    if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();}
     d.orbit2();
-    if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();} 
+    if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();}
     d.orbit2();
-    if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();} 
+    if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();}
 
     //    MESHC_LOG("TV = " << endl << M_->TVO());
     MESHC_LOG("Split triangle " << td << " with vertex " << v << endl);
     d = splitTriangle(td,v);
-    
+
     if (!d0.isnull()) recSwapDelaunay(d0);
     if (!d1.isnull()) recSwapDelaunay(d1);
     if (!d2.isnull()) recSwapDelaunay(d2);
 
     //    MESHC_LOG("TV = " << endl << M_->TVO());
-    
+
     return d;
   }
 
@@ -522,31 +520,31 @@ namespace fmesh {
     /* Get opposing darts. */
     d = ed;
     d.orbit2();
-    if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();} 
+    if (d.onBoundary()) d0 = Dart(); else {d0 = d; d0.orbit1();}
     d.orbit2();
-    if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();} 
+    if (d.onBoundary()) d1 = Dart(); else {d1 = d; d1.orbit1();}
     d = ed;
     if (d.onBoundary()) {
       d2 = Dart();
       d3 = Dart();
     } else {
       d.orbit0rev();
-      if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();} 
+      if (d.onBoundary()) d2 = Dart(); else {d2 = d; d2.orbit1();}
       d.orbit2();
-      if (d.onBoundary()) d3 = Dart(); else {d3 = d; d3.orbit1();} 
+      if (d.onBoundary()) d3 = Dart(); else {d3 = d; d3.orbit1();}
     }
 
     //    MESHC_LOG("TV = " << endl << M_->TVO());
     MESHC_LOG("Split edge " << ed << " with vertex " << v << endl);
     d = splitEdge(ed,v);
-    
+
     if (!d0.isnull()) recSwapDelaunay(d0);
     if (!d1.isnull()) recSwapDelaunay(d1);
     if (!d2.isnull()) recSwapDelaunay(d2);
     if (!d3.isnull()) recSwapDelaunay(d3);
 
     //    MESHC_LOG("TV = " << endl << M_->TVO());
-    
+
     return d;
   }
 
@@ -636,7 +634,7 @@ namespace fmesh {
     } else {
       Vec::sum(s,M_->S(v0),M_->S(v1));
       Vec::rescale(s,0.5);
-      
+
       switch (M_->type()) {
       case Mesh::Mtype_manifold:
 	/* Fall through to Mtype_plane behaviour; we have no
@@ -827,10 +825,10 @@ namespace fmesh {
     as a convex geodesic polygon.  If the covering is larger than a
     hemisphere, the whole spere is used as cover.  The algorithm may
     overestimate the size of the convex hull.
-    
+
     Let \f$(n,d)\f$ denote a plane with normal vector \f$n\f$ at
     (signed) distance \f$d\f$ from the origin.
-    
+
     CET algorithm:
     \verbatim
     1. Find an enclosing circle defined by a plane (n,d).
@@ -903,7 +901,7 @@ namespace fmesh {
     Vec::copy(n0,M_->S(0));
     double d0 = 1.0;
     double nc,ns,b;
-    
+
     for (i=1;i<nV;i++) {
       nc = Vec::scalar(n0,M_->S(i));
       Vec::cross(n0s1,n0,M_->S(i));
@@ -934,12 +932,12 @@ namespace fmesh {
       }
     }
 
-    /* Calculate margin */    
+    /* Calculate margin */
     double diameter = 2.0*std::acos(d0);
     if (margin<0.0) {
       margin = -diameter*margin;
     }
-    
+
     MESHC_LOG("diameter = " << diameter << endl);
     MESHC_LOG("margin = " << margin << endl);
 
@@ -953,7 +951,7 @@ namespace fmesh {
 	MESHC_LOG("nV=" << nV << endl);
 	return false;
       }
-      
+
       /*
 	1. Pick a point v0.
 	2. Find the point v1 that minimises (s0s1+1/3)^2
@@ -973,7 +971,7 @@ namespace fmesh {
       Point const * s1 = NULL;
       Point const * s2 = NULL;
 
-      MESHC_LOG("First point," << 
+      MESHC_LOG("First point," <<
 		" v0=" << v0 <<
 		" s0=" << *s0 << endl);
 
@@ -990,7 +988,7 @@ namespace fmesh {
       }
       s1 = &(M_->S(v1));
 
-      MESHC_LOG("Second point," << 
+      MESHC_LOG("Second point," <<
 		" v1=" << v1 <<
 		" s1=" << *s1 << endl);
 
@@ -1008,7 +1006,7 @@ namespace fmesh {
       }
       s2 = &(M_->S(v2));
 
-      MESHC_LOG("Third point," << 
+      MESHC_LOG("Third point," <<
 		" v2=" << v2 <<
 		" s2=" << *s2 << endl);
 
@@ -1055,7 +1053,7 @@ namespace fmesh {
 	MESHC_LOG("Needed to add an extra vertex." << endl);
       }
 
-      MESHC_LOG("Fourth point," << 
+      MESHC_LOG("Fourth point," <<
 		" v3=" << v3 <<
 		" s3=" << M_->S(v3) << endl);
 
@@ -1108,7 +1106,7 @@ namespace fmesh {
 	Vec::scale(n(i),n1,-std::sin(th));
 	Vec::accum(n(i),n2,std::cos(th));
       }
-      
+
       double dist;
       for (int v=0;v<nV;v++) {
 	for (i=0;i<sides;i++) {
@@ -1136,7 +1134,7 @@ namespace fmesh {
 	    nc = std::cos(th-margini);
 	    ns = std::sin(th-margini);
 	  } else {
-	    cout << WHEREAMI << "Oops! Perhaps some NA input?" << endl;
+	    FMLOG_("Oops! Perhaps some NA input?" << endl);
 	    nc = 1.0;
 	    ns = 0.0;
 	  }
@@ -1182,12 +1180,12 @@ namespace fmesh {
       M_->TV_append(TV);
 
     }
-    
+
     MESHC_LOG("CET finished" << endl << *this);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     M_->redrawX11("CET finished");
 #endif
-    
+
     state_ = State_CET;
     return true;
   }
@@ -1199,7 +1197,7 @@ namespace fmesh {
 
     Let \f$(n,d)\f$ denote a line with normal vector \f$n\f$ at
     (signed) distance \f$d\f$ from the origin.
-    
+
     Intersection \f$s_{01}\f$ between two planes \f$(n_0,d_0)\f$ and
     \f$(n_1,d_1)\f$:
     \f{align*}{
@@ -1251,7 +1249,7 @@ namespace fmesh {
       n[i][1] = std::cos(th);
       n[i][2] = 0.0;
     }
-    
+
     /* Initialise enclosure. */
     std::vector<double> d(sides); /* Distances from origin for boundary. */
     for (i=0;i<sides;i++) {
@@ -1267,7 +1265,7 @@ namespace fmesh {
       }
     }
 
-    /* Calculate margin */    
+    /* Calculate margin */
     if (margin<0.0) {
       double diameter(0.0);
       double diam;
@@ -1291,7 +1289,7 @@ namespace fmesh {
 	margin = -diameter*margin;
       }
     }
-    
+
     MESHC_LOG("margin = " << margin << endl);
 
     MESHC_LOG("Add margin." << endl);
@@ -1327,10 +1325,10 @@ namespace fmesh {
     M_->TV_append(Matrix3int(sides-2,TV.data()));
 
     MESHC_LOG("CET finished" << endl << *this);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     M_->redrawX11("CET finished");
 #endif
-    
+
     state_ = State_CET;
     return true;
   }
@@ -1363,7 +1361,7 @@ namespace fmesh {
 
   bool MeshC::DT(const vertexListT& v_set)
   {
-    if (is_pruned_) 
+    if (is_pruned_)
       return false; /* ERROR, cannot safely insert nodes into a pruned
 		       triangulation. Call insertNode directly if known to
 		       be visible/reachable from a given edge.  */
@@ -1386,9 +1384,9 @@ namespace fmesh {
 	MESHC_LOG("DT: Failed to insert node " << v << endl << *this);
       }
     }
-      
+
     MESHC_LOG("DT finished" << endl << *this);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     M_->redrawX11("DT finished");
 #endif
 
@@ -1468,7 +1466,7 @@ namespace fmesh {
     if (!prepareCDT()) return false;
 
     constr_boundary_ = constrListT(constr.begin(),constr.end());
-    
+
     return buildCDT();
   }
 
@@ -1477,7 +1475,7 @@ namespace fmesh {
     if (!prepareCDT()) return false;
 
     constr_interior_ = constrListT(constr.begin(),constr.end());
-    
+
     return buildCDT();
   }
 
@@ -1487,7 +1485,7 @@ namespace fmesh {
 
     constr_boundary_ = constrListT(boundary.begin(),boundary.end());
     constr_interior_ = constrListT(interior.begin(),interior.end());
-    
+
     return buildCDT();
   }
 
@@ -1542,7 +1540,7 @@ namespace fmesh {
 
 
   typedef std::list<IntPair> BoundaryList;
-  
+
   void prevnext(BoundaryList::iterator& prev,
 		BoundaryList::iterator& curr,
 		BoundaryList::iterator& next)
@@ -1643,20 +1641,20 @@ namespace fmesh {
       /* Only one crossing edge, swap directly. */
       MESHC_LOG("Short trace (" << trace.size() << ").  Swapping directly."
 		<< endl);
-      
+
       Dart ds = swapEdge(*trace.begin());
       if (ds.v() == v1) ds.orbit1();
       if (ds.v() != v0) ds = Dart();
-      
+
       MESHC_LOG("Segment dart " << ds << endl);
 
-      if (!ds.isnull()) {      
+      if (!ds.isnull()) {
 	if (is_boundary)
 	  boundary_.insert(ds, meta);
 	else
 	  interior_.insert(ds, meta);
       }
-      
+
       return ds;
     }
 
@@ -1665,7 +1663,7 @@ namespace fmesh {
       dh = *i;
       triangles.insert(dh.t());
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
       if (M_->useX11())
 	M_->drawX11triangle(dh.t(),true);
 #endif
@@ -1686,7 +1684,7 @@ namespace fmesh {
     dh.alpha2();
     triangles.insert(dh.t());
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (M_->useX11())
       M_->drawX11triangle(dh.t(),true);
 #endif
@@ -1753,7 +1751,7 @@ namespace fmesh {
 	  bool vd0affected = (dh==vd0); /* vd0 must be updated? */
 
 	  while (i1->first != dh.vo()) next(i1_prev,i1,i1_next);
-	  
+
 	  CDTMSG("Before edge swap");
 
 	  i0->second--;
@@ -1814,7 +1812,7 @@ namespace fmesh {
 	    v10 = vd0.vo();
 	  }
 	  swapable = (vd0.vo() != i0_next->first);
-	  
+
 	  if (swapable && (i0->second>=0)) {
 	    prevnext(i1_prev,i1,i1_next);
 	    while ((i1_prev->second >= 0) && (i1->first != v10))
@@ -1840,7 +1838,7 @@ namespace fmesh {
 	i1 = boundary1.rbegin(); i1_prev = i1; i1_next = i1;
 	next(i0_prev,i0,i0_next);
 	next(i1_prev,i1,i1_next);
-	
+
 	/* Go to first edge */
 	vd0 = d0; /* First dart in edge bundle from current vertex. */
 	vd0.orbit2();
@@ -1869,7 +1867,7 @@ namespace fmesh {
 
     MESHC_LOG("Segment dart " << dc << endl);
 
-    if (!dc.isnull()) {      
+    if (!dc.isnull()) {
       if (is_boundary)
 	boundary_.insert(dc, meta);
       else
@@ -1904,7 +1902,7 @@ namespace fmesh {
       split = ((delta >= -MESH_EPSILON) & (delta <= MESH_EPSILON));
 
       if (!split) {
-	/* Test the other edge vertex. */ 
+	/* Test the other edge vertex. */
 	dh.orbit2();
 	dhv1 = dh.v();
 	MESHC_LOG("Testing vertex for interference: " << dhv1 << endl);
@@ -1913,7 +1911,7 @@ namespace fmesh {
 
 	if (!split) {
 	  dh.orbit2rev();
-	  /* Test for interfering segment. */ 
+	  /* Test for interfering segment. */
 	  split = isSegment(dh);
 	  if (split) {
 	    MESHC_LOG("Segment interference detected." << endl);
@@ -2061,7 +2059,7 @@ namespace fmesh {
 	if (dh.isnull()) {
 	  MESHC_LOG("CDT: Failed to insert node " << v0 << endl << *this);
 	  return dh;
-	}	
+	}
       }
       MESHC_LOG("CDT: Checked" << endl);
       MESHC_LOG("CDT: Checking vertex " << v1 << endl);
@@ -2140,7 +2138,7 @@ namespace fmesh {
     MESHC_LOG("Interior segments after CDT:" << endl << interior_);
 
     MESHC_LOG("CDT finished" << endl << *this);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     M_->redrawX11("CDT finished");
 #endif
 
@@ -2215,7 +2213,7 @@ namespace fmesh {
 	//  xtmpl_press_ret("Boundary segment split failed");
 	continue;
       }
-      
+
       dh = interior_.quality();
       if (!dh.isnull()) {
 	MESHC_LOG("Encroached interior segment: "
@@ -2261,7 +2259,7 @@ namespace fmesh {
 	}
 	continue;
       }
-      
+
       if ((max_n1_ >= 0) & (max_n1_ <= int(M_->nV()))) {
 	MESHC_LOG("Max vertex count reached: max_n1 = "
 		  << max_n1_ << " <= nV = "
@@ -2289,11 +2287,11 @@ namespace fmesh {
 	}
 	continue;
       }
-      
+
     }
 
     MESHC_LOG("RCDT finished" << endl << *this);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     M_->redrawX11("RCDT finished");
 #endif
 
@@ -2340,7 +2338,7 @@ namespace fmesh {
       return true;
     }
     is_pruned_ = true;
-    
+
     Dart d0, dh;
     triangleSetT ext;
 
@@ -2398,7 +2396,7 @@ namespace fmesh {
 	      << boundary_);
 
     MESHC_LOG("PruneExterior finished" << endl << *this);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     M_->redrawX11("PruneExterior finished");
 #endif
 
@@ -2440,7 +2438,7 @@ namespace fmesh {
 		<< d << endl);
       return d;
     }
-    
+
     /* Collect swapable data */
     bool edge_list[4];
     Dart dh(d);
@@ -2459,7 +2457,7 @@ namespace fmesh {
     // 	      << edge_list[1] << ","
     // 	      << edge_list[2] << ","
     // 	      << edge_list[3] << ")" << endl);
-    
+
     Dart dnew(swapEdge(d));
     if (dh == dnew) {
       /* ERROR: this should not happen. */
@@ -2552,7 +2550,7 @@ namespace fmesh {
       boundary_.update(dh); if (segm_b[2]) boundary_.insert(dh,meta_b[2]);
       interior_.update(dh); if (segm_i[2]) interior_.insert(dh,meta_i[2]);
     }
-    
+
     if (state_>=State_RCDT) {
       /* Reassemble RCDT data */
       dh = dnew;
@@ -2743,9 +2741,9 @@ namespace fmesh {
       if (interior_.found(dh)) interior_.erase(dh);
     }
     if (interior_.found(d)) interior_.erase(d);
-    
+
     M_->unlinkEdge(d);
-        
+
     if (!onboundary) {
       boundary_.insert(dh,boundary_.erase(dh));
     }
@@ -2788,7 +2786,7 @@ namespace fmesh {
 
     int t_removed = d.t();
     int t_relocated = M_->removeTriangle(t_removed);
-    
+
     dh = Dart(*M_,t_removed,1,0);
     Dart dh_old = Dart(*M_,t_relocated,1,0);
     if (boundary_.found(dh_old)) {
@@ -2811,7 +2809,7 @@ namespace fmesh {
     if (interior_.found(dh_old)) {
       interior_.insert(dh,interior_.erase(dh_old));
     }
-    
+
     return t_relocated;
   }
 

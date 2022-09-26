@@ -1,5 +1,5 @@
-#include "trees.hh"
-#include "locator.hh"
+#include "trees.h"
+#include "locator.h"
 
 using namespace fmesh;
 

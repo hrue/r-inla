@@ -1,4 +1,4 @@
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 
 #include <cstddef>
 #include <cstring>
@@ -10,19 +10,13 @@
 #include <cerrno>
 
 #include "xtmpl.h"
-#include "mesh.hh"
-#include "x11utils.hh"
+#include "mesh.h"
+#include "x11utils.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-
-#ifdef DEBUG
-#define MESH_LOG(msg) std::cout << WHEREAMI << msg;
-#else
-#define MESH_LOG(msg)
-#endif
+#include "fmesher_debuglog.h"
 
 
-using std::cout;
+
 using std::endl;
 
 namespace fmesh {
@@ -95,12 +89,12 @@ namespace fmesh {
     close();
     if (name_char_) delete[] name_char_;
   };
-  
+
   void Xtmpl::clear() {
     xtmpl_window = window_;
     xtmpl_clear();
   }
-  
+
   void Xtmpl::delay(double set_delay) { delay_ = set_delay; };
   void Xtmpl::delay() const {
     if (delay_>0.0) {
@@ -114,7 +108,7 @@ namespace fmesh {
       }
     }
   };
-  
+
 
   void Xtmpl::setSize(int sx, int sy) {
     reopen(sx,sy);
@@ -129,9 +123,9 @@ namespace fmesh {
   };
   double Xtmpl::width() const { return (maxx_-minx_); };
 
-  
-  
-  
+
+
+
   void Xtmpl::dot(bool fg, const Point& s0, int sz)
   {
     xtmpl_window = window_;
@@ -163,7 +157,7 @@ namespace fmesh {
       x0 = x; y0 = y;
     }
     if (x0<x1) {
-      /* Truncate at x=0 and 1 */ 
+      /* Truncate at x=0 and 1 */
       if (x0<0.0) {
 	/* x = (1-a)*x0+a*x1 = 0
 	   y = (1-a)*y0+a*y1
@@ -197,7 +191,7 @@ namespace fmesh {
       x0 = x; y0 = y;
     }
     if (y0<y1) {
-      /* Truncate at y=0 and 1 */ 
+      /* Truncate at y=0 and 1 */
       if (y0<0.0) {
 	double x = (y1*x0-y0*x1)/(y1-y0);
 	double y = 0.0;
@@ -244,7 +238,7 @@ namespace fmesh {
       l = std::sqrt(l);
       for (dim=0;dim<2;dim++)
 	p1[dim] = s[dim]/l;
-      
+
       draw_line(fg,
 		(p0[0]+xoffset-minx_)/(maxx_-minx_),
 		(p0[1]-miny_)/(maxy_-miny_),

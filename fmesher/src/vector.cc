@@ -5,18 +5,19 @@
 #include <sstream>
 #include <cmath>
 
-#include "vector.hh"
+#include "vector.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
+#include "fmesher_debuglog.h"
 
+#ifndef VECTOR_LOG
 #ifdef DEBUG
-#define VECTOR_LOG(msg) std::cout << WHEREAMI << msg;
+#define VECTOR_LOG(msg) FMLOG_(msg)
 #else
 #define VECTOR_LOG(msg)
 #endif
+#endif
 
 
-using std::cout;
 using std::endl;
 
 namespace fmesh {
@@ -29,7 +30,7 @@ namespace fmesh {
 
   /*!
     Calculate an arbitrary perpendicular vector.
-    
+
     Michael M. Stark, Efficient Construction of Perpendicular
     Vectors without Branching, Journal of graphics, gpu, and game
     tools, Vol. 14, No. 1: 55-62, 2009

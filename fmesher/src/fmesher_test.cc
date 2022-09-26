@@ -6,8 +6,8 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "predicates.hh"
-#include "fmesher.hh"
+#include "predicates.h"
+#include "fmesher.h"
 
 using std::ios;
 using std::vector;
@@ -106,9 +106,11 @@ int CDT_test()
 
   M.S_set(Matrix3double(n,S));
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
+#endif
 
   MeshC MC(&M);
   MC.CETplane(8,0.1);
@@ -174,14 +176,16 @@ int DT2D_test()
 
   M.S_set(Matrix3double(n,S));
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
+#endif
 
   M.S_append(Matrix3double(4,Sb));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n; 
+      TVb[t][vi] += n;
   M.TV_set(Matrix3int(2,TVb));
 
   MeshC MC(&M);
@@ -257,14 +261,16 @@ int DT2D_test2()
 
   M.S_set(Matrix3double(n,S));
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500);
+#endif
 
   M.S_append(Matrix3double(4,Sb));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n; 
+      TVb[t][vi] += n;
   M.TV_set(Matrix3int(2,TVb));
 
   MeshC MC(&M);
@@ -311,15 +317,17 @@ int DT2D_test3() /* Random points */
 
   M.S_set(Matrix3double(n,S));
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
         M.useX11(true,useX11text,500,500);
   //      M.useX11(true,useX11text,500,500,0.7,0.9,0.4,0.85);
+#endif
 
   M.S_append(Matrix3double(4,Sb));
   for (t=0;t<2;t++)
     for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n; 
+      TVb[t][vi] += n;
   M.TV_set(Matrix3int(2,TVb));
 
   MeshC MC(&M);
@@ -329,7 +337,7 @@ int DT2D_test3() /* Random points */
 
   MC.DT(vertices);
 
-  /*  
+  /*
   fmesh::triangleSetT triangles;
   for (t=0;t<(int)M.nT();t++)
     triangles.insert(t);
@@ -406,16 +414,18 @@ int DTsphere_test()
 
   M.S_set(Matrix3double(n,S));
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
     //   M.useX11(true,useX11text,500,500,-0.1,0.1,0.6,0.8);
       M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+#endif
 
   /*
   M.S_append(Matrix3double(4,Sb));
   for (t=0;t<4;t++)
     for (vi=0;vi<3;vi++)
-      TVb[t][vi] += n; 
+      TVb[t][vi] += n;
   M.TV_set(Matrix3int(4,TVb));
   */
   MeshC MC(&M);
@@ -479,9 +489,11 @@ int DTsphere_test2()
 
   M.S_set(Matrix3double(n,S));
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+#endif
 
   MeshC MC(&M);
 
@@ -593,9 +605,11 @@ int koala_test()
   Mesh M(Mesh::Mtype_plane,0,useVT,useTTi);
   int t,vi,v;
 
+#ifdef FMESHER_WITH_X
   M.setX11VBigLimit(n);
   if (useX11)
     M.useX11(true,useX11text,500,500,-440,4400+440,-400-240,4000+400+240);
+#endif
 
   M.S_set(Matrix3double(n,S));
   M.S_append(Matrix3double(nb,Sb));
@@ -725,7 +739,7 @@ int iohelper_test()
     OA.close();
     OB.close();
   }
-    
+
   {
     fmesh::SparseMatrix<double> M;
     M.cols(3).rows(4);
@@ -779,11 +793,15 @@ void make_globe_test()
 {
   fmesh::Mesh M;
   M.type(fmesh::Mesh::Mtype_sphere);
+#ifdef FMESHER_WITH_X
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+#endif
   M.make_globe(30);
+#ifdef FMESHER_WITH_X
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
+#endif
   std::cout << M;
 }
 
