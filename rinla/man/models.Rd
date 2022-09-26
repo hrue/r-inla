@@ -7912,6 +7912,7 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The GaussianJW likelihoood'}
+								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
 								\item{link = }{`default logit probit'}

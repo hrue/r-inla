@@ -6730,6 +6730,7 @@
                             from.theta = function(x) x
                         )
                     ),
+                    status = "experimental", 
                     survival = FALSE,
                     discrete = FALSE,
                     link = c("default", "logit", "probit"), 
