@@ -33,6 +33,9 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-static const char UNUSED(GitID[]) = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
+static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
 
 #include "stochvol.h"

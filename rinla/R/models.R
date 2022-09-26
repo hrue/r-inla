@@ -6003,26 +6003,6 @@
                     pdf = "poisson"
                 ),
 
-                ## contpoisson = list(
-                ## doc = "The Cont Poisson likelihood",
-                ## hyper = list(
-                ## ),
-                ## survival = FALSE,
-                ## discrete = TRUE,
-                ## link = c("default", "log"),
-                ## pdf = "contpoisson"
-                ## ),
-                ##
-                ## qcontpoisson = list(
-                ## doc = "The quantile Cont Poisson likelihood",
-                ## hyper = list(
-                ## ),
-                ## survival = FALSE,
-                ## discrete = TRUE,
-                ## link = c("default", "log"),
-                ## pdf = "qcontpoisson"
-                ## ),
-
                 cenpoisson = list(
                     doc = "Then censored Poisson likelihood",
                     hyper = list(),
@@ -6038,7 +6018,6 @@
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log", "logoffset", "test1", "special1", "special2"),
-                    status = "experimental",
                     pdf = "cenpoisson2"
                 ),
 
@@ -6640,6 +6619,28 @@
                     pdf = "nbinomial"
                 ),
 
+                cennbinomial2 = list(
+                    doc = "The CenNegBinomial2 likelihood (similar to cenpoisson2)",
+                    hyper = list(
+                        theta = list(
+                            hyperid = 63101,
+                            name = "size",
+                            short.name = "size",
+                            initial = log(10),
+                            fixed = FALSE,
+                            prior = "pc.mgamma",
+                            param = 7,
+                            to.theta = function(x) log(x),
+                            from.theta = function(x) exp(x)
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log", "logoffset", "quantile"),
+                    pdf = "cennbinomial2"
+                ),
+
                 simplex = list(
                     doc = "The simplex likelihood",
                     hyper = list(
@@ -6691,6 +6692,50 @@
                     discrete = FALSE,
                     link = c("default", "identity", "logit", "loga", "cauchit", "log", "logoffset"),
                     pdf = "gaussian"
+                ),
+
+                gaussianjw = list(
+                    doc = "The GaussianJW likelihoood",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 65101,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 65102,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(1, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ), 
+                        theta3 = list(
+                            hyperid = 65103,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = -1,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-1, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ),
+                    status = "experimental", 
+                    survival = FALSE,
+                    discrete = FALSE,
+                    link = c("default", "logit", "probit"), 
+                    pdf = "gaussianjw"
                 ),
 
                 agaussian = list(

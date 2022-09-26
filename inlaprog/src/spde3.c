@@ -41,7 +41,11 @@
 #include "inla.h"
 #include "spde3.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
+
 extern G_tp G;						       /* import some global parametes from inla */
 
 int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp ** smodel, const char *prefix, const char *transform)
@@ -277,20 +281,35 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	if (i == j) {
 		switch (model->transform) {
 		case SPDE3_TRANSFORM_IDENTITY:
+		{
 			d_i[2] = phi_i[2];
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOG:
+		{
 			d_i[2] = exp(phi_i[2]);
+		}
 			break;
+
 		case SPDE3_TRANSFORM_SHIFTEDLOG:
+		{
 			d_i[2] = 2.0 * exp(phi_i[2]) - 1.0;
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOGIT:
+		{
 			d_i[2] = (1.0 - exp(phi_i[2])) / (1.0 + exp(phi_i[2]));
+		}
 			break;
+
 		case SPDE3_TRANSFORM_OLDLOGIT:
+		{
 			d_i[2] = cos(M_PI / (1.0 + exp(-phi_i[2])));
+		}
 			break;
+
 		default:
 			assert(0 == 1);
 		}
@@ -298,24 +317,38 @@ double inla_spde3_Qfunction(int thread_id, int i, int j, double *UNUSED(values),
 	} else {
 		switch (model->transform) {
 		case SPDE3_TRANSFORM_IDENTITY:
+		{
 			d_i[2] = phi_i[2];
 			d_j[2] = phi_j[2];
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOG:
+		{
 			d_i[2] = exp(phi_i[2]);
 			d_j[2] = exp(phi_j[2]);
+		}
 			break;
+
 		case SPDE3_TRANSFORM_SHIFTEDLOG:
+		{
 			d_i[2] = 2.0 * exp(phi_i[2]) - 1.0;
 			d_j[2] = 2.0 * exp(phi_j[2]) - 1.0;
+		}
 			break;
+
 		case SPDE3_TRANSFORM_LOGIT:
+		{
 			d_i[2] = (1.0 - exp(phi_i[2])) / (1.0 + exp(phi_i[2]));
 			d_j[2] = (1.0 - exp(phi_j[2])) / (1.0 + exp(phi_j[2]));
+		}
 			break;
+
 		case SPDE3_TRANSFORM_OLDLOGIT:
+		{
 			d_i[2] = cos(M_PI / (1.0 + exp(-phi_i[2])));
 			d_j[2] = cos(M_PI / (1.0 + exp(-phi_j[2])));
+		}
 			break;
 		default:
 			assert(0 == 1);

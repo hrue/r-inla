@@ -534,11 +534,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		Memset(problem->sample, 0, n * sizeof(double));
 		GMRFLib_evaluate(problem);
 
-		double A = 0;
-		int i;
-		for (i = 0; i < Npred; i++) {
-			A += ai_store->aa[i];
-		}
+		double A = my_dsum(Npred, ai_store->aa);
 		*logdens = A - problem->sub_logdens;
 	} else {
 		/*
@@ -579,7 +575,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	 * compute the log posterior of configuration 'x' up to an additive constant and return the value in 'logdens'. 
 	 */
 
-	int i, n;
+	int n;
 	double *xx = NULL, val, logll, result;
 
 	GMRFLib_ENTER_ROUTINE;
@@ -588,7 +584,8 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	xx = Calloc(n, double);				       /* xx = x - mean */
 
 	if (mean) {
-		for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
 			xx[i] = x[i] - mean[i];
 		}
 	} else {
@@ -605,11 +602,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	 * add the linear term 
 	 */
 	if (b) {
-		int ii;
-
-		for (ii = 0; ii < n; ii++) {
-			tmp1 += b[ii] * x[ii];
-		}
+		tmp1 = my_ddot(n, b, x);
 	}
 
 	if (d) {
@@ -1111,6 +1104,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 		break;					       /* including this; warnings in gcc */
 
 	case GMRFLib_AI_LINEAR_CORRECTION_FAST:
+	{
 		/*
 		 * here, the term for i=idx will be zero, so we do not need to test for it.  it is a small hack to get the
 		 * Qinv-values. Qinv_get only use the sub_inverse points, so we make a fake one and just retrive the elements we
@@ -1145,12 +1139,18 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 			}
 		}
 		deriv_log_dens_cond *= x_sd / 2.0;
+	}
 		break;
 
 	case GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE:
+	{
 
 		FIXME("option GMRFLib_AI_LINEAR_CORRECTION_CENTRAL_DIFFERENCE is no longer supported.");
 		assert(0 == 1);
+	}
+		break;
+
+	default:
 		break;
 	}
 
@@ -1401,7 +1401,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 		// this solves the equation for the last constraint only... 
 		k = nc - 1;
 		kk = k * sub_n;
-		for (i = 0; i < sub_n; i++) {
+		for (int i = 0; i < sub_n; i++) {
 			(*problem)->qi_at_m[i + kk] = (*problem)->sub_constr->a_matrix[k + nc * i];
 		}
 
@@ -1426,9 +1426,8 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 			kk = (nc - 1) * sub_n;
 			*covariances = Calloc(n, double);
 
-			for (i = 0; i < sub_n; i++) {
-				ii = i;
-				(*covariances)[ii] = (*problem)->qi_at_m[kk + i];
+			for (int i = 0; i < sub_n; i++) {
+				(*covariances)[i] = (*problem)->qi_at_m[kk + i];
 			}
 
 			if ((*problem)->sub_constr->nc > 1) {
@@ -1499,9 +1498,8 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 		dgemv_("N", &sub_n, &nc, &alpha, (*problem)->constr_m, &sub_n, t_vector, &inc, &beta, (*problem)->sub_mean_constr, &inc, F_ONE);
 		Free(t_vector);
 
-		for (i = 0; i < sub_n; i++) {
-			j = i;
-			(*problem)->mean_constr[j] = (*problem)->sub_mean_constr[i];
+		for (int i = 0; i < sub_n; i++) {
+			(*problem)->mean_constr[i] = (*problem)->sub_mean_constr[i];
 		}
 
 		Free(constr_m);
@@ -1524,7 +1522,7 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 	// this one is FIXED by design and such that A[IDX(i,j,n)] = A_ij, i=0...n-1, j = 0..k-1 for n x k matrix A 
 #define IDX(i, j, n) ((i) + (j)*(n))
 
-	int i, k, n, nc, ncc, one = 1;
+	int k, n, nc, ncc, one = 1;
 	double *c = NULL, *v = NULL, *w = NULL, *z = NULL, alpha = 0.0, beta = 0.0, b22 = 0.0, *constr_m_new = NULL, *t_vec =
 	    NULL, *tmp_m = NULL, val;
 
@@ -1641,8 +1639,10 @@ int GMRFLib_ai_update_conditional_mean2(double *cond_mean, GMRFLib_problem_tp * 
 		}
 
 		k = (ncc - 1) * n;
-		for (i = 0; i < n; i++) {
-			constr_m_new[k + i] = b22 * (c[i] - z[i]);
+		double *c_tmp = constr_m_new + k;
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
+			c_tmp[i] = b22 * (c[i] - z[i]);
 		}
 
 		// No longer needed: GMRFLib_eval_constr(t_vec, NULL, problem->sub_mean, problem->sub_constr, problem->sub_graph);
@@ -1945,7 +1945,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (preopt) {
 			GMRFLib_preopt_update(thread_id, preopt, bb, cc);
 			bb_use = preopt->total_b[thread_id];
-			for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+			for (int i = 0; i < n; i++) {
 				bb_use[i] += b[i];
 			}
 			cc_use = c;			       /* that what is there from before */
@@ -1956,7 +1957,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		} else {
 			assert(Npred == n);
 
-			for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+			for (int i = 0; i < n; i++) {
 				bb[i] += b[i];
 				cc[i] += c[i];
 			}
@@ -2002,18 +2004,24 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		int flag_cycle_behaviour = 0;
-		double err = 0.0, f;
+		double f;
 		if (gaussian_data) {
 			f = 1.0;
 		} else {
 			f = DMIN(1.0, (iter + 1.0) * optpar->nr_step_factor);
 		}
 
-		for (i = 0; i < n; i++) {
+		double err = 0.0;
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
-			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 		}
 		err = sqrt(err / n);
+
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
+			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
+		}
 
 		if (iter > 0) {
 			if ((float) err == (float) err_previous) {
@@ -6853,6 +6861,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 {
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define EQUAL_COR(c1_, c2_) (ABS((c1_) - (c2_)) < gcpo_param->epsilon)
 
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
@@ -6890,10 +6899,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			double big = 1.0 / GMRFLib_eps(1.0);
 
 			// default
+#pragma GCC ivdep
 			for (int i = 0; i < nn; i++) {
 				mask[i] = 1.0;
-				diag[i] = 0.0;
 			}
+			Memset(diag, 0, nn * sizeof(double));
 
 			if (gcpo_param->remove) {
 				int *visited = Calloc(gcpo_param->remove->n, int);
@@ -6925,10 +6935,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			if (gcpo_param->keep) {
 				int *visited = Calloc(gcpo_param->keep->n, int);
 				// create a new default
+#pragma GCC ivdep
 				for (int i = 0; i < nn; i++) {
-					mask[i] = 0.0;
 					diag[i] = big;
 				}
+				Memset(mask, 0, nn * sizeof(double));
+
 				for (int j = idx_offset; j < gcpo_param->idx_tot; j++) {
 					char *tag = gcpo_param->idx_tag[j];
 					int idx_found = -1;
@@ -6979,6 +6991,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 
 			GMRFLib_problem_tp *problem = NULL;
 			double *c = Calloc(nn, double);
+#pragma GCC ivdep
 			for (int i = 0; i < nn; i++) {
 				c[i] = gcpo_param->prior_diagonal;
 			}
@@ -7008,6 +7021,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL);
+#pragma GCC ivdep
 		for (int i = 0; i < Npred; i++) {
 			isd[i] = 1.0 / sqrt(isd[i]);
 		}
@@ -7080,7 +7094,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
-					if (!ISEQUAL_x(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
+					if (!EQUAL_COR(cor_abs_new, cor_abs_prev)) { \
 						nlevels++;		\
 						i_prev = i;		\
 						cor_abs_prev = cor_abs_new; \
@@ -7183,6 +7197,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 	}
 
 #undef A_idx
+#undef EQUAL_COR
 
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
@@ -7561,8 +7576,9 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			}						\
 			loglFunc(thread_id, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg);	\
 									\
+			double d_tmp = d[node];				\
 			for (int i = 0; i < np; i++) {			\
-				val += exp(d[node] * loglik[i]		\
+				val += exp(d_tmp * loglik[i]		\
 					   - 0.5 * lp_prec * SQR(xp[i] - lp_mean) \
 					   + 0.5 * SQR(xx[i]))		\
 					* weights[i];			\
@@ -7636,7 +7652,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 		GMRFLib_density_std2user_n(x_user, xp, np, density);
 		loglFunc(thread_id, logcor, x_user, np, idx, NULL, NULL, loglFunc_arg);
-		for (i = 0; i < np; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < np; i++) {
 			logcor[i] *= d;
 		}
 		if (debug && np) {
@@ -7650,8 +7667,9 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 		if (itry == 1 && cor_eps > 0.0) {
 			flag = 1;
 			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
-			for (i = 0; i < np; i++) {
-				ld[i] = ld[i] + logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
+#pragma GCC ivdep
+			for (int i = 0; i < np; i++) {
+				ld[i] += logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 			}
 		} else {
 			daxpy_(&np, &alpha, logcor, &one, ld, &one);	/* ld = ld + logcor */
@@ -7706,7 +7724,6 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 		// life is simpler in this case
 
 		const int np = GMRFLib_INT_GHQ_POINTS;
-		int i;
 		double m = density->user_mean;
 		double s = density->user_stdev;
 
@@ -7719,15 +7736,16 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
 
-		for (i = 0; i < np; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < np; i++) {
 			x_user[i] = m + s * xp[i];
 		}
 		GMRFLib_density_user2std_n(x_std, x_user, density, np);
 		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg);
 
-		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s), tmp;
-		for (i = 0; i < np; i++) {
-			tmp = wp[i] * loglik[i];
+		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
+		for (int i = 0; i < np; i++) {
+			double tmp = wp[i] * loglik[i];
 			A -= tmp;
 			B -= tmp * xp[i];
 			C -= tmp * (SQR(xp[i]) - 1.0);
@@ -7755,13 +7773,16 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		xp[0] = low;
 		xpi[0] = density->x_min;
-		for (i = 1; i < np; i++) {
+#pragma GCC ivdep
+		for (int i = 1; i < np; i++) {
 			xp[i] = xp[0] + i * dx;
 			xpi[i] = xpi[0] + i * dxi;
 		}
+
 		GMRFLib_evaluate_ndensity(dens, xpi, np, density);
 		loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg);
-		for (i = 0; i < np; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < np; i++) {
 			loglik[i] *= d;
 		}
 
@@ -7938,6 +7959,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 		}
 	}
 
+#pragma GCC ivdep
 	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
 		x_user[i] = mean + sd * xp[i];
 	}
@@ -8154,7 +8176,8 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 			c_diag[i] = vb_coof[i]->coofs[2];
 		}
 
-		for (i = 0; i < graph->n; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < graph->n; i++) {
 			c_diag[i] += c[i] + 1E-6 * (d[i] ? ai_store->cc[i] : 1.0);
 		}
 
@@ -8512,6 +8535,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
+#pragma GCC ivdep
 		for (int i = 0; i < graph->n; i++) {
 			x_mean[i] += dx[i];
 		}
@@ -8636,12 +8660,9 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	double *pmean = Calloc_get(preopt->mnpred);
 	double *pvar = Calloc_get(preopt->mnpred);
 
+#pragma GCC ivdep
 	for (int i = 0; i < graph->n; i++) {
-		if (density[i][dens_count]) {
-			x_mean[i] = density[i][dens_count]->user_mean;
-		} else {
-			x_mean[i] = ai_store->problem->mean_constr[i];
-		}
+		x_mean[i] = (density[i][dens_count] ? density[i][dens_count]->user_mean : ai_store->problem->mean_constr[i]);
 	}
 	Memcpy(mean_constr, ai_store->problem->mean_constr, graph->n * sizeof(double));
 
@@ -9912,6 +9933,9 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
 				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
@@ -9924,6 +9948,9 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			for (i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
 			}
@@ -10044,6 +10071,9 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
 				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
@@ -10056,6 +10086,9 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 			for (i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+			}
+#pragma GCC ivdep
+			for (i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
 			}
@@ -10489,20 +10522,35 @@ double GMRFLib_ai_integrator_func(unsigned ndim, const double *x, void *arg)
 	switch (a->interpolator) {
 	case GMRFLib_AI_INTERPOLATOR_CCD:
 	case GMRFLib_AI_INTERPOLATOR_CCD_INTEGRATE:
+	{
 		val = GMRFLib_interpolator_ccd(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) a);
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_NEAREST:
+	{
 		val = GMRFLib_interpolator_nearest(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_LINEAR:
+	{
 		val = GMRFLib_interpolator_linear(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_QUADRATIC:
+	{
 		val = GMRFLib_interpolator_quadratic(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	case GMRFLib_AI_INTERPOLATOR_WEIGHTED_DISTANCE:
+	{
 		val = GMRFLib_interpolator_wdistance(a->nhyper, a->hyper_count, a->z, a->hyper_z, a->hyper_ldens, (void *) &(a->dz));
+	}
 		break;
+
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}

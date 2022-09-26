@@ -53,6 +53,16 @@ __BEGIN_DECLS
 } spde2_transform_tp;
 
 typedef struct {
+	int i;
+	int need_transform;
+	double *theta;
+	double *vals;
+
+	// need a buffer...
+	double l1_cachline[4L];
+} spde2_cache_tp;
+
+typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
 	int ntheta_used;				       /* how many are non-fixed. */
@@ -75,11 +85,14 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_vmatrix_tp *vmatrix;
+	spde2_cache_tp **cache;
 } inla_spde2_tp;
 
 double inla_spde2_Qfunction(int thread_id, int node, int nnode, double *values, void *arg);
-int inla_spde2_build_model(int thread_id, inla_spde2_tp ** smodel, const char *prefix, const char *transform);
+double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg);
+double inla_spde2_Qfunction_new(int thread_id, int ii, int jj, double *UNUSED(values), void *arg);
 double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg);
+int inla_spde2_build_model(int thread_id, inla_spde2_tp ** smodel, const char *prefix, const char *transform);
 
 __END_DECLS
 #endif

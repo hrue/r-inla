@@ -103,6 +103,7 @@ typedef struct {
 } GMRFLib_idxval_tp;
 
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
+//#define DDOT(N_, X_, Y_) my_ddot((N_), X_, Y_)
 #define DSUM(N_, X_) my_dsum(N_, X_)
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\

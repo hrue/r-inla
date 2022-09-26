@@ -70,16 +70,24 @@ int GMRFLib_ghq__intern(double *x, double *w, int n)
 	for (i = 1; i <= m; i++) {
 		switch (i) {
 		case 1:
+		{
 			z = sqrt(2.0 * n + 1.0) - 1.85575 * pow(2.0 * n + 1.0, -0.16667);
+		}
 			break;
 		case 2:
+		{
 			z -= 1.14 * pow((double) n, 0.426) / z;
+		}
 			break;
 		case 3:
+		{
 			z = 1.86 * z - 0.86 * x[1];
+		}
 			break;
 		case 4:
+		{
 			z = 1.91 * z - 0.91 * x[2];
+		}
 			break;
 		default:
 			z = 2.0 * z - x[i - 2];

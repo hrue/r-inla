@@ -34,7 +34,10 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
 
 #include "inla.h"
 #include "pc-powerlink.h"
@@ -212,21 +215,26 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 
 	switch (typ) {
 	case MAP_FORWARD:
+	{
 		/*
 		 * extern = func(local) 
 		 */
 		arg = TRUNCATE(intercept + arg, table[id]->xmin, table[id]->xmax);
 		p = GMRFLib_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
-
+	}
+	
 	case MAP_BACKWARD:
+	{
 		/*
 		 * local = func(extern) 
 		 */
 		arg = TRUNCATE(arg, table[id]->pmin, table[id]->pmax);
 		return GMRFLib_spline_eval(MAP(arg), table[id]->icdf) - intercept;
-
+	}
+	
 	case MAP_DFORWARD:
+	{
 		/*
 		 * d_extern / d_local 
 		 */
@@ -234,13 +242,16 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		p = GMRFLib_spline_eval(arg, table[id]->cdf);
 		pp = GMRFLib_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp;
-
+	}
+	
 	case MAP_INCREASING:
+	{
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise
 		 */
 		return 1.0;
-
+	}
+	
 	default:
 		abort();
 	}

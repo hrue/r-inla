@@ -41,8 +41,430 @@
 #include "inla.h"
 #include "spde2.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
+
 extern G_tp G;						       /* import some global parametes from inla */
+
+double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+{
+	if (jj < 0) {
+		return NAN;
+	}
+
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	double value = 0.0;
+	double d_i[3], d_j[3];
+
+	int nc = model->B[0]->ncol;
+	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+
+	double *vals_i0 = vals;
+	double *vals_i1 = vals + nc;
+	double *vals_i2 = vals + 2 * nc;
+
+	d_i[0] = vals_i0[0];
+	d_i[1] = vals_i1[0];
+	d_i[2] = vals_i2[0];
+
+	if (i == j) {
+#pragma GCC ivdep
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			d_i[0] += vals_i0[k] * theta;
+			d_i[1] += vals_i1[k] * theta;
+			d_i[2] += vals_i2[k] * theta;
+		}
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_LOG:
+			{
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+			{
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+			}
+				break;
+
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 3 * nc;
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+	} else {
+		double *vals_j0 = vals + 3 * nc;
+		double *vals_j1 = vals + 4 * nc;
+		double *vals_j2 = vals + 5 * nc;
+
+		d_j[0] = vals_j0[0];
+		d_j[1] = vals_j1[0];
+		d_j[2] = vals_j2[0];
+
+#pragma GCC ivdep
+		for (int k = 1; k < nc; k++) {
+			double theta = model->theta[k - 1][thread_id][0];
+			d_i[0] += vals_i0[k] * theta;
+			d_i[1] += vals_i1[k] * theta;
+			d_i[2] += vals_i2[k] * theta;
+
+			d_j[0] += vals_j0[k] * theta;
+			d_j[1] += vals_j1[k] * theta;
+			d_j[2] += vals_j2[k] * theta;
+		}
+
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+			d_j[k] = exp(d_j[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_LOG:
+			{
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				d_j[2] = 2 * exp(d_j[2]) - 1.0;
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+			{
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+			}
+				break;
+
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	}
+
+	return value;
+}
+double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+{
+	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i.
+
+	// recall to enable init in 'build_model below' before enable this function, and remove this assert...
+	assert(0 == 1);
+
+	if (jj < 0) {
+		return NAN;
+	}
+
+	const int debug = 0;
+	const int debug_details = 0;
+
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
+	int idx = -1;
+	GMRFLib_CACHE_SET_ID(idx);
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+
+	if (!(model->cache[idx])) {
+#pragma omp critical (Name_096287ed3ed383c234e780a2ee2897e5fede0116)
+		{
+			if (!(model->cache[idx])) {
+				if (debug) {
+					printf("spde2: init cache for idx = %1d\n", idx);
+				}
+				model->cache[idx] = Calloc(1, spde2_cache_tp);
+				model->cache[idx]->i = -1;
+				model->cache[idx]->need_transform = (model->transform != SPDE2_TRANSFORM_IDENTITY);
+
+				double *work = Calloc(3 + nc, double);
+				model->cache[idx]->theta = work;
+				model->cache[idx]->vals = work + nc;
+				// add theta[0] = 1.0 here, and append other 'thetas' after, so we can make cleaner loops
+				model->cache[idx]->theta[0] = 1.0;
+			}
+		}
+	}
+	spde2_cache_tp *cache = model->cache[idx];
+
+	int need_transform = cache->need_transform;
+	double value;
+	double d_i[10] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double *d_j = d_i + 3;
+
+	if (i == j) {
+		double *vals_i0 = vals;
+		double *vals_i1 = vals + nc;
+		double *vals_i2 = vals + 2 * nc;
+
+#pragma GCC ivdep
+		for (int k = 0; k < nc - 1; k++) {
+			cache->theta[k + 1] = model->theta[k][thread_id][0];
+		}
+		double *theta = cache->theta;
+
+#pragma GCC ivdep
+		for (int k = 0; k < nc; k++) {
+			double th = theta[k];
+			d_i[0] += vals_i0[k] * th;
+			d_i[1] += vals_i1[k] * th;
+			d_i[2] += vals_i2[k] * th;
+		}
+
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (need_transform) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+			{
+				// d_i[2] = d_i[2];
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+			{
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+			{
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+			}
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 3 * nc;
+		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
+		// store in cache. 'theta' is done already
+		cache->i = i;
+		Memcpy(cache->vals, d_i, 3 * sizeof(double));
+
+		if (debug) {
+#pragma omp critical
+			{
+				printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
+				if (debug_details) {
+					for (int k = 1; k < nc; k++) {
+						printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+					}
+					printf("\td_i[0] = %.12f\n", d_i[0]);
+					printf("\td_i[1] = %.12f\n", d_i[1]);
+					printf("\td_i[2] = %.12f\n", d_i[2]);
+				}
+			}
+		}
+	} else {
+		// check if we have the 'i' value in cache
+		int in_cache = (i == cache->i);
+		if (in_cache) {
+			for (int k = 0; k < nc - 1; k++) {
+				if (cache->theta[1 + k] != model->theta[k][thread_id][0]) {
+					in_cache = 0;
+					break;
+				}
+			}
+		}
+
+		if (debug) {
+#pragma omp critical
+			{
+				if (in_cache) {
+					printf("spde2: use cache for idx=%1d i=%1d j=%1d\n", idx, i, j);
+					if (debug_details) {
+						for (int k = 1; k < nc; k++) {
+							printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+						}
+						printf("\td_i[0] = %.12f\n", cache->vals[0]);
+						printf("\td_i[1] = %.12f\n", cache->vals[1]);
+						printf("\td_i[2] = %.12f\n", cache->vals[2]);
+					}
+				} else {
+					printf("spde2: not in cache for idx = %1d, i = %1d, j = %1d\n", idx, i, j);
+				}
+			}
+		}
+		// check hit/miss rates... might be useful in the future again, so I keep it here
+		if (0) {
+			static double cache_hit = 0.0;
+			static double cache_miss = 0.0;
+			static double cache_count = 0.0;
+#pragma omp critical
+			{
+				cache_count++;
+				cache_hit += in_cache;
+				cache_miss += (1 - in_cache);
+
+				if (!((int) cache_count % 100000))
+					printf("hit %.3f miss %.3f\n", cache_hit / (cache_hit + cache_miss), cache_miss / (cache_hit + cache_miss));
+			}
+		}
+
+		double *vals_j0 = vals + 3 * nc;
+		double *vals_j1 = vals + 4 * nc;
+		double *vals_j2 = vals + 5 * nc;
+
+		if (in_cache) {
+			Memcpy(d_i, cache->vals, 3 * sizeof(double));
+			double *theta = cache->theta;
+
+#pragma GCC ivdep
+			for (int k = 0; k < nc; k++) {
+				double th = theta[k];
+				d_j[0] += vals_j0[k] * th;
+				d_j[1] += vals_j1[k] * th;
+				d_j[2] += vals_j2[k] * th;
+			}
+#pragma GCC ivdep
+			for (int k = 0; k < 2; k++) {
+				d_j[k] = exp(d_j[k]);
+			}
+
+			if (need_transform) {
+				switch (model->transform) {
+				case SPDE2_TRANSFORM_IDENTITY:
+					break;
+
+				case SPDE2_TRANSFORM_LOG:
+				{
+					d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+				}
+					break;
+
+				case SPDE2_TRANSFORM_LOGIT:
+				{
+					d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+				}
+					break;
+
+				default:
+					assert(0 == 1);
+				}
+			}
+
+		} else {
+			// not in_cache
+			double *vals_i0 = vals;
+			double *vals_i1 = vals + nc;
+			double *vals_i2 = vals + 2 * nc;
+
+			for (int k = 0; k < nc - 1; k++) {
+				cache->theta[1 + k] = model->theta[k][thread_id][0];
+			}
+			double *theta = cache->theta;
+
+#pragma GCC ivdep
+			for (int k = 0; k < nc; k++) {
+				double th = theta[k];
+				d_i[0] += vals_i0[k] * th;
+				d_i[1] += vals_i1[k] * th;
+				d_i[2] += vals_i2[k] * th;
+				d_j[0] += vals_j0[k] * th;
+				d_j[1] += vals_j1[k] * th;
+				d_j[2] += vals_j2[k] * th;
+			}
+#pragma GCC ivdep
+			for (int k = 0; k < 2; k++) {
+				d_i[k] = exp(d_i[k]);
+				d_j[k] = exp(d_j[k]);
+			}
+
+			if (need_transform) {
+				switch (model->transform) {
+				case SPDE2_TRANSFORM_IDENTITY:
+					break;
+
+				case SPDE2_TRANSFORM_LOG:
+				{
+					d_i[2] = 2.0 * exp(d_i[2]) - 1.0;
+					d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+				}
+					break;
+
+				case SPDE2_TRANSFORM_LOGIT:
+				{
+					d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+					d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+				}
+					break;
+
+				default:
+					assert(0 == 1);
+				}
+			}
+		}
+
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+
+		if (!in_cache) {
+			// cache this value
+			cache->i = i;
+			Memcpy(cache->vals, d_i, 3 * sizeof(double));
+
+			if (debug) {
+#pragma omp critical
+				{
+					printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
+					if (debug_details) {
+						for (int k = 1; k < nc; k++) {
+							printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+						}
+						printf("\td_i[0] = %.12f\n", cache->vals[0]);
+						printf("\td_i[1] = %.12f\n", cache->vals[1]);
+						printf("\td_i[2] = %.12f\n", cache->vals[2]);
+					}
+				}
+			}
+		}
+	}
+
+	return value;
+}
 
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
@@ -60,103 +482,104 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	}
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
-	double value = 0.0;
-	double phi_i[3] = { 0.0, 0.0, 0.0 };
-	double d_i[3] = { 0.0, 0.0, 0.0 };
-
 	int nc = model->B[0]->ncol;
-	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
-	double *vals_i0 = NULL;
-	double *vals_i1 = NULL;
-	double *vals_i2 = NULL;
+
+	// manual inline
+	// double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[i]), j);
+
+
+	double value;
+	double d_i[6];
+	double *d_j = d_i + 3;
 
 	if (i == j) {
-		vals_i0 = vals;
-		vals_i1 = vals + nc;
-		vals_i2 = vals + 2 * nc;
 
-		phi_i[0] = vals_i0[0];
-		phi_i[1] = vals_i1[0];
-		phi_i[2] = vals_i2[0];
-
+#pragma GCC ivdep
+		for (int k = 0; k < 3; k++) {
+			d_i[k] = vals[k * nc];
+		}
+#pragma GCC ivdep
 		for (int k = 1; k < nc; k++) {
-			double theta = model->theta[k - 1][thread_id][0];
-			phi_i[0] += vals_i0[k] * theta;
-			phi_i[1] += vals_i1[k] * theta;
-			phi_i[2] += vals_i2[k] * theta;
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma GCC ivdep
+			for (int kk = 0; kk < 3; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
 		}
 
-		d_i[0] = exp(phi_i[0]);
-		d_i[1] = exp(phi_i[1]);
+		d_i[0] = exp(d_i[0]);
+		d_i[1] = exp(d_i[1]);
 
-		switch (model->transform) {
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
-			break;
-		case SPDE2_TRANSFORM_LOG:
-			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
-			break;
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			break;
-		default:
-			assert(0 == 1);
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+			{
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+			{
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+			}
+				break;
+
+			default:
+				assert(0 == 1);
+			}
 		}
 
 		double *v = vals + 3 * nc;
 		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
 	} else {
-		double phi_j[3] = { 0.0, 0.0, 0.0 };
-		double d_j[3] = { 0.0, 0.0, 0.0 };
-
-		double *vals_j0 = NULL;
-		double *vals_j1 = NULL;
-		double *vals_j2 = NULL;
-
-		vals_i0 = vals;
-		vals_i1 = vals + nc;
-		vals_i2 = vals + 2 * nc;
-		vals_j0 = vals + 3 * nc;
-		vals_j1 = vals + 4 * nc;
-		vals_j2 = vals + 5 * nc;
-
-		phi_i[0] = vals_i0[0];
-		phi_i[1] = vals_i1[0];
-		phi_i[2] = vals_i2[0];
-		phi_j[0] = vals_j0[0];
-		phi_j[1] = vals_j1[0];
-		phi_j[2] = vals_j2[0];
-
+#pragma GCC ivdep
+		for (int k = 0; k < 6; k++) {
+			d_i[k] = vals[k * nc];
+		}
+#pragma GCC ivdep
 		for (int k = 1; k < nc; k++) {
-			double theta = model->theta[k - 1][thread_id][0];
-			phi_i[0] += vals_i0[k] * theta;
-			phi_i[1] += vals_i1[k] * theta;
-			phi_i[2] += vals_i2[k] * theta;
-			phi_j[0] += vals_j0[k] * theta;
-			phi_j[1] += vals_j1[k] * theta;
-			phi_j[2] += vals_j2[k] * theta;
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma GCC ivdep
+			for (int kk = 0; kk < 6; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
 		}
 
-		d_i[0] = exp(phi_i[0]);
-		d_i[1] = exp(phi_i[1]);
-		d_j[0] = exp(phi_j[0]);
-		d_j[1] = exp(phi_j[1]);
+#pragma GCC ivdep
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+			d_j[k] = exp(d_j[k]);
+		}
 
-		switch (model->transform) {
-		case SPDE2_TRANSFORM_IDENTITY:
-			d_i[2] = phi_i[2];
-			d_j[2] = phi_j[2];
-			break;
-		case SPDE2_TRANSFORM_LOG:
-			d_i[2] = 2 * exp(phi_i[2]) - 1.0;
-			d_j[2] = 2 * exp(phi_j[2]) - 1.0;
-			break;
-		case SPDE2_TRANSFORM_LOGIT:
-			d_i[2] = cos(M_PI * map_probability(phi_i[2], MAP_FORWARD, NULL));
-			d_j[2] = cos(M_PI * map_probability(phi_j[2], MAP_FORWARD, NULL));
-			break;
-		default:
-			assert(0 == 1);
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+			{
+				d_i[2] = 2.0 * exp(d_i[2]) - 1.0;
+				d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+			}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+			{
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+			}
+				break;
+
+			default:
+				assert(0 == 1);
+			}
 		}
 
 		double *v = vals + 6 * nc;
@@ -308,6 +731,9 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 			GMRFLib_vmatrix_set(model->vmatrix, i, j, v);
 		}
 	}
+
+	// recall to enable this if using cache
+	// model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 
 	return INLA_OK;
 }

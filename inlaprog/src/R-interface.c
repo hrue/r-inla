@@ -81,47 +81,69 @@ int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *
 			break;
 
 		case INLA_R_ASSIGN:
+		{
 			ret = inla_R_assign_((const char *) a1, (int *) a2, (double *) a3);
+		}
 			break;
 
 		case INLA_R_FUNCALL1:
+		{
 			ret = inla_R_funcall1_((int *) a1, (double **) a2, (const char *) a3, (int *) a4, (double *) a5);
+		}
 			break;
 
 		case INLA_R_FUNCALL2:
+		{
 			ret = inla_R_funcall2_((int *) a1, (double **) a2, (const char *) a3, (const char *) a4, (int *) a5, (double *) a6);
+		}
 			break;
 
 		case INLA_R_FUNCALL_JP:
+		{
 			ret = inla_R_funcall_jp_((int *) a1, (double **) a2, (const char *) a3, (int *) a4, (double *) a5, (void *) a6);
+		}
 			break;
 
 		case INLA_R_GET:
+		{
 			ret = inla_R_get_((int *) a1, (double **) a2, (const char *) a3);
+		}
 			break;
 
 		case INLA_R_INLALOAD:
+		{
 			ret = inla_R_inlaload_((const char *) a1);
+		}
 			break;
 
 		case INLA_R_LIBRARY:
+		{
 			ret = inla_R_library_((const char *) a1);
+		}
 			break;
 
 		case INLA_R_LOAD:
+		{
 			ret = inla_R_load_((const char *) a1);
+		}
 			break;
 
 		case INLA_R_RGENERIC:
+		{
 			ret = inla_R_rgeneric_((int *) a1, (double **) a2, (const char *) a3, (const char *) a4, (int *) a5, (double *) a6);
+		}
 			break;
 
 		case INLA_R_SOURCE:
+		{
 			ret = inla_R_source_((const char *) a1);
+		}
 			break;
 
 		case INLA_R_EXIT:
+		{
 			ret = inla_R_exit_();
+		}
 			break;
 
 		default:

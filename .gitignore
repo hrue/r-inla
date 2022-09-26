@@ -1035,3 +1035,23 @@ r-inla.org/doc/link/powerlogit.fls
 r-inla.org/doc/link/powerlogit.synctex.gz
 
 sandbox/dynlinking/test
+
+r-inla.org/doc/likelihood/cennbinomial2.synctex.gz
+
+r-inla.org/doc/likelihood/cennbinomial2.log
+
+r-inla.org/doc/likelihood/cennbinomial2.fls
+
+r-inla.org/doc/likelihood/cennbinomial2.aux
+
+r-inla.org/doc/likelihood/cennbinomial2.fdb_latexmk
+
+r-inla.org/doc/likelihood/gaussianjw.aux
+
+r-inla.org/doc/likelihood/gaussianjw.log
+
+r-inla.org/doc/likelihood/gaussianjw.synctex.gz
+
+*.fdb_latexmk
+
+*.fls

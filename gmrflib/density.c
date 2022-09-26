@@ -364,8 +364,10 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 	}
 	log_density_scaled = Calloc(n, double);
 
-	for (i = 0; i < (int) n; i++) {
-		log_density_scaled[i] = log_density[i] - log_density[imax];
+	double ld_max = log_density[imax];
+#pragma GCC ivdep
+	for (int i = 0; i < (int) n; i++) {
+		log_density_scaled[i] = log_density[i] - ld_max;
 	}
 
 	data.n = n;
@@ -584,7 +586,6 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	xp = Calloc_get(np);
 	ld = Calloc_get(np);
 
-#pragma GCC ivdep
 	for (xval = low, i = 0; i < np; xval += dx, i++) {
 		xp[i] = xval;
 	}
@@ -613,10 +614,13 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
-		for (i = 0; i < np - 1; i++) {
+		for (int i = 0; i < np - 1; i++) {
 			xpm[3 * i + 0] = xp[i];
 			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
 			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
+		}
+#pragma GCC ivdep
+		for (int i = 0; i < np - 1; i++) {
 			ldm[3 * i + 0] = ld[i];
 			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
 			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
@@ -626,9 +630,12 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
-		for (i = 0; i < np - 1; i++) {
+		for (int i = 0; i < np - 1; i++) {
 			xpm[2 * i + 0] = xp[i];
 			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
+		}
+#pragma GCC ivdep
+		for (int i = 0; i < np - 1; i++) {
 			ldm[2 * i + 0] = ld[i];
 			ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
 		}
@@ -640,7 +647,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	// convert scale
-	for (i = 0; i < npm; i++) {
+#pragma GCC ivdep
+	for (int i = 0; i < npm; i++) {
 		ldm[i] = exp(ldm[i]);
 	}
 
@@ -657,8 +665,7 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	mm[2] = SQR(xx[0]) * d0 + SQR(xx[1]) * d1;
 	mm[3] = gsl_pow_3(xx[0]) * d0 + gsl_pow_3(xx[1]) * d1;
 
-#pragma GCC ivdep
-	for (i = 1; i < npm - 1; i++) {
+	for (int i = 1; i < npm - 1; i++) {
 		double d = ldm[i] * w[(i - 1) % 2];
 		xx[1] = xpm[i];
 		xx[2] = SQR(xx[1]);
@@ -693,7 +700,8 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 		}
 
 		double cc = 1.0 / (pm[npm - 1] + 0.5 * ldm[npm - 1]);
-		for (i = 0; i < npm; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < npm; i++) {
 			pm[i] *= cc;
 		}
 		density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
@@ -727,7 +735,8 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		double c1 = log_norm_const_gaussian - log(density->stdev);
 		double c2 = -0.5 / SQR(density->stdev);
 		double m = density->mean;
-		for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
 			// logdens[i] = log_norm_const_gaussian - log(density->stdev) - 0.5 * SQR(x[i] - density->mean) / SQR(density->stdev);
 			logdens[i] = c1 + c2 * SQR(x[i] - m);
 		}
@@ -765,16 +774,16 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 			}
 			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
 		}
-		break;
 	}
+		break;
 
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		for (i = 0; i < n; i++) {
 			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
 		}
-		break;
 	}
+		break;
 
 	default:
 
@@ -799,11 +808,11 @@ int GMRFLib_evaluate_density(double *dens, double x, GMRFLib_density_tp * densit
 
 int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp * density)
 {
-	int i;
 	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
-	for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+	for (int i = 0; i < n; i++) {
 		dens[i] = exp(dens[i]);
 	}
 	return GMRFLib_SUCCESS;
@@ -837,11 +846,15 @@ int GMRFLib_free_density(GMRFLib_density_tp * density)
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+		{
 			Free(density->sn_param);
+		}
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
+		{
 			GMRFLib_spline_free(density->log_correction);
+		}
 			break;
 
 		default:
@@ -1101,11 +1114,13 @@ int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp **
 	xx_real = Calloc_get(nx);
 	ddens = Calloc_get(nx);
 	log_dens = ddens;				       /* same storage */
+#pragma GCC ivdep
 	for (int i = 0; i < nx; i++) {
 		xx_real[i] = xx[i] * stdev + mean;
 	}
 
 	GMRFLib_evaluate_ndensities(ddens, xx_real, nx, densities, probs);
+#pragma GCC ivdep
 	for (int i = 0; i < nx; i++) {
 		log_dens[i] = (ddens[i] > 0.0 ? log(ddens[i]) : -FLT_MAX);
 	}
@@ -1161,11 +1176,10 @@ int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp
 
 int GMRFLib_density_adjust_vector(double *ldens, int n)
 {
-	int i;
 	double maxdev = 2.0 * log(DBL_EPSILON);
 
 	GMRFLib_adjust_vector(ldens, n);
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		ldens[i] = DMAX(maxdev, ldens[i]);
 	}
 	return GMRFLib_SUCCESS;
@@ -1226,22 +1240,27 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 	} else {
 		switch (type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
+		{
 			/*
 			 * fit a gaussian 
 			 */
 			GMRFLib_normal_fit(&g_mean, &g_var, NULL, xx, ldens, n);
 			GMRFLib_density_create_normal(density, g_mean, sqrt(g_var), std_mean, std_stdev, lookup_tables);
+		}
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+		{
 			/*
 			 * fit skew-normal 
 			 */
 			GMRFLib_sn_fit(&sn_param, NULL, xx, ldens, n);
 			GMRFLib_density_create_sn(density, sn_param, std_mean, std_stdev, lookup_tables);
+		}
 			break;
 
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
+		{
 			/*
 			 * fit spline-corrected gaussian 
 			 */
@@ -1261,11 +1280,14 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
 			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
-			for (i = 0; i < n; i++) {
+
+#pragma GCC ivdep
+			for (int i = 0; i < n; i++) {
 				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
 			}
 			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
 			GMRFLib_init_density(*density, lookup_tables);
+		}
 			break;
 
 		default:
@@ -1386,21 +1408,32 @@ int GMRFLib_density_printf(FILE * fp, GMRFLib_density_tp * density)
 		fprintf(fp, "%-35s %16.10f\n", "Standarisation: stdev", density->std_stdev);
 		switch (density->type) {
 		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
+		{
 			fprintf(fp, "%-35s %-20s\n", "Density type", "Gaussian");
 			fprintf(fp, "     %-30s %16.10f\n", "mean", density->mean);
 			fprintf(fp, "     %-30s %16.10f\n", "stdev", density->stdev);
+		}
 			break;
+
 		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
+		{
 			fprintf(fp, "%-35s %-20s\n", "Density type", "Skew Normal");
 			fprintf(fp, "\t%-35s %16.10f\n", "xi", density->sn_param->xi);
 			fprintf(fp, "     %-30s %16.10f\n", "omega", density->sn_param->omega);
 			fprintf(fp, "     %-30s %16.10f\n", "alpha", density->sn_param->alpha);
+		}
 			break;
+
 		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
+		{
 			fprintf(fp, "%-26s %-30s\n", "Density type", "Spline corrected Gaussian");
 			fprintf(fp, "     %-30s %16.10f\n", "Log normalisation constant", density->log_norm_const);
 			fprintf(fp, "     %-30s %16.10f\n", "x_min", density->x_min);
 			fprintf(fp, "     %-30s %16.10f\n", "x_max", density->x_max);
+		}
+			break;
+
+		default:
 			break;
 		}
 
@@ -1509,10 +1542,13 @@ double GMRFLib_density_std2user(double x, GMRFLib_density_tp * density)
 	return density->std_mean + x * density->std_stdev;
 }
 
-double GMRFLib_density_std2user_n(double *x_user, double *x, int n, GMRFLib_density_tp * density)
+double GMRFLib_density_std2user_n(double *__restrict x_user, double *__restrict x, int n, GMRFLib_density_tp * __restrict density)
 {
+	double m = density->std_mean;
+	double s = density->std_stdev;
+#pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
-		x_user[i] = density->std_mean + x[i] * density->std_stdev;
+		x_user[i] = m + x[i] * s;
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1522,11 +1558,11 @@ double GMRFLib_density_user2std(double x, GMRFLib_density_tp * density)
 	return (x - density->std_mean) / density->std_stdev;
 }
 
-int GMRFLib_density_user2std_n(double *x_std, double *x, GMRFLib_density_tp * density, int n)
+int GMRFLib_density_user2std_n(double *__restrict x_std, double *__restrict x, GMRFLib_density_tp * __restrict density, int n)
 {
-	// the vectorised version
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;
+#pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		x_std[i] = a * x[i] + b;
 	}

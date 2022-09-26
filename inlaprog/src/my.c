@@ -47,7 +47,10 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
 
 int my_file_exists(const char *filename)
 {

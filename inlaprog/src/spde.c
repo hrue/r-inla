@@ -41,7 +41,11 @@
 #include "inla.h"
 #include "spde.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
+#pragma GCC diagnostic pop
+
 extern G_tp G;						       /* import some global parametes from inla */
 
 /* 

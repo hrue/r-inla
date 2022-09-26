@@ -88,7 +88,7 @@ __BEGIN_DECLS
 #define GMRFLib_LEAVE_ROUTINE if (1)					\
 	{								\
 		trace_cpu_acc_ += (GMRFLib_cpu() - trace_cpu_);		\
-		GMRFLib_TRACE_idd("Leave, count cpu/count total", trace_count_, trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); \
+		GMRFLib_TRACE_idd("Leave, count cpu/count*1E6 total", trace_count_, 1.0E6 * trace_cpu_acc_ / (double) trace_count_, trace_cpu_acc_); \
 	}
 
 double GMRFLib_cpu_default(void);

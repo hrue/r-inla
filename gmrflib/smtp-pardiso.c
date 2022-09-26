@@ -310,9 +310,11 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 #undef CODE_BLOCK
 	Free(k_arr);
 
+#pragma GCC ivdep
 	for (int i = 0; i < n + 1; i++) {
 		Ms->ia1[i] = Ms->ia[i] + 1;
 	}
+#pragma GCC ivdep
 	for (int i = 0; i < na; i++) {
 		Ms->ja1[i] = Ms->ja[i] + 1;
 	}
@@ -569,37 +571,49 @@ int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store
 	switch (flag) {
 	case GMRFLib_PARDISO_FLAG_REORDER:
 	case GMRFLib_PARDISO_FLAG_SYMFACT:
+	{
 		store->pstore[tnum]->phase = 11;	       // analysis
 		store->pstore[tnum]->iparm[4] = 0;	       /* 0 = compute the permutation */
 		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation */
 		store->pstore[tnum]->nrhs = S.nrhs_max;	       /* this is how it is, apparently */
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_CHOL:
+	{
 		store->pstore[tnum]->phase = 22;	       // numerical factorization
 		store->pstore[tnum]->iparm[32] = 1;	       /* determinant */
 		store->pstore[tnum]->iparm[39] = 1;	       /* 1 = return the permutation (does not do that anymore) */
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_QINV:
+	{
 		store->pstore[tnum]->phase = -22;
 		store->pstore[tnum]->iparm[35] = 1;	       /* do not overwrite internal factor L with selected inversion */
 		store->pstore[tnum]->iparm[36] = 0;	       /* return upper triangular Qinv */
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_L:
+	{
 		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 1 : -12);
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LT:
+	{
 		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = (S.mtype == 2 ? 2 : -23);
+	}
 		break;
 
 	case GMRFLib_PARDISO_FLAG_SOLVE_LLT:
+	{
 		store->pstore[tnum]->phase = 33;	       // solve
 		store->pstore[tnum]->iparm[25] = 0;
+	}
 		break;
 
 	default:
@@ -664,7 +678,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		return GMRFLib_SUCCESS;
 	}
 
-	int i, n, mnum1 = 1;
+	int n, mnum1 = 1;
 	GMRFLib_csr_tp *Q = NULL;
 
 	GMRFLib_graph_duplicate(&(store->graph), graph);
@@ -702,13 +716,13 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		store->pstore[tnum]->dparm);
 
 	// Just fill it with a dummy (identity) reordering
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i] = i;
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]] = i;
 	}
 
 	if (0 && debug) {
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i], i,
 			       store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[i]);
 		}
@@ -807,7 +821,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->done_with_build == GMRFLib_TRUE);
 	assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q != NULL);
 
-	int mnum1 = 1, n = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->s->n, i;
+	int mnum1 = 1, n = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q->s->n;
 	GMRFLib_pardiso_setparam(GMRFLib_PARDISO_FLAG_CHOL, store, NULL);
 
 	if (debug) {
@@ -834,16 +848,17 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	}
 	// Revert back to C indexing ?
 	if (GMRFLib_imin_value(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm, n, NULL) == 1) {
-		for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
 			store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]--;
 		}
 	}
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]] = i;
 	}
 
 	if (0 && debug) {
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i], i,
 			       store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[i]);
 		}
@@ -1119,7 +1134,8 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 
 	subQinv->Qinv = Qinv;
 	subQinv->mapping = Calloc(n, int);
-	for (i = 0; i < n; i++) {
+#pragma GCC ivdep
+	for (int i = 0; i < n; i++) {
 		subQinv->mapping[i] = i;
 	}
 	problem->sub_inverse = subQinv;
@@ -1214,16 +1230,16 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 		PP("free: old=", *store);
 	}
 
-	int found = 0, i;
+	int found = 0;
 	if (S.static_pstores != NULL) {
 		if (S.s_verbose) {
-			for (i = 0; i < PSTORES_NUM; i++) {
+			for (int i = 0; i < PSTORES_NUM; i++) {
 				if (S.busy[i]) {
 					printf("in store: i=%1d s=%p\n", i, (void *) S.static_pstores[i]);
 				}
 			}
 		}
-		for (i = 0; i < PSTORES_NUM && !found; i++) {
+		for (int i = 0; i < PSTORES_NUM && !found; i++) {
 
 			if (S.static_pstores[i] == *store) {
 				found = 1;
@@ -1293,8 +1309,6 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	GMRFLib_ENTER_ROUTINE;
 
 	if (copy_pardiso_ptr) {
-		int i;
-
 #define CP(_what) dup->_what = old->_what
 #define CP2(_what) dup->pstore[tnum]->_what = old->pstore[tnum]->_what
 #define CP2_ref(_what) dup->pstore[GMRFLib_PSTORE_TNUM_REF]->_what = old->pstore[GMRFLib_PSTORE_TNUM_REF]->_what
@@ -1308,7 +1322,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 
 		GMRFLib_pardiso_store_tp *dup = Calloc(1, GMRFLib_pardiso_store_tp);
 		dup->copy_pardiso_ptr = 1;		       /* YES! */
-		for (i = 0; i < GMRFLib_PARDISO_PLEN; i++) {
+		for (int i = 0; i < GMRFLib_PARDISO_PLEN; i++) {
 			CP(pt[i]);
 		}
 		CP(iparm_default);
@@ -1327,7 +1341,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 			dup->pstore[tnum] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
 		if (!dup->pstore[GMRFLib_PSTORE_TNUM_REF])
 			dup->pstore[GMRFLib_PSTORE_TNUM_REF] = Calloc(1, GMRFLib_pardiso_store_pr_thread_tp);
-		for (i = 0; i < GMRFLib_PARDISO_PLEN; i++) {
+		for (int i = 0; i < GMRFLib_PARDISO_PLEN; i++) {
 			CP2_ref(iparm[i]);
 			CP2_ref(dparm[i]);
 		}

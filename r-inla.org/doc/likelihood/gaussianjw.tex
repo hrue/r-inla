@@ -1,0 +1,78 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{GaussianJW}
+
+\subsection*{Parametrisation}
+
+The GaussianJW likelihood is a two-part likelihood for $\{(y,v)_i\}$.
+First a Gaussian observation $y$
+\begin{displaymath}
+    y|\ldots  \;\sim\; {\mathcal N}(p, V(p, n)) 
+\end{displaymath}
+with mean (probability) $p$ and a variance function
+\begin{displaymath}
+    V(p, n) = \exp\left(\beta_1 + \beta_2 \log(p(1-p)) + \beta_3 \log(n)\right)
+\end{displaymath}
+and then an (conditional independent) observed variance $v$, where
+\begin{displaymath}
+    \nu\frac{v}{V(p,n)}|\ldots \;\sim\; \chi^{2}_{\nu}.
+\end{displaymath}
+The case $\beta_1=0, \beta_2=1, \beta_3=-1$ resembles the case where a
+Binomial is approximated with a Normal. $(n,\nu)$ is considered as
+fixed.
+
+
+\subsection*{Link-function}
+
+The probability $p$ is linked to the linear predictor $\eta$ with a
+(default) logit link
+\begin{displaymath}
+    p = \frac{1}{1 + \exp(-\eta)}
+\end{displaymath}
+but other links are also possible.
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are 
+\begin{displaymath}
+    \theta_1 = \beta_1
+\end{displaymath}
+\begin{displaymath}
+    \theta_2 = \beta_2
+\end{displaymath}
+\begin{displaymath}
+    \theta_3 = \beta_3
+\end{displaymath}
+and the prior is defined on $(\theta_1, \theta_2, \theta_3)$.
+
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{gaussianjw}$
+\item Required arguments: $y$, $n$ and $\nu$ (all vectors of the same
+    length) as an \texttt{inla.mdata()}-object with this spesific
+    ordering, see the example.
+\end{itemize}
+
+
+
+\subsubsection*{Hyperparameter spesification and default values}
+\input{../hyper/likelihood/gaussianjw.tex}
+
+\subsection*{Example}
+\verbatiminput{example-gaussianjw.R}
+
+\end{document}
+
+
+% LocalWords:
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

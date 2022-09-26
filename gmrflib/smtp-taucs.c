@@ -502,36 +502,66 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 
 		switch (reorder) {
 		case GMRFLib_REORDER_IDENTITY:
+		{
 			p = GMRFLib_strdup("identity");
+		}
 			break;
+
 		case GMRFLib_REORDER_REVERSE_IDENTITY:
+		{
 			p = GMRFLib_strdup("reverseidentity");
+		}
 			break;
+
 		case GMRFLib_REORDER_DEFAULT:
 		case GMRFLib_REORDER_METIS:
+		{
 			p = GMRFLib_strdup("metis");
+		}
 			break;
+
 		case GMRFLib_REORDER_GENMMD:
+		{
 			p = GMRFLib_strdup("genmmd");
+		}
 			break;
+
 		case GMRFLib_REORDER_AMD:
+		{
 			p = GMRFLib_strdup("amd");
+		}
 			break;
+
 		case GMRFLib_REORDER_AMDC:
+		{
 			p = GMRFLib_strdup("amdc");
+		}
 			break;
+
 		case GMRFLib_REORDER_AMDBAR:
+		{
 			p = GMRFLib_strdup("amdbar");
+		}
 			break;
+
 		case GMRFLib_REORDER_AMDBARC:
+		{
 			p = GMRFLib_strdup("amdbarc");
+		}
 			break;
+
 		case GMRFLib_REORDER_MD:
+		{
 			p = GMRFLib_strdup("md");
+		}
 			break;
+
 		case GMRFLib_REORDER_MMD:
+		{
 			p = GMRFLib_strdup("mmd");
+		}
 			break;
+
 		default:
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 			p = NULL;

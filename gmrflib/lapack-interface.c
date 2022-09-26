@@ -69,7 +69,7 @@ double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q)
 double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity)
 {
 	// 'identity' says that Q=S=I
-	
+
 	gsl_matrix *L_Q = NULL, *L_S = NULL;
 	double log_det_Q = 0.0;
 	size_t n = 0;
@@ -102,7 +102,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 			log_det_Q *= (-2.0);
 		}
 	}
-	
+
 	gsl_vector *xx = gsl_vector_alloc(n);
 	if (x && mean) {
 		for (size_t i = 0; i < n; i++) {
@@ -139,7 +139,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 			gsl_blas_ddot(xx, xx, &sqr);
 		}
 	}
-	
+
 	if (L_S) {
 		gsl_matrix_free(L_S);
 	}
@@ -253,11 +253,17 @@ int GMRFLib_comp_posdef_inverse(double *matrix, int dim)
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
+	{
 		dpotf2_("L", &dim, matrix, &dim, &info, F_ONE);
+	}
 		break;
+
 	case BLAS_LEVEL3:
+	{
 		dpotrf_("L", &dim, matrix, &dim, &info, F_ONE);
+	}
 		break;
+
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
 		break;
@@ -347,11 +353,17 @@ int GMRFLib_comp_chol_general(double **chol, double *matrix, int dim, double *lo
 
 	switch (GMRFLib_blas_level) {
 	case BLAS_LEVEL2:
+	{
 		dpotf2_("L", &dim, a, &dim, &info, F_ONE);
+	}
 		break;
+
 	case BLAS_LEVEL3:
+	{
 		dpotrf_("L", &dim, a, &dim, &info, F_ONE);
+	}
 		break;
+
 	default:
 		GMRFLib_ASSERT(1 == 0, GMRFLib_ESNH);
 		break;
@@ -1041,14 +1053,63 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	return kld;
 }
 
-double my_dsum(int n, double *__restrict x)
+int my_isum(int n, int *ix)
 {
 	const int roll = 8L;
-	div_t d;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	d = div(n, roll);
+	int s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
 
-	for (int i = 0; i < d.quot * roll; i += roll) {
+#pragma GCC ivdep
+	for (int i = 0; i < m; i += roll) {
+		int *xx = ix + i;
+
+		s0 += xx[0];
+		s1 += xx[1];
+		s2 += xx[2];
+		s3 += xx[3];
+
+		s0 += xx[4];
+		s1 += xx[5];
+		s2 += xx[6];
+		s3 += xx[7];
+	}
+
+#pragma GCC ivdep
+	for (int i = d.quot * roll; i < n; i++) {
+		s0 += ix[i];
+	}
+
+	return (s0 + s1 + s2 + s3);
+}
+
+int my_isum2(int n, int *ix)
+{
+	int s = 0;
+	if (0) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
+			s += ix[i];
+		}
+	} else {
+#pragma omp simd reduction(+: s)
+		for (int i = 0; i < n; i++) {
+			s += ix[i];
+		}
+	}
+
+	return (s);
+}
+
+double my_dsum(int n, double *x)
+{
+	const int roll = 8L;
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+#pragma GCC ivdep
+	for (int i = 0; i < m; i += roll) {
 		double *xx = x + i;
 
 		s0 += xx[0];
@@ -1062,11 +1123,36 @@ double my_dsum(int n, double *__restrict x)
 		s3 += xx[7];
 	}
 
+#pragma GCC ivdep
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += x[i];
 	}
 
 	return (s0 + s1 + s2 + s3);
+}
+
+double my_dsum2(int n, double *x)
+{
+	double s = 0.0;
+	if (0) {
+#pragma GCC ivdep
+		for (int i = 0; i < n; i++) {
+			s += x[i];
+		}
+	} else {
+#pragma omp simd reduction(+: s)
+		for (int i = 0; i < n; i++) {
+			s += x[i];
+		}
+	}
+
+	return (s);
+}
+
+double my_ddot(int n, double *__restrict x, double *__restrict y)
+{
+	int one = 1;
+	return ddot_(&n, x, &one, y, &one);
 }
 
 double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
@@ -1076,6 +1162,7 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
+#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		double *vv = v + i;
 		int *iidx = idx + i;
@@ -1091,6 +1178,7 @@ double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__res
 		s3 += vv[7] * a[iidx[7]];
 	}
 
+#pragma GCC ivdep
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}
@@ -1104,6 +1192,7 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
 
+#pragma GCC ivdep
 	for (int i = 0; i < d.quot * roll; i += roll) {
 		int *iidx = idx + i;
 
@@ -1118,6 +1207,7 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 		s3 += a[iidx[7]];
 	}
 
+#pragma GCC ivdep
 	for (int i = d.quot * roll; i < n; i++) {
 		s0 += a[idx[i]];
 	}

@@ -84,8 +84,10 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	ww = Calloc(nf, double *);
 	for (int i = 0; i < nf; i++) {
 		ww[i] = Calloc(npred, double);
+		double *ww_tmp = ww[i];
+#pragma GCC ivdep
 		for (int j = 0; j < npred; j++) {
-			ww[i][j] = 1.0;
+			ww_tmp[j] = 1.0;
 		}
 	}
 	if (w) {
@@ -651,13 +653,13 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *U
 
 	switch (it.tp) {
 	case GMRFLib_PREOPT_TP_F:
+	{
 		switch (jt.tp) {
 		case GMRFLib_PREOPT_TP_F:
+		{
 			if (same_tp) {
 				if (same_idx || GMRFLib_graph_is_nb(it.idx, jt.idx, a->f_graph[it.tp_idx])) {
-					value +=
-					    a->f_Qfunc[it.tp_idx] (thread_id, it.idx, jt.idx, NULL,
-								   (a->f_Qfunc_arg ? a->f_Qfunc_arg[it.tp_idx] : NULL));
+					value += a->f_Qfunc[it.tp_idx] (thread_id, it.idx, jt.idx, NULL, a->f_Qfunc_arg[it.tp_idx]);
 				}
 				if (same_idx) {
 					value += a->f_diag[it.tp_idx];
@@ -671,29 +673,40 @@ double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *U
 				if (same_idx && !same_tp && a->ff_Qfunc[it.tp_idx][jt.tp_idx]) {
 					value +=
 					    a->ff_Qfunc[it.tp_idx][jt.tp_idx] (thread_id, it.idx, jt.idx, NULL,
-									       (a->ff_Qfunc_arg ? a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx] : NULL));
+									       a->ff_Qfunc_arg[it.tp_idx][jt.tp_idx]);
 				}
 			}
 			return value;
+		}
+
 		case GMRFLib_PREOPT_TP_BETA:
 			return value;
+
 		default:
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
+
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	case GMRFLib_PREOPT_TP_BETA:
+	{
 		switch (jt.tp) {
 		case GMRFLib_PREOPT_TP_BETA:
+		{
 			if (same_tp) {
 				value += (a->prior_precision ? a->prior_precision[it.tp_idx] : 0.0);
 			}
 			return value;
+		}
+
 		default:
 			GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
 		}
+
 		GMRFLib_ASSERT_RETVAL(0 == 1, GMRFLib_ESNH, 0.0);
+	}
 		break;
 
 	default:
@@ -936,20 +949,20 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// both loops
 			double *pred_offset = pred + offset;
 #define CODE_BLOCK							\
-			for(int j = 0; j < 2; j++) {			\
+			for (int j = 0; j < 2; j++) {			\
 				if (j == 0) {				\
-					for(int i = 0; i < preopt->n; i++) { \
+					for (int i = 0; i < preopt->n; i++) { \
 						GMRFLib_idxval_tp *At = preopt->At_idxval[i]; \
 						double lat = latent[i];	\
-						for(int k = 0; k < At->n; k++) { \
+						for (int k = 0; k < At->n; k++) { \
 							pred_offset[At->idx[k]] += lat * At->val[k]; \
 						}			\
 					}				\
 				} else {				\
-					for(int i = 0; i < preopt->n; i++) { \
+					for (int i = 0; i < preopt->n; i++) { \
 						GMRFLib_idxval_tp *pAAt = preopt->pAAt_idxval[i]; \
 						double lat = latent[i];	\
-						for(int k = 0; k < pAAt->n; k++) { \
+						for (int k = 0; k < pAAt->n; k++) { \
 							pred[pAAt->idx[k]] += lat * pAAt->val[k]; \
 						}			\
 					}				\
@@ -978,7 +991,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			// both loops
 			double *pred_offset = pred + offset;
 #define CODE_BLOCK							\
-			for(int j = 0; j < 2; j++) {			\
+			for (int j = 0; j < 2; j++) {			\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->npred; i++) { \
 						if (preopt->A_idxval[i]) { \
@@ -1067,7 +1080,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				}
 			} else {
 #define CODE_BLOCK							\
-				for(int i = 0; i < mpred; i++) {	\
+				for (int i = 0; i < mpred; i++) {	\
 					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
 					DOT_PRODUCT_SERIAL(mean[i], elm, mm); \
 				}
@@ -1079,11 +1092,11 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			// both mean and variance
 
 #define CODE_BLOCK							\
-			for(int i = 0; i < mpred; i++) {		\
+			for (int i = 0; i < mpred; i++) {		\
 				double m = 0.0, var = 0.0, *cov;	\
 				int k, j, kk, jj;			\
 				GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-				for(k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\
+				for (k = 0; k < preopt->pAA_idxval[i]->n; k++) {	\
 					j = elm->idx[k];		\
 					if (compute_mean) {		\
 						m += elm->val[k] * mm[j]; \
@@ -1091,7 +1104,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					cov = GMRFLib_Qinv_get(problem, j, j); \
 					var += SQR(elm->val[k]) * *cov;	\
 					double tvar = 0.0;		\
-					for(kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
+					for (kk = k+1; kk < preopt->pAA_idxval[i]->n; kk++){ \
 						jj = elm->idx[kk];	\
 						cov = GMRFLib_Qinv_get(problem, j, jj);	\
 						tvar += elm->val[kk] * *cov; \
@@ -1124,10 +1137,10 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 			}
 		} else {
 #define CODE_BLOCK							\
-			for(int i = 0; i < npred; i++) {		\
+			for (int i = 0; i < npred; i++) {		\
 				GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
 				double mean_tmp = 0.0;			\
-				for(int k = 0; k < preopt->A_idxval[i]->n; k++){ \
+				for (int k = 0; k < preopt->A_idxval[i]->n; k++){ \
 					mean_tmp += elm->val[k] * mm[elm->idx[k]]; \
 				}					\
 				mean_offset[i] += mean_tmp;		\
@@ -1144,11 +1157,11 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		double *variance_offset = variance + offset;
 
 #define CODE_BLOCK							\
-		for(int i = 0; i < npred; i++) {			\
+		for (int i = 0; i < npred; i++) {			\
 			double m = 0.0, var = 0.0, zero = 0.0, *cov = NULL; \
 			int k, j, kk, jj;				\
 			GMRFLib_idxval_tp *elm = preopt->A_idxval[i];	\
-			for(k = 0; k < preopt->A_idxval[i]->n; k++){	\
+			for (k = 0; k < preopt->A_idxval[i]->n; k++){	\
 				j = elm->idx[k];			\
 				if (compute_mean) {			\
 					m += elm->val[k] * mm[j];	\
@@ -1156,7 +1169,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 				cov = GMRFLib_Qinv_get(problem, j, j);	\
 				var += SQR(elm->val[k]) * *cov;		\
 				double tvar = 0.0;			\
-				for(kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
+				for (kk = k+1; kk < preopt->A_idxval[i]->n; kk++){ \
 					jj = elm->idx[kk];		\
 					cov = GMRFLib_Qinv_get(problem, j, jj);	\
 					if (!cov) {			\
@@ -1342,44 +1355,4 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
 	Calloc_free();
 
 	return cpu;
-}
-
-int GMRFLib_preopt_test1(int n, int m)
-{
-	int k = 0;
-	GMRFLib_idxval_tp *idxval = NULL;
-	for (int i = 0; i < n; i++) {
-		int mm = (int) (GMRFLib_uniform() * (m + 1.0));
-		for (int j = 0; j < mm; j++) {
-			GMRFLib_idxval_add(&idxval, k + j, GMRFLib_uniform());
-		}
-		k += mm + 10;
-
-		if (k > n)
-			break;
-	}
-	GMRFLib_idxval_sort(idxval);
-	assert(idxval);
-
-	double *x = Calloc(n, double);
-	for (int i = 0; i < k; i++) {
-		x[i] = GMRFLib_uniform();
-	}
-
-	for (int j = 0; j < 4; j++) {
-		double tref = -GMRFLib_cpu();
-		double val = 0.0;
-		DOT_PRODUCT_SERIAL(val, idxval, x);
-		printf("serial \t%f %f\n", tref + GMRFLib_cpu(), val);
-
-		tref = -GMRFLib_cpu();
-		val = 0.0;
-		DOT_PRODUCT_GROUP(val, idxval, x);
-		printf("group \t%f %f\n", tref + GMRFLib_cpu(), val);
-	}
-
-	Free(x);
-	GMRFLib_idxval_free(idxval);
-
-	return GMRFLib_SUCCESS;
 }

@@ -4,6 +4,9 @@ export MANDIR=../man
 
 # inla.models.generate call has been moved to the Makefile, to allow
 # overriding the R binary
+# But Rsort also needs it, so caller must specify it
+RR=$1
+echo ${RR}
 
 function mmp ()
 {
@@ -89,7 +92,7 @@ Rsort () {
 
     rm -f $TT_FILE $TTT_FILE
     cat > $TT_FILE
-    echo 'write(sort(readLines(Sys.getenv("TT_FILE"))),ncol=1,file=Sys.getenv("TTT_FILE"))' | R --vanilla --slave 2>/dev/null
+    echo 'write(sort(readLines(Sys.getenv("TT_FILE"))),ncol=1,file=Sys.getenv("TTT_FILE"))' | ${RR} --vanilla --slave 2>/dev/null
     cat $TTT_FILE
 }
 
