@@ -7789,6 +7789,7 @@ inla.models()
 						\item{Properties:}{
 							\describe{
 								\item{doc = }{`The CenNegBinomial2 likelihood (similar to cenpoisson2)'}
+								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default log logoffset quantile'}
