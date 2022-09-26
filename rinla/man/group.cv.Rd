@@ -19,7 +19,6 @@ inla.group.cv(result,
           verbose = FALSE, 
           epsilon = 0.0025, 
           prior.diagonal = 1e-04, 
-          correct.hyperpar = TRUE, 
           keep = NULL, 
           remove = NULL, 
           remove.fixed = TRUE)
@@ -44,8 +43,6 @@ enable \code{inla(...,  verbose=TRUE)} if its not enabled already.}
 \code{epsilon}, will be classified as identical.}
 \item{prior.diagonal}{When \code{strategy="prior"}, \code{prior.diagonal}
 is added to the diagonal of the prior precision matrix to avoid singularities}
-\item{correct.hyperpar}{Correct the marginal of the hyperparmeters
-for removing data-points?}
 \item{keep}{For \code{strategy="prior"}, then this gives a vector of 
 the name of model-components TO USE when computing the groups.
 See the  vignette for details.
