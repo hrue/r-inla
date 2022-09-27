@@ -10,14 +10,8 @@
 #include <list>
 #include <string>
 
-#include "vector.hh"
-
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
+#include "fmesher_debuglog.h"
+#include "vector.h"
 
 #define IOHEADER_VERSION 0
 #define BINARY_DEFAULT false
@@ -47,7 +41,7 @@ namespace fmesh {
   public:
     int version; /*!< Format version */
     int elems; /*!< The number of data units
-		 
+
 		 For dense matrices, the total number of elements.
 		 For sparse matrices, the number of elements contained in
 		 the file.
@@ -74,7 +68,7 @@ namespace fmesh {
     IOHeader& sparse(const SparseMatrix<T>& M,
 		     IOMatrixtype matrixt = IOMatrixtype_general);
     IOHeader& collection(const MatrixC& C);
-    
+
     /* Constructor, that sets the valuetype matching T: */
     template <class T>
     IOHeader(const T& ref);
@@ -478,6 +472,6 @@ namespace fmesh {
 
 } /* namespace fmesh */
 
-#include "ioutils.tcc"
+#include "ioutils_t.h"
 
 #endif

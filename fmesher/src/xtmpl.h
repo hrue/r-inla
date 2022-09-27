@@ -1,4 +1,4 @@
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 
 /* Time-stamp: <98/01/06 10:30:04 hrue> */
 

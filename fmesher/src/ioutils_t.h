@@ -12,12 +12,7 @@
 #include <list>
 #include <string>
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
+#include "fmesher_debuglog.h"
 
 namespace fmesh {
 
@@ -29,7 +24,7 @@ namespace fmesh {
     return *this;
   }
   */
-  
+
   template <class T>
   IOHeader& IOHeader::dense(const Matrix<T>& M,
 			    IOMatrixtype matrixt)
@@ -252,7 +247,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperM<T>& IOHelperM<T>::ID(std::istream& input)
   {
@@ -349,7 +344,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperSM<T>& IOHelperSM<T>::OD(std::ostream& output)
   {
@@ -374,7 +369,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperSM<T>& IOHelperSM<T>::ID(std::istream& input)
   {
@@ -448,7 +443,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperSM<T>& IOHelperSM<T>::OD_2009(std::ostream& output)
   {
@@ -471,7 +466,7 @@ namespace fmesh {
   }
 
 
-  
+
   template <class T>
   IOHeader& IOHeader::def(const T& ref) {
     def();
@@ -516,22 +511,22 @@ namespace fmesh {
     ioh.binary(binary).OH(O).OD(O);
     O.close();
   }
-  
-  
-  
+
+
+
   template <class T>
   void MatrixC::input_raw_M(std::istream& input,
 			    Matrix<T>& M) const
   {
     M.load_ascii_2009(input);
   }
-  
 
 
 
 
 
-  
+
+
 } /* namespace fmesh */
 
 #endif

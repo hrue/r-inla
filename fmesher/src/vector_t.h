@@ -3,8 +3,8 @@
 
 #include <fstream>
 #include <sstream>
-#include "vector.hh"
-#include "ioutils.hh"
+#include "vector.h"
+#include "ioutils.h"
 
 namespace fmesh {
 

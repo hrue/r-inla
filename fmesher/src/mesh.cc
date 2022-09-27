@@ -7,40 +7,26 @@
 #include <ctime>
 #include <cerrno>
 
-#include "predicates.hh"
-#include "x11utils.hh"
-#include "meshc.hh"
-#include "mesh.hh"
+#include "predicates.h"
+#include "x11utils.h"
+#include "meshc.h"
+#include "mesh.h"
 
-#ifndef WHEREAMI
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-#endif
-
-#ifndef LOG_
-#define LOG_(msg) std::cout << WHEREAMI << msg;
-#endif
-#ifndef LOG
-#ifdef DEBUG
-#define LOG(msg) LOG_(msg)
-#else
-#define LOG(msg)
-#endif
-#endif
+#include "fmesher_debuglog.h"
 
 
-using std::cout;
 using std::endl;
 
 namespace fmesh {
 
 
 
-  
+
 
 
   /*
     T-E+V=2
-    
+
     closed 2-manifold triangulation:
     E = T*3/2
     T = 2*V-4
@@ -56,7 +42,7 @@ namespace fmesh {
 	     bool use_TTi) : type_(manifold_type),
 			     use_VT_(use_VT), use_TTi_(use_TTi),
 			     TV_(), TT_(), VT_(), TTi_(), S_()
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 			   , X11_(NULL), X11_v_big_limit_(0)
 #endif
   {
@@ -79,7 +65,7 @@ namespace fmesh {
   Mesh& Mesh::clear()
   {
     empty();
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (X11_) { delete X11_; X11_ = NULL; }
 #endif
     return *this;
@@ -101,7 +87,7 @@ namespace fmesh {
     type_ = M.type_;
     useVT(M.use_VT_);
     useTTi(M.use_TTi_);
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (M.X11_) {
       X11_ = new Xtmpl(*M.X11_);
     } else {
@@ -263,7 +249,7 @@ namespace fmesh {
 	    TTi_(t)[(vi+2)%3] = (vi2+1)%3;
 	  } else {
 	    /* Error! This should never happen! */
-	    LOG("ERROR\n");
+	    FMLOG("ERROR\n");
 	  }
 	} else {
 	  TTi_(t)[(vi+2)%3] = -1;
@@ -306,9 +292,9 @@ namespace fmesh {
     };
     return VV;
   }
-    
 
-#ifndef FMESHER_NO_X
+
+#ifdef FMESHER_WITH_X
   void Mesh::setX11delay(double set_delay)
   {
     if (X11_) {
@@ -360,7 +346,7 @@ namespace fmesh {
     S_append(S);
     return *this;
   }
-  
+
   Mesh& Mesh::TV_set(const Matrix3int& TV)
   {
     TV_.rows(0); /* Avoid possible unnecessary copy. */
@@ -384,7 +370,7 @@ namespace fmesh {
     return *this;
   }
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
   void Mesh::drawX11point(int v, bool fg)
   {
     if (!X11_) return;
@@ -406,7 +392,7 @@ namespace fmesh {
   }
 #endif
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
   void Mesh::drawX11triangle(int t, bool fg)
   {
     if (!X11_) return;
@@ -478,7 +464,7 @@ namespace fmesh {
       Vec::accum(r0,s[2]);
       Vec::rescale(r0,1/3.);
 
-      LOG_(arc_split << "\t" << r0[2] << "\t" << n[2] << endl);
+      FMLOG_(arc_split << "\t" << r0[2] << "\t" << n[2] << endl);
       */
     }
     /* Draw triangle slightly closer to center. */
@@ -539,13 +525,13 @@ namespace fmesh {
   }
 #endif
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
   void Mesh::redrawX11(std::string str)
   {
     if (!X11_) return;
     if (verbose_ > 0)
-      std::cout << str << std::endl;
-    
+      FMLOG_(str << std::endl);
+
     X11_->clear();
     for (int v=0;v<(int)nV();v++)
       drawX11point(v,true);
@@ -554,8 +540,8 @@ namespace fmesh {
 
     X11_->delay();
   }
-#endif /* FMESHER_NO_X */
-  
+#endif /* FMESHER_WITH_X */
+
   Mesh& Mesh::TV_append(const Matrix3int& TV)
   {
     TV_.append(TV);
@@ -563,7 +549,7 @@ namespace fmesh {
       update_VT_triangles(nT()-TV.rows());
     rebuildTT();
     rebuildTTi();
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     redrawX11(std::string("TV appended"));
 #endif
     return *this;
@@ -591,7 +577,7 @@ namespace fmesh {
 
 
   /*!
-   \brief Calculate the length of an edge. 
+   \brief Calculate the length of an edge.
 
    For planes and triangular manifolds, the edge length is
    \f$L=\|s_1-s_0\|\f$.
@@ -623,7 +609,7 @@ namespace fmesh {
   }
 
   /*!
-    
+
     \see Mesh::edgeLength(const Dart& d)
   */
   double Mesh::edgeLength(const Dart& d) const
@@ -705,8 +691,8 @@ namespace fmesh {
     Heron's formula:
     a,b,c edge lengths
     s = (a+b+c)/2
-    Area = sqrt(s(s-a)(s-b)(s-c)) 
-    
+    Area = sqrt(s(s-a)(s-b)(s-c))
+
     Numerically stable version from
     http://www.eecs.berkeley.edu/~wkahan/Triangle.pdf
     a >= b >= c
@@ -715,7 +701,7 @@ namespace fmesh {
     l'Huilier's Theorem for spherical triangle areas:
     a,b,c edge lengths
     s = (a+b+c)/2
-    tan(E / 4) = sqrt(tan(s / 2) 
+    tan(E / 4) = sqrt(tan(s / 2)
                       tan((s - a) / 2)
 		      tan((s - b) / 2)
 		      tan((s - c) / 2))
@@ -788,18 +774,18 @@ namespace fmesh {
 	area = 2.*std::atan2(sinth,costh);
 	if (area<0)
 	  area += 4.*M_PI;
-	
-	//	cout << WHEREAMI << "Areas: (" << area << "," << area2
-	//	     << ") a2/a1 = " << area2/area << endl;
+
+	//	FMLOG("Areas: (" << area << "," << area2
+	//	     << ") a2/a1 = " << area2/area << endl);
 
 	/*
 	double costh =
 	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
 	double sinth = 2.*Vec::volume(s0,s1,s2)/Vec::length(e2);
 	double area2 = 2.*std::atan2(sinth,costh);
-	
-	cout << WHEREAMI << "Areas: (" << area << "," << area2
-	     << ") a2/a1 = " << area2/area << endl;
+
+	FMLOG("Areas: (" << area << "," << area2
+	     << ") a2/a1 = " << area2/area << endl);
 	*/
 
 	/*
@@ -821,7 +807,7 @@ namespace fmesh {
       break;
     default:
       /* ERROR: This should never be reached. */
-      LOG("ERROR: unhandled mesh type.");
+      FMLOG("ERROR: unhandled mesh type.");
       area = 0.0;
     }
 
@@ -853,7 +839,7 @@ namespace fmesh {
       Vec::sum(n0,s0,s1);
       Vec::accum(n0,s2,1.0);
       Vec::rescale(n0,1.0/Vec::length(n0));
-      
+
       /* Radially project points onto tangent plane. */
       /* s0_ = x0*s0,  (x0*s0-n0)*n0 = 0,  x0 = 1/(s0*n0) */
       Vec::scale(e0, s0, 1.0/Vec::scalar(s0,n0));
@@ -899,9 +885,9 @@ namespace fmesh {
     \f}
     where formulas for \f$a_1\f$ and \f$a_2\f$ are given by index
     permutation.
-    
+
     On the sphere, the normalised flat triangle normal is the circumcenter.
-    
+
     \see Mesh::triangleArea
     \see Mesh::triangleCircumcircleRadius
   */
@@ -1059,7 +1045,7 @@ namespace fmesh {
 
     return beta;
   }
-  
+
   bool Mesh::triangleEdgeLengths(int t, Point& len) const
   {
     if ((t<0) || (t>=(int)nT())) return 0.0;
@@ -1207,8 +1193,8 @@ namespace fmesh {
     if (onBoundary()) return true; /* Locally optimal, OK. */
     dh.orbit0rev().orbit2();
     int v(dh.v());
-    //    LOG("circumcircleOK? " << *this << endl);
-    //    LOG("  result0 = "
+    //    FMLOG("circumcircleOK? " << *this << endl);
+    //    FMLOG("  result0 = "
     //	      << std::scientific << inCircumcircle(M_->S_[v]) << endl);
     if (inCircumcircle(M_->S_[v]) <= MESH_EPSILON) return true;
     /* For symmetric robusness, check with the reverse dart as well: */
@@ -1217,7 +1203,7 @@ namespace fmesh {
     v = dh.v();
     dh.orbit2();
     dh.orbit1();
-    //    LOG("  result1 = "
+    //    FMLOG("  result1 = "
     //	      << std::scientific << dh.inCircumcircle(M_->S_[v]) << endl);
     return (dh.inCircumcircle(M_->S_[v]) <= MESH_EPSILON);
   }
@@ -1233,7 +1219,7 @@ namespace fmesh {
        3         3
      \endverbatim
      Dart 0-1 --> 3-2
-    
+
   */
   Dart Mesh::swapEdge(const Dart& d)
   {
@@ -1271,7 +1257,7 @@ namespace fmesh {
     dh.orbit2();
     v_list[3] = TV_[t1][dh.vi()];
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (X11_) {
       drawX11triangle(t0,false);
       drawX11triangle(t1,false);
@@ -1342,29 +1328,29 @@ namespace fmesh {
     }
 
     /* Debug code: */
-    /* 
-    LOG("TT is \n" << TTO());
+    /*
+    FMLOG("TT is \n" << TTO());
     rebuildTT();
-    LOG("TT should be \n" << TTO());
+    FMLOG("TT should be \n" << TTO());
     if (use_TTi_) {
-      LOG("TTi is \n" << TTiO());
+      FMLOG("TTi is \n" << TTiO());
       rebuildTTi();
-      LOG("TTi should be \n" << TTiO());
+      FMLOG("TTi should be \n" << TTiO());
     }
     */
 
-    LOG("Edge swapped" << endl);
-#ifndef FMESHER_NO_X
+    FMLOG("Edge swapped" << endl);
+#ifdef FMESHER_WITH_X
     if (X11_) {
       drawX11triangle(t0,true);
       drawX11triangle(t1,true);
       X11_->delay();
     }
 #endif
-    
+
     return Dart(*this,t0,1,1);
   }
-  
+
   /*!
      \verbatim
      2           2
@@ -1375,7 +1361,7 @@ namespace fmesh {
     \d/         \|/
      0           0
      \endverbatim
-   
+
      Dart 0-2 --> v-2
   */
   Dart Mesh::splitEdge(const Dart& d, int v)
@@ -1405,7 +1391,7 @@ namespace fmesh {
     v1 = TV_[t0][vi];
     dh.orbit2();
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (X11_)
       drawX11triangle(t0,false);
 #endif
@@ -1426,7 +1412,7 @@ namespace fmesh {
       vi = dh.vi();
       v3 = TV_[t1][vi];
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
       if (X11_)
 	drawX11triangle(t1,false);
 #endif
@@ -1557,18 +1543,18 @@ namespace fmesh {
 
     /* Debug code: */
     /*
-    LOG("TT is \n" << TTO());
+    FMLOG("TT is \n" << TTO());
     rebuildTT();
-    LOG("TT should be \n" << TTO())
+    FMLOG("TT should be \n" << TTO())
     if (use_TTi_) {
-      LOG("TTi is \n" << TTiO());
+      FMLOG("TTi is \n" << TTiO());
       rebuildTTi();
-      LOG("TTi should be \n" << TTiO());
+      FMLOG("TTi should be \n" << TTiO());
     }
     */
 
-    LOG("Edge split" << endl);
-#ifndef FMESHER_NO_X
+    FMLOG("Edge split" << endl);
+#ifdef FMESHER_WITH_X
     if (X11_) {
       if (!on_boundary) {
 	drawX11triangle(t3,true);
@@ -1579,7 +1565,7 @@ namespace fmesh {
       X11_->delay();
     }
 #endif
-    
+
     return Dart(*this,t1,1,0);
   }
 
@@ -1593,7 +1579,7 @@ namespace fmesh {
      | d/       |/ /
       0          0
      \endverbatim
-   
+
      Dart 0-1 --> v-1
   */
   Dart Mesh::splitTriangle(const Dart& d, int v)
@@ -1626,7 +1612,7 @@ namespace fmesh {
     if (use_TTi_) tti_list[0] = TTi_[t][vi];
     dh.orbit2();
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (X11_)
       drawX11triangle(t,false);
 #endif
@@ -1636,8 +1622,8 @@ namespace fmesh {
     t1 = nT();
     t2 = nT()+1;
     check_capacity(0,nT()+2);
-    
-    LOG("Capacity (V,T) = ("
+
+    FMLOG("Capacity (V,T) = ("
 	     << S_.capacity() << "," << TV_.capacity() << "), T-indices = ("
 	     << t0 << "," << t1 << "," << t2 << ")" << endl);
 
@@ -1710,18 +1696,18 @@ namespace fmesh {
 
     /* Debug code: */
     /*
-    LOG("TT is \n" << TTO());
+    FMLOG("TT is \n" << TTO());
     rebuildTT();
-    LOG("TT should be \n" << TTO());
+    FMLOG("TT should be \n" << TTO());
     if (use_TTi_) {
-      LOG("TTi is \n" << TTiO());
+      FMLOG("TTi is \n" << TTiO());
       rebuildTTi();
-      LOG("TTi should be \n" << TTiO());
+      FMLOG("TTi should be \n" << TTiO());
     }
     */
-    
-    LOG("Triangle split" << endl);
-#ifndef FMESHER_NO_X
+
+    FMLOG("Triangle split" << endl);
+#ifdef FMESHER_WITH_X
     if (X11_) {
       drawX11triangle(t0,true);
       drawX11triangle(t1,true);
@@ -1751,10 +1737,10 @@ namespace fmesh {
     TT_(dh.t())[dh.vi()] = -1;
     if (use_TTi_)
       TTi_(dh.t())[dh.vi()] = -1;
-    
+
     return *this;
   }
-  
+
   /*!
     Unlink a triangle
    */
@@ -1810,7 +1796,7 @@ namespace fmesh {
       dh.orbit0rev().orbit2();
       TT_(dh.t())[dh.vi()] = t_target;
     }
-    
+
     return *this;
   }
 
@@ -1826,7 +1812,7 @@ namespace fmesh {
     if ((t<0) || (t>=(int)nT()))
       return -1;
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     if (X11_) {
       drawX11triangle(t,false);
       if (!(TT_[t][0]<0)) drawX11triangle(TT_[t][0],true);
@@ -1903,11 +1889,11 @@ namespace fmesh {
 	  vol[1] = Vec::volume(s2,s0,s);
 	  vol[2] = Vec::volume(s0,s1,s);
 	  Vec::rescale(bary,1.0/(bary[0]+bary[1]+bary[2]));
-	  cout << WHEREAMI << "Barycentric:\t" << bary << endl;
+	  FMLOG_("Barycentric:\t" << bary << endl);
 	  Vec::rescale(vol,1.0/Vec::volume(s0,s1,s2));
-	  cout << WHEREAMI << "Unnormalised:\t" << vol << endl;
+	  FMLOG_("Unnormalised:\t" << vol << endl);
 	  Vec::rescale(vol,1.0/(vol[0]+vol[1]+vol[2]));
-	  cout << WHEREAMI << "Normalised:\t" << vol << endl;
+	  FMLOG_("Normalised:\t" << vol << endl);
 	}
       }
       break;
@@ -1957,18 +1943,19 @@ namespace fmesh {
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     d.orbit0rev();
-    while ((d != d0) && (!d.onBoundary()))
+    while ((d != d0) && (!d.onBoundary())) {
       d.orbit0rev();
+    }
     Dart d00(d);
 
-    LOG("Finding direction to point or v starting from d00, S:" << endl
+    FMLOG("Finding direction to point or v starting from d00, S:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d00 << endl
 	     << "\t\t" << S_[d00.v()] << endl);
 
     d.orbit2();
-    LOG("Finding direction to point or v starting from dart:" << endl
+    FMLOG("Finding direction to point or v starting from dart:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d << endl
@@ -1978,9 +1965,9 @@ namespace fmesh {
       return d;
     bool onleft0(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
     bool onleft2(d.inLeftHalfspace(s) >= -MESH_EPSILON);
-    LOG(d << endl);
+    FMLOG(d << endl);
     d.orbit2();
-    LOG("Finding direction to point or v starting from dart:" << endl
+    FMLOG("Finding direction to point or v starting from dart:" << endl
 	     << "\t\t" << s << endl
 	     << "\t\t" << v << endl
 	     << "\t\t" << d << endl
@@ -1989,17 +1976,17 @@ namespace fmesh {
     if (d.v() == v) // Have we found a preexisting vertex?
       return d;
     bool onleft1(inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
-    LOG("Locating direction "
+    FMLOG("Locating direction "
 	     << onleft0 << onleft1 << endl);
     while (!(!onleft0 && onleft1) && (!d.onBoundary())) {
       d.orbit0rev();
-      LOG(d << endl);
+      FMLOG(d << endl);
       if (d.v()==d00.vo()) {
 	if (onleft2) {
-	  LOG("Went full circle. Point found." << endl);
+	  FMLOG("Went full circle. Point found." << endl);
 	  return d;
 	} else {
-	  LOG("Went full circle. Point not found." << endl);
+	  FMLOG("Went full circle. Point not found." << endl);
 	  return Dart();
 	}
       }
@@ -2009,7 +1996,7 @@ namespace fmesh {
       onleft1 = (inLeftHalfspace(S_[v0],s,S_[d.v()]) >= 0.0);
       if (d.v() == v) // Have we found a preexisting vertex?
 	return d;
-      LOG("Locating direction "
+      FMLOG("Locating direction "
 	       << onleft0 << onleft1 << endl);
     }
     if (!onleft0 && onleft1) {
@@ -2034,7 +2021,7 @@ namespace fmesh {
     if (d0.isnull())
       return Dart();
     Dart d(*this, d0.t(), 1, 0);
-    
+
     /* Check if we're starting on a vertex, and call alternative method */
     /* onleft[i] = is triangle vertex i to the left of the line? */
     /* inside[i] = is s1 inside triangle edge i? */
@@ -2044,15 +2031,15 @@ namespace fmesh {
 	d = find_path_direction(d, s1, -1);
 	/* Check that the line actually crosses the dart. */
 	if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
-	  LOG("Checkpoint 4" << endl);
+	  FMLOG("Checkpoint 4" << endl);
 	  return d;
 	} else {
 	  return Dart();
 	}
       }
       onleft[i] = (inLeftHalfspace(s0, s1, S_[d.v()]) >= 0.0);
-      LOG("D=" << d << endl);
-      LOG("onleft[" << i << "] = " << onleft[i] << endl);
+      FMLOG("D=" << d << endl);
+      FMLOG("onleft[" << i << "] = " << onleft[i] << endl);
       d.orbit2();
     }
 
@@ -2060,16 +2047,16 @@ namespace fmesh {
       int i1 = (i0+1) % 3;
       if (inLeftHalfspace(S_[d.v()], S_[d.vo()], s1) < 0.0) {
 	if (!onleft[i1]) {
-	  LOG("Checkpoint 1" << endl);
+	  FMLOG("Checkpoint 1" << endl);
 	  d.orbit2();
 	  return d;
 	}
 	if (onleft[i0]) {
-	  LOG("Checkpoint 2" << endl);
+	  FMLOG("Checkpoint 2" << endl);
 	  d.orbit2rev();
 	  return d;
 	}
-	LOG("Checkpoint 3" << endl);
+	FMLOG("Checkpoint 3" << endl);
 	return d;
       }
       d.orbit2();
@@ -2125,32 +2112,32 @@ namespace fmesh {
     else
       dh = Dart(*this,d0.t(),1,d0.vi());
     int v0(dh.v());
-    LOG("Locating point " << s1
+    FMLOG("Locating point " << s1
 	     << " v0=" << v0
 	     << " v1=" << v1
 	     << endl);
 
     if (v1>=(int)nV()) { /* Vertex index out of range */
-      return DartPair(dh,Dart()); 
+      return DartPair(dh,Dart());
     }
 
     Dart d(find_path_direction(dh,s1,v1));
-    LOG("Path-direction " << d << endl);
-    LOG("Starting triangle " << d.t() << " ("
+    FMLOG("Path-direction " << d << endl);
+    FMLOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
 	     << TV_[d.t()][1] << ","
 	     << TV_[d.t()][2] << ")"
 	     << endl);
     if (d.isnull()) {
-      LOG("No direction found, so is in starting triangle" << endl);
+      FMLOG("No direction found, so is in starting triangle" << endl);
       return DartPair(dh, dh);
     }
     Dart dstart = d;
     while (dstart.v() != d0.v())
       dstart.orbit2rev();
-    LOG("Starting dart " << dstart << endl);
+    FMLOG("Starting dart " << dstart << endl);
     if ((d.v() == v1) || (d.inLeftHalfspace(s1) >= -MESH_EPSILON)) {
-      LOG("Found " << d << endl);
+      FMLOG("Found " << d << endl);
       return DartPair(dstart,d);
     }
     while (!d.onBoundary()) {
@@ -2159,9 +2146,9 @@ namespace fmesh {
 	trace_index++;
       }
       d.orbit1().orbit2rev();
-      LOG("In triangle " << d << endl);
+      FMLOG("In triangle " << d << endl);
       if (d.v() == v1) {
-	LOG("Found vertex at " << d << endl);
+	FMLOG("Found vertex at " << d << endl);
 	return DartPair(dstart,d);
       }
       found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
@@ -2173,9 +2160,9 @@ namespace fmesh {
 	found = false;
       if (!other)
 	d.orbit2();
-      LOG("Go to next triangle, from " << d << endl);
+      FMLOG("Go to next triangle, from " << d << endl);
     }
-    LOG("Endpoint not found "
+    FMLOG("Endpoint not found "
 	     << dstart << " " << d << endl);
     return DartPair(dstart,Dart());
   }
@@ -2219,25 +2206,25 @@ namespace fmesh {
       return DartPair(Dart(), Dart());
     }
     dh = Dart(*this, d0.t(), 1, d0.vi());
-    LOG("Locating point s1=" << s1
+    FMLOG("Locating point s1=" << s1
 	<< "from s0=" << s0
 	<< endl);
     Dart dstart = dh;
-    LOG("Starting dart " << dstart << endl);
+    FMLOG("Starting dart " << dstart << endl);
 
     Dart d(find_path_direction(s0, s1, dstart));
-    LOG("Path-direction " << d << endl);
-    LOG("Starting triangle " << d.t() << " ("
+    FMLOG("Path-direction " << d << endl);
+    FMLOG("Starting triangle " << d.t() << " ("
 	     << TV_[d.t()][0] << ","
 	     << TV_[d.t()][1] << ","
 	     << TV_[d.t()][2] << ")"
 	     << endl);
     if (d.isnull()) {
-      LOG("No direction found, so is in starting triangle" << endl);
+      FMLOG("No direction found, so is in starting triangle" << endl);
       return DartPair(dstart, dstart);
     }
     if (d.inLeftHalfspace(s1) >= -MESH_EPSILON) {
-      LOG("Found " << d << endl);
+      FMLOG("Found " << d << endl);
       return DartPair(dstart, dstart);
     }
     while (!d.onBoundary()) {
@@ -2246,7 +2233,7 @@ namespace fmesh {
 	trace_index++;
       }
       d.orbit1().orbit2rev();
-      LOG("In triangle " << d << endl);
+      FMLOG("In triangle " << d << endl);
       found = (d.inLeftHalfspace(s1) >= -MESH_EPSILON);
       other = (inLeftHalfspace(s0, s1, S_[d.v()]) > 0.0);
       d.orbit2rev();
@@ -2256,9 +2243,9 @@ namespace fmesh {
 	found = false;
       if (!other)
 	d.orbit2();
-      LOG("Go to next triangle, from " << d << endl);
+      FMLOG("Go to next triangle, from " << d << endl);
     }
-    LOG("Endpoint not found "
+    FMLOG("Endpoint not found "
 	     << dstart << " " << d << endl);
     if (trace) {
       trace->push_back(d);
@@ -2278,13 +2265,14 @@ namespace fmesh {
   Dart Mesh::locate_point(const Dart& d0, const Point& s, const int v) const
   {
     Dart dh;
-    if (d0.isnull())
+    if (d0.isnull()) {
       dh = Dart(*this,0); /* Another option here would be to pick a
 			     random triangle instead of always triangle 0.
 			     For now, we leave such options to the caller.
 			  */
-    else
+    } else {
       dh = Dart(*this,d0.t(),1,d0.vi());
+    }
     return trace_path(dh,s,v).second;
   }
 
@@ -2313,7 +2301,7 @@ namespace fmesh {
 	return Dart(*this,t,1,1);
       if (TV_[t][2] == v)
 	return Dart(*this,t,1,2);
-      LOG("ERROR: Inconsistent data structures!" << endl);
+      FMLOG("ERROR: Inconsistent data structures!" << endl);
       return Dart(); /* ERROR: Inconsistent data structures! */
     }
 
@@ -2342,7 +2330,7 @@ namespace fmesh {
     NOT_IMPLEMENTED;
     // TODO: Implement;
     clear();
-    std::cout << WHEREAMI << "M.nV = " << M.nV() << std::endl;
+    FMLOG_("M.nV = " << M.nV() << std::endl);
     return *this;
   }
 
@@ -2477,7 +2465,7 @@ namespace fmesh {
 	  eij[j][i] = eij[i][j];
 	}
       }
-      
+
       bool b[3];
       b[0] = (TT_[t][0] < 0 ? true : false);
       b[1] = (TT_[t][1] < 0 ? true : false);
@@ -2485,7 +2473,7 @@ namespace fmesh {
 
       double a = triangleArea(t);
       Tareas(t,0) = a;
-      
+
       /* "Flat area" better approximation for use in G-calculation. */
       double fa = Point().cross(e[0],e[1]).length()/2.0;
 
@@ -2517,7 +2505,7 @@ namespace fmesh {
       }
     }
   }
-  
+
 
 
   void crossmultiply(const Point* ax,
@@ -2571,7 +2559,7 @@ namespace fmesh {
       t_gamma = (gamma[tv[0]][0]+gamma[tv[1]][0]+gamma[tv[2]][0])/3.0;
       t_vec.sum(vec_(tv[0]),vec_(tv[1])).accum(vec_(tv[2]),1.0);
       t_vec.rescale(1.0/3.0);
-      
+
       Point H[3];
       Point aH[3];
       switch (type()) {
@@ -2614,15 +2602,15 @@ namespace fmesh {
 	ax[3] = t_vec;
 	crossmultiply(ax,H,4);
 
-	LOG("H[0]\t" << H[0] << endl);
-	LOG("H[1]\t" << H[1] << endl);
-	LOG("H[2]\t" << H[2] << endl);
+	FMLOG("H[0]\t" << H[0] << endl);
+	FMLOG("H[1]\t" << H[1] << endl);
+	FMLOG("H[2]\t" << H[2] << endl);
 
 	adjugate(H,aH);
 
-	LOG("aH[0]\t" << aH[0] << endl);
-	LOG("aH[1]\t" << aH[1] << endl);
-	LOG("aH[2]\t" << aH[2] << endl);
+	FMLOG("aH[0]\t" << aH[0] << endl);
+	FMLOG("aH[1]\t" << aH[1] << endl);
+	FMLOG("aH[2]\t" << aH[2] << endl);
 
 	break;
       }
@@ -2654,7 +2642,7 @@ namespace fmesh {
 
     }
   }
-  
+
 
 
   void Mesh::calcGradientMatrices(SparseMatrix<double>** D) const
@@ -2683,7 +2671,7 @@ namespace fmesh {
 	}
       }
 
-      
+
       /*
 	g0 = e1-e0*(e0*e1)/(e0*e0)
 	|g0| = 2*|T|/|e0|
@@ -2721,9 +2709,9 @@ namespace fmesh {
     D[0] = new SparseMatrix<double>(w*D_[0]);
     D[1] = new SparseMatrix<double>(w*D_[1]);
     D[2] = new SparseMatrix<double>(w*D_[2]);
- 
+
   }
-  
+
 
 
   bool Mesh::save(std::string filename_s,
@@ -2881,7 +2869,7 @@ namespace fmesh {
     output << "Options:\t"
 	   << (M.useVT() ? "VT " : "")
 	   << (M.useTTi() ? "TTi " : "")
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 	   << (M.useX11() ? "X11 " : "")
 #endif
 	   << endl;
@@ -2961,7 +2949,7 @@ namespace fmesh {
 	     << d.M()->TT(d.t_)[2]
 	     << ")";
     }
-      
+
     return output;
   }
 

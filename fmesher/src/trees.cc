@@ -5,11 +5,10 @@
 //#include <sstream>
 //#include <cmath>
 
-#include "trees.hh"
+#include "fmesher_debuglog.h"
+#include "trees.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-
-#define LOG_(msg) std::cout << WHEREAMI << msg;
+#define LOG_(msg) FMLOG_(msg)
 #ifdef DEBUG
 #define LOG(msg) LOG_(msg)
 #else
@@ -17,7 +16,6 @@
 #endif
 
 
-using std::cout;
 using std::endl;
 
 namespace fmesh {

@@ -1,6 +1,6 @@
 #ifndef _FMESH_X11UTILS_
 #define _FMESH_X11UTILS_ 1
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 
 #include <cstddef>
 #include <cstddef>
@@ -13,15 +13,9 @@
 #include <list>
 #include <string>
 
-#include "vector.hh"
-#include "mesh.hh"
+#include "vector.h"
+#include "mesh.h"
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
 
 namespace fmesh {
 
@@ -55,7 +49,7 @@ namespace fmesh {
 
     void delay(double set_delay);
     void delay() const;
-    
+
 
     void setSize(int sx, int sy);
     void setAxis(double minx, double maxx,
