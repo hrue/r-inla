@@ -33,12 +33,14 @@ namespace fmesh {
   IOHeader::IOHeader() { def(); }
 
   IOHeader& IOHeader::def(const int& ref) {
+    (void)(ref);
     def();
     valuetype = IOValuetype_int;
     return *this;
   }
 
   IOHeader& IOHeader::def(const double& ref) {
+    (void)(ref);
     def();
     valuetype = IOValuetype_double;
     return *this;

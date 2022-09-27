@@ -126,7 +126,7 @@ namespace fmesh {
     size_t cols(void) const { return cols_; };
     Matrix<T>& cols(size_t set_cols);
 
-    const T (* operator[](const size_t r) const) {
+    const T * operator[](const size_t r) const {
       if (r >= rows_) {
 	return NULL;
       }
@@ -150,7 +150,7 @@ namespace fmesh {
       return (operator()(r,c) = val);
     };
 
-    const T (* raw(void) const) { return data_; }
+    const T * raw(void) const { return data_; }
     T* raw(void) { return data_; }
 
 

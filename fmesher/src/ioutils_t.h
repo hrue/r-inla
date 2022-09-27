@@ -437,7 +437,7 @@ namespace fmesh {
       const T* Mrow = (*cM_)[i];
       output << i << " ";
       for (int j=0; j+1<h.cols; j++) {
-	output << Mrow[j] << " ";
+        output << Mrow[j] << " ";
       }
       output << Mrow[h.cols-1] << std::endl;
     }
@@ -454,7 +454,7 @@ namespace fmesh {
     if (h.matrixtype == IOMatrixtype_diagonal) {
       Matrix1<T> MT;
       for (int r=0; r < (*cM_).rows(); r++)
-	MT(r) = (*cM_)[r][r];
+        MT(r) = (*cM_)[r][r];
       IOHelperM<T>().cD(&MT).OD_2009(output);
     } else {
       Matrix1< SparseMatrixTriplet<T> > MT;
@@ -469,6 +469,7 @@ namespace fmesh {
 
   template <class T>
   IOHeader& IOHeader::def(const T& ref) {
+    (void)(ref);
     def();
     valuetype = -(int)sizeof(T);
     return *this;

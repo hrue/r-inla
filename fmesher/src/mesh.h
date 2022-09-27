@@ -289,34 +289,34 @@ namespace fmesh {
     friend std::ostream& operator<<(std::ostream& output, const MOAint& MO);
   private:
     size_t n_;
-    const Matrix1int (&M_);
+    const Matrix1int &M_;
   public:
-    MOAint(const Matrix1int (&M),size_t n) : n_(n), M_(M) {};
+    MOAint(const Matrix1int &M,size_t n) : n_(n), M_(M) {};
   };
 
   class MOAint3 {
     friend std::ostream& operator<<(std::ostream& output, const MOAint3& MO);
   private:
     size_t n_;
-    const Matrix3int (&M_);
+    const Matrix3int &M_;
   public:
-    MOAint3(const Matrix3int (&M),size_t n) : n_(n), M_(M) {};
+    MOAint3(const Matrix3int &M,size_t n) : n_(n), M_(M) {};
   };
 
   class MOAdouble3 {
     friend std::ostream& operator<<(std::ostream& output, const MOAdouble3& MO);
   private:
     size_t n_;
-    const Matrix3double (&M_);
+    const Matrix3double &M_;
   public:
-   MOAdouble3(const Matrix3double (&M),size_t n) : n_(n), M_(M) {};
+   MOAdouble3(const Matrix3double &M,size_t n) : n_(n), M_(M) {};
   };
 
   std::ostream& operator<<(std::ostream& output, const Point& MO);
 
 
 
-  /*! \breif Darts */
+  /*! \brief Darts */
   class Dart {
     friend std::ostream& operator<<(std::ostream& output, const Dart& d);
   private:
