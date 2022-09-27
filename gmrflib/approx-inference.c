@@ -5709,10 +5709,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	// if fixed_mode=1, then we need to use EB
 	if (ai_par->fixed_mode) {
 		if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
-			if (ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
-				if (ai_par->fp_log) {
-					fprintf(ai_par->fp_log, "int.strategy is set to EB, since fixed_mode=1\n");
-				}
+			ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "int.strategy is set to EB, since fixed_mode=1\n");
 			}
 		}
 	}
