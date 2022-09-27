@@ -116,11 +116,25 @@
     r$.args$control.compute$graph <- FALSE
     r$.args$control.compute$hyperpar <- FALSE
     r$.args$control.compute$q <- FALSE
+
+    r$.args$control.fixed$correlation.matrix <- FALSE
+
     r$.args$control.inla$int.strategy <- "eb"
+    r$.args$control.inla$use.directions <- r$misc$opt.directions
+
+    r$.args$control.mode$result <- NULL
+    r$.args$control.mode$restart <- FALSE
+    r$.args$control.mode$theta <- r$mode$theta
+    r$.args$control.mode$x <- r$mode$x
+    r$.args$control.mode$fixed <- TRUE
+
     r$.args$inla.mode <- "experimental"
     r$.args$verbose <- if (verbose) TRUE else r$.args$verbose
+    r$.args$lincomb <- NULL
+    
+    r <- do.call("inla", args = r$.args)
 
-    result$group.cv <- inla.rerun(r)$gcpo
+    result$group.cv <- r$gcpo
     result$group.cv$cv <- result$group.cv$gcpo
     result$group.cv$gcpo <- NULL
     r <- NULL

@@ -12672,6 +12672,8 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	 * type = UPDATE
 	 */
 	inla_setup_ai_par_default(mb);			       /* need this if there is no INLA section */
+	mb->ai_par->fixed_mode = mb->fixed_mode;	       /* need to pass this one as well */
+
 	for (sec = 0; sec < nsec; sec++) {
 		secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 		sectype = GMRFLib_strdup(strupc(iniparser_getstring(ini, inla_string_join((const char *) secname, "TYPE"), NULL)));
