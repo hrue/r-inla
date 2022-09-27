@@ -594,6 +594,7 @@ typedef struct {
 	int improved_simplified_laplace;
 
 	int parallel_linesearch;
+	int fixed_mode;
 } GMRFLib_ai_param_tp;
 
 /**

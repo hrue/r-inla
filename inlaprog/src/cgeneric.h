@@ -41,6 +41,7 @@
 #endif
 __BEGIN_DECLS
 
+	
 /* 
  *
  */
@@ -157,7 +158,26 @@ typedef struct {
 
 	int n_smat;
 	inla_cgeneric_smat_tp **smats;
+
+	void *cache;
 } inla_cgeneric_data_tp;
+
+// tools useful for creating a cache
+#include <omp.h> 
+#define CGENERIC_CACHE_LEN(max_threads_) ((max_threads_) * (max_threads_))
+#define CGENERIC_CACHE_ASSIGN_IDX(idx_, max_threads_)			\
+        if (1) {                                                        \
+                int level_ = omp_get_level();                           \
+                int tnum_ = omp_get_thread_num();                       \
+                if (level_ <= 1)        {                               \
+                        idx_ =  tnum_;                                  \
+                } else if (level_ == 2) {                               \
+                        idx_ = omp_get_ancestor_thread_num(level_ -1) * (max_threads_) + tnum_; \
+                } else {                                                \
+                        assert(0 == 1);                                 \
+                }                                                       \
+        }
+
 
 typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
 

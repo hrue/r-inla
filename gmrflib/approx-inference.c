@@ -5328,46 +5328,56 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		int fd_save = ai_par->hessian_forward_finite_difference;
 
 		hessian = Calloc(ISQR(nhyper), double);
-		if (!(ai_par->optimise_smart) || !smart_success) {
 
-			if (ai_par->optimise_smart) {
-				ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
-				if (ai_par->fp_log) {
-					fprintf(ai_par->fp_log, "Smart optimise part IV: estimate Hessian using central differences\n");
-				}
+		if (ai_par->fixed_mode) {
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "fixed_mode=1 so, artificially, Hessian=diag(1)\n");
 			}
+			for (int i = 0; i < nhyper; i++) {
+				hessian[i + nhyper * i] = 1.0;
+			}
+		} else {
+			if (!(ai_par->optimise_smart) || !smart_success) {
 
-			while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
-				if (!stupid_mode_iter) {
-					if (ai_par->fp_log)
-						fprintf(ai_par->fp_log,
-							"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
-				}
-				stupid_mode_iter++;
-
-				if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
+				if (ai_par->optimise_smart) {
+					ai_par->hessian_forward_finite_difference = GMRFLib_FALSE;
 					if (ai_par->fp_log) {
-						fprintf(stderr,
-							"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+						fprintf(ai_par->fp_log, "Smart optimise part IV: estimate Hessian using central differences\n");
 					}
-					break;
 				}
-				// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
-				log_dens_mode_save = log_dens_mode;
 
-				if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
-					fprintf(stderr, "\n\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
-					fprintf(stderr,
-						"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
-					fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
-					fprintf(stderr, "***\n");
-					fprintf(stderr, "\n\n");
-					break;
-					// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
+					if (!stupid_mode_iter) {
+						if (ai_par->fp_log)
+							fprintf(ai_par->fp_log,
+								"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+					}
+					stupid_mode_iter++;
+
+					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
+						if (ai_par->fp_log) {
+							fprintf(stderr,
+								"\n\n*** Mode is not accurate yet but we have reached the rounding error level. Break.\n\n");
+						}
+						break;
+					}
+					// printf("%.12g %.12g\n", log_dens_mode_save, log_dens_mode);
+					log_dens_mode_save = log_dens_mode;
+
+					if (stupid_mode_iter >= ai_par->stupid_search_max_iter) {
+						fprintf(stderr, "\n\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "*** WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "*** Mode not found using the stupid local search strategy; I give up.\n");
+						fprintf(stderr,
+							"*** I continue with best mode found and the correspondingly Hessian-matrix (can be diagonal only).\n");
+						fprintf(stderr, "*** Please rerun with possible improved initial values or do other changes!!!\n");
+						fprintf(stderr, "***\n");
+						fprintf(stderr, "\n\n");
+						break;
+						// GMRFLib_ASSERT(stupid_mode_iter < ai_par->stupid_search_max_iter, GMRFLib_EMISC);
+					}
 				}
 			}
 		}
@@ -5574,42 +5584,52 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		stdev_corr_pos = Calloc(nhyper, double);
 		stdev_corr_neg = Calloc(nhyper, double);
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-		for (int k = 0; k < nhyper; k++) {
-			int thread_id = omp_get_thread_num();
-
-			double f0, *zz = NULL, *ttheta = NULL, llog_dens;
-			GMRFLib_ai_store_tp *s = NULL;
-
-			zz = Calloc(nhyper, double);
-			ttheta = Calloc(nhyper, double);
-			Memset(zz, 0, nhyper * sizeof(double));
-
-			if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
-				if (!ais[thread_id]) {
-					ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
-				}
-				s = ais[thread_id];
-			} else {
-				s = ai_store;		       /* the common one */
+		if (ai_par->fixed_mode) {
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "fixed_mode=1, so artificially, scaling of sd is set to 1.0\n");
 			}
+			for (int i = 0; i < nhyper; i++) {
+				stdev_corr_neg[i] = 1.0;
+				stdev_corr_pos[i] = 1.0;
+			}
+		} else {
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+			for (int k = 0; k < nhyper; k++) {
+				int thread_id = omp_get_thread_num();
 
-			zz[k] = 2.0;
-			GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-			GMRFLib_opt_f_intern(thread_id, ttheta, &llog_dens, &ierr, s, NULL, NULL);
-			llog_dens *= -1.0;
-			f0 = log_dens_mode - llog_dens;
-			stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+				double f0, *zz = NULL, *ttheta = NULL, llog_dens;
+				GMRFLib_ai_store_tp *s = NULL;
 
-			zz[k] = -2.0;
-			GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
-			GMRFLib_opt_f_intern(thread_id, ttheta, &llog_dens, &ierr, s, NULL, NULL);
-			llog_dens *= -1.0;
-			f0 = log_dens_mode - llog_dens;
-			stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+				zz = Calloc(nhyper, double);
+				ttheta = Calloc(nhyper, double);
+				Memset(zz, 0, nhyper * sizeof(double));
 
-			Free(zz);
-			Free(ttheta);
+				if (GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+					if (!ais[thread_id]) {
+						ais[thread_id] = GMRFLib_duplicate_ai_store(ai_store, GMRFLib_TRUE, GMRFLib_TRUE, GMRFLib_FALSE);
+					}
+					s = ais[thread_id];
+				} else {
+					s = ai_store;	       /* the common one */
+				}
+
+				zz[k] = 2.0;
+				GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
+				GMRFLib_opt_f_intern(thread_id, ttheta, &llog_dens, &ierr, s, NULL, NULL);
+				llog_dens *= -1.0;
+				f0 = log_dens_mode - llog_dens;
+				stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+
+				zz[k] = -2.0;
+				GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
+				GMRFLib_opt_f_intern(thread_id, ttheta, &llog_dens, &ierr, s, NULL, NULL);
+				llog_dens *= -1.0;
+				f0 = log_dens_mode - llog_dens;
+				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+
+				Free(zz);
+				Free(ttheta);
+			}
 		}
 
 		if (misc_output) {
@@ -5685,6 +5705,16 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		timer[2] = GMRFLib_cpu();
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_INTEGRATE_HYPERPAR, NULL, NULL);
+
+	// if fixed_mode=1, then we need to use EB
+	if (ai_par->fixed_mode) {
+		if (ai_par->int_strategy != GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES) {
+			ai_par->int_strategy = GMRFLib_AI_INT_STRATEGY_EMPIRICAL_BAYES;
+			if (ai_par->fp_log) {
+				fprintf(ai_par->fp_log, "int.strategy is set to EB, since fixed_mode=1\n");
+			}
+		}
+	}
 
 	GMRFLib_design_tp *design = NULL;
 	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
