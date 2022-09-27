@@ -130,10 +130,8 @@
     r$.args$verbose <- if (verbose) TRUE else r$.args$verbose
     r$.args$lincomb <- NULL
     
-    r <- do.call("inla", args = r$.args)
-
-    group.cv <- r$gcpo
-    group.cv$cv <- r$gcpo$gcpo
+    group.cv <- do.call("inla", args = r$.args)$gcpo
+    group.cv$cv <- group.cv$gcpo
     group.cv$gcpo <- NULL
     r <- NULL
 
