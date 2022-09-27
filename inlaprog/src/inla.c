@@ -127,7 +127,9 @@ char *keywords[] = {
 // defined in R-interface.c
 extern double R_rgeneric_cputime;
 
+int G_norm_const_len = 0;
 double *G_norm_const = NULL;				       /* store static normalization constants for likelihoods */
+void **G_norm_const_v = NULL;
 char *G_norm_const_compute = NULL;			       /* to be computed */
 
 /* 
@@ -5913,11 +5915,27 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 	}
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double ly, lprec, prec, w, lypred;
+	double ly, lprec, prec, w, lw, lypred;
 
-	ly = log(ds->data_observations.y[idx]);
-	w = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
-	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
+	double *cache = NULL;
+	if (G_norm_const_compute[idx]) {
+		cache = Calloc(3, double);
+		G_norm_const_v[idx] = (void *) cache;
+		G_norm_const_compute[idx] = 0;
+
+		// log(y)
+		cache[0] = log(ds->data_observations.y[idx]);
+		// w
+		cache[1] = (ds->data_observations.weight_gaussian ? ds->data_observations.weight_gaussian[idx] : 1.0);
+		// log(w)
+		cache[2] = log(cache[1]);
+	}
+	cache = (double *) G_norm_const_v[idx];
+	ly = cache[0];
+	w = cache[1];
+	lw = cache[2];
+	
+	lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + lw;
 	prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
 
 	LINK_INIT;
@@ -33822,8 +33840,14 @@ int inla_INLA(inla_tp * mb)
 	int mm = mb->predictor_n + mb->predictor_m;
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
+	for(int i = 0; i < G_norm_const_len; i++) {
+		Free(G_norm_const_v[i]);
+	}
+	Free(G_norm_const_v);
+	G_norm_const_len = mm;
 	G_norm_const_compute = Calloc(mm, char);
 	G_norm_const = Calloc(mm, double);
+	G_norm_const_v = Calloc(mm, void *);
 	for (int i = 0; i < mm; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
@@ -34144,8 +34168,14 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
+	for(int i = 0; i < G_norm_const_len; i++) {
+		Free(G_norm_const_v[i]);
+	}
+	Free(G_norm_const_v);
+	G_norm_const_len = preopt->Npred;
 	G_norm_const_compute = Calloc(preopt->Npred, char);
 	G_norm_const = Calloc(preopt->Npred, double);
+	G_norm_const_v = Calloc(preopt->Npred, void *);
 	for (int i = 0; i < preopt->Npred; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
@@ -34497,8 +34527,14 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	int mm = mb->predictor_n + mb->predictor_m;
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
+	for(int i = 0; i < G_norm_const_len; i++) {
+		Free(G_norm_const_v[i]);
+	}
+	Free(G_norm_const_v);
+	G_norm_const_len = mm;
 	G_norm_const_compute = Calloc(mm, char);
 	G_norm_const = Calloc(mm, double);
+	G_norm_const_v = Calloc(mm, void *);
 	for (int i = 0; i < mm; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
@@ -35005,8 +35041,14 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
+	for(int i = 0; i < G_norm_const_len; i++) {
+		Free(G_norm_const_v[i]);
+	}
+	Free(G_norm_const_v);
+	G_norm_const_len = preopt->Npred;
 	G_norm_const_compute = Calloc(preopt->Npred, char);
 	G_norm_const = Calloc(preopt->Npred, double);
+	G_norm_const_v = Calloc(preopt->Npred, void *);
 	for (int i = 0; i < preopt->Npred; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
