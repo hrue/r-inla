@@ -1899,8 +1899,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 		}
 
-		// RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
-		RUN_CODE_BLOCK(1, 0, 0);
+		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
 #undef CODE_BLOCK
 
 		for (i = 0; i < nidx; i++) {
