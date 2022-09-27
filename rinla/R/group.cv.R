@@ -133,7 +133,7 @@
     r <- do.call("inla", args = r$.args)
 
     group.cv <- r$gcpo
-    group.cv$cv <- result$group.cv$gcpo
+    group.cv$cv <- r$gcpo$gcpo
     group.cv$gcpo <- NULL
     r <- NULL
 
