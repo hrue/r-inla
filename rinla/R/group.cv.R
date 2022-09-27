@@ -81,9 +81,7 @@
              remove.fixed = TRUE)
 {
     ## !}
-    ## !\value{
-    ## !The object returned is the same as  \code{result} but with
-    ## !the results of the group.cv calculations added.}
+    ## !\value{The object returned is list related to leave-group-out cross-validation. See the vignette for details.}
     ## !\author{Havard Rue \email{hrue@r-inla.org}}
     ## !\seealso{\code{\link{control.compute}}}
 
@@ -134,11 +132,11 @@
     
     r <- do.call("inla", args = r$.args)
 
-    result$group.cv <- r$gcpo
-    result$group.cv$cv <- result$group.cv$gcpo
-    result$group.cv$gcpo <- NULL
+    group.cv <- r$gcpo
+    group.cv$cv <- result$group.cv$gcpo
+    group.cv$gcpo <- NULL
     r <- NULL
 
-    return (result)
+    return (group.cv)
 }
 
