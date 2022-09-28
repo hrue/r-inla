@@ -744,22 +744,30 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	 * this is Qfunction for the hgmrfm-function 
 	 */
 	GMRFLib_hgmrfm_arg_tp *a = NULL;
-	int ii, jj;
+	int ii, jj, equal;
 	double value = 0.0;
 	GMRFLib_hgmrfm_type_tp it, jt;
 
 	a = (GMRFLib_hgmrfm_arg_tp *) arg;
-	ii = IMIN(node, nnode);
-	jj = IMAX(node, nnode);
+
+	if (node < nnode) {
+		ii = node;
+		jj = nnode;
+		equal = 0;
+	} else {
+		ii = nnode;
+		jj = node;
+		equal = (ii == jj);
+	}
 
 	// old non-caching code: it = GMRFLib_hgmrfm_what_type(ii, a); jt = GMRFLib_hgmrfm_what_type(jj, a);
 	it = a->what_type[ii];
 	jt = a->what_type[jj];
 
-	if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_graph)) {
+	if (equal || GMRFLib_graph_is_nb(ii, jj, a->eta_graph)) {
 		value += a->eta_Q->Qfunc(thread_id, ii, jj, NULL, a->eta_Q->Qfunc_arg);
 	}
-	if (a->lc_Q && ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->lc_graph))) {
+	if (a->lc_Q && (equal || GMRFLib_graph_is_nb(ii, jj, a->lc_graph))) {
 		value += a->lc_Q->Qfunc(thread_id, ii, jj, NULL, a->lc_Q->Qfunc_arg);
 	}
 	switch (it.tp) {
@@ -768,7 +776,7 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 		switch (jt.tp) {
 		case GMRFLib_HGMRFM_TP_ETA:
 			if (a->eta_ext_graph) {
-				if ((ii == jj) || GMRFLib_graph_is_nb(ii, jj, a->eta_ext_graph)) {
+				if (equal || GMRFLib_graph_is_nb(ii, jj, a->eta_ext_graph)) {
 					value += a->eta_ext_Q->Qfunc(thread_id, ii, jj, NULL, a->eta_ext_Q->Qfunc_arg);
 				}
 			}

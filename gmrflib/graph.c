@@ -540,30 +540,24 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	 * then they are not neighbours.
 	 */
 
-	if (node == nnode) {
-		return GMRFLib_FALSE;
-	}
-
 	int imin, imax;
-	if (node <= nnode) {
+	if (node < nnode) {
 		imin = node;
 		imax = nnode;
 	} else {
+		assert(node != nnode);
 		imin = nnode;
 		imax = node;
 	}
-	// int imin = IMIN(node, nnode);
-	// int imax = IMAX(node, nnode);
 
 	int m = graph->lnnbs[imin];
-	int *nb = graph->lnbs[imin];
-	if ((!m || imax > nb[m - 1])) {
-		return GMRFLib_FALSE;
+	if (m) {
+		int idx = 0;
+		GMRFLib_CACHE_SET_ID(idx);
+		return ((GMRFLib_iwhich_sorted(imax, graph->lnbs[imin], m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+	} else {
+		return 0;
 	}
-
-	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
-	return ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 }
 
 int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)

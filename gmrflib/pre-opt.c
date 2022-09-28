@@ -763,22 +763,17 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 	double value = 0.0;
-	int imin, imax, diag;
 
-	if (node <= nnode) {
-		imin = node;
-		imax = nnode;
+	if (node == nnode) {
+		value = a->like_Qfunc(thread_id, node, node, NULL, a->like_Qfunc_arg)
+			+ a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
 	} else {
-		imin = nnode;
-		imax = node;
-	}
-	diag = (imin == imax);
-
-	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
-		value += a->like_Qfunc(thread_id, imin, imax, NULL, a->like_Qfunc_arg);
-	}
-	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
-		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
+		if (GMRFLib_graph_is_nb(node, nnode, a->like_graph)) {
+			value = a->like_Qfunc(thread_id, node, nnode, NULL, a->like_Qfunc_arg);
+		}
+		if (GMRFLib_graph_is_nb(node, nnode, a->latent_graph)) {
+			value += a->latent_Qfunc(thread_id, node, nnode, NULL, a->latent_Qfunc_arg);
+		}
 	}
 
 	return value;
@@ -793,25 +788,14 @@ double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNU
 	}
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
-	int imin, imax, diag;
 	double value = 0.0;
 
-	if (node <= nnode) {
-		imin = node;
-		imax = nnode;
-	} else {
-		imin = nnode;
-		imax = node;
-	}
-	diag = (imin == imax);
-
-	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
-		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
-
+	if (node == nnode || GMRFLib_graph_is_nb(node, nnode, a->latent_graph)) {
+		value = a->latent_Qfunc(thread_id, node, nnode, NULL, a->latent_Qfunc_arg);
 		if (a->gcpo_mask) {
-			value *= a->gcpo_mask[imin] * a->gcpo_mask[imax];
-			if (diag) {
-				value += a->gcpo_diag[imin];
+			value *= a->gcpo_mask[node] * a->gcpo_mask[nnode];
+			if (node == nnode) {
+				value += a->gcpo_diag[node];
 			}
 		}
 	}
@@ -827,20 +811,9 @@ double GMRFLib_preopt_Qfunc_like(int thread_id, int node, int nnode, double *UNU
 	}
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
-	int imin, imax, diag;
-
-	if (node <= nnode) {
-		imin = node;
-		imax = nnode;
-	} else {
-		imin = nnode;
-		imax = node;
-	}
-	diag = (imin == imax);
-
 	double value = 0.0;
-	if (diag || GMRFLib_graph_is_nb(imin, imax, a->like_graph)) {
-		value += a->like_Qfunc(thread_id, imin, imax, NULL, a->like_Qfunc_arg);
+	if (node == nnode || GMRFLib_graph_is_nb(node, nnode, a->like_graph)) {
+		value = a->like_Qfunc(thread_id, node, nnode, NULL, a->like_Qfunc_arg);
 	}
 
 	return value;
@@ -854,20 +827,9 @@ double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UN
 	}
 
 	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
-	int imin, imax, diag;
-
-	if (node <= nnode) {
-		imin = node;
-		imax = nnode;
-	} else {
-		imin = nnode;
-		imax = node;
-	}
-	diag = (imin == imax);
-
 	double value = 0.0;
-	if (diag || GMRFLib_graph_is_nb(imin, imax, a->latent_graph)) {
-		value += a->latent_Qfunc(thread_id, imin, imax, NULL, a->latent_Qfunc_arg);
+	if (node == nnode || GMRFLib_graph_is_nb(node, nnode, a->latent_graph)) {
+		value = a->latent_Qfunc(thread_id, node, nnode, NULL, a->latent_Qfunc_arg);
 	}
 
 	return value;
