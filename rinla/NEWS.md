@@ -1,3 +1,8 @@
+# INLA 22.09.28
+* Updated version of `fmesher`, the program which do the mesh-stuff
+* Various code-improvement
+* Some internal (work-in-progress) updates
+
 # INLA 22.09.26
 * Various code-improvement and cleanup
 * Code-optimization of spde2-models
