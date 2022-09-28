@@ -820,6 +820,11 @@ rinla/inst/bin/*/*/fmesher
 rinla/inst/bin/*/*/inla
 rinla/inst/bin/*/*/inla.mkl
 
+fmesher/src/.deps/
+fmesher/src/fmesher
+fmesher/src/fmesher_test
+fmesher/src/treetest
+
 
 rinla/vignettes/multinomial_files/figure-latex/
 

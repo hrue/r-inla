@@ -101,11 +101,9 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		}							\
 									\
 		if (_prec_scale) {					\
-			for (int i = 0; i < len; i++) {			\
-				values[i] *= prec;			\
-			}						\
+			my_dscale(len, prec, values);			\
 		}							\
-	 }
+	}
 
 double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *values, void *arg)
 {
@@ -116,7 +114,7 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 #pragma omp critical (Name_ed019f1aad7e7d2a67d1fbc75e1e79976657700b)
 		{
 			if (!gguess) {
-				gguess = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
+				gguess = Calloc((2L + l1_cacheline) * GMRFLib_CACHE_LEN, int);
 			}
 		}
 	}

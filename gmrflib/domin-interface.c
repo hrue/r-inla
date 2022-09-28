@@ -704,9 +704,23 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	mode_reference = NULL;
 
-	// do the loop in reverse so that the last configuration, f0, have a high chance to come early (in the case the loop is interupted)
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (i = 2 * n; i >= 0; i--) {
+	int *order = Calloc(2 * n + 1, int);
+	order[0] = 2 * n;
+	for(int i = 0; i < n; i++) {
+		order[1 + i] =  i;
+		order[1 + i + n] =  i + n;
+	}
+
+	if (0) {
+		for(int i = 0; i < 2 * n + 1; i++) {
+			printf("i %d order %d\n", i, order[i]);
+		}
+	}
+		
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+	for (int ii = 0; ii < 2 * n + 1; ii++) {
+		int i = order[ii];
+		
 		int thread_id = omp_get_thread_num();
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -762,6 +776,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		}
 	}
 
+	Free(order);
+	
 	if (early_stop && (G.ai_par->fp_log || debug))
 		fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "exit diagonal hessian due to early_stop\n");
 

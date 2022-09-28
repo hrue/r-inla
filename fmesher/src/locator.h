@@ -12,24 +12,16 @@
 #include <string>
 #include <cmath>
 
-#include "vector.hh"
-#include "mesh.hh"
-#include "trees.hh"
+#include "fmesher_debuglog.h"
+#include "vector.h"
+#include "mesh.h"
+#include "trees.h"
 
-#ifndef WHEREAMI
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-#endif
 
 #ifndef LOG_
-#define LOG_(msg) std::cout << WHEREAMI << msg;
+#define LOG_(msg) FMLOG(msg);
 #endif
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
 
 namespace fmesh {
 
@@ -86,16 +78,16 @@ namespace fmesh {
 
     public:
       Search_tree_type(int ndim, bool use_interval_tree=true) : ndim_(ndim), use_interval_tree_(use_interval_tree), I_(NULL), S_(NULL), SI_(NULL), SS_(NULL), SSI_(NULL), SSS_(NULL) {};
-      
+
       ~Search_tree_type();
-      
+
       void init(const bbox_type::iterator& bbox);
-      
+
       std::ostream& print(std::ostream& output);
-      
-      
+
+
       /*! Container for the bbox search result iterator */
-      class Iterator : public std::iterator< 
+      class Iterator : public std::iterator<
 	std::forward_iterator_tag, T, int, const T*, const T& >
       {
 	bool is_null_;
@@ -107,30 +99,30 @@ namespace fmesh {
 	typename SSI_type::search_iterator SSI_;
 	typename SSS_type::search_iterator SSS_;
 	std::vector<T> loc_;
-	
+
 	template <class TreeType>
 	void init(TreeType* t, typename TreeType::search_iterator* i) {
 	  typename std::vector<T>::const_iterator loc_i = loc_.begin();
 	  (*i) = t->search(loc_i);
 	  is_null_ = (*i).is_null();
 	}
-	
+
 	template <class TreeType_iter>
 	void next(TreeType_iter* i) {
 	  ++(*i);
 	  is_null_ = (*i).is_null();
 	}
-	
+
       public:
 	Iterator(const Search_tree_type* search_tree, const std::vector<T>& loc);
  	Iterator();
 	~Iterator();
-	
+
 	bool is_null() const {
 	  return is_null_;
 	}
-	
-	/*	
+
+	/*
 		bool operator==(const Iterator& b) const {
 		NOT_IMPLEMENTED;
 		return (is_null() == b.is_null());
@@ -141,26 +133,26 @@ namespace fmesh {
 	  return (!(*this == b));
 	  };
 	*/
-	
+
 	int operator*() const;
 	Iterator& operator++();
-	
+
       };
-      
-      
-      
-      
+
+
+
+
     }; // Search_tree_type
     typedef typename Search_tree_type::Iterator search_iterator;
 
-    
+
   private:
     int ndim_; /*! The number of search dimensions, at most 3 */
     Search_tree_type search_tree_; /*! The search tree container */
 
   public:
     BBoxLocator(int ndim,
-		bool use_interval_tree = true) : 
+		bool use_interval_tree = true) :
       ndim_(ndim),
       search_tree_(ndim,use_interval_tree)
     {
@@ -172,7 +164,7 @@ namespace fmesh {
 
     ~BBoxLocator() {
     };
- 
+
     search_iterator search_begin(const std::vector<double>& loc) const {
       return search_iterator(&search_tree_, loc);
     };
@@ -181,7 +173,7 @@ namespace fmesh {
     };
 
     std::ostream& print(std::ostream& output);
- 
+
     template <class TT> friend
     std::ostream& operator<<(std::ostream& output, BBoxLocator<TT>& segm);
 
@@ -192,15 +184,15 @@ namespace fmesh {
 
   class TriangleLocator {
 
-  public:    
+  public:
     typedef BBoxLocator<double> bbox_locator_type;
-    
+
   private:
     const Mesh* mesh_; /*! The mesh to be searched */
     std::vector<int> dim_; /*! The order of the search dimensions, at most 3 */
     bbox_type bbox_; /*! Bounding boxes */
     bbox_locator_type bbox_locator_; /*! The bbox searcher object */
-    
+
   public:
     TriangleLocator(const Mesh* mesh,
 		    const std::vector<int>& dimensions,
@@ -212,7 +204,7 @@ namespace fmesh {
 
     std::ostream& print(std::ostream& output);
 
-    friend 
+    friend
     std::ostream& operator<<(std::ostream& output, TriangleLocator& locator);
 
   };
@@ -221,6 +213,6 @@ namespace fmesh {
 
 } /* namespace fmesh */
 
-#include "locator.tcc"
+#include "locator_t.h"
 
 #endif

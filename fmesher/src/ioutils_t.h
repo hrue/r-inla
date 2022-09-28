@@ -12,12 +12,7 @@
 #include <list>
 #include <string>
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
+#include "fmesher_debuglog.h"
 
 namespace fmesh {
 
@@ -29,7 +24,7 @@ namespace fmesh {
     return *this;
   }
   */
-  
+
   template <class T>
   IOHeader& IOHeader::dense(const Matrix<T>& M,
 			    IOMatrixtype matrixt)
@@ -252,7 +247,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperM<T>& IOHelperM<T>::ID(std::istream& input)
   {
@@ -349,7 +344,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperSM<T>& IOHelperSM<T>::OD(std::ostream& output)
   {
@@ -374,7 +369,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperSM<T>& IOHelperSM<T>::ID(std::istream& input)
   {
@@ -442,13 +437,13 @@ namespace fmesh {
       const T* Mrow = (*cM_)[i];
       output << i << " ";
       for (int j=0; j+1<h.cols; j++) {
-	output << Mrow[j] << " ";
+        output << Mrow[j] << " ";
       }
       output << Mrow[h.cols-1] << std::endl;
     }
     return *this;
   }
-  
+
   template <class T>
   IOHelperSM<T>& IOHelperSM<T>::OD_2009(std::ostream& output)
   {
@@ -459,7 +454,7 @@ namespace fmesh {
     if (h.matrixtype == IOMatrixtype_diagonal) {
       Matrix1<T> MT;
       for (int r=0; r < (*cM_).rows(); r++)
-	MT(r) = (*cM_)[r][r];
+        MT(r) = (*cM_)[r][r];
       IOHelperM<T>().cD(&MT).OD_2009(output);
     } else {
       Matrix1< SparseMatrixTriplet<T> > MT;
@@ -471,9 +466,10 @@ namespace fmesh {
   }
 
 
-  
+
   template <class T>
   IOHeader& IOHeader::def(const T& ref) {
+    (void)(ref);
     def();
     valuetype = -(int)sizeof(T);
     return *this;
@@ -516,22 +512,22 @@ namespace fmesh {
     ioh.binary(binary).OH(O).OD(O);
     O.close();
   }
-  
-  
-  
+
+
+
   template <class T>
   void MatrixC::input_raw_M(std::istream& input,
 			    Matrix<T>& M) const
   {
     M.load_ascii_2009(input);
   }
-  
 
 
 
 
 
-  
+
+
 } /* namespace fmesh */
 
 #endif

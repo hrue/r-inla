@@ -12,19 +12,21 @@
 #include <list>
 #include <string>
 
-#ifndef FMESHER_NO_X
-#include "x11utils.hh"
+#ifdef FMESHER_WITH_X
+#ifdef FMESHER_NO_X
+#undef FMESHER_NO_X
 #endif
-#include "vector.hh"
+#include "x11utils.h"
+#else
+#ifndef FMESHER_NO_X
+#define FMESHER_NO_X
+#endif
+#endif
+#include "vector.h"
+#include "fmesher_debuglog.h"
 
 #define MESH_EPSILON 1e-15
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
 
 namespace fmesh {
 
@@ -61,12 +63,12 @@ namespace fmesh {
     Matrix3int TTi_; /* TTi[t] : {vi1,vi2,vi3},
 		       t == TT[ TT[t][i] ][ TTi[t][i] ] */
     Matrix3double S_;
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     Xtmpl (*X11_);
     int X11_v_big_limit_;
 #endif
     int verbose_;
-    
+
   private:
     Mesh& rebuildTT();
 
@@ -84,18 +86,18 @@ namespace fmesh {
     Mesh& rebuild_VT();
     Mesh& rebuildTTi();
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
   public:
     void drawX11point(int v, bool fg);
     void drawX11triangle(int t, bool fg);
     void redrawX11(std::string str);
 #endif
-    
+
   public:
     Mesh(void) : type_(Mtype_manifold),
 		 use_VT_(false), use_TTi_(true),
 		 TV_(), TT_(), VT_(), TTi_(), S_(),
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 		 X11_(NULL), X11_v_big_limit_(0),
 #endif
 		 verbose_(0)
@@ -105,7 +107,7 @@ namespace fmesh {
     Mesh(const Mesh& M) : type_(Mtype_manifold),
 			  use_VT_(true), use_TTi_(false),
 			  TV_(), TT_(), VT_(), TTi_(), S_(),
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
 			  X11_(NULL), X11_v_big_limit_(0),
 #endif
 			  verbose_(0)
@@ -128,7 +130,7 @@ namespace fmesh {
     bool useTTi() const { return use_TTi_; };
     Mesh& useTTi(bool use_TTi);
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     bool useX11() const {
       return (X11_!=NULL);
       return false;
@@ -169,7 +171,7 @@ namespace fmesh {
     const Int3& TTi(int t) const { return TTi_[t]; };
     const Point& S(int v) const { return S_[v]; };
 
-#ifndef FMESHER_NO_X
+#ifdef FMESHER_WITH_X
     Xtmpl *X11() { return X11_; };
 #endif
 
@@ -178,12 +180,12 @@ namespace fmesh {
     MOAint VTO() const;
     MOAint3 TTiO() const;
     MOAdouble3 SO() const;
-    
+
     Mesh& S_set(const Matrix3double& S);
-    Mesh& TV_set(const Matrix3int& TV); 
+    Mesh& TV_set(const Matrix3int& TV);
     Mesh& S_append(const Point& s);
     Mesh& S_append(const Matrix3double& S);
-    Mesh& TV_append(const Matrix3int& TV); 
+    Mesh& TV_append(const Matrix3int& TV);
 
     Dart find_path_direction(const Dart& d0, const Point& s,
 			     const int v = -1) const;
@@ -195,7 +197,7 @@ namespace fmesh {
 			const Dart& d0, DartList* trace = NULL) const;
     Dart locate_point(const Dart& d0, const Point& s, const int v = -1) const;
     Dart locate_vertex(const Dart& d0, const int v) const;
-    
+
     Dart swapEdge(const Dart& d);
     Dart splitEdge(const Dart& d, int v);
     Dart splitTriangle(const Dart& d, int v);
@@ -206,12 +208,12 @@ namespace fmesh {
 	if (use_VT_)
 	  VT_.rows(nV());
       }
-      return *this;      
+      return *this;
     };
     Mesh& unlinkEdge(const Dart& d);
-    Mesh& unlinkTriangle(const int t); 
-    Mesh& relocateTriangle(const int t_source, const int t_target); 
-    int removeTriangle(const int t); 
+    Mesh& unlinkTriangle(const int t);
+    Mesh& relocateTriangle(const int t_source, const int t_target);
+    int removeTriangle(const int t);
 
     Mesh& quad_tesselate(const Mesh& M);
     Mesh& make_globe(int subsegments);
@@ -240,7 +242,7 @@ namespace fmesh {
     double triangleLongestEdge(int t) const;
     double triangleShortestEdge(int t) const;
     double edgeEncroached(const Dart& d, const Point& s) const;
-    
+
     /*!
       \brief Compute dart half-space test for a point.
 
@@ -287,34 +289,34 @@ namespace fmesh {
     friend std::ostream& operator<<(std::ostream& output, const MOAint& MO);
   private:
     size_t n_;
-    const Matrix1int (&M_);
+    const Matrix1int &M_;
   public:
-    MOAint(const Matrix1int (&M),size_t n) : n_(n), M_(M) {};
+    MOAint(const Matrix1int &M,size_t n) : n_(n), M_(M) {};
   };
 
   class MOAint3 {
     friend std::ostream& operator<<(std::ostream& output, const MOAint3& MO);
   private:
     size_t n_;
-    const Matrix3int (&M_);
+    const Matrix3int &M_;
   public:
-    MOAint3(const Matrix3int (&M),size_t n) : n_(n), M_(M) {};
+    MOAint3(const Matrix3int &M,size_t n) : n_(n), M_(M) {};
   };
 
   class MOAdouble3 {
     friend std::ostream& operator<<(std::ostream& output, const MOAdouble3& MO);
   private:
     size_t n_;
-    const Matrix3double (&M_);
+    const Matrix3double &M_;
   public:
-   MOAdouble3(const Matrix3double (&M),size_t n) : n_(n), M_(M) {};
+   MOAdouble3(const Matrix3double &M,size_t n) : n_(n), M_(M) {};
   };
 
   std::ostream& operator<<(std::ostream& output, const Point& MO);
 
 
-  
-  /*! \breif Darts */
+
+  /*! \brief Darts */
   class Dart {
     friend std::ostream& operator<<(std::ostream& output, const Dart& d);
   private:
@@ -322,7 +324,7 @@ namespace fmesh {
     size_t vi_;
     int edir_;
     int t_;
-    
+
   public:
     Dart(void)
       : M_(NULL), vi_(0), edir_(1), t_(0) {};

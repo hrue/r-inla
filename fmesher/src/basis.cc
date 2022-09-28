@@ -9,24 +9,17 @@
 #include "gsl/gsl_sf_legendre.h"
 #endif
 
-#include "vector.hh"
-#include "ioutils.hh"
+#include "vector.h"
+#include "ioutils.h"
+#include "fmesher_debuglog.h"
 
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-
-#ifdef DEBUG
-//#define _LOG(msg) std::cout << WHEREAMI << msg;
-#define _LOG(msg)
-#else
-#define _LOG(msg)
+#ifndef _LOG
+#define _LOG(msg) FMLOG(msg)
 #endif
 
 #define M_2_SQRT_PI 3.5449077018110320546
 
 
-using std::ios;
-using std::cout;
-using std::cin;
 using std::endl;
 
 namespace fmesh {
@@ -54,7 +47,7 @@ namespace fmesh {
     size_t GSL_res_n = gsl_sf_legendre_array_n(max_order);
     double* GSL_res_array = new double[GSL_res_n];
 
-    if (rotationally_symmetric) {    
+    if (rotationally_symmetric) {
       for (i=0; i<S.rows(); i++) {
 	gsl_sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, max_order, S[i][2],
 			      GSL_res_array);
@@ -74,7 +67,7 @@ namespace fmesh {
 
 	for (i=0; i<S.rows(); i++) {
 	  phi = atan2(S[i][1], S[i][0]);
-	  
+
 	  gsl_sf_legendre_array_e(GSL_SF_LEGENDRE_SPHARM, max_order, S[i][2],
 				  -1, GSL_res_array);
 	  for (k = 0; k <= max_order; k++) {
@@ -143,11 +136,11 @@ namespace fmesh {
       interval = degree;
       while ((interval+1<n_basis) & (s>=knots[interval+1]))
 	interval++;
-      
+
       _LOG("step 2" << endl);
       for (size_t i=0; i<=degree; i++)
 	control_work[i] = control[i+interval-degree];
-      
+
       _LOG("step 3" << endl);
       for (size_t k=1; k<=degree; k++)
 	for (size_t i=degree; i>=k; i--) {
@@ -158,7 +151,7 @@ namespace fmesh {
 	    control_work[i](0,j) = (s1 * control_work[i-1](0,j) +
 				    s2 * control_work[i](0,j));
 	}
-      
+
       for (size_t j=0; j<n_basis; j++)
 	basis(coord_idx,j) = control_work[degree](0,j);
     }

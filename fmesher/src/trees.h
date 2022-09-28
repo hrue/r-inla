@@ -12,20 +12,12 @@
 #include <string>
 //#include <cmath>
 
-#ifndef WHEREAMI
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-#endif
+#include "fmesher_debuglog.h"
 
 #ifndef LOG_
-#define LOG_(msg) std::cout << WHEREAMI << msg;
+#define LOG_(msg) FMLOG_(msg)
 #endif
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << WHEREAMI	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
 
 namespace fmesh {
 
@@ -38,7 +30,7 @@ namespace fmesh {
     template < class RefT, class ContainerRefType > class Iterator;
     typedef Iterator< T, SBBTree< T > > iterator;
     typedef Iterator< const T, const SBBTree< T > > const_iterator;
-    
+
   protected:
     const int n_; /*!< The number of nodes */
     std::vector< T > storage_; /*!< Linear storage of the tree nodes */
@@ -72,19 +64,19 @@ namespace fmesh {
     };
 
 
-    
+
     template < class RefT, class ContainerRefType >
     class Iterator : public std::iterator<
       std::bidirectional_iterator_tag, T, int,
       RefT*, RefT& > {
-      
+
       typedef Iterator< RefT, ContainerRefType > self_type;
       typedef SBBTree< T > TreeT;
-      
+
     protected:
       ContainerRefType* tree_;
       int current_;
-      
+
       int parent_idx() const {
 	int ret;
 	if (current_>0)
@@ -132,7 +124,7 @@ namespace fmesh {
       };
 
       int current() const { return current_; };
-      
+
       typename self_type::reference operator*() const {
 	return tree_->storage_[current_];
       };
@@ -145,7 +137,7 @@ namespace fmesh {
       bool operator!=(const self_type& i) const {
 	return (current_!=i.current_);
       };
-      
+
       /*! -1=left, 0=root or null, 1=right */
       int node_classification() const {
 	if (current_<=0)
@@ -185,9 +177,9 @@ namespace fmesh {
       self_type prev();
       self_type& operator--();
       self_type& operator++();
-      
+
     }; // SBBTree::Iterator
-    
+
 
   }; // SBBTree
 
@@ -196,7 +188,7 @@ namespace fmesh {
 
 
   template < class T, class ContainerType >
-    class Search_iterator : public std::iterator< 
+    class Search_iterator : public std::iterator<
       std::forward_iterator_tag, int, int, const int*, const int& >
     {
       typedef Search_iterator<T,ContainerType> self_type;
@@ -356,7 +348,7 @@ namespace fmesh {
       return const_iterator(this, loc_i);
     };
 
-    template<class VT> friend 
+    template<class VT> friend
     std::ostream& operator<<(std::ostream& output, SegmentSet<VT>& segm);
   }; // SegmentSet
 
@@ -390,7 +382,7 @@ namespace fmesh {
     };
     ~OrderedSegmentSet() {
     };
-    
+
     void add_segment(int segm_idx) {
       const segment_type& segm = (*multi_segment_iter_)[segm_idx];
       L_data_.insert(mapping_type(segm.first, segm_idx));
@@ -453,8 +445,8 @@ namespace fmesh {
     R_search_iterator R_search(const typename std::vector<T>::const_iterator& loc_i) const {
       return R_search_iterator(this, loc_i, R_data_.begin(), R_data_.end());
     };
-    
-    template<class VT> friend 
+
+    template<class VT> friend
     std::ostream& operator<<(std::ostream& output, OrderedSegmentSet<VT>& segm);
   }; // OrderedSegmentSet
 
@@ -579,9 +571,9 @@ namespace fmesh {
       }
       return output;
     };
-    
-    
-    template<class VT> friend 
+
+
+    template<class VT> friend
     std::ostream& operator<<(std::ostream& output, IntervalTree<VT>& segm);
   }; // IntervalTree
 
@@ -671,7 +663,7 @@ namespace fmesh {
 	if (!(left_ok || right_ok)) {
 	  (*i).activate_data(multi_segment_iter_);
 	  (*i).data_->add_segment(segm_idx);
-	} 
+	}
       }
       return true;
     };
@@ -744,8 +736,8 @@ namespace fmesh {
       return output;
     };
 
-    
-    template<class VT, class STT> friend 
+
+    template<class VT, class STT> friend
     std::ostream& operator<<(std::ostream& output, SegmentTree<VT,STT>& segm);
 
 
@@ -878,6 +870,6 @@ namespace fmesh {
 
 } /* namespace fmesh */
 
-#include "trees.tcc"
+#include "trees_t.h"
 
 #endif

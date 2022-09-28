@@ -57,8 +57,6 @@ option which is in effect if both \code{keep} and \code{remove} are
 when computing the groups.
 See the  vignette for details.}
 }
-\value{
-The object returned is the same as  \code{result} but with
-the results of the group.cv calculations added.}
+\value{The object returned is list related to leave-group-out cross-validation. See the vignette for details.}
 \author{Havard Rue \email{hrue@r-inla.org}}
 \seealso{\code{\link{control.compute}}}

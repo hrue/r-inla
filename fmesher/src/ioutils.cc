@@ -6,21 +6,12 @@
 #include <sstream>
 #include <cmath>
 
-#include "vector.hh"
-#include "ioutils.hh"
-
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-
-#ifdef DEBUG
-#define VECTOR_LOG(msg) std::cout << WHEREAMI << msg;
-#else
-#define VECTOR_LOG(msg)
-#endif
+#include "fmesher_debuglog.h"
+#include "vector.h"
+#include "ioutils.h"
 
 
 using std::ios;
-using std::cout;
-using std::cin;
 using std::endl;
 
 namespace fmesh {
@@ -42,12 +33,14 @@ namespace fmesh {
   IOHeader::IOHeader() { def(); }
 
   IOHeader& IOHeader::def(const int& ref) {
+    (void)(ref);
     def();
     valuetype = IOValuetype_int;
     return *this;
   }
 
   IOHeader& IOHeader::def(const double& ref) {
+    (void)(ref);
     def();
     valuetype = IOValuetype_double;
     return *this;
@@ -202,7 +195,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
   IOHelperC& IOHelperC::ID(std::istream& input)
   {
     const IOHeader& h(IOHelper<int>::h_);
@@ -240,7 +233,7 @@ namespace fmesh {
     }
     return *this;
   }
-  
+
 
 
 
@@ -260,7 +253,7 @@ namespace fmesh {
     activate(name);
     return coll_[name]->DI();
   }
-  
+
   template <>
   Matrix<double>& MatrixC::attach(std::string name,
 				  Matrix<double>* M,
@@ -294,7 +287,7 @@ namespace fmesh {
     activate(name);
     return coll_[name]->SI();
   }
-  
+
   template <>
   SparseMatrix<double>& MatrixC::attach(std::string name,
 					SparseMatrix<double>* M,
@@ -311,7 +304,7 @@ namespace fmesh {
     return coll_[name]->SD();
   }
 
-  
+
   bool MatrixC::activate(std::string name)
   {
     collT::iterator colli;
@@ -337,7 +330,7 @@ namespace fmesh {
     if (filename=="-") {
       /* Can only read stdin once, so read everything now. */
       ioh.D(this);
-      ioh.binary(bin_in_).IH(std::cin).IL(std::cin).ID(std::cin);
+      ioh.binary(bin_in_).IH(FM_CIN).IL(FM_CIN).ID(FM_CIN);
     } else {
       std::ifstream I;
       I.open(filename.c_str(),
@@ -379,7 +372,7 @@ namespace fmesh {
       return info(name);
 
     /* Try to read from prefix data. */
-    
+
     std::ifstream I;
     I.open((input_prefix_+name).c_str(),
 	   (bin_in_ ? (ios::in | ios::binary) : ios::in));
@@ -430,7 +423,7 @@ namespace fmesh {
   MatrixC& MatrixC::free(std::string name)
   {
     dont_output(name);
-    
+
     collT::iterator colli;
     if ((colli = coll_.find(name)) != coll_.end()) {
       delete colli->second;
@@ -511,7 +504,7 @@ namespace fmesh {
 			  std::string specification,
 			  std::string filename)
   {
-    /* Parse raw ascii matrix data and add to collection. */    
+    /* Parse raw ascii matrix data and add to collection. */
 
     if (specification=="ddgr") {
       Matrix<double>& M = attach(name,new Matrix<double>());
@@ -548,40 +541,40 @@ namespace fmesh {
 
   void MatrixC::save()
   {
-   /* Write the matrix collection to output */
+    /* Write the matrix collection to output */
     if (output_prefix_ != "-") {
       for (outputT::const_iterator outi = output_.begin();
-	   outi != output_.end();
-	   ++outi) {
-	MCC& mcc = *(coll_.find(*outi)->second); 
-	if (mcc.info.datatype == IODatatype_dense)
-	  if (mcc.info.valuetype == IOValuetype_int)
-	    save_M((output_prefix_+(*outi)),mcc.DI(),mcc.info,bin_out_);
-	  else
-	    save_M((output_prefix_+(*outi)),mcc.DD(),mcc.info,bin_out_);
-	else
-	  if (mcc.info.valuetype == IOValuetype_int)
-	    save_SM((output_prefix_+(*outi)),mcc.SI(),mcc.info,bin_out_);
-	  else
-	    save_SM((output_prefix_+(*outi)),mcc.SD(),mcc.info,bin_out_);
+           outi != output_.end();
+           ++outi) {
+        MCC& mcc = *(coll_.find(*outi)->second);
+        if (mcc.info.datatype == IODatatype_dense)
+          if (mcc.info.valuetype == IOValuetype_int)
+            save_M((output_prefix_+(*outi)),mcc.DI(),mcc.info,bin_out_);
+          else
+            save_M((output_prefix_+(*outi)),mcc.DD(),mcc.info,bin_out_);
+          else
+            if (mcc.info.valuetype == IOValuetype_int)
+              save_SM((output_prefix_+(*outi)),mcc.SI(),mcc.info,bin_out_);
+            else
+              save_SM((output_prefix_+(*outi)),mcc.SD(),mcc.info,bin_out_);
       }
     }
     if (output_file_ != "") {
       if (output_file_ == "-") {
-	IOHelperC ioh;
-	ioh.cD(this);
-	ioh.binary(bin_out_).OH(std::cout).OL(std::cout).OD(std::cout);
+        IOHelperC ioh;
+        ioh.cD(this);
+        ioh.binary(bin_out_).OH(FM_COUT).OL(FM_COUT).OD(FM_COUT);
       } else {
-	std::ofstream O;
-	O.open(output_file_.c_str(),
-	       (bin_out_ ? (ios::out | ios::binary) : ios::out));
-	if (!O.is_open()) {
-	  // TODO: Add error handling.
-	}
-	IOHelperC ioh;
-	ioh.cD(this);
-	ioh.binary(bin_out_).OH(O).OL(O).OD(O);
-	O.close();
+        std::ofstream O;
+        O.open(output_file_.c_str(),
+               (bin_out_ ? (ios::out | ios::binary) : ios::out));
+        if (!O.is_open()) {
+          // TODO: Add error handling.
+        }
+        IOHelperC ioh;
+        ioh.cD(this);
+        ioh.binary(bin_out_).OH(O).OL(O).OD(O);
+        O.close();
       }
     }
   }
@@ -641,7 +634,7 @@ namespace fmesh {
   }
 
 
-  
+
   void MatrixC::matrixtype(std::string name, IOMatrixtype matrixt)
   {
     collT::iterator colli;

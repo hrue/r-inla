@@ -12,12 +12,10 @@
 #include <string>
 #include <cmath>
 
-#ifndef WHEREAMI
-#define WHEREAMI __FILE__ << "(" << __LINE__ << ")\t"
-#endif
+#include "fmesher_debuglog.h"
 
 #ifndef LOG_
-#define LOG_(msg) std::cout << WHEREAMI << msg;
+#define LOG_(msg) FMLOG_(msg)
 #endif
 #ifndef LOG
 #ifdef DEBUG
@@ -27,12 +25,6 @@
 #endif
 #endif
 
-#ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (std::cout					\
-			 << __FILE__ << "(" << __LINE__ << ")\t"	\
-			 << "NOT IMPLEMENTED: "				\
-			 << __PRETTY_FUNCTION__ << std::endl);
-#endif
 
 namespace fmesh {
 
@@ -84,7 +76,7 @@ namespace fmesh {
     friend
     std::ostream& operator<< <> (std::ostream& output,
 				 const Matrix<T>& M);
-    
+
   protected:
     static const size_t capacity_step_size_ = 1024;
     static const size_t capacity_doubling_limit_ = 8192;
@@ -134,7 +126,7 @@ namespace fmesh {
     size_t cols(void) const { return cols_; };
     Matrix<T>& cols(size_t set_cols);
 
-    const T (* operator[](const size_t r) const) {
+    const T * operator[](const size_t r) const {
       if (r >= rows_) {
 	return NULL;
       }
@@ -145,20 +137,20 @@ namespace fmesh {
       if (r >= rows_) {
 	rows(r+1);
       }
-      return &data_[r*cols_]; 
+      return &data_[r*cols_];
     };
 
     T& operator()(const size_t r, const size_t c) {
       if (c >= cols_)
 	cols(c+1);
-      return operator()(r)[c]; 
+      return operator()(r)[c];
     };
 
     const T& operator()(const size_t r, const size_t c, const T& val) {
-      return (operator()(r,c) = val); 
+      return (operator()(r,c) = val);
     };
 
-    const T (* raw(void) const) { return data_; }
+    const T * raw(void) const { return data_; }
     T* raw(void) { return data_; }
 
 
@@ -228,7 +220,7 @@ namespace fmesh {
     };
 
     const Raw& raw(void) const { return s; }
-    
+
 
 
     selfT& copy(const selfT& s0)
@@ -347,7 +339,7 @@ namespace fmesh {
     T& operator()(const size_t r) {
       return Matrix<T>::operator()(r,0);
     };
-    
+
   };
 
 
@@ -377,15 +369,15 @@ namespace fmesh {
     const ValueRow& operator[](const size_t r) const {
       return ((ValueRow*)Matrix<T>::data_)[r];
     };
-    
+
     ValueRow& operator()(const size_t r) {
       return *(ValueRow*)(&Matrix<T>::operator()(r,0));
     };
-    
+
     T& operator()(const size_t r, const size_t c) {
       return Matrix<T>::operator()(r,c);
     };
-    
+
     const T& operator()(const size_t r, const size_t c, const T& val) {
       return Matrix<T>::operator()(r,c,val);
     };
@@ -555,7 +547,7 @@ namespace fmesh {
 	return col->second;
       return zero_;
     };
-    
+
     T& operator()(const size_t c) {
       if (!(c < M_->cols()))
 	M_->cols(c+1);
@@ -565,13 +557,13 @@ namespace fmesh {
     void erase(ColIter& col) {
       data_.erase(col);
     };
-    
+
     void erase(size_t c) {
       ColIter col;
       if ((col = data_.find(c)) != data_.end())
 	data_.erase(col);
     };
-    
+
   };
 
 
@@ -580,7 +572,7 @@ namespace fmesh {
     friend
     std::ostream& operator<< <> (std::ostream& output,
 				 const SparseMatrix<T>& M);
-    
+
   public:
     typedef typename fmesh::SparseMatrixRow<T> RowType;
     typedef typename std::vector<RowType> DataType;
@@ -603,7 +595,7 @@ namespace fmesh {
       for (size_t r=0; r<rows(); r++) {
 	data_[r].M_ = this;
       }
-      //      std::cout << "SM copy" << std::endl;
+      //      FMLOG_("SM copy" << std::endl);
     };
     const SparseMatrix<T>& operator=(const SparseMatrix<T>& from) {
       cols_ = from.cols_;
@@ -611,7 +603,7 @@ namespace fmesh {
       for (size_t r=0; r<rows(); r++) {
 	data_[r].M_ = this;
       }
-      //      std::cout << "SM assignment" << std::endl;
+      //      FMLOG_("SM assignment" << std::endl);
       return *this;
     };
     SparseMatrix<T>& clear() {
@@ -653,7 +645,7 @@ namespace fmesh {
       if (r < rows()) {
 	return (data_[r].find(c) != data_[r].end());
       } else {
-	return false; 
+	return false;
       }
     };
 
@@ -661,7 +653,7 @@ namespace fmesh {
       if (r<rows()) {
 	return data_[r][c];
       } else {
-	return zero_; 
+	return zero_;
       }
     };
 
@@ -777,11 +769,11 @@ namespace fmesh {
     /*! \brief Store the matrix in a file in old headerless ascii format. */
     bool save_ascii_2009(std::string filename,
 			 IOMatrixtype matrixt = IOMatrixtype_general) const;
-    
+
   };
 
 
-  struct Vec {  
+  struct Vec {
     static void copy(Point& s, const Point& s0)
     { s.copy(s0); };
     static void rescale(Point& s, double s1)
@@ -822,8 +814,8 @@ namespace fmesh {
       const unsigned int xm = uyx & uzx;
       const unsigned int ym = (1^xm) & uzy;
       const unsigned int zm = 1^(xm & ym);
-      std::cout << uyx << ' ' << uzx << ' ' << uzy << std::endl;
-      std::cout << xm << ' ' << ym << ' ' << zm << std::endl;
+      FMLOG(uyx << ' ' << uzx << ' ' << uzy << std::endl);
+      FMLOG(xm << ' ' << ym << ' ' << zm << std::endl);
       n[0] =  zm*v[1] - ym*v[2];
       n[1] =  xm*v[2] - zm*v[0];
       n[2] =  ym*v[0] - xm*v[1];
@@ -905,6 +897,6 @@ namespace fmesh {
 
 } /* namespace fmesh */
 
-#include "vector.tcc"
+#include "vector_t.h"
 
 #endif

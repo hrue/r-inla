@@ -1131,6 +1131,12 @@ double my_dsum(int n, double *x)
 	return (s0 + s1 + s2 + s3);
 }
 
+int my_dscale(int n, double a, double *x)
+{
+	int one = 1;
+	return (dscal_(&n, &a, x, &one));
+}
+	
 double my_dsum2(int n, double *x)
 {
 	double s = 0.0;

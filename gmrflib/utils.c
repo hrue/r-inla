@@ -510,12 +510,9 @@ int GMRFLib_normalize(int n, double *x)
 {
 	// scale x so the sum is 1
 
-	double sum = my_dsum(n, x);
-	sum = 1.0 / sum;
-#pragma GCC ivdep
-	for (int i = 0; i < n; i++) {
-		x[i] *= sum;
-	}
+	double sum;
+	sum = my_dsum(n, x);
+	my_dscale(n, 1.0 / sum, x);
 
 	return GMRFLib_SUCCESS;
 }
@@ -993,9 +990,8 @@ int GMRFLib_scale_vector(double *x, int n)
 
 	double scale = GMRFLib_max_value(x, n, NULL);
 	if (!ISZERO(scale)) {
-		int one = 1;
 		scale = 1.0 / scale;
-		dscal_(&n, &scale, x, &one);
+		my_dscale(n, scale, x);
 	}
 
 	return GMRFLib_SUCCESS;
