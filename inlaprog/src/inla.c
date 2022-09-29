@@ -40532,20 +40532,24 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
+		GMRFLib_idxval_tp *h = NULL;
 		double *xx = Calloc(n, double);
-
 		for (int i = 0; i < n; i++) {
 			xx[i] = GMRFLib_uniform();
 		}
 
-		GMRFLib_idxval_tp *h = NULL;
 		for (int i = 0, j = 0; i < n; i++) {
-			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : 1 + (int) (GMRFLib_uniform() * 31));
-			if (j >= n)
+			j += 1 + (GMRFLib_uniform() < 0.9 ? 0 : 1 + (int) (GMRFLib_uniform() * 31));
+			if (j >= n) {
 				break;
-			GMRFLib_idxval_add(&h, j, xx[j]);
+			}
+			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
 		}
 		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		if (n == 0) {
+			FIXME("n = 0,  try again.");
+			exit(0);
+		}
 		P(n);
 		P(m);
 		P(h->g_n);
