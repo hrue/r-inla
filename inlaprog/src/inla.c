@@ -40528,6 +40528,51 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 89:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *xx = Calloc(n, double);
+
+		for (int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+
+		GMRFLib_idxval_tp *h = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
+			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : 1 + (int) (GMRFLib_uniform() * 31));
+			if (j >= n)
+				break;
+			GMRFLib_idxval_add(&h, j, xx[j]);
+		}
+		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		P(n);
+		P(m);
+		P(h->g_n);
+		P(h->n / h->g_n);
+
+		double sum1 = 0.0, sum2 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+			sum1 = my_ddot_idx(h->n, h->val, xx, h->idx);
+			tref1 += GMRFLib_cpu();
+
+			tref2 -= GMRFLib_cpu();
+			sum2 = my_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			tref2 += GMRFLib_cpu();
+			if (ABS(sum1 - sum2) > 1e-8) {
+				P(sum1);
+				P(sum2);
+				exit(88);
+			}
+		}
+		printf("dot_idx %.3f dot_idx_mkl %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		Free(xx);
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

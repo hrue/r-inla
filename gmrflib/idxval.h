@@ -84,7 +84,9 @@ typedef struct {
 typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
-	IDXVAL_GROUP
+	IDXVAL_SERIAL_MKL,
+	IDXVAL_GROUP,
+	IDXVAL_GROUP_MKL
 } GMRFLib_idxval_preference_tp;
 
 typedef struct {
@@ -104,7 +106,9 @@ typedef struct {
 
 #define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
 //#define DDOT(N_, X_, Y_) my_ddot((N_), X_, Y_)
+
 #define DSUM(N_, X_) my_dsum(N_, X_)
+
 #define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
@@ -151,6 +155,55 @@ typedef struct {
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
+
+// same, exect for one function-call
+#define DOT_PRODUCT_GROUP_MKL(VALUE_, ELM_, ARR_)			\
+	if (1) {							\
+		double value_ = 0.0;					\
+		int integer_one = 1;					\
+		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
+			int len_ = ELM_->g_len[g_];			\
+			if (len_ == 0) continue;			\
+									\
+			int istart_ = ELM_->g_i[g_];			\
+			int * __restrict ii_ = &(ELM_->idx[istart_]);	\
+			double * __restrict vv_ = &(ELM_->val[istart_]); \
+									\
+			if (len_ > 0) {					\
+				double * __restrict aa_ = &(ARR_[0]);	\
+				if (ELM_->g_1[g_]) {			\
+					if (len_ < 8L) {		\
+						_Pragma("GCC ivdep")	\
+							for (int i_ = 0; i_ < len_; i_++) { \
+								value_ += aa_[ii_[i_]]; \
+							}		\
+					} else {			\
+						value_ += my_dsum_idx(len_, aa_, ii_); \
+					}				\
+				} else {				\
+					if (len_ < 8L) {		\
+						_Pragma("GCC ivdep")	\
+							for (int i_ = 0; i_ < len_; i_++) { \
+								value_ += vv_[i_] * aa_[ii_[i_]]; \
+							}		\
+					} else {			\
+						value_ += my_ddot_idx_mkl(len_, vv_, aa_, ii_); \
+					}				\
+				}					\
+			} else if (len_ < 0) {				\
+				int llen_ = - len_;			\
+				double * __restrict aa_ = &(ARR_[ii_[0]]); \
+				if (ELM_->g_1[g_]) {			\
+					value_ += DSUM(llen_, aa_);	\
+				} else {				\
+					value_ += DDOT(llen_, vv_, aa_); \
+				}					\
+			}						\
+			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]])); \
+		}							\
+		VALUE_ = (typeof(VALUE_)) value_;			\
+	}
+
 #define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		double value_ = 0.0;					\
@@ -167,36 +220,47 @@ typedef struct {
 		}							\
 		VALUE_ = (typeof(VALUE_)) value_;			\
 	}
+
+// same, exect for one function-call
+#define DOT_PRODUCT_SERIAL_MKL(VALUE_, ELM_, ARR_)			\
+	if (1) {							\
+		double value_ = 0.0;					\
+		double * __restrict vv_ = ELM_->val;			\
+		double * __restrict aa_ = ARR_;				\
+		int * __restrict idx_ = ELM_->idx;			\
+		if (ELM_->n < 8L) {					\
+			_Pragma("GCC ivdep")				\
+				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
+					value_ += vv_[i_] * aa_[idx_[i_]]; \
+				}					\
+		} else {						\
+			value_ += my_ddot_idx_mkl(ELM_->n, vv_, aa_, idx_); \
+		}							\
+		VALUE_ = (typeof(VALUE_)) value_;			\
+	}
+
 #define DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)				\
 	if (1) {							\
 		switch(ELM_->preference) {				\
 		case IDXVAL_SERIAL:					\
 			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
 			break;						\
+		case IDXVAL_SERIAL_MKL:					\
+			DOT_PRODUCT_SERIAL_MKL(VALUE_, ELM_, ARR_);	\
+			break;						\
 		case IDXVAL_GROUP:					\
 			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
 			break;						\
+		case IDXVAL_GROUP_MKL:					\
+			DOT_PRODUCT_GROUP_MKL(VALUE_, ELM_, ARR_);	\
+			break;						\
 		case IDXVAL_UNKNOWN:					\
 		default:						\
-			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
+		assert(0 == 1);						\
 			break;						\
 		}							\
 	}
-#define DOT_PRODUCT_TIMING(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		static double time_used = 0.0;				\
-		static size_t time_n = 0;				\
-		time_used -= GMRFLib_cpu();				\
-									\
-		DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_);			\
-									\
-		time_used += GMRFLib_cpu();				\
-		if (!(++time_n % 16384L)) {				\
-			P(time_used);					\
-			P(time_used / time_n);				\
-		}							\
-	}
-//#define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_TIMING(VALUE_, ELM_, ARR_)
+
 #define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);

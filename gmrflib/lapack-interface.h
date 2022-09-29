@@ -102,6 +102,8 @@ double my_dsum2(int n, double *x);
 double my_dsum_idx(int n, double *__restrict a, int *__restrict idx);
 int my_dscale(int n, double a, double *x);
 
+double my_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);
 double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity);
