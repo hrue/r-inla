@@ -35054,6 +35054,94 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		G_norm_const_compute[i] = 1;
 	}
 
+
+	if (mb->reuse_mode && mb->x_file) {
+		FIXME("THIS DOES NOT WORK YET");
+		assert(0 == 1);
+		if (N != mb->nx_file) {
+			char *msg;
+			GMRFLib_sprintf(&msg, "N = %1d but nx_file = %1d. Stop.", N, mb->nx_file);
+			inla_error_general(msg);
+		}
+		Memcpy(x, mb->x_file, N * sizeof(double));
+
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			x[i] -= OFFSET3(i);
+		}
+
+	} else {
+		double *xx = Calloc(preopt->Npred, double);
+		printf("\nCompute initial values\n");
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+		for (int i = 0; i < preopt->Npred; i++) {
+			if (mb->d[i]) {
+				xx[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
+			} else {
+				xx[i] = 0.0;
+			}
+		}
+		printf("\tCompute estimates for linear predictor\n");
+
+		double *eta = Calloc(preopt->Npred, double);
+		double *e = Calloc(preopt->Npred, double);
+		double *bb = Calloc(preopt->n, double);
+		double *scale = Calloc(preopt->n, double);
+		double *x_new = Calloc(preopt->n, double);
+		double s0 = 10.0;
+		for(int i = 0; i < preopt->n; i++) {
+			double s = 0.0;
+			if (preopt->pAAt_idxval) {
+				for(int k = 0; k < preopt->pAAt_idxval[i]->n; k++){
+					s += SQR(preopt->pAAt_idxval[i]->val[k]);
+				}
+			} else {
+				for(int k = 0; k < preopt->AtA_idxval[i][0]->n; k++){
+					s += preopt->AtA_idxval[i][0]->val[k];
+				}
+			}
+			scale[i] = 1.0 / (s0 + s);
+		}
+
+		Memcpy(x_new, x, preopt->n * sizeof(double));
+		double norm = 0.0, pnorm = 0.0;
+
+		for (int times = 0; times < 15; times++) {
+			if (times == 0) {
+				GMRFLib_preopt_predictor(eta, x, preopt);	
+				for(int i = 0; i < preopt->Npred; i++) {
+					e[i] = xx[i] - eta[i];
+				}
+			}
+			GMRFLib_preopt_bnew_like(bb, e, preopt);
+			double gamma = DMIN(1.0, (times + 1.0) * 0.1);
+			for(int i = 0; i < preopt->n; i++){
+				x_new[i] = x[i] + gamma * scale[i] * bb[i];
+			}
+
+			// compute new norm
+			GMRFLib_preopt_predictor(eta, x_new, preopt);	
+			norm = 0.0;
+			for(int i = 0; i < preopt->Npred; i++) {
+				e[i] = xx[i] - eta[i];
+				norm += SQR(e[i]);
+			}
+			if (times == 0) pnorm = norm;
+			printf("\tCompute for latent, iteration = %1d, norm.reduction = %.2f\n", times, norm/pnorm);
+			printf("\t\tNorm.reduction > 1.0, exit with previous 'x'\n");
+			if (norm <= pnorm) {
+				// we're good
+				Memcpy(x, x_new, preopt->n * sizeof(double));
+			} else {
+				// we stick with 'x'
+				break;
+			}
+		}
+		for(int i = 0; i < preopt->n; i++){
+			P(x[i]);
+		}
+	}
+
+
 	GMRFLib_ai_INLA_experimental(&(mb->density),
 				     NULL, NULL,
 				     (mb->output->hyperparameters ? &(mb->density_hyper) : NULL),
