@@ -80,8 +80,11 @@ ALL = $(LIBNAME) $(MAKEFILESIN)
 
 all : $(ALL)
 
-$(LIBNAME): $(LIBNAME)($(LIBOBJ))
-	ranlib $@
+##$(LIBNAME): $(LIBNAME)($(LIBOBJ))
+##	ranlib $@
+$(LIBNAME) : $(LIBOBJ)
+	$(AR) cr $(LIBNAME) $(LIBOBJ)
+##	ranlib $@
 
 # !!! Do not change! /FL
 DEPDIR = .deps/.dummy
