@@ -1,3 +1,8 @@
+# INLA 22.10.01
+* MKL code for nested indexed inner products
+* Computation of initial values for experimental mode
+* Various more minor code improvements
+
 # INLA 22.09.28
 * Updated version of `fmesher`, the program which do the mesh-stuff
 * Various code-improvement
