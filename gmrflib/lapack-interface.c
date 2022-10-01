@@ -812,34 +812,36 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	// the sign of each column is so that max(abs(column)) is positive
 
 	gsl_vector *q = gsl_vector_alloc(A->size1);
-	size_t i, j, k, n = A->size1;
+	size_t n1 = A->size1;
+	size_t n2 = A->size2;
 
-	for (i = 0; i < n; i++) {
-
+	for (size_t i = 0; i < n2; i++) {
 		double aij_amax = 0.0, r = 0.0;
-		for (j = 0; j < n; j++) {
+
+		for (size_t j = 0; j < n1; j++) {
 			double elm = gsl_matrix_get(A, j, i);
 			r += SQR(elm);
 			aij_amax = (ABS(elm) > ABS(aij_amax) ? elm : aij_amax);
 		}
 
 		if (aij_amax < 0.0) {			       /* swap the sign of this column */
-			for (j = 0; j < n; j++) {
+			for (size_t j = 0; j < n1; j++) {
 				gsl_matrix_set(A, j, i, -gsl_matrix_get(A, j, i));
 			}
 		}
 
 		r = sqrt(r);
-		for (j = 0; j < n; j++) {
+		for (size_t j = 0; j < n1; j++) {
 			gsl_vector_set(q, j, gsl_matrix_get(A, j, i) / r);
 			gsl_matrix_set(A, j, i, gsl_vector_get(q, j));	// normalize
 		}
 
-		for (j = i + 1; j < n; j++) {
-			for (r = 0, k = 0; k < n; k++) {
+		for (size_t j = i + 1; j < n2; j++) {
+			r = 0.0;
+			for (size_t k = 0; k < n1; k++) {
 				r += gsl_vector_get(q, k) * gsl_matrix_get(A, k, j);
 			}
-			for (k = 0; k < n; k++) {
+			for (size_t k = 0; k < n1; k++) {
 				gsl_matrix_set(A, k, j, gsl_matrix_get(A, k, j) - r * gsl_vector_get(q, k));
 			}
 		}
