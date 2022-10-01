@@ -8400,7 +8400,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			printf("[%1d] x_mean[%1d] = %.12g\n", omp_get_thread_num(), i, x_mean[i]);
 		}
 	}
-	
+
 	double *tmp = Calloc_get(graph->n);
 	gsl_matrix *QM = gsl_matrix_alloc(graph->n, vb_idx->n);
 	gsl_matrix *M = gsl_matrix_alloc(graph->n, vb_idx->n); // matrix with Cov()

@@ -9262,9 +9262,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -34883,23 +34883,23 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	}
 
 	// report timings
-	double time_loop[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_dot_product_optim_report) {
-		for(int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-			for(int j = 0; j < 5; j++) {
+		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+			for (int j = 0; j < 5; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
 		double time_sum = 0.0;
-		for(int j = 0; j < 4; j++) {
+		for (int j = 0; j < 4; j++) {
 			time_sum += time_loop[j];
 		}
-		for(int j = 0; j < 4; j++) {
+		for (int j = 0; j < 4; j++) {
 			time_loop[j] /= time_sum;
 		}
 		time_loop[4] /= time_sum;
 	}
-	
+
 
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
@@ -35134,7 +35134,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				Memcpy(e, eta, preopt->Npred * sizeof(double));
 				daxpby_(&(preopt->Npred), &d_one, eta_pseudo, &one, &d_mone, e, &one);
 			}
-#else			
+#else
 			{
 #pragma GCC ivdep
 				for (int i = 0; i < preopt->Npred; i++) {
@@ -35170,14 +35170,14 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 		tref += GMRFLib_cpu();
 		printf("\tInitial values computed in %.4f seconds\n", tref);
-		for(int i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
+		for (int i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
 			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
 		}
-		for(int i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
+		for (int i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
 			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
 		}
 		printf("\n");
-		
+
 		Free(eta_pseudo);
 		Free(eta);
 		Free(Ad);
@@ -41082,7 +41082,7 @@ int main(int argc, char **argv)
 
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN, double *);
-	for(int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
 		GMRFLib_dot_product_optim_report[i] = Calloc(5, double);
 	}
 

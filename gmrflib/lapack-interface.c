@@ -1243,7 +1243,7 @@ double my_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *_
 			const MKL_INT * indx, const MKL_INT * pntrb, const MKL_INT * pntre, const double *x, const double *beta, double *y);
 #undef MKL_INT
 
-	int iarr[4] = { 1, 0, n, idx[n-1] + 1 };
+	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
 	double darr[3] = { 1.0, 0.0, 0.0 };
 	// we need to define this with length 6. the fifth argument is not used, so we use it for the
 	// argument 'trans', the first argument in the call, trans='N'
@@ -1258,7 +1258,7 @@ double my_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *_
 double my_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	// just a copy of 'my_ddot_idx', with a different name
-	
+
 	DDOT_IDX_CORE;
 }
 

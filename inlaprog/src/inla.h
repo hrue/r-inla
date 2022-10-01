@@ -241,7 +241,7 @@ typedef enum {
 	L_STOCHVOL_SN,
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
-	L_GAUSSIANJW, 
+	L_GAUSSIANJW,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -716,7 +716,7 @@ typedef struct {
 	double **fmri_ldof;
 	double *fmri_scale;
 
-	/* 
+	/*
 	 * gaussianjw  
 	 */
 	double ***gjw_beta;
@@ -2032,7 +2032,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *));
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *));
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_nbinomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

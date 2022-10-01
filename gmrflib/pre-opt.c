@@ -766,7 +766,7 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 
 	if (node == nnode) {
 		value = a->like_Qfunc(thread_id, node, node, NULL, a->like_Qfunc_arg)
-			+ a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+		    + a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
 	} else {
 		if (GMRFLib_graph_is_nb(node, nnode, a->like_graph)) {
 			value = a->like_Qfunc(thread_id, node, nnode, NULL, a->like_Qfunc_arg);
@@ -869,7 +869,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
-	
+
 	return GMRFLib_SUCCESS;
 }
 

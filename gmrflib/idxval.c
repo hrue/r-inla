@@ -941,8 +941,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			continue;
 		}
 
-		double tref[4] = { 0.0, 0.0, 0.0, 0.0};
-		double value[4] = { 0.0, 0.0, 0.0, 0.0};
+		double tref[4] = { 0.0, 0.0, 0.0, 0.0 };
+		double value[4] = { 0.0, 0.0, 0.0, 0.0 };
 
 		if (debug) {
 			printf("start testing for hold[%1d]...\n", i);
@@ -956,7 +956,6 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[0] += GMRFLib_cpu();
 			}
-
 #if defined(INLA_LINK_WITH_MKL)
 			if (measure) {
 				tref[1] -= GMRFLib_cpu();
@@ -968,8 +967,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 #else
 			value[1] = value[0];
 			tref[1] = tref[0];
-#endif			
-			
+#endif
+
 			if (measure) {
 				tref[2] -= GMRFLib_cpu();
 			}
@@ -977,7 +976,6 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[2] += GMRFLib_cpu();
 			}
-
 #if defined(INLA_LINK_WITH_MKL)
 			if (measure) {
 				tref[3] -= GMRFLib_cpu();
@@ -989,7 +987,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 #else
 			value[3] = value[2];
 			tref[3] = tref[2];
-#endif			
+#endif
 		}
 
 		for (int k = 1; k < 4; k++) {
@@ -1002,7 +1000,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 				assert(0 == 1);
 			}
 		}
-		
+
 		int k = -1;
 		double tmin = GMRFLib_min_value(tref, 4, &k);
 		double tmax = GMRFLib_max_value(tref, 4, NULL);
@@ -1013,32 +1011,32 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			       i, hold[i]->n, k, tref[0] * s, tref[1] * s, tref[2] * s, tref[3] * s);
 		}
 
-		switch(k) {
-		case 0: 
+		switch (k) {
+		case 0:
 			hold[i]->preference = IDXVAL_SERIAL;
 			break;
-		case 1: 
+		case 1:
 			hold[i]->preference = IDXVAL_SERIAL_MKL;
 			break;
-		case 2: 
+		case 2:
 			hold[i]->preference = IDXVAL_GROUP;
 			break;
-		case 3: 
+		case 3:
 			hold[i]->preference = IDXVAL_GROUP_MKL;
 			break;
-		default: 
+		default:
 			assert(0 == 1);
 		}
 
 		if (GMRFLib_dot_product_optim_report) {
 			int idx;
 			GMRFLib_CACHE_SET_ID(idx);
-			for(int k = 0; k < 4; k++) {
+			for (int k = 0; k < 4; k++) {
 				GMRFLib_dot_product_optim_report[idx][k] += tref[k];
 			}
 			GMRFLib_dot_product_optim_report[idx][4] += tmin;
 		}
-		
+
 		time_min += tmin / ntimes;
 		time_max += tmax / ntimes;
 	}
@@ -1242,7 +1240,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

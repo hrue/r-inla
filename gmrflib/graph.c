@@ -553,7 +553,7 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	int m = graph->lnnbs[imin];
 	if (m) {
 		int *nb = graph->lnbs[imin];
-		if (imax > nb[m-1]) {
+		if (imax > nb[m - 1]) {
 			return 0;
 		} else {
 			int idx = 0;
