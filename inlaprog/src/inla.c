@@ -35059,6 +35059,15 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 		printf("\nCompute initial values\n");
 
+		const int nhist = 5;
+		gsl_matrix *D = gsl_matrix_alloc(preopt->n, nhist);
+		gsl_matrix *Ddir = gsl_matrix_alloc(preopt->n, nhist);
+		gsl_matrix_set_zero(D);
+		gsl_matrix_set_zero(Ddir);
+		for (size_t i = 0; i < D->size2; i++) {
+			gsl_matrix_set(D, i, i, 1.0);
+		}
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < preopt->Npred; i++) {
 			if (mb->d[i]) {
@@ -35115,6 +35124,26 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				d[i] = scale[i] * bb[i];
 			}
 
+			for (size_t i = 0; i < Ddir->size1; i++) {
+				for (size_t j = Ddir->size2 - 1; j > 0; j--) {
+					gsl_matrix_set(Ddir, i, j, gsl_matrix_get(Ddir, i, j - 1));
+				}
+			}
+			for (size_t i = 0; i < Ddir->size1; i++) {
+				gsl_matrix_set(Ddir, i, 0, d[i]);
+			}
+			
+			gsl_matrix_memcpy(D, Ddir);
+			GMRFLib_gsl_mgs(D);
+			for (size_t i = 0; i < D->size1; i++) {
+				if (i < 10) printf("before d[%1zu] =  %f\n", i, d[i]);
+			}
+			if (0)
+				for (size_t i = 0; i < D->size1; i++) {
+					d[i] = -gsl_matrix_get(D, i, 0);
+					if (i < 10) printf("after d[%1zu] =  %f\n", i, d[i]);
+				}
+
 			GMRFLib_preopt_predictor(Ad, d, preopt);
 			sum1 = my_ddot(preopt->Npred, Ad, e);
 			sum2 = ddot_(&(preopt->Npred), Ad, &one, Ad, &one);
@@ -35124,7 +35153,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			if (iter == 0) {
 				norm_initial = norm;
 			}
-			printf("\tIter %2d RMS(err) = %.3f, move forward with step-size = %.3f\n", iter, norm / norm_initial, gamma);
+			printf("\tIter %2d RMS(err) = %.13f, move forward with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 
 			my_dscale(preopt->n, gamma, d);
 			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
