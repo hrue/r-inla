@@ -35163,7 +35163,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 
 			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
-			if (norm / norm_initial < 0.2) {
+			if (norm / norm_initial < 0.25) {
 				break;
 			}
 		}
