@@ -768,7 +768,11 @@
 
             ## :ARGUMENT+: parallel.linesearch Use serial (default) or parallel line-search
             ## :ARGUMENT+: (highly experimental for the moment)
-            parallel.linesearch = FALSE
+            parallel.linesearch = FALSE,
+            
+            ## :ARGUMENT+: compute.initial.values Compute initial values for the latent field or not.
+            ## :ARGUMENT+: (experimental-mode only)
+            compute.initial.values = TRUE
         )
 
         ## :SEEALSO: inla

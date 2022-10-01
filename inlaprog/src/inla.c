@@ -29260,6 +29260,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 
 	mb->ai_par->improved_simplified_laplace = iniparser_getboolean(ini, inla_string_join(secname, "IMPROVED.SIMPLIFIED.LAPLACE"), 0);
 	mb->ai_par->parallel_linesearch = iniparser_getboolean(ini, inla_string_join(secname, "PARALLEL.LINESEARCH"), 0);
+	mb->compute_initial_values = iniparser_getboolean(ini, inla_string_join(secname, "COMPUTE.INITIAL.VALUES"), 1);
 
 	if (mb->verbose) {
 		GMRFLib_print_ai_param(stdout, mb->ai_par);
@@ -35054,10 +35055,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		G_norm_const_compute[i] = 1;
 	}
 
-	if (!(mb->reuse_mode && mb->x_file)) {
+	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values) {
 		double tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
-		printf("\nCompute initial values\n");
+		printf("\nCompute initial values...\n");
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < preopt->Npred; i++) {
@@ -35124,18 +35125,26 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			if (iter == 0) {
 				norm_initial = norm;
 			}
-			printf("\tIter %2d RMS(err) = %.3f, move forward with step-size = %.3f\n", iter, norm / norm_initial, gamma);
+			printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 
 			my_dscale(preopt->n, gamma, d);
 			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
 
-			if (norm / norm_initial < 0.1) {
+			if (norm / norm_initial < 0.33) {
 				break;
 			}
 		}
-		tref += GMRFLib_cpu();
-		printf("Intital values computed in %.4f seconds\n\n", tref);
 
+		tref += GMRFLib_cpu();
+		printf("Intital values computed in %.4f seconds\n", tref);
+		for(int i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
+			printf("\tx[%1d] = %.8f\n", i, x[i]);
+		}
+		for(int i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
+			printf("\tx[%1d] = %.8f\n", i, x[i]);
+		}
+		printf("\n");
+		
 		Free(eta_pseudo);
 		Free(eta);
 		Free(Ad);

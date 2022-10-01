@@ -1177,6 +1177,9 @@ struct inla_tp_struct {
 	 * if at use
 	 */
 	inla_update_tp *update;
+
+	// experimental mode only
+	int compute_initial_values;
 };
 
 typedef struct {
