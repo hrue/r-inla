@@ -35103,17 +35103,29 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			double sum1 = 0.0, sum2 = 0.0, gamma;
 
 			GMRFLib_preopt_predictor(eta, x, preopt);
-#pragma GCC ivdep
-			for (int i = 0; i < preopt->Npred; i++) {
-				e[i] = eta_pseudo[i] - eta[i];
-				norm += SQR(e[i]);
+#if defined(INLA_LINK_WITH_MKL)
+			{
+				void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
+				double d_one = 1.0, d_mone = -1.0;
+				Memcpy(e, eta, preopt->Npred * sizeof(double));
+				daxpby_(&(preopt->Npred), &d_one, eta_pseudo, &one, &d_mone, e, &one);
 			}
+#else			
+			{
+#pragma GCC ivdep
+				for (int i = 0; i < preopt->Npred; i++) {
+					e[i] = eta_pseudo[i] - eta[i];
+				}
+			}
+#endif
+			norm = ddot_(&(preopt->Npred), e, &one, e, &one);
 			GMRFLib_preopt_bnew_like(bb, e, preopt);
 
 			double *d = bb;			       /* Save memory, bb is not used below the next loop */
 #pragma GCC ivdep
 			for (int i = 0; i < preopt->n; i++) {
-				d[i] = scale[i] * bb[i];
+				// this does d[i] = scale[i] * bb[i], as d=bb above
+				d[i] *= scale[i];
 			}
 
 			GMRFLib_preopt_predictor(Ad, d, preopt);
@@ -35136,7 +35148,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 
 		tref += GMRFLib_cpu();
-		printf("Intital values computed in %.4f seconds\n", tref);
+		printf("Initial values computed in %.4f seconds\n", tref);
 		for(int i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
 			printf("\tx[%1d] = %.8f\n", i, x[i]);
 		}

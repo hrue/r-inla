@@ -869,7 +869,7 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
-
+	
 	return GMRFLib_SUCCESS;
 }
 
