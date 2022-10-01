@@ -766,7 +766,7 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 
 	if (node == nnode) {
 		value = a->like_Qfunc(thread_id, node, node, NULL, a->like_Qfunc_arg)
-			+ a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+		    + a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
 	} else {
 		if (GMRFLib_graph_is_nb(node, nnode, a->like_graph)) {
 			value = a->like_Qfunc(thread_id, node, nnode, NULL, a->like_Qfunc_arg);

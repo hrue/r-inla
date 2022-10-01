@@ -812,34 +812,36 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	// the sign of each column is so that max(abs(column)) is positive
 
 	gsl_vector *q = gsl_vector_alloc(A->size1);
-	size_t i, j, k, n = A->size1;
+	size_t n1 = A->size1;
+	size_t n2 = A->size2;
 
-	for (i = 0; i < n; i++) {
-
+	for (size_t i = 0; i < n2; i++) {
 		double aij_amax = 0.0, r = 0.0;
-		for (j = 0; j < n; j++) {
+
+		for (size_t j = 0; j < n1; j++) {
 			double elm = gsl_matrix_get(A, j, i);
 			r += SQR(elm);
 			aij_amax = (ABS(elm) > ABS(aij_amax) ? elm : aij_amax);
 		}
 
 		if (aij_amax < 0.0) {			       /* swap the sign of this column */
-			for (j = 0; j < n; j++) {
+			for (size_t j = 0; j < n1; j++) {
 				gsl_matrix_set(A, j, i, -gsl_matrix_get(A, j, i));
 			}
 		}
 
 		r = sqrt(r);
-		for (j = 0; j < n; j++) {
+		for (size_t j = 0; j < n1; j++) {
 			gsl_vector_set(q, j, gsl_matrix_get(A, j, i) / r);
 			gsl_matrix_set(A, j, i, gsl_vector_get(q, j));	// normalize
 		}
 
-		for (j = i + 1; j < n; j++) {
-			for (r = 0, k = 0; k < n; k++) {
+		for (size_t j = i + 1; j < n2; j++) {
+			r = 0.0;
+			for (size_t k = 0; k < n1; k++) {
 				r += gsl_vector_get(q, k) * gsl_matrix_get(A, k, j);
 			}
-			for (k = 0; k < n; k++) {
+			for (size_t k = 0; k < n1; k++) {
 				gsl_matrix_set(A, k, j, gsl_matrix_get(A, k, j) - r * gsl_vector_get(q, k));
 			}
 		}
@@ -1136,7 +1138,7 @@ int my_dscale(int n, double a, double *x)
 	int one = 1;
 	return (dscal_(&n, &a, x, &one));
 }
-	
+
 double my_dsum2(int n, double *x)
 {
 	double s = 0.0;
@@ -1159,37 +1161,6 @@ double my_ddot(int n, double *__restrict x, double *__restrict y)
 {
 	int one = 1;
 	return ddot_(&n, x, &one, y, &one);
-}
-
-double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
-{
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		double *vv = v + i;
-		int *iidx = idx + i;
-
-		s0 += vv[0] * a[iidx[0]];
-		s1 += vv[1] * a[iidx[1]];
-		s2 += vv[2] * a[iidx[2]];
-		s3 += vv[3] * a[iidx[3]];
-
-		s0 += vv[4] * a[iidx[4]];
-		s1 += vv[5] * a[iidx[5]];
-		s2 += vv[6] * a[iidx[6]];
-		s3 += vv[7] * a[iidx[7]];
-	}
-
-#pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
-		s0 += v[i] * a[idx[i]];
-	}
-
-	return (s0 + s1 + s2 + s3);
 }
 
 double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
@@ -1220,3 +1191,76 @@ double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 
 	return (s0 + s1 + s2 + s3);
 }
+
+
+/* 
+ *  Two versions of the ddot_idx function, one plain and one from MKL (a special case of a sparse-matrix vector product)
+ */
+
+#define DDOT_IDX_CORE					\
+	const int roll = 8L;				\
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;	\
+	div_t d = div(n, roll);				\
+	int m = d.quot * roll;				\
+							\
+	_Pragma("GCC ivdep")				\
+	for (int i = 0; i < m; i += roll) {		\
+		double *vv = v + i;			\
+		int *iidx = idx + i;			\
+							\
+		s0 += vv[0] * a[iidx[0]];		\
+		s1 += vv[1] * a[iidx[1]];		\
+		s2 += vv[2] * a[iidx[2]];		\
+		s3 += vv[3] * a[iidx[3]];		\
+							\
+		s0 += vv[4] * a[iidx[4]];		\
+		s1 += vv[5] * a[iidx[5]];		\
+		s2 += vv[6] * a[iidx[6]];		\
+		s3 += vv[7] * a[iidx[7]];		\
+	}						\
+							\
+	_Pragma("GCC ivdep")					\
+	for (int i = d.quot * roll; i < n; i++) {		\
+		s0 += v[i] * a[idx[i]];				\
+	}							\
+								\
+	return (s0 + s1 + s2 + s3);
+
+
+double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	DDOT_IDX_CORE;
+}
+
+#if defined(INLA_LINK_WITH_MKL)
+
+double my_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	// this is the MKL version, which is done using a sparse '1 x n' matrix.
+	// we could include <mkl.h> but we can just do this, as we only need one non-standard function
+#define MKL_INT int
+	void mkl_dcsrmv(const char *transa, const MKL_INT * m, const MKL_INT * k, const double *alpha, const char *matdescra, const double *val,
+			const MKL_INT * indx, const MKL_INT * pntrb, const MKL_INT * pntre, const double *x, const double *beta, double *y);
+#undef MKL_INT
+
+	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
+	double darr[3] = { 1.0, 0.0, 0.0 };
+	// we need to define this with length 6. the fifth argument is not used, so we use it for the
+	// argument 'trans', the first argument in the call, trans='N'
+	const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
+
+	mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
+	return (darr[2]);
+}
+
+#else							       /* defined(INLA_LINK_WITH_MKL) */
+
+double my_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	// just a copy of 'my_ddot_idx', with a different name
+
+	DDOT_IDX_CORE;
+}
+
+#endif							       /* if defined(INLA_LINK_WITH_MKL) */
+#undef DDOT_IDX_CORE

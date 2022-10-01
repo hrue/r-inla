@@ -933,7 +933,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 	double time_min = 0.0;
 	double time_max = 0.0;
-	int ntimes = 1;
+	int ntimes = 2;
 
 	for (int i = 0; i < n; i++) {
 
@@ -941,8 +941,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			continue;
 		}
 
-		double tref[2] = { 0.0, 0.0 };
-		double value[2] = { 0.0, 0.0 };
+		double tref[4] = { 0.0, 0.0, 0.0, 0.0 };
+		double value[4] = { 0.0, 0.0, 0.0, 0.0 };
 
 		if (debug) {
 			printf("start testing for hold[%1d]...\n", i);
@@ -956,36 +956,94 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[0] += GMRFLib_cpu();
 			}
-
+#if defined(INLA_LINK_WITH_MKL)
 			if (measure) {
 				tref[1] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_GROUP(value[1], hold[i], x);
+			DOT_PRODUCT_SERIAL_MKL(value[1], hold[i], x);
 			if (measure) {
 				tref[1] += GMRFLib_cpu();
 			}
+#else
+			value[1] = value[0];
+			tref[1] = tref[0];
+#endif
+
+			if (measure) {
+				tref[2] -= GMRFLib_cpu();
+			}
+			DOT_PRODUCT_GROUP(value[2], hold[i], x);
+			if (measure) {
+				tref[2] += GMRFLib_cpu();
+			}
+#if defined(INLA_LINK_WITH_MKL)
+			if (measure) {
+				tref[3] -= GMRFLib_cpu();
+			}
+			DOT_PRODUCT_GROUP_MKL(value[3], hold[i], x);
+			if (measure) {
+				tref[3] += GMRFLib_cpu();
+			}
+#else
+			value[3] = value[2];
+			tref[3] = tref[2];
+#endif
 		}
 
-		// without cost, we can validate that the results is the same...
-		if ((ABS(value[1] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[1])) / 2.0)) > 1.0E-6) {
-			P(value[0]);
-			P(value[1]);
+		for (int k = 1; k < 4; k++) {
+			// without cost, we can validate that the results is the same...
+			if ((ABS(value[k] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[k])) / 2.0)) > 1.0E-6) {
+				P(ABS(value[k] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[k])) / 2.0));
+				P(k);
+				P(value[0]);
+				P(value[k]);
+				assert(0 == 1);
+			}
+		}
+
+		int k = -1;
+		double tmin = GMRFLib_min_value(tref, 4, &k);
+		double tmax = GMRFLib_max_value(tref, 4, NULL);
+
+		if (debug) {
+			double s = 1.0 / (tref[0] + tref[1] + tref[2] + tref[3]) / ntimes;
+			printf("for h[%1d] with n= %1d chose k=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
+			       i, hold[i]->n, k, tref[0] * s, tref[1] * s, tref[2] * s, tref[3] * s);
+		}
+
+		switch (k) {
+		case 0:
+			hold[i]->preference = IDXVAL_SERIAL;
+			break;
+		case 1:
+			hold[i]->preference = IDXVAL_SERIAL_MKL;
+			break;
+		case 2:
+			hold[i]->preference = IDXVAL_GROUP;
+			break;
+		case 3:
+			hold[i]->preference = IDXVAL_GROUP_MKL;
+			break;
+		default:
 			assert(0 == 1);
 		}
-		if (debug) {
-			printf("for h[%1d] with n= %1d : time serial= %.3f  group= %.3f\n", i, hold[i]->n,
-			       tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+		if (GMRFLib_dot_product_optim_report) {
+			int idx;
+			GMRFLib_CACHE_SET_ID(idx);
+			for (int k = 0; k < 4; k++) {
+				GMRFLib_dot_product_optim_report[idx][k] += tref[k];
+			}
+			GMRFLib_dot_product_optim_report[idx][4] += tmin;
 		}
 
-		hold[i]->preference = (tref[0] < tref[1] ? IDXVAL_SERIAL : IDXVAL_GROUP);
-
-		time_min += DMIN(tref[0], tref[1]) / ntimes;
-		time_max += DMAX(tref[0], tref[1]) / ntimes;
+		time_min += tmin / ntimes;
+		time_max += tmax / ntimes;
 	}
 
 	if (debug) {
-		if (time_min > 0.0 && time_max > 0.0) {
-			printf("idxval opt: saving %.6f seconds/M.eval, %.2f%% improvement\n",
+		if (time_min > 0.0) {
+			printf("idxval opt: saving %.6f seconds/M.evals, %.2f%% improvement\n",
 			       (time_max - time_min) * ISQR(1024), 100.0 * (1.0 - time_min / time_max));
 		}
 	}
@@ -1182,7 +1240,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
