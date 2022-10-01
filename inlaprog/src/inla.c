@@ -34882,6 +34882,25 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_preopt_predictor_strategy = 0;
 	}
 
+	// report timings
+	double time_loop[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+	if (GMRFLib_dot_product_optim_report) {
+		for(int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+			for(int j = 0; j < 5; j++) {
+				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
+			}
+		}
+		double time_sum = 0.0;
+		for(int j = 0; j < 4; j++) {
+			time_sum += time_loop[j];
+		}
+		for(int j = 0; j < 4; j++) {
+			time_loop[j] /= time_sum;
+		}
+		time_loop[4] /= time_sum;
+	}
+	
+
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
@@ -34897,10 +34916,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tTiming of Qx-strategy...... serial/parallel = %.2f choose[%s]\n", time_used_Qx[0] / time_used_Qx[1],
+		printf("\tOptimizing Qx-strategy..... serial/parallel = %.2f choose[%s]\n", time_used_Qx[0] / time_used_Qx[1],
 		       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
-		printf("\tTiming of pred-strategy.... plain/data-rich = %.2f choose[%s]\n", time_used_pred[0] / time_used_pred[1],
+		printf("\tOptimizing pred-strategy... plain/data-rich = %.2f choose[%s]\n", time_used_pred[0] / time_used_pred[1],
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
+		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
+		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
+		printf("\t                            optimal.mix.strategy..... [%.3f]\n", time_loop[4]);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
@@ -34931,7 +34953,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	 */
 	if (mb->verbose) {
 		if (mb->ntheta) {
-			printf("\tList of hyperparameters: \n");
+			printf("\n\tList of hyperparameters: \n");
 			for (i = 0; i < mb->ntheta; i++) {
 				printf("\t\ttheta[%1d] = [%s]\n", i, mb->theta_tag[i]);
 			}
@@ -35096,8 +35118,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 		}
 
+		int iter_max = 10;
 		double norm_initial = 0.0;
-		for (int iter = 0; iter < 10; iter++) {
+		double *d = bb;				       /* use the same space for both */
+		for (int iter = 0; iter < iter_max; iter++) {
 			int one = 1;
 			double norm = 0.0;
 			double sum1 = 0.0, sum2 = 0.0, gamma;
@@ -35119,12 +35143,12 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 #endif
 			norm = ddot_(&(preopt->Npred), e, &one, e, &one);
+			norm = sqrt(norm / preopt->Npred);
 			GMRFLib_preopt_bnew_like(bb, e, preopt);
 
-			double *d = bb;			       /* Save memory, bb is not used below the next loop */
 #pragma GCC ivdep
 			for (int i = 0; i < preopt->n; i++) {
-				// this does d[i] = scale[i] * bb[i], as d=bb above
+				// this computes 'd[i] = scale[i] * bb[i]' as d=bb as set above
 				d[i] *= scale[i];
 			}
 
@@ -35133,27 +35157,24 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			sum2 = ddot_(&(preopt->Npred), Ad, &one, Ad, &one);
 			gamma = DMAX(0.0, DMIN(2.0, sum1 / (FLT_EPSILON + sum2)));
 
-			norm = sqrt(norm / preopt->Npred);
 			if (iter == 0) {
 				norm_initial = norm;
 			}
 			printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 
-			my_dscale(preopt->n, gamma, d);
 			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
-
-			if (norm / norm_initial < 0.33) {
+			if (norm / norm_initial < 0.2) {
 				break;
 			}
 		}
 
 		tref += GMRFLib_cpu();
-		printf("Initial values computed in %.4f seconds\n", tref);
+		printf("\tInitial values computed in %.4f seconds\n", tref);
 		for(int i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
-			printf("\tx[%1d] = %.8f\n", i, x[i]);
+			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
 		}
 		for(int i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
-			printf("\tx[%1d] = %.8f\n", i, x[i]);
+			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
 		}
 		printf("\n");
 		
@@ -41057,6 +41078,12 @@ int main(int argc, char **argv)
 			_USAGE;
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	// I need to set it here as it depends on MAX_THREADS
+	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN, double *);
+	for(int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+		GMRFLib_dot_product_optim_report[i] = Calloc(5, double);
 	}
 
 #if !defined(WINDOWS)

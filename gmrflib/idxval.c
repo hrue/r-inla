@@ -1030,6 +1030,15 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			assert(0 == 1);
 		}
 
+		if (GMRFLib_dot_product_optim_report) {
+			int idx;
+			GMRFLib_CACHE_SET_ID(idx);
+			for(int k = 0; k < 4; k++) {
+				GMRFLib_dot_product_optim_report[idx][k] += tref[k];
+			}
+			GMRFLib_dot_product_optim_report[idx][4] += tmin;
+		}
+		
 		time_min += tmin / ntimes;
 		time_max += tmax / ntimes;
 	}
