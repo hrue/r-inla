@@ -46,7 +46,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
 	// this uses g_idx and g_val
-	
+
 	double value_ = 0.0;
 	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
 		int len_ = ELM_->g_len[g_];
@@ -203,8 +203,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 	assert(0 == 1);
 	return NAN;
 }
-
 
+
 
 int GMRFLib_isum(int n, int *ix)
 {

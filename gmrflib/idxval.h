@@ -96,14 +96,14 @@ typedef struct {
 	int *idx;
 	GMRFLib_idxval_preference_tp preference;
 
-	int n_n;						       /* new len */
+	int n_n;					       /* new len */
 	int *g_idx;
 	int g_n;					       /* number of groups with sequential indices */
 	int *g_len;					       /* their length */
 	int *g_i;					       /* and their starting index */
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
 	int free_g_mem;
-	
+
 	double *val;
 	double *g_val;
 } GMRFLib_idxval_tp;
