@@ -551,6 +551,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		nmax = IMAX(nmax, h->n);
 	}
 
+
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
 		GMRFLib_idxval_tp *h = hold[i];				\
@@ -853,13 +854,16 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 					}				\
 				}					\
 									\
-				Free(h->idx);				\
-				Free(h->val);				\
-				h->n = n_new;				\
+				h->n_n = n_new;				\
 				h->g_n = gg + pending;			\
-				h->idx = idx_new;			\
-				h->val = val_new;			\
-				h->n_alloc = n_new;			\
+				h->g_idx = idx_new;			\
+				h->g_val = val_new;			\
+				h->free_g_mem = 1;			\
+			} else {					\
+				h->n_n = h->n;				\
+				h->g_idx = h->idx;			\
+				h->g_val = h->val;			\
+				h->free_g_mem = 0;			\
 			}						\
 		}							\
 		if (debug) tref[3] += GMRFLib_cpu();			\
@@ -872,7 +876,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		for (int g = 0; g < h->g_n; g++) {			\
 			int all_1 = 1;					\
 			for (int j = 0; j < IABS(h->g_len[g]) && all_1; j++) { \
-				all_1 = all_1 && ISEQUAL(h->val[h->g_i[g] + j], 1.0); \
+				all_1 = all_1 && ISEQUAL(h->g_val[h->g_i[g] + j], 1.0); \
 			}						\
 			g_1[g] = (all_1 ? 1 : 0);			\
 		}							\
@@ -888,7 +892,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		}							\
 	}
 
-	RUN_CODE_BLOCK(nt, 1, nmax);
+        RUN_CODE_BLOCK(nt, 1, nmax);
 #undef CODE_BLOCK
 
 	/*
@@ -1100,9 +1104,14 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 	if (hold) {
 		Free(hold->idx);
 		Free(hold->val);
+
 		Free(hold->g_i);
 		Free(hold->g_len);
 		Free(hold->g_1);
+		if (hold->free_g_mem) {
+			Free(hold->g_idx);
+			Free(hold->g_val);
+		}
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;

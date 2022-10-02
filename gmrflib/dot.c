@@ -45,6 +45,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
+	// this uses g_idx and g_val
+	
 	double value_ = 0.0;
 	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
 		int len_ = ELM_->g_len[g_];
@@ -52,8 +54,8 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 			continue;
 
 		int istart_ = ELM_->g_i[g_];
-		int *__restrict ii_ = &(ELM_->idx[istart_]);
-		double *__restrict vv_ = &(ELM_->val[istart_]);
+		int *__restrict ii_ = &(ELM_->g_idx[istart_]);
+		double *__restrict vv_ = &(ELM_->g_val[istart_]);
 
 		if (len_ > 0) {
 			double *__restrict aa_ = &(ARR_[0]);
@@ -93,6 +95,8 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 
 double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
+	// this uses n_idx and n_val
+
 	double value_ = 0.0;
 	for (int g_ = 0; g_ < ELM_->g_n; g_++) {
 		int len_ = ELM_->g_len[g_];
@@ -100,8 +104,8 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 			continue;
 
 		int istart_ = ELM_->g_i[g_];
-		int *__restrict ii_ = &(ELM_->idx[istart_]);
-		double *__restrict vv_ = &(ELM_->val[istart_]);
+		int *__restrict ii_ = &(ELM_->g_idx[istart_]);
+		double *__restrict vv_ = &(ELM_->g_val[istart_]);
 
 		if (len_ > 0) {
 			double *__restrict aa_ = &(ARR_[0]);
@@ -189,7 +193,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 		return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 		break;
 	case IDXVAL_UNKNOWN:
-		FIXME1("UNKNOWN DOT PRODUCT");
+		FIXME1("Unknown preference for dot-product");
 		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
 		break;
 	default:
@@ -199,8 +203,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 	assert(0 == 1);
 	return NAN;
 }
-
 
+
 
 int GMRFLib_isum(int n, int *ix)
 {
