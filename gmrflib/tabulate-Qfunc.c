@@ -101,7 +101,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		}							\
 									\
 		if (_prec_scale) {					\
-			my_dscale(len, prec, values);			\
+			GMRFLib_dscale(len, prec, values);			\
 		}							\
 	}
 

@@ -952,7 +952,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[0] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_SERIAL(value[0], hold[i], x);
+			value[0] = GMRFLib_dot_product_serial(hold[i], x);
 			if (measure) {
 				tref[0] += GMRFLib_cpu();
 			}
@@ -960,7 +960,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[1] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_SERIAL_MKL(value[1], hold[i], x);
+			value[1] = GMRFLib_dot_product_serial_mkl(hold[i], x);
 			if (measure) {
 				tref[1] += GMRFLib_cpu();
 			}
@@ -972,7 +972,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[2] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_GROUP(value[2], hold[i], x);
+			value[2] = GMRFLib_dot_product_group(hold[i], x);
 			if (measure) {
 				tref[2] += GMRFLib_cpu();
 			}
@@ -980,7 +980,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[3] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_GROUP_MKL(value[3], hold[i], x);
+			value[3] = GMRFLib_dot_product_group_mkl(hold[i], x);
 			if (measure) {
 				tref[3] += GMRFLib_cpu();
 			}
@@ -1240,7 +1240,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

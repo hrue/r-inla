@@ -511,8 +511,8 @@ int GMRFLib_normalize(int n, double *x)
 	// scale x so the sum is 1
 
 	double sum;
-	sum = my_dsum(n, x);
-	my_dscale(n, 1.0 / sum, x);
+	sum = GMRFLib_dsum(n, x);
+	GMRFLib_dscale(n, 1.0 / sum, x);
 
 	return GMRFLib_SUCCESS;
 }
@@ -991,7 +991,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	double scale = GMRFLib_max_value(x, n, NULL);
 	if (!ISZERO(scale)) {
 		scale = 1.0 / scale;
-		my_dscale(n, scale, x);
+		GMRFLib_dscale(n, scale, x);
 	}
 
 	return GMRFLib_SUCCESS;

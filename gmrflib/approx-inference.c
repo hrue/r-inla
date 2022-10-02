@@ -534,7 +534,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 		Memset(problem->sample, 0, n * sizeof(double));
 		GMRFLib_evaluate(problem);
 
-		double A = my_dsum(Npred, ai_store->aa);
+		double A = GMRFLib_dsum(Npred, ai_store->aa);
 		*logdens = A - problem->sub_logdens;
 	} else {
 		/*
@@ -602,7 +602,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	 * add the linear term 
 	 */
 	if (b) {
-		tmp1 = my_ddot(n, b, x);
+		tmp1 = GMRFLib_ddot(n, b, x);
 	}
 
 	if (d) {
@@ -7101,7 +7101,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				if (nnode == node) continue;		\
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
-				DOT_PRODUCT(sum, v, Sa);		\
+				sum = GMRFLib_dot_product(v, Sa);	\
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
@@ -7330,7 +7330,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
-				DOT_PRODUCT(sum, v, Sa);		\
+				sum = GMRFLib_dot_product(v, Sa);	\
 				double f = sd[node] * sd[nnode];	\
 				sum /= f;				\
 				cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f; \
@@ -8888,7 +8888,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 
 		int UNUSED(integer_one) = 1;
 
-#define COV_ETA_LATENT(value_, k_, cov_latent_) DOT_PRODUCT(value_, A[k_], cov_latent_)
+#define COV_ETA_LATENT(value_, k_, cov_latent_) (value_) = GMRFLib_dot_product(A[k_], cov_latent_)
 
 #define COMPUTE_COV_LATENT(cov_latent_, j_, b_)				\
 		if (1) {						\

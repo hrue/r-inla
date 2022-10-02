@@ -9262,9 +9262,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -35153,7 +35153,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 
 			GMRFLib_preopt_predictor(Ad, d, preopt);
-			sum1 = my_ddot(preopt->Npred, Ad, e);
+			sum1 = GMRFLib_ddot(preopt->Npred, Ad, e);
 			sum2 = ddot_(&(preopt->Npred), Ad, &one, Ad, &one);
 			gamma = DMAX(0.0, DMIN(2.0, sum1 / (FLT_EPSILON + sum2)));
 
@@ -38874,10 +38874,10 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < 10000; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			DOT_PRODUCT_SERIAL(sum1, h, xx);
+			sum1 = GMRFLib_dot_product_serial(h, xx);
 			tref1 += GMRFLib_cpu();
 			tref2 -= GMRFLib_cpu();
-			DOT_PRODUCT_GROUP(sum2, h, xx);
+			sum2 = GMRFLib_dot_product_group(h, xx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -40429,7 +40429,7 @@ int testit(int argc, char **argv)
 		for (int time = 0; time < ntimes; time++) {
 
 			tref[0] -= GMRFLib_cpu();
-			r += my_dsum(n, x);
+			r += GMRFLib_dsum(n, x);
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
@@ -40474,11 +40474,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			DOT_PRODUCT_SERIAL(sum1, h, xx);
+			sum1 = GMRFLib_dot_product_serial(h, xx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			DOT_PRODUCT_GROUP(sum2, h, xx);
+			sum2 = GMRFLib_dot_product_group(h, xx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -40519,7 +40519,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			sum1 = my_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
@@ -40611,11 +40611,11 @@ int testit(int argc, char **argv)
 		for (int time = 0; time < ntimes; time++) {
 
 			tref[0] -= GMRFLib_cpu();
-			r += my_dsum(n, x);
+			r += GMRFLib_dsum(n, x);
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-			rr += my_dsum2(n, x);
+			rr += GMRFLib_dsum2(n, x);
 			tref[1] += GMRFLib_cpu();
 		}
 
@@ -40692,11 +40692,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			sum1 = my_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			sum2 = my_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);

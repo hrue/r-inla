@@ -732,7 +732,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	// imin = node; imax = nnode;
 	if (node == nnode) {
 		elm = a->AtA_idxval[node][0];
-		DOT_PRODUCT(value, elm, lc);
+		value = GMRFLib_dot_product(elm, lc);
 	} else {
 		// use also this [low, high] guess, which is updated automatically
 		static int *guess = NULL;
@@ -749,7 +749,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		GMRFLib_CACHE_SET_ID(idx);
 		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess + (2L + l1_cacheline) * idx);
 		elm = a->AtA_idxval[node][k];
-		DOT_PRODUCT(value, elm, lc);
+		value = GMRFLib_dot_product(elm, lc);
 	}
 
 	return value;
@@ -859,12 +859,12 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 		assert(preopt->mpred == 0);
 	}
 
-#define CODE_BLOCK						\
-	for (int i = 0; i < preopt->n; i++) {			\
-		if (A[i]) {					\
-			GMRFLib_idxval_tp *elm = A[i];		\
-			DOT_PRODUCT(bnew[i], elm, blike);	\
-		}						\
+#define CODE_BLOCK							\
+	for (int i = 0; i < preopt->n; i++) {				\
+		if (A[i]) {						\
+			GMRFLib_idxval_tp *elm = A[i];			\
+			bnew[i] = GMRFLib_dot_product(elm, blike);	\
+		}							\
 	}
 
 	RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -958,14 +958,14 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 					for (int i = 0; i < preopt->npred; i++) { \
 						if (preopt->A_idxval[i]) { \
 							GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-							DOT_PRODUCT_SERIAL(pred_offset[i], elm, latent); \
+							pred_offset[i] = GMRFLib_dot_product(elm, latent); \
 						}			\
 					}				\
 				} else {				\
 					for (int i = 0; i < preopt->mpred; i++) { \
 						if (preopt->pAA_idxval[i]) { \
 							GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-							DOT_PRODUCT_SERIAL(pred[i], elm, latent); \
+							pred[i] = GMRFLib_dot_product(elm, latent); \
 						}			\
 					}				\
 				}					\
@@ -981,7 +981,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			for (int i = 0; i < preopt->npred; i++) {	\
 				if (preopt->A_idxval[i]) {		\
 					GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-					DOT_PRODUCT_SERIAL(pred_offset[i], elm, latent); \
+					pred_offset[i] = GMRFLib_dot_product(elm, latent); \
 				}					\
 			}
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -1044,7 +1044,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 #define CODE_BLOCK							\
 				for (int i = 0; i < mpred; i++) {	\
 					GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-					DOT_PRODUCT_SERIAL(mean[i], elm, mm); \
+					mean[i] = GMRFLib_dot_product(elm, mm); \
 				}
 
 				RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);

@@ -668,7 +668,7 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
-	graph->nnz = my_isum(graph->n, graph->nnbs);
+	graph->nnz = GMRFLib_isum(graph->n, graph->nnbs);
 
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
 	GMRFLib_graph_add_lnbs_info(graph);		       /* must be before sha */
@@ -728,8 +728,8 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
 #undef CODE_BLOCK
 
-	graph->lnnz = my_isum(graph->n, graph->lnnbs);
-	graph->snnz = my_isum(graph->n, graph->snnbs);
+	graph->lnnz = GMRFLib_isum(graph->n, graph->lnnbs);
+	graph->snnz = GMRFLib_isum(graph->n, graph->snnbs);
 
 	return GMRFLib_SUCCESS;
 }
@@ -923,7 +923,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 	/*
 	 * rearrange into linear storage and free temporary storage 
 	 */
-	nnb = my_isum((*ngraph)->n, (*ngraph)->nnbs);
+	nnb = GMRFLib_isum((*ngraph)->n, (*ngraph)->nnbs);
 	if (nnb) {
 		hold = Calloc(nnb, int);
 	} else {
@@ -1025,7 +1025,7 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	int m, n;
 
 	n = graph->n;
-	m = my_isum(n, graph->nnbs);
+	m = GMRFLib_isum(n, graph->nnbs);
 	siz += sizeof(int) + m * sizeof(int) + 2 * n * sizeof(int) + 2 * n * sizeof(int *);
 
 	return siz;
@@ -1596,7 +1596,7 @@ int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gr
 	y = Calloc_get(graph->n);
 
 	GMRFLib_Qx2(thread_id, y, x, graph, Qfunc, Qfunc_arg, diag);
-	*result = my_ddot(graph->n, x, y);
+	*result = GMRFLib_ddot(graph->n, x, y);
 
 	Calloc_free();
 	return GMRFLib_SUCCESS;
@@ -1799,7 +1799,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 	/*
 	 * rearrange into linear storage and free temporary storage 
 	 */
-	nnb = my_isum(newg->n, newg->nnbs);
+	nnb = GMRFLib_isum(newg->n, newg->nnbs);
 	if (nnb) {
 		hold = Calloc(nnb, int);
 	} else
@@ -1965,7 +1965,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 	int n_neig, *hold = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
-	n_neig = my_isum(graph->n, graph->nnbs);
+	n_neig = GMRFLib_isum(graph->n, graph->nnbs);
 	GMRFLib_graph_mk_empty(&g);
 	g->n = n_new;
 	g->nnbs = Calloc(n_new, int);
