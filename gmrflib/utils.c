@@ -234,7 +234,7 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 		high = len - 1;
 	} else {
 		low = (val >= ix[guess[0]] ? guess[0] : 0);
-		high = (val <= ix[guess[1]] ? guess[1] : len - 1);
+		high = (val <= ix[guess[1]] ? guess[1] : len -1);
 	}
 
 	while (1) {
@@ -242,8 +242,8 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 		if (range < 4L) {
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
-					guess[1] = high + 1;
-					guess[0] = i + 1;
+					guess[0] = i;
+					guess[1] = high + 1; 
 					return i;
 				}
 			}

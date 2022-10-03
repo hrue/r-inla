@@ -40762,6 +40762,60 @@ int testit(int argc, char **argv)
 		Free(xx);
 	}
 		break;
+
+	case 91: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		for(int k = 0; k < m; k++) {
+			map_ii h;
+			map_ii_init_hint(&h, n);
+			int * idx = Calloc(n, int);
+			double start, finish;
+			start = omp_get_wtime();
+			int key = 0;
+			for(int i = 0; i < n; i++) {
+				if (i == 0){
+					key = 1;
+				} else {
+					key += i;
+				}
+				//printf("%d %d \n", i, key);
+				map_ii_set(&h, key, key);
+				idx[i] = key;
+			}
+			finish = omp_get_wtime();
+			double init = finish - start;
+			double sum = 0.0;
+			start = omp_get_wtime();
+			for(int i = 0; i < key+1; i++) {
+				int *p;
+				p = map_ii_ptr(&h, i);
+				if (p) sum += *p;
+			}
+			finish =  omp_get_wtime();
+
+			double start2, finish2;
+			start2 = omp_get_wtime();
+			int guess[2] = {0, 0};
+			for(int i = 0; i < key+1; i++) {
+				int p;
+				p = GMRFLib_iwhich_sorted(i, idx, n, guess);
+				//guess[0] = 0;
+				//guess[1] = 0;
+				if (p >= 0) sum += idx[p];
+			}
+			finish2 =  omp_get_wtime();
+			printf("key %d Init %.8f Search %.8f iwhich %.8f sum %f\n", key, init, finish - start,
+			       finish2 - start2, sum/2);
+			map_ii_free(&h);
+			Free(idx);
+		}
+		
+	}
+                break;
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
