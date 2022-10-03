@@ -34883,10 +34883,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	}
 
 	// report timings
-	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	if (GMRFLib_dot_product_optim_report) {
 		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-			for (int j = 0; j < 5; j++) {
+			for (int j = 0; j < 9; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
@@ -34898,6 +34898,14 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			time_loop[j] /= time_sum;
 		}
 		time_loop[4] /= time_sum;
+
+		time_sum = 0.0;
+		for (int j = 5; j < 9; j++) {
+			time_sum += time_loop[j];
+		}
+		for (int j = 5; j < 9; j++) {
+			time_loop[j] /= time_sum;
+		}
 	}
 
 
@@ -34916,13 +34924,20 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tOptimizing Qx-strategy..... serial/parallel = %.2f choose[%s]\n", time_used_Qx[0] / time_used_Qx[1],
+		printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
+		       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
+		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
 		       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
-		printf("\tOptimizing pred-strategy... plain/data-rich = %.2f choose[%s]\n", time_used_pred[0] / time_used_pred[1],
+		printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
+		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
+		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-		printf("\t                            optimal.mix.strategy..... [%.3f]\n", time_loop[4]);
+		printf("\t                            => optimal.mix.strategy   [%.3f]\n", time_loop[4]); 
+		printf("\t                                plain[%.3f] plain.mkl[%.3f]\n", time_loop[5], time_loop[6]);
+		printf("\t                                group[%.3f] group.mkl[%.3f]\n", time_loop[7], time_loop[8]);
+		       
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
@@ -40448,6 +40463,7 @@ int testit(int argc, char **argv)
 
 	case 83:
 	{
+		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -40493,6 +40509,7 @@ int testit(int argc, char **argv)
 
 	case 84:
 	{
+		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -40662,6 +40679,7 @@ int testit(int argc, char **argv)
 
 	case 89:
 	{
+		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		GMRFLib_idxval_tp *h = NULL;
@@ -40709,6 +40727,41 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 90:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *xx = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+
+		P(n);
+		P(m);
+		double sum1 = 0.0, sum2 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+			sum1 = GMRFLib_dsum(n, xx);
+			tref1 += GMRFLib_cpu();
+
+			tref2 -= GMRFLib_cpu();
+			sum2 = 0.0;
+			for(int i = 0; i < n; i++) {
+				sum2 += xx[i];
+			}
+			tref2 += GMRFLib_cpu();
+			if (ABS(sum1 - sum2) > 1e-8) {
+				P(sum1);
+				P(sum2);
+				exit(88);
+			}
+		}
+		printf("_dsum %.3f loop %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		Free(xx);
+	}
+		break;
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -41083,7 +41136,7 @@ int main(int argc, char **argv)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN, double *);
 	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-		GMRFLib_dot_product_optim_report[i] = Calloc(5, double);
+		GMRFLib_dot_product_optim_report[i] = Calloc(9, double);
 	}
 
 #if !defined(WINDOWS)

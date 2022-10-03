@@ -61,6 +61,9 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define IDX_ALLOC_INITIAL 32
 #define IDX_ALLOC_ADD     512
 
+// set to 0 to keep the groups anyway
+#define IDXVAL_FREE_GROUPS_IF_NOT_BEST() 1
+
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
 	return GMRFLib_idx_create_x(hold, IDX_ALLOC_INITIAL);
@@ -1032,6 +1035,23 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			assert(0 == 1);
 		}
 
+		if (IDXVAL_FREE_GROUPS_IF_NOT_BEST()) {
+			if (hold[i]->preference == IDXVAL_SERIAL || hold[i]->preference == IDXVAL_SERIAL_MKL) {
+				//  no need to keep the group info in the struct
+				hold[i]->n_n = 0;
+				hold[i]->g_n = 0;
+				hold[i]->g_idx = NULL;
+				hold[i]->g_val = NULL;
+				Free(hold[i]->g_len);
+				Free(hold[i]->g_i);
+				Free(hold[i]->g_1);
+				if (hold[i]->free_g_mem) {
+					Free(hold[i]->g_idx);
+					Free(hold[i]->g_val);
+				}
+			}
+		}
+		
 		if (GMRFLib_dot_product_optim_report) {
 			int idx;
 			GMRFLib_CACHE_SET_ID(idx);
@@ -1039,6 +1059,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 				GMRFLib_dot_product_optim_report[idx][k] += tref[k];
 			}
 			GMRFLib_dot_product_optim_report[idx][4] += tmin;
+			GMRFLib_dot_product_optim_report[idx][5 + k]++; /* count... */
 		}
 
 		time_min += tmin / ntimes;

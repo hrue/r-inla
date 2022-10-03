@@ -1,5 +1,4 @@
 
-
 /* dot.c
  * 
  * Copyright (C) 2022-2022 Havard Rue
@@ -42,6 +41,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/dot.h"
 
+#define SIMPLE_LOOP_LIMIT 8L
 
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
@@ -60,7 +60,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 		if (len_ > 0) {
 			double *__restrict aa_ = &(ARR_[0]);
 			if (ELM_->g_1[g_]) {
-				if (len_ < 8L) {
+				if (len_ < SIMPLE_LOOP_LIMIT) {
 #pragma GCC ivdep
 					for (int i_ = 0; i_ < len_; i_++) {
 						value_ += aa_[ii_[i_]];
@@ -69,7 +69,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 					value_ += GMRFLib_dsum_idx(len_, aa_, ii_);
 				}
 			} else {
-				if (len_ < 8L) {
+				if (len_ < SIMPLE_LOOP_LIMIT) {
 #pragma GCC ivdep
 					for (int i_ = 0; i_ < len_; i_++) {
 						value_ += vv_[i_] * aa_[ii_[i_]];
@@ -82,9 +82,23 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 			int llen_ = -len_;
 			double *__restrict aa_ = &(ARR_[ii_[0]]);
 			if (ELM_->g_1[g_]) {
-				value_ += GMRFLib_dsum(llen_, aa_);
+				if (llen_ < SIMPLE_LOOP_LIMIT) {
+#pragma GCC ivdep
+					for (int i_ = 0; i_ < llen_; i_++) {
+						value_ += aa_[i_];
+					}
+				} else {
+					value_ += GMRFLib_dsum(llen_, aa_);
+				}
 			} else {
-				value_ += GMRFLib_ddot(llen_, vv_, aa_);
+				if (llen_ < SIMPLE_LOOP_LIMIT) {
+#pragma GCC ivdep
+					for (int i_ = 0; i_ < llen_; i_++) {
+						value_ += vv_[i_] * aa_[i_];
+					}
+				} else {
+					value_ += GMRFLib_ddot(llen_, vv_, aa_);
+				}
 			}
 		}
 		if (g_ < ELM_->g_n - 1)
@@ -110,7 +124,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 		if (len_ > 0) {
 			double *__restrict aa_ = &(ARR_[0]);
 			if (ELM_->g_1[g_]) {
-				if (len_ < 8L) {
+				if (len_ < SIMPLE_LOOP_LIMIT) {
 #pragma GCC ivdep
 					for (int i_ = 0; i_ < len_; i_++) {
 						value_ += aa_[ii_[i_]];
@@ -119,7 +133,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 					value_ += GMRFLib_dsum_idx(len_, aa_, ii_);
 				}
 			} else {
-				if (len_ < 8L) {
+				if (len_ < SIMPLE_LOOP_LIMIT) {
 #pragma GCC ivdep
 					for (int i_ = 0; i_ < len_; i_++) {
 						value_ += vv_[i_] * aa_[ii_[i_]];
@@ -132,9 +146,23 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 			int llen_ = -len_;
 			double *__restrict aa_ = &(ARR_[ii_[0]]);
 			if (ELM_->g_1[g_]) {
-				value_ += GMRFLib_dsum(llen_, aa_);
+				if (llen_ < SIMPLE_LOOP_LIMIT) {
+#pragma GCC ivdep
+					for (int i_ = 0; i_ < llen_; i_++) {
+						value_ += aa_[i_];
+					}
+				} else {
+					value_ += GMRFLib_dsum(llen_, aa_);
+				}
 			} else {
-				value_ += GMRFLib_ddot(llen_, vv_, aa_);
+				if (llen_ < SIMPLE_LOOP_LIMIT) {
+#pragma GCC ivdep
+					for (int i_ = 0; i_ < llen_; i_++) {
+						value_ += vv_[i_] * aa_[i_];
+					}
+				} else {
+					value_ += GMRFLib_ddot(llen_, vv_, aa_);
+				}
 			}
 		}
 		if (g_ < ELM_->g_n - 1)
@@ -149,7 +177,8 @@ double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *_
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
 	int *__restrict idx_ = ELM_->idx;
-	if (ELM_->n < 8L) {
+
+	if (ELM_->n < SIMPLE_LOOP_LIMIT) {
 #pragma GCC ivdep
 		for (int i_ = 0; i_ < ELM_->n; i_++) {
 			value_ += vv_[i_] * aa_[idx_[i_]];
@@ -157,6 +186,7 @@ double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *_
 	} else {
 		value_ += GMRFLib_ddot_idx(ELM_->n, vv_, aa_, idx_);
 	}
+
 	return (value_);
 }
 
@@ -166,7 +196,8 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 	double *__restrict vv_ = ELM_->val;
 	double *__restrict aa_ = ARR_;
 	int *__restrict idx_ = ELM_->idx;
-	if (ELM_->n < 8L) {
+
+	if (ELM_->n < SIMPLE_LOOP_LIMIT) {
 #pragma GCC ivdep
 		for (int i_ = 0; i_ < ELM_->n; i_++) {
 			value_ += vv_[i_] * aa_[idx_[i_]];
@@ -174,6 +205,7 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 	} else {
 		value_ += GMRFLib_ddot_idx_mkl(ELM_->n, vv_, aa_, idx_);
 	}
+
 	return (value_);
 }
 
@@ -201,8 +233,10 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 		break;
 	}
 	assert(0 == 1);
+
 	return NAN;
 }
+
 
 
 
@@ -256,8 +290,8 @@ int GMRFLib_isum2(int n, int *ix)
 
 double GMRFLib_dsum(int n, double *x)
 {
-	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+	const int roll = 8L;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
@@ -287,6 +321,7 @@ double GMRFLib_dsum(int n, double *x)
 double GMRFLib_dsum2(int n, double *x)
 {
 	double s = 0.0;
+
 	if (0) {
 #pragma GCC ivdep
 		for (int i = 0; i < n; i++) {
@@ -392,10 +427,11 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 }
 
 #else							       /* defined(INLA_LINK_WITH_MKL) */
-
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
 
 #endif							       /* if defined(INLA_LINK_WITH_MKL) */
+
+#undef SIMPLE_LOOP_LIMIT
