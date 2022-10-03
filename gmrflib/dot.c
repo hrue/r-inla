@@ -238,8 +238,6 @@ int GMRFLib_isum(int n, int *ix)
 
 int GMRFLib_isum2(int n, int *ix)
 {
-	// slower
-
 	int s = 0;
 	if (0) {
 #pragma GCC ivdep
@@ -288,8 +286,6 @@ double GMRFLib_dsum(int n, double *x)
 
 double GMRFLib_dsum2(int n, double *x)
 {
-	// slower
-
 	double s = 0.0;
 	if (0) {
 #pragma GCC ivdep
