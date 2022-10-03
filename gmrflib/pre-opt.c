@@ -271,7 +271,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
-		GMRFLib_idxval_nsort_x(&(A_idxval[i]), 1, GMRFLib_MAX_THREADS(), -1);
+		GMRFLib_idxval_nsort_x(&(A_idxval[i]), 1, 1, -1);
 	}
 	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N);
 	SHOW_TIME("A_idxval");
@@ -424,7 +424,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 			GMRFLib_idxval_free(row_idxval);
 		}
-		GMRFLib_idxval_nsort_x(pAA_idxval, nrow, 0, -1);
+		GMRFLib_idxval_nsort_x(pAA_idxval, nrow, GMRFLib_MAX_THREADS(), -1);
 		SHOW_TIME("pAA_idxval");
 
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
@@ -434,7 +434,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				GMRFLib_idxval_add(&(pAAt_idxval[elm->idx[k]]), i, elm->val[k]);
 			}
 		}
-		GMRFLib_idxval_nsort_x(pAAt_idxval, N, GMRFLib_MAX_THREADS(), -1);	/* as N is typical small */
+		GMRFLib_idxval_nsort_x(pAAt_idxval, N, GMRFLib_MAX_THREADS(), -1);
 		SHOW_TIME("pAAt_idxval");
 
 		if (debug_detailed) {

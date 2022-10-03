@@ -193,7 +193,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 		return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 		break;
 	case IDXVAL_UNKNOWN:
-		FIXME1("Unknown preference for dot-product");
+		FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
 		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
 		break;
 	default:
