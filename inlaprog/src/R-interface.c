@@ -53,11 +53,27 @@
 // two copies...
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
+
+
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+#ifdef __cplusplus
+#define __BEGIN_DECLS extern "C" {
+#define __END_DECLS }
+#else
+#define __BEGIN_DECLS                                          /* empty */
+#define __END_DECLS                                            /* empty */
+#endif
+
+__BEGIN_DECLS
+
 int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 void GMRFLib_delay(int msec);
+
+__END_DECLS
 
 #include "R-interface.h"
 static int R_init = 1;
@@ -207,8 +223,11 @@ int inla_R_init_(void)
 					my_setenv(rhome, 0);
 					Free(rhome);
 				}
-				// char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--silent", "--no-save" };
-				char *Rargv[] = { "REmbeddedPostgres", "--gui=none", "--no-save", "--no-restore" };
+				char *Rargv[4];
+				Rargv[0] = strdup("REmbeddedPostgres");
+				Rargv[1] = strdup("--gui=none");
+				Rargv[2] = strdup("--no-save");
+				Rargv[3] = strdup("--no-restore");
 				int Rargc = sizeof(Rargv) / sizeof(Rargv[0]);
 				Rf_initEmbeddedR(Rargc, Rargv);
 
@@ -267,13 +286,13 @@ int inla_R_source_(const char *filename)
 		fflush(stderr);
 	}
 
-	SEXP e, result, yy, false, true;
+	SEXP e, result, yy, ffalse, ttrue;
 	int error;
 
-	false = PROTECT(ScalarLogical(FALSE));
-	true = PROTECT(ScalarLogical(TRUE));
+	ffalse = PROTECT(ScalarLogical(FALSE));
+	ttrue = PROTECT(ScalarLogical(TRUE));
 	yy = PROTECT(mkString(filename));
-	e = PROTECT(lang4(install("source"), yy, false, true));
+	e = PROTECT(lang4(install("source"), yy, ffalse, ttrue));
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR ***: source R-file [%s] failed.\n", filename);

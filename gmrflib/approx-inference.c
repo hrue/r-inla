@@ -51,7 +51,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-double inla_compute_saturated_loglik(int, int, GMRFLib_logl_tp *, double *, void *);
 
 static int pool_nhyper = -1;
 
@@ -5758,7 +5757,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		// build the gcpo-groups, but change the openmp-strategy, temporary, as _gcpo_build() parallelise in one level only
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-		int place = GMRFLib_openmp->place;
+		GMRFLib_openmp_place_tp place = GMRFLib_openmp->place;
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param);
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
@@ -5767,7 +5766,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
 	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
-	int place_save = 0;
+        GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
+
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
 	if (GMRFLib_openmp->max_threads_outer > design->nexperiments) {
 		int outer = design->nexperiments;
@@ -7376,7 +7376,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 				if (gcpo[node]->cov_mat && gcpo[node]->cov_mat->size1 > 0) {
 					printf("\ncov_mat for node=%d size=%d idx_node=%d\n", node, (int) gcpo[node]->cov_mat->size1,
 					       (int) gcpo[node]->idx_node);
-					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "nodes in this group");
+					GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, GMRFLib_strdup("nodes in this group"));
 					GMRFLib_printf_gsl_matrix(stdout, gcpo[node]->cov_mat, " %.8f");
 				}
 			}

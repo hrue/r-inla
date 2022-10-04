@@ -103,6 +103,7 @@ typedef enum {
 	 * 
 	 * Currently, it minimise the bandwidth for the band-solver, and nested dissection using the TAUCS-solver 
 	 */
+	GMRFLib_REORDER_AUTO = -1,
 	GMRFLib_REORDER_DEFAULT = 0,
 
 	/**

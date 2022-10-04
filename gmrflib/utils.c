@@ -1088,7 +1088,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
-forceinline double GMRFLib_logit(double p)
+double GMRFLib_logit(double p)
 {
 	// evaluate log(p/(1-p)) more safe than just log(p/(1-p))
 	const double lim = 0.01;
@@ -1103,7 +1103,7 @@ forceinline double GMRFLib_logit(double p)
 	}
 }
 
-forceinline double GMRFLib_inv_logit(double x)
+double GMRFLib_inv_logit(double x)
 {
 	// evaluate 1/(1+exp(-x))
 

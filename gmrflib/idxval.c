@@ -259,7 +259,7 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len)
 	}
 }
 
-int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -270,7 +270,7 @@ int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, char *msg)
+int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -281,7 +281,7 @@ int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -292,7 +292,7 @@ int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -303,7 +303,7 @@ int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
@@ -326,7 +326,7 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto);

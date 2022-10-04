@@ -410,11 +410,6 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 {
 	// this is the MKL version, which is done using a sparse '1 x n' matrix.
 	// we could include <mkl.h> but we can just do this, as we only need one non-standard function
-#define MKL_INT int
-	void mkl_dcsrmv(const char *transa, const MKL_INT * m, const MKL_INT * k, const double *alpha,
-			const char *matdescra, const double *val, const MKL_INT * indx,
-			const MKL_INT * pntrb, const MKL_INT * pntre, const double *x, const double *beta, double *y);
-#undef MKL_INT
 
 	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
 	double darr[3] = { 1.0, 0.0, 0.0 };

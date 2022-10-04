@@ -62,6 +62,9 @@ __BEGIN_DECLS
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
 
+void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
+
+
 /* 
  *  include files we need from GSL
  */
