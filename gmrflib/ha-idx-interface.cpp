@@ -36,13 +36,13 @@
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #pragma GCC diagnostic pop
 
-#include "HAarray/stdafx.h"
+#include "GMRFLib/HArray/stdafx.h"
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include "HAarray/HArrayInt.h"
+#include "GMRFLib/HArray/HArrayInt.h"
 
 /// these functions check if 'i' is in the set of 'keys' or not. PS: note that all keys > 0
 

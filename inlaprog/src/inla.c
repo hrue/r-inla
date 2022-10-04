@@ -40762,13 +40762,9 @@ int testit(int argc, char **argv)
 			int * idx = Calloc(n, int);
 			double start, finish;
 			start = omp_get_wtime();
-			int key = 0;
+			int key = 1;
 			for(int i = 0; i < n; i++) {
-				if (i == 0){
-					key = 1;
-				} else {
-					key += i;
-				}
+				key += i;
 				//printf("%d %d \n", i, key);
 				map_ii_set(&h, key, key);
 				idx[i] = key;
@@ -40790,8 +40786,6 @@ int testit(int argc, char **argv)
 			for(int i = 0; i < key+1; i++) {
 				int p;
 				p = GMRFLib_iwhich_sorted(i, idx, n, guess);
-				//guess[0] = 0;
-				//guess[1] = 0;
 				if (p >= 0) sum += idx[p];
 			}
 			finish2 =  omp_get_wtime();
@@ -40800,9 +40794,44 @@ int testit(int argc, char **argv)
 			map_ii_free(&h);
 			Free(idx);
 		}
-		
 	}
                 break;
+
+	case 92: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		int * idx = Calloc(n, int);
+		for(int k = 0; k < m; k++) {
+			void * ha =  ha_idx_init_hint(n);
+			double start, finish;
+			start = omp_get_wtime();
+			int key = 1;
+			for(int i = 0; i < n; i++) {
+				key += i;
+				idx[i] = key;
+			}
+			ha_idx_sets(ha, n, idx);
+			finish = omp_get_wtime();
+			double init = finish - start;
+			start = omp_get_wtime();
+			int count = 0;
+			for(int i = 0; i < idx[n-1]+1; i++) {
+				//printf("key %d:  %s\n", i, (ha_idx_q(ha, i) ? "present" : "missing"));
+				count += ha_idx_q(ha, i);
+			}
+			assert(count == n);
+			finish =  omp_get_wtime();
+
+			printf("Init %.8f Search over %1d: %.8f \n", init, idx[n-1]+1, finish - start);
+			ha_idx_free(ha);
+		}
+		Free(idx);
+	}
+                break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
