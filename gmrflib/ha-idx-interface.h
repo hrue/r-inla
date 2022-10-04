@@ -57,7 +57,7 @@ void *ha_idx_init_hint(int);
 void ha_idx_free(void *);
 void ha_idx_set(void *ha, int key);
 void ha_idx_sets(void *ha, int n, int *keys);
-void ha_idx_stats(void *);
+void ha_idx_stats(void *, int print, double *mb);
 
 __END_DECLS
 #endif

@@ -556,9 +556,13 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 		if (imax > nb[m - 1]) {
 			return 0;
 		} else {
-			int idx = 0;
-			GMRFLib_CACHE_SET_ID(idx);
-			return ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+			//int idx = 0;
+			int r;
+			//GMRFLib_CACHE_SET_ID(idx);
+			//r = ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
+			//assert(r == ha_idx_q(graph->ha[imin], imax));
+			r = ha_idx_q(graph->ha[imin], imax);
+			return (r);
 		}
 	} else {
 		return 0;
@@ -679,8 +683,23 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 		GMRFLib_graph_add_row2col(graph);	       /* needs to come after crs_crc */
 	}
 	GMRFLib_graph_add_sha(graph);
+	GMRFLib_graph_add_ha(graph);
 
+	return GMRFLib_SUCCESS;
+}
 
+int GMRFLib_graph_add_ha(GMRFLib_graph_tp * graph)
+{
+	void ** ha = Calloc(graph->n, void *);
+	for(int i = 0; i < graph->n; i++) {
+		if (graph->lnnbs[i]) {
+			ha[i] = ha_idx_init_hint(graph->lnnbs[i]*0 + 4);
+			ha_idx_sets(ha[i], graph->lnnbs[i], graph->lnbs[i]);
+			//ha_idx_stats(ha[i]);
+		}
+	}
+
+	graph->ha = ha;
 	return GMRFLib_SUCCESS;
 }
 

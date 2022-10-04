@@ -40805,7 +40805,7 @@ int testit(int argc, char **argv)
 		P(m);
 		int * idx = Calloc(n, int);
 		for(int k = 0; k < m; k++) {
-			void * ha =  ha_idx_init_hint(n);
+			void * ha =  ha_idx_init_hint(1);
 			double start, finish;
 			start = omp_get_wtime();
 			int key = 1;
@@ -40814,6 +40814,7 @@ int testit(int argc, char **argv)
 				idx[i] = key;
 			}
 			ha_idx_sets(ha, n, idx);
+			ha_idx_stats(ha, 1, NULL);
 			finish = omp_get_wtime();
 			double init = finish - start;
 			start = omp_get_wtime();

@@ -52,7 +52,7 @@ extern "C" void *ha_idx_init_hint(int);
 extern "C" void ha_idx_free(void *);
 extern "C" void ha_idx_set(void *ha, int key);
 extern "C" void ha_idx_sets(void *ha, int n, int *keys);
-extern "C" void ha_idx_stats(void *);
+extern "C" void ha_idx_stats(void *, int print, double *mb);
 
 void *ha_idx_init_hint(int siz)
 {
@@ -98,8 +98,14 @@ int ha_idx_q(void *ha, int key)
 	return ((*h).getValueByKey((uint32_t) key) != 0);
 }
 
-void ha_idx_stats(void *ha)
+void ha_idx_stats(void *ha, int print, double *mb)
 {
 	HArrayInt *h = (HArrayInt *) ha;
-	printf("ha_idx[%p]: Total memory %.2fMb\n", h, (*h).getTotalMemory() / 1024.0 / 1024.0);
+	double mem = (*h).getTotalMemory() / 1024.0 / 1024.0;
+	if (print) {
+		printf("ha_idx[%p]: Total memory %.2fMb\n", h, mem);
+	}
+	if (mb) {
+		*mb = mem;
+	}
 }
