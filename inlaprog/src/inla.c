@@ -22515,7 +22515,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
 			for (int j = 0; j < keywords_len; j++) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keywords[j], i);
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
 			}
@@ -22715,7 +22715,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
 			for (int j = 0; j < keywords_len; j++) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keywords[j], i);
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
 			}
@@ -22825,7 +22825,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// mark all as read
 		for (i = 0; i < AR_MAXTHETA + 1; i++) {
 			for (int j = 0; j < keywords_len; j++) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keywords[j], i);
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
 			}
@@ -28081,7 +28081,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				// mark all as read
 				for (i = 0; i < AR_MAXTHETA + 1; i++) {
 					for (int j = 0; j < keywords_len; j++) {
-						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", *keywords[j], i);
+						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", keywords[j], i);
 						iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 						Free(ctmp);
 					}
@@ -29429,7 +29429,7 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 	// mark all hyperpar defs as read
 	for (i = 0; i < INLA_LP_SCALE_MAX; i++) {
 		for (int j = 0; j < keywords_len; j++) {
-			GMRFLib_sprintf(&ctmp, "%s%1d", *keywords[j], i);
+			GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 			Free(ctmp);
 		}

@@ -171,7 +171,7 @@ typedef struct {
 	int *colptr;
 	int *rowidx;
 
-	void **ha;
+	void *ha;
 } GMRFLib_graph_tp;
 
 typedef struct {

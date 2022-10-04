@@ -62,7 +62,9 @@ void *ha_idx_init_hint(int siz)
 		siz = 256;
 	}
 	ha = (HArrayInt *) calloc(1, sizeof(HArrayInt));
-	(*ha).init((uint32_t) (log2((double) siz) + 1));
+
+       // I am not sure if +1 is needed
+	(*ha).init((uint32_t) (log2((double) siz) + 0));
 
 	return (void *) ha;
 }
