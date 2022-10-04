@@ -170,8 +170,6 @@ typedef struct {
 	int *colidx;
 	int *colptr;
 	int *rowidx;
-
-	void *ha;
 } GMRFLib_graph_tp;
 
 typedef struct {
@@ -210,7 +208,6 @@ int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g);
-int GMRFLib_graph_add_ha(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc);
 int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap);
 int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag, int **node_map);

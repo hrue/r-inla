@@ -40797,42 +40797,6 @@ int testit(int argc, char **argv)
 	}
                 break;
 
-	case 92: 
-	{
-		int n = atoi(args[0]);
-		int m = atoi(args[1]);
-		P(n);
-		P(m);
-		int * idx = Calloc(n, int);
-		for(int k = 0; k < m; k++) {
-			void * ha =  ha_idx_init_hint(1);
-			double start, finish;
-			start = omp_get_wtime();
-			int key = 1;
-			for(int i = 0; i < n; i++) {
-				key += i;
-				idx[i] = key;
-			}
-			ha_idx_sets(ha, n, idx);
-			ha_idx_stats(ha, 1, NULL);
-			finish = omp_get_wtime();
-			double init = finish - start;
-			start = omp_get_wtime();
-			int count = 0;
-			for(int i = 0; i < idx[n-1]+1; i++) {
-				//printf("key %d:  %s\n", i, (ha_idx_q(ha, i) ? "present" : "missing"));
-				count += ha_idx_q(ha, i);
-			}
-			assert(count == n);
-			finish =  omp_get_wtime();
-
-			printf("Init %.8f Search over %1d: %.8f \n", init, idx[n-1]+1, finish - start);
-			ha_idx_free(ha);
-		}
-		Free(idx);
-	}
-                break;
-
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

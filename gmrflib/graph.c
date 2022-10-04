@@ -556,31 +556,9 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 		if (imax > nb[m - 1]) {
 			return 0;
 		} else {
-			static double time_used1 = 0.0;
-			static double time_used2 = 0.0;
-			static double time_count = 0.0;
-
-			int r;
-			if (1) {
-				time_used1 -= GMRFLib_cpu();
-				int idx = 0;
-				GMRFLib_CACHE_SET_ID(idx);
-				r = ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
-				time_used1 += GMRFLib_cpu();
-
-				time_used2 -= GMRFLib_cpu();
-				assert(r == ha_idx_q(graph->ha, imin * graph->n + imax));
-				time_used2 += GMRFLib_cpu();
-			} else {
-				r = ha_idx_q(graph->ha, imin * graph->n + imax);
-			}
-				
-			time_count++;
-			if (((size_t)time_count % 10000) == 0)
-				printf("iwhich %.6f ha %.6f\n", time_used1/(time_used1 + time_used2),
-				       time_used2/(time_used1 + time_used2)); 
-				       
-			return (r);
+			int idx = 0;
+			GMRFLib_CACHE_SET_ID(idx);
+			return ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
 		}
 	} else {
 		return 0;
@@ -701,28 +679,7 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 		GMRFLib_graph_add_row2col(graph);	       /* needs to come after crs_crc */
 	}
 	GMRFLib_graph_add_sha(graph);
-	GMRFLib_graph_add_ha(graph);
 
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_graph_add_ha(GMRFLib_graph_tp * graph)
-{
-	P(ISQR(graph->n));
-	P(log2(ISQR(graph->n)) + 1);
-	
-	void * ha = ha_idx_init_hint(ISQR(graph->n));
-	for(int i = 0; i < graph->n; i++) {
-		if (graph->lnnbs[i]) {
-			for(int jj = 0; jj < graph->lnnbs[i]; jj++) {
-				int j = graph->lnbs[i][jj];
-				ha_idx_set(ha, i * graph->n + j);
-			}
-		}
-	}
-	ha_idx_stats(ha, 1, NULL);
-
-	graph->ha = ha;
 	return GMRFLib_SUCCESS;
 }
 
