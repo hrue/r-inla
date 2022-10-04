@@ -10,10 +10,12 @@ GMRFLibNAME = GMRFLib
 
 # select compilers and optimized compiler-options. 
 CC = gcc
+CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
-FLAGS = -std=gnu11 -Wall -g -O2 -ftree-vectorize -mtune=generic -ftracer -fopenmp -pthread
-
+FLAGS = -Wall -g -O2 -ftracer -fopenmp -pthread
+STDC = --std=gnu2x 
+STDCXX = --std=gnu++23
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib
 LEXTPREFIX = /usr/local
@@ -32,9 +34,10 @@ GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
 
 INCL    = -I.. -I$(PREFIX)/include -DGMRFLib_PATH=\"$(PREFIX)/doc/GMRFLib/data\"
 LDFLAGS = $(FLAGS) 
-FFLAGS  = $(INCL) $(FLAGS) -Wno-compare-reals -Wno-function-elimination $(FCEXTRAFLAGS)
-CFLAGS  = $(INCL) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
-LD      = $(FC)
+FFLAGS  = $(INCL) $(FLAGS) $(FCEXTRAFLAGS)
+CFLAGS  = $(INCL) $(STDC) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
+CXXFLAGS  = $(INCL) $(STDCXX) $(FLAGS) $(IEXTLIBS) -DGITCOMMIT="\"${GITCOMMIT}\""
+LD      = $(CC)
 INSTALL = /usr/bin/install
 LIBNAME = lib$(GMRFLibNAME).a
 
@@ -50,7 +53,8 @@ LIBOBJ = problem-setup.o lapack-interface.o graph.o error-handler.o acm582.o \
 	bitmap.o tabulate-Qfunc.o io.o approx-inference.o ghq.o \
 	utils.o idxval.o dot.o graph-edit.o domin-interface.o \
 	design.o version.o integrator.o openmp.o hgmrfm.o seasonal.o matern.o \
-	bfgs3.o bfgs4.o fmesher-io.o smtp-pardiso.o interpol.o pre-opt.o cores.o
+	bfgs3.o bfgs4.o fmesher-io.o smtp-pardiso.o interpol.o pre-opt.o cores.o \
+	ha-idx-interface.o
 HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	distributions.h GMRFLibP.h lapack-interface.h timer.h \
 	problem-setup.h error-handler.h globals.h graph.h random.h \
@@ -60,7 +64,7 @@ HEADERS = blockupdate.h GMRFLib.h  optimize.h hash.h \
 	approx-inference.h density.h utils.h idxval.h dot.h graph-edit.h \
 	domin-interface.h design.h version.h integrator.h openmp.h \
 	init.h hgmrfm.h seasonal.h matern.h bfgs3.h bfgs4.h fmesher-io.h smtp-pardiso.h \
-	interpol.h pre-opt.h cores.h 
+	interpol.h pre-opt.h cores.h ha-idx-interface.h
 EXAMPLES = examples/Makefile examples/Makefile.in \
 	examples/example-blockupdate.c examples/example-graph1.c \
 	examples/example-graph2.c examples/example-sample.c \
