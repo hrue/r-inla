@@ -269,7 +269,7 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 
 	int low, high, range, mid; 
 
-	if (guess[1] >= len || guess[1] == guess[0]) {
+	if (guess[1] > len - 1 || guess[1] == guess[0]) {
 		low = 0;
 		high = len - 1;
 	} else {
