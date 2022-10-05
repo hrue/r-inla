@@ -5835,7 +5835,7 @@ inla.models()
 							\item{hyperid = }{`36001'}
 							\item{name = }{`beta'}
 							\item{short.name = }{`b'}
-							\item{initial = }{`1'}
+							\item{initial = }{`0.1'}
 							\item{fixed = }{`TRUE'}
 							\item{prior = }{`normal'}
 							\item{param = }{`1 10'}
