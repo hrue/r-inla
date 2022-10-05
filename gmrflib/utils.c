@@ -220,7 +220,7 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict guess)
+int GMRFLib_iwhich_sorted_ORIG(int val, int *__restrict ix, int len, int *__restrict guess)
 {
 	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
 	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe
@@ -251,7 +251,7 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 			guess[1] = high;
 			return -1;
 		} else {
-			int mid = low + range / 2L;	       /* integer division */
+			int mid = low + range / 2L;		       /* integer division */
 			if (ix[mid] > val) {
 				high = mid;
 			} else {
@@ -261,6 +261,44 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 	}
 	return -1;
 }
+
+int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict guess)
+{
+	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
+	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[]={0,0}. 'guess' must be thread-safe
+
+	int low, high, range, mid; 
+
+	if (guess[1] >= len || guess[1] == guess[0]) {
+		low = 0;
+		high = len - 1;
+	} else {
+		low = (val > ix[guess[0]] - 1 ? guess[0] : 0);
+		high = (val < ix[guess[1]] + 1 ? guess[1] : len - 1);
+	}
+	
+	while ((range = high - low) > 2) {
+		mid = low + range / 2;
+		if (ix[mid] > val) {
+			high = mid;
+		} else {
+			low = mid;
+		}
+	}
+
+	for (int i = low; i < high + 1; i++) {
+		if (ix[i] == val) {
+			guess[0] = i;
+			guess[1] = high + 1; 
+			return i;
+		}
+	}
+
+	guess[0] = low;
+	guess[1] = high;
+	return -1;
+}
+
 int GMRFLib_find_nonzero(double *array, int len, int direction)
 {
 	/*

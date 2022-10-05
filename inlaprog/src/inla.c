@@ -40753,47 +40753,45 @@ int testit(int argc, char **argv)
 
 	case 91: 
 	{
+		void *monobound_bsearch(const void *key, const void *array, size_t nmemb, size_t size);
+
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		P(n);
 		P(m);
+		double start = 0, finish = 0;
+		double start2 = 0, finish2 = 0;
+		int * idx = Calloc(n, int);
+		int key = 1;
+		for(int i = 0; i < n; i++) {
+			key += i;
+			//printf("%d %d \n", i, key);
+			idx[i] = key;
+		}
 		for(int k = 0; k < m; k++) {
-			map_ii h;
-			map_ii_init_hint(&h, n);
-			int * idx = Calloc(n, int);
-			double start, finish;
-			start = omp_get_wtime();
-			int key = 1;
-			for(int i = 0; i < n; i++) {
-				key += i;
-				//printf("%d %d \n", i, key);
-				map_ii_set(&h, key, key);
-				idx[i] = key;
-			}
-			finish = omp_get_wtime();
-			double init = finish - start;
-			double sum = 0.0;
-			start = omp_get_wtime();
-			for(int i = 0; i < key+1; i++) {
-				int *p;
-				p = map_ii_ptr(&h, i);
-				if (p) sum += *p;
-			}
-			finish =  omp_get_wtime();
-
-			double start2, finish2;
-			start2 = omp_get_wtime();
 			int guess[2] = {0, 0};
+			int uguess[2] = {0, 0};
+			double sum = 0.0;
+			start += omp_get_wtime();
 			for(int i = 0; i < key+1; i++) {
-				int p;
-				p = GMRFLib_iwhich_sorted(i, idx, n, guess);
+				int p = GMRFLib_iwhich_sorted(i, idx, n, uguess);
 				if (p >= 0) sum += idx[p];
 			}
-			finish2 =  omp_get_wtime();
-			printf("key %d Init %.8f Search %.8f iwhich %.8f sum %f\n", key, init, finish - start,
-			       finish2 - start2, sum/2);
-			map_ii_free(&h);
-			Free(idx);
+			finish += omp_get_wtime();
+
+			double sum2 = 0.0;
+			start2 += omp_get_wtime();
+			for(int i = 0; i < key+1; i++) {
+				int p = GMRFLib_iwhich_sorted_ORIG(i, idx, n, guess);
+				if (p >= 0) sum2 += idx[p];
+			}
+			finish2 += omp_get_wtime();
+			if (k == m-1)
+				printf("key %d iwhich %.8f iwhich.orig %.8f ratio %f\n",
+				       key,
+				       (finish-start)/(k+1.0),
+				       (finish2 - start2)/(k+1.0),
+				       (finish-start)/(finish2-start2));
 		}
 	}
                 break;
