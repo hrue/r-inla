@@ -170,7 +170,6 @@ typedef struct {
 	int *colidx;
 	int *colptr;
 	int *rowidx;
-
 } GMRFLib_graph_tp;
 
 typedef struct {

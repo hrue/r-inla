@@ -558,6 +558,11 @@ typedef struct {
 	int vb_iter_max;
 
 	/**
+	 * \brief Emergency option
+	 */
+	double vb_emergency;
+
+	/**
 	 * \brief update_hessian
 	 */
 	int vb_hessian_update;
@@ -1222,6 +1227,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 				   GMRFLib_ai_param_tp * ai_par, GMRFLib_gcpo_param_tp * gcpo_param, double *gcpodens_moments);
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt,
 					   GMRFLib_gcpo_param_tp * gcpo_param);
+
+double inla_compute_saturated_loglik(int, int, GMRFLib_logl_tp *, double *, void *);
 
 __END_DECLS
 #endif

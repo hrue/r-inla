@@ -61,6 +61,9 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define IDX_ALLOC_INITIAL 32
 #define IDX_ALLOC_ADD     512
 
+// set to 0 to keep the groups anyway
+#define IDXVAL_FREE_GROUPS_IF_NOT_BEST() 1
+
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold)
 {
 	return GMRFLib_idx_create_x(hold, IDX_ALLOC_INITIAL);
@@ -256,7 +259,7 @@ GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len)
 	}
 }
 
-int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -267,7 +270,7 @@ int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, char *msg)
+int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -278,7 +281,7 @@ int GMRFLib_str_printf(FILE * fp, GMRFLib_str_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -289,7 +292,7 @@ int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d\n", msg, hold->n, hold->n_alloc);
@@ -300,7 +303,7 @@ int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n = %1d  nalloc = %1d iaddto = %1d\n", msg, hold->n, hold->n_alloc, hold->iaddto);
@@ -323,7 +326,7 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg)
+int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg)
 {
 	if (hold) {
 		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto);
@@ -550,6 +553,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		GMRFLib_idxval_tp *h = hold[i];
 		nmax = IMAX(nmax, h->n);
 	}
+
 
 #define CODE_BLOCK							\
 	for (int i = 0; i < n; i++) {					\
@@ -853,13 +857,16 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 					}				\
 				}					\
 									\
-				Free(h->idx);				\
-				Free(h->val);				\
-				h->n = n_new;				\
+				h->n_n = n_new;				\
 				h->g_n = gg + pending;			\
-				h->idx = idx_new;			\
-				h->val = val_new;			\
-				h->n_alloc = n_new;			\
+				h->g_idx = idx_new;			\
+				h->g_val = val_new;			\
+				h->free_g_mem = 1;			\
+			} else {					\
+				h->n_n = h->n;				\
+				h->g_idx = h->idx;			\
+				h->g_val = h->val;			\
+				h->free_g_mem = 0;			\
 			}						\
 		}							\
 		if (debug) tref[3] += GMRFLib_cpu();			\
@@ -872,7 +879,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		for (int g = 0; g < h->g_n; g++) {			\
 			int all_1 = 1;					\
 			for (int j = 0; j < IABS(h->g_len[g]) && all_1; j++) { \
-				all_1 = all_1 && ISEQUAL(h->val[h->g_i[g] + j], 1.0); \
+				all_1 = all_1 && ISEQUAL(h->g_val[h->g_i[g] + j], 1.0); \
 			}						\
 			g_1[g] = (all_1 ? 1 : 0);			\
 		}							\
@@ -952,7 +959,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[0] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_SERIAL(value[0], hold[i], x);
+			value[0] = GMRFLib_dot_product_serial(hold[i], x);
 			if (measure) {
 				tref[0] += GMRFLib_cpu();
 			}
@@ -960,7 +967,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[1] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_SERIAL_MKL(value[1], hold[i], x);
+			value[1] = GMRFLib_dot_product_serial_mkl(hold[i], x);
 			if (measure) {
 				tref[1] += GMRFLib_cpu();
 			}
@@ -972,7 +979,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[2] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_GROUP(value[2], hold[i], x);
+			value[2] = GMRFLib_dot_product_group(hold[i], x);
 			if (measure) {
 				tref[2] += GMRFLib_cpu();
 			}
@@ -980,7 +987,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			if (measure) {
 				tref[3] -= GMRFLib_cpu();
 			}
-			DOT_PRODUCT_GROUP_MKL(value[3], hold[i], x);
+			value[3] = GMRFLib_dot_product_group_mkl(hold[i], x);
 			if (measure) {
 				tref[3] += GMRFLib_cpu();
 			}
@@ -1028,6 +1035,23 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 			assert(0 == 1);
 		}
 
+		if (IDXVAL_FREE_GROUPS_IF_NOT_BEST()) {
+			if (hold[i]->preference == IDXVAL_SERIAL || hold[i]->preference == IDXVAL_SERIAL_MKL) {
+				//  no need to keep the group info in the struct
+				hold[i]->n_n = 0;
+				hold[i]->g_n = 0;
+				hold[i]->g_idx = NULL;
+				hold[i]->g_val = NULL;
+				Free(hold[i]->g_len);
+				Free(hold[i]->g_i);
+				Free(hold[i]->g_1);
+				if (hold[i]->free_g_mem) {
+					Free(hold[i]->g_idx);
+					Free(hold[i]->g_val);
+				}
+			}
+		}
+		
 		if (GMRFLib_dot_product_optim_report) {
 			int idx;
 			GMRFLib_CACHE_SET_ID(idx);
@@ -1035,6 +1059,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 				GMRFLib_dot_product_optim_report[idx][k] += tref[k];
 			}
 			GMRFLib_dot_product_optim_report[idx][4] += tmin;
+			GMRFLib_dot_product_optim_report[idx][5 + k]++; /* count... */
 		}
 
 		time_min += tmin / ntimes;
@@ -1100,9 +1125,14 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 	if (hold) {
 		Free(hold->idx);
 		Free(hold->val);
+
 		Free(hold->g_i);
 		Free(hold->g_len);
 		Free(hold->g_1);
+		if (hold->free_g_mem) {
+			Free(hold->g_idx);
+			Free(hold->g_val);
+		}
 		Free(hold);
 	}
 	return GMRFLib_SUCCESS;

@@ -1,3 +1,7 @@
+# INLA 22.10.05
+* Code cleanup and optimization of dot-products
+* Fixed an issue with 'control.fixed=list(remove.names=...)'
+
 # INLA 22.10.01
 * MKL code for nested indexed inner products
 * Computation of initial values for experimental mode

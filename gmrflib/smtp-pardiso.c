@@ -904,11 +904,10 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	int **iiparm = NULL;
 	int *factor = NULL;
 	int *init_done = NULL;
-	void **ppt = NULL;
+	void ***ppt = NULL;
 
 	if (need_workaround) {
-		size_t siz = sizeof(void *);		       /* to prevent compiler warning */
-		ppt = Calloc(max_nt, void *);
+		ppt = Calloc(max_nt, void **);
 		init_done = Calloc(max_nt, int);
 		iiparm = Calloc(max_nt, int *);
 		ddparm = Calloc(max_nt, double *);
@@ -917,7 +916,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		iiparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, int);
 		ddparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, double);
 		for (int i = 1; i < max_nt; i++) {
-			ppt[i] = ppt[i - 1] + GMRFLib_PARDISO_PLEN * siz;
+			ppt[i] = Calloc(GMRFLib_PARDISO_PLEN, void *);
 			iiparm[i] = iiparm[i - 1] + GMRFLib_PARDISO_PLEN;
 			ddparm[i] = ddparm[i - 1] + GMRFLib_PARDISO_PLEN;
 			factor[i] = 0;
@@ -1290,20 +1289,20 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** nnew, GMRFLib_pardiso_store_tp * old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
 {
 	int tnum = omp_get_thread_num();
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED
 	int debug = S.debug, failsafe_mode = 0;
 	if (old == NULL) {
-		*new = NULL;
+		*nnew = NULL;
 		return GMRFLib_SUCCESS;
 	}
 
 	if (failsafe_mode) {
 		// FIXME("-->duplicate by creating a new one each time");
-		GMRFLib_pardiso_init(new);
-		GMRFLib_pardiso_reorder(*new, old->graph);
+		GMRFLib_pardiso_init(nnew);
+		GMRFLib_pardiso_reorder(*nnew, old->graph);
 		return GMRFLib_SUCCESS;
 	}
 	GMRFLib_ENTER_ROUTINE;
@@ -1365,7 +1364,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 #undef CP2_ref
 #undef CPv
 #undef CPv_ref
-		*new = dup;
+		*nnew = dup;
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1413,21 +1412,21 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_par
 	}
 
 	if (S.static_pstores[idx] && ok) {
-		*new = S.static_pstores[idx];
+		*nnew = S.static_pstores[idx];
 		if (S.s_verbose) {
 			printf("==> reuse store[%1d]\n", idx);
 		}
 	} else {
 		GMRFLib_pardiso_init(&(S.static_pstores[idx]));
 		GMRFLib_pardiso_reorder(S.static_pstores[idx], old->graph);
-		*new = S.static_pstores[idx];
+		*nnew = S.static_pstores[idx];
 		if (S.s_verbose) {
 			printf("==> new store[%1d]\n", idx);
 		}
 	}
 
 	if (S.s_verbose) {
-		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) new), ((void *) old), idx);
+		printf("duplicate: new=%p old=%p i=%1d\n", *((void **) nnew), ((void *) old), idx);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;

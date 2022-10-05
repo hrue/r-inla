@@ -942,7 +942,7 @@ struct inla_tp_struct {
 	 * General stuff 
 	 */
 	int verbose;
-	int strategy;
+	GMRFLib_openmp_strategy_tp strategy;
 	char *smtp;
 
 	GMRFLib_preopt_tp *preopt;
@@ -2097,6 +2097,9 @@ int UTIL_countPhysicalCores(void);
 int UTIL_countCores(int);
 int UTIL_countLogicalCores(void);
 
+int gsl_bfgs4_test1(size_t);
+int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
+
 /* 
 ***
 */
@@ -2108,7 +2111,7 @@ typedef struct {
 	double mcmc_scale;				       /* scaling */
 	int mcmc_thinning;				       /* thinning */
 	int mcmc_niter;					       /* number of iterations: 0 is infinite */
-	int reorder;					       /* reorder strategy: -1 for optimize */
+	GMRFLib_reorder_tp reorder;			       /* reorder strategy: -1 for optimize */
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;

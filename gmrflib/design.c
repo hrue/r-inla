@@ -273,7 +273,7 @@ int GMRFLib_design_ccd(GMRFLib_design_tp ** design, int nfactors)
 		if (!ISZERO(scale)) {			       /* yes, the origo is within the design points! */
 			scale = 1.0 / sqrt(scale);
 		}
-		my_dscale(nfactors, scale, (*design)->experiment[j]);
+		GMRFLib_dscale(nfactors, scale, (*design)->experiment[j]);
 	}
 
 	return GMRFLib_SUCCESS;

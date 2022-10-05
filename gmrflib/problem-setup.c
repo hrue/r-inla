@@ -144,20 +144,20 @@ double GMRFLib_Qfunc_wrapper(int thread_id, int sub_node, int sub_nnode, double 
 
 int validate_constr1(GMRFLib_constr_tp * constr, int n)
 {
-	GMRFLib_constr_tp *new = NULL;
+	GMRFLib_constr_tp *nnew = NULL;
 	GMRFLib_graph_tp *g = Calloc(1, GMRFLib_graph_tp);
 	g->n = n;
 
-	GMRFLib_duplicate_constr(&new, constr, g);
-	assert(new);
+	GMRFLib_duplicate_constr(&nnew, constr, g);
+	assert(nnew);
 	for (int j = 0; j < constr->nc; j++) {
-		if ((new->jfirst[j] != constr->jfirst[j]) || (new->jlen[j] != constr->jlen[j])) {
-			printf("CONSTR jfirst/jlen ERROR: i= %d new->jfirst= %d old->jfirst= %d new->jlen= %d old->jlen= %d\n",
-			       j, new->jfirst[j], constr->jfirst[j], new->jlen[j], constr->jlen[j]);
+		if ((nnew->jfirst[j] != constr->jfirst[j]) || (nnew->jlen[j] != constr->jlen[j])) {
+			printf("CONSTR jfirst/jlen ERROR: i= %d nnew->jfirst= %d old->jfirst= %d nnew->jlen= %d old->jlen= %d\n",
+			       j, nnew->jfirst[j], constr->jfirst[j], nnew->jlen[j], constr->jlen[j]);
 			abort();
 		}
 	}
-	GMRFLib_free_constr(new);
+	GMRFLib_free_constr(nnew);
 	Free(g);
 
 	return GMRFLib_SUCCESS;

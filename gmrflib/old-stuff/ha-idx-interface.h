@@ -1,7 +1,7 @@
 
-/* ghq.h
+/* ha-idx-interface.h
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2022-2022 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,8 @@
  *
  */
 
-/*!
-  \file ghq.h
-  \brief Typedefs for \ref ghq.c
-*/
-
-#ifndef __GMRFLib_GHQ_H__
-#define __GMRFLib_GHQ_H__
+#ifndef __GMRFLib_HA_IDX_INTERFACE_H__
+#define __GMRFLib_HA_IDX_INTERFACE_H__
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -54,29 +49,15 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS typedef struct {
-	int n;
-	double skew3;					       /* skewness^(1/3) */
-	double *nodes;
-	double *w;
-	double *w_grad;
-	double *w_hess;
-} GMRFLib_snq_tp;
+__BEGIN_DECLS
 
-/*
- */
+int ha_idx_q(void *ha, int key);
+void *ha_idx_init(void);
+void *ha_idx_init_hint(int);
+void ha_idx_free(void *);
+void ha_idx_set(void *ha, int key);
+void ha_idx_sets(void *ha, int n, int *keys);
+void ha_idx_stats(void *, int print, double *mb);
 
-#define GMRFLib_skew_to_skew3(skew_) (SIGN(skew_) * pow(ABS(skew_), 1.0/3.0))
-#define GMRFLib_skew3_to_skew(skew3_) gsl_pow_3(skew3_)
-
-GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3);
-int GMRFLib_ghq(double **xp, double **wp, int n);
-int GMRFLib_ghq__intern(double *x, double *w, int n);
-int GMRFLib_ghq_abscissas(double **xp, int n);
-int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev);
-int GMRFLib_ghq_weights(double **wp, int n);
-int GMRFLib_snq_free(GMRFLib_snq_tp * q);
-
-double inla_log_Phi(double x);			       /* external function */
 __END_DECLS
 #endif

@@ -234,7 +234,7 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 		high = len - 1;
 	} else {
 		low = (val >= ix[guess[0]] ? guess[0] : 0);
-		high = (val <= ix[guess[1]] ? guess[1] : len - 1);
+		high = (val <= ix[guess[1]] ? guess[1] : len -1);
 	}
 
 	while (1) {
@@ -242,8 +242,8 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 		if (range < 4L) {
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
-					guess[1] = high + 1;
-					guess[0] = i + 1;
+					guess[0] = i;
+					guess[1] = high + 1; 
 					return i;
 				}
 			}
@@ -511,8 +511,8 @@ int GMRFLib_normalize(int n, double *x)
 	// scale x so the sum is 1
 
 	double sum;
-	sum = my_dsum(n, x);
-	my_dscale(n, 1.0 / sum, x);
+	sum = GMRFLib_dsum(n, x);
+	GMRFLib_dscale(n, 1.0 / sum, x);
 
 	return GMRFLib_SUCCESS;
 }
@@ -991,7 +991,7 @@ int GMRFLib_scale_vector(double *x, int n)
 	double scale = GMRFLib_max_value(x, n, NULL);
 	if (!ISZERO(scale)) {
 		scale = 1.0 / scale;
-		my_dscale(n, scale, x);
+		GMRFLib_dscale(n, scale, x);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -1088,7 +1088,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
-forceinline double GMRFLib_logit(double p)
+double GMRFLib_logit(double p)
 {
 	// evaluate log(p/(1-p)) more safe than just log(p/(1-p))
 	const double lim = 0.01;
@@ -1103,7 +1103,7 @@ forceinline double GMRFLib_logit(double p)
 	}
 }
 
-forceinline double GMRFLib_inv_logit(double x)
+double GMRFLib_inv_logit(double x)
 {
 	// evaluate 1/(1+exp(-x))
 

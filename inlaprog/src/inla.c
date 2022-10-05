@@ -120,7 +120,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
-char *keywords[] = {
+const int keywords_len = 7;
+const char *keywords[] = {
 	"FIXED", "INITIAL", "PRIOR", "HYPERID", "PARAMETERS", "TO.THETA", "FROM.THETA", NULL
 };
 
@@ -148,7 +149,7 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 
 #define LINK_INIT							\
 	double *_link_covariates = NULL;				\
-	Link_param_tp *predictor_invlinkfunc_arg = ds->predictor_invlinkfunc_arg[idx]; \
+	Link_param_tp *predictor_invlinkfunc_arg = (Link_param_tp *) (ds->predictor_invlinkfunc_arg[idx]); \
 	if (ds->link_covariates) {					\
 		_link_covariates = Calloc(ds->link_covariates->ncol, double); \
 		GMRFLib_matrix_get_row(_link_covariates, idx, ds->link_covariates); \
@@ -13389,7 +13390,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		GMRFLib_reorder = GMRFLib_REORDER_PARDISO;
 		GMRFLib_pardiso_set_parallel_reordering(1);
 	}
-	mb->smtp = GMRFLib_SMTP_NAME(GMRFLib_smtp);
+	mb->smtp = GMRFLib_strdup(GMRFLib_SMTP_NAME(GMRFLib_smtp));
 	if (mb->verbose) {
 		printf("\t\tsmtp = [%s]\n\t\tstrategy = [%s]\n", smtp, openmp_strategy);
 	}
@@ -18820,12 +18821,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < NMIX_MMAX; i++) {
-			char **keyw = keywords;
-			while (*keyw) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+			for (int j = 0; j < keywords_len; j++) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
-				keyw++;
 			}
 		}
 
@@ -19857,12 +19856,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < LINK_MAXTHETA + 1; i++) {
-			char **keyw = keywords;
-			while (*keyw) {
-				GMRFLib_sprintf(&ctmp, "LINK.%s%1d", *keyw, i);
+			for (int j = 0; j < keywords_len; j++) {
+				GMRFLib_sprintf(&ctmp, "LINK.%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
-				keyw++;
 			}
 		}
 
@@ -19872,7 +19869,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		for (i = 0; i < n_data; i++) {
-			ds->predictor_invlinkfunc_arg = (void *) (ds->link_parameters);
+			ds->predictor_invlinkfunc_arg = (void **) ((void *)(ds->link_parameters));
 		}
 		HYPER_NEW(ds->link_parameters->log_prec, 0.0);
 		ds->link_parameters->betas = Calloc(LINK_MAXTHETA, double **);
@@ -22517,12 +22514,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		// mark all as read
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
-			char **keyw = keywords;
-			while (*keyw) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+			for (int j = 0; j < keywords_len; j++) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
-				keyw++;
 			}
 		}
 
@@ -22719,12 +22714,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
-			char **keyw = keywords;
-			while (*keyw) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+			for (int j = 0; j < keywords_len; j++) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
-				keyw++;
 			}
 		}
 
@@ -22831,12 +22824,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < AR_MAXTHETA + 1; i++) {
-			char **keyw = keywords;
-			while (*keyw) {
-				GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+			for (int j = 0; j < keywords_len; j++) {
+				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
-				keyw++;
 			}
 		}
 
@@ -23409,7 +23400,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		}
 		lt_dlerror();
 
-		model_func = lt_dlsym(handle, cgeneric_model);
+		model_func = (inla_cgeneric_func_tp *) lt_dlsym(handle, cgeneric_model);
 		if ((emsg = lt_dlerror())) {
 			char *msg;
 			GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
@@ -28089,12 +28080,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				// mark all as read
 				for (i = 0; i < AR_MAXTHETA + 1; i++) {
-					char **keyw = keywords;
-					while (*keyw) {
-						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", *keyw, i);
+					for (int j = 0; j < keywords_len; j++) {
+						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", keywords[j], i);
 						iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 						Free(ctmp);
-						keyw++;
 					}
 				}
 
@@ -28329,7 +28318,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tgroup.adjust.for.con.comp[%1d]\n", std);
 				}
 				if (std) {
-					inla_besag_scale(thread_id, (void *) def->besagdef, adj, mb->verbose);
+					inla_besag_scale(thread_id,  (inla_besag_Qfunc_arg_tp *) (def->besagdef), adj, mb->verbose);
 				}
 			} else {
 				def->rwdef = NULL;
@@ -29189,9 +29178,12 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 		/*
 		 * both these fail if the reordering is void 
 		 */
-		err = inla_sread_ints(&G.reorder, 1, r);
+		int itmp;
+		err = inla_sread_ints(&itmp, 1, r);
+		G.reorder = (GMRFLib_reorder_tp) itmp;
 		if (err) {
-			G.reorder = GMRFLib_reorder_id((const char *) r);
+			itmp = GMRFLib_reorder_id((const char *) r);
+			G.reorder = (GMRFLib_reorder_tp) itmp;
 		}
 		GMRFLib_reorder = G.reorder;		       /* yes! */
 	}
@@ -29226,6 +29218,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->vb_nodes_mean = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
 	mb->ai_par->vb_nodes_variance = (mb->ai_par->vb_enable ? Calloc(1, char) : NULL);
 	mb->ai_par->vb_iter_max = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.ITER.MAX"), 5);
+	mb->ai_par->vb_emergency = iniparser_getdouble(ini, inla_string_join(secname, "CONTROL.VB.EMERGENCY"), 10.0);
 	mb->ai_par->vb_iter_max = IMAX(1, mb->ai_par->vb_iter_max);
 	mb->ai_par->vb_f_enable_limit_mean = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.MEAN"), 20);
 	mb->ai_par->vb_f_enable_limit_variance = iniparser_getint(ini, inla_string_join(secname, "CONTROL.VB.F.ENABLE.LIMIT.VARIANCE"), 5);
@@ -29436,12 +29429,10 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 
 	// mark all hyperpar defs as read
 	for (i = 0; i < INLA_LP_SCALE_MAX; i++) {
-		char **keyw = keywords;
-		while (*keyw) {
-			GMRFLib_sprintf(&ctmp, "%s%1d", *keyw, i);
+		for (int j = 0; j < keywords_len; j++) {
+			GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 			Free(ctmp);
-			keyw++;
 		}
 	}
 
@@ -33516,7 +33507,7 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * We need to determine the strategy if strategy is default 
 	 */
-	int storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
+	GMRFLib_density_storage_strategy_tp storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 	int ntot = mb->predictor_n + mb->predictor_m + mb->nlinear;
 
 	for (i = 0; i < mb->nf; i++) {
@@ -34007,7 +33998,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	/*
 	 * We need to determine the strategy if strategy is default 
 	 */
-	int storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
+	GMRFLib_density_storage_strategy_tp storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 	int ntot = 0;
 
 	ntot = mb->nlinear;
@@ -34246,7 +34237,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	/*
 	 * We need to determine the strategy if strategy is default 
 	 */
-	int storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
+	GMRFLib_density_storage_strategy_tp storage_scheme = GMRFLib_DENSITY_STORAGE_STRATEGY_HIGH;
 	int ntot = mb->predictor_n + mb->predictor_m + mb->nlinear;
 
 	for (i = 0; i < mb->nf; i++) {
@@ -34883,10 +34874,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	}
 
 	// report timings
-	double time_loop[5] = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	if (GMRFLib_dot_product_optim_report) {
 		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-			for (int j = 0; j < 5; j++) {
+			for (int j = 0; j < 9; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
@@ -34898,6 +34889,14 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			time_loop[j] /= time_sum;
 		}
 		time_loop[4] /= time_sum;
+
+		time_sum = 0.0;
+		for (int j = 5; j < 9; j++) {
+			time_sum += time_loop[j];
+		}
+		for (int j = 5; j < 9; j++) {
+			time_loop[j] /= time_sum;
+		}
 	}
 
 
@@ -34916,13 +34915,20 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tOptimizing Qx-strategy..... serial/parallel = %.2f choose[%s]\n", time_used_Qx[0] / time_used_Qx[1],
+		printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
+		       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
+		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
 		       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
-		printf("\tOptimizing pred-strategy... plain/data-rich = %.2f choose[%s]\n", time_used_pred[0] / time_used_pred[1],
+		printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
+		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
+		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-		printf("\t                            optimal.mix.strategy..... [%.3f]\n", time_loop[4]);
+		printf("\t                            => optimal.mix.strategy   [%.3f]\n", time_loop[4]); 
+		printf("\t                                plain[%.3f] plain.mkl[%.3f]\n", time_loop[5], time_loop[6]);
+		printf("\t                                group[%.3f] group.mkl[%.3f]\n", time_loop[7], time_loop[8]);
+		       
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
@@ -35129,7 +35135,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			GMRFLib_preopt_predictor(eta, x, preopt);
 #if defined(INLA_LINK_WITH_MKL)
 			{
-				void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 				double d_one = 1.0, d_mone = -1.0;
 				Memcpy(e, eta, preopt->Npred * sizeof(double));
 				daxpby_(&(preopt->Npred), &d_one, eta_pseudo, &one, &d_mone, e, &one);
@@ -35153,7 +35158,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 
 			GMRFLib_preopt_predictor(Ad, d, preopt);
-			sum1 = my_ddot(preopt->Npred, Ad, e);
+			sum1 = GMRFLib_ddot(preopt->Npred, Ad, e);
 			sum2 = ddot_(&(preopt->Npred), Ad, &one, Ad, &one);
 			gamma = DMAX(0.0, DMIN(2.0, sum1 / (FLT_EPSILON + sum2)));
 
@@ -37784,7 +37789,7 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 	}
 	GMRFLib_write_fmesher_file(CM, meanfile, (long int) 0, -1);
 
-	state = GMRFLib_rng_getstate(&siz);
+	state = (char *) GMRFLib_rng_getstate(&siz);
 	fp = fopen(rngfile, "wb");
 	fwrite((void *) state, (size_t) 1, siz, fp);
 	fclose(fp);
@@ -38874,10 +38879,10 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < 10000; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			DOT_PRODUCT_SERIAL(sum1, h, xx);
+			sum1 = GMRFLib_dot_product_serial(h, xx);
 			tref1 += GMRFLib_cpu();
 			tref2 -= GMRFLib_cpu();
-			DOT_PRODUCT_GROUP(sum2, h, xx);
+			sum2 = GMRFLib_dot_product_group(h, xx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -39526,16 +39531,16 @@ int testit(int argc, char **argv)
 	{
 		for (i = 0, j = 1; i < 10; i++, j = j + 2) {
 			double lambda = exp(-1 + GMRFLib_uniform());
-			double new = inla_poisson_interval(lambda, i, j);
+			double nnew = inla_poisson_interval(lambda, i, j);
 			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
-			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n", lambda, i, j, new, gsl, new - gsl);
+			printf("lambda %f from= %d to= %d: nnew %f gsl %f diff %.12f\n", lambda, i, j, nnew, gsl, nnew - gsl);
 		}
 		// j < 0 <==> j=INF
 		for (i = 0, j = -1; i < 10; i++) {
 			double lambda = exp(-1 + GMRFLib_uniform());
-			double new = inla_poisson_interval(lambda, i, j);
+			double nnew = inla_poisson_interval(lambda, i, j);
 			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
-			printf("lambda %f from= %d to= %d: new %f gsl %f diff %.12f\n", lambda, i, j, new, gsl, new - gsl);
+			printf("lambda %f from= %d to= %d: nnew %f gsl %f diff %.12f\n", lambda, i, j, nnew, gsl, nnew - gsl);
 		}
 	}
 		break;
@@ -39693,15 +39698,12 @@ int testit(int argc, char **argv)
 	case 64:
 	{
 		int n = atoi(args[0]);
-		int gsl_bfgs4_test1(size_t);
 		gsl_bfgs4_test1((size_t) n);
 	}
 		break;
 
 	case 65:
 	{
-		int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
-
 		double x[] = { -0.200, -0.075, 0.000, 0.040, 0.160, 0.360, 0.640, 1.000 };
 		double y[] = { 14960.675457, 14934.327851, 14927.976542, 14943.616530, 14945.530949, 15000.597367, 15140.861227, 15412.165108 };
 		int n = sizeof(y) / sizeof(double);
@@ -39766,7 +39768,8 @@ int testit(int argc, char **argv)
 		assert(nargs == 3);
 		printf("Call 'double (*fun)(double)' function [%s] in [%s] with argument [%s]\n", args[0], args[1], args[2]);
 		lt_dlhandle handle;
-		double (*fun)(double);
+		typedef double fun_tp(double);
+		fun_tp *fun = NULL;
 		const char *error;
 
 		lt_dlinit();
@@ -39777,7 +39780,7 @@ int testit(int argc, char **argv)
 		}
 		lt_dlerror();
 
-		fun = lt_dlsym(handle, args[0]);
+		fun = (fun_tp *) lt_dlsym(handle, args[0]);
 		if ((error = lt_dlerror()) != NULL) {
 			fprintf(stderr, "%s\n", error);
 			exit(1);
@@ -40429,7 +40432,7 @@ int testit(int argc, char **argv)
 		for (int time = 0; time < ntimes; time++) {
 
 			tref[0] -= GMRFLib_cpu();
-			r += my_dsum(n, x);
+			r += GMRFLib_dsum(n, x);
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
@@ -40448,6 +40451,7 @@ int testit(int argc, char **argv)
 
 	case 83:
 	{
+		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -40474,11 +40478,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			DOT_PRODUCT_SERIAL(sum1, h, xx);
+			sum1 = GMRFLib_dot_product_serial(h, xx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			DOT_PRODUCT_GROUP(sum2, h, xx);
+			sum2 = GMRFLib_dot_product_group(h, xx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -40493,6 +40497,7 @@ int testit(int argc, char **argv)
 
 	case 84:
 	{
+		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -40519,7 +40524,7 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			sum1 = my_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
@@ -40611,11 +40616,11 @@ int testit(int argc, char **argv)
 		for (int time = 0; time < ntimes; time++) {
 
 			tref[0] -= GMRFLib_cpu();
-			r += my_dsum(n, x);
+			r += GMRFLib_dsum(n, x);
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-			rr += my_dsum2(n, x);
+			rr += GMRFLib_dsum2(n, x);
 			tref[1] += GMRFLib_cpu();
 		}
 
@@ -40662,6 +40667,7 @@ int testit(int argc, char **argv)
 
 	case 89:
 	{
+		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		GMRFLib_idxval_tp *h = NULL;
@@ -40692,11 +40698,11 @@ int testit(int argc, char **argv)
 		for (int k = 0; k < m; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			sum1 = my_ddot_idx(h->n, h->val, xx, h->idx);
+			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			sum2 = my_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -40708,6 +40714,89 @@ int testit(int argc, char **argv)
 		Free(xx);
 	}
 		break;
+
+	case 90:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *xx = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+
+		P(n);
+		P(m);
+		double sum1 = 0.0, sum2 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int k = 0; k < m; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+			sum1 = GMRFLib_dsum(n, xx);
+			tref1 += GMRFLib_cpu();
+
+			tref2 -= GMRFLib_cpu();
+			sum2 = 0.0;
+			for(int i = 0; i < n; i++) {
+				sum2 += xx[i];
+			}
+			tref2 += GMRFLib_cpu();
+			if (ABS(sum1 - sum2) > 1e-8) {
+				P(sum1);
+				P(sum2);
+				exit(88);
+			}
+		}
+		printf("_dsum %.3f loop %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		Free(xx);
+	}
+		break;
+
+	case 91: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		for(int k = 0; k < m; k++) {
+			map_ii h;
+			map_ii_init_hint(&h, n);
+			int * idx = Calloc(n, int);
+			double start, finish;
+			start = omp_get_wtime();
+			int key = 1;
+			for(int i = 0; i < n; i++) {
+				key += i;
+				//printf("%d %d \n", i, key);
+				map_ii_set(&h, key, key);
+				idx[i] = key;
+			}
+			finish = omp_get_wtime();
+			double init = finish - start;
+			double sum = 0.0;
+			start = omp_get_wtime();
+			for(int i = 0; i < key+1; i++) {
+				int *p;
+				p = map_ii_ptr(&h, i);
+				if (p) sum += *p;
+			}
+			finish =  omp_get_wtime();
+
+			double start2, finish2;
+			start2 = omp_get_wtime();
+			int guess[2] = {0, 0};
+			for(int i = 0; i < key+1; i++) {
+				int p;
+				p = GMRFLib_iwhich_sorted(i, idx, n, guess);
+				if (p >= 0) sum += idx[p];
+			}
+			finish2 =  omp_get_wtime();
+			printf("key %d Init %.8f Search %.8f iwhich %.8f sum %f\n", key, init, finish - start,
+			       finish2 - start2, sum/2);
+			map_ii_free(&h);
+			Free(idx);
+		}
+	}
+                break;
 
 	case 999:
 	{
@@ -41027,9 +41116,12 @@ int main(int argc, char **argv)
 
 		case 'r':
 		{
-			err = inla_sread_ints(&G.reorder, 1, optarg);
+			int itmp;
+			err = inla_sread_ints(&itmp, 1, optarg);
+			G.reorder = (GMRFLib_reorder_tp) itmp;
 			if (err) {
-				G.reorder = GMRFLib_reorder_id((const char *) optarg);
+				itmp = GMRFLib_reorder_id((const char *) optarg);
+				G.reorder = (GMRFLib_reorder_tp) itmp;
 			}
 			GMRFLib_reorder = G.reorder;	       /* yes! */
 		}
@@ -41083,7 +41175,7 @@ int main(int argc, char **argv)
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN, double *);
 	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-		GMRFLib_dot_product_optim_report[i] = Calloc(5, double);
+		GMRFLib_dot_product_optim_report[i] = Calloc(9, double);
 	}
 
 #if !defined(WINDOWS)

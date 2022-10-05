@@ -934,7 +934,7 @@
         ## intercept as we might have the intercept in the link-model f.ex. In this case we want
         ## to do the expansion of factors as we have an intercept and then remove it afterwards.
         if (!is.null(cont.fixed$remove.names)) {
-            rm.cols <- which(cont.fixed$remove.names %in% colnames(gp$model.matrix))
+            rm.cols <- which(colnames(gp$model.matrix) %in% cont.fixed$remove.names)
             if (length(rm.cols) > 0) {
                 gp$model.matrix <- gp$model.matrix[, -rm.cols, drop = FALSE]
             }

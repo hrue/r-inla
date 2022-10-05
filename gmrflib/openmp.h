@@ -49,6 +49,7 @@
 
 __BEGIN_DECLS
 #include <omp.h>
+
     typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,
@@ -128,6 +129,14 @@ int GMRFLib_set_blas_num_threads(int threads);
 int GMRFLib_openmp_nested_fix(void);
 int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp);
 int GMRFLib_openmp_implement_strategy_special(int outer, int inner);
+
+#if defined(INLA_LINK_WITH_MKL)
+void MKL_Set_Num_Threads(int);
+#endif
+#if defined(INLA_LINK_WITH_OPENBLAS)
+void openblas_set_num_threads(int);
+#endif
+
 
 __END_DECLS
 #endif

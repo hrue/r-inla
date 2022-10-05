@@ -1,5 +1,5 @@
 
-/* utils.h
+/* idxval.h
  * 
  * Copyright (C) 2022-2022 Havard Rue
  * 
@@ -96,172 +96,17 @@ typedef struct {
 	int *idx;
 	GMRFLib_idxval_preference_tp preference;
 
+	int n_n;					       /* new len */
+	int *g_idx;
 	int g_n;					       /* number of groups with sequential indices */
 	int *g_len;					       /* their length */
 	int *g_i;					       /* and their starting index */
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
+	int free_g_mem;
 
 	double *val;
+	double *g_val;
 } GMRFLib_idxval_tp;
-
-#define DDOT(N_, X_, Y_) ddot_(&(N_), X_, &integer_one, Y_, &integer_one)
-//#define DDOT(N_, X_, Y_) my_ddot((N_), X_, Y_)
-
-#define DSUM(N_, X_) my_dsum(N_, X_)
-
-#define DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		double value_ = 0.0;					\
-		int integer_one = 1;					\
-		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
-			int len_ = ELM_->g_len[g_];			\
-			if (len_ == 0) continue;			\
-									\
-			int istart_ = ELM_->g_i[g_];			\
-			int * __restrict ii_ = &(ELM_->idx[istart_]);	\
-			double * __restrict vv_ = &(ELM_->val[istart_]); \
-									\
-			if (len_ > 0) {					\
-				double * __restrict aa_ = &(ARR_[0]);	\
-				if (ELM_->g_1[g_]) {			\
-					if (len_ < 8L) {		\
-						_Pragma("GCC ivdep")	\
-							for (int i_ = 0; i_ < len_; i_++) { \
-								value_ += aa_[ii_[i_]]; \
-							}		\
-					} else {			\
-						value_ += my_dsum_idx(len_, aa_, ii_); \
-					}				\
-				} else {				\
-					if (len_ < 8L) {		\
-						_Pragma("GCC ivdep")	\
-							for (int i_ = 0; i_ < len_; i_++) { \
-								value_ += vv_[i_] * aa_[ii_[i_]]; \
-							}		\
-					} else {			\
-						value_ += my_ddot_idx(len_, vv_, aa_, ii_); \
-					}				\
-				}					\
-			} else if (len_ < 0) {				\
-				int llen_ = - len_;			\
-				double * __restrict aa_ = &(ARR_[ii_[0]]); \
-				if (ELM_->g_1[g_]) {			\
-					value_ += DSUM(llen_, aa_);	\
-				} else {				\
-					value_ += DDOT(llen_, vv_, aa_); \
-				}					\
-			}						\
-			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]])); \
-		}							\
-		VALUE_ = (typeof(VALUE_)) value_;			\
-	}
-
-// same, exect for one function-call
-#define DOT_PRODUCT_GROUP_MKL(VALUE_, ELM_, ARR_)			\
-	if (1) {							\
-		double value_ = 0.0;					\
-		int integer_one = 1;					\
-		for (int g_ = 0; g_ < ELM_->g_n; g_++) {		\
-			int len_ = ELM_->g_len[g_];			\
-			if (len_ == 0) continue;			\
-									\
-			int istart_ = ELM_->g_i[g_];			\
-			int * __restrict ii_ = &(ELM_->idx[istart_]);	\
-			double * __restrict vv_ = &(ELM_->val[istart_]); \
-									\
-			if (len_ > 0) {					\
-				double * __restrict aa_ = &(ARR_[0]);	\
-				if (ELM_->g_1[g_]) {			\
-					if (len_ < 8L) {		\
-						_Pragma("GCC ivdep")	\
-							for (int i_ = 0; i_ < len_; i_++) { \
-								value_ += aa_[ii_[i_]]; \
-							}		\
-					} else {			\
-						value_ += my_dsum_idx(len_, aa_, ii_); \
-					}				\
-				} else {				\
-					if (len_ < 8L) {		\
-						_Pragma("GCC ivdep")	\
-							for (int i_ = 0; i_ < len_; i_++) { \
-								value_ += vv_[i_] * aa_[ii_[i_]]; \
-							}		\
-					} else {			\
-						value_ += my_ddot_idx_mkl(len_, vv_, aa_, ii_); \
-					}				\
-				}					\
-			} else if (len_ < 0) {				\
-				int llen_ = - len_;			\
-				double * __restrict aa_ = &(ARR_[ii_[0]]); \
-				if (ELM_->g_1[g_]) {			\
-					value_ += DSUM(llen_, aa_);	\
-				} else {				\
-					value_ += DDOT(llen_, vv_, aa_); \
-				}					\
-			}						\
-			if (g_ < ELM_->g_n - 1) __builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]])); \
-		}							\
-		VALUE_ = (typeof(VALUE_)) value_;			\
-	}
-
-#define DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		double value_ = 0.0;					\
-		double * __restrict vv_ = ELM_->val;			\
-		double * __restrict aa_ = ARR_;				\
-		int * __restrict idx_ = ELM_->idx;			\
-		if (ELM_->n < 8L) {					\
-			_Pragma("GCC ivdep")				\
-				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
-					value_ += vv_[i_] * aa_[idx_[i_]]; \
-				}					\
-		} else {						\
-			value_ += my_ddot_idx(ELM_->n, vv_, aa_, idx_);	\
-		}							\
-		VALUE_ = (typeof(VALUE_)) value_;			\
-	}
-
-// same, exect for one function-call
-#define DOT_PRODUCT_SERIAL_MKL(VALUE_, ELM_, ARR_)			\
-	if (1) {							\
-		double value_ = 0.0;					\
-		double * __restrict vv_ = ELM_->val;			\
-		double * __restrict aa_ = ARR_;				\
-		int * __restrict idx_ = ELM_->idx;			\
-		if (ELM_->n < 8L) {					\
-			_Pragma("GCC ivdep")				\
-				for (int i_ = 0; i_ < ELM_->n; i_++) {	\
-					value_ += vv_[i_] * aa_[idx_[i_]]; \
-				}					\
-		} else {						\
-			value_ += my_ddot_idx_mkl(ELM_->n, vv_, aa_, idx_); \
-		}							\
-		VALUE_ = (typeof(VALUE_)) value_;			\
-	}
-
-#define DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)				\
-	if (1) {							\
-		switch(ELM_->preference) {				\
-		case IDXVAL_SERIAL:					\
-			DOT_PRODUCT_SERIAL(VALUE_, ELM_, ARR_);		\
-			break;						\
-		case IDXVAL_SERIAL_MKL:					\
-			DOT_PRODUCT_SERIAL_MKL(VALUE_, ELM_, ARR_);	\
-			break;						\
-		case IDXVAL_GROUP:					\
-			DOT_PRODUCT_GROUP(VALUE_, ELM_, ARR_);		\
-			break;						\
-		case IDXVAL_GROUP_MKL:					\
-			DOT_PRODUCT_GROUP_MKL(VALUE_, ELM_, ARR_);	\
-			break;						\
-		case IDXVAL_UNKNOWN:					\
-		default:						\
-		assert(0 == 1);						\
-			break;						\
-		}							\
-	}
-
-#define DOT_PRODUCT(VALUE_, ELM_, ARR_) DOT_PRODUCT_CORE(VALUE_, ELM_, ARR_)
 
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);
@@ -276,7 +121,7 @@ int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold);
 int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len);
 int GMRFLib_idx2_free(GMRFLib_idx2_tp * hold);
 int GMRFLib_idx2_nprune(GMRFLib_idx2_tp ** a, int n);
-int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, char *msg);
+int GMRFLib_idx2_printf(FILE * fp, GMRFLib_idx2_tp * hold, const char *msg);
 int GMRFLib_idx2_prune(GMRFLib_idx2_tp * hold);
 int GMRFLib_idx_add(GMRFLib_idx_tp ** hold, int idx);
 int GMRFLib_idx_create(GMRFLib_idx_tp ** hold);
@@ -285,7 +130,7 @@ int GMRFLib_idx_free(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_nprune(GMRFLib_idx_tp ** a, int n);
 int GMRFLib_idx_nsort(GMRFLib_idx_tp ** a, int n, int nt);
 int GMRFLib_idx_nuniq(GMRFLib_idx_tp ** a, int n, int nt);
-int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, char *msg);
+int GMRFLib_idx_printf(FILE * fp, GMRFLib_idx_tp * hold, const char *msg);
 int GMRFLib_idx_prune(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_sort(GMRFLib_idx_tp * hold);
 int GMRFLib_idx_uniq(GMRFLib_idx_tp * hold);
@@ -295,12 +140,12 @@ int GMRFLib_idxval_create(GMRFLib_idxval_tp ** hold);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
 int GMRFLib_idxval_create_x(GMRFLib_idxval_tp ** hold, int len);
 int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
-int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
+int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_zeros);
 int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt);
-int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, char *msg);
+int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold);
@@ -312,7 +157,7 @@ int GMRFLib_val_add(GMRFLib_val_tp ** hold, double val);
 int GMRFLib_val_create(GMRFLib_val_tp ** hold);
 int GMRFLib_val_free(GMRFLib_val_tp * hold);
 int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
-int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, char *msg);
+int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
 
 
