@@ -1077,6 +1077,8 @@
     cat("control.vb.f.enable.limit.mean = ", lim[1], "\n", file = file, append = TRUE)
     cat("control.vb.f.enable.limit.variance = ", lim[2], "\n", file = file, append = TRUE)
     cat("control.vb.iter.max = ", inla.spec$control.vb$iter.max, "\n", file = file, append = TRUE)
+    cat("control.vb.emergency = ", abs(inla.spec$control.vb$emergency), "\n", file = file, append = TRUE)
+    stopifnot(abs(inla.spec$control.vb$emergency) > 0)
 
     num.gradient <- match.arg(tolower(inla.spec$num.gradient), c("central", "forward"))
     num.hessian <- match.arg(tolower(inla.spec$num.hessian), c("central", "forward"))

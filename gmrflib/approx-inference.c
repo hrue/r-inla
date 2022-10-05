@@ -403,6 +403,7 @@ int GMRFLib_print_ai_param(FILE * fp, GMRFLib_ai_param_tp * ai_par)
 		fprintf(fp, "\t\tf_enable_limit_mean = [%1d]\n", ai_par->vb_f_enable_limit_mean);
 		fprintf(fp, "\t\tf_enable_limit_var  = [%1d]\n", ai_par->vb_f_enable_limit_variance);
 		fprintf(fp, "\t\titer_max            = [%1d]\n", ai_par->vb_iter_max);
+		fprintf(fp, "\t\temergency           = [%.2f]\n", ai_par->vb_emergency);
 		fprintf(fp, "\t\thessian_update      = [%1d]\n", ai_par->vb_hessian_update);
 		fprintf(fp, "\t\thessian_strategy    = [%s]\n", VB_HESSIAN_STRATEGY_NAME(ai_par->vb_hessian_strategy));
 	} else {
@@ -8327,7 +8328,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				      GMRFLib_preopt_tp * preopt)
 {
 	GMRFLib_ENTER_ROUTINE;
-	Calloc_init(4 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred, 10);
+	Calloc_init(5 * graph->n + 2 * preopt->mnpred + 4 * preopt->Npred, 11);
 	FILE *fp = (ai_par->fp_log ? ai_par->fp_log : stdout);
 	int verbose = ai_par->vb_verbose && ai_par->fp_log;
 
@@ -8345,8 +8346,9 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 
 	int niter = ai_par->vb_iter_max;
 	int debug = GMRFLib_DEBUG_IF();
+	int emergency = 0;
 	double one = 1.0, mone = -1.0, zero = 0.0;
-	double max_correct = 10.0;
+	double max_correct = 5.001;
 	double tref = GMRFLib_cpu();
 	GMRFLib_tabulate_Qfunc_tp *tabQ = NULL;
 
@@ -8383,6 +8385,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 	}
 
 	double *x_mean = Calloc_get(graph->n);
+	double *x_mean_orig = Calloc_get(graph->n);
 	double *dx = Calloc_get(graph->n);
 	double *pmean = Calloc_get(preopt->mnpred);
 	double *pvar = Calloc_get(preopt->mnpred);
@@ -8394,7 +8397,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			x_mean[i] = ai_store->problem->mean_constr[i];
 		}
 	}
-
+	Memcpy(x_mean_orig, x_mean, graph->n * sizeof(double));
 	if (debug) {
 		for (int i = 0; i < graph->n; i++) {
 			printf("[%1d] x_mean[%1d] = %.12g\n", omp_get_thread_num(), i, x_mean[i]);
@@ -8572,9 +8575,37 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
+
 #pragma GCC ivdep
 		for (int i = 0; i < graph->n; i++) {
 			x_mean[i] += dx[i];
+		}
+
+		double max_correction = 0.0;
+#pragma GCC ivdep
+		for (int i = 0; i < graph->n; i++) {
+			max_correction = DMAX(max_correction, ABS(x_mean[i] - x_mean_orig[i]) / sd[i]);
+		}
+		if (max_correction >= ai_par->vb_emergency) {
+#pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
+			{
+				fprintf(stderr, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+					max_correction, ai_par->vb_emergency);
+				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
+				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
+					ai_par->vb_emergency);
+				fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+				if (fp != stderr) {
+					fprintf(fp, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+						max_correction, ai_par->vb_emergency);
+					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
+					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
+						ai_par->vb_emergency);
+					fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
+				}
+			}
+			emergency = 1;
+			break;
 		}
 
 		// this is RMS standardized change between the iterations, otherwise, just run the max iterations.
@@ -8607,10 +8638,15 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		}
 	}
 
+	// we need to update those in any case
 	GMRFLib_preopt_update(thread_id, preopt, like_b_save, like_c_save);
-	for (int i = 0; i < graph->n; i++) {
-		if (density[i][dens_count]) {
-			GMRFLib_density_new_user_mean(density[i][dens_count], x_mean[i]);
+
+	// update the mean unless we're in an emergency
+	if (!emergency) {
+		for (int i = 0; i < graph->n; i++) {
+			if (density[i][dens_count]) {
+				GMRFLib_density_new_user_mean(density[i][dens_count], x_mean[i]);
+			}
 		}
 	}
 

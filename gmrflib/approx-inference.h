@@ -558,6 +558,11 @@ typedef struct {
 	int vb_iter_max;
 
 	/**
+	 * \brief Emergency option
+	 */
+	double vb_emergency;
+
+	/**
 	 * \brief update_hessian
 	 */
 	int vb_hessian_update;
