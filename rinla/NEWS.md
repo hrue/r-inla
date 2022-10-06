@@ -1,3 +1,6 @@
+# INLA 22.10.06
+* Rebuild package to due broken '22.10.05' version
+
 # INLA 22.10.05
 * Code cleanup and optimization of dot-products
 * Fixed an issue with 'control.fixed=list(remove.names=...)'

@@ -4910,7 +4910,7 @@
                             hyperid = 36001,
                             name = "beta",
                             short.name = "b",
-                            initial = 1,
+                            initial = 0.1,
                             fixed = TRUE,
                             prior = "normal",
                             param = c(1, 10),
