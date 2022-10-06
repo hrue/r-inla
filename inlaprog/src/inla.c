@@ -48,7 +48,6 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <math.h>
 #include <signal.h>
 #include <stddef.h>
@@ -74,6 +73,10 @@
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
+#if !defined(ISNAN)
+#  define ISNAN(x) (isnan(x)!=0)
+#endif
+
 
 static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
