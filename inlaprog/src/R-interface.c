@@ -41,7 +41,7 @@
 #endif
 #include <stdlib.h>
 #include <omp.h>
-#include <sys/stat.h>
+
 
 #define CSTACK_DEFNS 1
 #include <R.h>
