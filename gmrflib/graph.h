@@ -161,7 +161,6 @@ typedef struct {
 	 */
 	int **snbs;
 
-	int **guess;
 	int *row2col;
 
 	int n_ptr;
@@ -204,7 +203,6 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 int GMRFLib_find_idx(int *idx, int n, int *iarray, int value);
 int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno);
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph);
-int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g);
@@ -218,6 +216,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_init_store(void);
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph);
+int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int * g);
 int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph);

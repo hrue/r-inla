@@ -484,10 +484,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	Free(graph->colptr);
 	Free(graph->rowidx);
 	Free(graph->colidx);
-	if (graph->guess) {
-		Free(graph->guess[0]);
-		Free(graph->guess);
-	}
 	Free(graph);
 
 	return GMRFLib_SUCCESS;
@@ -538,12 +534,13 @@ void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 	int mid, top, val, *piv, *base = array;
 	int low = 0;
 
-	if (guess[0] < n && array[guess[0]] <= key) {
+	if (array[guess[0]] <= key) {
 		low = guess[0];
 	}
 	
 	base += low;
 	mid = top = n - low;
+
 	while (mid) 
 	{
 		mid = top / 2;
@@ -558,6 +555,7 @@ void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 		}
 		top -= mid;
 	}
+
 	return NULL;
 }
 
@@ -565,6 +563,7 @@ void *GMRFLib_bsearch(int key, int n, int *array)
 {
 	int mid, top, val, *piv, *base = array;
 	mid = top = n;
+
 	while (mid) 
 	{
 		mid = top / 2;
@@ -578,55 +577,49 @@ void *GMRFLib_bsearch(int key, int n, int *array)
 		}
 		top -= mid;
 	}
+
 	return NULL;
 }
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
-	/*
-	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
-	 * then they are not neighbours.
-	 */
-
-	int imin, imax;
-	if (node < nnode) {;
-		imin = node;
-		imax = nnode;
-	} else {
-		assert(node != nnode);
-		imin = nnode;
-		imax = node;
-	}
+        int imin, imax;
+        if (node < nnode) {
+                imin = node;
+                imax = nnode;
+        } else {
+                assert(node != nnode);
+                imin = nnode;
+                imax = node;
+        }
 
 	int m = graph->lnnbs[imin];
 	if (m) {
 		int *nb = graph->lnbs[imin];
-		if (imax <= nb[m - 1]) {
-
-			//int idx = 0;
-			//GMRFLib_CACHE_SET_ID(idx);
-			//r = ((GMRFLib_iwhich_sorted_g(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
-			//r = (GMRFLib_bsearch2(imax, m, nb, graph->guess[idx]) != NULL);
-
+		if (nnode <= nb[m - 1]) {
 			return (GMRFLib_bsearch(imax, m, nb) != NULL);
 		}
 	} 
 	return 0;
 }
 
-int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int * g)
 {
-	if (!graph) {
-		return GMRFLib_SUCCESS;
-	}
+	/*
+	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
+	 * then they are not neighbours.
+	 */
 
-	int l1_cacheline = 8;
-	graph->guess = Calloc(GMRFLib_CACHE_LEN, int *);
-	int *iwork = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
-	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-		graph->guess[i] = iwork + (2L + l1_cacheline) * i;
+	assert(node < nnode);
+
+	int m = graph->lnnbs[node];
+	if (m) {
+		int *nb = graph->lnbs[node];
+		if (nnode <= nb[m - 1]) {
+			return (GMRFLib_bsearch2(nnode, m, nb, g) != NULL);
+		}
 	}
-	return GMRFLib_SUCCESS;
+	return 0;
 }
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph)
@@ -699,7 +692,6 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 	for (int i = 0, k = 0; i < n; i++) {
 		row2col[k++] = Q(i, i, 0);
-		//int guess[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 			int j = graph->snbs[i][jj];
 			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
@@ -721,7 +713,6 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
 	GMRFLib_graph_add_lnbs_info(graph);		       /* must be before sha */
-	GMRFLib_graph_add_guess(graph);
 	// need this check as graph is also used in the non-symmetric case for matrix
 	if (graph->lnnz == graph->snnz) {
 		GMRFLib_graph_add_crs_crc(graph);
