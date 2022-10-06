@@ -107,23 +107,6 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *values, void *arg)
 {
-#if 0
-	static int *gguess = NULL;
-	int l1_cacheline = 8L;
-
-	if (!gguess) {
-#pragma omp critical (Name_ed019f1aad7e7d2a67d1fbc75e1e79976657700b)
-		{
-			if (!gguess) {
-				gguess = Calloc((2L + l1_cacheline) * GMRFLib_CACHE_LEN, int);
-			}
-		}
-	}
-	int idx = -1;
-	GMRFLib_CACHE_SET_ID(idx);
-	int *guess = gguess + (2L + l1_cacheline) * idx;
-#endif 
-	
 	double val = 0.0;
 	TAB_FUNC_CORE(1);
 	return val;
@@ -131,22 +114,6 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 
 double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double *values, void *arg)
 {
-#if 0
-	static int *gguess = NULL;
-	int l1_cacheline = 8L;
-	if (!gguess) {
-#pragma omp critical (Name_b56890f7ff5cd3567a3aff6f33a6c54d2abc91dc)
-		{
-			if (!gguess) {
-				gguess = Calloc((2L + l1_cacheline) * GMRFLib_CACHE_LEN, int);
-			}
-		}
-	}
-	int idx = -1;
-	GMRFLib_CACHE_SET_ID(idx);
-	int *guess = gguess + (2L + l1_cacheline) * idx;
-#endif 
-
 	double val = 0.0;
 	TAB_FUNC_CORE(0);
 	return val;
