@@ -75,7 +75,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 		double *dp = NULL;					\
 		if (args->Q) {						\
 			int offset = args->Q->s->ia[imin];		\
-			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->s->ja, args->Q->s->ia[imin + 1] - offset, guess); \
+			int j = offset + GMRFLib_iwhich_sorted(imax, offset + args->Q->s->ja, args->Q->s->ia[imin + 1] - offset); \
 			dp = &(args->Q->a[j]);				\
 		} else if (args->Q_idx) {				\
 			int ii = -1;					\
@@ -107,6 +107,7 @@ static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow 
 
 double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *values, void *arg)
 {
+#if 0
 	static int *gguess = NULL;
 	int l1_cacheline = 8L;
 
@@ -121,7 +122,8 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 	int idx = -1;
 	GMRFLib_CACHE_SET_ID(idx);
 	int *guess = gguess + (2L + l1_cacheline) * idx;
-
+#endif 
+	
 	double val = 0.0;
 	TAB_FUNC_CORE(1);
 	return val;
@@ -129,6 +131,7 @@ double GMRFLib_tabulate_Qfunction(int thread_id, int node, int nnode, double *va
 
 double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double *values, void *arg)
 {
+#if 0
 	static int *gguess = NULL;
 	int l1_cacheline = 8L;
 	if (!gguess) {
@@ -142,6 +145,7 @@ double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double
 	int idx = -1;
 	GMRFLib_CACHE_SET_ID(idx);
 	int *guess = gguess + (2L + l1_cacheline) * idx;
+#endif 
 
 	double val = 0.0;
 	TAB_FUNC_CORE(0);

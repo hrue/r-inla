@@ -40769,12 +40769,11 @@ int testit(int argc, char **argv)
 			idx[i] = key;
 		}
 		for(int k = 0; k < m; k++) {
-			int guess[2] = {0, 0};
 			int uguess[2] = {0, 0};
 			double sum = 0.0;
 			start += omp_get_wtime();
 			for(int i = 0; i < key+1; i++) {
-				int p = GMRFLib_iwhich_sorted(i, idx, n, uguess);
+				int p = GMRFLib_iwhich_sorted_g(i, idx, n, uguess);
 				if (p >= 0) sum += idx[p];
 			}
 			finish += omp_get_wtime();
@@ -40782,12 +40781,12 @@ int testit(int argc, char **argv)
 			double sum2 = 0.0;
 			start2 += omp_get_wtime();
 			for(int i = 0; i < key+1; i++) {
-				int p = GMRFLib_iwhich_sorted_ORIG(i, idx, n, guess);
+				int p = GMRFLib_iwhich_sorted(i, idx, n);
 				if (p >= 0) sum2 += idx[p];
 			}
 			finish2 += omp_get_wtime();
 			if (k == m-1)
-				printf("key %d iwhich %.8f iwhich.orig %.8f ratio %f\n",
+				printf("key %d iwhich_g %.8f iwhich %.8f ratio %f\n",
 				       key,
 				       (finish-start)/(k+1.0),
 				       (finish2 - start2)/(k+1.0),

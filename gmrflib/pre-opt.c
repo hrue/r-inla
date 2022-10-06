@@ -524,7 +524,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < gen_len_At; i++) {
-		int guess[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int kk = 0; kk < gen_At[i]->n; kk++) {
 			int k = gen_At[i]->idx[kk];
 			for (int jj = 0; jj < gen_A[k]->n; jj++) {
@@ -532,7 +531,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				if (j >= i) {
 					int index = 0;
 					if (i != j) {
-						index = 1 + GMRFLib_iwhich_sorted(j, g->lnbs[i], g->lnnbs[i], guess);
+						index = 1 + GMRFLib_iwhich_sorted(j, g->lnbs[i], g->lnnbs[i]);
 						assert(index > 0);
 					}
 					double value = gen_At[i]->val[kk] * gen_A[k]->val[jj];
@@ -735,6 +734,7 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		elm = a->AtA_idxval[node][0];
 		value = GMRFLib_dot_product(elm, lc);
 	} else {
+#if 0
 		// use also this [low, high] guess, which is updated automatically
 		static int *guess = NULL;
 		int l1_cacheline = 8L;
@@ -748,7 +748,10 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 		}
 		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
-		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess + (2L + l1_cacheline) * idx);
+		int k = 1 + GMRFLib_iwhich_sorted_g(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node], guess + (2L + l1_cacheline) * idx);
+#else
+		int k = 1 + GMRFLib_iwhich_sorted(nnode, a->like_graph->lnbs[node], a->like_graph->lnnbs[node]);
+#endif
 		elm = a->AtA_idxval[node][k];
 		value = GMRFLib_dot_product(elm, lc);
 	}
