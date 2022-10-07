@@ -1394,6 +1394,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 			}
 		}
 
+		assert(qi_at_m_store);
 		(*problem)->qi_at_m = Calloc(nc * sub_n, double);
 		Memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 		Free(qi_at_m_store);
@@ -7311,7 +7312,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
 		double *cov = CODE_BLOCK_WORK_PTR(2);			\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
-		int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};		\
+		/* int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; */	\
 									\
 		if (gcpo_param->verbose || detailed_output) {		\
 			if (skip[node]) {				\
@@ -7340,7 +7341,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		cov[node] = SQR(sd[node]);				\
 		gcpo[node]->node_min = gcpo[node]->idxs->idx[0];	\
 		gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
-		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n, guess); \
+		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n); \
 									\
 		if (gcpo[node]->idxs->n > 0) {				\
 			assert(gcpo[node]->idx_node >= 0);		\
@@ -7350,8 +7351,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			int nnode = groups->missing[node]->idx[0][k];	\
 			int cm_idx = groups->missing[node]->idx[1][k];	\
 			gsl_matrix *mat = gcpo[cm_idx]->cov_mat;	\
-			int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n, guess); \
-			int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n, guess); \
+			int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
+			int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
 			assert(ii >= 0 && jj >= 0);			\
 			gsl_matrix_set(mat, ii, ii, cov[node]);		\
 			if (jj != ii) {					\

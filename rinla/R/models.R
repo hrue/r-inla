@@ -4910,7 +4910,7 @@
                             hyperid = 36001,
                             name = "beta",
                             short.name = "b",
-                            initial = 0.1,
+                            initial = 0.0, ## adaptive: if (fixed) initial=1.0 else initial=0.1
                             fixed = TRUE,
                             prior = "normal",
                             param = c(1, 10),

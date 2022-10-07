@@ -669,6 +669,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRF
 	if (fast_copy) {
 		Memcpy(Q->rowind, graph->rowidx, (n + graph->nnz / 2) * sizeof(int));
 		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
+#pragma GCC ivdep
 		for (int i = 0; i < n + graph->nnz / 2; i++) {
 			Q->values.d[i] = arg->Q->a[graph->row2col[i]];
 		}
