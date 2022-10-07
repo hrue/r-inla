@@ -218,7 +218,8 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 	for (int k = 0; k < storage[id]->K; k++) {			\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;	\
 		double value;						\
-		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
+		if (0) value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
+		value = GMRFLib_dot_product(constr->idxval[i], B + j * n); \
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
