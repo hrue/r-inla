@@ -1394,6 +1394,7 @@ int GMRFLib_ai_update_conditional_mean(int thread_id, GMRFLib_problem_tp * pprob
 			}
 		}
 
+		assert(qi_at_m_store);
 		(*problem)->qi_at_m = Calloc(nc * sub_n, double);
 		Memcpy((*problem)->qi_at_m, qi_at_m_store, (nc - 1) * sub_n * sizeof(double));
 		Free(qi_at_m_store);
