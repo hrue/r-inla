@@ -1,3 +1,7 @@
+# INLA 22.10.07
+* Fixed regression in initial value for model="copy"
+* Code cleanup
+
 # INLA 22.10.06
 * Rebuild package to due broken '22.10.05' version
 
