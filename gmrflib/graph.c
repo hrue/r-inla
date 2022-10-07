@@ -987,7 +987,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
 {
 	/*
-	 * there is no need to do call _prepare_graph is the old graph is assumed to be ok. 
+	 * there is no need to do call _prepare_graph as the old graph is assumed to be ok. 
 	 */
 	int m, i, n, *hold = NULL, hold_idx;
 	GMRFLib_graph_tp *g = NULL;

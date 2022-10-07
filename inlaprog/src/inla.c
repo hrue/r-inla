@@ -12784,11 +12784,12 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 	}
 
 	if (mb->verbose) {
-		printf("\tIndex table: number of entries[%1d], total length[%1d]\n", mb->idx_tot, mb->idx_ntot);
+		printf("\n\tIndex table: number of entries[%1d], total length[%1d]\n", mb->idx_tot, mb->idx_ntot);
 		printf("\t\t%-30s %10s %10s\n", "tag", "start-index", "length");
 		for (i = 0; i < mb->idx_tot; i++) {
 			printf("\t\t%-30s %10d %10d\n", mb->idx_tag[i], mb->idx_start[i], mb->idx_n[i]);
 		}
+		printf("\n");
 	}
 
 	// copy ptr to these, in case we need to correct in strategy="prior" later with gcpo
@@ -33822,6 +33823,7 @@ int inla_INLA(inla_tp * mb)
 		} else {
 			printf("\tNone hyperparameters\n");
 		}
+		printf("\n");
 	}
 	GMRFLib_ai_store_tp *ai_store = Calloc(1, GMRFLib_ai_store_tp);
 
@@ -34149,6 +34151,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		} else {
 			printf("\tNone hyperparameters\n");
 		}
+		printf("\n");
 	}
 	GMRFLib_ai_store_tp *ai_store = Calloc(1, GMRFLib_ai_store_tp);
 
@@ -34509,6 +34512,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		} else {
 			printf("\tNone hyperparameters\n");
 		}
+		printf("\n");
 	}
 	GMRFLib_ai_store_tp *ai_store = Calloc(1, GMRFLib_ai_store_tp);
 
@@ -34971,6 +34975,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		} else {
 			printf("\tNone hyperparameters\n");
 		}
+		printf("\n");
 	}
 	GMRFLib_ai_store_tp *ai_store = Calloc(1, GMRFLib_ai_store_tp);
 
