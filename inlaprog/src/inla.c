@@ -24582,13 +24582,10 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
 		}
 
-		int fixed_default = -1;
+		int fixed_default = 1;
 		fixed_default = iniparser_getint(ini, inla_string_join(secname, "FIXED"), fixed_default);
 		if (fixed_default == -1) {
 			mb->f_fixed[mb->nf][0] = 1;
-		}
-		if (mb->verbose && fixed_default == -1) {
-			printf("\t\tfixed=[%d]\n", mb->f_fixed[mb->nf][0]);
 		}
 
 		double *range = NULL;
@@ -24596,11 +24593,12 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		range[0] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.LOW"), 0.0);	/* low = high ==> map = identity */
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	/* yes! default value is 1 */
-		if (tmp == 0.0) {
-			inla_error_general("The initial value for the scaling (beta) in a copy-model, cannot be zero");
-			assert(tmp != 0.0);
-			exit(1);
+		int aauto = 0;
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	
+		if (ISZERO(tmp)) {
+			// initial=0.0 means auto-mode: initial=1 if FIXED and 0.1 if not
+			tmp = (fixed_default ? 1.0 : 0.1);
+			aauto = 1;
 		}
 		if (!mb->f_fixed[mb->nf][0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -24609,7 +24607,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		HYPER_INIT(beta, tmp);
 		if (mb->verbose) {
 			printf("\t\trange[%g, %g]\n", range[0], range[1]);
-			printf("\t\tinitialise beta[%g]\n", tmp);
+			if (aauto) {
+				printf("\t\tauto-initialise beta[%g]\n", tmp);
+			} else {
+				printf("\t\tinitialise beta[%g]\n", tmp);
+			}
 			printf("\t\tfixed=[%1d]\n", mb->f_fixed[mb->nf][0]);
 		}
 		mb->f_theta[mb->nf] = Calloc(1, double **);
