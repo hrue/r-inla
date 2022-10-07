@@ -101,8 +101,6 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 				}
 			}
 		}
-		if (g_ < ELM_->g_n - 1)
-			__builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]]));
 	}
 	return (value_);
 }
@@ -165,8 +163,6 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 				}
 			}
 		}
-		if (g_ < ELM_->g_n - 1)
-			__builtin_prefetch(&(ARR_[ELM_->idx[ELM_->g_i[g_ + 1]]]));
 	}
 	return (value_);
 }
