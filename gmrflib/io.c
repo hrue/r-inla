@@ -57,7 +57,7 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 	 * filename == NULL). this function return a malloc'ed string int *ptr with the filename (path included) to the file. 
 	 */
 
-	const char * GMRFLib_path =  "GMRFLib_path DOES NOT WORK with g++, fix later if needed...";
+	const char *GMRFLib_path = "GMRFLib_path DOES NOT WORK with g++, fix later if needed...";
 
 	int found = 0;
 	char *path = NULL, *p = NULL, *pp = NULL, *fnm = NULL, *strtok_ptr = NULL;

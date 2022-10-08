@@ -233,7 +233,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restri
 	int low, high;
 
 	low = (val >= ix[guess[0]] ? guess[0] : 0);
-	high = (val <= ix[guess[1]] ? guess[1] : len -1);
+	high = (val <= ix[guess[1]] ? guess[1] : len - 1);
 
 	while (1) {
 		int range = high - low;
@@ -241,7 +241,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restri
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
 					guess[0] = i;
-					guess[1] = high; 
+					guess[1] = high;
 					return i;
 				}
 			}
@@ -249,7 +249,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restri
 			guess[1] = high;
 			return -1;
 		} else {
-			int mid = low + range / 2L;		       /* integer division */
+			int mid = low + range / 2L;	       /* integer division */
 			if (ix[mid] > val) {
 				high = mid;
 			} else {
@@ -303,8 +303,7 @@ int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__res
 	}
 	base += low;
 	mid = top = len - low;
-	while (mid) 
-	{
+	while (mid) {
 		mid = top / 2;
 		piv = base + mid;
 		val = key - *piv;
@@ -326,8 +325,7 @@ int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
 	int mid, top, val, *piv = NULL, *base = ix;
 
 	mid = top = len;
-	while (mid) 
-	{
+	while (mid) {
 		mid = top / 2;
 		piv = base + mid;
 		val = key - *piv;

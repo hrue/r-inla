@@ -232,8 +232,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 
 	return NAN;
 }
-
 
+
 
 
 int GMRFLib_isum(int n, int *ix)

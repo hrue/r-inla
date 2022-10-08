@@ -216,7 +216,7 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_init_store(void);
 int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph);
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph);
-int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int * g);
+int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int *g);
 int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph);
 int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph);

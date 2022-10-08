@@ -770,7 +770,8 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 #pragma omp critical
 				if (!ISNAN(f0) && (ff0 > ff)) {
 					if (G.ai_par->fp_log || debug)
-						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop ff < f0: %f < %f\n", ff, ff0);
+						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop ff < f0: %f < %f\n", ff,
+							ff0);
 					early_stop = 1;
 					ff0 = ff;
 				}

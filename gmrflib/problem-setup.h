@@ -106,7 +106,7 @@ __BEGIN_DECLS
 	unsigned char *sha;
 	unsigned char is_scaled;
 	unsigned char is_prepared;
-	
+
 	/**
 	 *  \brief Number of constaints, can be 0. 
 	 */

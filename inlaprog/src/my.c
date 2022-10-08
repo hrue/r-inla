@@ -218,6 +218,7 @@ double my_gsl_sf_lnbeta(double a, double b)
 
 	if (n > threshold) {
 		// log(Beta(a,a/n)) = as n->infinity + symmetry
+
 /*			
  *			asympt(log(Beta(a,a/n)), n,2);
  *                                                         (Psi(a~) + gamma) a~      1
@@ -232,11 +233,11 @@ double my_gsl_sf_lnbeta(double a, double b)
 	}
 }
 
-double my_betabinomial_helper(int n, double a) 
+double my_betabinomial_helper(int n, double a)
 {
 	// this function do:
 	// for(int i = 0; i < n; i++) sum += log(i + a);
-	
+
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
@@ -270,5 +271,3 @@ double my_betabinomial(int y, int n, double a, double b)
 	double s3 = my_betabinomial_helper(n, a + b);
 	return (s1 + s2 - s3);
 }
-
-

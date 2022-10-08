@@ -5768,7 +5768,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
 	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
-        GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
+	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
 
 	int nt = IMAX(1, IMIN(design->nexperiments, GMRFLib_openmp->max_threads_outer));
 	if (GMRFLib_openmp->max_threads_outer > design->nexperiments) {
@@ -8593,15 +8593,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				fprintf(stderr, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 					max_correction, ai_par->vb_emergency);
 				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n",
-					ai_par->vb_emergency);
+				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
 				fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				if (fp != stderr) {
 					fprintf(fp, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 						max_correction, ai_par->vb_emergency);
 					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
-					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n",
-						ai_par->vb_emergency);
+					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
 					fprintf(fp, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				}
 			}

@@ -239,7 +239,7 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp * constr)
 {
 	// compute C=A*A', where A is the constr matrix. C is symmetric. see below where this is used.
-	
+
 	typedef struct {
 		int m;
 		int K;
@@ -322,7 +322,7 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 	if (omp_get_level() > 2) {
 		nt = 1;
 	} else {
-		nt = (nc > GMRFLib_MAX_THREADS() ? GMRFLib_MAX_THREADS() : 1);
+		nt = (nc > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1);
 	}
 
 #define CODE_BLOCK							\
@@ -334,7 +334,7 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -1203,7 +1203,7 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 	// Free(constr->jlen); included in jfirst
 
 	if (constr->idxval) {
-		for(int i = 0; i < constr->nc; i++) {
+		for (int i = 0; i < constr->nc; i++) {
 			GMRFLib_idxval_free(constr->idxval[i]);
 		}
 		Free(constr->idxval);
@@ -1255,7 +1255,9 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 	n = graph->n;
 
 	if (scale_constr && !(constr->is_scaled)) {
-		/* scale the constraints so that max(|A[i,]|)=1 */
+		/*
+		 * scale the constraints so that max(|A[i,]|)=1 
+		 */
 		for (int k = 0; k < nc; k++) {
 			int idx = idamax_(&n, constr->a_matrix + k, &nc) - 1;
 			double a = 1.0 / ABS(constr->a_matrix[idx * nc + k]);
@@ -1287,9 +1289,9 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 	}
 
 	constr->idxval = Calloc(nc, GMRFLib_idxval_tp *);
-	for(int i = 0; i < nc; i++) {
+	for (int i = 0; i < nc; i++) {
 		double *a = constr->a_matrix;
-		for(int j = 0; j < n; j++) {
+		for (int j = 0; j < n; j++) {
 			int k = i + j * nc;
 			if (!ISZERO(a[k])) {
 				GMRFLib_idxval_add(&(constr->idxval[i]), j, a[k]);
@@ -1297,7 +1299,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 	GMRFLib_idxval_nsort_x(constr->idxval, nc, 1, -1);
-	
+
 	GMRFLib_constr_add_sha(constr, graph);
 	constr->is_prepared = 1;
 
@@ -1419,7 +1421,7 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp 
 			return GMRFLib_SUCCESS;
 		}
 	}
-	
+
 	GMRFLib_recomp_constr(new_constr, constr, NULL, NULL, NULL, graph, NULL);
 
 	if (constr_store_use && constr->sha) {

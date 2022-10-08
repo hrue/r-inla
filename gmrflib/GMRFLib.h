@@ -61,7 +61,6 @@ __BEGIN_DECLS
 #define GMRFLib_NEED_DRAND48  1				       /* include implementation of drand48() */
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
-
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
 
@@ -136,5 +135,5 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
-    __END_DECLS
+__END_DECLS
 #endif

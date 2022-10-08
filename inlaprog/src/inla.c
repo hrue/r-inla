@@ -74,7 +74,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #if !defined(ISNAN)
-#  define ISNAN(x) (isnan(x)!=0)
+#define ISNAN(x) (isnan(x)!=0)
 #endif
 
 
@@ -9266,9 +9266,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -10193,12 +10193,12 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			if (y <= n / 2) {		       /* integer arithmetic is ok */
 				for (yy = y; yy >= 0; yy--) {
 					logll[i] +=
-						exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
+					    exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
 			} else {
 				for (yy = y + 1; yy <= n; yy++) {
 					logll[i] +=
-						exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
+					    exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
 				logll[i] = 1.0 - logll[i];
 			}
@@ -19876,7 +19876,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_parameters->idx = -1;
 		ds->link_parameters->order = ds->link_order;
 		for (i = 0; i < n_data; i++) {
-			ds->predictor_invlinkfunc_arg = (void **) ((void *)(ds->link_parameters));
+			ds->predictor_invlinkfunc_arg = (void **) ((void *) (ds->link_parameters));
 		}
 		HYPER_NEW(ds->link_parameters->log_prec, 0.0);
 		ds->link_parameters->betas = Calloc(LINK_MAXTHETA, double **);
@@ -24598,7 +24598,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		range[1] = iniparser_getdouble(ini, inla_string_join(secname, "RANGE.HIGH"), 0.0);
 
 		int aauto = 0;
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);	
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), 1.0);
 		if (ISZERO(tmp)) {
 			// initial=0.0 means auto-mode: initial=1 if FIXED and 0.1 if not
 			tmp = (fixed_default ? 1.0 : 0.1);
@@ -28327,7 +28327,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					printf("\t\tgroup.adjust.for.con.comp[%1d]\n", std);
 				}
 				if (std) {
-					inla_besag_scale(thread_id,  (inla_besag_Qfunc_arg_tp *) (def->besagdef), adj, mb->verbose);
+					inla_besag_scale(thread_id, (inla_besag_Qfunc_arg_tp *) (def->besagdef), adj, mb->verbose);
 				}
 			} else {
 				def->rwdef = NULL;
@@ -34886,7 +34886,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	}
 
 	// report timings
-	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_dot_product_optim_report) {
 		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			for (int j = 0; j < 9; j++) {
@@ -34929,20 +34929,17 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
 		       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
-		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
-		       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
+		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 		printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
 		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-		printf("\t                            => optimal.mix.strategy   [%.3f]\n", time_loop[4]); 
-		printf("\t                                 plain....[%4.1f%%] group....[%4.1f%%]\n",
-		       100 * time_loop[5], 100 * time_loop[7]);
-		printf("\t                                 plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n",
-		       100 * time_loop[6], 100 * time_loop[8]);
-		       
+		printf("\t                            => optimal.mix.strategy   [%.3f]\n", time_loop[4]);
+		printf("\t                                 plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
+		printf("\t                                 plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
+
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
@@ -40751,7 +40748,7 @@ int testit(int argc, char **argv)
 
 			tref2 -= GMRFLib_cpu();
 			sum2 = 0.0;
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				sum2 += xx[i];
 			}
 			tref2 += GMRFLib_cpu();
@@ -40766,7 +40763,7 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 91: 
+	case 91:
 	{
 		void *monobound_bsearch(const void *key, const void *array, size_t nmemb, size_t size);
 
@@ -40776,64 +40773,63 @@ int testit(int argc, char **argv)
 		P(m);
 		double start = 0, finish = 0;
 		double start2 = 0, finish2 = 0;
-		int * idx = Calloc(n, int);
+		int *idx = Calloc(n, int);
 		int key = 1;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			key += i;
-			//printf("%d %d \n", i, key);
+			// printf("%d %d \n", i, key);
 			idx[i] = key;
 		}
-		for(int k = 0; k < m; k++) {
+		for (int k = 0; k < m; k++) {
 			double sum = 0.0;
 			start += omp_get_wtime();
 			int low = 0;
-			for(int i = 0; i < key+1; i++) {
+			for (int i = 0; i < key + 1; i++) {
 				int p = GMRFLib_iwhich_sorted_g(i, idx, n, &low);
-				if (p >= 0) sum += idx[p];
+				if (p >= 0)
+					sum += idx[p];
 			}
 			finish += omp_get_wtime();
 
 			double sum2 = 0.0;
 			start2 += omp_get_wtime();
-			int guess[2] = {0, 0};
-			for(int i = 0; i < key+1; i++) {
+			int guess[2] = { 0, 0 };
+			for (int i = 0; i < key + 1; i++) {
 				int p = GMRFLib_iwhich_sorted_g2(i, idx, n, guess);
-				if (p >= 0) sum2 += idx[p];
+				if (p >= 0)
+					sum2 += idx[p];
 			}
 			finish2 += omp_get_wtime();
-			if (k == m-1)
+			if (k == m - 1)
 				printf("n.lookups= %1d  Time for iwhich_g= %.4g iwhich_g2= %.4g ratio g/g2= %.4f\n",
-				       key,
-				       (finish-start)/(k+1.0),
-				       (finish2 - start2)/(k+1.0),
-				       (finish-start)/(finish2-start2));
+				       key, (finish - start) / (k + 1.0), (finish2 - start2) / (k + 1.0), (finish - start) / (finish2 - start2));
 		}
 	}
-                break;
+		break;
 
-	case 92: 
+	case 92:
 	{
 		double a = 2.0;
-		double n = 1.0; 
-		while(1) {
+		double n = 1.0;
+		while (1) {
 			n *= 10.0;
 			a *= log(n);
-			printf("a = %g n = %g log(Beta(a, a/n) = %g\n", a, n, my_gsl_sf_lnbeta(a, a/n));
+			printf("a = %g n = %g log(Beta(a, a/n) = %g\n", a, n, my_gsl_sf_lnbeta(a, a / n));
 		}
 	}
-	break;
+		break;
 
-	case 93: 
+	case 93:
 	{
 		int y = 3;
 		int n = 5;
 		double a = 0.97123;
 		double b = 0.3243;
 
-		P(gsl_sf_lnbeta(y + a,  n-y + b) - gsl_sf_lnbeta(a, b));
+		P(gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b));
 		P(my_betabinomial(y, n, a, b));
 	}
-	break;
+		break;
 
 	case 999:
 	{
