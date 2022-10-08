@@ -748,6 +748,24 @@ int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff)
+{
+	size_t i, j;
+
+	for (i = 0; i < matrix->size1; i++) {
+		for (j = 0; j < matrix->size2; j++) {
+			double a = gsl_matrix_get(matrix, i, j);
+			if (ABS(a) > cutoff) {
+				fprintf(fp, (format ? format : " %g"), gsl_matrix_get(matrix, i, j));
+			} else {
+				fprintf(fp, "\t %s", "  . ");
+			}
+		}
+		fprintf(fp, "\n");
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format)
 {
 	size_t i;
