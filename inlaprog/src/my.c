@@ -199,3 +199,76 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+double my_gsl_sf_lnbeta(double a, double b)
+{
+	double ab_min, ab_max;
+
+	if (b < a) {
+		ab_min = b;
+		ab_max = a;
+	} else {
+		ab_min = a;
+		ab_max = b;
+	}
+
+	ab_min = DMAX(DBL_EPSILON, ab_min);
+	double n = ab_max / ab_min;
+	const double threshold = 100.0 / DBL_EPSILON;
+
+	if (n > threshold) {
+		// log(Beta(a,a/n)) = as n->infinity + symmetry
+/*			
+ *			asympt(log(Beta(a,a/n)), n,2);
+ *                                                         (Psi(a~) + gamma) a~      1
+ *                                        ln(n) - ln(a~) - -------------------- + O(----)
+ *                                                                  n                 2
+ *                                                                                   n
+ */
+
+		return (log(n) - log(ab_max) - (gsl_sf_psi(ab_max) + 0.5772156649015328606065120) * ab_max / n);
+	} else {
+		return (gsl_sf_lnbeta(a, b));
+	}
+}
+
+double my_betabinomial_helper(int n, double a) 
+{
+	// this function do:
+	// for(int i = 0; i < n; i++) sum += log(i + a);
+	
+	const int roll = 8L;
+	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+#pragma GCC ivdep
+	for (int i = 0; i < m; i += roll) {
+		s0 += log(i + 0 + a);
+		s1 += log(i + 1 + a);
+		s2 += log(i + 2 + a);
+		s3 += log(i + 3 + a);
+
+		s0 += log(i + 4 + a);
+		s1 += log(i + 5 + a);
+		s2 += log(i + 6 + a);
+		s3 += log(i + 7 + a);
+	}
+
+#pragma GCC ivdep
+	for (int i = d.quot * roll; i < n; i++) {
+		s0 += log(i + a);
+	}
+
+	return (s0 + s1 + s2 + s3);
+}
+
+double my_betabinomial(int y, int n, double a, double b)
+{
+	double s1 = my_betabinomial_helper(y, a);
+	double s2 = my_betabinomial_helper(n - y, b);
+	double s3 = my_betabinomial_helper(n, a + b);
+	return (s1 + s2 - s3);
+}
+
+

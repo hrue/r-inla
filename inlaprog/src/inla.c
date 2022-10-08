@@ -10139,7 +10139,10 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
-				logll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+
+				// my joinig the beta-expressions, we can do better and be more robust
+				// logll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+				logll[i] = normc + my_betabinomial(y, n, a, b);
 			}
 		} else {
 			// extrapolate linearly
@@ -10151,7 +10154,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 				p = PREDICTOR_INVERSE_LINK(xx[i]);
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
-				ll[i] = normc + gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b);
+				ll[i] = normc + my_betabinomial(y, n, a, b);
 			}
 			diff = (ll[2] - ll[0]) / (2.0 * h);
 			ddiff = (ll[2] - 2.0 * ll[1] + ll[0]) / SQR(h);
@@ -10184,18 +10187,18 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			a = p * (1.0 - rho) / rho;
 			b = (p * rho - p - rho + 1.0) / rho;
-			normc2 = _LOGGAMMA_INT(n + 1) - gsl_sf_lnbeta(a, b);
+			normc2 = _LOGGAMMA_INT(n + 1) - my_gsl_sf_lnbeta(a, b);
 			logll[i] = 0.0;
 
 			if (y <= n / 2) {		       /* integer arithmetic is ok */
 				for (yy = y; yy >= 0; yy--) {
 					logll[i] +=
-					    exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
+						exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
 			} else {
 				for (yy = y + 1; yy <= n; yy++) {
 					logll[i] +=
-					    exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + gsl_sf_lnbeta(yy + a, n - yy + b));
+						exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
 				logll[i] = 1.0 - logll[i];
 			}
@@ -40805,6 +40808,30 @@ int testit(int argc, char **argv)
 		}
 	}
                 break;
+
+	case 92: 
+	{
+		double a = 2.0;
+		double n = 1.0; 
+		while(1) {
+			n *= 10.0;
+			a *= log(n);
+			printf("a = %g n = %g log(Beta(a, a/n) = %g\n", a, n, my_gsl_sf_lnbeta(a, a/n));
+		}
+	}
+	break;
+
+	case 93: 
+	{
+		int y = 3;
+		int n = 5;
+		double a = 0.97123;
+		double b = 0.3243;
+
+		P(gsl_sf_lnbeta(y + a,  n-y + b) - gsl_sf_lnbeta(a, b));
+		P(my_betabinomial(y, n, a, b));
+	}
+	break;
 
 	case 999:
 	{
