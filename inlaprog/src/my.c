@@ -235,39 +235,59 @@ double my_gsl_sf_lnbeta(double a, double b)
 
 double my_betabinomial_helper(int n, double a)
 {
-	// this function do:
-	// for(int i = 0; i < n; i++) sum += log(i + a);
-
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+	const int roll = 4L;				       /* dont change this */
+	double s0 = 0.0;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
 #pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
-		s0 += log(i + 0 + a);
-		s1 += log(i + 1 + a);
-		s2 += log(i + 2 + a);
-		s3 += log(i + 3 + a);
-
-		s0 += log(i + 4 + a);
-		s1 += log(i + 5 + a);
-		s2 += log(i + 6 + a);
-		s3 += log(i + 7 + a);
+		double aa = i + a;
+		s0 += log(aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0));
 	}
 
-#pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
-		s0 += log(i + a);
+	if (d.rem) {
+		double aa = m + a;
+		switch (d.rem) {
+		case 1:
+			s0 += log(aa);
+			break;
+		case 2:
+			s0 += log(aa * (aa + 1.0));
+			break;
+		case 3:
+			s0 += log(aa * (aa + 1.0) * (aa + 2.0));
+			break;
+		}
 	}
 
-	return (s0 + s1 + s2 + s3);
+	return (s0);
 }
-
 double my_betabinomial(int y, int n, double a, double b)
 {
 	double s1 = my_betabinomial_helper(y, a);
 	double s2 = my_betabinomial_helper(n - y, b);
 	double s3 = my_betabinomial_helper(n, a + b);
 	return (s1 + s2 - s3);
+}
+
+double my_betabinomial2(int y, int n, double a, double b)
+{
+	// using Gamma(1+z)=z*Gamma(z), we can get this
+	double ladd = 0.0;
+	while (a > 1.0) {
+		a--;
+		ladd += log((y + a) * (a + b) / (n + a + b) / a);
+	}
+	while (b > 1.0) {
+		b--;
+		ladd += log((n - y + b) * (a + b) / (n + a + b) / b);
+	}
+
+	// here we have 0<a<1, 0<b<1, but NOT a+b<1.
+	// this could be helpful creating approximations
+	double s1 = my_betabinomial_helper(y, a);
+	double s2 = my_betabinomial_helper(n - y, b);
+	double s3 = my_betabinomial_helper(n, a + b);
+	return (s1 + s2 - s3 + ladd);
 }

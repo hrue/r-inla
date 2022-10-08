@@ -9266,9 +9266,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -40821,13 +40821,37 @@ int testit(int argc, char **argv)
 
 	case 93:
 	{
-		int y = 3;
-		int n = 5;
-		double a = 0.97123;
-		double b = 0.3243;
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		double *a = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			a[i] = GMRFLib_uniform();
+		}
 
-		P(gsl_sf_lnbeta(y + a, n - y + b) - gsl_sf_lnbeta(a, b));
-		P(my_betabinomial(y, n, a, b));
+		P(n);
+		P(m);
+		double sum1 = 0.0, sum2 = 0.0;
+		double start = 0, start2 = 0, finish = 0, finish2 = 0;
+
+		for (int k = 0; k < m; k++) {
+			start += omp_get_wtime();
+			for (int i = 0; i < n; i++) {
+				double aa = a[i];
+				for (int j = 0; j < i; j++) {
+					sum1 += log(aa + j);
+				}
+			}
+			finish += omp_get_wtime();
+
+			start2 += omp_get_wtime();
+			for (int i = 0; i < n; i++) {
+				sum2 += my_betabinomial_helper(i, a[i]);
+			}
+			finish2 += omp_get_wtime();
+		}
+		printf("plain= %.4g helper= %.4g ratio plain/helper= %.4f\n",
+		       (finish - start) / m, (finish2 - start2) / m, (finish - start) / (finish2 - start2));
+		P((sum1 - sum2) / (sum1 + sum2));
 	}
 		break;
 
