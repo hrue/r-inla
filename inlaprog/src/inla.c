@@ -14774,6 +14774,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
+		
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
 	case L_GAMMAJWSURV:
@@ -14785,6 +14786,27 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
 	{
+		switch (ds->data_id) {
+		case L_WEIBULLSURV: 
+		case L_GAMMASURV: 
+		case L_LOGNORMAL: 
+		{
+			// those who cannot take y=0
+				
+			for (int i = 0; i < mb->predictor_ndata; i++) {
+				if (ds->data_observations.d[i]) {
+					if (ds->data_observations.y[i] <= 0.0) {
+						GMRFLib_sprintf(&msg, "%s: Weibull/Gamma/logNormal data[%1d] (y) = (%g) is void\n",
+								secname, i, ds->data_observations.y[i]);
+						inla_error_general(msg);
+					}
+				}
+			}
+		}
+		break;
+		default:
+		}
+
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				int event;
@@ -14808,7 +14830,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					if (ttime < truncation)
 						_SERR;
 				}
-					break;
+				break;
 				case SURV_EVENT_RIGHT:
 					if (lower < truncation)
 						_SERR;
@@ -14818,19 +14840,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					if (upper < truncation)
 						_SERR;
 				}
-					break;
+				break;
 				case SURV_EVENT_INTERVAL:
 				{
 					if (DMIN(lower, upper) < truncation || upper < lower)
 						_SERR;
 				}
-					break;
+				break;
 				case SURV_EVENT_ININTERVAL:
 				{
 					if (DMIN(lower, upper) < truncation || upper < lower || ttime < lower || ttime > upper)
 						_SERR;
 				}
-					break;
+				break;
 				default:
 					_SERR;
 					break;
@@ -14838,11 +14860,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 #undef _SERR
 			}
 		}
-	}
+		}
 		break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	/*
