@@ -9266,9 +9266,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -14774,7 +14774,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
-		
+
 	case L_EXPONENTIALSURV:
 	case L_GAMMASURV:
 	case L_GAMMAJWSURV:
@@ -14787,12 +14787,12 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_GOMPERTZSURV:
 	{
 		switch (ds->data_id) {
-		case L_WEIBULLSURV: 
-		case L_GAMMASURV: 
-		case L_LOGNORMAL: 
+		case L_WEIBULLSURV:
+		case L_GAMMASURV:
+		case L_LOGNORMAL:
 		{
 			// those who cannot take y=0
-				
+
 			for (int i = 0; i < mb->predictor_ndata; i++) {
 				if (ds->data_observations.d[i]) {
 					if (ds->data_observations.y[i] <= 0.0) {
@@ -14803,7 +14803,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
-		break;
+			break;
 		default:
 		}
 
@@ -14830,7 +14830,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					if (ttime < truncation)
 						_SERR;
 				}
-				break;
+					break;
 				case SURV_EVENT_RIGHT:
 					if (lower < truncation)
 						_SERR;
@@ -14840,19 +14840,19 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					if (upper < truncation)
 						_SERR;
 				}
-				break;
+					break;
 				case SURV_EVENT_INTERVAL:
 				{
 					if (DMIN(lower, upper) < truncation || upper < lower)
 						_SERR;
 				}
-				break;
+					break;
 				case SURV_EVENT_ININTERVAL:
 				{
 					if (DMIN(lower, upper) < truncation || upper < lower || ttime < lower || ttime > upper)
 						_SERR;
 				}
-				break;
+					break;
 				default:
 					_SERR;
 					break;
@@ -14860,11 +14860,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 #undef _SERR
 			}
 		}
-		}
+	}
 		break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 
 	/*
@@ -36880,8 +36880,8 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	return INLA_OK;
 }
 
-forceinline int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
-				    void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
+int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
+			void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
 {
 	// this require 'i_max', 'np', 'z' and 'ldz'
 #define COMPUTE_MODE()							\
@@ -37133,21 +37133,20 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 #define _FUNC_ARG (func ? func_arg : NULL)
 #define _TFUNC(_idx) (tfunc ? tfunc[_idx] : NULL)
 #define _MAP_DENS(_dens, _x_user, _idx) (func ? (_dens)/(ABS(func(_x_user, MAP_DFORWARD, func_arg))) : \
-					(tfunc ? (_dens)/(ABS(tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov))) : \
-					 (_dens)))
+					 (tfunc ? (_dens)/(ABS(tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov))) : \
+					  (_dens)))
 #define _MAP_X(_x_user, _idx) (func ? func(_x_user, MAP_FORWARD, func_arg) : \
-			      (tfunc ? tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov) : \
-			       (_x_user)))
+			       (tfunc ? tfunc[_idx]->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc[_idx]->arg, tfunc[_idx]->cov) : \
+				(_x_user)))
 #define _MAP_INCREASING(_idx) (func ? func(0.0, MAP_INCREASING, func_arg) : \
-			      (tfunc ? tfunc[_idx]->func(thread_id, 0.0, GMRFLib_TRANSFORM_INCREASING, tfunc[_idx]->arg, tfunc[_idx]->cov) : 1))
+			       (tfunc ? tfunc[_idx]->func(thread_id, 0.0, GMRFLib_TRANSFORM_INCREASING, tfunc[_idx]->arg, tfunc[_idx]->cov) : 1))
 #define _MAP_DECREASING(_idx) (!_MAP_INCREASING(_idx))
-#define GMRFLib_MAX_THREADS_LOCAL() (n > 1024 ? GMRFLib_MAX_THREADS() : 1)
+#define GMRFLib_MAX_THREADS_LOCAL() (n > 1024 ? GMRFLib_MAX_THREADS() : 2)
 
 	GMRFLib_ENTER_ROUTINE;
 
-	char *ndir = NULL, *ssdir = NULL, *msg = NULL, *nndir = NULL;
-	double x, p = 0.0, xp;
-	int i, j, ndiv;
+	char *ndir = NULL, *ssdir = NULL, *msg = NULL;
+	int ndiv;
 	int add_empty = 1;
 	int plain = ((func || tfunc) ? 0 : 1);
 
@@ -37155,8 +37154,9 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	ndiv = n / nrep;
 
 	double *d_mode = Calloc(n, double);
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; i++) {
 		d_mode[i] = NAN;
+	}
 
 	ssdir = GMRFLib_strdup(sdir);
 	GMRFLib_sprintf(&ndir, "%s/%s", dir, ssdir);
@@ -37167,6 +37167,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	Free(ssdir);
 
 	if (1) {
+		char *nndir = NULL;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "N");
 		FILE *fp = fopen(nndir, "w");
 		if (!fp) {
@@ -37178,6 +37179,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	}
 
 	if (tag) {
+		char *nndir = NULL;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "TAG");
 		FILE *fp = fopen(nndir, "w");
 		if (!fp) {
@@ -37189,6 +37191,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	}
 
 	if (modelname) {
+		char *nndir = NULL;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "MODEL");
 		FILE *fp = fopen(nndir, "w");
 		if (!fp) {
@@ -37201,8 +37204,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	if (output->summary) {
 		if (inla_computed(density, n)) {
+			char *nndir = NULL;
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "summary.dat");
 			Dinit_r(n, 3, nndir);
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				double dm = 0.0, ds = 0.0;		\
@@ -37232,18 +37237,20 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	if (return_marginals || strncmp("hyperparameter", sdir, 13) == 0) {
 		if (inla_computed(density, n)) {
+			char *nndir = NULL;
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "marginal-densities.dat");
 			int mm = 0;
 			GMRFLib_density_layout_x(NULL, &mm, NULL);
 			Dinit_r(n, 2 + mm * 2, nndir);
+
 #define CODE_BLOCK							\
 			for (int i = 0; i < n; i++) {			\
 				int off = 0;				\
 				int nn = mm;				\
 				int nn_new;				\
 				double *x_user = CODE_BLOCK_WORK_PTR(0); \
-				double *dens = CODE_BLOCK_WORK_PTR(1); \
-				double *xx = CODE_BLOCK_WORK_PTR(2); \
+				double *dens = CODE_BLOCK_WORK_PTR(1);	\
+				double *xx = CODE_BLOCK_WORK_PTR(2);	\
 				if (density[i]) {			\
 					if (locations) {		\
 						D1W_r(i, off, locations[i % ndiv]); \
@@ -37289,8 +37296,8 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 				}					\
 			}
 
-			// RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
-			RUN_CODE_BLOCK(1, 3, mm);
+			// RUN_CODE_BLOCK(2, 3, mm);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS_LOCAL(), 3, mm);
 #undef CODE_BLOCK
 			Dclose_r();
 			Free(nndir);
@@ -37302,9 +37309,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 		 * this is ok for _FUNC as well, since the the KL is invariant for parameter transformations. 
 		 */
 		if (inla_computed(density, n)) {
+			char *nndir = NULL;
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "symmetric-kld.dat");
 			Dinit(nndir);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				GMRFLib_density_tp *gd = NULL;
 				if (density[i]) {
 					double kld;
@@ -37341,9 +37349,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 	if (output->nquantiles) {
 		if (inla_computed(density, n)) {
 			double x_user;
+			char *nndir = NULL;
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "quantiles.dat");
 			Dinit(nndir);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
+				double xp, p;
 				if (density[i]) {
 					if (locations) {
 						D1W(locations[i % ndiv]);
@@ -37351,7 +37361,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						D1W(i);
 					}
 					D1W(output->nquantiles);
-					for (j = 0; j < output->nquantiles; j++) {
+					for (int j = 0; j < output->nquantiles; j++) {
 						p = output->quantiles[j];
 						if (_MAP_INCREASING(i)) {
 							GMRFLib_density_Pinv(&xp, p, density[i]);
@@ -37369,7 +37379,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 							D1W(i);
 						}
 						D1W(output->nquantiles);
-						for (j = 0; j < output->nquantiles; j++) {
+						for (int j = 0; j < output->nquantiles; j++) {
 							D2W(NAN, NAN);
 						}
 					}
@@ -37382,9 +37392,10 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	if (output->mode) {
 		if (inla_computed(density, n)) {
+			char *nndir = NULL;
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "mode.dat");
 			Dinit(nndir);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				if (density[i]) {
 					if (locations) {
 						D1W(locations[i % ndiv]);
@@ -37410,9 +37421,11 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 
 	if (output->ncdf) {
 		if (inla_computed(density, n)) {
+			char *nndir = NULL;
 			GMRFLib_sprintf(&nndir, "%s/%s", ndir, "cdf.dat");
 			Dinit(nndir);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
+				double xp, x, p;
 				if (density[i]) {
 					if (locations) {
 						D1W(locations[i % ndiv]);
@@ -37420,7 +37433,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 						D1W(i);
 					}
 					D1W(output->ncdf);
-					for (j = 0; j < output->ncdf; j++) {
+					for (int j = 0; j < output->ncdf; j++) {
 						xp = output->cdf[j];
 						x = GMRFLib_density_user2std(xp, density[i]);
 						GMRFLib_density_P(&p, x, density[i]);
@@ -37437,7 +37450,7 @@ int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *l
 							D1W(i);
 						}
 						D1W(output->ncdf);
-						for (j = 0; j < output->ncdf; j++) {
+						for (int j = 0; j < output->ncdf; j++) {
 							D2W(NAN, NAN);
 						}
 					}
@@ -40876,6 +40889,49 @@ int testit(int argc, char **argv)
 		P((sum1 - sum2) / (sum1 + sum2));
 	}
 		break;
+
+	case 94:
+	{
+		int n = atoi(args[0]);
+		int nt = atoi(args[1]);
+		P(n);
+		P(nt);
+		double *x = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		double tref;
+		tref = -GMRFLib_cpu();
+#pragma omp parallel for num_threads(nt)
+		for (int i = 0; i < nt; i++) {
+			char *fnm;
+			GMRFLib_sprintf(&fnm, "REMOVE_ME_%1d.dat", i);
+			FILE *fp = fopen(fnm, "wb");
+			fwrite((void *) x, sizeof(double), (size_t) n, fp);
+			fclose(fp);
+			Free(fnm);
+		}
+		tref += GMRFLib_cpu();
+		P(tref);
+
+		double tref2;
+		tref2 = -GMRFLib_cpu();
+		for (int i = 0; i < nt; i++) {
+			char *fnm;
+			GMRFLib_sprintf(&fnm, "REMOVE_ME_ALSO_%1d.dat", i);
+			FILE *fp = fopen(fnm, "wb");
+			fwrite((void *) x, sizeof(double), (size_t) n, fp);
+			fclose(fp);
+			Free(fnm);
+		}
+		tref2 += GMRFLib_cpu();
+		P(tref2);
+		P(tref2 / tref);
+		Free(x);
+	}
+		break;
+
 
 	case 999:
 	{
