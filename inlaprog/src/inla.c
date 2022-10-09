@@ -34932,7 +34932,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 		printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
 		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
-		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
+		       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
