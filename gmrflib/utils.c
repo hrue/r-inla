@@ -1272,7 +1272,7 @@ int GMRFLib_debug_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss, *sss;
+				char *ss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1292,10 +1292,9 @@ int GMRFLib_debug_functions(const char *name)
 					first[idx] = 2;
 				}
 
-				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", sss);
+					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1303,7 +1302,7 @@ int GMRFLib_debug_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
 				}
 			}
 		}
@@ -1312,7 +1311,7 @@ int GMRFLib_debug_functions(const char *name)
 	if (!name) {
 		return 0;
 	} else {
-		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
 		return (p ? *p : 0);
 	}
 }
@@ -1369,7 +1368,7 @@ int GMRFLib_trace_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss, *sss;
+				char *ss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1389,10 +1388,9 @@ int GMRFLib_trace_functions(const char *name)
 					first[idx] = 2;
 				}
 
-				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", sss);
+					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1400,7 +1398,7 @@ int GMRFLib_trace_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
 				}
 			}
 		}
@@ -1409,11 +1407,10 @@ int GMRFLib_trace_functions(const char *name)
 	if (!name) {
 		return 0;
 	} else {
-		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
 		return (p ? *p : 0);
 	}
 }
-
 
 // ******************************************************************************************
 
