@@ -73,7 +73,7 @@ const char *GMRFLib_error_reason(int errorno)
 		"Error occured in the mapkit-library (hash)",
 		"Sparse-matrix-type (or function) not implemented yet",
 		"Covariance matrix for Ax is singular",
-		"Fitting of the Skew-Normal distribution fail to converge",
+		"Fitting of the Skew-Normal distribution failed to converge",
 		"Geo-coefficients are not available",
 		"Error occured in the GSL-Library",
 		"This should not happen",

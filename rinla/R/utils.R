@@ -648,7 +648,7 @@
     result <- try(dir.create(dir, showWarnings = showWarnings, recursive = recursive, mode = mode))
     if ((inherits(result, "try-error") || !result)) {
         if (StopOnError) {
-            stop(paste("Fail to create directory [", dir, "]. Stop.", sep = ""))
+            stop(paste("Failed to create directory [", dir, "]. Stop.", sep = ""))
         }
         result <- NULL
     }
