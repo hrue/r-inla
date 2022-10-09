@@ -931,9 +931,9 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		Free(wwork[cache_idx]);
 		wwork_len[cache_idx] = nmax + 1024L;
 		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
-		wwork[cache_idx][0] = 1.828468273684723;
-		for (int j = 1; j < wwork_len[cache_idx]; j++) {
-			wwork[cache_idx][j] = wwork[cache_idx][j - 1] + 0.8762138872634874;
+		double *w = wwork[cache_idx];
+		for (int j = 0; j < wwork_len[cache_idx]; j++) {
+			w[j] = GMRFLib_uniform();
 		}
 	}
 	double *x = wwork[cache_idx];
