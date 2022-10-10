@@ -137,7 +137,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
+	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -154,7 +154,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -171,7 +171,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to realloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 

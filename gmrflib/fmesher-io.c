@@ -93,7 +93,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		nread = fread((void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nread != (size_t) n) {				\
 			char *m;					\
-			GMRFLib_sprintf(&m, "Fail to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
+			GMRFLib_sprintf(&m, "Failed to read [%1u] elems of size [%1u] from file [%s], at position %ld\n", \
 					n, sizeof(type), filename, position); \
 			ERROR(m);					\
 		}							\
@@ -116,7 +116,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 		fseek(fp, offset, whence);
 	}
 	if (!fp) {
-		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
+		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
 		ERROR(msg);
 	}
 	if (verbose) {
@@ -402,7 +402,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 		nwrite = fwrite((const void *)ptr, sizeof(type), (size_t) n, (FILE *) fp); \
 		if (nwrite != (size_t) n) {				\
 			char *m;					\
-			GMRFLib_sprintf(&m, "Fail to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
+			GMRFLib_sprintf(&m, "Failed to write [%1u] elems of size [%1u] to file [%s], at position %ld\n", \
 					n, sizeof(type), filename, ftell(fp)); \
 			ERROR(m);					\
 		}							\
@@ -427,7 +427,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 		fp = fopen(filename, "wb");
 	}
 	if (!fp) {
-		GMRFLib_sprintf(&msg, "Fail to open file [%s]", filename);
+		GMRFLib_sprintf(&msg, "Failed to open file [%s]", filename);
 		ERROR(msg);
 	}
 	if (verbose) {
