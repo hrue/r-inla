@@ -3,7 +3,7 @@ CFLAGS = -O3 -march=native -DWITH_MKL -DSHOW_TEST_OUTPUT
 MKLROOT = /opt/intel/lib
 
 test : test.o sparse-vec.o
-	$(CC) -o $@ $^ -lblas -lgomp \
+	$(CC) -o $@ $^ -lgomp \
          -L${MKLROOT} \
         -Wl,--start-group \
                 ${MKLROOT}/libmkl_intel_lp64.a \

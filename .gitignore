@@ -1060,3 +1060,5 @@ r-inla.org/doc/likelihood/gaussianjw.synctex.gz
 *.fdb_latexmk
 
 *.fls
+
+export/sparse-vec/test
