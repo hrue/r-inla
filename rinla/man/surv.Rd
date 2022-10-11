@@ -18,7 +18,7 @@ Create a survival object, to be used as a response variable in a
 model  formula for the \code{\link{inla}} function for survival models.
 }
 \usage{
-inla.surv(time, event, time2, truncation, subject = NULL, .special = NULL)
+inla.surv(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL)
 \method{plot}{inla.surv}(x, y, ...)
 \method{print}{inla.surv}(x, ...)
 is.inla.surv(object)
@@ -36,6 +36,7 @@ as.inla.surv(object, ...)
   \item{time2}{Ending time for the interval censored data or an in-interval event.}
   \item{truncation}{Left truncation. If missing it is assumed to be 0. The lower limit for event=4.}
   \item{subject}{Patient number in multiple event data, not needed otherwise. }
+  \item{cure}{A matrix of covariates that can be used with a cure-model. }
   \item{.special}{An internal object, not for public use}
   \item{object}{Any \code{R}-object}
   \item{x}{Object to plot or print}

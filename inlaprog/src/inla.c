@@ -120,6 +120,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define POM_MAXTHETA (10L)				       /* as given in models.R */
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
+#define CURE_MAXTHETA (10L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
@@ -5329,13 +5330,26 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_FMRISURV:
 	case L_GOMPERTZSURV:
 	{
-		idiv = 6;
+		ds->data_observations.weight_gaussian = NULL;
+		ds->data_observations.fmri_scale = NULL;
+
+		assert(ncol_data_all <= 6 + CURE_MAXTHETA && ncol_data_all >= 6);
+		idiv = ncol_data_all;
+		int na = ds->data_observations.cure_ncov = ncol_data_all - 6;
+		assert(na >= 0);
+
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
 		a[1] = ds->data_observations.truncation = Calloc(mb->predictor_ndata, double);
 		a[2] = ds->data_observations.lower = Calloc(mb->predictor_ndata, double);
 		a[3] = ds->data_observations.upper = Calloc(mb->predictor_ndata, double);
-		ds->data_observations.weight_gaussian = NULL;
-		ds->data_observations.fmri_scale = NULL;
+
+		if (na) {
+			// we'll wrap this around at the end of this function
+			ds->data_observations.cure_cov = Calloc(mb->predictor_ndata * na, double);
+			for (i = 0; i < na; i++) {
+				a[4 + i] = ds->data_observations.cure_cov + i * mb->predictor_ndata;
+			}
+		}
 	}
 		break;
 
@@ -5424,6 +5438,9 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	}
 
 	na = idiv - 2;
+	P(na);
+	P(idiv);
+	
 	if (!inla_divisible(n, idiv)) {
 		inla_error_file_numelm(__GMRFLib_FuncName, ds->data_file.name, n, idiv);
 	}
@@ -5506,7 +5523,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 				       ds->data_observations.ndata, ii, a[0][ii], a[1][ii], ds->data_observations.y[ii],
 				       ds->data_observations.d[ii]);
 			}
-				break;
+			break;
 
 			case 3:
 			{
@@ -5535,7 +5552,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 			default:
 				printf("\t\t\t%1d/%1d (idx,a[],y,d) = (%1d, ", j, ds->data_observations.ndata, ii);
 				for (k = 0; k < na; k++) {
-					printf("%g, ", a[k][ii]);
+					printf("%6.4g, ", a[k][ii]);
 				}
 				printf("%g, %g)\n", ds->data_observations.y[ii], ds->data_observations.d[ii]);
 				break;
@@ -5543,6 +5560,20 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 		}
 	}
 
+	// wrap it around so we can access all cure-covariates for one observation sequentially
+	if (ds->data_observations.cure_cov) {
+		int ncov = ds->data_observations.cure_ncov;
+		int n = mb->predictor_ndata;
+		double * xx = Calloc(ncov * n, double);
+		for(int j = 0; j < ncov; j++) {
+			for(int i = 0; i < n; i++) {
+				xx[i * ncov + j] = ds->data_observations.cure_cov[j * n  + i];
+			}
+		}
+		Free(ds->data_observations.cure_cov);
+		ds->data_observations.cure_cov = xx;
+	}
+		
 	Free(w);
 	Free(x);
 #undef _DIM_A
@@ -10567,6 +10598,27 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 		p_min = GMRFLib_eps(0.8943652563);	       // about 1e-14
 	}
 
+	if (ds->data_observations.cure_ncov && (idx == 0)) {
+		P(ds->data_observations.cure_ncov);
+		P(idx);
+		for(int i = 0; i < ds->data_observations.cure_ncov; i++) {
+			int j = idx * ds->data_observations.cure_ncov;
+			P(ds->data_observations.cure_cov[j + i]);
+		}
+	}
+
+	double prob_cure = 0.0;
+	int ncov = ds->data_observations.cure_ncov;
+
+	if (ncov) {
+		double *cov = ds->data_observations.cure_cov + idx * ncov;
+		double sum = 0.0;
+		for(int i = 0; i < ncov; i++) {
+			sum += cov[i] * ds->data_observations.cure_beta[i][thread_id][0];
+		}
+		prob_cure = map_probability(sum, MAP_FORWARD, NULL);
+	}
+
 	event = ds->data_observations.event[idx];
 	ievent = (int) event;
 	truncation = ds->data_observations.truncation[idx];
@@ -15130,6 +15182,95 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 		break;
+
+	case L_EXPONENTIALSURV: 
+	{
+		for (i = 0; i < CURE_MAXTHETA; i++) {
+			char *ctmp;
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		ds->data_observations.cure_beta = Calloc(CURE_MAXTHETA, double **);
+		ds->data_nfixed = Calloc(CURE_MAXTHETA, int);
+		ds->data_nprior = Calloc(CURE_MAXTHETA, Prior_tp);
+		ds->data_observations.cure_beta = Calloc(CURE_MAXTHETA, double **);
+
+		for (int i = 0; i < ds->data_observations.cure_ncov; i++) {
+			char *ctmp;
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_NEW(ds->data_observations.cure_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i + 1, ds->data_observations.gjw_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+				GMRFLib_sprintf(&ctmp, "beta%1d for Cure", i);
+
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.cure_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+		// all the remaining ones are fixed
+		for (int i = ds->data_observations.cure_ncov; i < CURE_MAXTHETA; i++) {
+			ds->data_nfixed[i] = 1;
+		}
+		
+	}
+	break;
 
 	case L_SIMPLEX:
 	{
@@ -30731,7 +30872,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_BINOMIAL:
 			case L_XBINOMIAL:
 			case L_EXPONENTIAL:
-			case L_EXPONENTIALSURV:
 			case L_POISSON:
 			case L_XPOISSON:
 			case L_CONTPOISSON:
@@ -30740,6 +30880,17 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				 * nothing to do
 				 */
 				break;
+
+			case L_EXPONENTIALSURV:
+			{
+				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
+					if (!ds->data_nfixed[k]){
+						val += PRIOR_EVAL(ds->data_nprior[k], &(theta[count]));
+						count++;
+					}
+				}
+			}
+			break;
 
 			case L_POM:
 			{

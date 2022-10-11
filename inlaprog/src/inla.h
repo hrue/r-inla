@@ -537,6 +537,10 @@ typedef struct {
 	// double *time == y
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
 
+	int cure_ncov;
+	double *cure_cov;
+	double ***cure_beta;
+	
 	/*
 	 * zero-inflated Poission/Binomial/NegativeBinomial/BetaBinomial version 0/1/2...
 	 */

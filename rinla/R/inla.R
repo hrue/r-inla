@@ -763,6 +763,12 @@
     } else {
         nc <- NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
+
+            ## need to activate the object for the NULL-object to be removed
+            if (is.null(y...orig$cure)) {
+                y...orig$cure <- NULL
+            }
+
             class(y...orig) <- NULL
             ## this one is not passed along
             y...orig$.special <- NULL
