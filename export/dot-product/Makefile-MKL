@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -O3 -march=native -DWITH_MKL -DSHOW_TEST_OUTPUT
 MKLROOT = /opt/intel/lib
 
-test : test.o dot-product.o
+test : test.o sparse-vec.o
 	$(CC) -o $@ $^ -lblas -lgomp \
          -L${MKLROOT} \
         -Wl,--start-group \

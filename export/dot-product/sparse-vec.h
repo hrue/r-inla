@@ -47,9 +47,7 @@
 #define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS
-
-typedef enum {
+__BEGIN_DECLS typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
 	IDXVAL_SERIAL_MKL,
@@ -111,6 +109,12 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_max_value(double *x, int n, int *idx);
 
+// these are better names to export
+#define GMRFLib_sparse_vec_tp GMRFLib_idxval_tp
+#define GMRFLib_sparse_vec_add(a_,  b_, c_) GMRFLib_idxval_add(a_, b_, c_)
+#define GMRFLib_sparse_vec_prepare(a_) GMRFLib_idxval_prepare(a_)
+#define GMRFLib_sparse_vec_dot_product(a_, b_) GMRFLib_dot_product(a_, b_)
+#define GMRFLib_sparse_vec_free(a_) GMRFLib_idxval_free(a_)
 
 __END_DECLS
 #endif

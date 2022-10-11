@@ -1,3 +1,4 @@
+
 /* dot-product.c
  * 
  * Copyright (C) 2022-2022 Havard Rue
@@ -40,7 +41,7 @@
 
 #include <gsl/gsl_sort_double.h>
 #include <gsl/gsl_math.h>
-#include "dot-product.h"
+#include "sparse-vec.h"
 
 #define ISZERO(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
@@ -471,7 +472,7 @@ int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *
 
 int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt)
 {
-	for (int i = 0; i < n; i++) {			
+	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_uniq(a[i]);
 	}
 	return 0;
@@ -535,6 +536,7 @@ int GMRFLib_idxval_prepare(GMRFLib_idxval_tp * hold)
 {
 	return (GMRFLib_idxval_nsort_x(&hold, 1, 1, -1));
 }
+
 int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_zeros)
 {
 	// prune_zeros, 0=do nothing, >0 remove duplicate with same index within each group, <0 remove all zeros
@@ -549,339 +551,350 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	}
 
 	double *tmp_work = Calloc(nmax, double);
-	
-	for (int i = 0; i < n; i++) {					
-		GMRFLib_idxval_tp *h = hold[i];				
-		if (!h) continue;					
-		double tref[5] =  {0, 0, 0, 0, 0};			
-		if (debug) tref[0] -= omp_get_wtime();			
-		if (h->n > 1) {						
-			int is_sorted = 1;				
-			for(int j = 1; j < h->n && is_sorted; j++) {	
-				is_sorted = is_sorted && (h->idx[j] >= h->idx[j-1]); 
-			}						
-			if (!is_sorted) {				
-				double *idx_tmp = tmp_work; 
-				for(int j = 0; j < h->n; j++) {	
-					idx_tmp[j] = (double) h->idx[j]; 
-				}				
-				gsl_sort2(idx_tmp, (size_t) 1, h->val, (size_t) 1, (size_t) h->n); 
-				for(int j = 0; j < h->n; j++) {	
-					h->idx[j] = (int) idx_tmp[j]; 
-				}				
-			}					
-		}							
-		if (debug) tref[0] += omp_get_wtime();			
-									
-		if (h->n <= limit) {					
-			h->preference = IDXVAL_SERIAL;			
-			continue;					
-		}							
-									
-		/*							
+
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = hold[i];
+		if (!h)
+			continue;
+		double tref[5] = { 0, 0, 0, 0, 0 };
+		if (debug)
+			tref[0] -= omp_get_wtime();
+		if (h->n > 1) {
+			int is_sorted = 1;
+			for (int j = 1; j < h->n && is_sorted; j++) {
+				is_sorted = is_sorted && (h->idx[j] >= h->idx[j - 1]);
+			}
+			if (!is_sorted) {
+				double *idx_tmp = tmp_work;
+				for (int j = 0; j < h->n; j++) {
+					idx_tmp[j] = (double) h->idx[j];
+				}
+				gsl_sort2(idx_tmp, (size_t) 1, h->val, (size_t) 1, (size_t) h->n);
+				for (int j = 0; j < h->n; j++) {
+					h->idx[j] = (int) idx_tmp[j];
+				}
+			}
+		}
+		if (debug)
+			tref[0] += omp_get_wtime();
+
+		if (h->n <= limit) {
+			h->preference = IDXVAL_SERIAL;
+			continue;
+		}
+
+		/*
 		 * build basic groups with one group for each sequence and then one for each individual 
-		 */							
-		if (debug) tref[1] -= omp_get_wtime();			
-		int ng = 1;						
-		for (int j = 1; j < h->n; j++) {			
-			if (h->idx[j] != h->idx[j - 1] + 1) {		
-				ng++;					
-			}						
-		}							
-		int *g_i = Calloc(ng + 1, int);				
-		int *g_len = Calloc(ng + 1, int);			
-									
-		int k = 0;						
-		g_i[0] = 0;						
-		for (int j = 1; j < h->n; j++) {			
-			if (h->idx[j] != h->idx[j - 1] + 1) {		
-				g_len[k] = j - g_i[k];			
-				k++;					
-				g_i[k] = j;				
-			}						
-		}							
-		g_len[ng - 1] = h->n - g_i[ng - 1];			
-		if (debug) tref[1] += omp_get_wtime();			
-									
-		if (1 && debug) {					
-			GMRFLib_idxval_printf(stdout, h, "OLD");	
-		}							
-									
-		k = h->n;				       /* so the code below works */ 
-		int kg = ng;				       /* so the code below works */ 
-									
-		if (debug) tref[2] -= omp_get_wtime();			
-		if (prune_zeros) {					
-			/*						
+		 */
+		if (debug)
+			tref[1] -= omp_get_wtime();
+		int ng = 1;
+		for (int j = 1; j < h->n; j++) {
+			if (h->idx[j] != h->idx[j - 1] + 1) {
+				ng++;
+			}
+		}
+		int *g_i = Calloc(ng + 1, int);
+		int *g_len = Calloc(ng + 1, int);
+
+		int k = 0;
+		g_i[0] = 0;
+		for (int j = 1; j < h->n; j++) {
+			if (h->idx[j] != h->idx[j - 1] + 1) {
+				g_len[k] = j - g_i[k];
+				k++;
+				g_i[k] = j;
+			}
+		}
+		g_len[ng - 1] = h->n - g_i[ng - 1];
+		if (debug)
+			tref[1] += omp_get_wtime();
+
+		if (1 && debug) {
+			GMRFLib_idxval_printf(stdout, h, "OLD");
+		}
+
+		k = h->n;				       /* so the code below works */
+		int kg = ng;				       /* so the code below works */
+
+		if (debug)
+			tref[2] -= omp_get_wtime();
+		if (prune_zeros) {
+			/*
 			 * remove zeros in 'val', either all or all but the first one 
-			 */						
-			k = 0;						
-			kg = 0;						
-			int nskip = 0;					
-			for (int g = 0; g < ng; g++) {			
-									
-				int gl = IABS(g_len[g]);		
-				int num_zero = 0;			
-				int idx_zz = -1;			
-				int gn = 0;				
-				int kk = k;				
-									
-				for (int j = 0; j < gl; j++) {		
-					int idx_z = h->idx[g_i[g] + j];	
-									
-					if (prune_zeros < 0) {		
-						if (ISZERO(h->val[g_i[g] + j])) { 
-							nskip++;	
-						} else {		
-							h->idx[k] = idx_z; 
-							h->val[k] = h->val[g_i[g] + j];	
-							k++;		
-							gn++;		
-						}			
-					} else {			
-						if (idx_z == idx_zz) {	
-							if (ISZERO(h->val[g_i[g] + j])) { 
-								num_zero++; 
-								if (prune_zeros > 0 && num_zero == 1) {	
-									h->idx[k] = idx_z; 
-									h->val[k] = h->val[g_i[g] + j];	
-									k++; 
-									gn++; 
-								} else { 
-									nskip++; 
-								}	
-							} else {	
-								h->idx[k] = idx_z; 
-								h->val[k] = h->val[g_i[g] + j];	
-								k++;	
-								gn++;	
-							}		
-						} else {		
-							h->idx[k] = idx_z; 
-							h->val[k] = h->val[g_i[g] + j];	
-							k++;		
-							gn++;		
-							num_zero = 0;	
-							if (ISZERO(h->val[g_i[g] + j])) { 
-								num_zero++; 
-							}		
-						}			
-						idx_zz = idx_z;		
-					}				
-				}					
-				if (debug && (g_len[g] != gn)) {	
-					printf("modify group %d from %d to %d, nskip=%1dn", g, gl, gn, nskip); 
-				}					
-				if (gn) {				
-					g_i[kg] = kk;			
-					g_len[kg] = (g_len[g] < 0 ? -gn : gn); 
-					kg++;				
-				}					
-			}						
-		}							
-		h->n = k;						
-		h->g_n = kg;						
-		h->g_i = g_i;						
-		h->g_len = g_len;					
-									
-		if (debug) tref[2] += omp_get_wtime();			
-									
-		if (1 && debug) {					
-			GMRFLib_idxval_printf(stdout, h, "NEW");	
-		}							
-									
-		/*							
+			 */
+			k = 0;
+			kg = 0;
+			int nskip = 0;
+			for (int g = 0; g < ng; g++) {
+
+				int gl = IABS(g_len[g]);
+				int num_zero = 0;
+				int idx_zz = -1;
+				int gn = 0;
+				int kk = k;
+
+				for (int j = 0; j < gl; j++) {
+					int idx_z = h->idx[g_i[g] + j];
+
+					if (prune_zeros < 0) {
+						if (ISZERO(h->val[g_i[g] + j])) {
+							nskip++;
+						} else {
+							h->idx[k] = idx_z;
+							h->val[k] = h->val[g_i[g] + j];
+							k++;
+							gn++;
+						}
+					} else {
+						if (idx_z == idx_zz) {
+							if (ISZERO(h->val[g_i[g] + j])) {
+								num_zero++;
+								if (prune_zeros > 0 && num_zero == 1) {
+									h->idx[k] = idx_z;
+									h->val[k] = h->val[g_i[g] + j];
+									k++;
+									gn++;
+								} else {
+									nskip++;
+								}
+							} else {
+								h->idx[k] = idx_z;
+								h->val[k] = h->val[g_i[g] + j];
+								k++;
+								gn++;
+							}
+						} else {
+							h->idx[k] = idx_z;
+							h->val[k] = h->val[g_i[g] + j];
+							k++;
+							gn++;
+							num_zero = 0;
+							if (ISZERO(h->val[g_i[g] + j])) {
+								num_zero++;
+							}
+						}
+						idx_zz = idx_z;
+					}
+				}
+				if (debug && (g_len[g] != gn)) {
+					printf("modify group %d from %d to %d, nskip=%1dn", g, gl, gn, nskip);
+				}
+				if (gn) {
+					g_i[kg] = kk;
+					g_len[kg] = (g_len[g] < 0 ? -gn : gn);
+					kg++;
+				}
+			}
+		}
+		h->n = k;
+		h->g_n = kg;
+		h->g_i = g_i;
+		h->g_len = g_len;
+
+		if (debug)
+			tref[2] += omp_get_wtime();
+
+		if (1 && debug) {
+			GMRFLib_idxval_printf(stdout, h, "NEW");
+		}
+
+		/*
 		 * grow the groups together by merging individual groups, and merging sequential groups 
-		 */							
-		if (debug) tref[3] -= omp_get_wtime();			
-		int gg = 0;						
-		int irregular = 0;					
-		for (int g = 0; g < h->g_n; g++) {			
-			if (h->g_len[g] == 1) {				
-				if (irregular) {			
-					h->g_len[gg]++;			
-				} else {				
-					h->g_len[gg] = 1;		
-					h->g_i[gg] = h->g_i[g];		
-				}					
-				irregular = 1;				
-			} else if (IABS(h->g_len[g]) > 0) {		
-				if (irregular) {			
-					gg++;				
-				}					
-				irregular = 0;				
-				h->g_len[gg] = -IABS(h->g_len[g]);	
-				h->g_i[gg] = h->g_i[g];			
-				gg++;					
-			} else {					
-				continue;				
-			}						
-		}							
-		h->g_n = gg + irregular;				
-									
-		int fill = 8L;						
-		if (h && h->n > 1) {					
-			int len_extra = 0;				
-			for (int g = 0; g < h->g_n - 1; g++) {		
-				if (h->g_len[g] < 0 && h->g_len[g + 1] < 0) { 
-					int last_this = h->idx[h->g_i[g] + IABS(h->g_len[g]) - 1]; 
-					int first_next = h->idx[h->g_i[g + 1]];	
-					if (first_next - last_this < fill) { 
-						len_extra += first_next - last_this - 1; 
-						if (debug) {		
-							printf("tmerge group %1d and %1d with dist %1d and lengths %1d and %1dn", 
-							       g, g + 1, first_next - last_this, h->g_len[g], h->g_len[g + 1]);	
-						}			
-					}				
-				}					
-			}						
-									
-			if (len_extra > 0) {				
-									
-				int n_new = h->n + len_extra;		
-				int *idx_new = Calloc(n_new, int);	
-				double *val_new = Calloc(n_new, double); 
-									
-				int kk = 0;				
-				int gg = 0;				
-									
-				int this_len = h->g_len[gg];		
-				int this_alen = IABS(this_len);		
-									
-				Memcpy(idx_new + kk, h->idx, this_alen * sizeof(int)); 
-				Memcpy(val_new + kk, h->val, this_alen * sizeof(double)); 
-									
-				kk += this_alen;			
-				h->g_i[gg] = h->g_i[0];			
-				h->g_len[gg] = h->g_len[0];		
-									
-				int gg_len = h->g_len[gg];		
-				int gg_alen = IABS(gg_len);		
-				int gg_first_i = h->g_i[gg];		
-				int gg_last_i = gg_first_i + gg_alen - 1; 
-				int gg_last_idx = idx_new[gg_last_i];	
-				int pending = 0;			
-									
-				if (debug) {				
-					printf("n=%1d len_extra=%1d n_new=%1dn", h->n, len_extra, n_new); 
-				}					
-									
-				for (int g = 1; g < h->g_n; g++) {	
-									
-					if (debug) {			
-						printf("tprocess group=%1d with len=%d kk=%1dn", g, h->g_len[g], kk);	
-					}				
-									
-					/*				
+		 */
+		if (debug)
+			tref[3] -= omp_get_wtime();
+		int gg = 0;
+		int irregular = 0;
+		for (int g = 0; g < h->g_n; g++) {
+			if (h->g_len[g] == 1) {
+				if (irregular) {
+					h->g_len[gg]++;
+				} else {
+					h->g_len[gg] = 1;
+					h->g_i[gg] = h->g_i[g];
+				}
+				irregular = 1;
+			} else if (IABS(h->g_len[g]) > 0) {
+				if (irregular) {
+					gg++;
+				}
+				irregular = 0;
+				h->g_len[gg] = -IABS(h->g_len[g]);
+				h->g_i[gg] = h->g_i[g];
+				gg++;
+			} else {
+				continue;
+			}
+		}
+		h->g_n = gg + irregular;
+
+		int fill = 8L;
+		if (h && h->n > 1) {
+			int len_extra = 0;
+			for (int g = 0; g < h->g_n - 1; g++) {
+				if (h->g_len[g] < 0 && h->g_len[g + 1] < 0) {
+					int last_this = h->idx[h->g_i[g] + IABS(h->g_len[g]) - 1];
+					int first_next = h->idx[h->g_i[g + 1]];
+					if (first_next - last_this < fill) {
+						len_extra += first_next - last_this - 1;
+						if (debug) {
+							printf("tmerge group %1d and %1d with dist %1d and lengths %1d and %1dn",
+							       g, g + 1, first_next - last_this, h->g_len[g], h->g_len[g + 1]);
+						}
+					}
+				}
+			}
+
+			if (len_extra > 0) {
+
+				int n_new = h->n + len_extra;
+				int *idx_new = Calloc(n_new, int);
+				double *val_new = Calloc(n_new, double);
+
+				int kk = 0;
+				int gg = 0;
+
+				int this_len = h->g_len[gg];
+				int this_alen = IABS(this_len);
+
+				Memcpy(idx_new + kk, h->idx, this_alen * sizeof(int));
+				Memcpy(val_new + kk, h->val, this_alen * sizeof(double));
+
+				kk += this_alen;
+				h->g_i[gg] = h->g_i[0];
+				h->g_len[gg] = h->g_len[0];
+
+				int gg_len = h->g_len[gg];
+				int gg_alen = IABS(gg_len);
+				int gg_first_i = h->g_i[gg];
+				int gg_last_i = gg_first_i + gg_alen - 1;
+				int gg_last_idx = idx_new[gg_last_i];
+				int pending = 0;
+
+				if (debug) {
+					printf("n=%1d len_extra=%1d n_new=%1dn", h->n, len_extra, n_new);
+				}
+
+				for (int g = 1; g < h->g_n; g++) {
+
+					if (debug) {
+						printf("tprocess group=%1d with len=%d kk=%1dn", g, h->g_len[g], kk);
+					}
+
+					/*
 					 * merge this group into the current new one or just add it ? 
-					 */				
-					int g_len = h->g_len[g];	
-					int g_alen = IABS(g_len);	
-					int g_first_i = h->g_i[g];	
-					int g_first_idx = h->idx[g_first_i]; 
-									
-					int idx_diff = g_first_idx - gg_last_idx; 
-					if (debug) {			
-						printf("g_len=%1d gg_len=%1d idx_diff=%1dn", g_len, gg_len, idx_diff);	
-					}				
-									
-					if (g_len < 0 && gg_len < 0 && idx_diff < fill) { 
-						if (debug) {		
-							printf("tmerge group g=%1d into gg=%1dn", g, gg); 
-						}			
-									
-						/*			
-						 * yes, merge it	
-						 */			
-						int len_fill = idx_diff - 1; 
-						for (int j = 0; j < len_fill; j++) { 
-							idx_new[kk + j] = idx_new[kk - 1] + 1 + j; 
-						}			
-						if (debug) {		
-							printf("ttlen_fill=%1dn", len_fill);	
-						}			
-									
-						h->g_len[gg] -= len_fill; 
-						kk += len_fill;		
-						Memcpy(idx_new + kk, h->idx + g_first_i, g_alen * sizeof(int));	
-						Memcpy(val_new + kk, h->val + g_first_i, g_alen * sizeof(double)); 
-						h->g_len[gg] -= g_alen;	
-						kk += g_alen;		
-									
-						gg_len = h->g_len[gg];	
-						gg_alen = IABS(gg_len);	
-						gg_first_i = h->g_i[gg]; 
-						gg_last_i = gg_first_i + gg_alen - 1; 
-						gg_last_idx = idx_new[gg_last_i]; 
-									
-						if (debug) {		
-							printf("ttappend group g=%1d with len %1dn", g, g_len); 
-							printf("ttgg_last_idx=%1d kk=%1dn", gg_last_idx, kk); 
-						}			
-						pending = 1;		
-					} else {			
-						/*			
+					 */
+					int g_len = h->g_len[g];
+					int g_alen = IABS(g_len);
+					int g_first_i = h->g_i[g];
+					int g_first_idx = h->idx[g_first_i];
+
+					int idx_diff = g_first_idx - gg_last_idx;
+					if (debug) {
+						printf("g_len=%1d gg_len=%1d idx_diff=%1dn", g_len, gg_len, idx_diff);
+					}
+
+					if (g_len < 0 && gg_len < 0 && idx_diff < fill) {
+						if (debug) {
+							printf("tmerge group g=%1d into gg=%1dn", g, gg);
+						}
+
+						/*
+						 * yes, merge it       
+						 */
+						int len_fill = idx_diff - 1;
+						for (int j = 0; j < len_fill; j++) {
+							idx_new[kk + j] = idx_new[kk - 1] + 1 + j;
+						}
+						if (debug) {
+							printf("ttlen_fill=%1dn", len_fill);
+						}
+
+						h->g_len[gg] -= len_fill;
+						kk += len_fill;
+						Memcpy(idx_new + kk, h->idx + g_first_i, g_alen * sizeof(int));
+						Memcpy(val_new + kk, h->val + g_first_i, g_alen * sizeof(double));
+						h->g_len[gg] -= g_alen;
+						kk += g_alen;
+
+						gg_len = h->g_len[gg];
+						gg_alen = IABS(gg_len);
+						gg_first_i = h->g_i[gg];
+						gg_last_i = gg_first_i + gg_alen - 1;
+						gg_last_idx = idx_new[gg_last_i];
+
+						if (debug) {
+							printf("ttappend group g=%1d with len %1dn", g, g_len);
+							printf("ttgg_last_idx=%1d kk=%1dn", gg_last_idx, kk);
+						}
+						pending = 1;
+					} else {
+						/*
 						 * no, just add a new group 
-						 */			
-						gg++;			
-						Memcpy(idx_new + kk, h->idx + g_first_i, g_alen * sizeof(int));	
-						Memcpy(val_new + kk, h->val + g_first_i, g_alen * sizeof(double)); 
-						h->g_len[gg] = g_len;	
-						h->g_i[gg] = kk;	
-						kk += g_alen;		
-									
-						if (debug) {		
-							printf("tmake a new group, gg=%1d with len=%1dn", gg, g_len);	
-						}			
-									
-						gg_len = h->g_len[gg];	
-						gg_alen = IABS(gg_len);	
-						gg_first_i = h->g_i[gg]; 
-						gg_last_i = gg_first_i + gg_alen - 1; 
-						gg_last_idx = idx_new[gg_last_i]; 
-						pending = (g < h->g_n - 1 ? 0 : 1); 
-					}				
-					if (debug) {			
-						printf("gg=%1d kk=%1dn", gg, kk); 
-					}				
-				}					
-									
-				h->n_n = n_new;				
-				h->g_n = gg + pending;			
-				h->g_idx = idx_new;			
-				h->g_val = val_new;			
-				h->free_g_mem = 1;			
-			} else {					
-				h->n_n = h->n;				
-				h->g_idx = h->idx;			
-				h->g_val = h->val;			
-				h->free_g_mem = 0;			
-			}						
-		}							
-		if (debug) tref[3] += omp_get_wtime();			
-									
-		/*							
+						 */
+						gg++;
+						Memcpy(idx_new + kk, h->idx + g_first_i, g_alen * sizeof(int));
+						Memcpy(val_new + kk, h->val + g_first_i, g_alen * sizeof(double));
+						h->g_len[gg] = g_len;
+						h->g_i[gg] = kk;
+						kk += g_alen;
+
+						if (debug) {
+							printf("tmake a new group, gg=%1d with len=%1dn", gg, g_len);
+						}
+
+						gg_len = h->g_len[gg];
+						gg_alen = IABS(gg_len);
+						gg_first_i = h->g_i[gg];
+						gg_last_i = gg_first_i + gg_alen - 1;
+						gg_last_idx = idx_new[gg_last_i];
+						pending = (g < h->g_n - 1 ? 0 : 1);
+					}
+					if (debug) {
+						printf("gg=%1d kk=%1dn", gg, kk);
+					}
+				}
+
+				h->n_n = n_new;
+				h->g_n = gg + pending;
+				h->g_idx = idx_new;
+				h->g_val = val_new;
+				h->free_g_mem = 1;
+			} else {
+				h->n_n = h->n;
+				h->g_idx = h->idx;
+				h->g_val = h->val;
+				h->free_g_mem = 0;
+			}
+		}
+		if (debug)
+			tref[3] += omp_get_wtime();
+
+		/*
 		 * add a boolean for all(val[]==1), which makes dot-products into sums 
-		 */							
-		if (debug) tref[4] -= omp_get_wtime();			
-		int *g_1 = Calloc(h->g_n + 1, int);			
-		for (int g = 0; g < h->g_n; g++) {			
-			int all_1 = 1;					
-			for (int j = 0; j < IABS(h->g_len[g]) && all_1; j++) { 
-				all_1 = all_1 && ISEQUAL(h->g_val[h->g_i[g] + j], 1.0); 
-			}						
-			g_1[g] = (all_1 ? 1 : 0);			
-		}							
-		h->g_1 = g_1;						
-		if (debug) tref[4] += omp_get_wtime();			
-									
-		if (debug) {						
-			GMRFLib_idxval_info_printf(stdout, h, "t");	
-		}							
-		if (debug) {						
-			double sum = tref[0] + tref[1] + tref[2] + tref[3] + tref[4]; 
-			printf("%.3f %.3f %.3f %.3f %.3fn", tref[0]/sum, tref[1]/sum, tref[2]/sum, tref[3]/sum, tref[4]/sum); 
-		}							
+		 */
+		if (debug)
+			tref[4] -= omp_get_wtime();
+		int *g_1 = Calloc(h->g_n + 1, int);
+		for (int g = 0; g < h->g_n; g++) {
+			int all_1 = 1;
+			for (int j = 0; j < IABS(h->g_len[g]) && all_1; j++) {
+				all_1 = all_1 && ISEQUAL(h->g_val[h->g_i[g] + j], 1.0);
+			}
+			g_1[g] = (all_1 ? 1 : 0);
+		}
+		h->g_1 = g_1;
+		if (debug)
+			tref[4] += omp_get_wtime();
+
+		if (debug) {
+			GMRFLib_idxval_info_printf(stdout, h, "t");
+		}
+		if (debug) {
+			double sum = tref[0] + tref[1] + tref[2] + tref[3] + tref[4];
+			printf("%.3f %.3f %.3f %.3f %.3fn", tref[0] / sum, tref[1] / sum, tref[2] / sum, tref[3] / sum, tref[4] / sum);
+		}
 	}
 
 	Free(tmp_work);
@@ -907,7 +920,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		work_len = nmax + 1024;
 		work = Calloc(work_len, double);
 		for (int j = 0; j < work_len; j++) {
-			work[j] = UNIFORM(); 
+			work[j] = UNIFORM();
 		}
 	}
 	double *x = work;
@@ -916,7 +929,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	double time_max = 0.0;
 	int ntimes = 2;
 	int test_debug = SHOW_TEST_OUTPUT;
-	
+
 	for (int i = 0; i < n; i++) {
 
 		if (hold[i]->preference != IDXVAL_UNKNOWN) {
@@ -1123,47 +1136,46 @@ int GMRFLib_idxval_addto(GMRFLib_idxval_tp ** hold, int idx, double val)
 
 double GMRFLib_min_value(double *x, int n, int *idx)
 {
-        /*
-         * return the MIN(x[]) 
-         */
-        int i, imin;
-        double min_val;
+	/*
+	 * return the MIN(x[]) 
+	 */
+	int i, imin;
+	double min_val;
 
-        min_val = x[0];
-        imin = 0;
-        for (i = 1; i < n; i++) {
-                if (x[i] < min_val) {
-                        min_val = x[i];
-                        imin = i;
-                }
-        }
+	min_val = x[0];
+	imin = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] < min_val) {
+			min_val = x[i];
+			imin = i;
+		}
+	}
 
-        if (idx) {
-                *idx = imin;
-        }
+	if (idx) {
+		*idx = imin;
+	}
 
-        return min_val;
+	return min_val;
 }
 double GMRFLib_max_value(double *x, int n, int *idx)
 {
-        /*
-         * return the MAX(x[]), optional idx
-         */
-        int i, imax;
-        double max_val;
+	/*
+	 * return the MAX(x[]), optional idx
+	 */
+	int i, imax;
+	double max_val;
 
-        max_val = x[0];
-        imax = 0;
-        for (i = 1; i < n; i++) {
-                if (x[i] > max_val) {
-                        max_val = x[i];
-                        imax = i;
-                }
-        }
+	max_val = x[0];
+	imax = 0;
+	for (i = 1; i < n; i++) {
+		if (x[i] > max_val) {
+			max_val = x[i];
+			imax = i;
+		}
+	}
 
-        if (idx) {
-                *idx = imax;
-        }
-        return max_val;
+	if (idx) {
+		*idx = imax;
+	}
+	return max_val;
 }
-
