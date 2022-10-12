@@ -899,44 +899,23 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 #undef CODE_BLOCK
 
 	/*
-	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing this within
-	 * the parallel loop. Usually, this is a very quick procedure, so it does not really matter...
+	 * Add a tag about which option that is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing
+	 * this within the parallel loop. Usually, this is a very quick procedure, so it does not really matter...
 	 */
 
-	nmax = 1;
+	nmax = 8;
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
 		if (h->n) {
-			nmax = IMAX(nmax, h->idx[h->n - 1]);
-		}
-	}
-	nmax++;
-
-	static double **wwork = NULL;
-	static int *wwork_len = NULL;
-	if (!wwork) {
-#pragma omp critical (Name_5904d3e1eebd4db435c9b26e0854ee01328b78b2)
-		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
-			}
+			nmax = IMAX(nmax, h->idx[h->n - 1] + 1);
 		}
 	}
 
-	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
-
-	if (nmax > wwork_len[cache_idx]) {
-		Free(wwork[cache_idx]);
-		wwork_len[cache_idx] = nmax + 1024L;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
-		double *w = wwork[cache_idx];
-		for (int j = 0; j < wwork_len[cache_idx]; j++) {
-			w[j] = GMRFLib_uniform();
-		}
+	double *x = Calloc(nmax, double);
+	assert(x);
+	for(int i = 0; i < nmax; i++){
+		x[i] = GMRFLib_uniform();
 	}
-	double *x = wwork[cache_idx];
 
 	double time_min = 0.0;
 	double time_max = 0.0;
@@ -999,11 +978,13 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 		for (int k = 1; k < 4; k++) {
 			// without cost, we can validate that the results is the same...
-			if ((ABS(value[k] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[k])) / 2.0)) > 1.0E-6) {
-				P(ABS(value[k] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[k])) / 2.0));
+			if (ABS(value[k] - value[0]) > FLT_EPSILON) {
+				P(ABS(value[k] - value[0]));
 				P(k);
 				P(value[0]);
-				P(value[k]);
+				P(value[1]);
+				P(value[2]);
+				P(value[3]);
 				assert(0 == 1);
 			}
 		}
@@ -1073,7 +1054,9 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		}
 	}
 
+	Free(x);
 	GMRFLib_LEAVE_ROUTINE;
+
 	return GMRFLib_SUCCESS;
 }
 
