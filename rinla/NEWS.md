@@ -1,3 +1,11 @@
+# INLA 22.10.12
+* Added new experimental cure-model for parametric survival
+  (documentation will come later).
+* The 'weibullcure'-model is removed as its covered by the new
+  cure-model.
+* Optimization: Models with many constraints 
+* Optimization: Models with 'betabinomial' likelihood
+
 # INLA 22.10.07
 * Fixed regression in initial value for model="copy"
 * Code cleanup
