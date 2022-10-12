@@ -740,7 +740,7 @@
             ## :ARGUMENT+:         matrix for \code{strategy="variance"}, one of \code{"full"}, 
             ## :ARGUMENT+:         \code{"diagonal"}, \code{"partial"} and \code{"default"}.
             control.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE,
-                              iter.max = 25, emergency = 10, f.enable.limit = c(30, 25), hessian.update = 2,
+                              iter.max = 25, emergency = 25, f.enable.limit = c(30, 25), hessian.update = 2,
                               hessian.strategy = c("default", "full", "partial", "diagonal")), 
 
             ## :ARGUMENT+: num.gradient Character Set the numerical scheme to compute the

@@ -433,8 +433,8 @@
     random.spec$hyper <- inla.write.hyper(random.spec$hyper, file, data.dir = data.dir, ngroup = ngroup, low = low, high = high)
 
     if (inla.model.properties(random.spec$model, "latent")$nrow.ncol) {
-        cat("nrow = ", random.spec$nrow, "\n", sep = " ", file = file, append = TRUE)
-        cat("ncol = ", random.spec$ncol, "\n", sep = " ", file = file, append = TRUE)
+        cat("nrow = ", as.integer(random.spec$nrow), "\n", sep = " ", file = file, append = TRUE)
+        cat("ncol = ", as.integer(random.spec$ncol), "\n", sep = " ", file = file, append = TRUE)
 
         if (!is.null(random.spec$bvalue)) {
             cat("bvalue = ", random.spec$bvalue, "\n", sep = " ", file = file, append = TRUE)
@@ -445,9 +445,9 @@
             }
         }
     } else {
-        cat("n = ", n, "\n", sep = " ", file = file, append = TRUE)
+        cat("n = ", as.integer(n), "\n", sep = " ", file = file, append = TRUE)
     }
-    cat("nrep = ", inla.ifelse(is.null(nrep), 1, nrep), "\n", sep = " ", file = file, append = TRUE)
+    cat("nrep = ", inla.ifelse(is.null(nrep), 1, as.integer(nrep)), "\n", sep = " ", file = file, append = TRUE)
 
     if (!is.null(ngroup) && ngroup > 1) {
         cat("ngroup = ", ngroup, "\n", sep = " ", file = file, append = TRUE)
@@ -526,8 +526,8 @@
         ))
 
         ## dimensions
-        cat("z.n = ", Z.n, "\n", append = TRUE, sep = " ", file = file)
-        cat("z.m = ", Z.m, "\n", append = TRUE, sep = " ", file = file)
+        cat("z.n = ", as.integer(Z.n), "\n", append = TRUE, sep = " ", file = file)
+        cat("z.m = ", as.integer(Z.m), "\n", append = TRUE, sep = " ", file = file)
         ## matrix A
         file.A <- inla.tempfile(tmpdir = data.dir)
         inla.write.fmesher.file(A, filename = file.A)
@@ -553,8 +553,8 @@
         ## f()
         nC <- length(random.spec$Cmatrix)
         stopifnot(nC > 0L)
-        cat("generic3.n = ", random.spec$n, "\n", append = TRUE, sep = "", file = file)
-        cat("generic3.m = ", nC, "\n", append = TRUE, sep = "", file = file)
+        cat("generic3.n = ", as.integer(random.spec$n), "\n", append = TRUE, sep = "", file = file)
+        cat("generic3.m = ", as.integer(nC), "\n", append = TRUE, sep = "", file = file)
         for (k in 1L:nC) {
             file.A <- inla.tempfile(tmpdir = data.dir)
             inla.write.fmesher.file(inla.as.sparse(random.spec$Cmatrix[[k]]), filename = file.A)
@@ -586,10 +586,10 @@
         slm.n <- dim(X)[1L]
         slm.m <- dim(X)[2L]
 
-        cat("slm.n = ", slm.n, "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.m = ", slm.m, "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.min = ", random.spec$args.slm$rho.min, "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.max = ", random.spec$args.slm$rho.max, "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.n = ", as.integer(slm.n), "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.m = ", as.integer(slm.m), "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.min = ", as.integer(random.spec$args.slm$rho.min), "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.max = ", as.integer(random.spec$args.slm$rho.max), "\n", append = TRUE, sep = " ", file = file)
 
         ## matrix A1
         A1 <- cbind(
@@ -662,8 +662,8 @@
         ar1c.n <- dim(Z)[1L]
         ar1c.m <- dim(Z)[2L]
 
-        cat("ar1c.n = ", ar1c.n, "\n", append = TRUE, sep = " ", file = file)
-        cat("ar1c.m = ", ar1c.m, "\n", append = TRUE, sep = " ", file = file)
+        cat("ar1c.n = ", as.integer(ar1c.n), "\n", append = TRUE, sep = " ", file = file)
+        cat("ar1c.m = ", as.integer(ar1c.m), "\n", append = TRUE, sep = " ", file = file)
 
         ## matrix Z
         Z[ar1c.n, ] <- 0 ## not used
@@ -785,7 +785,7 @@
         shlib <- gsub(data.dir, "$inladatadir", shlib, fixed = TRUE)
         cat("cgeneric.shlib =", shlib, "\n", file = file, append = TRUE)
         cat("cgeneric.model =", random.spec$cgeneric$model$model, "\n", file = file, append = TRUE)
-        cat("cgeneric.n =", random.spec$cgeneric$model$n, "\n", file = file, append = TRUE)
+        cat("cgeneric.n =", as.integer(random.spec$cgeneric$model$n), "\n", file = file, append = TRUE)
         inla.write.boolean.field("cgeneric.debug", random.spec$cgeneric$model$debug, file)
         inla.write.boolean.field("cgeneric.q", random.spec$cgeneric$model$.q, file)
         if (!is.null(random.spec$cgeneric$model$.q) && random.spec$cgeneric$model$.q) {
@@ -1116,8 +1116,8 @@
     cat(inla.secsep("Predictor"), "\n", sep = " ", file = file, append = TRUE)
     cat("type = predictor\n", sep = " ", file = file, append = TRUE)
     cat("dir = predictor\n", sep = " ", file = file, append = TRUE)
-    cat("n = ", n, "\n", sep = " ", file = file, append = TRUE)
-    cat("m = ", m, "\n", sep = " ", file = file, append = TRUE)
+    cat("n = ", as.integer(n), "\n", sep = " ", file = file, append = TRUE)
+    cat("m = ", as.integer(m), "\n", sep = " ", file = file, append = TRUE)
 
     inla.write.boolean.field("fixed", predictor.spec$fixed, file)
     inla.write.boolean.field("compute", predictor.spec$compute, file)

@@ -307,7 +307,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
     } else if (inla.one.of(family, c(
-        "exponentialsurv", "weibullsurv", "weibullcure",
+        "exponentialsurv", "weibullsurv", 
         "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
         "gammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
@@ -335,8 +335,6 @@
             y.orig$event <- rep(1, len)
         }
 
-browser()
-        
         idx.cure <- grep("^cure[.]?[1-999]*", names(y.orig))
         for(i in idx.cure) {
             yy <- y.orig[, i]
