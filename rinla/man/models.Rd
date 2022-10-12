@@ -8829,7 +8829,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
-							\item{hyperid = }{`78010'}
+							\item{hyperid = }{`78020'}
 							\item{name = }{`beta1'}
 							\item{short.name = }{`beta1'}
 							\item{initial = }{`-4'}
@@ -8842,7 +8842,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta2'}{
 							 \describe{
-							\item{hyperid = }{`78011'}
+							\item{hyperid = }{`78021'}
 							\item{name = }{`beta2'}
 							\item{short.name = }{`beta2'}
 							\item{initial = }{`0'}
@@ -8855,7 +8855,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta3'}{
 							 \describe{
-							\item{hyperid = }{`78012'}
+							\item{hyperid = }{`78022'}
 							\item{name = }{`beta3'}
 							\item{short.name = }{`beta3'}
 							\item{initial = }{`0'}
@@ -8868,7 +8868,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta4'}{
 							 \describe{
-							\item{hyperid = }{`78013'}
+							\item{hyperid = }{`78023'}
 							\item{name = }{`beta4'}
 							\item{short.name = }{`beta4'}
 							\item{initial = }{`0'}
@@ -8881,7 +8881,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta5'}{
 							 \describe{
-							\item{hyperid = }{`78014'}
+							\item{hyperid = }{`78024'}
 							\item{name = }{`beta5'}
 							\item{short.name = }{`beta5'}
 							\item{initial = }{`0'}
@@ -8894,7 +8894,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta6'}{
 							 \describe{
-							\item{hyperid = }{`78015'}
+							\item{hyperid = }{`78025'}
 							\item{name = }{`beta6'}
 							\item{short.name = }{`beta6'}
 							\item{initial = }{`0'}
@@ -8907,7 +8907,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta7'}{
 							 \describe{
-							\item{hyperid = }{`78016'}
+							\item{hyperid = }{`78026'}
 							\item{name = }{`beta7'}
 							\item{short.name = }{`beta7'}
 							\item{initial = }{`0'}
@@ -8920,7 +8920,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta8'}{
 							 \describe{
-							\item{hyperid = }{`78017'}
+							\item{hyperid = }{`78027'}
 							\item{name = }{`beta8'}
 							\item{short.name = }{`beta8'}
 							\item{initial = }{`0'}
@@ -8933,7 +8933,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta9'}{
 							 \describe{
-							\item{hyperid = }{`78018'}
+							\item{hyperid = }{`78028'}
 							\item{name = }{`beta9'}
 							\item{short.name = }{`beta9'}
 							\item{initial = }{`0'}
@@ -8946,7 +8946,7 @@ inla.models()
 						}
 						\item{Hyperparameter `theta10'}{
 							 \describe{
-							\item{hyperid = }{`78019'}
+							\item{hyperid = }{`78029'}
 							\item{name = }{`beta10'}
 							\item{short.name = }{`beta10'}
 							\item{initial = }{`0'}
@@ -11023,7 +11023,7 @@ inla.models()
 					 \describe{
 						\item{Hyperparameter `theta'}{
 							 \describe{
-							\item{hyperid = }{`101201'}
+							\item{hyperid = }{`101301'}
 							\item{name = }{`tail'}
 							\item{short.name = }{`xi'}
 							\item{initial = }{`2'}

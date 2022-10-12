@@ -7476,7 +7476,7 @@
                     doc = "The Exponential likelihood (survival)",
                     hyper = list(
                         theta1 = list(
-                            hyperid = 78010,
+                            hyperid = 78020,
                             name = "beta1",
                             short.name = "beta1",
                             initial = -4,
@@ -7487,7 +7487,7 @@
                             from.theta = function(x) x
                         ),
                         theta2 = list(
-                            hyperid = 78011,
+                            hyperid = 78021,
                             name = "beta2",
                             short.name = "beta2",
                             initial = 0,
@@ -7498,7 +7498,7 @@
                             from.theta = function(x) x
                         ),
                         theta3 = list(
-                            hyperid = 78012,
+                            hyperid = 78022,
                             name = "beta3",
                             short.name = "beta3",
                             initial = 0,
@@ -7509,7 +7509,7 @@
                             from.theta = function(x) x
                         ),
                         theta4 = list(
-                            hyperid = 78013,
+                            hyperid = 78023,
                             name = "beta4",
                             short.name = "beta4",
                             initial = 0,
@@ -7520,7 +7520,7 @@
                             from.theta = function(x) x
                         ),
                         theta5 = list(
-                            hyperid = 78014,
+                            hyperid = 78024,
                             name = "beta5",
                             short.name = "beta5",
                             initial = 0,
@@ -7531,7 +7531,7 @@
                             from.theta = function(x) x
                         ),
                         theta6 = list(
-                            hyperid = 78015,
+                            hyperid = 78025,
                             name = "beta6",
                             short.name = "beta6",
                             initial = 0,
@@ -7542,7 +7542,7 @@
                             from.theta = function(x) x
                         ),
                         theta7 = list(
-                            hyperid = 78016,
+                            hyperid = 78026,
                             name = "beta7",
                             short.name = "beta7",
                             initial = 0,
@@ -7553,7 +7553,7 @@
                             from.theta = function(x) x
                         ),
                         theta8 = list(
-                            hyperid = 78017,
+                            hyperid = 78027,
                             name = "beta8",
                             short.name = "beta8",
                             initial = 0,
@@ -7564,7 +7564,7 @@
                             from.theta = function(x) x
                         ),
                         theta9 = list(
-                            hyperid = 78018,
+                            hyperid = 78028,
                             name = "beta9",
                             short.name = "beta9",
                             initial = 0,
@@ -7575,7 +7575,7 @@
                             from.theta = function(x) x
                         ),
                         theta10 = list(
-                            hyperid = 78019,
+                            hyperid = 78029,
                             name = "beta10",
                             short.name = "beta10",
                             initial = 0,
@@ -9266,7 +9266,7 @@
                     doc = "Discrete generalized Pareto likelihood",
                     hyper = list(
                         theta = list(
-                            hyperid = 101201,
+                            hyperid = 101301,
                             name = "tail",
                             short.name = "xi",
                             initial = 2,

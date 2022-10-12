@@ -15232,7 +15232,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_nprior = Calloc(CURE_MAXTHETA + 1, Prior_tp);
 		ds->data_observations.cure_beta = Calloc(CURE_MAXTHETA, double **);
 
-		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL"), G.log_prec_initial);
+		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), G.log_prec_initial);
 		ds->data_nfixed[0] = iniparser_getboolean(ini, inla_string_join(secname, "FIXED0"), 0);
 		if (!ds->data_nfixed[0] && mb->reuse_mode) {
 			tmp = mb->theta_file[mb->theta_counter_file++];
@@ -15274,7 +15274,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			char *ctmp;
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -15444,7 +15444,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			char *ctmp;
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
-			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
 
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
@@ -18893,7 +18893,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&ctmp, "beta%1d for Gamma-Cure", i);
+				GMRFLib_sprintf(&ctmp, "beta%1d for Weibull-Cure", i);
 
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
@@ -19080,7 +19080,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&ctmp, "beta%1d for Gamma-Cure", i);
+				GMRFLib_sprintf(&ctmp, "beta%1d for Gompertz-Cure", i);
 
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
