@@ -35063,7 +35063,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	mb->ai_par->vb_nodes_mean = vb_nodes;
 
 	double tref = GMRFLib_cpu();
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
@@ -35803,7 +35803,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	}
 
 	double tref = GMRFLib_cpu();
-	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_BUILD_MODEL, NULL, NULL);
+	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_GCPO_BUILD, NULL, NULL);
 	GMRFLib_preopt_init(&preopt,
 			    mb->predictor_n, mb->nf, mb->f_c, mb->f_weights,
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
