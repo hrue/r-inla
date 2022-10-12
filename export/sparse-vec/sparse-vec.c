@@ -78,6 +78,9 @@ void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *al
 		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
 double ddot_(int *len, double *x, int *incx, double *y, int *incy);
 
+#define GMRFLib_cpu() omp_get_wtime()
+#define GMRFLib_uniform() ((double) rand() / (1.0 + RAND_MAX))
+
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
 	// this uses g_idx and g_val
@@ -900,35 +903,27 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 	Free(tmp_work);
 
 	/*
-	 * Add a tag about which is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing this within
-	 * the parallel loop. Usually, this is a very quick procedure, so it does not really matter...
+	 * Add a tag about which option that is faster, the group or the serial algorithm, for each 'idxval'. I'm a little reluctant about doing
+	 * this within the parallel loop. Usually, this is a very quick procedure, so it does not really matter...
 	 */
 
-	nmax = 1;
+	nmax = 8;
 	for (int i = 0; i < n; i++) {
 		GMRFLib_idxval_tp *h = hold[i];
 		if (h->n) {
-			nmax = MAX(nmax, h->idx[h->n - 1]);
+			nmax = MAX(nmax, h->idx[h->n - 1] + 1);
 		}
 	}
-	nmax++;
 
-	SEED(nmax);
-	static double *work = NULL;
-	static int work_len = 0;
-	if (!work || nmax > work_len) {
-		work_len = nmax + 1024;
-		work = Calloc(work_len, double);
-		for (int j = 0; j < work_len; j++) {
-			work[j] = UNIFORM();
-		}
+	double *x = Calloc(nmax, double);
+	assert(x);
+	for (int i = 0; i < nmax; i++) {
+		x[i] = GMRFLib_uniform();
 	}
-	double *x = work;
 
 	double time_min = 0.0;
 	double time_max = 0.0;
-	int ntimes = 2;
-	int test_debug = SHOW_TEST_OUTPUT;
+	int ntimes = 1;
 
 	for (int i = 0; i < n; i++) {
 
@@ -939,25 +934,25 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		double tref[4] = { 0.0, 0.0, 0.0, 0.0 };
 		double value[4] = { 0.0, 0.0, 0.0, 0.0 };
 
-		if (test_debug) {
+		if (debug) {
 			printf("start testing for hold[%1d]...\n", i);
 		}
 		for (int time = -1; time < ntimes; time++) {
 			int measure = (time >= 0);
 			if (measure) {
-				tref[0] -= omp_get_wtime();
+				tref[0] -= GMRFLib_cpu();
 			}
 			value[0] = GMRFLib_dot_product_serial(hold[i], x);
 			if (measure) {
-				tref[0] += omp_get_wtime();
+				tref[0] += GMRFLib_cpu();
 			}
 #if defined(INLA_LINK_WITH_MKL)
 			if (measure) {
-				tref[1] -= omp_get_wtime();
+				tref[1] -= GMRFLib_cpu();
 			}
 			value[1] = GMRFLib_dot_product_serial_mkl(hold[i], x);
 			if (measure) {
-				tref[1] += omp_get_wtime();
+				tref[1] += GMRFLib_cpu();
 			}
 #else
 			value[1] = value[0];
@@ -965,19 +960,19 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 #endif
 
 			if (measure) {
-				tref[2] -= omp_get_wtime();
+				tref[2] -= GMRFLib_cpu();
 			}
 			value[2] = GMRFLib_dot_product_group(hold[i], x);
 			if (measure) {
-				tref[2] += omp_get_wtime();
+				tref[2] += GMRFLib_cpu();
 			}
 #if defined(INLA_LINK_WITH_MKL)
 			if (measure) {
-				tref[3] -= omp_get_wtime();
+				tref[3] -= GMRFLib_cpu();
 			}
 			value[3] = GMRFLib_dot_product_group_mkl(hold[i], x);
 			if (measure) {
-				tref[3] += omp_get_wtime();
+				tref[3] += GMRFLib_cpu();
 			}
 #else
 			value[3] = value[2];
@@ -987,11 +982,13 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 		for (int k = 1; k < 4; k++) {
 			// without cost, we can validate that the results is the same...
-			if ((ABS(value[k] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[k])) / 2.0)) > 1.0E-6) {
-				P(ABS(value[k] - value[0]) / (1.0 + (ABS(value[0]) + ABS(value[k])) / 2.0));
+			if (ABS(value[k] - value[0]) > FLT_EPSILON) {
+				P(ABS(value[k] - value[0]));
 				P(k);
 				P(value[0]);
-				P(value[k]);
+				P(value[1]);
+				P(value[2]);
+				P(value[3]);
 				assert(0 == 1);
 			}
 		}
@@ -1000,7 +997,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		double tmin = GMRFLib_min_value(tref, 4, &k);
 		double tmax = GMRFLib_max_value(tref, 4, NULL);
 
-		if (test_debug) {
+		if (0) {
 			double s = 1.0 / (tref[0] + tref[1] + tref[2] + tref[3]) / ntimes;
 			printf("for h[%1d] with n= %1d chose k=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
 			       i, hold[i]->n, k, tref[0] * s, tref[1] * s, tref[2] * s, tref[3] * s);
@@ -1044,7 +1041,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 		time_max += tmax / ntimes;
 	}
 
-	if (test_debug) {
+	if (0) {
 		if (time_min > 0.0) {
 			printf("idxval opt: saving %.6f seconds/M.evals, %.2f%% improvement\n",
 			       (time_max - time_min) * SQR(1024.0), 100.0 * (1.0 - time_min / time_max));
