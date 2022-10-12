@@ -34,7 +34,7 @@
     read.check <- function(x, h) {
         msg <- deparse(match.call())
         if (length(x) != h$elems) {
-              stop(paste("Reading file", filename, ". Fail to read", h$elems, ", got", length(x), "."))
+              stop(paste("Reading file", filename, ". Failed to read", h$elems, ", got", length(x), "."))
           }
         if (h$debug) {
               print(inla.paste(c(msg, x)))

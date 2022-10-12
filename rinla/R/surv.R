@@ -17,7 +17,7 @@
 ## !model  formula for the \code{\link{inla}} function for survival models.
 ## !}
 ## !\usage{
-## !inla.surv(time, event, time2, truncation, subject = NULL, .special = NULL)
+## !inla.surv(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL)
 ## !\method{plot}{inla.surv}(x, y, ...)
 ## !\method{print}{inla.surv}(x, ...)
 ## !is.inla.surv(object)
@@ -35,6 +35,7 @@
 ## !  \item{time2}{Ending time for the interval censored data or an in-interval event.}
 ## !  \item{truncation}{Left truncation. If missing it is assumed to be 0. The lower limit for event=4.}
 ## !  \item{subject}{Patient number in multiple event data, not needed otherwise. }
+## !  \item{cure}{A matrix of covariates that can be used with a cure-model. }
 ## !  \item{.special}{An internal object, not for public use}
 ## !  \item{object}{Any \code{R}-object}
 ## !  \item{x}{Object to plot or print}
@@ -85,11 +86,11 @@
 ## !
 ## !\keyword{Survival models}
 
-`inla.surv` <- function(time, event, time2, truncation, subject = NULL, .special = NULL) 
+`inla.surv` <- function(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL) 
 {
     ret <- NULL
     if (is.null(subject)) {
-        ret <- inla.surv.1(time, event, time2, truncation, .special = .special)
+        ret <- inla.surv.1(time, event, time2, truncation, cure, .special = .special)
     } else {
         if (!missing(time2)) {
             stop("Argument 'time2' is not allowed when 'subject' is used")
@@ -131,7 +132,7 @@
     }
 }
 
-`inla.surv.1` <- function(time, event, time2, truncation, .special = NULL)
+`inla.surv.1` <- function(time, event, time2, truncation, cure, .special = NULL)
 {
     ## check that time is present
     if (missing(time)) {
@@ -212,6 +213,11 @@
         stop("'truncation' is of the wrong dimension")
     }
 
+    if (!is.null(cure)) {
+        cure[is.na(cure)] <- 0
+        cure <- as.matrix(cure, ncor = nn)
+    }
+
     surv.time <- numeric(nn)
     surv.upper <- numeric(nn)
     surv.lower <- numeric(nn)
@@ -233,7 +239,7 @@
     truncation[ininterval] <- 0
     ss <- list(
         time = surv.time, lower = surv.lower, upper = surv.upper,
-        event = event, truncation = truncation, .special = .special
+        event = event, truncation = truncation, cure = cure, .special = .special
     )
     class(ss) <- "inla.surv"
 
@@ -331,7 +337,7 @@
 {
     if (is.list(object)) {
         for (nm in names(object)) {
-            if (!is.element(nm, c("event", "time", "lower", "upper", "truncation", ".special"))) {
+            if (!is.element(nm, c("event", "time", "lower", "upper", "truncation", "cure", ".special"))) {
                 stop(paste("Wrong name:", nm))
             }
         }

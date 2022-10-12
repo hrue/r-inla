@@ -49,7 +49,6 @@
 
 __BEGIN_DECLS
 #include <omp.h>
-
     typedef enum {
 	GMRFLib_OPENMP_STRATEGY_SMALL = 1,
 	GMRFLib_OPENMP_STRATEGY_MEDIUM,

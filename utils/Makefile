@@ -34,7 +34,7 @@ update-build-yourself :;
 
 www :;
 	$(MAKE) update-r-inla.org
-	-rsync -auv --exclude md5sum.txt --delete www/. ~/www/www.inla/. 
+	-rsync -auv --delete www/. ~/www/www.inla/. 
 
 md5 :; ./www/make-md5
 

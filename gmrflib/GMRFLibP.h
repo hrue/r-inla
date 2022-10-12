@@ -223,7 +223,7 @@ typedef enum {
 	_Pragma("omp threadprivate(debug_count_)")			\
 	debug_count_++;							\
 	if (debug_ < 0)	{						\
-		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
+		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName);	\
 	}
 
 #define GMRFLib_TRACE_INIT() static int trace_ = -1;			\
@@ -231,7 +231,7 @@ typedef enum {
 	_Pragma("omp threadprivate(trace_count_)")			\
 	trace_count_++;							\
 	if (trace_ < 0)	{						\
-		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName); \
+		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName);	\
 	}
 
 #define GMRFLib_DEBUG_IF_TRUE() (debug_)

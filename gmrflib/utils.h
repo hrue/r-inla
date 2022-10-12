@@ -107,6 +107,7 @@ int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
 int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format);
 int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
+int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff);
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);

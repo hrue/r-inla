@@ -763,10 +763,14 @@
     } else {
         nc <- NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
+            if (is.null(y...orig$cure)) {
+                y...orig$cure <- NULL
+            }
             class(y...orig) <- NULL
             ## this one is not passed along
             y...orig$.special <- NULL
-            ny <- max(sapply(y...orig, length))
+            ## we have to skip a possible matrix in ...$cure
+            ny <- max(sapply(y...orig, function(x) if (!is.matrix(x)) length(x) else 0))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
             ny <- max(sapply(y...orig, length))
@@ -2384,7 +2388,6 @@
         }
 
         my.time.used[3] <- Sys.time()
-
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,

@@ -537,12 +537,11 @@ void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
 	if (array[guess[0]] <= key) {
 		low = guess[0];
 	}
-	
+
 	base += low;
 	mid = top = n - low;
 
-	while (mid) 
-	{
+	while (mid) {
 		mid = top / 2;
 		piv = base + mid;
 		val = key - *piv;
@@ -564,8 +563,7 @@ void *GMRFLib_bsearch(int key, int n, int *array)
 	int mid, top, val, *piv, *base = array;
 	mid = top = n;
 
-	while (mid) 
-	{
+	while (mid) {
 		mid = top / 2;
 		piv = base + mid;
 		val = key - *piv;
@@ -583,15 +581,15 @@ void *GMRFLib_bsearch(int key, int n, int *array)
 
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 {
-        int imin, imax;
-        if (node < nnode) {
-                imin = node;
-                imax = nnode;
-        } else {
-                assert(node != nnode);
-                imin = nnode;
-                imax = node;
-        }
+	int imin, imax;
+	if (node < nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		assert(node != nnode);
+		imin = nnode;
+		imax = node;
+	}
 
 	int m = graph->lnnbs[imin];
 	if (m) {
@@ -599,11 +597,11 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 		if (nnode <= nb[m - 1]) {
 			return (GMRFLib_bsearch(imax, m, nb) != NULL);
 		}
-	} 
+	}
 	return 0;
 }
 
-int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int * g)
+int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int *g)
 {
 	/*
 	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
@@ -987,7 +985,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
 {
 	/*
-	 * there is no need to do call _prepare_graph is the old graph is assumed to be ok. 
+	 * there is no need to do call _prepare_graph as the old graph is assumed to be ok. 
 	 */
 	int m, i, n, *hold = NULL, hold_idx;
 	GMRFLib_graph_tp *g = NULL;

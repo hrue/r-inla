@@ -307,7 +307,7 @@
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
     } else if (inla.one.of(family, c(
-        "exponentialsurv", "weibullsurv", "weibullcure",
+        "exponentialsurv", "weibullsurv", 
         "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
         "gammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
@@ -335,6 +335,13 @@
             y.orig$event <- rep(1, len)
         }
 
+        idx.cure <- grep("^cure[.]?[1-999]*", names(y.orig))
+        for(i in idx.cure) {
+            yy <- y.orig[, i]
+            yy[is.na(yy)] <- 0
+            y.orig[, i] <- yy
+        }
+
         idx <- !is.na(y.orig$time)
         response <- cbind(
             ind[idx],
@@ -342,8 +349,10 @@
             y.orig$truncation[idx],
             y.orig$lower[idx],
             y.orig$upper[idx],
+            y.orig[, idx.cure], 
             y.orig$time[idx]
         )
+
         if (any(is.na(response))) {
             file.remove(file)
             file.remove(data.dir)

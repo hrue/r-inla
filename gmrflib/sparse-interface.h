@@ -67,7 +67,7 @@ typedef enum {
 	/**
 	 * \brief Lapack's band-solver
 	 */
-	GMRFLib_SMTP_INVALID = -1, 
+	GMRFLib_SMTP_INVALID = -1,
 	GMRFLib_SMTP_BAND = 1,
 	GMRFLib_SMTP_TAUCS = 2,
 	GMRFLib_SMTP_PARDISO = 3,

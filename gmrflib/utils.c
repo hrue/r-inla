@@ -137,7 +137,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
+	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -154,7 +154,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -171,7 +171,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to realloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -233,7 +233,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restri
 	int low, high;
 
 	low = (val >= ix[guess[0]] ? guess[0] : 0);
-	high = (val <= ix[guess[1]] ? guess[1] : len -1);
+	high = (val <= ix[guess[1]] ? guess[1] : len - 1);
 
 	while (1) {
 		int range = high - low;
@@ -241,7 +241,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restri
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
 					guess[0] = i;
-					guess[1] = high; 
+					guess[1] = high;
 					return i;
 				}
 			}
@@ -249,7 +249,7 @@ int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restri
 			guess[1] = high;
 			return -1;
 		} else {
-			int mid = low + range / 2L;		       /* integer division */
+			int mid = low + range / 2L;	       /* integer division */
 			if (ix[mid] > val) {
 				high = mid;
 			} else {
@@ -303,8 +303,7 @@ int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__res
 	}
 	base += low;
 	mid = top = len - low;
-	while (mid) 
-	{
+	while (mid) {
 		mid = top / 2;
 		piv = base + mid;
 		val = key - *piv;
@@ -326,8 +325,7 @@ int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
 	int mid, top, val, *piv = NULL, *base = ix;
 
 	mid = top = len;
-	while (mid) 
-	{
+	while (mid) {
 		mid = top / 2;
 		piv = base + mid;
 		val = key - *piv;
@@ -742,6 +740,24 @@ int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format
 	for (i = 0; i < matrix->size1; i++) {
 		for (j = 0; j < matrix->size2; j++) {
 			fprintf(fp, (format ? format : " %g"), gsl_matrix_get(matrix, i, j));
+		}
+		fprintf(fp, "\n");
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff)
+{
+	size_t i, j;
+
+	for (i = 0; i < matrix->size1; i++) {
+		for (j = 0; j < matrix->size2; j++) {
+			double a = gsl_matrix_get(matrix, i, j);
+			if (ABS(a) > cutoff) {
+				fprintf(fp, (format ? format : " %g"), gsl_matrix_get(matrix, i, j));
+			} else {
+				fprintf(fp, "\t %s", "  . ");
+			}
 		}
 		fprintf(fp, "\n");
 	}
@@ -1256,7 +1272,7 @@ int GMRFLib_debug_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss, *sss;
+				char *ss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1276,10 +1292,9 @@ int GMRFLib_debug_functions(const char *name)
 					first[idx] = 2;
 				}
 
-				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", sss);
+					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1287,7 +1302,7 @@ int GMRFLib_debug_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
 				}
 			}
 		}
@@ -1296,7 +1311,7 @@ int GMRFLib_debug_functions(const char *name)
 	if (!name) {
 		return 0;
 	} else {
-		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
 		return (p ? *p : 0);
 	}
 }
@@ -1353,7 +1368,7 @@ int GMRFLib_trace_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss, *sss;
+				char *ss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1373,10 +1388,9 @@ int GMRFLib_trace_functions(const char *name)
 					first[idx] = 2;
 				}
 
-				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", sss);
+					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1384,7 +1398,7 @@ int GMRFLib_trace_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
 				}
 			}
 		}
@@ -1393,11 +1407,10 @@ int GMRFLib_trace_functions(const char *name)
 	if (!name) {
 		return 0;
 	} else {
-		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
 		return (p ? *p : 0);
 	}
 }
-
 
 // ******************************************************************************************
 

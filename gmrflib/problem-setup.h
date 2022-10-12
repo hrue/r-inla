@@ -105,6 +105,7 @@ __BEGIN_DECLS
 
 	unsigned char *sha;
 	unsigned char is_scaled;
+	unsigned char is_prepared;
 
 	/**
 	 *  \brief Number of constaints, can be 0. 
@@ -131,6 +132,9 @@ __BEGIN_DECLS
 	// 'jlen' is the length from the first non-zero to the last non-zero, like j.last-j.first+1
 	int *jfirst;
 	int *jlen;
+
+
+	GMRFLib_idxval_tp **idxval;
 
 } GMRFLib_constr_tp;
 

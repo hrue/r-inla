@@ -78,10 +78,7 @@
 #define GMRFLib_IO_ERR_READBYTES  4
 #define GMRFLib_IO_ERR_WRITEBYTES 5
 
-__BEGIN_DECLS
-
-
-    typedef struct {
+__BEGIN_DECLS typedef struct {
 	char *filename;
 	char *mode;
 	char *strtok_ptr;

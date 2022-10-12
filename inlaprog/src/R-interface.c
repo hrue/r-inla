@@ -61,20 +61,17 @@
 #define __BEGIN_DECLS extern "C" {
 #define __END_DECLS }
 #else
-#define __BEGIN_DECLS                                          /* empty */
-#define __END_DECLS                                            /* empty */
+#define __BEGIN_DECLS					       /* empty */
+#define __END_DECLS					       /* empty */
 #endif
 
-__BEGIN_DECLS
-
-int my_file_exists(const char *filename);
+__BEGIN_DECLS int my_file_exists(const char *filename);
 int my_dir_exists(const char *filename);
 int my_setenv(char *str, int prefix);
 int GMRFLib_sprintf(char **ptr, const char *fmt, ...);
 void GMRFLib_delay(int msec);
 
 __END_DECLS
-
 #include "R-interface.h"
 static int R_init = 1;
 static int R_debug = 0;

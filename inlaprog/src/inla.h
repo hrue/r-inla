@@ -198,7 +198,6 @@ typedef enum {
 	L_ZEROINFLATEDPOISSON2,
 	L_ZERO_N_INFLATEDBINOMIAL2,
 	L_ZERO_N_INFLATEDBINOMIAL3,
-	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LOGGAMMA_FRAILTY,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
@@ -536,6 +535,10 @@ typedef struct {
 	double *upper;					       /* for survival */
 	// double *time == y
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
+
+	int cure_ncov;
+	double *cure_cov;
+	double ***cure_beta;
 
 	/*
 	 * zero-inflated Poission/Binomial/NegativeBinomial/BetaBinomial version 0/1/2...
@@ -1757,7 +1760,6 @@ double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
-double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
@@ -2017,6 +2019,8 @@ int loglikelihood_gompertzsurv(int thread_id, double *logll, double *x, int m, i
 int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       GMRFLib_logl_tp * loglfun);
+int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+				   GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2057,7 +2061,6 @@ int loglikelihood_testit(int thread_id, double *logll, double *x, int m, int idx
 int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_weibull_cure(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibullsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_wrapped_cauchy(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);

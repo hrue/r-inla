@@ -218,7 +218,8 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 	for (int k = 0; k < storage[id]->K; k++) {			\
 		int i = storage[id]->ii[k], j = storage[id]->jj[k], incx = m, incy = 1;	\
 		double value;						\
-		value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
+		if (0) value = ddot_(&(constr->jlen[i]), &(A[i + m * constr->jfirst[i]]), &incx, &(B[j * n + constr->jfirst[i]]), &incy); \
+		value = GMRFLib_dot_product(constr->idxval[i], B + j * n); \
 		C[i + j * m] = C[j + i * m] = value;			\
 	}
 
@@ -314,13 +315,7 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 {
 	// compute 'res = A %*% x'
 
-	int nc = constr->nc, inc = 1;
-
-#define CODE_BLOCK							\
-	for (int i = 0; i < nc; i++) {					\
-		res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); \
-	}
-
+	int nc = constr->nc;
 	int nt = 0;
 
 	// can be used on third level
@@ -329,6 +324,14 @@ int dgemv_special(double *res, double *x, GMRFLib_constr_tp * constr)
 	} else {
 		nt = (nc > GMRFLib_MAX_THREADS()? GMRFLib_MAX_THREADS() : 1);
 	}
+
+#define CODE_BLOCK							\
+	for (int i = 0; i < nc; i++) {					\
+		res[i] = GMRFLib_dot_product(constr->idxval[i], x);	\
+	}
+
+	// res[i] = ddot_(&(constr->jlen[i]), &(constr->a_matrix[i + nc * constr->jfirst[i]]), &nc, &(x[constr->jfirst[i]]), &inc); 
+
 	RUN_CODE_BLOCK(nt, 0, 0);
 #undef CODE_BLOCK
 
@@ -1198,6 +1201,14 @@ int GMRFLib_free_constr(GMRFLib_constr_tp * constr)
 	Free(constr->e_vector);
 	Free(constr->jfirst);
 	// Free(constr->jlen); included in jfirst
+
+	if (constr->idxval) {
+		for (int i = 0; i < constr->nc; i++) {
+			GMRFLib_idxval_free(constr->idxval[i]);
+		}
+		Free(constr->idxval);
+	}
+
 	Free(constr->sha);
 	Free(constr);
 
@@ -1234,9 +1245,9 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 	/*
 	 * prepare a constraint
 	 */
-	int i, j, nc, k, n;
+	int nc, n;
 
-	if (!constr) {
+	if (!constr || constr->is_prepared) {
 		return GMRFLib_SUCCESS;
 	}
 
@@ -1244,8 +1255,10 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 	n = graph->n;
 
 	if (scale_constr && !(constr->is_scaled)) {
-		// scale the constraints so that max(|A[i,]|)=1 
-		for (k = 0; k < nc; k++) {
+		/*
+		 * scale the constraints so that max(|A[i,]|)=1 
+		 */
+		for (int k = 0; k < nc; k++) {
 			int idx = idamax_(&n, constr->a_matrix + k, &nc) - 1;
 			double a = 1.0 / ABS(constr->a_matrix[idx * nc + k]);
 			if (!ISEQUAL(a, 1.0)) {
@@ -1259,15 +1272,15 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 	constr->jfirst = Calloc(2 * nc, int);
 	constr->jlen = constr->jfirst + nc;
 
-	for (i = 0; i < nc; i++) {
+	for (int i = 0; i < nc; i++) {
 		double *a = constr->a_matrix + i;
-		for (j = 0; j < n; j++) {
+		for (int j = 0; j < n; j++) {
 			if (!ISZERO(a[j * nc])) {
 				constr->jfirst[i] = j;
 				break;
 			}
 		}
-		for (j = n - 1; j >= 0; j--) {
+		for (int j = n - 1; j >= 0; j--) {
 			if (!ISZERO(a[j * nc])) {
 				constr->jlen[i] = j - constr->jfirst[i] + 1;
 				break;
@@ -1275,89 +1288,20 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 		}
 	}
 
-	GMRFLib_constr_add_sha(constr, graph);
-
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_prepare_constr_ORIG(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph, int scale_constr)
-{
-	/*
-	 * prepare a constraint
-	 */
-	int i, j, nc, k, n;
-	const int debug = 0;
-	double *scale = NULL;
-
-	if (!constr) {
-		return GMRFLib_SUCCESS;
-	}
-
-	nc = constr->nc;
-	n = graph->n;
-
-	if (scale_constr) {
-
-		/*
-		 * first, scale the constraints so that max(|A[i,]|)=1 
-		 */
-		int need_scaling = 0;
-
-		scale = Calloc(nc, double);
-
-		for (k = 0; k < nc; k++) {
-			for (i = 0; i < n; i++) {
-				scale[k] = DMAX(scale[k], ABS(constr->a_matrix[i * nc + k]));
-			}
-		}
-
-		if (debug) {
-			for (k = 0; k < nc; k++) {
-				printf("scale A[%1d,] .... %f\n", k, scale[k]);
-			}
-		}
-
-		for (k = 0, need_scaling = 0; k < nc; k++) {
-			need_scaling = (need_scaling || (scale[k] != 1.0));
-		}
-
-		if (need_scaling) {
-			if (debug) {
-				printf("need scaling\n");
-			}
-
-			for (k = 0; k < nc; k++) {
-				for (i = 0; i < n; i++) {
-					constr->a_matrix[i * nc + k] /= scale[k];
-				}
-				constr->e_vector[k] /= scale[k];
-			}
-		}
-		Free(scale);
-		if (debug) {
-			printf("scaled constr\n");
-			GMRFLib_printf_constr(stdout, constr, graph);
-		}
-	}
-
-	constr->jfirst = Calloc(2 * nc, int);
-	constr->jlen = constr->jfirst + nc;
-	for (i = 0; i < nc; i++) {
-		for (j = 0; j < n; j++) {
-			if (constr->a_matrix[i + j * nc] != 0.0) {
-				constr->jfirst[i] = j;
-				break;
-			}
-		}
-		for (j = n - 1; j >= 0; j--) {
-			if (constr->a_matrix[i + j * nc] != 0.0) {
-				constr->jlen[i] = j - constr->jfirst[i] + 1;
-				break;
+	constr->idxval = Calloc(nc, GMRFLib_idxval_tp *);
+	for (int i = 0; i < nc; i++) {
+		double *a = constr->a_matrix;
+		for (int j = 0; j < n; j++) {
+			int k = i + j * nc;
+			if (!ISZERO(a[k])) {
+				GMRFLib_idxval_add(&(constr->idxval[i]), j, a[k]);
 			}
 		}
 	}
+	GMRFLib_idxval_nsort_x(constr->idxval, nc, 1, -1);
 
 	GMRFLib_constr_add_sha(constr, graph);
+	constr->is_prepared = 1;
 
 	return GMRFLib_SUCCESS;
 }
@@ -1479,7 +1423,6 @@ int GMRFLib_duplicate_constr(GMRFLib_constr_tp ** new_constr, GMRFLib_constr_tp 
 	}
 
 	GMRFLib_recomp_constr(new_constr, constr, NULL, NULL, NULL, graph, NULL);
-
 
 	if (constr_store_use && constr->sha) {
 		if (constr_store_debug) {

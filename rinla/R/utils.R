@@ -648,7 +648,7 @@
     result <- try(dir.create(dir, showWarnings = showWarnings, recursive = recursive, mode = mode))
     if ((inherits(result, "try-error") || !result)) {
         if (StopOnError) {
-            stop(paste("Fail to create directory [", dir, "]. Stop.", sep = ""))
+            stop(paste("Failed to create directory [", dir, "]. Stop.", sep = ""))
         }
         result <- NULL
     }
@@ -716,7 +716,12 @@
 `inla.source2function` <- function(the.source, newline = "<<NEWLINE>>") {
     ## take function source, output from inla.function2source(), and
     ## return the function, using 'newline' as newline.
-    return(inla.eval(strsplit(the.source, split = newline)[[1L]]))
+    if (the.source == "(null)") {
+        warning("'the.source' is NULL, us identity-mapping")
+        return(inla.eval("function(x) x"))
+    } else {
+        return(inla.eval(strsplit(the.source, split = newline)[[1L]]))
+    }
 }
 
 `inla.writeLines` <- function(filename, lines) {

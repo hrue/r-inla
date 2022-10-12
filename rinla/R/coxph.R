@@ -113,7 +113,7 @@
     data.l <- inla.fix.data(data, len.y.surv, revert = TRUE)
     data.f <- try(as.data.frame(data.f), silent = TRUE)
     if (inherits(data.f, "try-error")) {
-        stop("Fail to convert 'data' into a 'data.frame' even after 'inla.fix.data'.")
+        stop("Failed to convert 'data' into a 'data.frame' even after 'inla.fix.data'.")
     }
 
     if (class(y.surv) != "inla.surv") {
