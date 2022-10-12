@@ -919,7 +919,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_z
 
 	double time_min = 0.0;
 	double time_max = 0.0;
-	int ntimes = 2;
+	int ntimes = 1;
 
 	for (int i = 0; i < n; i++) {
 
