@@ -539,7 +539,7 @@ typedef struct {
 	int cure_ncov;
 	double *cure_cov;
 	double ***cure_beta;
-	
+
 	/*
 	 * zero-inflated Poission/Binomial/NegativeBinomial/BetaBinomial version 0/1/2...
 	 */
@@ -2020,7 +2020,7 @@ int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       GMRFLib_logl_tp * loglfun);
 int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			       GMRFLib_logl_tp * loglfun);
+				   GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
