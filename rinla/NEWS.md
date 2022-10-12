@@ -1,3 +1,6 @@
+# INLA 22.10.13
+* Bug fix
+
 # INLA 22.10.12
 * Added new experimental cure-model for parametric survival
   (documentation will come later).
