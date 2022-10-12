@@ -1697,12 +1697,8 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 		np->sub_constr = NULL;
 	} else {
 		if (problem->sub_constr) {
-			GMRFLib_make_empty_constr(&(np->sub_constr));
-			COPY(sub_constr->nc);
-			DUPLICATE(sub_constr->a_matrix, nc * ns, double, 0);
-			DUPLICATE(sub_constr->e_vector, nc, double, 0);
-			DUPLICATE(sub_constr->jfirst, nc, int, 0);
-			DUPLICATE(sub_constr->jlen, nc, int, 0);
+			// this will make use of the cache
+			GMRFLib_duplicate_constr(&(np->sub_constr) , problem->sub_constr, problem->sub_graph);
 		} else {
 			COPY(sub_constr);
 		}
