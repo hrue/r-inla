@@ -35881,7 +35881,6 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 	}
 
-
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 	if (mb->verbose) {
 		printf("\tMode....................... [%s]\n", GMRFLib_MODE_NAME());
@@ -35897,6 +35896,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
+		printf("\tOptimizing sort2 cut-off... [%1d]\n", GMRFLib_sort2_cut_off);
 		printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
 		       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
 		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
@@ -41404,7 +41404,7 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_add(&h, 25070, 1);
 		GMRFLib_idxval_add(&h, 25075, 1);
 
-		GMRFLib_idxval_nsort_x(&h, 1, 1, -1);
+		GMRFLib_idxval_nsort_x(&h, 1, 1, 1, 1);
 	}
 		break;
 
@@ -41462,7 +41462,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
 		assert(h);
 		P(n);
 		P(h->g_n);
@@ -41508,7 +41508,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
 		P(n);
 		P(m);
 		P(h->g_n);
@@ -41678,7 +41678,7 @@ int testit(int argc, char **argv)
 			}
 			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 0);
+		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
 		if (n == 0) {
 			FIXME("n = 0,  try again.");
 			exit(0);
@@ -41880,6 +41880,85 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 95: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		int *ix = Calloc(n, int);
+		double *x = Calloc(n, double);
+
+		double tref = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) ((2 * n) * GMRFLib_uniform());
+				x[j] = GMRFLib_uniform();
+			}
+
+			if (0) {
+				for(int j = 0; j < n; j++){
+					printf("before j %d ix %d x %f\n", j, ix[j], x[j]);
+				}
+			}
+
+			tref -= GMRFLib_cpu();
+			my_insertionSort_id(ix, x, n);
+			tref += GMRFLib_cpu();
+
+			if (0) {
+				for(int j = 0; j < n; j++){
+					printf("after j %d ix %d x %f\n", j, ix[j], x[j]);
+				}
+			}
+
+			int errors = 0;
+			for(int j = 1;  j < n; j++) {
+				errors +=  (ix[j] < ix[j-1]);
+			}
+			assert(errors == 0);
+		}
+
+		double tref2 = 0.0;
+		for (int i = 0; i < m; i++) {
+			for (int j = 0; j < n; j++) {
+				ix[j] = (int) ((2 * n) * GMRFLib_uniform());
+				x[j] = GMRFLib_uniform();
+			}
+
+			if (1) {
+				for(int j = 0; j < n; j++){
+					printf("before j %d ix %d x %f\n", j, ix[j], x[j]);
+				}
+			}
+
+			tref2 -= GMRFLib_cpu();
+			gsl_sort2_id(ix, x, n);
+			tref2 += GMRFLib_cpu();
+
+			if (1) {
+				for(int j = 0; j < n; j++){
+					printf("after j %d ix %d x %f\n", j, ix[j], x[j]);
+				}
+			}
+
+			int errors = 0;
+			for(int j = 1;  j < n; j++) {
+				errors +=  (ix[j] < ix[j-1]);
+			}
+			assert(errors == 0);
+		}
+
+		printf("insert %g sort2 %g  insert/sort2 =  %g\n", tref, tref2, tref/tref2);
+	}
+	break;
+
+	case 96: 
+	{
+		int n = my_sort2_test_cutoff(1);
+		printf("cutoff = %d\n", n);
+	}
+	break;
 
 	case 999:
 	{
@@ -41953,6 +42032,7 @@ int main(int argc, char **argv)
 	GMRFLib_debug_functions(NULL);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
+	my_sort2_test_cutoff(0);
 
 	/*
 	 * special option: if one of the arguments is `--ping', then just return INLA[<VERSION>] IS ALIVE 

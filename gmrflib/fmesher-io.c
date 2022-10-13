@@ -698,7 +698,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M)
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M, int sort)
 {
 	/*
 	 * store values in 'row', must be NULL on entry. 
@@ -714,7 +714,15 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matri
 			for (ptr = NULL; (ptr = map_id_nextptr(M->htable[i], ptr)) != NULL;) {
 				GMRFLib_idxval_add(row, ptr->key, ptr->value);
 			}
-			GMRFLib_idxval_sort(*row);
+			if (sort) {
+				int is_sorted = 1;
+				for(int i = 1; i < (*row)->n && is_sorted; i++) {
+					is_sorted = is_sorted && ((*row)->idx[i] >= (*row)->idx[i-1]);
+				}
+				if (!is_sorted) {
+					GMRFLib_idxval_sort(*row);
+				}
+			}
 		}
 	} else {
 		FIXME("NOT IMPLEMENTED");
