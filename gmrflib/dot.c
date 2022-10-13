@@ -207,26 +207,32 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 
 double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
-	switch (ELM_->preference) {
-	case IDXVAL_SERIAL:
-		return (GMRFLib_dot_product_serial(ELM_, ARR_));
-		break;
-	case IDXVAL_SERIAL_MKL:
+	// so it does not fail for not-prepared ones
+	if (ELM_->g_n == 0) {
 		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
-		break;
-	case IDXVAL_GROUP:
-		return (GMRFLib_dot_product_group(ELM_, ARR_));
-		break;
-	case IDXVAL_GROUP_MKL:
-		return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
-		break;
-	case IDXVAL_UNKNOWN:
-		FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
-		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
-		break;
-	default:
-		assert(0 == 1);
-		break;
+	} else {
+		switch (ELM_->preference) {
+		case IDXVAL_SERIAL:
+			return (GMRFLib_dot_product_serial(ELM_, ARR_));
+			break;
+		case IDXVAL_SERIAL_MKL:
+			return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
+			break;
+		case IDXVAL_GROUP:
+			return (GMRFLib_dot_product_group(ELM_, ARR_));
+			break;
+		case IDXVAL_GROUP_MKL:
+			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
+			break;
+		case IDXVAL_UNKNOWN:
+			if (0)
+				FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
+			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
+			break;
+		default:
+			assert(0 == 1);
+			break;
+		}
 	}
 	assert(0 == 1);
 

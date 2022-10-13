@@ -1298,7 +1298,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 			}
 		}
 	}
-	GMRFLib_idxval_nsort_x(constr->idxval, nc, 1, -1);
+	GMRFLib_idxval_nsort_x(constr->idxval, nc, 1, 1, 1);
 
 	GMRFLib_constr_add_sha(constr, graph);
 	constr->is_prepared = 1;
@@ -1698,7 +1698,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	} else {
 		if (problem->sub_constr) {
 			// this will make use of the cache
-			GMRFLib_duplicate_constr(&(np->sub_constr) , problem->sub_constr, problem->sub_graph);
+			GMRFLib_duplicate_constr(&(np->sub_constr), problem->sub_constr, problem->sub_graph);
 		} else {
 			COPY(sub_constr);
 		}

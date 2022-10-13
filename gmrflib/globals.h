@@ -137,6 +137,8 @@ extern double GMRFLib_weight_prob;
 extern double GMRFLib_weight_prob_one;
 extern double **GMRFLib_dot_product_optim_report;
 
+extern int GMRFLib_sort2_cut_off;
+
 #endif
 __END_DECLS
 #endif
