@@ -9287,9 +9287,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -41880,7 +41880,7 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 95: 
+	case 95:
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
@@ -41897,7 +41897,7 @@ int testit(int argc, char **argv)
 			}
 
 			if (0) {
-				for(int j = 0; j < n; j++){
+				for (int j = 0; j < n; j++) {
 					printf("before j %d ix %d x %f\n", j, ix[j], x[j]);
 				}
 			}
@@ -41907,14 +41907,14 @@ int testit(int argc, char **argv)
 			tref += GMRFLib_cpu();
 
 			if (0) {
-				for(int j = 0; j < n; j++){
+				for (int j = 0; j < n; j++) {
 					printf("after j %d ix %d x %f\n", j, ix[j], x[j]);
 				}
 			}
 
 			int errors = 0;
-			for(int j = 1;  j < n; j++) {
-				errors +=  (ix[j] < ix[j-1]);
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
 			}
 			assert(errors == 0);
 		}
@@ -41927,7 +41927,7 @@ int testit(int argc, char **argv)
 			}
 
 			if (1) {
-				for(int j = 0; j < n; j++){
+				for (int j = 0; j < n; j++) {
 					printf("before j %d ix %d x %f\n", j, ix[j], x[j]);
 				}
 			}
@@ -41937,28 +41937,28 @@ int testit(int argc, char **argv)
 			tref2 += GMRFLib_cpu();
 
 			if (1) {
-				for(int j = 0; j < n; j++){
+				for (int j = 0; j < n; j++) {
 					printf("after j %d ix %d x %f\n", j, ix[j], x[j]);
 				}
 			}
 
 			int errors = 0;
-			for(int j = 1;  j < n; j++) {
-				errors +=  (ix[j] < ix[j-1]);
+			for (int j = 1; j < n; j++) {
+				errors += (ix[j] < ix[j - 1]);
 			}
 			assert(errors == 0);
 		}
 
-		printf("insert %g sort2 %g  insert/sort2 =  %g\n", tref, tref2, tref/tref2);
+		printf("insert %g sort2 %g  insert/sort2 =  %g\n", tref, tref2, tref / tref2);
 	}
-	break;
+		break;
 
-	case 96: 
+	case 96:
 	{
 		int n = my_sort2_test_cutoff(1);
 		printf("cutoff = %d\n", n);
 	}
-	break;
+		break;
 
 	case 999:
 	{

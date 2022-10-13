@@ -225,7 +225,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 			break;
 		case IDXVAL_UNKNOWN:
-			if (0) FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
+			if (0)
+				FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
 			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 			break;
 		default:

@@ -1468,6 +1468,7 @@ int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content)
 }
 
 // ****************************************************************************************
+
 /*
  * Implement Heap sort -- direct and indirect sorting
  * Based on descriptions in Sedgewick "Algorithms in C"
@@ -1487,7 +1488,7 @@ int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content)
  * for more details.
  */
 
-void my_downheap2_id (int * __restrict data1, double * __restrict data2, const int N, int k)
+void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int N, int k)
 {
 	int v1 = data1[k];
 	double v2 = data2[k];
@@ -1498,7 +1499,7 @@ void my_downheap2_id (int * __restrict data1, double * __restrict data2, const i
 			j++;
 		}
 
-		if (!(v1 < data1[j]))  {
+		if (!(v1 < data1[j])) {
 			break;
 		}
 
@@ -1510,20 +1511,21 @@ void my_downheap2_id (int * __restrict data1, double * __restrict data2, const i
 	data2[k] = v2;
 }
 
-void gsl_sort2_id(int * __restrict data1, double * __restrict data2, const int n)
+void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n)
 {
 	int N, k;
 
 	if (n == 0) {
-		return;                   /* No data to sort */
+		return;					       /* No data to sort */
 	}
 
-	/* We have n_data elements, last element is at 'n_data-1', first at
-	   '0' Set N to the last element number. */
+	/*
+	 * We have n_data elements, last element is at 'n_data-1', first at '0' Set N to the last element number. 
+	 */
 
 	N = n - 1;
 	k = N / 2;
-	k++;                          /* Compensate the first use of 'k--' */
+	k++;						       /* Compensate the first use of 'k--' */
 	do {
 		k--;
 		my_downheap2_id(data1, data2, N, k);
@@ -1538,17 +1540,18 @@ void gsl_sort2_id(int * __restrict data1, double * __restrict data2, const int n
 		data2[0] = data2[N];
 		data2[N] = tmp2;
 
-		/* then process the heap */
+		/*
+		 * then process the heap 
+		 */
 		N--;
 		my_downheap2_id(data1, data2, N, 0);
 	}
 }
 
-void my_insertionSort_id(int * __restrict iarr, double * __restrict darr, int n)
+void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n)
 {
 	if (darr) {
-		for (int i = 1; i < n; i++) 
-		{
+		for (int i = 1; i < n; i++) {
 			int key = iarr[i];
 			double dkey = darr[i];
 			int j = i - 1;
@@ -1561,8 +1564,7 @@ void my_insertionSort_id(int * __restrict iarr, double * __restrict darr, int n)
 			darr[j + 1] = dkey;
 		}
 	} else {
-		for (int i = 1; i < n; i++) 
-		{
+		for (int i = 1; i < n; i++) {
 			int key = iarr[i];
 			int j = i - 1;
 			while (j >= 0 && iarr[j] > key) {
@@ -1574,7 +1576,7 @@ void my_insertionSort_id(int * __restrict iarr, double * __restrict darr, int n)
 	}
 }
 
-void my_sort2_id(int * __restrict ix, double * __restrict x, int n)
+void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 {
 	if (n < GMRFLib_sort2_cut_off) {
 		my_insertionSort_id(ix, x, n);
@@ -1582,14 +1584,14 @@ void my_sort2_id(int * __restrict ix, double * __restrict x, int n)
 		gsl_sort2_id(ix, x, n);
 	}
 }
-		
-int my_sort2_test_cutoff(int verbose) 
+
+int my_sort2_test_cutoff(int verbose)
 {
 	const int nmax = 384;
 	const int nmin = 64;
 	const int nstep = 64;
 	const int ntimes = 200;
-	
+
 	double time_used = 0.0;
 	int *ix = Calloc(2 * nmax, int);
 	double *x = Calloc(2 * nmax, double);
@@ -1608,8 +1610,8 @@ int my_sort2_test_cutoff(int verbose)
 
 		int *ixx = ix + nmax;
 		double *xx = x + nmax;
-		double time[2] = {0.0, 0.0};
-			
+		double time[2] = { 0.0, 0.0 };
+
 		for (int times = -2; times < ntimes; times++) {
 
 			for (int i = 0; i < n; i++) {
@@ -1630,12 +1632,12 @@ int my_sort2_test_cutoff(int verbose)
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			if (times > 0){
+			if (times > 0) {
 				time[1] -= GMRFLib_cpu();
 			}
 			gsl_sort2_id(ixx, xx, n);
 
-			if (times > 0){
+			if (times > 0) {
 				time[1] += GMRFLib_cpu();
 			}
 		}
@@ -1645,25 +1647,25 @@ int my_sort2_test_cutoff(int verbose)
 		slope_x += n;
 		slope_y += (time[0] / time[1]);
 		slope_n++;
-		
-		b = (slope_xy/slope_n - (slope_x/slope_n) * (slope_y/slope_n)) / (slope_xx / slope_n - SQR(slope_x/slope_n));
-		if (ISZERO(b)) b = 1.0;
-		cutoff =(slope_x / slope_n) + (1.0 - (slope_y/slope_n)) / b;
-		
+
+		b = (slope_xy / slope_n - (slope_x / slope_n) * (slope_y / slope_n)) / (slope_xx / slope_n - SQR(slope_x / slope_n));
+		if (ISZERO(b))
+			b = 1.0;
+		cutoff = (slope_x / slope_n) + (1.0 - (slope_y / slope_n)) / b;
+
 		if (verbose) {
-			printf("sort-test n = %1d  time(insertSort/gsl_sort2) =  %.2f cutoff.est = %1d\n",
-			       n, time[0]/time[1],  (int) cutoff);
+			printf("sort-test n = %1d  time(insertSort/gsl_sort2) =  %.2f cutoff.est = %1d\n", n, time[0] / time[1], (int) cutoff);
 		}
 	}
 
 	// this is a global variable
-	GMRFLib_sort2_cut_off = IMAX(nmin, IMIN(nmax, (int)cutoff));
+	GMRFLib_sort2_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
 
 	time_used += GMRFLib_cpu();
 	if (verbose) {
 		printf("sort-test took %.4f seconds\n", time_used);
 	}
-		
+
 	Free(ix);
 	Free(x);
 

@@ -716,8 +716,8 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matri
 			}
 			if (sort) {
 				int is_sorted = 1;
-				for(int i = 1; i < (*row)->n && is_sorted; i++) {
-					is_sorted = is_sorted && ((*row)->idx[i] >= (*row)->idx[i-1]);
+				for (int i = 1; i < (*row)->n && is_sorted; i++) {
+					is_sorted = is_sorted && ((*row)->idx[i] >= (*row)->idx[i - 1]);
 				}
 				if (!is_sorted) {
 					GMRFLib_idxval_sort(*row);

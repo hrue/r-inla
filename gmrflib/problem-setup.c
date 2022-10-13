@@ -1698,7 +1698,7 @@ GMRFLib_problem_tp *GMRFLib_duplicate_problem(GMRFLib_problem_tp * problem, int 
 	} else {
 		if (problem->sub_constr) {
 			// this will make use of the cache
-			GMRFLib_duplicate_constr(&(np->sub_constr) , problem->sub_constr, problem->sub_graph);
+			GMRFLib_duplicate_constr(&(np->sub_constr), problem->sub_constr, problem->sub_graph);
 		} else {
 			COPY(sub_constr);
 		}
