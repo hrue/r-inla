@@ -1,3 +1,6 @@
+# INLA 22.10.14
+* Internal changes and bug fix.
+
 # INLA 22.10.13
 * Bug fix
 
