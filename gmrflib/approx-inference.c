@@ -7306,37 +7306,16 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
 		int node = node_idx->idx[inode];			\
-									\
-		GMRFLib_idxval_tp *v = A_idx(node);			\
 		double *a = CODE_BLOCK_WORK_PTR(0);			\
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
 		double *cov = CODE_BLOCK_WORK_PTR(2);			\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
-		/* int guess[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; */	\
 									\
 		if (gcpo_param->verbose || detailed_output) {		\
 			if (skip[node]) {				\
 				printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 			} else {					\
 				printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
-			}						\
-		}							\
-		if (skip[node]) {					\
-			Sa[node] = lpred_variance[node];		\
-		} else {						\
-			for (int k = 0; k < v->n; k++) {		\
-				a[v->idx[k]] = v->val[k];		\
-			}						\
-			GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
-									\
-			{						\
-				int nnode = node;			\
-				double sum = 0.0;			\
-				v = A_idx(nnode);			\
-				sum = GMRFLib_dot_product(v, Sa);	\
-				double f = sd[node] * sd[nnode];	\
-				sum /= f;				\
-				cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f; \
 			}						\
 		}							\
 		cov[node] = SQR(sd[node]);				\
@@ -7348,6 +7327,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			assert(gcpo[node]->idx_node >= 0);		\
 		}							\
 									\
+		int need_Sa = 1;					\
 		for(int k = 0; k < groups->missing[node]->n; k++) {	\
 			int nnode = groups->missing[node]->idx[0][k];	\
 			int cm_idx = groups->missing[node]->idx[1][k];	\
@@ -7357,17 +7337,22 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			assert(ii >= 0 && jj >= 0);			\
 			gsl_matrix_set(mat, ii, ii, cov[node]);		\
 			if (jj != ii) {					\
-									\
-				assert(!skip[node]);			\
-									\
-				{					\
-					double sum = 0.0;		\
-					v = A_idx(nnode);		\
-					sum = GMRFLib_dot_product(v, Sa); \
-					double f = sd[node] * sd[nnode]; \
-					sum /= f;			\
-					cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f; \
+				if (need_Sa) {				\
+					assert(!skip[node]);		\
+					GMRFLib_idxval_tp *v = A_idx(node); \
+					for (int k = 0; k < v->n; k++) { \
+						a[v->idx[k]] = v->val[k]; \
+					}				\
+					GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
+					need_Sa = 0;			\
 				}					\
+									\
+				double sum = 0.0;			\
+				GMRFLib_idxval_tp *v = A_idx(nnode);	\
+				sum = GMRFLib_dot_product(v, Sa);	\
+				double f = sd[node] * sd[nnode];	\
+				sum /= f;				\
+				cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f; \
 									\
 				gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
 				gsl_matrix_set(mat, ii, jj, cov[nnode]); \
