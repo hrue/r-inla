@@ -5765,7 +5765,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
 
-
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
 	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
 	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
@@ -7044,9 +7043,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		}
 		assert(build_ai_store != NULL);
 
-		// build the groups
 		double *isd = Calloc(mnpred, double);
-
 		groups = GMRFLib_idxval_ncreate_x(Npred, IABS(gcpo_param->num_level_sets));
 		GMRFLib_ai_add_Qinv_to_ai_store(ai_store);
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
@@ -7099,15 +7096,16 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			}						\
 			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
 			cor[node] = 1.0;				\
+									\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				if (nnode == node) continue;		\
-				double sum = 0.0;			\
-				v = A_idx(nnode);			\
-				sum = GMRFLib_dot_product(v, Sa);	\
+				GMRFLib_idxval_tp *vv = A_idx(nnode);	\
+				double sum = GMRFLib_dot_product(vv, Sa); \
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
 			}						\
+									\
 			int levels_ok = 0;				\
 			int levels_magnify = 1;				\
 			cor[node] = cor_abs[node] = 1.0;		\
@@ -7303,12 +7301,27 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		}
 	}
 
+	if (0) {
+		// does not seem to make a difference in terms of number of solves
+		int *iwork = Calloc(node_idx->n, int);
+		for(int ii = 0; ii < node_idx->n; ii++) {
+			int i = node_idx->idx[ii];
+			//iwork[i] = groups->groups[i]->n;
+			iwork[i] = - groups->groups[i]->n;
+		}
+		my_sort2_ii(iwork, node_idx->idx, node_idx->n);
+		for(int ii = 0; ii < node_idx->n; ii++) {
+			int i = node_idx->idx[ii];
+			printf("Node %d at rank %d with group.size %d\n", i, ii, groups->groups[i]->n);
+		}
+		Free(iwork);
+	}
+	
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
 		int node = node_idx->idx[inode];			\
 		double *a = CODE_BLOCK_WORK_PTR(0);			\
 		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
-		double *cov = CODE_BLOCK_WORK_PTR(2);			\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
 									\
 		if (gcpo_param->verbose || detailed_output) {		\
@@ -7318,7 +7331,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 				printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 			}						\
 		}							\
-		cov[node] = SQR(sd[node]);				\
 		gcpo[node]->node_min = gcpo[node]->idxs->idx[0];	\
 		gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
 		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n); \
@@ -7335,7 +7347,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
 			int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
 			assert(ii >= 0 && jj >= 0);			\
-			gsl_matrix_set(mat, ii, ii, cov[node]);		\
+			gsl_matrix_set(mat, ii, ii, lpred_variance[node]); \
 			if (jj != ii) {					\
 				if (need_Sa) {				\
 					assert(!skip[node]);		\
@@ -7347,22 +7359,21 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 					need_Sa = 0;			\
 				}					\
 									\
-				double sum = 0.0;			\
 				GMRFLib_idxval_tp *v = A_idx(nnode);	\
-				sum = GMRFLib_dot_product(v, Sa);	\
+				double sum = GMRFLib_dot_product(v, Sa); \
 				double f = sd[node] * sd[nnode];	\
 				sum /= f;				\
-				cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f; \
+				double cov = TRUNCATE(sum, -1.0, 1.0) * f; \
 									\
 				gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
-				gsl_matrix_set(mat, ii, jj, cov[nnode]); \
-				gsl_matrix_set(mat, jj, ii, cov[nnode]); \
+				gsl_matrix_set(mat, ii, jj, cov);	\
+				gsl_matrix_set(mat, jj, ii, cov);	\
 			}						\
 		}							\
 	}
 
 	if (node_idx) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 3, N);
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
 	}
 #undef CODE_BLOCK
 
