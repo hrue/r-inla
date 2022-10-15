@@ -6629,7 +6629,10 @@ int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, 
 
 	off = ds->data_observations.bgev_nbetas[0];
 	log_xi = ds->data_observations.bgev_intern_tail[thread_id][0];
-	if (ISINF(log_xi) == -1) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wbool-compare"
+	if (ISINF(log_xi) < 0) {
+#pragma GCC diagnostic pop
 		xi = 0.0;
 		assert(ds->data_observations.bgev_nbetas[1] == 0);
 	} else {
@@ -14946,8 +14949,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			// those who cannot take y=0
 
 			for (int i = 0; i < mb->predictor_ndata; i++) {
-				if (ds->data_observations.d[i] && (ds->data_observations.event[i] == SURV_EVENT_FAILURE ||
-								   ds->data_observations.event[i] == SURV_EVENT_ININTERVAL)) {
+				if (ds->data_observations.d[i] && ((int) ds->data_observations.event[i] == SURV_EVENT_FAILURE ||
+								   (int) ds->data_observations.event[i] == SURV_EVENT_ININTERVAL)) {
 					if (ds->data_observations.y[i] <= 0.0) {
 						GMRFLib_sprintf(&msg, "%s: Weibull/Gamma/logNormal data[%1d] (y) = (%.12g) is void\n",
 								secname, i, ds->data_observations.y[i]);
@@ -14955,9 +14958,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 					}
 				}
 			}
-		}
 			break;
+		}
 		default:
+			break;
 		}
 
 		for (i = 0; i < mb->predictor_ndata; i++) {
