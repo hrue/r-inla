@@ -81,6 +81,7 @@ typedef struct {
 	double *val;
 } GMRFLib_val_tp;
 
+
 typedef enum {
 	IDXVAL_UNKNOWN = 0,				       /* do not change */
 	IDXVAL_SERIAL,
@@ -108,6 +109,19 @@ typedef struct {
 	double *g_val;
 } GMRFLib_idxval_tp;
 
+
+typedef struct {
+	int submat_id;
+	int submat_row;
+	int submat_col;
+} GMRFLib_idxsubmat_data_tp;
+
+typedef struct{
+	int n;
+	int n_alloc;
+	GMRFLib_idxsubmat_data_tp* data;
+} GMRFLib_idxsubmat_tp;
+
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate(int n);
 GMRFLib_idx2_tp **GMRFLib_idx2_ncreate_x(int n, int len);
 GMRFLib_idx_tp **GMRFLib_idx_ncreate(int n);
@@ -116,6 +130,8 @@ GMRFLib_idx_tp **GMRFLib_idx_ncreate_x(int n, int len);
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate_x(int n, int len);
 GMRFLib_val_tp **GMRFLib_val_ncreate(int n);
+GMRFLib_idxsubmat_tp **GMRFLib_idxsubmat_ncreate_x(int n,int len);
+GMRFLib_idxsubmat_tp **GMRFLib_idxsubmat_ncreate(int n);
 int GMRFLib_idx2_add(GMRFLib_idx2_tp ** hold, int idx0, int idx1);
 int GMRFLib_idx2_create(GMRFLib_idx2_tp ** hold);
 int GMRFLib_idx2_create_x(GMRFLib_idx2_tp ** hold, int len);
@@ -160,6 +176,11 @@ int GMRFLib_val_free(GMRFLib_val_tp * hold);
 int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
 int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
+int GMRFLib_idxsubmat_create(GMRFLib_idxsubmat_tp ** hold);
+int GMRFLib_idxsubmat_create_x(GMRFLib_idxsubmat_tp ** hold, int len);
+int GMRFLib_idxsubmat_add(GMRFLib_idxsubmat_tp ** hold, int submat_id,int submat_row, int submat_col);
+
+
 
 
 __END_DECLS

@@ -852,6 +852,9 @@ typedef struct {
 	int Npred;
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx2_tp **missing;
+	GMRFLib_idxsubmat_tp **missing2;                       /* records the entry is required by which entry of which sub-matrics */
+							       /* missing2 is upper triangle of a symmetric matrix whose entires functions as above.*/
+	unsigned char *need_solve;                            /* records if the column needs to be solved.If only diag is needed in this column, we don't need to solve anything.*/ 
 } GMRFLib_gcpo_groups_tp;
 
 typedef struct {
