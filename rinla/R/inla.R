@@ -790,7 +790,6 @@
         }
     }
 
-browser()
     data <- inla.remove(as.character(formula[2]), data)
     if (!is.null(control.predictor$A)) {
         MN <- inla.sparse.dim(control.predictor$A)
@@ -914,7 +913,7 @@ browser()
                 cont.fixed$expand.factor.strategy
             ))
         }
-browser()
+
         if (inla.require("MatrixModels")) {
             gp$model.matrix <- MatrixModels::model.Matrix(
                                                  new.fix.formula,
