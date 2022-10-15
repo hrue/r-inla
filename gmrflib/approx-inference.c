@@ -7329,7 +7329,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			}						\
 			GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
 									\
-			for (int nnode = 0; nnode < Npred; nnode++) {	\
+			{						\
+				int nnode = node;			\
 				double sum = 0.0;			\
 				v = A_idx(nnode);			\
 				sum = GMRFLib_dot_product(v, Sa);	\
@@ -7356,6 +7357,18 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			assert(ii >= 0 && jj >= 0);			\
 			gsl_matrix_set(mat, ii, ii, cov[node]);		\
 			if (jj != ii) {					\
+									\
+				assert(!skip[node]);			\
+									\
+				{					\
+					double sum = 0.0;		\
+					v = A_idx(nnode);		\
+					sum = GMRFLib_dot_product(v, Sa); \
+					double f = sd[node] * sd[nnode]; \
+					sum /= f;			\
+					cov[nnode] = TRUNCATE(sum, -1.0, 1.0) * f; \
+				}					\
+									\
 				gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
 				gsl_matrix_set(mat, ii, jj, cov[nnode]); \
 				gsl_matrix_set(mat, jj, ii, cov[nnode]); \
