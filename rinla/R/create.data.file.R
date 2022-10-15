@@ -23,8 +23,14 @@
     if (is.null(y.orig)) {
         y.orig <- c(mf[, 1L])
     } else if (is.inla.surv(y.orig)) {
-        ## this is not passed into the inla-program
         y.orig$.special <- NULL
+        ## this only applies if we have no cure-model. make sure to remove it
+        idx <- which(names(y.orig) == "cure")
+        if (length(idx) == 1) {
+            if (is.null(y.orig$cure)) {
+                y.orig[[idx]] <- NULL
+            }
+        }
         y.orig <- as.data.frame(unclass(y.orig))
     } else if (is.inla.mdata(y.orig)) {
         y.orig <- as.data.frame(unclass(y.orig))
@@ -336,10 +342,12 @@
         }
 
         idx.cure <- grep("^cure[.]?[1-999]*", names(y.orig))
-        for(i in idx.cure) {
-            yy <- y.orig[, i]
-            yy[is.na(yy)] <- 0
-            y.orig[, i] <- yy
+        if (length(idx.cure) > 0) {
+            for(i in idx.cure) {
+                yy <- y.orig[, i]
+                yy[is.na(yy)] <- 0
+                y.orig[, i] <- yy
+            }
         }
 
         idx <- !is.na(y.orig$time)
@@ -349,7 +357,7 @@
             y.orig$truncation[idx],
             y.orig$lower[idx],
             y.orig$upper[idx],
-            y.orig[, idx.cure], 
+            y.orig[idx, idx.cure], 
             y.orig$time[idx]
         )
 

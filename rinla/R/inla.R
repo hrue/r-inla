@@ -752,7 +752,13 @@
 
     if (n.family > 1) {
         y...orig <- inla.as.list.of.lists(y...orig)
-        ny <- max(sapply(y...orig, function(xx) if (is.list(xx)) max(sapply(xx, length)) else length(xx)))
+        ny <- max(sapply(y...orig,
+                         function(xx) {
+            if (is.list(xx))
+                max(sapply(xx, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
+            else
+                length(xx)
+        }))
         nc <- length(y...orig)
         if (n.family != nc) {
             stop(paste(
@@ -770,7 +776,7 @@
             ## this one is not passed along
             y...orig$.special <- NULL
             ## we have to skip a possible matrix in ...$cure
-            ny <- max(sapply(y...orig, function(x) if (!is.matrix(x)) length(x) else 0))
+            ny <- max(sapply(y...orig, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
             ny <- max(sapply(y...orig, length))
@@ -784,6 +790,7 @@
         }
     }
 
+browser()
     data <- inla.remove(as.character(formula[2]), data)
     if (!is.null(control.predictor$A)) {
         MN <- inla.sparse.dim(control.predictor$A)
@@ -907,6 +914,7 @@
                 cont.fixed$expand.factor.strategy
             ))
         }
+browser()
         if (inla.require("MatrixModels")) {
             gp$model.matrix <- MatrixModels::model.Matrix(
                                                  new.fix.formula,
