@@ -7201,29 +7201,37 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 			GMRFLib_idx2_add(&(missing[node]), node, node);
 		}
 	}
-	
-	//add all the missing value to the a map from the large covariance matrix to its sub covariance matrix
+
+	// add all the missing value to the a map from the large covariance matrix to its sub covariance matrix
 	GMRFLib_idxsubmat_vector_tp **missing2 = GMRFLib_idxsubmat_vector_ncreate(Npred);
-	
-	for (int node = 0; node < Npred; node++){
-		if(groups[node] -> n > 0){
-			for (int i = 0; i < groups[node] ->n; i++){
-				int row = groups[node] -> idx[i];
-				for (int j = 0; j < groups[node] ->n; j++){
-					int col = groups[node] -> idx[j];
-					if (row <= col){
-						//check if col is in missing[row], we do linear search for now. If required, we can switch to binary search.
+
+	for (int node = 0; node < Npred; node++) {
+		if (groups[node]->n > 0) {
+			for (int i = 0; i < groups[node]->n; i++) {
+				int row = groups[node]->idx[i];
+				for (int j = 0; j < groups[node]->n; j++) {
+					int col = groups[node]->idx[j];
+					if (row <= col) {
+						// check if col is in missing[row], we do linear search for now. If required, we can switch to
+						// binary search.
 						unsigned char find = 0;
 						int col_idx = 0;
-						for(col_idx = 0; col_idx < missing2[row] -> n; col_idx++){
-							if(missing2[row]->col[col_idx] == col){find = 1;break;}
+						for (col_idx = 0; col_idx < missing2[row]->n; col_idx++) {
+							if (missing2[row]->col[col_idx] == col) {
+								find = 1;
+								break;
+							}
 						}
-						if(!find){GMRFLib_idxsubmat_vector_add(&(missing2[row]),col);col_idx = missing2[row] -> n-1;}
-						//if(find){printf("row %d and col %d are requred by (%d,%d) of submatrix %d. It is in col_idx %d.\n",row,col,i,j,node,col_idx);}
-						GMRFLib_idxsubmat_cell_add(&(missing2[row]->data[col_idx]),node,i,j);
-						//printf("row %d and col %d are requred by (%d,%d) of submatrix %d\n",row,col,i,j,node);
-						if (row != col){
-							//printf("we need to compute %dth row because (%d,%d) is required\n",row,row,col);
+						if (!find) {
+							GMRFLib_idxsubmat_vector_add(&(missing2[row]), col);
+							col_idx = missing2[row]->n - 1;
+						}
+						// if(find){printf("row %d and col %d are requred by (%d,%d) of submatrix %d. It is in col_idx
+						// %d.\n",row,col,i,j,node,col_idx);}
+						GMRFLib_idxsubmat_cell_add(&(missing2[row]->data[col_idx]), node, i, j);
+						// printf("row %d and col %d are requred by (%d,%d) of submatrix %d\n",row,col,i,j,node);
+						if (row != col) {
+							// printf("we need to compute %dth row because (%d,%d) is required\n",row,row,col);
 							missing2[row]->need_solve = 1;
 						}
 					}
@@ -7335,52 +7343,60 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	if (0) {
 		// does not seem to make a difference in terms of number of solves
 		int *iwork = Calloc(node_idx->n, int);
-		for(int ii = 0; ii < node_idx->n; ii++) {
+		for (int ii = 0; ii < node_idx->n; ii++) {
 			int i = node_idx->idx[ii];
-			//iwork[i] = groups->groups[i]->n;
-			iwork[i] = - groups->groups[i]->n;
+			// iwork[i] = groups->groups[i]->n;
+			iwork[i] = -groups->groups[i]->n;
 		}
 		my_sort2_ii(iwork, node_idx->idx, node_idx->n);
-		for(int ii = 0; ii < node_idx->n; ii++) {
+		for (int ii = 0; ii < node_idx->n; ii++) {
 			int i = node_idx->idx[ii];
 			printf("Node %d at rank %d with group.size %d\n", i, ii, groups->groups[i]->n);
 		}
 		Free(iwork);
 	}
-	
-if (0) {
-	int solve_required = 0;
-	int dot_required = 0;
-	for(int row = 0; row < Npred;row++){
-		if(groups->missing2[row]->need_solve){
-			printf("We need to solve %dth column of the coavriance.\n",row);solve_required++;
-			for(int col = row; col < Npred;col ++){
-				unsigned char find = 0;
-				int col_idx;
-				for(col_idx = 0;col_idx < groups->missing2[row] -> n;col_idx++){
-					if(groups->missing2[row]->col[col_idx] == col){find = 1;break;}
-				}			
-				if(!find){continue;}								
-				GMRFLib_idxsubmat_cell_tp* buket = groups->missing2[row]->data[col_idx];
-				if((buket->n > 0) & (col != row)){
-					for(int i =0; i< buket->n; i++){
-						printf("We need to compute (%d,%d) of the coavriance for (%d,%d) in %dth submatrix.\n",row,col,buket->data[i]->submat_row,buket->data[i]->submat_col,buket->data[i]->submat_id);
+
+	if (0) {
+		int solve_required = 0;
+		int dot_required = 0;
+		for (int row = 0; row < Npred; row++) {
+			if (groups->missing2[row]->need_solve) {
+				printf("We need to solve %dth column of the coavriance.\n", row);
+				solve_required++;
+				for (int col = row; col < Npred; col++) {
+					unsigned char find = 0;
+					int col_idx;
+					for (col_idx = 0; col_idx < groups->missing2[row]->n; col_idx++) {
+						if (groups->missing2[row]->col[col_idx] == col) {
+							find = 1;
+							break;
+						}
 					}
-					dot_required++;
+					if (!find) {
+						continue;
+					}
+					GMRFLib_idxsubmat_cell_tp *buket = groups->missing2[row]->data[col_idx];
+					if ((buket->n > 0) & (col != row)) {
+						for (int i = 0; i < buket->n; i++) {
+							printf("We need to compute (%d,%d) of the coavriance for (%d,%d) in %dth submatrix.\n", row,
+							       col, buket->data[i]->submat_row, buket->data[i]->submat_col,
+							       buket->data[i]->submat_id);
+						}
+						dot_required++;
+					}
 				}
 			}
+
 		}
-		
+		printf("%d forward substitutions are needed. %d dot product are needed\n", solve_required, dot_required);
 	}
-	printf("%d forward substitutions are needed. %d dot product are needed\n",solve_required,dot_required);
-	}
-	
-	
 
 
 
 
-if(1){
+
+
+	if (1) {
 #define CODE_BLOCK							\
 		for (int row = 0; row<Npred ; row++) {			\
 		double *a = CODE_BLOCK_WORK_PTR(0);			\
@@ -7421,14 +7437,14 @@ if(1){
 				}													\
 			}														\
 	}																\
-	
-	if (node_idx) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
-	}
-#undef CODE_BLOCK
-}
 
-if(0){	
+		if (node_idx) {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
+		}
+#undef CODE_BLOCK
+	}
+
+	if (0) {
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
 		int node = node_idx->idx[inode];			\
@@ -7484,11 +7500,11 @@ if(0){
 		}							\
 	}
 
-	if (node_idx) {
-		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
-	}
+		if (node_idx) {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
+		}
 #undef CODE_BLOCK
-}
+	}
 	GMRFLib_idx_free(node_idx);
 	Free(skip);
 
