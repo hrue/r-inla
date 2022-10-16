@@ -852,6 +852,7 @@ typedef struct {
 	int Npred;
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx2_tp **missing;
+	GMRFLib_idxsubmat_vector_tp **missing2;
 } GMRFLib_gcpo_groups_tp;
 
 typedef struct {
