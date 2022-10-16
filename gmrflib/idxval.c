@@ -60,6 +60,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #define IDX_ALLOC_INITIAL 32
 #define IDX_ALLOC_ADD     512
+#define IDX_ALLOC_SUBMATRIX_INITIAL 8
+#define IDX_ALLOC_SUBMATRIX_ADD 32
 
 // set to 0 to keep the groups anyway
 #define IDXVAL_FREE_GROUPS_IF_NOT_BEST() 1
@@ -1335,4 +1337,132 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		}
 	}
 	return 0;
+}
+
+
+int GMRFLib_idxsubmat_data_create(GMRFLib_idxsubmat_data_tp **hold, int submat_id, int submat_row, int submat_col)
+{
+	*hold = Calloc(1,GMRFLib_idxsubmat_data_tp);
+	(*hold) -> submat_id = submat_id;
+	(*hold) -> submat_row = submat_row;
+	(*hold) -> submat_col = submat_col;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxsubmat_cell_create(GMRFLib_idxsubmat_cell_tp ** hold)
+{
+	return GMRFLib_idxsubmat_cell_create_x(hold,IDX_ALLOC_SUBMATRIX_INITIAL);
+}
+
+int GMRFLib_idxsubmat_cell_create_x(GMRFLib_idxsubmat_cell_tp ** hold, int len)
+{
+	len = IMAX(1,len);
+	*hold = Calloc(1,GMRFLib_idxsubmat_cell_tp);
+	(*hold) -> data = Calloc(len,GMRFLib_idxsubmat_data_tp *);
+	(*hold) -> n_alloc = len;
+	(*hold) -> n = 0;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxsubmat_cell_add(GMRFLib_idxsubmat_cell_tp ** hold, int submat_id,int submat_row, int submat_col)
+{
+	if (*hold == NULL) {
+		GMRFLib_idxsubmat_cell_create(hold);
+	}
+	assert(*hold);
+	if ((*hold)->n == (*hold)->n_alloc) {
+		(*hold)->n_alloc += IDX_ALLOC_SUBMATRIX_ADD;
+		(*hold)->data = Realloc((*hold)->data, (*hold)->n_alloc, GMRFLib_idxsubmat_data_tp*);
+	}
+	GMRFLib_idxsubmat_data_create(&((*hold) -> data[(*hold) -> n]),submat_id,submat_row,submat_col);
+	(*hold) -> n++;
+
+	return GMRFLib_SUCCESS;
+}
+
+GMRFLib_idxsubmat_cell_tp **GMRFLib_idxsubmat_cell_ncreate_x(int n, int len)
+{
+	if (n > 0) {
+		GMRFLib_idxsubmat_cell_tp **a = Calloc(n, GMRFLib_idxsubmat_cell_tp *);
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxsubmat_cell_create_x(&(a[i]),len);
+		}
+		return a;
+	} else {
+		return NULL;
+	}
+}
+
+GMRFLib_idxsubmat_cell_tp **GMRFLib_idxsubmat_cell_ncreate(int n)
+{
+	if (n > 0) {
+		GMRFLib_idxsubmat_cell_tp **a = Calloc(n, GMRFLib_idxsubmat_cell_tp *);
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxsubmat_cell_create(&(a[i]));
+		}
+		return a;
+	} else {
+		return NULL;
+	}
+}
+
+int GMRFLib_idxsubmat_vector_create_x(GMRFLib_idxsubmat_vector_tp **hold, int len)
+{
+	len = IMAX(1,len);
+	*hold = Calloc(1,GMRFLib_idxsubmat_vector_tp);
+	(*hold) -> n = 0;
+	(*hold) -> n_alloc = len;
+	(*hold) -> col = Calloc(len,int);
+	(*hold) -> need_solve = 0;
+	(*hold) -> data = Calloc(len,GMRFLib_idxsubmat_cell_tp *);
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_idxsubmat_vector_create(GMRFLib_idxsubmat_vector_tp **hold)
+{
+	return GMRFLib_idxsubmat_vector_create_x(hold,IDX_ALLOC_SUBMATRIX_INITIAL);
+}
+
+int GMRFLib_idxsubmat_vector_add(GMRFLib_idxsubmat_vector_tp **hold, int col)
+{
+	if(*hold == NULL){
+		GMRFLib_idxsubmat_vector_create(hold);
+	}
+	if((*hold)->n == (*hold) -> n_alloc){
+		(*hold)->n_alloc += IDX_ALLOC_SUBMATRIX_ADD;
+		(*hold)->col = Realloc((*hold)->col, (*hold)->n_alloc, int);
+		(*hold)->data = Realloc((*hold)->data, (*hold)->n_alloc, GMRFLib_idxsubmat_cell_tp*);
+	}
+	GMRFLib_idxsubmat_cell_create_x(&((*hold)->data[(*hold)->n]),1);
+	(*hold)->col[(*hold)->n] = col;
+	(*hold) -> n ++;
+	return GMRFLib_SUCCESS;
+}
+
+GMRFLib_idxsubmat_vector_tp **GMRFLib_idxsubmat_vector_ncreate(int n)
+{
+	if (n > 0) {
+		GMRFLib_idxsubmat_vector_tp **a = Calloc(n, GMRFLib_idxsubmat_vector_tp *);
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxsubmat_vector_create(&(a[i]));
+		}
+		return a;
+	} else {
+		return NULL;
+	}
+	
+}
+
+GMRFLib_idxsubmat_vector_tp **GMRFLib_idxsubmat_vector_ncreate_x(int n,int len)
+{
+	if (n > 0) {
+		GMRFLib_idxsubmat_vector_tp **a = Calloc(n, GMRFLib_idxsubmat_vector_tp *);
+		for (int i = 0; i < n; i++) {
+			GMRFLib_idxsubmat_vector_create_x(&(a[i]),len);
+		}
+		return a;
+	} else {
+		return NULL;
+	}
+	
 }
