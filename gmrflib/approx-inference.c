@@ -7381,12 +7381,6 @@ if (0) {
 
 
 if(1){
-
-for (int inode = 0; inode < node_idx->n; inode++) {
-	int node = node_idx->idx[inode];
-	gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n);
-	}
-
 #define CODE_BLOCK							\
 		for (int row = 0; row<Npred ; row++) {			\
 		double *a = CODE_BLOCK_WORK_PTR(0);			\
@@ -7399,6 +7393,7 @@ for (int inode = 0; inode < node_idx->n; inode++) {
 			}						\
 		GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1);	\
 		}							\
+		gcpo[row]->idx_node = GMRFLib_iwhich_sorted(row, (int *) (gcpo[row]->idxs->idx), gcpo[row]->idxs->n);\
 		for(int col = row; col < Npred;col++){			\
 			/*linear search again...*/								\
 			unsigned char find = 0;									\
