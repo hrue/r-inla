@@ -7304,19 +7304,19 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	if (0) {
 		// does not seem to make a difference in terms of number of solves
 		int *iwork = Calloc(node_idx->n, int);
-		for(int ii = 0; ii < node_idx->n; ii++) {
+		for (int ii = 0; ii < node_idx->n; ii++) {
 			int i = node_idx->idx[ii];
-			//iwork[i] = groups->groups[i]->n;
-			iwork[i] = - groups->groups[i]->n;
+			// iwork[i] = groups->groups[i]->n;
+			iwork[i] = -groups->groups[i]->n;
 		}
 		my_sort2_ii(iwork, node_idx->idx, node_idx->n);
-		for(int ii = 0; ii < node_idx->n; ii++) {
+		for (int ii = 0; ii < node_idx->n; ii++) {
 			int i = node_idx->idx[ii];
 			printf("Node %d at rank %d with group.size %d\n", i, ii, groups->groups[i]->n);
 		}
 		Free(iwork);
 	}
-	
+
 #define CODE_BLOCK							\
 	for (int inode = 0; inode < node_idx->n; inode++) {		\
 		int node = node_idx->idx[inode];			\
