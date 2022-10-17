@@ -41964,6 +41964,19 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 97: 
+	{
+		GMRFLib_idxval_tp *v = NULL;
+		int idx[] = {0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 18, 19, 21};
+
+		for(int i = 0; i < (int) (sizeof(idx)/sizeof(int)); i++) {
+			GMRFLib_idxval_add(&v, idx[i], (double)i);
+		}
+
+		GMRFLib_idxval_nsort_x_NEW(&v, 1, 1, 1, 1);
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

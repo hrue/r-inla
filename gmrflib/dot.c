@@ -53,7 +53,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 		if (len_ == 0)
 			continue;
 
-		int istart_ = ELM_->g_i[g_];
+		int istart_ = ELM_->g_istart[g_];
 		int *__restrict ii_ = &(ELM_->g_idx[istart_]);
 		double *__restrict vv_ = &(ELM_->g_val[istart_]);
 
@@ -115,7 +115,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 		if (len_ == 0)
 			continue;
 
-		int istart_ = ELM_->g_i[g_];
+		int istart_ = ELM_->g_istart[g_];
 		int *__restrict ii_ = &(ELM_->g_idx[istart_]);
 		double *__restrict vv_ = &(ELM_->g_val[istart_]);
 

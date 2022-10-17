@@ -315,11 +315,11 @@ int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg)
 		if (hold->g_n) {
 			fprintf(fp, "\tg_n = %1d\n", hold->g_n);
 			for (int g = 0; g < hold->g_n; g++) {
-				fprintf(fp, "\tgroup %d has length %d and start at index %d (one=%s)\n", g, hold->g_len[g], hold->g_i[g],
+				fprintf(fp, "\tgroup %d has length %d and start at index %d (one=%s)\n", g, hold->g_len[g], hold->g_istart[g],
 					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"));
 				fprintf(fp, "\t\t");
 				for (int k = 0; k < IABS(hold->g_len[g]); k++) {
-					fprintf(fp, " %1d", hold->idx[hold->g_i[g] + k]);
+					fprintf(fp, " %1d", hold->idx[hold->g_istart[g] + k]);
 				}
 				fprintf(fp, "\n");
 			}
@@ -332,7 +332,7 @@ int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *
 {
 	if (hold) {
 		fprintf(fp, "[%s] n=%1d  nalloc=%1d iaddto=%1d\n", (msg ? msg : ""), hold->n, hold->n_alloc, hold->iaddto);
-		if (hold->g_i) {
+		if (hold->g_istart) {
 			for (int g = 0; g < hold->g_n; g++) {
 				fprintf(fp, "\tgroup %1d/%1d: len=%1d one=%s\n", g, hold->g_n, hold->g_len[g],
 					(hold->g_1 && hold->g_1[g] ? "TRUE" : "FALSE"));
@@ -588,7 +588,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 				all_unique = (h->idx[j] > h->idx[j - 1]); \
 			}						\
 			if (!all_unique) {				\
-				int k = 0; \
+				int k = 0;				\
 				for(int j = 1; j < h->n; j++) {		\
 					if (h->idx[j] != h->idx[k]) {	\
 						k++;			\
@@ -620,19 +620,19 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 				ng++;					\
 			}						\
 		}							\
-		int *g_i = Calloc(ng + 1, int);				\
+		int *g_istart = Calloc(ng + 1, int);			\
 		int *g_len = Calloc(ng + 1, int);			\
 									\
 		int k = 0;						\
-		g_i[0] = 0;						\
+		g_istart[0] = 0;					\
 		for (int j = 1; j < h->n; j++) {			\
 			if (h->idx[j] != h->idx[j - 1] + 1) {		\
-				g_len[k] = j - g_i[k];			\
+				g_len[k] = j - g_istart[k];		\
 				k++;					\
-				g_i[k] = j;				\
+				g_istart[k] = j;			\
 			}						\
 		}							\
-		g_len[ng - 1] = h->n - g_i[ng - 1];			\
+		g_len[ng - 1] = h->n - g_istart[ng - 1];		\
 		if (debug_details && debug) {				\
 			GMRFLib_idxval_printf(stdout, h, "OLD");	\
 			fflush(stdout);					\
@@ -644,78 +644,9 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 		if (debug) tref[2] += GMRFLib_cpu();			\
 		if (debug) tref[3] -= GMRFLib_cpu();			\
 									\
-		/* no need to remove the zeros in this way, this is done easier above */ \
-		if (0) {					\
-			/* remove zeros in 'val', either all or all but the first one */ \
-			k = 0;						\
-			kg = 0;						\
-			int nskip = 0;					\
-			for (int g = 0; g < ng; g++) {			\
-									\
-				int gl = IABS(g_len[g]);		\
-				int num_zero = 0;			\
-				int idx_zz = -1;			\
-				int gn = 0;				\
-				int kk = k;				\
-									\
-				for (int j = 0; j < gl; j++) {		\
-					int idx_z = h->idx[g_i[g] + j];	\
-									\
-					if (0) {			\
-						if (ISZERO(h->val[g_i[g] + j])) { \
-							nskip++;	\
-						} else {		\
-							h->idx[k] = idx_z; \
-							h->val[k] = h->val[g_i[g] + j];	\
-							k++;		\
-							gn++;		\
-						}			\
-					} else {			\
-						if (idx_z == idx_zz) {	\
-							/* no need to remove zeros */ \
-							if (0 && ISZERO(h->val[g_i[g] + j])) { \
-								num_zero++; \
-								if (num_zero == 1) { \
-									h->idx[k] = idx_z; \
-									h->val[k] = h->val[g_i[g] + j];	\
-									k++; \
-									gn++; \
-								} else { \
-									nskip++; \
-								}	\
-							} else {	\
-								h->idx[k] = idx_z; \
-								h->val[k] = h->val[g_i[g] + j];	\
-								k++;	\
-								gn++;	\
-							}		\
-						} else {		\
-							h->idx[k] = idx_z; \
-							h->val[k] = h->val[g_i[g] + j];	\
-							k++;		\
-							gn++;		\
-							num_zero = 0;	\
-							if (ISZERO(h->val[g_i[g] + j])) { \
-								num_zero++; \
-							}		\
-						}			\
-						idx_zz = idx_z;		\
-					}				\
-				}					\
-				if (debug && (g_len[g] != gn)) {	\
-					printf("modify group %d from %d to %d, nskip=%1d\n", g, gl, gn, nskip); \
-					fflush(stdout);			\
-				}					\
-				if (gn) {				\
-					g_i[kg] = kk;			\
-					g_len[kg] = (g_len[g] < 0 ? -gn : gn); \
-					kg++;				\
-				}					\
-			}						\
-		}							\
 		h->n = k;						\
 		h->g_n = kg;						\
-		h->g_i = g_i;						\
+		h->g_istart = g_istart;					\
 		h->g_len = g_len;					\
 									\
 		if (debug) tref[3] += GMRFLib_cpu();			\
@@ -738,7 +669,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 						h->g_len[gg]++;		\
 					} else {			\
 						h->g_len[gg] = 1;	\
-						h->g_i[gg] = h->g_i[g];	\
+						h->g_istart[gg] = h->g_istart[g]; \
 					}				\
 					irregular = 1;			\
 				} else if (IABS(h->g_len[g]) > 0) {	\
@@ -747,7 +678,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 					}				\
 					irregular = 0;			\
 					h->g_len[gg] = -IABS(h->g_len[g]); \
-					h->g_i[gg] = h->g_i[g];		\
+					h->g_istart[gg] = h->g_istart[g]; \
 					gg++;				\
 				} else {				\
 					continue;			\
@@ -760,8 +691,8 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 				int len_extra = 0;			\
 				for (int g = 0; g < h->g_n - 1; g++) {	\
 					if (h->g_len[g] < 0 && h->g_len[g + 1] < 0) { \
-						int last_this = h->idx[h->g_i[g] + IABS(h->g_len[g]) - 1]; \
-						int first_next = h->idx[h->g_i[g + 1]];	\
+						int last_this = h->idx[h->g_istart[g] + IABS(h->g_len[g]) - 1]; \
+						int first_next = h->idx[h->g_istart[g + 1]]; \
 						if (first_next - last_this < fill) { \
 							len_extra += first_next - last_this - 1; \
 							if (debug) {	\
@@ -789,12 +720,12 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 					Memcpy(val_new + kk, h->val, this_alen * sizeof(double)); \
 									\
 					kk += this_alen;		\
-					h->g_i[gg] = h->g_i[0];		\
+					h->g_istart[gg] = h->g_istart[0]; \
 					h->g_len[gg] = h->g_len[0];	\
 									\
 					int gg_len = h->g_len[gg];	\
 					int gg_alen = IABS(gg_len);	\
-					int gg_first_i = h->g_i[gg];	\
+					int gg_first_i = h->g_istart[gg]; \
 					int gg_last_i = gg_first_i + gg_alen - 1; \
 					int gg_last_idx = idx_new[gg_last_i]; \
 					int pending = 0;		\
@@ -816,7 +747,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 						 */			\
 						int g_len = h->g_len[g]; \
 						int g_alen = IABS(g_len); \
-						int g_first_i = h->g_i[g]; \
+						int g_first_i = h->g_istart[g]; \
 						int g_first_idx = h->idx[g_first_i]; \
 									\
 						int idx_diff = g_first_idx - gg_last_idx; \
@@ -852,7 +783,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 									\
 							gg_len = h->g_len[gg]; \
 							gg_alen = IABS(gg_len);	\
-							gg_first_i = h->g_i[gg]; \
+							gg_first_i = h->g_istart[gg]; \
 							gg_last_i = gg_first_i + gg_alen - 1; \
 							gg_last_idx = idx_new[gg_last_i]; \
 									\
@@ -870,7 +801,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 							Memcpy(idx_new + kk, h->idx + g_first_i, g_alen * sizeof(int));	\
 							Memcpy(val_new + kk, h->val + g_first_i, g_alen * sizeof(double)); \
 							h->g_len[gg] = g_len; \
-							h->g_i[gg] = kk; \
+							h->g_istart[gg] = kk; \
 							kk += g_alen;	\
 									\
 							if (debug) {	\
@@ -880,7 +811,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 									\
 							gg_len = h->g_len[gg]; \
 							gg_alen = IABS(gg_len);	\
-							gg_first_i = h->g_i[gg]; \
+							gg_first_i = h->g_istart[gg]; \
 							gg_last_i = gg_first_i + gg_alen - 1; \
 							gg_last_idx = idx_new[gg_last_i]; \
 							pending = (g < h->g_n - 1 ? 0 : 1); \
@@ -891,20 +822,20 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 						}			\
 					}				\
 									\
-					h->n_n = n_new;			\
+					h->nn = n_new;			\
 					h->g_n = gg + pending;		\
 					h->g_idx = idx_new;		\
 					h->g_val = val_new;		\
 					h->free_g_mem = 1;		\
 				} else {				\
-					h->n_n = h->n;			\
+					h->nn = h->n;			\
 					h->g_idx = h->idx;		\
 					h->g_val = h->val;		\
 					h->free_g_mem = 0;		\
 				}					\
 			}						\
 		} else {						\
-			h->n_n = h->n;					\
+			h->nn = h->n;					\
 			h->g_idx = h->idx;				\
 			h->g_val = h->val;				\
 			h->free_g_mem = 0;				\
@@ -920,7 +851,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 		if (merge_groups || build_groups) {			\
 			for (int g = 0; g < h->g_n; g++) {		\
 				int is_1 = 1;				\
-				double *val_ptr = h->g_val + h->g_i[g];	\
+				double *val_ptr = h->g_val + h->g_istart[g]; \
 				int len = IABS(h->g_len[g]);		\
 				for (int j = 0; is_1 && j < len; j++) {	\
 					is_1 = (val_ptr[j] == 1.0);	\
@@ -979,13 +910,13 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 	int with_mkl = 0;
 #endif
 
-#define CODE_BLOCK				\
-	for (int i = 0; i < n; i++) {				\
-		if (hold[i]->preference != IDXVAL_UNKNOWN) {	\
-			continue;				\
-		}						\
-		double tref[4] = { 0.0, 0.0, 0.0, 0.0 };	\
-		double value[4] = { 0.0, 0.0, 0.0, 0.0 };	\
+#define CODE_BLOCK							\
+	for (int i = 0; i < n; i++) {					\
+		if (hold[i]->preference != IDXVAL_UNKNOWN) {		\
+			continue;					\
+		}							\
+		double tref[4] = { 0.0, 0.0, 0.0, 0.0 };		\
+		double value[4] = { 0.0, 0.0, 0.0, 0.0 };		\
 		if (debug) {						\
 			printf("start testing for hold[%1d]...\n", i);	\
 		}							\
@@ -1074,12 +1005,12 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 		if (IDXVAL_FREE_GROUPS_IF_NOT_BEST()) {			\
 			if (hold[i]->preference == IDXVAL_SERIAL || hold[i]->preference == IDXVAL_SERIAL_MKL) { \
 				/* no need to keep the group info in the struct */ \
-				hold[i]->n_n = 0;			\
+				hold[i]->nn = 0;			\
 				hold[i]->g_n = 0;			\
 				hold[i]->g_idx = NULL;			\
 				hold[i]->g_val = NULL;			\
 				Free(hold[i]->g_len);			\
-				Free(hold[i]->g_i);			\
+				Free(hold[i]->g_istart);		\
 				Free(hold[i]->g_1);			\
 				if (hold[i]->free_g_mem) {		\
 					Free(hold[i]->g_idx);		\
@@ -1117,6 +1048,145 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_g
 
 	return GMRFLib_SUCCESS;
 }
+
+int GMRFLib_idxval_nsort_x_NEW(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups)
+{
+	// GMRFLib_ENTER_ROUTINE;
+	const int limit = 8;
+
+	if (merge_groups) {
+		build_groups = 1;
+	}
+
+	int debug_details = 0;
+	// int debug = GMRFLib_DEBUG_IF_TRUE();
+	int debug = 0;
+
+	int nmax = 1;
+	for (int i = 0; i < n; i++) {
+		GMRFLib_idxval_tp *h = hold[i];
+		nmax = IMAX(nmax, h->n);
+	}
+	if (nmax == 1) {
+		return GMRFLib_SUCCESS;
+	}
+	for (int hh = 0; hh < n; hh++) {					
+		GMRFLib_idxval_tp *h = hold[hh];				
+		if (!h) continue;					
+		double tref[6] =  {0, 0, 0, 0, 0, 0};			
+		if (debug) tref[0] -= GMRFLib_cpu();			
+		if (h->n > 1) {						
+			int is_sorted = 1;				
+			for(int j = 1; is_sorted && j < h->n; j++) {	
+				is_sorted = (h->idx[j] >= h->idx[j-1]);	
+			}						
+			if (!is_sorted) {				
+				my_sort2_id(h->idx, h->val, h->n);	
+			}						
+		}							
+		if (debug) tref[0] += GMRFLib_cpu();			
+		if (debug) tref[1] -= GMRFLib_cpu();			
+									
+		/* make them unique */					
+		if (h->n > 1) {						
+			/* do a dry-run, as its cheaper */		
+			int all_unique = 1;				
+			for(int j = 1; all_unique && j < h->n; j++) {	
+				all_unique = (h->idx[j] > h->idx[j - 1]); 
+			}						
+			if (!all_unique) {				
+				int k = 0;				
+				for(int j = 1; j < h->n; j++) {		
+					if (h->idx[j] != h->idx[k]) {	
+						k++;			
+						h->idx[k] = h->idx[j];	
+						h->val[k] = h->val[j];	
+					} else {			
+						h->val[k] += h->val[j];	
+					}				
+				}					
+				if (debug && (h->n > k+1)) {		
+					printf("Make unique: reduce length from %d to %dn", h->n, k+1); 
+					fflush(stdout);			
+				}					
+				h->n = k+1;				
+			}						
+		}							
+		if (debug) tref[1] += GMRFLib_cpu();			
+		if (debug) tref[2] -= GMRFLib_cpu();			
+									
+		if (h->n <= limit || !build_groups) {			
+			h->preference = IDXVAL_SERIAL_MKL;		
+			continue;					
+		}							
+
+		int fill = 8L;
+
+		// count the groups
+		int ng = 0;
+		int irregular = (h->idx[1] > h->idx[0] + 1);
+		int i = 1;
+		while(i < h->n) {
+			if (irregular) {
+				while (i < h->n && h->idx[i] > h->idx[i-1] + 1) i++;
+				irregular = 0;
+			} else {
+				while (i < h->n && h->idx[i] == h->idx[i-1] + 1) i++;
+				irregular = 1;
+			}
+			ng++;
+			printf("i %d ng %d irregular=%1d\n", i, ng, irregular);
+
+			if (irregular && i < h->n -1) {
+				irregular = (h->idx[i+1] > h->idx[i] + 1);
+				i++;
+			}
+		}
+		printf("we have %d groups\n", ng);
+
+		int *g_istart = Calloc(ng+1, int);
+		int *g_len = Calloc(ng, int);
+		
+		
+		ng = 0;
+		g_istart[ng] = 0;
+
+		irregular = (h->idx[1] > h->idx[0] + 1);
+		i = 1;
+		while(i < h->n) {
+			if (irregular) {
+				while (i < h->n && h->idx[i] > h->idx[i-1] + 1) i++;
+				irregular = 0;
+			} else {
+				while (i < h->n && h->idx[i] == h->idx[i-1] + 1) i++;
+				irregular = 1;
+			}
+			g_len[ng] = i - g_istart[ng];
+			ng++;
+			g_istart[ng] = i;
+
+			if (irregular && i < h->n -1) {
+				irregular = (h->idx[i+1] > h->idx[i] + 1);
+				i++;
+			}
+		}
+
+		for(int g = 0; g < ng; g++) {
+			printf("group %1d len %1d\n", g, g_len[g]);
+			for(int i = 0; i < g_len[g]; i++) {
+				printf("\t\tidx %1d\n", h->idx[g_istart[g] + i]);
+			}
+		}
+	}
+	
+
+	
+									
+//      GMRFLib_LEAVE_ROUTINE;
+
+	return GMRFLib_SUCCESS;
+}
+
 
 int GMRFLib_idx_free(GMRFLib_idx_tp * hold)
 {
@@ -1167,7 +1237,7 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold)
 		Free(hold->idx);
 		Free(hold->val);
 
-		Free(hold->g_i);
+		Free(hold->g_istart);
 		Free(hold->g_len);
 		Free(hold->g_1);
 		if (hold->free_g_mem) {

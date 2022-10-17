@@ -96,11 +96,11 @@ typedef struct {
 	int *idx;
 	GMRFLib_idxval_preference_tp preference;
 
-	int n_n;					       /* new len */
-	int *g_idx;
+	int nn;						       /* new len */
 	int g_n;					       /* number of groups with sequential indices */
+	int *g_istart;					       /* and their starting index */
 	int *g_len;					       /* their length */
-	int *g_i;					       /* and their starting index */
+	int *g_idx;					       /* indexing */
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
 	int free_g_mem;
 
@@ -169,6 +169,7 @@ int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups);
+int GMRFLib_idxval_nsort_x_NEW(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups);
 int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
