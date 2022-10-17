@@ -7215,6 +7215,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 					int row = groups[node]->idx[i];
 					for (int j = 0; j < groups[node]->n; j++) {
 						int col = groups[node]->idx[j];
+						//If groups[node]->idx is ordered, then we can delete this condition, and set the for loop start from i.
 						if (row <= col) {
 							// check if col is in missing[row], we do linear search for now. If required, we can switch to
 							// binary search.
@@ -7362,50 +7363,43 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	}
 
 	if (new) {
-#define CODE_BLOCK							\
-		for (int row = 0; row < Npred ; row++) {		\
-			double *a = CODE_BLOCK_WORK_PTR(0);		\
-			double *Sa = CODE_BLOCK_WORK_PTR(1);		\
-			CODE_BLOCK_ALL_WORK_ZERO();			\
-			if (groups->missing2[row]->need_solve) {	\
-				GMRFLib_idxval_tp *v = A_idx(row);	\
-				for (int k = 0; k < v->n; k++) {	\
-					a[v->idx[k]] = v->val[k];	\
-				}					\
-				GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
-			}						\
-			gcpo[row]->idx_node = GMRFLib_iwhich_sorted(row, (int *) (gcpo[row]->idxs->idx), gcpo[row]->idxs->n); \
-			for(int col = row; col < Npred;col++) {		\
-				unsigned char found = 0;		\
-				int col_idx;				\
-				for(col_idx = 0; col_idx < groups->missing2[row]->n; col_idx++) { \
-					if (groups->missing2[row]->col[col_idx] == col) { \
-						found = 1;		\
-						break;			\
-					}				\
-				}					\
-				if (!found) {				\
-					continue;			\
-				}					\
-				GMRFLib_idxsubmat_cell_tp* bucket = groups->missing2[row]->data[col_idx]; \
-				if (bucket->n > 0){			\
-					for(int i = 0; i < bucket -> n; i++) { \
-						gsl_matrix *mat = gcpo[bucket->data[i]->submat_id]->cov_mat; \
-						if (col != row) {	\
-							double sum = 0.0; \
-							GMRFLib_idxval_tp *v = A_idx(col); \
-							sum = GMRFLib_dot_product(v, Sa); \
-							double f = sd[col] * sd[row]; \
-							sum = TRUNCATE(sum/f, -1.0, 1.0) * f; \
-							gsl_matrix_set(mat, bucket->data[i]->submat_col, bucket->data[i]->submat_row, sum); \
-							gsl_matrix_set(mat, bucket->data[i]->submat_row, bucket->data[i]->submat_col, sum); \
-						} else {		\
-							gsl_matrix_set(mat, bucket->data[i]->submat_col, bucket->data[i]->submat_row, lpred_variance[col]); \
-						}			\
-					}				\
-				}					\
-			}						\
-		}							\
+#define CODE_BLOCK														\
+		for (int inode = 0; inode < node_idx->n ; inode++) {								\
+			int row = node_idx->idx[inode];										\
+			double *a = CODE_BLOCK_WORK_PTR(0);									\
+			double *Sa = CODE_BLOCK_WORK_PTR(1);									\
+			CODE_BLOCK_ALL_WORK_ZERO();										\
+			GMRFLib_idxsubmat_vector_tp* this_row = groups->missing2[row];						\
+			gcpo[row]->idx_node = GMRFLib_iwhich_sorted(row, (int *) (gcpo[row]->idxs->idx), gcpo[row]->idxs->n); 	\
+			if (this_row->need_solve) {										\
+				GMRFLib_idxval_tp *v = A_idx(row);								\
+				for (int k = 0; k < v->n; k++) {								\
+					a[v->idx[k]] = v->val[k];								\
+				}												\
+				GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1);						\
+			} 													\
+			for(int col_idx = 0; col_idx < this_row->n; col_idx++) {						\
+				GMRFLib_idxsubmat_cell_tp* bucket = this_row->data[col_idx]; 					\
+				int col = this_row->col[col_idx];								\
+				if (col != row) {										\
+					double sum = 0.0; 									\
+					GMRFLib_idxval_tp *v = A_idx(col); 							\
+					sum = GMRFLib_dot_product(v, Sa); 							\
+					double f = sd[col] * sd[row]; 								\
+					sum = TRUNCATE(sum/f, -1.0, 1.0) * f; 							\
+					for(int i = 0; i < bucket -> n; i++) {							\
+						gsl_matrix *mat = gcpo[bucket->submat_id[i]]->cov_mat; 				\
+						gsl_matrix_set(mat, bucket->submat_col[i], bucket->submat_row[i], sum); 	\
+						gsl_matrix_set(mat, bucket->submat_row[i], bucket->submat_col[i], sum); 	\
+					}											\
+				}else{												\
+					for(int i = 0; i < bucket -> n; i++) {							\
+						gsl_matrix *mat = gcpo[bucket->submat_id[i]]->cov_mat; 				\
+						gsl_matrix_set(mat, bucket->submat_col[i], bucket->submat_row[i], lpred_variance[row]); 	\
+					}													\
+				}														\
+			}															\
+		}																\
 
 		if (node_idx) {
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
