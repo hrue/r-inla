@@ -1340,15 +1340,6 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 }
 
 
-int GMRFLib_idxsubmat_data_create(GMRFLib_idxsubmat_data_tp ** hold, int submat_id, int submat_row, int submat_col)
-{
-	*hold = Calloc(1, GMRFLib_idxsubmat_data_tp);
-	(*hold)->submat_id = submat_id;
-	(*hold)->submat_row = submat_row;
-	(*hold)->submat_col = submat_col;
-	return GMRFLib_SUCCESS;
-}
-
 int GMRFLib_idxsubmat_cell_create(GMRFLib_idxsubmat_cell_tp ** hold)
 {
 	return GMRFLib_idxsubmat_cell_create_x(hold, IDX_ALLOC_SUBMATRIX_INITIAL);
@@ -1358,7 +1349,9 @@ int GMRFLib_idxsubmat_cell_create_x(GMRFLib_idxsubmat_cell_tp ** hold, int len)
 {
 	len = IMAX(1, len);
 	*hold = Calloc(1, GMRFLib_idxsubmat_cell_tp);
-	(*hold)->data = Calloc(len, GMRFLib_idxsubmat_data_tp *);
+	(*hold)->submat_id = Calloc(len, int);
+	(*hold)->submat_row = Calloc(len,unsigned short int);
+	(*hold)->submat_col = Calloc(len,unsigned short int);
 	(*hold)->n_alloc = len;
 	(*hold)->n = 0;
 	return GMRFLib_SUCCESS;
@@ -1372,11 +1365,14 @@ int GMRFLib_idxsubmat_cell_add(GMRFLib_idxsubmat_cell_tp ** hold, int submat_id,
 	assert(*hold);
 	if ((*hold)->n == (*hold)->n_alloc) {
 		(*hold)->n_alloc += IDX_ALLOC_SUBMATRIX_ADD;
-		(*hold)->data = Realloc((*hold)->data, (*hold)->n_alloc, GMRFLib_idxsubmat_data_tp *);
+		(*hold)->submat_id = Realloc((*hold)->submat_id, (*hold)->n_alloc, int);
+		(*hold)->submat_row = Realloc((*hold)->submat_row, (*hold)->n_alloc, unsigned short int);
+		(*hold)->submat_col = Realloc((*hold)->submat_col, (*hold)->n_alloc, unsigned short int);
 	}
-	GMRFLib_idxsubmat_data_create(&((*hold)->data[(*hold)->n]), submat_id, submat_row, submat_col);
+	(*hold)->submat_id[(*hold)->n] = submat_id;
+	(*hold)->submat_row[(*hold)->n] = submat_row;
+	(*hold)->submat_col[(*hold)->n] = submat_col;
 	(*hold)->n++;
-
 	return GMRFLib_SUCCESS;
 }
 
