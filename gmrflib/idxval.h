@@ -109,18 +109,22 @@ typedef struct {
 } GMRFLib_idxval_tp;
 
 typedef struct {
-	int n;
-	int n_alloc;
-	int* submat_id;
-	unsigned short int* submat_row;
-	unsigned short int* submat_col;
-} GMRFLib_idxsubmat_cell_tp;
+	int submat_id;
+	int submat_row;
+	int submat_col;
+} GMRFLib_idxsubmat_data_tp;
 
 typedef struct {
 	int n;
 	int n_alloc;
-	unsigned char need_solve;
+	GMRFLib_idxsubmat_data_tp **data;
+} GMRFLib_idxsubmat_cell_tp;
+
+typedef struct {
+	int n;
 	int *col;
+	unsigned char need_solve;
+	int n_alloc;
 	GMRFLib_idxsubmat_cell_tp **data;
 } GMRFLib_idxsubmat_vector_tp;
 
@@ -180,14 +184,6 @@ int GMRFLib_val_free(GMRFLib_val_tp * hold);
 int GMRFLib_val_nprune(GMRFLib_val_tp ** a, int n);
 int GMRFLib_val_printf(FILE * fp, GMRFLib_val_tp * hold, const char *msg);
 int GMRFLib_val_prune(GMRFLib_val_tp * hold);
-int GMRFLib_idxsubmat_cell_create(GMRFLib_idxsubmat_cell_tp ** hold);
-int GMRFLib_idxsubmat_cell_create_x(GMRFLib_idxsubmat_cell_tp ** hold, int len);
-int GMRFLib_idxsubmat_cell_add(GMRFLib_idxsubmat_cell_tp ** hold, int submat_id, int submat_row, int submat_col);
-int GMRFLib_idxsubmat_vector_create_x(GMRFLib_idxsubmat_vector_tp ** hold, int len);
-int GMRFLib_idxsubmat_vector_create(GMRFLib_idxsubmat_vector_tp ** hold);
-int GMRFLib_idxsubmat_vector_add(GMRFLib_idxsubmat_vector_tp ** hold, int col);
-
-
 
 __END_DECLS
 #endif

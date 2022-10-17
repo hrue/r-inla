@@ -6893,9 +6893,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 #define EQUAL_COR(c1_, c2_) (ABS((c1_) - (c2_)) < gcpo_param->epsilon)
 
-	char *new = getenv("GCPO_NEW");
-	P((new ? 1 : 0));
-	
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
@@ -7205,50 +7202,11 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 		}
 	}
 
-	GMRFLib_idxsubmat_vector_tp **missing2 = NULL;
-	if (new) {
-		// add all the missing value to the a map from the large covariance matrix to its sub covariance matrix
-		missing2 = GMRFLib_idxsubmat_vector_ncreate(Npred);
-		for (int node = 0; node < Npred; node++) {
-			if (groups[node]->n > 0) {
-				for (int i = 0; i < groups[node]->n; i++) {
-					int row = groups[node]->idx[i];
-					for (int j = 0; j < groups[node]->n; j++) {
-						int col = groups[node]->idx[j];
-						//If groups[node]->idx is ordered, then we can delete this condition, and set the for loop start from i.
-						if (row <= col) {
-							// check if col is in missing[row], we do linear search for now. If required, we can switch to
-							// binary search.
-							unsigned char found = 0;
-							int col_idx = 0;
-							for (col_idx = 0; col_idx < missing2[row]->n; col_idx++) {
-								if (missing2[row]->col[col_idx] == col) {
-									found = 1;
-									break;
-								}
-							}
-							if (!found) {
-								GMRFLib_idxsubmat_vector_add(&(missing2[row]), col);
-								col_idx = missing2[row]->n - 1;
-							}
-							GMRFLib_idxsubmat_cell_add(&(missing2[row]->data[col_idx]), node, i, j);
-							if (row != col) {
-								// printf("we need to compute %dth row because (%d,%d) is required\n",row,row,col);
-								missing2[row]->need_solve = 1;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	// build what to return
 	GMRFLib_gcpo_groups_tp *ggroups = Calloc(1, GMRFLib_gcpo_groups_tp);
 	ggroups->Npred = Npred;
 	ggroups->groups = groups;
 	ggroups->missing = missing;
-	ggroups->missing2 = missing2;
 
 	if (detailed_output) {
 #pragma omp critical (Name_0c006e103a84c0a6e6169eed5e739b8065a95b95)
@@ -7283,9 +7241,6 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 
 	GMRFLib_ENTER_ROUTINE;
 
-	char *new = getenv("GCPO_NEW");
-	P((new ? 1 : 0));
-	
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
@@ -7346,126 +7301,66 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		}
 	}
 
-	if (0) {
-		// does not seem to make a difference in terms of number of solves
-		int *iwork = Calloc(node_idx->n, int);
-		for (int ii = 0; ii < node_idx->n; ii++) {
-			int i = node_idx->idx[ii];
-			// iwork[i] = groups->groups[i]->n;
-			iwork[i] = -groups->groups[i]->n;
-		}
-		my_sort2_ii(iwork, node_idx->idx, node_idx->n);
-		for (int ii = 0; ii < node_idx->n; ii++) {
-			int i = node_idx->idx[ii];
-			printf("Node %d at rank %d with group.size %d\n", i, ii, groups->groups[i]->n);
-		}
-		Free(iwork);
-	}
-
-	if (new) {
-#define CODE_BLOCK														\
-		for (int inode = 0; inode < node_idx->n ; inode++) {								\
-			int row = node_idx->idx[inode];										\
-			double *a = CODE_BLOCK_WORK_PTR(0);									\
-			double *Sa = CODE_BLOCK_WORK_PTR(1);									\
-			CODE_BLOCK_ALL_WORK_ZERO();										\
-			GMRFLib_idxsubmat_vector_tp* this_row = groups->missing2[row];						\
-			gcpo[row]->idx_node = GMRFLib_iwhich_sorted(row, (int *) (gcpo[row]->idxs->idx), gcpo[row]->idxs->n); 	\
-			if (this_row->need_solve) {										\
-				GMRFLib_idxval_tp *v = A_idx(row);								\
-				for (int k = 0; k < v->n; k++) {								\
-					a[v->idx[k]] = v->val[k];								\
-				}												\
-				GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1);						\
-			} 													\
-			for(int col_idx = 0; col_idx < this_row->n; col_idx++) {						\
-				GMRFLib_idxsubmat_cell_tp* bucket = this_row->data[col_idx]; 					\
-				int col = this_row->col[col_idx];								\
-				if (col != row) {										\
-					double sum = 0.0; 									\
-					GMRFLib_idxval_tp *v = A_idx(col); 							\
-					sum = GMRFLib_dot_product(v, Sa); 							\
-					double f = sd[col] * sd[row]; 								\
-					sum = TRUNCATE(sum/f, -1.0, 1.0) * f; 							\
-					for(int i = 0; i < bucket -> n; i++) {							\
-						gsl_matrix *mat = gcpo[bucket->submat_id[i]]->cov_mat; 				\
-						gsl_matrix_set(mat, bucket->submat_col[i], bucket->submat_row[i], sum); 	\
-						gsl_matrix_set(mat, bucket->submat_row[i], bucket->submat_col[i], sum); 	\
-					}											\
-				}else{												\
-					for(int i = 0; i < bucket -> n; i++) {							\
-						gsl_matrix *mat = gcpo[bucket->submat_id[i]]->cov_mat; 				\
-						gsl_matrix_set(mat, bucket->submat_col[i], bucket->submat_row[i], lpred_variance[row]); 	\
-					}													\
-				}														\
-			}															\
-		}																\
-
-		if (node_idx) {
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
-		}
-#undef CODE_BLOCK
-	} else {
 #define CODE_BLOCK							\
-		for (int inode = 0; inode < node_idx->n; inode++) {	\
-			int node = node_idx->idx[inode];		\
-			double *a = CODE_BLOCK_WORK_PTR(0);		\
-			double *Sa = CODE_BLOCK_WORK_PTR(1);		\
-			CODE_BLOCK_ALL_WORK_ZERO();			\
+	for (int inode = 0; inode < node_idx->n; inode++) {		\
+		int node = node_idx->idx[inode];			\
+		double *a = CODE_BLOCK_WORK_PTR(0);			\
+		double *Sa = CODE_BLOCK_WORK_PTR(1);			\
+		CODE_BLOCK_ALL_WORK_ZERO();				\
 									\
-			if (gcpo_param->verbose || detailed_output) {	\
-				if (skip[node]) {			\
-					printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
-				} else {				\
-					printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
-				}					\
+		if (gcpo_param->verbose || detailed_output) {		\
+			if (skip[node]) {				\
+				printf("%s[%1d]: Skip solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
+			} else {					\
+				printf("%s[%1d]: Solve for node %d\n", __GMRFLib_FuncName, omp_get_thread_num(), node); \
 			}						\
-			gcpo[node]->node_min = gcpo[node]->idxs->idx[0]; \
-			gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
-			gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n); \
+		}							\
+		gcpo[node]->node_min = gcpo[node]->idxs->idx[0];	\
+		gcpo[node]->node_max = gcpo[node]->idxs->idx[IMAX(0, gcpo[node]->idxs->n - 1)]; \
+		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n); \
 									\
-			if (gcpo[node]->idxs->n > 0) {			\
-				assert(gcpo[node]->idx_node >= 0);	\
-			}						\
+		if (gcpo[node]->idxs->n > 0) {				\
+			assert(gcpo[node]->idx_node >= 0);		\
+		}							\
 									\
-			int need_Sa = 1;				\
-			for(int k = 0; k < groups->missing[node]->n; k++) { \
-				int nnode = groups->missing[node]->idx[0][k]; \
-				int cm_idx = groups->missing[node]->idx[1][k]; \
-				gsl_matrix *mat = gcpo[cm_idx]->cov_mat; \
-				int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
-				int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
-				assert(ii >= 0 && jj >= 0);		\
-				gsl_matrix_set(mat, ii, ii, lpred_variance[node]); \
-				if (jj != ii) {				\
-					if (need_Sa) {			\
-						assert(!skip[node]);	\
-						GMRFLib_idxval_tp *v = A_idx(node); \
-						for (int k = 0; k < v->n; k++) { \
-							a[v->idx[k]] = v->val[k]; \
-						}			\
-						GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
-						need_Sa = 0;		\
+		int need_Sa = 1;					\
+		for(int k = 0; k < groups->missing[node]->n; k++) {	\
+			int nnode = groups->missing[node]->idx[0][k];	\
+			int cm_idx = groups->missing[node]->idx[1][k];	\
+			gsl_matrix *mat = gcpo[cm_idx]->cov_mat;	\
+			int ii = GMRFLib_iwhich_sorted(node, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
+			int jj = GMRFLib_iwhich_sorted(nnode, (int *) gcpo[cm_idx]->idxs->idx, gcpo[cm_idx]->idxs->n); \
+			assert(ii >= 0 && jj >= 0);			\
+			gsl_matrix_set(mat, ii, ii, lpred_variance[node]); \
+			if (jj != ii) {					\
+				if (need_Sa) {				\
+					assert(!skip[node]);		\
+					GMRFLib_idxval_tp *v = A_idx(node); \
+					for (int k = 0; k < v->n; k++) { \
+						a[v->idx[k]] = v->val[k]; \
 					}				\
-									\
-					GMRFLib_idxval_tp *v = A_idx(nnode); \
-					double sum = GMRFLib_dot_product(v, Sa); \
-					double f = sd[node] * sd[nnode]; \
-					sum /= f;			\
-					double cov = TRUNCATE(sum, -1.0, 1.0) * f; \
-									\
-					gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
-					gsl_matrix_set(mat, ii, jj, cov); \
-					gsl_matrix_set(mat, jj, ii, cov); \
+					GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
+					need_Sa = 0;			\
 				}					\
+									\
+				GMRFLib_idxval_tp *v = A_idx(nnode);	\
+				double sum = GMRFLib_dot_product(v, Sa); \
+				double f = sd[node] * sd[nnode];	\
+				sum /= f;				\
+				double cov = TRUNCATE(sum, -1.0, 1.0) * f; \
+									\
+				gsl_matrix_set(mat, jj, jj, lpred_variance[nnode]); \
+				gsl_matrix_set(mat, ii, jj, cov);	\
+				gsl_matrix_set(mat, jj, ii, cov);	\
 			}						\
-		}
-
-		if (node_idx) {
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
-		}
-#undef CODE_BLOCK
+		}							\
 	}
+
+	if (node_idx) {
+		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 2, N);
+	}
+#undef CODE_BLOCK
+
 	GMRFLib_idx_free(node_idx);
 	Free(skip);
 
@@ -7603,7 +7498,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 									\
 			if (detailed_output) {				\
 				printf("node %d, cov.mat and mean after correction (low-rank)\n", node); \
-				GMRFLib_printf_gsl_matrix(stdout, SS, " %.8f ");	\
+				GMRFLib_printf_gsl_matrix(stdout, SS, " %.8f "); \
 				GMRFLib_printf_gsl_vector(stdout, zmean, " %.8f "); \
 			}						\
 									\
@@ -7703,7 +7598,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 			for (int i = 0; i < np; i++) {			\
 				xp[i] = loc_mean + loc_sd * xx[i];	\
 			}						\
-			loglFunc(thread_id, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg);	\
+			loglFunc(thread_id, loglik, xp, np, node, lpred_mean, NULL, loglFunc_arg); \
 									\
 			double d_tmp = d[node];				\
 			for (int i = 0; i < np; i++) {			\
