@@ -96,16 +96,16 @@ typedef struct {
 	int *idx;
 	GMRFLib_idxval_preference_tp preference;
 
-	int nn;						       /* new len */
-	int g_n;					       /* number of groups with sequential indices */
-	int *g_istart;					       /* and their starting index */
-	int *g_len;					       /* their length */
-	int *g_idx;					       /* indexing */
-	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
-	int free_g_mem;
-
 	double *val;
-	double *g_val;
+
+	int g_n;					       /* number of groups with sequential indices */
+	int *g_len;					       /* their length */
+	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
+	int **g_idx;					       /* indexing */
+	double **g_val;
+
+	int g_n_mem;
+	void **g_mem;
 } GMRFLib_idxval_tp;
 
 typedef struct {
@@ -168,8 +168,10 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
-int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups);
-int GMRFLib_idxval_nsort_x_NEW(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups);
+int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt);
+int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x_ran);
+int GMRFLib_idxval_nsort_x_core_simple(GMRFLib_idxval_tp * h, double *x_ran);
+int GMRFLib_idxval_nsort_x_OLD(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups);
 int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);

@@ -271,7 +271,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				GMRFLib_idxval_add(&(A_idxval[i]), idx, val);
 			}
 		}
-		GMRFLib_idxval_nsort_x(&(A_idxval[i]), 1, 1, 1, 1);
+		GMRFLib_idxval_nsort_x(&(A_idxval[i]), 1, 1);
 	}
 	GMRFLib_idxval_to_matrix(&((*preopt)->A), A_idxval, npred, N);
 	SHOW_TIME("A_idxval");
@@ -285,7 +285,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			GMRFLib_idxval_add(&(At_idxval[elm->idx[k]]), i, elm->val[k]);
 		}
 	}
-	GMRFLib_idxval_nsort_x(At_idxval, N, GMRFLib_MAX_THREADS(), 1, 1);
+	GMRFLib_idxval_nsort_x(At_idxval, N, GMRFLib_MAX_THREADS());
 
 	SHOW_TIME("At_idxval");
 	if (debug_detailed) {
@@ -321,7 +321,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			int j = pA->j[k];
 			GMRFLib_idxval_add(&(pA_idxval[i]), j, pA->values[k]);
 		}
-		GMRFLib_idxval_nsort_x(pA_idxval, nrow, GMRFLib_MAX_THREADS(), 1, 1);
+		GMRFLib_idxval_nsort_x(pA_idxval, nrow, GMRFLib_MAX_THREADS());
 		(*preopt)->pA = pA;
 		SHOW_TIME("create pA_idxval");
 
@@ -452,7 +452,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 			GMRFLib_idxval_free(row_idxval);
 		}
-		GMRFLib_idxval_nsort_x(pAA_idxval, nrow, GMRFLib_MAX_THREADS(), 1, 1);
+		GMRFLib_idxval_nsort_x(pAA_idxval, nrow, GMRFLib_MAX_THREADS());
 		SHOW_TIME("pAA_idxval");
 
 		pAAt_idxval = GMRFLib_idxval_ncreate(N);
@@ -462,7 +462,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				GMRFLib_idxval_add(&(pAAt_idxval[elm->idx[k]]), i, elm->val[k]);
 			}
 		}
-		GMRFLib_idxval_nsort_x(pAAt_idxval, N, GMRFLib_MAX_THREADS(), 1, 1);
+		GMRFLib_idxval_nsort_x(pAAt_idxval, N, GMRFLib_MAX_THREADS());
 		SHOW_TIME("pAAt_idxval");
 
 		if (debug_detailed) {
@@ -597,15 +597,11 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
-	// as its mostly about length of these ones...
-	int build_groups = ((*preopt)->Npred < 1E9);
-	int merge_groups = ((*preopt)->Npred < 1E5);
-	if (debug) {
-		printf("\tset build_groups[%1d] merge_groups[%1d]\n", build_groups, merge_groups);
-	}
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+	// double t0 = GMRFLib_cpu();
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(dynamic)
 	for (int i = 0; i < g->n; i++) {
-		GMRFLib_idxval_nsort_x(AtA_idxval[i], 1 + g->lnnbs[i], 1, build_groups, merge_groups);
+		// if (omp_get_thread_num() == 0) printf("[0] %1d/%1d acc.time= %.4f\n", i, g->n, GMRFLib_cpu() - t0);
+		GMRFLib_idxval_nsort_x(AtA_idxval[i], 1 + g->lnnbs[i], 1);
 	}
 	SHOW_TIME("sort AtA_idxval");
 

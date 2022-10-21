@@ -9290,9 +9290,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -41408,7 +41408,7 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_add(&h, 25070, 1);
 		GMRFLib_idxval_add(&h, 25075, 1);
 
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 1, 1);
+		GMRFLib_idxval_nsort_x(&h, 1, 1);
 	}
 		break;
 
@@ -41466,7 +41466,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
+		GMRFLib_idxval_nsort_x(&h, 1, 1);
 		assert(h);
 		P(n);
 		P(h->g_n);
@@ -41512,7 +41512,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
+		GMRFLib_idxval_nsort_x(&h, 1, 1);
 		P(n);
 		P(m);
 		P(h->g_n);
@@ -41682,7 +41682,7 @@ int testit(int argc, char **argv)
 			}
 			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
+		GMRFLib_idxval_nsort_x(&h, 1, 1);
 		if (n == 0) {
 			FIXME("n = 0,  try again.");
 			exit(0);
@@ -41964,18 +41964,116 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 97: 
+	case 97:
 	{
 		GMRFLib_idxval_tp *v = NULL;
-		int idx[] = {0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 18, 19, 21};
+		int idx[] = { 0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 13, 15, 17, 18, 19, 21, 22, 24, 26, 27, 30 };
+		// int idx[] = {0, 2, 3, 4, 5, 6, 7, 8, 10}; 
 
-		for(int i = 0; i < (int) (sizeof(idx)/sizeof(int)); i++) {
-			GMRFLib_idxval_add(&v, idx[i], (double)i);
+		for (int i = 0; i < (int) (sizeof(idx) / sizeof(int)); i++) {
+			// GMRFLib_idxval_add(&v, idx[i], (double) 1.0);
+			GMRFLib_idxval_add(&v, idx[i], 1.0 + (double) i + 0 * GMRFLib_uniform());
 		}
 
-		GMRFLib_idxval_nsort_x_NEW(&v, 1, 1, 1, 1);
+		GMRFLib_idxval_nsort_x(&v, 1, 1);
 	}
-	break;
+		break;
+
+	case 98:
+	{
+		int n = atoi(args[0]);
+		int ntimes = atoi(args[1]);
+		double *xx = Calloc(n, double);
+
+		// GMRFLib_rng_init(1);
+		for (int i = 0; i < n; i++) {
+			xx[i] = GMRFLib_uniform();
+		}
+		P(xx[0]);
+
+		GMRFLib_idxval_tp *h = NULL;
+		GMRFLib_idxval_tp *hh = NULL;
+		for (int i = 0, j = 0; i < n; i++) {
+			j += 1 + (GMRFLib_uniform() < 0.95 ? 0.0 : 1 + (int) (GMRFLib_uniform() * 31));
+			if (j >= n)
+				break;
+			GMRFLib_idxval_add(&h, j, xx[j]);
+			GMRFLib_idxval_add(&hh, j, xx[j]);
+			// GMRFLib_idxval_add(&h, j, 1.0);
+			// GMRFLib_idxval_add(&hh, j, 1.0);
+		}
+		if (!h || !hh)
+			exit(0);
+
+		double tref1 = 0.0, tref2 = 0.0;
+		tref1 -= GMRFLib_cpu();
+		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		tref1 += GMRFLib_cpu();
+		tref2 -= GMRFLib_cpu();
+		GMRFLib_idxval_nsort_x_OLD(&hh, 1, 1, 1, 1);
+		tref2 += GMRFLib_cpu();
+
+		P(tref1 / (tref1 + tref2));
+
+		P(n);
+		P(ntimes);
+
+		double sum1 = 0.0, sum2 = 0.0;
+		tref1 = 0.0;
+		tref2 = 0.0;
+		for (int k = 0; k < ntimes; k++) {
+			sum1 = sum2 = 0.0;
+			tref1 -= GMRFLib_cpu();
+			sum1 = GMRFLib_dot_product(h, xx);
+			tref1 += GMRFLib_cpu();
+
+			tref2 -= GMRFLib_cpu();
+			sum2 = GMRFLib_dot_product(hh, xx);
+			tref2 += GMRFLib_cpu();
+			if (ABS(sum1 - sum2) > 1e-8) {
+				P(sum1);
+				P(sum2);
+				exit(88);
+			}
+		}
+		GMRFLib_idxval_free(h);
+		GMRFLib_idxval_free(hh);
+		printf("new %.3f old %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		Free(xx);
+	}
+		break;
+
+	case 99:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		int nm = n * m;
+
+		double *x = Calloc(nm, double);
+		double *xx = Calloc(nm, double);
+		for (int i = 0; i < nm; i++) {
+			x[i] = xx[i] = GMRFLib_uniform();
+		}
+		double tref1 = 0.0, tref2 = 0.0;
+		for (int nt = 0; nt < 100; nt++) {
+			tref1 -= GMRFLib_cpu();
+			for (int i = 0; i < n; i++) {
+				int offset = (n - i - 1) * m;
+				Memcpy(x + offset, xx + offset, m * sizeof(double));
+			}
+			tref1 += GMRFLib_cpu();
+			tref2 -= GMRFLib_cpu();
+			for (int i = 0; i < n; i++) {
+				int offset = (n - i - 1) * m;
+				for (int j = 0; j < m; j++) {
+					x[offset + j] = xx[offset + j];
+				}
+			}
+			tref2 += GMRFLib_cpu();
+		}
+		printf("memcpy %.3f plain %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+	}
+		break;
 
 	case 999:
 	{
