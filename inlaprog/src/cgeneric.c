@@ -144,6 +144,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	if (debug) {
 		printf("\tNumber of matrices %1d\n", len);
 	}
+	data->n_mats = len;
 	data->mats = Calloc(len, inla_cgeneric_mat_tp *);
 	for (k = 0; k < len; k++) {
 		data->mats[k] = Calloc(1, inla_cgeneric_mat_tp);
@@ -175,7 +176,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	if (debug) {
 		printf("\tNumber of sparse matrices %1d\n", len);
 	}
-	data->n_smat = len;
+	data->n_smats = len;
 	data->smats = Calloc(len, inla_cgeneric_smat_tp *);
 	for (k = 0; k < len; k++) {
 		data->smats[k] = Calloc(1, inla_cgeneric_smat_tp);
