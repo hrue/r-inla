@@ -652,9 +652,25 @@ inla.spde.make.index <- function(name, n.spde, n.group = 1, n.repl = 1, ...) {
 #' @seealso [inla.spde.make.A()]
 #' @export inla.row.kron
 inla.row.kron <- function(M1, M2, repl = NULL, n.repl = NULL, weights = NULL) {
-    M1 <- inla.as.dgTMatrix(M1)
-    M2 <- inla.as.dgTMatrix(M2)
-    n <- nrow(M1)
+    if (!inherits(M1, "Matrix")) {
+        M1 <- as(M1, "Matrix")
+    }
+    if (!inherits(M2, "Matrix")) {
+        M2 <- as(M2, "Matrix")
+    }
+    n1 <- nrow(M1)
+    n2 <- nrow(M2)
+    if ((n1 == 1) && (n2 > 1)) {
+        M1 <- Matrix::kronecker(rep(1, n2), M1)
+        n <- n2
+    } else if ((n1 > 1) && (n2 == 1)) {
+        M2 <- Matrix::kronecker(rep(1, n1), M2)
+        n <- n1
+    } else if (n1 != n2) {
+        stop(paste0("Size mismatch for row.kron, (n1, n2) = (", n1, ", ", n2, ")"))
+    } else {
+        n <- n1
+    }
     if (is.null(repl)) {
         repl <- rep(1L, n)
     }
@@ -666,45 +682,24 @@ inla.row.kron <- function(M1, M2, repl = NULL, n.repl = NULL, weights = NULL) {
     } else if (length(weights) == 1L) {
         weights <- rep(weights[1], n)
     }
-
-    if (FALSE) {
-        ## Slow version:
-        print(system.time({
-            M <- (sparseMatrix(
-                i = numeric(0), j = numeric(0), x = integer(0),
-                dims = c(n, ncol(M1) * ncol(M2))
-            ))
-            for (k in seq_len(n)) {
-                M[k, ] <- kronecker(M1[k, , drop = FALSE], M2[k, , drop = FALSE])
-            }
-            M <- inla.as.dgTMatrix(M)
-            weights.ii <- weights[1L + M@i]
-            M <- (sparseMatrix(
-                i = (1L + M@i),
-                j = (1L + M@j + ncol(M) * (repl[M@i + 1L] - 1L)),
-                x = weights.ii * M@x,
-                dims = c(n, n.repl * ncol(M))
-            ))
-        }))
-        M.slow <- M
-    }
-
-    ## Fast version:
-    ## TODO: Check robustness for all-zero rows.
+    
+    ## OK: Checked robustness for all-zero rows 2022-10-20, matrix 1.5-2
     ## TODO: Maybe move big sparseMatrix call outside the loop.
     ## TODO: Automatically choose M1 or M2 for looping.
-
-    ## print(system.time({
-    n1 <- (as.vector(sparseMatrix(
+    
+    M1 <- inla.as.dgTMatrix(M1)
+    M2 <- inla.as.dgTMatrix(M2)
+    
+    n1 <- (as.vector(Matrix::sparseMatrix(
         i = 1L + M1@i, j = rep(1L, length(M1@i)),
         x = 1L, dims = c(n, 1)
     )))
-    n2 <- (as.vector(sparseMatrix(
+    n2 <- (as.vector(Matrix::sparseMatrix(
         i = 1L + M2@i, j = rep(1L, length(M2@i)),
         x = 1L, dims = c(n, 1)
     )))
-
-    M <- (sparseMatrix(
+    
+    M <- (Matrix::sparseMatrix(
         i = integer(0), j = integer(0), x = numeric(0),
         dims = c(n, ncol(M2) * ncol(M1) * n.repl)
     ))
@@ -712,51 +707,45 @@ inla.row.kron <- function(M1, M2, repl = NULL, n.repl = NULL, weights = NULL) {
     for (k in unique(n1)) {
         sub <- which(n1 == k)
         n.sub <- length(sub)
-
+        
         i.sub <- 1L + M1@i[sub]
         j.sub <- 1L + M1@j[sub]
         o1 <- order(i.sub, j.sub)
         jj <- rep(seq_len(k), times = n.sub / k)
-
+        
         i.sub <- i.sub[o1]
-        j.sub <- (sparseMatrix(
+        j.sub <- (Matrix::sparseMatrix(
             i = i.sub,
             j = jj,
             x = j.sub[o1],
             dims = c(n, k)
         ))
-        x.sub <- (sparseMatrix(
+        x.sub <- (Matrix::sparseMatrix(
             i = i.sub,
             j = jj,
             x = weights[i.sub] * M1@x[sub][o1],
             dims = c(n, k)
         ))
         sub2 <- which(is.element(1L + M2@i, i.sub))
-
+        
         if (length(sub2) > 0) {
             i <- 1L + M2@i[sub2]
             ii <- rep(i, times = k)
             repl.i <- repl[ii]
-
-            M <- (M +
-                sparseMatrix(
+            
+            M <- M +
+                Matrix::sparseMatrix(
                     i = ii,
                     j = (1L + rep(M2@j[sub2], times = k) +
-                        ncol(M2) * (as.vector(j.sub[i, ]) - 1L) +
-                        ncol(M2) * ncol(M1) * (repl.i - 1L)),
+                             ncol(M2) * (as.vector(j.sub[i, ]) - 1L) +
+                             ncol(M2) * ncol(M1) * (repl.i - 1L)),
                     x = (rep(M2@x[sub2], times = k) *
-                        as.vector(x.sub[i, ])),
+                             as.vector(x.sub[i, ])),
                     dims = c(n, ncol(M2) * ncol(M1) * n.repl)
-                ))
+                )
         }
     }
-    ## }))
-
-    ## For debugging:
-    ## print(max(abs(M-M.slow)))
-
-    ## o2 = order(n2[1L+M2@i], M2@i, M2@j)
-
+    
     return(M)
 }
 
