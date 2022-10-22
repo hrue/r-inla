@@ -258,7 +258,6 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 
 	int i, j, k;
 	double *xxp = NULL, *wwp = NULL;
-	double inla_log_Phi(double x);			       /* external function */
 
 	double c1 = 1.2533141373155001208;		       // = sqrt(M_PI/2)
 	double c2 = 0.63661977236758138243;		       // 2/M_PI

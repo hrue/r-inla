@@ -198,7 +198,6 @@ typedef enum {
 	L_ZEROINFLATEDPOISSON2,
 	L_ZERO_N_INFLATEDBINOMIAL2,
 	L_ZERO_N_INFLATEDBINOMIAL3,
-	L_WEIBULL_CURE,					       /* Patrick and Silvia's model */
 	L_LOGGAMMA_FRAILTY,
 	L_IID_GAMMA,
 	L_IID_LOGITBETA,
@@ -241,7 +240,7 @@ typedef enum {
 	L_STOCHVOL_SN,
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
-	L_GAUSSIANJW, 
+	L_GAUSSIANJW,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -537,6 +536,10 @@ typedef struct {
 	// double *time == y
 	double **p_intern;				       /* For the L_WEIBULL_CURE */
 
+	int cure_ncov;
+	double *cure_cov;
+	double ***cure_beta;
+
 	/*
 	 * zero-inflated Poission/Binomial/NegativeBinomial/BetaBinomial version 0/1/2...
 	 */
@@ -716,7 +719,7 @@ typedef struct {
 	double **fmri_ldof;
 	double *fmri_scale;
 
-	/* 
+	/*
 	 * gaussianjw  
 	 */
 	double ***gjw_beta;
@@ -942,7 +945,7 @@ struct inla_tp_struct {
 	 * General stuff 
 	 */
 	int verbose;
-	int strategy;
+	GMRFLib_openmp_strategy_tp strategy;
 	char *smtp;
 
 	GMRFLib_preopt_tp *preopt;
@@ -1177,6 +1180,9 @@ struct inla_tp_struct {
 	 * if at use
 	 */
 	inla_update_tp *update;
+
+	// experimental mode only
+	int compute_initial_values;
 };
 
 typedef struct {
@@ -1754,7 +1760,6 @@ double map_invrobit(double arg, map_arg_tp typ, void *param);
 double map_invsn(double arg, map_arg_tp typ, void *param);
 double map_invtan(double arg, map_arg_tp typ, void *param);
 double map_negexp(double arg, map_arg_tp typ, void *param);
-double map_p_weibull_cure(double arg, map_arg_tp typ, void *param);
 double map_phi(double arg, map_arg_tp typ, void *param);
 double map_precision(double arg, map_arg_tp typ, void *param);
 double map_probability(double x, map_arg_tp typ, void *param);
@@ -2014,6 +2019,8 @@ int loglikelihood_gompertzsurv(int thread_id, double *logll, double *x, int m, i
 int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			       GMRFLib_logl_tp * loglfun);
+int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
+				   GMRFLib_logl_tp * loglfun);
 int loglikelihood_gev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_gp(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2054,7 +2061,6 @@ int loglikelihood_testit(int thread_id, double *logll, double *x, int m, int idx
 int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_tweedie(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibull(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
-int loglikelihood_weibull_cure(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_weibullsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_wrapped_cauchy(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
 int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg);
@@ -2094,6 +2100,9 @@ int UTIL_countPhysicalCores(void);
 int UTIL_countCores(int);
 int UTIL_countLogicalCores(void);
 
+int gsl_bfgs4_test1(size_t);
+int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double *y, int mm, double *xd, double *yd, int order);
+
 /* 
 ***
 */
@@ -2105,7 +2114,7 @@ typedef struct {
 	double mcmc_scale;				       /* scaling */
 	int mcmc_thinning;				       /* thinning */
 	int mcmc_niter;					       /* number of iterations: 0 is infinite */
-	int reorder;					       /* reorder strategy: -1 for optimize */
+	GMRFLib_reorder_tp reorder;			       /* reorder strategy: -1 for optimize */
 	int mcmc_fifo;					       /* use fifo to communicate in mcmc mode */
 	int mcmc_fifo_pass_data;			       /* use fifo to communicate in mcmc mode, pass also all data */
 } G_tp;

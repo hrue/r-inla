@@ -1,3 +1,41 @@
+# INLA 22.10.15
+* Bug fix
+
+# INLA 22.10.14
+* Internal changes and bug fix.
+
+# INLA 22.10.13
+* Bug fix
+
+# INLA 22.10.12
+* Added new experimental cure-model for parametric survival
+  (documentation will come later).
+* The 'weibullcure'-model is removed as its covered by the new
+  cure-model.
+* Optimization: Models with many constraints 
+* Optimization: Models with 'betabinomial' likelihood
+
+# INLA 22.10.07
+* Fixed regression in initial value for model="copy"
+* Code cleanup
+
+# INLA 22.10.06
+* Rebuild package to due broken '22.10.05' version
+
+# INLA 22.10.05
+* Code cleanup and optimization of dot-products
+* Fixed an issue with 'control.fixed=list(remove.names=...)'
+
+# INLA 22.10.01
+* MKL code for nested indexed inner products
+* Computation of initial values for experimental mode
+* Various more minor code improvements
+
+# INLA 22.09.28
+* Updated version of `fmesher`, the program which do the mesh-stuff
+* Various code-improvement
+* Some internal (work-in-progress) updates
+
 # INLA 22.09.26
 * Various code-improvement and cleanup
 * Code-optimization of spde2-models

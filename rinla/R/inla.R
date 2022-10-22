@@ -752,7 +752,13 @@
 
     if (n.family > 1) {
         y...orig <- inla.as.list.of.lists(y...orig)
-        ny <- max(sapply(y...orig, function(xx) if (is.list(xx)) max(sapply(xx, length)) else length(xx)))
+        ny <- max(sapply(y...orig,
+                         function(xx) {
+            if (is.list(xx))
+                max(sapply(xx, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
+            else
+                length(xx)
+        }))
         nc <- length(y...orig)
         if (n.family != nc) {
             stop(paste(
@@ -763,10 +769,14 @@
     } else {
         nc <- NULL ## not in use
         if (inherits(y...orig, "inla.surv")) {
+            if (is.null(y...orig$cure)) {
+                y...orig$cure <- NULL
+            }
             class(y...orig) <- NULL
             ## this one is not passed along
             y...orig$.special <- NULL
-            ny <- max(sapply(y...orig, length))
+            ## we have to skip a possible matrix in ...$cure
+            ny <- max(sapply(y...orig, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
             ny <- max(sapply(y...orig, length))
@@ -903,6 +913,7 @@
                 cont.fixed$expand.factor.strategy
             ))
         }
+
         if (inla.require("MatrixModels")) {
             gp$model.matrix <- MatrixModels::model.Matrix(
                                                  new.fix.formula,
@@ -934,7 +945,7 @@
         ## intercept as we might have the intercept in the link-model f.ex. In this case we want
         ## to do the expansion of factors as we have an intercept and then remove it afterwards.
         if (!is.null(cont.fixed$remove.names)) {
-            rm.cols <- which(cont.fixed$remove.names %in% colnames(gp$model.matrix))
+            rm.cols <- which(colnames(gp$model.matrix) %in% cont.fixed$remove.names)
             if (length(rm.cols) > 0) {
                 gp$model.matrix <- gp$model.matrix[, -rm.cols, drop = FALSE]
             }
@@ -2384,7 +2395,6 @@
         }
 
         my.time.used[3] <- Sys.time()
-
         if (echoc == 0L) {
             if (!submit) {
                 ret <- try(inla.collect.results(results.dir,

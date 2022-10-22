@@ -223,7 +223,7 @@ typedef enum {
 	_Pragma("omp threadprivate(debug_count_)")			\
 	debug_count_++;							\
 	if (debug_ < 0)	{						\
-		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName); \
+		debug_ = GMRFLib_debug_functions(__GMRFLib_FuncName);	\
 	}
 
 #define GMRFLib_TRACE_INIT() static int trace_ = -1;			\
@@ -231,7 +231,7 @@ typedef enum {
 	_Pragma("omp threadprivate(trace_count_)")			\
 	trace_count_++;							\
 	if (trace_ < 0)	{						\
-		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName); \
+		trace_ = GMRFLib_trace_functions(__GMRFLib_FuncName);	\
 	}
 
 #define GMRFLib_DEBUG_IF_TRUE() (debug_)
@@ -393,12 +393,12 @@ typedef enum {
 #define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
-#define ISINF(x) gsl_isinf(x)
-#define ISNAN(x) gsl_isnan(x)
+#define ISINF(x) isinf(x)
+#define ISNAN(x) (isnan(x) != 0)
 #define LEGAL(i, n) ((i) >= 0 && (i) < (n))
-#define SIGN(x) ((x) >= 0 ? 1.0 : -1.0)
+#define SIGN(x) ((x) >= 0 ? 1 : -1)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
-#define OVERLAP(p_, pp_, n_) (!(((pp_) + n_ - 1 <  (p_)) || ((p_) + n_ - 1 <  (pp_))))
+#define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
 
 
 // ``Note that x and y are compared to relative accuracy, so gsl_fcmp is not suitable for testing whether a value is approximately zero''. so we

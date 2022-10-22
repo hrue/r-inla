@@ -77,5 +77,6 @@ int GMRFLib_ghq_ms(double **xp, double **wp, int n, double mean, double stdev);
 int GMRFLib_ghq_weights(double **wp, int n);
 int GMRFLib_snq_free(GMRFLib_snq_tp * q);
 
+double inla_log_Phi(double x);				       /* external function */
 __END_DECLS
 #endif

@@ -87,17 +87,13 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 int daxpy_(int *n, double *alpha, double *x, int *incx, double *y, int *incy);
 int dcopy_(int *n, double *x, int *incx, double *y, int *incy);
 int dscal_(int *n, double *alpha, double *x, int *inc);
-double ddot_(int *n, double *x, int *incx, double *y, int *incy);
+int dscal_(int *n, double *a, double *x, int *incx);
+
+double ddot_(int *len, double *x, int *incx, double *y, int *incy);
 double dnrm2_(int *n, double *x, int *inc);
 double dasum_(int *n, double *x, int *inc);
 
-int my_isum(int n, int *ix);
-int my_isum2(int n, int *ix);
-double my_ddot(int n, double *__restrict x, double *__restrict y);
-double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double my_dsum(int n, double *x);
-double my_dsum2(int n, double *x);
-double my_dsum_idx(int n, double *__restrict a, int *__restrict idx);
+int GMRFLib_dscale(int n, double a, double *x);
 
 double GMRFLib_gsl_spd_logdet(gsl_matrix * A);
 double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q);

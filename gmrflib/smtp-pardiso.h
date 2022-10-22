@@ -107,6 +107,8 @@ typedef struct {
 	GMRFLib_pardiso_store_pr_thread_tp **pstore;
 } GMRFLib_pardiso_store_tp;
 
+typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
+
 #ifdef _WIN32
 #include <io.h>
 #define NULL_FNM "NUL"
@@ -160,9 +162,9 @@ int GMRFLib_csr_free(GMRFLib_csr_tp ** csr);
 int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr);
 int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr);
 int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr);
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** new, GMRFLib_pardiso_store_tp * old, int copy_ptr, int copy_pardiso_ptr);
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** nnew, GMRFLib_pardiso_store_tp * old, int copy_ptr, int copy_pardiso_ptr);
 int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store);
-int GMRFLib_pardiso_Qinv_INLA();
+int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem);
 int GMRFLib_pardiso_bitmap(void);
 int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg);
 int GMRFLib_pardiso_check_install(int quiet, int no_err);

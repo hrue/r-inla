@@ -223,7 +223,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		p = GMRFLib_spline_eval(arg, table[id]->cdf);
 		return iMAP(p);
 	}
-	
+
 	case MAP_BACKWARD:
 	{
 		/*
@@ -232,7 +232,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		arg = TRUNCATE(arg, table[id]->pmin, table[id]->pmax);
 		return GMRFLib_spline_eval(MAP(arg), table[id]->icdf) - intercept;
 	}
-	
+
 	case MAP_DFORWARD:
 	{
 		/*
@@ -243,7 +243,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		pp = GMRFLib_spline_eval_deriv(arg, table[id]->cdf);
 		return diMAP(p) * pp;
 	}
-	
+
 	case MAP_INCREASING:
 	{
 		/*
@@ -251,7 +251,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 		 */
 		return 1.0;
 	}
-	
+
 	default:
 		abort();
 	}

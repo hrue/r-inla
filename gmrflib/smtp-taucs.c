@@ -210,10 +210,6 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 {
 	// this for metis version 5
 
-#if !defined(NO_PARDISO_LIB)
-	int METIS51PARDISO_NodeND(idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *, idx_t *);
-#endif
-
 	int n, nnz, i, j, ip;
 	int *xadj;
 	int *adj;
@@ -221,10 +217,8 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	int *ptr;
 	int ret;
 
-	assert(sizeof(idx_t) == sizeof(int));
-
 	if (!(m->flags & TAUCS_SYMMETRIC) && !(m->flags & TAUCS_HERMITIAN)) {
-		taucs_printf("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n");
+		taucs_printf(GMRFLib_strdup("taucs_ccs_treeorder: METIS ordering only works on symmetric matrices.\n"));
 		*perm = NULL;
 		*invperm = NULL;
 		return;
@@ -233,7 +227,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	 * this routine may actually work on UPPER as well 
 	 */
 	if (!(m->flags & TAUCS_LOWER)) {
-		taucs_printf("taucs_ccs_metis: the lower part of the matrix must be represented.\n");
+		taucs_printf(GMRFLib_strdup("taucs_ccs_metis: the lower part of the matrix must be represented.\n"));
 		*perm = NULL;
 		*invperm = NULL;
 		return;
@@ -295,7 +289,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 			}
 		}
 	}
-	idx_t options[METIS_NOPTIONS];
+	int options[METIS_NOPTIONS];
 	// Have to adapt to the PARDISO metis libs
 	// METIS_SetDefaultOptions(options);
 	for (i = 0; i < METIS_NOPTIONS; i++) {
@@ -675,6 +669,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRF
 	if (fast_copy) {
 		Memcpy(Q->rowind, graph->rowidx, (n + graph->nnz / 2) * sizeof(int));
 		Memcpy(Q->colptr, graph->colptr, (n + 1) * sizeof(int));
+#pragma GCC ivdep
 		for (int i = 0; i < n + graph->nnz / 2; i++) {
 			Q->values.d[i] = arg->Q->a[graph->row2col[i]];
 		}
@@ -751,7 +746,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
 	if (retval) {
-		fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFail to factorize Q. I will try to fix it...\n\n",
+		fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
 			GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 		return GMRFLib_EPOSDEF;
 	}

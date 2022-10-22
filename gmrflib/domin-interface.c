@@ -704,9 +704,22 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	mode_reference = NULL;
 
-	// do the loop in reverse so that the last configuration, f0, have a high chance to come early (in the case the loop is interupted)
-#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
-	for (i = 2 * n; i >= 0; i--) {
+	int *order = Calloc(2 * n + 1, int);
+	order[0] = 2 * n;
+	for (int i = 0; i < n; i++) {
+		order[1 + i] = i;
+		order[1 + i + n] = i + n;
+	}
+
+	if (0) {
+		for (int i = 0; i < 2 * n + 1; i++) {
+			printf("i %d order %d\n", i, order[i]);
+		}
+	}
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+	for (int ii = 0; ii < 2 * n + 1; ii++) {
+		int i = order[ii];
+
 		int thread_id = omp_get_thread_num();
 		int j;
 		GMRFLib_ai_store_tp *ais = NULL;
@@ -751,16 +764,22 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			ff = ff0 = f0;
 		}
 
+		// we need to have f0 computed to check
 		if (CHECK_FOR_EARLY_STOP) {
-			// we need to have f0 computed to check
-			if (!ISNAN(f0) && (ff0 > ff)) {	       /* yes, used ff0 */
-				if (G.ai_par->fp_log || debug)
-					fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop ff < f0: %f < %f\n", ff, ff0);
-				ff0 = ff;
-				early_stop = 1;
+			if (!ISNAN(f0) && (ff0 > ff)) {
+#pragma omp critical
+				if (!ISNAN(f0) && (ff0 > ff)) {
+					if (G.ai_par->fp_log || debug)
+						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop ff < f0: %f < %f\n", ff,
+							ff0);
+					early_stop = 1;
+					ff0 = ff;
+				}
 			}
 		}
 	}
+
+	Free(order);
 
 	if (early_stop && (G.ai_par->fp_log || debug))
 		fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "exit diagonal hessian due to early_stop\n");
@@ -1324,12 +1343,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				gsl_matrix_memcpy(A, Adir);
 				GMRFLib_gsl_mgs(A);
 				if (G.ai_par->fp_log) {
+					double cutoff = 0.25 * sqrt(1.0 / A->size1);
 					fprintf(G.ai_par->fp_log, "New directions for numerical gradient\n");
 					for (size_t j = 0; j < A->size2; j++) {
 						printf("\t  dir%.2zu", j + 1);
 					}
 					printf("\n");
-					GMRFLib_printf_gsl_matrix(G.ai_par->fp_log, A, "\t %6.3f");
+					GMRFLib_printf_gsl_matrix2(G.ai_par->fp_log, A, "\t %6.3f", cutoff);
 				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
 				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);

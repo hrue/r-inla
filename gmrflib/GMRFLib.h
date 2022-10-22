@@ -61,6 +61,8 @@ __BEGIN_DECLS
 #define GMRFLib_NEED_DRAND48  1				       /* include implementation of drand48() */
 #define GMRFLib_NEED_SRAND48  1				       /* include implementation of srand48() */
 #endif
+void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
+
 
 /* 
  *  include files we need from GSL
@@ -98,6 +100,8 @@ __BEGIN_DECLS
 #include "GMRFLib/error-handler.h"
 #include "GMRFLib/utils.h"
 #include "GMRFLib/idxval.h"
+#include "GMRFLib/lapack-interface.h"
+#include "GMRFLib/dot.h"
 #include "GMRFLib/timer.h"
 #include "GMRFLib/io.h"
 #include "GMRFLib/taucs.h"
@@ -115,7 +119,6 @@ __BEGIN_DECLS
 #include "GMRFLib/density.h"
 #include "GMRFLib/globals.h"
 #include "GMRFLib/hash.h"
-#include "GMRFLib/lapack-interface.h"
 #include "GMRFLib/optimize.h"
 #include "GMRFLib/blockupdate.h"
 #include "GMRFLib/distributions.h"
@@ -132,5 +135,5 @@ __BEGIN_DECLS
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
-    __END_DECLS
+__END_DECLS
 #endif

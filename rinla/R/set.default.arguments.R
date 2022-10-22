@@ -729,6 +729,8 @@
             ## :ARGUMENT+: \code{strategy}: Charactor What to correct, either "mean" or "variance".
             ## :ARGUMENT+: \code{verbose}: Logical Be verbose or not. 
             ## :ARGUMENT+: \code{iter.max}: Integer Maximum number of interations. 
+            ## :ARGUMENT+: \code{emergency}: Numeric If the standarized correction for the mean is larger
+            ## :ARGUMENT+:           than this value, then call the vb.correction off and issue a warning
             ## :ARGUMENT+: \code{f.enable.limit}: Vector of length 2. The size limit to correct for a \code{f()}.
             ## :ARGUMENT+:         First element is for \code{strategy="mean"}.
             ## :ARGUMENT+:         Second element is for \code{strategy="mean"}.
@@ -738,7 +740,7 @@
             ## :ARGUMENT+:         matrix for \code{strategy="variance"}, one of \code{"full"}, 
             ## :ARGUMENT+:         \code{"diagonal"}, \code{"partial"} and \code{"default"}.
             control.vb = list(enable = "auto", strategy = c("mean", "variance"), verbose = TRUE,
-                              iter.max = 25, f.enable.limit = c(30, 25), hessian.update = 2,
+                              iter.max = 25, emergency = 25, f.enable.limit = c(30, 25), hessian.update = 2,
                               hessian.strategy = c("default", "full", "partial", "diagonal")), 
 
             ## :ARGUMENT+: num.gradient Character Set the numerical scheme to compute the
@@ -768,7 +770,11 @@
 
             ## :ARGUMENT+: parallel.linesearch Use serial (default) or parallel line-search
             ## :ARGUMENT+: (highly experimental for the moment)
-            parallel.linesearch = FALSE
+            parallel.linesearch = FALSE,
+            
+            ## :ARGUMENT+: compute.initial.values Compute initial values for the latent field or not.
+            ## :ARGUMENT+: (experimental-mode only)
+            compute.initial.values = TRUE
         )
 
         ## :SEEALSO: inla

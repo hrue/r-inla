@@ -199,3 +199,95 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 	}
 	return GMRFLib_SUCCESS;
 }
+
+double my_gsl_sf_lnbeta(double a, double b)
+{
+	double ab_min, ab_max;
+
+	if (b < a) {
+		ab_min = b;
+		ab_max = a;
+	} else {
+		ab_min = a;
+		ab_max = b;
+	}
+
+	ab_min = DMAX(DBL_EPSILON, ab_min);
+	double n = ab_max / ab_min;
+	const double threshold = 100.0 / DBL_EPSILON;
+
+	if (n > threshold) {
+		// log(Beta(a,a/n)) = as n->infinity + symmetry
+
+/*			
+ *			asympt(log(Beta(a,a/n)), n,2);
+ *                                                         (Psi(a~) + gamma) a~      1
+ *                                        ln(n) - ln(a~) - -------------------- + O(----)
+ *                                                                  n                 2
+ *                                                                                   n
+ */
+
+		return (log(n) - log(ab_max) - (gsl_sf_psi(ab_max) + 0.5772156649015328606065120) * ab_max / n);
+	} else {
+		return (gsl_sf_lnbeta(a, b));
+	}
+}
+
+double my_betabinomial_helper(int n, double a)
+{
+	const int roll = 4L;				       /* dont change this */
+	double s0 = 0.0;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+#pragma GCC ivdep
+	for (int i = 0; i < m; i += roll) {
+		double aa = i + a;
+		s0 += log(aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0));
+	}
+
+	if (d.rem) {
+		double aa = m + a;
+		switch (d.rem) {
+		case 1:
+			s0 += log(aa);
+			break;
+		case 2:
+			s0 += log(aa * (aa + 1.0));
+			break;
+		case 3:
+			s0 += log(aa * (aa + 1.0) * (aa + 2.0));
+			break;
+		}
+	}
+
+	return (s0);
+}
+double my_betabinomial(int y, int n, double a, double b)
+{
+	double s1 = my_betabinomial_helper(y, a);
+	double s2 = my_betabinomial_helper(n - y, b);
+	double s3 = my_betabinomial_helper(n, a + b);
+	return (s1 + s2 - s3);
+}
+
+double my_betabinomial2(int y, int n, double a, double b)
+{
+	// using Gamma(1+z)=z*Gamma(z), we can get this
+	double ladd = 0.0;
+	while (a > 1.0) {
+		a--;
+		ladd += log((y + a) * (a + b) / (n + a + b) / a);
+	}
+	while (b > 1.0) {
+		b--;
+		ladd += log((n - y + b) * (a + b) / (n + a + b) / b);
+	}
+
+	// here we have 0<a<1, 0<b<1, but NOT a+b<1.
+	// this could be helpful creating approximations
+	double s1 = my_betabinomial_helper(y, a);
+	double s2 = my_betabinomial_helper(n - y, b);
+	double s3 = my_betabinomial_helper(n, a + b);
+	return (s1 + s2 - s3 + ladd);
+}

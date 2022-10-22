@@ -484,10 +484,6 @@ int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
 	Free(graph->colptr);
 	Free(graph->rowidx);
 	Free(graph->colidx);
-	if (graph->guess) {
-		Free(graph->guess[0]);
-		Free(graph->guess);
-	}
 	Free(graph);
 
 	return GMRFLib_SUCCESS;
@@ -533,52 +529,95 @@ int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
 	return GMRFLib_SUCCESS;
 }
 
+void *GMRFLib_bsearch2(int key, int n, int *array, int *guess)
+{
+	int mid, top, val, *piv, *base = array;
+	int low = 0;
+
+	if (array[guess[0]] <= key) {
+		low = guess[0];
+	}
+
+	base += low;
+	mid = top = n - low;
+
+	while (mid) {
+		mid = top / 2;
+		piv = base + mid;
+		val = key - *piv;
+		if (val == 0) {
+			guess[0] = piv - array;
+			return piv;
+		}
+		if (val > 0) {
+			base = piv;
+		}
+		top -= mid;
+	}
+
+	return NULL;
+}
+
+void *GMRFLib_bsearch(int key, int n, int *array)
+{
+	int mid, top, val, *piv, *base = array;
+	mid = top = n;
+
+	while (mid) {
+		mid = top / 2;
+		piv = base + mid;
+		val = key - *piv;
+		if (val == 0) {
+			return piv;
+		}
+		if (val > 0) {
+			base = piv;
+		}
+		top -= mid;
+	}
+
+	return NULL;
+}
+
 int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
+{
+	int imin, imax;
+	if (node < nnode) {
+		imin = node;
+		imax = nnode;
+	} else {
+		assert(node != nnode);
+		imin = nnode;
+		imax = node;
+	}
+
+	int m = graph->lnnbs[imin];
+	if (m) {
+		int *nb = graph->lnbs[imin];
+		if (nnode <= nb[m - 1]) {
+			return (GMRFLib_bsearch(imax, m, nb) != NULL);
+		}
+	}
+	return 0;
+}
+
+int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int *g)
 {
 	/*
 	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
 	 * then they are not neighbours.
 	 */
 
-	if (node == nnode) {
-		return GMRFLib_FALSE;
-	}
+	assert(node < nnode);
 
-	int imin, imax;
-	if (node <= nnode) {
-		imin = node;
-		imax = nnode;
-	} else {
-		imin = nnode;
-		imax = node;
+	int m = graph->lnnbs[node];
+	if (m) {
+		int *nb = graph->lnbs[node];
+		if (nnode <= nb[m - 1]) {
+			return (GMRFLib_bsearch2(nnode, m, nb, g) != NULL);
+		}
 	}
-	// int imin = IMIN(node, nnode);
-	// int imax = IMAX(node, nnode);
-
-	int m = graph->lnnbs[imin];
-	int *nb = graph->lnbs[imin];
-	if ((!m || imax > nb[m - 1])) {
-		return GMRFLib_FALSE;
-	}
-
-	int idx = 0;
-	GMRFLib_CACHE_SET_ID(idx);
-	return ((GMRFLib_iwhich_sorted(imax, nb, m, graph->guess[idx]) < 0) ? GMRFLib_FALSE : GMRFLib_TRUE);
-}
-
-int GMRFLib_graph_add_guess(GMRFLib_graph_tp * graph)
-{
-	if (!graph) {
-		return GMRFLib_SUCCESS;
-	}
-
-	int l1_cacheline = 8;
-	graph->guess = Calloc(GMRFLib_CACHE_LEN, int *);
-	int *iwork = Calloc(GMRFLib_CACHE_LEN * (2L + l1_cacheline), int);
-	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-		graph->guess[i] = iwork + (2L + l1_cacheline) * i;
-	}
-	return GMRFLib_SUCCESS;
+	return 0;
 }
 
 int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph)
@@ -651,10 +690,9 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 #define Q(i_, j_, kk_) (graph->rowptr[IMIN(i_, j_)] + kk_)
 	for (int i = 0, k = 0; i < n; i++) {
 		row2col[k++] = Q(i, i, 0);
-		int guess[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		for (int jj = 0; jj < graph->snnbs[i]; jj++) {
 			int j = graph->snbs[i][jj];
-			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j], guess);
+			int kk = 1 + GMRFLib_iwhich_sorted(i, graph->lnbs[j], graph->lnnbs[j]);
 			row2col[k++] = Q(i, j, kk);
 		}
 	}
@@ -669,18 +707,16 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
 	 */
-	graph->nnz = my_isum(graph->n, graph->nnbs);
+	graph->nnz = GMRFLib_isum(graph->n, graph->nnbs);
 
 	GMRFLib_graph_sort(graph);			       /* must be before lnbs */
 	GMRFLib_graph_add_lnbs_info(graph);		       /* must be before sha */
-	GMRFLib_graph_add_guess(graph);
 	// need this check as graph is also used in the non-symmetric case for matrix
 	if (graph->lnnz == graph->snnz) {
 		GMRFLib_graph_add_crs_crc(graph);
 		GMRFLib_graph_add_row2col(graph);	       /* needs to come after crs_crc */
 	}
 	GMRFLib_graph_add_sha(graph);
-
 
 	return GMRFLib_SUCCESS;
 }
@@ -729,8 +765,8 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 	RUN_CODE_BLOCK(NUM_THREADS_GRAPH(graph), 0, 0);
 #undef CODE_BLOCK
 
-	graph->lnnz = my_isum(graph->n, graph->lnnbs);
-	graph->snnz = my_isum(graph->n, graph->snnbs);
+	graph->lnnz = GMRFLib_isum(graph->n, graph->lnnbs);
+	graph->snnz = GMRFLib_isum(graph->n, graph->snnbs);
 
 	return GMRFLib_SUCCESS;
 }
@@ -924,7 +960,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 	/*
 	 * rearrange into linear storage and free temporary storage 
 	 */
-	nnb = my_isum((*ngraph)->n, (*ngraph)->nnbs);
+	nnb = GMRFLib_isum((*ngraph)->n, (*ngraph)->nnbs);
 	if (nnb) {
 		hold = Calloc(nnb, int);
 	} else {
@@ -949,7 +985,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
 {
 	/*
-	 * there is no need to do call _prepare_graph is the old graph is assumed to be ok. 
+	 * there is no need to do call _prepare_graph as the old graph is assumed to be ok. 
 	 */
 	int m, i, n, *hold = NULL, hold_idx;
 	GMRFLib_graph_tp *g = NULL;
@@ -1026,7 +1062,7 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	int m, n;
 
 	n = graph->n;
-	m = my_isum(n, graph->nnbs);
+	m = GMRFLib_isum(n, graph->nnbs);
 	siz += sizeof(int) + m * sizeof(int) + 2 * n * sizeof(int) + 2 * n * sizeof(int *);
 
 	return siz;
@@ -1597,7 +1633,7 @@ int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gr
 	y = Calloc_get(graph->n);
 
 	GMRFLib_Qx2(thread_id, y, x, graph, Qfunc, Qfunc_arg, diag);
-	*result = my_ddot(graph->n, x, y);
+	*result = GMRFLib_ddot(graph->n, x, y);
 
 	Calloc_free();
 	return GMRFLib_SUCCESS;
@@ -1800,7 +1836,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 	/*
 	 * rearrange into linear storage and free temporary storage 
 	 */
-	nnb = my_isum(newg->n, newg->nnbs);
+	nnb = GMRFLib_isum(newg->n, newg->nnbs);
 	if (nnb) {
 		hold = Calloc(nnb, int);
 	} else
@@ -1966,7 +2002,7 @@ int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, G
 	int n_neig, *hold = NULL;
 	GMRFLib_graph_tp *g = NULL;
 
-	n_neig = my_isum(graph->n, graph->nnbs);
+	n_neig = GMRFLib_isum(graph->n, graph->nnbs);
 	GMRFLib_graph_mk_empty(&g);
 	g->n = n_new;
 	g->nnbs = Calloc(n_new, int);

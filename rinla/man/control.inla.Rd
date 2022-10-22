@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.inla} for use in \code{inla}}
 \usage{
 inla.set.control.inla.default(...)
-control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, b.strategy, cmin, constr.marginal.diagonal, control.vb, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, improved.simplified.laplace, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, linear.correction, mode.known, npoints, num.gradient, num.hessian, numint.abserr, numint.maxfeval, numint.relerr, optimise.strategy, optimiser, parallel.linesearch, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, use.directions, verbose)
+control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, adaptive.max, adjust.weights, b.strategy, cmin, compute.initial.values, constr.marginal.diagonal, control.vb, cpo.diff, cutoff, diagonal, diff.logdens, dz, fast, force.diagonal, global.node.degree, global.node.factor, h, huge, improved.simplified.laplace, int.design, int.strategy, interpolator, lincomb.derived.correlation.matrix, linear.correction, mode.known, npoints, num.gradient, num.hessian, numint.abserr, numint.maxfeval, numint.relerr, optimise.strategy, optimiser, parallel.linesearch, print.joint.hyper, reordering, restart, skip.configurations, stencil, step.factor, step.len, strategy, stupid.search, stupid.search.factor, stupid.search.max.iter, tolerance, tolerance.f, tolerance.g, tolerance.step, tolerance.x, use.directions, verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -107,7 +107,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 
 \item{stupid.search.factor}{   Numerical Factor (>=1) to increase the  step-length with after each new interation. (default 1.05)}
 
-\item{control.vb}{   List of arguments for various VB corrections.  \code{enable}: Logical/Character Use this feature? If \code{"auto"} this will be selected automatically.  \code{strategy}: Charactor What to correct, either "mean" or "variance".  \code{verbose}: Logical Be verbose or not.  \code{iter.max}: Integer Maximum number of interations.  \code{f.enable.limit}: Vector of length 2. The size limit to correct for a \code{f()}.  First element is for \code{strategy="mean"}.  Second element is for \code{strategy="mean"}.  \code{hesssian.update}: How many times the Hessian is updated for each  correction (\code{strategy="variance"} only).  \code{hesssian.strategy}: Select strategy for computing the Hessian  matrix for \code{strategy="variance"}, one of \code{"full"},  \code{"diagonal"}, \code{"partial"} and \code{"default"}.}
+\item{control.vb}{   List of arguments for various VB corrections.  \code{enable}: Logical/Character Use this feature? If \code{"auto"} this will be selected automatically.  \code{strategy}: Charactor What to correct, either "mean" or "variance".  \code{verbose}: Logical Be verbose or not.  \code{iter.max}: Integer Maximum number of interations.  \code{emergency}: Numeric If the standarized correction for the mean is larger  than this value, then call the vb.correction off and issue a warning  \code{f.enable.limit}: Vector of length 2. The size limit to correct for a \code{f()}.  First element is for \code{strategy="mean"}.  Second element is for \code{strategy="mean"}.  \code{hesssian.update}: How many times the Hessian is updated for each  correction (\code{strategy="variance"} only).  \code{hesssian.strategy}: Select strategy for computing the Hessian  matrix for \code{strategy="variance"}, one of \code{"full"},  \code{"diagonal"}, \code{"partial"} and \code{"default"}.}
 
 \item{num.gradient}{   Character Set the numerical scheme to compute the  gradient, one of \code{"forward"} or \code{"central"} (default).}
 
@@ -122,6 +122,8 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 \item{improved.simplified.laplace}{   If \code{TRUE} use an experimental  improved variant, otherwise, use the standard one.}
 
 \item{parallel.linesearch}{   Use serial (default) or parallel line-search  (highly experimental for the moment)}
+
+\item{compute.initial.values}{   Compute initial values for the latent field or not.  (experimental-mode only)}
 
 }
 \value{

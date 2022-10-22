@@ -105,6 +105,7 @@ __BEGIN_DECLS
 
 	unsigned char *sha;
 	unsigned char is_scaled;
+	unsigned char is_prepared;
 
 	/**
 	 *  \brief Number of constaints, can be 0. 
@@ -131,6 +132,9 @@ __BEGIN_DECLS
 	// 'jlen' is the length from the first non-zero to the last non-zero, like j.last-j.first+1
 	int *jfirst;
 	int *jlen;
+
+
+	GMRFLib_idxval_tp **idxval;
 
 } GMRFLib_constr_tp;
 
@@ -189,7 +193,9 @@ typedef struct {
   See \ref ex_problem-setup
 */
 
-typedef struct {
+// this one is defined in smtp-pardiso.h
+//typedef struct GMRFLib_problem_struct GMRFLib_problem_tp;
+struct GMRFLib_problem_struct {
 
 	/**
 	 *  \brief The sample (full graph)
@@ -349,7 +355,8 @@ typedef struct {
 	 *  \brief The (structural) inverse of Q 
 	 */
 	GMRFLib_Qinv_tp *sub_inverse;
-} GMRFLib_problem_tp;
+};
+
 
 /*!
   \brief To flag that the proposal was accepted

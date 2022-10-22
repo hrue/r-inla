@@ -33,6 +33,7 @@
   \brief Functions for input and output
 */
 
+#include <stddef.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
@@ -40,6 +41,7 @@
 #include <malloc.h>
 #endif
 #include <stdlib.h>
+
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
@@ -54,6 +56,8 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 	 * find readable file looking for files in GMRFLib_path. if must_find, then error if the file is not found (unless
 	 * filename == NULL). this function return a malloc'ed string int *ptr with the filename (path included) to the file. 
 	 */
+
+	const char *GMRFLib_path = "GMRFLib_path DOES NOT WORK with g++, fix later if needed...";
 
 	int found = 0;
 	char *path = NULL, *p = NULL, *pp = NULL, *fnm = NULL, *strtok_ptr = NULL;

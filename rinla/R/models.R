@@ -4910,7 +4910,7 @@
                             hyperid = 36001,
                             name = "beta",
                             short.name = "b",
-                            initial = 1,
+                            initial = 0.0, ## adaptive: if (fixed) initial=1.0 else initial=0.1
                             fixed = TRUE,
                             prior = "normal",
                             param = c(1, 10),
@@ -6391,7 +6391,7 @@
                 gammasurv = list(
                     doc = "The Gamma likelihood (survival)",
                     hyper = list(
-                        theta = list(
+                        theta1 = list(
                             hyperid = 58101,
                             name = "precision parameter",
                             short.name = "prec",
@@ -6401,27 +6401,248 @@
                             param = c(1, 0.01),
                             to.theta = function(x) log(x),
                             from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 58102,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -7,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 58103,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 58104,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 58105,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 58106,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 58107,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 58108,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 58109,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 58110,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 58111,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
-                    ),
+                    ), 
                     survival = TRUE,
                     discrete = FALSE,
                     status = "experimental",
-                    link = c("default", "log"),
+                    link = c("default", "log", "neglog"),
                     pdf = "gammasurv"
                 ),
-
+                
                 gammajw = list(
                     doc = "A special case of the Gamma likelihood",
-                    hyper = list(),
+                    hyper =  list(), 
                     survival = FALSE,
                     discrete = FALSE,
-                    link = c("default", "log"),
+                    link = c("default", "log", "neglog"),
                     pdf = "gammajw"
                 ),
 
                 gammajwsurv = list(
                     doc = "A special case of the Gamma likelihood (survival)",
-                    hyper = list(),
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 58200,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -7,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 58201,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 58202,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 58203,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 58204,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 58205,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 58206,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 58207,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 58208,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 58209,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ), 
                     survival = TRUE,
                     discrete = FALSE,
                     link = c("default", "log"),
@@ -6498,7 +6719,7 @@
                 qloglogisticsurv = list(
                     doc = "A quantile loglogistic likelihood (survival)",
                     hyper = list(
-                        theta = list(
+                        theta1 = list(
                             hyperid = 60021,
                             name = "log alpha",
                             short.name = "alpha",
@@ -6508,6 +6729,116 @@
                             param = c(25, 25),
                             to.theta = function(x) log(x),
                             from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 60022,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -5,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 60023,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 60024,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 60025,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 60026,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 60027,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 60028,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 60029,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 60030,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 60031,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     survival = TRUE,
@@ -7014,6 +7345,116 @@
                             param = c(1, 0.00005),
                             to.theta = function(x) log(x),
                             from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 78002,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -7,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 78003,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 78004,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 78005,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 78006,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 78007,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 78008,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 78009,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 78010,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 78011,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     survival = TRUE,
@@ -7033,7 +7474,118 @@
 
                 exponentialsurv = list(
                     doc = "The Exponential likelihood (survival)",
-                    hyper = list(),
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 78020,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -4,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-1, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 78021,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 78022,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 78023,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 78024,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 78025,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 78026,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 78027,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 78028,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 78029,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        )
+                    ), 
                     survival = TRUE,
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
@@ -7093,6 +7645,116 @@
                             ## way of doing this...
                             to.theta = function(x, sc = 0.1) log(x) / sc,
                             from.theta = function(x, sc = 0.1) exp(sc * x)
+                        ),
+                        theta2 = list(
+                            hyperid = 79102,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -7,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 79103,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 79104,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 79105,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 79106,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 79107,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 79108,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 79109,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 79110,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 79111,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     survival = TRUE,
@@ -7125,7 +7787,7 @@
                 loglogisticsurv = list(
                     doc = "The loglogistic likelihood (survival)",
                     hyper = list(
-                        theta = list(
+                        theta1 = list(
                             hyperid = 80011,
                             name = "log alpha",
                             short.name = "alpha",
@@ -7135,47 +7797,122 @@
                             param = c(25, 25),
                             to.theta = function(x) log(x),
                             from.theta = function(x) exp(x)
+                        ),
+                        theta2 = list(
+                            hyperid = 80012,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -5,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 80013,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 80014,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 80015,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 80016,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 80017,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 80018,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 80019,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 80020,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 80021,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     survival = TRUE,
                     discrete = FALSE,
                     link = c("default", "log", "neglog"),
                     pdf = "loglogistic"
-                ),
-
-                weibullcure = list(
-                    doc = "The Weibull-cure likelihood (survival)",
-                    hyper = list(
-                        theta1 = list(
-                            hyperid = 81001,
-                            name = "log alpha",
-                            short.name = "a",
-                            initial = 0.1,
-                            fixed = FALSE,
-                            prior = "pc.alphaw",
-                            param = c(5),
-                            ## the 'sc' constant is defined in inla.h, and must be the same.
-                            ## I know, this is hard-coded for the moment. Should be a generic
-                            ## way of doing this...
-                            to.theta = function(x, sc = 0.1) log(x) / sc,
-                            from.theta = function(x, sc = 0.1) exp(sc * x)
-                        ),
-                        theta2 = list(
-                            hyperid = 81002,
-                            name = "logit probability",
-                            short.name = "prob",
-                            initial = -1,
-                            fixed = FALSE,
-                            prior = "gaussian",
-                            param = c(-1, 0.2),
-                            to.theta = function(x) log(x / (1 - x)),
-                            from.theta = function(x) exp(x) / (1 + exp(x))
-                        )
-                    ),
-                    survival = TRUE,
-                    discrete = FALSE,
-                    link = c("default", "log", "neglog"),
-                    pdf = "weibullcure"
                 ),
 
                 stochvol = list(
@@ -8529,7 +9266,7 @@
                     doc = "Discrete generalized Pareto likelihood",
                     hyper = list(
                         theta = list(
-                            hyperid = 101201,
+                            hyperid = 101301,
                             name = "tail",
                             short.name = "xi",
                             initial = 2,
@@ -8666,10 +9403,10 @@
                             hyperid = 105101,
                             name = "shape",
                             short.name = "alpha",
-                            initial = -20,
+                            initial = -1,
                             fixed = FALSE,
                             prior = "normal",
-                            param = c(-20, 0.01),
+                            param = c(0, 1),
                             ## the 'sc' constant is defined in inla.h, and must be the same.
                             ## I know, this is hard-coded for the moment. Should be a generic
                             ## way of doing this...
@@ -8687,19 +9424,129 @@
                 gompertzsurv = list(
                     doc = "gompertz distribution",
                     hyper = list(
-                        theta = list(
+                        theta1 = list(
                             hyperid = 106101,
                             name = "shape",
                             short.name = "alpha",
-                            initial = -20,
+                            initial = -10,
                             fixed = FALSE,
                             prior = "normal",
-                            param = c(-20, 0.01),
+                            param = c(0, 1),
                             ## the 'sc' constant is defined in inla.h, and must be the same.
                             ## I know, this is hard-coded for the moment. Should be a generic
                             ## way of doing this...
                             to.theta = function(x, sc = 0.1) log(x) / sc,
                             from.theta = function(x, sc = 0.1) exp(sc * x)
+                        ),
+                        theta2 = list(
+                            hyperid = 106102,
+                            name = "beta1",
+                            short.name = "beta1",
+                            initial = -5,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(-4, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 106103,
+                            name = "beta2",
+                            short.name = "beta2",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta4 = list(
+                            hyperid = 106104,
+                            name = "beta3",
+                            short.name = "beta3",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta5 = list(
+                            hyperid = 106105,
+                            name = "beta4",
+                            short.name = "beta4",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta6 = list(
+                            hyperid = 106106,
+                            name = "beta5",
+                            short.name = "beta5",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta7 = list(
+                            hyperid = 106107,
+                            name = "beta6",
+                            short.name = "beta6",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta8 = list(
+                            hyperid = 106108,
+                            name = "beta7",
+                            short.name = "beta7",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta9 = list(
+                            hyperid = 106109,
+                            name = "beta8",
+                            short.name = "beta8",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta10 = list(
+                            hyperid = 106110,
+                            name = "beta9",
+                            short.name = "beta9",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
+                        ),
+                        theta11 = list(
+                            hyperid = 106111,
+                            name = "beta10",
+                            short.name = "beta10",
+                            initial = 0,
+                            fixed = FALSE,
+                            prior = "normal",
+                            param = c(0, 100),
+                            to.theta = function(x) x,
+                            from.theta = function(x) x
                         )
                     ),
                     status = "experimental", 

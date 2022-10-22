@@ -41,7 +41,6 @@
 #endif
 __BEGIN_DECLS
 
-	
 /* 
  *
  */
@@ -153,17 +152,17 @@ typedef struct {
 	int n_chars;
 	inla_cgeneric_vec_tp **chars;
 
-	int n_mat;
+	int n_mats;
 	inla_cgeneric_mat_tp **mats;
 
-	int n_smat;
+	int n_smats;
 	inla_cgeneric_smat_tp **smats;
 
 	void *cache;
 } inla_cgeneric_data_tp;
 
 // tools useful for creating a cache
-#include <omp.h> 
+#include <omp.h>
 #define CGENERIC_CACHE_LEN(max_threads_) ((max_threads_) * (max_threads_))
 #define CGENERIC_CACHE_ASSIGN_IDX(idx_, max_threads_)			\
         if (1) {                                                        \

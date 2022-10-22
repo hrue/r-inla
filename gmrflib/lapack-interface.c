@@ -812,34 +812,36 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	// the sign of each column is so that max(abs(column)) is positive
 
 	gsl_vector *q = gsl_vector_alloc(A->size1);
-	size_t i, j, k, n = A->size1;
+	size_t n1 = A->size1;
+	size_t n2 = A->size2;
 
-	for (i = 0; i < n; i++) {
-
+	for (size_t i = 0; i < n2; i++) {
 		double aij_amax = 0.0, r = 0.0;
-		for (j = 0; j < n; j++) {
+
+		for (size_t j = 0; j < n1; j++) {
 			double elm = gsl_matrix_get(A, j, i);
 			r += SQR(elm);
 			aij_amax = (ABS(elm) > ABS(aij_amax) ? elm : aij_amax);
 		}
 
 		if (aij_amax < 0.0) {			       /* swap the sign of this column */
-			for (j = 0; j < n; j++) {
+			for (size_t j = 0; j < n1; j++) {
 				gsl_matrix_set(A, j, i, -gsl_matrix_get(A, j, i));
 			}
 		}
 
 		r = sqrt(r);
-		for (j = 0; j < n; j++) {
+		for (size_t j = 0; j < n1; j++) {
 			gsl_vector_set(q, j, gsl_matrix_get(A, j, i) / r);
 			gsl_matrix_set(A, j, i, gsl_vector_get(q, j));	// normalize
 		}
 
-		for (j = i + 1; j < n; j++) {
-			for (r = 0, k = 0; k < n; k++) {
+		for (size_t j = i + 1; j < n2; j++) {
+			r = 0.0;
+			for (size_t k = 0; k < n1; k++) {
 				r += gsl_vector_get(q, k) * gsl_matrix_get(A, k, j);
 			}
-			for (k = 0; k < n; k++) {
+			for (size_t k = 0; k < n1; k++) {
 				gsl_matrix_set(A, k, j, gsl_matrix_get(A, k, j) - r * gsl_vector_get(q, k));
 			}
 		}
@@ -1053,164 +1055,8 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	return kld;
 }
 
-int my_isum(int n, int *ix)
-{
-	const int roll = 8L;
-	int s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		int *xx = ix + i;
-
-		s0 += xx[0];
-		s1 += xx[1];
-		s2 += xx[2];
-		s3 += xx[3];
-
-		s0 += xx[4];
-		s1 += xx[5];
-		s2 += xx[6];
-		s3 += xx[7];
-	}
-
-#pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
-		s0 += ix[i];
-	}
-
-	return (s0 + s1 + s2 + s3);
-}
-
-int my_isum2(int n, int *ix)
-{
-	int s = 0;
-	if (0) {
-#pragma GCC ivdep
-		for (int i = 0; i < n; i++) {
-			s += ix[i];
-		}
-	} else {
-#pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += ix[i];
-		}
-	}
-
-	return (s);
-}
-
-double my_dsum(int n, double *x)
-{
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		double *xx = x + i;
-
-		s0 += xx[0];
-		s1 += xx[1];
-		s2 += xx[2];
-		s3 += xx[3];
-
-		s0 += xx[4];
-		s1 += xx[5];
-		s2 += xx[6];
-		s3 += xx[7];
-	}
-
-#pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
-		s0 += x[i];
-	}
-
-	return (s0 + s1 + s2 + s3);
-}
-
-double my_dsum2(int n, double *x)
-{
-	double s = 0.0;
-	if (0) {
-#pragma GCC ivdep
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
-	} else {
-#pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
-	}
-
-	return (s);
-}
-
-double my_ddot(int n, double *__restrict x, double *__restrict y)
+int GMRFLib_dscale(int n, double a, double *x)
 {
 	int one = 1;
-	return ddot_(&n, x, &one, y, &one);
-}
-
-double my_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
-{
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
-
-#pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		double *vv = v + i;
-		int *iidx = idx + i;
-
-		s0 += vv[0] * a[iidx[0]];
-		s1 += vv[1] * a[iidx[1]];
-		s2 += vv[2] * a[iidx[2]];
-		s3 += vv[3] * a[iidx[3]];
-
-		s0 += vv[4] * a[iidx[4]];
-		s1 += vv[5] * a[iidx[5]];
-		s2 += vv[6] * a[iidx[6]];
-		s3 += vv[7] * a[iidx[7]];
-	}
-
-#pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
-		s0 += v[i] * a[idx[i]];
-	}
-
-	return (s0 + s1 + s2 + s3);
-}
-
-double my_dsum_idx(int n, double *__restrict a, int *__restrict idx)
-{
-	const int roll = 8L;
-	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
-	div_t d = div(n, roll);
-
-#pragma GCC ivdep
-	for (int i = 0; i < d.quot * roll; i += roll) {
-		int *iidx = idx + i;
-
-		s0 += a[iidx[0]];
-		s1 += a[iidx[1]];
-		s2 += a[iidx[2]];
-		s3 += a[iidx[3]];
-
-		s0 += a[iidx[4]];
-		s1 += a[iidx[5]];
-		s2 += a[iidx[6]];
-		s3 += a[iidx[7]];
-	}
-
-#pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
-		s0 += a[idx[i]];
-	}
-
-	return (s0 + s1 + s2 + s3);
+	return (dscal_(&n, &a, x, &one));
 }

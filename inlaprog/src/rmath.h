@@ -44,8 +44,11 @@
 __BEGIN_DECLS
 #define MATHLIB_STANDALONE
 #define MATHLIB_FUN(_fun) _fun
+#if defined(ISNAN)
+#undef ISNAN
+#endif
 #include <Rmath.h>
-#ifdef ISNAN
+#if defined(ISNAN)
 #undef ISNAN
 #endif
     __END_DECLS

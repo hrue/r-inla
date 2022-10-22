@@ -141,6 +141,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 	}
 		break;
 	default:
+		P(GMRFLib_reorder);
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
 

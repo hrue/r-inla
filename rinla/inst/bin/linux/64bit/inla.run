@@ -39,9 +39,14 @@ else
     ## build. Try to use libR from system by default
     export LD_LIBRARY_PATH="$DIR/first:$DR:$DIR:$D:$LD_LIBRARY_PATH"
 fi
-export PARDISOLICMESSAGE=1
+
 export OMP_NESTED=TRUE
-export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:auto'
+export OMP_SCHEDULE=STATIC
+##export OMP_PROC_BIND=FALSE
+##export OMP_WAIT_POLICY=ACTIVE
+export PARDISOLICMESSAGE=1
+export MALLOC_CONF='abort_conf:true,background_thread:true,metadata_thp:always'
+
 if [ -n "${INLA_DEBUG}" ]; then
     echo "*** $0 *** MALLOC_CONF=$MALLOC_CONF"
     echo "*** $0 *** LD_PRELOAD=$LD_PRELOAD"

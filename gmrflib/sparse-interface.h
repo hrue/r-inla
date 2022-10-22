@@ -67,27 +67,11 @@ typedef enum {
 	/**
 	 * \brief Lapack's band-solver
 	 */
+	GMRFLib_SMTP_INVALID = -1,
 	GMRFLib_SMTP_BAND = 1,
-
-	/**
-	 * \brief The TAUCS solver
-	 */
 	GMRFLib_SMTP_TAUCS = 2,
-
-	/**
-	 * \brief The PARDISO solver
-	 */
 	GMRFLib_SMTP_PARDISO = 3,
-
-	/**
-	 * \brief The default solver
-	 */
-	GMRFLib_SMTP_DEFAULT = 4,
-
-	/**
-	 * \brief The invalid choice
-	 */
-	GMRFLib_SMTP_INVALID = -1
+	GMRFLib_SMTP_DEFAULT = 4
 } GMRFLib_smtp_tp;
 
 #define GMRFLib_SMTP_NAME(smtp)			     \
@@ -103,66 +87,19 @@ typedef enum {
 	 * 
 	 * Currently, it minimise the bandwidth for the band-solver, and nested dissection using the TAUCS-solver 
 	 */
+	GMRFLib_REORDER_AUTO = -1,
 	GMRFLib_REORDER_DEFAULT = 0,
-
-	/**
-	 * \brief Identity (no reordering) 
-	 */
 	GMRFLib_REORDER_IDENTITY,
-
-	/**
-	 * \brief Minmise the bandwidth 
-	 */
 	GMRFLib_REORDER_BAND,
-
-	/**
-	 * \brief The nested dissection reordering in the METIS-library 
-	 */
 	GMRFLib_REORDER_METIS,
-
-	/**
-	 * \brief Multiple minimum degree reordering 
-	 */
 	GMRFLib_REORDER_GENMMD,
-
-	/**
-	 * \brief Approximate minimum degree reordering 
-	 */
 	GMRFLib_REORDER_AMD,
-
-	/**
-	 * \brief True minimum degree reordering 
-	 */
 	GMRFLib_REORDER_MD,
-
-	/**
-	 * \brief Multiple minimum degree reordering 
-	 */
 	GMRFLib_REORDER_MMD,
-
-	/**
-	 * \brief Approximate minimum degree, without aggressive absorption
-	 */
 	GMRFLib_REORDER_AMDBAR,
-
-	/**
-	 * \brief Approximate minimum degree, the C-version
-	 */
 	GMRFLib_REORDER_AMDC,
-
-	/**
-	 * \brief Approximate minimum degree, without aggressive absorption,the C-version
-	 */
 	GMRFLib_REORDER_AMDBARC,
-
-	/**
-	 * \brief Reverse identity 
-	 */
 	GMRFLib_REORDER_REVERSE_IDENTITY,
-
-	/**
-	 * \brief PARDISO reordering
-	 */
 	GMRFLib_REORDER_PARDISO
 } GMRFLib_reorder_tp;
 

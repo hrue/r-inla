@@ -370,7 +370,7 @@ int inla_spde_build_model(int thread_id, inla_spde_tp ** smodel, const char *pre
 		int k;
 		for (k = 1; k < 8; k++) {
 			GMRFLib_problem_tp *problem;
-			GMRFLib_reorder = k;
+			GMRFLib_reorder = (GMRFLib_reorder_tp) k;
 			// GMRFLib_optimize_reorder(model->graph, NULL);
 			GMRFLib_init_problem(thread_id, &problem, NULL, NULL, NULL, NULL, model->graph, model->Qfunc, model->Qfunc_arg, NULL);
 			char *nm;

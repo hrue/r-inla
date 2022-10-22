@@ -1570,3 +1570,70 @@ double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
 
 	return cpu;
 }
+
+
+
+
+
+
+
+
+
+
+
+	// register those matrices that are empty
+	static map_vpi cache;
+	static int cache_must_init = 1;
+
+	if (cache_must_init) {
+#pragma omp critical (Name_0da3ba144656768918b2515c57b703c3d8e57f2a)
+		if (cache_must_init) {
+			map_vpi_init_hint(&cache, 128);
+			cache_must_init = 0;
+		}
+	}
+
+#define CODE_BLOCK						\
+	for (int i = 0; i < preopt->n; i++) {			\
+		if (A[i]) {					\
+			GMRFLib_idxval_tp *elm = A[i];		\
+			DOT_PRODUCT(bnew[i], elm, blike);	\
+		}						\
+	}
+
+	int *ival = map_vpi_ptr(&cache, (void *) A);
+
+	if (ival) P(*ival);
+	if (!ival) FIXME("NEED TO BE CHECKED");
+	
+	if (!ival) {
+		// this matrix needs to be checked
+		int c = 0;
+		for (int i = 0; i < preopt->n && !c; i++) {
+			if (A[i]) c = 1;
+		}
+		int ival_code = (c == 1 ? 2 : 1);
+		P(ival_code);
+
+#pragma omp critical (Name_2e46eda7cf12cd72251f668c56b12756c4f409d5)
+		{
+			map_vpi_set(&cache, (void *) A, ival_code);
+		}
+
+		if (ival_code == 1) {
+			FIXME("bnew = 0");
+			Memset(bnew, 0, preopt->n * sizeof(double));
+		} else if (ival_code == 2) {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+		} else {
+			assert(0 == 1);
+		}
+	} else if (*ival == 1) {
+			FIXME("bnew = 0");
+			Memset(bnew, 0, preopt->n * sizeof(double));
+	} else if (*ival == 2) {
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
+	} else {
+		assert(0 == 1);
+	}
+		

@@ -218,6 +218,16 @@
 
     inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
+        if (!TRUE) {
+            print(paste(
+                shQuote(inla.call.no.remote()), "-s -m qsample",
+                paste0("-t", num.threads), "-r", reordering, "-z", seed, "-S", smtp,
+                if (verbose) "-v" else "",
+                Q.file, x.file, as.integer(n), rng.file,
+                sample.file, b.file, mu.file, constr.file, cmean.file, selection.file
+            ))
+            browser()
+        }
         s <- system(paste(
             shQuote(inla.call.no.remote()), "-s -m qsample",
             paste0("-t", num.threads), "-r", reordering, "-z", seed, "-S", smtp,

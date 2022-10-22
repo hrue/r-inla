@@ -137,7 +137,7 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
+	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -154,7 +154,7 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to malloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -171,7 +171,7 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 	if (ptr) {
 		return ptr;
 	}
-	GMRFLib_sprintf(&msg, "Fail to realloc size=%1lu bytes", size);
+	GMRFLib_sprintf(&msg, "Failed to realloc size=%1lu bytes", size);
 	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
 	abort();
 
@@ -220,30 +220,28 @@ int GMRFLib_which(double val, double *array, int len)
 	return -1;
 }
 
-int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict guess)
+int GMRFLib_iwhich_sorted_g2(int val, int *__restrict ix, int len, int *__restrict guess)
 {
-	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found. 'guess' (NULL is not
-	// allowed) is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe
+	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found.
+
+	// 'guess' is an initial guess for [low,high] and automatically updated. initialize with guess[1]=0. 'guess' must be thread-safe
+
+	// This is a simpler interface than the guess[2] that was before.
+
+	// it MUST SATISFY: guess[0] and guess[1] < LEN, this is NOT checked for.
 
 	int low, high;
 
-	// use the guess of [low,high] ? MUST BE INITIALIZED to [0,0]!
-	if (guess[1] == guess[0] || guess[1] >= len) {
-		// invalid values for 'guess', no need to check
-		low = 0;
-		high = len - 1;
-	} else {
-		low = (val >= ix[guess[0]] ? guess[0] : 0);
-		high = (val <= ix[guess[1]] ? guess[1] : len - 1);
-	}
+	low = (val >= ix[guess[0]] ? guess[0] : 0);
+	high = (val <= ix[guess[1]] ? guess[1] : len - 1);
 
 	while (1) {
 		int range = high - low;
 		if (range < 4L) {
 			for (int i = low; i <= high; i++) {
 				if (ix[i] == val) {
-					guess[1] = high + 1;
-					guess[0] = i + 1;
+					guess[0] = i;
+					guess[1] = high;
 					return i;
 				}
 			}
@@ -261,6 +259,88 @@ int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len, int *__restrict 
 	}
 	return -1;
 }
+
+int GMRFLib_iwhich_sorted_g(int val, int *__restrict ix, int len, int *__restrict low_guess)
+{
+	// return the index of iarray for which ix[idx]=val and we KNOW that ix is sorted, and return -1 if not found.
+
+	// low_guess is an estimate of the lower-bound of the index, it might be updated and must be thread safe.
+
+	// This is a much simplified interface than the guess[2] that was before.
+
+	// it MUST SATISFY: *low_guess < LEN, this is NOT checked for.
+
+	int low = *low_guess, high = len - 1, range, mid;
+
+	if (val < ix[low]) {
+		low = 0;
+	}
+	while ((range = high - low) > 2) {
+		mid = low + range / 2;
+		if (ix[mid] > val) {
+			high = mid;
+		} else {
+			low = mid;
+		}
+	}
+
+	for (int i = low; i < high + 1; i++) {
+		if (ix[i] == val) {
+			*low_guess = i + 1;
+			return i;
+		}
+	}
+	*low_guess = low;
+	return -1;
+}
+
+int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__restrict low_guess)
+{
+	int low = *low_guess, mid, top, val, *piv = NULL, *base = ix;
+
+	if (key < ix[low]) {
+		low = 0;
+	}
+	base += low;
+	mid = top = len - low;
+	while (mid) {
+		mid = top / 2;
+		piv = base + mid;
+		val = key - *piv;
+		if (val == 0) {
+			*low_guess = piv - ix + 1;
+			return piv - ix;
+		}
+		if (val > 0) {
+			base = piv;
+		}
+		top -= mid;
+	}
+	*low_guess = piv - ix;
+	return -1;
+}
+
+int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
+{
+	int mid, top, val, *piv = NULL, *base = ix;
+
+	mid = top = len;
+	while (mid) {
+		mid = top / 2;
+		piv = base + mid;
+		val = key - *piv;
+		if (val == 0) {
+			return piv - ix;
+		}
+		if (val > 0) {
+			base = piv;
+		}
+		top -= mid;
+	}
+	return -1;
+}
+
+
 int GMRFLib_find_nonzero(double *array, int len, int direction)
 {
 	/*
@@ -510,12 +590,9 @@ int GMRFLib_normalize(int n, double *x)
 {
 	// scale x so the sum is 1
 
-	double sum = my_dsum(n, x);
-	sum = 1.0 / sum;
-#pragma GCC ivdep
-	for (int i = 0; i < n; i++) {
-		x[i] *= sum;
-	}
+	double sum;
+	sum = GMRFLib_dsum(n, x);
+	GMRFLib_dscale(n, 1.0 / sum, x);
 
 	return GMRFLib_SUCCESS;
 }
@@ -663,6 +740,24 @@ int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format
 	for (i = 0; i < matrix->size1; i++) {
 		for (j = 0; j < matrix->size2; j++) {
 			fprintf(fp, (format ? format : " %g"), gsl_matrix_get(matrix, i, j));
+		}
+		fprintf(fp, "\n");
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff)
+{
+	size_t i, j;
+
+	for (i = 0; i < matrix->size1; i++) {
+		for (j = 0; j < matrix->size2; j++) {
+			double a = gsl_matrix_get(matrix, i, j);
+			if (ABS(a) > cutoff) {
+				fprintf(fp, (format ? format : " %g"), gsl_matrix_get(matrix, i, j));
+			} else {
+				fprintf(fp, "\t %s", "  . ");
+			}
 		}
 		fprintf(fp, "\n");
 	}
@@ -993,9 +1088,8 @@ int GMRFLib_scale_vector(double *x, int n)
 
 	double scale = GMRFLib_max_value(x, n, NULL);
 	if (!ISZERO(scale)) {
-		int one = 1;
 		scale = 1.0 / scale;
-		dscal_(&n, &scale, x, &one);
+		GMRFLib_dscale(n, scale, x);
 	}
 
 	return GMRFLib_SUCCESS;
@@ -1092,7 +1186,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 	return max_val;
 }
 
-forceinline double GMRFLib_logit(double p)
+double GMRFLib_logit(double p)
 {
 	// evaluate log(p/(1-p)) more safe than just log(p/(1-p))
 	const double lim = 0.01;
@@ -1107,7 +1201,7 @@ forceinline double GMRFLib_logit(double p)
 	}
 }
 
-forceinline double GMRFLib_inv_logit(double x)
+double GMRFLib_inv_logit(double x)
 {
 	// evaluate 1/(1+exp(-x))
 
@@ -1178,7 +1272,7 @@ int GMRFLib_debug_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss, *sss;
+				char *ss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1198,10 +1292,9 @@ int GMRFLib_debug_functions(const char *name)
 					first[idx] = 2;
 				}
 
-				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", sss);
+					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1209,7 +1302,7 @@ int GMRFLib_debug_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
 				}
 			}
 		}
@@ -1218,7 +1311,7 @@ int GMRFLib_debug_functions(const char *name)
 	if (!name) {
 		return 0;
 	} else {
-		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
 		return (p ? *p : 0);
 	}
 }
@@ -1275,7 +1368,7 @@ int GMRFLib_trace_functions(const char *name)
 
 				int val = 0;
 				char *s2 = strchr(s, ':');
-				char *ss, *sss;
+				char *ss;
 				if (!s2) {
 					ss = s;
 					val = 1;
@@ -1295,10 +1388,9 @@ int GMRFLib_trace_functions(const char *name)
 					first[idx] = 2;
 				}
 
-				sss = (char *) GMRFLib_function_name_strip((const char *) ss);
 				char *nm = NULL;
 				if (strlen(ss)) {
-					GMRFLib_sprintf(&nm, "%s", sss);
+					GMRFLib_sprintf(&nm, "%s", ss);
 					map_stri_set(ddefs[idx], nm, val);
 				}
 				if (first[idx] != 2) {
@@ -1306,7 +1398,7 @@ int GMRFLib_trace_functions(const char *name)
 				}
 
 				if (verbose) {
-					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), sss, val);
+					printf("\t\t[%1d] debug init: ADD [%s]=%1d\n", omp_get_thread_num(), ss, val);
 				}
 			}
 		}
@@ -1315,11 +1407,10 @@ int GMRFLib_trace_functions(const char *name)
 	if (!name) {
 		return 0;
 	} else {
-		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : GMRFLib_function_name_strip(name)));
+		int *p = map_stri_ptr(ddefs[idx], (char *) (first[idx] == 2 ? "*" : name));
 		return (p ? *p : 0);
 	}
 }
-
 
 // ******************************************************************************************
 
@@ -1374,4 +1465,306 @@ int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content)
 	Free(vmatrix);
 
 	return GMRFLib_SUCCESS;
+}
+
+// ****************************************************************************************
+
+/*
+ * Implement Heap sort -- direct and indirect sorting
+ * Based on descriptions in Sedgewick "Algorithms in C"
+ *
+ * Copyright (C) 1999  Thomas Walter
+ *
+ * 18 February 2000: Modified for GSL by Brian Gough
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3, or (at your option) any
+ * later version.
+ *
+ * This source is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ */
+
+void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int N, int k)
+{
+	int v1 = data1[k];
+	double v2 = data2[k];
+
+	while (k <= N / 2) {
+		int j = 2 * k;
+		if (j < N && data1[j] < data1[j + 1]) {
+			j++;
+		}
+
+		if (!(v1 < data1[j])) {
+			break;
+		}
+
+		data1[k] = data1[j];
+		data2[k] = data2[j];
+		k = j;
+	}
+	data1[k] = v1;
+	data2[k] = v2;
+}
+
+void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n)
+{
+	int N, k;
+
+	if (n == 0) {
+		return;					       /* No data to sort */
+	}
+
+	/*
+	 * We have n_data elements, last element is at 'n_data-1', first at '0' Set N to the last element number. 
+	 */
+
+	N = n - 1;
+	k = N / 2;
+	k++;						       /* Compensate the first use of 'k--' */
+	do {
+		k--;
+		my_downheap2_id(data1, data2, N, k);
+	} while (k > 0);
+
+	while (N > 0) {
+		int tmp1 = data1[0];
+		data1[0] = data1[N];
+		data1[N] = tmp1;
+
+		double tmp2 = data2[0];
+		data2[0] = data2[N];
+		data2[N] = tmp2;
+
+		/*
+		 * then process the heap 
+		 */
+		N--;
+		my_downheap2_id(data1, data2, N, 0);
+	}
+}
+
+void my_downheap2_ii(int *__restrict data1, int *__restrict data2, const int N, int k)
+{
+	int v1 = data1[k];
+	int v2 = data2[k];
+
+	while (k <= N / 2) {
+		int j = 2 * k;
+		if (j < N && data1[j] < data1[j + 1]) {
+			j++;
+		}
+
+		if (!(v1 < data1[j])) {
+			break;
+		}
+
+		data1[k] = data1[j];
+		data2[k] = data2[j];
+		k = j;
+	}
+	data1[k] = v1;
+	data2[k] = v2;
+}
+
+void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n)
+{
+	int N, k;
+
+	if (n == 0) {
+		return;					       /* No data to sort */
+	}
+
+	/*
+	 * We have n_data elements, last element is at 'n_data-1', first at '0' Set N to the last element number. 
+	 */
+
+	N = n - 1;
+	k = N / 2;
+	k++;						       /* Compensate the first use of 'k--' */
+	do {
+		k--;
+		my_downheap2_ii(data1, data2, N, k);
+	} while (k > 0);
+
+	while (N > 0) {
+		int tmp1 = data1[0];
+		data1[0] = data1[N];
+		data1[N] = tmp1;
+
+		int tmp2 = data2[0];
+		data2[0] = data2[N];
+		data2[N] = tmp2;
+
+		/*
+		 * then process the heap 
+		 */
+		N--;
+		my_downheap2_ii(data1, data2, N, 0);
+	}
+}
+
+void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n)
+{
+	if (darr) {
+		for (int i = 1; i < n; i++) {
+			int key = iarr[i];
+			double dkey = darr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				darr[j + 1] = darr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+			darr[j + 1] = dkey;
+		}
+	} else {
+		for (int i = 1; i < n; i++) {
+			int key = iarr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+		}
+	}
+}
+
+void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n)
+{
+	if (darr) {
+		for (int i = 1; i < n; i++) {
+			int key = iarr[i];
+			int dkey = darr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				darr[j + 1] = darr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+			darr[j + 1] = dkey;
+		}
+	} else {
+		for (int i = 1; i < n; i++) {
+			int key = iarr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+		}
+	}
+}
+
+void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
+{
+	if (n < GMRFLib_sort2_cut_off) {
+		my_insertionSort_ii(ix, x, n);
+	} else {
+		gsl_sort2_ii(ix, x, n);
+	}
+}
+
+void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
+{
+	if (n < GMRFLib_sort2_cut_off) {
+		my_insertionSort_id(ix, x, n);
+	} else {
+		gsl_sort2_id(ix, x, n);
+	}
+}
+
+int my_sort2_test_cutoff(int verbose)
+{
+	const int nmax = 384;
+	const int nmin = 64;
+	const int nstep = 64;
+	const int ntimes = 200;
+
+	double time_used = 0.0;
+	int *ix = Calloc(2 * nmax, int);
+	double *x = Calloc(2 * nmax, double);
+
+	double slope_xy = 0.0;
+	double slope_xx = 0.0;
+	double slope_x = 0.0;
+	double slope_y = 0.0;
+	double slope_n = 0.0;
+	double cutoff = 1;
+	double b;
+
+	time_used -= GMRFLib_cpu();
+
+	for (int n = nmin; n <= nmax; n += nstep) {
+
+		int *ixx = ix + nmax;
+		double *xx = x + nmax;
+		double time[2] = { 0.0, 0.0 };
+
+		for (int times = -2; times < ntimes; times++) {
+
+			for (int i = 0; i < n; i++) {
+				ix[i] = (int) ((100 * nmax) * GMRFLib_uniform());
+				x[i] = GMRFLib_uniform();
+			}
+
+			Memcpy(ixx, ix, n * sizeof(int));
+			Memcpy(xx, x, n * sizeof(double));
+			if (times > 0) {
+				time[0] -= GMRFLib_cpu();
+			}
+			my_insertionSort_id(ixx, xx, n);
+
+			if (times > 0) {
+				time[0] += GMRFLib_cpu();
+			}
+
+			Memcpy(ixx, ix, n * sizeof(int));
+			Memcpy(xx, x, n * sizeof(double));
+			if (times > 0) {
+				time[1] -= GMRFLib_cpu();
+			}
+			gsl_sort2_id(ixx, xx, n);
+
+			if (times > 0) {
+				time[1] += GMRFLib_cpu();
+			}
+		}
+
+		slope_xx += SQR(n);
+		slope_xy += n * (time[0] / time[1]);
+		slope_x += n;
+		slope_y += (time[0] / time[1]);
+		slope_n++;
+
+		b = (slope_xy / slope_n - (slope_x / slope_n) * (slope_y / slope_n)) / (slope_xx / slope_n - SQR(slope_x / slope_n));
+		if (ISZERO(b))
+			b = 1.0;
+		cutoff = (slope_x / slope_n) + (1.0 - (slope_y / slope_n)) / b;
+
+		if (verbose) {
+			printf("sort-test n = %1d  time(insertSort/gsl_sort2) =  %.2f cutoff.est = %1d\n", n, time[0] / time[1], (int) cutoff);
+		}
+	}
+
+	// this is a global variable
+	GMRFLib_sort2_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
+
+	time_used += GMRFLib_cpu();
+	if (verbose) {
+		printf("sort-test took %.4f seconds\n", time_used);
+	}
+
+	Free(ix);
+	Free(x);
+
+	return GMRFLib_sort2_cut_off;
 }

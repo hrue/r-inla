@@ -94,7 +94,10 @@ int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
-int GMRFLib_iwhich_sorted(int val, int *ix, int len, int *guess);
+int GMRFLib_iwhich_sorted_g2(int val, int *ix, int len, int *guess);
+int GMRFLib_iwhich_sorted_g(int val, int *ix, int len, int *guess_guess);
+int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__restrict low_guess);
+int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
 int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);
@@ -104,6 +107,7 @@ int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
 int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format);
 int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
+int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff);
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);
@@ -130,6 +134,14 @@ int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_
 int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec);
 double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j);
 int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content);
+
+int my_sort2_test_cutoff(int verbose);
+void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n);
+void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n);
+void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n);
+void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n);
+void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
+void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 
 __END_DECLS
 #endif
