@@ -247,7 +247,7 @@ namespace fmesh {
     /* RCDT triangle quality data structures: */
     MCQskinny skinny_; /*!< Skinny triangles. */
     MCQbig big_; /*!< Big triangles. */
-    double* big_limits_; /*!< Big triangle limits. */
+    // double* big_limits_; /*!< Big triangle limits. Unused; MCQtri has quality_limits_ */
     int max_n0_; /*!< Target number of vertices, overriding skinny triangles. */
     int max_n1_; /*!< Target number of vertices, overriding big triangles. */
     /* State variables: */
@@ -318,13 +318,13 @@ namespace fmesh {
 
   public:
     MeshC() : M_(NULL), boundary_(this), interior_(this),
-	      skinny_(this), big_(this), big_limits_(NULL),
+	      skinny_(this), big_(this), // big_limits_(NULL),
 	      max_n0_(-1), max_n1_(-1),
 	      state_(State_noT), is_pruned_(false),
 	      options_(Option_null) {};
     MeshC(Mesh* M)
       : M_(M), boundary_(this), interior_(this),
-	skinny_(this), big_(this), big_limits_(NULL),
+	skinny_(this), big_(this), // big_limits_(NULL),
 	max_n0_(-1), max_n1_(-1),
 	state_(State_noT), is_pruned_(false),
 	options_(Option_null) {
