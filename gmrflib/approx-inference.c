@@ -627,7 +627,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			}
 
 			tmp2 = 0.0;
-#pragma omp parallel for reduction(+: tmp2) schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
+#pragma omp parallel for reduction(+: tmp2) num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int iii = 0; iii < nidx; iii++) {
 				int ii = idxs[iii];
 				double ll = 0.0;
@@ -2050,7 +2050,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			} else {
 				linear_predictor = mode;
 			}
-//#pragma omp parallel for schedule(static) num_threads(GMRFLib_openmp->max_threads_inner)
+//#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int i = 0; i < nidx; i++) {
 				int idx = idxs[i];
 				GMRFLib_2order_approx(thread_id,
