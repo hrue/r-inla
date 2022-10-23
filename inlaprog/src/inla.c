@@ -9290,9 +9290,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -36041,7 +36041,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					GMRFLib_idxval_addto(&idx, i, w);
 				}
 			}
-			GMRFLib_idxval_uniq(idx);
+			GMRFLib_idxval_sort(idx);
 			if (debug) {
 				GMRFLib_idxval_printf(stdout, idx, "");
 			}
@@ -41408,7 +41408,7 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_add(&h, 25070, 1);
 		GMRFLib_idxval_add(&h, 25075, 1);
 
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 	}
 		break;
 
@@ -41466,7 +41466,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		assert(h);
 		P(n);
 		P(h->g_n);
@@ -41512,7 +41512,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		P(n);
 		P(m);
 		P(h->g_n);
@@ -41682,7 +41682,7 @@ int testit(int argc, char **argv)
 			}
 			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		if (n == 0) {
 			FIXME("n = 0,  try again.");
 			exit(0);
@@ -41975,7 +41975,7 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&v, idx[i], 1.0 + (double) i + 0 * GMRFLib_uniform());
 		}
 
-		GMRFLib_idxval_nsort_x(&v, 1, 1);
+		GMRFLib_idxval_prepare(&v, 1, 1);
 	}
 		break;
 
@@ -42007,10 +42007,10 @@ int testit(int argc, char **argv)
 
 		double tref1 = 0.0, tref2 = 0.0;
 		tref1 -= GMRFLib_cpu();
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		tref1 += GMRFLib_cpu();
 		tref2 -= GMRFLib_cpu();
-		GMRFLib_idxval_nsort_x_OLD(&hh, 1, 1, 1, 1);
+		GMRFLib_idxval_prepare(&hh, 1, 1);
 		tref2 += GMRFLib_cpu();
 
 		P(tref1 / (tref1 + tref2));
