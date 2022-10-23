@@ -62,16 +62,16 @@ typedef struct {
 	int *idx;
 	GMRFLib_idxval_preference_tp preference;
 
-	int n_n;					       /* new len */
-	int *g_idx;
+	double *val;
+
 	int g_n;					       /* number of groups with sequential indices */
 	int *g_len;					       /* their length */
-	int *g_i;					       /* and their starting index */
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
-	int free_g_mem;
+	int **g_idx;					       /* indexing */
+	double **g_val;
 
-	double *val;
-	double *g_val;
+	int g_n_mem;
+	void **g_mem;
 } GMRFLib_idxval_tp;
 
 GMRFLib_idxval_tp **GMRFLib_idxval_ncreate(int n);
@@ -86,13 +86,12 @@ int GMRFLib_idxval_free(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_info_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_nprune(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
-int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prune_zeros);
+int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_nuniq(GMRFLib_idxval_tp ** a, int n, int nt);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_uniq(GMRFLib_idxval_tp * hold);
-int GMRFLib_idxval_prepare(GMRFLib_idxval_tp * hold);
 
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y);
@@ -109,10 +108,15 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 double GMRFLib_min_value(double *x, int n, int *idx);
 double GMRFLib_max_value(double *x, int n, int *idx);
 
+void my_downheap2_id(int *__restrict data1, double *__restrict data2, const int N, int k);
+void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n);
+void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n);
+void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
+
 // these are better names to export
 #define GMRFLib_sparse_vec_tp GMRFLib_idxval_tp
 #define GMRFLib_sparse_vec_add(a_,  b_, c_) GMRFLib_idxval_add(a_, b_, c_)
-#define GMRFLib_sparse_vec_prepare(a_) GMRFLib_idxval_prepare(a_)
+#define GMRFLib_sparse_vec_prepare(a_) GMRFLib_idxval_nsort_x(&(a_), 1, 1)
 #define GMRFLib_sparse_vec_dot_product(a_, b_) GMRFLib_dot_product(a_, b_)
 #define GMRFLib_sparse_vec_free(a_) GMRFLib_idxval_free(a_)
 
