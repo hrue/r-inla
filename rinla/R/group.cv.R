@@ -114,7 +114,7 @@
     r$.args$control.compute$graph <- FALSE
     r$.args$control.compute$hyperpar <- FALSE
     r$.args$control.compute$q <- FALSE
-
+    
     r$.args$control.fixed$correlation.matrix <- FALSE
 
     r$.args$control.inla$int.strategy <- "eb"
@@ -129,6 +129,7 @@
     r$.args$inla.mode <- "experimental"
     r$.args$verbose <- if (verbose) TRUE else r$.args$verbose
     r$.args$lincomb <- NULL
+    r$.args$quantiles <- numeric(0)
     
     group.cv <- do.call("inla", args = r$.args)$gcpo
     group.cv$cv <- group.cv$gcpo

@@ -1,16 +1,28 @@
 #ifndef FMESHER_DEBUGLOG_HH
 #define FMESHER_DEBUGLOG_HH
 
+#ifdef FMESHER_WITH_R
+#include <Rcpp.h>
+#endif
 #include <iostream>
 
 // Define NDEBUG to disable assert
 #include <cassert>
 
+#ifdef FMESHER_WITH_R
+#ifndef FM_CIN
+#define FM_CIN std::cin
+#endif
+#ifndef FM_COUT
+#define FM_COUT Rcpp::Rcout
+#endif
+#else
 #ifndef FM_CIN
 #define FM_CIN std::cin
 #endif
 #ifndef FM_COUT
 #define FM_COUT std::cout
+#endif
 #endif
 
 #ifndef WHEREAMI

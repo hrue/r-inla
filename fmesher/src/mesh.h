@@ -66,8 +66,8 @@ namespace fmesh {
 #ifdef FMESHER_WITH_X
     Xtmpl (*X11_);
     int X11_v_big_limit_;
-#endif
     int verbose_;
+#endif
 
   private:
     Mesh& rebuildTT();
@@ -96,22 +96,22 @@ namespace fmesh {
   public:
     Mesh(void) : type_(Mtype_manifold),
 		 use_VT_(false), use_TTi_(true),
-		 TV_(), TT_(), VT_(), TTi_(), S_(),
+		 TV_(), TT_(), VT_(), TTi_(), S_()
 #ifdef FMESHER_WITH_X
-		 X11_(NULL), X11_v_big_limit_(0),
-#endif
+		 , X11_(NULL), X11_v_big_limit_(0),
 		 verbose_(0)
-    {};
+#endif
+{};
     Mesh(Mtype manifold_type, size_t Vcapacity,
 	 bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold),
 			  use_VT_(true), use_TTi_(false),
-			  TV_(), TT_(), VT_(), TTi_(), S_(),
+			  TV_(), TT_(), VT_(), TTi_(), S_()
 #ifdef FMESHER_WITH_X
-			  X11_(NULL), X11_v_big_limit_(0),
-#endif
+			  , X11_(NULL), X11_v_big_limit_(0),
 			  verbose_(0)
-    {
+#endif
+{
       *this = M;
     };
     Mesh& operator=(const Mesh& M);

@@ -152,10 +152,10 @@ typedef struct {
 	int n_chars;
 	inla_cgeneric_vec_tp **chars;
 
-	int n_mat;
+	int n_mats;
 	inla_cgeneric_mat_tp **mats;
 
-	int n_smat;
+	int n_smats;
 	inla_cgeneric_smat_tp **smats;
 
 	void *cache;

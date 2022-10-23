@@ -1548,6 +1548,66 @@ void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n)
 	}
 }
 
+void my_downheap2_ii(int *__restrict data1, int *__restrict data2, const int N, int k)
+{
+	int v1 = data1[k];
+	int v2 = data2[k];
+
+	while (k <= N / 2) {
+		int j = 2 * k;
+		if (j < N && data1[j] < data1[j + 1]) {
+			j++;
+		}
+
+		if (!(v1 < data1[j])) {
+			break;
+		}
+
+		data1[k] = data1[j];
+		data2[k] = data2[j];
+		k = j;
+	}
+	data1[k] = v1;
+	data2[k] = v2;
+}
+
+void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n)
+{
+	int N, k;
+
+	if (n == 0) {
+		return;					       /* No data to sort */
+	}
+
+	/*
+	 * We have n_data elements, last element is at 'n_data-1', first at '0' Set N to the last element number. 
+	 */
+
+	N = n - 1;
+	k = N / 2;
+	k++;						       /* Compensate the first use of 'k--' */
+	do {
+		k--;
+		my_downheap2_ii(data1, data2, N, k);
+	} while (k > 0);
+
+	while (N > 0) {
+		int tmp1 = data1[0];
+		data1[0] = data1[N];
+		data1[N] = tmp1;
+
+		int tmp2 = data2[0];
+		data2[0] = data2[N];
+		data2[N] = tmp2;
+
+		/*
+		 * then process the heap 
+		 */
+		N--;
+		my_downheap2_ii(data1, data2, N, 0);
+	}
+}
+
 void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n)
 {
 	if (darr) {
@@ -1573,6 +1633,43 @@ void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n)
 			}
 			iarr[j + 1] = key;
 		}
+	}
+}
+
+void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n)
+{
+	if (darr) {
+		for (int i = 1; i < n; i++) {
+			int key = iarr[i];
+			int dkey = darr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				darr[j + 1] = darr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+			darr[j + 1] = dkey;
+		}
+	} else {
+		for (int i = 1; i < n; i++) {
+			int key = iarr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+		}
+	}
+}
+
+void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
+{
+	if (n < GMRFLib_sort2_cut_off) {
+		my_insertionSort_ii(ix, x, n);
+	} else {
+		gsl_sort2_ii(ix, x, n);
 	}
 }
 

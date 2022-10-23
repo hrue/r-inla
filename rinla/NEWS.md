@@ -1,3 +1,8 @@
+# INLA 22.10.23
+* Optimisation of gcpo and inner-products
+* Port for upcoming Matrix 1.5-2 change in 'kronecker()'
+* Various minor code improvements
+
 # INLA 22.10.15
 * Bug fix
 

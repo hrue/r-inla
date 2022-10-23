@@ -1,3 +1,5 @@
+#ifndef FMESHER_WITH_R
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -44,7 +46,9 @@ using fmesh::TriangleLocator;
 const bool useVT = true;
 const bool useTTi = true;
 bool useX11 = false;
+#ifdef FMESHER_WITH_X
 const bool useX11text = false;
+#endif
 double x11_delay_factor = 1.0;
 double x11_zoom[4];
 
@@ -848,7 +852,7 @@ int main(int argc, char* argv[])
 
   for (size_t i=0; i<args_info.collect_given; i++) {
     string matrix_name = string(args_info.collect_arg[i]);
-    if (!(matrix_name=="-") & !(matrix_name=="--")) {
+    if (!(matrix_name=="-") && !(matrix_name=="--")) {
       if (!matrices.activate(matrix_name)) {
         if (!matrices.load(matrix_name).active) {
           FMLOG_("Matrix "+matrix_name+" not found." << endl);
@@ -868,3 +872,7 @@ int main(int argc, char* argv[])
 
   return 0;
 }
+
+
+
+#endif // FMESHER_WITH_R

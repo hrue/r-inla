@@ -40,7 +40,7 @@ for f in $DIR/first/lib*.dylib*; do
     esac
 done
 
-export OMP_NESTED=TRUE
+##export OMP_NESTED=TRUE
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE

@@ -162,14 +162,14 @@ namespace fmesh {
 
   Mesh& Mesh::update_VT(const int v, const int t)
   {
-    if ((use_VT_) && (v<(int)nV()) & (t<(int)nT()) && (VT_[v]<0))
+    if ((use_VT_) && (v<(int)nV()) && (t<(int)nT()) && (VT_[v]<0))
       VT_(v) = t;
     return *this;
   }
 
   Mesh& Mesh::set_VT(const int v, const int t)
   {
-    if ((use_VT_) && (v<(int)nV()) & (t<(int)nT()))
+    if ((use_VT_) && (v<(int)nV()) && (t<(int)nT()))
       VT_(v) = t;
     return *this;
   }

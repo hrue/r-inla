@@ -1298,7 +1298,7 @@ int GMRFLib_prepare_constr(GMRFLib_constr_tp * constr, GMRFLib_graph_tp * graph,
 			}
 		}
 	}
-	GMRFLib_idxval_nsort_x(constr->idxval, nc, 1, 1, 1);
+	GMRFLib_idxval_prepare(constr->idxval, nc, 1);
 
 	GMRFLib_constr_add_sha(constr, graph);
 	constr->is_prepared = 1;
