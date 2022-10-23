@@ -597,10 +597,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
-	// double t0 = GMRFLib_cpu();
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer) schedule(dynamic)
+
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < g->n; i++) {
-		// if (omp_get_thread_num() == 0) printf("[0] %1d/%1d acc.time= %.4f\n", i, g->n, GMRFLib_cpu() - t0);
 		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
 	}
 	SHOW_TIME("sort AtA_idxval");

@@ -171,8 +171,6 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt);
 int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare);
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x_ran, int prepare);
-int GMRFLib_idxval_nsort_x_core_simple(GMRFLib_idxval_tp * h, double *x_ran);
-int GMRFLib_idxval_nsort_x_OLD(GMRFLib_idxval_tp ** hold, int n, int nt, int build_groups, int merge_groups);
 int GMRFLib_idxval_printf(FILE * fp, GMRFLib_idxval_tp * hold, const char *msg);
 int GMRFLib_idxval_prune(GMRFLib_idxval_tp * hold);
 int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold);
