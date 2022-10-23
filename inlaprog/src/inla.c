@@ -35867,21 +35867,16 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
-		double time_sum = 0.0;
-		for (int j = 0; j < 4; j++) {
-			time_sum += time_loop[j];
+		double time_sum = GMRFLib_dsum(4, time_loop);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum; 
+			GMRFLib_dscale(4, time_sum, time_loop);
+			time_loop[4] *= time_sum;
 		}
-		for (int j = 0; j < 4; j++) {
-			time_loop[j] /= time_sum;
-		}
-		time_loop[4] /= time_sum;
-
-		time_sum = 0.0;
-		for (int j = 5; j < 9; j++) {
-			time_sum += time_loop[j];
-		}
-		for (int j = 5; j < 9; j++) {
-			time_loop[j] /= time_sum;
+		time_sum = GMRFLib_dsum(4, time_loop + 5);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum; 
+			GMRFLib_dscale(4, time_sum, time_loop + 5);
 		}
 	}
 
