@@ -134,6 +134,7 @@ p.res <- inla(
   formula, data=inla.stack.data(stk.full), ## using the full data 
   control.predictor=list(compute=TRUE, ## compute the predictor
                          A=inla.stack.A(stk.full)), ## from full data
+  control.compute = list(return.marginals.predictor = TRUE), 
   control.mode=list(theta=res$mode$theta)) ## use the mode previously found
 
 ## ----prediction index----------------------------------------------------
