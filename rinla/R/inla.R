@@ -431,30 +431,65 @@
                    debug = inla.getOption("debug"),
                    .parent.frame = environment(formula))
 {
+    set.warn <- function(a, b) {
+        ## family="coxph" produce 'fake' warnings
+        if (length(grep("expand[.][.]coxph", b)) == 0 &&
+            length(grep("^[$] cph E$", b)) == 0) {
+            warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
+                           "  This might be an error and you are requested to check this out.\n",
+                           "  Move on with default values...\n"),
+                    immediate. = TRUE)
+        }
+    }
+
+    is.set <- !is.null(substitute(E))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(E))) else ""
     tmp <- try(eval(substitute(E), envir = data, enclos = .parent.frame), silent = TRUE)
     E <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("E", nm)
 
+    is.set <- !is.null(substitute(offset))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(offset))) else ""
     tmp <- try(eval(substitute(offset), envir = data, enclos = .parent.frame), silent = TRUE)
     offset <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("offset", nm)
 
+    is.set <- !is.null(substitute(scale))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(scale))) else ""
     tmp <- try(eval(substitute(scale), envir = data, enclos = .parent.frame), silent = TRUE)
     scale <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("scale", nm)
 
+    is.set <- !is.null(substitute(weights))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(weights))) else ""
     tmp <- try(eval(substitute(weights), envir = data, enclos = .parent.frame), silent = TRUE)
     weights <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("weights", nm)
 
+    is.set <- !is.null(substitute(Ntrials))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(Ntrials))) else ""
     tmp <- try(eval(substitute(Ntrials), envir = data, enclos = .parent.frame), silent = TRUE)
     Ntrials <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("Ntrials",  nm)
 
+    is.set <- !is.null(substitute(strata))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(strata))) else ""
     tmp <- try(eval(substitute(strata), envir = data, enclos = .parent.frame), silent = TRUE)
     strata <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("strata", nm)
 
+    is.set <- !is.null(substitute(lp.scale))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(lp.scale))) else ""
     tmp <- try(eval(substitute(lp.scale), envir = data, enclos = .parent.frame), silent = TRUE)
     lp.scale <- if (inherits(tmp, "try-error")) NULL else tmp
-
+    if (is.set && inherits(tmp, "try-error")) set.warn("lp.scale", nm)
+    
+    is.set <- !is.null(substitute(link.covariates))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(link.covariates))) else ""
     tmp <- try(eval(substitute(link.covariates), envir = data, enclos = .parent.frame), silent = TRUE)
     link.covariates <- if (inherits(tmp, "try-error")) NULL else tmp
-
+    if (is.set && inherits(tmp, "try-error")) set.warn("link.covariates", nm)
+    
     if (debug) {
         for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
             print(paste0("head(", nm, ")"))
