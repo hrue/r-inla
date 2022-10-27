@@ -432,14 +432,18 @@
                    .parent.frame = environment(formula))
 {
     set.warn <- function(a, b) {
-        ## family="coxph" produce 'fake' warnings
-        if (length(grep("expand[.][.]coxph", b)) == 0 &&
-            length(grep("^[$] cph E$", b)) == 0) {
-            warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
-                           "  This might be an error and you are requested to check this out.\n",
-                           "  Move on with default values...\n"),
-                    immediate. = TRUE)
+        check <- inla.getOption("experimental.check.arguments")
+        if (check) {
+            ## family="coxph" produce 'fake' warnings
+            if (length(grep("expand[.][.]coxph", b)) == 0 &&
+                length(grep("^[$] cph E$", b)) == 0) {
+                warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
+                               "  This might be an error and you are requested to check this out.\n",
+                               "  Move on with default values...\n"),
+                        immediate. = TRUE)
+            }
         }
+        return (invisible())
     }
 
     is.set <- !is.null(substitute(E))
