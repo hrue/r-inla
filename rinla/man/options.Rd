@@ -39,6 +39,8 @@
 
      mkl: Use binaries buildt with Intel MKL?  (If possible)
 
+     safe: Run in safe-mode (ie try to automatically fix convergence errors) (default \code{TRUE})
+
      vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
 
      vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.

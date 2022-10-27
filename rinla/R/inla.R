@@ -48,7 +48,7 @@
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
 ## !    inla.mode = inla.getOption("inla.mode"), 
-## !    safe = TRUE, 
+## !    safe = inla.getOption("safe"), 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = environment(formula)
 ## !    )
@@ -427,7 +427,7 @@
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
                    inla.mode = inla.getOption("inla.mode"), 
-                   safe = TRUE, 
+                   safe = inla.getOption("safe"), 
                    debug = inla.getOption("debug"),
                    .parent.frame = environment(formula))
 {
@@ -1314,6 +1314,7 @@
     mf$lincomb <- NULL
     mf$selection <- NULL
     mf$inla.mode <- NULL
+    mf$safe <- NULL
     mf$scale <- NULL
     mf$weights <- NULL
     mf$Ntrials <- NULL

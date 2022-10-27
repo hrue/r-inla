@@ -37,6 +37,8 @@
 ## !
 ## !     mkl: Use binaries buildt with Intel MKL?  (If possible)
 ## !
+## !     safe: Run in safe-mode (ie try to automatically fix convergence errors) (default \code{TRUE})
+## !
 ## !     vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
 ## !
 ## !     vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.
@@ -106,6 +108,7 @@
             blas.num.threads = 0L,
             smtp = "default",
             mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE,
+            safe = TRUE, 
             vecLib = FALSE, 
             vecLibPath = "", 
             pardiso.license = NULL,
@@ -136,6 +139,7 @@
                                  "blas.num.threads",
                                  "smtp",
                                  "mkl",
+                                 "safe", 
                                  "vecLib",
                                  "vecLibPath",
                                  "pardiso.license",
@@ -227,6 +231,7 @@
                                           "blas.num.threads",
                                           "smtp",
                                           "mkl",
+                                          "safe", 
                                           "vecLib",
                                           "vecLibPath",
                                           "pardiso.license",
