@@ -25,7 +25,7 @@
     Ntrials = NULL,
     strata = NULL,
     link.covariates = NULL,
-    verbose = FALSE,
+    verbose = inla.getOption("verbose"),
     lincomb = NULL,
     selection = NULL,
     lp.scale = NULL,

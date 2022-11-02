@@ -20,7 +20,9 @@
 ## !        logdens = ifelse(missing(sample), FALSE, TRUE),
 ## !        compute.mean = ifelse(missing(sample), FALSE, TRUE),
 ## !        num.threads = if (seed == 0L) "0:0" else NULL,
-## !        selection = NULL, verbose = FALSE)
+## !        selection = NULL,
+## !        verbose = inla.getOption("verbose"),
+## !        .debug = FALSE)
 ## ! }
 ## !
 ## ! \arguments{
@@ -57,6 +59,7 @@
 ## !                    (Note that the log-density retured,  is for the whole sample.)
 ## !                    The use of \code{selection} cannot be combined with the use of \code{sample}.}
 ## !   \item{verbose}{Logical. Run in verbose mode or not.}
+## !   \item{.debug}{Logical. Internal debug-mode.}
 ## ! }
 ## !\value{
 ## !      The log-density has form {-1/2(x-mu)^T Q (x-mu) + b^T x}
@@ -119,7 +122,9 @@
                            compute.mean = ifelse(missing(sample), FALSE, TRUE),
                            num.threads = if (seed == 0L) "0:0" else NULL,
                            selection = NULL,
-                           verbose = FALSE) {
+                           verbose = inla.getOption("verbose"),
+                           .debug = FALSE) 
+{
     t.dir <- inla.tempdir()
     smtp <- match.arg(inla.getOption("smtp"), c("taucs", "band", "default", "pardiso"))
     stopifnot(!missing(Q))
@@ -218,7 +223,7 @@
 
     inla.set.sparselib.env(inla.dir = t.dir)
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
-        if (!TRUE) {
+        if (.debug) {
             print(paste(
                 shQuote(inla.call.no.remote()), "-s -m qsample",
                 paste0("-t", num.threads), "-r", reordering, "-z", seed, "-S", smtp,

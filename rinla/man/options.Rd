@@ -51,6 +51,8 @@
 
      keep: Keep temporary files?
 
+     verbose: Verbose output?
+
      working.directory: The name of the working directory.
 
      silent: Run the inla-program in a silent mode?

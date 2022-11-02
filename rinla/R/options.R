@@ -49,6 +49,8 @@
 ## !
 ## !     keep: Keep temporary files?
 ## !
+## !     verbose: Verbose output?
+## !
 ## !     working.directory: The name of the working directory.
 ## !
 ## !     silent: Run the inla-program in a silent mode?
@@ -116,6 +118,7 @@
             vecLibPath = "", 
             pardiso.license = NULL,
             keep = FALSE,
+            verbose = FALSE,
             working.directory = NULL,
             silent = TRUE,
             debug = FALSE,
@@ -148,6 +151,7 @@
                                  "vecLibPath",
                                  "pardiso.license",
                                  "keep",
+                                 "verbose",
                                  "working.directory",
                                  "silent",
                                  "debug",
@@ -241,6 +245,7 @@
                                           "vecLibPath",
                                           "pardiso.license",
                                           "keep",
+                                          "verbose",
                                           "working.directory",
                                           "silent",
                                           "debug",
