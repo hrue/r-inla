@@ -34444,9 +34444,9 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * l
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E6, prec_low = 1.0E-6, eps = 1.0E-4;
+	double prec_high = 1.0E3, prec_low = 1.0E-16, eps = 1.0E-6;
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
-	int niter, niter_min = 25, niter_max = 100, stencil = 5;
+	int niter, niter_min = 25, niter_max = 100, stencil = 7;
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL);
@@ -34468,12 +34468,11 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 		x = xnew;
 
 		if (niter > niter_min && ABS(deriv / dderiv) < eps) {
-			xsol = x;
 			break;
 		}
 	}
 
-	return (xsol);
+	return (arr[0]);
 }
 
 int inla_INLA(inla_tp * mb)
