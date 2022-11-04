@@ -77,6 +77,10 @@
         }
     }
 
+    is.null.list <- function(alist) {
+        return (all(sapply(alist, is.null)))
+    }
+
     if (!only.hyperparam) {
         res.fixed <- inla.collect.fixed(results.dir, debug)
         res.lincomb <- inla.collect.lincomb(results.dir, debug, derived = FALSE)
@@ -85,6 +89,12 @@
         res.cpo.pit <- inla.collect.cpo(results.dir, debug)
         res.gcpo <- inla.collect.gcpo(results.dir, debug)
         res.po <- inla.collect.po(results.dir, debug)
+        if (!is.null.list(res.dic) && !is.null.list(res.po)) {
+            res.deviance.residuals <- list(deviance.residuals = res.dic$residuals.deviance)
+            res.dic$residuals.deviance <- NULL
+        } else {
+            res.deviance.residuals <- list(deviance.residuals = NULL)
+        }
         res.waic <- inla.collect.waic(results.dir, debug)
         res.random <- inla.collect.random(results.dir, debug)
         res.predictor <- inla.collect.predictor(results.dir, debug)
@@ -98,6 +108,7 @@
         res.cpo.pit <- NULL
         res.gcpo <- NULL
         res.po <- NULL
+        res.deviance.residuals <- NULL
         res.waic <- NULL
         res.random <- NULL
         res.predictor <- NULL
@@ -209,6 +220,7 @@
     names(theta.mode) <- theta.tags
     res <- c(res.fixed, res.lincomb, res.lincomb.derived, res.mlik,
              list(cpo = res.cpo.pit), list(gcpo = res.gcpo), list(po = res.po), list(waic = res.waic),
+             list(residuals = res.deviance.residuals), 
              res.random, res.predictor, res.hyper,
              res.offset, res.spde2.blc, res.spde3.blc, logfile,
              list(
@@ -1110,13 +1122,13 @@
         if (debug) {
             cat(paste("collect po\n", sep = ""))
         }
-
         xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "po", .Platform$file.sep, "po.dat", sep = ""))
         n <- xx[1L]
         xx <- xx[-1L]
-        xx <- xx[-seq(3, length(xx), by = 3L)] ## skip entry 3, 6, 9, ...
+        xx <- xx[-seq(3, length(xx), by = 3L)] 
         len <- length(xx)
         po.res <- numeric(n)
+        po.sign <- numeric(n)
         po.res[1L:n] <- NA
         po.res[xx[seq(1L, len, by = 2L)] + 1L] <- xx[seq(2L, len, by = 2L)]
     } else {
@@ -1200,6 +1212,14 @@
             e.dev <- NULL
         }
 
+        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "sign.dat", sep = "")
+        if (inla.is.fmesher.file(file)) {
+            sig <- c(inla.read.fmesher.file(file))
+            sig[is.nan(sig)] <- NA
+        } else {
+            sig <- NULL
+        }
+
         file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "e_deviance_sat.dat", sep = "")
         if (inla.is.fmesher.file(file)) {
             e.dev.sat <- c(inla.read.fmesher.file(file))
@@ -1221,6 +1241,18 @@
             dic.values[] <- NA
         }
 
+        if (!is.null(sig)) {
+            ## avoid warnings
+            ee <- e.dev.sat
+            idx <- which(is.na(ee))
+            ee[idx] <- 0
+            sig[idx] <- 0
+            deviance.residuals <- sqrt(ee) * sig
+            deviance.residuals[idx] <- NA
+        } else {
+            deviance.residuals <- NULL
+        }
+        
         local.dic <- 2.0 * e.dev - dev.e
         local.dic.sat <- 2.0 * e.dev.sat - dev.e.sat
         local.p.eff <- e.dev - dev.e
@@ -1256,7 +1288,8 @@
             "family" = f.idx,
             "local.dic" = local.dic,
             "local.dic.sat" = local.dic.sat,
-            "local.p.eff" = local.p.eff
+            "local.p.eff" = local.p.eff,
+            "residuals.deviance" = deviance.residuals
         )
     } else {
         dic <- NULL

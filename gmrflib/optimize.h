@@ -164,8 +164,8 @@ typedef int GMRFLib_logl_tp(int thread_id, double *logll, double *x_i, int m, in
 
   \sa GMRFLib_logl_tp
 */
-#define GMRFLib_LOGL_COMPUTE_DERIVATIES (135792467)
-#define GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF (135792468)
+//#define GMRFLib_LOGL_COMPUTE_DERIVATIES (135792467)
+//#define GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF (135792468)
 #define GMRFLib_LOGL_COMPUTE_CDF (135792469)
 
 /*!

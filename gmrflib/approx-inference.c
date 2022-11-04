@@ -4346,6 +4346,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	}
 
 	if (po) {
+		SET_THETA_MODE;
 		for (j = 0; j < compute_n; j++) {
 			int ii, jj;
 			double evalue, evalue2, evalue3, evalue_one;
@@ -4376,9 +4377,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	}
 
 	if (dic) {
-		double mean_deviance = 0.0, mean_deviance_sat = 0.0, deviance_mean = 0.0, deviance_mean_sat = 0.0, *x_vec = NULL;
-
 		SET_THETA_MODE;
+		double mean_deviance = 0.0, mean_deviance_sat = 0.0, deviance_mean = 0.0, deviance_mean_sat = 0.0, *x_vec = NULL;
 
 		/*
 		 * need this for loglFunc() we need that compute is TRUE for all indices that enters loglFunc. There is no way to check this here. 
@@ -4402,10 +4402,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		ndev++;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double),
+			*sign = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
-			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
+			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
 		}
 
 		for (j = 0; j < compute_n; j++) {
@@ -4438,6 +4439,21 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				e_deviance_sat[ii] = md_sat;
 				deviance_e[ii] = dm;
 				deviance_e_sat[ii] = dm_sat;
+
+				// neither of these options are fail-safe. I cannot see how to do this fail-safe without really mapping to the
+				// real data doing the comparison there. But this information is not available at this level
+				double sig = 0.0;
+				if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg) == GMRFLib_LOGL_COMPUTE_CDF) {
+					loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg);
+					sig = (sig <= 0.5 ? -1.0 : 1.0);
+				} else {
+					double xx[2], ld[2];
+					xx[0] = (*density)[ii]->user_mean;
+					xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
+					loglFunc(0, ld, xx, 2, ii, NULL, NULL, loglFunc_arg);
+					sig = (ld[1] > ld[0] ? 1.0 : -1.0);
+				}
+				sign[ii] = sig;
 			} else {
 				dm = md = dm_sat = md_sat = 0.0;
 			}
@@ -4461,7 +4477,8 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		dic->e_deviance_sat = e_deviance_sat;
 		dic->deviance_e = deviance_e;
 		dic->deviance_e_sat = deviance_e_sat;
-
+		dic->sign = sign;
+		
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "DIC:\n");
 			fprintf(ai_par->fp_log, "\tMean of Deviance ................. %g\n", dic->mean_of_deviance);
@@ -6357,6 +6374,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	if (po) {
+		SET_THETA_MODE;
 		for (j = 0; j < preopt->Npred; j++) {
 			int ii, jj, jjj;
 			double evalue, evalue2, evalue3, evalue_one;
@@ -6412,10 +6430,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		int ndev = preopt->Npred;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double),
+			*sign = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
-			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = NAN;
+			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
 		}
 
 		for (j = 0; j < d_idx->n; j++) {
@@ -6451,6 +6470,21 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			deviance_mean_sat += dm_sat;
 			mean_deviance += md;
 			mean_deviance_sat += md_sat;
+
+			// neither of these options are fail-safe. I cannot see how to do this fail-safe without really mapping to the
+			// real data doing the comparison there. But this information is not available at this level
+			double sig = 0.0;
+			if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg) == GMRFLib_LOGL_COMPUTE_CDF) {
+				loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg);
+					sig = (sig <= 0.5 ? -1.0 : 1.0);
+			} else {
+				double xx[2], ld[2];
+				xx[0] = (*density)[ii]->user_mean;
+				xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
+				loglFunc(0, ld, xx, 2, ii, NULL, NULL, loglFunc_arg);
+				sig = (ld[1] > ld[0] ? 1.0 : -1.0);
+			}
+			sign[ii] = sig;
 		}
 		Free(x_vec);
 
@@ -6466,7 +6500,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		dic->e_deviance_sat = e_deviance_sat;
 		dic->deviance_e = deviance_e;
 		dic->deviance_e_sat = deviance_e_sat;
-
+		dic->sign = sign;
+		
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "DIC:\n");
 			fprintf(ai_par->fp_log, "\tMean of Deviance ................. %g\n", dic->mean_of_deviance);
@@ -9834,7 +9869,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	}
 
 	retval = loglFunc(thread_id, NULL, NULL, 0, idx, x_vec, NULL, loglFunc_arg);
-	if (!(retval == GMRFLib_LOGL_COMPUTE_CDF || retval == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF)) {
+	if (!(retval == GMRFLib_LOGL_COMPUTE_CDF)) {
 		compute_cpo = 0;
 	}
 

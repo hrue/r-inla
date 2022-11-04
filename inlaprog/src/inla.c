@@ -6821,7 +6821,7 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
 	 */
 	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
+		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
 	int i, dcode, strata;
@@ -37141,7 +37141,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 
 #define _PAD_WITH_NA(xx)						\
 	if (1) {							\
-		tmp = Calloc(IMAX(dic->n_deviance, len_family_idx), double); \
+		if (!tmp) tmp = Calloc(IMAX(dic->n_deviance, len_family_idx), double); \
 		Memcpy(tmp, xx, dic->n_deviance*sizeof(double));	\
 		int i;							\
 		for(i = dic->n_deviance; i < len_family_idx; i++){	\
@@ -37177,38 +37177,41 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
 
+		_PAD_WITH_NA(dic->sign);
+		M->A = tmp;
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "sign.dat");
+		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
+		
 		_PAD_WITH_NA(dic->e_deviance);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		_PAD_WITH_NA(dic->e_deviance_sat);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance_sat.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		_PAD_WITH_NA(dic->deviance_e);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		_PAD_WITH_NA(dic->deviance_e_sat);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e_sat.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		M->A = family_idx;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "family_idx.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 
+		Free(tmp);
 		M->A = NULL;
 		GMRFLib_matrix_free(M);
 	}
 
+	Free(tmp);
 	Free(ndir);
 	Free(nndir);
 #undef _PAD_WITH_NA

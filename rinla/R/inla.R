@@ -338,6 +338,12 @@
 ## ! predictive ordinate (CPO) (\code{pi(yi|y)})
 ## ! }
 
+## ! \item{residuals}{
+## ! If \code{residuals}=\code{TRUE} in \code{control.compute}, a list
+## ! of standarized residuals are provided, see \code{?control.compute}
+## ! for details
+## ! }
+
 ## ! \item{waic}{
 ## ! If \code{waic}=\code{TRUE} in \code{control.compute}, a list
 ## ! of two elements: \code{waic$waic} is the Watanabe-Akaike information criteria,  and
@@ -1047,9 +1053,12 @@
 
     ## control what should be computed
     cont.compute <- cont.compute.def <- inla.set.control.compute.default()
-    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
+    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- cont.compute$residuals <- FALSE
     cont.compute$control.gcpo$enable <- FALSE
     cont.compute[names(control.compute)] <- control.compute
+    if (cont.compute$residuals) {
+        cont.compute$dic <- TRUE
+    }
     ## because we have 'control' within a 'control', we have to process them spesifically
     cont.compute$control.gcpo <- cont.compute.def$control.gcpo
     cont.compute$control.gcpo[names(control.compute$control.gcpo)] <- control.compute$control.gcpo
@@ -2737,6 +2746,7 @@
         cont.compute$cpo <- FALSE
         cont.compute$po <- FALSE
         cont.compute$waic <- FALSE
+        cont.compute$residuals <- FALSE
         cont.compute$config <- FALSE
         cont.compute$q <- FALSE
         cont.compute$graph <- FALSE
