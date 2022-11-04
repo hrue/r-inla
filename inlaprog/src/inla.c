@@ -9290,9 +9290,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg))
+			   int(*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -35868,13 +35868,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 		double time_sum = GMRFLib_dsum(4, time_loop);
 		if (time_sum > 0.0) {
-			time_sum = 1.0 / time_sum; 
+			time_sum = 1.0 / time_sum;
 			GMRFLib_dscale(4, time_sum, time_loop);
 			time_loop[4] *= time_sum;
 		}
 		time_sum = GMRFLib_dsum(4, time_loop + 5);
 		if (time_sum > 0.0) {
-			time_sum = 1.0 / time_sum; 
+			time_sum = 1.0 / time_sum;
 			GMRFLib_dscale(4, time_sum, time_loop + 5);
 		}
 	}
@@ -37181,7 +37181,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "sign.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		
+
 		_PAD_WITH_NA(dic->e_deviance);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance.dat");

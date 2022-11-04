@@ -739,12 +739,12 @@ typedef struct {
 	 * \brief The deviance(E) contribution (saturated)
 	 */
 	double *deviance_e_sat;
-	
+
 	/**
 	 * \brief sign of the residual (or guessed sign)
 	 */
 	double *sign;
-	
+
 } GMRFLib_ai_dic_tp;
 
 /**

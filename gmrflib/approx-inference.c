@@ -4402,8 +4402,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		ndev++;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double),
-			*sign = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double), *sign = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
@@ -4478,7 +4477,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		dic->deviance_e = deviance_e;
 		dic->deviance_e_sat = deviance_e_sat;
 		dic->sign = sign;
-		
+
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "DIC:\n");
 			fprintf(ai_par->fp_log, "\tMean of Deviance ................. %g\n", dic->mean_of_deviance);
@@ -6430,8 +6429,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		int ndev = preopt->Npred;
 
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double),
-			*sign = Calloc(ndev, double);
+		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double), *sign = Calloc(ndev, double);
 
 		for (j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
@@ -6476,7 +6474,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			double sig = 0.0;
 			if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg) == GMRFLib_LOGL_COMPUTE_CDF) {
 				loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg);
-					sig = (sig <= 0.5 ? -1.0 : 1.0);
+				sig = (sig <= 0.5 ? -1.0 : 1.0);
 			} else {
 				double xx[2], ld[2];
 				xx[0] = (*density)[ii]->user_mean;
@@ -6501,7 +6499,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		dic->deviance_e = deviance_e;
 		dic->deviance_e_sat = deviance_e_sat;
 		dic->sign = sign;
-		
+
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "DIC:\n");
 			fprintf(ai_par->fp_log, "\tMean of Deviance ................. %g\n", dic->mean_of_deviance);

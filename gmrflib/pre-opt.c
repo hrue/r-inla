@@ -597,7 +597,6 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
-
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < g->n; i++) {
 		GMRFLib_idxval_prepare(AtA_idxval[i], 1 + g->lnnbs[i], 1);
