@@ -1,3 +1,10 @@
+# INLA 22.11.06
+* Added new vignette
+* Added default values of 'safe', 'verbose' and 'keep' to options
+* Added new check for valid arguments (default off for the moment)
+* 'control.compute=list(residuals=TRUE)' provide expected deviance
+  residuals, but it is experimental for the moment
+
 # INLA 22.10.23
 * Optimisation of gcpo and inner-products
 * Port for upcoming Matrix 1.5-2 change in 'kronecker()'
