@@ -293,7 +293,8 @@
             ## :ARGUMENT+: The sign of the residuals are only `very likely` correct.
             ## :ARGUMENT+: These residuals are not properly justified from a Bayesian point of
             ## :ARGUMENT+: view, hence must be used with caution. It is provided in the hope
-            ## :ARGUMENT+: they would be useful. This feature is EXPERIMENTAL for the moment
+            ## :ARGUMENT+: they would be useful. This feature is EXPERIMENTAL for the moment,
+            ## :ARGUMENT+: so changes can happen at any time.
             residuals = FALSE,
 
             ## :ARGUMENT+: q A boolean variable if binary images of the precision matrix, the
