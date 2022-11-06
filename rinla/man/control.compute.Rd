@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, return.marginals, return.marginals.predictor, smtp, waic)
+control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -33,6 +33,8 @@ control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.st
 \item{po}{   A boolean variable if the predictive ordinate should be computed  (default \code{FALSE})}
 
 \item{waic}{   A boolean variable if the Watanabe-Akaike information criteria  should be computed (default \code{FALSE})}
+
+\item{residuals}{   Provide estimates of `residuals` (whatever we mean by that).  (default \code{FALSE})  Currently only residuals base on expected (saturated) deviance are available.  The sign of the residuals are only `very likely` correct.  These residuals are not properly justified from a Bayesian point of  view, hence must be used with caution. It is provided in the hope  they would be useful. This feature is EXPERIMENTAL for the moment,  so changes can happen at any time.}
 
 \item{q}{   A boolean variable if binary images of the precision matrix, the  reordered precision matrix and the Cholesky triangle should be generated.  (Default FALSE.)}
 

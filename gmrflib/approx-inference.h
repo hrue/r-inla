@@ -740,6 +740,11 @@ typedef struct {
 	 */
 	double *deviance_e_sat;
 
+	/**
+	 * \brief sign of the residual (or guessed sign)
+	 */
+	double *sign;
+
 } GMRFLib_ai_dic_tp;
 
 /**
@@ -1161,8 +1166,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id,
 char *GMRFLib_ai_tag(int *iz, int len);
 double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int idx, GMRFLib_density_tp * cpo_density, double d,
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
-double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				double *x_vec);
+double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				 double *x_vec);
 double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *po3, int idx, GMRFLib_density_tp * po_density, double d,
 			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec);
 double GMRFLib_interpolator_nearest(int ndim, int nobs, double *x, double *xobs, double *yobs, void *arg);

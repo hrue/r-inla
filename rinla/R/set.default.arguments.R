@@ -287,6 +287,16 @@
             ## :ARGUMENT+: should be computed (default \code{FALSE})
             waic = FALSE,
 
+            ## :ARGUMENT+: residuals Provide estimates of `residuals` (whatever we mean by that).
+            ## :ARGUMENT+: (default \code{FALSE})
+            ## :ARGUMENT+: Currently only residuals base on expected (saturated) deviance are available.
+            ## :ARGUMENT+: The sign of the residuals are only `very likely` correct.
+            ## :ARGUMENT+: These residuals are not properly justified from a Bayesian point of
+            ## :ARGUMENT+: view, hence must be used with caution. It is provided in the hope
+            ## :ARGUMENT+: they would be useful. This feature is EXPERIMENTAL for the moment,
+            ## :ARGUMENT+: so changes can happen at any time.
+            residuals = FALSE,
+
             ## :ARGUMENT+: q A boolean variable if binary images of the precision matrix, the
             ## :ARGUMENT+: reordered precision matrix and the Cholesky triangle should be generated.
             ## :ARGUMENT+: (Default FALSE.)
