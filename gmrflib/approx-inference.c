@@ -576,7 +576,7 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 	 */
 
 	int n;
-	double *xx = NULL, val, logll, result;
+	double *xx = NULL, val, logl, result;
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -641,8 +641,8 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 			 */
 			for (int ii = 0; ii < n; ii++) {
 				if (d[ii]) {
-					loglFunc(thread_id, &logll, &x[ii], 1, ii, x, NULL, loglFunc_arg);
-					tmp2 += d[ii] * logll;
+					loglFunc(thread_id, &logl, &x[ii], 1, ii, x, NULL, loglFunc_arg);
+					tmp2 += d[ii] * logl;
 				}
 			}
 		}
@@ -676,7 +676,7 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 	 */
 
 	int i, j, ii, jj, ns;
-	double xx, *f = NULL, *g = NULL, val, tmp, logll = 0.0, q_value;
+	double xx, *f = NULL, *g = NULL, val, tmp, logl = 0.0, q_value;
 
 	GMRFLib_ENTER_ROUTINE;
 	assert(subgraph);
@@ -741,8 +741,8 @@ int GMRFLib_ai_log_posterior_restricted(int thread_id, double *logdens, double *
 			for (ii = 0; ii < ns; ii++) {
 				i = node_map[ii];
 				if (d[i]) {
-					loglFunc(thread_id, &logll, &x[i], 1, i, x, NULL, loglFunc_arg);
-					tmp += d[i] * logll;
+					loglFunc(thread_id, &logl, &x[i], 1, i, x, NULL, loglFunc_arg);
+					tmp += d[i] * logl;
 				}
 			}
 			val += tmp;
@@ -2428,7 +2428,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			for (ii_ = 0; ii_ < compute_n; ii_++) {		\
 				jj_ = compute_idx[ii_];			\
 				if (d[jj_]){				\
-					deviance_theta[jj_] = Realloc(deviance_theta[jj_], dens_max, double); \
+					deviance_theta[jj_] = Realloc(deviance_theta[jj_], dens_max, double *); \
 				}					\
 			}						\
 		}							\
@@ -2509,7 +2509,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
-	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
+	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, ***deviance_theta =
 	    NULL, **failure_theta = NULL;
 	gsl_matrix *H = NULL, *eigen_vectors = NULL;
 	gsl_eigen_symmv_workspace *work = NULL;
@@ -2681,11 +2681,11 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 			}
 		}
 		if (dic) {
-			deviance_theta = Calloc(graph->n, double *);	/* mean of deviance conditioned on theta */
+			deviance_theta = Calloc(graph->n, double **);	/* mean of deviance conditioned on theta */
 			for (i = 0; i < compute_n; i++) {
 				j = compute_idx[i];
 				if (d[j]) {
-					deviance_theta[j] = Calloc(dens_max, double);
+					deviance_theta[j] = Calloc(dens_max, double *);
 				}
 			}
 		}
@@ -3710,7 +3710,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 				double *z_local = NULL, *theta_local = NULL, *userfunc_values_local = NULL, weights_local, val;
 				double *cpo_theta_local = NULL, *po_theta_local = NULL, *po2_theta_local =
 				    NULL, *po3_theta_local = NULL, *pit_theta_local = NULL, *failure_theta_local =
-				    NULL, *deviance_theta_local = NULL;
+				    NULL, **deviance_theta_local = NULL;
 				int err, *iz_local = NULL;
 				size_t idx = 0;
 				GMRFLib_tabulate_Qfunc_tp *tabQfunc = NULL;
@@ -3777,7 +3777,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 							po3_theta_local = Calloc(graph->n, double);
 						}
 						if (dic) {
-							deviance_theta_local = Calloc(graph->n, double);
+							deviance_theta_local = Calloc(graph->n, double *);
 						}
 
 						for (i = 0; i < compute_n; i++) {
@@ -4347,7 +4347,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 
 	if (po) {
 		SET_THETA_MODE;
-		for (j = 0; j < compute_n; j++) {
+		for (int j = 0; j < compute_n; j++) {
 			int ii, jj;
 			double evalue, evalue2, evalue3, evalue_one;
 
@@ -4384,7 +4384,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		 * need this for loglFunc() we need that compute is TRUE for all indices that enters loglFunc. There is no way to check this here. 
 		 */
 		x_vec = Calloc(graph->n, double);
-		for (j = 0; j < compute_n; j++) {
+		for (int j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			x_vec[ii] = (*density)[ii]->user_mean;
 		}
@@ -4393,7 +4393,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		 * find the min length of the data contribution that cover all data points 
 		 */
 		int ndev = 0;
-		for (j = 0; j < compute_n; j++) {
+		for (int j = 0; j < compute_n; j++) {
 			int ii = compute_idx[j];
 			if (d[ii]) {
 				ndev = IMAX(ndev, ii);
@@ -4404,36 +4404,36 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
 		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double), *sign = Calloc(ndev, double);
 
-		for (j = 0; j < ndev; j++) {
+		for (int j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
 		}
 
-		for (j = 0; j < compute_n; j++) {
-			double md, md_sat, dm, dm_sat, logl_saturated;
+		for (int j = 0; j < compute_n; j++) {
+			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;
 			int ii = compute_idx[j];
-			int thread_id = 0;
-			assert(0 == omp_get_thread_num());
-			if (d[ii]) {
-				int jj;
-				double evalue, sum, logll;
+			int thread_id = omp_get_thread_num();
+			assert(thread_id == 0);
 
-				for (jj = 0, evalue = sum = 0.0; jj < dens_count; jj++) {
-					evalue += deviance_theta[ii][jj] * adj_weights[jj];
+			if (d[ii]) {
+				double evalue = 0.0, evalue_sat = 0.0, sum = 0.0, logl;
+				for (int jj = 0; jj < dens_count; jj++) {
+					evalue += deviance_theta[ii][jj][0] * adj_weights[jj];
+					evalue_sat += deviance_theta[ii][jj][1] * adj_weights[jj];
 					sum += adj_weights[jj];
 				}
 				md = evalue / sum;
+				md_sat = evalue_sat / sum;
 
 				if (!(density && (*density)[ii])) {
 					fprintf(stderr, "\n\n\nFIXME FIXME!!!!!!!!\n\n\n");
 					abort();
 				}
-				double double_tmp = (double) ((*density)[ii]->user_mean);
-				loglFunc(thread_id, &logll, &double_tmp, 1, ii, x_vec, NULL, loglFunc_arg);
-				logll *= d[ii];
-				logl_saturated = d[ii] * inla_compute_saturated_loglik(thread_id, ii, loglFunc, x_vec, loglFunc_arg);
-				dm = -2.0 * logll;
-				dm_sat = -2.0 * (logll - logl_saturated);
-				md_sat = md + 2.0 * logl_saturated;
+
+				double x_tmp = (double) ((*density)[ii]->user_mean);
+				loglFunc(thread_id, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg);
+				logl_sat = inla_compute_saturated_loglik(thread_id, ii, loglFunc, x_vec, loglFunc_arg);
+				dm = -2.0 * d[ii] * logl;
+				dm_sat = -2.0 * d[ii] * (logl - logl_sat);
 				e_deviance[ii] = md;
 				e_deviance_sat[ii] = md_sat;
 				deviance_e[ii] = dm;
@@ -4446,15 +4446,13 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 					loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg);
 					sig = (sig <= 0.5 ? -1.0 : 1.0);
 				} else {
-					double xx[2], ld[2];
+					double xx[2], ld[2] = {0.0, 0.0};
 					xx[0] = (*density)[ii]->user_mean;
 					xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
 					loglFunc(0, ld, xx, 2, ii, NULL, NULL, loglFunc_arg);
 					sig = (ld[1] > ld[0] ? 1.0 : -1.0);
 				}
 				sign[ii] = sig;
-			} else {
-				dm = md = dm_sat = md_sat = 0.0;
 			}
 
 			deviance_mean += dm;
@@ -4927,6 +4925,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 		for (i = 0; i < compute_n; i++) {
 			j = compute_idx[i];
 			if (d[j]) {
+				Free(deviance_theta[j][0]);
 				Free(deviance_theta[j]);
 			}
 		}
@@ -5040,7 +5039,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	double *hessian = NULL, *theta = NULL, *theta_mode = NULL, *x_mode = NULL, log_dens_mode = 0, log_dens, *z = NULL, **izs =
 	    NULL, *stdev_corr_pos = NULL, *stdev_corr_neg = NULL, f, w, w_origo, tref, tu, *weights = NULL, *adj_weights =
 	    NULL, *hyper_z = NULL, *hyper_ldens = NULL, **userfunc_values = NULL, *inverse_hessian = NULL, *timer,
-	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, **deviance_theta =
+	    **cpo_theta = NULL, **po_theta = NULL, **po2_theta = NULL, **po3_theta = NULL, **pit_theta = NULL, ***deviance_theta =
 	    NULL, **failure_theta = NULL;
 
 	GMRFLib_gcpo_elm_tp ***gcpo_theta = NULL;
@@ -5191,11 +5190,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 	}
 	if (dic) {
-		deviance_theta = Calloc(preopt->Npred, double *);	/* mean of deviance conditioned on theta */
+		deviance_theta = Calloc(preopt->Npred, double **);	/* mean of deviance conditioned on theta */
 		assert(d_idx);
 		for (jj = 0; jj < d_idx->n; jj++) {
 			j = d_idx->idx[jj];
-			deviance_theta[j] = Calloc(dens_max, double);
+			deviance_theta[j] = Calloc(dens_max, double *);
 		}
 	}
 
@@ -6260,11 +6259,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	if (cpo) {
 		double *Z = Calloc(preopt->Npred, double);
 
-		for (j = 0; j < preopt->Npred; j++) {
-			int jj, jjj, ii;
+		for (int j = 0; j < preopt->Npred; j++) {
+			int jj, ii;
 			ii = j;
 			if (cpo_theta[ii]) {
-				for (jjj = 0; jjj < probs->n; jjj++) {
+				for (int jjj = 0; jjj < probs->n; jjj++) {
 					jj = probs->idx[jjj];
 					if (!ISNAN(cpo_theta[ii][jj]))	/* we ignore those that have failed */
 						Z[ii] += probs->val[jjj] / cpo_theta[ii][jj];
@@ -6272,7 +6271,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 		}
 
-		for (j = 0; j < preopt->Npred; j++) {
+		for (int j = 0; j < preopt->Npred; j++) {
 			int ii, jj, jjj;
 			double evalue, evalue2, evalue_one = 1.0;
 
@@ -6339,7 +6338,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			int count = 0;
 			int gmean_inf = 0;
 
-			for (j = 0; j < preopt->Npred; j++) {
+			for (int j = 0; j < preopt->Npred; j++) {
 				int ii = j;
 
 				if (cpo_theta[ii]) {
@@ -6374,7 +6373,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	if (po) {
 		SET_THETA_MODE;
-		for (j = 0; j < preopt->Npred; j++) {
+		for (int j = 0; j < preopt->Npred; j++) {
 			int ii, jj, jjj;
 			double evalue, evalue2, evalue3, evalue_one;
 
@@ -6405,17 +6404,17 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	}
 
 	if (dic) {
+		SET_THETA_MODE;
+
 		double mean_deviance = 0.0, mean_deviance_sat = 0.0, deviance_mean = 0.0, deviance_mean_sat = 0.0, *x_vec = NULL;
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
-
-		SET_THETA_MODE;
 
 		/*
 		 * need this for loglFunc() we need that compute is TRUE for all indices that enters loglFunc. There is no way to check this here. 
 		 */
 		x_vec = Calloc(preopt->mnpred, double);
-		for (j = 0; j < preopt->mnpred; j++) {
+		for (int j = 0; j < preopt->mnpred; j++) {
 			if ((*density)[j]) {
 				x_vec[j] = (*density)[j]->user_mean;
 			} else {
@@ -6427,38 +6426,42 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		 * find the min length of the data contribution that cover all data points 
 		 */
 		int ndev = preopt->Npred;
+		double *e_deviance = Calloc(ndev, double);
+		double *e_deviance_sat = Calloc(ndev, double);
+		double *deviance_e = Calloc(ndev, double);
+		double *deviance_e_sat = Calloc(ndev, double);
+		double *sign = Calloc(ndev, double);
 
-		double *e_deviance = Calloc(ndev, double), *e_deviance_sat = Calloc(ndev, double),
-		    *deviance_e = Calloc(ndev, double), *deviance_e_sat = Calloc(ndev, double), *sign = Calloc(ndev, double);
-
-		for (j = 0; j < ndev; j++) {
+		for (int j = 0; j < ndev; j++) {
 			e_deviance[j] = e_deviance_sat[j] = deviance_e[j] = deviance_e_sat[j] = sign[j] = NAN;
 		}
 
-		for (j = 0; j < d_idx->n; j++) {
-			double md, md_sat, dm, dm_sat, logl_saturated;
+		for (int j = 0; j < d_idx->n; j++) {
+			double md = 0.0, md_sat = 0.0, dm = 0.0, dm_sat = 0.0, logl_sat = 0.0;
 			int ii = d_idx->idx[j];
 
-			int jj, jjj;
-			double evalue, sum = 1.0, logll;
-
-			for (jjj = 0, evalue = 0.0; jjj < probs->n; jjj++) {
-				jj = probs->idx[jjj];
-				evalue += deviance_theta[ii][jj] * probs->val[jjj];
+			double evalue = 0.0, evalue_sat = 0.0;
+			for (int jjj = 0, evalue = 0.0; jjj < probs->n; jjj++) {
+				int jj = probs->idx[jjj];
+				evalue += deviance_theta[ii][jj][0] * probs->val[jjj];
+				evalue_sat += deviance_theta[ii][jj][1] * probs->val[jjj];
 			}
-			md = evalue / sum;
+			md = evalue;
+			md_sat = evalue_sat;
 
 			if (!(density && (*density)[ii])) {
 				fprintf(stderr, "\n\n\nFIXME FIXME!!!!!!!!\n\n\n");
 				abort();
 			}
-			double double_tmp = (double) ((*density)[ii]->user_mean);
-			loglFunc(thread_id, &logll, &double_tmp, 1, ii, x_vec, NULL, loglFunc_arg);
-			logll *= d[ii];
-			logl_saturated = d[ii] * inla_compute_saturated_loglik(thread_id, ii, loglFunc, x_vec, loglFunc_arg);
-			dm = -2.0 * logll;
-			dm_sat = -2.0 * (logll - logl_saturated);
-			md_sat = md + 2.0 * logl_saturated;
+
+			double x_tmp = (double) ((*density)[ii]->user_mean);
+			double logl = 0.0;
+
+			loglFunc(thread_id, &logl, &x_tmp, 1, ii, x_vec, NULL, loglFunc_arg);
+			logl_sat = inla_compute_saturated_loglik(thread_id, ii, loglFunc, x_vec, loglFunc_arg);
+
+			dm = -2.0 * d[ii] * logl;
+			dm_sat = -2.0 * d[ii] * (logl - logl_sat);
 			e_deviance[ii] = md;
 			e_deviance_sat[ii] = md_sat;
 			deviance_e[ii] = dm;
@@ -6473,11 +6476,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			// real data doing the comparison there. But this information is not available at this level
 			double sig = 0.0;
 			if (loglFunc(0, NULL, NULL, 0, ii, NULL, NULL, loglFunc_arg) == GMRFLib_LOGL_COMPUTE_CDF) {
-				loglFunc(0, &sig, &((*density)[ii]->user_mean), -1, ii, NULL, NULL, loglFunc_arg);
+				loglFunc(0, &sig, &x_tmp, -1, ii, NULL, NULL, loglFunc_arg);
 				sig = (sig <= 0.5 ? -1.0 : 1.0);
 			} else {
-				double xx[2], ld[2];
-				xx[0] = (*density)[ii]->user_mean;
+				double xx[2], ld[2] = {0.0, 0.0};
+				xx[0] = x_tmp;
 				xx[1] = xx[0] + 0.01 * (*density)[ii]->user_stdev;
 				loglFunc(0, ld, xx, 2, ii, NULL, NULL, loglFunc_arg);
 				sig = (ld[1] > ld[0] ? 1.0 : -1.0);
@@ -6850,6 +6853,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		for (i = 0; i < preopt->Npred; i++) {
 			j = i;
 			if (d[j]) {
+				Free(deviance_theta[j][0]);
 				Free(deviance_theta[j]);
 			}
 		}
@@ -10095,13 +10099,15 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 	return fail;
 }
 
-double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-				double *x_vec)
+double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
+				 double *x_vec)
 {
 	/*
-	 * compute the integral of -2*loglikelihood * density(x), wrt x
+	 * compute the integral of -2*loglikelihood * density(x), wrt x. also return the saturated one
 	 */
 	double integral = 0.0;
+	double integral_sat = 0.0;
+	double sat_ll = inla_compute_saturated_loglik(thread_id, idx, loglFunc, x_vec, loglFunc_arg);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		int np = GMRFLib_INT_GHQ_POINTS;
@@ -10111,37 +10117,43 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 
 		GMRFLib_ghq(&xp, &wp, np);
 
-		Calloc_init(2 * np, 2);
+		Calloc_init(3 * np, 3);
 		double *x = Calloc_get(np);
 		double *ll = Calloc_get(np);
+		double *ll_sat = Calloc_get(np);
 
 		for (int i = 0; i < np; i++) {
 			x[i] = mean + stdev * xp[i];
 		}
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg);
+		for (int i = 0; i < np; i++) {
+			ll_sat[i] = ll[i] - sat_ll;
+		}
+
 		double dmax = GMRFLib_max_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		for (int i = 0; i < np; i++) {
 			if (ll[i] - dmax < limit) {
-				ll[i] = 0.0;
+				ll[i] = ll_sat[i] = 0.0;
 			}
 		}
-		integral = 0.0;
+		integral = integral_sat = 0.0;
 		for (int i = 0; i < np; i++) {
 			integral += ll[i] * wp[i];
+			integral_sat += ll_sat[i] * wp[i];
 		}
 		integral = -2.0 * d * integral;
+		integral_sat = -2.0 * d * integral_sat;
 		Calloc_free();
 	} else {
-		int i, k;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
 		int np = GMRFLib_INT_NUM_POINTS;
 		int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 
-		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
+		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, NULL);
 
-		Calloc_init(4 * np + 2 * npm, 6);
+		Calloc_init(4 * np + 3 * npm, 7);
 		xp = Calloc_get(np);
 		xpi = Calloc_get(np);
 		ldens = Calloc_get(np);
@@ -10153,7 +10165,7 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 
 		xp[0] = low;
 		xpi[0] = density->x_min;
-		for (i = 1; i < np; i++) {
+		for (int i = 1; i < np; i++) {
 			xp[i] = xp[0] + i * dx;
 			xpi[i] = xpi[0] + i * dxi;
 		}
@@ -10162,35 +10174,48 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 
 		double *dens = Calloc_get(npm);
 		double *llik = Calloc_get(npm);
+		double *llik_sat = Calloc_get(npm);
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 #pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+			for (int i = 0; i < np - 1; i++) {
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
+
+				llik_sat[3 * i + 0] = llik[3 * i + 0] - sat_ll;
+				llik_sat[3 * i + 1] = llik[3 * i + 1] - sat_ll;
+				llik_sat[3 * i + 2] = llik[3 * i + 2] - sat_ll;
+
 			}
 #pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+			for (int i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
 				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
 			}
 			llik[3 * (np - 2) + 3] = loglik[np - 1];
+			llik_sat[3 * (np - 2) + 3] = loglik[np - 1] - sat_ll;
+
 			dens[3 * (np - 2) + 3] = exp(ldens[np - 1]);
 			assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 #pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+			for (int i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
+
+				llik_sat[2 * i + 0] = llik[2 * i + 0] - sat_ll;
+				llik_sat[2 * i + 1] = llik[2 * i + 1] - sat_ll;
 			}
 #pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+			for (int i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
 			}
 			llik[2 * (np - 2) + 2] = loglik[np - 1];
+			llik_sat[2 * (np - 2) + 2] = loglik[np - 1] - sat_ll;
+
 			dens[2 * (np - 2) + 2] = exp(ldens[np - 1]);
 			assert(2 * (np - 2) + 2 == npm - 1);
 		} else {
@@ -10202,23 +10227,29 @@ double GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp * den
 		double limit = -0.5 * SQR(6.0);
 		for (int i = 0; i < np; i++) {
 			if (llik[i] - dmax < limit) {
-				llik[i] = 0.0;
-				dens[i] = 0.0;
+				llik[i] = llik_sat[i] = dens[i] = 0.0;
 			}
 		}
 
 		integral = llik[0] * dens[0] + llik[npm - 1] * dens[npm - 1];
+		integral_sat = llik_sat[0] * dens[0] + llik_sat[npm - 1] * dens[npm - 1];
 		integral_one = dens[0] + dens[npm - 1];
-		for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
+		for (int i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
 			integral += w[k] * llik[i] * dens[i];
+			integral_sat += w[k] * llik_sat[i] * dens[i];
 			integral_one += w[k] * dens[i];
 		}
 
 		integral = -2.0 * d * (integral / integral_one);
+		integral_sat = -2.0 * d * (integral_sat / integral_one);
 		Calloc_free();
 	}
 
-	return integral;
+	double *res = Calloc(2, double);
+	res[0] = integral;
+	res[1] = integral_sat;
+
+	return res;
 }
 
 int GMRFLib_ai_cpo_free(GMRFLib_ai_cpo_tp * cpo)
