@@ -5,8 +5,8 @@ is_set() {
 }
 
 
-export INLA_MAC=rueh@kw-16659.kaust.edu.sa
-export INLA_MAC_ARM64=rueh@kw-18302.kaust.edu.sa
+export INLA_MAC=${INLA_MAC-"rueh@kw-16659.kaust.edu.sa"}
+export INLA_MAC_ARM64=${INLA_MAC_ARM64-"rueh@kw-18302.kaust.edu.sa"}
 
 IP=0.0.0.0
 for ip in $(~/bin/my-vm-addr); do
