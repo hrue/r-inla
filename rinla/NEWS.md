@@ -1,4 +1,4 @@
-# INLA 22.11.06
+# INLA 22.11.07
 * Added new vignette
 * Added default values of 'safe', 'verbose' and 'keep' to options
 * Added new check for valid arguments (default off for the moment)
