@@ -25,7 +25,7 @@
     Ntrials = NULL,
     strata = NULL,
     link.covariates = NULL,
-    verbose = FALSE,
+    verbose = inla.getOption("verbose"),
     lincomb = NULL,
     selection = NULL,
     lp.scale = NULL,
@@ -50,7 +50,7 @@
     working.directory = inla.getOption("working.directory"),
     silent = inla.getOption("silent"),
     inla.mode = inla.getOption("inla.mode"), 
-    safe = TRUE, 
+    safe = inla.getOption("safe"), 
     debug = inla.getOption("debug"),
     .parent.frame = environment(formula)
     )
@@ -281,6 +281,11 @@
  If \code{po}=\code{TRUE} in \code{control.compute}, a list
  of one elements: \code{po$po} are the values of the
  predictive ordinate (CPO) (\code{pi(yi|y)})
+ }
+ \item{residuals}{
+ If \code{residuals}=\code{TRUE} in \code{control.compute}, a list
+ of standarized residuals are provided, see \code{?control.compute}
+ for details
  }
  \item{waic}{
  If \code{waic}=\code{TRUE} in \code{control.compute}, a list

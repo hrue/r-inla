@@ -6821,7 +6821,7 @@ int loglikelihood_tstrata(int thread_id, double *logll, double *x, int m, int id
 	 * y -x ~ (Student_t with variance 1) times 1/sqrt(precision * weight)
 	 */
 	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF;
+		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
 	int i, dcode, strata;
@@ -9290,9 +9290,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg))
+			   int (*func_simpson)(int, double **, double **, int *, void *arg))
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg));
@@ -34444,9 +34444,9 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * l
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E6, prec_low = 1.0E-6, eps = 1.0E-4;
+	double prec_high = 1.0E3, prec_low = 1.0E-16, eps = 1.0E-6;
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
-	int niter, niter_min = 25, niter_max = 100, stencil = 5;
+	int niter, niter_min = 25, niter_max = 100, stencil = 7;
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL);
@@ -34468,12 +34468,11 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 		x = xnew;
 
 		if (niter > niter_min && ABS(deriv / dderiv) < eps) {
-			xsol = x;
 			break;
 		}
 	}
 
-	return (xsol);
+	return (arr[0]);
 }
 
 int inla_INLA(inla_tp * mb)
@@ -35867,21 +35866,16 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
-		double time_sum = 0.0;
-		for (int j = 0; j < 4; j++) {
-			time_sum += time_loop[j];
+		double time_sum = GMRFLib_dsum(4, time_loop);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(4, time_sum, time_loop);
+			time_loop[4] *= time_sum;
 		}
-		for (int j = 0; j < 4; j++) {
-			time_loop[j] /= time_sum;
-		}
-		time_loop[4] /= time_sum;
-
-		time_sum = 0.0;
-		for (int j = 5; j < 9; j++) {
-			time_sum += time_loop[j];
-		}
-		for (int j = 5; j < 9; j++) {
-			time_loop[j] /= time_sum;
+		time_sum = GMRFLib_dsum(4, time_loop + 5);
+		if (time_sum > 0.0) {
+			time_sum = 1.0 / time_sum;
+			GMRFLib_dscale(4, time_sum, time_loop + 5);
 		}
 	}
 
@@ -36041,7 +36035,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					GMRFLib_idxval_addto(&idx, i, w);
 				}
 			}
-			GMRFLib_idxval_uniq(idx);
+			GMRFLib_idxval_sort(idx);
 			if (debug) {
 				GMRFLib_idxval_printf(stdout, idx, "");
 			}
@@ -37147,7 +37141,7 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 
 #define _PAD_WITH_NA(xx)						\
 	if (1) {							\
-		tmp = Calloc(IMAX(dic->n_deviance, len_family_idx), double); \
+		if (!tmp) tmp = Calloc(IMAX(dic->n_deviance, len_family_idx), double); \
 		Memcpy(tmp, xx, dic->n_deviance*sizeof(double));	\
 		int i;							\
 		for(i = dic->n_deviance; i < len_family_idx; i++){	\
@@ -37183,38 +37177,41 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 		M->ncol = 1;
 		M->elems = M->nrow * M->ncol;
 
+		_PAD_WITH_NA(dic->sign);
+		M->A = tmp;
+		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "sign.dat");
+		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
+
 		_PAD_WITH_NA(dic->e_deviance);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		_PAD_WITH_NA(dic->e_deviance_sat);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "e_deviance_sat.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		_PAD_WITH_NA(dic->deviance_e);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		_PAD_WITH_NA(dic->deviance_e_sat);
 		M->A = tmp;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "deviance_e_sat.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
-		Free(tmp);
 
 		M->A = family_idx;
 		GMRFLib_sprintf(&nndir, "%s/%s", ndir, "family_idx.dat");
 		GMRFLib_write_fmesher_file(M, nndir, (long int) 0, -1);
 
+		Free(tmp);
 		M->A = NULL;
 		GMRFLib_matrix_free(M);
 	}
 
+	Free(tmp);
 	Free(ndir);
 	Free(nndir);
 #undef _PAD_WITH_NA
@@ -41408,7 +41405,7 @@ int testit(int argc, char **argv)
 		GMRFLib_idxval_add(&h, 25070, 1);
 		GMRFLib_idxval_add(&h, 25075, 1);
 
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 	}
 		break;
 
@@ -41466,7 +41463,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		assert(h);
 		P(n);
 		P(h->g_n);
@@ -41512,7 +41509,7 @@ int testit(int argc, char **argv)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		P(n);
 		P(m);
 		P(h->g_n);
@@ -41682,7 +41679,7 @@ int testit(int argc, char **argv)
 			}
 			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
 		}
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		if (n == 0) {
 			FIXME("n = 0,  try again.");
 			exit(0);
@@ -41975,7 +41972,7 @@ int testit(int argc, char **argv)
 			GMRFLib_idxval_add(&v, idx[i], 1.0 + (double) i + 0 * GMRFLib_uniform());
 		}
 
-		GMRFLib_idxval_nsort_x(&v, 1, 1);
+		GMRFLib_idxval_prepare(&v, 1, 1);
 	}
 		break;
 
@@ -42007,10 +42004,10 @@ int testit(int argc, char **argv)
 
 		double tref1 = 0.0, tref2 = 0.0;
 		tref1 -= GMRFLib_cpu();
-		GMRFLib_idxval_nsort_x(&h, 1, 1);
+		GMRFLib_idxval_prepare(&h, 1, 1);
 		tref1 += GMRFLib_cpu();
 		tref2 -= GMRFLib_cpu();
-		GMRFLib_idxval_nsort_x_OLD(&hh, 1, 1, 1, 1);
+		GMRFLib_idxval_prepare(&hh, 1, 1);
 		tref2 += GMRFLib_cpu();
 
 		P(tref1 / (tref1 + tref2));

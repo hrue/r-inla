@@ -200,7 +200,6 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 	}
 
 	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0;
-	int code = loglFunc(thread_id, f, &x0, 0, indx, x_vec, NULL, loglFunc_arg);
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -220,22 +219,6 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
 		ddf = (-1.0 / 12.0 * f[4] - 4.0 / 3.0 * f[3] - 5.0 / 2.0 * f[2] + 4.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / SQR(step);
 		dddf = (-1.0 / 2.0 * f[4] + 1.0 * f[3] + 0.0 * f[2] - 1.0 * f[1] + 1.0 / 2.0 * f[0]) / gsl_pow_3(step);
-
-	} else if (code == GMRFLib_LOGL_COMPUTE_DERIVATIES || code == GMRFLib_LOGL_COMPUTE_DERIVATIES_AND_CDF) {
-		/*
-		 * this tells that exact calculations is carried out in loglFunc 
-		 */
-
-		/*
-		 * this indicate that exact calculations can and are carried out in loglFunc 
-		 */
-		xx[0] = xx[1] = xx[2] = x0;
-		loglFunc(thread_id, f, xx, 3, indx, x_vec, NULL, loglFunc_arg);
-
-		f0 = f[0];
-		df = f[1];
-		ddf = f[2];
-		ERR;
 	} else {
 		int num_points = (stencil ? *stencil : 5);
 		step = (step_len && *step_len > 0.0 ? *step_len : GMRFLib_eps(1.0 / 3.9134));

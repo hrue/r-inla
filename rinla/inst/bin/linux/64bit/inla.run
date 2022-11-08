@@ -40,7 +40,7 @@ else
     export LD_LIBRARY_PATH="$DIR/first:$DR:$DIR:$D:$LD_LIBRARY_PATH"
 fi
 
-export OMP_NESTED=TRUE
+##export OMP_NESTED=TRUE
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE

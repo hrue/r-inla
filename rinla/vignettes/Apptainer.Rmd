@@ -1,0 +1,65 @@
+---
+title: "Installation of INLA and inlabru with Apptainer on HPC"
+author: Man Ho Suen (m.h.suen@sms.ed.ac.uk)
+output:
+  rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{Apptainer}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+(This vignette is a copy of the vignette in the *inlabru*-package.)
+
+High Performance Computing (HPC) is surging in popularity. Building
+INLA package on the HPC systems with the Anaconda environment
+sometimes can be tricky due to the Linux distributions and glibc
+versions. This article is to suggest a workaround with container
+images using [Apptainer](https://apptainer.org/) (formerly known as
+Singularity) because [Docker](https://www.docker.com/) requires root
+access and is usually not available on HPC. Apptainer can pull Docker
+images. Despite its convenience, the image size can be large.
+
+## Installation Procedures 
+
+1. Check if [Apptainer](https://apptainer.org/docs/user/main/cli/apptainer_version.html)
+   is available on your HPC. If not, ask the administrator to install it. Type 
+   on your HPC terminal to check which version is installed. 
+```{r apptainer check, eval=FALSE}
+$ apptainer version
+```
+
+2. Type the code below to pull the
+[rocker/geospatial](https://rocker-project.org/images/versioned/rstudio.html)
+Singularity Image Format (SIF) file with the latest R version. For
+illustration, we'll assume the file is stored at
+`./your_container.sif`.
+
+```{r apptainer, eval=FALSE}
+# To pull the docker image 
+$ apptainer pull your_container.sif docker://rocker/geospatial:latest
+# once the sif is downloaded, get into an interactive shell 
+$ apptainer shell your_container.sif
+# Inside the interactive shell, one can install INLA on a personal library path
+$ R --verbose 
+# Now, in a R environment
+> options(repos = c(
+    INLA = 'https://inla.r-inla-download.org/R/testing',
+    CRAN = 'https://cloud.r-project.org'))
+> install.packages("INLA") 
+# One may be asked to create a personal library path.
+> install.packages("inlabru") 
+# quit R
+> q()
+```
+
+3. Put the following in your job script to execute an R file non-interactively.
+
+```{r exec, eval=FALSE}
+# To execute an R file with apptainer
+$ apptainer exec ./your_container.sif Rscript --no-restore --no-save --verbose file_to_run.R
+```
+
+Note: Use `inla.setOption(num.threads = ncpu)` to limit the number of
+threads (ncpu) since INLA does not set it automatically. The `ncpu`
+also directly links to RAM requirements.

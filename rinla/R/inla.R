@@ -23,7 +23,7 @@
 ## !    Ntrials = NULL,
 ## !    strata = NULL,
 ## !    link.covariates = NULL,
-## !    verbose = FALSE,
+## !    verbose = inla.getOption("verbose"),
 ## !    lincomb = NULL,
 ## !    selection = NULL,
 ## !    lp.scale = NULL,
@@ -48,7 +48,7 @@
 ## !    working.directory = inla.getOption("working.directory"),
 ## !    silent = inla.getOption("silent"),
 ## !    inla.mode = inla.getOption("inla.mode"), 
-## !    safe = TRUE, 
+## !    safe = inla.getOption("safe"), 
 ## !    debug = inla.getOption("debug"),
 ## !    .parent.frame = environment(formula)
 ## !    )
@@ -338,6 +338,12 @@
 ## ! predictive ordinate (CPO) (\code{pi(yi|y)})
 ## ! }
 
+## ! \item{residuals}{
+## ! If \code{residuals}=\code{TRUE} in \code{control.compute}, a list
+## ! of standarized residuals are provided, see \code{?control.compute}
+## ! for details
+## ! }
+
 ## ! \item{waic}{
 ## ! If \code{waic}=\code{TRUE} in \code{control.compute}, a list
 ## ! of two elements: \code{waic$waic} is the Watanabe-Akaike information criteria,  and
@@ -403,7 +409,7 @@
                    strata = NULL,
                    lp.scale = NULL, 
                    link.covariates = NULL,
-                   verbose = FALSE,
+                   verbose = inla.getOption("verbose"),
                    lincomb = NULL,
                    selection = NULL,
                    control.compute = list(),
@@ -427,34 +433,73 @@
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
                    inla.mode = inla.getOption("inla.mode"), 
-                   safe = TRUE, 
+                   safe = inla.getOption("safe"), 
                    debug = inla.getOption("debug"),
                    .parent.frame = environment(formula))
 {
+    set.warn <- function(a, b) {
+        check <- inla.getOption("experimental.check.arguments")
+        if (check) {
+            ## family="coxph" produce 'fake' warnings
+            if (length(grep("expand[.][.]coxph", b)) == 0 &&
+                length(grep("^[$] cph E$", b)) == 0) {
+                warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
+                               "  This might be an error and you are requested to check this out.\n",
+                               "  Move on with default values...\n"),
+                        immediate. = TRUE)
+            }
+        }
+        return (invisible())
+    }
+
+    is.set <- !is.null(substitute(E))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(E))) else ""
     tmp <- try(eval(substitute(E), envir = data, enclos = .parent.frame), silent = TRUE)
     E <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("E", nm)
 
+    is.set <- !is.null(substitute(offset))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(offset))) else ""
     tmp <- try(eval(substitute(offset), envir = data, enclos = .parent.frame), silent = TRUE)
     offset <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("offset", nm)
 
+    is.set <- !is.null(substitute(scale))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(scale))) else ""
     tmp <- try(eval(substitute(scale), envir = data, enclos = .parent.frame), silent = TRUE)
     scale <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("scale", nm)
 
+    is.set <- !is.null(substitute(weights))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(weights))) else ""
     tmp <- try(eval(substitute(weights), envir = data, enclos = .parent.frame), silent = TRUE)
     weights <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("weights", nm)
 
+    is.set <- !is.null(substitute(Ntrials))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(Ntrials))) else ""
     tmp <- try(eval(substitute(Ntrials), envir = data, enclos = .parent.frame), silent = TRUE)
     Ntrials <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("Ntrials",  nm)
 
+    is.set <- !is.null(substitute(strata))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(strata))) else ""
     tmp <- try(eval(substitute(strata), envir = data, enclos = .parent.frame), silent = TRUE)
     strata <- if (inherits(tmp, "try-error")) NULL else tmp
+    if (is.set && inherits(tmp, "try-error")) set.warn("strata", nm)
 
+    is.set <- !is.null(substitute(lp.scale))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(lp.scale))) else ""
     tmp <- try(eval(substitute(lp.scale), envir = data, enclos = .parent.frame), silent = TRUE)
     lp.scale <- if (inherits(tmp, "try-error")) NULL else tmp
-
+    if (is.set && inherits(tmp, "try-error")) set.warn("lp.scale", nm)
+    
+    is.set <- !is.null(substitute(link.covariates))
+    nm <- if (is.set) paste(collapse = " ", as.character(substitute(link.covariates))) else ""
     tmp <- try(eval(substitute(link.covariates), envir = data, enclos = .parent.frame), silent = TRUE)
     link.covariates <- if (inherits(tmp, "try-error")) NULL else tmp
-
+    if (is.set && inherits(tmp, "try-error")) set.warn("link.covariates", nm)
+    
     if (debug) {
         for (nm in c("scale", "weights", "Ntrials", "offset", "E", "strata", "lp.scale", "link.covariates")) {
             print(paste0("head(", nm, ")"))
@@ -1008,9 +1053,12 @@
 
     ## control what should be computed
     cont.compute <- cont.compute.def <- inla.set.control.compute.default()
-    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
+    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- cont.compute$residuals <- FALSE
     cont.compute$control.gcpo$enable <- FALSE
     cont.compute[names(control.compute)] <- control.compute
+    if (cont.compute$residuals) {
+        cont.compute$dic <- TRUE
+    }
     ## because we have 'control' within a 'control', we have to process them spesifically
     cont.compute$control.gcpo <- cont.compute.def$control.gcpo
     cont.compute$control.gcpo[names(control.compute$control.gcpo)] <- control.compute$control.gcpo
@@ -1279,6 +1327,7 @@
     mf$lincomb <- NULL
     mf$selection <- NULL
     mf$inla.mode <- NULL
+    mf$safe <- NULL
     mf$scale <- NULL
     mf$weights <- NULL
     mf$Ntrials <- NULL
@@ -2697,6 +2746,7 @@
         cont.compute$cpo <- FALSE
         cont.compute$po <- FALSE
         cont.compute$waic <- FALSE
+        cont.compute$residuals <- FALSE
         cont.compute$config <- FALSE
         cont.compute$q <- FALSE
         cont.compute$graph <- FALSE

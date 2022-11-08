@@ -13,6 +13,7 @@
     inla.binary.install(os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8",
                                "CentOS Stream-8",
                                "Fedora-33", "Fedora-34", "Fedora Linux-35",
+                               "Fedora Linux-36", "Fedora Linux-37",
                                "Manjaro Linux",
                                "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04", "Ubuntu-22.04"), 
                         path = NULL, verbose = TRUE, md5.check = TRUE)

@@ -91,7 +91,7 @@ else
     vecLibLink=""
 fi
 
-export OMP_NESTED=TRUE
+##export OMP_NESTED=TRUE
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE
