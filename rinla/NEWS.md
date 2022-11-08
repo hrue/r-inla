@@ -1,3 +1,6 @@
+# INLA 22.11.08
+* bug-fix build
+
 # INLA 22.11.07
 * Added new vignette
 * Added default values of 'safe', 'verbose' and 'keep' to options
