@@ -391,7 +391,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                                   parallel.configs = TRUE, verbose = FALSE) {
     ## New inla.posterior.sample with skewness correction. contributed by CC.
 
-    stopifnot(!missing(result) && any(class(result) == "inla"))
+    stopifnot(!missing(result) && inherits(result, "inla"))
     if (is.null(result$misc$configs)) {
         stop("You need an inla-object computed with option 
          'control.compute=list(config = TRUE)'.")
@@ -790,7 +790,7 @@ inla.posterior.sample <- function(n = 1L, result, selection = list(),
                                          num.threads = NULL, verbose = FALSE) {
     ## this is the original version, before the skewness correction. keep it here for completeness.
 
-    stopifnot(!missing(result) && any(class(result) == "inla"))
+    stopifnot(!missing(result) && inherits(result, "inla"))
     if (is.null(result$misc$configs)) {
         stop("You need an inla-object computed with option 'control.compute=list(config = TRUE)'.")
     }

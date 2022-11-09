@@ -81,7 +81,7 @@
     ## !\seealso{\code{\link{inla}}}
 
     result.tmp <- result
-    stopifnot(class(result.tmp) == "inla")
+    stopifnot(inherits(result.tmp, "inla"))
 
     if (result$.args$inla.mode != "classic") {
         warning("inla.hyperpar: Only for inla.mode='classic', skip...")

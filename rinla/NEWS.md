@@ -1,3 +1,7 @@
+# INLA devel
+* Fix class inheritance checks to use inherits(), to allow e.g. inlabru
+  output to work with `inla.cpo`, etc.
+
 # INLA 22.11.08
 * bug-fix build
 
