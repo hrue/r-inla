@@ -531,11 +531,21 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[24] = 0;			       /* use parallel solve? */
 	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
 	s->iparm_default[33] = 1;			       /* want identical solutions */
+	s->iparm_default[53] = 0;			       /* number of expected dense columns (>0 gives memory failure) */
 
 	// options for METIS5; see manual. Pays off to do a good reordering
-	s->iparm_default[57] = 2;			       /* default 1 */
+	s->iparm_default[54] = 1;			       /* use options */
+	s->iparm_default[55] = 3;			       /* default */
+	s->iparm_default[56] = 1;			       /* default */
+	s->iparm_default[57] = 1;			       /* !default (gives memory failure) */
+	s->iparm_default[57] = 2;			       /* default */
+	s->iparm_default[58] = 0;			       /* default */
+	s->iparm_default[59] = 0;			       /* default */
+	s->iparm_default[59] = 3;			       /* !default */
 	s->iparm_default[60] = 200;			       /* default */
-	s->iparm_default[61] = 5;			       /* default 1 */
+	s->iparm_default[60] = 150;			       /* !default */
+	s->iparm_default[61] = 1;			       /* default */
+	s->iparm_default[61] = 5;			       /* !default */
 
 	if (error != 0) {
 		if (error == NOLIB_ECODE) {

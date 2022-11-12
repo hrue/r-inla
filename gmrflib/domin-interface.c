@@ -1252,7 +1252,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			}
 			gsl_matrix_set_zero(A);
 			gsl_matrix_set_zero(tAinv);
-			gsl_matrix_set_identity(Adir);
+
+			double eps = GMRFLib_eps(0.33);
+			double diag = sqrt(DMAX(eps, 1.0 - ((double)Adir->size1 - 1.0) * SQR(eps)));
+			gsl_matrix_set_all(Adir, eps);
+			for (size_t i = 0; i < Adir->size1; i++) {
+				gsl_matrix_set(Adir, i, i, diag);
+			}
 
 			if (G.directions && !Opt_dir_params.reset_directions) {
 				// start fom here instead
