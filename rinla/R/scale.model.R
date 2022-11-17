@@ -75,6 +75,11 @@ inla.scale.model.internal <- function(Q, constr = NULL, eps = sqrt(.Machine$doub
             } else {
                 eeps <- 0
             }
+            idx.zero <- which(rowSums(abs(cconstr$A)) == 0)
+            if (length(idx.zero) > 0) {
+                cconstr$A <- cconstr$A[-idx.zero,, drop = FALSE]
+                cconstr$e <- cconstr$e[-idx.zero]
+            }
             res <- inla.qinv(QQ + Diagonal(n) * max(diag(QQ)) * eeps, constr = cconstr)
             fac <- exp(mean(log(diag(res))))
             QQ <- fac * QQ
