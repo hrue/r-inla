@@ -1062,3 +1062,9 @@ r-inla.org/doc/likelihood/gaussianjw.synctex.gz
 *.fls
 
 export/sparse-vec/test
+
+*.aux
+
+r-inla.org/doc/likelihood/0inflated.log
+
+r-inla.org/doc/likelihood/0inflated.synctex.gz
