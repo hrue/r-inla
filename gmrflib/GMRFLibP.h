@@ -93,6 +93,9 @@ typedef enum {
 	GMRFLib_MODE_EXPERIMENTAL
 } GRMFLib_preopt_mode_tp;
 
+// 32bit ints -2147483648 to 2147483647
+#define GMRFLib_MAXINT (2147483647)
+
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
 			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \

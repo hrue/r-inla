@@ -582,6 +582,15 @@
                 }
                 colnames(gcpodens.moments) <- c("mean", "variance", "log.theta.correction")
                 
+                arg.str <- NULL
+                have.arg.str <- readBin(fp, numeric(), 1)
+                if (have.arg.str > 0) {
+                    arg.str <- vector('character', configs$Npred)
+                    for (i in 1:configs$Npred) {
+                        arg.str[i] <- readBin(fp, character(), 1)
+                    }
+                }
+
                 dif <- which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd <- configs.j[dif] ## yes, its the transpose part
@@ -637,7 +646,8 @@
                         repr = "C"
                     ),
                     cpodens.moments = cpodens.moments,
-                    gcpodens.moments = gcpodens.moments
+                    gcpodens.moments = gcpodens.moments,
+                    arg.str = arg.str
                 )
             }
 
