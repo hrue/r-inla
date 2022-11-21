@@ -74,7 +74,7 @@ void GMRFLib_delay_random(int msec_low, int msec_high)
 	GMRFLib_delay(msec_low + (int) ((msec_high - msec_low) * GMRFLib_uniform()));
 }
 
-char *GMRFLib_vec2char(double *x, int len) 
+char *GMRFLib_vec2char(double *x, int len)
 {
 	// return a alloc'ed string like "0.3616, 0.0349, 0.0838"
 
@@ -83,7 +83,6 @@ char *GMRFLib_vec2char(double *x, int len)
 		a[0] = '\0';
 		return a;
 	}
-	
 	// 24 is the maximum length of the char-version of the number, but we do not check for this...
 	// we need to fix this later
 	int max_width = 24 * len;
@@ -99,8 +98,9 @@ char *GMRFLib_vec2char(double *x, int len)
 
 	// remove spaces
 	size_t j = 0;
-	for(size_t i = 0; i < strlen(str); i++) {
-		if (str[i] != ' ') str[j++] = str[i];
+	for (size_t i = 0; i < strlen(str); i++) {
+		if (str[i] != ' ')
+			str[j++] = str[i];
 	}
 	str[j] = '\0';
 
