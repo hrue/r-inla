@@ -5,4 +5,3 @@ if (FALSE) {
     inla.setOption(smtp = "pardiso")
     inla.setOption(pardiso.license="~/sys/licenses/pardiso.lic")
 }
-##inla.setOption(inla.mode = "experimental")
