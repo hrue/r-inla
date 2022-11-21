@@ -1283,7 +1283,8 @@
         po = (cont.compute$po || cont.compute$waic),
         quantiles = quantiles, smtp = cont.compute$smtp, q = cont.compute$q,
         openmp.strategy = cont.compute$openmp.strategy, graph = cont.compute$graph,
-        config = cont.compute$config
+        config = cont.compute$config,
+        likelihood.info = cont.compute$likelihood.info
     )
 
     ## PREPARE RESPONSE AND FIXED EFFECTS

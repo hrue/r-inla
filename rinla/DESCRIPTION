@@ -112,6 +112,7 @@ Collate:
     'knmodels.R'
     'knmodels.sample.R'
     'lattice2node.R'
+    'likelihood.R'
     'lincomb.R'
     'link-functions.R'
     'list-models.R'
