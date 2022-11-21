@@ -4,7 +4,7 @@
 ## !\alias{inla.hyperpar}
 ## !\alias{hyperpar.inla}
 ## !
-## !\title{Improved estimates for the hyperparameters}
+## !\title{Improved estimates for the hyperparameters (classic-mode only)}
 ## !\description{
 ## ! Improve the estimates of the  posterior marginals
 ## ! for the hyperparameters of

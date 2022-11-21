@@ -15,7 +15,9 @@ result = inla(formula,family="poisson", data = Epil)
 summary(result)
 plot(result)
 
-hyper = inla.hyperpar(result)
-summary(hyper)
-plot(hyper)
-
+if (FALSE) {
+    ## only for classic mode
+    hyper = inla.hyperpar(result)
+    summary(hyper)
+    plot(hyper)
+}
