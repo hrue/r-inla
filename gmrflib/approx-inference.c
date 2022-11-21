@@ -6021,7 +6021,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 
 		char **arg_str = NULL;
-		if (misc_output->configs_preopt) {
+		if (misc_output->likelihood_info) {
+			assert(misc_output->configs_preopt);
 			arg_str = Calloc(preopt->Npred, char *);
 			for (int jj = 0; jj < d_idx->n; jj++) {
 				int j = d_idx->idx[jj];

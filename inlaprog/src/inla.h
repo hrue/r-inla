@@ -808,6 +808,7 @@ typedef struct {
 	int q;						       /* output image of the Q-matrix */
 	int graph;					       /* output the graph */
 	int config;					       /* output the configurations */
+	int likelihood_info;				       /* output likelihood_info (requires config=TRUE) */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
 	int mode;

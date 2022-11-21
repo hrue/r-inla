@@ -78,73 +78,72 @@ weibull.likelihood.p <- function(y, alpha, scale) {
     args <- list(...)
     stopifnot(args$internal.type == "d")
 
-    ## its possible to write this pretty generic later...
     if (args$family.arg.str$family == "weibull") {
         stopifnot(args$family.arg.str$variant == 1)
-
+        ##
         ## should we use 'alpha' or 'theta' ? 
-
-        y <- args$y.surv$time
-        event <- args$y.surv$event
-        shape <- args$family.arg.str$alpha
-        scale <- args$inv.link.function(args$linear.predictor)
-        truncation <- args$y.surv$truncation
-        lower <- args$y.surv$lower
-        upper <- args$y.surv$upper
-
-        if (truncation > 0) {
-            F.trunc <- weibull.likelihood.p(truncation, alpha = shape, scale = scale)
-            FF.trunc <- 1.0/(1.0 - F.trunc)
-        } else {
-            F.trunc <- 0
-            FF.trunc <- 1.0
-        }
-
-        if (event == 1 || event == 4) {
-            ld <- weibull.likelihood.d(y, alpha = shape, scale = scale)
-        } else {
-            ld <- NA
-        }
-
-        if (event == 0 || event == 3 || event == 4) {
-            F.lower <- weibull.likelihood.p(lower, alpha = shape, scale = scale)
-            F.lower <- (F.lower - F.trunc) * FF.trunc
-        } else {
-            F.lower <- NA
-        }
-
-        if (event == 2 || event == 3 || event == 4) {
-            F.upper <- weibull.likelihood.p(upper, alpha = shape, scale = scale)
-            F.upper <-  (F.upper - F.trunc) * FF.trunc
-        } else {
-            F.upper <- NA
-        }
-
-        ## do we need to rebuild 'cure.prob' ? 
-        pcure <- args$cure.prob
-
-        ## this copied from the function loglikelihood_generic_surv_NEW in inla.c
-        if (event == 1) {
-            ## EVENT_FAILURE
-            return (ld + log(FF.trunc))
-        } else if (event == 0) {
-            ## EVENT_RIGHT
-            return (log(pcure + (1.0 - pcure) * (1.0 - F.lower)))
-        } else if (event == 2) {
-            ## EVENT_LEFT
-            return (log((1.0 - pcure) * F.upper))
-        } else if (event == 3) {
-            ## EVENT_INTERVAL
-            return (log((1.0 - pcure) * (F.upper - F.lower)))
-        } else if (event == 4) {
-            ## EVENT_ININTERVAL
-            return (log(1.0 - pcure) + ld - log(F.upper - F.lower))
-        } else {
-            stop("This should not happen")
-        }
+        ##
+        p.like <- function(y) weibull.likelihood.p(y, alpha = shape, scale = scale)
+        d.like <- function(y) weibull.likelihood.d(y, alpha = shape, scale = scale)
     } else {
-            stop("NOT YET IMPLEMENTED")
+        stop("NOT YET IMPLEMENTED")
     }
+
+    ## shoud we use 'alpha' or compute it from 'theta'
+    y <- args$y.surv$time
+    event <- args$y.surv$event
+    shape <- args$family.arg.str$alpha
+    scale <- args$inv.link.function(args$linear.predictor)
+    truncation <- args$y.surv$truncation
+    lower <- args$y.surv$lower
+    upper <- args$y.surv$upper
+
+    ## do we need to rebuild 'cure.prob' ? 
+    pcure <- args$cure.prob
+
+    ld <- if (event == 1 || event == 4) d.like(y) else NA
+
+    if (truncation > 0) {
+        F.trunc <- p.like(truncation)
+        FF.trunc <- 1.0/(1.0 - F.trunc)
+    } else {
+        F.trunc <- 0
+        FF.trunc <- 1.0
+    }
+
+    if (event == 0 || event == 3 || event == 4) {
+        F.lower <- p.like(lower)
+        F.lower <- (F.lower - F.trunc) * FF.trunc
+    } else {
+        F.lower <- NA
+    }
+
+    if (event == 2 || event == 3 || event == 4) {
+        F.upper <- p.like(upper)
+        F.upper <-  (F.upper - F.trunc) * FF.trunc
+    } else {
+        F.upper <- NA
+    }
+
+    ## this copied from the function loglikelihood_generic_surv_NEW in inla.c
+    if (event == 1) {
+        ## EVENT_FAILURE
+        return (ld + log(FF.trunc))
+    } else if (event == 0) {
+        ## EVENT_RIGHT
+        return (log(pcure + (1.0 - pcure) * (1.0 - F.lower)))
+    } else if (event == 2) {
+        ## EVENT_LEFT
+        return (log((1.0 - pcure) * F.upper))
+    } else if (event == 3) {
+        ## EVENT_INTERVAL
+        return (log((1.0 - pcure) * (F.upper - F.lower)))
+    } else if (event == 4) {
+        ## EVENT_ININTERVAL
+        return (log(1.0 - pcure) + ld - log(F.upper - F.lower))
+    } 
+
+    stop("This should not happen")
 }
 
 `inla.likelihood` <- function(y = NULL, y.surv = NULL, type = c("loglik", "CDF"), linear.predictor = NULL, 

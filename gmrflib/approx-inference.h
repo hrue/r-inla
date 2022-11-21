@@ -983,6 +983,8 @@ typedef struct {
 
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
+
+	int likelihood_info;
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {

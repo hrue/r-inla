@@ -36051,6 +36051,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	} else {
 		mb->misc_output->configs_preopt = NULL;
 	}
+
+	mb->misc_output->likelihood_info = mb->output->likelihood_info; 
+
 	if (mb->lc_derived_correlation_matrix) {
 		mb->misc_output->compute_corr_lin = mb->nlc;   /* yes, pass the dimension */
 	} else {
@@ -36311,6 +36314,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->q = 0;
 		(*out)->graph = 0;
 		(*out)->config = 0;
+		(*out)->likelihood_info = 0;
 		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
 		(*out)->mode = 1;
 		(*out)->nquantiles = 0;
@@ -36329,6 +36333,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->q = mb->output->q;
 		(*out)->graph = mb->output->graph;
 		(*out)->config = mb->output->config;
+		(*out)->likelihood_info = mb->output->likelihood_info;
 		(*out)->hyperparameters = mb->output->hyperparameters;
 		(*out)->mode = mb->output->mode;
 		(*out)->return_marginals = mb->output->return_marginals;
@@ -36462,6 +36467,11 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->q = iniparser_getboolean(ini, inla_string_join(secname, "Q"), (*out)->q);
 	(*out)->graph = iniparser_getboolean(ini, inla_string_join(secname, "GRAPH"), (*out)->graph);
 	(*out)->config = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG"), (*out)->config);
+	(*out)->likelihood_info = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), (*out)->likelihood_info);
+
+	if ((*out)->likelihood_info) {
+		(*out)->config = 1;
+	}
 
 	tmp = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "QUANTILES"), NULL));
 
@@ -36553,6 +36563,8 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			printf("\t\t\tq=[%1d]\n", (*out)->q);
 			printf("\t\t\tgraph=[%1d]\n", (*out)->graph);
 			printf("\t\t\thyperparameters=[%1d]\n", (*out)->hyperparameters);
+			printf("\t\t\tconfig=[%1d]\n", (*out)->config);
+			printf("\t\t\tlikelihood.info=[%1d]\n", (*out)->likelihood_info);
 		}
 		printf("\t\t\tsummary=[%1d]\n", (*out)->summary);
 		printf("\t\t\treturn.marginals=[%1d]\n", (*out)->return_marginals);
