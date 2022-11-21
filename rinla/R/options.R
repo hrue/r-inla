@@ -39,8 +39,6 @@
 ## !
 ## !     safe: Run in safe-mode (ie try to automatically fix convergence errors) (default \code{TRUE})
 ## !
-## !     experimental.check.arguments: Experimental check-arguments check (default \code{FALSE})
-## !
 ## !     vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
 ## !
 ## !     vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.
@@ -85,9 +83,8 @@
 ## !       loops due to special geometry regularity. Fractional seconds are
 ## !       rounded up to the nearest integer.
 ## !
-## !     inla.mode : Which mode to use in INLA? Default is \code{"classic"}. Other options are
-## !     (USE AT YOUR OWN RISK, THIS IS WORK IN PROGRESS!!!) options are \code{"twostage"} and
-## !     \code{"experimental"}.
+## !     inla.mode : Which mode to use in INLA? Default is \code{"compact"}. Other options are
+## !     \code{"classic"} and \code{"twostage"}.
 ## !   }
 ## ! }
 ## !
@@ -113,7 +110,6 @@
             smtp = "default",
             mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE,
             safe = TRUE, 
-            experimental.check.arguments = FALSE, 
             vecLib = FALSE, 
             vecLibPath = "", 
             pardiso.license = NULL,
@@ -130,7 +126,7 @@
             short.summary = FALSE,
             inla.timeout = 0, 
             fmesher.timeout = 0,
-            inla.mode = "classic"
+            inla.mode = "compact"
         )
     )
 }
@@ -146,7 +142,6 @@
                                  "smtp",
                                  "mkl",
                                  "safe", 
-                                 "experimental.check.arguments", 
                                  "vecLib",
                                  "vecLibPath",
                                  "pardiso.license",
@@ -240,7 +235,6 @@
                                           "smtp",
                                           "mkl",
                                           "safe", 
-                                          "experimental.check.arguments", 
                                           "vecLib",
                                           "vecLibPath",
                                           "pardiso.license",
@@ -288,7 +282,10 @@
     }
 
     ## add checks that nothing very wrong is set
-    dummy <- match.arg(inla.getOption("inla.mode"), c("classic", "twostage", "experimental"), several.ok = FALSE)
+    dummy <- match.arg(inla.getOption("inla.mode"), c("compact", "classic", "twostage", "experimental"), several.ok = FALSE)
+    if (dummy == "experimental") {
+        inla.setOption(inla.mode = "compact")
+    }
 
     return(invisible())
 }
