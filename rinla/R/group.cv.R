@@ -126,7 +126,7 @@
     r$.args$control.mode$x <- r$mode$x
     r$.args$control.mode$fixed <- TRUE
 
-    r$.args$inla.mode <- "experimental"
+    r$.args$inla.mode <- "compact"
     r$.args$verbose <- if (verbose) TRUE else r$.args$verbose
     r$.args$lincomb <- NULL
     r$.args$quantiles <- numeric(0)

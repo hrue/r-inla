@@ -218,13 +218,11 @@
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
 
-## ! \item{inla.mode}{Run \code{inla} in \code{classic}-mode,
-## !             \code{twostage}-mode or the new \code{experimental}-mode?
-## !             Not all features are available int the \code{experimental}-mode and this mode
-## !             is really work-in-progress at the moment!!!!
+## ! \item{inla.mode}{Run \code{inla} in \code{compact}-mode,  \code{classic}-mode,
+## !             \code{twostage}-mode?
 ## !             Default is to use the 
 ## !             mode set by \code{inla.getOption("inla.mode")} which is default
-## !             \code{classic}-mode. }
+## !             \code{compact}-mode. }
 
 ## ! \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
 ## ! Hessian if needed. }
@@ -438,16 +436,13 @@
                    .parent.frame = environment(formula))
 {
     set.warn <- function(a, b) {
-        check <- inla.getOption("experimental.check.arguments")
-        if (check) {
-            ## family="coxph" produce 'fake' warnings
-            if (length(grep("expand[.][.]coxph", b)) == 0 &&
-                length(grep("^[$] cph E$", b)) == 0) {
-                warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
-                               "  This might be an error and you are requested to check this out.\n",
-                               "  Move on with default values...\n"),
-                        immediate. = TRUE)
-            }
+        ## family="coxph" produce 'fake' warnings
+        if (length(grep("expand[.][.]coxph", b)) == 0 &&
+            length(grep("^[$] cph E$", b)) == 0) {
+            warning(paste0("Argument '", a, "=", b, "' expanded to NULL or gave an error.\n",
+                           "  This might be an error and you are requested to check this out.\n",
+                           "  Move on with default values...\n"),
+                    immediate. = TRUE)
         }
         return (invisible())
     }
@@ -665,7 +660,8 @@
     if (is.null(inla.mode)) {
         inla.mode <- inla.getOption("inla.mode")
     }
-    inla.mode <- match.arg(inla.mode, c("classic", "twostage", "experimental"))
+    inla.mode <- match.arg(inla.mode, c("compact", "classic", "twostage", "experimental"))
+    if (inla.mode == "experimental") inla.mode <- "compact"
 
     ## check all control.xx arguments here. do the assign as variable
     ## expansion might occur.
@@ -2296,8 +2292,8 @@
         arg.P <- "-P classic"
     } else if (inla.mode %in% "twostage") {
         arg.P <- "-P twostage"
-    } else if (inla.mode %in% "experimental") {
-        arg.P <- "-P experimental"
+    } else if (inla.mode %in% "compact") {
+        arg.P <- "-P compact"
     } else {
         stop("Unknown 'inla.mode'")
     }
@@ -2550,7 +2546,7 @@
             ## note that this ordering might be different than in the selection above, which
             ## depends on the ordering of the lincomb. so we need to make sure they are aligned!
 
-            if (inla.mode %in% "experimental") {
+            if (inla.mode %in% "compact") {
                 ct <- ret$misc$configs$contents
                 for(nm in c("APredictor", "Predictor")) {
                     if (ct$tag[1] == nm) {

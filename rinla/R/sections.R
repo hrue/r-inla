@@ -1049,11 +1049,7 @@
 
     ## this covers ... == "auto"  (or whaterever is given)
     if (is.character(inla.spec$control.vb$enable)) {
-        if (inla.mode == "experimental") {
-            inla.spec$control.vb$enable <- TRUE
-        } else {
-            inla.spec$control.vb$enable <- FALSE
-        }
+        inla.spec$control.vb$enable <- (inla.mode == "compact") 
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)

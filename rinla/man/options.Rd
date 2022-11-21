@@ -41,8 +41,6 @@
 
      safe: Run in safe-mode (ie try to automatically fix convergence errors) (default \code{TRUE})
 
-     experimental.check.arguments: Experimental check-arguments check (default \code{FALSE})
-
      vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
 
      vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.
@@ -87,9 +85,8 @@
        loops due to special geometry regularity. Fractional seconds are
        rounded up to the nearest integer.
 
-     inla.mode : Which mode to use in INLA? Default is \code{"classic"}. Other options are
-     (USE AT YOUR OWN RISK, THIS IS WORK IN PROGRESS!!!) options are \code{"twostage"} and
-     \code{"experimental"}.
+     inla.mode : Which mode to use in INLA? Default is \code{"compact"}. Other options are
+     \code{"classic"} and \code{"twostage"}.
    }
  }
 
