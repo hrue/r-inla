@@ -1778,7 +1778,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	int i, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
 	    0, n, *idxs = NULL, nidx = 0;
-	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL ? preopt->Npred : graph->n);
+	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
 #define FREE_ALL if (1) { if (free_b) Free(b); if (free_c) Free(c); if (free_d) Free(d); \
@@ -1872,7 +1872,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		Memset(bb, 0, Npred * sizeof(double));
 		Memset(cc, 0, Npred * sizeof(double));
 
-		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
+		if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 			if (!free_linear_predictor) {
 				linear_predictor = Calloc(Npred, double);
 				free_linear_predictor = 1;
@@ -2045,7 +2045,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			 * I need to update 'aa' as this is not evaluated in the mode! The sum of the a's are/might-be used later
 			 */
 
-			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
+			if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 				GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 			} else {
 				linear_predictor = mode;
@@ -2522,7 +2522,7 @@ int GMRFLib_ai_INLA(GMRFLib_density_tp *** density,
 	GMRFLib_ai_store_tp **ais = NULL;
 	double **lin_cross = NULL;
 
-	assert(GMRFLib_inla_mode != GMRFLib_MODE_EXPERIMENTAL);
+	assert(GMRFLib_inla_mode != GMRFLib_MODE_COMPACT);
 	if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
 		assert(!preopt);
 		assert(!rpreopt);
@@ -5062,7 +5062,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		}
 	}
 
-	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
+	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 	assert(preopt);
 
 	if (!ai_par) {
@@ -8127,7 +8127,7 @@ int GMRFLib_ai_vb_correct_mean(int thread_id, GMRFLib_density_tp *** density,	//
 			       GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 			       GMRFLib_preopt_tp * UNUSED(preopt))
 {
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		// nothing to do here
 		return GMRFLib_SUCCESS;
 	} else {
@@ -8379,7 +8379,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		_tref = GMRFLib_cpu();					\
 	}
 
-	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
+	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 
 	// save time: only compute MM the first time, and keep MM and its factorisation fixed during the iterations. the motivation is that the
 	// 2nd order properties will hardly change while the 1st order properties, ie the mean, will.
@@ -8721,7 +8721,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_preopt_tp * preopt)
 {
 	GMRFLib_ENTER_ROUTINE;
-	assert(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL);
+	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 
 	static double tref_a[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	static double count_tref_a = 0.0;		       /* only for testing */

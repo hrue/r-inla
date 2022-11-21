@@ -90,7 +90,7 @@ typedef enum {
 	GMRFLib_MODE_TWOSTAGE,
 	GMRFLib_MODE_TWOSTAGE_PART1,
 	GMRFLib_MODE_TWOSTAGE_PART2,
-	GMRFLib_MODE_EXPERIMENTAL
+	GMRFLib_MODE_COMPACT
 } GRMFLib_preopt_mode_tp;
 
 // 32bit ints -2147483648 to 2147483647
@@ -100,7 +100,7 @@ typedef enum {
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
 			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
 			       (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART2 ? "TwoStage Part2" : \
-				(GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL ? "Experimental" : "(UNKNOWN MODE)")))))
+				(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? "Compact" : "(UNKNOWN MODE)")))))
 
 // utility functions for this are mostly in smtp-pardiso.c
 typedef struct {

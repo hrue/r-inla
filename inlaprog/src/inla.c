@@ -36787,7 +36787,7 @@ int inla_output(inla_tp * mb)
 		offsets[j++] = n;
 		n++;
 	}
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		assert(mb->preopt->mnpred == mb->predictor_m + mb->predictor_n);
 	} else {
 		assert(mb->hgmrfm->graph->n == n);
@@ -36999,7 +36999,7 @@ int inla_output(inla_tp * mb)
 	}
 
 	int N = -1;
-	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
+	if (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 		N = mb->preopt->n + mb->preopt->mnpred;
 	} else {
 		N = ((GMRFLib_hgmrfm_arg_tp *) mb->hgmrfm->Qfunc_arg)->N;
@@ -42258,7 +42258,7 @@ int main(int argc, char **argv)
 	GMRFLib_trace_functions(NULL);
 	GMRFLib_debug_functions(NULL);
 	GMRFLib_reorder = G.reorder;
-	GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
+	GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
 	my_sort2_test_cutoff(0);
 
 	/*
@@ -42284,8 +42284,8 @@ int main(int argc, char **argv)
 				GMRFLib_inla_mode = GMRFLib_MODE_CLASSIC;
 			} else if (!strcasecmp(optarg, "TWOSTAGE")) {
 				GMRFLib_inla_mode = GMRFLib_MODE_TWOSTAGE;
-			} else if (!strcasecmp(optarg, "EXPERIMENTAL")) {
-				GMRFLib_inla_mode = GMRFLib_MODE_EXPERIMENTAL;
+			} else if (!strcasecmp(optarg, "EXPERIMENTAL") || !strcasecmp(optarg, "COMPACT")) {
+				GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
 			} else {
 				assert(0 == 1);
 			}
@@ -42737,7 +42737,7 @@ int main(int argc, char **argv)
 			int nfunc[2] = { 0, 0 };
 			double rgeneric_cpu[2] = { 0.0, 0.0 };
 
-			if (GMRFLib_inla_mode == GMRFLib_MODE_EXPERIMENTAL) {
+			if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 				time_used[3] = GMRFLib_cpu();
 				inla_INLA_preopt_experimental(mb);
 				time_used[3] = GMRFLib_cpu() - time_used[1];
