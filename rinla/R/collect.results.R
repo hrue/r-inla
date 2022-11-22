@@ -582,6 +582,15 @@
                 }
                 colnames(gcpodens.moments) <- c("mean", "variance", "log.theta.correction")
                 
+                arg.str <- NULL
+                have.arg.str <- readBin(fp, numeric(), 1)
+                if (have.arg.str > 0) {
+                    arg.str <- vector('character', configs$Npred)
+                    for (i in 1:configs$Npred) {
+                        arg.str[i] <- readBin(fp, character(), 1)
+                    }
+                }
+
                 dif <- which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd <- configs.j[dif] ## yes, its the transpose part
@@ -637,7 +646,8 @@
                         repr = "C"
                     ),
                     cpodens.moments = cpodens.moments,
-                    gcpodens.moments = gcpodens.moments
+                    gcpodens.moments = gcpodens.moments,
+                    arg.str = arg.str
                 )
             }
 
@@ -2273,7 +2283,7 @@
     ## reduce image IM to image.dim IMAGE.DIM and return the image as a matrix.
     ## order the indices so the output can be plotted by image()
 
-    if ((class(im) != "pixmapGrey") || (im@size[1L] != im@size[2L])) {
+    if (!inherits(im, "pixmapGrey") || (im@size[1L] != im@size[2L])) {
         return(im)
     } else {
         return(im@grey)

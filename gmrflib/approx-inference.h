@@ -926,6 +926,7 @@ typedef struct {
 	double *Qprior;
 	double *cpodens_moments;
 	double *gcpodens_moments;
+	char **arg_str;
 } GMRFLib_store_config_preopt_tp;
 
 typedef struct {
@@ -982,6 +983,8 @@ typedef struct {
 
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
+
+	int likelihood_info;
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {
@@ -1146,7 +1149,7 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo,
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
 				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-				   double *cpodens_moments, double *gcpodens_moments);
+				   double *cpodens_moments, double *gcpodens_moments, char **arg_str);
 int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GMRFLib_density_tp * density,
 			    int idx, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, GMRFLib_ai_param_tp * ai_par);
 int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, int nlin, GMRFLib_lc_tp ** Alin, GMRFLib_ai_store_tp * ai_store,

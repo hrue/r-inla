@@ -1,3 +1,11 @@
+# INLA 22.11.22
+* Fix class inheritance checks to use inherits(), to allow e.g. inlabru
+  output to work with `inla.cpo`, etc.
+* Fixed issue with DIC in experimental-mode
+* rename experimental-mode into compact-mode (experimental-mode will
+  still work)
+* Make compact-mode the default.   
+
 # INLA 22.11.08
 * bug-fix build
 

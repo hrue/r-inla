@@ -6,7 +6,7 @@
     n.intervals <- control.hazard$n.intervals
     cutpoints <- control.hazard$cutpoints
 
-    if (class(response) != "inla.surv") {
+    if (!inherits(response, "inla.surv")) {
         stop("Response has to be an object of class `inla.surv'")
     }
     ## not used
@@ -171,7 +171,7 @@
     n.intervals <- control.hazard$n.intervals
     cutpoints <- control.hazard$cutpoints
 
-    if (class(response) != "inla.surv") {
+    if (!inherits(response, "inla.surv")) {
         stop("Response has to be an object of class `inla.surv'")
     }
     ## not used

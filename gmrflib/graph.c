@@ -1367,8 +1367,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				double qij;				\
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				int *j_a = graph->nbs[i];		\
-				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
-					j = j_a[jj];			\
+				for (int jj = 0; jj < graph->nnbs[i]; jj++) { \
+					int j = j_a[jj];		\
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
 					result[i] += qij * x[j];	\
 				}					\
@@ -1383,8 +1383,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				double qij;
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
 				int *j_a = graph->lnbs[i];
-				for (int jj = 0, j; jj < graph->lnnbs[i]; jj++) {
-					j = j_a[jj];
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					int j = j_a[jj];
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 					result[i] += qij * x[j];
 					result[j] += qij * x[i];
@@ -1406,8 +1406,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
 				int *j_a = graph->lnbs[i];		\
-				for (int k = 1, jj = 0, j = 0; jj < graph->lnnbs[i]; jj++, k++) { \
-					j = j_a[jj];			\
+				for (int k = 1, jj = 0; jj < graph->lnnbs[i]; jj++, k++) { \
+					int j = j_a[jj];		\
 					r[i] += local_values[k] * x[j];	\
 					r[j] += local_values[k] * x[i];	\
 				}					\

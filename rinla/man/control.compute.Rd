@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, smtp, waic)
+control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, likelihood.info, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -39,6 +39,8 @@ control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, mlik, openmp.st
 \item{q}{   A boolean variable if binary images of the precision matrix, the  reordered precision matrix and the Cholesky triangle should be generated.  (Default FALSE.)}
 
 \item{config}{   A boolean variable if the internal GMRF approximations be  stored. (Default FALSE. EXPERIMENTAL)}
+
+\item{likelihood.info}{   A boolean variable to store likelihood-information or not.  This option requires \code{config=TRUE} (Default FALSE. EXPERIMENTAL)}
 
 \item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or  'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies  \code{openmp.strategy='pardiso'}.}
 

@@ -109,7 +109,7 @@
     }
 
     ## need this test to avoid infinite recursion, as inla.read.graph also call inla.add.graph.cc!
-    if (class(args[[1L]]) == "inla.graph") {
+    if (inherits(args[[1L]], "inla.graph")) {
         graph <- args[[1L]]
     } else {
         graph <- inla.read.graph(...)

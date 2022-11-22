@@ -28,7 +28,7 @@
 `inla.iidkd.sample` <- function(n = 10^4, result, name, return.cov = FALSE) 
 {
     stopifnot(!missing(result))
-    stopifnot(class(result) == "inla")
+    stopifnot(inherits(result, "inla"))
     stopifnot(!missing(name))
     stopifnot(n > 0)
 

@@ -116,9 +116,10 @@
         stop("Failed to convert 'data' into a 'data.frame' even after 'inla.fix.data'.")
     }
 
-    if (class(y.surv) != "inla.surv") {
+    if (!inherits(y.surv, "inla.surv")) {
         stop(paste0("For survival models, then the reponse has to be of class `inla.surv'; you have `",
-                    class(y.surv), "'"))
+                    paste0(class(y.surv), collapse = ", "),
+                    "'"))
     }
     control.hazard <- inla.check.control(control.hazard, data.f)
     cont.hazard <- inla.set.control.hazard.default()

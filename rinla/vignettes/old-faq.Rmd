@@ -31,6 +31,12 @@ render_toc("old-faq.Rmd")
 This vignette is a copy and slightly edited FAQ-entries and other
 short tutorials from the old \verb|https://http://www.r-inla.org|
 page. The content comes is slightly random order, sorry about that.
+We run all examples here in classic-mode, for this reason.
+```{r}
+inla.setOption(inla.mode="classic")
+```
+
+
 
 ## User-defined priors for the hyperparameters
 
