@@ -691,7 +691,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 	// add better storage
 	int nc = model->B[0]->ncol;
 	GMRFLib_vmatrix_init(&(model->vmatrix), model->n, model->graph);
-	for (int i = 0; i < model->n; i++) {
+	for (i = 0; i < model->n; i++) {
 		int j = i;
 
 		double *v = Calloc(3 * nc + 4, double);
@@ -722,7 +722,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const
 			GMRFLib_matrix_get_row(v + 4 * nc, j, model->B[1]);
 			GMRFLib_matrix_get_row(v + 5 * nc, j, model->B[2]);
 
-			double *vv = v + 6 * nc;
+			vv = v + 6 * nc;
 			vv[0] = GMRFLib_matrix_get(i, j, model->M[0]);
 			vv[1] = GMRFLib_matrix_get(i, j, model->M[1]);
 			vv[2] = GMRFLib_matrix_get(j, i, model->M[1]);

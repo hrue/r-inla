@@ -640,7 +640,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **m
 		int n_neg = 0;
 		s_min = s_max;
 		for (i = 0; i < A->size1; i++) {
-			double s = gsl_vector_get(S, i);
+			s = gsl_vector_get(S, i);
 			if (s <= 0.0) {
 				n_neg++;
 			}
@@ -935,7 +935,7 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	if (s_max_base > 0.0) {
 		s_min_base = s_max_base;
 		for (i = 0; i < n; i++) {
-			double s = gsl_vector_get(S_base, i);
+			s = gsl_vector_get(S_base, i);
 			if (s > 0.0 && s < s_min_base) {
 				s_min_base = s;
 			}
@@ -949,7 +949,7 @@ double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m,
 	if (s_max > 0.0) {
 		s_min = s_max;
 		for (i = 0; i < n; i++) {
-			double s = gsl_vector_get(S, i);
+			s = gsl_vector_get(S, i);
 			if (s > 0.0 && s < s_min) {
 				s_min = s;
 			}

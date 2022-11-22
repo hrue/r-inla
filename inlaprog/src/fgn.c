@@ -111,9 +111,9 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 					w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
 					H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-					for (int j = 0; j < GMRFLib_CACHE_LEN; j++) {
-						phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
-						w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+					for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+						phi_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+						w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 					}
 					if (debug) {
 						printf("Qfunc_fgn: initialize cache\n");
@@ -216,9 +216,9 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 		w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
 		H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-		for (int j = 0; j < GMRFLib_CACHE_LEN; j++) {
-			phi_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
-			w_cache[j] = Calloc(2 * FGN_KMAX - 1, double);
+		for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+			phi_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+			w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 		}
 		if (debug) {
 			printf("Qfunc_fgn2: initialize cache\n");

@@ -1342,7 +1342,7 @@ int GMRFLib_my_taucs_dccs_solve_l_special(void *vL, double *x, double *b, int fr
 		int ip = L->colptr[j];
 		double Ajj = L->values.d[ip];
 		x[j] = b[j] / Ajj;
-		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			int i = L->rowind[ip];
 			double Aij = L->values.d[ip];
 			b[i] -= x[j] * Aij;
@@ -1386,7 +1386,7 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 			double Ajj = L->values.d[ip];
 
 			y[j] = x[j] / Ajj;
-			for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 				int i = L->rowind[ip];
 				double Aij = L->values.d[ip];
 				x[i] -= y[j] * Aij;
@@ -1489,7 +1489,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 		// for(int k = 0; k < nrhs; k++) yy[k] = xx[k] * iAjj;
 		DAXPY1(nrhs, iAjj, xx, 1, yy, 1);
 
-		for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 			Aij = L->values.d[ip];
 			offset_i = L->rowind[ip] * nrhs;
 			xx = x + offset_i;
@@ -1501,7 +1501,7 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 
 	for (int i = n - 1; i >= 0; i--) {
 		Memset(sum, 0, nrhs * sizeof(double));
-		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
+		for (jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
 			Aij = L->values.d[jp];
 			offset_j = L->rowind[jp] * nrhs;
 			xx = x + offset_j;
@@ -1568,7 +1568,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 			int ip = L->colptr[j];
 			double Ajj = L->values.d[ip];
 			y[j] = x[j] / Ajj;
-			for (int ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
 				int i = L->rowind[ip];
 				double Aij = L->values.d[ip];
 				x[i] -= y[j] * Aij;

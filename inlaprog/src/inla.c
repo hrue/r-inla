@@ -219,7 +219,7 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 #define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
-forceinline double inla_interpolate_mode(double *x, double *y)
+double inla_interpolate_mode(double *x, double *y)
 {
 	// give 3 values (x,y), return the mode. truncate at the boundary
 
@@ -279,7 +279,7 @@ unsigned long long getTotalSystemMemory()
 }
 #endif
 
-forceinline double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the idenity map-function
@@ -312,7 +312,7 @@ forceinline double map_identity(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse map-function, assuming > 0
@@ -345,7 +345,7 @@ forceinline double map_inverse(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_identity_scale(double arg, map_arg_tp typ, void *param)
+double map_identity_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the idenity map-function
@@ -380,7 +380,7 @@ forceinline double map_identity_scale(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the exp-map-function
@@ -413,7 +413,7 @@ forceinline double map_exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_exp_scale(double arg, map_arg_tp typ, void *param)
+double map_exp_scale(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the exp-map-function with scaling
@@ -447,7 +447,7 @@ forceinline double map_exp_scale(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_negexp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the negexp-map-function
@@ -516,7 +516,7 @@ double map_exp_scale2(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_invrobit(double arg, map_arg_tp typ, void *param)
+double map_invrobit(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the inverse of the robit link: cdf of student t (scaled to have variance 1)
@@ -553,18 +553,18 @@ forceinline double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
+double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
 {
 	// param = *(skew_intern, intercept_intern)
 	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
 }
 
-forceinline double map_invsn(double arg, map_arg_tp typ, void *param)
+double map_invsn(double arg, map_arg_tp typ, void *param)
 {
 	return (map_invsn_core(arg, typ, param, NULL));
 }
 
-forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
 {
 	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
 
@@ -783,7 +783,7 @@ forceinline double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_
 	return 0.0;
 }
 
-forceinline double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse probit function
@@ -817,7 +817,7 @@ forceinline double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param)
 	return 0.0;
 }
 
-forceinline double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse loglog function
@@ -850,7 +850,7 @@ forceinline double map_invloglog(double arg, map_arg_tp typ, void *UNUSED(param)
 	return 0.0;
 }
 
-forceinline double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse cauchit function
@@ -883,7 +883,7 @@ forceinline double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param
 	return 0.0;
 }
 
-forceinline double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the inverse cloglog function
@@ -916,7 +916,7 @@ forceinline double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param
 	return 0.0;
 }
 
-forceinline double map_beta(double x, map_arg_tp typ, void *param)
+double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map for the beta parameter, which can have a lower and upper range as well. If range.low=range.high, then its
@@ -985,7 +985,7 @@ forceinline double map_beta(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the 1/exp-map-function
@@ -1018,7 +1018,7 @@ forceinline double map_1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the sqrt(1/exp) map
@@ -1051,7 +1051,7 @@ forceinline double map_sqrt1exp(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the degrees of freedom for the student-t 
@@ -1084,7 +1084,7 @@ forceinline double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the degrees of freedom for the student-t 
@@ -1117,7 +1117,7 @@ forceinline double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_phi(double arg, map_arg_tp typ, void *param)
+double map_phi(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the lag-1 correlation in the AR(1) model. The
@@ -1156,7 +1156,7 @@ forceinline double map_phi(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_rho(double arg, map_arg_tp typ, void *param)
+double map_rho(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the correlation in the 2D iid model
@@ -1164,7 +1164,7 @@ forceinline double map_rho(double arg, map_arg_tp typ, void *param)
 	return map_phi(arg, typ, param);
 }
 
-forceinline double map_precision(double arg, map_arg_tp typ, void *param)
+double map_precision(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the precision variables 
@@ -1172,7 +1172,7 @@ forceinline double map_precision(double arg, map_arg_tp typ, void *param)
 	return map_exp(arg, typ, param);
 }
 
-forceinline double map_range(double arg, map_arg_tp typ, void *param)
+double map_range(double arg, map_arg_tp typ, void *param)
 {
 	/*
 	 * the map-function for the range
@@ -1180,7 +1180,7 @@ forceinline double map_range(double arg, map_arg_tp typ, void *param)
 	return map_exp(arg, typ, param);
 }
 
-forceinline double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the range
@@ -1189,7 +1189,7 @@ forceinline double map_alpha_weibull(double arg, map_arg_tp typ, void *UNUSED(pa
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
-forceinline double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the range
@@ -1198,7 +1198,7 @@ forceinline double map_alpha_gompertz(double arg, map_arg_tp typ, void *UNUSED(p
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
-forceinline double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the map-function for the precision
@@ -1207,7 +1207,7 @@ forceinline double map_prec_qkumar(double arg, map_arg_tp typ, void *UNUSED(para
 	return map_exp_scale(arg, typ, (void *) &scale);
 }
 
-forceinline double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
+double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
@@ -1231,7 +1231,7 @@ forceinline double map_invlogit(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
+double map_probability(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = exp(local) / (1 + exp(local)) 
@@ -1255,7 +1255,7 @@ forceinline double map_probability(double x, map_arg_tp typ, void *UNUSED(param)
 	return 0.0;
 }
 
-forceinline double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
+double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * the mapping for the shape-parameters in the stochvol-nig model. shape = 1 + exp(shape_intern)
@@ -1288,7 +1288,7 @@ forceinline double map_shape_svnig(double arg, map_arg_tp typ, void *UNUSED(para
 	return 0.0;
 }
 
-forceinline double map_H(double x, map_arg_tp typ, void *UNUSED(param))
+double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * extern = 1/2  + 1/2 * exp(local) / (1 + exp(local)) 
@@ -1312,7 +1312,7 @@ forceinline double map_H(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double map_interval(double x, map_arg_tp typ, void *param)
+double map_interval(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * extern = A  + (B-A) * exp(C * local) / (1 + exp(C * local)) ,  B > A, C>0
@@ -1342,7 +1342,7 @@ forceinline double map_interval(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_group_rho(double x, map_arg_tp typ, void *param)
+double map_group_rho(double x, map_arg_tp typ, void *param)
 {
 	/*
 	 * extern = 
@@ -1368,7 +1368,7 @@ forceinline double map_group_rho(double x, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-forceinline double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
+double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
 	 * y = 2*atan(x), so that |y| <= Pi
@@ -1394,7 +1394,7 @@ forceinline double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-forceinline double link_this_should_not_happen(int UNUSED(thread_id), double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param),
+double link_this_should_not_happen(int UNUSED(thread_id), double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param),
 					       double *UNUSED(cov))
 {
 	/*
@@ -1405,7 +1405,7 @@ forceinline double link_this_should_not_happen(int UNUSED(thread_id), double UNU
 	return 0.0;
 }
 
-forceinline double link_probit(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_probit(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1413,7 +1413,7 @@ forceinline double link_probit(int UNUSED(thread_id), double x, map_arg_tp typ, 
 	return map_invprobit(x, typ, param);
 }
 
-forceinline double link_robit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_robit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1424,7 +1424,7 @@ forceinline double link_robit(int thread_id, double x, map_arg_tp typ, void *par
 	return map_invrobit(x, typ, (void *) &dof_intern);
 }
 
-forceinline double link_sn(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_sn(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1438,7 +1438,7 @@ forceinline double link_sn(int thread_id, double x, map_arg_tp typ, void *param,
 	return map_invsn(x, typ, (void *) par);
 }
 
-forceinline double link_power_logit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_power_logit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1454,12 +1454,12 @@ forceinline double link_power_logit(int thread_id, double x, map_arg_tp typ, voi
 	return map_inv_powerlink_core(x, typ, (void *) par, NULL);
 }
 
-forceinline double link_tan(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_tan(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	return map_invtan(x, typ, param);
 }
 
-forceinline double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1467,7 +1467,7 @@ forceinline double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ,
 	return map_invcloglog(x, typ, param);
 }
 
-forceinline double link_loglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_loglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1475,7 +1475,7 @@ forceinline double link_loglog(int UNUSED(thread_id), double x, map_arg_tp typ, 
 	return map_invloglog(x, typ, param);
 }
 
-forceinline double link_cauchit(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_cauchit(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1483,7 +1483,7 @@ forceinline double link_cauchit(int UNUSED(thread_id), double x, map_arg_tp typ,
 	return map_invcauchit(x, typ, param);
 }
 
-forceinline double link_log(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_log(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1491,7 +1491,7 @@ forceinline double link_log(int UNUSED(thread_id), double x, map_arg_tp typ, voi
 	return map_exp(x, typ, param);
 }
 
-forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 #define MAP(_x) log((_x)/(1.0 - (_x)))
 #define iMAP(_x) (exp(_x)/(1.0+exp(_x)))
@@ -1527,39 +1527,39 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	GMRFLib_CACHE_SET_ID(id);
 	if (a != table[id]->a) {
 		int len, llen;
-		double *work, *x, *y, p;
+		double *work, *x_, *y, p_local;
 		if (debug) {
 			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
 		}
 
 		// count to find the length
 		for (xx = -range, len = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), len++);
-		work = x = Calloc(2 * len, double);
+		work = x_ = Calloc(2 * len, double);
 		y = work + len;
 
 		for (xx = -range, i = 0, llen = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), i++, llen++) {
-			p = iMAP(xx);
-			if (p == 1.0) {
+			p_local = iMAP(xx);
+			if (p_local == 1.0) {
 				// no point of going further if this happens. we need this as a small value of 'a' makes this
 				// happen rather quickly
 				break;
 			}
 			y[i] = xx;
-			x[i] = log(p) - a * LOG_ONE_MINUS(p);  // log(p/(1-p)^a)
+			x_[i] = log(p_local) - a * LOG_ONE_MINUS(p_local);	// log(p/(1-p)^a)
 		}
 		len = llen;
 
 		table[id]->a = a;
 		table[id]->p_intern_min = y[0];
 		table[id]->p_intern_max = y[len - 1];
-		table[id]->eta_min = x[0];
-		table[id]->eta_max = x[len - 1];
+		table[id]->eta_min = x_[0];
+		table[id]->eta_max = x_[len - 1];
 
 		GMRFLib_spline_free(table[id]->cdf);	       /* ok if NULL */
 		GMRFLib_spline_free(table[id]->icdf);	       /* ok if NULL */
 
-		table[id]->cdf = GMRFLib_spline_create(x, y, len);
-		table[id]->icdf = GMRFLib_spline_create(y, x, len);
+		table[id]->cdf = GMRFLib_spline_create(x_, y, len);
+		table[id]->icdf = GMRFLib_spline_create(y, x_, len);
 		Free(work);
 	}
 
@@ -1602,7 +1602,7 @@ forceinline double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, vo
 	return 0.0;
 }
 
-forceinline double link_neglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_neglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1610,7 +1610,7 @@ forceinline double link_neglog(int UNUSED(thread_id), double x, map_arg_tp typ, 
 	return map_negexp(x, typ, param);
 }
 
-forceinline double link_logit(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_logit(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1618,7 +1618,7 @@ forceinline double link_logit(int UNUSED(thread_id), double x, map_arg_tp typ, v
 	return map_invlogit(x, typ, param);
 }
 
-forceinline double link_identity(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_identity(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1626,7 +1626,7 @@ forceinline double link_identity(int UNUSED(thread_id), double x, map_arg_tp typ
 	return map_identity(x, typ, param);
 }
 
-forceinline double link_inverse(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_inverse(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1634,7 +1634,7 @@ forceinline double link_inverse(int UNUSED(thread_id), double x, map_arg_tp typ,
 	return map_inverse(x, typ, param);
 }
 
-forceinline double link_logoffset(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
+double link_logoffset(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1675,7 +1675,7 @@ forceinline double link_logoffset(int thread_id, double x, map_arg_tp typ, void 
 	return NAN;
 }
 
-forceinline double link_logitoffset(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_logitoffset(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -1701,7 +1701,7 @@ forceinline double link_logitoffset(int thread_id, double x, map_arg_tp typ, voi
 	return NAN;
 }
 
-forceinline double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+double link_sslogit(int thread_id, double x, map_arg_tp typ, void *param, double *UNUSED(cov))
 {
 	Link_param_tp *p;
 	double sens, spec, a, b, xx;
@@ -1734,7 +1734,7 @@ forceinline double link_sslogit(int thread_id, double x, map_arg_tp typ, void *p
 	return NAN;
 }
 
-forceinline double link_special2(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
+double link_special2(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -2062,7 +2062,7 @@ double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, dou
 	return (ret);
 }
 
-forceinline double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
+double link_test1(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -2076,7 +2076,7 @@ forceinline double link_test1(int thread_id, double x, map_arg_tp typ, void *par
 	return map_exp(x - beta * cov[0], typ, param);
 }
 
-forceinline double link_special1(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
+double link_special1(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *p;
 	int i;
@@ -2824,32 +2824,8 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 	const int debug = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
-
-	// WHY IS THIS A GOOD IDEA?
-	// reset cache once in a while. 
-	if (0 && a->reset_cache >= 0) {
-		if (a->reset_cache || (id == 0 && omp_get_level() == 0 && i == 0 && j <= 0)) {
-			a->reset_cache = 1;
-#pragma omp critical (Name_d9d5fe823d2b17d465f4c6c0d56442c45ef50e40)
-			{
-				if (a->reset_cache) {
-					// yes, start loops at 1 to reset the rest of the cache, but not for id=0.
-					for (int i = 1; i < GMRFLib_CACHE_LEN; i++) {
-						if (a->Q[i]) {
-							GMRFLib_free_tabulate_Qfunc(a->Q[i]);
-							a->Q[i] = NULL;
-						}
-						if (a->ntheta && a->param && a->param[i]) {
-							Free(a->param[i]);
-						}
-					}
-				}
-				a->reset_cache = 0;
-			}
-		}
-	}
-
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
+
 	if (!rebuild) {
 		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
 			rebuild = (a->param[id][ii] != a->theta[ii][thread_id][0]);
@@ -3032,9 +3008,9 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 	}
 }
 
-double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *arg)
+double Qfunc_dmatern(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
 {
-	if (j < 0) {
+	if (nnode < 0) {
 		return NAN;
 	}
 
@@ -3082,16 +3058,11 @@ double Qfunc_dmatern(int thread_id, int i, int j, double *UNUSED(values), void *
 					gsl_matrix_set(a->Q[id], j, i, val);
 				}
 			}
-			if (0) {
-				FILE *fp = fopen("Q.dat", "w");
-				GMRFLib_printf_gsl_matrix(fp, a->Q[id], "%.16f ");
-				fclose(fp);
-			}
 			GMRFLib_gsl_spd_inverse(a->Q[id]);
 		}
 	}
 
-	return prec * gsl_matrix_get(a->Q[id], i, j);
+	return prec * gsl_matrix_get(a->Q[id], node, nnode);
 }
 
 double mfunc_ar1(int thread_id, int UNUSED(i), void *arg)
@@ -5326,7 +5297,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 
 		assert(ncol_data_all <= 6 + CURE_MAXTHETA && ncol_data_all >= 6);
 		idiv = ncol_data_all;
-		int na = ds->data_observations.cure_ncov = ncol_data_all - 6;
+		na = ds->data_observations.cure_ncov = ncol_data_all - 6;
 		assert(na >= 0);
 
 		a[0] = ds->data_observations.event = Calloc(mb->predictor_ndata, double);	/* the failure code */
@@ -5399,7 +5370,6 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 
 	case L_BGEV:
 	{
-		int na;
 		assert(ncol_data_all <= 3 + BGEV_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
@@ -5552,10 +5522,10 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	// wrap it around so we can access all cure-covariates for one observation sequentially
 	if (ds->data_observations.cure_cov) {
 		int ncov = ds->data_observations.cure_ncov;
-		int n = mb->predictor_ndata;
+		n = mb->predictor_ndata;
 		double *xx = Calloc(ncov * n, double);
-		for (int j = 0; j < ncov; j++) {
-			for (int i = 0; i < n; i++) {
+		for (j = 0; j < ncov; j++) {
+			for (i = 0; i < n; i++) {
 				xx[i * ncov + j] = ds->data_observations.cure_cov[j * n + i];
 			}
 		}
@@ -6443,7 +6413,7 @@ int loglikelihood_sn(int thread_id, double *logll, double *x, int m, int idx, do
 			    LOG_NORMC_GAUSSIAN + M_LN2 + 0.5 * lprec - log(sn_arg.omega) - 0.5 * SQR(xarg) + inla_log_Phi_fast(sn_arg.alpha * xarg);
 		}
 	} else {
-		double yy = (y_cdf ? *y_cdf : y), nan = NAN;
+		double yy = (y_cdf ? *y_cdf : y);
 		param[1] = &nan;			       /* this will remove the internal intercept */
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -7159,11 +7129,11 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 					assert(!ISZERO(y));
 				}
 			} else {
-				double m = E * lambda;
-				if (m > 10000.0) {
-					logll[i] = gsl_cdf_ugaussian_P((y + 0.5 - m) / sqrt(m));
+				double mean = E * lambda;
+				if (mean > 10000.0) {
+					logll[i] = gsl_cdf_ugaussian_P((y + 0.5 - mean) / sqrt(mean));
 				} else {
-					logll[i] = gsl_cdf_poisson_P((unsigned int) y, E * lambda);
+					logll[i] = gsl_cdf_poisson_P((unsigned int) y, mean);
 				}
 			}
 		}
@@ -9348,9 +9318,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -15081,7 +15051,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		{
 			// those who cannot take y=0
 
-			for (int i = 0; i < mb->predictor_ndata; i++) {
+			for (i = 0; i < mb->predictor_ndata; i++) {
 				if (ds->data_observations.d[i] && ((int) ds->data_observations.event[i] == SURV_EVENT_FAILURE ||
 								   (int) ds->data_observations.event[i] == SURV_EVENT_ININTERVAL)) {
 					if (ds->data_observations.y[i] <= 0.0) {
@@ -15341,8 +15311,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_LOGNORMALSURV:
 	{
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -15407,9 +15375,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		for (int i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
-			char *ctmp;
-
+		for (i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
 
@@ -15458,7 +15424,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		// all the remaining ones are fixed
-		for (int i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
+		for (i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
 	}
@@ -15467,8 +15433,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_GAUSSIANJW:
 	{
 		for (i = 0; i < 3; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -15494,9 +15458,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_observations.gjw_beta = Calloc(3, double **);
 		ds->data_nfixed = Calloc(3, int);
 		ds->data_nprior = Calloc(3, Prior_tp);
-		for (int i = 0; i < 3; i++) {
-			char *ctmp;
-
+		for (i = 0; i < 3; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -15549,8 +15511,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_EXPONENTIALSURV:
 	{
 		for (i = 0; i < CURE_MAXTHETA; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -15577,9 +15537,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_nprior = Calloc(CURE_MAXTHETA, Prior_tp);
 		ds->data_observations.cure_beta = Calloc(CURE_MAXTHETA, double **);
 
-		for (int i = 0; i < ds->data_observations.cure_ncov; i++) {
-			char *ctmp;
-
+		for (i = 0; i < ds->data_observations.cure_ncov; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
 
@@ -15627,7 +15585,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		// all the remaining ones are fixed
-		for (int i = ds->data_observations.cure_ncov; i < CURE_MAXTHETA; i++) {
+		for (i = ds->data_observations.cure_ncov; i < CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
 
@@ -15915,7 +15873,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * get options for the POM model. note that all theta`K' for K > nclasses-1 are not used and must be fixed no
 		 * matter their input.
 		 */
-		char *ctmp;
 		int nclasses = ds->data_observations.pom_nclasses;
 		ds->data_observations.pom_theta = Calloc(POM_MAXTHETA, double **);
 		ds->data_nfixed = Calloc(POM_MAXTHETA, int);
@@ -15946,7 +15903,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		for (int count = 0; count < POM_MAXTHETA; count++) {
-			char *ctmp = NULL;
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", count);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), NAN);
 			if (ISNAN(tmp)) {
@@ -16025,7 +15981,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			all_nonfixed = (all_nonfixed && (ds->data_nfixed[count] == 0));
 		}
 		if (all_fixed == 0 && all_nonfixed == 0) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "Hyperparameters of the POM model must either be all fixed, or all non-fixed.");
 			inla_error_general(msg);
 			exit(1);
@@ -16818,8 +16773,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * mark all as read 
 		 */
 		for (i = 0; i < BGEV_MAXTHETA + 2; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -16956,7 +16909,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		for (i = 0; i < nbetas; i++) {
-			char *ctmp;
 			int ii, idx = i + 2;
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", idx);
@@ -17089,8 +17041,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -17155,9 +17105,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		for (int i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
-			char *ctmp;
-
+		for (i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -17205,7 +17153,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		// all the remaining ones are fixed
-		for (int i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
+		for (i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
 	}
@@ -17223,8 +17171,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 * get options related to the gammajw
 		 */
 		for (i = 0; i < CURE_MAXTHETA; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -17251,9 +17197,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_nprior = Calloc(CURE_MAXTHETA, Prior_tp);
 		ds->data_observations.cure_beta = Calloc(CURE_MAXTHETA, double **);
 
-		for (int i = 0; i < ds->data_observations.cure_ncov; i++) {
-			char *ctmp;
-
+		for (i = 0; i < ds->data_observations.cure_ncov; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -17301,7 +17245,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 		// all the remaining ones are fixed
-		for (int i = ds->data_observations.cure_ncov; i < CURE_MAXTHETA; i++) {
+		for (i = ds->data_observations.cure_ncov; i < CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
 	}
@@ -17459,8 +17403,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_LOGLOGISTICSURV:
 	{
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -17531,9 +17473,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		for (int i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
-			char *ctmp;
-
+		for (i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -18107,8 +18047,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
 
 		for (int count = 0; count < STRATA_MAXTHETA; count++) {
-			char *ctmp = NULL;
-
 			/*
 			 * the zeroinflation prob-parameter
 			 */
@@ -18217,8 +18155,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_nprior = Calloc(STRATA_MAXTHETA, Prior_tp);
 
 		for (int count = 0; count < STRATA_MAXTHETA; count++) {
-			char *ctmp = NULL;
-
 			/*
 			 * the zeroinflation prob-parameter
 			 */
@@ -18413,7 +18349,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 3.0);
 		if (ISINF(tmp) || ISNAN(tmp)) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "Initial value for dof_internal is void [%g]\n", tmp);
 			inla_error_general(msg);
 			exit(1);
@@ -18484,7 +18419,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL0"), 3.0);
 		if (ISINF(tmp) || ISNAN(tmp)) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "Initial value for dof_internal is void [%g]\n", tmp);
 			inla_error_general(msg);
 			exit(1);
@@ -18530,7 +18464,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		for (k = 1; k < TSTRATA_MAXTHETA; k++) {
 
-			char *ctmp = NULL, *pri = NULL, *par = NULL, *from_theta = NULL, *to_theta = NULL, *hyperid = NULL;
+			char *pri = NULL, *par = NULL, *from_theta = NULL, *to_theta = NULL, *hyperid = NULL;
 
 			GMRFLib_sprintf(&pri, "PRIOR%1d", k);
 			GMRFLib_sprintf(&par, "PARAMETERS%1d", k);
@@ -18935,8 +18869,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_WEIBULLSURV:
 	{
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -19004,9 +18936,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		for (int i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
-			char *ctmp;
-
+		for (i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -19055,7 +18985,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		// all the remaining ones are fixed
-		for (int i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
+		for (i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
 	}
@@ -19120,8 +19050,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case L_GOMPERTZSURV:
 	{
 		for (i = 0; i < CURE_MAXTHETA + 1; i++) {
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 
@@ -19191,9 +19119,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 
-		for (int i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
-			char *ctmp;
-
+		for (i = 1; i < ds->data_observations.cure_ncov + 1; i++) {
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
 
@@ -19242,7 +19168,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		// all the remaining ones are fixed
-		for (int i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
+		for (i = 1 + ds->data_observations.cure_ncov; i < 1 + CURE_MAXTHETA; i++) {
 			ds->data_nfixed[i] = 1;
 		}
 	}
@@ -19831,7 +19757,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		found = 0;
 		ds->data_observations.nmix_m = NMIX_MMAX;
 		for (i = 0; i < NMIX_MMAX && !found; i++) {
-			for (int j = 0; j < mb->predictor_ndata; j++) {
+			for (j = 0; j < mb->predictor_ndata; j++) {
 				if (gsl_isnan(ds->data_observations.nmix_x[i][j])) {
 					found = 1;
 					ds->data_observations.nmix_m = i;
@@ -19847,15 +19773,14 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->data_nprior = Calloc(NMIX_MMAX + 1, Prior_tp);
 		ds->data_nfixed = Calloc(NMIX_MMAX + 1, int);
 
-		int k;
-		for (k = 0; k < NMIX_MMAX; k++) {
+		for (int k = 0; k < NMIX_MMAX; k++) {
 			ds->data_nfixed[k] = 1;		       /* so that the unused ones are fixed, so we can loop over all in the 'extra'
 							        * function */
 		}
 
 		// mark all as read
 		for (i = 0; i < NMIX_MMAX; i++) {
-			for (int j = 0; j < keywords_len; j++) {
+			for (j = 0; j < keywords_len; j++) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -19911,7 +19836,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 
 		if (ds->data_id == L_NMIXNB) {
-			k = NMIX_MMAX;			       /* this the overdisperson */
+			int k = NMIX_MMAX;		       /* this the overdisperson */
 
 			GMRFLib_sprintf(&ctmp, "INITIAL%1d", k);
 			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);
@@ -20125,7 +20050,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			assert(0 == 1);
 		}
 	} else {
-		char *msg;
 		GMRFLib_sprintf(&msg, "Unknown link-model [%s]\n", ds->link_model);
 		inla_error_general(msg);
 		exit(1);
@@ -20890,7 +20814,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < LINK_MAXTHETA + 1; i++) {
-			for (int j = 0; j < keywords_len; j++) {
+			for (j = 0; j < keywords_len; j++) {
 				GMRFLib_sprintf(&ctmp, "LINK.%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -20916,8 +20840,6 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		for (i = 0; i < ds->link_ntheta; i++) {
 			double theta_initial = 0;
-			char *ctmp;
-
 			GMRFLib_sprintf(&ctmp, "LINK.FIXED%1d", i);
 			ds->link_fixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
 			GMRFLib_sprintf(&ctmp, "LINK.INITIAL%1d", i);
@@ -21200,7 +21122,6 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	nc = m / (n + 1);				       /* yes, integer division */
 	if (nc * n + nc != m) {
 		char *msg = NULL;
-
 		GMRFLib_sprintf(&msg, "Number of elements[%1d] in file[%s] does is not a multiplum of n=[%1d]", m, filename, n + 1);
 		inla_error_general(msg);
 	}
@@ -22283,13 +22204,13 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 	if (n_idxs == 0) {
 		GMRFLib_idx_add(&(mb->f_vb_correct[mb->nf]), -1);
 	} else {
-		for (int i = 0; i < n_idxs; i++) {
+		for (i = 0; i < n_idxs; i++) {
 			GMRFLib_idx_add(&(mb->f_vb_correct[mb->nf]), idxs[i]);
 		}
 	}
 	if (mb->verbose) {
 		printf("\t\tvb.correct n[%1d] ", mb->f_vb_correct[mb->nf]->n);
-		for (int i = 0; i < mb->f_vb_correct[mb->nf]->n; i++) {
+		for (i = 0; i < mb->f_vb_correct[mb->nf]->n; i++) {
 			printf(" %1d", mb->f_vb_correct[mb->nf]->idx[i]);
 		}
 		printf("\n");
@@ -23084,7 +23005,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				printf("\t\tRead intslope.def[%s] nrow[%1d] ncol[%1d]\n", filename, intslope_def->nrow, intslope_def->ncol);
 				printf("\t\t    Idx  Subject Strata  Covariate\n");
 				assert(intslope_def->ncol == 3);
-				for (int i = 0; i < IMIN(intslope_def->nrow, PREVIEW); i++) {
+				for (i = 0; i < IMIN(intslope_def->nrow, PREVIEW); i++) {
 					printf("\t\t%6d %6.1g %6.1g  %12.6f\n", i,
 					       GMRFLib_matrix_get(i, INTSLOPE_SUBJECT, intslope_def),
 					       GMRFLib_matrix_get(i, INTSLOPE_STRATA, intslope_def),
@@ -23548,7 +23469,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 */
 		// mark all as read
 		for (i = 0; i < SPDE2_MAXTHETA; i++) {
-			for (int j = 0; j < keywords_len; j++) {
+			for (j = 0; j < keywords_len; j++) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -23748,7 +23669,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < SPDE3_MAXTHETA; i++) {
-			for (int j = 0; j < keywords_len; j++) {
+			for (j = 0; j < keywords_len; j++) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -23820,7 +23741,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 	case F_AR:
 	{
-		int ntheta, order, ntheta_ref = mb->ntheta;
+		int ntheta, ntheta_ref = mb->ntheta;
 
 		order = mb->f_order[mb->nf];
 		ntheta = mb->f_ntheta[mb->nf] = AR_MAXTHETA + 1;
@@ -23858,7 +23779,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		// mark all as read
 		for (i = 0; i < AR_MAXTHETA + 1; i++) {
-			for (int j = 0; j < keywords_len; j++) {
+			for (j = 0; j < keywords_len; j++) {
 				GMRFLib_sprintf(&ctmp, "%s%1d", keywords[j], i);
 				iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 				Free(ctmp);
@@ -24285,7 +24206,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					err++;
 			}
 			if (err) {
-				char *msg;
 				GMRFLib_sprintf(&msg, "%s\n\t\t%s, %1d != %1d, \n\t\t%s\n\t\t%s%1d%s",
 						"There is a potential issue with the 'rgeneric' model and the indices used:",
 						"the dimension of the model is different from expected", mb->f_n[mb->nf], nn,
@@ -24414,7 +24334,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		if (ltdl_init) {
 			lt_dlinit();
 			if ((emsg = lt_dlerror())) {
-				char *msg;
 				GMRFLib_sprintf(&msg, "\n *** dlinit error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
 				inla_error_general(msg);
 				assert(0 != 1);
@@ -24426,7 +24345,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		handle = lt_dlopen(cgeneric_shlib);
 		if (!handle) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "\n *** dlopen error with file[%s] err_msg[%s]\n", cgeneric_shlib, lt_dlerror());
 			inla_error_general(msg);
 			assert(0 != 1);
@@ -24436,7 +24354,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 		model_func = (inla_cgeneric_func_tp *) lt_dlsym(handle, cgeneric_model);
 		if ((emsg = lt_dlerror())) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "\n *** dlsym error with model[%s] err_msg[%s]\n", cgeneric_model, emsg);
 			inla_error_general(msg);
 			assert(0 != 1);
@@ -24493,7 +24410,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		nn = (int) xx_out[0];
 
 		if (nn != cgeneric_n) {
-			char *msg;
 			GMRFLib_sprintf(&msg, "f(%s): 'n' does not match with the one in cgeneric-function '%s', %1d != %1d\n",
 					secname, cgeneric_model, nn, cgeneric_n);
 			inla_error_general(msg);
@@ -24509,7 +24425,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 					err++;
 			}
 			if (err) {
-				char *msg;
 				GMRFLib_sprintf(&msg, "%s\n\t\t%s, %1d != %1d, \n\t\t%s\n\t\t%s%1d%s",
 						"There is a potential issue with the 'cgeneric' model and the indices used:",
 						"the dimension of the model is different from expected", mb->f_n[mb->nf], nn,
@@ -27863,7 +27778,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_Qfunc_arg[mb->nf] = (void *) sdef;
 
 		if (std) {
-			int thread_id = 0;
+			thread_id = 0;
 			assert(omp_get_thread_num() == 0);
 			GMRFLib_seasonal_scale(thread_id, sdef);
 		}
@@ -28064,8 +27979,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_R_rgeneric(&n_out, &x_out, R_GENERIC_GRAPH, def->model, &zero, NULL);
 		}
 
-		int n, len, *ilist, *jlist, k = 0;
+		int len, *ilist, *jlist;
 
+		k = 0;
 		assert(n_out >= 2);
 		n = (int) x_out[k++];
 		len = (int) x_out[k++];
@@ -28218,7 +28134,8 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			inla_cgeneric_debug(stdout, secname, INLA_CGENERIC_GRAPH, x_out);
 		}
 
-		int n, len, *ilist, *jlist, k = 0;
+		int len, *ilist, *jlist;
+		k = 0;
 		n = (int) x_out[k++];
 		len = (int) x_out[k++];
 		ilist = Calloc(len, int);
@@ -28440,7 +28357,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		 * AR1C
 		 */
 		inla_ar1c_arg_tp *def = NULL, *def_orig = NULL;
-		char *filename;
 
 		def = Calloc(1, inla_ar1c_arg_tp);
 		def_orig = Calloc(1, inla_ar1c_arg_tp);
@@ -28468,7 +28384,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			Free(filename);
 			{
 				// compute the log|Qbeta| for the normalizing constant
-				int i, j;
 				gsl_matrix *QQ = gsl_matrix_alloc(def->m, def->m);
 				for (i = 0; i < def->m; i++) {
 					for (j = 0; j < def->m; j++) {
@@ -28580,9 +28495,9 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 			// In this case, the parameters of the prior depends on the dimension. This is fixed here, where we
 			// compute lambda = -U^(dim/2)*log(alpha) and then the parametes are redefined to be (lambda, dim)
 			double U = mb->f_prior[mb->nf][1].parameters[0];
-			double alpha = mb->f_prior[mb->nf][1].parameters[1];
+			double alpha_local = mb->f_prior[mb->nf][1].parameters[1];
 			double dim = arg->locations->ncol;
-			mb->f_prior[mb->nf][1].parameters[0] = -pow(U, dim / 2.0) * log(alpha);
+			mb->f_prior[mb->nf][1].parameters[0] = -pow(U, dim / 2.0) * log(alpha_local);
 			mb->f_prior[mb->nf][1].parameters[1] = dim;
 		}
 
@@ -28611,11 +28526,11 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		arg_orig->param = Calloc(GMRFLib_CACHE_LEN, double *);
 		arg_orig->Q = Calloc(GMRFLib_CACHE_LEN, gsl_matrix *);
 
-		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			int np = 3;
 			arg->param[i] = Calloc(np, double);
 			arg_orig->param[i] = Calloc(np, double);
-			for (int j = 0; j < np; j++) {
+			for (j = 0; j < np; j++) {
 				arg->param[i][j] = GMRFLib_uniform();
 				arg_orig->param[i][j] = GMRFLib_uniform();
 			}
@@ -28624,14 +28539,14 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		// compute the distance between locations. 
 		arg->dist = gsl_matrix_alloc(arg->n, arg->n);
 		arg_orig->dist = arg->dist;		       /* read only */
-		for (int i = 0; i < arg->n; i++) {
-			for (int j = i; j < arg->n; j++) {
+		for (i = 0; i < arg->n; i++) {
+			for (j = i; j < arg->n; j++) {
 				if (i == j) {
 					gsl_matrix_set(arg->dist, i, j, 0.0);
 				} else {
 					double dist = 0.0;
 
-					for (int k = 0; k < arg->dim; k++) {
+					for (k = 0; k < arg->dim; k++) {
 						dist += SQR(GMRFLib_matrix_get(i, k, arg->locations)
 							    - GMRFLib_matrix_get(j, k, arg->locations));
 					}
@@ -28656,7 +28571,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				int ok = 1;
 				double diff = mb->f_locations[mb->nf][1] - mb->f_locations[mb->nf][0];
 
-				for (int j = 2; j < mb->f_n[mb->nf]; j++) {
+				for (j = 2; j < mb->f_n[mb->nf]; j++) {
 					if (mb->f_locations[mb->nf][j] - mb->f_locations[mb->nf][j - 1] != diff) {
 						ok = 0;
 						break;
@@ -28791,7 +28706,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 				}
 			} else {
 				if (std) {
-					char *msg;
 					GMRFLib_sprintf(&msg,
 							"model[%s]. scale.model=TRUE but this model cannot be scaled. Contact developers\n", model);
 					inla_error_general(msg);
@@ -28823,7 +28737,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 			for (j = 0; j < nnc; j++) {
 				printf("\t\tConstraint[%1d]\n", j);
-				int k = 0;
+				k = 0;
 				for (i = 0; i < mb->f_N[mb->nf]; i++) {
 					double a = mb->f_constr[mb->nf]->a_matrix[i * nnc + j];
 					if (!ISZERO(a) || mb->f_N[mb->nf] <= PREVIEW) {
@@ -29116,7 +29030,7 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 
 				// mark all as read
 				for (i = 0; i < AR_MAXTHETA + 1; i++) {
-					for (int j = 0; j < keywords_len; j++) {
+					for (j = 0; j < keywords_len; j++) {
 						GMRFLib_sprintf(&ctmp, "GROUP.%s%1d", keywords[j], i);
 						iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 						Free(ctmp);
@@ -30639,9 +30553,8 @@ double inla_ar1_cyclic_logdet(int N_orig, double phi)
 {
 	double logdet = 0.0;
 	double tpon = 2.0 * M_PI / N_orig;
-	int jj;
 
-	for (jj = 0; jj < N_orig; jj++) {
+	for (int jj = 0; jj < N_orig; jj++) {
 		logdet += log1p(SQR(phi) - phi * (cos(tpon * jj) + cos(tpon * (N_orig - 1.0) * jj)));
 	}
 	return (logdet);
@@ -30812,7 +30725,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				inla_R_load(mb->jp->file);
 				if (mb->ntheta > 0) {
 					vec_str = Calloc(mb->ntheta, char *);
-					for (int i = 0; i < mb->ntheta; i++) {
+					for (i = 0; i < mb->ntheta; i++) {
 						vec_str[i] = GMRFLib_strdup(mb->theta_tag[i]);
 					}
 				}
@@ -30820,7 +30733,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				jp_first_time = 0;
 
 				if (vec_str) {
-					for (int i = 0; i < mb->ntheta; i++) {
+					for (i = 0; i < mb->ntheta; i++) {
 						Free(vec_str[i]);
 					}
 					Free(vec_str);
@@ -30908,7 +30821,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			{
 				for (int k = 0; k < 3; k++) {
 					if (!ds->data_nfixed[k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
 						count++;
 					}
@@ -30953,7 +30866,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
 					if (!ds->data_nfixed[1 + k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[1 + k], &beta);
 						count++;
 					}
@@ -31087,7 +31000,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double log_shape = theta[count];
+					log_shape = theta[count];
 					val += PRIOR_EVAL(ds->data_prior0, &log_shape);
 					count++;
 				}
@@ -31256,7 +31169,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
 					if (!ds->data_nfixed[1 + k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[1 + k], &beta);
 						count++;
 					}
@@ -31318,7 +31231,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
 					if (!ds->data_nfixed[1 + k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[1 + k], &beta);
 						count++;
 					}
@@ -31430,7 +31343,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					 * we only need to add the prior, since the normalisation constant due to the likelihood, is included in the likelihood
 					 * function.
 					 */
-					double rho_intern = theta[count];
+					rho_intern = theta[count];
 
 					val += PRIOR_EVAL(ds->data_prior0, &rho_intern);
 					count++;
@@ -31658,7 +31571,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
 					if (!ds->data_nfixed[1 + k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[1 + k], &beta);
 						count++;
 					}
@@ -31685,7 +31598,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
 					if (!ds->data_nfixed[1 + k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[1 + k], &beta);
 						count++;
 					}
@@ -31817,7 +31730,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			{
 				for (int k = 0; k < ds->data_observations.cure_ncov; k++) {
 					if (!ds->data_nfixed[k]) {
-						double beta = theta[count];
+						beta = theta[count];
 						val += PRIOR_EVAL(ds->data_nprior[k], &beta);
 						count++;
 					}
@@ -31883,7 +31796,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_LOGOFFSET:
 			{
 				if (!ds->link_fixed[0]) {
-					double beta_intern = theta[count];
+					beta_intern = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta_intern);
 					count++;
 				}
@@ -31918,7 +31831,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_ROBIT:
 			{
 				if (!ds->link_fixed[0]) {
-					double dof_intern = theta[count];
+					dof_intern = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &dof_intern);
 					count++;
 				}
@@ -31958,7 +31871,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_TEST1:
 			{
 				if (!ds->link_fixed[0]) {
-					double beta = theta[count];
+					beta = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta);
 					count++;
 				}
@@ -31968,7 +31881,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_SPECIAL2:
 			{
 				if (!ds->link_fixed[0]) {
-					double beta = theta[count];
+					beta = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &beta);
 					count++;
 				}
@@ -31978,7 +31891,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_SPECIAL1:
 			{
 				if (!ds->link_fixed[0]) {
-					double log_precision;
 					log_precision = theta[count];
 					val += PRIOR_EVAL(ds->link_prior[0], &log_precision);
 					count++;
@@ -31987,17 +31899,17 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 
 				if (ds->link_order > 0) {
-					double *beta = Calloc(ds->link_order, double);
+					double *bbeta = Calloc(ds->link_order, double);
 					for (j = 0; j < ds->link_order; j++) {
 						if (!ds->link_fixed[j + 1]) {
-							beta[j] = theta[count];
+							bbeta[j] = theta[count];
 							count++;
 						} else {
-							beta[j] = ds->link_parameters->betas[j][thread_id][0];
+							bbeta[j] = ds->link_parameters->betas[j][thread_id][0];
 						}
 					}
-					val += PRIOR_EVAL(ds->link_prior[1], beta);
-					Free(beta);
+					val += PRIOR_EVAL(ds->link_prior[1], bbeta);
+					Free(bbeta);
 				}
 			}
 				break;
@@ -32321,7 +32233,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_SPDE2:
 		{
 			int k, kk;
-			const int debug = 0;
 			inla_spde2_tp *spde2;
 
 			spde2 = (inla_spde2_tp *) mb->f_model[i];
@@ -32520,7 +32431,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_AR:
 		{
-			double log_precision, *pacf = NULL, *pacf_intern = NULL;
+			double *pacf = NULL, *pacf_intern = NULL;
 			int p;
 
 			p = mb->f_order[i];
@@ -33099,7 +33010,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_MEC:
 		{
-			double mean_x, log_precision_x, log_precision_obs, beta_intern;
+			double mean_x, log_precision_x, log_precision_obs;
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				beta_intern = theta[count];
@@ -33160,8 +33071,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_MEB:
 		{
-			double beta_intern;
-
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				beta_intern = theta[count];
 				val += PRIOR_EVAL(mb->f_prior[i][0], &beta_intern);
@@ -33201,17 +33110,17 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_R_GENERIC:
 		{
-			int n_out, nn_out, ii, ntheta, all_fixed = 0;
+			int n_out, nn_out, ii, nt = 0, all_fixed = 0;
 
 			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 			inla_rgeneric_tp *def = NULL;
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
-			ntheta = def->ntheta;
-			if (ntheta) {
+			nt = def->ntheta;
+			if (nt) {
 				all_fixed = 1;
-				param = Calloc(ntheta, double);
-				for (ii = 0; ii < ntheta; ii++) {
+				param = Calloc(nt, double);
+				for (ii = 0; ii < nt; ii++) {
 					if (_NOT_FIXED(f_fixed[i][ii])) {
 						param[ii] = theta[count];
 						all_fixed = 0;
@@ -33224,8 +33133,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 #pragma omp critical (Name_58ab1229a36b0d20f9c714d7896ab4820282193b)
 			{
-				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, &ntheta, param);
-				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, &ntheta, param);
+				inla_R_rgeneric(&n_out, &x_out, R_GENERIC_LOG_NORM_CONST, def->model, &nt, param);
+				inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_LOG_PRIOR, def->model, &nt, param);
 			}
 
 			switch (nn_out) {
@@ -33256,7 +33165,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				GMRFLib_tabulate_Qfunc_tp *Qf = NULL;
 #pragma omp critical (Name_94438d8a0faa6fe9957180657829e121c750f1f2)
 				{
-					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, &ntheta, param);
+					inla_R_rgeneric(&nn_out, &xx_out, R_GENERIC_Q, def->model, &nt, param);
 				}
 				assert(nn_out >= 2);
 
@@ -33348,13 +33257,13 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			if (debug) {
-				for (ii = 0; ii < ntheta; ii++) {
+				for (ii = 0; ii < nt; ii++) {
 					printf("p %.12g ", param[ii]);
 				}
 				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
 			}
 
-			_SET_GROUP_RHO(ntheta);
+			_SET_GROUP_RHO(nt);
 			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
 
 			Free(param);
@@ -33366,17 +33275,17 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_C_GENERIC:
 		{
-			int n_out, nn_out, ii, ntheta, all_fixed = 0;
+			int n_out, nn_out, ii, nt = 0, all_fixed = 0;
 
 			double *x_out = NULL, *xx_out = NULL, *param = NULL, log_norm_const = 0.0, log_prior = 0.0;
 			inla_cgeneric_tp *def = NULL;
 			def = (inla_cgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
-			ntheta = def->ntheta;
+			nt = def->ntheta;
 			if (ntheta) {
 				all_fixed = 1;
-				param = Calloc(ntheta, double);
-				for (ii = 0; ii < ntheta; ii++) {
+				param = Calloc(nt, double);
+				for (ii = 0; ii < nt; ii++) {
 					if (_NOT_FIXED(f_fixed[i][ii])) {
 						param[ii] = theta[count];
 						all_fixed = 0;
@@ -33519,13 +33428,13 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 
 			if (debug) {
-				for (ii = 0; ii < ntheta; ii++) {
+				for (ii = 0; ii < nt; ii++) {
 					printf("p %.12g ", param[ii]);
 				}
 				printf(" %.12g  prior %.12g\n", log_norm_const, log_prior);
 			}
 
-			_SET_GROUP_RHO(ntheta);
+			_SET_GROUP_RHO(nt);
 			val += mb->f_nrep[i] * (normc_g + log_norm_const * (mb->f_ngroup[i] - grankdef)) + log_prior;
 
 			Free(param);
@@ -33737,7 +33646,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			_SET_GROUP_RHO(2);
 
 			double n = (double) mb->f_n[i];
-			double phi = map_probability(phi_intern, MAP_FORWARD, NULL);
+			phi = map_probability(phi_intern, MAP_FORWARD, NULL);
 
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision - LOG_ONE_MINUS(phi))));
 
@@ -33767,7 +33676,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			_SET_GROUP_RHO(2);
 
 			double n = (double) mb->f_n[i];
-			double phi = map_probability(phi_intern, MAP_FORWARD, NULL);
+			phi = map_probability(phi_intern, MAP_FORWARD, NULL);
 
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision - LOG_ONE_MINUS(phi))));
 
@@ -34050,7 +33959,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			_SET_GROUP_RHO(mb->f_ntheta[i]);
 
 			inla_intslope_arg_tp *arg = (inla_intslope_arg_tp *) mb->f_Qfunc_arg_orig[i];
-			int ngroup = mb->f_ngroup[i];
+			ngroup = mb->f_ngroup[i];
 
 			assert(mb->f_rankdef[i] == 0);	       /* as this does not make sense if its not 0 */
 
@@ -34154,7 +34063,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 		case F_DMATERN:
 		{
-			double log_range, log_nu, range, var, nu, prec, logdet;
+			double log_range, log_nu, range, var, nu, prec;
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				log_precision = theta[count];
@@ -34184,7 +34093,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			for (int ii = 0; ii < a->n; ii++) {
 				for (int jj = ii; jj < a->n; jj++) {
-					double dist, val;
+					double dist;
 					dist = gsl_matrix_get(a->dist, ii, jj);
 					val = var * inla_dmatern_cf(dist, range, nu);
 					gsl_matrix_set(S, ii, jj, val);
@@ -34506,7 +34415,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		for (int k = 0; k < INLA_LP_SCALE_MAX; k++) {
 			if (mb->data_sections[0].lp_scale_in_use[k]) {
 				if (_NOT_FIXED(data_sections[0].lp_scale_nfixed[k])) {
-					double beta = theta[count];
+					beta = theta[count];
 					val = PRIOR_EVAL(mb->data_sections[0].lp_scale_nprior[k], &beta);
 					count++;
 				}
@@ -34813,7 +34722,7 @@ int inla_INLA(inla_tp * mb)
 					local_count++;
 				}
 			} else if (vb->idx[i] == -1L) {
-				int len, k, jj;
+				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
@@ -34853,7 +34762,7 @@ int inla_INLA(inla_tp * mb)
 					local_count++;
 				}
 			} else if (vb->idx[i] == -1L) {
-				int len, k, jj;
+				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_variance; j++) {
@@ -34948,7 +34857,7 @@ int inla_INLA(inla_tp * mb)
 	int mm = mb->predictor_n + mb->predictor_m;
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
-	for (int i = 0; i < G_norm_const_len; i++) {
+	for (i = 0; i < G_norm_const_len; i++) {
 		Free(G_norm_const_v[i]);
 	}
 	Free(G_norm_const_v);
@@ -34956,7 +34865,7 @@ int inla_INLA(inla_tp * mb)
 	G_norm_const_compute = Calloc(mm, char);
 	G_norm_const = Calloc(mm, double);
 	G_norm_const_v = Calloc(mm, void *);
-	for (int i = 0; i < mm; i++) {
+	for (i = 0; i < mm; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
 	}
@@ -34978,14 +34887,13 @@ int inla_INLA(inla_tp * mb)
 		}
 
 	} else {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-		for (int i = 0; i < mb->predictor_ndata; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (mb->d[i]) {
 				x[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
 			} else {
 				x[i] = 0.0;
 			}
-			// printf("initial value x[%1d] = %g\n", i, x[i]);
 		}
 	}
 
@@ -35070,8 +34978,8 @@ int inla_INLA(inla_tp * mb)
 	/*
 	 * add the offsets to the linear predictor. Add the offsets to the 'configs' (if any), at a later stage. 
 	 */
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-	for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		GMRFLib_density_tp *d;
 		if (mb->density[i]) {
 			d = mb->density[i];
@@ -35171,9 +35079,9 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 					local_count++;
 				}
 			} else if (vb->idx[i] == -1L) {
-				int len, k, jj;
+				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
-				k = IMAX(1, len / 2);	       /* integer division */
+				int k = IMAX(1, len / 2);      /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
 					jj = (j * len + k) % mb->f_Ntotal[i];
 					vb_nodes[count + jj] = (char) 1;
@@ -35277,7 +35185,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
-	for (int i = 0; i < G_norm_const_len; i++) {
+	for (i = 0; i < G_norm_const_len; i++) {
 		Free(G_norm_const_v[i]);
 	}
 	Free(G_norm_const_v);
@@ -35285,7 +35193,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	G_norm_const_compute = Calloc(preopt->Npred, char);
 	G_norm_const = Calloc(preopt->Npred, double);
 	G_norm_const_v = Calloc(preopt->Npred, void *);
-	for (int i = 0; i < preopt->Npred; i++) {
+	for (i = 0; i < preopt->Npred; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
 	}
@@ -35543,7 +35451,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 					local_count++;
 				}
 			} else if (vb->idx[i] == -1L) {
-				int len, k, jj;
+				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
 				for (j = 0; j < mb->ai_par->vb_f_enable_limit_mean; j++) {
@@ -35637,7 +35545,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	int mm = mb->predictor_n + mb->predictor_m;
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
-	for (int i = 0; i < G_norm_const_len; i++) {
+	for (i = 0; i < G_norm_const_len; i++) {
 		Free(G_norm_const_v[i]);
 	}
 	Free(G_norm_const_v);
@@ -35645,7 +35553,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	G_norm_const_compute = Calloc(mm, char);
 	G_norm_const = Calloc(mm, double);
 	G_norm_const_v = Calloc(mm, void *);
-	for (int i = 0; i < mm; i++) {
+	for (i = 0; i < mm; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
 	}
@@ -35666,8 +35574,8 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		}
 
 	} else {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-		for (int i = 0; i < mb->predictor_ndata; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (mb->d[i]) {
 				x[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
 			} else {
@@ -35767,8 +35675,8 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	/*
 	 * add the offsets to the linear predictor. Add the offsets to the 'configs' (if any), at a later stage. 
 	 */
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-	for (int i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		GMRFLib_density_tp *d;
 		if (mb->density[i]) {
 			d = mb->density[i];
@@ -35817,7 +35725,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	int ntot = 0;
 
 	ntot = mb->nlinear;
-	for (int i = 0; i < mb->nf; i++) {
+	for (i = 0; i < mb->nf; i++) {
 		ntot += mb->f_graph[i]->n;
 	}
 	N = ntot;
@@ -35863,13 +35771,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			char *vb_nodes = Calloc(N, char);
 			int debug = 0;
 			int local_count = 0;
-			int count = 0;
-			for (int i = 0; i < mb->nf; i++) {
+			count = 0;
+			for (i = 0; i < mb->nf; i++) {
 
 				int n = mb->f_N[i] / mb->f_ngroup[i];
 				int ngroup = mb->f_ngroup[i];
 				int nrep = mb->f_Ntotal[i] / mb->f_N[i];
-				int ntot = mb->f_Ntotal[i];
+				ntot = mb->f_Ntotal[i];
 				int lim = (tp == 0 ? mb->ai_par->vb_f_enable_limit_mean : mb->ai_par->vb_f_enable_limit_variance);
 				int nngroup = n * ngroup;
 				assert(ntot == n * ngroup * nrep);
@@ -35884,7 +35792,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
 
 				if ((vb->idx[0] == -1L && n <= lim)) {
-					for (int j = 0; j < ntot; j++) {
+					for (j = 0; j < ntot; j++) {
 						vb_nodes[count + j] = (char) 1;
 						local_count++;
 					}
@@ -35893,7 +35801,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 					int k = IMAX(1, len / 2);
 					for (int r = 0; r < nrep; r++) {
 						for (int g = 0; g < ngroup; g++) {
-							for (int j = 0; j < lim; j++) {
+							for (j = 0; j < lim; j++) {
 								int jj = (j * len + k) % n + g * n + r * nngroup;
 								if (debug)
 									printf("%d %d %d %d\n", g, r, j, jj);
@@ -35905,7 +35813,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				} else if (vb->idx[0] >= 0) {
 					for (int r = 0; r < nrep; r++) {
 						for (int g = 0; g < ngroup; g++) {
-							for (int j = 0; j < vb->n; j++) {
+							for (j = 0; j < vb->n; j++) {
 								if (LEGAL(vb->idx[j], n)) {
 									int jj = vb->idx[j] + g * n + r * nngroup;
 									if (debug)
@@ -35994,8 +35902,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	// report timings
 	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	if (GMRFLib_dot_product_optim_report) {
-		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-			for (int j = 0; j < 9; j++) {
+		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+			for (j = 0; j < 9; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
 			}
 		}
@@ -36150,7 +36058,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			GMRFLib_idxval_tp *idx = NULL;
 			GMRFLib_lc_tp *lc = mb->lc_lc[k];
 			for (int ii = 0; ii < lc->n; ii++) {
-				int i = lc->idx[ii];
+				i = lc->idx[ii];
 				double w = lc->weight[ii];
 				if (debug) {
 					printf("lc[%1d] decode [idx= %1d, weight= %.8f]\n", k, i, w);
@@ -36164,7 +36072,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 						AA = preopt->A_idxval[lc->idx[ii] - mpred];
 					}
 
-					for (int j = 0; j < AA->n; j++) {
+					for (j = 0; j < AA->n; j++) {
 						GMRFLib_idxval_addto(&idx, AA->idx[j] + mnpred, w * AA->val[j]);
 					}
 				} else {
@@ -36186,7 +36094,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	Free(G_norm_const_compute);
 	Free(G_norm_const);
-	for (int i = 0; i < G_norm_const_len; i++) {
+	for (i = 0; i < G_norm_const_len; i++) {
 		Free(G_norm_const_v[i]);
 	}
 	Free(G_norm_const_v);
@@ -36194,18 +36102,18 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	G_norm_const_compute = Calloc(preopt->Npred, char);
 	G_norm_const = Calloc(preopt->Npred, double);
 	G_norm_const_v = Calloc(preopt->Npred, void *);
-	for (int i = 0; i < preopt->Npred; i++) {
+	for (i = 0; i < preopt->Npred; i++) {
 		G_norm_const[i] = NAN;
 		G_norm_const_compute[i] = 1;
 	}
 
 	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values && (mb->gaussian_data == GMRFLib_FALSE)) {
-		double tref = -GMRFLib_cpu();
+		tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 		printf("\nCompute initial values...\n");
 
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-		for (int i = 0; i < preopt->Npred; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+		for (i = 0; i < preopt->Npred; i++) {
 			if (mb->d[i]) {
 				eta_pseudo[i] = inla_compute_initial_value(i, mb->loglikelihood[i], x, (void *) mb->loglikelihood_arg[i]);
 			} else {
@@ -36221,8 +36129,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		double s0 = 1.0;
 
 		if (preopt->pAAt_idxval) {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-			for (int i = 0; i < preopt->n; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+			for (i = 0; i < preopt->n; i++) {
 				double s = 0.0;
 				for (int k = 0; k < preopt->pAAt_idxval[i]->n; k++) {
 					s += SQR(preopt->pAAt_idxval[i]->val[k]);
@@ -36230,8 +36138,8 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				scale[i] = 1.0 / (s0 + DMAX(0.0, s));
 			}
 		} else {
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-			for (int i = 0; i < preopt->n; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+			for (i = 0; i < preopt->n; i++) {
 				double s = 0.0;
 				for (int k = 0; k < preopt->AtA_idxval[i][0]->n; k++) {
 					s += preopt->AtA_idxval[i][0]->val[k];
@@ -36258,7 +36166,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 #else
 			{
 #pragma GCC ivdep
-				for (int i = 0; i < preopt->Npred; i++) {
+				for (i = 0; i < preopt->Npred; i++) {
 					e[i] = eta_pseudo[i] - eta[i];
 				}
 			}
@@ -36268,7 +36176,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			GMRFLib_preopt_bnew_like(bb, e, preopt);
 
 #pragma GCC ivdep
-			for (int i = 0; i < preopt->n; i++) {
+			for (i = 0; i < preopt->n; i++) {
 				// this computes 'd[i] = scale[i] * bb[i]' as d=bb as set above
 				d[i] *= scale[i];
 			}
@@ -36291,10 +36199,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 		tref += GMRFLib_cpu();
 		printf("\tInitial values computed in %.4f seconds\n", tref);
-		for (int i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
+		for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
 			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
 		}
-		for (int i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
+		for (i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
 			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
 		}
 		printf("\n");
@@ -36450,9 +36358,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			assert(ret == total_len);
 
 			mb->gcpo_param->groups = GMRFLib_idxval_ncreate_x(len, IMAX(3, (total_len - len) / len));
-			for (int i = 0; i < len; i++) {
+			for (i = 0; i < len; i++) {
 				glen = buffer[offset++];
-				for (int j = 0; j < glen; j++) {
+				for (j = 0; j < glen; j++) {
 					GMRFLib_idxval_add(&(mb->gcpo_param->groups[i]), buffer[offset++], NAN);
 				}
 				if (mb->gcpo_param->verbose) {
@@ -36464,7 +36372,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 				}
 			}
 			mb->gcpo_param->ngroups = len;
-			for (int i = 0; i < len; i++) {
+			for (i = 0; i < len; i++) {
 				ngroups_eff += (mb->gcpo_param->groups[i]->n > 0 ? 1 : 0);
 			}
 			assert(offset == total_len);
@@ -36483,7 +36391,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 				int *buffer = Calloc(len, int);
 				ret = fread((void *) buffer, sizeof(int), (size_t) len, fp);
 				assert(ret == len);
-				for (int i = 0; i < len; i++) {
+				for (i = 0; i < len; i++) {
 					if (mb->gcpo_param->verbose) {
 						printf("%s: add idx %d\n", __GMRFLib_FuncName, buffer[i]);
 					}
@@ -36573,7 +36481,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 
 			if (mb->gcpo_param->keep) {
 				printf("\t\t\t\tkeep=[");
-				for (int i = 0; i < mb->gcpo_param->keep->n; i++) {
+				for (i = 0; i < mb->gcpo_param->keep->n; i++) {
 					if (i) {
 						printf(" ");
 					}
@@ -36587,7 +36495,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			printf("\t\t\t\tremove.fixed=[%1d]\n", mb->gcpo_param->remove_fixed);
 			if (mb->gcpo_param->remove) {
 				printf("\t\t\t\tremove=[");
-				for (int i = 0; i < mb->gcpo_param->remove->n; i++) {
+				for (i = 0; i < mb->gcpo_param->remove->n; i++) {
 					if (i) {
 						printf(" ");
 					}
@@ -37539,7 +37447,6 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 		assert(lc_order);
 		int n = mo->compute_corr_lin;
 		int *order = Calloc(n, int);
-		int i;
 
 		for (i = 0; i < n; i++) {
 			order[i] = (int) lc_order[i] - 1;
@@ -38003,10 +37910,10 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		double zm = inla_interpolate_mode(z + ii, ldz + ii);	\
 		double zm_orig = zm;					\
 		int m = 5;						\
-		int low = IMAX(0, i_max - m);				\
-		int high = IMIN(np-1, i_max + m);			\
-		int len = high - low + 1;				\
-		GMRFLib_spline_tp *lds = GMRFLib_spline_create(z + low, ldz + low, len); \
+		int low_ = IMAX(0, i_max - m);				\
+		int high_ = IMIN(np-1, i_max + m);			\
+		int len = high_ - low_ + 1;				\
+		GMRFLib_spline_tp *lds = GMRFLib_spline_create(z + low_, ldz + low_, len); \
 		if (lds == NULL) {					\
 			*d_mode = zm_orig;				\
 		} else {						\
@@ -38067,8 +37974,8 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// then we can do better
-		int np = GMRFLib_INT_GHQ_POINTS;
-		double *xp = NULL, *wp = NULL;
+		np = GMRFLib_INT_GHQ_POINTS;
+		double *wp = NULL;
 		double mean = density->user_mean;
 		double stdev = density->user_stdev;
 
@@ -38083,7 +37990,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		m2 = 0.0;
 
 		if (d_mode) {
-			for (int i = 0; i < np; i++) {
+			for (i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
 				double df = _MAP_DX(x);
@@ -38097,7 +38004,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 				}
 			}
 		} else {
-			for (int i = 0; i < np; i++) {
+			for (i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
 				m1 += wp[i] * f;
@@ -38896,8 +38803,8 @@ int inla_qsample(const char *filename, const char *outfile, const char *nsamples
 		}
 	} else {
 		GMRFLib_problem_tp **problems = Calloc(GMRFLib_openmp->max_threads_outer, GMRFLib_problem_tp *);
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
-		for (int i = 0; i < ns; i++) {
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+		for (i = 0; i < ns; i++) {
 			int thread = omp_get_thread_num();
 			if (problems[thread] == NULL) {
 				problems[thread] = GMRFLib_duplicate_problem(problem, 0, 1, 1);
@@ -39410,7 +39317,7 @@ int testit(int argc, char **argv)
 {
 	int test_no = -1;
 	char **args = NULL;
-	int nargs = 0, i, j;
+	int nargs = 0;
 
 	if (argc > 0) {
 		test_no = atoi(argv[0]);
@@ -39418,7 +39325,7 @@ int testit(int argc, char **argv)
 		args = &(argv[1]);
 	}
 	printf("test_no = %1d  nargs = %1d\n", test_no, nargs);
-	for (i = 0; i < nargs; i++) {
+	for (int i = 0; i < nargs; i++) {
 		printf("\targs[%d] = %s\n", i, args[i]);
 	}
 
@@ -39678,14 +39585,13 @@ int testit(int argc, char **argv)
 
 		double *xx = NULL;
 		int nxx;
-		int i;
 #pragma omp parallel for
 		for (int i = 0; i < 10; i++) {
 			inla_R_funcall2(&nxx, &xx, "lprior2", "ThisIsTheTag", &nx, x);
 		}
 		inla_R_funcall2(&nxx, &xx, "lprior2", NULL, &nx, x);
 
-		for (i = 0; i < nxx; i++) {
+		for (int i = 0; i < nxx; i++) {
 			printf("lprior2[%1d] = %f\n", i, xx[i]);
 		}
 
@@ -39722,9 +39628,9 @@ int testit(int argc, char **argv)
 		int ntimes = 10, itim;
 
 		for (itim = 0; itim < ntimes; itim++) {
-#pragma omp parallel for private(i, jj, j)
+#pragma omp parallel for private(i, jj, j, thread_id)
 			for (i = 0; i < n; i++) {
-				int thread_id = omp_get_thread_num();
+				thread_id = omp_get_thread_num();
 				Q->A[i + i * n] = inla_spde3_Qfunction(thread_id, i, i, NULL, (void *) smodel);
 				for (jj = 0; jj < smodel->graph->nnbs[i]; jj++) {
 					j = smodel->graph->nbs[i][jj];
@@ -40596,7 +40502,7 @@ int testit(int argc, char **argv)
 
 #pragma omp parallel for private(iy, y, ldens) reduction(+:sum)
 		for (iy = 0; iy < 100000; iy++) {
-			double y = SQR(dy) + iy * dy;
+			y = SQR(dy) + iy * dy;
 			dtweedie(1, y, &mu, phi, p, &ldens);
 			printf("LDENS %f %f\n", y, ldens);
 			sum += dy * exp(ldens);
@@ -40684,14 +40590,14 @@ int testit(int argc, char **argv)
 
 	case 56:
 	{
-		for (i = 0, j = 1; i < 10; i++, j = j + 2) {
+		for (int i = 0, j = 1; i < 10; i++, j = j + 2) {
 			double lambda = exp(-1 + GMRFLib_uniform());
 			double nnew = inla_poisson_interval(lambda, i, j);
 			double gsl = (gsl_cdf_poisson_P((unsigned) j, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
 			printf("lambda %f from= %d to= %d: nnew %f gsl %f diff %.12f\n", lambda, i, j, nnew, gsl, nnew - gsl);
 		}
 		// j < 0 <==> j=INF
-		for (i = 0, j = -1; i < 10; i++) {
+		for (int i = 0, j = -1; i < 10; i++) {
 			double lambda = exp(-1 + GMRFLib_uniform());
 			double nnew = inla_poisson_interval(lambda, i, j);
 			double gsl = (gsl_cdf_poisson_P((unsigned) 1000, lambda) - (i <= 0 ? 0.0 : gsl_cdf_poisson_P((unsigned) (i - 1), lambda)));
@@ -41117,7 +41023,7 @@ int testit(int argc, char **argv)
 		double *y = Calloc_get(n);
 
 		double z = 0.0;
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			x[i] = -6.0 + i * dx;
 			// this one is normalized
 			y[i] = log(2.0) + log(1.0 / sqrt(2.0 * M_PI)) - 0.5 * SQR(x[i]) + inla_log_Phi(1.0 * x[i]);
@@ -41128,7 +41034,7 @@ int testit(int argc, char **argv)
 		GMRFLib_density_create(&density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, y, 0.0, 1.0, 1);
 		GMRFLib_density_printf(stdout, density);
 
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			x[i] = -6.0 + i * dx;
 			double yy;
 			GMRFLib_evaluate_logdensity(&yy, x[i], density);
@@ -42619,7 +42525,7 @@ int main(int argc, char **argv)
 
 	// I need to set it here as it depends on MAX_THREADS
 	GMRFLib_dot_product_optim_report = Calloc(GMRFLib_CACHE_LEN, double *);
-	for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+	for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 		GMRFLib_dot_product_optim_report[i] = Calloc(9, double);
 	}
 

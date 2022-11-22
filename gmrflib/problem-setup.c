@@ -379,10 +379,10 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp * problem, int idx)
 	}
 
 	if ((problem->sub_constr && problem->sub_constr->nc > 0)) {
-		int nc = problem->sub_constr->nc, inc = 1;
+		int nnc = problem->sub_constr->nc, inc = 1;
 		double alpha = -1.0, beta = 1.0, *t_vector = wwork[cache_idx] + n;
 		GMRFLib_eval_constr0(t_vector, NULL, xx, problem->sub_constr, problem->sub_graph);
-		dgemv_("N", &n, &nc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
+		dgemv_("N", &n, &nnc, &alpha, problem->constr_m, &n, t_vector, &inc, &beta, xx, &inc, F_ONE);
 	}
 
 	Memcpy(x, xx, n * sizeof(double));
@@ -1923,7 +1923,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp * graph, size_t *nnz_opt, int *use
 		cputime = Calloc(nk, double);
 
 		for (k = 0; k < nk; k++) {
-			int *iperm = NULL, *perm = NULL, ii, kkk, use_global_nodes;
+			int *iperm = NULL, *perm = NULL, ii, kkk;
 			supernodal_factor_matrix *TAUCS_symb_fact = NULL;
 			taucs_ccs_matrix *L = NULL;
 
