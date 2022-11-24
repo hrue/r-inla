@@ -7195,7 +7195,24 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				GMRFLib_DEBUG_i("found nlevels", nlevels); \
 				GMRFLib_DEBUG_i("levels_ok", levels_ok); \
 			}						\
-			GMRFLib_idxval_sort(groups[node]);		\
+			if (gcpo_param->friends) {			\
+				int group_n = groups[node]->n;		\
+				for (int i = 0; i < group_n; i++) {	\
+					int new_node = groups[node]->idx[i]; \
+					if (new_node < gcpo_param->friends_n) { \
+						for (int j = 0; j < gcpo_param->friends[new_node]->n; j++) { \
+							int new_node2 = gcpo_param->friends[new_node]->idx[j]; \
+							if (LEGAL(new_node2, Npred)) { \
+								GMRFLib_idxval_add(&(groups[node]), new_node2, cor[new_node2]); \
+							}		\
+						}			\
+					}				\
+				}					\
+			}						\
+			/* no prepare or accumulate */			\
+			GMRFLib_idxval_nsort_x(&(groups[node]), 1, 1, 0, 0); \
+			if (0) P(node);					\
+			if (0) GMRFLib_idxval_printf(stdout, groups[node], "after adding friends"); \
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 5, N);

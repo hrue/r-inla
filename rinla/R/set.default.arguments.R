@@ -328,6 +328,7 @@
                                 strategy = c("posterior", "prior"),
                                 groups = NULL,
                                 selection = NULL,
+                                friends = NULL, 
                                 verbose = FALSE,
                                 epsilon = 0.005,
                                 prior.diagonal = 1e-4, 

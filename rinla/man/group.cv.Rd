@@ -16,6 +16,7 @@ inla.group.cv(result,
           strategy = c("posterior", "prior"), 
           groups = NULL, 
           selection = NULL, 
+          friends = NULL, 
           verbose = FALSE, 
           epsilon = 0.0025, 
           prior.diagonal = 1e-04, 
@@ -36,6 +37,7 @@ group-size is larger, it will be truncated to \code{size.max}.}
 See the  vignette for details.}
 \item{selection}{An optional list of data-indices to use.
 If not given, then all data are used.}
+\item{friends}{An optional list of lists of indices to use a friends}
 \item{verbose}{Run with \code{verbose} output of some of the internals
 in the  calculations. This option will also
 enable \code{inla(...,  verbose=TRUE)} if its not enabled already.}

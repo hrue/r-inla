@@ -36243,7 +36243,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	 * the program defaults are NULL. 
 	 */
 	int i, j, use_defaults = 1, ret, ngroups_eff = 0;
-	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile;
+	char *secname = NULL, *tmp = NULL, *gfile = NULL, *sfile = NULL, *ffile = NULL;
 
 	secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 	if (!mb->output) {
@@ -36300,6 +36300,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			Memcpy((*out)->cdf, mb->output->cdf, (size_t) mb->output->ncdf * sizeof(double));
 		}
 	}
+
 	if (!(mb->gcpo_param)) {
 		mb->gcpo_param = Calloc(1, GMRFLib_gcpo_param_tp);
 		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
@@ -36340,7 +36341,8 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 
 		gfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.GROUPS"), NULL));
 		sfile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.SELECTION"), NULL));
-		assert(!(gfile && sfile));
+		ffile = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "GCPO.FRIENDS"), NULL));
+		assert(!(gfile && sfile && ffile));
 
 		if (gfile) {
 			FILE *fp = fopen(gfile, "rb");
@@ -36398,6 +36400,51 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 					GMRFLib_idx_add(&(mb->gcpo_param->selection), buffer[i]);
 				}
 				fclose(fp);
+				Free(buffer);
+			}
+			if (ffile) {
+				FILE *fp = fopen(ffile, "rb");
+				int len;
+				ret = fread((void *) &len, sizeof(int), (size_t) 1, fp);
+				assert(ret == 1);
+				mb->gcpo_param->friends_n = len;
+				if (mb->gcpo_param->verbose) {
+					printf("%s: read friends len %d\n", __GMRFLib_FuncName, len);
+				}
+				assert(len >= 0);
+
+				int len_buffer = 64;
+				int *buffer = Calloc(len_buffer, int);
+				if (len) {
+					mb->gcpo_param->friends = GMRFLib_idx_ncreate_x(len, 4);
+					for (i = 0; i < len; i++) {
+						if (mb->gcpo_param->verbose) {
+							printf("%s: add friends for i=[%1d]: ", __GMRFLib_FuncName, i);
+						}
+						int local_len;
+						ret = fread((void *) &local_len, sizeof(int), (size_t) 1, fp);
+						assert(ret == 1);
+						if (local_len > 0) {
+							if (local_len > len_buffer) {
+								len_buffer = local_len;
+								Free(buffer);
+								buffer = Calloc(len_buffer, int);
+							}
+							ret = fread((void *) buffer, sizeof(int), (size_t) local_len, fp);
+							assert(ret == local_len);
+						}
+						for (j = 0; j < local_len; j++) {
+							GMRFLib_idx_add(&(mb->gcpo_param->friends[i]), buffer[j]);
+							if (mb->gcpo_param->verbose) {
+								printf(" %1d", buffer[j]);
+							}
+						}
+						if (mb->gcpo_param->verbose) {
+							printf("\n");
+						}
+					}
+					fclose(fp);
+				}
 				Free(buffer);
 			}
 		}
@@ -36477,6 +36524,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			}
 			if (mb->gcpo_param->selection) {
 				printf("\t\t\t\tUse user-defined selection, nselection=[%1d]\n", mb->gcpo_param->selection->n);
+			}
+			if (mb->gcpo_param->friends) {
+				printf("\t\t\t\tUse friends-list, n=[%1d]\n", mb->gcpo_param->friends_n);
 			}
 
 			if (mb->gcpo_param->keep) {

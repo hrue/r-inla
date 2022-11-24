@@ -500,10 +500,10 @@ int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
-	return GMRFLib_idxval_nsort_x(hold, n, nt, 0);
+	return GMRFLib_idxval_nsort_x(hold, n, nt, 0, 1);
 }
 
-int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
+int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, int accumulate)
 {
 	const int limit = 8L;
 	const int debug = 0;
@@ -536,11 +536,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 					h->idx[k] = h->idx[j];
 					h->val[k] = h->val[j];
 				} else {
-					h->val[k] += h->val[j];
+					if (accumulate) {
+						h->val[k] += h->val[j];
+					}
 				}
 			}
 			if (debug && (h->n > k + 1)) {
-				printf("Make unique: reduce length from %d to %dn", h->n, k + 1);
+				printf("Make unique: accumulate=[%1d], reduce length from %d to %dn", accumulate, h->n, k + 1);
 			}
 			h->n = k + 1;
 		}
@@ -916,10 +918,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
-	return GMRFLib_idxval_nsort_x(hold, n, nt, 1);
+	return GMRFLib_idxval_nsort_x(hold, n, nt, 1, 1);
 }
 
-int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare)
+int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare, int accumulate)
 {
 	int nmax = 1;
 	for (int i = 0; i < n; i++) {
@@ -952,7 +954,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare
 	}
 #define CODE_BLOCK							\
 	for(int k = 0; k < n; k++) {					\
-		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare);	\
+		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare, accumulate); \
 	}
 
 	RUN_CODE_BLOCK_DYNAMIC(nt, 0, 0);
