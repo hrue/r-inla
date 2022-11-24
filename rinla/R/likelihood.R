@@ -3,29 +3,17 @@
 ## ! \name{inla.likelihood}
 ## ! \alias{likelilhood}
 ## !
-## ! \title{Compute log-likelihood and CDF for new data using the likeilhood from a inla-object}
+## ! \title{Providing functions for sampling new data, evaluating pdf, cdf, and quantiles for new data.}
 ## !
-## ! \description{This function computes the log-likeilhood and computes the CDF for new data
-## ! using the likelihood from a inla-object}
+## ! \description{This function return function to compute the pdf,cdf,quantiles, or samples for new data
+## ! using the likelihood from a inla-object.}
 ## ! \usage{
-## !     inla.likelihood(y, type = c("loglik", "CDF"), linear.predictor = numeric(0), 
-## !                     family = "gaussian", theta = NULL, E = 1, scale = 1,  
-## !                     Ntrials = 1,  strata = 1,
-## !                     link.model = "default", link.covariates = NULL)
+## !     inla.likelihood(type = c(d,r,p,q),args)
 ## ! }
 ## !
 ## ! \arguments{
-## !   \item{y}{Data point/vector}
-## !   \item{type}{Return log-liklihood or the CDF?}
-## !   \item{linear.predictor}{A vector of linear predictors for the liklihood/CDF to be
-## !         evaluated at}
-## !   \item{family}{The family}
-## !   \item{theta}{Vector of hyperparameters in the internal scale, that goes into this likelihood}
-## !   \item{E}{Constrant E for Poisson-like likehoods}
-## !   \item{scale}{scaling, like for Gaussian likehood}
-## !   \item{Ntrails}{Number of trials in Binomial-like likelihood}
-## !   \item{link.model}{The link-model used}
-## !   \item{link.covariates}{Possible covariates that goes into the link.model}
+## !   \item{type}{The returned function type. The definition is similar to "rnorm","dnorm","pnorm",and "dnorm".}
+## !   \item{args}{It is usually a return value from "inla.likelihood.parser", which specifies parameters, link function and transformation function of hyperparameters.}
 ## !}
 ## !\details{Details goes here}
 ## !\value{value goes here}
@@ -33,150 +21,120 @@
 ## !
 ## !\examples{
 ## ! }
- 
-
-`poisson.likelihood.d` <- function(y, linear.predictor, E, inv.link.function, ...)
-{
-    return (dpois(y, lambda = E * inv.link.function(linear.predictor), log = TRUE))
-}
-
-`poisson.likelihood.p` <- function(y, linear.predictor, E, inv.link.function, ...)
-{
-    return (ppois(y, lambda = E * inv.link.function(linear.predictor)))
-}
-
-`gaussian.likelihood.d` <- function(y, linear.predictor, scale, inv.link.function,
-                                    theta, ...) {
-    s <- 1 / sqrt(exp(theta) * scale)
-    return (dnorm(y, m = inv.link.function(linear.predictor), sd = s, log = TRUE))
-}
-
-`gaussian.likelihood.p` <- function(y, linear.predictor, scale, inv.link.function,
-                                    theta, ...) {
-    s <- 1 / sqrt(exp(theta[1]) * scale)
-    return (pnorm(y, m = inv.link.function(linear.predictor), sd = s))
-}
-
-`inla.surv.likelihood.d` <- function(...) {
-    inla.surv.likelihood.core(..., internal.type = "d")
-}
-
-`inla.surv.likelihood.p` <- function(...) {
-    inla.surv.likelihood.core(..., internal.type = "p")
-}
-
-
-## for weibull,  scale=exp(lin.predictor),  usually
-weibull.likelihood.d <- function(y, alpha, scale) {
-    return (dweibull(y, shape = alpha, scale = scale, log = TRUE))
-}
-weibull.likelihood.p <- function(y, alpha, scale) {
-    return (pweibull(y, shape = alpha, scale = scale))
-}
-
-`inla.surv.likelihood.core` <- function(...) {
-    args <- list(...)
-    stopifnot(args$internal.type == "d")
-
-    if (args$family.arg.str$family == "weibull") {
-        stopifnot(args$family.arg.str$variant == 1)
-        ##
-        ## should we use 'alpha' or 'theta' ? 
-        ##
-        p.like <- function(y) weibull.likelihood.p(y, alpha = shape, scale = scale)
-        d.like <- function(y) weibull.likelihood.d(y, alpha = shape, scale = scale)
-    } else {
-        stop("NOT YET IMPLEMENTED")
+weibull.likelihood = function(args){
+    stopifnot(args$variant == 1)
+    shape = inla.models()$likelihood$weibull$hyper$theta$from.theta(args$theta)
+    scale = args$inv.link.function(args$linear.predictor)
+    islog = args$log
+    lower.tail = args$lower.tail
+    if(args$type == "r"){
+        fun = function(n){
+            return(rweibull(n,scale = scale,shape = shape))
+        }
+    }else if(args$type == "d"){
+        fun = function(x){
+            return(dweibull(x = x,scale = scale,shape = shape,log = islog))
+        }
+    }else if(args$type == "p"){
+        fun = function(q){
+            return(pweibull(q = q,scale = scale,shape = shape,log.p = islog,lower.tail = lower.tail))
+        }
+    }else if(args$type == "q"){
+        fun = function(p){
+            return(qweibull(p = p,scale = scale,shape = shape,log.p = islog,lower.tail = lower.tail))
+        }
     }
-
-    ## shoud we use 'alpha' or compute it from 'theta'
-    y <- args$y.surv$time
-    event <- args$y.surv$event
-    shape <- args$family.arg.str$alpha
-    scale <- args$inv.link.function(args$linear.predictor)
-    truncation <- args$y.surv$truncation
-    lower <- args$y.surv$lower
-    upper <- args$y.surv$upper
-
-    ## do we need to rebuild 'cure.prob' ? 
-    pcure <- args$cure.prob
-
-    ld <- if (event == 1 || event == 4) d.like(y) else NA
-
-    if (truncation > 0) {
-        F.trunc <- p.like(truncation)
-        FF.trunc <- 1.0/(1.0 - F.trunc)
-    } else {
-        F.trunc <- 0
-        FF.trunc <- 1.0
-    }
-
-    if (event == 0 || event == 3 || event == 4) {
-        F.lower <- p.like(lower)
-        F.lower <- (F.lower - F.trunc) * FF.trunc
-    } else {
-        F.lower <- NA
-    }
-
-    if (event == 2 || event == 3 || event == 4) {
-        F.upper <- p.like(upper)
-        F.upper <-  (F.upper - F.trunc) * FF.trunc
-    } else {
-        F.upper <- NA
-    }
-
-    ## this copied from the function loglikelihood_generic_surv_NEW in inla.c
-    if (event == 1) {
-        ## EVENT_FAILURE
-        return (ld + log(FF.trunc))
-    } else if (event == 0) {
-        ## EVENT_RIGHT
-        return (log(pcure + (1.0 - pcure) * (1.0 - F.lower)))
-    } else if (event == 2) {
-        ## EVENT_LEFT
-        return (log((1.0 - pcure) * F.upper))
-    } else if (event == 3) {
-        ## EVENT_INTERVAL
-        return (log((1.0 - pcure) * (F.upper - F.lower)))
-    } else if (event == 4) {
-        ## EVENT_ININTERVAL
-        return (log(1.0 - pcure) + ld - log(F.upper - F.lower))
-    } 
-
-    stop("This should not happen")
-}
-
-`inla.likelihood` <- function(y = NULL, y.surv = NULL, type = c("loglik", "CDF"), linear.predictor = NULL, 
-                              family = "gaussian", theta = NULL, E = 1, scale = 1,  
-                              Ntrials = 1,  strata = 1,
-                              cure.prob = 0, cure.beta = c(), cure.covariates = c(),
-                              family.arg.str = NULL, 
-                              link.model = NULL, link.covariates = NULL) 
-{
-    type <- match.arg(type)
-    if (family == "normal") family <- "gaussian"
     
-    ## for surv-models,  then the link is defined in family.arg.str$...
-    if (!is.null(link.model)) {
-        inv.link.function <- eval(parse(text = paste0("inla.link.inv", tolower(link.model))))
-    } else {
-        inv.link.function <- eval(parse(text = paste0("inla.link.inv",
-                                                      tolower(family.arg.str$link.model))))
-    }
-    fun <- eval(parse(text = paste0(family, ".likelihood.", if (type == "loglik") "d" else "p")))
-
-    return (fun(y = y,
-                y.surv = y.surv,
-                theta = theta,
-                E = E,
-                scale = scale, 
-                Ntrials = Ntrials,
-                strata = strata,
-                inv.link.function = inv.link.function,
-                link.covariates = link.covariates, linear.predictor = linear.predictor,
-                ## survival stuff
-                cure.prob = cure.prob,
-                cure.beta = cure.beta,
-                cure.covariates = cure.covariates,
-                family.arg.str = family.arg.str))
+    return (fun)
 }
+
+poisson.likelihood = function(args){
+    lambda = args$inv.link.function(args$linear.predictor)
+    islog = args$log
+    lower.tail = args$lower.tail
+    if(args$type == "r"){
+        fun = function(n){
+            return(rpois(n = n,lambda = lambda))
+        }
+    }else if(args$type == "d"){
+        fun = function(x){
+            return(dpois(x = x,lambda = lambda,log = islog))
+        }
+    }else if(args$type == "p"){
+        fun = function(q){
+            return(ppois(q = q,lambda = lambda,log.p = islog,lower.tail = lower.tail))
+        }
+    }else if(args$type == "q"){
+        fun = function(p){
+            return(qpois(p = p,lambda = lambda,log.p  = islog,lower.tail = lower.tail))
+        }
+    }
+    
+    return (fun)
+}
+
+gaussian.likelihood = function(args){
+    mean = args$inv.link.function(args$linear.predictor)
+    prec = inla.models()$likelihood$gaussian$hyper$theta1$from.theta(args$theta)
+    scale = args$scale
+    stdev = 1/sqrt(prec*scale)
+    islog = args$log
+    lower.tail = args$lower.tail
+    if(args$type == "r"){
+        fun = function(n){
+            return(rnorm(n = n,mean = mean,sd = stdev))
+        }
+    }else if(args$type == "d"){
+        fun = function(x){
+            return(dnorm(x = x,mean = mean,sd = stdev,log = islog))
+        }
+    }else if(args$type == "p"){
+        fun = function(q){
+            return(pnorm(q = q,mean = mean,sd = stdev,log.p = islog,lower.tail = lower.tail))
+        }
+    }else if(args$type == "q"){
+        fun = function(p){
+            return(qnorm(p = p,mean = mean,sd = stdev,log.p  = islog,lower.tail = lower.tail))
+        }
+    }
+    
+    return (fun)
+}
+
+
+
+inla.likelihood = function(type = c("d","p","r","q"),args){
+    stopifnot(type %in% c("d","p","r","q"))
+    args$type = type
+    fun = eval(parse(text = paste0(args$family, ".likelihood")))
+    return(fun(args))
+}
+
+inla.likelihood.parser = function(arg_string){
+    args_raw = eval(parse(text = arg_string))
+    args_res = list()
+    if(args_raw$family == "inla.surv"){
+        args_raw = args_raw$family.arg.str
+    }
+    args_res$family = args_raw$family
+    args_res$linear.predictor = args_raw$linear.predictor
+    args_res$theta = args_raw$theta
+    args_res$inv.link.function = eval(parse(text = paste0("inla.link.inv",tolower(args_raw$link.model))))
+    args_res$log = FALSE
+    args_res$lower.p = TRUE
+    #For Weibulll, we only allow variant 1.
+    args_res$variant = args_raw$variant
+    
+    #For poisson ... 
+    args_res$E = args_raw$E
+    #For Gaussian
+    args_res$scale = args_raw$scale
+    return(args_res)
+}
+
+
+
+
+
+
+
