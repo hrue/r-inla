@@ -45,6 +45,11 @@
     return (ppois(y, lambda = E * inv.link.function(linear.predictor)))
 }
 
+`poisson.likelihood.r` <- function(n, linear.predictor, E, inv.link.function, ...)
+{
+    return (rpois(n, lambda = E * inv.link.function(linear.predictor)))
+}
+
 `gaussian.likelihood.d` <- function(y, linear.predictor, scale, inv.link.function,
                                     theta, ...) {
     s <- 1 / sqrt(exp(theta) * scale)
@@ -55,6 +60,12 @@
                                     theta, ...) {
     s <- 1 / sqrt(exp(theta[1]) * scale)
     return (pnorm(y, m = inv.link.function(linear.predictor), sd = s))
+}
+
+`gaussian.likelihood.r` <- function(n, linear.predictor, scale, inv.link.function,
+                                    theta, ...) {
+    s <- 1 / sqrt(exp(theta[1]) * scale)
+    return (rnorm(n, m = inv.link.function(linear.predictor), sd = s))
 }
 
 `inla.surv.likelihood.d` <- function(...) {
@@ -93,7 +104,7 @@ weibull.likelihood.p <- function(y, alpha, scale) {
     y <- args$y.surv$time
     event <- args$y.surv$event
     shape <- args$family.arg.str$alpha
-    scale <- args$inv.link.function(args$linear.predictor)
+    scale <- args$inv.link.function(args$family.arg.str$linear.predictor)
     truncation <- args$y.surv$truncation
     lower <- args$y.surv$lower
     upper <- args$y.surv$upper
@@ -146,7 +157,7 @@ weibull.likelihood.p <- function(y, alpha, scale) {
     stop("This should not happen")
 }
 
-`inla.likelihood` <- function(y = NULL, y.surv = NULL, type = c("loglik", "CDF"), linear.predictor = NULL, 
+`inla.likelihood` <- function(y = NULL, n = 1,y.surv = NULL, type = c("loglik", "CDF","sample"), linear.predictor = NULL, 
                               family = "gaussian", theta = NULL, E = 1, scale = 1,  
                               Ntrials = 1,  strata = 1,
                               cure.prob = 0, cure.beta = c(), cure.covariates = c(),
@@ -163,9 +174,10 @@ weibull.likelihood.p <- function(y, alpha, scale) {
         inv.link.function <- eval(parse(text = paste0("inla.link.inv",
                                                       tolower(family.arg.str$link.model))))
     }
-    fun <- eval(parse(text = paste0(family, ".likelihood.", if (type == "loglik") "d" else "p")))
-
+    fun <- eval(parse(text = paste0(family, ".likelihood.", if (type == "loglik") "d" else if(type == "CDF") "p" else "r")))
+    
     return (fun(y = y,
+                n = n,
                 y.surv = y.surv,
                 theta = theta,
                 E = E,
@@ -173,7 +185,8 @@ weibull.likelihood.p <- function(y, alpha, scale) {
                 Ntrials = Ntrials,
                 strata = strata,
                 inv.link.function = inv.link.function,
-                link.covariates = link.covariates, linear.predictor = linear.predictor,
+                link.covariates = link.covariates, 
+                linear.predictor = linear.predictor,
                 ## survival stuff
                 cure.prob = cure.prob,
                 cure.beta = cure.beta,
