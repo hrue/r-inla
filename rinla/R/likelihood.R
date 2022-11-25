@@ -43,6 +43,10 @@ weibull.likelihood = function(args){
         fun = function(p){
             return(qweibull(p = p,scale = scale,shape = shape,log.p = islog,lower.tail = lower.tail))
         }
+    }else if(args$type == "s"){
+        fun = function(q){
+            return(pweibull(q = q,scale = scale,shape = shape,log.p = islog,lower.tail = FALSE))
+        }
     }
     
     return (fun)
@@ -67,6 +71,10 @@ poisson.likelihood = function(args){
     }else if(args$type == "q"){
         fun = function(p){
             return(qpois(p = p,lambda = lambda,log.p  = islog,lower.tail = lower.tail))
+        }
+    }else if(args$type == "s"){
+        fun = function(q){
+            return(ppois(q = q,lambda = lambda,log.p = islog,lower.tail = FALSE))
         }
     }
     
@@ -96,6 +104,10 @@ gaussian.likelihood = function(args){
         fun = function(p){
             return(qnorm(p = p,mean = mean,sd = stdev,log.p  = islog,lower.tail = lower.tail))
         }
+    }else if(args$type == "s"){
+        fun = function(q){
+            return(pnorm(q = q,mean = mean,sd = stdev,log.p = islog,lower.tail = FALSE))
+        }
     }
     
     return (fun)
@@ -103,8 +115,8 @@ gaussian.likelihood = function(args){
 
 
 
-inla.likelihood = function(type = c("d","p","r","q"),args){
-    stopifnot(type %in% c("d","p","r","q"))
+inla.likelihood = function(type = c("d","p","r","q","s"),args){
+    stopifnot(type %in% c("d","p","r","q","s"))
     args$type = type
     fun = eval(parse(text = paste0(args$family, ".likelihood")))
     return(fun(args))
@@ -121,10 +133,9 @@ inla.likelihood.parser = function(arg_string){
     args_res$theta = args_raw$theta
     args_res$inv.link.function = eval(parse(text = paste0("inla.link.inv",tolower(args_raw$link.model))))
     args_res$log = FALSE
-    args_res$lower.p = TRUE
+    args_res$lower.tail = TRUE
     #For Weibulll, we only allow variant 1.
     args_res$variant = args_raw$variant
-    
     #For poisson ... 
     args_res$E = args_raw$E
     #For Gaussian
