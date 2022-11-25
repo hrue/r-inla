@@ -297,7 +297,7 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	 * 
 	 * so, upper half only
 	 */
-	assert(data->n_smat > 0);
+	assert(data->n_smats > 0);
 	assert(!strcasecmp(data->smats[0]->name, "Cmatrix"));
 	inla_cgeneric_smat_tp *Cmatrix = data->smats[0];
 	assert(N == Cmatrix->nrow);
