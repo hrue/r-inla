@@ -907,7 +907,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
 		}
 		GMRFLib_dot_product_optim_report[idx][4] += tmin;
-		GMRFLib_dot_product_optim_report[idx][8]++;	/* count... */
+		GMRFLib_dot_product_optim_report[idx][8]++;    /* count... */
 	}
 
 	time_min += tmin / ntimes;
@@ -1079,7 +1079,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

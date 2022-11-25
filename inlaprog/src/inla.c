@@ -1394,8 +1394,7 @@ double map_invtan(double x, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double link_this_should_not_happen(int UNUSED(thread_id), double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param),
-					       double *UNUSED(cov))
+double link_this_should_not_happen(int UNUSED(thread_id), double UNUSED(x), map_arg_tp UNUSED(typ), void *UNUSED(param), double *UNUSED(cov))
 {
 	/*
 	 * the link-functions calls the inverse map-function 
@@ -9318,9 +9317,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
