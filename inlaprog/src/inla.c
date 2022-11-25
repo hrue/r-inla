@@ -120,6 +120,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define POM_MAXTHETA (10L)				       /* as given in models.R */
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
+#define POISSON0_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
@@ -5393,6 +5394,20 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	}
 		break;
 
+	case L_0POISSON: 
+	{
+		assert(ncol_data_all <= 3 + POISSON0_MAXTHETA && ncol_data_all >= 3);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		ds->data_observations.poisson0_nbeta = na-1;
+		ds->data_observations.poisson0_x = Calloc(na, double *);
+		a[0] = ds->data_observations.poisson0_E = Calloc(mb->predictor_ndata, double);
+		for (i = 1; i < na; i++) {
+			a[i] = ds->data_observations.poisson0_x[i - 1] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
 	default:
 		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 	}
@@ -7141,6 +7156,66 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	LINK_END;
 #undef _logE
 
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			   void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.poisson0_E[idx];
+	double normc;
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact(y);
+		G_norm_const_compute[idx] = 0;
+	}
+	normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double eta1 = 0.0;
+	for (int i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
+		if (0) printf("idx %d i %d beta %g x %g\n", idx, i,  ds->data_observations.poisson0_beta[i][thread_id][0],
+			      ds->data_observations.poisson0_x[i][idx]);
+		eta1 += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
+	}
+	if (m > 0) {
+		double ylEmn = normc;
+		if (ds->variant == 0) {
+			double prob = map_probability(eta1, MAP_FORWARD, NULL);
+			if (y > 0) {
+				double l1mp = log(1.0 - prob);
+#pragma GCC ivdep
+				for (int i = 0; i < m; i++) {
+					double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = l1mp + y * log(lambda) + ylEmn - E * lambda;
+				}
+			} else {
+#pragma GCC ivdep
+				for (int i = 0; i < m; i++) {
+					double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = log(prob + (1.0 - prob) * exp(-lambda));
+				}
+			}
+		} else {
+			assert(ds->variant == 0);
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		double prob = map_probability(eta1, MAP_FORWARD, NULL);
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double mean = E * lambda;
+			logll[i] = prob + (1.0 - prob) * gsl_cdf_poisson_P((unsigned int) *yy, mean);
+		}
+	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 
@@ -13985,6 +14060,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "BGEV")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_bgev;
 		ds->data_id = L_BGEV;
+	} else if (!strcasecmp(ds->data_likelihood, "0POISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0poisson;
+		ds->data_id = L_0POISSON;
 	} else if (!strcasecmp(ds->data_likelihood, "AGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_agaussian;
 		ds->data_id = L_AGAUSSIAN;
@@ -14481,6 +14559,20 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		}
 	}
 		break;
+
+	case L_0POISSON:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.poisson0_E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: 0poisson E[%1d] = %g y[%1d] = %g is void\n", secname, i,
+							ds->data_observations.poisson0_E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+	break;
 
 	case L_AGAUSSIAN:
 	{
@@ -16982,6 +17074,85 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			}
 		}
 
+	}
+		break;
+
+	case L_0POISSON: 
+	{
+		for (i = 0; i < POISSON0_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		ds->data_nfixed = Calloc(POISSON0_MAXTHETA + 1, int);
+		ds->data_nprior = Calloc(POISSON0_MAXTHETA, Prior_tp);
+		ds->data_observations.poisson0_beta = Calloc(POISSON0_MAXTHETA, double **);
+
+		for (i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_NEW(ds->data_observations.poisson0_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i, ds->data_observations.poisson0_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "beta%1d for poisson0 observations", i+1);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.poisson0_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
 	}
 		break;
 
@@ -31139,6 +31310,19 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_0POISSON: 
+			{
+				int nbeta = ds->data_observations.poisson0_nbeta;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+			break;
+			
 			case L_GAMMA:
 			{
 				if (!ds->data_fixed) {

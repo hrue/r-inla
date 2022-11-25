@@ -241,6 +241,7 @@ typedef enum {
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
 	L_GAUSSIANJW,
+	L_0POISSON, 
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -726,6 +727,11 @@ typedef struct {
 	double *gjw_n;
 	double *gjw_df;
 	double *gjw_var;
+
+	double ***poisson0_beta;
+	double poisson0_nbeta;
+	double **poisson0_x;
+	double *poisson0_E;
 } Data_tp;
 
 typedef struct {
@@ -2049,6 +2055,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 				    char **arg_str);
 int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);
