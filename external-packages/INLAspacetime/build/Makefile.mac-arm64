@@ -4,7 +4,7 @@ TARGET = libINLAspacetime.so
 OBJ = cgeneric_ar2ss.o cgeneric_sstspde.o
 
 $(TARGET) : $(OBJ)
-	$(CC) $(ACC) -o $@ -dynamiclib -undefined suppress $^ -lgfortran -lgomp -lm
+	$(CC) $(ACC) -o $@ -dynamiclib $^ -lgfortran -lgomp -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 
