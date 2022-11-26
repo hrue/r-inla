@@ -499,7 +499,7 @@
         ## format: IDX, N, DF, VAR, Y
         response <- cbind(IDX = response$IDX, N = response$Y3, DF = response$Y4, VAR = response$Y2, Y = response$Y1)
 
-    } else if (inla.one.of(family, c("0poisson"))) {
+    } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS"))) {
 
         response <- cbind(ind, y.orig)
         na.dat <- is.na(response[, 2L])
@@ -514,9 +514,10 @@
             cov.names <- NULL
             X <- NULL
         }
-        colnames(response) <- c("IDX", "Y", "E", cov.names)
-        ## format: IDX, E, X1, ...XN, Y
-        response <- cbind(IDX = response$IDX, E = response$E, X, Y = response$Y)
+
+        colnames(response) <- c("IDX", "Y", "EorNtrials", cov.names)
+        ## format: IDX, E/Ntrials, X1, ...XN, Y
+        response <- cbind(IDX = response$IDX, EorNtrials = response$EorNtrials, X, Y = response$Y)
 
     } else if (inla.one.of(family, c("bgev"))) {
 

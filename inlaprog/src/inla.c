@@ -121,6 +121,7 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #define INTSLOPE_MAXTHETA (10L)				       /* as given in models.R */
 #define BGEV_MAXTHETA (10L)
 #define POISSON0_MAXTHETA (10L)
+#define BINOMIAL0_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
@@ -5394,16 +5395,32 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	}
 		break;
 
-	case L_0POISSON: 
+	case L_0POISSON:
+	case L_0POISSONS:
 	{
 		assert(ncol_data_all <= 3 + POISSON0_MAXTHETA && ncol_data_all >= 3);
 		idiv = ncol_data_all;
 		na = ncol_data_all - 2;
-		ds->data_observations.poisson0_nbeta = na-1;
+		ds->data_observations.poisson0_nbeta = na - 1;
 		ds->data_observations.poisson0_x = Calloc(na, double *);
 		a[0] = ds->data_observations.poisson0_E = Calloc(mb->predictor_ndata, double);
 		for (i = 1; i < na; i++) {
 			a[i] = ds->data_observations.poisson0_x[i - 1] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
+	case L_0BINOMIAL:
+	case L_0BINOMIALS:
+	{
+		assert(ncol_data_all <= 3 + BINOMIAL0_MAXTHETA && ncol_data_all >= 3);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		ds->data_observations.binomial0_nbeta = na - 1;
+		ds->data_observations.binomial0_x = Calloc(na, double *);
+		a[0] = ds->data_observations.binomial0_Ntrials = Calloc(mb->predictor_ndata, double);
+		for (i = 1; i < na; i++) {
+			a[i] = ds->data_observations.binomial0_x[i - 1] = Calloc(mb->predictor_ndata, double);
 		}
 	}
 		break;
@@ -7167,51 +7184,246 @@ int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int i
 	}
 
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.poisson0_E[idx];
-	double normc;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.poisson0_E[idx];
 
 	if (G_norm_const_compute[idx]) {
 		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact(y);
 		G_norm_const_compute[idx] = 0;
 	}
-	normc = G_norm_const[idx];
+	double normc = G_norm_const[idx];
 
 	LINK_INIT;
 
-	double eta1 = 0.0;
+	double prob_intern = 0.0;
 	for (int i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
-		if (0) printf("idx %d i %d beta %g x %g\n", idx, i,  ds->data_observations.poisson0_beta[i][thread_id][0],
-			      ds->data_observations.poisson0_x[i][idx]);
-		eta1 += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
+		if (0)
+			printf("idx %d i %d beta %g x %g\n", idx, i, ds->data_observations.poisson0_beta[i][thread_id][0],
+			       ds->data_observations.poisson0_x[i][idx]);
+		prob_intern += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
 	}
+	double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, prob_intern, MAP_FORWARD, NULL, NULL);
+
 	if (m > 0) {
 		double ylEmn = normc;
-		if (ds->variant == 0) {
-			double prob = map_probability(eta1, MAP_FORWARD, NULL);
-			if (y > 0) {
-				double l1mp = log(1.0 - prob);
+		if (y > 0) {
+			double l1mp = log(1.0 - prob);
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-					logll[i] = l1mp + y * log(lambda) + ylEmn - E * lambda;
-				}
-			} else {
-#pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-					logll[i] = log(prob + (1.0 - prob) * exp(-lambda));
-				}
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = l1mp + y * log(lambda) + ylEmn - E * lambda;
 			}
 		} else {
-			assert(ds->variant == 0);
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(prob + (1.0 - prob) * exp(-lambda));
+			}
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
-		double prob = map_probability(eta1, MAP_FORWARD, NULL);
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			double mean = E * lambda;
 			logll[i] = prob + (1.0 - prob) * gsl_cdf_poisson_P((unsigned int) *yy, mean);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double E = ds->data_observations.poisson0_E[idx];
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact(y);
+		G_norm_const_compute[idx] = 0;
+	}
+	double normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	double log_lambda = 0.0;
+	for (int i = 0; i < ds->data_observations.poisson0_nbeta; i++) {
+		log_lambda += ds->data_observations.poisson0_beta[i][thread_id][0] * ds->data_observations.poisson0_x[i][idx];
+	}
+	double lambda = ds->data_observations.link_simple_invlinkfunc(thread_id, log_lambda, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		double lpois = y * log_lambda + normc - E * lambda;
+		if (y > 0) {
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(1.0 - prob) + lpois;
+			}
+		} else {
+			double pois = exp(lpois);
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = log(prob + (1.0 - prob) * pois);
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		double mean = E * lambda;
+		double pois = gsl_cdf_poisson_P((unsigned int) *yy, mean);
+		for (int i = 0; i < -m; i++) {
+			double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = prob + (1.0 - prob) * pois;
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			    void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double n = ds->data_observations.binomial0_Ntrials[idx];
+	double ny = n - y;
+
+	if (ISZERO(y) && ISZERO(n)) {
+		double val = (m > 0 ? 0.0 : 1.0);
+		for (int i = 0; i < m; i++) {
+			logll[i] = val;
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	gsl_sf_result res;
+	if (G_norm_const_compute[idx]) {
+		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		G_norm_const[idx] = res.val;
+		G_norm_const_compute[idx] = 0;
+	}
+	res.val = G_norm_const[idx];
+	LINK_INIT;
+
+	double prob_intern = 0.0;
+	for (int i = 0; i < ds->data_observations.binomial0_nbeta; i++) {
+		prob_intern += ds->data_observations.binomial0_beta[i][thread_id][0] * ds->data_observations.binomial0_x[i][idx];
+	}
+	double prob = ds->data_observations.link_simple_invlinkfunc(thread_id, prob_intern, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		if (y > 0) {
+			double tmp = log(1.0 - prob) + res.val;
+			if (PREDICTOR_LINK_EQ(link_logit)) {
+				double off = OFFSET(idx);
+#pragma GCC ivdep
+				for (int i = 0; i < m; i++) {
+					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					double ee = exp(eta);
+					double log_1mp = -log1p(ee);
+					double log_p = -log1p(1.0 / ee);
+					logll[i] = tmp + y * log_p + ny * log_1mp;
+				}
+			} else {
+#pragma GCC ivdep
+				for (int i = 0; i < m; i++) {
+					double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					logll[i] = tmp + y * log(p) + ny * LOG_ONE_MINUS(p);
+				}
+			}
+		} else {
+			double ltmp = log((1.0 - prob) / prob) + res.val;
+			double lprob = log(prob);
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double tt = exp(ltmp + n * LOG_ONE_MINUS(p));
+				logll[i] = lprob + log1p(tt);
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+
+		for (int i = 0; i < -m; i++) {
+			double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = prob + (1.0 - prob) * gsl_cdf_binomial_P((unsigned int) *yy, p, (unsigned int) n);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
+			     void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx];
+	double n = ds->data_observations.binomial0_Ntrials[idx];
+	double ny = n - y;
+
+	if (ISZERO(y) && ISZERO(n)) {
+		double val = (m > 0 ? 0.0 : 1.0);
+		for (int i = 0; i < m; i++) {
+			logll[i] = val;
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	gsl_sf_result res;
+	if (G_norm_const_compute[idx]) {
+		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
+		G_norm_const[idx] = res.val;
+		G_norm_const_compute[idx] = 0;
+	}
+	res.val = G_norm_const[idx];
+	LINK_INIT;
+
+	double p_intern = 0.0;
+	for (int i = 0; i < ds->data_observations.binomial0_nbeta; i++) {
+		p_intern += ds->data_observations.binomial0_beta[i][thread_id][0] * ds->data_observations.binomial0_x[i][idx];
+	}
+	double p = ds->data_observations.link_simple_invlinkfunc(thread_id, p_intern, MAP_FORWARD, NULL, NULL);
+
+	if (m > 0) {
+		if (y > 0) {
+			double tmp = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				logll[i] = tmp + LOG_ONE_MINUS(prob);
+			}
+		} else {
+			double a = exp(res.val + n * LOG_ONE_MINUS(p));
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double tt = (1.0 - prob) / prob * a;
+				logll[i] = log(prob) + log1p(tt);
+			}
+		}
+	} else {
+		double *yy = (y_cdf ? y_cdf : &y);
+		double val = gsl_cdf_binomial_P((unsigned int) *yy, p, (unsigned int) n);
+		for (int i = 0; i < -m; i++) {
+			double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			logll[i] = prob + (1.0 - prob) * val;
 		}
 	}
 
@@ -8809,17 +9021,16 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			}
 		}
 	} else {
-		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double *yy = (y_cdf ? y_cdf : &y);
 		for (int i = 0; i < -m; i++) {
 			double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
 			p = DMIN(1.0, p);
 			if (ds->variant == 0) {
-				logll[i] = gsl_cdf_binomial_P((unsigned int) y, p, (unsigned int) n);
+				logll[i] = gsl_cdf_binomial_P((unsigned int) *yy, p, (unsigned int) n);
 			} else {
-				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) ny, p, y);
+				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) ny, p, (unsigned int) *yy);
 			}
 		}
-
 	}
 
 	LINK_END;
@@ -9392,9 +9603,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -14063,6 +14274,15 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "0POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0poisson;
 		ds->data_id = L_0POISSON;
+	} else if (!strcasecmp(ds->data_likelihood, "0POISSONS")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0poissonS;
+		ds->data_id = L_0POISSONS;
+	} else if (!strcasecmp(ds->data_likelihood, "0BINOMIAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0binomial;
+		ds->data_id = L_0BINOMIAL;
+	} else if (!strcasecmp(ds->data_likelihood, "0BINOMIALS")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_0binomialS;
+		ds->data_id = L_0BINOMIALS;
 	} else if (!strcasecmp(ds->data_likelihood, "AGAUSSIAN")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_agaussian;
 		ds->data_id = L_AGAUSSIAN;
@@ -14561,18 +14781,34 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		break;
 
 	case L_0POISSON:
+	case L_0POISSONS:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.poisson0_E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
-					GMRFLib_sprintf(&msg, "%s: 0poisson E[%1d] = %g y[%1d] = %g is void\n", secname, i,
+					GMRFLib_sprintf(&msg, "%s: 0poisson(S) E[%1d] = %g y[%1d] = %g is void\n", secname, i,
 							ds->data_observations.poisson0_E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
 		}
 	}
-	break;
+		break;
+
+	case L_0BINOMIAL:
+	case L_0BINOMIALS:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.binomial0_Ntrials[i] < ds->data_observations.y[i] || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: 0binomial(S) Ntrials[%1d] = %g y[%1d] = %g is void\n", secname, i,
+							ds->data_observations.binomial0_Ntrials[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+		break;
 
 	case L_AGAUSSIAN:
 	{
@@ -17077,7 +17313,8 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
-	case L_0POISSON: 
+	case L_0POISSON:
+	case L_0POISSONS:
 	{
 		for (i = 0; i < POISSON0_MAXTHETA; i++) {
 			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
@@ -17102,6 +17339,28 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
 		}
 
+		char *link_simple = iniparser_getstring(ini, inla_string_join(secname, "LINK.SIMPLE"), NULL);
+		ds->data_observations.link_simple_name = link_simple;
+		if (!strcasecmp(link_simple, "IDENTITY")) {
+			ds->data_observations.link_simple_invlinkfunc = link_identity;
+		} else if (!strcasecmp(link_simple, "LOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_log;
+		} else if (!strcasecmp(link_simple, "PROBIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_probit;
+		} else if (!strcasecmp(link_simple, "CLOGLOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_cloglog;
+		} else if (!strcasecmp(link_simple, "LOGIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_logit;
+		} else {
+			GMRFLib_sprintf(&msg, "%s: 0poisson(S) likelihood: no valid link.simple[%s]", secname, link_simple);
+			inla_error_general(msg);
+			exit(1);
+		}
+		if (mb->verbose) {
+			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
+		}
+
+		const char *suff = GMRFLib_strdup((ds->data_id == L_0POISSON ? "" : "S"));
 		ds->data_nfixed = Calloc(POISSON0_MAXTHETA + 1, int);
 		ds->data_nprior = Calloc(POISSON0_MAXTHETA, Prior_tp);
 		ds->data_observations.poisson0_beta = Calloc(POISSON0_MAXTHETA, double **);
@@ -17132,7 +17391,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-				GMRFLib_sprintf(&ctmp, "beta%1d for poisson0 observations", i+1);
+				GMRFLib_sprintf(&ctmp, "beta%1d for 0poisson%1s observations", i + 1, suff);
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
@@ -17144,6 +17403,108 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
 
 				mb->theta[mb->ntheta] = ds->data_observations.poisson0_beta[i];
+				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+
+				mb->theta_map[mb->ntheta] = map_identity;
+				mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
+				mb->theta_map_arg[mb->ntheta] = NULL;
+				mb->ntheta++;
+				ds->data_ntheta++;
+			}
+		}
+	}
+		break;
+
+	case L_0BINOMIAL:
+	case L_0BINOMIALS:
+	{
+		for (i = 0; i < BINOMIAL0_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		char *link_simple = iniparser_getstring(ini, inla_string_join(secname, "LINK.SIMPLE"), NULL);
+		ds->data_observations.link_simple_name = link_simple;
+		if (!strcasecmp(link_simple, "IDENTITY")) {
+			ds->data_observations.link_simple_invlinkfunc = link_identity;
+		} else if (!strcasecmp(link_simple, "LOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_log;
+		} else if (!strcasecmp(link_simple, "PROBIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_probit;
+		} else if (!strcasecmp(link_simple, "CLOGLOG")) {
+			ds->data_observations.link_simple_invlinkfunc = link_cloglog;
+		} else if (!strcasecmp(link_simple, "LOGIT")) {
+			ds->data_observations.link_simple_invlinkfunc = link_logit;
+		} else {
+			GMRFLib_sprintf(&msg, "%s: 0binomial(S) likelihood: no valid link.simple[%s]", secname, link_simple);
+			inla_error_general(msg);
+			exit(1);
+		}
+		if (mb->verbose) {
+			printf("\t\tlink.simple[%s]\n", ds->data_observations.link_simple_name);
+		}
+
+		const char *suff = GMRFLib_strdup((ds->data_id == L_0BINOMIAL ? "" : "S"));
+		ds->data_nfixed = Calloc(BINOMIAL0_MAXTHETA + 1, int);
+		ds->data_nprior = Calloc(BINOMIAL0_MAXTHETA, Prior_tp);
+		ds->data_observations.binomial0_beta = Calloc(BINOMIAL0_MAXTHETA, double **);
+
+		for (i = 0; i < ds->data_observations.binomial0_nbeta; i++) {
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			tmp = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 0.0);	/* YES! */
+
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			ds->data_nfixed[i] = iniparser_getboolean(ini, inla_string_join(secname, ctmp), 0);
+			if (!ds->data_nfixed[i] && mb->reuse_mode) {
+				tmp = mb->theta_file[mb->theta_counter_file++];
+			}
+
+			HYPER_NEW(ds->data_observations.binomial0_beta[i], tmp);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] = %g\n", i, ds->data_observations.binomial0_beta[i][0][0]);
+				printf("\t\tfixed[%1d] = %1d\n", i, ds->data_nfixed[i]);
+			}
+
+			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[i]), "GAUSSIAN-std", i, NULL);
+
+			if (!ds->data_nfixed[i]) {
+				mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+				mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+				mb->theta_hyperid[mb->ntheta] = ds->data_nprior[i].hyperid;
+				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+
+				GMRFLib_sprintf(&ctmp, "beta%1d for 0binomial%1s observations", i + 1, suff);
+				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
+				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
+				mb->theta_dir[mb->ntheta] = msg;
+
+				mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+				mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+				mb->theta_from[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].from_theta);
+				mb->theta_to[mb->ntheta] = GMRFLib_strdup(ds->data_nprior[i].to_theta);
+
+				mb->theta[mb->ntheta] = ds->data_observations.binomial0_beta[i];
 				mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
 
 				mb->theta_map[mb->ntheta] = map_identity;
@@ -31310,7 +31671,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
-			case L_0POISSON: 
+			case L_0POISSON:
+			case L_0POISSONS:
 			{
 				int nbeta = ds->data_observations.poisson0_nbeta;
 				for (int k = 0; k < nbeta; k++) {
@@ -31321,8 +31683,22 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					}
 				}
 			}
-			break;
-			
+				break;
+
+			case L_0BINOMIAL:
+			case L_0BINOMIALS:
+			{
+				int nbeta = ds->data_observations.binomial0_nbeta;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
+					}
+				}
+			}
+				break;
+
 			case L_GAMMA:
 			{
 				if (!ds->data_fixed) {

@@ -458,7 +458,10 @@
             control.pom = NULL,
 
             ## :ARGUMENT: control.link See \code{?control.link}
-            control.link = NULL
+            control.link = NULL,
+
+            ## :ARGUMENT: link.simple See \code{inla.doc("0inflated")}
+            link.simple = "default"
         )
 
         ## :SEEALSO: inla
