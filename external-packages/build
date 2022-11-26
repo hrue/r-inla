@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+## linux mac-arm64 mac-intel win
+TYPE=$1
+shift
+echo TYPE=$TYPE
+
+EXT=external
+rm -rf $EXT
+for p in *; do
+    if [ -d "$p" ]; then
+	echo "Process package [$p]"
+	(
+	    cd $p
+	    make clean
+	    make download
+	    ( 
+		cd ./build
+		make -f Makefile.$TYPE clean
+		make -f Makefile.$TYPE "$@"
+	    )
+	)
+	mkdir -p $EXT/$p
+	cp -v $p/build/lib$p.so $EXT/$p
+	make -C $p clean
+    fi
+done

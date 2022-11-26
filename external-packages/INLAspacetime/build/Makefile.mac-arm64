@@ -1,6 +1,6 @@
 ACC = -framework Accelerate
-CFLAGS = $(FLAGS) $(ACC) -mtune=native -fopenmp -pipe -pthread -fpic -I.
-TARGET = libINLAspactime.so
+CFLAGS = $(FLAGS) $(ACC) -O3 -mtune=native -fopenmp -pipe -pthread -fpic -I.
+TARGET = libINLAspacetime.so
 OBJ = cgeneric_ar2ss.o cgeneric_sstspde.o
 
 $(TARGET) : $(OBJ)
