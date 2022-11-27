@@ -482,6 +482,7 @@
         response <- response[!na.y, , drop = FALSE]
         ## format: IDX, E, S, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, S = response$S, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
+
     } else if (inla.one.of(family, c("gaussianjw"))) {
 
         response <- cbind(ind, y.orig)
@@ -497,7 +498,29 @@
         response <- response[!na.y, , drop = FALSE]
         ## format: IDX, N, DF, VAR, Y
         response <- cbind(IDX = response$IDX, N = response$Y3, DF = response$Y4, VAR = response$Y2, Y = response$Y1)
+
+    } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS"))) {
+
+        response <- cbind(ind, y.orig)
+        na.dat <- is.na(response[, 2L])
+        response <- response[!na.dat,, drop = FALSE]
+        ncovariates <- ncol(response) - 3
+        stopifnot(ncovariates >= 0)
+        if (ncovariates > 0) {
+            X <- response[, 4:(4 + ncovariates - 1), drop = FALSE]
+            cov.names <- paste0("X", 1:ncovariates)
+            colnames(X) <- cov.names
+        } else {
+            cov.names <- NULL
+            X <- NULL
+        }
+
+        colnames(response) <- c("IDX", "Y", "EorNtrials", cov.names)
+        ## format: IDX, E/Ntrials, X1, ...XN, Y
+        response <- cbind(IDX = response$IDX, EorNtrials = response$EorNtrials, X, Y = response$Y)
+
     } else if (inla.one.of(family, c("bgev"))) {
+
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }
@@ -541,6 +564,8 @@
             y.attr <- c(3, y.attr[2], y.attr[3], 0)
         } else if (y.attr[1] == 3) {
             y.attr <- c(3, y.attr[2], y.attr[3], y.attr[4])
+        } else {
+            stop("FIX THIS with y.attr")
         }
         y.attr <- c(y.attr[1], y.attr[-c(1, 2)], y.attr[2])
     } else {

@@ -1,0 +1,96 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{New $0$inflated models: Poisson \& Binomial}
+
+\subsection*{Parametrisation}
+
+This is a new implementation (Nov'22) of zero-inflated Poisson and
+Binomial likelihood, where we will allow for a linear predictor in
+both the zero-inflattion and in the mean, but one of them needs to
+consists of fixed effects only. This means the setup will be
+somewhat different that for other likelihood models. 
+
+\subsubsection*{Details}
+
+The zero-inflated likelihood $f_0(y|\ldots)$ is defined as
+\begin{displaymath}
+    f_0(y | \eta_1, \eta_2) = p(\eta_1) 1_{[y=0]} +
+    (1-p(\eta_1)) f(y | \eta_2)
+\end{displaymath}
+where $f(y|\ldots)$ is either Poisson or Binomial. We allow for two
+linear predictors in the model, but one needs to be ``simple'' (i.e.\
+only consists of fixed effects). The other is general and defined via
+the formula. Normally, the zero-inflation probability is simpler (\texttt{family="0..."})
+\begin{displaymath}
+    \eta_1 = \text{simple} \qquad \eta_2 = \text{formula}
+\end{displaymath}
+but they can also be swapped (\texttt{family="0...S"})
+\begin{displaymath}
+    \eta_1 = \text{formula} \qquad \eta_2 = \text{simple}
+\end{displaymath}
+
+\subsection*{Link-function}
+
+This is similar to Poisson and Binomial.
+
+The link-function for the 'simple'-model must be given by argument
+\texttt{link.simple} in the \texttt{control.family}-argument. Only
+link-models without covariates/parameters are currently available. 
+The examples later on shows how this is done.
+
+\subsection*{Hyperparameters}
+
+All parameters in the simple model are treated as hyperparameters.
+The $j$'th element of $\eta_1$ is
+\begin{displaymath}
+    (\eta_1)_j = \sum_{i=1}{m} \beta_i x_{ij}
+\end{displaymath}
+for covariates $x_1, \ldots, $, where $m$ is maximum 10. An intercept
+in this model have to be defined manually by adding a constant
+covariate vector.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{0poisson}$
+\item $\text{family}=\texttt{0poissonS}$
+\item $\text{family}=\texttt{0binomial}$
+\item $\text{family}=\texttt{0binomialS}$
+\item Required arguments: As for the Poisson and Binomial (but how
+    these arguments are given, will differ). Optional argument
+    \texttt{link.simple}.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\paragraph{0poisson}
+{\small \input{../hyper/likelihood/0poisson.tex}}
+\paragraph{0poissonS}
+{\small \input{../hyper/likelihood/0poissonS.tex}}
+\paragraph{0binomial}
+{\small \input{../hyper/likelihood/0binomial.tex}}
+\paragraph{0poisson}
+{\small \input{../hyper/likelihood/0binomialS.tex}}
+
+
+\clearpage
+\subsection*{Example: Poisson}
+{\small \verbatiminput{example-0inflated-poisson.R}}
+
+\clearpage
+\subsection*{Example: Binomial}
+{\small \verbatiminput{example-0inflated-binomial.R}}
+
+
+\end{document}
+
+% LocalWords:  np Hyperparameters Ntrials gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+

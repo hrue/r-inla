@@ -218,6 +218,12 @@
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
 
+    ## this is for 0poisson etc... that use argument link.simpple
+    link.simple <- inla.model.validate.link.simple.function(family, control$link.simple)
+    if (!is.null(link.simple)) {
+        cat("link.simple = ", link.simple, "\n", file = file, append = TRUE)
+    }
+
     ## the link-part. first make it backward-compatible...
     if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {
         ## control$link is set,  use that if not control.link$model is set
