@@ -1,10 +1,10 @@
-ACC = -framework Accelerate
-CFLAGS = $(FLAGS) $(ACC) -O3 -mtune=native -fopenmp -pipe -pthread -fpic -I.
+CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=native -fopenmp -pipe -pthread -fpic -I.
+LDFLAGS = -framework Accelerate
 TARGET = libINLAspacetime.so
 OBJ = cgeneric_ar2ss.o cgeneric_sstspde.o
 
 $(TARGET) : $(OBJ)
-	$(CC) $(ACC) -o $@ -dynamiclib $^ -lgfortran -lgomp -lm
+	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -lgomp -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 
