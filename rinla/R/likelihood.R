@@ -24,7 +24,7 @@
 weibull.likelihood = function(args){
     stopifnot(args$variant == 1)
     shape = inla.models()$likelihood$weibull$hyper$theta$from.theta(args$theta)
-    scale = args$inv.link.function(args$linear.predictor)
+    scale = 1/args$inv.link.function(args$linear.predictor)
     islog = args$log
     lower.tail = args$lower.tail
     if(args$type == "r"){
