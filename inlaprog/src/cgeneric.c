@@ -53,10 +53,10 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 {
 #define READ_NAME(nm_) \
 	if (1) {							\
-		int j;							\
-		nread = fread((void *) &j, sizeof(int), (size_t) 1, fp); assert(nread == (size_t) 1); \
-		nm_ = Calloc(j + 1L, char);				\
-		nread = fread((void *) nm_, sizeof(char), (size_t) (j + 1L), fp); assert(nread == (size_t) (j + 1L)); \
+		int j_;							\
+		nread = fread((void *) &j_, sizeof(int), (size_t) 1, fp); assert(nread == (size_t) 1); \
+		nm_ = Calloc(j_ + 1L, char);				\
+		nread = fread((void *) nm_, sizeof(char), (size_t) (j_ + 1L), fp); assert(nread == (size_t) (j_ + 1L)); \
 	}
 
 	FILE *fp;

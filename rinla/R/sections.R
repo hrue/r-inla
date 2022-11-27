@@ -218,6 +218,12 @@
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
 
+    ## this is for 0poisson etc... that use argument link.simpple
+    link.simple <- inla.model.validate.link.simple.function(family, control$link.simple)
+    if (!is.null(link.simple)) {
+        cat("link.simple = ", link.simple, "\n", file = file, append = TRUE)
+    }
+
     ## the link-part. first make it backward-compatible...
     if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {
         ## control$link is set,  use that if not control.link$model is set
@@ -1049,11 +1055,7 @@
 
     ## this covers ... == "auto"  (or whaterever is given)
     if (is.character(inla.spec$control.vb$enable)) {
-        if (inla.mode == "experimental") {
-            inla.spec$control.vb$enable <- TRUE
-        } else {
-            inla.spec$control.vb$enable <- FALSE
-        }
+        inla.spec$control.vb$enable <- (inla.mode == "compact") 
     }
     inla.write.boolean.field("control.vb.enable", inla.spec$control.vb$enable, file)
     inla.write.boolean.field("control.vb.verbose", inla.spec$control.vb$verbose, file)
@@ -1199,7 +1201,7 @@
 }
 
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
-                                   cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config) {
+                                   cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, likelihood.info) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1239,6 +1241,7 @@
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("config", config, file)
+    inla.write.boolean.field("likelihood.info", likelihood.info, file)
 
     inla.write.boolean.field("gcpo.enable", gcpo$enable, file)
     inla.write.boolean.field("gcpo.verbose", gcpo$verbose, file)
@@ -1264,6 +1267,7 @@
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
         stopifnot(is.null(gcpo$selection))
+        stopifnot(is.null(gcpo$friends))
 
         file.groups <- inla.tempfile(tmpdir = data.dir)
         fp.binary <- file(file.groups, "wb")
@@ -1314,6 +1318,32 @@
             close(fp.binary)
             fnm <- gsub(data.dir, "$inladatadir", file.selection, fixed = TRUE)
             cat("gcpo.selection =", fnm, "\n", file = file, append = TRUE)
+        }
+
+        if (!is.null(gcpo$friends)) {
+            friends <- gcpo$friends
+            len <- length(friends)
+            for (i in seq_along(friends)) {
+                if (is.null(friends[[i]])) friends[[i]] <- numeric(0)
+                xx <- friends[[i]]
+                xx <- xx[!is.na(xx)]
+                xx <- setdiff(xx, i)
+                xx <- sort(unique(xx-1)) ## to C-indexing
+                friends[[i]] <- xx
+            }
+            file.friends <- inla.tempfile(tmpdir = data.dir)
+            fp.binary <- file(file.friends, "wb")
+            writeBin(as.integer(len), fp.binary)
+            for(i in seq_along(friends)) {
+                local.len <- length(friends[[i]])
+                writeBin(as.integer(local.len), fp.binary)
+                if (local.len > 0) {
+                    writeBin(as.integer(friends[[i]]), fp.binary)
+                }
+            }
+            close(fp.binary)
+            fnm <- gsub(data.dir, "$inladatadir", file.friends, fixed = TRUE)
+            cat("gcpo.friends =", fnm, "\n", file = file, append = TRUE)
         }
     }
 

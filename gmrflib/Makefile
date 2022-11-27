@@ -14,8 +14,8 @@ CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
 FLAGS = -Wall -g -O2 -ftracer -fopenmp -pthread
-STDC = --std=gnu2x 
-STDCXX = --std=gnu++23
+##STDC = --std=gnu2x 
+##STDCXX = --std=gnu++23
 
 # The path to the external libraries: metis, taucs, lapack, blas and zlib
 LEXTPREFIX = /usr/local

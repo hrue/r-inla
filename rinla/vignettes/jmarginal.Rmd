@@ -66,17 +66,12 @@ Note that when using the classic-mode, like
 ```{r eval=F}
 inla.setOption(inla.mode="classic")
 ```
-then linear predictors can also be used. With
+then linear predictors can also be used. With the default
 ```{r eval=F}
-inla.setOption(inla.mode="experimental")
+inla.setOption(inla.mode="compact")
 ```
 then the linear predictor can not be used as it is not explicitely
 part of the latent model. 
-
-This vignette is created with
-```{r}
-inla.getOption('inla.mode')
-```
 
 
 ## Theory reference
@@ -133,16 +128,18 @@ say that we want the joint marginal for the $3^{rd}$ and $4^{th}$ element of
 only have one element, so then there is not else we can do in this
 case.)
 
-If we pass `selection`, then we have to rerun `inla()` as
+If we pass `selection`, then we have to rerun `inla()` in
+classic-mode, as Predictor in the selection is not supported in compact-mode.
 ```{r}
 rs = inla(y ~ 1 + x + xx,
           data = data.frame(y, x, xx), 
 	      family = "poisson",
+	      inla.mode = "classic",
           control.compute = list(return.marginals.predictor = TRUE), 
 	      control.predictor = list(compute = TRUE),
 		  selection = selection)
 ```		 
-and we obtain
+We obtain
 ```{r}
 #summary(rs$selection)
 print(rs$selection)

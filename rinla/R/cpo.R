@@ -53,10 +53,10 @@
     ## !\seealso{\code{\link{inla}}}
 
     stopifnot(!missing(result))
-    if (class(result) != "inla") {
+    if (!inherits(result, "inla")) {
         warning("The function 'inla.cpo()' has changed; see ?inla.cpo for futher details.\n  The old version is available as 'inla.cpo.OLD()' for a while.")
     }
-    stopifnot(class(result) == "inla")
+    stopifnot(inherits(result, "inla"))
 
     ## if there is no cpo, then done
     if (is.null(result$cpo)) {

@@ -500,10 +500,10 @@ int GMRFLib_idxval_sort(GMRFLib_idxval_tp * hold)
 
 int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
-	return GMRFLib_idxval_nsort_x(hold, n, nt, 0);
+	return GMRFLib_idxval_nsort_x(hold, n, nt, 0, 1);
 }
 
-int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
+int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, int accumulate)
 {
 	const int limit = 8L;
 	const int debug = 0;
@@ -536,11 +536,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 					h->idx[k] = h->idx[j];
 					h->val[k] = h->val[j];
 				} else {
-					h->val[k] += h->val[j];
+					if (accumulate) {
+						h->val[k] += h->val[j];
+					}
 				}
 			}
 			if (debug && (h->n > k + 1)) {
-				printf("Make unique: reduce length from %d to %dn", h->n, k + 1);
+				printf("Make unique: accumulate=[%1d], reduce length from %d to %dn", accumulate, h->n, k + 1);
 			}
 			h->n = k + 1;
 		}
@@ -588,13 +590,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 	g_len[ng] = 0;
 
 	if (debug) {
-		for (int i = 0; i < h->n; i++) {
+		for (i = 0; i < h->n; i++) {
 			printf("idx[%1d] =  %1d\n", i, h->idx[i]);
 		}
 		printf("ng = %1d\n", ng);
 		for (int g = 1; g < ng; g++) {
 			printf("group %1d start %1d len %1d\n", g, g_istart[g], g_len[g]);
-			for (int i = 0; i < g_len[g]; i++) {
+			for (i = 0; i < g_len[g]; i++) {
 				printf("\t\t\tidx %1d\n", h->idx[g_istart[g] + i]);
 			}
 		}
@@ -628,7 +630,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 	g_val[0] = new_val;
 
 	if (debug) {
-		for (int i = 0; i < g_len[0]; i++) {
+		for (i = 0; i < g_len[0]; i++) {
 			printf("nidx[%1d] %1d  val %g\n", i, new_idx[i], new_val[i]);
 		}
 	}
@@ -637,7 +639,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 	double *seq_val = new_val + irr_len;
 
 	k = 0;
-	for (int i = 1; i < ng; i++) {
+	for (i = 1; i < ng; i++) {
 		int istart = g_istart[i];
 		int len = g_len[i];
 		if (len) {
@@ -669,7 +671,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 	}
 
 	if (debug) {
-		for (int i = 0; i < k; i++) {
+		for (i = 0; i < k; i++) {
 			printf("i %d new_idx %1d new_val %f\n", i, new_idx[i], new_val[i]);
 		}
 	}
@@ -678,7 +680,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 	for (int g = 0; g < ng; g++) {
 		int all_one = 1;
 		double *val = g_val[g];
-		for (int i = 0; all_one && i < IABS(g_len[g]); i++) {
+		for (i = 0; all_one && i < IABS(g_len[g]); i++) {
 			all_one = (val[i] == 1.0);
 		}
 		g_1[g] = all_one;
@@ -688,7 +690,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 		printf("NEW\nng = %1d\n", ng);
 		for (int g = 0; g < ng; g++) {
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
-			for (int i = 0; i < IABS(g_len[g]); i++) {
+			for (i = 0; i < IABS(g_len[g]); i++) {
 				printf("\t\t\tidx %1d val %g\n", g_idx[g][i], g_val[g][i]);
 			}
 		}
@@ -716,17 +718,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 
 	if (debug) {
 		printf("BEFORE MERGE\nng = %1d\n", ng);
-		for (int g = 0; g < ng; g++) {
+		for (g = 0; g < ng; g++) {
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
-			if (0)
-				for (int i = 0; i < IABS(g_len[g]); i++) {
-					printf("\t\t\tidx %1d val %g\n", new_idx[g_istart[g] + i], new_val[g_istart[g] + i]);
-				}
 		}
 	}
 	// merge
 	if (ng > 2) {
-		int g = 1;
+		g = 1;
 		while (1) {
 			int g1_end = seq_idx[g_istart[g] + IABS(g_len[g])];
 			int g2_start = seq_idx[g_istart[g + 1]];
@@ -751,12 +749,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 
 	if (debug) {
 		printf("AFTER MERGE\nng = %1d\n", ng);
-		for (int g = 0; g < ng; g++) {
+		for (g = 0; g < ng; g++) {
 			printf("group %1d start %1d len %1d g_1 %1d\n", g, g_istart[g], g_len[g], g_1[g]);
-			if (0)
-				for (int i = 0; i < IABS(g_len[g]); i++) {
-					printf("\t\t\tidx %1d val %g\n", new_idx[g_istart[g] + i], new_val[g_istart[g] + i]);
-				}
 		}
 	}
 
@@ -831,7 +825,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 		}
 	}
 
-	for (int k = 1; k < 4; k++) {
+	for (k = 1; k < 4; k++) {
 		if (ABS(value[k] - value[0]) > FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
 			P(k);
@@ -841,13 +835,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 			P(value[3]);
 
 			printf("n %d\n", h->n);
-			for (int i = 0; i < h->n; i++) {
+			for (i = 0; i < h->n; i++) {
 				printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
 			}
 			printf("ng %d\n", h->g_n);
-			for (int g = 0; g < h->g_n; g++) {
+			for (g = 0; g < h->g_n; g++) {
 				printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
-				for (int i = 0; i < IABS(h->g_len[g]); i++) {
+				for (i = 0; i < IABS(h->g_len[g]); i++) {
 					printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
 				}
 			}
@@ -899,7 +893,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 		Free(h->g_val);
 		Free(h->g_len);
 		Free(h->g_1);
-		for (int k = 0; k < h->g_n_mem; k++) {
+		for (k = 0; k < h->g_n_mem; k++) {
 			Free(h->g_mem[k]);
 		}
 		Free(h->g_mem);
@@ -909,11 +903,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 	if (GMRFLib_dot_product_optim_report) {
 		int idx;
 		GMRFLib_CACHE_SET_ID(idx);
-		for (int k = 0; k < 4; k++) {
+		for (k = 0; k < 4; k++) {
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
 		}
 		GMRFLib_dot_product_optim_report[idx][4] += tmin;
-		GMRFLib_dot_product_optim_report[idx][5 + k]++;	/* count... */
+		GMRFLib_dot_product_optim_report[idx][8]++;    /* count... */
 	}
 
 	time_min += tmin / ntimes;
@@ -924,10 +918,10 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare)
 
 int GMRFLib_idxval_prepare(GMRFLib_idxval_tp ** hold, int n, int nt)
 {
-	return GMRFLib_idxval_nsort_x(hold, n, nt, 1);
+	return GMRFLib_idxval_nsort_x(hold, n, nt, 1, 1);
 }
 
-int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare)
+int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare, int accumulate)
 {
 	int nmax = 1;
 	for (int i = 0; i < n; i++) {
@@ -960,7 +954,7 @@ int GMRFLib_idxval_nsort_x(GMRFLib_idxval_tp ** hold, int n, int nt, int prepare
 	}
 #define CODE_BLOCK							\
 	for(int k = 0; k < n; k++) {					\
-		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare);	\
+		GMRFLib_idxval_nsort_x_core(hold[k], x_ran, prepare, accumulate); \
 	}
 
 	RUN_CODE_BLOCK_DYNAMIC(nt, 0, 0);

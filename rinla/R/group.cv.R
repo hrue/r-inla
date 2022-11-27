@@ -14,6 +14,7 @@
 ## !          strategy = c("posterior", "prior"), 
 ## !          groups = NULL, 
 ## !          selection = NULL, 
+## !          friends = NULL, 
 ## !          verbose = FALSE, 
 ## !          epsilon = 0.0025, 
 ## !          prior.diagonal = 1e-04, 
@@ -47,6 +48,9 @@
              ## !\item{selection}{An optional list of data-indices to use.
              ## !If not given, then all data are used.}
              selection = NULL, 
+
+             ## !\item{friends}{An optional list of lists of indices to use a friends}
+             friends = NULL, 
 
              ## !\item{verbose}{Run with \code{verbose} output of some of the internals
              ## !in the  calculations. This option will also
@@ -94,6 +98,7 @@
                       strategy = match.arg(strategy), 
                       groups = groups, 
                       selection = selection, 
+                      friends = friends, 
                       verbose = verbose, 
                       epsilon = epsilon, 
                       prior.diagonal = prior.diagonal, 
@@ -126,7 +131,7 @@
     r$.args$control.mode$x <- r$mode$x
     r$.args$control.mode$fixed <- TRUE
 
-    r$.args$inla.mode <- "experimental"
+    r$.args$inla.mode <- "compact"
     r$.args$verbose <- if (verbose) TRUE else r$.args$verbose
     r$.args$lincomb <- NULL
     r$.args$quantiles <- numeric(0)

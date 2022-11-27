@@ -69,7 +69,7 @@ inla.cut <- function(result, split.by, mc.cores = NULL, debug = FALSE) {
     my.debug <- function(...) if (debug) cat("*** inla.cut: ", ..., "\n")
 
     stopifnot(!missing(result))
-    stopifnot(class(result) == "inla")
+    stopifnot(inherits(result, "inla"))
     stopifnot(!missing(split.by))
     formula <- result$.args$formula
     data <- result$.args$data

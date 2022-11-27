@@ -63,8 +63,8 @@ __BEGIN_DECLS
 		size_t n = (size_t) len / GMRFLib_SHA_UPDATE_LEN;	\
 		size_t m = len - n * GMRFLib_SHA_UPDATE_LEN;		\
 		unsigned char *xx = (unsigned char *) (_x);		\
-		for(size_t i = 0; i < n; i++) {				\
-			GMRFLib_SHA_Update(&c, (const void *) (xx + i * GMRFLib_SHA_UPDATE_LEN), (size_t) GMRFLib_SHA_UPDATE_LEN); \
+		for(size_t i_ = 0; i_ < n; i_++) {			\
+			GMRFLib_SHA_Update(&c, (const void *) (xx + i_ * GMRFLib_SHA_UPDATE_LEN), (size_t) GMRFLib_SHA_UPDATE_LEN); \
 		}							\
 		if (m) {						\
 			GMRFLib_SHA_Update(&c, (const void *) (xx + n * GMRFLib_SHA_UPDATE_LEN), m); \

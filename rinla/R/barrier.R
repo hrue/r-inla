@@ -50,7 +50,7 @@
     }
 
     ## Input verification
-    stopifnot(class(mesh) == "inla.mesh")
+    stopifnot(inherits(mesh, "inla.mesh"))
     stopifnot(range.fraction > 0.000001)
 
     ## ## ## FUNCTIONS FOR RGENERIC MODEL SETUP ## ## ##
@@ -211,7 +211,7 @@
 #' @details * `inla.barrier.polygon` This function constructs SpatialPolygons for the different subdomains (areas)
 `inla.barrier.polygon` <- function(mesh, barrier.triangles, Omega = NULL) {
     ## Requires an inla mesh to work
-    stopifnot(class(mesh) == "inla.mesh")
+    stopifnot(inherits(mesh, "inla.mesh"))
     ## Requires rgeos for combining polygons
     inla.require("rgeos", stop.on.error = TRUE)
 
@@ -311,7 +311,7 @@
 #' @export
 #' @rdname inla.barrier
 `inla.barrier.fem` <- function(mesh, barrier.triangles, Omega = NULL) {
-    stopifnot(class(mesh) == "inla.mesh")
+    stopifnot(inherits(mesh, "inla.mesh"))
 
     if (missing(barrier.triangles) && is.null(Omega)) stop("Input barrier triangles")
 

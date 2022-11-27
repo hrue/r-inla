@@ -184,13 +184,11 @@
  \code{inla}-program would be ``silent''. If equal to
  2L, then supress also error messages from the
  \code{inla}-program.}
- \item{inla.mode}{Run \code{inla} in \code{classic}-mode,
-             \code{twostage}-mode or the new \code{experimental}-mode?
-             Not all features are available int the \code{experimental}-mode and this mode
-             is really work-in-progress at the moment!!!!
+ \item{inla.mode}{Run \code{inla} in \code{compact}-mode,  \code{classic}-mode,
+             \code{twostage}-mode?
              Default is to use the 
              mode set by \code{inla.getOption("inla.mode")} which is default
-             \code{classic}-mode. }
+             \code{compact}-mode. }
  \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
  Hessian if needed. }
  \item{debug}{ If \code{TRUE}, then enable some debug

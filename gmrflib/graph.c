@@ -193,7 +193,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 			(*graph)->nbs[im] = (*graph)->nbs[i];
 
 			if ((*graph)->nnbs[im]) {
-				for (int j = 0; j < (*graph)->nnbs[im]; j++) {
+				for (j = 0; j < (*graph)->nnbs[im]; j++) {
 					(*graph)->nbs[im][j]--;
 				}
 			}
@@ -414,7 +414,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 			g->nnbs[i] = g->nnbs[i + 1];
 			g->nbs[i] = g->nbs[i + 1];
 			g->nbs[i + 1] = NULL;
-			for (int j = 0; j < g->nnbs[i]; j++) {
+			for (j = 0; j < g->nnbs[i]; j++) {
 				g->nbs[i][j]--;
 			}
 		}
@@ -1120,7 +1120,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 
 		nn = 0;
 #pragma GCC ivdep
-		for (int i = 0; i < graph->n; i++) {
+		for (i = 0; i < graph->n; i++) {
 			nn += (!remove_flag[i]);
 		}
 		(*subgraph)->n = nn;
@@ -1165,7 +1165,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 			if (!remove_flag[i]) {
 				nneig = 0;
 #pragma GCC ivdep
-				for (int j = 0; j < graph->nnbs[i]; j++) {
+				for (j = 0; j < graph->nnbs[i]; j++) {
 					nneig += (!remove_flag[graph->nbs[i][j]]);
 				}
 				n_neig_tot += nneig;
@@ -1367,8 +1367,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				double qij;				\
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				int *j_a = graph->nbs[i];		\
-				for (int jj = 0, j; jj < graph->nnbs[i]; jj++) { \
-					j = j_a[jj];			\
+				for (int jj = 0; jj < graph->nnbs[i]; jj++) { \
+					int j = j_a[jj];		\
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
 					result[i] += qij * x[j];	\
 				}					\
@@ -1383,8 +1383,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				double qij;
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
 				int *j_a = graph->lnbs[i];
-				for (int jj = 0, j; jj < graph->lnnbs[i]; jj++) {
-					j = j_a[jj];
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					int j = j_a[jj];
 					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
 					result[i] += qij * x[j];
 					result[j] += qij * x[i];
@@ -1406,8 +1406,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
 				int *j_a = graph->lnbs[i];		\
-				for (int k = 1, jj = 0, j = 0; jj < graph->lnnbs[i]; jj++, k++) { \
-					j = j_a[jj];			\
+				for (int k = 1, jj = 0; jj < graph->lnnbs[i]; jj++, k++) { \
+					int j = j_a[jj];		\
 					r[i] += local_values[k] * x[j];	\
 					r[j] += local_values[k] * x[i];	\
 				}					\

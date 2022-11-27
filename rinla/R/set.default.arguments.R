@@ -306,6 +306,10 @@
             ## :ARGUMENT+: stored. (Default FALSE. EXPERIMENTAL)
             config = FALSE,
 
+            ## :ARGUMENT+: likelihood.info A boolean variable to store likelihood-information or not.
+            ## :ARGUMENT+: This option requires \code{config=TRUE} (Default FALSE. EXPERIMENTAL)
+            likelihood.info = FALSE,
+
             ## :ARGUMENT+: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or
             ## :ARGUMENT+: 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies
             ## :ARGUMENT+: \code{openmp.strategy='pardiso'}.
@@ -324,6 +328,7 @@
                                 strategy = c("posterior", "prior"),
                                 groups = NULL,
                                 selection = NULL,
+                                friends = NULL, 
                                 verbose = FALSE,
                                 epsilon = 0.005,
                                 prior.diagonal = 1e-4, 
@@ -453,7 +458,10 @@
             control.pom = NULL,
 
             ## :ARGUMENT: control.link See \code{?control.link}
-            control.link = NULL
+            control.link = NULL,
+
+            ## :ARGUMENT: link.simple See \code{inla.doc("0inflated")}
+            link.simple = "default"
         )
 
         ## :SEEALSO: inla

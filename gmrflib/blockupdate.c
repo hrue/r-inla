@@ -213,7 +213,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		xx[3] = x0 + step;
 		xx[4] = x0 + 2 * step;
 
-		loglFunc(thread_id, f, xx, 5, indx, x_vec, NULL, loglFunc_arg);
+		loglFunc(thread_id, f, xx, 5, indx, x_vec, NULL, loglFunc_arg, NULL);
 
 		f0 = f[2];
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
@@ -232,7 +232,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			xx[1] = x0;
 			xx[2] = x0 + step;
 
-			loglFunc(thread_id, f, xx, 3, indx, x_vec, NULL, loglFunc_arg);
+			loglFunc(thread_id, f, xx, 3, indx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[1];
 			df = 0.5 * (f[2] - f[0]) / step;
 			ddf = (f[2] - 2.0 * f[1] + f[0]) / SQR(step);
@@ -252,7 +252,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			xx[3] = x0 + step;
 			xx[4] = x0 + 2.0 * step;
 
-			loglFunc(thread_id, f, xx, 5, indx, x_vec, NULL, loglFunc_arg);
+			loglFunc(thread_id, f, xx, 5, indx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[2];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
 			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4]) / SQR(step);
@@ -276,7 +276,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			xx[5] = x0 + 2.0 * step;
 			xx[6] = x0 + 3.0 * step;
 
-			loglFunc(thread_id, f, xx, 7, indx, x_vec, NULL, loglFunc_arg);
+			loglFunc(thread_id, f, xx, 7, indx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[3];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6]) / step;
 			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] +
@@ -307,7 +307,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			xx[7] = x0 + 3.0 * step;
 			xx[8] = x0 + 4.0 * step;
 
-			loglFunc(thread_id, f, xx, 9, indx, x_vec, NULL, loglFunc_arg);
+			loglFunc(thread_id, f, xx, 9, indx, x_vec, NULL, loglFunc_arg, NULL);
 			f0 = f[4];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6] +
 			      wf[7] * f[7] + wf[8] * f[8]) / step;

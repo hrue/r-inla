@@ -110,7 +110,7 @@ int bfgs3_robust_eval(double x_eval, double *y_eval, int nn, double *x, double *
 	gsl_vector *xx = gsl_vector_alloc(order);
 	gsl_vector_set(xx, 0, 1.0);
 	double xev = x_eval;
-	for (size_t i = 1; i < (size_t) order; i++) {
+	for (i = 1; i < (size_t) order; i++) {
 		gsl_vector_set(xx, i, xev);
 		xev *= x_eval;
 	}
@@ -255,7 +255,6 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	double alpha = alpha1, alpha_prev = 0.0;
 	double a, b, fa, fb, fpa, fpb;
 	const size_t bracket_iters = 50, section_iters = 50;
-	size_t i = 0;
 
 	static double *hold_alpha = NULL;
 	static double *hold_func = NULL;
@@ -278,8 +277,8 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	if (0) {
 		GMRFLib_sprintf(&name, "./line-%.5d.txt", count++);
 		printf("Open file %s\n", name);
-		FILE *fp = fopen(name, "w");
-		assert(fp);
+		FILE *fpp = fopen(name, "w");
+		assert(fpp);
 	}
 
 	if (debug)
@@ -316,6 +315,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	 * Begin bracketing 
 	 */
 
+	size_t i = 0;
 	while (i++ < bracket_iters) {
 		if (debug)
 			printf("...begin bracketing\n");
@@ -431,39 +431,39 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 
 			if (ldebug) {
 				printf("BFGS3: do a robust fit with %d points\n", hold_n);
-				for (int i = 0; i < hold_n; i++) {
-					printf("\talpha = %f \tfunc = %f\n", hold_alpha[i], hold_func[i]);
+				for (int ii = 0; ii < hold_n; ii++) {
+					printf("\talpha = %f \tfunc = %f\n", hold_alpha[ii], hold_func[ii]);
 				}
-				for (int i = 0; i < hold_dn; i++) {
-					printf("\tdalpha = %f \tdfunc = %f\n", hold_dalpha[i], hold_dfunc[i]);
+				for (int ii = 0; ii < hold_dn; ii++) {
+					printf("\tdalpha = %f \tdfunc = %f\n", hold_dalpha[ii], hold_dfunc[ii]);
 				}
 			}
 
 			int new_n = 0;
-			for (int i = 0, j = 0; i < hold_n; i++) {
-				if (!(ISNAN(hold_func[i]) || ISINF(hold_func[i]))) {
-					hold_alpha[j] = hold_alpha[i];
-					hold_func[j] = hold_func[i];
-					j++;
-					new_n = j;
+			for (int ii = 0, jj = 0; ii < hold_n; ii++) {
+				if (!(ISNAN(hold_func[ii]) || ISINF(hold_func[ii]))) {
+					hold_alpha[jj] = hold_alpha[ii];
+					hold_func[jj] = hold_func[ii];
+					jj++;
+					new_n = jj;
 				}
 			}
 			hold_n = new_n;
 
 			new_n = 0;
-			for (int i = 0, j = 0; i < hold_dn; i++) {
-				if (!(ISNAN(hold_dfunc[i]) || ISINF(hold_dfunc[i]))) {
-					hold_dalpha[j] = hold_dalpha[i];
-					hold_dfunc[j] = hold_dfunc[i];
-					j++;
-					new_n = j;
+			for (int ii = 0, jj = 0; ii < hold_dn; ii++) {
+				if (!(ISNAN(hold_dfunc[ii]) || ISINF(hold_dfunc[ii]))) {
+					hold_dalpha[jj] = hold_dalpha[ii];
+					hold_dfunc[jj] = hold_dfunc[ii];
+					jj++;
+					new_n = jj;
 				}
 			}
 			hold_dn = new_n;
 
 			double amin, fmin;
-			int robust_regression = 1, order = 2;
-			bfgs4_robust_minimize(&amin, &fmin, hold_n, hold_alpha, hold_func, hold_dn, hold_dalpha, hold_dfunc, order);
+			int robust_regression = 1, oorder = 2;
+			bfgs4_robust_minimize(&amin, &fmin, hold_n, hold_alpha, hold_func, hold_dn, hold_dalpha, hold_dfunc, oorder);
 
 			if (amin < GMRFLib_min_value(hold_alpha, hold_n, NULL) || amin > GMRFLib_max_value(hold_alpha, hold_n, NULL)) {
 				int idx_min;

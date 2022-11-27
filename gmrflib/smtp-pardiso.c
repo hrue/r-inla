@@ -249,7 +249,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
 
-	int i, k, n, na, len;
+	int n, na, len;
 
 	if (csr_store_use && graph->sha) {
 		void **p = NULL;
@@ -290,7 +290,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Calloc(n, int);
 	Ms->ia[0] = 0;
-	for (i = k = 0; i < n; i++) {
+	for (int i = 0, k = 0; i < n; i++) {
 		Ms->ja[k++] = i;
 		k_arr[i] = k;
 		k += graph->lnnbs[i];
@@ -531,11 +531,21 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	s->iparm_default[24] = 0;			       /* use parallel solve? */
 	s->iparm_default[27] = S.parallel_reordering;	       /* parallel reordering? */
 	s->iparm_default[33] = 1;			       /* want identical solutions */
+	s->iparm_default[53] = 0;			       /* number of expected dense columns (>0 gives memory failure) */
 
 	// options for METIS5; see manual. Pays off to do a good reordering
-	s->iparm_default[57] = 2;			       /* default 1 */
+	s->iparm_default[54] = 1;			       /* use options */
+	s->iparm_default[55] = 3;			       /* default */
+	s->iparm_default[56] = 1;			       /* default */
+	s->iparm_default[57] = 1;			       /* !default (gives memory failure) */
+	s->iparm_default[57] = 2;			       /* default */
+	s->iparm_default[58] = 0;			       /* default */
+	s->iparm_default[59] = 0;			       /* default */
+	s->iparm_default[59] = 3;			       /* !default */
 	s->iparm_default[60] = 200;			       /* default */
-	s->iparm_default[61] = 5;			       /* default 1 */
+	s->iparm_default[60] = 150;			       /* !default */
+	s->iparm_default[61] = 1;			       /* default */
+	s->iparm_default[61] = 5;			       /* !default */
 
 	if (error != 0) {
 		if (error == NOLIB_ECODE) {
@@ -1095,17 +1105,15 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
 
 	GMRFLib_csr_tp *Qi = problem->sub_sm_fact.PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv;
-	int n = Qi->s->n, i, j, jj, k;
+	int n = Qi->s->n;
 	map_id **Qinv = Calloc(n, map_id *);
 
-	for (i = k = 0; i < n; i++) {
-		int nnb;
-
-		nnb = Qi->s->ia[i + 1] - Qi->s->ia[i];
+	for (int i = 0, k = 0; i < n; i++) {
+		int nnb = Qi->s->ia[i + 1] - Qi->s->ia[i];
 		Qinv[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv[i], nnb);
-		for (jj = 0; jj < nnb; jj++) {
-			j = Qi->s->ja[k];
+		for (int jj = 0; jj < nnb; jj++) {
+			int j = Qi->s->ja[k];
 			map_id_set(Qinv[i], j, Qi->a[k]);
 			k++;
 		}

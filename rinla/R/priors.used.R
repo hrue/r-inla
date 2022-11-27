@@ -76,7 +76,7 @@
         return (nh)
     }
 
-    stopifnot(class(result) == "inla")
+    stopifnot(inherits(result, "inla"))
     h <- result$all.hyper
     ntheta <- length(result$mode$theta)
 

@@ -678,7 +678,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 
 	GMRFLib_ai_store_tp **ai_store = NULL;
 	double h = G.ai_par->hessian_finite_difference_step_len, f0, f0min, ff0 = NAN, *f1 = NULL, *fm1 = NULL, f_best_save, **xx_hold, *xx_min;
-	int i, n = G.nhyper, tmax, ok = 0, debug = GMRFLib_DEBUG_IF(), len_xx_hold;
+	int n = G.nhyper, tmax, ok = 0, debug = GMRFLib_DEBUG_IF(), len_xx_hold;
 
 	tmax = GMRFLib_MAX_THREADS();
 	f1 = Calloc(n, double);
@@ -691,7 +691,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	ALLOC_XX_HOLD(len_xx_hold);
 
 	int *i2thread = Calloc(len_xx_hold, int);
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		f0 = f1[i] = fm1[i] = NAN;
 	}
 
@@ -711,11 +711,6 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		order[1 + i + n] = i + n;
 	}
 
-	if (0) {
-		for (int i = 0; i < 2 * n + 1; i++) {
-			printf("i %d order %d\n", i, order[i]);
-		}
-	}
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < 2 * n + 1; ii++) {
 		int i = order[ii];
@@ -795,7 +790,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	xx_min = xx_hold[len_xx_hold - 1];		       /* Yes, this is stored as the last element */
 	thread_min = i2thread[len_xx_hold - 1];
 	f0min = f0;
-	for (i = 0; i < len_xx_hold - 1; i++) {
+	for (int i = 0; i < len_xx_hold - 1; i++) {
 		int j;
 
 		if (i < n) {
@@ -838,7 +833,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		*log_dens_mode = -B.f_best;
 
 		ok = 0;
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			if (!ISNAN(f1[i]) && !ISNAN(fm1[i])) {
 				hessian[i + i * n] = (f1[i] - 2 * f0 + fm1[i]) / SQR(h);
 			} else {
@@ -872,7 +867,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		/*
 		 * estimate the diagonal terms 
 		 */
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			hessian[i + i * n] = (f1[i] - 2 * f0 + fm1[i]) / SQR(h);
 		}
 
@@ -884,12 +879,12 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 			typedef struct {
 				int i, j;
 			} Idx_tp;
-			int nn = (n * (n - 1)) / 2, j, k;
+			int nn = (n * (n - 1)) / 2;
 			Idx_tp *idx = NULL;
 
 			idx = Calloc(nn, Idx_tp);
-			for (i = k = 0; i < n; i++) {
-				for (j = i + 1; j < n; j++) {
+			for (int i = 0, k = 0; i < n; i++) {
+				for (int j = i + 1; j < n; j++) {
 					idx[k].i = i;
 					idx[k].j = j;
 					k++;
@@ -1034,7 +1029,7 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 	FREE_XX_HOLD(len_xx_hold);
 	Free(f1);
 	Free(fm1);
-	for (i = 0; i < tmax; i++) {
+	for (int i = 0; i < tmax; i++) {
 		if (ai_store[i]) {
 			GMRFLib_free_ai_store(ai_store[i]);
 		}
@@ -1252,7 +1247,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			}
 			gsl_matrix_set_zero(A);
 			gsl_matrix_set_zero(tAinv);
-			gsl_matrix_set_identity(Adir);
+
+			double eps = GMRFLib_eps(0.33);
+			double diag = sqrt(DMAX(eps, 1.0 - ((double) Adir->size1 - 1.0) * SQR(eps)));
+			gsl_matrix_set_all(Adir, eps);
+			for (i = 0; i < Adir->size1; i++) {
+				gsl_matrix_set(Adir, i, i, diag);
+			}
 
 			if (G.directions && !Opt_dir_params.reset_directions) {
 				// start fom here instead
@@ -1345,7 +1346,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 				if (G.ai_par->fp_log) {
 					double cutoff = 0.25 * sqrt(1.0 / A->size1);
 					fprintf(G.ai_par->fp_log, "New directions for numerical gradient\n");
-					for (size_t j = 0; j < A->size2; j++) {
+					for (j = 0; j < A->size2; j++) {
 						printf("\t  dir%.2zu", j + 1);
 					}
 					printf("\n");

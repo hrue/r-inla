@@ -127,7 +127,7 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	}
 
 	if (ISZERO(y)) {
-		for (int i = 0; i < n; i++) {
+		for (i = 0; i < n; i++) {
 			ldens[i] = -pow(mu[i], p2) / (phi * p2);
 		}
 		return;

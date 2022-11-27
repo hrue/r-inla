@@ -741,11 +741,11 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	gsl_set_error_handler(NULL);
 	if (err == GSL_EMAXITER) {
-		int idx;
-		GMRFLib_min_value(y, nn, &idx);
-		*xmin = x[idx];
+		int iidx;
+		GMRFLib_min_value(y, nn, &iidx);
+		*xmin = x[iidx];
 		if (ymin) {
-			*ymin = y[idx];
+			*ymin = y[iidx];
 		}
 		return GMRFLib_SUCCESS;
 	}
@@ -777,7 +777,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 	int max_iter = 10;
 	for (int iter = 0; iter < max_iter; iter++) {
-		double val, grad, dx;
+		double val, grad;
 
 		xtmp = x_min;
 		val = gsl_vector_get(c, 1);
@@ -793,9 +793,9 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 			xtmp *= x_min;
 		}
 
-		dx = -val / grad;
-		x_min += dx;
-		if (iter == max_iter - 1 || ABS(dx) < GMRFLib_eps(1.0 / 3.0)) {
+		double ddx = -val / grad;
+		x_min += ddx;
+		if (iter == max_iter - 1 || ABS(ddx) < GMRFLib_eps(1.0 / 3.0)) {
 			break;
 		}
 	}

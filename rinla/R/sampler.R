@@ -51,7 +51,7 @@
     ## scale.
 
     stopifnot(!is.null(result))
-    stopifnot(any(class(result) == "inla"))
+    stopifnot(inherits(result, "inla"))
     stopifnot(n > 0)
 
     if (improve.marginals) {
