@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
   if ((args_info.globe_given>0) && (args_info.globe_arg>0)) {
     input_s0_names.push_back(string(".globe"));
     matrices.attach(".globe",
-		    (Matrix<double>*)fmesh::make_globe_points(args_info.globe_arg),
+		    (Matrix<double>*)fmesh::make_globe_points(args_info.globe_arg, 1.0),
 		    true);
     FMLOG("globe points added." << std::endl);
   }
@@ -457,14 +457,18 @@ int main(int argc, char* argv[])
 
     isflat = (std::fabs(M.S(0)[2]) < 1.0e-10);
     double radius = M.S(0).length();
-    issphere = true;
+    issphere = (radius > sphere_tolerance);
     for (size_t i=1; i<M.nV(); i++) {
       isflat = (isflat && (std::fabs(M.S(i)[2]) < 1.0e-10));
-      issphere = (issphere && (std::fabs(M.S(i).length()-radius) < sphere_tolerance));
+      if (issphere) {
+        issphere = (std::fabs(M.S(i).length() / radius - 1.0) <
+		    sphere_tolerance);
+      }
     }
     if (!isflat) {
       if (issphere) {
 	M.type(Mesh::Mtype_sphere);
+	M.sphere_radius(radius);
       } else {
 	M.type(Mesh::Mtype_manifold);
       }

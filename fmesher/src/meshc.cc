@@ -628,7 +628,7 @@ namespace fmesh {
       case Mesh::Mtype_sphere:
 	Vec::scale(s,s0,std::sin((1.-beta)*l01)/l01);
 	Vec::accum(s,s1,std::sin(beta*l01)/l01);
-	Vec::rescale(s,1./Vec::length(s));
+	Vec::rescale(s, M_->sphere_radius() / Vec::length(s));
 	break;
       }
     } else {
@@ -643,7 +643,7 @@ namespace fmesh {
 	/* Nothing to do! */
 	break;
       case Mesh::Mtype_sphere:
-	Vec::rescale(s,1./Vec::length(s));
+	Vec::rescale(s, M_->sphere_radius() / Vec::length(s));
 	break;
       }
     }
@@ -724,9 +724,11 @@ namespace fmesh {
 	      << " " << M_->S(ed0.v())
 	      << endl);
     if (M_->type() == Mesh::Mtype_sphere) {
-      MESHC_LOG("PI minus distance to target " <<
-		M_PI - M_->edgeLength(M_->S(v),M_->S(ed0.v())) << endl);
-      if (M_PI - M_->edgeLength(M_->S(v),M_->S(ed0.v())) < 1e-6) {
+      double distance_to_target(M_->edgeLength(M_->S(v),M_->S(ed0.v())));
+      double R(M_->sphere_radius());
+      MESHC_LOG("R*PI minus distance to target " <<
+		R*M_PI - distance_to_target << endl);
+      if (R*M_PI - distance_to_target < 1e-6) {
 	ed0.orbit2();
 	MESHC_LOG("Trying, starting from dart " << ed0
 		  << " " << M_->S(ed0.v())
@@ -897,30 +899,36 @@ namespace fmesh {
     /* Calculate a covering circle. */
     MESHC_LOG("Calculate a covering circle.");
 
+    // For the first calculation, work in normalised units
+    
     Point n0, n0s1, s1prime, sh;
-    Vec::copy(n0,M_->S(0));
+    double R(M_->sphere_radius());
+    Vec::scale(n0, M_->S(0), 1.0/R);
     double d0 = 1.0;
     double nc,ns,b;
 
     for (i=1;i<nV;i++) {
-      nc = Vec::scalar(n0,M_->S(i));
-      Vec::cross(n0s1,n0,M_->S(i));
+      Point Si_1;
+      Vec::scale(Si_1, M_->S(i), 1.0/R);
+      nc = Vec::scalar(n0,Si_1);
+      Vec::cross(n0s1,n0,Si_1);
+      Vec::rescale(n0s1, 1.0);
       ns = Vec::length(n0s1);
       if (nc < d0) {
 	if (ns > 0.0) {
 	  b = std::sqrt(1.0-d0*d0)/ns;
 	  Vec::scale(s1prime,n0,d0+nc*b);
-	  Vec::accum(s1prime,M_->S(i),-b);
+	  Vec::accum(s1prime,Si_1,-b);
 	} else {
 	  Point n0prime;
 	  Vec::arbitrary_perpendicular(n0prime,n0);
 	  Vec::scale(s1prime,n0,d0);
 	  Vec::accum(s1prime,n0prime,std::sqrt(1.0-d0*d0));
 	}
-	Vec::diff(sh,M_->S(i),s1prime);
+	Vec::diff(sh,Si_1,s1prime);
 	Vec::cross(n0,sh,n0s1);
 	Vec::rescale(n0,1.0/Vec::length(n0));
-	d0 = Vec::scalar(n0,M_->S(i));
+	d0 = Vec::scalar(n0,Si_1);
 	/* For robustness, check s1prime as well: */
 	b = Vec::scalar(n0,s1prime);
 	if (b<d0) {
@@ -932,8 +940,10 @@ namespace fmesh {
       }
     }
 
+    // From here, convert to actual units
+
     /* Calculate margin */
-    double diameter = 2.0*std::acos(d0);
+    double diameter = 2.0*std::acos(d0) * R;
     if (margin<0.0) {
       margin = -diameter*margin;
     }
@@ -941,7 +951,7 @@ namespace fmesh {
     MESHC_LOG("diameter = " << diameter << endl);
     MESHC_LOG("margin = " << margin << endl);
 
-    if (diameter+2*margin+margin>=M_PI) {
+    if (diameter+2*margin+margin>=M_PI/R) {
       /* The whole sphere needs to be covered. */
       MESHC_LOG("Cover the whole sphere." << endl);
 
@@ -954,9 +964,9 @@ namespace fmesh {
 
       /*
 	1. Pick a point v0.
-	2. Find the point v1 that minimises (s0s1+1/3)^2
+	2. Find the point v1 that minimises (s0s1/R^2+1/3)^2
 	3. Find the point v2 that minimises
-	     (s0s2+1/3)^2+(s1s2+1/3)^2
+	     (s0s2/R^2+1/3)^2+(s1s2/R^2+1/3)^2
 	4. Reorder to a CCW triangle (s0,s1,s2)
 	5. Find any point v3 in the triangle (-s0,-s1,-s2)
 	6. If no point found in 5., add a vertex at -(s0+s1+s2)/\|s0+s1+s2\|
@@ -979,7 +989,7 @@ namespace fmesh {
       double loss = 16.0/9.0+1.0;
       for (int v=0; v<nV; v++) {
 	if (v==v0) continue;
-	double loss_ = (Vec::scalar(*s0,M_->S(v))+1.0/3.0);
+	double loss_ = (Vec::scalar(*s0,M_->S(v)) / (R*R) + 1.0/3.0);
 	loss_ *= loss_;
 	if (loss_ < loss) {
 	  loss = loss_;
@@ -996,8 +1006,8 @@ namespace fmesh {
       loss = 16.0/9.0+16.0/9.0+1.0;
       for (int v=0; v<nV; v++) {
 	if ((v==v0) || (v==v1)) continue;
-	double loss0_ = (Vec::scalar(*s0,M_->S(v))+1.0/3.0);
-	double loss1_ = (Vec::scalar(*s1,M_->S(v))+1.0/3.0);
+	double loss0_ = (Vec::scalar(*s0,M_->S(v)) / (R*R) + 1.0/3.0);
+	double loss1_ = (Vec::scalar(*s1,M_->S(v)) / (R*R) + 1.0/3.0);
 	double loss_ = loss0_*loss0_+loss1_*loss1_;
 	if (loss_ < loss) {
 	  loss = loss_;
@@ -1048,7 +1058,7 @@ namespace fmesh {
 	Point s3;
 	Vec::sum(s3,*s0,*s1);
 	Vec::accum(s3,*s2);
-	Vec::rescale(s3,-1.0/Vec::length(s3));
+	Vec::rescale(s3,-R/Vec::length(s3));
 	v3 = addVertex(s3);
 	MESHC_LOG("Needed to add an extra vertex." << endl);
       }
@@ -1107,10 +1117,9 @@ namespace fmesh {
 	Vec::accum(n(i),n2,std::cos(th));
       }
 
-      double dist;
       for (int v=0;v<nV;v++) {
 	for (i=0;i<sides;i++) {
-	  dist = Vec::scalar(n[i],M_->S(v));
+	  double dist = Vec::scalar(n[i],M_->S(v));
 	  if (dist < 0.0) { /* Update enclosure. */
 	    Vec::cross(sh,n0,n[i]);
 	    Vec::cross(n(i),sh,M_->S(v));
@@ -1129,7 +1138,7 @@ namespace fmesh {
 	  ns = Vec::length(sh);
 	  Vec::rescale(sh,1.0/ns);
 	  th = std::atan2(ns,nc);
-	  margini = margin*ns/d0;
+	  margini = margin/R * ns/d0;
 	  if (th-margini > 0.0) {
 	    nc = std::cos(th-margini);
 	    ns = std::sin(th-margini);
@@ -1162,8 +1171,8 @@ namespace fmesh {
 	  nip_nj = Vec::scalar(nip,n[j]);
 	  nipp_nj = Vec::scalar(nipp,n[j]);
 	  bi = std::sqrt(nip_nj*nip_nj+nipp_nj*nipp_nj);
-	  Vec::scale(S(j),nip,nipp_nj/bi);
-	  Vec::accum(S(j),nipp,-nip_nj/bi);
+	  Vec::scale(S(j),nip,nipp_nj/bi * R);
+	  Vec::accum(S(j),nipp,-nip_nj/bi * R);
 	}
       }
 
