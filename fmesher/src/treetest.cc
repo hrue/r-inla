@@ -88,7 +88,7 @@ using namespace fmesh;
       Mesh M;
       M.type(fmesh::Mesh::Mtype_sphere);
       //      M.useX11(true,false,500,500,-1.05,1.05,-1.05,1.05);
-      M.make_globe(25);
+      M.make_globe(25, 1.0);
       
       std::cout << M << std::endl;
       
