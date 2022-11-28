@@ -54,6 +54,7 @@ namespace fmesh {
 		Mtype_sphere};
   private:
     Mtype type_;
+    double sphere_radius_;
     bool use_VT_;
     bool use_TTi_;
     Matrix3int TV_;  /* TV[t]  : {v1,v2,v3} */
@@ -105,6 +106,7 @@ namespace fmesh {
     Mesh(Mtype manifold_type, size_t Vcapacity,
 	 bool use_VT=true, bool use_TTi=false);
     Mesh(const Mesh& M) : type_(Mtype_manifold),
+			  sphere_radius_(1.0),
 			  use_VT_(true), use_TTi_(false),
 			  TV_(), TT_(), VT_(), TTi_(), S_()
 #ifdef FMESHER_WITH_X
@@ -150,6 +152,14 @@ namespace fmesh {
 
     Mtype type() const { return type_; };
     void type(Mtype set_type) { type_ = set_type; };
+    double sphere_radius() const { return sphere_radius_; };
+    void sphere_radius(double default_sphere_radius) {
+      if (S_.rows() == 0) {
+	sphere_radius_ = default_sphere_radius;
+      } else {
+        sphere_radius_ = S_(0).length();
+      }
+    };
     size_t nV() const { return S_.rows(); };
     size_t nT() const { return TV_.rows(); };
     const Matrix3int& TV() const { return TV_; };
@@ -216,7 +226,7 @@ namespace fmesh {
     int removeTriangle(const int t);
 
     Mesh& quad_tesselate(const Mesh& M);
-    Mesh& make_globe(int subsegments);
+    Mesh& make_globe(int subsegments, double radius);
 
     /* Traits: */
     double edgeLength(const Point& s0, const Point& s1) const;
@@ -282,7 +292,7 @@ namespace fmesh {
 
   };
 
-  Matrix3double* make_globe_points(int subsegments);
+  Matrix3double* make_globe_points(int subsegments, double radius);
 
 
   class MOAint {

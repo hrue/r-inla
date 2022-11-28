@@ -797,7 +797,7 @@ void make_globe_test()
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
 #endif
-  M.make_globe(30);
+  M.make_globe(30, 1.0);
 #ifdef FMESHER_WITH_X
   if (useX11)
     M.useX11(true,useX11text,500,500,-1.05,1.05,-1.05,1.05);
