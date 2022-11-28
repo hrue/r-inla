@@ -1068,3 +1068,5 @@ export/sparse-vec/test
 r-inla.org/doc/likelihood/0inflated.log
 
 r-inla.org/doc/likelihood/0inflated.synctex.gz
+
+external-packages/external

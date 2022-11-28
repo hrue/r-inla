@@ -328,6 +328,7 @@
                                 strategy = c("posterior", "prior"),
                                 groups = NULL,
                                 selection = NULL,
+                                friends = NULL, 
                                 verbose = FALSE,
                                 epsilon = 0.005,
                                 prior.diagonal = 1e-4, 
@@ -457,7 +458,10 @@
             control.pom = NULL,
 
             ## :ARGUMENT: control.link See \code{?control.link}
-            control.link = NULL
+            control.link = NULL,
+
+            ## :ARGUMENT: link.simple See \code{inla.doc("0inflated")}
+            link.simple = "default"
         )
 
         ## :SEEALSO: inla

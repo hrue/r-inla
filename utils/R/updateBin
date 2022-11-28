@@ -22,6 +22,7 @@ for m in 64; do
 	    rsync -auvL $INLA_MAC:$f $DIR/.
 	done
     done
+    rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
     mv -f -v $DIR/libjemalloc.* $DIR/first
@@ -35,6 +36,7 @@ for m in Something; do
 	    rsync -auvL $INLA_MAC_ARM64:$f $DIR/.
 	done
     done
+    rsync -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
     fix-perm $DIR
     ## those we like be be first
     mv -f -v $DIR/libjemalloc.* $DIR/first
@@ -48,6 +50,7 @@ for m in 64; do
 	    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/.
 	done
     done
+    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/build$m/external-packages/external $DIR/.
     fix-perm $DIR
     ## these ones, we do not want or need
     rm -f $DIR/libc.so*
@@ -69,6 +72,7 @@ for m in 64; do
 	    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/.
 	done
     done
+    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/windows$m/external-pacakges/external $DIR/.
     fix-perm $DIR
 done
 

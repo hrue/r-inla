@@ -249,7 +249,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
 
-	int i, k, n, na, len;
+	int n, na, len;
 
 	if (csr_store_use && graph->sha) {
 		void **p = NULL;
@@ -290,7 +290,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Calloc(n, int);
 	Ms->ia[0] = 0;
-	for (i = k = 0; i < n; i++) {
+	for (int i = 0, k = 0; i < n; i++) {
 		Ms->ja[k++] = i;
 		k_arr[i] = k;
 		k += graph->lnnbs[i];
@@ -1105,17 +1105,15 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	GMRFLib_pardiso_Qinv(problem->sub_sm_fact.PARDISO_fact);
 
 	GMRFLib_csr_tp *Qi = problem->sub_sm_fact.PARDISO_fact->pstore[GMRFLib_PSTORE_TNUM_REF]->Qinv;
-	int n = Qi->s->n, i, j, jj, k;
+	int n = Qi->s->n;
 	map_id **Qinv = Calloc(n, map_id *);
 
-	for (i = k = 0; i < n; i++) {
-		int nnb;
-
-		nnb = Qi->s->ia[i + 1] - Qi->s->ia[i];
+	for (int i = 0, k = 0; i < n; i++) {
+		int nnb = Qi->s->ia[i + 1] - Qi->s->ia[i];
 		Qinv[i] = Calloc(1, map_id);
 		map_id_init_hint(Qinv[i], nnb);
-		for (jj = 0; jj < nnb; jj++) {
-			j = Qi->s->ja[k];
+		for (int jj = 0; jj < nnb; jj++) {
+			int j = Qi->s->ja[k];
 			map_id_set(Qinv[i], j, Qi->a[k]);
 			k++;
 		}

@@ -218,6 +218,12 @@
 
     inla.write.hyper(control$hyper, file, data.dir = data.dir)
 
+    ## this is for 0poisson etc... that use argument link.simpple
+    link.simple <- inla.model.validate.link.simple.function(family, control$link.simple)
+    if (!is.null(link.simple)) {
+        cat("link.simple = ", link.simple, "\n", file = file, append = TRUE)
+    }
+
     ## the link-part. first make it backward-compatible...
     if (!(is.null(control$link) || inla.strcasecmp(control$link, "default"))) {
         ## control$link is set,  use that if not control.link$model is set
@@ -1261,6 +1267,7 @@
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
         stopifnot(is.null(gcpo$selection))
+        stopifnot(is.null(gcpo$friends))
 
         file.groups <- inla.tempfile(tmpdir = data.dir)
         fp.binary <- file(file.groups, "wb")
@@ -1311,6 +1318,32 @@
             close(fp.binary)
             fnm <- gsub(data.dir, "$inladatadir", file.selection, fixed = TRUE)
             cat("gcpo.selection =", fnm, "\n", file = file, append = TRUE)
+        }
+
+        if (!is.null(gcpo$friends)) {
+            friends <- gcpo$friends
+            len <- length(friends)
+            for (i in seq_along(friends)) {
+                if (is.null(friends[[i]])) friends[[i]] <- numeric(0)
+                xx <- friends[[i]]
+                xx <- xx[!is.na(xx)]
+                xx <- setdiff(xx, i)
+                xx <- sort(unique(xx-1)) ## to C-indexing
+                friends[[i]] <- xx
+            }
+            file.friends <- inla.tempfile(tmpdir = data.dir)
+            fp.binary <- file(file.friends, "wb")
+            writeBin(as.integer(len), fp.binary)
+            for(i in seq_along(friends)) {
+                local.len <- length(friends[[i]])
+                writeBin(as.integer(local.len), fp.binary)
+                if (local.len > 0) {
+                    writeBin(as.integer(friends[[i]]), fp.binary)
+                }
+            }
+            close(fp.binary)
+            fnm <- gsub(data.dir, "$inladatadir", file.friends, fixed = TRUE)
+            cat("gcpo.friends =", fnm, "\n", file = file, append = TRUE)
         }
     }
 

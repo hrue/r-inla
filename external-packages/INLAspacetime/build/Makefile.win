@@ -1,0 +1,9 @@
+CFLAGS = $(FLAGS) -O2 -mtune=generic -fopenmp -pipe -pthread -fpic -I.
+LDFLAGS = 
+TARGET = libINLAspacetime.so
+OBJ = cgeneric_ar2ss.o cgeneric_sstspde.o
+
+$(TARGET) : $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ -shared $^ $(LIBBLAS) -lgfortran -lgomp -lm
+
+clean :; rm -f $(TARGET) $(OBJ)

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -vx
+
+## linux mac-arm64 mac-intel win
+TYPE=$1
+shift 1
+echo TYPE=$TYPE
+
+EXT=external
+rm -rf $EXT
+for p in *; do
+    if [ -d "$p" ]; then
+	echo "Process package [$p]"
+	(
+	    cd $p
+	    make clean
+	    make download
+	    ( 
+		cd ./build
+		make -f Makefile.$TYPE clean
+		make -f Makefile.$TYPE "$@"
+	    )
+	)
+	mkdir -p $EXT/$p
+	cp -v $p/build/lib$p.so $EXT/$p
+	rsync -auvL $p/build/libs $EXT/$p
+	( cd $EXT/$p; ln -s libs/* . )
+	make -C $p clean
+    fi
+done

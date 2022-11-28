@@ -161,6 +161,7 @@ typedef struct {
 	void *cache;
 } inla_cgeneric_data_tp;
 
+#if defined(_OPENMP)
 // tools useful for creating a cache
 #include <omp.h>
 #define CGENERIC_CACHE_LEN(max_threads_) ((max_threads_) * (max_threads_))
@@ -176,7 +177,7 @@ typedef struct {
                         assert(0 == 1);                                 \
                 }                                                       \
         }
-
+#endif
 
 typedef double *inla_cgeneric_func_tp(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data);
 

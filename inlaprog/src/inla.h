@@ -241,6 +241,10 @@ typedef enum {
 	L_CENPOISSON2,					       /* cencored poisson (version 2) */
 	L_CENNBINOMIAL2,				       /* cencored nbinomial (similar to cenpoisson2) */
 	L_GAUSSIANJW,
+	L_0POISSON,
+	L_0POISSONS,
+	L_0BINOMIAL,
+	L_0BINOMIALS,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -726,6 +730,19 @@ typedef struct {
 	double *gjw_n;
 	double *gjw_df;
 	double *gjw_var;
+
+	link_func_tp *link_simple_invlinkfunc;		       /* the link-function for the simple part of the 0inflated models */
+	char *link_simple_name;
+
+	double ***poisson0_beta;
+	double poisson0_nbeta;
+	double **poisson0_x;
+	double *poisson0_E;
+
+	double ***binomial0_beta;
+	double binomial0_nbeta;
+	double **binomial0_x;
+	double *binomial0_Ntrials;
 } Data_tp;
 
 typedef struct {
@@ -2040,7 +2057,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2049,6 +2066,10 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 				    char **arg_str);
 int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);

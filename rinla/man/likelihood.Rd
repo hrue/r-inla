@@ -5,29 +5,17 @@
  \name{inla.likelihood}
  \alias{likelilhood}
 
- \title{Compute log-likelihood and CDF for new data using the likeilhood from a inla-object}
+ \title{Providing functions for sampling new data, evaluating pdf, cdf, and quantiles for new data.}
 
- \description{This function computes the log-likeilhood and computes the CDF for new data
- using the likelihood from a inla-object}
+ \description{This function return function to compute the pdf,cdf,quantiles, or samples for new data
+ using the likelihood from a inla-object.}
  \usage{
-     inla.likelihood(y, type = c("loglik", "CDF"), linear.predictor = numeric(0), 
-                     family = "gaussian", theta = NULL, E = 1, scale = 1,  
-                     Ntrials = 1,  strata = 1,
-                     link.model = "default", link.covariates = NULL)
+     inla.likelihood(type = c(d,r,p,q),args)
  }
 
  \arguments{
-   \item{y}{Data point/vector}
-   \item{type}{Return log-liklihood or the CDF?}
-   \item{linear.predictor}{A vector of linear predictors for the liklihood/CDF to be
-         evaluated at}
-   \item{family}{The family}
-   \item{theta}{Vector of hyperparameters in the internal scale, that goes into this likelihood}
-   \item{E}{Constrant E for Poisson-like likehoods}
-   \item{scale}{scaling, like for Gaussian likehood}
-   \item{Ntrails}{Number of trials in Binomial-like likelihood}
-   \item{link.model}{The link-model used}
-   \item{link.covariates}{Possible covariates that goes into the link.model}
+   \item{type}{The returned function type. The definition is similar to "rnorm","dnorm","pnorm",and "dnorm".}
+   \item{args}{It is usually a return value from "inla.likelihood.parser", which specifies parameters, link function and transformation function of hyperparameters.}
 }
 \details{Details goes here}
 \value{value goes here}

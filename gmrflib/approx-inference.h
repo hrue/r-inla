@@ -833,6 +833,9 @@ typedef struct {
 	GMRFLib_idxval_tp **groups;
 	GMRFLib_idx_tp *selection;
 
+	int friends_n;
+	GMRFLib_idx_tp **friends;
+
 	int remove_fixed;
 	GMRFLib_str_tp *remove;				       /* only one of these can be !NULL */
 	GMRFLib_str_tp *keep;

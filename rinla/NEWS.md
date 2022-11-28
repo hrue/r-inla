@@ -1,3 +1,11 @@
+# INLA 22.11.28
+* Added friends-list to gcpo
+* Expanded support for non-unit-radius spheres in fmesher
+* Experimental support for external-packages
+* Experimental support for new 0inflated models
+* Various code cleanup
+
+
 # INLA 22.11.22
 * Fix class inheritance checks to use inherits(), to allow e.g. inlabru
   output to work with `inla.cpo`, etc.

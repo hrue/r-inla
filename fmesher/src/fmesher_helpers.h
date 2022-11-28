@@ -12,7 +12,9 @@
 #include <vector>
 
 #include "fmesher_debuglog.h"
+#ifndef FMESHER_WITH_R
 #include "cmdline.h"
+#endif
 #include "mesh.h"
 #include "meshc.h"
 #include "ioutils.h"

@@ -193,7 +193,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 			(*graph)->nbs[im] = (*graph)->nbs[i];
 
 			if ((*graph)->nnbs[im]) {
-				for (int j = 0; j < (*graph)->nnbs[im]; j++) {
+				for (j = 0; j < (*graph)->nnbs[im]; j++) {
 					(*graph)->nbs[im][j]--;
 				}
 			}
@@ -414,7 +414,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 			g->nnbs[i] = g->nnbs[i + 1];
 			g->nbs[i] = g->nbs[i + 1];
 			g->nbs[i + 1] = NULL;
-			for (int j = 0; j < g->nnbs[i]; j++) {
+			for (j = 0; j < g->nnbs[i]; j++) {
 				g->nbs[i][j]--;
 			}
 		}
@@ -1120,7 +1120,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 
 		nn = 0;
 #pragma GCC ivdep
-		for (int i = 0; i < graph->n; i++) {
+		for (i = 0; i < graph->n; i++) {
 			nn += (!remove_flag[i]);
 		}
 		(*subgraph)->n = nn;
@@ -1165,7 +1165,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 			if (!remove_flag[i]) {
 				nneig = 0;
 #pragma GCC ivdep
-				for (int j = 0; j < graph->nnbs[i]; j++) {
+				for (j = 0; j < graph->nnbs[i]; j++) {
 					nneig += (!remove_flag[graph->nbs[i][j]]);
 				}
 				n_neig_tot += nneig;

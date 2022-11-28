@@ -585,12 +585,12 @@ namespace fmesh {
    On the sphere, the "obvious" arccos-formula for the length of a
    geodesic may be numerically unstable for short and long edges.  Use
    the arctan-formula instead, that should handle all cases
-   \f$L\in[0,\pi]\f$.
+   \f$L\in[0,\pi R]\f$.
    \f{align*}{
-   L &= \operatorname{acos}(s_0 \cdot s_1) \\
-   \sin(L/2) &= \|s_1-s_0\|/2 \\
-   \cos(L/2) &= \|s_0+s_1\|/2 \\
-   L &= 2 \cdot \operatorname{atan2}(\|s_1-s_0\|,\|s_0+s_1\|)
+   L &= R \operatorname{acos}(s_0 \cdot s_1 / R^2) \\
+   \sin(L/2/R) &= \|s_1-s_0\|/2 /R \\
+   \cos(L/2/R) &= \|s_0+s_1\|/2 /R \\
+   L &= 2R \cdot \operatorname{atan2}(\|s_1-s_0\|,\|s_0+s_1\|)
    \f}
    */
   double Mesh::edgeLength(const Point& s0, const Point& s1) const
@@ -602,7 +602,7 @@ namespace fmesh {
     if (type_==Mesh::Mtype_sphere) {
       Point ssum;
       Vec::sum(ssum,s1,s0);
-      len = 2.0*std::atan2(len,Vec::length(ssum));
+      len = 2.0 * sphere_radius_ * std::atan2(len,Vec::length(ssum));
     }
 
     return len;
@@ -635,43 +635,31 @@ namespace fmesh {
     For manifolds, calculate the absolute area, from
     \f$A=\|n_0+n_1+n_3\|/6\f$.\n
     For spheres, calculate the CCW interior geodesic triangle area,
-    with range \f$[0,4\pi)\f$.
+    with range \f$[0,4\pi R^2)\f$.
 
-    The spherical geodesic triangle area is given by the spherical
-    excess formula \f$A = \theta_0+\theta_1+\theta_2-\pi\f$, where
-    \f$\theta_i\f$ is the interior angle at node i.
-   \f{align*}{
-   d_1 &= e_1-s_0(s_0\cdot e_1) \\
-   d_2 &= e_2-s_0(s_0\cdot e_2) \\
-   \|d_1\| \|d_2\| \sin \theta_0 &= s_0\cdot(d_1\times d_2) \\
-   \|d_1\| \|d_2\| \cos \theta_0 &= - (d_1 \cdot d_2) \\
-   \theta_0 &= \operatorname{atan2}(s_0\cdot(d_1\times d_2),- (d_1 \cdot d_2))
-               \mod [0,2\pi)
-   \f}
-   Rewrite in terms of the original edge vectors:
-   \f{align*}{
-   s_0\cdot(d_1\times d_2) &= s_0\cdot(e_1\times e_2
-                             - (e_1\times s_0)(s_0\cdot e_2)
-                             - (e_2\times s_0)(s_0\cdot e_1))
-                       = s_0\cdot(e_1\times e_2) \\
-   (d_1\cdot d_2) &= (e_1\cdot e_2) - (s_0\cdot e_1)(s_0\cdot e_2) \\
-   \theta_0 &= \operatorname{atan2}(s_0\cdot(e_1\times e_2),
-                      (s_0\cdot e_1)(s_0\cdot e_2) - (e_1 \cdot e_2))
-	       \mod [0,2\pi)
-   \f}
-   The two remaining angles, \f$\theta_1\f$ and \f$\theta_2\f$, are
-   obtained by permuting indices.
+    For spherical geodesic triangles, use the formula from Oosterom and Strackee (1983).
+    It's simpler and more robust than the spherical excess formulas.
+    See DOI: 10.1109/TBME.1983.325207, A. Van Oosterom, J. Strackee,
+           The Solid Angle of a Plane Triangle, IEEE Transactions on Biomedical Engineering,
+           Volume BME-30, Issue 2, February 1983.
 
-   If \f$s_0\cdot(e_1\times e_2)\f$ is negative, the triangle covers
+   \f{align*}{
+   A &= 2 R^2 \operatorname{atan2}[s_0\cdot(s_1\times s_2) / R, R^2 + (s_0 \cdot s_1) + (s_1 \cdot s_2) + (s_2 \cdot s_0)]
+   \f}
+
+   If \f$s_0\cdot(s_1\times s_2)\f$ is negative, the triangle covers
    more than a hemisphere, and is non-convex (all interior angles are
-   \f$>\pi\f$), with area \f$>2\pi\f$.  Since the total area of the
-   sphere is \f$4\pi\f$, a geodesic triangulation can have at most one
+   \f$>\pi\f$), with area \f$>2\pi R^2\f$.  Since the total area of the
+   sphere is \f$4\pi R^2\f$, a geodesic triangulation can have at most one
    triangle of this type.
+
+  Note: the following has details that are particular to spherical exces formulas,
+and do not necessarily work the same for Oosterom and Strackee.
 
    If the vertices are co-planar with the origin, some special cases
    need to be analysed.  If the flat triangle spanned by the vertices
    contains the origin, the geodesic triangle covers a complete
-   hemisphere with area \f$2\pi\f$, which is also calculated by the
+   hemisphere with area \f$2\pi R^2\f$, which is also calculated by the
    formula.  If the origin lies on the boundary of the flat triangle,
    two of the vertices are antipodes, say \f$s_1=-s_0\f$, and the
    formula breaks down, with both arguments to \p atan2 equal to zero.
@@ -681,17 +669,17 @@ namespace fmesh {
    the formula is \f$\pi+\pi-\pi-\pi=0\f$, reflecting the different
    signs of the second parameter to \p atan2.  In practice, the
    vertices may not be numerically co-planar, and the calculated area
-   may become \f$4\pi\f$ instead.
+   may become \f$4\pi R^2\f$ instead.
 
 
   */
   /*
-    Don't use the following, since they rely on the edge lengths being known.
+    Don't use the following, since they rely on the edge lengths being known and is numerically unstable
 
-    Heron's formula:
-    a,b,c edge lengths
+    Heron's formula :
+    a,b,c angular edge lengths
     s = (a+b+c)/2
-    Area = sqrt(s(s-a)(s-b)(s-c))
+    Area = R^2 sqrt(s(s-a)(s-b)(s-c))
 
     Numerically stable version from
     http://www.eecs.berkeley.edu/~wkahan/Triangle.pdf
@@ -699,13 +687,13 @@ namespace fmesh {
     Area = sqrt( (a+(b+c)) (c-(a-b)) (c+(a-b)) (a+(b-c)) )/4
 
     l'Huilier's Theorem for spherical triangle areas:
-    a,b,c edge lengths
+    a,b,c edge angular lengths
     s = (a+b+c)/2
     tan(E / 4) = sqrt(tan(s / 2)
                       tan((s - a) / 2)
 		      tan((s - b) / 2)
 		      tan((s - c) / 2))
-    Area = E  (E = spherical excess)
+    Area = R^2 E  (E = spherical excess)
   */
   double Mesh::triangleArea(const Point& s0, const Point& s1, const Point& s2) const
   {
@@ -739,70 +727,20 @@ namespace fmesh {
       break;
     case Mesh::Mtype_sphere:
       {
-	if (false) {
-	/* Calculate the spherical excess. */
-	Point n0, n1, n2;
-	Vec::cross(n0,e1,e2);
-	Vec::cross(n1,e2,e0);
-	Vec::cross(n2,e0,e1);
-	/* Note: std::fmod calculates signed modulus, so use other trick. */
-	int nneg = 0;
-	double theta0 = std::atan2(Vec::scalar(s0,n0),
-				   Vec::scalar(s0,e1)
-				   *Vec::scalar(s0,e2)
-				   -Vec::scalar(e1,e2));
-	if (theta0<0) nneg++;
-	double theta1 = std::atan2(Vec::scalar(s1,n1),
-				   Vec::scalar(s1,e2)
-				   *Vec::scalar(s1,e0)
-				   -Vec::scalar(e2,e0));
-	if (theta1<0) nneg++;
-	double theta2 = std::atan2(Vec::scalar(s2,n2),
-				   Vec::scalar(s2,e0)
-				   *Vec::scalar(s2,e1)
-				   -Vec::scalar(e0,e1));
-	if (theta2<0) nneg++;
-	area = theta0+theta1+theta2+static_cast<double>(2*nneg-1)*M_PI;
-	}
-
-	/*
-	  New formula.
-	*/
+	/* "New" formula; simpler and more robust than the spherical excess formulas. */
+	/* See DOI: 10.1109/TBME.1983.325207, A. Van Oosterom, J. Strackee,
+           The Solid Angle of a Plane Triangle, IEEE Transactions on Biomedical Engineering,
+           Volume BME-30, Issue 2, February 1983.
+        */
+	
+	double R = sphere_radius_;
 	double costh =
-	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
-	double sinth = Vec::volume(s0,s1,s2);
-	area = 2.*std::atan2(sinth,costh);
+	  R * R + Vec::scalar(s0,s1) + Vec::scalar(s1,s2) + Vec::scalar(s2,s0);
+	double sinth = Vec::volume(s0,s1,s2) / R;
+	area = (2. * R * R) * std::atan2(sinth,costh);
 	if (area<0)
-	  area += 4.*M_PI;
+	  area += 4. * M_PI * R * R;
 
-	//	FMLOG("Areas: (" << area << "," << area2
-	//	     << ") a2/a1 = " << area2/area << endl);
-
-	/*
-	double costh =
-	  1.+Vec::scalar(s0,s1)+Vec::scalar(s1,s2)+Vec::scalar(s2,s0);
-	double sinth = 2.*Vec::volume(s0,s1,s2)/Vec::length(e2);
-	double area2 = 2.*std::atan2(sinth,costh);
-
-	FMLOG("Areas: (" << area << "," << area2
-	     << ") a2/a1 = " << area2/area << endl);
-	*/
-
-	/*
-	  // L'Huilier code, don't use:
-	  Dart dh(*this,t);
-	  double a(edgeLength(dh));
-	  dh.orbit2();
-	  double b(edgeLength(dh));
-	  dh.orbit2();
-	  double c(edgeLength(dh));
-	  double s((a+b+c)/2.0);
-	  double tanE4(std::sqrt(std::tan(s/2.0)*
-	                         std::tan((s-a)/2.0)*
-				 std::tan((s-b)/2.0)*
-				 std::tan((s-c)/2.0)));
-          area = 4.0*std::atan(tanE4);
-	*/
       }
       break;
     default:
@@ -946,7 +884,7 @@ namespace fmesh {
 	Vec::accum(c,tmp);
 	Vec::cross(tmp,e0,e1);
 	Vec::accum(c,tmp);
-	Vec::rescale(c,1.0/Vec::length(c));
+	Vec::rescale(c, sphere_radius_ / Vec::length(c));
       }
       break;
     }
@@ -990,7 +928,7 @@ namespace fmesh {
 		     /(2.0*Vec::length(n0)));
 
     if (type_==Mesh::Mtype_sphere) {
-      radius = std::asin(radius);
+      radius = std::asin(radius / sphere_radius_) * sphere_radius_;
     }
 
     return radius;
@@ -1868,7 +1806,11 @@ namespace fmesh {
       break;
     case Mesh::Mtype_sphere:
       {
-	double a(triangleArea(d.t()));
+	double R2(sphere_radius_*sphere_radius_);
+	bary[0] /= R2;
+	bary[1] /= R2;
+	bary[2] /= R2;
+	double a(triangleArea(d.t()) / R2);
 	if (a <= 2.0*M_PI) { // Regular triangle
 	  if (bary[0] > 2.0*M_PI) bary[0] = bary[0]-4.0*M_PI;
 	  if (bary[1] > 2.0*M_PI) bary[1] = bary[1]-4.0*M_PI;
@@ -2335,7 +2277,7 @@ namespace fmesh {
   }
 
 
-  Matrix3double* make_globe_points(int subsegments)
+  Matrix3double* make_globe_points(int subsegments, double radius)
   {
     int nT = 20*subsegments*subsegments;
     int nV = 2+nT/2;
@@ -2343,7 +2285,7 @@ namespace fmesh {
     Matrix3double& S_ = *S;
 
     int offset = 0;
-    S_(offset) = Point(0.,0.,1.);
+    S_(offset) = Point(0., 0., radius);
     offset += 1;
 
     for (int i=1; i <= subsegments; i++) {
@@ -2351,9 +2293,9 @@ namespace fmesh {
       double colatitude = i*M_PI/(subsegments*3.);
       for (int j=0; j < 5*i ; j++) {
 	double longitude = j/(5.*i)*2.*M_PI;
-	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude),
-			     std::sin(longitude)*std::sin(colatitude),
-			     std::cos(colatitude));
+	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude)*radius,
+			     std::sin(longitude)*std::sin(colatitude)*radius,
+			     std::cos(colatitude)*radius);
       }
       offset += 5*i;
     }
@@ -2363,9 +2305,9 @@ namespace fmesh {
       double colatitude = (subsegments+i)*M_PI/(subsegments*3.);
       for (int j=0; j < 5*subsegments ; j++) {
 	double longitude = (0.5*(i%2)+j)/(5.*subsegments)*2.*M_PI;
-	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude),
-			     std::sin(longitude)*std::sin(colatitude),
-			     std::cos(colatitude));
+	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude)*radius,
+			     std::sin(longitude)*std::sin(colatitude)*radius,
+			     std::cos(colatitude)*radius);
       }
       offset += 5*subsegments;
     }
@@ -2375,27 +2317,28 @@ namespace fmesh {
       double colatitude = M_PI-i*M_PI/(subsegments*3.);
       for (int j=0; j < 5*i ; j++) {
 	double longitude = (0.5*(i%2)+j)/(5.*i)*2.*M_PI;
-	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude),
-			     std::sin(longitude)*std::sin(colatitude),
-			     std::cos(colatitude));
+	S_(offset+j) = Point(std::cos(longitude)*std::sin(colatitude)*radius,
+			     std::sin(longitude)*std::sin(colatitude)*radius,
+			     std::cos(colatitude)*radius);
       }
       offset += 5*i;
     }
-    S_(offset) = Point(0.,0.,-1.);
+    S_(offset) = Point(0., 0., -radius);
 
     return S;
   }
 
-  Mesh& Mesh::make_globe(int subsegments)
+  Mesh& Mesh::make_globe(int subsegments, double radius)
   {
     TV_set(Matrix3int());
     int nV0 = (*this).nV();
     type(Mtype_sphere);
+    sphere_radius(radius);
     int nT = 20*subsegments*subsegments;
     int nV = 2+nT/2;
     check_capacity(nV0+nV,nT);
 
-    Matrix3double* S = make_globe_points(subsegments);
+    Matrix3double* S = make_globe_points(subsegments, radius);
     S_append(*S);
     delete S;
 
