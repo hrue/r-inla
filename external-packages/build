@@ -23,7 +23,7 @@ for p in *; do
 	)
 	mkdir -p $EXT/$p
 	cp -v $p/build/lib$p.so $EXT/$p
-	rsync -auvL $p/build/libs $EXT/$P
+	rsync -auvL $p/build/libs $EXT/$p
 	( cd $EXT/$p; ln -s libs/* . )
 	make -C $p clean
     fi
