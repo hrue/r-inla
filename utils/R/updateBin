@@ -72,7 +72,7 @@ for m in 64; do
 	    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/.
 	done
     done
-    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/windows$m/external-pacakges/external $DIR/.
+    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/windows$m/external-packages/external $DIR/.
     fix-perm $DIR
 done
 
