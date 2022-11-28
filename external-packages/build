@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+set -vx
 
 ## linux mac-arm64 mac-intel win
 TYPE=$1
-shift
+shift 1
 echo TYPE=$TYPE
 
 EXT=external
@@ -22,6 +23,8 @@ for p in *; do
 	)
 	mkdir -p $EXT/$p
 	cp -v $p/build/lib$p.so $EXT/$p
+	rsync -auvL $p/build/libs $EXT/$p
+	( cd $EXT/$p; ln -s libs/* . )
 	make -C $p clean
     fi
 done
