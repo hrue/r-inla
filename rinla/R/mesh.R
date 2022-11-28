@@ -2586,7 +2586,7 @@ print.summary.inla.mesh <- function(x, ...) {
 
 
 
-
+# Point/mesh connection methods ####
 
 #' Methods for projecting to/from an inla.mesh
 #'
@@ -2880,6 +2880,7 @@ inla.mesh.projector.inla.mesh.1d <- function(mesh,
 
 
 
+# Misc ####
 
 inla.internal.make.spline.mesh <- function(interval, m, degree, boundary, free.clamped) {
     boundary <-
