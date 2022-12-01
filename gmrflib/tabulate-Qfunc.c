@@ -42,20 +42,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-static unsigned char ADD_MULTIPLE_ENTRIES = 0;		       /* 1: allow, 0: no allow (abort...) */
-#define PREVIOUS_VALUE (ADD_MULTIPLE_ENTRIES ? (prev ? *prev : 0.0) : 0.0)
-
-#define CHECK_FOR_MULTIPLE_ENTRIES(table, index, value)			\
-	prev = map_id_ptr(table, index);				\
-	if (!ADD_MULTIPLE_ENTRIES) {					\
-		if (prev && *prev) {					\
-			fprintf(stderr, "\n\n%s:%1d: Override previous value in table %g with %g, please report this to <help@r-inla.org>\n\n", \
-				__GMRFLib_FuncName, __LINE__, *prev, value); \
-			assert(!(prev && *prev));			\
-			abort();					\
-		}							\
-	}
-
 #define TAB_FUNC_CORE(_prec_scale)					\
 	GMRFLib_tabulate_Qfunc_arg_tp *args = NULL;			\
 	double prec = 1.0;						\
@@ -205,7 +191,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 	const int debug = 0;
 	int i, j, ii, jj, k, ntriples, err, imin = INT_MAX, jmin = INT_MAX, off = 0, sparse = 0;
-	double value, *prev;
+	double value;
 
 	GMRFLib_tabulate_Qfunc_arg_tp *arg = NULL;
 	GMRFLib_io_tp *io = NULL;
@@ -396,10 +382,9 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 					j = j - off;
 					ii = IMIN(i, j);
 					jj = IMAX(i, j);
-					CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
-					map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
+					map_id_set(arg->values[ii], jj, value);
 					if (debug) {
-						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
+						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value);
 					}
 				}
 			}
@@ -414,10 +399,9 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 					j = j - off;
 					ii = IMIN(i, j);
 					jj = IMAX(i, j);
-					CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
-					map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
+					map_id_set(arg->values[ii], jj, value);
 					if (debug) {
-						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
+						printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value);
 					}
 				}
 			}
@@ -435,10 +419,9 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 				j = j - off;
 				ii = IMIN(i, j);
 				jj = IMAX(i, j);
-				CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, value);
-				map_id_set(arg->values[ii], jj, value + PREVIOUS_VALUE);
+				map_id_set(arg->values[ii], jj, value);
 				if (debug)
-					printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value + PREVIOUS_VALUE);
+					printf("set (i,j,val) = (%d,%d,%g)\n", i, j, value);
 			}
 			k++;
 		}
@@ -533,13 +516,10 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 
 	for (i = 0; i < ntriples; i++) {
 		int ii, jj;
-		double *prev;
-
 		if (ilist[i] <= jlist[i]) {
 			ii = ilist[i] - off;
 			jj = jlist[i] - off;
-			CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
-			map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
+			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}
 
@@ -605,13 +585,10 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 
 	for (i = 0; i < ntriples; i++) {
 		int ii, jj;
-		double *prev;
-
 		if (ilist[i] <= jlist[i]) {
 			ii = ilist[i] - off;
 			jj = jlist[i] - off;
-			CHECK_FOR_MULTIPLE_ENTRIES(arg->values[ii], jj, Qijlist[i]);
-			map_id_set(arg->values[ii], jj, Qijlist[i] + PREVIOUS_VALUE);
+			map_id_set(arg->values[ii], jj, Qijlist[i]);
 		}
 	}
 
@@ -663,5 +640,3 @@ int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
 
 	return GMRFLib_SUCCESS;
 }
-#undef CHECK_FOR_MULTIPLE_ENTRIES
-#undef PREVIOUS_VALUE

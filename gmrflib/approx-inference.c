@@ -11365,20 +11365,23 @@ double GMRFLib_bfunc_eval(int thread_id, double *constant, GMRFLib_bfunc_tp * bf
 		return 0.0;
 	}
 
-	double b = 0.0;
+	double b = 0.0, mu0 = 0.0, mu = 0.0;
 	int i, j, idx = bfunc->idx;
 	GMRFLib_bfunc2_tp *d = bfunc->bdef;
 
 	// fprintf(stderr, "idx %d mapidx %d n %d nr %d ng %d\n", idx, MAPIDX(idx, d), d->n, d->nreplicate, d->ngroup);
-
-	b = (d->diagonal + d->Qfunc(thread_id, idx, idx, NULL, d->Qfunc_arg)) * d->mfunc(thread_id, MAPIDX(idx, d), d->mfunc_arg);
+	mu0 = d->mfunc(thread_id, MAPIDX(idx, d), d->mfunc_arg);
+	b = (mu0 ? (d->diagonal + d->Qfunc(thread_id, idx, idx, NULL, d->Qfunc_arg)) * mu0 : 0.0);
 	for (i = 0; i < d->graph->nnbs[idx]; i++) {
 		j = d->graph->nbs[idx][i];
-		b += d->Qfunc(thread_id, idx, j, NULL, d->Qfunc_arg) * d->mfunc(thread_id, MAPIDX(j, d), d->mfunc_arg);
+		mu = d->mfunc(thread_id, MAPIDX(j, d), d->mfunc_arg);
+		if (mu) {
+			b += d->Qfunc(thread_id, idx, j, NULL, d->Qfunc_arg) * mu;
+		}
 	}
 
-	*constant = b * d->mfunc(thread_id, MAPIDX(idx, d), d->mfunc_arg);
-
+	*constant = (mu0 ? b * mu0 : 0.0);
+	
 #undef MAPIDX
 	return b;
 }
