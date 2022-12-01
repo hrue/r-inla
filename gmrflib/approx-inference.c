@@ -11381,7 +11381,7 @@ double GMRFLib_bfunc_eval(int thread_id, double *constant, GMRFLib_bfunc_tp * bf
 	}
 
 	*constant = (mu0 ? b * mu0 : 0.0);
-	
+
 #undef MAPIDX
 	return b;
 }
