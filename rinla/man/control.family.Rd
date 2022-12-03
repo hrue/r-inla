@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.family} for use in \code{inla}}
 \usage{
 inla.set.control.family.default(...)
-control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, control.mix, control.pom, dummy, fixed, gev.scale.xi, hyper, initial, link, param, prior, sn.shape.max, variant)
+control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, control.mix, control.pom, dummy, fixed, gev.scale.xi, hyper, initial, link, link.simple, param, prior, sn.shape.max, variant)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -40,6 +40,7 @@ control.family(beta.censor.value, cenpoisson.I, control.bgev, control.link, cont
 \item{control.mix}{   See \code{?control.mix}}
 \item{control.pom}{   See \code{?control.pom}}
 \item{control.link}{   See \code{?control.link}}
+\item{link.simple}{   See \code{inla.doc("0inflated")}}
 }
 \value{
   
