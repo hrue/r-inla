@@ -2919,24 +2919,27 @@ double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg)
 double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, id = 0;
+	int rebuild, id = 0;
 	const int debug = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 	if (!rebuild) {
-		for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+		for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
 			rebuild = (a->param[id][ii] != a->theta[ii][thread_id][0]);
 		}
 	}
 
 	if (rebuild) {
-		int *ilist = NULL, *jlist = NULL, n, len, k = 0, jj;
+		int *ilist = NULL, *jlist = NULL, n, len, k = 0;
 		double *Qijlist = NULL, *x_out = NULL;
 		rebuild = (a->param[id] == NULL || a->Q[id] == NULL);
 		if (!rebuild) {
-			for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+			for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
 				rebuild = (a->param[id][ii] != a->theta[ii][thread_id][0]);
+				if (debug) {
+					printf("\t\tid= %1d thread_id=%1d theta[%1d] %.12f\n", id, thread_id, ii, a->theta[ii][thread_id][0]);
+				}
 			}
 		}
 
@@ -2948,7 +2951,7 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 				GMRFLib_free_tabulate_Qfunc(a->Q[id]);
 			}
 			double *a_tmp = Calloc(a->ntheta, double);
-			for (jj = 0; jj < a->ntheta; jj++) {
+			for (int jj = 0; jj < a->ntheta; jj++) {
 				a_tmp[jj] = a->theta[jj][thread_id][0];
 				if (debug) {
 					printf("\ttheta[%1d] %.12f\n", jj, a_tmp[jj]);
@@ -2981,7 +2984,7 @@ double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg)
 				ilist = (int *) &(x_out[k]);
 				jlist = (int *) &(x_out[k + len]);
 				Qijlist = (double *) &(x_out[k + 2 * len]);
-				for (jj = 0; jj < len; jj++) {
+				for (int jj = 0; jj < len; jj++) {
 					ilist[jj] = (int) x_out[k + jj];
 					jlist[jj] = (int) x_out[k + len + jj];
 				}
@@ -3142,7 +3145,7 @@ double mfunc_rgeneric(int thread_id, int i, void *arg)
 double mfunc_cgeneric(int thread_id, int i, void *arg)
 {
 	inla_cgeneric_tp *a = (inla_cgeneric_tp *) arg;
-	int rebuild, ii, id = 0;
+	int rebuild, id = 0;
 	const int debug = 0;
 
 	// possible fast return ?
@@ -3152,22 +3155,22 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 
 	GMRFLib_CACHE_SET_ID(id);
 	rebuild = (a->mu_param[id] == NULL || a->mu[id] == NULL);
-	for (ii = 0; ii < a->ntheta && !rebuild; ii++) {
+	for (int ii = 0; ii < a->ntheta && !rebuild; ii++) {
 		rebuild = (a->mu_param[id][ii] != a->theta[ii][thread_id][0]);
 	}
 
 	if (rebuild) {
-		int n, jj;
+		int n;
 		double *x_out = NULL;
 
 		if (debug) {
-			printf("Rebuild mu-hash for id %d\n", id);
+			printf("Rebuild mu-hash for id %d thread_id %d\n", id, thread_id);
 		}
 		if (!(a->mu_param[id])) {
 			assert(a->ntheta >= 0 && a->ntheta < 1000000);
 			a->mu_param[id] = Calloc(a->ntheta, double);
 		}
-		for (jj = 0; jj < a->ntheta; jj++) {
+		for (int jj = 0; jj < a->ntheta; jj++) {
 			a->mu_param[id][jj] = a->theta[jj][thread_id][0];
 			if (debug) {
 				printf("\ttheta[%1d] %.20g\n", jj, a->mu_param[id][jj]);
@@ -3175,7 +3178,7 @@ double mfunc_cgeneric(int thread_id, int i, void *arg)
 		}
 
 		if (debug) {
-			printf("Call cgeneric\n");
+			printf("Call cgeneric in mfunc_cgeneric\n");
 		}
 		x_out = a->model_func(INLA_CGENERIC_MU, a->mu_param[id], a->data);
 		if (debug) {
@@ -9603,9 +9606,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -42754,6 +42757,13 @@ int testit(int argc, char **argv)
 			x[i] = GMRFLib_uniform();
 		}
 		printf("%s\n", GMRFLib_vec2char(x, n));
+	}
+		break;
+
+	case 101:
+	{
+		P(log(0.0));
+		P(sqrt(-1.0));
 	}
 		break;
 

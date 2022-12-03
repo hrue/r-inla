@@ -1,6 +1,6 @@
 CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=native -fopenmp -pipe -pthread -fpic -I.
 LDFLAGS = -framework Accelerate
-TARGET = libINLAspacetime.so
+TARGET = librSPDE.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
 
 $(TARGET) : $(OBJ)

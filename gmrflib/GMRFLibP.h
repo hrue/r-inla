@@ -446,15 +446,16 @@ typedef enum {
 
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
+#define GMRFLib_CACHE_LEN (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
 #define GMRFLib_CACHE_SET_ID(__id)					\
 	if (1) {							\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
-		if (level_ <= 1)	{				\
+		if (level_ <= 1) {					\
 			__id =  tnum_;					\
 		} else if (level_ == 2) {				\
-			__id = omp_get_ancestor_thread_num(level_ -1) * GMRFLib_MAX_THREADS() + tnum_; \
+			int level2_ = omp_get_ancestor_thread_num(level_ -1); \
+			__id = IMAX(1, 1 + level2_) * GMRFLib_MAX_THREADS() + tnum_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\

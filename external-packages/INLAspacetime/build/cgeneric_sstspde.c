@@ -1,1 +1,1 @@
-../INLAspacetime/src/cgeneric_sstspde.c
+../INLAspacetime/inst/src/cgeneric_sstspde.c
