@@ -1,3 +1,6 @@
+# INLA 22.12.03
+* Fixed an issue with cache and nested parallelism (mostly \code{cgeneric}-related)
+
 # INLA 22.11.28
 * Added friends-list to gcpo
 * Expanded support for non-unit-radius spheres in fmesher
