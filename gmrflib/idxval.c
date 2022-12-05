@@ -859,8 +859,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 
 	int kmin = -1;
 	double tmin = GMRFLib_min_value(treff, 4, &kmin);
-	double tmax = GMRFLib_max_value(treff, 4, NULL);
-
 	if (debug) {
 		double s = 1.0 / (treff[0] + treff[1] + treff[2] + treff[3]);
 		printf("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
