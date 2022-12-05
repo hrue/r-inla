@@ -36507,9 +36507,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-		printf("\t                            => optimal.mix.strategy   [%.3f]\n", time_loop[4]);
-		printf("\t                                 plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-		printf("\t                                 plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
+		printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
+		printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
+		printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
 
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
