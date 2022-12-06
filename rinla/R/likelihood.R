@@ -113,6 +113,35 @@ gaussian.likelihood = function(args){
     return (fun)
 }
 
+exponential.likelihood = function(args){
+    rate = args$inv.link.function(args$linear.predictor)
+    islog = args$islog
+    lower.tail = args$lower.tail
+    if(args$type == "r"){
+        fun = function(n){
+            return(rexp(n,rate = rate))
+        }
+    }else if(args$type == "d"){
+        fun = function(x){
+            return(dexp(x = x,rate = rate,log = islog))
+        }
+    }else if(args$type == "p"){
+        fun = function(q){
+            return(pexp(q = q,rate = rate,log.p = islog,lower.tail = lower.tail))
+        }
+    }else if(args$type == "q"){
+        fun = function(p){
+            return(qexp(p = p,rate = rate,log.p = islog,lower.tail = lower.tail))
+        }
+    }else if(args$type == "s"){
+        fun = function(q){
+            return(pexp(q = q,rate = rate,log.p = islog,lower.tail = FALSE))
+        }
+    }
+    
+    return (fun)
+}
+
 
 
 inla.likelihood = function(type = c("d","p","r","q","s"),args){
