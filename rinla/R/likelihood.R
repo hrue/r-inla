@@ -25,7 +25,7 @@ weibull.likelihood = function(args){
     stopifnot(args$variant == 1)
     shape = inla.models()$likelihood$weibull$hyper$theta$from.theta(args$theta)
     scale = 1/args$inv.link.function(args$linear.predictor)
-    islog = args$log
+    islog = args$islog
     lower.tail = args$lower.tail
     if(args$type == "r"){
         fun = function(n){
@@ -54,7 +54,7 @@ weibull.likelihood = function(args){
 
 poisson.likelihood = function(args){
     lambda = args$inv.link.function(args$linear.predictor)
-    islog = args$log
+    islog = args$islog
     lower.tail = args$lower.tail
     if(args$type == "r"){
         fun = function(n){
@@ -86,7 +86,7 @@ gaussian.likelihood = function(args){
     prec = inla.models()$likelihood$gaussian$hyper$theta1$from.theta(args$theta)
     scale = args$scale
     stdev = 1/sqrt(prec*scale)
-    islog = args$log
+    islog = args$islog
     lower.tail = args$lower.tail
     if(args$type == "r"){
         fun = function(n){
@@ -132,7 +132,7 @@ inla.likelihood.parser = function(arg_string){
     args_res$linear.predictor = args_raw$linear.predictor
     args_res$theta = args_raw$theta
     args_res$inv.link.function = eval(parse(text = paste0("inla.link.inv",tolower(args_raw$link.model))))
-    args_res$log = FALSE
+    args_res$islog = FALSE
     args_res$lower.tail = TRUE
     #For Weibulll, we only allow variant 1.
     args_res$variant = args_raw$variant
