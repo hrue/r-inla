@@ -34,7 +34,7 @@ See the  vignette for details.}
 \item{size.max}{The maximum size of a group. If the computed
 group-size is larger, it will be truncated to \code{size.max}.}
 \item{groups}{An (optional) predefined list of groups. 
-See the  vignette for details.}
+See the vignette for details.}
 \item{selection}{An optional list of data-indices to use.
 If not given, then all data are used.}
 \item{friends}{An optional list of lists of indices to use a friends}

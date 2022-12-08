@@ -1264,6 +1264,24 @@
                                choices = inla.set.control.compute.default()$control.gcpo$strategy)
     cat("gcpo.strategy =", gcpo$strategy, "\n", file = file, append = TRUE)
 
+    if (!is.null(gcpo$groups) && !is.null(gcpo$friends)) {
+        stop("Both the friends-list and the groups-list is non-null, only one can be used at the time.")
+    }
+
+    ## do we have CPO and a friends-list?  convert this into groups
+    gsiz <- round(gcpo$num.level.sets)
+    if (gsiz <= 0 && !is.null(gcpo$friends)) {
+        friends <- gcpo$friends
+        len <- length(friends)
+        for (i in seq_along(friends)) {
+            xx <- c(i, friends[[i]])
+            xx <- xx[!is.na(xx)]
+            friends[[i]] <- sort(unique(xx))
+        }
+        gcpo$groups <- friends
+        gcpo$friends <- NULL
+    }
+
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
         stopifnot(is.null(gcpo$selection))
@@ -1277,19 +1295,32 @@
                 gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
             }
         }
-        total.len <- len + sum(unlist(lapply(gcpo$groups, length)))
-        writeBin(as.integer(len), fp.binary)
-        ## this is length of the rest of the binary file. makes reading easies
-        writeBin(as.integer(total.len), fp.binary) 
+
+        ## need to compute total.len
+        total.len <- len
         for(i in seq_len(len)) {
             g <- gcpo$groups[[i]]
-            writeBin(as.integer(length(g)), fp.binary)
             if (length(g) > 0) {
-                ## back to C indexing
+                g <- unique(c(i, g))
+                total.len <- total.len + length(g)
+            }
+        }
+
+        writeBin(as.integer(len), fp.binary)
+        ## this is length of the rest of the binary file (which we just have computed). makes
+        ## reading the file easier
+        writeBin(as.integer(total.len), fp.binary) 
+
+        for(i in seq_len(len)) {
+            g <- gcpo$groups[[i]]
+            len.g <- length(g)
+            if (len.g == 0) {
+                writeBin(as.integer(len.g), fp.binary)
+            } else {
+                ## make sure to add 'i' if its not already there
+                g <- unique(sort(c(i, g)))
+                writeBin(as.integer(length(g)), fp.binary)
                 writeBin(as.integer(g - 1), fp.binary)
-                if (!(i %in% g)) {
-                    stop(paste0("Node ", i,  " is not in group ",  i,  ". This is not supported."))
-                }
             }
         }
         close(fp.binary)
