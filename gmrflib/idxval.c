@@ -505,7 +505,7 @@ int GMRFLib_idxval_nsort(GMRFLib_idxval_tp ** hold, int n, int nt)
 
 int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, int accumulate)
 {
-	const int limit = 8L;
+	const int limit = 16L;
 	const int debug = 0;
 
 	if (!h || h->n == 0) {
@@ -765,8 +765,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 	h->g_mem[1] = (void *) new_val;
 	Free(g_istart);
 
-	double time_min = 0.0;
-	double time_max = 0.0;
 	int ntimes = 2;
 #if defined(INLA_LINK_WITH_MKL)
 	int with_mkl = 1;
@@ -826,6 +824,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 	}
 
 	for (k = 1; k < 4; k++) {
+		treff[k] /= (double) ntimes;
+
 		if (ABS(value[k] - value[0]) > FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
 			P(k);
@@ -857,17 +857,15 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 		}
 	}
 
-	k = -1;
-	double tmin = GMRFLib_min_value(treff, 4, &k);
-	double tmax = GMRFLib_max_value(treff, 4, NULL);
-
+	int kmin = -1;
+	double tmin = GMRFLib_min_value(treff, 4, &kmin);
 	if (debug) {
-		double s = 1.0 / (treff[0] + treff[1] + treff[2] + treff[3]) / ntimes;
-		printf("for h with n= %1d chose k=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
-		       h->n, k, treff[0] * s, treff[1] * s, treff[2] * s, treff[3] * s);
+		double s = 1.0 / (treff[0] + treff[1] + treff[2] + treff[3]);
+		printf("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
+		       h->n, kmin, treff[0] * s, treff[1] * s, treff[2] * s, treff[3] * s);
 	}
 
-	switch (k) {
+	switch (kmin) {
 	case 0:
 		h->preference = IDXVAL_SERIAL;
 		break;
@@ -907,11 +905,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
 		}
 		GMRFLib_dot_product_optim_report[idx][4] += tmin;
-		GMRFLib_dot_product_optim_report[idx][8]++;    /* count... */
+		GMRFLib_dot_product_optim_report[idx][5 + kmin]++;    /* count... */
 	}
-
-	time_min += tmin / ntimes;
-	time_max += tmax / ntimes;
 
 	return GMRFLib_SUCCESS;
 }

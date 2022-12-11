@@ -7404,6 +7404,9 @@ int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int
 	}
 	double p = ds->data_observations.link_simple_invlinkfunc(thread_id, p_intern, MAP_FORWARD, NULL, NULL);
 
+	//assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
+	//assert(ds->predictor_invlinkfunc == link_cloglog);
+	
 	if (m > 0) {
 		if (y > 0) {
 			double tmp = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
@@ -13870,6 +13873,10 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 		printf("\t\tBuild tag = [%s]\n", INLA_TAG);
 		printf("\t\tSystem memory = [%.1fGb]\n", ((double) getTotalSystemMemory()) / 1024.0);
 		printf("\t\tCores = (Physical= %1d, Logical= %1d)\n", UTIL_countPhysicalCores(), UTIL_countLogicalCores());
+
+		char a = -1;
+		signed char b = -1;
+		printf("\t\t'char' is %s\n", (((int) a == (int) b) ? "signed" : "unsigned"));
 	}
 
 	openmp_strategy = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "OPENMP.STRATEGY"), GMRFLib_strdup("DEFAULT")));
@@ -36507,9 +36514,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
 		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-		printf("\t                            => optimal.mix.strategy   [%.3f]\n", time_loop[4]);
-		printf("\t                                 plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-		printf("\t                                 plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
+		printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
+		printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
+		printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
 
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
@@ -42758,7 +42765,7 @@ int testit(int argc, char **argv)
 		}
 		printf("%s\n", GMRFLib_vec2char(x, n));
 	}
-		break;
+	break;
 
 	case 101:
 	{
@@ -42767,6 +42774,30 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 102: 
+	{
+		double x = GMRFLib_uniform(), y;
+		y = map_invcloglog(x, MAP_FORWARD, NULL);
+		y = map_invcloglog(y, MAP_BACKWARD, NULL);
+		P(x);
+		P(y);
+		P(x-y);
+	}
+	break;
+
+	case 103: 
+	{
+		char a;
+		unsigned char b;
+		signed char c;
+
+		a = b = c = 1; 
+		printf("char %d unsigned %d signed %d\n", (int)a, (int)b, (int)c);
+		a = b = c = -1;
+		printf("char %d unsigned %d signed %d\n", (int)a, (int)b, (int)c);
+	}
+	break;
+		
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

@@ -42,7 +42,7 @@
              size.max = 32,
              
              ## !\item{groups}{An (optional) predefined list of groups. 
-             ## !See the  vignette for details.}
+             ## !See the vignette for details.}
              groups = NULL, 
 
              ## !\item{selection}{An optional list of data-indices to use.

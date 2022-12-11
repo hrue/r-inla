@@ -168,7 +168,12 @@
  arguments. (OOPS: This is an expert option!)}
  \item{num.threads}{ Maximum number of threads the
  \code{inla}-program will use, or as 'A:B' defining the number threads in the
- outer (A) and inner (B) layer for nested parallelism. }
+ outer (A) and inner (B) layer for nested parallelism. 
+ If B is set to -1, then one can force some single function evaluations to be
+ perfored in parallel, so \code{num.threads=4:-1} will locally
+ behave like \code{num.threads=4:1} (if considered to be more efficient).
+ If \code{B > 1} then \code{num.threads=A:B} and
+ \code{num.threads={A:-B} are equivalent.}
  \item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
  number of threads the the \code{openblas}/\code{mklblas} will use (if
  available). Value is ignored if \code{<=0} (then environment variables are used).}
