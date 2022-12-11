@@ -70,7 +70,7 @@
 ## !gg = inla.read.graph(g.file)
 ## !summary(g)
 ## !##
-## !Not run:
+## !## Not run:
 ## !plot(g)
 ## !inla.spy(g)
 ## !## when defining the graph directly in the call,
@@ -89,7 +89,7 @@
 ## !g = inla.read.graph(adjacent)
 ## !plot(g)
 ## !summary(g)
-## !End(Not run)
+## !## End(Not run)
 ## !}
 
 `inla.graph.binary.file.magic` <- function() {

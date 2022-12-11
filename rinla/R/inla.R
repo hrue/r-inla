@@ -202,7 +202,7 @@
 ## ! perfored in parallel, so \code{num.threads=4:-1} will locally
 ## ! behave like \code{num.threads=4:1} (if considered to be more efficient).
 ## ! If \code{B > 1} then \code{num.threads=A:B} and
-## ! \code{num.threads={A:-B} are equivalent.}
+## ! \code{num.threads=A:-B} are equivalent.}
 
 ## ! \item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
 ## ! number of threads the the \code{openblas}/\code{mklblas} will use (if
