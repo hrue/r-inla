@@ -1,3 +1,7 @@
+# INLA 22.12.12
+* Some minor code fixed
+* Development build to test cgeneric update
+
 # INLA 22.12.03
 * Fixed an issue with cache and nested parallelism (mostly \code{cgeneric}-related)
 
