@@ -105,6 +105,7 @@ Collate:
     'idx.R'
     'iidkd.R'
     'inla.R'
+    'inla.call.R'
     'inlaEnv.R'
     'interpret.formula.R'
     'jmarginal.R'
