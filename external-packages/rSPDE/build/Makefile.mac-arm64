@@ -1,10 +1,11 @@
 CFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=native -fopenmp -pipe -pthread -fpic -I.
+CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=native -fopenmp -pipe -pthread -fpic -I. -I$(EIGEN)
 LDFLAGS = -framework Accelerate
 TARGET = librSPDE.so
-OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+OBJ = $(patsubst %.c,%.o,$(wildcard *.c)) $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 $(TARGET) : $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -lgomp -lm
+	$(CXX) $(LDFLAGS) -o $@ -dynamiclib $^ -lgfortran -lgomp -lm
 
  clean :; rm -f $(TARGET) $(OBJ)
 
