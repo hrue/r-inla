@@ -91,6 +91,7 @@ Collate:
     'doc.R'
     'expand.dataframe.R'
     'export-class.R'
+    'external-package.R'
     'f.R'
     'fgn.R'
     'finn.R'

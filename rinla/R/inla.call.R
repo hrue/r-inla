@@ -1,19 +1,3 @@
-## Export: inla.call.builtin
-
-## !\name{inla.call.builtin}
-## !\alias{inla.call.builtin}
-## !
-## !\title{Return the path to the (default) \code{inla}-program}
-## !\description{
-## ! Return the path to the (default) \code{inla}-program. This is
-## ! also the default value for the argument \code{inla.call}
-## !}
-## !\usage{
-## !inla.call.builtin()
-## !}
-## !\value{This function returns the path to the default \code{inla}-program.}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-
 `inla.call.builtin` <- function() {
     ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
     ## manually instead.
