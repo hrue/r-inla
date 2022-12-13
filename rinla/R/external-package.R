@@ -18,7 +18,7 @@
 
 `inla.external.lib` <- function(package) {
     package <- as.character(substitute(package))
-    fnm <- normalizePath(paste0(dirname(INLA:::inla.call.builtin()), "/external/",
+    fnm <- normalizePath(paste0(dirname(inla.call.builtin()), "/external/",
                                 package, "/lib", package, ".so"))
     return (if (file.exists(fnm)) fnm else NULL)
 }
