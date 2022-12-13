@@ -7298,6 +7298,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default log quantile'}
+								\item{link.simple = }{`default logit cauchit probit cloglog'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
@@ -7444,6 +7445,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit loga cauchit probit cloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit'}
+								\item{link.simple = }{`default log'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
@@ -7590,6 +7592,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit loga cauchit probit cloglog loglog log'}
+								\item{link.simple = }{`default logit cauchit probit cloglog'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
@@ -7736,6 +7739,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default logit loga cauchit probit cloglog loglog log'}
+								\item{link.simple = }{`default logit cauchit probit cloglog'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
