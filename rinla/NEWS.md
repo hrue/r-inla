@@ -1,3 +1,7 @@
+# INLA 22.12.15
+* Minor changes to integrate cgeneric-code better
+* New stable build
+
 # INLA 22.12.14
 * Minor changes to integrate cgeneric-code better
 
