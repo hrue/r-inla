@@ -51,6 +51,8 @@ Suggests:
     sn,
     spdep,
     splancs,
+    terra,
+    tidyterra,
     testthat,
     tools
 Imports:
