@@ -1,4 +1,4 @@
-CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -pthread -fpic -I.
+CFLAGS = $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I.
 LDFLAGS = 
 TARGET = libINLAspacetime.so
 OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
