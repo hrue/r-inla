@@ -9534,10 +9534,9 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 	int n, nc = 0, one = 1;
 	GMRFLib_density_tp **d;
 
-	// I disable optimatisation as there is something going on with pardiso, in _some_ cases.
-	// this should be fixed now (Apr'22)
-	int disable_opt = 0;
-
+	// yes, disable this with PARDISO as PARDISO do not have this feaure
+	int disable_opt = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO ? 1 : 0);
+	
 	typedef struct {
 		double *v;
 		int from_idx;
@@ -9568,20 +9567,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 		cross_store = Calloc(nlin, cross_tp);
 	}
 
-	// there is some bad designed code which require some code calling this to be run as
-	// a critical region, which mess up if run with pardiso and this loop in parallel.
-	// so I disable it for the moment.
-	// FIXME: Recheck this later!
-	int use_pardiso = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO);
-
-	// seems to be ok now?? (Mar'22)
-	use_pardiso = 0;
-
-	if (!use_pardiso) {
-		omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-	}
-
-#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner) if (!use_pardiso)
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 	for (int i = 0; i < nlin; i++) {
 
 		int from_idx, to_idx, len, from_idx_a, to_idx_a, len_a, jj;
