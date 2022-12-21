@@ -69,7 +69,7 @@ g.file = inla.write.graph(g, mode="binary")
 gg = inla.read.graph(g.file)
 summary(g)
 ##
-Not run:
+## Not run:
 plot(g)
 inla.spy(g)
 ## when defining the graph directly in the call,
@@ -88,5 +88,5 @@ adjacent[3,4] = adjacent[4,3] = 1
 g = inla.read.graph(adjacent)
 plot(g)
 summary(g)
-End(Not run)
+## End(Not run)
 }

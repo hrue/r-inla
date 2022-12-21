@@ -143,6 +143,8 @@ typedef struct {
 } inla_cgeneric_vec_tp;
 
 typedef struct {
+	int max_threads;
+
 	int n_ints;
 	inla_cgeneric_vec_tp **ints;
 
@@ -164,8 +166,10 @@ typedef struct {
 #if defined(_OPENMP)
 // tools useful for creating a cache
 #include <omp.h>
-#define CGENERIC_CACHE_LEN(max_threads_) ((max_threads_) * ((max_threads_) + 1))
-#define CGENERIC_CACHE_ASSIGN_IDX(idx_, max_threads_)			\
+#define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
+#define MAX_THREADS(data_) ((data_)->max_threads)
+#define CGENERIC_CACHE_LEN(data_) (IMAX_(1, MAX_THREADS(data_)) * (IMAX_(1, MAX_THREADS(data_)) + 1))
+#define CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)				\
         if (1) {                                                        \
                 int level_ = omp_get_level();                           \
                 int tnum_ = omp_get_thread_num();                       \
@@ -173,7 +177,7 @@ typedef struct {
                         idx_ =  tnum_;                                  \
                 } else if (level_ == 2) {                               \
                         int level2_ = omp_get_ancestor_thread_num(level_ -1); \
-			idx_ = IMAX(1, 1 + level2_) * (max_threads_) + tnum_; \
+			idx_ = IMAX_(1, 1 + level2_) * IMAX_(1, MAX_THREADS(data_)) + tnum_; \
                 } else {                                                \
                         assert(0 == 1);                                 \
                 }                                                       \

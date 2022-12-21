@@ -1,3 +1,17 @@
+# INLA 22.12.16
+* Fixed an issue with lincombs and PARDISO library
+
+# INLA 22.12.15
+* Minor changes to integrate cgeneric-code better
+* New stable build
+
+# INLA 22.12.14
+* Minor changes to integrate cgeneric-code better
+
+# INLA 22.12.12
+* Some minor code fixed
+* Development build to test cgeneric update
+
 # INLA 22.12.03
 * Fixed an issue with cache and nested parallelism (mostly \code{cgeneric}-related)
 

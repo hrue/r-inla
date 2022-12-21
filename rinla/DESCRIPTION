@@ -51,6 +51,8 @@ Suggests:
     sn,
     spdep,
     splancs,
+    terra,
+    tidyterra,
     testthat,
     tools
 Imports:
@@ -91,6 +93,7 @@ Collate:
     'doc.R'
     'expand.dataframe.R'
     'export-class.R'
+    'external-package.R'
     'f.R'
     'fgn.R'
     'finn.R'
@@ -105,6 +108,7 @@ Collate:
     'idx.R'
     'iidkd.R'
     'inla.R'
+    'inla.call.R'
     'inlaEnv.R'
     'interpret.formula.R'
     'jmarginal.R'

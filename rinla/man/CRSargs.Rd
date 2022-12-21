@@ -65,7 +65,7 @@ if (require(rgdal)) {
 }
 }
 \seealso{
-\code{\link[rgdal:CRS-class]{rgdal::CRSargs()}}, \code{\link[=inla.CRS]{inla.CRS()}}
+\code{\link[rgdal:rgdal-deprecated]{rgdal::CRSargs()}}, \code{\link[=inla.CRS]{inla.CRS()}}
 }
 \author{
 Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}

@@ -90,12 +90,15 @@ setting some options.
 library(maps)
 library(ggplot2)
 library(sf)
-library(raster)
+library(terra)
+library(tidyterra) # raster plotting
 library(tidyr)
 library(scales)
 library(inlabru)
 library(INLA)
 library(dplyr)
+# Note: the 'splancs' package also needs to be installed,
+# but doesn't need to be loaded
 
 # set option
 select <- dplyr::select
@@ -172,15 +175,17 @@ count_dat <- download_dat %>%
   ungroup() %>%
   mutate(
     std_yr = year - max(year),
-    obs = 1:nrow(.),
+    obs = seq_len(nrow(.)),
     site_idx = as.numeric(factor(paste(circle, lon, lat))),
     year_idx = as.numeric(factor(year)),
     site_year_idx = as.numeric(factor(paste(circle, lon, lat, year)))
   ) %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = FALSE) %>%
   st_transform(epsg6703km) %>%
-  mutate(easting = st_coordinates(.)[, 1],
-         northing = st_coordinates(.)[, 2]) %>%
+  mutate(
+    easting = st_coordinates(.)[, 1],
+    northing = st_coordinates(.)[, 2]
+  ) %>%
   arrange(circle, year)
 ```
 
@@ -584,26 +589,29 @@ pred_grids <- lapply(
   list(alpha = alph, epsilon = epsi, tau = taus),
   function(x) as.matrix(inla.mesh.project(mesh_proj, x))
 )
+```
 
-# make a raster stack with the posterior median and range95
-out_stk <- stack()
+
+```{r map_rast}
+# make a terra raster stack with the posterior median and range95
+out_stk <- rast()
 for (j in 1:3) {
-  mean_j <- cbind(expand.grid(X = mesh_proj$x, Y = mesh_proj$y),
+  mean_j <- cbind(expand.grid(x = mesh_proj$x, y = mesh_proj$y),
     Z = c(matrix(pred_grids[[j]][, 1], grd_dims[1]))
   )
-  mean_j <- rasterFromXYZ(mean_j, crs = epsg6703km)
+  mean_j <- rast(mean_j, crs = epsg6703km)
   range95_j <- cbind(expand.grid(X = mesh_proj$x, Y = mesh_proj$y),
     Z = c(matrix(pred_grids[[j]][, 2], grd_dims[1]))
   )
-  range95_j <- rasterFromXYZ(range95_j, crs = epsg6703km)
-  out_j <- stack(mean_j, range95_j)
-  out_stk <- addLayer(out_stk, out_j)
+  range95_j <- rast(range95_j, crs = epsg6703km)
+  out_j <- c(mean_j, range95_j)
+  terra::add(out_stk) <- out_j
 }
 names(out_stk) <- c(
   "alpha_median", "alpha_range95", "epsilon_median",
   "epsilon_range95", "tau_median", "tau_range95"
 )
-out_stk <- mask(out_stk, as(states, "Spatial"))
+out_stk <- terra::mask(out_stk, states, touches = FALSE)
 ```
 
 Finally, we plot the SVCs with the following code. We plot the posterior median and 95% uncertainty width ("range95")
@@ -611,15 +619,14 @@ for $\exp(\kappa_s)$, $\exp(\alpha_s)$, $\epsilon_s$, and $100(\exp(\tau_s)-1)$.
 
 ```{r svc_plot_construction, warning=F, message=F}
 make_plot_field <- function(data_stk, scale_label) {
-  spdf <- as(data_stk, "SpatialPixelsDataFrame")
-  df <- as.data.frame(spdf)
-  colnames(df) <- c("value", "x", "y")
   ggplot(states) +
     geom_sf(fill = NA) +
     coord_sf(datum = NA) +
-    geom_tile(data = df, aes(x = x, y = y, fill = value)) +
+    geom_spatraster(data = data_stk) +
     labs(x = "", y = "") +
-    scale_fill_distiller(scale_label, palette = "Spectral") +
+    scale_fill_distiller(scale_label,
+                         palette = "Spectral",
+                         na.value = "transparent") +
     theme_bw() +
     geom_sf(fill = NA)
 }
