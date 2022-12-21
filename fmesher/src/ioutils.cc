@@ -10,6 +10,8 @@
 #include "ioutils.h"
 #include "vector.h"
 
+#include "RcppFmesher.h"
+
 using std::endl;
 using std::ios;
 
@@ -540,5 +542,74 @@ MCCInfo MatrixC::info(std::string name) const {
   }
   return colli->second->info;
 }
+
+
+#ifdef FMESHER_WITH_R
+SEXP MatrixC::Rcpp_wrap() const {
+  /* Convert the matrix collection to a list of R objects */
+  Rcpp::List res;
+  for (outputT::const_iterator outi = output_.begin();
+       outi != output_.end();
+       ++outi) {
+    const MCC &mcc = *(coll_.find(*outi)->second);
+    if (mcc.info.datatype == IODatatype_dense) {
+      if (mcc.info.valuetype == IOValuetype_int)
+        res[(*outi)] = Rcpp::wrap(mcc.DI());
+      else
+        res[(*outi)] = Rcpp::wrap(mcc.DD());
+    } else if (mcc.info.valuetype == IOValuetype_int) {
+      // No Sparse matrix storage for integers, so return ijx triples instead.
+      res[(*outi)] = mcc.SI().RcppList();
+    } else
+      res[(*outi)] = Rcpp::wrap(mcc.SD());
+  }
+  return res;
+}
+
+
+MatrixC::MatrixC(SEXP from)
+  : output_all_(false), bin_in_(true), bin_out_(true), input_prefix_("-"),
+    output_prefix_("-"), output_file_("") {
+  Rcpp::List from_list = Rcpp::as<Rcpp::List>(from);
+  Rcpp::CharacterVector from_names = from_list.names();
+  for (auto elem = from_names.begin();
+       elem != from_names.end();
+       elem++) {
+    std::string the_name = Rcpp::as<std::string>(*elem);
+    if (Rcpp::is<Rcpp::NumericMatrix>(from_list[the_name])) {
+      (*this).attach(the_name, new Matrix<double>(
+          Rcpp::as<Rcpp::NumericMatrix>(
+            from_list[the_name])), true,
+            IOMatrixtype_general);
+    } else if (Rcpp::is<Rcpp::IntegerMatrix>(from_list[the_name])) {
+      (*this).attach(the_name, new Matrix<int>(
+          Rcpp::as<Rcpp::IntegerMatrix>(
+            from_list[the_name])), true,
+            IOMatrixtype_general);
+    } else if (Rcpp::is<Rcpp::NumericVector>(from_list[the_name])) {
+      (*this).attach(the_name, new Matrix1<double>(
+          Rcpp::as<Rcpp::NumericVector>(
+            from_list[the_name])), true,
+            IOMatrixtype_general);
+    } else if (Rcpp::is<Rcpp::IntegerVector>(from_list[the_name])) {
+      (*this).attach(the_name, new Matrix1<int>(
+          Rcpp::as<Rcpp::IntegerVector>(
+            from_list[the_name])), true,
+            IOMatrixtype_general);
+    } else {
+      Rcpp::S4 something = (SEXP)from_list[the_name];
+      if (something.is("dgCMatrix")) {
+        const Eigen::Map<Eigen::SparseMatrix<double>> mat(
+            Rcpp::as<Eigen::Map<Eigen::SparseMatrix<double> > >(
+                from_list[the_name]));
+        (*this).attach(the_name, new SparseMatrix<double>(mat), true,
+         IOMatrixtype_general);
+      } else if (something.is("dgTMatrix")) {
+        Rcpp::warning("Attempt to convert a 'dgTMatrix' to internal fmesher format, but 'dgCMatrix' is required.");
+      }
+    }
+  }
+}
+#endif
 
 } /* namespace fmesh */

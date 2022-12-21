@@ -2,7 +2,7 @@
 #define FMESHER_DEBUGLOG_HH
 
 #ifdef FMESHER_WITH_R
-#include <Rcpp.h>
+#include "RcppFmesher.h"
 #endif
 #include <iostream>
 

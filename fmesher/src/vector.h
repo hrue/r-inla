@@ -14,11 +14,15 @@
 
 #include "fmesher_debuglog.h"
 
+#ifdef FMESHER_WITH_R
+#include "RcppFmesher.h"
+#endif
+
 namespace fmesh {
 
 /* Note: This definition really belongs in ioutils.hh, but is placed
    here to avoid chicken-and-egg definition problem. */
-/*! general/symmentric/diagonal */
+/*! general/symmetric/diagonal */
 enum IOMatrixtype {
   IOMatrixtype_general = 0,
   IOMatrixtype_symmetric = 1,
@@ -68,6 +72,12 @@ public:
   };
   Matrix(size_t set_rows, size_t set_cols, const T *vals = NULL);
   Matrix(const Matrix<T> &from);
+#ifdef FMESHER_WITH_R
+  Matrix(const Rcpp::NumericMatrix &from);
+  Matrix(const Rcpp::IntegerMatrix &from);
+  Matrix(const Rcpp::NumericVector &from);
+  Matrix(const Rcpp::IntegerVector &from);
+#endif
   const Matrix<T> &operator=(const Matrix<T> &from);
   ~Matrix() {
     if (data_)
@@ -262,6 +272,12 @@ template <class T> class Matrix1 : public Matrix<T> {
 public:
   typedef T ValueRaw;
   Matrix1() : Matrix<T>(1){};
+#ifdef FMESHER_WITH_R
+  Matrix1(const Rcpp::NumericMatrix &from);
+  Matrix1(const Rcpp::IntegerMatrix &from);
+  Matrix1(const Rcpp::NumericVector &from);
+  Matrix1(const Rcpp::IntegerVector &from);
+#endif
   Matrix1(size_t set_rows, const ValueRaw *vals = NULL)
       : Matrix<T>(set_rows, 1, (T *)vals){};
   Matrix1<T> &clear(void) {
@@ -293,6 +309,10 @@ public:
       }
     }
   };
+#ifdef FMESHER_WITH_R
+  Matrix3(const Rcpp::NumericMatrix &from);
+  Matrix3(const Rcpp::IntegerMatrix &from);
+#endif
   Matrix3(size_t set_rows, const ValueRow *vals)
       : Matrix<T>(set_rows, 3, (T *)vals){};
   Matrix3(size_t set_rows, const ValueRaw *vals = NULL)
@@ -373,14 +393,14 @@ public:
     }
   };
 
-  size_t nnz(int r, int matrixt = 0) const {
+  size_t nnz(int r, IOMatrixtype matrixt = IOMatrixtype_general) const {
     size_t nnz_ = 0;
-    if (matrixt == 2) {
+    if (matrixt == IOMatrixtype_diagonal) {
       ColCIter col;
       if ((col = data_.find(r)) != data_.end()) {
         nnz_ = 1;
       }
-    } else if (matrixt == 1) {
+    } else if (matrixt == IOMatrixtype_symmetric) {
       for (ColCIter c = data_.begin(); c != data_.end(); c++)
         if (r <= c->first)
           nnz_++;
@@ -391,9 +411,9 @@ public:
   };
 
   int tolist(int offset, int row, Matrix1<SparseMatrixTriplet<T>> &MT,
-             int matrixt = 0) const {
+             IOMatrixtype matrixt = IOMatrixtype_general) const {
     int elem = 0;
-    if (matrixt == 2) {
+    if (matrixt == IOMatrixtype_diagonal) {
       ColCIter col;
       if ((col = data_.find(row)) != data_.end()) {
         MT(offset + elem) = SparseMatrixTriplet<T>(row, row, col->second);
@@ -401,20 +421,69 @@ public:
       }
     } else {
       for (ColCIter col = data_.begin(); col != data_.end(); col++) {
-        if ((matrixt == 0) || (row <= col->first)) {
+        if ((matrixt == IOMatrixtype_general) || (row <= col->first)) {
           MT(offset + elem) =
-              SparseMatrixTriplet<T>(row, col->first, col->second);
+            SparseMatrixTriplet<T>(row, col->first, col->second);
           elem++;
         }
       }
     }
     return elem;
   };
+#ifdef FMESHER_WITH_R
+  /*! To list, general, symmetric, or diagonal. */
+  int tolist(int row, std::vector<Eigen::Triplet<T>> &MT,
+             IOMatrixtype matrixt = IOMatrixtype_general) const {
+    int elem = 0;
+    if (matrixt == IOMatrixtype_diagonal) {
+      ColCIter col;
+      if ((col = data_.find(row)) != data_.end()) {
+        MT.push_back(Eigen::Triplet<T>(row, row, col->second));
+        elem++;
+      }
+    } else {
+      for (ColCIter col = data_.begin(); col != data_.end(); col++) {
+        if ((matrixt == IOMatrixtype_general) || (row <= col->first)) {
+          MT.push_back(Eigen::Triplet<T>(row, col->first, col->second));
+          elem++;
+        }
+      }
+    }
+    return elem;
+  };
+  int to_ijx(int row,
+             std::vector<int> &i,
+             std::vector<int> &j,
+             std::vector<T> &x,
+             IOMatrixtype matrixt = IOMatrixtype_general) const {
+    int elem = 0;
+    if (matrixt == IOMatrixtype_diagonal) {
+      ColCIter col;
+      if ((col = data_.find(row)) != data_.end()) {
+        i.push_back(row);
+        j.push_back(row);
+        x.push_back(col->second);
+        elem++;
+      }
+    } else {
+      for (ColCIter col = data_.begin(); col != data_.end(); col++) {
+        if ((matrixt == IOMatrixtype_general) || (row <= col->first)) {
+          i.push_back(row);
+          j.push_back(col->first);
+          x.push_back(col->second);
+          elem++;
+        }
+      }
+    }
+    return elem;
+  };
+
+#endif
   /*! To list, general, symmetric, or diagonal. */
   int tolist(int offset, int row, Matrix1<int> &Tr, Matrix1<int> &Tc,
-             Matrix1<T> &Tv, int matrixt = 0) const {
+             Matrix1<T> &Tv, IOMatrixtype matrixt = IOMatrixtype_general) const {
     int elem = 0;
-    if (matrixt == 2) {
+    if (matrixt == IOMatrixtype_diagonal) {
       ColCIter col;
       if ((col = data_.find(row)) != data_.end()) {
         Tr(offset + elem) = row;
@@ -424,7 +493,7 @@ public:
       }
     } else {
       for (ColCIter col = data_.begin(); col != data_.end(); col++) {
-        if ((matrixt == 0) || (row <= col->first)) {
+        if ((matrixt == IOMatrixtype_general) || (row <= col->first)) {
           Tr(offset + elem) = row;
           Tc(offset + elem) = col->first;
           Tv(offset + elem) = col->second;
@@ -504,6 +573,9 @@ public:
     }
     //      FMLOG_("SM copy" << std::endl);
   };
+#ifdef FMESHER_WITH_R
+  SparseMatrix(const Eigen::Map<Eigen::SparseMatrix<T>> &from);
+#endif
   const SparseMatrix<T> &operator=(const SparseMatrix<T> &from) {
     cols_ = from.cols_;
     data_ = from.data_;
@@ -537,7 +609,7 @@ public:
 
   size_t cols(void) const { return cols_; };
 
-  size_t nnz(int matrixt = 0) const {
+  size_t nnz(IOMatrixtype matrixt = IOMatrixtype_general) const {
     size_t nnz_ = 0;
     for (size_t row = 0; row < rows(); row++)
       nnz_ += data_[row].nnz(row, matrixt);
@@ -597,16 +669,49 @@ public:
   friend Matrix<T> diag<T>(const SparseMatrix<T> &M1);
 
   /*! To list, general, symmetric, or diagonal. */
-  int tolist(Matrix1<SparseMatrixTriplet<T>> &MT, int matrixt = 0) const {
+  int tolist(Matrix1<SparseMatrixTriplet<T>> &MT, IOMatrixtype matrixt = IOMatrixtype_general) const {
     int elem = 0;
     for (size_t row = 0; row < rows(); row++) {
       elem += data_[row].tolist(elem, row, MT, matrixt);
     }
     return elem;
   };
+#ifdef FMESHER_WITH_R
+  /*! To list, general, symmetric, or diagonal. */
+  int tolist(std::vector<Eigen::Triplet<T>> &MT, IOMatrixtype matrixt = IOMatrixtype_general) const {
+    int elem = nnz(matrixt);
+    MT.reserve(elem);
+    int elem_verify = 0;
+    for (size_t row = 0; row < rows(); row++) {
+      elem_verify += data_[row].tolist(row, MT, matrixt);
+    }
+    return elem;
+  };
+  int to_ijx(std::vector<int> &i,
+             std::vector<int> &j,
+             std::vector<T> &x,
+             std::vector<int> &dims,
+             IOMatrixtype matrixt = IOMatrixtype_general) const {
+    int elem = nnz(matrixt);
+    i.reserve(elem);
+    j.reserve(elem);
+    x.reserve(elem);
+    dims.reserve(2);
+    dims.push_back(rows());
+    dims.push_back(cols());
+    int elem_verify = 0;
+    for (size_t row = 0; row < rows(); row++) {
+      elem_verify += data_[row].to_ijx(row, i, j, x, matrixt);
+    }
+    return elem;
+  };
+  Eigen::SparseMatrix<T> EigenSparseMatrix(IOMatrixtype matrixt = IOMatrixtype_general) const;
+  SEXP RcppList(IOMatrixtype matrixt = IOMatrixtype_general) const;
+
+#endif
   /*! To list, general, symmetric, or diagonal. */
   int tolist(Matrix1<int> &Tr, Matrix1<int> &Tc, Matrix1<T> &Tv,
-             int matrixt = 0) const {
+             IOMatrixtype matrixt = IOMatrixtype_general) const {
     int elem = 0;
     for (size_t row = 0; row < rows(); row++)
       elem += data_[row].tolist(elem, row, Tr, Tc, Tv, matrixt);
@@ -614,13 +719,13 @@ public:
   };
 
   /*! From list, general, symmetric, or diagonal. */
-  void fromlist(const Matrix1<SparseMatrixTriplet<T>> &MT, int matrixt = 0) {
-    if (matrixt == 1) {
+  void fromlist(const Matrix1<SparseMatrixTriplet<T>> &MT, IOMatrixtype matrixt = IOMatrixtype_general) {
+    if (matrixt == IOMatrixtype_symmetric) {
       for (size_t i = 0; i < MT.rows(); i++) {
         operator()(MT[i].r, MT[i].c, MT[i].value);
         operator()(MT[i].c, MT[i].r, MT[i].value);
       }
-    } else if (matrixt == 2) {
+    } else if (matrixt == IOMatrixtype_diagonal) {
       for (size_t i = 0; i < MT.rows(); i++)
         operator()(MT[i].r, MT[i].r, MT[i].value);
     } else {
@@ -628,15 +733,32 @@ public:
         operator()(MT[i].r, MT[i].c, MT[i].value);
     }
   };
+#ifdef FMESHER_WITH_R
+  /*! From list, general, symmetric, or diagonal. */
+  void fromlist(const std::vector<Eigen::Triplet<T>> &MT, IOMatrixtype matrixt = IOMatrixtype_general) {
+    if (matrixt == IOMatrixtype_symmetric) {
+      for (size_t i = 0; i < MT.rows(); i++) {
+        operator()(MT[i].row(), MT[i].col(), MT[i].value());
+        operator()(MT[i].col(), MT[i].row(), MT[i].value());
+      }
+    } else if (matrixt == IOMatrixtype_diagonal) {
+      for (size_t i = 0; i < MT.rows(); i++)
+        operator()(MT[i].row(), MT[i].row(), MT[i].value());
+    } else {
+      for (size_t i = 0; i < MT.rows(); i++)
+        operator()(MT[i].row(), MT[i].col(), MT[i].value());
+    }
+  };
+#endif
   /*! From list, general or symmetric. */
   void fromlist(const Matrix1<int> &Tr, const Matrix1<int> &Tc,
-                const Matrix1<T> &Tv, int matrixt = 0) {
-    if (matrixt == 1) {
+                const Matrix1<T> &Tv, IOMatrixtype matrixt = IOMatrixtype_general) {
+    if (matrixt == IOMatrixtype_symmetric) {
       for (size_t i = 0; i < Tr.rows(); i++) {
         operator()(Tr[i], Tc[i], Tv[i]);
         operator()(Tc[i], Tr[i], Tv[i]);
       }
-    } else if (matrixt == 1) {
+    } else if (matrixt == IOMatrixtype_diagonal) {
       for (size_t i = 0; i < Tr.rows(); i++) {
         operator()(Tr[i], Tr[i], Tv[i]);
       }

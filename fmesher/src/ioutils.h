@@ -41,7 +41,7 @@ class IOHeader {
 public:
   int version;     /*!< Format version */
   int elems;       /*!< The number of data units
-      
+
                      For dense matrices, the total number of elements.
                      For sparse matrices, the number of elements contained in
                      the file.
@@ -431,6 +431,9 @@ public:
   MatrixC()
       : output_all_(false), bin_in_(true), bin_out_(true), input_prefix_("-"),
         output_prefix_("-"), output_file_(""){};
+#ifdef FMESHER_WITH_R
+  MatrixC(SEXP from);
+#endif
   ~MatrixC() {
     for (collT::iterator colli = coll_.begin(); colli != coll_.end(); ++colli) {
       delete colli->second;
@@ -452,6 +455,9 @@ public:
   void input_raw(std::string name, std::string specification,
                  std::string filename);
   void save();
+#ifdef FMESHER_WITH_R
+  SEXP Rcpp_wrap() const;
+#endif
 
   void load_file(std::string filename, bool only_list = false);
 

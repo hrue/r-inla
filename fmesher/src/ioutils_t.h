@@ -141,7 +141,7 @@ template <class T> IOHelperM<T> &IOHelperM<T>::OD(std::ostream &output) {
     return *this;
   }
   if (bin_) {
-    switch (h.matrixtype) {
+    switch ((IOMatrixtype)h.matrixtype) {
     case IOMatrixtype_general:
       if ((h.storagetype == IOStoragetype_rowmajor) || ((*cM_).cols() == 1)) {
         output.write((char *)(*cM_).raw(), sizeof(T) * h.rows * h.cols);
@@ -175,7 +175,7 @@ template <class T> IOHelperM<T> &IOHelperM<T>::OD(std::ostream &output) {
     }
   } else { /* Text format. */
     output << std::setprecision(15) << std::scientific;
-    switch (h.matrixtype) {
+    switch ((IOMatrixtype)h.matrixtype) {
     case IOMatrixtype_general:
       if (h.storagetype == IOStoragetype_rowmajor) {
         for (int i = 0; i < h.rows; i++) {
@@ -241,7 +241,7 @@ template <class T> IOHelperM<T> &IOHelperM<T>::ID(std::istream &input) {
   if ((h.rows > 0) && (h.cols > 0))
     (*M_)(h.rows - 1, h.cols - 1, T()); /* Initialize last element. */
   if (bin_) {
-    switch (h.matrixtype) {
+    switch ((IOMatrixtype)h.matrixtype) {
     case IOMatrixtype_general:
       if ((h.storagetype == IOStoragetype_rowmajor) || (h.cols == 1)) {
         input.read((char *)(*M_).raw(), sizeof(T) * h.rows * h.cols);
@@ -274,7 +274,7 @@ template <class T> IOHelperM<T> &IOHelperM<T>::ID(std::istream &input) {
       break;
     }
   } else { /* Text format. */
-    switch (h.matrixtype) {
+    switch ((IOMatrixtype)h.matrixtype) {
     case IOMatrixtype_general:
       if (h.storagetype == IOStoragetype_rowmajor) {
         for (int i = 0; i < h.rows; i++) {
@@ -331,14 +331,14 @@ template <class T> IOHelperSM<T> &IOHelperSM<T>::OD(std::ostream &output) {
   }
   if (h.storagetype == IOStoragetype_rowmajor) {
     Matrix1<SparseMatrixTriplet<T>> MT;
-    (*cM_).tolist(MT, h.matrixtype);
+    (*cM_).tolist(MT, (IOMatrixtype)h.matrixtype);
     IOHelperM<SparseMatrixTriplet<T>>().cD(&MT).binary(bin_).rowmajor().OD(
         output);
   } else {
     Matrix1int Mr;
     Matrix1int Mc;
     Matrix1<T> Mv;
-    (*cM_).tolist(Mr, Mc, Mv, h.matrixtype);
+    (*cM_).tolist(Mr, Mc, Mv, (IOMatrixtype)h.matrixtype);
     IOHelperM<int>().cD(&Mr).binary(bin_).colmajor().OD(output);
     IOHelperM<int>().cD(&Mc).binary(bin_).colmajor().OD(output);
     IOHelperM<T>().cD(&Mv).binary(bin_).colmajor().OD(output);
@@ -361,7 +361,7 @@ template <class T> IOHelperSM<T> &IOHelperSM<T>::ID(std::istream &input) {
     MT(h.elems - 1) = SparseMatrixTriplet<T>();
     IOHelperM<SparseMatrixTriplet<T>>().D(&MT).binary(bin_).rowmajor().ID(
         input);
-    (*M_).fromlist(MT, h.matrixtype);
+    (*M_).fromlist(MT, (IOMatrixtype)h.matrixtype);
   } else {
     Matrix1int Mr;
     Mr(h.elems - 1) = 0;
@@ -372,7 +372,7 @@ template <class T> IOHelperSM<T> &IOHelperSM<T>::ID(std::istream &input) {
     IOHelperM<int>().D(&Mr).binary(bin_).colmajor().ID(input);
     IOHelperM<int>().D(&Mc).binary(bin_).colmajor().ID(input);
     IOHelperM<T>().D(&Mv).binary(bin_).colmajor().ID(input);
-    (*M_).fromlist(Mr, Mc, Mv, h.matrixtype);
+    (*M_).fromlist(Mr, Mc, Mv, (IOMatrixtype)h.matrixtype);
   }
   return *this;
 }
@@ -386,7 +386,7 @@ template <class T> IOHelperM<T> &IOHelperM<T>::OH_2009(std::ostream &output) {
 
 template <class T> IOHelperSM<T> &IOHelperSM<T>::OH_2009(std::ostream &output) {
   const IOHeader &h(IOHelper<T>::h_);
-  if (h.matrixtype == IOMatrixtype_diagonal) {
+  if ((IOMatrixtype)h.matrixtype == IOMatrixtype_diagonal) {
     output << h.rows;
     output << std::endl;
   }
@@ -415,14 +415,14 @@ template <class T> IOHelperSM<T> &IOHelperSM<T>::OD_2009(std::ostream &output) {
   if (!cM_) {
     return *this;
   }
-  if (h.matrixtype == IOMatrixtype_diagonal) {
+  if ((IOMatrixtype)h.matrixtype == IOMatrixtype_diagonal) {
     Matrix1<T> MT;
     for (int r = 0; r < (*cM_).rows(); r++)
       MT(r) = (*cM_)[r][r];
     IOHelperM<T>().cD(&MT).OD_2009(output);
   } else {
     Matrix1<SparseMatrixTriplet<T>> MT;
-    (*cM_).tolist(MT, h.matrixtype);
+    (*cM_).tolist(MT, (IOMatrixtype)h.matrixtype);
     IOHelperM<SparseMatrixTriplet<T>>().cD(&MT).ascii().rowmajor().OD(output);
   }
   return *this;
@@ -444,7 +444,7 @@ void save_M(std::string filename, const Matrix<T> &M, MCCInfo mccinfo,
   O.open(filename.c_str(),
          (binary ? (std::ios::out | std::ios::binary) : std::ios::out));
   IOHelperM<T> ioh;
-  ioh.cD(&M).matrixtype(mccinfo.matrixtype);
+  ioh.cD(&M).matrixtype((IOMatrixtype)mccinfo.matrixtype);
   ioh.binary(binary).OH(O).OD(O);
   O.close();
 }
@@ -456,7 +456,7 @@ void save_SM(std::string filename, const SparseMatrix<T> &M, MCCInfo mccinfo,
   O.open(filename.c_str(),
          (binary ? (std::ios::out | std::ios::binary) : std::ios::out));
   IOHelperSM<T> ioh;
-  ioh.cD(&M).matrixtype(mccinfo.matrixtype);
+  ioh.cD(&M).matrixtype((IOMatrixtype)mccinfo.matrixtype);
   ioh.binary(binary).OH(O).OD(O);
   O.close();
 }
@@ -467,5 +467,16 @@ void MatrixC::input_raw_M(std::istream &input, Matrix<T> &M) const {
 }
 
 } /* namespace fmesh */
+
+#ifdef FMESHER_WITH_R
+namespace Rcpp {
+
+template<>
+inline SEXP wrap(const fmesh::MatrixC& obj) {
+  return obj.Rcpp_wrap();
+}
+
+}
+#endif
 
 #endif

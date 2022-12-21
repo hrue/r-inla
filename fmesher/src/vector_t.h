@@ -30,6 +30,78 @@ Matrix<T>::Matrix(const Matrix<T> &from)
     std::memcpy(data_, from.data_, sizeof(T) * rows_ * cols_);
   }
 }
+#ifdef FMESHER_WITH_R
+template <class T>
+Matrix<T>::Matrix(const Rcpp::NumericMatrix &from)
+  : data_(NULL), rows_(0), cols_(0), cap_(0) {
+  clear();
+  cols(from.ncol());
+  capacity(from.nrow());
+  rows_ = from.nrow();
+  if (data_) {
+    for (size_t col_idx = 0; col_idx < cols_; col_idx++) {
+      Rcpp::NumericMatrix::ConstColumn col = from(Rcpp::_, col_idx);
+      size_t row_idx = 0;
+      for (auto elem = col.cbegin(); elem != col.cend(); elem++) {
+        (*this)(row_idx, col_idx) = (T)(*elem);
+        row_idx++;
+      }
+    }
+  }
+}
+
+template <class T>
+Matrix<T>::Matrix(const Rcpp::IntegerMatrix &from)
+  : data_(NULL), rows_(0), cols_(0), cap_(0) {
+  clear();
+  cols(from.ncol());
+  capacity(from.nrow());
+  rows_ = from.nrow();
+  if (data_) {
+    for (size_t col_idx = 0; col_idx < cols_; col_idx++) {
+      Rcpp::IntegerMatrix::ConstColumn col = from(Rcpp::_, col_idx);
+      size_t row_idx = 0;
+      for (auto elem = col.cbegin(); elem != col.cend(); elem++) {
+        (*this)(row_idx, col_idx) = (T)(*elem);
+        row_idx++;
+      }
+    }
+  }
+}
+
+template <class T>
+Matrix<T>::Matrix(const Rcpp::NumericVector &from)
+  : data_(NULL), rows_(0), cols_(0), cap_(0) {
+  clear();
+  cols(1);
+  capacity(from.length());
+  rows_ = from.length();
+  if (data_) {
+    size_t row_idx = 0;
+    for (auto elem = from.cbegin(); elem != from.cend(); elem++) {
+      (*this)(row_idx, 0) = (T)(*elem);
+      row_idx++;
+    }
+  }
+}
+
+template <class T>
+Matrix<T>::Matrix(const Rcpp::IntegerVector &from)
+  : data_(NULL), rows_(0), cols_(0), cap_(0) {
+  clear();
+  cols(1);
+  capacity(from.length());
+  rows_ = from.length();
+  if (data_) {
+    size_t row_idx = 0;
+    for (auto elem = from.cbegin(); elem != from.cend(); elem++) {
+      (*this)(row_idx, 0) = (T)(*elem);
+      row_idx++;
+    }
+  }
+}
+#endif
+
 
 template <class T>
 const Matrix<T> &Matrix<T>::operator=(const Matrix<T> &from) {
@@ -118,6 +190,54 @@ template <class T> Matrix<T> &Matrix<T>::cols(size_t set_cols) {
     cols_ = set_cols;
   return *this;
 }
+
+
+
+#ifdef FMESHER_WITH_R
+template <class T>
+Matrix1<T>::Matrix1(const Rcpp::NumericMatrix &from) : Matrix<T>(from) {
+  // Check number of columns:
+  if (1 != from.ncol()) {
+    Rcpp::warning("NumericMatrix->Matrix1 conversion: column number mismatch.");
+    clear();
+    *this = Matrix1<T>(Rcpp::NumericVector(from(Rcpp::_, 0)));
+  }
+}
+
+template <class T>
+Matrix1<T>::Matrix1(const Rcpp::IntegerMatrix &from) : Matrix<T>(from) {
+  // Check number of columns:
+  if (1 != from.ncol()) {
+    Rcpp::stop("IntegerMatrix->Matrix1 conversion: column number mismatch.");
+  }
+}
+
+template <class T>
+Matrix1<T>::Matrix1(const Rcpp::NumericVector &from) : Matrix<T>(from) {}
+
+template <class T>
+Matrix1<T>::Matrix1(const Rcpp::IntegerVector &from) : Matrix<T>(from) {}
+
+template <class T>
+Matrix3<T>::Matrix3(const Rcpp::NumericMatrix &from) : Matrix<T>(from) {
+  // Check number of columns:
+  if (3 != from.ncol()) {
+    Rcpp::stop("NumericMatrix->Matrix3 conversion: column number mismatch.");
+  }
+}
+
+template <class T>
+Matrix3<T>::Matrix3(const Rcpp::IntegerMatrix &from) : Matrix<T>(from) {
+  // Check number of columns:
+  if (3 != from.ncol()) {
+    Rcpp::stop("IntegerMatrix->Matrix3 conversion: column number mismatch.");
+  }
+}
+#endif
+
+
+
+
 
 template <class T>
 bool Matrix<T>::save(std::string filename, IOMatrixtype matrixt,
@@ -233,6 +353,59 @@ bool SparseMatrix<T>::load(std::string filename, bool binary) {
   return true;
 }
 
+
+#ifdef FMESHER_WITH_R
+
+// Export to R
+template <class T> Eigen::SparseMatrix<T> SparseMatrix<T>::EigenSparseMatrix(IOMatrixtype matrixt) const {
+  typedef Eigen::Triplet<T> Trip;
+  std::vector<Trip> tripletList;
+  tripletList.reserve(nnz());
+  tolist(tripletList, matrixt);
+
+  Eigen::SparseMatrix<T> m(rows(), cols());
+  m.setFromTriplets(tripletList.begin(), tripletList.end());
+
+  return m;
+}
+// Export to R as list(i,j,x,dims)
+template <class T> SEXP SparseMatrix<T>::RcppList(IOMatrixtype matrixt) const {
+  std::vector<int> i;
+  std::vector<int> j;
+  std::vector<T> x;
+  std::vector<int> dims;
+  to_ijx(i, j, x, dims, matrixt);
+
+  Rcpp::List output;
+  output["i"] = i;
+  output["j"] = j;
+  output["x"] = x;
+  output["dims"] = dims;
+
+  return output;
+}
+
+
+
+
+
+
+
+
+
+template<class T> using EigenMSM = Eigen::Map<Eigen::SparseMatrix<T>>;
+template <class T>
+SparseMatrix<T>::SparseMatrix(const EigenMSM<T> &from)
+  : cols_(from.cols()), data_() {
+  rows(from.rows());
+  for (int k=0; k < from.outerSize(); ++k)
+    for (typename EigenMSM<T>::InnerIterator it(from, k); it; ++it)
+    {
+      operator()(it.row(), it.col(), it.value());
+    }
+}
+#endif
+
 template <class T>
 bool SparseMatrix<T>::save_ascii_2009(std::string filename,
                                       IOMatrixtype matrixt) const {
@@ -326,5 +499,43 @@ template <class T> const T fmesh::SparseMatrixRow<T>::zero_ = T();
 template <class T> const T fmesh::SparseMatrix<T>::zero_ = T();
 
 } /* namespace fmesh */
+
+#ifdef FMESHER_WITH_R
+namespace Rcpp {
+
+#define __FM_MATRIX_WRAP__(OutType, InType, COLS)              \
+template<>                                                     \
+inline SEXP wrap(const fmesh::InType& obj) {                   \
+  Rcpp::OutType res(obj.rows(), COLS);                         \
+  for (size_t r = 0; r < obj.rows(); r++) {                    \
+    for (size_t c = 0; c < COLS; c++) {                        \
+      res(r, c) = obj[r][c];                                   \
+    }                                                          \
+  }                                                            \
+  return res;                                                  \
+}
+#define __FM_VECTOR_WRAP__(OutType, InType)                    \
+template<>                                                     \
+inline SEXP wrap(const fmesh::InType& obj) {                   \
+  Rcpp::OutType res(obj.rows());                               \
+  for (size_t r = 0; r < obj.rows(); r++) {                    \
+    res[r] = obj[r];                                           \
+  }                                                            \
+  return res;                                                  \
+}
+__FM_MATRIX_WRAP__(NumericMatrix, Matrix<double>, obj.cols())
+__FM_MATRIX_WRAP__(IntegerMatrix, Matrix<int>, obj.cols())
+__FM_MATRIX_WRAP__(NumericMatrix, Matrix3<double>, 3)
+__FM_MATRIX_WRAP__(IntegerMatrix, Matrix3<int>, 3)
+__FM_VECTOR_WRAP__(NumericVector, Matrix1<double>)
+__FM_VECTOR_WRAP__(IntegerVector, Matrix1<int>)
+
+template<>
+inline SEXP wrap(const fmesh::SparseMatrix<double>& obj) {
+  return Rcpp::wrap(obj.EigenSparseMatrix(fmesh::IOMatrixtype_general));
+}
+
+} // Namespace Rcpp
+#endif
 
 #endif
