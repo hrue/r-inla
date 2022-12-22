@@ -3,7 +3,6 @@
 \name{inla.matern.cov}
 \alias{inla.matern.cov}
 \alias{inla.matern.cov.s2}
-\alias{inla.matern.cov.s2.unstable}
 \title{Numerical evaluation of Matern and related covariance functions.}
 \usage{
 inla.matern.cov(
@@ -18,15 +17,6 @@ inla.matern.cov(
 )
 
 inla.matern.cov.s2(nu, kappa, x, norm.corr = FALSE, theta = 0, freq.max = NULL)
-
-inla.matern.cov.s2.unstable(
-  nu,
-  kappa,
-  x,
-  norm.corr = FALSE,
-  theta = 0,
-  freq.max = NULL
-)
 }
 \arguments{
 \item{nu}{The Matern smoothness parameter.}
@@ -71,9 +61,6 @@ coefficients
 1)/2}}
 }{S(k) = (2k+1) / (4 pi (kappa^4 + 2 kappa^2 cos(pi theta) k(k+1) +
 k^2(k+1)^2)^((\nu + 1)/2) )}
-
-\code{inla.matern.cov.s2.unstable} is an old implementation using
-\code{orthopolynom::legendre.polynomials} and \code{orthopolynom::polynomial.values}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

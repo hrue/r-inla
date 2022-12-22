@@ -41,7 +41,6 @@ Suggests:
     mlogit,
     mvtnorm,
     numDeriv,
-    orthopolynom,
     pixmap,
     rgdal,
     rgeos,
