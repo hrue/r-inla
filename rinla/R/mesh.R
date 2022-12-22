@@ -3086,7 +3086,15 @@ inla.mesh.basis <- function(mesh,
         #            )$sph)
         #        }
         
-        requireNamespace("gsl", quietly = FALSE)
+        if (!requireNamespace("gsl", quietly = TRUE)) {
+            stop(
+                paste0(
+                    "The 'gsl' R package is needed for spherical harmonics, ",
+                    "but it is not installed.\n",
+                    "Please install it and try again."
+                )
+            )
+        }
         # Make sure we have radius-1 coordinates
         loc <- mesh$loc / rowSums(mesh$loc^2)^0.5
         if (rot.inv) {

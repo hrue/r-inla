@@ -21,7 +21,8 @@ SED = sed
 LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
-EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
+#EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
+EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib
 EXTLIBS2 = 
 EXTLIBS3 = 
 
@@ -68,8 +69,8 @@ ifeq ($(FMESHER_NO_X), 1)
   OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
 endif
 
-# Activate GSL
-OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_GSL
+# Activate GSL, only needed for spherical harmonics, which can be computed with the R gsl package instead
+# OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_GSL
 
 ################################################################################
 #
