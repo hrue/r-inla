@@ -62,7 +62,7 @@ test_that("Case 3", {
     for(i in 1:m) {
         ## just make some random selection
         A[i, sample(1:m, n %/% 10)] = 1
-        Y[i] =  sum(A[i,]*(1+zz)) + rnorm(1, sd=s)
+        Y[i] =  sum(A[i,]*(0+zz)) + rnorm(1, sd=s)
     }
     rr = inla(Y ~ -1 + zz, control.predictor = list(compute=TRUE,A=A),
             data = data.frame(z,Y),
@@ -88,6 +88,6 @@ test_that("Case 4", {
             offset = off, 
             control.compute=list(cpo=T),
             control.family = list(initial = log(1/s^2), fixed=TRUE))
-    expect_true(all(abs(Eta - r$summary.linear.predictor[1:m,"mean"]) < sqrt(s)))
+    expect_true(all(abs((Eta - off) - r$summary.linear.predictor[1:m,"mean"]) < sqrt(s)))
     expect_true(all(abs(eta - r$summary.linear.predictor[m+1:n,"mean"]) < sqrt(s)))
 })
