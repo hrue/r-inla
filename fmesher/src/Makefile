@@ -68,6 +68,7 @@ ifeq ($(FMESHER_NO_X), 1)
   OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
 endif
 
+# Activate GSL
 OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_GSL
 
 ################################################################################
