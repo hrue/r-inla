@@ -41,7 +41,6 @@ Suggests:
     mlogit,
     mvtnorm,
     numDeriv,
-    orthopolynom,
     pixmap,
     rgdal,
     rgeos,
@@ -68,7 +67,7 @@ LazyData: true
 License: GPL (>= 2) + file LICENSE
 Version: 99.99.9999
 Date: 9999-99-99
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.2
 Encoding: UTF-8
 StagedInstall: no
 Collate: 

@@ -3071,16 +3071,54 @@ inla.mesh.basis <- function(mesh,
         if (!identical(mesh$manifold, "S2")) {
             stop("Only know how to make spherical harmonics on S2.")
         }
+        # With GSL activated:
+        #        if (rot.inv) {
+        #            basis <- (inla.fmesher.smorg(
+        #                mesh$loc,
+        #                mesh$graph$tv,
+        #                sph0 = n
+        #            )$sph0)
+        #        } else {
+        #            basis <- (inla.fmesher.smorg(
+        #                mesh$loc,
+        #                mesh$graph$tv,
+        #                sph = n
+        #            )$sph)
+        #        }
+        
+        if (!requireNamespace("gsl", quietly = TRUE)) {
+            stop(
+                paste0(
+                    "The 'gsl' R package is needed for spherical harmonics, ",
+                    "but it is not installed.\n",
+                    "Please install it and try again."
+                )
+            )
+        }
+        # Make sure we have radius-1 coordinates
+        loc <- mesh$loc / rowSums(mesh$loc^2)^0.5
         if (rot.inv) {
-            basis <- (inla.fmesher.smorg(mesh$loc,
-                mesh$graph$tv,
-                sph0 = n
-            )$sph0)
+            basis <- matrix(0, nrow(loc), n + 1)
+            for (l in seq(0, n)) {
+                basis[, l + 1] <- sqrt(2 * l + 1) *
+                    gsl::legendre_Pl(l = l, x = loc[, 3])
+            }
         } else {
-            basis <- (inla.fmesher.smorg(mesh$loc,
-                mesh$graph$tv,
-                sph = n
-            )$sph)
+            angle <- atan2(loc[, 2], loc[, 1])
+            basis <- matrix(0, nrow(loc), (n + 1)^2)
+            for (l in seq(0, n)) {
+                basis[, 1 + l * (l + 1)] <-
+                    sqrt(2 * l + 1) *
+                    gsl::legendre_Pl(l = l, x = loc[, 3])
+                for (m in seq_len(l)) {
+                    scaling <- sqrt(2 * (2 * l + 1) * exp(lgamma(l - m + 1) - lgamma(l + m + 1)))
+                    poly <- gsl::legendre_Plm(l = l, m = m, x = loc[, 3])
+                    basis[, 1 + l * (l + 1) - m] <- 
+                        scaling * sin(-m * angle) * poly
+                    basis[, 1 + l * (l + 1) + m] <- 
+                        scaling * cos(m * angle) * poly
+                }
+            }
         }
     }
 
@@ -3138,7 +3176,9 @@ inla.parse.queries <- function(...) {
 #' @param gradients When `TRUE`, calculate derivative operator matrices
 #' `dx`, dy, and dz.
 #' @param sph0 Maximal order of rotationally invariant spherical harmonics.
+#' Deprecated. Use [inla.mesh.basis()] instead.
 #' @param sph Maximal order of general spherical harmonics.
+#' Deprecated. Use [inla.mesh.basis()] instead.
 #' @param bspline Rotationally invariant B-splines on a sphere.  3-vector with
 #' number of basis functions `n`, basis degree `degree`, and a
 #' logical; `TRUE` uniform knot angles, `FALSE` for uniform spacing
@@ -3217,10 +3257,12 @@ inla.parse.queries <- function(...) {
         if (!output.given) output <- c(output, output.gradients)
     }
     if (!is.null(sph0)) {
+        stop("GSL support removed from fmesher smorg; use inla.mesh.basis() instead.")
         all.args <- paste(all.args, " --sph0=", sph0, sep = "")
         if (!output.given) output <- c(output, output.sph0)
     }
     if (!is.null(sph)) {
+        stop("GSL support removed from fmesher smorg; use inla.mesh.basis() instead.")
         all.args <- paste(all.args, " --sph=", sph, sep = "")
         if (!output.given) output <- c(output, output.sph)
     }

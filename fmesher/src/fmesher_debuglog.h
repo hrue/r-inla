@@ -2,7 +2,7 @@
 #define FMESHER_DEBUGLOG_HH
 
 #ifdef FMESHER_WITH_R
-#include <Rcpp.h>
+#include "RcppFmesher.h"
 #endif
 #include <iostream>
 
@@ -42,11 +42,9 @@
 #endif
 
 #ifndef NOT_IMPLEMENTED
-#define NOT_IMPLEMENTED (FM_COUT					 \
-<< __FILE__ << "(" << __LINE__ << ")\t"	\
-<< "NOT IMPLEMENTED: "				              \
-<< __PRETTY_FUNCTION__ << std::endl);
+#define NOT_IMPLEMENTED                                                        \
+  (FM_COUT << __FILE__ << "(" << __LINE__ << ")\t"                             \
+           << "NOT IMPLEMENTED: " << __PRETTY_FUNCTION__ << std::endl);
 #endif
-
 
 #endif
