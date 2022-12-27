@@ -7404,9 +7404,9 @@ int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int
 	}
 	double p = ds->data_observations.link_simple_invlinkfunc(thread_id, p_intern, MAP_FORWARD, NULL, NULL);
 
-	//assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
-	//assert(ds->predictor_invlinkfunc == link_cloglog);
-	
+	// assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
+	// assert(ds->predictor_invlinkfunc == link_cloglog);
+
 	if (m > 0) {
 		if (y > 0) {
 			double tmp = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
@@ -9609,9 +9609,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -28801,9 +28801,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 		assert(mb->f_N[mb->nf] == def->N);
 		mb->f_rankdef[mb->nf] = 0.0;
-
-		// initialize the cache
-		Qfunc_fgn(thread_id, -1, -1, NULL, NULL);
 	}
 		break;
 
@@ -28853,9 +28850,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 		assert(mb->f_N[mb->nf] == def->N);
 		mb->f_rankdef[mb->nf] = 0.0;
-
-		// initialize the cache
-		Qfunc_fgn2(thread_id, -1, -1, NULL, NULL);
 	}
 		break;
 
@@ -42765,7 +42759,7 @@ int testit(int argc, char **argv)
 		}
 		printf("%s\n", GMRFLib_vec2char(x, n));
 	}
-	break;
+		break;
 
 	case 101:
 	{
@@ -42774,30 +42768,30 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 102: 
+	case 102:
 	{
 		double x = GMRFLib_uniform(), y;
 		y = map_invcloglog(x, MAP_FORWARD, NULL);
 		y = map_invcloglog(y, MAP_BACKWARD, NULL);
 		P(x);
 		P(y);
-		P(x-y);
+		P(x - y);
 	}
-	break;
+		break;
 
-	case 103: 
+	case 103:
 	{
 		char a;
 		unsigned char b;
 		signed char c;
 
-		a = b = c = 1; 
-		printf("char %d unsigned %d signed %d\n", (int)a, (int)b, (int)c);
+		a = b = c = 1;
+		printf("char %d unsigned %d signed %d\n", (int) a, (int) b, (int) c);
 		a = b = c = -1;
-		printf("char %d unsigned %d signed %d\n", (int)a, (int)b, (int)c);
+		printf("char %d unsigned %d signed %d\n", (int) a, (int) b, (int) c);
 	}
-	break;
-		
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
