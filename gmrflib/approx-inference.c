@@ -6027,8 +6027,23 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 		}
 
+		double *ll_info = NULL;
+		if (misc_output->configs_preopt) {
+			ll_info = Calloc(2 * preopt->Npred, double);
+			for (int j = 0; j < preopt->Npred; j++) {
+				int jj = 2*j;
+				if (d[j]) {
+					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj+1]), NULL, d[j], lpred_mode[j], j, 
+							      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil);
+				} else {
+					ll_info[jj] = NAN;
+					ll_info[jj + 1] = NAN;
+				}
+			}
+		}
+		
 		GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
-					       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str);
+					       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str, ll_info);
 
 		tu = GMRFLib_cpu() - tref;
 		if (ai_par->fp_log) {
@@ -9363,7 +9378,7 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
 				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *cpodens_moments,
-				   double *gcpodens_moments, char **arg_str)
+				   double *gcpodens_moments, char **arg_str, double *ll_info)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -9478,6 +9493,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo
 	cfg->log_posterior_orig = log_posterior_orig;	       /* do NOT include integration weights */
 	cfg->cpodens_moments = cpodens_moments;
 	cfg->gcpodens_moments = gcpodens_moments;
+	cfg->ll_info = ll_info;
 	if (ntheta) {
 		cfg->theta = Calloc(ntheta, double);
 		Memcpy(cfg->theta, theta, ntheta * sizeof(double));

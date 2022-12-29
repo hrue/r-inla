@@ -591,6 +591,15 @@
                     }
                 }
 
+                ll.info <- NULL
+                have.ll.info <- readBin(fp, numeric(), 1)
+                if (have.ll.info > 0) {
+                    ll.info <- readBin(fp, double(), 2 * configs$Npred)
+                    ll.info[is.nan(ll.info)] <- NA
+                    ll.info <- matrix(ll.info, configs$Npred, 2, byrow = TRUE)
+                    colnames(ll.info) <- c("gradient", "hessian")
+                }
+
                 dif <- which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd <- configs.j[dif] ## yes, its the transpose part
@@ -647,7 +656,8 @@
                     ),
                     cpodens.moments = cpodens.moments,
                     gcpodens.moments = gcpodens.moments,
-                    arg.str = arg.str
+                    arg.str = arg.str,
+                    ll.info = ll.info
                 )
             }
 
