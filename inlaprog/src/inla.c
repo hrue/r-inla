@@ -38300,7 +38300,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 						double one = 1.0;
 						fwrite((void *) &one, sizeof(double), 1, fp);
 						fwrite((void *) (mo->configs_preopt[id]->config[i]->ll_info),
-						       sizeof(double), (size_t) (2 * mo->configs_preopt[id]->Npred), fp);
+						       sizeof(double), (size_t) (3 * mo->configs_preopt[id]->Npred), fp);
 					} else {
 						double zero = 0.0;
 						fwrite((void *) &zero, sizeof(double), 1, fp);

@@ -594,10 +594,10 @@
                 ll.info <- NULL
                 have.ll.info <- readBin(fp, numeric(), 1)
                 if (have.ll.info > 0) {
-                    ll.info <- readBin(fp, double(), 2 * configs$Npred)
+                    ll.info <- readBin(fp, double(), 3 * configs$Npred)
                     ll.info[is.nan(ll.info)] <- NA
-                    ll.info <- matrix(ll.info, configs$Npred, 2, byrow = TRUE)
-                    colnames(ll.info) <- c("gradient", "hessian")
+                    ll.info <- matrix(ll.info, configs$Npred, 3, byrow = TRUE)
+                    colnames(ll.info) <- c("gradient", "hessian", "deriv3")
                 }
 
                 dif <- which(configs$i != configs$j)

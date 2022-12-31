@@ -6029,15 +6029,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 		double *ll_info = NULL;
 		if (misc_output->configs_preopt) {
-			ll_info = Calloc(2 * preopt->Npred, double);
+			ll_info = Calloc(3 * preopt->Npred, double);
 			for (int j = 0; j < preopt->Npred; j++) {
-				int jj = 2*j;
+				int jj = 3 * j;
 				if (d[j]) {
-					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj+1]), NULL, d[j], lpred_mode[j], j, 
+					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj+1]), &(ll_info[jj+2]), d[j], lpred_mode[j], j, 
 							      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil);
 				} else {
-					ll_info[jj] = NAN;
-					ll_info[jj + 1] = NAN;
+					ll_info[jj] = ll_info[jj + 1] = ll_info[jj + 2] = NAN;
 				}
 			}
 		}
