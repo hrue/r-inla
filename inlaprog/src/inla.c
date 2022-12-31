@@ -7140,46 +7140,18 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			double off = OFFSET(idx);
-			static double tref[2] = {0, 0};
-			static double cref = 0.0;
-
-			tref[0] -= GMRFLib_cpu();
-#if defined(INLA_LINK_WITH_MKL) 
-			if (m >= 7) {
-				double vdExp(int n, double *a, double *y);
-				double llam[2*m];
-				double *ellam = llam + m;
+			if (y > 0.0) {
 #pragma GCC ivdep
 				for (int i = 0; i < m; i++) {
-					llam[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = y * llam[i] + ylEmn; 
-				}
-				vdExp(m, llam, ellam);
-#pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					logll[i] -= E * ellam[i];
+					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
 				}
 			} else {
 #pragma GCC ivdep
 				for (int i = 0; i < m; i++) {
 					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+					logll[i] = ylEmn - E * exp(log_lambda);
 				}
-			}
-#endif
-			tref[0] += GMRFLib_cpu();
-			tref[1] -= GMRFLib_cpu();
-			{
-#pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
-				}
-			}
-			tref[1] += GMRFLib_cpu();
-
-			if (((int) ++cref % 100000L) == 0) {
-				printf("%g ratio %.6f\n", cref, tref[0] / tref[1]);
 			}
 		} else {
 #pragma GCC ivdep
