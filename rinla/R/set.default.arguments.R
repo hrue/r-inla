@@ -672,12 +672,13 @@
             huge = FALSE,
 
             ## :ARGUMENT+: step.len Numerical The step-length used to compute numerical
-            ## :ARGUMENT+: derivaties of the log-likelihood
-            step.len = .Machine$double.eps^(1.0 / 3.9134),
+            ## :ARGUMENT+: derivaties of the log-likelihood (0 means \code{default} which
+            ## :ARGUMENT+: depends on \code{stencil})
+            step.len = 0.0, 
 
             ## :ARGUMENT+: stencil Numerical Number of points in the stencil used to compute the
-            ## :ARGUMENT+: numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
-            stencil = 5L,
+            ## :ARGUMENT+: numerical derivaties of the log-likelihood (5, 7 or 9). (default 7)
+            stencil = 7L,
 
             ## :ARGUMENT+: lincomb.derived.correlation.matrix Logical If TRUE compute also the
             ## :ARGUMENT+: correlations for the derived linear combinations, if FALSE do not (Default FALSE)
