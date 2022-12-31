@@ -7154,6 +7154,7 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 				}
 			}
 		} else {
+			// general case
 #pragma GCC ivdep
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -8360,16 +8361,11 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			mu = E * lambda;
 			if (mu / size > cutoff) {
-				/*
-				 * NegativeBinomial 
-				 */
+				// NegativeBinomial 
 				p = size / (size + mu);
 				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 			} else {
-				/*
-				 * 
-				 * * the Poission limit 
-				 */
+				// Poission limit 
 				logll[i] = y * log(mu) - mu - my_gsl_sf_lnfact(y);
 			}
 		}
@@ -8982,37 +8978,152 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 		}
 		res.val = G_norm_const[idx];
 
+		// special code for this case
 		if (PREDICTOR_LINK_EQ(link_logit)) {
+			int align = 8;
+			int mkl_lim = 4;
+			div_t d = div(m, align);
+			int len = (d.quot + (d.rem ? 1 : 0)) * align;
 			double off = OFFSET(idx);
 
-			// optimize for the case y=0, and the case ny=0
+#if defined(INLA_LINK_WITH_MKL)
+			double vdExp(int, double *, double *);
+			double vdLog1p(int, double *, double *);
+#endif
+
+			// optimize for the case y=0, and then case ny=0
 			if (ISZERO(y)) {
+#if defined(INLA_LINK_WITH_MKL)
+				{
+					if (m >= mkl_lim) {
+						double work[3 * len];
+						double *v_eta = work;
+						double *v_ee = work + len;
+						double *v_lee = work + 2 * len;
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					double ee = exp(eta);
-					double log_1mp = -log1p(ee);
-					logll[i] = res.val + ny * log_1mp;
+						for (int i = 0; i < m; i++) {
+							v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						}
+
+						vdExp(m, v_eta, v_ee);
+						vdLog1p(m, v_ee, v_lee);
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							logll[i] = res.val - ny * v_lee[i];
+						}
+					} else {
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							double ee = exp(eta);
+							double log_1mp = -log1p(ee);
+							logll[i] = res.val + ny * log_1mp;
+						}
+					}
 				}
+#else							       /* if MKL... */
+				{
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						double ee = exp(eta);
+						double log_1mp = -log1p(ee);
+						logll[i] = res.val + ny * log_1mp;
+					}
+				}
+#endif							       /* if MKL... */
 			} else if (ISZERO(ny)) {
+#if defined(INLA_LINK_WITH_MKL)
+				{
+					if (m >= mkl_lim) {
+						double work[3 * len];
+						double *v_eta = work;
+						double *v_ee = work + len;
+						double *v_lee = work + 2 * len;
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					double ee = exp(eta);
-					double log_p = -log1p(1.0 / ee);
-					logll[i] = res.val + y * log_p;
+						for (int i = 0; i < m; i++) {
+							v_eta[i] = -PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						}
+
+						vdExp(m, v_eta, v_ee);
+						vdLog1p(m, v_ee, v_lee);
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							logll[i] = res.val - y * v_lee[i];
+						}
+					} else {
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							double ee = exp(-eta);
+							double log_p = -log1p(ee);
+							logll[i] = res.val + y * log_p;
+						}
+					}
 				}
+#else							       /* if MKL... */
+#pragma GCC ivdep
+				{
+					for (int i = 0; i < m; i++) {
+						double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						double ee = exp(-eta);
+						double log_p = -log1p(ee);
+						logll[i] = res.val + y * log_p;
+					}
+				}
+#endif							       /* if MKL */
 			} else {
+#if defined(INLA_LINK_WITH_MKL)
+				{
+					if (m >= mkl_lim) {
+						double work[6 * len];
+						double *v_eta = work;
+						double *v_meta = work + len;
+						double *v_ee = work + 2 * len;
+						double *v_iee = work + 3 * len;
+						double *v_lee = work + 4 * len;
+						double *v_liee = work + 5 * len;
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					double ee = exp(eta);
-					double log_1mp = -log1p(ee);
-					double log_p = -log1p(1.0 / ee);
-					logll[i] = res.val + y * log_p + ny * log_1mp;
+						for (int i = 0; i < m; i++) {
+							v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							v_meta[i] = -v_eta[i];
+						}
+
+						vdExp(m, v_eta, v_ee);
+						vdLog1p(m, v_ee, v_lee);
+						vdExp(m, v_meta, v_iee);
+						vdLog1p(m, v_iee, v_liee);
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							logll[i] = res.val - ny * v_lee[i] - y * v_liee[i];
+						}
+					} else {
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							double ee = exp(eta);
+							double log_1mp = -log1p(ee);
+							double log_p = -log1p(1.0 / ee);
+							logll[i] = res.val + y * log_p + ny * log_1mp;
+						}
+					}
 				}
+#else							       /* if MKL... */
+				{
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						double ee = exp(eta);
+						double log_1mp = -log1p(ee);
+						double log_p = -log1p(1.0 / ee);
+						logll[i] = res.val + y * log_p + ny * log_1mp;
+					}
+				}
+#endif							       /* if MKL... */
 			}
+
 		} else {
+			// general case
 #pragma GCC ivdep
 			for (int i = 0; i < m; i++) {
 				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -9056,14 +9167,20 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
-		for (int i = 0; i < -m; i++) {
-			double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = DMIN(1.0, p);
-			if (ds->variant == 0) {
+		if (ds->variant == 0) {
+			for (int i = 0; i < -m; i++) {
+				double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+				p = DMIN(1.0, p);
 				logll[i] = gsl_cdf_binomial_P((unsigned int) *yy, p, (unsigned int) n);
-			} else {
+			}
+		} else if (ds->variant == 1) {
+			for (int i = 0; i < -m; i++) {
+				double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+				p = DMIN(1.0, p);
 				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) ny, p, (unsigned int) *yy);
 			}
+		} else {
+			assert(0 == 1);
 		}
 	}
 
@@ -9637,9 +9754,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
