@@ -4767,6 +4767,46 @@ double priorfunc_wishartk_10d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(10, x, parameters);
 }
+double priorfunc_wishartk_11d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(11, x, parameters);
+}
+double priorfunc_wishartk_12d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(12, x, parameters);
+}
+double priorfunc_wishartk_13d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(13, x, parameters);
+}
+double priorfunc_wishartk_14d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(14, x, parameters);
+}
+double priorfunc_wishartk_15d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(15, x, parameters);
+}
+double priorfunc_wishartk_16d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(16, x, parameters);
+}
+double priorfunc_wishartk_17d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(17, x, parameters);
+}
+double priorfunc_wishartk_18d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(18, x, parameters);
+}
+double priorfunc_wishartk_19d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(19, x, parameters);
+}
+double priorfunc_wishartk_20d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(20, x, parameters);
+}
 
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 {
@@ -12892,6 +12932,276 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		double *xx = NULL;
 		int nxx;
 		int idim = 10;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK11D")) {
+		prior->id = P_WISHARTK_11D;
+		prior->priorfunc = priorfunc_wishartk_11d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 11;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK12D")) {
+		prior->id = P_WISHARTK_12D;
+		prior->priorfunc = priorfunc_wishartk_12d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 12;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK13D")) {
+		prior->id = P_WISHARTK_13D;
+		prior->priorfunc = priorfunc_wishartk_13d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 13;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK14D")) {
+		prior->id = P_WISHARTK_14D;
+		prior->priorfunc = priorfunc_wishartk_14d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 14;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK15D")) {
+		prior->id = P_WISHARTK_15D;
+		prior->priorfunc = priorfunc_wishartk_15d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 15;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK16D")) {
+		prior->id = P_WISHARTK_16D;
+		prior->priorfunc = priorfunc_wishartk_16d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 16;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK17D")) {
+		prior->id = P_WISHARTK_17D;
+		prior->priorfunc = priorfunc_wishartk_17d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 17;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK18D")) {
+		prior->id = P_WISHARTK_18D;
+		prior->priorfunc = priorfunc_wishartk_18d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 18;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK19D")) {
+		prior->id = P_WISHARTK_19D;
+		prior->priorfunc = priorfunc_wishartk_19d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 19;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK20D")) {
+		prior->id = P_WISHARTK_20D;
+		prior->priorfunc = priorfunc_wishartk_20d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 20;
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
