@@ -6033,14 +6033,15 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			for (int j = 0; j < preopt->Npred; j++) {
 				int jj = 3 * j;
 				if (d[j]) {
-					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj+1]), &(ll_info[jj+2]), d[j], lpred_mode[j], j, 
-							      lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len, &ai_par->stencil);
+					GMRFLib_2order_taylor(thread_id, NULL, &(ll_info[jj]), &(ll_info[jj + 1]), &(ll_info[jj + 2]), d[j],
+							      lpred_mode[j], j, lpred_mode, loglFunc, loglFunc_arg, &ai_par->step_len,
+							      &ai_par->stencil);
 				} else {
 					ll_info[jj] = ll_info[jj + 1] = ll_info[jj + 2] = NAN;
 				}
 			}
 		}
-		
+
 		GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
 					       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str, ll_info);
 
