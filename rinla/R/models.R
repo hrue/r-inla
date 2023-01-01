@@ -11989,7 +11989,7 @@
 
                 wishartkd =  list(
                     doc = "Wishart prior",
-                    nparameters = 210L,
+                    nparameters = 211L,
                     pdf = NULL
                 ), 
 
