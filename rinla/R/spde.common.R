@@ -304,52 +304,52 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
     return(covariance * noise.variance)
 }
 
-#' @export
-#' @details `inla.matern.cov.s2.unstable` is an old implementation using
-#' `orthopolynom::legendre.polynomials` and `orthopolynom::polynomial.values`
-#' @rdname inla.matern.cov
-inla.matern.cov.s2.unstable <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
-                               freq.max = NULL) {
-    # Example to show how much better the new version is:
-    # library(tidyverse)
-    # library(ggplot2)
-    # ggplot(
-    #     data.frame(x=rep(seq(0,0.001,length.out=1000),times=2),
-    #                Type = rep(c("Unstable","Stable"), times=2)) %>%
-    #         mutate(Cov=case_when(
-    #             Type=="Unstable" ~ inla.matern.cov.s2.unstable(1,1,x,freq.max=40),
-    #             TRUE ~ inla.matern.cov.s2(1,1,x,freq.max=40)))
-    # ) +
-    #   geom_line(aes(x,Cov,col=Type))
-    
-    inla.require("orthopolynom", stop.on.error = TRUE)
-    y <- cos(abs(x))
-    
-    # TODO: use the error bounds to pick a freq.max; ok since gsl Legendre
-    # polynomial evaluations are stable to high order
-    if (is.null(freq.max)) {
-        freq.max <- 40L
-    }
-    freq.n <- freq.max + 1L
-    w <- 0L:freq.max
-    spec <- 1 / (kappa^4 +
-                     2 * kappa^2 * cos(pi * theta) * w * (w + 1) +
-                     w^2 * (w + 1)^2)^((nu + 1) / 2) / (4 * pi)
-    covariance <- y * 0
-    leg <- orthopolynom::legendre.polynomials(freq.max)
-    for (k in w) {
-        covariance <- (covariance + (2 * k + 1) * spec[k + 1] *
-                           orthopolynom::polynomial.values(leg[k + 1], y)[[1]])
-    }
-    
-    if (norm.corr) {
-        noise.variance <- 1 / covariance[1]
-    } else {
-        noise.variance <- 1
-    }
-    
-    return(covariance * noise.variance)
-}
+# @export
+# @details `inla.matern.cov.s2.unstable` is an old implementation using
+# `orthopolynom::legendre.polynomials` and `orthopolynom::polynomial.values`
+# @rdname inla.matern.cov
+# inla.matern.cov.s2.unstable <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
+#                                freq.max = NULL) {
+#     # Example to show how much better the new version is:
+#     # library(tidyverse)
+#     # library(ggplot2)
+#     # ggplot(
+#     #     data.frame(x=rep(seq(0,0.001,length.out=1000),times=2),
+#     #                Type = rep(c("Unstable","Stable"), times=2)) %>%
+#     #         mutate(Cov=case_when(
+#     #             Type=="Unstable" ~ inla.matern.cov.s2.unstable(1,1,x,freq.max=40),
+#     #             TRUE ~ inla.matern.cov.s2(1,1,x,freq.max=40)))
+#     # ) +
+#     #   geom_line(aes(x,Cov,col=Type))
+#     
+#     inla.require("orthopolynom", stop.on.error = TRUE)
+#     y <- cos(abs(x))
+#     
+#     # TODO: use the error bounds to pick a freq.max; ok since gsl Legendre
+#     # polynomial evaluations are stable to high order
+#     if (is.null(freq.max)) {
+#         freq.max <- 40L
+#     }
+#     freq.n <- freq.max + 1L
+#     w <- 0L:freq.max
+#     spec <- 1 / (kappa^4 +
+#                      2 * kappa^2 * cos(pi * theta) * w * (w + 1) +
+#                      w^2 * (w + 1)^2)^((nu + 1) / 2) / (4 * pi)
+#     covariance <- y * 0
+#     leg <- orthopolynom::legendre.polynomials(freq.max)
+#     for (k in w) {
+#         covariance <- (covariance + (2 * k + 1) * spec[k + 1] *
+#                            orthopolynom::polynomial.values(leg[k + 1], y)[[1]])
+#     }
+#     
+#     if (norm.corr) {
+#         noise.variance <- 1 / covariance[1]
+#     } else {
+#         noise.variance <- 1
+#     }
+#     
+#     return(covariance * noise.variance)
+# }
 
 
 

@@ -584,8 +584,8 @@
             stop("Model 'iidkd' needs 'order' to be defined")
         } else {
             order <- as.integer(order)
-            if (!(order >= 2 && order <= 10)) {
-                stop("Model 'iidkd' needs 'order' to be in the interval 2 to 10")
+            if (!(order >= 2 && order <= 20)) {
+                stop("Model 'iidkd' needs 'order' to be in the interval 2 to 20")
             }
         }
     }

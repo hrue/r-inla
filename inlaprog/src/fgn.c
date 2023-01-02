@@ -101,27 +101,21 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	const int debug = 0;
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
-	if (!arg) {
-		assert(i < 0 && j < 0);			       /* safety check */
-		if (phi_cache == NULL) {
+	if (phi_cache == NULL) {
 #pragma omp critical (Name_6cee800e55124771d0e7fd552ae7e48a27e4f94e)
-			{
-				if (phi_cache == NULL) {
-					phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-					w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-					H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
+		{
+			if (phi_cache == NULL) {
+				double **cache = Calloc(GMRFLib_CACHE_LEN, double *);
+				w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+				H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-					for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
-						phi_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-						w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-					}
-					if (debug) {
-						printf("Qfunc_fgn: initialize cache\n");
-					}
+				for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+					cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+					w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 				}
+				phi_cache = cache;
 			}
 		}
-		return NAN;				       /* so it will break if used wrong */
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
@@ -210,20 +204,19 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	const int debug = 0;
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
-	if (!arg) {
-		assert(phi_cache == NULL);		       /* do not initialize twice */
-		phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-		w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-		H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
+	if (!phi_cache) {
+#pragma omp critical (Name_31036ca2cfd217477a399b276d2192bbc39a5fb7)
+		if (!phi_cache) {
+			double **cache = Calloc(GMRFLib_CACHE_LEN, double *);
+			w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+			H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-		for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
-			phi_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-			w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+			for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+				cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+				w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+			}
+			phi_cache = cache;
 		}
-		if (debug) {
-			printf("Qfunc_fgn2: initialize cache\n");
-		}
-		return NAN;
 	}
 
 	inla_fgn2_arg_tp *a = (inla_fgn2_arg_tp *) arg;

@@ -37,184 +37,366 @@ extern "C" {
 enum enum_io { io__NULL = -1, io_arg_aa = 0, io_arg_ab, io_arg_ba, io_arg_bb };
 
 /** @brief Where the command line options are stored */
-struct gengetopt_args_info
-{
+struct gengetopt_args_info {
   const char *help_help; /**< @brief Print help and exit help description.  */
-  const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
-  const char *full_help_help; /**< @brief Print help, including hidden options, and exit help description.  */
-  const char *version_help; /**< @brief Print version and exit help description.  */
-  char * config_arg;	/**< @brief Read options from file.  */
-  char * config_orig;	/**< @brief Read options from file original value given at command line.  */
-  const char *config_help; /**< @brief Read options from file help description.  */
-  char * dump_config_arg;	/**< @brief Dump options to file.  */
-  char * dump_config_orig;	/**< @brief Dump options to file original value given at command line.  */
-  const char *dump_config_help; /**< @brief Dump options to file help description.  */
-  enum enum_io io_arg;	/**< @brief I/O format specification (ascii/binary) (default='bb').  */
-  char * io_orig;	/**< @brief I/O format specification (ascii/binary) original value given at command line.  */
-  const char *io_help; /**< @brief I/O format specification (ascii/binary) help description.  */
-  char ** ic_arg;	/**< @brief Read input as matrix collections in the given files.  */
-  char ** ic_orig;	/**< @brief Read input as matrix collections in the given files original value given at command line.  */
-  unsigned int ic_min; /**< @brief Read input as matrix collections in the given files's minimum occurreces */
-  unsigned int ic_max; /**< @brief Read input as matrix collections in the given files's maximum occurreces */
-  const char *ic_help; /**< @brief Read input as matrix collections in the given files help description.  */
-  char * oc_arg;	/**< @brief Write output as a matrix collection in the given file.  */
-  char * oc_orig;	/**< @brief Write output as a matrix collection in the given file original value given at command line.  */
-  const char *oc_help; /**< @brief Write output as a matrix collection in the given file help description.  */
-  char ** collect_arg;	/**< @brief Add named matrices to the output collection (default='-').  */
-  char ** collect_orig;	/**< @brief Add named matrices to the output collection original value given at command line.  */
-  unsigned int collect_min; /**< @brief Add named matrices to the output collection's minimum occurreces */
-  unsigned int collect_max; /**< @brief Add named matrices to the output collection's maximum occurreces */
-  const char *collect_help; /**< @brief Add named matrices to the output collection help description.  */
-  int collect_all_flag;	/**< @brief With --collect=-, load all matrices from the input collections (default=off).  */
-  const char *collect_all_help; /**< @brief With --collect=-, load all matrices from the input collections help description.  */
-  char ** ir_arg;	/**< @brief Import a raw matrix file in ascii format.  */
-  char ** ir_orig;	/**< @brief Import a raw matrix file in ascii format original value given at command line.  */
-  unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's minimum occurreces */
-  unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's maximum occurreces */
-  const char *ir_help; /**< @brief Import a raw matrix file in ascii format help description.  */
-  char ** input_arg;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points..  */
-  char ** input_orig;	/**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. original value given at command line.  */
-  unsigned int input_min; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s minimum occurreces */
-  unsigned int input_max; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points.'s maximum occurreces */
-  const char *input_help; /**< @brief Specify triangulation input data, default=s0.  A second name indicates a pre-existing triangulation, as in -Ts0,tv0, further indicates additional data point matrices.  Use - for tv0 to only supply additional points. help description.  */
-  double cutoff_arg;	/**< @brief Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point. (default='1.0e-12').  */
-  char * cutoff_orig;	/**< @brief Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point. original value given at command line.  */
-  const char *cutoff_help; /**< @brief Treat points in the input data as unique only if they are further apart than this value. The vector 'idx' in the output gives the resulting vertex index for each input point. help description.  */
-  double spheretolerance_arg;	/**< @brief The tolerance for determining that the input lies on a sphere. (default='1.0e-7').  */
-  char * spheretolerance_orig;	/**< @brief The tolerance for determining that the input lies on a sphere. original value given at command line.  */
-  const char *spheretolerance_help; /**< @brief The tolerance for determining that the input lies on a sphere. help description.  */
-  double* cet_arg;	/**< @brief Convex encapsulation parameters.  */
-  char ** cet_orig;	/**< @brief Convex encapsulation parameters original value given at command line.  */
-  unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum occurreces */
-  unsigned int cet_max; /**< @brief Convex encapsulation parameters's maximum occurreces */
-  const char *cet_help; /**< @brief Convex encapsulation parameters help description.  */
-  double* rcdt_arg;	/**< @brief Generate RCDT, with optional quality parameters (default='21').  */
-  char ** rcdt_orig;	/**< @brief Generate RCDT, with optional quality parameters original value given at command line.  */
-  unsigned int rcdt_min; /**< @brief Generate RCDT, with optional quality parameters's minimum occurreces */
-  unsigned int rcdt_max; /**< @brief Generate RCDT, with optional quality parameters's maximum occurreces */
-  const char *rcdt_help; /**< @brief Generate RCDT, with optional quality parameters help description.  */
-  int max_n0_arg;	/**< @brief The desired maximal number of vertices, terminating angle checks (default='-1').  */
-  char * max_n0_orig;	/**< @brief The desired maximal number of vertices, terminating angle checks original value given at command line.  */
-  const char *max_n0_help; /**< @brief The desired maximal number of vertices, terminating angle checks help description.  */
-  int max_n1_arg;	/**< @brief The desired maximal number of vertices, terminating edge length checks (default='-1').  */
-  char * max_n1_orig;	/**< @brief The desired maximal number of vertices, terminating edge length checks original value given at command line.  */
-  const char *max_n1_help; /**< @brief The desired maximal number of vertices, terminating edge length checks help description.  */
-  char ** quality_arg;	/**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input.  */
-  char ** quality_orig;	/**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input original value given at command line.  */
-  unsigned int quality_min; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input's minimum occurreces */
-  unsigned int quality_max; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input's maximum occurreces */
-  const char *quality_help; /**< @brief Per vertex RCDT parameters, as one or more one-column matrices with minimum edge lengths for the points specified with -T|--input help description.  */
-  char ** boundary_arg;	/**< @brief Handle triangulation boundary (default='boundary0').  */
-  char ** boundary_orig;	/**< @brief Handle triangulation boundary original value given at command line.  */
-  unsigned int boundary_min; /**< @brief Handle triangulation boundary's minimum occurreces */
-  unsigned int boundary_max; /**< @brief Handle triangulation boundary's maximum occurreces */
-  const char *boundary_help; /**< @brief Handle triangulation boundary help description.  */
-  char ** interior_arg;	/**< @brief Handle interior constraints (default='interior0').  */
-  char ** interior_orig;	/**< @brief Handle interior constraints original value given at command line.  */
-  unsigned int interior_min; /**< @brief Handle interior constraints's minimum occurreces */
-  unsigned int interior_max; /**< @brief Handle interior constraints's maximum occurreces */
-  const char *interior_help; /**< @brief Handle interior constraints help description.  */
-  char ** boundarygrp_arg;	/**< @brief Group lables for boundary segments.  */
-  char ** boundarygrp_orig;	/**< @brief Group lables for boundary segments original value given at command line.  */
-  unsigned int boundarygrp_min; /**< @brief Group lables for boundary segments's minimum occurreces */
-  unsigned int boundarygrp_max; /**< @brief Group lables for boundary segments's maximum occurreces */
-  const char *boundarygrp_help; /**< @brief Group lables for boundary segments help description.  */
-  char ** interiorgrp_arg;	/**< @brief Group lables for interior segments.  */
-  char ** interiorgrp_orig;	/**< @brief Group lables for interior segments original value given at command line.  */
-  unsigned int interiorgrp_min; /**< @brief Group lables for interior segments's minimum occurreces */
-  unsigned int interiorgrp_max; /**< @brief Group lables for interior segments's maximum occurreces */
-  const char *interiorgrp_help; /**< @brief Group lables for interior segments help description.  */
-  int globe_arg;	/**< @brief Construct a triangulation of a globe.  */
-  char * globe_orig;	/**< @brief Construct a triangulation of a globe original value given at command line.  */
-  const char *globe_help; /**< @brief Construct a triangulation of a globe help description.  */
-  const char *smorg_help; /**< @brief Smorgasbord queries for a known triangulation.  Uses the given --input=s,tv directly, without any filtering or refinement. help description.  */
-  int fem_arg;	/**< @brief Calculate FEM matrices up through order fem (default='-1').  */
-  char * fem_orig;	/**< @brief Calculate FEM matrices up through order fem original value given at command line.  */
-  const char *fem_help; /**< @brief Calculate FEM matrices up through order fem help description.  */
-  char ** aniso_arg;	/**< @brief Calculate anisotropic Laplacians.  */
-  char ** aniso_orig;	/**< @brief Calculate anisotropic Laplacians original value given at command line.  */
-  unsigned int aniso_min; /**< @brief Calculate anisotropic Laplacians's minimum occurreces */
-  unsigned int aniso_max; /**< @brief Calculate anisotropic Laplacians's maximum occurreces */
-  const char *aniso_help; /**< @brief Calculate anisotropic Laplacians help description.  */
-  const char *grad_help; /**< @brief Calculate gradient weight matrices help description.  */
-  int sph0_arg;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 (default='-1').  */
-  char * sph0_orig;	/**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 original value given at command line.  */
-  const char *sph0_help; /**< @brief Calculate rotationally invariant spherical harmonics up through order sph0 help description.  */
-  int sph_arg;	/**< @brief Calculate spherical harmonics up through order sph (default='-1').  */
-  char * sph_orig;	/**< @brief Calculate spherical harmonics up through order sph original value given at command line.  */
-  const char *sph_help; /**< @brief Calculate spherical harmonics up through order sph help description.  */
-  double* bspline_arg;	/**< @brief Calculate rotationally invariant B-spline basis functions.  */
-  char ** bspline_orig;	/**< @brief Calculate rotationally invariant B-spline basis functions original value given at command line.  */
-  unsigned int bspline_min; /**< @brief Calculate rotationally invariant B-spline basis functions's minimum occurreces */
-  unsigned int bspline_max; /**< @brief Calculate rotationally invariant B-spline basis functions's maximum occurreces */
-  const char *bspline_help; /**< @brief Calculate rotationally invariant B-spline basis functions help description.  */
-  char * points2mesh_arg;	/**< @brief Calculate barycentric triangle coordinates for a set of points (default='s').  */
-  char * points2mesh_orig;	/**< @brief Calculate barycentric triangle coordinates for a set of points original value given at command line.  */
-  const char *points2mesh_help; /**< @brief Calculate barycentric triangle coordinates for a set of points help description.  */
-  char ** splitlines_arg;	/**< @brief Split line segments into within-triangle parts and calculate corresponding barycentric coordinates.  */
-  char ** splitlines_orig;	/**< @brief Split line segments into within-triangle parts and calculate corresponding barycentric coordinates original value given at command line.  */
-  unsigned int splitlines_min; /**< @brief Split line segments into within-triangle parts and calculate corresponding barycentric coordinates's minimum occurreces */
-  unsigned int splitlines_max; /**< @brief Split line segments into within-triangle parts and calculate corresponding barycentric coordinates's maximum occurreces */
-  const char *splitlines_help; /**< @brief Split line segments into within-triangle parts and calculate corresponding barycentric coordinates help description.  */
-  double x11_arg;	/**< @brief Show progress in an x11 window, with delay factor (default='1.0').  */
-  char * x11_orig;	/**< @brief Show progress in an x11 window, with delay factor original value given at command line.  */
-  const char *x11_help; /**< @brief Show progress in an x11 window, with delay factor help description.  */
-  double* x11_zoom_arg;	/**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy].  */
-  char ** x11_zoom_orig;	/**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy] original value given at command line.  */
-  unsigned int x11_zoom_min; /**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy]'s minimum occurreces */
-  unsigned int x11_zoom_max; /**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy]'s maximum occurreces */
-  const char *x11_zoom_help; /**< @brief Zoom into a smaller section of the graph, [minx,maxx,miny,maxy] help description.  */
-  
-  unsigned int help_given ;	/**< @brief Whether help was given.  */
-  unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
-  unsigned int full_help_given ;	/**< @brief Whether full-help was given.  */
-  unsigned int version_given ;	/**< @brief Whether version was given.  */
-  unsigned int config_given ;	/**< @brief Whether config was given.  */
-  unsigned int dump_config_given ;	/**< @brief Whether dump-config was given.  */
-  unsigned int io_given ;	/**< @brief Whether io was given.  */
-  unsigned int ic_given ;	/**< @brief Whether ic was given.  */
-  unsigned int oc_given ;	/**< @brief Whether oc was given.  */
-  unsigned int collect_given ;	/**< @brief Whether collect was given.  */
-  unsigned int collect_all_given ;	/**< @brief Whether collect-all was given.  */
-  unsigned int ir_given ;	/**< @brief Whether ir was given.  */
-  unsigned int input_given ;	/**< @brief Whether input was given.  */
-  unsigned int cutoff_given ;	/**< @brief Whether cutoff was given.  */
-  unsigned int spheretolerance_given ;	/**< @brief Whether spheretolerance was given.  */
-  unsigned int cet_given ;	/**< @brief Whether cet was given.  */
-  unsigned int rcdt_given ;	/**< @brief Whether rcdt was given.  */
-  unsigned int max_n0_given ;	/**< @brief Whether max_n0 was given.  */
-  unsigned int max_n1_given ;	/**< @brief Whether max_n1 was given.  */
-  unsigned int quality_given ;	/**< @brief Whether quality was given.  */
-  unsigned int boundary_given ;	/**< @brief Whether boundary was given.  */
-  unsigned int interior_given ;	/**< @brief Whether interior was given.  */
-  unsigned int boundarygrp_given ;	/**< @brief Whether boundarygrp was given.  */
-  unsigned int interiorgrp_given ;	/**< @brief Whether interiorgrp was given.  */
-  unsigned int globe_given ;	/**< @brief Whether globe was given.  */
-  unsigned int smorg_given ;	/**< @brief Whether smorg was given.  */
-  unsigned int fem_given ;	/**< @brief Whether fem was given.  */
-  unsigned int aniso_given ;	/**< @brief Whether aniso was given.  */
-  unsigned int grad_given ;	/**< @brief Whether grad was given.  */
-  unsigned int sph0_given ;	/**< @brief Whether sph0 was given.  */
-  unsigned int sph_given ;	/**< @brief Whether sph was given.  */
-  unsigned int bspline_given ;	/**< @brief Whether bspline was given.  */
-  unsigned int points2mesh_given ;	/**< @brief Whether points2mesh was given.  */
-  unsigned int splitlines_given ;	/**< @brief Whether splitlines was given.  */
-  unsigned int x11_given ;	/**< @brief Whether x11 was given.  */
-  unsigned int x11_zoom_given ;	/**< @brief Whether x11-zoom was given.  */
+  const char
+      *detailed_help_help;    /**< @brief Print help, including all details and
+                                 hidden options, and exit help description.  */
+  const char *full_help_help; /**< @brief Print help, including hidden options,
+                                 and exit help description.  */
+  const char
+      *version_help; /**< @brief Print version and exit help description.  */
+  char *config_arg;  /**< @brief Read options from file.  */
+  char *config_orig; /**< @brief Read options from file original value given at
+                        command line.  */
+  const char
+      *config_help; /**< @brief Read options from file help description.  */
+  char *dump_config_arg;  /**< @brief Dump options to file.  */
+  char *dump_config_orig; /**< @brief Dump options to file original value given
+                             at command line.  */
+  const char
+      *dump_config_help; /**< @brief Dump options to file help description.  */
+  enum enum_io io_arg;   /**< @brief I/O format specification (ascii/binary)
+                            (default='bb').  */
+  char *io_orig; /**< @brief I/O format specification (ascii/binary) original
+                    value given at command line.  */
+  const char *io_help; /**< @brief I/O format specification (ascii/binary) help
+                          description.  */
+  char **ic_arg;       /**< @brief Read input as matrix collections in the given
+                          files.  */
+  char **ic_orig;      /**< @brief Read input as matrix collections in the given
+                          files original value given at command line.  */
+  unsigned int ic_min; /**< @brief Read input as matrix collections in the given
+                          files's minimum occurreces */
+  unsigned int ic_max; /**< @brief Read input as matrix collections in the given
+                          files's maximum occurreces */
+  const char *ic_help; /**< @brief Read input as matrix collections in the given
+                          files help description.  */
+  char *oc_arg;  /**< @brief Write output as a matrix collection in the given
+                    file.  */
+  char *oc_orig; /**< @brief Write output as a matrix collection in the given
+                    file original value given at command line.  */
+  const char *oc_help; /**< @brief Write output as a matrix collection in the
+                          given file help description.  */
+  char **collect_arg;  /**< @brief Add named matrices to the output collection
+                          (default='-').  */
+  char **collect_orig; /**< @brief Add named matrices to the output collection
+                          original value given at command line.  */
+  unsigned int collect_min; /**< @brief Add named matrices to the output
+                               collection's minimum occurreces */
+  unsigned int collect_max; /**< @brief Add named matrices to the output
+                               collection's maximum occurreces */
+  const char *collect_help; /**< @brief Add named matrices to the output
+                               collection help description.  */
+  int collect_all_flag; /**< @brief With --collect=-, load all matrices from the
+                           input collections (default=off).  */
+  const char
+      *collect_all_help; /**< @brief With --collect=-, load all matrices from
+                            the input collections help description.  */
+  char **ir_arg;  /**< @brief Import a raw matrix file in ascii format.  */
+  char **ir_orig; /**< @brief Import a raw matrix file in ascii format original
+                     value given at command line.  */
+  unsigned int ir_min; /**< @brief Import a raw matrix file in ascii format's
+                          minimum occurreces */
+  unsigned int ir_max; /**< @brief Import a raw matrix file in ascii format's
+                          maximum occurreces */
+  const char *ir_help; /**< @brief Import a raw matrix file in ascii format help
+                          description.  */
+  char *
+      *input_arg; /**< @brief Specify triangulation input data, default=s0.  A
+                     second name indicates a pre-existing triangulation, as in
+                     -Ts0,tv0, further indicates additional data point matrices.
+                     Use - for tv0 to only supply additional points..  */
+  char **input_orig; /**< @brief Specify triangulation input data, default=s0.
+                        A second name indicates a pre-existing triangulation, as
+                        in -Ts0,tv0, further indicates additional data point
+                        matrices.  Use - for tv0 to only supply additional
+                        points. original value given at command line.  */
+  unsigned int
+      input_min; /**< @brief Specify triangulation input data, default=s0.  A
+                    second name indicates a pre-existing triangulation, as in
+                    -Ts0,tv0, further indicates additional data point matrices.
+                    Use - for tv0 to only supply additional points.'s minimum
+                    occurreces */
+  unsigned int
+      input_max; /**< @brief Specify triangulation input data, default=s0.  A
+                    second name indicates a pre-existing triangulation, as in
+                    -Ts0,tv0, further indicates additional data point matrices.
+                    Use - for tv0 to only supply additional points.'s maximum
+                    occurreces */
+  const char *input_help; /**< @brief Specify triangulation input data,
+                             default=s0.  A second name indicates a pre-existing
+                             triangulation, as in -Ts0,tv0, further indicates
+                             additional data point matrices.  Use - for tv0 to
+                             only supply additional points. help description. */
+  double cutoff_arg; /**< @brief Treat points in the input data as unique only
+                        if they are further apart than this value. The vector
+                        'idx' in the output gives the resulting vertex index for
+                        each input point. (default='1.0e-12').  */
+  char
+      *cutoff_orig; /**< @brief Treat points in the input data as unique only if
+                       they are further apart than this value. The vector 'idx'
+                       in the output gives the resulting vertex index for each
+                       input point. original value given at command line.  */
+  const char
+      *cutoff_help; /**< @brief Treat points in the input data as unique only if
+                       they are further apart than this value. The vector 'idx'
+                       in the output gives the resulting vertex index for each
+                       input point. help description.  */
+  double spheretolerance_arg; /**< @brief The tolerance for determining that the
+                                 input lies on a sphere. (default='1.0e-7').  */
+  char *spheretolerance_orig; /**< @brief The tolerance for determining that the
+                                 input lies on a sphere. original value given at
+                                 command line.  */
+  const char
+      *spheretolerance_help; /**< @brief The tolerance for determining that the
+                                input lies on a sphere. help description.  */
+  double *cet_arg;           /**< @brief Convex encapsulation parameters.  */
+  char **cet_orig; /**< @brief Convex encapsulation parameters original value
+                      given at command line.  */
+  unsigned int cet_min; /**< @brief Convex encapsulation parameters's minimum
+                           occurreces */
+  unsigned int cet_max; /**< @brief Convex encapsulation parameters's maximum
+                           occurreces */
+  const char *
+      cet_help; /**< @brief Convex encapsulation parameters help description. */
+  double *rcdt_arg; /**< @brief Generate RCDT, with optional quality parameters
+                       (default='21').  */
+  char **rcdt_orig; /**< @brief Generate RCDT, with optional quality parameters
+                       original value given at command line.  */
+  unsigned int rcdt_min;   /**< @brief Generate RCDT, with optional quality
+                              parameters's minimum occurreces */
+  unsigned int rcdt_max;   /**< @brief Generate RCDT, with optional quality
+                              parameters's maximum occurreces */
+  const char *rcdt_help;   /**< @brief Generate RCDT, with optional quality
+                              parameters help description.  */
+  int max_n0_arg;          /**< @brief The desired maximal number of vertices,
+                              terminating angle checks (default='-1').  */
+  char *max_n0_orig;       /**< @brief The desired maximal number of vertices,
+                              terminating angle checks original value given at command
+                              line.  */
+  const char *max_n0_help; /**< @brief The desired maximal number of vertices,
+                              terminating angle checks help description.  */
+  int max_n1_arg;          /**< @brief The desired maximal number of vertices,
+                              terminating edge length checks (default='-1').  */
+  char *max_n1_orig;       /**< @brief The desired maximal number of vertices,
+                              terminating edge length checks original value given at
+                              command line.  */
+  const char
+      *max_n1_help;    /**< @brief The desired maximal number of vertices,
+                          terminating edge length checks help description.  */
+  char **quality_arg;  /**< @brief Per vertex RCDT parameters, as one or more
+                          one-column matrices with minimum edge lengths for the
+                          points specified with -T|--input.  */
+  char **quality_orig; /**< @brief Per vertex RCDT parameters, as one or more
+                          one-column matrices with minimum edge lengths for the
+                          points specified with -T|--input original value given
+                          at command line.  */
+  unsigned int
+      quality_min; /**< @brief Per vertex RCDT parameters, as one or more
+                      one-column matrices with minimum edge lengths for the
+                      points specified with -T|--input's minimum occurreces */
+  unsigned int
+      quality_max; /**< @brief Per vertex RCDT parameters, as one or more
+                      one-column matrices with minimum edge lengths for the
+                      points specified with -T|--input's maximum occurreces */
+  const char
+      *quality_help;    /**< @brief Per vertex RCDT parameters, as one or more
+                           one-column matrices with minimum edge lengths for the
+                           points specified with -T|--input help description.  */
+  char **boundary_arg;  /**< @brief Handle triangulation boundary
+                           (default='boundary0').  */
+  char **boundary_orig; /**< @brief Handle triangulation boundary original value
+                           given at command line.  */
+  unsigned int boundary_min; /**< @brief Handle triangulation boundary's minimum
+                                occurreces */
+  unsigned int boundary_max; /**< @brief Handle triangulation boundary's maximum
+                                occurreces */
+  const char *boundary_help; /**< @brief Handle triangulation boundary help
+                                description.  */
+  char **interior_arg;       /**< @brief Handle interior constraints
+                                (default='interior0').  */
+  char **interior_orig; /**< @brief Handle interior constraints original value
+                           given at command line.  */
+  unsigned int interior_min; /**< @brief Handle interior constraints's minimum
+                                occurreces */
+  unsigned int interior_max; /**< @brief Handle interior constraints's maximum
+                                occurreces */
+  const char *interior_help; /**< @brief Handle interior constraints help
+                                description.  */
+  char **boundarygrp_arg;    /**< @brief Group lables for boundary segments.  */
+  char **boundarygrp_orig;   /**< @brief Group lables for boundary segments
+                                original value given at command line.  */
+  unsigned int boundarygrp_min; /**< @brief Group lables for boundary segments's
+                                   minimum occurreces */
+  unsigned int boundarygrp_max; /**< @brief Group lables for boundary segments's
+                                   maximum occurreces */
+  const char *boundarygrp_help; /**< @brief Group lables for boundary segments
+                                   help description.  */
+  char **interiorgrp_arg;  /**< @brief Group lables for interior segments.  */
+  char **interiorgrp_orig; /**< @brief Group lables for interior segments
+                              original value given at command line.  */
+  unsigned int interiorgrp_min; /**< @brief Group lables for interior segments's
+                                   minimum occurreces */
+  unsigned int interiorgrp_max; /**< @brief Group lables for interior segments's
+                                   maximum occurreces */
+  const char *interiorgrp_help; /**< @brief Group lables for interior segments
+                                   help description.  */
+  int globe_arg;    /**< @brief Construct a triangulation of a globe.  */
+  char *globe_orig; /**< @brief Construct a triangulation of a globe original
+                       value given at command line.  */
+  const char *globe_help; /**< @brief Construct a triangulation of a globe help
+                             description.  */
+  const char
+      *smorg_help; /**< @brief Smorgasbord queries for a known triangulation.
+                      Uses the given --input=s,tv directly, without any
+                      filtering or refinement. help description.  */
+  int fem_arg;     /**< @brief Calculate FEM matrices up through order fem
+                      (default='-1').  */
+  char *fem_orig;  /**< @brief Calculate FEM matrices up through order fem
+                      original value given at command line.  */
+  const char *fem_help; /**< @brief Calculate FEM matrices up through order fem
+                           help description.  */
+  char **aniso_arg;     /**< @brief Calculate anisotropic Laplacians.  */
+  char **aniso_orig; /**< @brief Calculate anisotropic Laplacians original value
+                        given at command line.  */
+  unsigned int aniso_min; /**< @brief Calculate anisotropic Laplacians's minimum
+                             occurreces */
+  unsigned int aniso_max; /**< @brief Calculate anisotropic Laplacians's maximum
+                             occurreces */
+  const char *aniso_help; /**< @brief Calculate anisotropic Laplacians help
+                             description.  */
+  const char *grad_help;  /**< @brief Calculate gradient weight matrices help
+                             description.  */
+  int sph0_arg; /**< @brief Calculate rotationally invariant spherical harmonics
+                   up through order sph0 (default='-1').  */
+  char *sph0_orig;       /**< @brief Calculate rotationally invariant spherical
+                            harmonics up through order sph0 original value given at
+                            command line.  */
+  const char *sph0_help; /**< @brief Calculate rotationally invariant spherical
+                            harmonics up through order sph0 help description. */
+  int sph_arg;    /**< @brief Calculate spherical harmonics up through order sph
+                     (default='-1').  */
+  char *sph_orig; /**< @brief Calculate spherical harmonics up through order sph
+                     original value given at command line.  */
+  const char *sph_help; /**< @brief Calculate spherical harmonics up through
+                           order sph help description.  */
+  double *bspline_arg;  /**< @brief Calculate rotationally invariant B-spline
+                           basis functions.  */
+  char *
+      *bspline_orig; /**< @brief Calculate rotationally invariant B-spline basis
+                        functions original value given at command line.  */
+  unsigned int bspline_min; /**< @brief Calculate rotationally invariant
+                               B-spline basis functions's minimum occurreces */
+  unsigned int bspline_max; /**< @brief Calculate rotationally invariant
+                               B-spline basis functions's maximum occurreces */
+  const char *bspline_help; /**< @brief Calculate rotationally invariant
+                               B-spline basis functions help description.  */
+  char *points2mesh_arg;  /**< @brief Calculate barycentric triangle coordinates
+                             for a set of points (default='s').  */
+  char *points2mesh_orig; /**< @brief Calculate barycentric triangle coordinates
+                             for a set of points original value given at command
+                             line.  */
+  const char
+      *points2mesh_help; /**< @brief Calculate barycentric triangle coordinates
+                            for a set of points help description.  */
+  char **
+      splitlines_arg; /**< @brief Split line segments into within-triangle parts
+                         and calculate corresponding barycentric coordinates. */
+  char *
+      *splitlines_orig; /**< @brief Split line segments into within-triangle
+                           parts and calculate corresponding barycentric
+                           coordinates original value given at command line.  */
+  unsigned int
+      splitlines_min; /**< @brief Split line segments into within-triangle parts
+                         and calculate corresponding barycentric coordinates's
+                         minimum occurreces */
+  unsigned int
+      splitlines_max; /**< @brief Split line segments into within-triangle parts
+                         and calculate corresponding barycentric coordinates's
+                         maximum occurreces */
+  const char
+      *splitlines_help; /**< @brief Split line segments into within-triangle
+                           parts and calculate corresponding barycentric
+                           coordinates help description.  */
+  double x11_arg; /**< @brief Show progress in an x11 window, with delay factor
+                     (default='1.0').  */
+  char *x11_orig; /**< @brief Show progress in an x11 window, with delay factor
+                     original value given at command line.  */
+  const char *x11_help; /**< @brief Show progress in an x11 window, with delay
+                           factor help description.  */
+  double *x11_zoom_arg; /**< @brief Zoom into a smaller section of the graph,
+                           [minx,maxx,miny,maxy].  */
+  char **x11_zoom_orig; /**< @brief Zoom into a smaller section of the graph,
+                           [minx,maxx,miny,maxy] original value given at command
+                           line.  */
+  unsigned int
+      x11_zoom_min; /**< @brief Zoom into a smaller section of the graph,
+                       [minx,maxx,miny,maxy]'s minimum occurreces */
+  unsigned int
+      x11_zoom_max; /**< @brief Zoom into a smaller section of the graph,
+                       [minx,maxx,miny,maxy]'s maximum occurreces */
+  const char
+      *x11_zoom_help; /**< @brief Zoom into a smaller section of the graph,
+                         [minx,maxx,miny,maxy] help description.  */
 
-  char **inputs ; /**< @brief unnamed options (options without names) */
-  unsigned inputs_num ; /**< @brief unnamed options number */
-} ;
+  unsigned int help_given; /**< @brief Whether help was given.  */
+  unsigned int
+      detailed_help_given;      /**< @brief Whether detailed-help was given.  */
+  unsigned int full_help_given; /**< @brief Whether full-help was given.  */
+  unsigned int version_given;   /**< @brief Whether version was given.  */
+  unsigned int config_given;    /**< @brief Whether config was given.  */
+  unsigned int dump_config_given; /**< @brief Whether dump-config was given.  */
+  unsigned int io_given;          /**< @brief Whether io was given.  */
+  unsigned int ic_given;          /**< @brief Whether ic was given.  */
+  unsigned int oc_given;          /**< @brief Whether oc was given.  */
+  unsigned int collect_given;     /**< @brief Whether collect was given.  */
+  unsigned int collect_all_given; /**< @brief Whether collect-all was given.  */
+  unsigned int ir_given;          /**< @brief Whether ir was given.  */
+  unsigned int input_given;       /**< @brief Whether input was given.  */
+  unsigned int cutoff_given;      /**< @brief Whether cutoff was given.  */
+  unsigned int
+      spheretolerance_given;  /**< @brief Whether spheretolerance was given.  */
+  unsigned int cet_given;     /**< @brief Whether cet was given.  */
+  unsigned int rcdt_given;    /**< @brief Whether rcdt was given.  */
+  unsigned int max_n0_given;  /**< @brief Whether max_n0 was given.  */
+  unsigned int max_n1_given;  /**< @brief Whether max_n1 was given.  */
+  unsigned int quality_given; /**< @brief Whether quality was given.  */
+  unsigned int boundary_given;    /**< @brief Whether boundary was given.  */
+  unsigned int interior_given;    /**< @brief Whether interior was given.  */
+  unsigned int boundarygrp_given; /**< @brief Whether boundarygrp was given.  */
+  unsigned int interiorgrp_given; /**< @brief Whether interiorgrp was given.  */
+  unsigned int globe_given;       /**< @brief Whether globe was given.  */
+  unsigned int smorg_given;       /**< @brief Whether smorg was given.  */
+  unsigned int fem_given;         /**< @brief Whether fem was given.  */
+  unsigned int aniso_given;       /**< @brief Whether aniso was given.  */
+  unsigned int grad_given;        /**< @brief Whether grad was given.  */
+  unsigned int sph0_given;        /**< @brief Whether sph0 was given.  */
+  unsigned int sph_given;         /**< @brief Whether sph was given.  */
+  unsigned int bspline_given;     /**< @brief Whether bspline was given.  */
+  unsigned int points2mesh_given; /**< @brief Whether points2mesh was given.  */
+  unsigned int splitlines_given;  /**< @brief Whether splitlines was given.  */
+  unsigned int x11_given;         /**< @brief Whether x11 was given.  */
+  unsigned int x11_zoom_given;    /**< @brief Whether x11-zoom was given.  */
+
+  char **inputs;       /**< @brief unnamed options (options without names) */
+  unsigned inputs_num; /**< @brief unnamed options number */
+};
 
 /** @brief The additional parameters to pass to parser functions */
-struct cmdline_params
-{
-  int override; /**< @brief whether to override possibly already present options (default 0) */
-  int initialize; /**< @brief whether to initialize the option structure gengetopt_args_info (default 1) */
-  int check_required; /**< @brief whether to check that all required options were provided (default 1) */
-  int check_ambiguity; /**< @brief whether to check for options already specified in the option structure gengetopt_args_info (default 0) */
-  int print_errors; /**< @brief whether getopt_long should print an error message for a bad option (default 1) */
-} ;
+struct cmdline_params {
+  int override; /**< @brief whether to override possibly already present options
+                   (default 0) */
+  int initialize;      /**< @brief whether to initialize the option structure
+                          gengetopt_args_info (default 1) */
+  int check_required;  /**< @brief whether to check that all required options
+                          were provided (default 1) */
+  int check_ambiguity; /**< @brief whether to check for options already
+                          specified in the option structure gengetopt_args_info
+                          (default 0) */
+  int print_errors;    /**< @brief whether getopt_long should print an error
+                          message for a bad option (default 1) */
+};
 
 /** @brief the purpose string of the program */
 extern const char *gengetopt_args_info_purpose;
@@ -224,9 +406,11 @@ extern const char *gengetopt_args_info_usage;
 extern const char *gengetopt_args_info_description;
 /** @brief all the lines making the help output */
 extern const char *gengetopt_args_info_help[];
-/** @brief all the lines making the full help output (including hidden options) */
+/** @brief all the lines making the full help output (including hidden options)
+ */
 extern const char *gengetopt_args_info_full_help[];
-/** @brief all the lines making the detailed help output (including hidden options and details) */
+/** @brief all the lines making the detailed help output (including hidden
+ * options and details) */
 extern const char *gengetopt_args_info_detailed_help[];
 
 /**
@@ -236,8 +420,7 @@ extern const char *gengetopt_args_info_detailed_help[];
  * @param args_info the structure where option information will be stored
  * @return 0 if everything went fine, NON 0 if an error took place
  */
-int cmdline (int argc, char **argv,
-  struct gengetopt_args_info *args_info);
+int cmdline(int argc, char **argv, struct gengetopt_args_info *args_info);
 
 /**
  * The command line parser (version with additional parameters - deprecated)
@@ -246,13 +429,13 @@ int cmdline (int argc, char **argv,
  * @param args_info the structure where option information will be stored
  * @param override whether to override possibly already present options
  * @param initialize whether to initialize the option structure my_args_info
- * @param check_required whether to check that all required options were provided
+ * @param check_required whether to check that all required options were
+ * provided
  * @return 0 if everything went fine, NON 0 if an error took place
  * @deprecated use cmdline_ext() instead
  */
-int cmdline2 (int argc, char **argv,
-  struct gengetopt_args_info *args_info,
-  int override, int initialize, int check_required);
+int cmdline2(int argc, char **argv, struct gengetopt_args_info *args_info,
+             int override, int initialize, int check_required);
 
 /**
  * The command line parser (version with additional parameters)
@@ -262,9 +445,8 @@ int cmdline2 (int argc, char **argv,
  * @param params additional parameters for the parser
  * @return 0 if everything went fine, NON 0 if an error took place
  */
-int cmdline_ext (int argc, char **argv,
-  struct gengetopt_args_info *args_info,
-  struct cmdline_params *params);
+int cmdline_ext(int argc, char **argv, struct gengetopt_args_info *args_info,
+                struct cmdline_params *params);
 
 /**
  * Save the contents of the option struct into an already open FILE stream.
@@ -272,8 +454,7 @@ int cmdline_ext (int argc, char **argv,
  * @param args_info the option struct to dump
  * @return 0 if everything went fine, NON 0 if an error took place
  */
-int cmdline_dump(FILE *outfile,
-  struct gengetopt_args_info *args_info);
+int cmdline_dump(FILE *outfile, struct gengetopt_args_info *args_info);
 
 /**
  * Save the contents of the option struct into a (text) file.
@@ -283,7 +464,7 @@ int cmdline_dump(FILE *outfile,
  * @return 0 if everything went fine, NON 0 if an error took place
  */
 int cmdline_file_save(const char *filename,
-  struct gengetopt_args_info *args_info);
+                      struct gengetopt_args_info *args_info);
 
 /**
  * Print the help
@@ -303,7 +484,7 @@ void cmdline_print_detailed_help(void);
 void cmdline_print_version(void);
 
 /**
- * Initializes all the fields a cmdline_params structure 
+ * Initializes all the fields a cmdline_params structure
  * to their default values
  * @param params the structure to initialize
  */
@@ -321,13 +502,13 @@ struct cmdline_params *cmdline_params_create(void);
  * (also set default values for options that have a default)
  * @param args_info the structure to initialize
  */
-void cmdline_init (struct gengetopt_args_info *args_info);
+void cmdline_init(struct gengetopt_args_info *args_info);
 /**
  * Deallocates the string fields of the gengetopt_args_info structure
  * (but does not deallocate the structure itself)
  * @param args_info the structure to deallocate
  */
-void cmdline_free (struct gengetopt_args_info *args_info);
+void cmdline_free(struct gengetopt_args_info *args_info);
 
 /**
  * The config file parser (deprecated version)
@@ -335,13 +516,14 @@ void cmdline_free (struct gengetopt_args_info *args_info);
  * @param args_info the structure where option information will be stored
  * @param override whether to override possibly already present options
  * @param initialize whether to initialize the option structure my_args_info
- * @param check_required whether to check that all required options were provided
+ * @param check_required whether to check that all required options were
+ * provided
  * @return 0 if everything went fine, NON 0 if an error took place
  * @deprecated use cmdline_config_file() instead
  */
-int cmdline_configfile (const char *filename,
-  struct gengetopt_args_info *args_info,
-  int override, int initialize, int check_required);
+int cmdline_configfile(const char *filename,
+                       struct gengetopt_args_info *args_info, int override,
+                       int initialize, int check_required);
 
 /**
  * The config file parser
@@ -350,9 +532,9 @@ int cmdline_configfile (const char *filename,
  * @param params additional parameters for the parser
  * @return 0 if everything went fine, NON 0 if an error took place
  */
-int cmdline_config_file (const char *filename,
-  struct gengetopt_args_info *args_info,
-  struct cmdline_params *params);
+int cmdline_config_file(const char *filename,
+                        struct gengetopt_args_info *args_info,
+                        struct cmdline_params *params);
 
 /**
  * Checks that all the required options were specified
@@ -361,11 +543,10 @@ int cmdline_config_file (const char *filename,
  *   possible errors
  * @return
  */
-int cmdline_required (struct gengetopt_args_info *args_info,
-  const char *prog_name);
+int cmdline_required(struct gengetopt_args_info *args_info,
+                     const char *prog_name);
 
-extern const char *cmdline_io_values[];  /**< @brief Possible values for io. */
-
+extern const char *cmdline_io_values[]; /**< @brief Possible values for io. */
 
 #ifdef __cplusplus
 }

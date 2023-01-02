@@ -905,7 +905,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
 		}
 		GMRFLib_dot_product_optim_report[idx][4] += tmin;
-		GMRFLib_dot_product_optim_report[idx][5 + kmin]++;    /* count... */
+		GMRFLib_dot_product_optim_report[idx][5 + kmin]++;	/* count... */
 	}
 
 	return GMRFLib_SUCCESS;
