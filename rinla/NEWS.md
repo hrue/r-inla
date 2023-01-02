@@ -1,3 +1,10 @@
+# INLA 23.01.02
+* Sync C++ code from the fmesher package
+* Added log-likelihood output to configs
+* Fixed a regression for \code{model="fgn"}
+* Improved code for \code{model="binomial"} and logit-link
+* Increased kmax from 10 to 20 for \code{model="iidkd"}
+
 # INLA 22.12.16
 * Fixed an issue with lincombs and PARDISO library
 
