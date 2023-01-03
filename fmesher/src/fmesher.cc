@@ -723,30 +723,33 @@ int main(int argc, char *argv[]) {
     matrices.output("ta");
 
     SparseMatrix<double> C0inv = inverse(C0, true);
-    SparseMatrix<double> tmp = G * C0inv;
-    SparseMatrix<double> *a;
-    SparseMatrix<double> *b = &G;
-    for (size_t i = 1; int(i) < fem_order_max; i++) {
-      std::stringstream ss;
-      ss << i + 1;
-      std::string Gname = "g" + ss.str();
-      a = b;
-      b = &(matrices.SD(Gname).clear());
-      *b = tmp * (*a);
-      matrices.matrixtype(Gname, fmesh::IOMatrixtype_symmetric);
-      matrices.output(Gname);
-    }
-    tmp = C0inv * K;
-    b = &K;
-    for (size_t i = 1; int(i) < fem_order_max; i++) {
-      std::stringstream ss;
-      ss << i + 1;
-      std::string Kname = "k" + ss.str();
-      a = b;
-      b = &(matrices.SD(Kname).clear());
-      *b = (*a) * tmp;
-      matrices.matrixtype(Kname, fmesh::IOMatrixtype_general);
-      matrices.output(Kname);
+    // Protect temporary local variables
+    {
+      SparseMatrix<double> tmp = G * C0inv;
+      SparseMatrix<double> *a;
+      SparseMatrix<double> *b = &G;
+      for (size_t i = 1; int(i) < fem_order_max; i++) {
+        std::stringstream ss;
+        ss << i + 1;
+        std::string Gname = "g" + ss.str();
+        a = b;
+        b = &(matrices.SD(Gname).clear());
+        *b = tmp * (*a);
+        matrices.matrixtype(Gname, fmesh::IOMatrixtype_symmetric);
+        matrices.output(Gname);
+      }
+      tmp = C0inv * K;
+      b = &K;
+      for (size_t i = 1; int(i) < fem_order_max; i++) {
+        std::stringstream ss;
+        ss << i + 1;
+        std::string Kname = "k" + ss.str();
+        a = b;
+        b = &(matrices.SD(Kname).clear());
+        *b = (*a) * tmp;
+        matrices.matrixtype(Kname, fmesh::IOMatrixtype_general);
+        matrices.output(Kname);
+      }
     }
 
     if (aniso_names.size() > 0) {
@@ -755,18 +758,21 @@ int main(int argc, char *argv[]) {
                        matrices.DD(aniso_names[1]));
       matrices.output("g1aniso");
 
-      SparseMatrix<double> tmp = Gani * C0inv;
-      SparseMatrix<double> *a;
-      SparseMatrix<double> *b = &Gani;
-      for (size_t i = 1; int(i) < fem_order_max; i++) {
-        std::stringstream ss;
-        ss << i + 1;
-        std::string Gname = "g" + ss.str() + "aniso";
-        a = b;
-        b = &(matrices.SD(Gname).clear());
-        *b = tmp * (*a);
-        matrices.matrixtype(Gname, fmesh::IOMatrixtype_symmetric);
-        matrices.output(Gname);
+      // Protect temporary local variables
+      {
+        SparseMatrix<double> tmp = Gani * C0inv;
+        SparseMatrix<double> *a;
+        SparseMatrix<double> *b = &Gani;
+        for (size_t i = 1; int(i) < fem_order_max; i++) {
+          std::stringstream ss;
+          ss << i + 1;
+          std::string Gname = "g" + ss.str() + "aniso";
+          a = b;
+          b = &(matrices.SD(Gname).clear());
+          *b = tmp * (*a);
+          matrices.matrixtype(Gname, fmesh::IOMatrixtype_symmetric);
+          matrices.output(Gname);
+        }
       }
     }
   }

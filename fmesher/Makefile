@@ -25,7 +25,7 @@ RMR   = rm -rf
 RMDIR = rmdir
 
 GITCOMMIT:= $(shell git log --pretty=format:"%H - %cd" | head -n1)
-FLAGS=-O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe -Wall -Wextra -Wsign-compare -Wundef -Wimplicit-fallthrough -fdiagnostics-color
+FLAGS=-O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe -Wall -Wextra -Wsign-compare -Wundef -Wimplicit-fallthrough -fdiagnostics-color -Wshadow=compatible-local
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test
 all: $(FMESHER)
