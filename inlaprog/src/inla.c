@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2022 Havard Rue
+ * Copyright (C) 2007-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -9794,9 +9794,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -41559,14 +41559,14 @@ int testit(int argc, char **argv)
 
 	case 51:
 	{
+		dtweedie_init_cache();
 
 		if (1) {
-			double phi = 1.0;
-			double xi = 1.5;
-			double mu = 1.234;
-			double y = 2.345;
+			double phi = 1.0 + GMRFLib_uniform();
+			double xi = 1.0 + GMRFLib_uniform(); 
+			double mu = exp(GMRFLib_uniform());
+			double y = exp(1+GMRFLib_uniform());
 			double ldens;
-
 			printf("R --vanilla --quiet -e 'library(tweedie);phi=%f;xi=%f;mu=%f;y=%f;dtweedie(y,xi,mu,phi);ptweedie(y,xi,mu,phi)'",
 			       phi, xi, mu, y);
 			dtweedie(1, y, &mu, phi, xi, &ldens);

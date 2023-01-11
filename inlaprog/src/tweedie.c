@@ -1,7 +1,7 @@
 
 /* tweedie.c
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,7 +112,8 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 	double a = -p2 / p1, a1 = 1.0 / p1;
 	double cc, w, sum_ww = 0.0, ww_max = 0.0, lsum_ww, ly;
 	double jmax, logz, logz_stripped;
-	int id = -1, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, verbose = 0, show_stat = 0;
+	int id = -1, use_interpolation = 1, nterms, k, i, j, one = 1, k_low = -1, reuse = 0, show_stat = 0;
+	const int verbose = 0;
 
 	GMRFLib_CACHE_SET_ID(id);
 	dtweedie_cache_tp *cache_ptr = cache[id];
@@ -304,72 +305,123 @@ void dtweedie(int n, double y, double *mu, double phi, double p, double *ldens)
 
 double ptweedie(double y, double mu, double phi, double p)
 {
+	// 
 	// compute Prob(Y <= y)
+	// 
+
+#if (1)
+#define LOG_n_max 4096
+	static double *logn_cache = NULL;
+	static double *lognfac_cache = NULL;
+	if (!logn_cache) {
+#pragma omp critical (Name_5aac6c506965cfff83cc864e1be817dda2d01925)
+		{
+			if (!logn_cache) {
+				double *tmp = Calloc(2 * LOG_n_max, double);
+				double *tmp2 = tmp + LOG_n_max;
+				for (int i = 1; i < LOG_n_max; i++) {
+					tmp[i] = log((double) i);
+					tmp2[i] = tmp2[i - 1] + tmp[i];
+				}
+				lognfac_cache = tmp2;
+				logn_cache = tmp;
+			}
+		}
+	}
+#define LOGN(n_) ((n_) < LOG_n_max ? logn_cache[n_] : log(n_))
+#define LOGNFACTORIAL(n_) ((n_) < LOG_n_max ? lognfac_cache[n_] : my_gsl_sf_lngamma((n_) + 1.0))
+#else
+#define LOGN(n_) log(n_)
+#define LOGNFACTORIAL(n_) my_gsl_sf_lngamma((n_) + 1.0)
+#endif
+
+#define LOG_PDF_POISSON(y_) ((y_)*log_lambda - lambda - LOGNFACTORIAL((int) (y_)))
+#define CDF(n_) ((n_) < n_gauss ?					\
+		 gsl_cdf_gamma_P(y, (n_) * alpha, gamma) :		\
+		 inla_Phi_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
+#define LOG_CDF(n_) ((n_) < n_gauss ?					\
+		     MATHLIB_FUN(pgamma) (y, (n_) * alpha, gamma, 1, 1) : \
+		     inla_log_Phi_fast((y - ((n_) * c1)) / (sqrt((n_)) * c2)))
+
 	double lambda = pow(mu, 2.0 - p) / (phi * (2.0 - p));
+	double log_lambda = log(lambda);
 	double alpha = (2.0 - p) / (p - 1.0);
 	double gamma = phi * (p - 1.0) * pow(mu, p - 1.0);
 	double plim = 0.999;
-	double retval, prob, pacc;
+	double c1 = alpha * gamma;
+	double c2 = sqrt(alpha) * gamma;
+	double retval, prob, lprob, lprob_max, pacc, diff, lower_diff;
 
 	// result from a test: Rmath takes 30% more time than the GSL call to 'pgamma'
 	// retval += prob * MATHLIB_FUN(pgamma)(y, n * alpha, gamma, 1, 0);
 
-	// when sd/mean < low, we basically are in the Gaussian regime. this is for the case Gamma(n*alpha, gamma), so mean=
-	// n*alpha*gamma, and sd= sqrt(n*alpha)*gamma, so gamma cancel.
+	// when sd/mean < low, we basically are in the Gaussian regime. this is for the case Gamma(n*alpha, gamma),
+	// so mean= n*alpha*gamma, and sd= sqrt(n*alpha)*gamma, so gamma cancel.
 	double low = 0.25;
-	int n, n_gauss = (int) (1.0 / (alpha * SQR(low)) + 0.5);
+	int n, n_gauss = (int) round(1.0 + 1.0 / (alpha * SQR(low)));
 
-	// stride should scale with stdev sqrt(lambda). the below choice gives (about)
-	// stride=1 for lam < 5
-	// stride=2 for 5 <= lam < 13
-	// stride=3 for 13 <= lam < 25
-	// stride=4 for 25 <= lam < 41, etc...
-	int stride = IMAX(1, (int) (sqrt(lambda / 2.0) + 0.5));
+	// stride should scale with stdev which is sqrt(lambda)
+	int stride = IMAX(1, (int) (0.707107 * sqrt(lambda)));
+	int nfirst = 0;
 
-	retval = pacc = prob = gsl_ran_poisson_pdf((unsigned int) 0, lambda);
+	lower_diff = log(1.0E-6);
+	lprob = LOG_PDF_POISSON(nfirst);
+	lprob_max = LOG_PDF_POISSON(round(lambda));
+	diff = lprob - lprob_max;
+	retval = pacc = prob = exp(lprob);
+
+	if (diff < lower_diff) {
+		// find first pdf such that diff > lower_diff using a binary search
+		int llow = 0;
+		int hhigh = (int) (lambda - 4.0 * sqrt(lambda));
+		hhigh = IMAX(nfirst + 1, hhigh);
+		while (1) {
+			int mmid = (llow + hhigh) / 2;
+			diff = LOG_PDF_POISSON(mmid) - lprob_max;
+			if (diff > lower_diff) {
+				hhigh = mmid;
+			} else {
+				llow = mmid;
+			}
+			if (hhigh - llow <= 1)
+				break;
+		}
+		nfirst = hhigh;
+		lprob = LOG_PDF_POISSON(nfirst);
+		pacc = prob = exp(lprob);
+		retval = prob * CDF(nfirst);
+	}
+	// as we already have accounted for nfirst, we need to 'nfirst' to be the next one in the sum 
+	nfirst++;
 
 	if (stride == 1) {
-		for (n = 1; pacc < plim; n++, pacc += prob) {
-			// prob = gsl_ran_poisson_pdf((unsigned int) n, lambda);
-			prob *= lambda / n;
-
-			if (n < n_gauss) {
-				retval += prob * gsl_cdf_gamma_P(y, n * alpha, gamma);
-			} else {
-				retval += prob * inla_Phi_fast((y - (n * alpha * gamma)) / (sqrt(n * alpha) * gamma));
-			}
+		for (n = nfirst; pacc < plim; n++) {
+			lprob += log_lambda - LOGN(n);
+			prob = exp(lprob);
+			pacc += prob;
+			retval += prob * CDF(n);
 		}
 	} else {
-		// use log-linear interpolation for the cdf's between each stride
-		double cdf, lcdf, lcdf_prev;
-
-		// we have to start manually
-		n = 1;
-		prob *= lambda / n;
-		pacc += prob;
-		cdf = gsl_cdf_gamma_P(y, n * alpha, gamma);
-		lcdf_prev = log(cdf);
-		retval += prob * cdf;
-
-		for (n = stride + 1; pacc < plim; n += stride) {
-			if (n < n_gauss) {
-				cdf = gsl_cdf_gamma_P(y, n * alpha, gamma);
-			} else {
-				cdf = inla_Phi_fast((y - (n * alpha * gamma)) / (sqrt(n * alpha) * gamma));
+		// use interpolation of gamma_P() between each stride. use Rmath implementation
+		// as it compute log(gamma_P()) directly
+		double lcdf_left = LOG_CDF(nfirst);
+		double lcdf_right;
+		for (n = nfirst; pacc < plim; n += stride) {
+			int nn = n + stride;
+			lcdf_right = LOG_CDF(nn);
+			for (int k = (n == nfirst ? 0 : 1); k <= stride; k++) {
+				double w = k / (double) stride;
+				double est = (1.0 - w) * lcdf_left + w * lcdf_right;
+				lprob += log_lambda - LOGN(n + k);
+				pacc += exp(lprob);
+				retval += exp(lprob + est);
 			}
-			lcdf = lcdf_prev = log(cdf);
-
-			for (int k = stride - 1; k >= 1; k--) {
-				prob *= lambda / (n - k);
-				pacc += prob;
-				retval += prob * exp((k * lcdf_prev + (stride - k) * lcdf) / (double) stride);
-			}
-
-			prob *= lambda / n;
-			pacc += prob;
-			retval += prob * cdf;
+			lcdf_left = lcdf_right;
 		}
 	}
 
+#undef LOG_PDF_POISSON
+#undef CDF
+#undef LOG_CDF
 	return (retval);
 }
