@@ -1,7 +1,7 @@
 
 /* inla.h
  * 
- * Copyright (C) 2007-2022 Havard Rue
+ * Copyright (C) 2007-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2077,7 +2077,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
