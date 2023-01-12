@@ -1,3 +1,7 @@
+# INLA 23.01.12
+* Fixed an issue with ptweedie
+* Code cleanup
+
 # INLA 23.01.02
 * Sync C++ code from the fmesher package
 * Added log-likelihood output to configs
