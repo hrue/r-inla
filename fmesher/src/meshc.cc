@@ -1066,11 +1066,13 @@ bool MeshC::CETsphere(int sides, double margin) {
     }
 
     Matrix3double n(sides); /* Normal vectors. */
-    double th;
-    for (i = 0; i < sides; i++) {
-      th = 2.0 * M_PI * double(i) / double(sides);
-      Vec::scale(n(i), n1, -std::sin(th));
-      Vec::accum(n(i), n2, std::cos(th));
+    {
+      double th;
+      for (i = 0; i < sides; i++) {
+        th = 2.0 * M_PI * double(i) / double(sides);
+        Vec::scale(n(i), n1, -std::sin(th));
+        Vec::accum(n(i), n2, std::cos(th));
+      }
     }
 
     for (int v = 0; v < nV; v++) {

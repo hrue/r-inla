@@ -1,7 +1,7 @@
 
 /* inla.h
  * 
- * Copyright (C) 2007-2022 Havard Rue
+ * Copyright (C) 2007-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ __BEGIN_DECLS
  * YES, CHANGE IT MANUALLY!
  */
 #define INLA_QKUMAR_PREC_SCALE 0.10
-#define INLA_WISHARTK_KMAX (10)
+#define INLA_WISHARTK_KMAX (20)
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
@@ -343,6 +343,16 @@ typedef enum {
 	P_WISHARTK_8D,
 	P_WISHARTK_9D,
 	P_WISHARTK_10D,
+	P_WISHARTK_11D,
+	P_WISHARTK_12D,
+	P_WISHARTK_13D,
+	P_WISHARTK_14D,
+	P_WISHARTK_15D,
+	P_WISHARTK_16D,
+	P_WISHARTK_17D,
+	P_WISHARTK_18D,
+	P_WISHARTK_19D,
+	P_WISHARTK_20D,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -1845,6 +1855,16 @@ double priorfunc_wishartk_7d(double *x, double *parameters);
 double priorfunc_wishartk_8d(double *x, double *parameters);
 double priorfunc_wishartk_9d(double *x, double *parameters);
 double priorfunc_wishartk_10d(double *x, double *parameters);
+double priorfunc_wishartk_11d(double *x, double *parameters);
+double priorfunc_wishartk_12d(double *x, double *parameters);
+double priorfunc_wishartk_13d(double *x, double *parameters);
+double priorfunc_wishartk_14d(double *x, double *parameters);
+double priorfunc_wishartk_15d(double *x, double *parameters);
+double priorfunc_wishartk_16d(double *x, double *parameters);
+double priorfunc_wishartk_17d(double *x, double *parameters);
+double priorfunc_wishartk_18d(double *x, double *parameters);
+double priorfunc_wishartk_19d(double *x, double *parameters);
+double priorfunc_wishartk_20d(double *x, double *parameters);
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
@@ -2057,7 +2077,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

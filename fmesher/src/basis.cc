@@ -34,6 +34,9 @@ int sph_basis_n(int kmax, bool rot_sym) {
 
 Matrix<double> *spherical_harmonics(const Matrix3<double> &S, size_t max_order,
                                     bool rotationally_symmetric) {
+  // Protect agains unused parameter warning:
+  (void)(S);
+  
   Matrix<double> *sph =
       new Matrix<double>(sph_basis_n(max_order, rotationally_symmetric));
 

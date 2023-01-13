@@ -1,7 +1,7 @@
 
 /* inla.c
  * 
- * Copyright (C) 2007-2022 Havard Rue
+ * Copyright (C) 2007-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -4767,6 +4767,46 @@ double priorfunc_wishartk_10d(double *x, double *parameters)
 {
 	return priorfunc_wishartk_generic(10, x, parameters);
 }
+double priorfunc_wishartk_11d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(11, x, parameters);
+}
+double priorfunc_wishartk_12d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(12, x, parameters);
+}
+double priorfunc_wishartk_13d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(13, x, parameters);
+}
+double priorfunc_wishartk_14d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(14, x, parameters);
+}
+double priorfunc_wishartk_15d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(15, x, parameters);
+}
+double priorfunc_wishartk_16d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(16, x, parameters);
+}
+double priorfunc_wishartk_17d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(17, x, parameters);
+}
+double priorfunc_wishartk_18d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(18, x, parameters);
+}
+double priorfunc_wishartk_19d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(19, x, parameters);
+}
+double priorfunc_wishartk_20d(double *x, double *parameters)
+{
+	return priorfunc_wishartk_generic(20, x, parameters);
+}
 
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 {
@@ -7140,12 +7180,21 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			double off = OFFSET(idx);
+			if (y > 0.0) {
 #pragma GCC ivdep
-			for (int i = 0; i < m; i++) {
-				double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-				logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+				for (int i = 0; i < m; i++) {
+					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+				}
+			} else {
+#pragma GCC ivdep
+				for (int i = 0; i < m; i++) {
+					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					logll[i] = ylEmn - E * exp(log_lambda);
+				}
 			}
 		} else {
+			// general case
 #pragma GCC ivdep
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -7404,9 +7453,9 @@ int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int
 	}
 	double p = ds->data_observations.link_simple_invlinkfunc(thread_id, p_intern, MAP_FORWARD, NULL, NULL);
 
-	//assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
-	//assert(ds->predictor_invlinkfunc == link_cloglog);
-	
+	// assert(ds->data_observations.link_simple_invlinkfunc == link_logit);
+	// assert(ds->predictor_invlinkfunc == link_cloglog);
+
 	if (m > 0) {
 		if (y > 0) {
 			double tmp = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
@@ -8352,16 +8401,11 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			mu = E * lambda;
 			if (mu / size > cutoff) {
-				/*
-				 * NegativeBinomial 
-				 */
+				// NegativeBinomial 
 				p = size / (size + mu);
 				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 			} else {
-				/*
-				 * 
-				 * * the Poission limit 
-				 */
+				// Poission limit 
 				logll[i] = y * log(mu) - mu - my_gsl_sf_lnfact(y);
 			}
 		}
@@ -8941,7 +8985,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 	/*
 	 * this is a special case that should just return 0 or 1
 	 */
-	if (ISZERO(y) && ISZERO(n)) {
+	if (ISZERO(n) && ISZERO(y)) {
 		if (m > 0) {
 			for (int i = 0; i < m; i++) {
 				logll[i] = 0.0;		       /* log(1) = 0 */
@@ -8974,17 +9018,152 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 		}
 		res.val = G_norm_const[idx];
 
+		// special code for this case
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 			double off = OFFSET(idx);
+
+#if defined(INLA_LINK_WITH_MKL)
+			int mkl_lim = 4;
+			int align = 8;
+			div_t d = div(m, align);
+			int len = (d.quot + (d.rem ? 1 : 0)) * align;
+			double vdExp(int, double *, double *);
+			double vdLog1p(int, double *, double *);
+#endif
+
+			// optimize for the case y=0, and then case ny=0
+			if (ISZERO(y)) {
+#if defined(INLA_LINK_WITH_MKL)
+				{
+					if (m >= mkl_lim) {
+						double work[3 * len];
+						double *v_eta = work;
+						double *v_ee = work + len;
+						double *v_lee = work + 2 * len;
 #pragma GCC ivdep
-			for (int i = 0; i < m; i++) {
-				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-				double ee = exp(eta);
-				double log_1mp = -log1p(ee);
-				double log_p = -log1p(1.0 / ee);
-				logll[i] = res.val + y * log_p + ny * log_1mp;
+						for (int i = 0; i < m; i++) {
+							v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						}
+
+						vdExp(m, v_eta, v_ee);
+						vdLog1p(m, v_ee, v_lee);
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							logll[i] = res.val - ny * v_lee[i];
+						}
+					} else {
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							double ee = exp(eta);
+							double log_1mp = -log1p(ee);
+							logll[i] = res.val + ny * log_1mp;
+						}
+					}
+				}
+#else							       /* if MKL... */
+				{
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						double ee = exp(eta);
+						double log_1mp = -log1p(ee);
+						logll[i] = res.val + ny * log_1mp;
+					}
+				}
+#endif							       /* if MKL... */
+			} else if (ISZERO(ny)) {
+#if defined(INLA_LINK_WITH_MKL)
+				{
+					if (m >= mkl_lim) {
+						double work[3 * len];
+						double *v_eta = work;
+						double *v_ee = work + len;
+						double *v_lee = work + 2 * len;
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							v_eta[i] = -PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						}
+
+						vdExp(m, v_eta, v_ee);
+						vdLog1p(m, v_ee, v_lee);
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							logll[i] = res.val - y * v_lee[i];
+						}
+					} else {
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							double ee = exp(-eta);
+							double log_p = -log1p(ee);
+							logll[i] = res.val + y * log_p;
+						}
+					}
+				}
+#else							       /* if MKL... */
+				{
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						double ee = exp(-eta);
+						double log_p = -log1p(ee);
+						logll[i] = res.val + y * log_p;
+					}
+				}
+#endif							       /* if MKL */
+			} else {
+#if defined(INLA_LINK_WITH_MKL)
+				{
+					if (m >= mkl_lim) {
+						double work[6 * len];
+						double *v_eta = work;
+						double *v_meta = work + len;
+						double *v_ee = work + 2 * len;
+						double *v_iee = work + 3 * len;
+						double *v_lee = work + 4 * len;
+						double *v_liee = work + 5 * len;
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							v_eta[i] = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							v_meta[i] = -v_eta[i];
+						}
+
+						vdExp(m, v_eta, v_ee);
+						vdLog1p(m, v_ee, v_lee);
+						vdExp(m, v_meta, v_iee);
+						vdLog1p(m, v_iee, v_liee);
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							logll[i] = res.val - ny * v_lee[i] - y * v_liee[i];
+						}
+					} else {
+#pragma GCC ivdep
+						for (int i = 0; i < m; i++) {
+							double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+							double ee = exp(eta);
+							double log_1mp = -log1p(ee);
+							double log_p = -log1p(1.0 / ee);
+							logll[i] = res.val + y * log_p + ny * log_1mp;
+						}
+					}
+				}
+#else							       /* if MKL... */
+				{
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						double ee = exp(eta);
+						double log_1mp = -log1p(ee);
+						double log_p = -log1p(1.0 / ee);
+						logll[i] = res.val + y * log_p + ny * log_1mp;
+					}
+				}
+#endif							       /* if MKL... */
 			}
+
 		} else {
+			// general case
 #pragma GCC ivdep
 			for (int i = 0; i < m; i++) {
 				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -9028,14 +9207,20 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 		}
 	} else {
 		double *yy = (y_cdf ? y_cdf : &y);
-		for (int i = 0; i < -m; i++) {
-			double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
-			p = DMIN(1.0, p);
-			if (ds->variant == 0) {
+		if (ds->variant == 0) {
+			for (int i = 0; i < -m; i++) {
+				double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+				p = DMIN(1.0, p);
 				logll[i] = gsl_cdf_binomial_P((unsigned int) *yy, p, (unsigned int) n);
-			} else {
+			}
+		} else if (ds->variant == 1) {
+			for (int i = 0; i < -m; i++) {
+				double p = PREDICTOR_INVERSE_LINK((x[i] + OFFSET(idx)));
+				p = DMIN(1.0, p);
 				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) ny, p, (unsigned int) *yy);
 			}
+		} else {
+			assert(0 == 1);
 		}
 	}
 
@@ -12747,6 +12932,276 @@ int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * 
 		double *xx = NULL;
 		int nxx;
 		int idim = 10;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK11D")) {
+		prior->id = P_WISHARTK_11D;
+		prior->priorfunc = priorfunc_wishartk_11d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 11;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK12D")) {
+		prior->id = P_WISHARTK_12D;
+		prior->priorfunc = priorfunc_wishartk_12d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 12;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK13D")) {
+		prior->id = P_WISHARTK_13D;
+		prior->priorfunc = priorfunc_wishartk_13d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 13;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK14D")) {
+		prior->id = P_WISHARTK_14D;
+		prior->priorfunc = priorfunc_wishartk_14d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 14;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK15D")) {
+		prior->id = P_WISHARTK_15D;
+		prior->priorfunc = priorfunc_wishartk_15d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 15;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK16D")) {
+		prior->id = P_WISHARTK_16D;
+		prior->priorfunc = priorfunc_wishartk_16d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 16;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK17D")) {
+		prior->id = P_WISHARTK_17D;
+		prior->priorfunc = priorfunc_wishartk_17d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 17;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK18D")) {
+		prior->id = P_WISHARTK_18D;
+		prior->priorfunc = priorfunc_wishartk_18d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 18;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK19D")) {
+		prior->id = P_WISHARTK_19D;
+		prior->priorfunc = priorfunc_wishartk_19d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 19;
+		inla_sread_doubles_q(&xx, &nxx, param);
+		assert(xx);
+		prior->parameters = xx;
+		assert(nxx >= INLA_WISHARTK_NPARAM(idim));
+		nxx = INLA_WISHARTK_NPARAM(idim);
+		for (int j = 1; j < nxx; j++) {
+			if (INLA_IS_SPECIAL(xx[j])) {
+				if (j < idim + 1) {
+					xx[j] = 1.0;
+				} else {
+					xx[j] = 0.0;
+				}
+			}
+		}
+		if (mb->verbose) {
+			int ii;
+			for (ii = 0; ii < nxx; ii++) {
+				printf("\t\t%s->%s prior_parameter[%1d] = %g\n", prior_tag, param_tag, ii, prior->parameters[ii]);
+			}
+		}
+	} else if (!strcasecmp(prior->name, "WISHARTK20D")) {
+		prior->id = P_WISHARTK_20D;
+		prior->priorfunc = priorfunc_wishartk_20d;
+
+		double *xx = NULL;
+		int nxx;
+		int idim = 20;
 		inla_sread_doubles_q(&xx, &nxx, param);
 		assert(xx);
 		prior->parameters = xx;
@@ -28801,9 +29256,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 		assert(mb->f_N[mb->nf] == def->N);
 		mb->f_rankdef[mb->nf] = 0.0;
-
-		// initialize the cache
-		Qfunc_fgn(thread_id, -1, -1, NULL, NULL);
 	}
 		break;
 
@@ -28853,9 +29305,6 @@ int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
 		mb->f_N[mb->nf] = mb->f_n[mb->nf] = mb->f_graph[mb->nf]->n;
 		assert(mb->f_N[mb->nf] == def->N);
 		mb->f_rankdef[mb->nf] = 0.0;
-
-		// initialize the cache
-		Qfunc_fgn2(thread_id, -1, -1, NULL, NULL);
 	}
 		break;
 
@@ -30407,8 +30856,14 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	}
 	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "N.POINTS"), mb->ai_par->n_points);
 	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "NPOINTS"), mb->ai_par->n_points);
-	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
+
 	mb->ai_par->stencil = iniparser_getint(ini, inla_string_join(secname, "STENCIL"), mb->ai_par->stencil);
+	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
+	if (ISZERO(mb->ai_par->step_len)) {
+		double scale = GMRFLib_eps(1.0) / 2.220446049e-16;
+		mb->ai_par->step_len = scale * (mb->ai_par->stencil == 5 ? 1.0e-4 : (mb->ai_par->stencil == 7 ? 5.0e-4 : 1.0e-3));
+	}
+
 	mb->ai_par->cutoff = iniparser_getdouble(ini, inla_string_join(secname, "CUTOFF"), mb->ai_par->cutoff);
 	filename = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "FP.LOG"), NULL));
 	if (filename) {
@@ -38302,6 +38757,15 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 						double zero = 0.0;
 						fwrite((void *) &zero, sizeof(double), 1, fp);
 					}
+					if (mo->configs_preopt[id]->config[i]->ll_info) {
+						double one = 1.0;
+						fwrite((void *) &one, sizeof(double), 1, fp);
+						fwrite((void *) (mo->configs_preopt[id]->config[i]->ll_info),
+						       sizeof(double), (size_t) (3 * mo->configs_preopt[id]->Npred), fp);
+					} else {
+						double zero = 0.0;
+						fwrite((void *) &zero, sizeof(double), 1, fp);
+					}
 				}
 			}
 		}
@@ -41095,14 +41559,14 @@ int testit(int argc, char **argv)
 
 	case 51:
 	{
+		dtweedie_init_cache();
 
 		if (1) {
-			double phi = 1.0;
-			double xi = 1.5;
-			double mu = 1.234;
-			double y = 2.345;
+			double phi = 1.0 + GMRFLib_uniform();
+			double xi = 1.0 + GMRFLib_uniform(); 
+			double mu = exp(GMRFLib_uniform());
+			double y = exp(1+GMRFLib_uniform());
 			double ldens;
-
 			printf("R --vanilla --quiet -e 'library(tweedie);phi=%f;xi=%f;mu=%f;y=%f;dtweedie(y,xi,mu,phi);ptweedie(y,xi,mu,phi)'",
 			       phi, xi, mu, y);
 			dtweedie(1, y, &mu, phi, xi, &ldens);
@@ -42765,7 +43229,7 @@ int testit(int argc, char **argv)
 		}
 		printf("%s\n", GMRFLib_vec2char(x, n));
 	}
-	break;
+		break;
 
 	case 101:
 	{
@@ -42774,30 +43238,30 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 102: 
+	case 102:
 	{
 		double x = GMRFLib_uniform(), y;
 		y = map_invcloglog(x, MAP_FORWARD, NULL);
 		y = map_invcloglog(y, MAP_BACKWARD, NULL);
 		P(x);
 		P(y);
-		P(x-y);
+		P(x - y);
 	}
-	break;
+		break;
 
-	case 103: 
+	case 103:
 	{
 		char a;
 		unsigned char b;
 		signed char c;
 
-		a = b = c = 1; 
-		printf("char %d unsigned %d signed %d\n", (int)a, (int)b, (int)c);
+		a = b = c = 1;
+		printf("char %d unsigned %d signed %d\n", (int) a, (int) b, (int) c);
 		a = b = c = -1;
-		printf("char %d unsigned %d signed %d\n", (int)a, (int)b, (int)c);
+		printf("char %d unsigned %d signed %d\n", (int) a, (int) b, (int) c);
 	}
-	break;
-		
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
