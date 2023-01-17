@@ -190,9 +190,9 @@
 
 `inla.link.ccloglog` <- function(x, inverse = FALSE) {
     if (!inverse) {
-        return(log(-log(x)))
+        return(-log(-log(x)))
     } else {
-        return(exp(-exp(x)))
+        return(exp(-exp(-x)))
     }
 }
 `inla.link.invccloglog` <- function(x, inverse = FALSE) {

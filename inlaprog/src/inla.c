@@ -928,22 +928,22 @@ double map_invccloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 		/*
 		 * extern = func(local) 
 		 */
-		return exp(-exp(arg));
+		return exp(-exp(-arg));
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return log(-log(arg));
+		return -log(-log(arg));
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
 		 */
-		return -exp(arg - exp(arg));
+		return exp(-arg - exp(-arg));
 	case MAP_INCREASING:
 		/*
 		 * return 1.0 if montone increasing and 0.0 otherwise 
 		 */
-		return 0.0;
+		return 1.0;
 	default:
 		abort();
 	}
@@ -9832,9 +9832,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -43287,17 +43287,24 @@ int testit(int argc, char **argv)
 	case 102:
 	{
 		double x = GMRFLib_uniform(), y;
-		y = map_invcloglog(x, MAP_FORWARD, NULL);
-		y = map_invcloglog(y, MAP_BACKWARD, NULL);
 		P(x);
+		y = map_invcloglog(x, MAP_FORWARD, NULL);
 		P(y);
+		y = map_invcloglog(y, MAP_BACKWARD, NULL);
 		P(x - y);
 
-		y = map_invccloglog(x, MAP_FORWARD, NULL);
-		y = map_invccloglog(y, MAP_BACKWARD, NULL);
 		P(x);
+		y = map_invccloglog(x, MAP_FORWARD, NULL);
 		P(y);
+		y = map_invccloglog(y, MAP_BACKWARD, NULL);
 		P(x - y);
+
+		double h = 1.0e-4;
+		y = (map_invcloglog(x+h, MAP_FORWARD, NULL)-map_invcloglog(x-h, MAP_FORWARD, NULL))/2.0/h;
+		P(map_invcloglog(x, MAP_DFORWARD, NULL)-y);
+		y = (map_invccloglog(x+h, MAP_FORWARD, NULL)-map_invccloglog(x-h, MAP_FORWARD, NULL))/2.0/h;
+		P(map_invccloglog(x, MAP_DFORWARD, NULL)-y);
+
 	}
 		break;
 
