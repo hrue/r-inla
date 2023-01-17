@@ -918,6 +918,39 @@ double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double map_invccloglog(double arg, map_arg_tp typ, void *UNUSED(param))
+{
+	/*
+	 * the inverse complement cloglog function
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return exp(-exp(arg));
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return log(-log(arg));
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return -exp(arg - exp(arg));
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 0.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
+
 double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
@@ -1466,6 +1499,11 @@ double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invcloglog(x, typ, param);
+}
+
+double link_ccloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+{
+	return map_invccloglog(x, typ, param);
 }
 
 double link_loglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
@@ -9794,9 +9832,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -20927,6 +20965,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_CLOGLOG;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_cloglog;
+	} else if (!strcasecmp(ds->link_model, "CCLOGLOG")) {
+		ds->link_id = LINK_CCLOGLOG;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_ccloglog;
 	} else if (!strcasecmp(ds->link_model, "LOGLOG")) {
 		ds->link_id = LINK_LOGLOG;
 		ds->link_ntheta = 0;
@@ -21111,6 +21153,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_NEGLOG:
 	case LINK_PROBIT:
 	case LINK_CLOGLOG:
+	case LINK_CCLOGLOG:
 	case LINK_LOGLOG:
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
@@ -32807,6 +32850,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_NEGLOG:
 			case LINK_PROBIT:
 			case LINK_CLOGLOG:
+			case LINK_CCLOGLOG:
 			case LINK_LOGLOG:
 			case LINK_CAUCHIT:
 			case LINK_LOGIT:
@@ -38844,6 +38888,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "tan\n");
 		} else if (lf == link_cloglog) {
 			fprintf(fp, "cloglog\n");
+		} else if (lf == link_ccloglog) {
+			fprintf(fp, "ccloglog\n");
 		} else if (lf == link_log) {
 			fprintf(fp, "log\n");
 		} else if (lf == link_logit) {
@@ -41563,9 +41609,9 @@ int testit(int argc, char **argv)
 
 		if (1) {
 			double phi = 1.0 + GMRFLib_uniform();
-			double xi = 1.0 + GMRFLib_uniform(); 
+			double xi = 1.0 + GMRFLib_uniform();
 			double mu = exp(GMRFLib_uniform());
-			double y = exp(1+GMRFLib_uniform());
+			double y = exp(1 + GMRFLib_uniform());
 			double ldens;
 			printf("R --vanilla --quiet -e 'library(tweedie);phi=%f;xi=%f;mu=%f;y=%f;dtweedie(y,xi,mu,phi);ptweedie(y,xi,mu,phi)'",
 			       phi, xi, mu, y);
@@ -43243,6 +43289,12 @@ int testit(int argc, char **argv)
 		double x = GMRFLib_uniform(), y;
 		y = map_invcloglog(x, MAP_FORWARD, NULL);
 		y = map_invcloglog(y, MAP_BACKWARD, NULL);
+		P(x);
+		P(y);
+		P(x - y);
+
+		y = map_invccloglog(x, MAP_FORWARD, NULL);
+		y = map_invccloglog(y, MAP_BACKWARD, NULL);
 		P(x);
 		P(y);
 		P(x - y);

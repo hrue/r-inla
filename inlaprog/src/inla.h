@@ -387,7 +387,8 @@ typedef enum {
 	LINK_ROBIT,
 	LINK_SN,
 	LINK_LOGa,
-	LINK_POWER_LOGIT
+	LINK_POWER_LOGIT, 
+	LINK_CCLOGLOG
 } inla_component_tp;
 
 typedef enum {
@@ -1741,6 +1742,7 @@ double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_log(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -1780,6 +1782,7 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_invccloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
