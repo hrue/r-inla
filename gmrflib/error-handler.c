@@ -37,10 +37,9 @@
 #include "GMRFLib/GMRFLibP.h"
 
 #ifndef GITCOMMIT
-#define GITCOMMIT
+#define GITCOMMIT "devel"
 #endif
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 static GMRFLib_error_handler_tp *handler = NULL;
 
 #pragma omp threadprivate(handler)
@@ -99,7 +98,7 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 	/*
 	 * this is the default error-handler 
 	 */
-	fprintf(stderr, "\n\n\tGitID: %s\n", GitID);
+	fprintf(stderr, "\n\n\tGitId: %s\n", GITCOMMIT);
 	if (reason) {
 		fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);
 	}
