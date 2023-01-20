@@ -1,7 +1,7 @@
 
 /* utils.h
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,9 +40,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -64,7 +61,7 @@ __BEGIN_DECLS
 } GMRFLib_vmatrix_tp;
 
 
-char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+char *GMRFLib_memcheck_make_tag(size_t size, const char *file, const char *funcname, int lineno);
 char *GMRFLib_rindex(const char *p, int ch);
 char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
@@ -99,10 +96,10 @@ int GMRFLib_iwhich_sorted_g2(int val, int *ix, int len, int *guess);
 int GMRFLib_iwhich_sorted_g(int val, int *ix, int len, int *guess_guess);
 int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__restrict low_guess);
 int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len);
-int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno);
 int GMRFLib_memcheck_printf(FILE * fp);
-int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno, const char *id);
-int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno, const char *id);
+int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno);
+int GMRFLib_memcheck_remove(void *p, const char *file, const char *funcname, int lineno);
 int GMRFLib_normalize(int n, double *x);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
@@ -123,13 +120,13 @@ map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
 mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash);
-void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id);
-void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno);
+void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno);
 void *GMRFLib_memcpy(void *dest, const void *src, size_t n);
-void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id);
+void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno);
 void GMRFLib_delay(int msec);
 void GMRFLib_delay_random(int msec_low, int msec_high);
-void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id);
+void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno);
 
 int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_tp * graph);
 int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec);

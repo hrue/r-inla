@@ -1,7 +1,7 @@
 
 /* matern.h
  * 
- * Copyright (C) 2008-2022 Havard Rue
+ * Copyright (C) 2008-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,6 @@
 #ifndef __GMRFLib_MATERN_H__
 #define __GMRFLib_MATERN_H__
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #undef __BEGIN_DECLS

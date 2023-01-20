@@ -1,7 +1,7 @@
 
 /* GMRFLib.h
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,11 +37,6 @@
 #ifndef __GMRFLib_H__
 #define __GMRFLib_H__
 
-#include <stdlib.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -63,6 +58,8 @@ __BEGIN_DECLS
 #endif
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
+
+#include <stdlib.h>
 
 /* 
  *  include files we need from GSL

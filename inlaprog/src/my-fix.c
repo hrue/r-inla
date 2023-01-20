@@ -6,8 +6,6 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 int my_is_double(char *str)
 {
 	/*

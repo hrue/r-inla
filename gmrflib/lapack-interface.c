@@ -1,7 +1,7 @@
 
 /* lapack-interface.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,14 +32,6 @@
   \file lapack-interface.c
   \brief The interface towards the LAPACK routines written in fortran.
 */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 #include <stdlib.h>
 #include <string.h>

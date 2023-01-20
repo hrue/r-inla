@@ -1,7 +1,7 @@
 
 /* error-handler.h
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +39,6 @@
 
 #include <strings.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #undef __BEGIN_DECLS
@@ -107,25 +104,23 @@ __BEGIN_DECLS
   \return The function is to return the error number \a errorno.
   \sa GMRFLib_error_handler, GMRFLib_set_error_handler.
  */
-typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const char *function, int line, const char *id, int errorno,
+typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const char *function, int line, int errorno,
 				     const char *msg);
 
 const char *GMRFLib_error_reason(int errorno);
-int GMRFLib_error_handler(const char *reason, const char *file, const char *function, int line, const char *id, int errorno, const char *msg);
-int GMRFLib_handle_error(const char *file, const char *function, int line, const char *id, int errorno, const char *msg);
+int GMRFLib_error_handler(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg);
+int GMRFLib_handle_error(const char *file, const char *function, int line, int errorno, const char *msg);
 int GMRFLib_set_error_handler(GMRFLib_error_handler_tp * new_error_handler);
-int GMRFLib_error_handler_null(const char *reason, const char *file, const char *function, int line, const char *id, int errorno, const char *msg);
+int GMRFLib_error_handler_null(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg);
 GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
 
 /* 
    long general versions
 */
 #define GMRFLib_ERROR_MSG(errorno,msg) \
-       if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
-                                     (const char *)GitID, errorno,msg); return errorno; }
+       if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, errorno,msg); return errorno; }
 #define GMRFLib_ERROR_MSG_NO_RETURN(errorno,msg) \
-       if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__, \
-                                     (const char *)GitID, errorno,msg); }
+       if (1) { GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__,  errorno,msg); }
 
 #define GMRFLib_WARNING(msg) GMRFLib_ERROR_MSG_NO_RETURN(GMRFLib_SUCCESS, msg)
 
@@ -141,7 +136,7 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void);
 #define GMRFLib_ASSERT_RETVAL(condition,errorno,retval) \
             if (!(condition)) { \
                 GMRFLib_handle_error(__FILE__, __GMRFLib_FuncName, __LINE__,\
-		 		     (const char *)GitID, errorno,  "Condition `" __GMRFLib_STRINGIFY(condition) "' is not TRUE"); \
+		 		     errorno,  "Condition `" __GMRFLib_STRINGIFY(condition) "' is not TRUE"); \
                 return retval;}
 #define GMRFLib_ASSERT(condition,errorno) GMRFLib_ASSERT_RETVAL(condition,errorno,errorno)
 

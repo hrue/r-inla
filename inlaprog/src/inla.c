@@ -28,23 +28,16 @@
  */
 
 #ifndef GITCOMMIT
-#define GITCOMMIT "current developer version"
+#define GITCOMMIT "devel"
 #endif
 
 #if defined(__sun__)
 #include <stdlib.h>
 #endif
-#if defined(__FreeBSD__)
-#include <unistd.h>
-#endif
 #if defined(__linux__)
 #include <getopt.h>
 #endif
 #include <float.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -76,9 +69,6 @@
 #if !defined(ISNAN)
 #define ISNAN(x) (isnan(x)!=0)
 #endif
-
-
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(INLA_TAG)
 #define INLA_TAG "devel"
@@ -10757,7 +10747,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			static char give_warning = 1;
 			if (n > 500 && give_warning) {
 				give_warning = 0;
-				printf("\n*** Warning ***  Version [%s]", GitID);
+				printf("\n*** Warning ***  Version [%s]", GITCOMMIT);
 				printf("\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
 				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}
@@ -38860,7 +38850,7 @@ int inla_output_gitid(const char *dir)
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	fprintf(fp, "GitID [%s]\n", GitID);
+	fprintf(fp, "GITCOMMIT [%s]\n", GITCOMMIT);
 	fclose(fp);
 	Free(nndir);
 
@@ -43400,7 +43390,7 @@ int main(int argc, char **argv)
 	 */
 	for (i = 1; i < argc; i++) {
 		if (!strcasecmp(argv[i], "-ping") || !strcasecmp(argv[i], "--ping")) {
-			printf("INLA[%s] IS ALIVE\n", GitID);
+			printf("INLA[%s] IS ALIVE\n", GITCOMMIT);
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -43435,7 +43425,7 @@ int main(int argc, char **argv)
 
 		case 'V':
 		{
-			printf("This program has version:\n\t%s\nand is linked with ", GitID);
+			printf("This program has version:\n\t%s\nand is linked with ", GITCOMMIT);
 			GMRFLib_version(stdout);
 			_BUGS;
 			exit(EXIT_SUCCESS);
@@ -43811,7 +43801,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\n\t%s\n", GitID);
+		fprintf(stdout, "\n\t%s\n", GITCOMMIT);
 	}
 	if (verbose) {
 		_BUGS_intern(stdout);

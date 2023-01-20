@@ -1,7 +1,7 @@
 
 /* random.h
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,11 +37,6 @@
 #ifndef __GMRFLib_RANDOM_H__
 #define __GMRFLib_RANDOM_H__
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
-#include "GMRFLib/GMRFLib.h"
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -54,6 +49,9 @@
 #endif
 
 __BEGIN_DECLS
+
+#include "GMRFLib/GMRFLib.h"
+
 #include <stdlib.h>
 #define GMRFLib_rng (GMRFLib_rng_ptr ? GMRFLib_rng_ptr :  GMRFLib_rng_init_default())
     gsl_rng * GMRFLib_rng_init_default(void);

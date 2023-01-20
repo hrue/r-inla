@@ -1,22 +1,3 @@
-
-/**
-   @file	dictionary.c
-   @author	N. Devillard
-   @date	Aug 2000
-   @version	$Revision: 1.30 $
-   @brief	Implements a dictionary for string variables.
-
-   This module implements a simple dictionary object, i.e. a list of string/string associations.
-   This object is useful to store e.g.  informations retrieved from a
-   configuration file (ini files).  */
-
-/*
-	$Id: dictionary.c,v 1.30 2009/03/30 16:47:04 hrue Exp $
-	$Author: hrue $
-	$Date: 2009/03/30 16:47:04 $
-	$Revision: 1.30 $
-*/
-
 #include "dictionary.h"
 #include "iniparser.h"
 
