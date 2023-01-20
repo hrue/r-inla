@@ -2229,5 +2229,10 @@ typedef struct {
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
+#if defined(INLA_LINK_WITH_MKL)
+double vdExp(int, double *, double *);
+double vdLog1p(int, double *, double *);
+#endif
+
 __END_DECLS
 #endif

@@ -9055,10 +9055,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			int align = 8;
 			div_t d = div(m, align);
 			int len = (d.quot + (d.rem ? 1 : 0)) * align;
-			double vdExp(int, double *, double *);
-			double vdLog1p(int, double *, double *);
 #endif
-
 			// optimize for the case y=0, and then case ny=0
 			if (ISZERO(y)) {
 #if defined(INLA_LINK_WITH_MKL)
