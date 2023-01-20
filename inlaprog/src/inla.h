@@ -1605,20 +1605,25 @@ typedef struct {
 	double *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0; \
 	FILE * _fp = fopen(filename_ , "wb"); if (!_fp) inla_error_open_file(filename_)
 
-#define Dinit(filename_)   Dinit_core(1048576L, filename_)
-#define Dinit_s(filename_) Dinit_core(1024L, filename_)
-#define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
+#define Dinit(filename_)   Dinit_core(8388608L, filename_)
+#define Dinit_s(filename_) Dinit_core(8192L, filename_)
+#define Dwrite()							\
+	if (_d_n >= _d_store_len) {					\
+		fwrite((void*)_d_store, sizeof(double), _d_n, _fp);	\
+		_d_n = 0;						\
+	}
 #define Dclose()							\
 	if (1) {							\
-		if (_d_n && _fp)					\
-			fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
-		if (_fp)						\
+		if (_fp) {						\
+			if (_d_n) {					\
+				fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
+			}						\
 			fclose(_fp);					\
+		}							\
 		_fp = NULL;						\
 		_d_n = 0;						\
 		Free(_d_store);						\
 	}
-
 #define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
 #define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
 #define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
