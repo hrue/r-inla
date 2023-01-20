@@ -7189,7 +7189,7 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	double normc;
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = y * _logE(E) - my_gsl_sf_lnfact(y);
+		G_norm_const[idx] = y * _logE(E) - my_gsl_sf_lnfact((int) y);
 		G_norm_const_compute[idx] = 0;
 	}
 	normc = G_norm_const[idx];
