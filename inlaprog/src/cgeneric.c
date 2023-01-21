@@ -56,7 +56,10 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	inla_cgeneric_data_tp *data = Calloc(1, inla_cgeneric_data_tp);
 	int i, j, k, len;
 
-	data->max_threads = GMRFLib_MAX_THREADS();
+	data->threads.max = GMRFLib_MAX_THREADS();
+	data->threads.outer = GMRFLib_openmp->max_threads_nested[0];
+	data->threads.inner = GMRFLib_openmp->max_threads_nested[1];
+	
 	fp = fopen(filename, "rb");
 	assert(fp);
 
