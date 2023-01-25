@@ -1,3 +1,6 @@
+# INLA
+* Remove `rgeos` dependency
+
 # INLA 23.01.12
 * Fixed an issue with ptweedie
 * Code cleanup
