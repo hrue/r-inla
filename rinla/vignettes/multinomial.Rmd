@@ -16,7 +16,6 @@ set.seed(123)
 library(INLA)
 inla.setOption(num.threads="1:1")
 inla.setOption(smtp="taucs")
-inla.setOption(inla.mode="experimental")
 if (file.exists("myinit.R")) source("myinit.R")
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(fig.path="figures/multinomial/")
@@ -231,7 +230,7 @@ Before going through this tutorial be sure to have the following packages instal
 library(Ecdat)
 library(deldir)
 library(sp)
-library(rgeos)
+library(sf)
 library(mvtnorm)
 library(gridExtra)
 library(mlogit)
@@ -646,24 +645,31 @@ check = as.integer(length(unique(id.samples)))
 check
 ```
 
-```{r, fig.cap=c("Partiotion of the region [0,1]x[0,1], each red point correspond to a different location"), fig.height=5}
+```{r, fig.cap=c("Partition of the region [0,1]x[0,1], each red point correspond to a different location"), fig.height=5}
 # plot the partition and the locations
 plot(vor)
 points(loc, pch = 21, bg = 2, cex = 0.7)
 ```
 
-Once we have a partition of the space we need to generate a random effect. To take into account the neighbors structures of the partition we choose to use a **Gaussian Markov Random Field**. More details on (@gmrf) and (@rinla). Skipping all the theoretical stuff, we need to synthesize the neighbors' structure; we need the adjacency matrix $A$. With $A$ in the hands, we will generate the random effect from a multivariate Gaussian distribution with a covariance matrix that depends on the adjacency matrix. This model is also called CAR model or iCAR model depending on the specification of the covariance matrix. To calculate the adjacency matrix we use the function $\texttt{gTouches()}$ of the package $\texttt{rgeos}$, @rgeos. To sample from the multivariate normal we use $\texttt{rmvnorm()}$ function of the package $\texttt{mvtnorm}$, @mvtnorm.
+Once we have a partition of the space we need to generate a random effect. To take into account the neighbor structure of the partition we choose to use a **Gaussian Markov Random Field**. More details on (@gmrf) and (@rinla). Skipping all the theoretical stuff, we need to synthesize the neighbors' structure; we need the adjacency matrix $A$. With $A$ in the hands, we will generate the random effect from a multivariate Gaussian distribution with a covariance matrix that depends on the adjacency matrix. This model is also called CAR model or iCAR model depending on the specification of the covariance matrix. To calculate the adjacency matrix we use the function `st_touches()` of the package `sf`, @sf. To sample from the multivariate normal with a given covariance matrix one can
+use the `rmvnorm()` function of the package `mvtnorm`, @mvtnorm.
+When the precision matrix is available, we can use the `inla.qsample()` function in `INLA`.
 More details on polygons here [Polygons web Page]
 \ \newline
 ```{r, message = F, warnings = F}
 # adjacency matrix
-ADJ = gTouches(vor, byid = T)
-# marginal variance of each random effect component
-S = diag(n.reg)
+ADJ <- as(st_touches(st_as_sf(vor)), "Matrix")
+# Unscaled precision matrix
+Q_unscaled <- Matrix::Diagonal(n.reg, colSums(ADJ)) - ADJ * 0.99 # CAR
+# marginal inverse standard deviation of each random effect component
+SD_inv <- Matrix::Diagonal(n.reg, 1.0^-1)
+# Std.dev. from the unscaled precision
+SD_scale <- Matrix::Diagonal(n.reg, diag(inla.qinv(Q_unscaled))^0.5)
 # covariance matrix
-cov.matrix = solve(diag(n.reg) - ADJ)%*%S
+prec.matrix <- (SD_inv %*% SD_scale) %*% Q_unscaled %*% (SD_scale %*% SD_inv)
+prec.matrix <- (prec.matrix + t(prec.matrix)) / 2
 # generate the random effect and add it to the SpatialPolygonDataFrame
-vor@data$rand.eff = as.numeric(rmvnorm(1,sigma = cov.matrix))
+vor@data$rand.eff <- as.numeric(inla.qsample(1, prec.matrix, seed = 1234))
 
 ```
 

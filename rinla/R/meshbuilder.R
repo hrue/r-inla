@@ -764,32 +764,22 @@ meshbuilder.app <- function() {
                 metadata$mesh <- NULL
             } else {
                 if (shiny::isolate(debug$trace)) {
-                    if (inla.has_PROJ6()) {
-                        try(message(paste(
-                            "crs.mesh               =",
-                            inla.crs_get_wkt(inla.CRS(input$crs.mesh))
-                        )))
-                        try(message(paste(
-                            "CRS(mesh.loc)          =",
-                            inla.crs_get_wkt(inla.sp_get_crs(loc1))
-                        )))
-                        try(message(paste(
-                            "CRS(boundary[[1]]$crs) =",
-                            inla.crs_get_wkt(bnd1[[1]]$crs)
-                        )))
-                        try(message(paste(
-                            "CRS(boundary[[2]]$crs) =",
-                            inla.crs_get_wkt(bnd2[[2]]$crs)
-                        )))
-                    } else {
-                        try(message(paste(
-                            "crs.mesh               =",
-                            inla.CRSargs(inla.CRS(input$crs.mesh))
-                        )))
-                        try(message(paste("CRS(mesh.loc)          =", proj4string(loc1))))
-                        try(message(paste("CRS(boundary[[1]]$crs) =", inla.CRSargs(bnd1[[1]]$crs))))
-                        try(message(paste("CRS(boundary[[2]]$crs) =", inla.CRSargs(bnd1[[2]]$crs))))
-                    }
+                    try(message(paste(
+                        "crs.mesh               =",
+                        inla.crs_get_wkt(inla.CRS(input$crs.mesh))
+                    )))
+                    try(message(paste(
+                        "CRS(mesh.loc)          =",
+                        inla.crs_get_wkt(inla.sp_get_crs(loc1))
+                    )))
+                    try(message(paste(
+                        "CRS(boundary[[1]]$crs) =",
+                        inla.crs_get_wkt(bnd1[[1]]$crs)
+                    )))
+                    try(message(paste(
+                        "CRS(boundary[[2]]$crs) =",
+                        inla.crs_get_wkt(bnd2[[2]]$crs)
+                    )))
                 }
                 out <- INLA::inla.mesh.2d(
                     loc = loc1,
@@ -800,11 +790,7 @@ meshbuilder.app <- function() {
                     max.n.strict = c(128000, 128000),
                     cutoff = input$cutoff,
                     offset = input$offset,
-                    crs = if (inla.has_PROJ6()) {
-                        inla.CRS(input$crs.mesh)
-                    } else {
-                        inla.CRS(input$crs.mesh)
-                    },
+                    crs = inla.CRS(input$crs.mesh),
                     plot.delay = shiny::isolate(debug$plot.delay)
                 )
                 attr(out, "code") <- paste0(
@@ -2087,10 +2073,6 @@ meshbuilder.app <- function() {
 meshbuilder <- function() {
     inla.require("fields", stop.on.error = TRUE)
     inla.require("shiny", stop.on.error = TRUE)
-
-    if (inla.has_PROJ6()) {
-        rgdal::set_thin_PROJ6_warnings(TRUE)
-    }
 
     shiny::runApp(meshbuilder.app())
 }

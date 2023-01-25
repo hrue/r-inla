@@ -7,7 +7,7 @@
 \usage{
 inla.CRS(
   projargs = NULL,
-  doCheckCRSArgs = TRUE,
+  doCheckCRSArgs = FALSE,
   args = NULL,
   oblique = NULL,
   SRS_string = NULL,
@@ -22,9 +22,7 @@ inla.wkt_predef()
 reference string to a predefined projection; run
 \code{names(inla.wkt_predef())} for valid predefined projections.}
 
-\item{doCheckCRSArgs}{default TRUE, must be set to FALSE by package
-developers including \code{CRS} in an S4 class definition to avoid
-uncontrollable loading of the \code{rgdal} namespace.}
+\item{doCheckCRSArgs}{ignored.}
 
 \item{args}{An optional list of name/value pairs to add to and/or override
 the PROJ4 arguments in \code{projargs}.  \code{name=value} is converted to
@@ -85,7 +83,7 @@ projection is only correct for perfect spheres.
 \examples{
 
 
-if (require(rgdal)) {
+if (require("sf") && require("sp")) {
     crs1 <- inla.CRS("longlat_globe")
     crs2 <- inla.CRS("lambert_globe")
     crs3 <- inla.CRS("mollweide_norm")
