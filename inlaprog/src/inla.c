@@ -28,23 +28,16 @@
  */
 
 #ifndef GITCOMMIT
-#define GITCOMMIT "current developer version"
+#define GITCOMMIT "devel"
 #endif
 
 #if defined(__sun__)
 #include <stdlib.h>
 #endif
-#if defined(__FreeBSD__)
-#include <unistd.h>
-#endif
 #if defined(__linux__)
 #include <getopt.h>
 #endif
 #include <float.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -76,9 +69,6 @@
 #if !defined(ISNAN)
 #define ISNAN(x) (isnan(x)!=0)
 #endif
-
-
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #if !defined(INLA_TAG)
 #define INLA_TAG "devel"
@@ -918,6 +908,39 @@ double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double map_invccloglog(double arg, map_arg_tp typ, void *UNUSED(param))
+{
+	/*
+	 * the inverse complement cloglog function
+	 */
+	switch (typ) {
+	case MAP_FORWARD:
+		/*
+		 * extern = func(local) 
+		 */
+		return exp(-exp(-arg));
+	case MAP_BACKWARD:
+		/*
+		 * local = func(extern) 
+		 */
+		return -log(-log(arg));
+	case MAP_DFORWARD:
+		/*
+		 * d_extern / d_local 
+		 */
+		return exp(-arg - exp(-arg));
+	case MAP_INCREASING:
+		/*
+		 * return 1.0 if montone increasing and 0.0 otherwise 
+		 */
+		return 1.0;
+	default:
+		abort();
+	}
+	abort();
+	return 0.0;
+}
+
 double map_beta(double x, map_arg_tp typ, void *param)
 {
 	/*
@@ -1466,6 +1489,11 @@ double link_cloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param
 	 * the link-functions calls the inverse map-function 
 	 */
 	return map_invcloglog(x, typ, param);
+}
+
+double link_ccloglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
+{
+	return map_invccloglog(x, typ, param);
 }
 
 double link_loglog(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, double *UNUSED(cov))
@@ -7161,7 +7189,7 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	double normc;
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = y * _logE(E) - my_gsl_sf_lnfact(y);
+		G_norm_const[idx] = y * _logE(E) - my_gsl_sf_lnfact((int) y);
 		G_norm_const_compute[idx] = 0;
 	}
 	normc = G_norm_const[idx];
@@ -9027,10 +9055,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			int align = 8;
 			div_t d = div(m, align);
 			int len = (d.quot + (d.rem ? 1 : 0)) * align;
-			double vdExp(int, double *, double *);
-			double vdLog1p(int, double *, double *);
 #endif
-
 			// optimize for the case y=0, and then case ny=0
 			if (ISZERO(y)) {
 #if defined(INLA_LINK_WITH_MKL)
@@ -10719,7 +10744,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			static char give_warning = 1;
 			if (n > 500 && give_warning) {
 				give_warning = 0;
-				printf("\n*** Warning ***  Version [%s]", GitID);
+				printf("\n*** Warning ***  Version [%s]", GITCOMMIT);
 				printf("\n*** Warning ***  The PIT calculations for the BetaBinomial can be time-consuming when Ntrials is large.");
 				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}
@@ -20927,6 +20952,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 		ds->link_id = LINK_CLOGLOG;
 		ds->link_ntheta = 0;
 		ds->predictor_invlinkfunc = link_cloglog;
+	} else if (!strcasecmp(ds->link_model, "CCLOGLOG")) {
+		ds->link_id = LINK_CCLOGLOG;
+		ds->link_ntheta = 0;
+		ds->predictor_invlinkfunc = link_ccloglog;
 	} else if (!strcasecmp(ds->link_model, "LOGLOG")) {
 		ds->link_id = LINK_LOGLOG;
 		ds->link_ntheta = 0;
@@ -21111,6 +21140,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	case LINK_NEGLOG:
 	case LINK_PROBIT:
 	case LINK_CLOGLOG:
+	case LINK_CCLOGLOG:
 	case LINK_LOGLOG:
 	case LINK_CAUCHIT:
 	case LINK_LOGIT:
@@ -32807,6 +32837,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case LINK_NEGLOG:
 			case LINK_PROBIT:
 			case LINK_CLOGLOG:
+			case LINK_CCLOGLOG:
 			case LINK_LOGLOG:
 			case LINK_CAUCHIT:
 			case LINK_LOGIT:
@@ -38816,7 +38847,7 @@ int inla_output_gitid(const char *dir)
 	if (!fp) {
 		inla_error_open_file(nndir);
 	}
-	fprintf(fp, "GitID [%s]\n", GitID);
+	fprintf(fp, "GITCOMMIT [%s]\n", GITCOMMIT);
 	fclose(fp);
 	Free(nndir);
 
@@ -38844,6 +38875,8 @@ int inla_output_linkfunctions(const char *dir, inla_tp * mb)
 			fprintf(fp, "tan\n");
 		} else if (lf == link_cloglog) {
 			fprintf(fp, "cloglog\n");
+		} else if (lf == link_ccloglog) {
+			fprintf(fp, "ccloglog\n");
 		} else if (lf == link_log) {
 			fprintf(fp, "log\n");
 		} else if (lf == link_logit) {
@@ -41563,9 +41596,9 @@ int testit(int argc, char **argv)
 
 		if (1) {
 			double phi = 1.0 + GMRFLib_uniform();
-			double xi = 1.0 + GMRFLib_uniform(); 
+			double xi = 1.0 + GMRFLib_uniform();
 			double mu = exp(GMRFLib_uniform());
-			double y = exp(1+GMRFLib_uniform());
+			double y = exp(1 + GMRFLib_uniform());
 			double ldens;
 			printf("R --vanilla --quiet -e 'library(tweedie);phi=%f;xi=%f;mu=%f;y=%f;dtweedie(y,xi,mu,phi);ptweedie(y,xi,mu,phi)'",
 			       phi, xi, mu, y);
@@ -41828,8 +41861,8 @@ int testit(int argc, char **argv)
 		tref = GMRFLib_cpu();
 		{
 			fp = fopen("REMOVE_ME_5.dat", "wb");
-			char *buff = (char *) Calloc(1048576, double);
-			setvbuf(stdout, buff, _IOFBF, 1048576 * sizeof(double));
+			char *buff = (char *) Calloc(16777216L, double);
+			setvbuf(stdout, buff, _IOFBF, 16777216L * sizeof(double));
 			for (int i = 0; i < n; i++) {
 				fwrite(x + i, sizeof(double), (size_t) 1, fp);
 			}
@@ -43241,11 +43274,24 @@ int testit(int argc, char **argv)
 	case 102:
 	{
 		double x = GMRFLib_uniform(), y;
-		y = map_invcloglog(x, MAP_FORWARD, NULL);
-		y = map_invcloglog(y, MAP_BACKWARD, NULL);
 		P(x);
+		y = map_invcloglog(x, MAP_FORWARD, NULL);
 		P(y);
+		y = map_invcloglog(y, MAP_BACKWARD, NULL);
 		P(x - y);
+
+		P(x);
+		y = map_invccloglog(x, MAP_FORWARD, NULL);
+		P(y);
+		y = map_invccloglog(y, MAP_BACKWARD, NULL);
+		P(x - y);
+
+		double h = 1.0e-4;
+		y = (map_invcloglog(x+h, MAP_FORWARD, NULL)-map_invcloglog(x-h, MAP_FORWARD, NULL))/2.0/h;
+		P(map_invcloglog(x, MAP_DFORWARD, NULL)-y);
+		y = (map_invccloglog(x+h, MAP_FORWARD, NULL)-map_invccloglog(x-h, MAP_FORWARD, NULL))/2.0/h;
+		P(map_invccloglog(x, MAP_DFORWARD, NULL)-y);
+
 	}
 		break;
 
@@ -43341,7 +43387,7 @@ int main(int argc, char **argv)
 	 */
 	for (i = 1; i < argc; i++) {
 		if (!strcasecmp(argv[i], "-ping") || !strcasecmp(argv[i], "--ping")) {
-			printf("INLA[%s] IS ALIVE\n", GitID);
+			printf("INLA[%s] IS ALIVE\n", GITCOMMIT);
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -43376,7 +43422,7 @@ int main(int argc, char **argv)
 
 		case 'V':
 		{
-			printf("This program has version:\n\t%s\nand is linked with ", GitID);
+			printf("This program has version:\n\t%s\nand is linked with ", GITCOMMIT);
 			GMRFLib_version(stdout);
 			_BUGS;
 			exit(EXIT_SUCCESS);
@@ -43752,7 +43798,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!silent || verbose) {
-		fprintf(stdout, "\n\t%s\n", GitID);
+		fprintf(stdout, "\n\t%s\n", GITCOMMIT);
 	}
 	if (verbose) {
 		_BUGS_intern(stdout);

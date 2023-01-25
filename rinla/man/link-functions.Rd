@@ -15,6 +15,8 @@
  \alias{inla.link.invprobit}
  \alias{inla.link.cloglog}
  \alias{inla.link.invcloglog}
+ \alias{inla.link.ccloglog}
+ \alias{inla.link.invccloglog}
  \alias{inla.link.loglog}
  \alias{inla.link.invloglog}
  \alias{inla.link.tan}
@@ -48,6 +50,8 @@
  inla.link.invprobit(x, inverse=FALSE)
  inla.link.cloglog(x, inverse=FALSE)
  inla.link.invcloglog(x, inverse=FALSE)
+ inla.link.ccloglog(x, inverse=FALSE)
+ inla.link.invccloglog(x, inverse=FALSE)
  inla.link.loglog(x, inverse=FALSE)
  inla.link.invloglog(x, inverse=FALSE)
  inla.link.tan(x, inverse=FALSE)

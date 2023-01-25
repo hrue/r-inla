@@ -1,7 +1,7 @@
 
 /* approx-inference.c
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,11 +28,6 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <stdint.h>
 #include <assert.h>
 #include <time.h>
@@ -42,9 +37,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <strings.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -7960,20 +7952,20 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	// optimized version. since xp and wp are symmetric and xp[idx]=0
 	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
 	tmp = wp[ni] * loglik[ni];
-	A = -tmp;
+	A = tmp;
 	B = 0.0;
-	C = tmp;
-	for (int i = 0, ii = GMRFLib_INT_GHQ_POINTS - 1; i < ni; i++, ii--) {
+	C = -tmp;
+	for (int i = 0; i < ni; i++) {
+		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
 		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
-		A -= tt;
-		C -= tt * xp2[i];
-		B -= tt2 * xp[i];
+		A += tt;
+		C += tt * xp2[i];
+		B += tt2 * xp[i];
 	}
-
-	coofs->coofs[0] = d * A;
-	coofs->coofs[1] = d * B * s_inv;
-	coofs->coofs[2] = d * C * s2_inv;
+	coofs->coofs[0] = - d * A;
+	coofs->coofs[1] = - d * B * s_inv;
+	coofs->coofs[2] = - d * C * s2_inv;
 
 	return GMRFLib_SUCCESS;
 }
@@ -8027,19 +8019,20 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 	// optimized version, as both xp and wp are symmetric and xp[idx]=0
 	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
 	double tmp = wp[ni] * loglik[ni];
-	A = -tmp;
-	B = tmp;
-	C = -3.0 * tmp;
-	for (int i = 0, ii = GMRFLib_INT_GHQ_POINTS - 1; i < ni; i++, ii--) {
+	A = tmp;
+	B = -tmp;
+	C = 3.0 * tmp;
+	for (int i = 0; i < ni; i++) {
+		int ii =  GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
-		A -= tt;
-		B -= tt * xp2[i];
-		C -= tt * xp3[i];
+		A += tt;
+		B += tt * xp2[i];
+		C += tt * xp3[i];
 	}
 
-	coofs->coofs[0] = d * A;
-	coofs->coofs[1] = d * B * 0.5 * s2_inv;
-	coofs->coofs[2] = d * C * 0.25 * s2_inv;
+	coofs->coofs[0] = - d * A;
+	coofs->coofs[1] = - d * B * 0.5 * s2_inv;
+	coofs->coofs[2] = - d * C * 0.25 * s2_inv;
 
 	return GMRFLib_SUCCESS;
 }

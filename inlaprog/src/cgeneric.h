@@ -1,7 +1,7 @@
 
 /* cgeneric.h
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,8 +142,20 @@ typedef struct {
 	char *chars;
 } inla_cgeneric_vec_tp;
 
+typedef struct 
+{
+	// inla .. -t A:B
+	// max = maximum number of threads = A*B
+	// outer = number of threads in the outer loop (A)
+	// inner = number of threads in the inner loop (B)
+	int max;	
+	int outer;					       
+	int inner;					       
+}
+	inla_cgeneric_threads_tp;
+
 typedef struct {
-	int max_threads;
+	inla_cgeneric_threads_tp threads;
 
 	int n_ints;
 	inla_cgeneric_vec_tp **ints;

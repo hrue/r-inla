@@ -387,7 +387,8 @@ typedef enum {
 	LINK_ROBIT,
 	LINK_SN,
 	LINK_LOGa,
-	LINK_POWER_LOGIT
+	LINK_POWER_LOGIT, 
+	LINK_CCLOGLOG
 } inla_component_tp;
 
 typedef enum {
@@ -1604,20 +1605,25 @@ typedef struct {
 	double *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0; \
 	FILE * _fp = fopen(filename_ , "wb"); if (!_fp) inla_error_open_file(filename_)
 
-#define Dinit(filename_)   Dinit_core(1048576L, filename_)
-#define Dinit_s(filename_) Dinit_core(1024L, filename_)
-#define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
+#define Dinit(filename_)   Dinit_core(8388608L, filename_)
+#define Dinit_s(filename_) Dinit_core(8192L, filename_)
+#define Dwrite()							\
+	if (_d_n >= _d_store_len) {					\
+		fwrite((void*)_d_store, sizeof(double), _d_n, _fp);	\
+		_d_n = 0;						\
+	}
 #define Dclose()							\
 	if (1) {							\
-		if (_d_n && _fp)					\
-			fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
-		if (_fp)						\
+		if (_fp) {						\
+			if (_d_n) {					\
+				fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
+			}						\
 			fclose(_fp);					\
+		}							\
 		_fp = NULL;						\
 		_d_n = 0;						\
 		Free(_d_store);						\
 	}
-
 #define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
 #define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
 #define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
@@ -1741,6 +1747,7 @@ double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_log(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -1780,6 +1787,7 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_invccloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
@@ -2225,6 +2233,11 @@ typedef struct {
 			   (mb->f_id[idx] == F_IID3D ? 3 :		\
 			    (mb->f_id[idx] == F_IID4D ? 4 :		\
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
+
+#if defined(INLA_LINK_WITH_MKL)
+double vdExp(int, double *, double *);
+double vdLog1p(int, double *, double *);
+#endif
 
 __END_DECLS
 #endif

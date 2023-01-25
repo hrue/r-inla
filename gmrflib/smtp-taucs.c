@@ -1,7 +1,7 @@
 
 /* GMRFLib-smtp-taucs.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,19 +40,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "amd.h"
 #include "metis.h"
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #define GMRFLib_NSET_LIMIT(nset, size, n)  IMAX(10, (n)/10/(size))
 
@@ -746,8 +738,8 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 
 	retval = taucs_ccs_factor_llt_numeric(*L, *symb_fact);
 	if (retval) {
-		fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
-			GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
+		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
+			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 		return GMRFLib_EPOSDEF;
 	}
 	taucs_ccs_free(*L);

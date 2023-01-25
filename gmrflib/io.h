@@ -1,7 +1,7 @@
 
 /* io.h
  * 
- * Copyright (C) 2005-2022 Havard Rue
+ * Copyright (C) 2005-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +39,6 @@
 
 #include <stdlib.h>
 #include <zlib.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 /* 
    to define strtok_r()

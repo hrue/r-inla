@@ -8562,6 +8562,8 @@ inla.models()
 				 }
 				\item{Model `cloglog'.}{Number of hyperparmeters are 0.
 				 }
+				\item{Model `ccloglog'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `loglog'.}{Number of hyperparmeters are 0.
 				 }
 				\item{Model `identity'.}{Number of hyperparmeters are 0.
@@ -9313,7 +9315,7 @@ inla.models()
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
 								\item{link = }{`default log quantile'}
-								\item{link.simple = }{`default logit cauchit probit cloglog'}
+								\item{link.simple = }{`default logit cauchit probit cloglog ccloglog'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
@@ -9459,7 +9461,7 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog log sslogit logitoffset quantile pquantile robit sn powerlogit'}
 								\item{link.simple = }{`default log'}
 								\item{pdf = }{`0inflated'}
 							 }
@@ -9606,8 +9608,8 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog log'}
-								\item{link.simple = }{`default logit cauchit probit cloglog'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog log'}
+								\item{link.simple = }{`default logit cauchit probit cloglog ccloglog'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
@@ -9753,8 +9755,8 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog log'}
-								\item{link.simple = }{`default logit cauchit probit cloglog'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog log'}
+								\item{link.simple = }{`default logit cauchit probit cloglog ccloglog'}
 								\item{pdf = }{`0inflated'}
 							 }
 						 }
@@ -10681,7 +10683,7 @@ inla.models()
 								\item{doc = }{`The Beta likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog'}
 								\item{pdf = }{`beta'}
 							 }
 						 }
@@ -10709,7 +10711,7 @@ inla.models()
 								\item{doc = }{`The Beta-Binomial likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`betabinomial'}
 							 }
 						 }
@@ -10737,7 +10739,7 @@ inla.models()
 								\item{doc = }{`The Beta-Binomial Normal approximation likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`betabinomialna'}
 							 }
 						 }
@@ -10826,7 +10828,7 @@ inla.models()
 								\item{doc = }{`The simplex likelihood'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog'}
 								\item{pdf = }{`simplex'}
 							 }
 						 }
@@ -12263,7 +12265,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Beta-Binomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -12304,7 +12306,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Beta-Binomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`TRUE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -12332,7 +12334,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Binomial, type 0'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -12360,7 +12362,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Binomial, type 1'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -12388,7 +12390,7 @@ inla.models()
 								\item{doc = }{`Zero-inflated Binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -12429,7 +12431,7 @@ inla.models()
 								\item{doc = }{`Zero and N inflated binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`NA'}
 							 }
 						 }
@@ -12471,7 +12473,7 @@ inla.models()
 								\item{status = }{`experimental'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }
@@ -12512,7 +12514,7 @@ inla.models()
 								\item{doc = }{`Zero inflated Beta-Binomial, type 2'}
 								\item{survival = }{`FALSE'}
 								\item{discrete = }{`FALSE'}
-								\item{link = }{`default logit loga cauchit probit cloglog loglog robit sn'}
+								\item{link = }{`default logit loga cauchit probit cloglog ccloglog loglog robit sn'}
 								\item{pdf = }{`zeroinflated'}
 							 }
 						 }

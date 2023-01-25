@@ -1,7 +1,7 @@
 
 /* GMRFLibP.h
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,9 +41,6 @@
 #include <stddef.h>
 #include <math.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -351,10 +348,10 @@ typedef enum {
 */
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) * sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
-#define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__, GitID); ptr=NULL;}
+#define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
+#define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
+#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
+#define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__); ptr=NULL;}
 #define Memcpy(dest, src, n)    GMRFLib_memcpy(dest, src, n)
 #else
 #undef  GMRFLib_TRACE_MEMORY
@@ -427,8 +424,8 @@ typedef enum {
 	if (ISNAN(value) || ISINF(value)) {				\
 		if (!nan_error)						\
 			fprintf(stdout,					\
-				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
-				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+				"\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
+				__GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		nan_error = 1;						\
 	}
 
@@ -436,8 +433,8 @@ typedef enum {
 	if (!gsl_finite(value)) {					\
 		if (!nan_error)						\
 			fprintf(stdout,					\
-				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
-				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+				"\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
+				__GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		nan_error = 1;						\
 	}
 

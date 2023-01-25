@@ -1,7 +1,7 @@
 
 /* cgeneric-demo.c
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,6 @@
 
 
 #include <assert.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <math.h>
 #include <stdlib.h>
 #include <strings.h>

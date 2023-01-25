@@ -1,7 +1,7 @@
 
 /* fgn.c
  * 
- * Copyright (C) 2016-2022 Havard Rue
+ * Copyright (C) 2016-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "fgn.h"
 
