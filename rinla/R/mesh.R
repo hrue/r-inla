@@ -2459,19 +2459,11 @@ summary.inla.mesh <- function(object, verbose = FALSE, ...) {
         ylim = range(x$loc[, 2]),
         zlim = range(x$loc[, 3])
     )))
-    if (inla.has_PROJ6()) {
-        if (is.null(x$crs) || is.null(inla.crs_get_wkt(x$crs))) {
-            ret <- c(ret, list(crs = "N/A", crs_proj4 = "N/A"))
-        } else {
-            ret <- c(ret, list(crs = inla.crs_get_wkt(x$crs)))
-            ret <- c(ret, list(crs_proj4 = rgdal::showP4(ret$crs)))
-        }
+    if (is.null(x$crs) || is.null(inla.crs_get_wkt(x$crs))) {
+        ret <- c(ret, list(crs = "N/A", crs_proj4 = "N/A"))
     } else {
-        if (is.na(inla.CRSargs(x$crs))) {
-            ret <- c(ret, list(crs = "N/A"))
-        } else {
-            ret <- c(ret, list(crs = inla.CRSargs(x$crs)))
-        }
+        ret <- c(ret, list(crs = inla.crs_get_wkt(x$crs)))
+        ret <- c(ret, list(crs_proj4 = sf::st_crs(ret$crs)$proj4string))
     }
 
     my.segm <- function(x) {
@@ -2541,15 +2533,11 @@ print.summary.inla.mesh <- function(x, ...) {
     }
 
     cat("\nManifold:\t", x$manifold, "\n", sep = "")
-    if (inla.has_PROJ6()) {
-        cat("CRS/LegacyPROJ4:\t", x$crs_proj4, "\n", sep = "")
-        if (x$verbose) {
-            cat("CRS/WKT:\n", x$crs, "\n", sep = "")
-        } else {
-            cat("CRS/WKT: (only shown with verbose = TRUE)", "\n", sep = "")
-        }
+    cat("CRS/LegacyPROJ4:\t", x$crs_proj4, "\n", sep = "")
+    if (x$verbose) {
+        cat("CRS/WKT:\n", x$crs, "\n", sep = "")
     } else {
-        cat("CRS/PROJ4:\t", x$crs, "\n", sep = "")
+        cat("CRS/WKT: (only shown with verbose = TRUE)", "\n", sep = "")
     }
     if (x$verbose) {
         cat("Refined:\t", x$is.refined, "\n", sep = "")

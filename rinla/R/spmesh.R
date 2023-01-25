@@ -14,12 +14,12 @@
 
 #' PROJ6 detection
 #'
-#' Detect whether PROJ6 is available for INLA
+#' Detect whether PROJ6 is available for INLA. Deprecated and always returns `TRUE`..
 #'
 #' @aliases inla.has_PROJ6 inla.not_for_PROJ6 inla.not_for_PROJ4
 #' inla.fallback_PROJ6 inla.requires_PROJ6
 #' @details `inla.has_PROJ6` is called to check if PROJ6&GDAL3 are available.
-#' @return For `inla.has_PROJ6`, logical; `TRUE` if PROJ6 is available,
+#' @return For `inla.has_PROJ6`, always returns `TRUE`. Previously: logical; `TRUE` if PROJ6 is available,
 #' `FALSE` otherwise
 #' @examples
 #'
@@ -27,11 +27,12 @@
 #' @export inla.has_PROJ6
 #' @rdname inla.has_PROJ6
 inla.has_PROJ6 <- function() {
-    inla.require("rgdal", stop.on.error = TRUE)
-    result <- tryCatch(rgdal::new_proj_and_gdal(),
-        error = function(e) FALSE
+    lifecycle::deprecate_warn(
+        "23.01.01",
+        "inla.has_PROJ6()",
+        details = "PROJ4 is no longer supported, and inla.has_PROJ6() always returns TRUE"
     )
-    result
+    TRUE
 }
 
 #' @describeIn inla.has_PROJ6 Called to warn about using old PROJ4
@@ -45,7 +46,7 @@ inla.not_for_PROJ6 <- function(fun) {
         warning(paste0(
             "'",
             fun,
-            "' should not be used with PROJ6 and rgdal v3\n",
+            "' should not be used with PROJ6\n",
             "Call stack for developer debugging:\n",
             paste0(lapply(stack, function(x) substr(x, 1, 70)),
                 collapse = "\n"
@@ -72,10 +73,10 @@ inla.not_for_PROJ4 <- function(fun) {
 
 inla.fallback_PROJ6 <- function(fun) {
     if (inla.has_PROJ6()) {
-        warning(paste0(
+        stop(paste0(
             "'",
             fun,
-            "' method for PROJ6 not implemented. Falling back to PROJ4."
+            "' method for PROJ6 not implemented. PROJ4 is no longer supported."
         ))
     }
 }
@@ -88,7 +89,7 @@ inla.requires_PROJ6 <- function(fun) {
         stop(paste0(
             "'",
             fun,
-            "' requires PROJ6/RGDAL3"
+            "' requires PROJ6"
         ))
     }
 }
@@ -124,11 +125,7 @@ inla.sp_get_crs <- function(x) {
     if (is.null(x)) {
         return(NULL)
     }
-    if (inla.has_PROJ6()) {
-        suppressWarnings(crs <- CRS(SRS_string = sp::wkt(x)))
-    } else {
-        crs <- CRS(proj4string(x))
-    }
+    suppressWarnings(crs <- sp::CRS(SRS_string = sp::wkt(x)))
     crs
 }
 
@@ -209,12 +206,10 @@ internal.clip <- function(bounds, coords, eps = 0.05) {
 #' @examples
 #'
 #' \dontrun{
-#' if (inla.has_PROJ6()) {
-#'     c1 <- inla.CRS("globe")
-#'     inla.crs_get_lengthunit(c1)
-#'     c2 <- inla.crs_set_lengthunit(c1, "km")
-#'     inla.crs_get_lengthunit(c2)
-#' }
+#'   c1 <- inla.CRS("globe")
+#'   inla.crs_get_lengthunit(c1)
+#'   c2 <- inla.crs_set_lengthunit(c1, "km")
+#'   inla.crs_get_lengthunit(c2)
 #' }
 #'
 #' @rdname crs_wkt
@@ -264,13 +259,8 @@ inla.wkt_is_geocent <- function(wkt) {
 #' @rdname crs_wkt
 
 inla.crs_is_geocent <- function(crs) {
-    if (inla.has_PROJ6()) {
-        wkt <- inla.crs_get_wkt(crs)
-        result <- inla.wkt_is_geocent(wkt)
-    } else {
-        args <- inla.as.list.CRS(crs)
-        result <- identical(args[["proj"]], "geocent")
-    }
+    wkt <- inla.crs_get_wkt(crs)
+    result <- inla.wkt_is_geocent(wkt)
     result
 }
 
@@ -311,8 +301,6 @@ inla.wkt_get_ellipsoid_radius <- function(wkt) {
 #' @export
 
 inla.crs_get_ellipsoid_radius <- function(crs) {
-    inla.requires_PROJ6("inla.crs_get_ellipsoid_radius")
-
     inla.wkt_get_ellipsoid_radius(inla.crs_get_wkt(crs))
 }
 
@@ -370,8 +358,6 @@ inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
 #' @export
 
 inla.crs_set_ellipsoid_radius <- function(crs, radius) {
-    inla.requires_PROJ6("inla.crs_set_ellipsoid_radius")
-
     wkt <- inla.crs_get_wkt(crs)
     wkt <- inla.wkt_set_ellipsoid_radius(wkt, radius)
     new_crs <- inla.CRS(SRS_string = wkt)
@@ -692,7 +678,7 @@ inla.crs.tissot <- function(x, by = c(30, 30, 30), add = FALSE, do.plot = TRUE,
 #' @seealso [inla.CRS()]
 #' @examples
 #'
-#' if (require(rgdal)) {
+#' if (require("sf") && require("sp")) {
 #'     oblique <- c(0, 45, 45, 0)
 #'     for (projtype in c("longlat", "lambert", "mollweide", "hammer")) {
 #'         plot(inla.CRS(projtype), main = projtype)
@@ -791,9 +777,7 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 #' `sp::CRS`, or 2) an existing `CRS` object, or 3) a shortcut
 #' reference string to a predefined projection; run
 #' `names(inla.wkt_predef())` for valid predefined projections.
-#' @param doCheckCRSArgs default TRUE, must be set to FALSE by package
-#' developers including `CRS` in an S4 class definition to avoid
-#' uncontrollable loading of the `rgdal` namespace.
+#' @param doCheckCRSArgs ignored.
 #' @param args An optional list of name/value pairs to add to and/or override
 #' the PROJ4 arguments in `projargs`.  `name=value` is converted to
 #' `"+name=value"`, and `name=NA` is converted to `"+name"`.
@@ -820,7 +804,7 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 #' @examples
 #'
 #'
-#' if (require(rgdal)) {
+#' if (require("sf") && require("sp")) {
 #'     crs1 <- inla.CRS("longlat_globe")
 #'     crs2 <- inla.CRS("lambert_globe")
 #'     crs3 <- inla.CRS("mollweide_norm")
@@ -833,100 +817,65 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 #' }
 #'
 #' @export inla.CRS
-inla.CRS <- function(projargs = NULL, doCheckCRSArgs = TRUE,
+inla.CRS <- function(projargs = NULL, doCheckCRSArgs = FALSE,
                      args = NULL, oblique = NULL,
                      SRS_string = NULL,
                      ...) {
-    if (inla.has_PROJ6()) {
-        # PROJ6
-        if (identical(projargs, "")) {
-            projargs <- NULL
-        }
-        if (is.null(SRS_string) &&
-            !is.null(projargs) &&
-            !is.na(projargs) &&
-            is.character(projargs)) {
-            if (projargs %in% c("hammer", "lambert", "longlat", "mollweide")) {
-                warning(paste0(
+    if (identical(projargs, "")) {
+        projargs <- NULL
+    }
+    if (is.null(SRS_string) &&
+        !is.null(projargs) &&
+        !is.na(projargs) &&
+        is.character(projargs)) {
+        if (projargs %in% c("hammer", "lambert", "longlat", "mollweide")) {
+            warning(
+                paste0(
                     "Use of old predefined projection '",
                     projargs,
                     "' is deprecated. Converting to '",
                     projargs,
                     "_norm'"
-                ))
-                projargs <- paste0(projargs, "_norm")
-            }
-            predef <- inla.wkt_predef()
-            if (projargs %in% names(predef)) {
-                SRS_string <- predef[[projargs]]
-                projargs <- NULL
-            } else {
-                warning("'inla.CRS' should be given a SRS_string for PROJ6 or a known keyword for a predefined string given in projargs. Using fallback PROJ4 method.")
-                if (!is.null(args)) {
-                    x <- CRS(projargs, doCheckCRSArgs = doCheckCRSArgs)
-                    if (typeof(args) != "list") {
-                        stop("'args' must be NULL or a list of name=value pairs.")
-                    }
-                    xargs <- inla.as.list.CRS(x)
-                    for (name in names(args)) {
-                        xargs[[name]] <- args[[name]]
-                    }
-                    projargs <- inla.as.CRSargs.list(xargs)
+                )
+            )
+            projargs <- paste0(projargs, "_norm")
+        }
+        predef <- inla.wkt_predef()
+        if (projargs %in% names(predef)) {
+            SRS_string <- predef[[projargs]]
+            projargs <- NULL
+        } else {
+            warning(
+                "'inla.CRS' should be given a SRS_string for PROJ6 or a known keyword for a predefined string given in projargs. Using fallback PROJ4 method."
+            )
+            if (!is.null(args)) {
+                x <- CRS(projargs)
+                if (typeof(args) != "list") {
+                    stop("'args' must be NULL or a list of name=value pairs.")
                 }
-                SRS_string <- rgdal::showSRID(projargs, multiline = "NO")
-                projargs <- NULL
+                xargs <- inla.as.list.CRS(x)
+                for (name in names(args)) {
+                    xargs[[name]] <- args[[name]]
+                }
+                projargs <- inla.as.CRSargs.list(xargs)
             }
-        }
-
-        if (!is.null(SRS_string)) {
-            if (!is.null(projargs)) {
-                warning("SRS_string specified. Ignoring non-null projargs.")
-            }
-            x <- CRS(SRS_string = SRS_string, doCheckCRSArgs = doCheckCRSArgs)
-        } else if (inherits(projargs, "CRS")) {
-            x <- projargs
-        } else {
-            x <- CRS(NA_character_, doCheckCRSArgs = doCheckCRSArgs)
-        }
-    } else {
-        # PROJ4
-        if (is.null(projargs)) {
-            projargs <- NA_character_
-        }
-        halfroot <- "+a=0.7071067811865476 +b=0.7071067811865476"
-        predef <- list(
-            hammer = paste("+proj=hammer +ellps=sphere +units=m", halfroot),
-            lambert = "+proj=cea +ellps=sphere +lat_ts=0 +units=m +a=1 +b=1",
-            longlat = "+proj=longlat +ellps=sphere +a=1 +b=1",
-            mollweide = paste("+proj=moll +ellps=sphere +units=m", halfroot),
-            sphere = "+proj=geocent +ellps=sphere +a=1 +b=1 +units=m",
-            globe = "+proj=geocent +ellps=sphere +units=m"
-        )
-        if (is.character(projargs)) {
-            if (projargs %in% names(predef)) {
-                projargs <- predef[[projargs]]
-            }
-            x <- CRS(projargs, doCheckCRSArgs = doCheckCRSArgs)
-        } else if (inherits(projargs, "CRS")) {
-            x <- projargs
-        } else {
-            stop(paste(
-                "Unsupported projargs input class",
-                paste(class(projargs), collapse = ",")
-            ))
-        }
-        if (!is.null(args)) {
-            if (typeof(args) != "list") {
-                stop("'args' must be NULL or a list of name=value pairs.")
-            }
-            xargs <- inla.as.list.CRS(x)
-            for (name in names(args)) {
-                xargs[[name]] <- args[[name]]
-            }
-            x <- CRS(inla.as.CRSargs.list(xargs), doCheckCRSArgs = doCheckCRSArgs)
+            SRS_string <- sf::st_crs(projargs)$wkt
+            projargs <- NULL
         }
     }
-
+    
+    if (!is.null(SRS_string)) {
+        if (!is.null(projargs)) {
+            warning("SRS_string specified. Ignoring non-null projargs.")
+        }
+        x <-
+            CRS(SRS_string = SRS_string)
+    } else if (inherits(projargs, "CRS")) {
+        x <- projargs
+    } else {
+        x <- CRS(NA_character_)
+    }
+    
     if (!is.null(oblique)) {
         stopifnot(is.vector(oblique))
         if (length(oblique) < 4) {
@@ -982,8 +931,6 @@ inla.wkt_predef <- function() {
 #' @export inla.as.wkt_tree.wkt
 #' @rdname wkt_tree
 inla.as.wkt_tree.wkt <- function(x, ...) {
-    inla.requires_PROJ6("inla.as.wkt_tree.wkt")
-
     # Basic parsing of WKT string
     # ITEM[Param1, Param2, ...]
     # Param can be a constant or an ITEM[...]
@@ -1031,8 +978,6 @@ inla.as.wkt_tree.wkt <- function(x, ...) {
 #' @export
 
 inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
-    inla.requires_PROJ6("inla.as.wkt.wkt_tree")
-
     construct_item <- function(x, level) {
         paste0(
             if (pretty) {
@@ -1119,7 +1064,7 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #'
 #' Wrapper for `sp::CRS` and `inla.CRS` objects to extract the
 #' coordinate reference system argument string.
-#' Should no longer be used with PROJ6/rgdal3;
+#' Should no longer be used with PROJ6;
 #' see [inla.crs_get_wkt()]
 #'
 #' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
@@ -1137,10 +1082,10 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #'
 #' For `inla.as.CRS.list`, a `CRS` or `inla.CRS` object.
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso [rgdal::CRSargs()], [inla.CRS()]
+#' @seealso [inla.CRS()]
 #' @examples
 #'
-#' if (require(rgdal)) {
+#' if (require("sf") && require("sp")) {
 #'     crs0 <- inla.CRS("longlat")
 #'     p4s <- inla.CRSargs(crs0)
 #'     lst <- inla.as.list.CRSargs(p4s)
@@ -1162,8 +1107,8 @@ inla.CRSargs <- function(x, ...) {
     if (is.null(x)) {
         as.character(NA)
     } else {
-        inla.require("rgdal", stop.on.error = TRUE)
-        rgdal::CRSargs(x)
+        inla.require("sf", stop.on.error = TRUE)
+        sf::st_crs(x)$proj4string
     }
 }
 
@@ -1250,12 +1195,10 @@ inla.as.CRS.list <- function(x, ...) {
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
 #' \dontrun{
-#' if (inla.has_PROJ6()) {
-#'     c1 <- inla.CRS("globe")
-#'     inla.crs_get_lengthunit(c1)
-#'     c2 <- inla.crs_set_lengthunit(c1, "km")
-#'     inla.crs_get_lengthunit(c2)
-#' }
+#'   c1 <- inla.CRS("globe")
+#'   inla.crs_get_lengthunit(c1)
+#'   c2 <- inla.crs_set_lengthunit(c1, "km")
+#'   inla.crs_get_lengthunit(c2)
 #' }
 #' @export
 #' @seealso [inla.sp_get_crs()]
@@ -1375,8 +1318,6 @@ inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
 #' @rdname crs_wkt
 
 inla.crs_get_wkt <- function(crs) {
-    inla.requires_PROJ6("inla.crs_get_wkt")
-
     if (inherits(crs, "inla.CRS")) {
         crs <- crs[["crs"]]
     }
@@ -1396,20 +1337,7 @@ inla.crs_get_wkt <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_get_lengthunit <- function(crs) {
-    if (inla.has_PROJ6()) {
-        x <- inla.wkt_get_lengthunit(inla.crs_get_wkt(crs))
-    } else {
-        if (inherits(crs, "inla.CRS")) {
-            crs_ <- crs
-            crs <- crs[["crs"]]
-        } else {
-            crs_ <- NULL
-        }
-
-        crs_args <- inla.as.list.CRS(crs)
-        x <- crs_args[["units"]]
-    }
-    x
+    inla.wkt_get_lengthunit(inla.crs_get_wkt(crs))
 }
 
 #' @return For `inla.crs_set_lengthunit`, a `sp::CRS` object with
@@ -1425,16 +1353,10 @@ inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
     } else {
         crs_ <- NULL
     }
-    if (inla.has_PROJ6()) {
-        x <- sp::CRS(SRS_string = inla.wkt_set_lengthunit(inla.crs_get_wkt(crs),
-            unit,
-            params = params
-        ))
-    } else {
-        crs_args <- inla.as.list.CRS(crs)
-        crs_args[["units"]] <- unit
-        x <- inla.as.CRS.list(crs_args)
-    }
+    x <- sp::CRS(SRS_string = inla.wkt_set_lengthunit(inla.crs_get_wkt(crs),
+                                                      unit,
+                                                      params = params
+    ))
     if (!is.null(crs_)) {
         crs_[["crs"]] <- x
         x <- crs_
@@ -1555,13 +1477,11 @@ inla.wkt_tree_projection_type <- function(wt) {
 }
 
 inla.wkt_projection_type <- function(wkt) {
-    inla.requires_PROJ6()
     wt <- inla.as.wkt_tree.wkt(wkt)
     inla.wkt_tree_projection_type(wt)
 }
 
 inla.crs_projection_type <- function(crs) {
-    inla.requires_PROJ6()
     wkt <- inla.crs_get_wkt(crs)
     inla.wkt_projection_type(wkt)
 }
@@ -1570,96 +1490,75 @@ inla.crs_projection_type <- function(crs) {
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
 ## +proj=lambert in (-pi,pi)x(-1,1) scaled by +a and +b, and +units
 inla.crs.bounds <- function(crs, warn.unknown = FALSE) {
-    if (inla.has_PROJ6()) {
-        # PROJ6
-
-        wkt <- inla.crs_get_wkt(crs)
-        wt <- inla.as.wkt_tree.wkt(wkt)
-        type <- inla.wkt_tree_projection_type(wt)
-
-        if (is.null(type)) {
-            if (inla.wkt_is_geocent(wkt)) {
-                bounds <- list(type = "rectangle", xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
-            } else {
-                if (warn.unknown) {
-                    warning("Could not determine shape of transformation bounds. Using infinite rectangle.")
-                }
-                bounds <- list(type = "rectangle", xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
-            }
-        } else if (type == "longlat") {
-            bounds <- list(type = "rectangle", xlim = c(-180, 180), ylim = c(-90, 90))
-        } else if (type == "lambert") {
-            axis <- c(pi, 1)
-            radius <- inla.wkt_get_ellipsoid_radius(wkt)
-            axis[1] <- axis[1] * radius
-            # TODO: handle eccentricity
-            axis[2] <- axis[2] * sqrt(radius) * sqrt(radius)
-            # TODO: Handle units"
-            bounds <- list(
-                type = "rectangle",
-                xlim = c(-1, 1) * axis[1],
-                ylim = c(-1, 1) * axis[2]
-            )
-        } else if (type %in% c("mollweide", "hammer")) {
-            axis <- c(2, 1)
-            center <- c(0, 0)
-            radius <- inla.wkt_get_ellipsoid_radius(wkt)
-            axis[1] <- axis[1] * radius / sqrt(1 / 2)
-            axis[2] <- axis[2] * radius / sqrt(1 / 2)
-            # TODO: Handle "units"
-            bounds <- list(
-                type = "ellipse", axis = axis, center = center,
-                xlim = center[1] + c(-1, 1) * axis[1],
-                ylim = center[2] + c(-1, 1) * axis[2]
-            )
-        } else if (type == "tmerc") {
-            bounds <- list(type = "rectangle", xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
-        } else {
-            stop("'inla.crs.bounds' internal error: transformation detected but not handled.")
-        }
-    } else {
-        # PROJ4
-        args <- inla.as.list.CRS(crs)
-        if (args[["proj"]] == "longlat") {
-            bounds <- list(type = "rectangle", xlim = c(-180, 180), ylim = c(-90, 90))
-        } else if (args[["proj"]] == "cea") {
-            axis <- c(pi, 1)
-            if (!is.null(args[["a"]])) {
-                axis[1] <- axis[1] * as.numeric(args$a)
-            }
-            if (!is.null(args[["b"]])) {
-                axis[2] <- axis[2] * as.numeric(args$a)^0.5 * as.numeric(args$b)^0.5
-            }
-            ## TODO: Handle "lat_ts" and "units"
-            bounds <- list(
-                type = "rectangle",
-                xlim = c(-1, 1) * axis[1], ylim = c(-1, 1) * axis[2]
-            )
-        } else if (args[["proj"]] %in% c("moll", "hammer")) {
-            axis <- c(2, 1)
-            center <- c(0, 0)
-            if (!is.null(args[["a"]])) {
-                axis[1] <- axis[1] * as.numeric(args$a) / sqrt(1 / 2)
-                axis[2] <- axis[2] * as.numeric(args$a) / sqrt(1 / 2)
-            }
-            ## TODO: Handle "units"
-            bounds <- list(
-                type = "ellipse", axis = axis, center = center,
-                xlim = center[1] + c(-1, 1) * axis[1],
-                ylim = center[2] + c(-1, 1) * axis[2]
-            )
-        } else if (args[["proj"]] == "tmerc") {
-            bounds <- list(type = "rectangle", xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
-        } else if (inla.crs_is_geocent(crs)) {
-            bounds <- list(type = "rectangle", xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
+    wkt <- inla.crs_get_wkt(crs)
+    wt <- inla.as.wkt_tree.wkt(wkt)
+    type <- inla.wkt_tree_projection_type(wt)
+    
+    if (is.null(type)) {
+        if (inla.wkt_is_geocent(wkt)) {
+            bounds <-
+                list(
+                    type = "rectangle",
+                    xlim = c(-Inf, Inf),
+                    ylim = c(-Inf, Inf)
+                )
         } else {
             if (warn.unknown) {
-                warning("Could not determine shape of transformation bounds. Using infinite rectangle.")
+                warning(
+                    "Could not determine shape of transformation bounds. Using infinite rectangle."
+                )
             }
-            bounds <- list(type = "rectangle", xlim = c(-Inf, Inf), ylim = c(-Inf, Inf))
+            bounds <-
+                list(
+                    type = "rectangle",
+                    xlim = c(-Inf, Inf),
+                    ylim = c(-Inf, Inf)
+                )
         }
+    } else if (type == "longlat") {
+        bounds <-
+            list(
+                type = "rectangle",
+                xlim = c(-180, 180),
+                ylim = c(-90, 90)
+            )
+    } else if (type == "lambert") {
+        axis <- c(pi, 1)
+        radius <- inla.wkt_get_ellipsoid_radius(wkt)
+        axis[1] <- axis[1] * radius
+        # TODO: handle eccentricity
+        axis[2] <- axis[2] * sqrt(radius) * sqrt(radius)
+        # TODO: Handle units"
+        bounds <- list(
+            type = "rectangle",
+            xlim = c(-1, 1) * axis[1],
+            ylim = c(-1, 1) * axis[2]
+        )
+    } else if (type %in% c("mollweide", "hammer")) {
+        axis <- c(2, 1)
+        center <- c(0, 0)
+        radius <- inla.wkt_get_ellipsoid_radius(wkt)
+        axis[1] <- axis[1] * radius / sqrt(1 / 2)
+        axis[2] <- axis[2] * radius / sqrt(1 / 2)
+        # TODO: Handle "units"
+        bounds <- list(
+            type = "ellipse",
+            axis = axis,
+            center = center,
+            xlim = center[1] + c(-1, 1) * axis[1],
+            ylim = center[2] + c(-1, 1) * axis[2]
+        )
+    } else if (type == "tmerc") {
+        bounds <-
+            list(
+                type = "rectangle",
+                xlim = c(-Inf, Inf),
+                ylim = c(-Inf, Inf)
+            )
+    } else {
+        stop("'inla.crs.bounds' internal error: transformation detected but not handled.")
     }
-
+    
     if (bounds$type == "rectangle") {
         bounds$polygon <- cbind(
             bounds$xlim[c(1, 2, 2, 1, 1)],
@@ -1771,7 +1670,7 @@ inla.identical.CRS <- function(crs0, crs1, crsonly = FALSE) {
 #' @seealso [inla.CRS()]
 #' @examples
 #'
-#' if (require(rgdal)) {
+#' if (require("sf") && require("sp")) {
 #'     latt <- inla.mesh.lattice(-10:10, 40:60)
 #'     mesh1 <- inla.mesh.create(
 #'         lattice = latt, extend = FALSE, refine = FALSE,
@@ -1792,201 +1691,127 @@ inla.spTransform <- function(x, ...) {
 #' @export
 #' @rdname inla.spTransform
 inla.spTransform.default <- function(x, crs0, crs1, passthrough = FALSE, ...) {
-    if (inla.has_PROJ6()) {
-        # PROJ6
-        ok0 <- (!is.null(crs0) &&
-            ((inherits(crs0, "CRS") && !is.null(inla.crs_get_wkt(crs0))) ||
-                (inherits(crs0, "inla.CRS"))))
-        ok1 <- (!is.null(crs1) &&
-            ((inherits(crs1, "CRS") && !is.null(inla.crs_get_wkt(crs1))) ||
-                (inherits(crs1, "inla.CRS"))))
-        if (ok0 && ok1) {
-            if (ncol(x) == 2) {
-                x <- cbind(x, 0)
-            }
-            sphere_radius_0 <- inla.crs_get_ellipsoid_radius(crs0)
-            sphere_radius_1 <- inla.crs_get_ellipsoid_radius(crs1)
-            different_radii <- (sphere_radius_0 != sphere_radius_1)
-            longlat_norm <- inla.CRS("longlat_norm")
-            longlat_0 <- inla.crs_set_ellipsoid_radius(longlat_norm, sphere_radius_0)
-            longlat_1 <- inla.crs_set_ellipsoid_radius(longlat_norm, sphere_radius_1)
-
-            crs_sphere <- inla.CRS("sphere")
-            onsphere_0 <- inla.identical.CRS(crs0, crs_sphere, crsonly = TRUE)
-            onsphere_1 <- inla.identical.CRS(crs1, crs_sphere, crsonly = TRUE)
-            is_geocentric_0 <- inla.crs_is_geocent(crs0)
-            is_geocentric_1 <- inla.crs_is_geocent(crs1)
-            if (is_geocentric_0) {
-                ok <- TRUE
-            } else {
-                bounds <- inla.crs.bounds(crs0)
-                if (identical(inla.crs_projection_type(crs0), "longlat")) {
-                    ## Wrap longitudes to [-180,180]
-                    needswrap <- (x[, 1] < -180) | (x[, 1] > 180)
-                    if (any(needswrap)) {
-                        x[needswrap, 1] <- ((x[needswrap, 1] + 180) %% 360) - 180
-                    }
-                }
-                ok <- inla.crs.bounds.check(x, bounds)
-                if (!all(ok)) {
-                    xx <- x
-                }
-            }
-            do_work_on_sphere <-
-                inherits(crs0, "inla.CRS") ||
-                    inherits(crs1, "inla.CRS") ||
-                    different_radii
-            if (inherits(crs0, "inla.CRS")) {
-                crs0crs <- crs0$crs
-                crs0oblique <- crs0$oblique
-            } else {
-                crs0crs <- crs0
-                crs0oblique <- NULL
-            }
-            if (inherits(crs1, "inla.CRS")) {
-                crs1crs <- crs1$crs
-                crs1oblique <- crs1$oblique
-            } else {
-                crs1crs <- crs1
-                crs1oblique <- NULL
-            }
-            x <- SpatialPoints(x[ok, , drop = FALSE], proj4string = crs0crs)
-            if (do_work_on_sphere) {
-                if (!onsphere_0) {
-                    if (sphere_radius_0 != 1) {
-                        x <- spTransform(x, longlat_0)
-                        proj4string(x) <- CRS(NA_character_) # Reset CRS to avoid warning
-                        proj4string(x) <- longlat_norm
-                    }
-                    x <- spTransform(x, crs_sphere)
-                }
-                if (!is.null(crs0oblique)) {
-                    x <- SpatialPoints(inla.crs.transform.oblique(coordinates(x),
-                        crs0oblique,
-                        to.oblique = FALSE
-                    ),
-                    proj4string = crs_sphere
-                    )
-                }
-
-                if (!is.null(crs1oblique)) {
-                    x <- SpatialPoints(inla.crs.transform.oblique(coordinates(x),
-                        crs1oblique,
-                        to.oblique = TRUE
-                    ),
-                    proj4string = crs_sphere
-                    )
-                }
-                if (sphere_radius_1 != 1) {
-                    x <- spTransform(x, longlat_norm)
-                    proj4string(x) <- CRS(NA_character_) # Reset CRS to avoid warning
-                    proj4string(x) <- longlat_1
-                }
-            }
-
-            x <- spTransform(x, crs1crs)
-
-            if (!all(ok)) {
-                xx[ok, ] <- coordinates(x)
-                xx[!ok, ] <- NA
-                x <- xx
-            }
-        } else if (!passthrough) {
-            if (!ok0) {
-                stop("'crs0' is an invalid coordinate reference object.")
-            }
-            if (!ok1) {
-                stop("'crs1' is an invalid coordinate reference object.")
-            }
+    # PROJ6
+    ok0 <- (!is.null(crs0) &&
+                ((
+                    inherits(crs0, "CRS") && !is.null(inla.crs_get_wkt(crs0))
+                ) ||
+                    (inherits(crs0, "inla.CRS"))))
+    ok1 <- (!is.null(crs1) &&
+                ((
+                    inherits(crs1, "CRS") && !is.null(inla.crs_get_wkt(crs1))
+                ) ||
+                    (inherits(crs1, "inla.CRS"))))
+    if (ok0 && ok1) {
+        if (ncol(x) == 2) {
+            x <- cbind(x, 0)
         }
-        if (is.matrix(x)) {
-            invisible(x)
+        sphere_radius_0 <- inla.crs_get_ellipsoid_radius(crs0)
+        sphere_radius_1 <- inla.crs_get_ellipsoid_radius(crs1)
+        different_radii <- (sphere_radius_0 != sphere_radius_1)
+        longlat_norm <- inla.CRS("longlat_norm")
+        longlat_0 <-
+            inla.crs_set_ellipsoid_radius(longlat_norm, sphere_radius_0)
+        longlat_1 <-
+            inla.crs_set_ellipsoid_radius(longlat_norm, sphere_radius_1)
+        
+        crs_sphere <- inla.CRS("sphere")
+        onsphere_0 <-
+            inla.identical.CRS(crs0, crs_sphere, crsonly = TRUE)
+        onsphere_1 <-
+            inla.identical.CRS(crs1, crs_sphere, crsonly = TRUE)
+        is_geocentric_0 <- inla.crs_is_geocent(crs0)
+        is_geocentric_1 <- inla.crs_is_geocent(crs1)
+        if (is_geocentric_0) {
+            ok <- TRUE
         } else {
-            invisible(coordinates(x))
+            bounds <- inla.crs.bounds(crs0)
+            if (identical(inla.crs_projection_type(crs0), "longlat")) {
+                ## Wrap longitudes to [-180,180]
+                needswrap <- (x[, 1] < -180) | (x[, 1] > 180)
+                if (any(needswrap)) {
+                    x[needswrap, 1] <- ((x[needswrap, 1] + 180) %% 360) - 180
+                }
+            }
+            ok <- inla.crs.bounds.check(x, bounds)
+            if (!all(ok)) {
+                xx <- x
+            }
         }
+        do_work_on_sphere <-
+            inherits(crs0, "inla.CRS") ||
+            inherits(crs1, "inla.CRS") ||
+            different_radii
+        if (inherits(crs0, "inla.CRS")) {
+            crs0crs <- crs0$crs
+            crs0oblique <- crs0$oblique
+        } else {
+            crs0crs <- crs0
+            crs0oblique <- NULL
+        }
+        if (inherits(crs1, "inla.CRS")) {
+            crs1crs <- crs1$crs
+            crs1oblique <- crs1$oblique
+        } else {
+            crs1crs <- crs1
+            crs1oblique <- NULL
+        }
+        x <-
+            SpatialPoints(x[ok, , drop = FALSE], proj4string = crs0crs)
+        if (do_work_on_sphere) {
+            if (!onsphere_0) {
+                if (sphere_radius_0 != 1) {
+                    x <- spTransform(x, longlat_0)
+                    proj4string(x) <-
+                        CRS(NA_character_) # Reset CRS to avoid warning
+                    proj4string(x) <- longlat_norm
+                }
+                x <- spTransform(x, crs_sphere)
+            }
+            if (!is.null(crs0oblique)) {
+                x <- SpatialPoints(
+                    inla.crs.transform.oblique(coordinates(x),
+                                               crs0oblique,
+                                               to.oblique = FALSE),
+                    proj4string = crs_sphere
+                )
+            }
+            
+            if (!is.null(crs1oblique)) {
+                x <- SpatialPoints(
+                    inla.crs.transform.oblique(coordinates(x),
+                                               crs1oblique,
+                                               to.oblique = TRUE),
+                    proj4string = crs_sphere
+                )
+            }
+            if (sphere_radius_1 != 1) {
+                x <- spTransform(x, longlat_norm)
+                proj4string(x) <-
+                    CRS(NA_character_) # Reset CRS to avoid warning
+                proj4string(x) <- longlat_1
+            }
+        }
+        
+        x <- spTransform(x, crs1crs)
+        
+        if (!all(ok)) {
+            xx[ok,] <- coordinates(x)
+            xx[!ok,] <- NA
+            x <- xx
+        }
+    } else if (!passthrough) {
+        if (!ok0) {
+            stop("'crs0' is an invalid coordinate reference object.")
+        }
+        if (!ok1) {
+            stop("'crs1' is an invalid coordinate reference object.")
+        }
+    }
+    if (is.matrix(x)) {
+        invisible(x)
     } else {
-        # PROJ4
-        ok0 <- (!is.null(crs0) &&
-            ((inherits(crs0, "CRS") && !is.na(inla.CRSargs(crs0))) ||
-                (inherits(crs0, "inla.CRS"))))
-        ok1 <- (!is.null(crs1) &&
-            ((inherits(crs1, "CRS") && !is.na(inla.CRSargs(crs1))) ||
-                (inherits(crs1, "inla.CRS"))))
-        if (ok0 && ok1) {
-            if (ncol(x) == 2) {
-                x <- cbind(x, 0)
-            }
-            onsphere <- inla.identical.CRS(crs0, inla.CRS("sphere"), crsonly = TRUE)
-            isgeocentric <- identical(inla.as.list.CRS(crs0)[["proj"]], "geocent")
-            if (isgeocentric) {
-                ok <- TRUE
-            } else {
-                bounds <- inla.crs.bounds(crs0)
-                if (identical(inla.as.list.CRS(crs0)[["proj"]], "longlat")) {
-                    ## Wrap longitudes to [-180,180]
-                    needswrap <- (x[, 1] < -180) | (x[, 1] > 180)
-                    if (any(needswrap)) {
-                        x[needswrap, 1] <- ((x[needswrap, 1] + 180) %% 360) - 180
-                    }
-                }
-                ok <- inla.crs.bounds.check(x, bounds)
-                if (!all(ok)) {
-                    xx <- x
-                }
-            }
-            if (inherits(crs0, "inla.CRS")) {
-                if (!onsphere) {
-                    x <- spTransform(
-                        SpatialPoints(x[ok, , drop = FALSE], proj4string = crs0$crs),
-                        inla.CRS("sphere")
-                    )
-                }
-                if (!is.null(crs0$oblique)) {
-                    x <- SpatialPoints(inla.crs.transform.oblique(coordinates(x),
-                        crs0$oblique,
-                        to.oblique = FALSE
-                    ),
-                    proj4string = inla.CRS("sphere")
-                    )
-                }
-                onshpere <- TRUE
-            } else {
-                x <- SpatialPoints(x[ok, , drop = FALSE], proj4string = crs0)
-            }
-            if (inherits(crs1, "inla.CRS")) {
-                if (!onsphere) {
-                    x <- spTransform(x, inla.CRS("sphere"))
-                }
-                if (!is.null(crs1$oblique)) {
-                    x <- SpatialPoints(inla.crs.transform.oblique(coordinates(x),
-                        crs1$oblique,
-                        to.oblique = TRUE
-                    ),
-                    proj4string = inla.CRS("sphere")
-                    )
-                }
-                x <- spTransform(x, crs1$crs)
-            } else {
-                x <- spTransform(x, crs1)
-            }
-            if (!all(ok)) {
-                xx[ok, ] <- coordinates(x)
-                xx[!ok, ] <- NA
-                x <- xx
-            }
-        } else if (!passthrough) {
-            if (!ok0) {
-                stop("'crs0' is an invalid coordinate reference object.")
-            }
-            if (!ok1) {
-                stop("'crs1' is an invalid coordinate reference object.")
-            }
-        }
-        if (is.matrix(x)) {
-            invisible(x)
-        } else {
-            invisible(coordinates(x))
-        }
+        invisible(coordinates(x))
     }
 }
 
@@ -1994,54 +1819,30 @@ inla.spTransform.default <- function(x, crs0, crs1, passthrough = FALSE, ...) {
 #' @export
 #' @rdname inla.spTransform
 inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough = FALSE, ...) {
-    if (inla.has_PROJ6()) {
-        crs_x <- inla.sp_get_crs(x)
-        ok0 <- !is.null(inla.crs_get_wkt(crs_x))
-        ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
-            (inherits(CRSobj, "CRS") && !is.null(inla.crs_get_wkt(CRSobj))))
-        if (ok0 && ok1) {
-            invisible(SpatialPoints(inla.spTransform(
-                coordinates(x),
-                crs_x,
-                CRSobj
-            ),
+    crs_x <- inla.sp_get_crs(x)
+    ok0 <- !is.null(inla.crs_get_wkt(crs_x))
+    ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
+                (inherits(CRSobj, "CRS") &&
+                     !is.null(inla.crs_get_wkt(CRSobj))))
+    if (ok0 && ok1) {
+        invisible(SpatialPoints(
+            inla.spTransform(coordinates(x),
+                             crs_x,
+                             CRSobj),
             proj4string = CRSobj
-            ))
-        } else if (ok1) { ## Know: !ok0 && ok1
-            if (!passthrough) {
-                stop("Invalid origin CRS for SpatialPoints")
-            }
-            invisible(SpatialPoints(coordinates(x), proj4string = CRSobj))
-        } else { ## Know: (ok0 || !ok0) && !ok1
-            if (!passthrough) {
-                stop("Invalid target CRS for SpatialPoints")
-            }
-            invisible(SpatialPoints(coordinates(x), proj4string = inla.CRS()))
+        ))
+    } else if (ok1) {
+        ## Know: !ok0 && ok1
+        if (!passthrough) {
+            stop("Invalid origin CRS for SpatialPoints")
         }
+        invisible(SpatialPoints(coordinates(x), proj4string = CRSobj))
     } else {
-        # PROJ4
-        ok0 <- !is.na(proj4string(x))
-        ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
-            (inherits(CRSobj, "CRS") && !is.na(inla.CRSargs(CRSobj))))
-        if (ok0 && ok1) {
-            invisible(SpatialPoints(inla.spTransform(
-                coordinates(x),
-                CRS(proj4string(x)),
-                CRSobj
-            ),
-            proj4string = CRSobj
-            ))
-        } else if (ok1) { ## Know: !ok0 && ok1
-            if (!passthrough) {
-                stop("Invalid origin CRS for SpatialPoints")
-            }
-            invisible(SpatialPoints(coordinates(x), proj4string = CRSobj))
-        } else { ## Know: (ok0 || !ok0) && !ok1
-            if (!passthrough) {
-                stop("Invalid target CRS for SpatialPoints")
-            }
-            invisible(SpatialPoints(coordinates(x), proj4string = inla.CRS()))
+        ## Know: (ok0 || !ok0) && !ok1
+        if (!passthrough) {
+            stop("Invalid target CRS for SpatialPoints")
         }
+        invisible(SpatialPoints(coordinates(x), proj4string = inla.CRS()))
     }
 }
 
@@ -2051,8 +1852,6 @@ inla.spTransform.SpatialPointsDataFrame <- function(x,
                                                     CRSobj,
                                                     passthrough = FALSE,
                                                     ...) {
-    inla.requires_PROJ6()
-
     ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
         (inherits(CRSobj, "CRS") && !is.null(inla.crs_get_wkt(CRSobj))))
     if (!ok1 && !passthrough) {
