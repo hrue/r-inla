@@ -9,7 +9,7 @@
 ## ! }
 ## ! \usage{
 ## !    inla.binary.install(os = c("CentOS Linux-6", "CentOS Linux-7", "CentOS Linux-8",
-## !                               "CentOS Stream-8",
+## !                               "CentOS Stream-8", "Rocky Linux-9", 
 ## !                               "Fedora-33", "Fedora-34", "Fedora Linux-35",
 ## !                               "Fedora Linux-36", "Fedora Linux-37",
 ## !                               "Manjaro Linux",
@@ -46,6 +46,7 @@
                                          "CentOS Linux-7", 
                                          "CentOS Linux-8", 
                                          "CentOS Stream-8", 
+                                         "Rocky Linux-9", 
                                          "Fedora-33", 
                                          "Fedora-34", 
                                          "Fedora Linux-35", 
