@@ -11,6 +11,7 @@
 }
 \usage{
 inla.group.cv(result,
+          group.cv = NULL, 
           num.level.sets = -1, 
           size.max = 32, 
           strategy = c("posterior", "prior"), 
@@ -27,6 +28,9 @@ inla.group.cv(result,
 \arguments{
 \item{result}{An object of class \code{inla}, ie a result
 of a call to \code{inla()}.}
+\item{group.cv}{If given, the groups are taken from
+this argument. \code{group.cv} must be the output
+of previous call to \code{inla.group.cv()}.}
 \item{num.level.sets}{Number of level.sets to use. The default value
 \code{-1} corresponds to leave-one-out cross-validation.}
 \item{strategy}{One of \code{"posterior"} or \code{"prior"}.
