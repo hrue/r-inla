@@ -43319,12 +43319,12 @@ int testit(int argc, char **argv)
 
 	case 105:
 	{
-		P(iszero(0));
-		P(iszero(1));
-		P(iszero(0.0));
-		P(iszero(1.0));
-		P(iszero(0.0f));
-		P(iszero(1.0f));
+		P(ISZERO(0));
+		P(ISZERO(1));
+		P(ISZERO(0.0));
+		P(ISZERO(1.0));
+		P(ISZERO(0.0f));
+		P(ISZERO(1.0f));
 	}
 		break;
 

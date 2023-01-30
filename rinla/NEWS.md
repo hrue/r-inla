@@ -1,4 +1,4 @@
-# INLA 23.01.30
+# INLA 23.01.31
 * Remove `rgeos` dependency
 * Remove `rgdal` dependency
 * Add new link-function: \code{ccloglog}
