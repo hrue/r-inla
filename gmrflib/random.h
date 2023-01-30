@@ -49,9 +49,7 @@
 #endif
 
 __BEGIN_DECLS
-
 #include "GMRFLib/GMRFLib.h"
-
 #include <stdlib.h>
 #define GMRFLib_rng (GMRFLib_rng_ptr ? GMRFLib_rng_ptr :  GMRFLib_rng_init_default())
     gsl_rng * GMRFLib_rng_init_default(void);

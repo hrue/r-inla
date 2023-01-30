@@ -59,7 +59,7 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	data->threads.max = GMRFLib_MAX_THREADS();
 	data->threads.outer = GMRFLib_openmp->max_threads_nested[0];
 	data->threads.inner = GMRFLib_openmp->max_threads_nested[1];
-	
+
 	fp = fopen(filename, "rb");
 	assert(fp);
 

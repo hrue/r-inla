@@ -92,8 +92,7 @@ const char *GMRFLib_error_reason(int errorno)
 #undef NMSG
 }
 
-int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const char *function, int line, int errorno,
-			  const char *msg)
+int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const char *function, int line, int errorno, const char *msg)
 {
 	/*
 	 * this is the default error-handler 

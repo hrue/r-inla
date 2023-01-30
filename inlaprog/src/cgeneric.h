@@ -142,17 +142,15 @@ typedef struct {
 	char *chars;
 } inla_cgeneric_vec_tp;
 
-typedef struct 
-{
+typedef struct {
 	// inla .. -t A:B
 	// max = maximum number of threads = A*B
 	// outer = number of threads in the outer loop (A)
 	// inner = number of threads in the inner loop (B)
-	int max;	
-	int outer;					       
-	int inner;					       
-}
-	inla_cgeneric_threads_tp;
+	int max;
+	int outer;
+	int inner;
+} inla_cgeneric_threads_tp;
 
 typedef struct {
 	inla_cgeneric_threads_tp threads;

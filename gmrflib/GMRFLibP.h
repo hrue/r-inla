@@ -401,13 +401,12 @@ typedef enum {
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
 
 
-// ``Note that x and y are compared to relative accuracy, so gsl_fcmp is not suitable for testing whether a value is approximately zero''. so we
-// make these tests relative to 1.0
-#define ISZERO(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
-#define ISZEROf(x) (gsl_fcmp(1.0 + (x), 1.0, FLT_EPSILON) == 0)
-#define ISZERO_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
+#include <math.h>
+#define ISZERO(x) iszero(x)
+
+#define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
+#define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
-#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
 #define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)

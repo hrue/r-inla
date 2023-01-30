@@ -104,8 +104,7 @@ __BEGIN_DECLS
   \return The function is to return the error number \a errorno.
   \sa GMRFLib_error_handler, GMRFLib_set_error_handler.
  */
-typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const char *function, int line, int errorno,
-				     const char *msg);
+typedef int GMRFLib_error_handler_tp(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg);
 
 const char *GMRFLib_error_reason(int errorno);
 int GMRFLib_error_handler(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg);

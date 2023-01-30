@@ -7963,9 +7963,9 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		C += tt * xp2[i];
 		B += tt2 * xp[i];
 	}
-	coofs->coofs[0] = - d * A;
-	coofs->coofs[1] = - d * B * s_inv;
-	coofs->coofs[2] = - d * C * s2_inv;
+	coofs->coofs[0] = -d * A;
+	coofs->coofs[1] = -d * B * s_inv;
+	coofs->coofs[2] = -d * C * s2_inv;
 
 	return GMRFLib_SUCCESS;
 }
@@ -8023,16 +8023,16 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 	B = -tmp;
 	C = 3.0 * tmp;
 	for (int i = 0; i < ni; i++) {
-		int ii =  GMRFLib_INT_GHQ_POINTS - 1 - i;
+		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
 		A += tt;
 		B += tt * xp2[i];
 		C += tt * xp3[i];
 	}
 
-	coofs->coofs[0] = - d * A;
-	coofs->coofs[1] = - d * B * 0.5 * s2_inv;
-	coofs->coofs[2] = - d * C * 0.25 * s2_inv;
+	coofs->coofs[0] = -d * A;
+	coofs->coofs[1] = -d * B * 0.5 * s2_inv;
+	coofs->coofs[2] = -d * C * 0.25 * s2_inv;
 
 	return GMRFLib_SUCCESS;
 }

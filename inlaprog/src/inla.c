@@ -9819,9 +9819,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -43287,10 +43287,10 @@ int testit(int argc, char **argv)
 		P(x - y);
 
 		double h = 1.0e-4;
-		y = (map_invcloglog(x+h, MAP_FORWARD, NULL)-map_invcloglog(x-h, MAP_FORWARD, NULL))/2.0/h;
-		P(map_invcloglog(x, MAP_DFORWARD, NULL)-y);
-		y = (map_invccloglog(x+h, MAP_FORWARD, NULL)-map_invccloglog(x-h, MAP_FORWARD, NULL))/2.0/h;
-		P(map_invccloglog(x, MAP_DFORWARD, NULL)-y);
+		y = (map_invcloglog(x + h, MAP_FORWARD, NULL) - map_invcloglog(x - h, MAP_FORWARD, NULL)) / 2.0 / h;
+		P(map_invcloglog(x, MAP_DFORWARD, NULL) - y);
+		y = (map_invccloglog(x + h, MAP_FORWARD, NULL) - map_invccloglog(x - h, MAP_FORWARD, NULL)) / 2.0 / h;
+		P(map_invccloglog(x, MAP_DFORWARD, NULL) - y);
 
 	}
 		break;
@@ -43308,15 +43308,26 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 104: 
+	case 104:
 	{
 		P(sqrt(-1.0));
 		P(log(-1.0));
-		P(1.0/0.0);
+		P(1.0 / 0.0);
 		P(exp(exp(100.0)));
 	}
-	break;
-	
+		break;
+
+	case 105:
+	{
+		P(iszero(0));
+		P(iszero(1));
+		P(iszero(0.0));
+		P(iszero(1.0));
+		P(iszero(0.0f));
+		P(iszero(1.0f));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
