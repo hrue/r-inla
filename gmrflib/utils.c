@@ -1,7 +1,7 @@
 
 /* utils.c
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,27 +28,16 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-#if !defined(__FreeBSD__)
 #include <assert.h>
 #include <float.h>
+#include <math.h>
 #include <signal.h>
 #include <stdarg.h>
-#include <math.h>
-#include <strings.h>
-#include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stddef.h>
-#include <string.h>
-#include <malloc.h>
-#endif
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -159,7 +148,7 @@ void *GMRFLib_memcpy(void *dest, const void *src, size_t n)
 	return NULL;
 }
 
-void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno, const char *id)
+void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *funcname, int lineno)
 {
 	void *ptr = NULL;
 	char *msg = NULL;
@@ -171,13 +160,13 @@ void *GMRFLib_calloc(size_t nmemb, size_t size, const char *file, const char *fu
 		return ptr;
 	}
 	GMRFLib_sprintf(&msg, "Failed to calloc nmemb=%1lu elements of size=%1lu bytes", nmemb, size);
-	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
+	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
 
 	return NULL;
 }
 
-void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno, const char *id)
+void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int lineno)
 {
 	void *ptr = NULL;
 	char *msg = NULL;
@@ -188,13 +177,13 @@ void *GMRFLib_malloc(size_t size, const char *file, const char *funcname, int li
 		return ptr;
 	}
 	GMRFLib_sprintf(&msg, "Failed to malloc size=%1lu bytes", size);
-	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
+	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
 
 	return NULL;
 }
 
-void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno, const char *id)
+void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *funcname, int lineno)
 {
 	void *ptr = NULL;
 	char *msg = NULL;
@@ -205,18 +194,18 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 		return ptr;
 	}
 	GMRFLib_sprintf(&msg, "Failed to realloc size=%1lu bytes", size);
-	GMRFLib_handle_error(file, funcname, lineno, id, GMRFLib_EMEMORY, msg);
+	GMRFLib_handle_error(file, funcname, lineno, GMRFLib_EMEMORY, msg);
 	abort();
 
 	return NULL;
 }
 
-void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno, const char *id)
+void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno)
 {
 	if (ptr) {
 		free(ptr);
 	} else {
-		fprintf(stderr, "%s:%s:%d (%s): Try to free a NULL-ptr\n", file, funcname, lineno, id);
+		fprintf(stderr, "%s:%s:%d: Try to free a NULL-ptr\n", file, funcname, lineno);
 	}
 }
 
@@ -972,47 +961,22 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
-/* 
-   define the floating point exception routines
- */
-#if defined(__sun)||defined(__FreeBSD__)
-#include <ieeefp.h>
-#include <floatingpoint.h>
-static void fpe_handler(void)
-{
-	fprintf(stderr, "\n\nFloating-point exception occured.\n");
-	abort();
-}
-static int fpe(void)
-{
-	// signal(SIGTRAP, (void (*)()) fpe_handler); 
-	signal(SIGFPE, (void (*)()) fpe_handler);
-	// signal(SIGILL, (void (*)()) fpe_handler); 
-	fpsetmask(FP_X_INV | FP_X_DZ | FP_X_OFL);
-	return 0;
-}
-#endif
-#ifdef __linux
+#if !defined(__APPLE__)
 #ifndef __USE_GNU
 #define __USE_GNU 1
 #endif
 #include <fenv.h>
-static int fpe(void)
+int GMRFLib_fpe(void)
 {
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	return 0;
 }
-#endif
-#if !defined(__sun) && !defined(__linux) && !defined(__FreeBSD__)
-static int fpe(void)
+#else
+int GMRFLib_fpe(void)
 {
 	return 0;
 }
 #endif
-int GMRFLib_fpe(void)
-{
-	return fpe();
-}
 
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {

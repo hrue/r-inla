@@ -2711,7 +2711,7 @@
     }
 
     stopifnot(!safe)
-    cmin <- 1
+    cmin <- 0
     ntry <- 0
     max.try <- 2
 
@@ -2781,7 +2781,12 @@
             r$.args$lincomb <- lincomb.save
         }
 
-        cmin <- cmin * 10^4
+        ## this allow us to try with cmin=0 first
+        if (cmin == 0.0) {
+            cmin <- 1
+        } else {
+            cmin <- cmin * 10^4
+        }
         ntry <- ntry + 1
     }
 

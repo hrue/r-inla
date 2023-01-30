@@ -1,7 +1,7 @@
 
 /* cgeneric.c
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,20 +30,12 @@
 
 
 #include <assert.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <math.h>
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "cgeneric.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 #if !defined(Calloc)
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
@@ -64,7 +56,10 @@ inla_cgeneric_data_tp *inla_cgeneric_read_data(const char *filename, int debug)
 	inla_cgeneric_data_tp *data = Calloc(1, inla_cgeneric_data_tp);
 	int i, j, k, len;
 
-	data->max_threads = GMRFLib_MAX_THREADS();
+	data->threads.max = GMRFLib_MAX_THREADS();
+	data->threads.outer = GMRFLib_openmp->max_threads_nested[0];
+	data->threads.inner = GMRFLib_openmp->max_threads_nested[1];
+
 	fp = fopen(filename, "rb");
 	assert(fp);
 

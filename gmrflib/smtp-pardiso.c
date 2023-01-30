@@ -1,7 +1,7 @@
 
 /* smtp-pardiso.c
  * 
- * Copyright (C) 2018-2022 Havard Rue
+ * Copyright (C) 2018-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,18 +45,9 @@
 #include <io.h>
 #endif
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 // do not change: also inlaprog/src/libpardiso.c uses this code
 #define NOLIB_ECODE (270465)

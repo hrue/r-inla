@@ -75,9 +75,6 @@
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 // hrue
@@ -93,9 +90,6 @@
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 #include "GMRFLib/GMRFLib.h"
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
 /***************************************************************************/
 

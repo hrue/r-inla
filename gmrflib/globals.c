@@ -1,7 +1,7 @@
 
 /* globals.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,17 +33,9 @@
   \brief Set values of global variables.
 */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-//static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #define __GMRFLib_DONT_DEFINE_GLOBALS
 #include <limits.h>
 #include <time.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"

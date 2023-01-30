@@ -1,7 +1,7 @@
 
 /* idxval.c
  * 
- * Copyright (C) 2022-2022 Havard Rue
+ * Copyright (C) 2022-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,16 +28,6 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
-
-#if !defined(__FreeBSD__)
 #include <assert.h>
 #include <float.h>
 #include <signal.h>
@@ -45,13 +35,8 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <math.h>
 #include <strings.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stddef.h>
 #include <string.h>
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -1074,7 +1059,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

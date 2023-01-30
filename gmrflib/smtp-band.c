@@ -1,7 +1,7 @@
 
 /* GMRFLib-smtp-band.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,11 +35,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 {
@@ -177,8 +172,8 @@ int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * fi
 		break;
 	}
 	if (error) {
-		fprintf(stdout, "\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
-			GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num());
+		fprintf(stdout, "\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tFailed to factorize Q. I will try to fix it...\n\n",
+			__GMRFLib_FuncName, __LINE__, omp_get_thread_num());
 		return GMRFLib_EPOSDEF;
 	}
 

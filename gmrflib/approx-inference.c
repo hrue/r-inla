@@ -1,7 +1,7 @@
 
 /* approx-inference.c
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,11 +28,6 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <stdint.h>
 #include <assert.h>
 #include <time.h>
@@ -42,9 +37,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <strings.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -7915,7 +7907,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			       void *loglFunc_arg, double *x_vec, double mean, double sd)
 {
 	/*
-	 * compute the Taylor-expansion of -loglikelihood * density(x), around the mean of x
+	 * compute the Taylor-expansion of integral of -loglikelihood * density(x), around the mean of x
 	 */
 
 	// Normal kernel: deriv: ... * (x-m)/s^2
@@ -7927,81 +7919,53 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
-	static double **wwork = NULL;
-	static int *wwork_len = NULL;
-	if (!wwork) {
+	static double *xp = NULL;
+	static double *wp = NULL;
+	static double *xp2 = NULL;
+
+	if (!wp) {
 #pragma omp critical (Name_00c5c0bab9ee4213c2351e3b2275ded2f8b87d22)
 		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+			if (!wp) {
+				double *wtmp = NULL;
+				GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
+				xp2 = Calloc(GMRFLib_INT_GHQ_POINTS, double);
+				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
+					xp2[i] = SQR(xp[i]) - 1.0;
+				}
+				wp = wtmp;
 			}
 		}
 	}
 
-	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
+	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
+	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
 
-	if (wwork_len[cache_idx] == 0) {
-		wwork_len[cache_idx] = 2 * GMRFLib_INT_GHQ_POINTS;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
-	}
-
-	// not needed
-	// Memset(wwork[cache_idx], 0, wwork_len[cache_idx] * sizeof(double));
-	double *x_user = wwork[cache_idx];
-	double *loglik = wwork[cache_idx] + GMRFLib_INT_GHQ_POINTS;
-
-	static double *xp = NULL, *wp = NULL;
-	if (xp == NULL) {
-#pragma omp critical (Name_39190dc24ebd3ecefbf4346ba4f925e6029759f8)
-		if (xp == NULL) {
-			GMRFLib_ghq(&xp, &wp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
-		}
-	}
-
+#pragma GCC ivdep
 	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
 		x_user[i] = mean + sd * xp[i];
 	}
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-	if (0) {
-		double mm = 0;
-		double ss = 0.0;
-		GMRFLib_vb_fit_gaussian(GMRFLib_INT_GHQ_POINTS, x_user, loglik, &mm, &ss);
-		P(ss / sd);
-	}
+	double A, B, C, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp;
 
-	double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp, tmp2;
-	if (0) {
-		// plain version
-		for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-			tmp = wp[i] * loglik[i];
-			A -= tmp;
-			B -= tmp * xp[i];
-			C -= tmp * (SQR(xp[i]) - 1.0);
-		}
+	// optimized version. since xp and wp are symmetric and xp[idx]=0
+	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
+	tmp = wp[ni] * loglik[ni];
+	A = tmp;
+	B = 0.0;
+	C = -tmp;
+	for (int i = 0; i < ni; i++) {
+		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
+		double tt = wp[i] * (loglik[i] + loglik[ii]);
+		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
+		A += tt;
+		C += tt * xp2[i];
+		B += tt2 * xp[i];
 	}
-
-	if (1) {
-		// optimized version. since xp and wp are symmetric and xp[idx]=0
-		int iidx = GMRFLib_INT_GHQ_POINTS / 2;
-		tmp = wp[iidx] * loglik[iidx];
-		A = -tmp;
-		B = 0.0;
-		C = tmp;
-		for (int i = 0, ii = GMRFLib_INT_GHQ_POINTS - 1; i < iidx; i++, ii--) {
-			tmp = wp[i] * (loglik[i] + loglik[ii]);
-			tmp2 = wp[i] * (loglik[i] - loglik[ii]);
-			A -= tmp;
-			B -= tmp2 * xp[i];
-			C -= tmp * (SQR(xp[i]) - 1.0);
-		}
-	}
-
-	coofs->coofs[0] = d * A;
-	coofs->coofs[1] = d * B * s_inv;
-	coofs->coofs[2] = d * C * s2_inv;
+	coofs->coofs[0] = -d * A;
+	coofs->coofs[1] = -d * B * s_inv;
+	coofs->coofs[2] = -d * C * s2_inv;
 
 	return GMRFLib_SUCCESS;
 }
@@ -8010,7 +7974,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 				   GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
 {
 	/*
-	 * compute the Taylor-expansion of -loglikelihood * density(x), for the variance of x (assuming its N())
+	 * compute the Taylor-expansion of the integral of -loglikelihood * density(x), for the variance of x (assuming its N())
 	 */
 
 	if (ISZERO(d)) {
@@ -8018,45 +7982,31 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 		return GMRFLib_SUCCESS;
 	}
 
-	if (ISNAN(mean) || ISNAN(sd) || sd == 0.0) {
-		P(thread_id);
-		P(idx);
-		P(mean);
-		P(sd);
-	}
+	static double *wp = NULL;
+	static double *xp = NULL;
+	static double *xp2 = NULL;
+	static double *xp3 = NULL;
 
-	static double **wwork = NULL;
-	static int *wwork_len = NULL;
-	if (!wwork) {
+	if (!wp) {
 #pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
 		{
-			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+			if (!wp) {
+				double *wtmp = NULL;
+				GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
+				xp2 = Calloc(2 * GMRFLib_INT_GHQ_POINTS, double);
+				xp3 = xp2 + GMRFLib_INT_GHQ_POINTS;
+				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
+					double z2 = SQR(xp[i]);
+					xp2[i] = z2 - 1.0;
+					xp3[i] = 3.0 - 6.0 * z2 + SQR(z2);
+				}
+				wp = wtmp;
 			}
 		}
 	}
 
-	int cache_idx = 0;
-	GMRFLib_CACHE_SET_ID(cache_idx);
-
-	if (wwork_len[cache_idx] == 0) {
-		wwork_len[cache_idx] = 2 * GMRFLib_INT_GHQ_POINTS;
-		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
-	}
-
-	// not needed
-	// Memset(wwork[cache_idx], 0, wwork_len[cache_idx] * sizeof(double));
-	double *x_user = wwork[cache_idx];
-	double *loglik = wwork[cache_idx] + GMRFLib_INT_GHQ_POINTS;
-
-	static double *xp = NULL, *wp = NULL;
-	if (xp == NULL) {
-#pragma omp critical (Name_39190dc24ebd3ecefbf4346ba4f925e6029759f8)
-		if (xp == NULL) {
-			GMRFLib_ghq(&xp, &wp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
-		}
-	}
+	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
+	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
 
 #pragma GCC ivdep
 	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
@@ -8064,36 +8014,25 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 	}
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-	double A = 0.0, B = 0.0, C = 0.0, s2_inv = 1.0 / SQR(sd);
-	if (0) {
-		// plain version
-		for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-			double z2 = SQR(xp[i]);
-			double tmp = wp[i] * loglik[i];
-			A -= tmp;
-			B -= tmp * (z2 - 1.0);
-			C -= tmp * (3.0 - 6.0 * z2 + SQR(z2));
-		}
-	}
-	if (1) {
-		// optimized version, as both xp and wp are symmetric and xp[idx]=0
-		int iidx = GMRFLib_INT_GHQ_POINTS / 2L;
-		double tmp = wp[iidx] * loglik[iidx];
-		A = -tmp;
-		B = tmp;
-		C = -3.0 * tmp;
-		for (int i = 0, ii = GMRFLib_INT_GHQ_POINTS - 1; i < iidx; i++, ii--) {
-			double z2 = SQR(xp[i]);
-			tmp = wp[i] * (loglik[i] + loglik[ii]);
-			A -= tmp;
-			B -= tmp * (z2 - 1.0);
-			C -= tmp * (3.0 - 6.0 * z2 + SQR(z2));
-		}
+	double A, B, C, s2_inv = 1.0 / SQR(sd);
+
+	// optimized version, as both xp and wp are symmetric and xp[idx]=0
+	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
+	double tmp = wp[ni] * loglik[ni];
+	A = tmp;
+	B = -tmp;
+	C = 3.0 * tmp;
+	for (int i = 0; i < ni; i++) {
+		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
+		double tt = wp[i] * (loglik[i] + loglik[ii]);
+		A += tt;
+		B += tt * xp2[i];
+		C += tt * xp3[i];
 	}
 
-	coofs->coofs[0] = d * A;
-	coofs->coofs[1] = d * B * 0.5 * s2_inv;
-	coofs->coofs[2] = d * C * 0.25 * s2_inv;
+	coofs->coofs[0] = -d * A;
+	coofs->coofs[1] = -d * B * 0.5 * s2_inv;
+	coofs->coofs[2] = -d * C * 0.25 * s2_inv;
 
 	return GMRFLib_SUCCESS;
 }
@@ -8853,7 +8792,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		c_like[j] *= csum;
 	}
 
-	// can define shorter storage, but it should be fine really, I hope... this is properly verified yet
+	// can define shorter storage, but it should be fine really, I hope... this is properly yet to be verified
 #if 0
 #define STORAGE_TP float
 #define TYPE_CAST (double)

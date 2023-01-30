@@ -3,15 +3,6 @@
  *  This is a modified version of the VECTOR_BFGS2 optimiser in GSL 
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
-
 /* multimin/vector_bfgs2.c
  * 
  * Copyright (C) 2007 Brian Gough
@@ -45,9 +36,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include <gsl/gsl_multimin.h>

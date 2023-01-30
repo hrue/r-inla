@@ -1,7 +1,7 @@
 
 /* design.c
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,20 +34,12 @@
 
 */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <stddef.h>
 #include <float.h>
 #include <math.h>
 #include <strings.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"

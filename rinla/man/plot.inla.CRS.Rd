@@ -67,7 +67,7 @@ Plot the outline of a CRS or inla.CRS projection, with optional graticules
 }
 \examples{
 
-if (require(rgdal)) {
+if (require("sf") && require("sp")) {
     oblique <- c(0, 45, 45, 0)
     for (projtype in c("longlat", "lambert", "mollweide", "hammer")) {
         plot(inla.CRS(projtype), main = projtype)

@@ -22,6 +22,8 @@
 ## ! \alias{inla.link.invprobit}
 ## ! \alias{inla.link.cloglog}
 ## ! \alias{inla.link.invcloglog}
+## ! \alias{inla.link.ccloglog}
+## ! \alias{inla.link.invccloglog}
 ## ! \alias{inla.link.loglog}
 ## ! \alias{inla.link.invloglog}
 ## ! \alias{inla.link.tan}
@@ -55,6 +57,8 @@
 ## ! inla.link.invprobit(x, inverse=FALSE)
 ## ! inla.link.cloglog(x, inverse=FALSE)
 ## ! inla.link.invcloglog(x, inverse=FALSE)
+## ! inla.link.ccloglog(x, inverse=FALSE)
+## ! inla.link.invccloglog(x, inverse=FALSE)
 ## ! inla.link.loglog(x, inverse=FALSE)
 ## ! inla.link.invloglog(x, inverse=FALSE)
 ## ! inla.link.tan(x, inverse=FALSE)
@@ -182,6 +186,17 @@
 }
 `inla.link.invcloglog` <- function(x, inverse = FALSE) {
     return(inla.link.cloglog(x, inverse = !inverse))
+}
+
+`inla.link.ccloglog` <- function(x, inverse = FALSE) {
+    if (!inverse) {
+        return(-log(-log(x)))
+    } else {
+        return(exp(-exp(-x)))
+    }
+}
+`inla.link.invccloglog` <- function(x, inverse = FALSE) {
+    return(inla.link.ccloglog(x, inverse = !inverse))
 }
 
 `inla.link.tan` <- function(x, inverse = FALSE) {

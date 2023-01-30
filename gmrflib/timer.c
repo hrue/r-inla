@@ -1,7 +1,7 @@
 
 /* timer.c
  *
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,22 +35,10 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 #if defined(_OPENMP)
 #include <sys/time.h>

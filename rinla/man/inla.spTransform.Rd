@@ -51,7 +51,7 @@ reference systems of \code{sp::CRS} or \code{inla.CRS} class.
 }
 \examples{
 
-if (require(rgdal)) {
+if (require("sf") && require("sp")) {
     latt <- inla.mesh.lattice(-10:10, 40:60)
     mesh1 <- inla.mesh.create(
         lattice = latt, extend = FALSE, refine = FALSE,

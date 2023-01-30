@@ -1,7 +1,7 @@
 
 /* optimize.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,20 +33,7 @@
   \brief The optimising routines in GMRFLib.
 */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
-
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
