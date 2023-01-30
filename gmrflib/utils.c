@@ -961,6 +961,7 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
+#if !defined(__APPLE__)
 #ifndef __USE_GNU
 #define __USE_GNU 1
 #endif
@@ -970,6 +971,12 @@ int GMRFLib_fpe(void)
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	return 0;
 }
+#else
+int GMRFLib_fpe(void)
+{
+	return 0;
+}
+#endif
 
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 {
