@@ -400,8 +400,12 @@ typedef enum {
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
 
-
 #include <math.h>
+#if defined(__APPLE__)
+inline int iszero(double x) {
+	return (fpclassify(x) == FP_ZERO);
+}
+#endif
 #define ISZERO(x) iszero(x)
 
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
