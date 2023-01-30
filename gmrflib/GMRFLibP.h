@@ -373,45 +373,37 @@ typedef enum {
 #define ABS(x)   fabs(x)
 #define DMAX(a,b) GSL_MAX_DBL(a, b)
 #define DMIN(a,b) GSL_MIN_DBL(a, b)
-#define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
-#define SQR(x) gsl_pow_2(x)
+#define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
+#define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
+#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define IABS(x)   abs(x)
 #define IMAX(a,b) GSL_MAX_INT(a, b)
 #define IMIN(a,b) GSL_MIN_INT(a, b)
-#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
+#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
+#define ISINF(x) isinf(x)
+#define ISNAN(x) (isnan(x) != 0)
 #define ISQR(x) ((x)*(x))
+#define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
+#define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
+#define ISZERO(x) (((__typeof (x)) (x)) == 0)
+#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+#define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define MOD(i,n)  (((i)+(n))%(n))
-#define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
-#define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
-#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
-#define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
+#define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
 #define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
-#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define PP(msg,pt)  if (1) { fprintf(stdout, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
-#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
+#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
-#define ISINF(x) isinf(x)
-#define ISNAN(x) (isnan(x) != 0)
-#define LEGAL(i, n) ((i) >= 0 && (i) < (n))
+#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
+#define SQR(x) gsl_pow_2(x)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
-#define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
-
-#include <math.h>
-#if defined(__APPLE__)
-inline int iszero(double x) {
-	return (fpclassify(x) == FP_ZERO);
-}
-#endif
-#define ISZERO(x) iszero(x)
-
-#define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
-#define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
-#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
-#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
+#define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
