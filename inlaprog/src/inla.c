@@ -43308,6 +43308,15 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 104: 
+	{
+		P(sqrt(-1.0));
+		P(log(-1.0));
+		P(1.0/0.0);
+		P(exp(exp(100.0)));
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
