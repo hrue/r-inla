@@ -1,6 +1,10 @@
-# INLA
+# INLA 23.01.30
 * Remove `rgeos` dependency
 * Remove `rgdal` dependency
+* Add new link-function: \code{ccloglog}
+* New argument to \code{inla.group.cv}
+* \code{safe}-mode improved in the \code{inla()}-call
+* Various code-cleanups
 
 # INLA 23.01.12
 * Fixed an issue with ptweedie
