@@ -82,7 +82,7 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 		*c *= d;
 		*dd *= d;
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -159,7 +159,7 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	} else {
 		*a = f0 + x0 * (-df + 0.5 * x0 * (ddf + 0.3333333333333333333 * dddf * x0));
 		*b = df + x0 * (-ddf + 0.5 * dddf * x0);
-		*c = - ddf + dddf * x0;
+		*c = -ddf + dddf * x0;
 		if (dd) {
 			*dd = dddf;
 		}
@@ -234,11 +234,11 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			// double wfff[] = { -1.0 / 2.0, 1.0, 0.0, -1.0, 1.0 / 2.0 };
 
 			static double wf[] = {
-				//
+				// 
 				0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333,
-				//
+				// 
 				-0.08333333333333333, 1.333333333333333, -2.5, 1.333333333333333, -0.08333333333333333,
-				//
+				// 
 				-0.5, 1.0, 0.0, -1.0, 0.5
 			};
 			double *wff = wf + 5;
@@ -268,11 +268,11 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			// double wfff[] = { 1.0 / 8.0, -1.0, 13.0 / 8.0, 0.0, -13.0 / 8.0, 1.0, -1.0 / 8.0 };
 
 			static double wf[] = {
-				//
+				// 
 				-0.01666666666666667, 0.15, -0.75, 0.0, 0.75, -0.15, 0.01666666666666667,
-				//
+				// 
 				0.01111111111111111, -0.15, 1.5, -2.722222222222222, 1.5, -0.15, 0.01111111111111111,
-				//
+				// 
 				0.125, -1.0, 1.625, 0.0, -1.625, 1.0, -0.125
 			};
 			double *wff = wf + 7;
@@ -285,7 +285,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			xx[4] = x0 + step;
 			xx[5] = x0 + 2 * step;
 			xx[6] = x0 + 3 * step;
-			
+
 			loglFunc(thread_id, f, xx, 7, indx, x_vec, NULL, loglFunc_arg, NULL);
 
 			f0 = f[3];
@@ -309,12 +309,12 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			// 7.0 / 240.0 };
 
 			static double wf[] = {
-				//
+				// 
 				0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571,
-				//
+				// 
 				-0.001785714285714286, 0.0253968253968254, -0.2, 1.6, -2.847222222222222, 1.6, -0.2, 0.0253968253968254,
 				-0.001785714285714286,
-				//
+				// 
 				-0.02916666666666667, 0.3, -1.408333333333333, 2.033333333333333, 0.0, -2.033333333333333, 1.408333333333333, -0.3,
 				0.02916666666666667
 			};
@@ -332,7 +332,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			xx[8] = x0 + 4 * step;
 
 			loglFunc(thread_id, f, xx, 9, indx, x_vec, NULL, loglFunc_arg, NULL);
-	
+
 			f0 = f[4];
 			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6] +
 			      wf[7] * f[7] + wf[8] * f[8]) / step;
