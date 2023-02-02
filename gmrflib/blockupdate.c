@@ -69,18 +69,16 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 					   stencil);
 	}
 
-	*a = f0;
-	*b = df;
-	*c = ddf;
-	if (dd) {
-		*dd = dddf;
-	}
+	if (a) *a = f0;
+	if (b) *b = df;
+	if (c) *c = ddf;
+	if (dd) *dd = dddf;
 
 	if (d != 1.0) {
-		*a *= d;
-		*b *= d;
-		*c *= d;
-		*dd *= d;
+		if (a) *a *= d;
+		if (b) *b *= d;
+		if (c) *c *= d;
+		if (dd) *dd *= d;
 	}
 
 	return GMRFLib_SUCCESS;
@@ -150,25 +148,21 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 	}
 
 	if (rescue) {
-		*a = 0.0;
-		*b = 0.0;
-		*c = -d * ddf;
-		if (dd) {
-			*dd = 0.0;
-		}
+		if (a) *a = 0.0;
+		if (b) *b = 0.0;
+		if (c) *c = -d * ddf;
+		if (dd) *dd = 0.0;
 	} else {
-		*a = f0 + x0 * (-df + 0.5 * x0 * (ddf + 0.3333333333333333333 * dddf * x0));
-		*b = df + x0 * (-ddf + 0.5 * dddf * x0);
-		*c = -ddf + dddf * x0;
-		if (dd) {
-			*dd = dddf;
-		}
+		if (a) *a = f0 + x0 * (-df + 0.5 * x0 * (ddf + 0.3333333333333333333 * dddf * x0));
+		if (b) *b = df + x0 * (-ddf + 0.5 * dddf * x0);
+		if (c) *c = -ddf + dddf * x0;
+		if (dd) *dd = dddf;
 
 		if (d != 1.0) {
-			*a *= d;
-			*b *= d;
-			*c *= d;
-			*dd *= d;
+			if (a) *a *= d;
+			if (b) *b *= d;
+			if (c) *c *= d;
+			if (dd) *dd *= d;
 		}
 	}
 
@@ -350,6 +344,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			abort();
 		}
 	}
+
 	*a = f0;
 	*b = df;
 	*c = ddf;
