@@ -677,8 +677,8 @@
             step.len = 0.0, 
 
             ## :ARGUMENT+: stencil Numerical Number of points in the stencil used to compute the
-            ## :ARGUMENT+: numerical derivaties of the log-likelihood (5, 7 or 9). (default 7)
-            stencil = 7L,
+            ## :ARGUMENT+: numerical derivaties of the log-likelihood (5, 7 or 9). (default 5)
+            stencil = 5L,
 
             ## :ARGUMENT+: lincomb.derived.correlation.matrix Logical If TRUE compute also the
             ## :ARGUMENT+: correlations for the derived linear combinations, if FALSE do not (Default FALSE)
