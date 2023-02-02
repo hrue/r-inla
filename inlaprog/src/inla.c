@@ -37166,7 +37166,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values && (mb->gaussian_data == GMRFLib_FALSE)) {
 		tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
-		printf("\nCompute initial values...\n");
+
+		if (mb->verbose) {
+			printf("\nCompute initial values...\n");
+		}
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < preopt->Npred; i++) {
@@ -37245,7 +37248,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			if (iter == 0) {
 				norm_initial = norm;
 			}
-			printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
+			if (mb->verbose) {
+				printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
+			}
 
 			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
 			if (norm / norm_initial < 0.25) {
@@ -37254,15 +37259,17 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 
 		tref += GMRFLib_cpu();
-		printf("\tInitial values computed in %.4f seconds\n", tref);
-		for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
-			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
+		if (mb->verbose) {
+			printf("\tInitial values computed in %.4f seconds\n", tref);
+			for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
+				printf("\t\tx[%1d] = %.4f\n", i, x[i]);
+			}
+			for (i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
+				printf("\t\tx[%1d] = %.4f\n", i, x[i]);
+			}
+			printf("\n");
 		}
-		for (i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
-			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
-		}
-		printf("\n");
-
+		
 		Free(eta_pseudo);
 		Free(eta);
 		Free(Ad);
