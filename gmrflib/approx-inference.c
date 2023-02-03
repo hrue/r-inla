@@ -5098,7 +5098,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
-	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
+
+	if (ai_par->fixed_mode) {
+		// easier to override the design here
+		GMRFLib_design_eb(&tdesign, nhyper);
+	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
 		GMRFLib_design_ccd(&tdesign, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && nhyper > 0) {
 		GMRFLib_design_grid(&tdesign, nhyper);
@@ -5730,7 +5734,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	} else {
 		design = ai_par->int_design;
 	}
-	assert(dens_max == design->nexperiments);
 
 	if (design->nexperiments > 1 && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 		f = DMAX(ai_par->f0, 1.0) * sqrt((double) nhyper);
@@ -5822,7 +5825,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			// nothing
 		}
 
-		if (nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+		if ((nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) && !ai_par->fixed_mode) {
 			if (design->std_scale) {
 				// convert to theta_local
 				GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
