@@ -1,3 +1,7 @@
+# INLA 23.02.04
+* Fix for \code{control.mode=list(..., fixed=TRUE)}
+* Various code-cleanup and improvement
+
 # INLA 23.01.31
 * Remove `rgeos` dependency
 * Remove `rgdal` dependency
