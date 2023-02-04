@@ -79,7 +79,7 @@ control.inla(adapt.hessian.max.trials, adapt.hessian.mode, adapt.hessian.scale, 
 
 \item{step.len}{   Numerical The step-length used to compute numerical  derivaties of the log-likelihood (0 means \code{default} which  depends on \code{stencil})}
 
-\item{stencil}{   Numerical Number of points in the stencil used to compute the  numerical derivaties of the log-likelihood (5, 7 or 9). (default 7)}
+\item{stencil}{   Numerical Number of points in the stencil used to compute the  numerical derivaties of the log-likelihood (5, 7 or 9). (default 5)}
 
 \item{lincomb.derived.correlation.matrix}{   Logical If TRUE compute also the  correlations for the derived linear combinations, if FALSE do not (Default FALSE)}
 

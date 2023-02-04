@@ -2,6 +2,7 @@
 ## Export: inla.link.neglog inla.link.invneglog
 ## Export: inla.link.logit inla.link.invlogit inla.link.probit
 ## Export: inla.link.invprobit inla.link.cloglog inla.link.invcloglog
+## Export: inla.link.ccloglog inla.link.invccloglog
 ## Export: inla.link.loglog inla.link.invloglog inla.link.tan inla.link.invtan
 ## Export: inla.link.identity inla.link.invidentity inla.link.invalid
 ## Export: inla.link.cauchit inla.link.invcauchit

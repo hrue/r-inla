@@ -9819,9 +9819,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -35542,15 +35542,16 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * l
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
 	double prec_high = 1.0E3, prec_low = 1.0E-16, eps = 1.0E-6;
+	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
-	int niter, niter_min = 25, niter_max = 100, stencil = 7;
+	int niter, niter_min = 5, niter_max = 100, stencil = 5;
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
 	x = xnew = xsol = 0.0;
 	for (niter = 0; niter < niter_max; niter++) {
 		w = DMIN(1.0, (double) niter / (double) niter_min);
-		prec = exp(log(prec_high) * (1.0 - w) + log(prec_low) * w);
+		prec = exp(log_prec_high * (1.0 - w) + log_prec_low * w);
 
 		GMRFLib_2order_taylor(thread_id, &arr[0], &arr[1], &arr[2], NULL, 1.0, x, idx, x_vec, loglfunc, arg, &steplen, &stencil);
 		f = arr[0] - 0.5 * prec * SQR(x);
@@ -35564,7 +35565,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 		}
 		x = xnew;
 
-		if (niter > niter_min && ABS(deriv / dderiv) < eps) {
+		if (niter > 2 + niter_min && ABS(deriv / dderiv) < eps) {
 			break;
 		}
 	}
@@ -37165,7 +37166,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values && (mb->gaussian_data == GMRFLib_FALSE)) {
 		tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
-		printf("\nCompute initial values...\n");
+
+		if (mb->verbose) {
+			printf("\nCompute initial values...\n");
+		}
 
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < preopt->Npred; i++) {
@@ -37244,7 +37248,9 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			if (iter == 0) {
 				norm_initial = norm;
 			}
-			printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
+			if (mb->verbose) {
+				printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
+			}
 
 			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
 			if (norm / norm_initial < 0.25) {
@@ -37253,15 +37259,17 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		}
 
 		tref += GMRFLib_cpu();
-		printf("\tInitial values computed in %.4f seconds\n", tref);
-		for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
-			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
+		if (mb->verbose) {
+			printf("\tInitial values computed in %.4f seconds\n", tref);
+			for (i = 0; i < IMIN(preopt->n, PREVIEW / 2L); i++) {
+				printf("\t\tx[%1d] = %.4f\n", i, x[i]);
+			}
+			for (i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
+				printf("\t\tx[%1d] = %.4f\n", i, x[i]);
+			}
+			printf("\n");
 		}
-		for (i = IMAX(0, preopt->n - PREVIEW / 2L); i < preopt->n; i++) {
-			printf("\t\tx[%1d] = %.4f\n", i, x[i]);
-		}
-		printf("\n");
-
+		
 		Free(eta_pseudo);
 		Free(eta);
 		Free(Ad);

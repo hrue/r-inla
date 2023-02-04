@@ -5098,7 +5098,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 
 	// need to determine dens_max
 	GMRFLib_design_tp *tdesign = NULL;
-	if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
+
+	if (ai_par->fixed_mode) {
+		// easier to override the design here
+		GMRFLib_design_eb(&tdesign, nhyper);
+	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_CCD && nhyper > 0) {
 		GMRFLib_design_ccd(&tdesign, nhyper);
 	} else if (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID && nhyper > 0) {
 		GMRFLib_design_grid(&tdesign, nhyper);
@@ -5730,7 +5734,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 	} else {
 		design = ai_par->int_design;
 	}
-	assert(dens_max == design->nexperiments);
 
 	if (design->nexperiments > 1 && (ai_par->int_strategy == GMRFLib_AI_INT_STRATEGY_GRID)) {
 		f = DMAX(ai_par->f0, 1.0) * sqrt((double) nhyper);
@@ -5822,7 +5825,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			// nothing
 		}
 
-		if (nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) {
+		if ((nhyper > 0 || GMRFLib_OPENMP_IN_PARALLEL_ONEPLUS_THREAD()) && !ai_par->fixed_mode) {
 			if (design->std_scale) {
 				// convert to theta_local
 				GMRFLib_ai_z2theta(theta_local, nhyper, theta_mode, z_local, sqrt_eigen_values, eigen_vectors);
@@ -7947,23 +7950,28 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	}
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-	double A, B, C, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp;
+	// I do not use 'A'
+	// double A;
+	double B, C, s_inv = 1.0 / sd, s2_inv = 1.0 / SQR(sd), tmp;
 
-	// optimized version. since xp and wp are symmetric and xp[idx]=0
+	// optimized version. since xp and wp are symmetric and xp[idx]=0. We do not need 'A'
 	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
 	tmp = wp[ni] * loglik[ni];
-	A = tmp;
+	// A = tmp;
 	B = 0.0;
 	C = -tmp;
+
+#pragma GCC ivdep
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
 		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
-		A += tt;
+		// A += tt;
 		C += tt * xp2[i];
 		B += tt2 * xp[i];
 	}
-	coofs->coofs[0] = -d * A;
+	// coofs->coofs[0] = -d * A;
+	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * s_inv;
 	coofs->coofs[2] = -d * C * s2_inv;
 
@@ -8014,23 +8022,28 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp * coofs, i
 	}
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
-	double A, B, C, s2_inv = 1.0 / SQR(sd);
+	// I do not use 'A'
+	// double A;
+	double B, C, s2_inv = 1.0 / SQR(sd);
 
 	// optimized version, as both xp and wp are symmetric and xp[idx]=0
 	int ni = GMRFLib_INT_GHQ_POINTS / 2L;
 	double tmp = wp[ni] * loglik[ni];
-	A = tmp;
+	// A = tmp;
 	B = -tmp;
 	C = 3.0 * tmp;
+
+#pragma GCC ivdep
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
-		A += tt;
+		// A += tt;
 		B += tt * xp2[i];
 		C += tt * xp3[i];
 	}
 
-	coofs->coofs[0] = -d * A;
+	// coofs->coofs[0] = -d * A;
+	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * 0.5 * s2_inv;
 	coofs->coofs[2] = -d * C * 0.25 * s2_inv;
 
