@@ -904,9 +904,6 @@ to define the various actions.
 It is easier to see how this is one by a simple `iid-model` example
 ```{r eval=FALSE}
 #include <assert.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <math.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -930,8 +927,8 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	case INLA_CGENERIC_VOID:
 	{
 		assert(!(cmd == INLA_CGENERIC_VOID));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_GRAPH:
 	{
@@ -940,68 +937,74 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
 		// so like the loop
 		// for i=0, ...
-		//     for j=i, ...
-		//         G_ij = 
+		// for j=i, ...
+		// G_ij = 
 		// and M is the total length while N is the dimension
 
 		int M = N;
 		ret = Calloc(2 + 2 * N, double);
+		assert(ret);
 		ret[0] = N;				       /* dimension */
 		ret[1] = M;				       /* number of (i <= j) */
 		for (int i = 0; i < M; i++) {
 			ret[2 + i] = i;			       /* i */
 			ret[2 + N + i] = i;		       /* j */
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_Q:
 	{
 		// return c(-1, M, Qij) in the same order as defined in INLA_CGENERIC_GRAPH
 		int M = N;
 		ret = Calloc(2 + N, double);
-		ret[0] = -1;			       /* REQUIRED! */
-		ret[1] = M;			       /* number of (i <= j) */
+		assert(ret);
+		ret[0] = -1;				       /* REQUIRED! */
+		ret[1] = M;				       /* number of (i <= j) */
 		for (int i = 0; i < M; i++) {
 			ret[2 + i] = prec;
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_MU:
 	{
 		// return (N, mu)
 		// if N==0 then mu is not needed as its taken to be mu[]==0
 		ret = Calloc(1, double);
+		assert(ret);
 		ret[0] = 0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_INITIAL:
 	{
 		// return c(M, initials)
 		// where M is the number of hyperparameters
 		ret = Calloc(2, double);
+		assert(ret);
 		ret[0] = 1;
 		ret[1] = 4.0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
 		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
 		ret = Calloc(1, double);
+		assert(ret);
 		ret[0] = N * (-0.9189385332 + 0.5 * lprec);
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
 		// return c(LOG_PRIOR)
 		ret = Calloc(1, double);
+		assert(ret);
 		ret[0] = -prec + lprec;			       // prec ~ gamma(1,1)
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_QUIT:
 	default:
@@ -1021,9 +1024,6 @@ The reimplementation of the AR1 model as in `inla.rgeneric.ar1.model`
 is as follows.
 ```{r eval=FALSE}
 #include <assert.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <math.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -1056,8 +1056,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	case INLA_CGENERIC_VOID:
 	{
 		assert(!(cmd == INLA_CGENERIC_VOID));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_GRAPH:
 	{
@@ -1066,13 +1066,13 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// where ii<=jj, ii is non-decreasing and jj is non-decreasing for the same ii
 		// so like the loop
 		// for i=0, ...
-		//     for j=i, ...
-		//         G_ij = 
+		// for j=i, ...
+		// G_ij = 
 		// and M is the length of ii
 
 		int M = N + N - 1, offset, i, k;
-		ret = Calloc(2 + 2 * m, double);
-
+		ret = Calloc(2 + 2 * M, double);
+		assert(ret);
 		offset = 2;
 		ret[0] = N;				       /* dimension */
 		ret[1] = M;				       /* number of (i <= j) */
@@ -1084,8 +1084,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 				ret[offset + M + k++] = i + 1; /* j */
 			}
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_Q:
 	{
@@ -1097,7 +1097,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		int M = N + N - 1;
 		int offset, i, k;
 		ret = Calloc(2 + M, double);
-
+		assert(ret);
 		offset = 2;
 		ret[0] = -1;				       /* REQUIRED */
 		ret[1] = M;
@@ -1107,8 +1107,8 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 				ret[offset + k++] = -param * rho;
 			}
 		}
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_MU:
 	{
@@ -1116,9 +1116,10 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// if N==0 then mu is not needed as its taken to be mu[]==0
 
 		ret = Calloc(1, double);
+		assert(ret);
 		ret[0] = 0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_INITIAL:
 	{
@@ -1126,11 +1127,12 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 		// where M is the number of hyperparameters
 
 		ret = Calloc(3, double);
+		assert(ret);
 		ret[0] = 2;
 		ret[1] = 1.0;
 		ret[2] = 1.0;
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
@@ -1138,18 +1140,20 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 
 		double prec_innovation = prec / (1.0 - SQR(rho));
 		ret = Calloc(1, double);
+		assert(ret);
 		ret[0] = N * (-0.5 * log(2.0 * M_PI) + 0.5 * log(prec_innovation)) + 0.5 * log(1.0 - SQR(rho));
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
 		// return c(LOG_PRIOR)
 
 		ret = Calloc(1, double);
+		assert(ret);
 		ret[0] = -prec + lprec - 0.5 * log(2.0 * M_PI) - 0.5 * SQR(rho_intern);
-		break;
 	}
+		break;
 
 	case INLA_CGENERIC_QUIT:
 	default:
@@ -1172,20 +1176,24 @@ data structure that contains all arguments to `inla.cgeneric.define`
 is passed to the `C` function. The data structure is as follows
 ```{r eval=FALSE}
 typedef struct {
-	int n_ints;
-	inla_cgeneric_vec_tp **ints;
+        inla_cgeneric_threads_tp threads;
 
-	int n_doubles;
-	inla_cgeneric_vec_tp **doubles;
+        int n_ints;
+        inla_cgeneric_vec_tp **ints;
 
-	int n_chars;
-	inla_cgeneric_vec_tp **chars;
+        int n_doubles;
+        inla_cgeneric_vec_tp **doubles;
 
-	int n_mats;
-	inla_cgeneric_mat_tp **mats;
+        int n_chars;
+        inla_cgeneric_vec_tp **chars;
 
-	int n_smats;
-	inla_cgeneric_smat_tp **smats;
+        int n_mats;
+        inla_cgeneric_mat_tp **mats;
+
+        int n_smats;
+        inla_cgeneric_smat_tp **smats;
+
+        void *cache;
 } inla_cgeneric_data_tp;
 ```
 where integers, doubles (or numerics), characters (or strings), dense matrices
@@ -1199,6 +1207,38 @@ the integer list, like used in the examples above
 	assert(!strcasecmp(data->ints[0]->name, "n")); // this will always be the case
 	int N = data->ints[0]->ints[0];		           // this will always be the case
 ```
+
+Information about threads used, is given in 
+```{r eval=FALSE}
+typedef struct {
+        // inla .. -t A:B
+        // max = maximum number of threads = A*B
+        // outer = number of threads in the outer loop (A)
+        // inner = number of threads in the inner loop (B)
+        int max;
+        int outer;
+        int inner;
+} inla_cgeneric_threads_tp;
+```	
+where \texttt{A} and \texttt{B} are what is defined in the
+\texttt{inla}-argument \texttt{num.threads}. Note that the
+\texttt{cgeneric} function needs to be thread-safe, and that number of
+threads used within this function should be \texttt{data->threads.inner}.
+
+You may store cached variables in \texttt{data}-struct
+```{r eval=FALSE}
+    void *cache;
+```	
+The macros
+```{r eval=FALSE}
+    CGENERIC_CACHE_LEN(data_) 
+    CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)
+```
+can be used to define threads spesific cache, where
+\texttt{CGENERIC\_CACHE\_LEN} gives the require length, and
+\texttt{CGENERIC\_CACHE\_ASSIGN\_IDX} will give the index (or assign an
+index variable to the index depending on the current and parent
+thread.
 
 The integers, doubles and characters, are stored in 
 ```{r eval=FALSE}
@@ -1280,7 +1320,7 @@ and sparse matrices are stored as triplets `(i,j,x)`,
  *      before passing it on into 'inla.cgeneric.define'
  */
 typedef struct {
-	char *name;
+\	char *name;
 	int nrow;
 	int ncol;
 	int n;						       /* number of triplets (i,j,x) */
@@ -1292,15 +1332,13 @@ typedef struct {
 R-objects not of the above types cannot be handled, but one can
 always, for example, store them in a file and pass the filename.
 
+
+
 Adding the option `debug=TRUE` to `inla.cgeneric.define` will turn on
 debug-output and the contents of `inla_cgeneric_data_tp * data` is
 displayed. Only use this option for small size problems as the output
 can be excessive.
 
-## Thread safe
-
-The implementation of the `cgeneric` model must be thread safe. If you
-use internal cache in the `cgeneric`, you need copy one per thread.
 
 ## Reimplementing model `generic0`
 
