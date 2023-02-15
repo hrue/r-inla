@@ -1320,7 +1320,7 @@ and sparse matrices are stored as triplets `(i,j,x)`,
  *      before passing it on into 'inla.cgeneric.define'
  */
 typedef struct {
-\	char *name;
+	char *name;
 	int nrow;
 	int ncol;
 	int n;						       /* number of triplets (i,j,x) */
