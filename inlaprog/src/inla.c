@@ -9819,9 +9819,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -38713,6 +38713,8 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 			if (mo->configs_preopt[id]) {
 				if (!header) {
 					header = 1;	       /* do this only once */
+					fwrite((void *) &(mo->configs_preopt[id]->mpred), sizeof(int), (size_t) 1, fp);
+					fwrite((void *) &(mo->configs_preopt[id]->npred), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->mnpred), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->Npred), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) &(mo->configs_preopt[id]->n), sizeof(int), (size_t) 1, fp);
@@ -38796,11 +38798,24 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 						double zero = 0.0;
 						fwrite((void *) &zero, sizeof(double), 1, fp);
 					}
+
 					if (mo->configs_preopt[id]->config[i]->ll_info) {
 						double one = 1.0;
 						fwrite((void *) &one, sizeof(double), 1, fp);
 						fwrite((void *) (mo->configs_preopt[id]->config[i]->ll_info),
 						       sizeof(double), (size_t) (3 * mo->configs_preopt[id]->Npred), fp);
+					} else {
+						double zero = 0.0;
+						fwrite((void *) &zero, sizeof(double), 1, fp);
+					}
+
+					if (mo->configs_preopt[id]->config[i]->lpred_mean) {
+						double one = 1.0;
+						fwrite((void *) &one, sizeof(double), 1, fp);
+						fwrite((void *) (mo->configs_preopt[id]->config[i]->lpred_mean),
+						       sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
+						fwrite((void *) (mo->configs_preopt[id]->config[i]->lpred_variance),
+						       sizeof(double), (size_t) mo->configs_preopt[id]->mnpred, fp);
 					} else {
 						double zero = 0.0;
 						fwrite((void *) &zero, sizeof(double), 1, fp);
