@@ -6037,8 +6037,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 		}
 
-		GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
-					       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str, ll_info);
+		int free_if_not_configs = 1;
+		if (misc_output->configs_preopt) {
+			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
+						       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str,
+						       ll_info, lpred_mean, lpred_variance);
+			free_if_not_configs = 0;
+		}
 
 		tu = GMRFLib_cpu() - tref;
 		if (ai_par->fp_log) {
@@ -6061,10 +6066,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		Free(bnew);
 		Free(z_local);
 		Free(theta_local);
-		Free(lpred_mean);
-		Free(lpred_variance);
+		if (free_if_not_configs) {
+			// if configs_preopt, then these vectors are store there hence only Free if we do not have configs=TRUE
+			Free(lpred_mean);
+			Free(lpred_variance);
+			Free(cpodens_moments);
+			Free(gcpodens_moments);
+		}
 		Free(mean_corrected);
-		// do not free cpodens_moments!!!
 	}
 
 	if (place_save) {
@@ -9330,7 +9339,7 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
 				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *cpodens_moments,
-				   double *gcpodens_moments, char **arg_str, double *ll_info)
+				   double *gcpodens_moments, char **arg_str, double *ll_info, double *lpred_mean, double *lpred_variance)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -9342,6 +9351,8 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo
 		GMRFLib_graph_tp *g;
 		mo->configs_preopt[id] = Calloc(1, GMRFLib_store_configs_preopt_tp);
 
+		mo->configs_preopt[id]->mpred = preopt->mpred;
+		mo->configs_preopt[id]->npred = preopt->npred;
 		mo->configs_preopt[id]->mnpred = preopt->mnpred;
 		mo->configs_preopt[id]->Npred = preopt->Npred;
 		mo->configs_preopt[id]->n = preopt->n;
@@ -9446,6 +9457,8 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo
 	cfg->cpodens_moments = cpodens_moments;
 	cfg->gcpodens_moments = gcpodens_moments;
 	cfg->ll_info = ll_info;
+	cfg->lpred_mean = lpred_mean;
+	cfg->lpred_variance = lpred_variance;
 	if (ntheta) {
 		cfg->theta = Calloc(ntheta, double);
 		Memcpy(cfg->theta, theta, ntheta * sizeof(double));

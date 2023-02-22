@@ -1148,7 +1148,8 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					jj = elm->idx[kk];		\
 					cov = GMRFLib_Qinv_get(problem, j, jj);	\
 					if (!cov) {			\
-						err_count++;		\
+						_Pragma("omp atomic")	\
+						err_count++;	        \
 						cov = &zero;		\
 					}				\
 					tvar += elm->val[kk] * *cov;	\
@@ -1166,9 +1167,19 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	}
 
 	if (err_count) {
-		char *msg = NULL;
-		GMRFLib_sprintf(&msg, "Missing %1d covariances; The A-matrix has not the proper rank. Please check.", err_count);
-		GMRFLib_ERROR_MSG(GMRFLib_EMISC, msg);
+		static int shown = 0;
+		if (!shown) {
+			shown = 1;
+			char *msg = NULL;
+			GMRFLib_sprintf(&msg, "%s:%d:(%s)\n\tMissing %1d covariances.\n\t%s\n\t%s\n\t%s\n\n", 
+					__FILE__, __LINE__, __GMRFLib_FuncName, err_count, 
+					"Either the A-matrix has not the required rank", 
+					"or correlations are numerically zero.", 
+					"Further warnings are disabled.");
+			fprintf(stderr, "\n\n%s\n", msg);
+			Free(msg);
+		}
+		//GMRFLib_ERROR_MSG(GMRFLib_EMISC, msg);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
