@@ -1,3 +1,9 @@
+# INLA 23.02.22
+* Add linear predictor summaries to config
+* Vignette about \code{rgeneric} is updated
+* Updated doc about \code{inla.posterior.sample}
+* Fixed issue with missing covariance in A-matrix
+
 # INLA 23.02.04
 * Fix for \code{control.mode=list(..., fixed=TRUE)}
 * Various code-cleanup and improvement
