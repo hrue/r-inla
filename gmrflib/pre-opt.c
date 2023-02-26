@@ -1170,16 +1170,12 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 		static int shown = 0;
 		if (!shown) {
 			shown = 1;
-			char *msg = NULL;
-			GMRFLib_sprintf(&msg, "%s:%d:(%s)\n\tMissing %1d covariances.\n\t%s\n\t%s\n\t%s\n\n", 
-					__FILE__, __LINE__, __GMRFLib_FuncName, err_count, 
-					"Either the A-matrix has not the required rank", 
-					"or correlations are numerically zero.", 
-					"Further warnings are disabled.");
-			fprintf(stderr, "\n\n%s\n", msg);
-			Free(msg);
+			fprintf(stdout, "\n\n%s:%d:(%s)\n\tMissing %1d covariances.\n\t%s\n\t%s\n\t%s\n\n\n", 
+				__FILE__, __LINE__, __GMRFLib_FuncName, err_count, 
+				"Either the A-matrix has not the required rank", 
+				"or correlations are numerically zero.", 
+				"Further warnings are disabled.");
 		}
-		//GMRFLib_ERROR_MSG(GMRFLib_EMISC, msg);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
