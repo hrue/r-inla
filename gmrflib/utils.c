@@ -961,14 +961,14 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 	return ret;
 }
 
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(WINDOWS)
 #ifndef __USE_GNU
 #define __USE_GNU 1
 #endif
 #include <fenv.h>
 int GMRFLib_fpe(void)
 {
-	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	return 0;
 }
 #else
