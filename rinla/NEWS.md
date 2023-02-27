@@ -1,3 +1,7 @@
+# INLA 23.02.27
+* New option to \code{inla.binary.install()}
+* Fix a broken build
+
 # INLA 23.02.22
 * Add linear predictor summaries to config
 * Vignette about \code{rgeneric} is updated
