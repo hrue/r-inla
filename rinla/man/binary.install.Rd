@@ -16,7 +16,7 @@
                                "Fedora Linux-36", "Fedora Linux-37",
                                "Manjaro Linux",
                                "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04", "Ubuntu-22.04"), 
-                        path = NULL, verbose = TRUE, md5.check = TRUE)
+                        path = NULL, verbose = TRUE, md5.check = TRUE, secure.http = TRUE)
  }
  \arguments{
     \item{os}{If \code{os} is given, install binary build for this \code{os}.
@@ -26,6 +26,7 @@
     \item{verbose}{Logical. Verbose output if \code{TRUE}}
     \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not present
                      or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
+    \item{secure.http}{Logical. Use secure http (ie \code{https://}) or \code{http://}}
  }
  \details{
  Install a new binary for \code{os} unless

@@ -14,7 +14,7 @@
 ## !                               "Fedora Linux-36", "Fedora Linux-37",
 ## !                               "Manjaro Linux",
 ## !                               "Ubuntu-16.04", "Ubuntu-18.04", "Ubuntu-20.04", "Ubuntu-22.04"), 
-## !                        path = NULL, verbose = TRUE, md5.check = TRUE)
+## !                        path = NULL, verbose = TRUE, md5.check = TRUE, secure.http = TRUE)
 ## ! }
 ## ! \arguments{
 ## !    \item{os}{If \code{os} is given, install binary build for this \code{os}.
@@ -24,6 +24,7 @@
 ## !    \item{verbose}{Logical. Verbose output if \code{TRUE}}
 ## !    \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not present
 ## !                     or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
+## !    \item{secure.http}{Logical. Use secure http (ie \code{https://}) or \code{http://}}
 ## ! }
 ## ! \details{
 ## ! Install a new binary for \code{os} unless
@@ -59,7 +60,8 @@
                                          "Ubuntu-22.04"),
                                   path = NULL, 
                                   verbose = TRUE,
-                                  md5.check = TRUE) {
+                                  md5.check = TRUE,
+                                  secure.http = TRUE) {
     show <- function(...) {
         if (verbose) {
             msg <- paste(unlist(list(...)), sep = "", collapse = "")
@@ -77,7 +79,7 @@
     version <- paste("Version_", inla.version("version"), sep = "")
     show("Looking for ", version, " and os=", if (!is.null(os)) os else "'<choose interactively>'")
 
-    address <- "https://inla.r-inla-download.org/Linux-builds"
+    address <- paste0("http", if (secure.http) "s", "://inla.r-inla-download.org/Linux-builds")
     Files <- paste0(address, "/FILES")
     fp <- url(Files, open = "r")
     ff <- readLines(fp)
