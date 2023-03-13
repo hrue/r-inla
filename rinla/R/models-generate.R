@@ -250,20 +250,39 @@ inla.models()
         cat(tab3, "\\describe{\n")
 
         for (model in names(inla.models()[[section]])) {
-            cat(tab4, "\\item{Model `", model, "'.}{", sep = "")
+            cat(tab4, "\\item{Model '", model, "'.}{\n", sep = "")
 
             if (section != "prior") {
-                nhyper <- length(inla.models()[[section]][[model]]$hyper)
-                cat("Number of hyperparmeters are ", nhyper, ".\n", sep = "")
+                h <- inla.models()[[section]][[model]]
+                ms <- names(h)
+                ms <- ms[ms != "hyper"]
+                cat(tab5, "\\describe{\n")
+                cat(tab6, "\\item{Properties:}{\n", sep = "")
+                cat(tab7, "\\describe{\n", sep = "")
+                
+                for (m in ms) {
+                    mval <- h[[m]]
+                    if (is.null(mval)) {
+                        mval <- "NULL"
+                    }
+                    cat(tab8, "\\item{", m, " = }{'", inla.paste(mval), "'}\n", sep = "")
+                }
+                
+                cat(tab7, "}\n")
+                cat(tab6, "}\n")
+                cat(tab5, "}\n")
+
+                nhyper <- length(h$hyper)
+                cat(tab5, "Number of hyperparmeters is ", nhyper, ".\n", sep = "")
                 if (nhyper > 0) {
                     cat(tab5, "\\describe{\n")
 
-                    h <- inla.models()[[section]][[model]]$hyper
+                    h <- h$hyper
                     nhyper <- length(h)
                     if (nhyper > 0) {
                         for (nh in 1:nhyper) {
                             nm <- names(h)[nh]
-                            cat(tab6, "\\item{Hyperparameter `", nm, "'}{\n", sep = "")
+                            cat(tab6, "\\item{Hyperparameter '", nm, "'}{\n", sep = "")
                             cat(tab7, "\\describe{\n")
 
                             for (m in names(h[[nm]])) {
@@ -276,9 +295,9 @@ inla.models()
                                     if (is.null(mval.src)) {
                                         mval.src <- inla.paste(deparse(mval, control = "keepInteger"))
                                     }
-                                    mval <- paste("\\code{", mval.src, "}", sep = "")
+                                    mval <- paste("`", mval.src, "`", sep = "")
                                 }
-                                cat(tab7, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep = "")
+                                cat(tab7, "\\item{", m, " = }{", inla.paste(mval), "}\n", sep = "")
                             }
 
                             cat(tab7, "}\n", sep = "")
@@ -287,25 +306,6 @@ inla.models()
                         cat(tab5, "}\n")
                     }
 
-                    h <- inla.models()[[section]][[model]]
-                    ms <- names(h)
-                    ms <- ms[ms != "hyper"]
-
-                    cat(tab5, "\\describe{\n")
-                    cat(tab6, "\\item{Properties:}{\n", sep = "")
-                    cat(tab7, "\\describe{\n", sep = "")
-
-                    for (m in ms) {
-                        mval <- h[[m]]
-                        if (is.null(mval)) {
-                              mval <- "NULL"
-                          }
-                        cat(tab8, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep = "")
-                    }
-
-                    cat(tab7, "}\n")
-                    cat(tab6, "}\n")
-                    cat(tab5, "}\n")
                 }
             } else if (section == "prior") {
                 np <- inla.models()[[section]][[model]]$nparameters
@@ -326,7 +326,7 @@ inla.models()
     cat("#' @examples\n",
         "#' ## How to set hyperparameters to pass as the argument 'hyper'. This\n",
         "#' ## format is compatible with the old style (using 'initial', 'fixed',\n",
-        "#' ## 'prior', 'param'), but the new style using 'hyper' take preceedence\n",
+        "#' ## 'prior', 'param'), but the new style using 'hyper' take precedence\n",
         "#' ## over the old style. The two styles can also be mixed. The old style\n",
         "#' ## might be removed from the code in the future...\n",
         "#' \n",

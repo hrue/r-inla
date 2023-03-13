@@ -130,6 +130,7 @@ Collate:
     'model-wrapper.R'
     'models-generate.R'
     'models.R'
+    'models_documentation.R'
     'nmix.lambda.fitted.R'
     'obsolete.R'
     'options.R'

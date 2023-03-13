@@ -7,6 +7,8 @@
 # This information must also be sent onwards to make-man-pages
 R=R
 
+RR=$(R) --vanilla --no-echo
+
 all: TAGS make-man-pages.timestamp ../NAMESPACE
 
 .PHONY : all clean clean_roxygen clean_homebrew models_doc \
@@ -15,7 +17,7 @@ all: TAGS make-man-pages.timestamp ../NAMESPACE
 roxygen: ../NAMESPACE.roxygen
 homebrew: ../NAMESPACE.ours
 
-make-man-pages.timestamp: $(wildcard *.R) ../man/models.Rd
+make-man-pages.timestamp: $(wildcard *.R) ../man/models.Rd ../R/models_documentation.R
 	./make-man-pages $(R)
 	touch $@
 
@@ -26,7 +28,7 @@ clean :
 	$(MAKE) clean_Rd_pdf
 
 TAGS : $(wildcard *.R)
-	$(R) --vanilla -e 'library(utils); rtags(path=".", ofile="TAGS")'
+	$(RR) -e 'library(utils); rtags(path=".", ofile="TAGS")'
 
 
 ## need option keep.source otherwise there is no attribute 'source'!!!!
@@ -39,7 +41,7 @@ TAGS : $(wildcard *.R)
 	  echo 'source("utils.R")';\
 	  echo 'source("version.R")';\
 	  echo 'inla.models.generate.Rd("../man/models.Rd")';\
-	} | $(R) --vanilla
+	} | $(RR)
 
 # Experimental method, not currently used
 models_doc: ../R/models_documentation.R
@@ -52,11 +54,12 @@ models_doc: ../R/models_documentation.R
 	  echo 'source("utils.R")';\
 	  echo 'source("version.R")';\
 	  echo 'inla.models.generate.roxygen("../R/models_documentation.R")';\
-	} | $(R) --vanilla
+	  echo 'styler::style_file("../R/models_documentation.R")';\
+	} | $(RR)
 	rm ../NAMESPACE
 	{ \
 	  echo 'devtools::document()';\
-	} | $(R) --vanilla
+	} | $(RR)
 
 
 ## creating roxygen documentation also create the NAMESPACE file,
@@ -67,7 +70,7 @@ models_doc: ../R/models_documentation.R
 
 ../NAMESPACE.roxygen: $(wildcard *.R)
 	-test -f ../NAMESPACE && mv -f ../NAMESPACE ../NAMESPACE.backup
-	echo 'testthat_print <- function(...) print(...) ; devtools::document()' | $(R) --vanilla 
+	echo 'testthat_print <- function(...) print(...) ; devtools::document()' | $(RR)
 	test -f ../NAMESPACE && mv -f ../NAMESPACE ../NAMESPACE.roxygen
 
 define AWK_PROGRAM
@@ -138,7 +141,7 @@ clean_homebrew:
 check_Rd_pdf: $(patsubst %.Rd,%.pdf,$(wildcard ../man/*.Rd))
 
 ../man/%.pdf: ../man/%.Rd
-	$(R) --vanilla CMD Rd2pdf --force --no-preview --output=$@ $<
+	$(RR) CMD Rd2pdf --force --no-preview --output=$@ $<
 
 clean_Rd_pdf:
 	rm -f ../man/*.pdf
