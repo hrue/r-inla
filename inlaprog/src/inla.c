@@ -43351,6 +43351,15 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 106: 
+	{
+		printf("## check with\nlibrary(VGAM)\nfor(i in 0:200) print(c(i,  log(bell(i)) - lfactorial(i)))\n\n");
+		for(int i = -1; i <= 257; i++) {
+			printf("%d %.12f\n", i, my_lbell(i));
+		}
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
