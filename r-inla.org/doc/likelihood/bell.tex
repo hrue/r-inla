@@ -1,0 +1,56 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Bell}
+
+\subsection*{Parametrisation}
+
+The Bell distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\lambda^{y} \exp(1-\exp(\lambda)) B_y}{y!}
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where $B_y$ are the Bell-numbers
+($B_2=2, B_5=52, B_8=4140$, etc). The expected value is
+$\lambda\exp(\lambda)$ and the variance is
+$\lambda(1+\lambda)\exp(\lambda)$.
+
+
+
+\subsection*{Link-function}
+
+The mean is linked to the linear predictor by
+\begin{displaymath}
+    \lambda\exp(\lambda) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant.
+
+\subsection*{Hyperparameters}
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item $\text{family}=\texttt{bell}$
+\item Required arguments: (integer-valued) $y$ and $E$ (default $1$).
+\end{itemize}
+
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Poisson responses.
+\verbatiminput{example-bell.R}
+
+\subsection*{Notes}
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

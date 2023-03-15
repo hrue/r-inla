@@ -9766,6 +9766,20 @@
 #'           }
 #'          }
 #'        }
+#'       \item{Model 'bell'.}{
+#'          \describe{
+#'           \item{Properties:}{
+#'             \describe{
+#'               \item{doc = }{'The Bell likelihood'}
+#'               \item{survival = }{'FALSE'}
+#'               \item{discrete = }{'TRUE'}
+#'               \item{link = }{'default log'}
+#'               \item{pdf = }{'bell'}
+#'              }
+#'            }
+#'          }
+#'         Number of hyperparmeters is 0.
+#'        }
 #'       \item{Model '0binomial'.}{
 #'          \describe{
 #'           \item{Properties:}{

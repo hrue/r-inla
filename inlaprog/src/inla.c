@@ -5219,6 +5219,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_ZEROINFLATEDPOISSON1:
 	case L_ZEROINFLATEDPOISSON2:
 	case L_POISSON_SPECIAL1:
+	case L_BELL:
 	{
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
@@ -7252,6 +7253,54 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 
 	LINK_END;
 #undef _logE
+
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
+	double normc;
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = my_lbell((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	if (m > 0) {
+#pragma GCC ivdep
+		for (int i = 0; i < m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double lambda = my_lambert_W0(mean);
+			logll[i] = y * log(lambda) + (1.0 - exp(lambda)) + normc;
+		}
+	} else {
+		int yy = (int) (y_cdf ? *y_cdf : y);
+#pragma GCC ivdep
+		for (int i = 0; i < -m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double lambda = my_lambert_W0(mean);
+			double t1 = exp(1.0 - exp(lambda));
+			double cdf = 1.0;
+			double p = 1.0;
+			for(int iy = 1; iy <= yy; iy++) {
+				p *= lambda;
+				cdf += p * exp(my_lbell(iy));
+			}
+			cdf *= t1;
+			logll[i] = cdf;
+		}
+	}
+
+	LINK_END;
 
 	return GMRFLib_SUCCESS;
 }
@@ -14782,6 +14831,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "TSTRATA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_tstrata;
 		ds->data_id = L_TSTRATA;
+	} else if (!strcasecmp(ds->data_likelihood, "BELL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_bell;
+		ds->data_id = L_BELL;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
@@ -15343,6 +15396,20 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				if ((int) (ds->data_observations.strata_tstrata[i]) < 0) {
 					GMRFLib_sprintf(&msg, "%s: tstrata strata[%1d] = %g is void\n", secname, i,
 							ds->data_observations.strata_tstrata[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+		break;
+
+	case L_BELL:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Bell data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
 			}
@@ -16457,6 +16524,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	}
 		break;
 
+	case L_BELL:
+		break;
+		
 	case L_POISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
@@ -32767,6 +32837,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_BELL:
+				break;
+				
 			case L_BINOMIAL:
 			case L_XBINOMIAL:
 			case L_EXPONENTIAL:
@@ -32774,9 +32847,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_XPOISSON:
 			case L_CONTPOISSON:
 			case L_QCONTPOISSON:
-				/*
-				 * nothing to do
-				 */
 				break;
 
 			case L_EXPONENTIALSURV:
@@ -32791,7 +32861,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 			}
 				break;
-
 
 			case L_POM:
 			{
@@ -43362,6 +43431,52 @@ int testit(int argc, char **argv)
 	}
 	break;
 	
+	case 107:
+	{
+		double tref[2] = {0, 0};
+		int n = atoi(args[0]);
+		double *y = Calloc(n, double);
+
+		double abs_err = 0.0;
+		for(int i = 0; i < n; i++) {
+			y[i] = exp(4.0 * GMRFLib_stdnormal());
+			abs_err += ABS(gsl_sf_lambert_W0(y[i]) - my_lambert_W0(y[i]));
+		}
+		P(abs_err/n);
+
+		tref[0] = -GMRFLib_cpu();
+		double sum = 0.0;
+		for(int i = 0; i < n; i++) {
+			sum += gsl_sf_lambert_W0(y[i]);
+		}
+		tref[0] += GMRFLib_cpu();
+		
+		tref[1] = -GMRFLib_cpu();
+		sum = 0.0;
+		for(int i = 0; i < n; i++) {
+			sum += my_lambert_W0(y[i]);
+		}
+		tref[1] += GMRFLib_cpu();
+		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+
+		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
+		tref[0] = -GMRFLib_cpu();
+		sum = 0.0;
+		for(int i = 0; i < n; i++) {
+			sum += gsl_sf_lambert_W0(y[i]);
+		}
+		tref[0] += GMRFLib_cpu();
+		
+		tref[1] = -GMRFLib_cpu();
+		sum = 0.0;
+		for(int i = 0; i < n; i++) {
+			sum += my_lambert_W0(y[i]);
+		}
+		tref[1] += GMRFLib_cpu();
+		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

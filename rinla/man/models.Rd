@@ -9468,6 +9468,8 @@ inla.models()
 						 }
 					 }
 				 }
+				\item{Model `bell'.}{Number of hyperparmeters are 0.
+				 }
 				\item{Model `0binomial'.}{Number of hyperparmeters are 10.
 					 \describe{
 						\item{Hyperparameter `theta1'}{

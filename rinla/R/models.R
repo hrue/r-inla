@@ -8031,6 +8031,15 @@
                     pdf = "0inflated"
                 ), 
 
+                bell = list(
+                    doc = "The Bell likelihood",
+                    hyper = list(),
+                    survival = FALSE,
+                    discrete = TRUE,
+                    link = c("default", "log"), 
+                    pdf = "bell"
+                ),
+
                 "0binomial" = list(
                     doc = "New 0-inflated Binomial",
                     hyper = list(
