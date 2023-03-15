@@ -39788,8 +39788,10 @@ int inla_qsolve(const char *Qfilename, const char *Afilename, const char *Bfilen
 	if (!strcasecmp(method, "solve")) {
 		GMRFLib_solve_llt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
 	} else if (!strcasecmp(method, "forward")) {
+		assert(GMRFLib_smtp != GMRFLib_SMTP_PARDISO);
 		GMRFLib_solve_l_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
 	} else if (!strcasecmp(method, "backward")) {
+		assert(GMRFLib_smtp != GMRFLib_SMTP_PARDISO);
 		GMRFLib_solve_lt_sparse_matrix(B->A, B->ncol, &(problem->sub_sm_fact), problem->sub_graph);
 	} else {
 		assert(0 == 1);
