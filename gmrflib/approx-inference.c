@@ -6210,14 +6210,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			}
 			Memcpy(misc_output->cov_lin, ptmp, ISQR(nlin) * sizeof(double));
 
-			double *ptmp_scale = Calloc(ISQR(nlin), double);
+			double *ptmp_scale = Calloc(nlin, double);
 			for (int i = 0; i < nlin; i++) {
-				ptmp_scale[i + i * nlin] = 1.0 / sqrt(ptmp[i + i * nlin]);
+				ptmp_scale[i] = 1.0 / sqrt(ptmp[i + i * nlin]);
 			}
 
 			for (int i = 0; i < nlin; i++) {
 				for (int j = i + 1; j < nlin; j++) {
-					ptmp[i + j * nlin] = ptmp[i + j * nlin] * ptmp_scale[i + i * nlin] * ptmp_scale[j + j * nlin];
+					ptmp[i + j * nlin] = ptmp[i + j * nlin] * ptmp_scale[i] * ptmp_scale[j];
 					ptmp[j + i * nlin] = ptmp[i + j * nlin];
 				}
 			}
@@ -9517,7 +9517,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	// yes, disable this with PARDISO as PARDISO do not have this feaure
 	int disable_opt = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO ? 1 : 0);
-
+	
 	typedef struct {
 		double *v;
 		int from_idx;
