@@ -1950,7 +1950,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
             inherits(loc, "SpatialPointsDataFrame"))) {
         loc <- fm_transform(
             coordinates(loc),
-            crs0 = inla.sp_get_crs(loc),
+            crs0 = fm_CRS(loc),
             crs = crs,
             passthrough = TRUE
         )
@@ -1958,9 +1958,10 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
     if (!(missing(loc.domain) || is.null(loc.domain)) &&
         (inherits(loc.domain, "SpatialPoints") ||
             inherits(loc.domain, "SpatialPointsDataFrame"))) {
-        loc.domain <- inla.spTransform(coordinates(loc.domain),
-            inla.sp_get_crs(loc.domain),
-            crs,
+        loc.domain <- fm_transform(
+            coordinates(loc.domain),
+            crs0 = fm_CRS(loc.domain),
+            crs = crs,
             passthrough = TRUE
         )
     }
