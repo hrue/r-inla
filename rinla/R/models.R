@@ -8034,6 +8034,7 @@
                 bell = list(
                     doc = "The Bell likelihood",
                     hyper = list(),
+                    status = "experimental", 
                     survival = FALSE,
                     discrete = TRUE,
                     link = c("default", "log"), 

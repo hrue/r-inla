@@ -9771,6 +9771,7 @@
 #'           \item{Properties:}{
 #'             \describe{
 #'               \item{doc = }{'The Bell likelihood'}
+#'               \item{status = }{'experimental'}
 #'               \item{survival = }{'FALSE'}
 #'               \item{discrete = }{'TRUE'}
 #'               \item{link = }{'default log'}

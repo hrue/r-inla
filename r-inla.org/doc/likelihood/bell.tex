@@ -14,9 +14,9 @@ The Bell distribution is
     \text{Prob}(y) = \frac{\lambda^{y} \exp(1-\exp(\lambda)) B_y}{y!}
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots$, where $B_y$ are the Bell-numbers
-($B_2=2, B_5=52, B_8=4140$, etc). The expected value is
-$\lambda\exp(\lambda)$ and the variance is
-$\lambda(1+\lambda)\exp(\lambda)$.
+($B_2=2, \ldots,  B_5=52, \ldots, B_8=4140$, etc). The moments are
+$\text{E}(y)=\lambda\exp(\lambda)$ and the variance is
+$\text{Var}(y)=\lambda\exp(\lambda)(1+\lambda)$.
 
 
 
@@ -26,7 +26,7 @@ The mean is linked to the linear predictor by
 \begin{displaymath}
     \lambda\exp(\lambda) = E \exp(\eta)
 \end{displaymath}
-where $E>0$ is a known constant.
+where $E>0$ is a known constant which defaults to 1.
 
 \subsection*{Hyperparameters}
 None.
@@ -41,11 +41,12 @@ None.
 
 \subsection*{Example}
 
-In the following example we estimate the parameters in a simulated
-example.
+This example estimate parameters from simulated data.
 {\small\verbatiminput{example-bell.R}}
 
 \subsection*{Notes}
+
+None.
 
 \end{document}
 
