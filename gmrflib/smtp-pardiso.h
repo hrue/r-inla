@@ -81,6 +81,7 @@ typedef struct {
 	int L_nnz;
 	int *perm;
 	int *iperm;
+	int perm_identity;
 	double log_det_Q;
 	GMRFLib_csr_tp *Q;
 	GMRFLib_csr_tp *Qinv;
