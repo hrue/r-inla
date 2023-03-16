@@ -1307,6 +1307,7 @@ inla.mesh <- function(...) {
 #' )
 #' plot(mesh2)
 #' @export inla.mesh.create
+#' @importFrom inlabru fm_CRS fm_crs
 inla.mesh.create <- function(loc = NULL, tv = NULL,
                              boundary = NULL, interior = NULL,
                              extend = (missing(tv) || is.null(tv)),
@@ -1334,7 +1335,7 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
             inla.crs_is_geocent(crs)) {
             ## Build all geocentric meshes on a sphere, and transform afterwards,
             ## to allow general geoids.
-            crs <- inla.CRS("sphere")
+            crs <- fm_CRS("sphere")
         }
 
         if (!(missing(loc) || is.null(loc))) {
@@ -1939,7 +1940,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
         isgeocentric <- inla.crs_is_geocent(crs)
         if (isgeocentric) {
             crs.target <- crs
-            crs <- inla.CRS("sphere")
+            crs <- fm_CRS("sphere")
         }
     }
 
@@ -2648,7 +2649,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc = NULL, field = NULL,
 
     if (!is.null(mesh$crs) &&
         inla.crs_is_geocent(mesh$crs)) {
-        crs.sphere <- inla.CRS("sphere")
+        crs.sphere <- fm_CRS("sphere")
         if (!inla.identical.CRS(mesh$crs, crs.sphere)) {
             ## Convert the mesh to a perfect sphere.
             mesh$loc <- fm_transform(mesh$loc, crs0 = mesh$crs, crs  = crs.sphere)
