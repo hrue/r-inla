@@ -1239,38 +1239,10 @@ inla.wkt_unit_params <- function() {
 #' @return For `inla.wkt_get_lengthunit`, a
 #' list of length units used in the wkt string, excluding the ellipsoid radius
 #' unit.
+#' @importFrom inlabru fm_length_unit
 
 inla.wkt_get_lengthunit <- function(wkt) {
-    extract <- function(wt) {
-        # 1. Recursively find LENGTHUNIT, except within ELLIPSOID
-        # 2. Return unit
-
-        if (wt[["label"]] == "LENGTHUNIT") {
-            result <- list(wt[["params"]])
-        } else if (wt[["label"]] != "ELLIPSOID") {
-            result <- list()
-            for (k in seq_along(wt$param)) {
-                if (is.list(wt[["params"]][[k]])) {
-                    result <- c(result, extract(wt[["params"]][[k]]))
-                }
-            }
-        } else {
-            result <- list()
-        }
-        result
-    }
-
-    wt <- inla.as.wkt_tree.wkt(wkt)
-    params <- unique(extract(wt))
-    names(params) <-
-        vapply(
-            params,
-            function(x) {
-                gsub('"', "", x[[1]])
-            },
-            ""
-        )
-    params
+    fm_length_unit(wkt)
 }
 
 #' @export
@@ -1278,39 +1250,14 @@ inla.wkt_get_lengthunit <- function(wkt) {
 #' @return For `inla.wkt_set_lengthunit`, a
 #' WKT2 string with altered length units.
 #' Note that the length unit for the ellipsoid radius is unchanged.
+#' @importFrom inlabru `fm_length_unit<-`
 
 inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
-    convert <- function(wt, unit) {
-        # 1. Recursively find LENGTHUNIT, except within ELLIPSOID
-        # 2. Change unit
-
-        if (wt[["label"]] == "LENGTHUNIT") {
-            wt[["params"]] <- unit
-        } else if (wt[["label"]] != "ELLIPSOID") {
-            for (k in seq_along(wt$param)) {
-                if (is.list(wt[["params"]][[k]])) {
-                    wt[["params"]][[k]] <- convert(wt[["params"]][[k]], unit)
-                }
-            }
-        }
-        wt
+    if (!is.null(params)) {
+        warning("Non-NULL 'params' for inla.wkt_set_lengthunit ignored.")
     }
-
-    if (is.null(params)) {
-        params <- inla.wkt_unit_params()
-    }
-    if (!(unit %in% names(params))) {
-        warning(paste0(
-            "'inla.wkt_set_lengthunit' unit conversion to '",
-            unit,
-            "' not supported. Unit left unchanged."
-        ))
-        return(wkt)
-    }
-
-    wt <- inla.as.wkt_tree.wkt(wkt)
-    wt <- convert(wt, params[[unit]])
-    inla.as.wkt.wkt_tree(wt)
+    fm_length_unit(wkt) <- unit
+    wkt
 }
 
 #' @return For `inla.crs_get_wkt`, WKT2 string.
@@ -1337,7 +1284,7 @@ inla.crs_get_wkt <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_get_lengthunit <- function(crs) {
-    inla.wkt_get_lengthunit(inla.crs_get_wkt(crs))
+    fm_length_unit(crs)
 }
 
 #' @return For `inla.crs_set_lengthunit`, a `sp::CRS` object with
@@ -1347,21 +1294,11 @@ inla.crs_get_lengthunit <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
-    if (inherits(crs, "inla.CRS")) {
-        crs_ <- crs
-        crs <- crs[["crs"]]
-    } else {
-        crs_ <- NULL
+    if (!is.null(params)) {
+        warning("Non-NULL 'params' for inla.crs_set_lengthunit ignored.")
     }
-    x <- sp::CRS(SRS_string = inla.wkt_set_lengthunit(inla.crs_get_wkt(crs),
-                                                      unit,
-                                                      params = params
-    ))
-    if (!is.null(crs_)) {
-        crs_[["crs"]] <- x
-        x <- crs_
-    }
-    x
+    fm_length_unit(crs) <- unit
+    crs
 }
 
 
