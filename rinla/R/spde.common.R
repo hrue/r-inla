@@ -1016,9 +1016,10 @@ inla.spde.make.A <-
             ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
             if (inherits(loc, "SpatialPoints") ||
                 inherits(loc, "SpatialPointsDataFrame")) {
-                loc <- inla.spTransform(coordinates(loc),
-                    inla.sp_get_crs(loc),
-                    mesh$crs,
+                loc <- fm_transform(
+                    coordinates(loc),
+                    crs0 = inla.sp_get_crs(loc),
+                    crs = mesh$crs,
                     passthrough = TRUE
                 )
             }

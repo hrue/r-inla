@@ -2,62 +2,39 @@
 % Please edit documentation in R/spmesh.R
 \name{inla.spTransform}
 \alias{inla.spTransform}
-\alias{inla.spTransform.default}
-\alias{inla.spTransform.SpatialPoints}
-\alias{inla.spTransform.inla.mesh.lattice}
-\alias{inla.spTransform.inla.mesh.segment}
-\alias{inla.spTransform.inla.mesh}
-\alias{inla.spTransform.SpatialPointsDataFrame}
-\title{Wrapper method for \code{sp::spTransform}}
+\title{Wrapper method for \code{inlabru::fm_transform}}
 \usage{
-inla.spTransform(x, ...)
-
-\method{inla.spTransform}{default}(x, crs0, crs1, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{SpatialPoints}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{SpatialPointsDataFrame}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{inla.mesh.lattice}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{inla.mesh.segment}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{inla.mesh}(x, CRSobj, passthrough = FALSE, ...)
+inla.spTransform(x, CRSobj, ...)
 }
 \arguments{
 \item{x}{The object that should be transformed from it's current CRS to a
 new CRS}
 
+\item{CRSobj}{The target crs object}
+
 \item{\dots}{Potential additional arguments}
 
-\item{crs0}{The source \code{sp::CRS} or \code{inla.CRS} object}
-
-\item{crs1}{The target \code{sp::CRS} or \code{inla.CRS} object}
+\item{crs0}{The source crs object, only needed for raw coordinate inputs}
 
 \item{passthrough}{default FALSE. Setting to TRUE allows objects with no CRS
 information to be passed through without transformation.}
-
-\item{CRSobj}{The target \code{sp::CRS} or \code{inla.CRS} object}
 }
 \value{
 The object is returned with its coordinates transformed
 }
 \description{
 Handles transformation of various inla objects accorting to coordinate
-reference systems of \code{sp::CRS} or \code{inla.CRS} class.
-}
-\details{
-\code{inla.spTransform.default} Low level transformation of raw coordinates.
+reference systems of \code{sf::crs}, \code{sp::CRS} or \code{inla.CRS} class.
 }
 \examples{
 
-if (require("sf") && require("sp")) {
+if (require("sf") && require("sp") && require("inlabru")) {
     latt <- inla.mesh.lattice(-10:10, 40:60)
     mesh1 <- inla.mesh.create(
         lattice = latt, extend = FALSE, refine = FALSE,
-        crs = inla.CRS("longlat")
+        crs = fm_CRS("longlat_norm")
     )
-    mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
+    mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
     summary(mesh1)
     summary(mesh2)
 }

@@ -2,8 +2,12 @@
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 
 
-#' Constraint segments for inla.mesh
+#' @importFrom inlabru fm_transform
+
+
+#' @title Constraint segments for inla.mesh
 #'
+#' @description
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].
 #'
@@ -1052,7 +1056,9 @@ inla.mesh.parse.segm.input <- function(boundary = NULL,
                     "Segment info list members "
                 )
                 if (!is.null(segm[[k]]$loc)) {
-                    local.loc <- inla.spTransform(segm[[k]], crs,
+                    local.loc <- fm_transform(
+                        segm[[k]],
+                        crs,
                         passthrough = TRUE
                     )$loc
                     extra.loc.n <- nrow(local.loc)
@@ -1335,9 +1341,10 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
             ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
             if (inherits(loc, "SpatialPoints") ||
                 inherits(loc, "SpatialPointsDataFrame")) {
-                loc <- inla.spTransform(coordinates(loc),
-                    inla.sp_get_crs(loc),
-                    crs,
+                loc <- fm_transform(
+                    coordinates(loc),
+                    crs0 = inlabru::fm_CRS(loc),
+                    crs = crs,
                     passthrough = TRUE
                 )
             }
@@ -1374,9 +1381,10 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
             }
 
             if (!is.null(lattice[["crs"]])) {
-                lattice$loc <- inla.spTransform(lattice$loc,
-                    lattice$crs,
-                    crs,
+                lattice$loc <- fm_transform(
+                    lattice$loc,
+                    crs0 = lattice$crs,
+                    crs = crs,
                     passthrough = TRUE
                 )
             }
@@ -1673,7 +1681,7 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
         if (!is.null(crs) &&
             !inla.identical.CRS(crs, crs.target)) {
             ## Target is a non-spherical geoid
-            loc <- inla.spTransform(loc, crs, crs.target)
+            loc <- fm_transform(loc, crs0 = crs, crs = crs.target)
             crs <- crs.target
         }
     }) ## Post-processing timing end
@@ -1893,11 +1901,11 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
 
     unify.one.segm <- function(segm, crs = NULL) {
         if (inherits(segm, "inla.mesh.segment")) {
-            segm <- inla.spTransform(segm, crs, passthrough = TRUE)
+            segm <- fm_transform(segm, crs, passthrough = TRUE)
         } else if (inherits(segm, "matrix")) {
             segm <- inla.mesh.segment(loc = segm, crs = crs)
         } else {
-            segm <- inla.spTransform(as.inla.mesh.segment(segm), crs,
+            segm <- fm_transform(as.inla.mesh.segment(segm), crs,
                 passthrough = TRUE
             )
         }
@@ -1939,9 +1947,10 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
             inherits(loc, "SpatialPointsDataFrame"))) {
-        loc <- inla.spTransform(coordinates(loc),
-            inla.sp_get_crs(loc),
-            crs,
+        loc <- fm_transform(
+            coordinates(loc),
+            crs0 = inla.sp_get_crs(loc),
+            crs = crs,
             passthrough = TRUE
         )
     }
@@ -2116,7 +2125,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
 
     if (num.layers == 1) {
         if (!is.null(crs) && isgeocentric && !issphere) {
-            mesh2$loc <- inla.spTransform(mesh2$loc, mesh2$crs, crs.target)
+            mesh2$loc <- fm_transform(mesh2$loc, crs0 = mesh2$crs, crs = crs.target)
             mesh2$crs <- crs.target
         }
         return(invisible(mesh2))
@@ -2642,7 +2651,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc = NULL, field = NULL,
         crs.sphere <- inla.CRS("sphere")
         if (!inla.identical.CRS(mesh$crs, crs.sphere)) {
             ## Convert the mesh to a perfect sphere.
-            mesh$loc <- inla.spTransform(mesh$loc, mesh$crs, crs.sphere)
+            mesh$loc <- fm_transform(mesh$loc, crs0 = mesh$crs, crs  = crs.sphere)
             mesh$manifold <- "S2"
             mesh$crs <- crs.sphere
         }
@@ -2656,17 +2665,19 @@ inla.mesh.project.inla.mesh <- function(mesh, loc = NULL, field = NULL,
             if (is.null(mesh$crs)) {
                 loc <- coordinates(loc)
             } else {
-                loc <- inla.spTransform(coordinates(loc),
-                    inla.sp_get_crs(loc),
-                    mesh$crs,
+                loc <- fm_transform(
+                    coordinates(loc),
+                    crs0 = inla.sp_get_crs(loc),
+                    crs = mesh$crs,
                     passthrough = FALSE
                 )
             }
         } else if (!is.null(crs)) {
             if (!is.null(mesh$crs)) {
-                loc <- inla.spTransform(loc,
-                    crs,
-                    mesh$crs,
+                loc <- fm_transform(
+                    loc,
+                    crs0 = crs,
+                    crs = mesh$crs,
                     passthrough = FALSE
                 )
             }
@@ -4623,9 +4634,10 @@ inla.nonconvex.hull.basic <- function(points, convex = -0.15, resolution = 40, e
     if (!(missing(points) || is.null(points)) &&
         (inherits(points, "SpatialPoints") ||
             inherits(points, "SpatialPointsDataFrame"))) {
-        points <- inla.spTransform(coordinates(points),
-            inla.sp_get_crs(points),
-            crs,
+        points <- fm_transform(
+            coordinates(points),
+            crs0 = inla.sp_get_crs(points),
+            crs = crs,
             passthrough = TRUE
         )
     }

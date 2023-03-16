@@ -397,7 +397,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
             lat <- seq(-90 + 1e-6, 90 - 1e-6, length = 91)
         }
         meridians <- as.matrix(expand.grid(lat, lon)[, 2:1])
-        proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
+        proj.mer.coords <- fm_transform(meridians, crs0 = inla.CRS("longlat"), crs = x)
         proj.mer.coords1 <- matrix(
             proj.mer.coords[, 1], length(lat),
             length(lon)
@@ -427,7 +427,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
                 lon <- ((1 - n[3]):n[3]) * by[3]
                 lat <- seq(-90 + 1e-6, -n[2] * by[2], length = ceiling((90 - n[2] * by[2]) / 2) + 1)
                 meridians <- as.matrix(expand.grid(lat, lon)[, 2:1])
-                proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
+                proj.mer.coords <- fm_transform(meridians, crs0 = inla.CRS("longlat"), crs = x)
                 proj.mer.coords1 <- matrix(
                     proj.mer.coords[, 1], length(lat),
                     length(lon)
@@ -456,7 +456,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
 
                 lat <- seq(n[2] * by[2], 90 - 1e-6, length = ceiling((90 - n[2] * by[2]) / 2) + 1)
                 meridians <- as.matrix(expand.grid(lat, lon)[, 2:1])
-                proj.mer.coords <- inla.spTransform(meridians, inla.CRS("longlat"), x)
+                proj.mer.coords <- fm_transform(meridians, crs0 = inla.CRS("longlat"), crs = x)
                 proj.mer.coords1 <- matrix(
                     proj.mer.coords[, 1], length(lat),
                     length(lon)
@@ -515,7 +515,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
         lon <- seq(-180 + 1e-6, 180 - 1e-6, length = 181)
         lat <- ((-n[2]):n[2]) * by[2]
         parallels <- as.matrix(expand.grid(lon, lat))
-        proj.par.coords <- inla.spTransform(parallels, inla.CRS("longlat"), x)
+        proj.par.coords <- fm_transform(parallels, crs0 = inla.CRS("longlat"), crs = x)
         proj.par.coords1 <- matrix(
             proj.par.coords[, 1], length(lon),
             length(lat)
@@ -587,9 +587,9 @@ inla.crs.tissot <- function(x, by = c(30, 30, 30), add = FALSE, do.plot = TRUE,
     loc0.lat[, 2] <- loc0.lat[, 2] + diff.eps
     crs.longlat <- inla.CRS("longlat")
 
-    loc1 <- inla.spTransform(loc0, crs.longlat, x)
-    loc1.lon <- inla.spTransform(loc0.lon, crs.longlat, x)
-    loc1.lat <- inla.spTransform(loc0.lat, crs.longlat, x)
+    loc1 <- fm_transform(loc0, crs0 = crs.longlat, crs = x)
+    loc1.lon <- fm_transform(loc0.lon, crs0 = crs.longlat, crs = x)
+    loc1.lat <- fm_transform(loc0.lat, crs0 = crs.longlat, crs = x)
     ok <- (rowSums(is.na(loc1)) +
         rowSums(is.na(loc1.lon)) +
         rowSums(is.na(loc1.lat)) == 0)
@@ -1648,20 +1648,16 @@ inla.identical.CRS <- function(crs0, crs1, crsonly = FALSE) {
 
 
 
-#' Wrapper method for `sp::spTransform`
+#' Wrapper method for `inlabru::fm_transform`
 #'
 #' Handles transformation of various inla objects accorting to coordinate
-#' reference systems of `sp::CRS` or `inla.CRS` class.
+#' reference systems of `sf::crs`, `sp::CRS` or `inla.CRS` class.
 #'
 #'
-#' @aliases inla.spTransform inla.spTransform.default
-#' inla.spTransform.SpatialPoints inla.spTransform.inla.mesh.lattice
-#' inla.spTransform.inla.mesh.segment inla.spTransform.inla.mesh
 #' @param x The object that should be transformed from it's current CRS to a
 #' new CRS
-#' @param crs0 The source `sp::CRS` or `inla.CRS` object
-#' @param crs1 The target `sp::CRS` or `inla.CRS` object
-#' @param CRSobj The target `sp::CRS` or `inla.CRS` object
+#' @param crs0 The source crs object, only needed for raw coordinate inputs
+#' @param CRSobj The target crs object
 #' @param passthrough default FALSE. Setting to TRUE allows objects with no CRS
 #' information to be passed through without transformation.
 #' @param \dots Potential additional arguments
@@ -1670,252 +1666,27 @@ inla.identical.CRS <- function(crs0, crs1, crsonly = FALSE) {
 #' @seealso [inla.CRS()]
 #' @examples
 #'
-#' if (require("sf") && require("sp")) {
+#' if (require("sf") && require("sp") && require("inlabru")) {
 #'     latt <- inla.mesh.lattice(-10:10, 40:60)
 #'     mesh1 <- inla.mesh.create(
 #'         lattice = latt, extend = FALSE, refine = FALSE,
-#'         crs = inla.CRS("longlat")
+#'         crs = fm_CRS("longlat_norm")
 #'     )
-#'     mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
+#'     mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
 #'     summary(mesh1)
 #'     summary(mesh2)
 #' }
 #' @export inla.spTransform
-inla.spTransform <- function(x, ...) {
-    UseMethod("inla.spTransform")
-}
-
-
-
-#' @details `inla.spTransform.default` Low level transformation of raw coordinates.
-#' @export
-#' @rdname inla.spTransform
-inla.spTransform.default <- function(x, crs0, crs1, passthrough = FALSE, ...) {
-    # PROJ6
-    ok0 <- (!is.null(crs0) &&
-                ((
-                    inherits(crs0, "CRS") && !is.null(inla.crs_get_wkt(crs0))
-                ) ||
-                    (inherits(crs0, "inla.CRS"))))
-    ok1 <- (!is.null(crs1) &&
-                ((
-                    inherits(crs1, "CRS") && !is.null(inla.crs_get_wkt(crs1))
-                ) ||
-                    (inherits(crs1, "inla.CRS"))))
-    if (ok0 && ok1) {
-        if (ncol(x) == 2) {
-            x <- cbind(x, 0)
-        }
-        sphere_radius_0 <- inla.crs_get_ellipsoid_radius(crs0)
-        sphere_radius_1 <- inla.crs_get_ellipsoid_radius(crs1)
-        different_radii <- (sphere_radius_0 != sphere_radius_1)
-        longlat_norm <- inla.CRS("longlat_norm")
-        longlat_0 <-
-            inla.crs_set_ellipsoid_radius(longlat_norm, sphere_radius_0)
-        longlat_1 <-
-            inla.crs_set_ellipsoid_radius(longlat_norm, sphere_radius_1)
-        
-        crs_sphere <- inla.CRS("sphere")
-        onsphere_0 <-
-            inla.identical.CRS(crs0, crs_sphere, crsonly = TRUE)
-        onsphere_1 <-
-            inla.identical.CRS(crs1, crs_sphere, crsonly = TRUE)
-        is_geocentric_0 <- inla.crs_is_geocent(crs0)
-        is_geocentric_1 <- inla.crs_is_geocent(crs1)
-        if (is_geocentric_0) {
-            ok <- TRUE
-        } else {
-            bounds <- inla.crs.bounds(crs0)
-            if (identical(inla.crs_projection_type(crs0), "longlat")) {
-                ## Wrap longitudes to [-180,180]
-                needswrap <- (x[, 1] < -180) | (x[, 1] > 180)
-                if (any(needswrap)) {
-                    x[needswrap, 1] <- ((x[needswrap, 1] + 180) %% 360) - 180
-                }
-            }
-            ok <- inla.crs.bounds.check(x, bounds)
-            if (!all(ok)) {
-                xx <- x
-            }
-        }
-        do_work_on_sphere <-
-            inherits(crs0, "inla.CRS") ||
-            inherits(crs1, "inla.CRS") ||
-            different_radii
-        if (inherits(crs0, "inla.CRS")) {
-            crs0crs <- crs0$crs
-            crs0oblique <- crs0$oblique
-        } else {
-            crs0crs <- crs0
-            crs0oblique <- NULL
-        }
-        if (inherits(crs1, "inla.CRS")) {
-            crs1crs <- crs1$crs
-            crs1oblique <- crs1$oblique
-        } else {
-            crs1crs <- crs1
-            crs1oblique <- NULL
-        }
-        x <-
-            SpatialPoints(x[ok, , drop = FALSE], proj4string = crs0crs)
-        if (do_work_on_sphere) {
-            if (!onsphere_0) {
-                if (sphere_radius_0 != 1) {
-                    x <- spTransform(x, longlat_0)
-                    proj4string(x) <-
-                        CRS(NA_character_) # Reset CRS to avoid warning
-                    proj4string(x) <- longlat_norm
-                }
-                x <- spTransform(x, crs_sphere)
-            }
-            if (!is.null(crs0oblique)) {
-                x <- SpatialPoints(
-                    inla.crs.transform.oblique(coordinates(x),
-                                               crs0oblique,
-                                               to.oblique = FALSE),
-                    proj4string = crs_sphere
-                )
-            }
-            
-            if (!is.null(crs1oblique)) {
-                x <- SpatialPoints(
-                    inla.crs.transform.oblique(coordinates(x),
-                                               crs1oblique,
-                                               to.oblique = TRUE),
-                    proj4string = crs_sphere
-                )
-            }
-            if (sphere_radius_1 != 1) {
-                x <- spTransform(x, longlat_norm)
-                proj4string(x) <-
-                    CRS(NA_character_) # Reset CRS to avoid warning
-                proj4string(x) <- longlat_1
-            }
-        }
-        
-        x <- spTransform(x, crs1crs)
-        
-        if (!all(ok)) {
-            xx[ok,] <- coordinates(x)
-            xx[!ok,] <- NA
-            x <- xx
-        }
-    } else if (!passthrough) {
-        if (!ok0) {
-            stop("'crs0' is an invalid coordinate reference object.")
-        }
-        if (!ok1) {
-            stop("'crs1' is an invalid coordinate reference object.")
-        }
-    }
-    if (is.matrix(x)) {
-        invisible(x)
-    } else {
-        invisible(coordinates(x))
-    }
-}
-
-
-#' @export
-#' @rdname inla.spTransform
-inla.spTransform.SpatialPoints <- function(x, CRSobj, passthrough = FALSE, ...) {
-    crs_x <- inla.sp_get_crs(x)
-    ok0 <- !is.null(inla.crs_get_wkt(crs_x))
-    ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
-                (inherits(CRSobj, "CRS") &&
-                     !is.null(inla.crs_get_wkt(CRSobj))))
-    if (ok0 && ok1) {
-        invisible(SpatialPoints(
-            inla.spTransform(coordinates(x),
-                             crs_x,
-                             CRSobj),
-            proj4string = CRSobj
-        ))
-    } else if (ok1) {
-        ## Know: !ok0 && ok1
-        if (!passthrough) {
-            stop("Invalid origin CRS for SpatialPoints")
-        }
-        invisible(SpatialPoints(coordinates(x), proj4string = CRSobj))
-    } else {
-        ## Know: (ok0 || !ok0) && !ok1
-        if (!passthrough) {
-            stop("Invalid target CRS for SpatialPoints")
-        }
-        invisible(SpatialPoints(coordinates(x), proj4string = inla.CRS()))
-    }
-}
-
-#' @export
-#' @rdname inla.spTransform
-inla.spTransform.SpatialPointsDataFrame <- function(x,
-                                                    CRSobj,
-                                                    passthrough = FALSE,
-                                                    ...) {
-    ok1 <- (!missing(CRSobj) && !is.null(CRSobj) &&
-        (inherits(CRSobj, "CRS") && !is.null(inla.crs_get_wkt(CRSobj))))
-    if (!ok1 && !passthrough) {
-        stop("Invalid target CRS for SpatialPointsDataFrame")
-    }
-
-    x_no_df <- SpatialPoints(coordinates(x),
-        proj4string = inla.sp_get_crs(x)
-    )
-    x_no_df <- inla.spTransform(x_no_df,
-        CRSobj = CRSobj,
-        passthrough = passthrough
-    )
-    if (ok1) {
-        invisible(SpatialPointsDataFrame(coordinates(x_no_df),
-            proj4string = CRSobj,
-            data = x@data
-        ))
-    } else {
-        invisible(SpatialPointsDataFrame(coordinates(x_no_df),
-            proj4string = inla.CRS(),
-            data = x@data
-        ))
-    }
-}
-
-#' @export
-#' @rdname inla.spTransform
-inla.spTransform.inla.mesh.lattice <- function(x, CRSobj, passthrough = FALSE, ...) {
-    x$segm <- inla.spTransform(x$segm, CRSobj, passthrough = passthrough)
-    x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough = passthrough)
-    x$crs <- CRSobj
-    invisible(x)
-}
-
-#' @export
-#' @rdname inla.spTransform
-inla.spTransform.inla.mesh.segment <- function(x, CRSobj, passthrough = FALSE, ...) {
-    x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough = passthrough)
-    x$crs <- CRSobj
-    invisible(x)
+inla.spTransform <- function(x, CRSobj, ...) {
+    inlabru::fm_transform(x, crs = CRSobj, ...)
 }
 
 
 
 
 inla.crs_detect_manifold <- function(crs) {
-    if (inla.crs_is_geocent(crs)) {
-        manifold <- "S2"
-    } else {
-        manifold <- "R2"
-    }
-    manifold
+    inlabru::fm_crs_detect_manifold(crs)
 }
-
-#' @export
-#' @rdname inla.spTransform
-inla.spTransform.inla.mesh <- function(x, CRSobj, passthrough = FALSE, ...) {
-    x$loc <- inla.spTransform(x$loc, x$crs, CRSobj, passthrough = passthrough)
-    x$manifold <- inla.crs_detect_manifold(CRSobj)
-    x$crs <- CRSobj
-    invisible(x)
-}
-
 
 
 
@@ -1972,16 +1743,10 @@ inla.internal.sp2segment.join <- function(inp, grp = NULL, closed = TRUE) {
 
 
 
-#' Convert `sp` curve objects to `inla.mesh.segment` objects.
+#' @title Convert `sp` objects to `inla.mesh.segment` objects.
 #'
-#' Convert `sp` curve objects to `inla.mesh.segment` objects.
+#' @description Wrapper for `inlabru::fm_as_inla_mesh_segment`
 #'
-#'
-#' @aliases as.inla.mesh.segment as.inla.mesh.segment.Line
-#' as.inla.mesh.segment.Lines as.inla.mesh.segment.SpatialLines
-#' as.inla.mesh.segment.SpatialLinesDataFrame as.inla.mesh.segment.Polygon
-#' as.inla.mesh.segment.Polygons as.inla.mesh.segment.SpatialPolygons
-#' as.inla.mesh.segment.SpatialPolygonsDataFrame inla.sp2segment
 #' @param sp An `sp` polygon object of class `Polygon`,
 #' `Polygons`, `SpatialPolygons`, or `SpatialPolygonsDataFrame`.
 #' @param join If `TRUE`, join multiple polygons into a single segment
@@ -1997,160 +1762,15 @@ inla.internal.sp2segment.join <- function(inp, grp = NULL, closed = TRUE) {
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.mesh.segment()]
 #' @export as.inla.mesh.segment
+#' @importFrom inlabru fm_as_inla_mesh_segment
 as.inla.mesh.segment <-
     function(sp, ...) {
-        UseMethod("as.inla.mesh.segment")
+        fm_as_inla_mesh_segment(sp, ...)
     }
 
 #' @export
 #' @rdname as.inla.mesh.segment
 inla.sp2segment <-
     function(sp, ...) {
-        UseMethod("as.inla.mesh.segment")
-    }
-
-
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.SpatialPoints <-
-    function(sp, reverse = FALSE, grp = NULL, is.bnd = TRUE, ...) {
-        crs <- inla.sp_get_crs(sp)
-        loc <- coordinates(sp)
-
-        n <- dim(loc)[1L]
-        if (reverse) {
-            idx <- seq(n, 1L, length = n)
-        } else {
-            idx <- seq_len(n)
-        }
-        inla.mesh.segment(
-            loc = loc, idx = idx, grp = grp, is.bnd = is.bnd,
-            crs = crs
-        )
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.SpatialPointsDataFrame <-
-    function(sp, ...) {
-        as.inla.mesh.segment.SpatialLines(sp, ...)
-    }
-
-
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.Line <-
-    function(sp, reverse = FALSE, crs = NULL, ...) {
-        loc <- sp@coords
-        n <- dim(loc)[1L]
-        if (reverse) {
-            idx <- seq(n, 1L, length = n)
-        } else {
-            idx <- seq_len(n)
-        }
-        inla.mesh.segment(loc = loc, idx = idx, is.bnd = FALSE, crs = crs)
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.Lines <-
-    function(sp, join = TRUE, crs = NULL, ...) {
-        segm <- as.list(lapply(
-            sp@Lines,
-            function(x) as.inla.mesh.segment(x, crs = crs, ...)
-        ))
-        if (join) {
-              segm <- inla.internal.sp2segment.join(segm, grp = NULL, closed = FALSE)
-          }
-        segm
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.SpatialLines <-
-    function(sp, join = TRUE, grp = NULL, ...) {
-        crs <- inla.sp_get_crs(sp)
-        segm <- list()
-        for (k in 1:length(sp@lines)) {
-              segm[[k]] <- as.inla.mesh.segment(sp@lines[[k]],
-                  join = TRUE,
-                  crs = crs, ...
-              )
-          }
-        if (join) {
-            if (missing(grp)) {
-                grp <- 1:length(segm)
-            }
-            segm <- inla.internal.sp2segment.join(segm, grp = grp, closed = FALSE)
-        }
-        segm
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.SpatialLinesDataFrame <-
-    function(sp, ...) {
-        as.inla.mesh.segment.SpatialLines(sp, ...)
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.SpatialPolygons <-
-    function(sp, join = TRUE, grp = NULL, ...) {
-        crs <- inla.sp_get_crs(sp)
-        segm <- list()
-        for (k in 1:length(sp@polygons)) {
-              segm[[k]] <- as.inla.mesh.segment(sp@polygons[[k]], join = TRUE, crs = crs)
-          }
-        if (join) {
-            if (missing(grp)) {
-                grp <- 1:length(segm)
-            }
-            segm <- inla.internal.sp2segment.join(segm, grp = grp)
-        }
-        segm
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.SpatialPolygonsDataFrame <-
-    function(sp, ...) {
-        as.inla.mesh.segment.SpatialPolygons(sp, ...)
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.Polygons <-
-    function(sp, join = TRUE, crs = NULL, ...) {
-        segm <- as.list(lapply(
-            sp@Polygons,
-            function(x) as.inla.mesh.segment(x, crs = crs)
-        ))
-        if (join) {
-              segm <- inla.internal.sp2segment.join(segm, grp = NULL)
-          }
-        segm
-    }
-
-#' @export
-#' @rdname as.inla.mesh.segment
-as.inla.mesh.segment.Polygon <-
-    function(sp, crs = NULL, ...) {
-        loc <- sp@coords[-dim(sp@coords)[1L], , drop = FALSE]
-        n <- dim(loc)[1L]
-        if (sp@hole) {
-              if (sp@ringDir == 1) {
-                    idx <- c(1L:n, 1L)
-                } else {
-                    idx <- c(1L, seq(n, 1L, length.out = n))
-                }
-          } else
-        if (sp@ringDir == 1) {
-              idx <- c(1L, seq(n, 1L, length.out = n))
-          } else {
-              idx <- c(1L:n, 1L)
-          }
-        inla.mesh.segment(loc = loc, idx = idx, is.bnd = TRUE, crs = crs)
+        fm_as_inla_mesh_segment(sp, ...)
     }
