@@ -1414,6 +1414,20 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
             crs = crs
         ))
 
+        col_fix <- function(x) {
+            if (is.null(x)) {
+                return(x)
+            }
+            if (nrow(x) == 0) {
+                x <- matrix(0.0, 0, 3)
+            } else if (ncol(x) == 2) {
+                x <- cbind(x, 0.0)
+            }
+            x
+        }
+        segm$loc <- col_fix(segm$loc)
+        lattice$loc <- col_fix(lattice$loc)
+        loc <- col_fix(loc)
         loc0 <- rbind(segm$loc, lattice$loc, loc)
         if ((!is.null(loc0)) && (nrow(loc0) > 0)) {
             idx0 <- seq_len(nrow(loc0))
