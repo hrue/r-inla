@@ -54,6 +54,8 @@ double my_betabinomial_helper(int n, double a);
 double my_betabinomial_helper2(int n, double a);
 double my_betabinomial(int y, int n, double a, double b);
 double my_betabinomial2(int y, int n, double a, double b);
+double my_lbell(int y);
+double my_lambert_W0(double y);
 int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result);
 int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result);
 

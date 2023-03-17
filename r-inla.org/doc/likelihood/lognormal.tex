@@ -38,11 +38,10 @@ and the prior is defined on $\theta$.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{lognormal}$ for regression models and
-    $\text{family}=\text{lognormalsurv}$ for survival models.
+\item \texttt{family="lognormal"} for regression models and
+    \texttt{family="lognormalsurv"} for survival models.
 \item Required arguments: $y$. Given in a format by using
-    $\texttt{inla.surv()}$ function for
-    $\text{family}=\text{lognormal.surv}$
+    $\texttt{inla.surv()}$ function for \texttt{"lognormal.surv"}
 \end{itemize}
 
 \subsubsection*{Hyperparameter spesification and default values}
