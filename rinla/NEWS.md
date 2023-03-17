@@ -1,3 +1,8 @@
+# INLA 23.03.17
+* Added family=bell (experimental)
+* Workaround for PARDISO issue with diagonal matrix
+* Various code-cleanup
+
 # INLA 23.02.27
 * New option to \code{inla.binary.install()}
 * Fix a broken build
