@@ -15405,6 +15405,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_BELL:
 	{
+		// to initialize the lbell-cache
+		int ymax = 0;
+
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -15412,8 +15415,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
+				ymax = IMAX(ymax, (int) ds->data_observations.y[i]);
 			}
 		}
+		// will initialize the cache, not strictly needed but its convenient to do this here 
+		my_lbell(ymax);
 	}
 		break;
 
@@ -43425,8 +43431,12 @@ int testit(int argc, char **argv)
 	case 106: 
 	{
 		printf("## check with\nlibrary(VGAM)\nfor(i in 0:200) print(c(i,  log(bell(i)) - lfactorial(i)))\n\n");
-		for(int i = -1; i <= 257; i++) {
-			printf("%d %.12f\n", i, my_lbell(i));
+		#pragma omp parallel for
+		for(int i = -1; i <= 2057; i++) {
+#pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
+			{
+				printf("%d %.20g\n", i, my_lbell(i));
+			}
 		}
 	}
 	break;
@@ -43437,12 +43447,13 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		double *y = Calloc(n, double);
 
-		double abs_err = 0.0;
+		double rel_err = 0.0;
 		for(int i = 0; i < n; i++) {
-			y[i] = exp(4.0 * GMRFLib_stdnormal());
-			abs_err += ABS(gsl_sf_lambert_W0(y[i]) - my_lambert_W0(y[i]));
+			y[i] = exp(5.0 * GMRFLib_stdnormal());
+			double ref = gsl_sf_lambert_W0(y[i]);
+			rel_err += ABS((ref - my_lambert_W0(y[i])) / ref);
 		}
-		P(abs_err/n);
+		P(rel_err/n);
 
 		tref[0] = -GMRFLib_cpu();
 		double sum = 0.0;
@@ -43474,6 +43485,16 @@ int testit(int argc, char **argv)
 		}
 		tref[1] += GMRFLib_cpu();
 		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+	}
+	break;
+
+	case 108: 
+	{
+		int n = atoi(args[0]);
+		my_lbell(n);
+		for (int y = 0; y <= n; y++) {
+			printf("y %d my_lbell %.12g\n", y, my_lbell(y));
+		}
 	}
 	break;
 
