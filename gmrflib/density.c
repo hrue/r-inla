@@ -639,10 +639,14 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	// convert scale
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(npm, ldm, ldm);
+#else	
 #pragma GCC ivdep
 	for (i = 0; i < npm; i++) {
 		ldm[i] = exp(ldm[i]);
 	}
+#endif
 
 	// compute moments
 	double mm[4] = { 0.0, 0.0, 0.0, 0.0 };
@@ -803,10 +807,15 @@ int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp
 	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
+
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(n, dens, dens);
+#else	
 #pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		dens[i] = exp(dens[i]);
 	}
+#endif
 	return GMRFLib_SUCCESS;
 }
 
