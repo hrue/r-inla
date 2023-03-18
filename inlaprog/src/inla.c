@@ -9104,7 +9104,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			int mkl_lim = 4;
 			int align = 8;
 			div_t d = div(m, align);
-			int len = (d.quot + (d.rem ? 1 : 0)) * align;
+			int len = (d.quot + 1 + (d.rem ? 1 : 0)) * align;
 #endif
 			// optimize for the case y=0, and then case ny=0
 			if (ISZERO(y)) {
