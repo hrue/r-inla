@@ -358,6 +358,8 @@ double *my_compute_lbell(int nmax)
 	// return a vector with log(Bell(y)/y!) for i=0...nmax, computed using the recursive result: B_{n+1} = \sum_{k=0}^n Choose(n,k) B_k.
 	// Since we cache these numbers, the time used is less of an issue.
 
+	nmax = IMAX(7, nmax);
+
 	double *log_bell = Calloc(nmax + 1, double);
 	double *terms = Calloc(nmax, double);
 
@@ -365,7 +367,7 @@ double *my_compute_lbell(int nmax)
 	for (int n = 2; n <= nmax; n++) {
 		int n1 = n - 1;
 
-#pragma omp parallel for if(n > 1024)
+#pragma omp parallel for if(n > 1024L)
 		for (int k = 0; k < n; k++) {
 			terms[k] = my_gsl_sf_lnchoose((unsigned int) n1, (unsigned int) k) + log_bell[k];
 		}

@@ -9517,7 +9517,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	// yes, disable this with PARDISO as PARDISO do not have this feaure
 	int disable_opt = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO ? 1 : 0);
-	
+
 	typedef struct {
 		double *v;
 		int from_idx;

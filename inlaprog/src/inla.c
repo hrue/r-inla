@@ -7257,7 +7257,8 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+		       char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7291,7 +7292,7 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 			double t1 = exp(1.0 - exp(lambda));
 			double cdf = 1.0;
 			double p = 1.0;
-			for(int iy = 1; iy <= yy; iy++) {
+			for (int iy = 1; iy <= yy; iy++) {
 				p *= lambda;
 				cdf += p * exp(my_lbell(iy));
 			}
@@ -9868,9 +9869,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -16532,7 +16533,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_BELL:
 		break;
-		
+
 	case L_POISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
@@ -32845,7 +32846,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_BELL:
 				break;
-				
+
 			case L_BINOMIAL:
 			case L_XBINOMIAL:
 			case L_EXPONENTIAL:
@@ -43428,67 +43429,67 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 106: 
+	case 106:
 	{
 		printf("## check with\nlibrary(VGAM)\nfor(i in 0:200) print(c(i,  log(bell(i)) - lfactorial(i)))\n\n");
-		#pragma omp parallel for
-		for(int i = -1; i <= 2057; i++) {
+#pragma omp parallel for
+		for (int i = -1; i <= 2057; i++) {
 #pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
 			{
 				printf("%d %.20g\n", i, my_lbell(i));
 			}
 		}
 	}
-	break;
-	
+		break;
+
 	case 107:
 	{
-		double tref[2] = {0, 0};
+		double tref[2] = { 0, 0 };
 		int n = atoi(args[0]);
 		double *y = Calloc(n, double);
 
 		double rel_err = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			y[i] = exp(5.0 * GMRFLib_stdnormal());
 			double ref = gsl_sf_lambert_W0(y[i]);
 			rel_err += ABS((ref - my_lambert_W0(y[i])) / ref);
 		}
-		P(rel_err/n);
+		P(rel_err / n);
 
 		tref[0] = -GMRFLib_cpu();
 		double sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
 		}
 		tref[0] += GMRFLib_cpu();
-		
+
 		tref[1] = -GMRFLib_cpu();
 		sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += my_lambert_W0(y[i]);
 		}
 		tref[1] += GMRFLib_cpu();
-		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
 		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
 		tref[0] = -GMRFLib_cpu();
 		sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
 		}
 		tref[0] += GMRFLib_cpu();
-		
+
 		tref[1] = -GMRFLib_cpu();
 		sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += my_lambert_W0(y[i]);
 		}
 		tref[1] += GMRFLib_cpu();
-		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
-	break;
+		break;
 
-	case 108: 
+	case 108:
 	{
 		int n = atoi(args[0]);
 		my_lbell(n);
@@ -43496,7 +43497,7 @@ int testit(int argc, char **argv)
 			printf("y %d my_lbell %.12g\n", y, my_lbell(y));
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{
