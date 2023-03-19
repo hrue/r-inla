@@ -35842,7 +35842,6 @@ int inla_INLA(inla_tp * mb)
 	char *vb_nodes = NULL;
 
 	local_count = 0;
-
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
@@ -35853,7 +35852,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -35893,7 +35892,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -36210,7 +36209,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				int k = IMAX(1, len / 2);      /* integer division */
@@ -36577,12 +36576,12 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
-			if ((vb->idx[i] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
+			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -36898,12 +36897,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	// VB corrections
 	if (mb->ai_par->vb_enable) {
-		// tp = 0 is mean, tp = 0 is variance
+		// tp = 0 is mean, tp = 1 is variance
 		for (int tp = 0; tp < 2; tp++) {
 			char *vb_nodes = Calloc(N, char);
 			int debug = 0;
 			int local_count = 0;
 			count = 0;
+
 			for (i = 0; i < mb->nf; i++) {
 
 				int n = mb->f_N[i] / mb->f_ngroup[i];
@@ -36923,12 +36923,16 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
 
+				if (debug) {
+					P(vb->idx[0]);
+				}
+				
 				if ((vb->idx[0] == -1L && n <= lim)) {
 					for (j = 0; j < ntot; j++) {
 						vb_nodes[count + j] = (char) 1;
 						local_count++;
 					}
-				} else if (vb->idx[i] == -1L) {
+				} else if (vb->idx[0] == -1L) {
 					int len = IMAX(1, n / lim);
 					int k = IMAX(1, len / 2);
 					for (int r = 0; r < nrep; r++) {
