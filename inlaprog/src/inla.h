@@ -2238,8 +2238,8 @@ typedef struct {
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
 #if defined(INLA_LINK_WITH_MKL)
-double vdExp(int, double *, double *);
-double vdLog1p(int, double *, double *);
+void vdExp(int, const double *, double *);
+void vdLog1p(int, const double *, double *);
 #endif
 
 __END_DECLS

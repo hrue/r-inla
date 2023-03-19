@@ -292,14 +292,14 @@ double my_lambert_W0(double y)
 {
 	// solve for x, so that x*exp(x)=y. This is lambert_W0(y). cache and interpolate the function in log-log scale
 
-	static double logy_lim[2] = { -15.0, 15.0 };
+	static double logy_lim[2] = { -10.0, 20.0 };
 	static GMRFLib_spline_tp *spline_lambert_W0 = NULL;
 
 	if (!spline_lambert_W0) {
 #pragma omp critical (Name_8d6da91249d12a4b187c29c3d315ea60b99212fb)
 		{
 			if (!spline_lambert_W0) {
-				int n0 = 120;
+				int n0 = 140;
 				int n = n0 + 1;
 				double dy = (logy_lim[1] - logy_lim[0]) / n0;
 				double *work = Calloc(2 * n, double);
@@ -316,18 +316,32 @@ double my_lambert_W0(double y)
 		}
 	}
 
-	double log_y = log(y);
-	if ((log_y > logy_lim[0] && log_y < logy_lim[1])) {
-		// this version adds an extra Newton-R correction step. then we can do the caching less accurate
-		double theta = GMRFLib_spline_eval(log_y, spline_lambert_W0);
-		double exp_theta = exp(theta);
-		double err = theta + exp_theta - log_y;
-		double t1 = 1.0 + exp_theta;
-		theta -= err / (t1 + err * exp_theta / t1);
-		return (exp(theta));
+	if (y > 0.0) {
+		double log_y = log(y);
+		if (log_y < logy_lim[1]) {
+			// this version adds an extra Newton-R correction step. then we can do the caching less accurate
+			double theta = GMRFLib_spline_eval(log_y, spline_lambert_W0);
+			double exp_theta = exp(theta);
+			double err = theta + exp_theta - log_y;
+			double t1 = 1.0 + exp_theta;
+			theta -= err / (t1 + err * exp_theta / t1);
+			return (exp(theta));
+		} else {
+			return (gsl_sf_lambert_W0(y));
+		}
 	} else {
-		return (gsl_sf_lambert_W0(y));
+		if (ISZERO(y)) {
+			return 0.0;
+		}
+	
+		if (ISNAN(y)) {
+			return NAN;
+		}
+
+		assert(0 == 1);
 	}
+
+	return NAN;
 }
 
 double my_lbell(int y)
