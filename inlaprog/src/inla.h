@@ -245,7 +245,7 @@ typedef enum {
 	L_0POISSONS,
 	L_0BINOMIAL,
 	L_0BINOMIALS,
-	L_BELL, 
+	L_BELL,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -2238,8 +2238,8 @@ typedef struct {
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
 #if defined(INLA_LINK_WITH_MKL)
-double vdExp(int, double *, double *);
-double vdLog1p(int, double *, double *);
+void vdExp(int, const double *, double *);
+void vdLog1p(int, const double *, double *);
 #endif
 
 __END_DECLS

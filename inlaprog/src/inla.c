@@ -7257,7 +7257,8 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **UNUSED(arg_str))
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+		       char **UNUSED(arg_str))
 {
 	if (m == 0) {
 		return GMRFLib_LOGL_COMPUTE_CDF;
@@ -7291,7 +7292,7 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 			double t1 = exp(1.0 - exp(lambda));
 			double cdf = 1.0;
 			double p = 1.0;
-			for(int iy = 1; iy <= yy; iy++) {
+			for (int iy = 1; iy <= yy; iy++) {
 				p *= lambda;
 				cdf += p * exp(my_lbell(iy));
 			}
@@ -9103,7 +9104,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			int mkl_lim = 4;
 			int align = 8;
 			div_t d = div(m, align);
-			int len = (d.quot + (d.rem ? 1 : 0)) * align;
+			int len = (d.quot + 1 + (d.rem ? 1 : 0)) * align;
 #endif
 			// optimize for the case y=0, and then case ny=0
 			if (ISZERO(y)) {
@@ -15405,6 +15406,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_BELL:
 	{
+		// to initialize the lbell-cache
+		int ymax = 0;
+
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
@@ -15412,8 +15416,11 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
+				ymax = IMAX(ymax, (int) ds->data_observations.y[i]);
 			}
 		}
+		// will initialize the cache, not strictly needed but its convenient to do this here 
+		my_lbell(ymax);
 	}
 		break;
 
@@ -16526,7 +16533,7 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 
 	case L_BELL:
 		break;
-		
+
 	case L_POISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
@@ -32839,7 +32846,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 
 			case L_BELL:
 				break;
-				
+
 			case L_BINOMIAL:
 			case L_XBINOMIAL:
 			case L_EXPONENTIAL:
@@ -35835,7 +35842,6 @@ int inla_INLA(inla_tp * mb)
 	char *vb_nodes = NULL;
 
 	local_count = 0;
-
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
@@ -35846,7 +35852,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -35886,7 +35892,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -36203,7 +36209,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				int k = IMAX(1, len / 2);      /* integer division */
@@ -36570,12 +36576,12 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
-			if ((vb->idx[i] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
+			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -36891,12 +36897,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	// VB corrections
 	if (mb->ai_par->vb_enable) {
-		// tp = 0 is mean, tp = 0 is variance
+		// tp = 0 is mean, tp = 1 is variance
 		for (int tp = 0; tp < 2; tp++) {
 			char *vb_nodes = Calloc(N, char);
 			int debug = 0;
 			int local_count = 0;
 			count = 0;
+
 			for (i = 0; i < mb->nf; i++) {
 
 				int n = mb->f_N[i] / mb->f_ngroup[i];
@@ -36916,12 +36923,16 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
 
+				if (debug) {
+					P(vb->idx[0]);
+				}
+
 				if ((vb->idx[0] == -1L && n <= lim)) {
 					for (j = 0; j < ntot; j++) {
 						vb_nodes[count + j] = (char) 1;
 						local_count++;
 					}
-				} else if (vb->idx[i] == -1L) {
+				} else if (vb->idx[0] == -1L) {
 					int len = IMAX(1, n / lim);
 					int k = IMAX(1, len / 2);
 					for (int r = 0; r < nrep; r++) {
@@ -43422,60 +43433,75 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 106: 
+	case 106:
 	{
 		printf("## check with\nlibrary(VGAM)\nfor(i in 0:200) print(c(i,  log(bell(i)) - lfactorial(i)))\n\n");
-		for(int i = -1; i <= 257; i++) {
-			printf("%d %.12f\n", i, my_lbell(i));
+#pragma omp parallel for
+		for (int i = -1; i <= 2057; i++) {
+#pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
+			{
+				printf("%d %.20g\n", i, my_lbell(i));
+			}
 		}
 	}
-	break;
-	
+		break;
+
 	case 107:
 	{
-		double tref[2] = {0, 0};
+		double tref[2] = { 0, 0 };
 		int n = atoi(args[0]);
 		double *y = Calloc(n, double);
 
-		double abs_err = 0.0;
-		for(int i = 0; i < n; i++) {
-			y[i] = exp(4.0 * GMRFLib_stdnormal());
-			abs_err += ABS(gsl_sf_lambert_W0(y[i]) - my_lambert_W0(y[i]));
+		double rel_err = 0.0;
+		for (int i = 0; i < n; i++) {
+			y[i] = exp(5.0 * GMRFLib_stdnormal());
+			double ref = gsl_sf_lambert_W0(y[i]);
+			rel_err += ABS((ref - my_lambert_W0(y[i])) / ref);
 		}
-		P(abs_err/n);
+		P(rel_err / n);
 
 		tref[0] = -GMRFLib_cpu();
 		double sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
 		}
 		tref[0] += GMRFLib_cpu();
-		
+
 		tref[1] = -GMRFLib_cpu();
 		sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += my_lambert_W0(y[i]);
 		}
 		tref[1] += GMRFLib_cpu();
-		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
 		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
 		tref[0] = -GMRFLib_cpu();
 		sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
 		}
 		tref[0] += GMRFLib_cpu();
-		
+
 		tref[1] = -GMRFLib_cpu();
 		sum = 0.0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			sum += my_lambert_W0(y[i]);
 		}
 		tref[1] += GMRFLib_cpu();
-		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0]/(tref[0] + tref[1]), tref[1]/(tref[0] + tref[1]));
+		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
-	break;
+		break;
+
+	case 108:
+	{
+		int n = atoi(args[0]);
+		my_lbell(n);
+		for (int y = 0; y <= n; y++) {
+			printf("y %d my_lbell %.12g\n", y, my_lbell(y));
+		}
+	}
+		break;
 
 	case 999:
 	{

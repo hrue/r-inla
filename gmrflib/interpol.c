@@ -140,7 +140,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 
 	int tnum;
 	GMRFLib_CACHE_SET_ID(tnum);
-	
+
 	if (!(s->accel[tnum])) {
 #pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
 		{
@@ -206,7 +206,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
-		int tnum; 
+		int tnum;
 		GMRFLib_CACHE_SET_ID(tnum);
 		if (!(s->accel[tnum])) {
 			s->accel[tnum] = gsl_interp_accel_alloc();
@@ -247,7 +247,7 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
-		int tnum; 
+		int tnum;
 		GMRFLib_CACHE_SET_ID(tnum);
 		if (!(s->accel[tnum])) {
 			s->accel[tnum] = gsl_interp_accel_alloc();

@@ -42,6 +42,11 @@
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
 #define CONST_2 (-0.69314718055994528623)		       // log(0.5);
 
+#if defined(INLA_LINK_WITH_MKL)
+void vdExp(int, const double *, double *);
+void vdLog1p(int, const double *, double *);
+#endif
+
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp * p)
 {
 	/*
@@ -639,10 +644,14 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	// convert scale
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(npm, ldm, ldm);
+#else
 #pragma GCC ivdep
 	for (i = 0; i < npm; i++) {
 		ldm[i] = exp(ldm[i]);
 	}
+#endif
 
 	// compute moments
 	double mm[4] = { 0.0, 0.0, 0.0, 0.0 };
@@ -803,10 +812,15 @@ int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp
 	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
+
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(n, dens, dens);
+#else
 #pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		dens[i] = exp(dens[i]);
 	}
+#endif
 	return GMRFLib_SUCCESS;
 }
 

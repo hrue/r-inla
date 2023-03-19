@@ -968,7 +968,7 @@ char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts)
 #include <fenv.h>
 int GMRFLib_fpe(void)
 {
-	//feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+	// feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 	return 0;
 }
 #else

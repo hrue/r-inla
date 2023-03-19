@@ -44,20 +44,22 @@ __BEGIN_DECLS
 /*
  *
  */
-int my_file_exists(const char *filename);
-int my_dir_exists(const char *dirname);
-int my_setenv(char *str, int prefix);
-double my_gsl_sf_lngamma(double x);
-double my_gsl_sf_lnfact(int x);
-double my_gsl_sf_lnbeta(double a, double b);
-double my_betabinomial_helper(int n, double a);
-double my_betabinomial_helper2(int n, double a);
+double *my_compute_lbell(int nmax);
 double my_betabinomial(int y, int n, double a, double b);
 double my_betabinomial2(int y, int n, double a, double b);
-double my_lbell(int y);
+double my_betabinomial_helper(int n, double a);
+double my_betabinomial_helper2(int n, double a);
+double my_gsl_sf_lnbeta(double a, double b);
+double my_gsl_sf_lnchoose(unsigned int n, unsigned int m);
+double my_gsl_sf_lnfact(int x);
+double my_gsl_sf_lngamma(double x);
 double my_lambert_W0(double y);
-int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result);
+double my_lbell(int y);
+int my_dir_exists(const char *dirname);
+int my_file_exists(const char *filename);
 int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result);
+int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result);
+int my_setenv(char *str, int prefix);
 
 __END_DECLS
 #endif
