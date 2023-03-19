@@ -333,7 +333,7 @@ double my_lambert_W0(double y)
 		if (ISZERO(y)) {
 			return 0.0;
 		}
-	
+
 		if (ISNAN(y)) {
 			return NAN;
 		}
