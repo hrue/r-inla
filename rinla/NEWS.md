@@ -1,3 +1,7 @@
+# INLA 23.03.19
+* Updated family=bell
+* Fixed an issue with selection of nodes for vb.correct
+
 # INLA 23.03.17
 * Added family=bell (experimental)
 * Workaround for PARDISO issue with diagonal matrix
