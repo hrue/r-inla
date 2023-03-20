@@ -59,7 +59,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	int i, j;
 	const int debug = 0;
 	double **par, intercept_intern, power, power_intern, sd;
-	double eps = GMRFLib_eps(0.5);
+	double eps = GSL_SQRT_DBL_EPSILON;
 
 	par = (double **) param;
 	power_intern = *(par[0]);

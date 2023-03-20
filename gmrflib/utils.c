@@ -389,11 +389,8 @@ int GMRFLib_find_nonzero(double *array, int len, int direction)
 
 double GMRFLib_eps(double power)
 {
-	/*
-	 * Return eps^power, where eps is the smalles number such that 1+eps != eps.  
-	 */
-
-	return (pow(DBL_EPSILON, power));
+	return (exp(GSL_LOG_DBL_EPSILON * power));
+	//return (pow(DBL_EPSILON, power));
 }
 
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc)

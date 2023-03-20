@@ -889,7 +889,7 @@ int GMRFLib_crw_scale(int thread_id, void *def)
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 	// GMRFLib_printf_constr(stdout, constr, graph);
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
+	double *c = Calloc(graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_problem_tp *problem = NULL;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1020,7 +1020,7 @@ int GMRFLib_rw_scale(int thread_id, void *def)
 		constr = NULL;
 	}
 
-	double *c = Calloc(graph->n, double), eps = GMRFLib_eps(0.5);
+	double *c = Calloc(graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < graph->n; i++) {
@@ -1119,7 +1119,7 @@ int GMRFLib_rw2d_scale(int thread_id, void *def)
 		constr->e_vector = Calloc(constr->nc, double);
 		GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-		double eps = GMRFLib_eps(0.75);
+		double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 		c = Calloc(graph->n, double);
 		for (i = 0; i < graph->n; i++) {
 			c[i] = eps;
