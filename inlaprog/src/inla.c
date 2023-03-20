@@ -7277,7 +7277,7 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 	LINK_INIT;
 
 	if (m > 0) {
-		double work[2*m];
+		double work[2 * m];
 		double *mean = work;
 		double *lambda = work + m;
 #pragma GCC ivdep
@@ -9875,9 +9875,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -43456,9 +43456,9 @@ int testit(int argc, char **argv)
 	{
 		double tref[2] = { 0, 0 };
 		int n = atoi(args[0]);
-		double *y = Calloc(2*n, double);
+		double *y = Calloc(2 * n, double);
 		double *res = y + n;
-		
+
 		double rel_err = 0.0;
 		for (int i = 0; i < n; i++) {
 			y[i] = exp(5.0 * GMRFLib_stdnormal());

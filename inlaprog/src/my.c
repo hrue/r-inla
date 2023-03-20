@@ -288,7 +288,7 @@ double my_betabinomial2(int y, int n, double a, double b)
 	return (s1 + s2 - s3 + ladd);
 }
 
-double my_lambert_W0(double y) 
+double my_lambert_W0(double y)
 {
 	double val;
 	my_lambert_W0s(1, &y, &val);
@@ -324,7 +324,7 @@ void my_lambert_W0s(int m, double *y, double *res)
 		}
 	}
 
-	for(int k = 0; k < m; k++) {
+	for (int k = 0; k < m; k++) {
 		if (y[k] > 0.0) {
 			double log_y = log(y[k]);
 			if (log_y < logy_lim[1]) {
