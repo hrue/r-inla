@@ -7269,7 +7269,7 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 	double normc;
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = my_lbell((int) y);
+		G_norm_const[idx] = my_lbell((int) y) + 1.0;
 		G_norm_const_compute[idx] = 0;
 	}
 	normc = G_norm_const[idx];
@@ -7277,11 +7277,17 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 	LINK_INIT;
 
 	if (m > 0) {
+		double work[2*m];
+		double *mean = work;
+		double *lambda = work + m;
 #pragma GCC ivdep
 		for (int i = 0; i < m; i++) {
-			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			double lambda = my_lambert_W0(mean);
-			logll[i] = y * log(lambda) + (1.0 - exp(lambda)) + normc;
+			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		}
+		my_lambert_W0s(m, mean, lambda);
+#pragma GCC ivdep
+		for (int i = 0; i < m; i++) {
+			logll[i] = y * log(lambda[i]) - exp(lambda[i]) + normc;
 		}
 	} else {
 		int yy = (int) (y_cdf ? *y_cdf : y);
@@ -43450,8 +43456,9 @@ int testit(int argc, char **argv)
 	{
 		double tref[2] = { 0, 0 };
 		int n = atoi(args[0]);
-		double *y = Calloc(n, double);
-
+		double *y = Calloc(2*n, double);
+		double *res = y + n;
+		
 		double rel_err = 0.0;
 		for (int i = 0; i < n; i++) {
 			y[i] = exp(5.0 * GMRFLib_stdnormal());
@@ -43468,28 +43475,22 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_cpu();
 
 		tref[1] = -GMRFLib_cpu();
-		sum = 0.0;
-		for (int i = 0; i < n; i++) {
-			sum += my_lambert_W0(y[i]);
-		}
+		my_lambert_W0s(n, y, res);
 		tref[1] += GMRFLib_cpu();
 		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
 		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
 		tref[0] = -GMRFLib_cpu();
-		sum = 0.0;
 		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
 		}
 		tref[0] += GMRFLib_cpu();
 
 		tref[1] = -GMRFLib_cpu();
-		sum = 0.0;
-		for (int i = 0; i < n; i++) {
-			sum += my_lambert_W0(y[i]);
-		}
+		my_lambert_W0s(n, y, res);
 		tref[1] += GMRFLib_cpu();
 		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P(sum);
 	}
 		break;
 

@@ -60,6 +60,7 @@ int my_file_exists(const char *filename);
 int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result);
 int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result);
 int my_setenv(char *str, int prefix);
+void my_lambert_W0s(int m, double *y, double *res);
 
 __END_DECLS
 #endif

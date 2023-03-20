@@ -288,7 +288,15 @@ double my_betabinomial2(int y, int n, double a, double b)
 	return (s1 + s2 - s3 + ladd);
 }
 
-double my_lambert_W0(double y)
+double my_lambert_W0(double y) 
+{
+	double val;
+	my_lambert_W0s(1, &y, &val);
+
+	return val;
+}
+
+void my_lambert_W0s(int m, double *y, double *res)
 {
 	// solve for x, so that x*exp(x)=y. This is lambert_W0(y). cache and interpolate the function in log-log scale
 
@@ -316,32 +324,28 @@ double my_lambert_W0(double y)
 		}
 	}
 
-	if (y > 0.0) {
-		double log_y = log(y);
-		if (log_y < logy_lim[1]) {
-			// this version adds an extra Newton-R correction step. then we can do the caching less accurate
-			double theta = GMRFLib_spline_eval(log_y, spline_lambert_W0);
-			double exp_theta = exp(theta);
-			double err = theta + exp_theta - log_y;
-			double t1 = 1.0 + exp_theta;
-			theta -= err / (t1 + err * exp_theta / t1);
-			return (exp(theta));
+	for(int k = 0; k < m; k++) {
+		if (y[k] > 0.0) {
+			double log_y = log(y[k]);
+			if (log_y < logy_lim[1]) {
+				// this version adds an extra Newton-R correction step. then we can do the caching less accurate
+				double theta = GMRFLib_spline_eval(log_y, spline_lambert_W0);
+				double exp_theta = exp(theta);
+				double err = theta + exp_theta - log_y;
+				double t1 = 1.0 + exp_theta;
+				theta -= err / (t1 + err * exp_theta / t1);
+				res[k] = exp(theta);
+			} else {
+				res[k] = gsl_sf_lambert_W0(y[k]);
+			}
 		} else {
-			return (gsl_sf_lambert_W0(y));
+			if (ISZERO(y[k]) || ISNAN(y[k])) {
+				res[k] = y[k];
+			} else {
+				assert(0 == 1);
+			}
 		}
-	} else {
-		if (ISZERO(y)) {
-			return 0.0;
-		}
-
-		if (ISNAN(y)) {
-			return NAN;
-		}
-
-		assert(0 == 1);
 	}
-
-	return NAN;
 }
 
 double my_lbell(int y)
