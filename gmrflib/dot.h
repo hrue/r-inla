@@ -71,6 +71,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *alpha,
 		const char *matdescra, const double *val, const int *indx,
 		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
+double cblas_ddoti(const int nz, const double *x, const int *indx, const double *y);
 
 __END_DECLS
 #endif
