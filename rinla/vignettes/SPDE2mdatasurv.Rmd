@@ -294,17 +294,35 @@ spde <- inla.spde2.pcmatern(
 
 We will fit a joint model considering the linear predictor
 with terms as how it was simulated.
-One way to deal with multiple likelihoods is to
-use list in the left hand side of the `formula`. 
+The `inla.stack()` function in ment to me used
+when working with SPDE models.
+However, it also helps when considering multiple likelihood data
+as detailed bellow.
 
-The left rand side will include each term in the linear predictor,
-where we will have an intercept for each outcome,
-one effect for each covariate for each outcome,
-the SPDE model for the first outcome,
-and one copy from this random effect
-for each of the other two outcomes.
+One way to deal with multiple likelihoods in **INLA**
+is defining `matrix` data for the outcome where each column
+is used for each likelihood.
+However, we do have more complex cases.
+Therefore, **the way** to deal with more complex multiple likelihood data is to
+use `list` in the left hand side of the `formula`.
+This is the key point to implement this example.
 
-That is we can define the model formula as
+The left rand side of the formula includes each term in the linear predictor.
+When working with multiple likelihood, each term in each likelihood
+should be named uniquely.
+For example, if two likelihoods does includes the same covariate
+and each one with a different coefficient,
+each one has to have its own name.
+Therefore, we will pass the covariate `x1` as `x1y`, 
+for the first outcome, `x1w` for the second outcome, 
+and `x1p` for the third outcome.
+Similarly for the other ones, including the intercept.
+
+In our example, the SPDE model is in the linear predictor for the first outcome,
+a copy from this random effect in in the linear predictor for the second outcome,
+and another copy of this term is in the linear predictor for the third outcome.
+
+The model formula considering all of these details is defined as
 ```{r formula}
 fff <- list(
   inla.mdata(Y),
@@ -315,19 +333,33 @@ fff <- list(
   a3 + x1p + x2p + x3p + f(sc2, copy = "s", fixed = FALSE)
 ```
 
-
 ## Data stacks
 
-The data has to be organized so it contains all the information needed.
-We need to supply the five column matrix with the five statistics
-for each of the `ng` groups defined for the first outcome,
-Two vectors to build the `inla.surv` data for the second outcome. 
-Two vectors to build the count and exposure for the third outcome.
+The data has to be organized so it contains all the information needed,
+that is all the outcomes, covariates and random effect indexes.
+For the SPDE models it also has to include the projector matrices.
 
-The easier way is to define a data stack for each outcome separated and
-them join them all.
+The main work of the `inla.stack()` function is to check and organize
+outcomes, effects and projector matrices
+in order to guarantee that the dimentions match.
+Additionally, `inla.stack()` will deal with the problem of
+arranging the outcomes to work properly with multiple
+likelihoods, without us having to deal with the
+completion of lines and columns with NA.
+We just have to supply the data for each outcome and its linear predictor
+in a separated `inla.stack()` call and then
+it does the job properly when joining all the data stacks.
 
-The stack for the first outcome
+For the first outcome, we need to supply a five column matrix,
+each column with each of the five statistics computed
+for each of the `ng` groups, previously computed.
+For the effects we define an intercept, 
+each one of the covariates with names according to what the
+`formula` specify and the index for the SPDE model.
+The projector matrices is one for the fixed effect, which is just `1`,
+and the one for the SPDE model.
+
+The stack for the first outcome can be defined as
 ```{r stack1}
 stackY <- inla.stack(
     tag = 'y',
@@ -343,7 +375,13 @@ stackY <- inla.stack(
 )
 ```
 
-The stack for the second outcome
+For the second outcome, we have to supply
+two vectors to build the `inla.surv` data,
+the covariates, with names according to the terms in the formula, 
+and the projector matrices, the single `1` for the covariates and
+the projector for the shared SPDE term.
+
+The stack for the second outcome can be defined as
 ```{r stack2}
 stackW <- inla.stack(
     tag = 'w', 
@@ -360,7 +398,12 @@ stackW <- inla.stack(
 )
 ```
 
-The stack for the third outcome
+For the third outcome we have to supply the vector of counts
+and the vector with the exposure. 
+The effects and projector are similar with the previous others,
+just that we have to account for its names.
+
+The stack for the third outcome can be defined as
 ```{r stack3}
 stackP <- inla.stack(
     tag = 'p', 
