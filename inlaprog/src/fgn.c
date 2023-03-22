@@ -273,26 +273,51 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 	// return the log-prior for H_intern
 	double lprior;
 #include "fgn-prior-tables.h"
+
+	static GMRFLib_spline_tp *dist_spline = NULL;
 #pragma omp critical (Name_f88269b9720b21345f72723d8de2fc329de96a39)
 	{
-		static GMRFLib_spline_tp *dist_spline = NULL;
 		if (!dist_spline) {
 			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
+	}
+	
+	double U_intern, lambda;
+	U_intern = map_H(param[0], MAP_BACKWARD, NULL);
+	lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
+	lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) +
+		log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
 
-		double U_intern, lambda;
-		U_intern = map_H(param[0], MAP_BACKWARD, NULL);
-		lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
-		lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) +
-		    log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
+	return lprior;
+}
 
-		if (0) {
-			P(*H_intern);
-			P(lambda);
-			P(GMRFLib_spline_eval(*H_intern, dist_spline));
-			P(GMRFLib_spline_eval_deriv(*H_intern, dist_spline));
-			P(lprior);
+void priorfunc_fgn_priorH_extract(void)
+{
+	// extract the prior so we can get it into R
+#include "fgn-prior-tables.h"
+
+	static GMRFLib_spline_tp *dist_spline = NULL;
+#pragma omp critical (Name_1083cc49be9497f3e0b14820ba227f6584988f41)
+	{
+		if (!dist_spline) {
+			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 	}
-	return lprior;
+	
+	for(double H_intern = -10.0, dH = 0.05; H_intern <= 10.0 + dH/2.0; H_intern += dH) {
+		double dist = GMRFLib_spline_eval(H_intern, dist_spline);
+		printf("%.12f %.12f\n", H_intern, dist);
+	}
+
+	double param[] = {0.9, 0.1};
+	printf("\n\n## check:  param = 0.9 0.1\n");
+
+	double theta;
+
+	theta = -1.1;
+	printf("## check:  log.prior(%.8f) =  %.8f\n", theta, priorfunc_fgn_priorH(&theta, param));
+	theta = 0.2;
+	printf("## check:  log.prior(%.8f) =  %.8f\n", theta, priorfunc_fgn_priorH(&theta, param));
+	theta = 1.3;
+	printf("## check:  log.prior(%.8f) =  %.8f\n", theta, priorfunc_fgn_priorH(&theta, param));
 }
