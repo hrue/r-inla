@@ -19,29 +19,39 @@ knitr::opts_chunk$set(
   dev.args = list(type = "cairo-png"),
   fig.width = 10,
   fig.height = 7, 
-  out.width = "99%"
+  out.width = "69%",
+  fig.align = "center"
 )
 knitr::opts_chunk$set(echo = TRUE)
+set.seed(1)
 ```
 
 # Abstract 
 
-The **INLA** package support different kind of likelihood data,
+The **INLA** package supports different kinds of data likelihoods,
 including the `inla.surv`, which is a generalization of the
 `Surv` from the **survival** package, and `mdata`.
+It also support joint modeling different kind of outcomes.
 In this vignette we illustrate the case when we have
-three correlated outcomes, one of each type.
-The correlation is induced from having these outcomes
-sharing the same covariate and random effect.
-The random effect is modeled using the SPDE approach.
+three outcomes, one of each type, and model them jointly.
 
 # Introduction 
 
-We want to illustrate how to jointly model different data kind of outcomes
-when there is a term in the model being modeled using the SPDE approach.
-Therefore, we consider three outcomes being measured on a spatial domain.
-These outcomes are correlated because the linear predictor of each one
-contains common fixed and random effect. 
+Usually correlations between outcomes are modeled by
+sharing common model terms in the linear predictor for each one.
+These terms can be covariates, random effects or sums of these.
+It is possible to have cases when each likelihood for an
+observation unit depend on more than one quantity, 
+for example, one likelihood is to model the survival time, 
+which has the additional information about censoring, 
+and other likelihood is written as a function of several quantities, 
+as we will see in the example.
+
+In this vignette we consider a joint model for three outcomes,
+simulate data from this model and illustrate how to fit the 
+joint model accounting for shared terms.
+The linear predictor for each outcome includes covariates and 
+a spatial random effect modeled using the SPDE approach.
 
 We consider a scenario where the first outcome is known at an aggregated level,
 in a setting were we model it considering a kind of likelihood designed in
@@ -52,35 +62,28 @@ The third outcome is just the usual kind of data: one scalar per data unit.
 
 ## The spatial domain 
 
-We consider a spatial domain, $D \in \mathbb{R}^2$.
-The assumption of $\mathbb{R}^2$ is just to keep the example
-reasonable simple.
-However, the SPDE models available in **INLA**
+The SPDE models available in **INLA**
 could be applied for processes in $\mathbb{R}^d$
-or $\mathbb{S}^d$, for $d=1,2$, see @lindgrenRL2011.
-Without loss off generality we consider a
-simple rectangle to be the defined as
+or $\mathbb{S}^d$, for $d=1,2$, and the theory in @lindgrenRL2011 
+include higher dimentional domains.
+We consider a spatial domain, $D \in \mathbb{R}^2$
+to keep the example simple.
+
+Without loss off generality we consider $D$ as a rectangle defined as
 ```{r domain}
 bb <- rbind(c(0, 20), c(0, 12))
 ```
 
-We will also consider the length of each side and its average for later use
+Next, we store the length of each side and its average for later use
 ```{r rxy}
 rxy <- apply(bb, 1, diff)
 b <- mean(rxy)
 ```
 
-Let now define a smooth function on this domain to be considered as a
-spatial effect. 
-```{r sfn}
-sfn <- function(a, b)
-    sin(a + b) + cos(a - b)
-```
-
-Let now consider a set of $n$ locations, 
-$l_1, ..., l_n$, in this domain, $l_i \in D$, as follows:
+We sample a set of $n$ locations,
+$l_1, ..., l_n$, in this domain, $l_i \in D$, 
+completely at random as follows:
 ```{r loc}
-set.seed(1)
 n <- 500
 loc <- cbind(
     runif(n, bb[1, 1], bb[1, 2]),
@@ -89,8 +92,14 @@ loc <- cbind(
 
 ## A spatial field
 
-We now evaluate the smooth function at these locations, 
-and visualize it
+Instead of simulating from a model to play as a spatial smooth term, 
+we define a smooth function on this domain as follows
+```{r sfn}
+sfn <- function(a, b)
+    sin(a + b) + cos(a - b)
+```
+
+This function is evaluated at the $n$ locations and visualized with
 ```{r sloc}
 u <- sfn(2 * pi * loc[, 1] / rxy[1],
          2 * pi * loc[, 2] / rxy[2])
@@ -101,17 +110,14 @@ plot(loc, pch = 19, cex = 0.5 + (2 + u)/4, xlab = "", ylab = "")
 
 ## Spatial sub-domains 
 
-Let us consider that the domain is being divided into a set of sub-regions, 
-define a set of small sub-regions over this domain, 
+In order to define the first outcome,
+let us consider that the domain is being divided into a set of sub-regions, 
 $r_1, r_2, ..., r_g$, 
 so that $r_i \cap r_i = \oslash$ and $\cup_{i=1}^g r_j = D$.
 
 For simplicity of coding, but without loss of generality,
-we assume that these small sub-regions are made up of small pixels.
-This is just to avoid the need of dealing with the general
-spatial objects and operations available in **R**.
-
-Let the following set of centers:
+we assume that these small sub-regions to be pixels based in
+the following set of centers:
 ```{r centers}
 h <- 2 ## size of the side of each sub-region
 group.ce <- as.matrix(expand.grid(
@@ -120,22 +126,33 @@ group.ce <- as.matrix(expand.grid(
 (ng <- nrow(group.ce))
 ```
 
-We now identify each location $l_i$ to each sub-region $r_j$
-with an integer vector.
+We can avoid the need of dealing with the general
+spatial objects and operations available in **R**
+and identify each location $l_i$ to each sub-region $r_j$
+with an integer vector as
 ```{r groupid}
 group.id <- ceiling(loc[,1]/h)+ceiling(rxy[1]/h) *
   (ceiling(loc[,2]/h)-1)
 ```
 
-We will visualize the locations by colour depending on this grouping later.
+This will be used as a grouping index, so that each group is made of the
+observations falling in each of the pixels.
+We will visualize the locations with color depending on this grouping later.
 
 ## Covariates
 
-Let us consider a set of three covariates
-for each location as 
+Let us consider a set of three covariates for each location as 
 ```{r xxx}
 xxx <- cbind(x1 = runif(n), x2 = runif(n), x3 = runif(n))
 ```
+
+We average the covariates by group as we will consider that
+we have data at the group level to model the first outcome.
+```{r x.g}
+xxx.g <- aggregate(xxx, list(g = group.id), mean)
+str(xxx.g)
+```
+
 
 # Outcomes
 
@@ -145,10 +162,23 @@ We will consider three outcomes.
 
 We assume that one of the outcomes is a continuous random variable,
 to be considered as Gaussian, with unknown mean and variance,
-and a scaling factor, $s$, such that 
+and a known scaling factor, $s$, such that 
 \[ 
 y_i \sim \textrm{N}(\mu_i, s_i\sigma^2).
 \]
+
+The first outcome being simulated considering that the
+expected value as $\eta_1 = \{\mu_1, ..., \mu_n\}$ as
+\[ 
+\eta_1 = \mathbf{X}\beta_1 + \mathbf{u}.
+\]
+This is being evaluated considering the covariate and random effect averaged
+per group:
+```{r y}
+betas1 <- c(5, 0, -3, 3) 
+u.g <- tapply(u, group.id, mean)
+eta.y.g <- drop(cbind(1, as.matrix(xxx.g[, 2:ncol(xxx.g)])) %*% betas1) + u.g
+```
 
 We will simulate the scaling factor for each observation with
 ```{r s}
@@ -156,22 +186,15 @@ s <- rgamma(n, 7, 3)
 summary(s)
 ```
 
-The first outcome being simulated considering that the
-expected value as $\eta_1 = \{\mu_1, ..., \mu_n\}$ as
-\[ 
-\eta_1 = \mathbf{X}\beta_1 + \mathbf{u}
-\]
-with
-```{r y}
-betas1 <- c(5, 0, -3, 3) 
+```{r ysim}
 sigma.y <- 1
-mu.y <- cbind(1, xxx) %*% betas1 + u
-y <- rnorm(n, mu.y, sqrt(sigma.y/s))
+y <- rnorm(n, eta.y.g[group.id], sqrt(sigma.y/s))
 summary(y)
 ```
 
-However, we consider that observations of this variable were
-being observed as aggregated over each of the small sub-regions $r_j$.
+We simulated $y_i$ for each location $l_i$.
+However, we consider that observations of this variable are
+available only at the aggregated level, at each of the sub-regions $r_j$.
 Furthermore, for each sub-region $r_j$, we know 
 
  - how many observations were taken in each sub-region, $n_j = \sum_{i=1}^n I(l_i \in r_j)$
@@ -182,9 +205,8 @@ Furthermore, for each sub-region $r_j$, we know
  $v_j$ = $\frac{1}{n_j}\sum_{i,l_i\in r_j}^n(s_i y_i^2-\overline{y}_j^2)$
 
 The function `inla.agaussian` computes these five statistics, 
-given $y_i$ and $s_i$ in each group. 
-We use this function to compute these statistics, 
-as the aggregated data for each sub-region, as follows 
+given $y_i$ and $s_i$ for each group.
+We use this function to compute these statistics, as follows 
 ```{r ag, warning}
 library(INLA)
 agg <- lapply(1:ng, function(g) {
@@ -194,13 +216,6 @@ agg <- lapply(1:ng, function(g) {
     return(inla.mdata(list(NA, 0, 1, 1, NA))) ### a deal with missing
 })
 str(YY <- Reduce('rbind', lapply(agg, unlist))) ## five columns matrix
-```
-
-We will do average of the covariates by group as well as we will consider that
-we only have data at the group level to model this first outcome.
-```{r x.g}
-xxx.g <- aggregate(xxx, list(g = group.id), mean)
-str(xxx.g)
 ```
 
 ## Second outcome: Survival
@@ -307,7 +322,7 @@ Therefore, **the way** to deal with more complex multiple likelihood data is to
 use `list` in the left hand side of the `formula`.
 This is the key point to implement this example.
 
-The left rand side of the formula includes each term in the linear predictor.
+The right hand side of the formula includes each term in the linear predictor.
 When working with multiple likelihood, each term in each likelihood
 should be named uniquely.
 For example, if two likelihoods does includes the same covariate
