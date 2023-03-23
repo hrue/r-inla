@@ -58,7 +58,7 @@ int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
 	(*optpar)->max_iter = 25;
 	(*optpar)->fixed_iter = 0;
 	(*optpar)->max_linesearch_iter = 25;
-	(*optpar)->step_len = GMRFLib_eps(0.25);
+	(*optpar)->step_len = GSL_ROOT4_DBL_EPSILON;
 	(*optpar)->stencil = 5;				       /* 3,5,7 */
 	(*optpar)->abserr_func = 0.005;
 	(*optpar)->abserr_step = 0.005;

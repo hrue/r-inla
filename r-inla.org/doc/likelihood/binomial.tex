@@ -44,7 +44,7 @@ None.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{binomial}$
+\item \texttt{family="binomial"}
 \item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
 \item Optional argument: \texttt{variant=0} for binomial (default),
     and \texttt{variant=1} for the negative binomial.
@@ -61,7 +61,7 @@ $y$ and $n$. This is similar to using \verb|floor(y)| and
 \verb|floor(n)| in \verb|R|. The marginal likelihood estimate will in
 this case make less sense.
 \begin{itemize}
-\item $\text{family}=\texttt{xbinomial}$
+\item \texttt{family="xbinomial"}
 \item Required arguments: $y$ and $n$ (keyword \texttt{Ntrials})
 \item Optional argument: \texttt{scale=q}, which scales the
     probability with $0<q\le1$ into $p'$, where

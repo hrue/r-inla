@@ -1,0 +1,57 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{Bell}
+
+\subsection*{Parametrisation}
+
+The Bell distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{\lambda^{y} \exp(1-\exp(\lambda)) B_y}{y!}
+\end{displaymath}
+for responses $y=0, 1, 2, \ldots$, where $B_y$ are the Bell-numbers
+($B_2=2, \ldots,  B_5=52, \ldots, B_8=4140$, etc). The moments are
+$\text{E}(y)=\lambda\exp(\lambda)$ and the variance is
+$\text{Var}(y)=\lambda\exp(\lambda)(1+\lambda)$.
+
+
+
+\subsection*{Link-function}
+
+The mean is linked to the linear predictor by
+\begin{displaymath}
+    \lambda\exp(\lambda) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant which defaults to 1.
+
+\subsection*{Hyperparameters}
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="bell"}
+\item Required arguments: (integer-valued) $y$ and $E$ (default $1$).
+\end{itemize}
+
+
+\subsection*{Example}
+
+This example estimate parameters from simulated data.
+{\small\verbatiminput{example-bell.R}}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

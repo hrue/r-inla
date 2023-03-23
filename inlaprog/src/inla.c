@@ -697,7 +697,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 		}
 		len = j;
 		// Remove values in 'y' that are to close (difference is to small)
-		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.75));
+		GMRFLib_unique_additive2(&len, y, x, (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON));
 
 		table[id]->alpha = alpha;
 		table[id]->xmin = x[0];
@@ -1829,7 +1829,7 @@ double link_qpoisson(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -1892,7 +1892,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -1960,7 +1960,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -2011,7 +2011,7 @@ double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, doub
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -2062,7 +2062,7 @@ double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, dou
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -4061,7 +4061,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 #define _Fsolve(_lam) (((ONE_MINUS_EXP(-(_lam)*sqrt(1.0-u)))/(ONE_MINUS_EXP(-(_lam)*M_SQRT2))) - alpha)
 
 	int count = 0, count_max = 1000;
-	double lambda_initial = -1.0, lambda_step = 1.1, h = GMRFLib_eps(1. / 3.), eps_lambda = GMRFLib_eps(0.5), df;
+	double lambda_initial = -1.0, lambda_step = 1.1, h = GSL_ROOT3_DBL_EPSILON, eps_lambda = GSL_SQRT_DBL_EPSILON, df;
 
 	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
 		char *msg;
@@ -5219,6 +5219,7 @@ int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED
 	case L_ZEROINFLATEDPOISSON1:
 	case L_ZEROINFLATEDPOISSON2:
 	case L_POISSON_SPECIAL1:
+	case L_BELL:
 	{
 		idiv = 3;
 		a[0] = ds->data_observations.E = Calloc(mb->predictor_ndata, double);
@@ -7256,6 +7257,61 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+		       char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
+	double normc;
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = my_lbell((int) y) + 1.0;
+		G_norm_const_compute[idx] = 0;
+	}
+	normc = G_norm_const[idx];
+
+	LINK_INIT;
+
+	if (m > 0) {
+		double work[2 * m];
+		double *mean = work;
+		double *lambda = work + m;
+#pragma GCC ivdep
+		for (int i = 0; i < m; i++) {
+			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		}
+		my_lambert_W0s(m, mean, lambda);
+#pragma GCC ivdep
+		for (int i = 0; i < m; i++) {
+			logll[i] = y * log(lambda[i]) - exp(lambda[i]) + normc;
+		}
+	} else {
+		int yy = (int) (y_cdf ? *y_cdf : y);
+#pragma GCC ivdep
+		for (int i = 0; i < -m; i++) {
+			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double lambda = my_lambert_W0(mean);
+			double t1 = exp(1.0 - exp(lambda));
+			double cdf = 1.0;
+			double p = 1.0;
+			for (int iy = 1; iy <= yy; iy++) {
+				p *= lambda;
+				cdf += p * exp(my_lbell(iy));
+			}
+			cdf *= t1;
+			logll[i] = cdf;
+		}
+	}
+
+	LINK_END;
+
+	return GMRFLib_SUCCESS;
+}
+
 int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf,
 			   void *arg, char **UNUSED(arg_str))
 {
@@ -9054,7 +9110,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			int mkl_lim = 4;
 			int align = 8;
 			div_t d = div(m, align);
-			int len = (d.quot + (d.rem ? 1 : 0)) * align;
+			int len = (d.quot + 1 + (d.rem ? 1 : 0)) * align;
 #endif
 			// optimize for the case y=0, and then case ny=0
 			if (ISZERO(y)) {
@@ -9819,9 +9875,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -10451,7 +10507,7 @@ int loglikelihood_gammacount(int thread_id, double *logll, double *x, int m, int
 			logp = log(p);
 			// this can go in over/underflow...
 			if (ISINF(logp) || ISNAN(logp)) {
-				logll[i] = log(GMRFLib_eps(1.0)) + PENALTY * SQR(x[i] + OFFSET(idx));
+				logll[i] = log(GSL_DBL_EPSILON) + PENALTY * SQR(x[i] + OFFSET(idx));
 			} else {
 				logll[i] = logp;
 			}
@@ -11143,7 +11199,7 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 	assert(y_cdf == NULL);				       // I do not think this should be used. 
 
 	if (p_min < 0.0) {
-		p_min = GMRFLib_eps(0.8943652563);	       // about 1e-14
+		p_min = 100.0 * GSL_DBL_EPSILON;
 	}
 
 	event = ds->data_observations.event[idx];
@@ -11268,7 +11324,7 @@ int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int 
 	double event, truncation, lower, upper;
 
 	assert(y_cdf == NULL);				       // I do not think this should be used.
-	double p_min = 100.0 * GMRFLib_eps(1.0);
+	double p_min = 100.0 * GSL_DBL_EPSILON;
 
 	if (0)
 		if (ds->data_observations.cure_ncov && (idx == 0)) {
@@ -14782,6 +14838,10 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "TSTRATA")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_tstrata;
 		ds->data_id = L_TSTRATA;
+	} else if (!strcasecmp(ds->data_likelihood, "BELL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_bell;
+		ds->data_id = L_BELL;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
@@ -15347,6 +15407,26 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 				}
 			}
 		}
+	}
+		break;
+
+	case L_BELL:
+	{
+		// to initialize the lbell-cache
+		int ymax = 0;
+
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 0.0) {
+					GMRFLib_sprintf(&msg, "%s: Bell data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+				ymax = IMAX(ymax, (int) ds->data_observations.y[i]);
+			}
+		}
+		// will initialize the cache, not strictly needed but its convenient to do this here 
+		my_lbell(ymax);
 	}
 		break;
 
@@ -16455,6 +16535,9 @@ int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
 			ds->data_ntheta++;
 		}
 	}
+		break;
+
+	case L_BELL:
 		break;
 
 	case L_POISSON:
@@ -30890,7 +30973,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->stencil = iniparser_getint(ini, inla_string_join(secname, "STENCIL"), mb->ai_par->stencil);
 	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
 	if (ISZERO(mb->ai_par->step_len)) {
-		double scale = GMRFLib_eps(1.0) / 2.220446049e-16;
+		double scale = GSL_DBL_EPSILON / 2.220446049e-16;
 		mb->ai_par->step_len = scale * (mb->ai_par->stencil == 5 ? 1.0e-4 : (mb->ai_par->stencil == 7 ? 5.0e-4 : 1.0e-3));
 	}
 
@@ -32767,6 +32850,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			}
 				break;
 
+			case L_BELL:
+				break;
+
 			case L_BINOMIAL:
 			case L_XBINOMIAL:
 			case L_EXPONENTIAL:
@@ -32774,9 +32860,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_XPOISSON:
 			case L_CONTPOISSON:
 			case L_QCONTPOISSON:
-				/*
-				 * nothing to do
-				 */
 				break;
 
 			case L_EXPONENTIALSURV:
@@ -32791,7 +32874,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				}
 			}
 				break;
-
 
 			case L_POM:
 			{
@@ -33240,7 +33322,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < spde->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33340,7 +33422,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < spde2->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33441,7 +33523,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < spde3->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33674,7 +33756,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < arg->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33766,7 +33848,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < arg->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33843,7 +33925,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					/*
 					 * only need to add for the z-part; the last m components.
@@ -33923,7 +34005,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					/*
 					 * only need to add for the z-part; the last m components.
@@ -34022,7 +34104,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 					for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 					}
@@ -34265,7 +34347,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
-						double eps = GMRFLib_eps(0.5);
+						double eps = GSL_SQRT_DBL_EPSILON;
 						for (jj = 0; jj < n; jj++) {
 							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
 						}
@@ -34436,7 +34518,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
-						double eps = GMRFLib_eps(0.5);
+						double eps = GSL_SQRT_DBL_EPSILON;
 						for (jj = 0; jj < n; jj++) {
 							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
 						}
@@ -35543,7 +35625,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 {
 	double prec_high = 1.0E3, prec_low = 1.0E-16, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
-	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
+	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
 	int niter, niter_min = 5, niter_max = 100, stencil = 5;
 	const int debug = 0;
 
@@ -35766,7 +35848,6 @@ int inla_INLA(inla_tp * mb)
 	char *vb_nodes = NULL;
 
 	local_count = 0;
-
 	if (mb->ai_par->vb_enable) {
 		vb_nodes = Calloc(N, char);
 		count = mb->predictor_n + mb->predictor_m;
@@ -35777,7 +35858,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -35817,7 +35898,7 @@ int inla_INLA(inla_tp * mb)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_variance);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -36134,7 +36215,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				int k = IMAX(1, len / 2);      /* integer division */
@@ -36501,12 +36582,12 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 		count = mb->predictor_n + mb->predictor_m;
 		for (i = 0; i < mb->nf; i++) {
 			GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
-			if ((vb->idx[i] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
+			if ((vb->idx[0] == -1L && mb->f_Ntotal[i] <= mb->ai_par->vb_f_enable_limit_mean)) {
 				for (j = 0; j < mb->f_Ntotal[i]; j++) {
 					vb_nodes[count + j] = (char) 1;
 					local_count++;
 				}
-			} else if (vb->idx[i] == -1L) {
+			} else if (vb->idx[0] == -1L) {
 				int len, jj;
 				len = IMAX(1, mb->f_Ntotal[i] / mb->ai_par->vb_f_enable_limit_mean);	/* integer division */
 				k = IMAX(1, len / 2);	       /* integer division */
@@ -36822,12 +36903,13 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 	// VB corrections
 	if (mb->ai_par->vb_enable) {
-		// tp = 0 is mean, tp = 0 is variance
+		// tp = 0 is mean, tp = 1 is variance
 		for (int tp = 0; tp < 2; tp++) {
 			char *vb_nodes = Calloc(N, char);
 			int debug = 0;
 			int local_count = 0;
 			count = 0;
+
 			for (i = 0; i < mb->nf; i++) {
 
 				int n = mb->f_N[i] / mb->f_ngroup[i];
@@ -36847,12 +36929,16 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 
 				GMRFLib_idx_tp *vb = mb->f_vb_correct[i];
 
+				if (debug) {
+					P(vb->idx[0]);
+				}
+
 				if ((vb->idx[0] == -1L && n <= lim)) {
 					for (j = 0; j < ntot; j++) {
 						vb_nodes[count + j] = (char) 1;
 						local_count++;
 					}
-				} else if (vb->idx[i] == -1L) {
+				} else if (vb->idx[0] == -1L) {
 					int len = IMAX(1, n / lim);
 					int k = IMAX(1, len / 2);
 					for (int r = 0; r < nrep; r++) {
@@ -37369,7 +37455,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
 		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
-		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
+		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GSL_ROOT3_DBL_EPSILON);
 		mb->gcpo_param->prior_diagonal = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.PRIOR.DIAGONAL"), 1.0);
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
@@ -40197,7 +40283,7 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int 
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
-			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
+			double *c = Calloc(def->graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
 			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}
@@ -40833,7 +40919,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 		printf("\n");
-		GMRFLib_gsl_ginv(A, GMRFLib_eps(0.5), -1);
+		GMRFLib_gsl_ginv(A, GSL_SQRT_DBL_EPSILON, -1);
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 
 		exit(EXIT_SUCCESS);
@@ -41396,7 +41482,7 @@ int testit(int argc, char **argv)
 
 	case 40:
 	{
-		printf("eps= %.12g\n", GMRFLib_eps(1.0));
+		printf("eps= %.12g\n", GSL_DBL_EPSILON);
 	}
 		break;
 
@@ -42251,10 +42337,10 @@ int testit(int argc, char **argv)
 		gsl_matrix_set(Q, 2, 1, -3);
 
 		gsl_matrix *S = GMRFLib_gsl_duplicate_matrix(Q);
-		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
+		GMRFLib_gsl_ensure_spd_inverse(S, GSL_SQRT_DBL_EPSILON, NULL);
 		GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f");
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
-		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
+		GMRFLib_gsl_ensure_spd_inverse(S, GSL_SQRT_DBL_EPSILON, NULL);
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
 	}
 		break;
@@ -43353,6 +43439,77 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 106:
+	{
+		printf("## check with\nlibrary(VGAM)\nfor(i in 0:200) print(c(i,  log(bell(i)) - lfactorial(i)))\n\n");
+#pragma omp parallel for
+		for (int i = -1; i <= 2057; i++) {
+#pragma omp critical (Name_69969525cb4835f6178baf1c8599321a9419c0a8)
+			{
+				printf("%d %.20g\n", i, my_lbell(i));
+			}
+		}
+	}
+		break;
+
+	case 107:
+	{
+		double tref[2] = { 0, 0 };
+		int n = atoi(args[0]);
+		double *y = Calloc(2 * n, double);
+		double *res = y + n;
+
+		double rel_err = 0.0;
+		for (int i = 0; i < n; i++) {
+			y[i] = exp(5.0 * GMRFLib_stdnormal());
+			double ref = gsl_sf_lambert_W0(y[i]);
+			rel_err += ABS((ref - my_lambert_W0(y[i])) / ref);
+		}
+		P(rel_err / n);
+
+		tref[0] = -GMRFLib_cpu();
+		double sum = 0.0;
+		for (int i = 0; i < n; i++) {
+			sum += gsl_sf_lambert_W0(y[i]);
+		}
+		tref[0] += GMRFLib_cpu();
+
+		tref[1] = -GMRFLib_cpu();
+		my_lambert_W0s(n, y, res);
+		tref[1] += GMRFLib_cpu();
+		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
+		tref[0] = -GMRFLib_cpu();
+		for (int i = 0; i < n; i++) {
+			sum += gsl_sf_lambert_W0(y[i]);
+		}
+		tref[0] += GMRFLib_cpu();
+
+		tref[1] = -GMRFLib_cpu();
+		my_lambert_W0s(n, y, res);
+		tref[1] += GMRFLib_cpu();
+		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P(sum);
+	}
+		break;
+
+	case 108:
+	{
+		int n = atoi(args[0]);
+		my_lbell(n);
+		for (int y = 0; y <= n; y++) {
+			printf("y %d my_lbell %.12g\n", y, my_lbell(y));
+		}
+	}
+		break;
+
+	case 109: 
+	{
+		priorfunc_fgn_priorH_extract();
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
@@ -43415,7 +43572,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
-	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
+	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */

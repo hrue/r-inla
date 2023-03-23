@@ -245,6 +245,7 @@ typedef enum {
 	L_0POISSONS,
 	L_0BINOMIAL,
 	L_0BINOMIALS,
+	L_BELL,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -2038,6 +2039,7 @@ int inla_wishart3d_adjust(double *rho);
 int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_beta(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_betabinomialna(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2085,7 +2087,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2098,6 +2100,7 @@ int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int i
 int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);
@@ -2235,8 +2238,8 @@ typedef struct {
 			     (mb->f_id[idx] == F_IID5D ? 5 : -1)))))
 
 #if defined(INLA_LINK_WITH_MKL)
-double vdExp(int, double *, double *);
-double vdLog1p(int, double *, double *);
+void vdExp(int, const double *, double *);
+void vdLog1p(int, const double *, double *);
 #endif
 
 __END_DECLS
