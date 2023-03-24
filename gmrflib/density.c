@@ -42,11 +42,6 @@
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
 #define CONST_2 (-0.69314718055994528623)		       // log(0.5);
 
-#if defined(INLA_LINK_WITH_MKL)
-void vdExp(int, const double *, double *);
-void vdLog1p(int, const double *, double *);
-#endif
-
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp * p)
 {
 	/*
