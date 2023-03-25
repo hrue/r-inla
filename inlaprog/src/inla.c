@@ -35621,10 +35621,10 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * l
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E3, prec_low = 1.0E-10, eps = 1.0E-6;
+	double prec_high = 1.0E3, prec_low = 1.0E-8, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
-	int niter, niter_min = 5, niter_max = 100, stencil = 5;
+	int niter, niter_min = 5, niter_max = 100, stencil = 5; 
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
