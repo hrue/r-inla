@@ -8456,21 +8456,39 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 
 	LINK_INIT;
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = my_gsl_sf_lnfact((int) y);
+		double *cache = Calloc(2, double);
+		G_norm_const_v[idx] = (void *) cache;
+		cache[0] = my_gsl_sf_lnfact((int) y);
+		cache[1] = y * log(E);
 		G_norm_const_compute[idx] = 0;
 	}
-	double normc = G_norm_const[idx];
+	double *cache = (double *) G_norm_const_v[idx];
+	double normc = cache[0];
+	double y_log_E = cache[1];
 
 	if (m > 0) {
 		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc; 
 		double off = OFFSET(idx);
 		if (PREDICTOR_LINK_EQ(link_log)) {
+
+			if (0) {
+				// old code
+				for (int i = 0; i < m; i++) {
+					double lambda = exp(PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off));
+					double mu = E * lambda;
+					double p = size / (size + mu);
+					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
+				}
+			}
+			
+			// optimised code
+			double t2 = lnorm + size * log(size) + y_log_E;
+			double t3 = -(size + y);
 #pragma GCC ivdep
 			for (int i = 0; i < m; i++) {
-				double lambda = exp(PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off));
-				double mu = E * lambda;
-				double p = size / (size + mu);
-				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
+				double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+				double t1 = log(size + E * exp(xx));
+				logll[i] = t2 + t3 * t1 + y * xx;
 			}
 		} else {
 #pragma GCC ivdep
