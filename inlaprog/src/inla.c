@@ -8448,12 +8448,10 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double S = ds->data_observations.S[idx];
-	double cutoff = 1.0e-6;				       /* switch to Poisson if mu/size < cutoff */
 	double size = (ds->variant == 0 ? 1.0 : (ds->variant == 1 ? E : S)) * exp(ds->data_observations.log_size[thread_id][0]);
 
 	LINK_INIT;
@@ -8468,44 +8466,30 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 		double off = OFFSET(idx);
 		if (PREDICTOR_LINK_EQ(link_log)) {
 #pragma GCC ivdep
-			for (i = 0; i < m; i++) {
+			for (int i = 0; i < m; i++) {
 				double lambda = exp(PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off));
 				double mu = E * lambda;
 				double p = size / (size + mu);
 				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 			}
 		} else {
-			for (i = 0; i < m; i++) {
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				double mu = E * lambda;
-				if (mu / size > cutoff) {
-					// NegativeBinomial 
-					double p = size / (size + mu);
-					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
-				} else {
-					// Poission limit 
-					logll[i] = y * log(mu) - mu - normc;
-				}
+				double p = size / (size + mu);
+				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		double off =  OFFSET(idx);
-		for (i = 0; i < -m; i++) {
+#pragma GCC ivdep
+		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 			double mu = E * lambda;
-			if (mu / size > cutoff) {
-				/*
-				 * NegativeBinomial 
-				 */
-				double p = size / (size + mu);
-				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) y, p, size);
-			} else {
-				/*
-				 * The Poission limit 
-				 */
-				logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
-			}
+			double p = size / (size + mu);
+			logll[i] = gsl_cdf_negative_binomial_P((unsigned int) y, p, size);
 		}
 	}
 
