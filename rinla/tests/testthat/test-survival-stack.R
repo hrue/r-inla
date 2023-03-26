@@ -70,8 +70,9 @@ test_hat("Case 1: weibullsurv", {
                 Leuk[c("age", "sex", "wbc", "tpi")])),
         A = list(1))
 
+    ## TO DO: make inla.stack() to collect the "names.ori"
     str(inla.stack.data(dstackS))
-
+        
     ## problem: how do user use this to fit the model ???
     ## for now the problem is that we have to use the
     ## outcome names from inla.surv()
