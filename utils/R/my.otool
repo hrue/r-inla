@@ -81,7 +81,7 @@ A=$(Xfun $A)
 	echo $(myreadlink $MKL/libmkl_intel_lp64.dylib)
 	echo $(myreadlink $MKL/libmkl_sequential.dylib)
 	echo $(myreadlink $MKL/libmkl_core.dylib)
-	for f in $(echo $MKL/libmkl_avx*.dylib); do
+	for f in $(echo $MKL/libmkl_avx*.dylib) $(echo $MKL/libmkl_vml_avx*.dylib); do
 	    echo $(myreadlink $f)
 	done
     fi
