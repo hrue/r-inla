@@ -118,7 +118,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp * def)
 	constr->e_vector = Calloc(nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(n, double), eps = GMRFLib_eps(.75);
+	double *c = Calloc(n, double), eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < n; i++) {

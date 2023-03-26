@@ -132,5 +132,21 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
+
+#if defined(INLA_LINK_WITH_MKL)
+void vdExp(int, const double *, double *);
+void vdLog1p(int, const double *, double *);
+void vsAdd(int n, const double *a, const double *b, double *y);
+void vdLn(int, const double *, double *);
+void vdLog1p(int , const double *, double *);
+
+void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *alpha,
+		const char *matdescra, const double *val, const int *indx,
+		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
+double cblas_ddoti(const int nz, const double *x, const int *indx, const double *y);
+#endif
+
+
+
 __END_DECLS
 #endif

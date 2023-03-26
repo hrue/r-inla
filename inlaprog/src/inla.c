@@ -208,7 +208,7 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 	}
 
 // these versions (in my.c) cache the result when the argument is integer
-#define gsl_sf_lngamma(_x) my_gsl_sf_lngamma(_x)
+#define gsl_sf_lngamma(_x) lgamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
 double inla_interpolate_mode(double *x, double *y)
@@ -697,7 +697,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * 
 		}
 		len = j;
 		// Remove values in 'y' that are to close (difference is to small)
-		GMRFLib_unique_additive2(&len, y, x, GMRFLib_eps(0.75));
+		GMRFLib_unique_additive2(&len, y, x, (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON));
 
 		table[id]->alpha = alpha;
 		table[id]->xmin = x[0];
@@ -1829,7 +1829,7 @@ double link_qpoisson(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -1892,7 +1892,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -1960,7 +1960,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -2011,7 +2011,7 @@ double link_qbinomial(int thread_id, double x, map_arg_tp typ, void *param, doub
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -2062,7 +2062,7 @@ double link_pqbinomial(int thread_id, double x, map_arg_tp typ, void *param, dou
 
 	case DINVLINK:
 	{
-		double dx = GMRFLib_eps(1.0 / 3.9134);	       // about 0.0001 on my laptop
+		double dx = GSL_ROOT4_DBL_EPSILON;	       // about 0.0001 on my laptop
 		double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
 		double wf_sum = 0.0;
 		int i, nwf = sizeof(wf) / sizeof(double), nwf2 = (nwf - 1) / 2;	/* gives 5 and 2 */
@@ -4061,7 +4061,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 #define _Fsolve(_lam) (((ONE_MINUS_EXP(-(_lam)*sqrt(1.0-u)))/(ONE_MINUS_EXP(-(_lam)*M_SQRT2))) - alpha)
 
 	int count = 0, count_max = 1000;
-	double lambda_initial = -1.0, lambda_step = 1.1, h = GMRFLib_eps(1. / 3.), eps_lambda = GMRFLib_eps(0.5), df;
+	double lambda_initial = -1.0, lambda_step = 1.1, h = GSL_ROOT3_DBL_EPSILON, eps_lambda = GSL_SQRT_DBL_EPSILON, df;
 
 	if (!(u > -1.0 && u < 1.0 && alpha > sqrt((1.0 - u) / 2.0) && alpha < 1.0)) {
 		char *msg;
@@ -5852,7 +5852,7 @@ double inla_lgamma_fast(double x)
 	// https://en.wikipedia.org/wiki/Stirling's_approximation
 
 	if (round(x) == x) {
-		return (my_gsl_sf_lngamma(x));
+		return (gsl_sf_lngamma(x));
 	}
 
 	double val;
@@ -7269,7 +7269,7 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 	double normc;
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = my_lbell((int) y);
+		G_norm_const[idx] = my_lbell((int) y) + 1.0;
 		G_norm_const_compute[idx] = 0;
 	}
 	normc = G_norm_const[idx];
@@ -7277,11 +7277,17 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 	LINK_INIT;
 
 	if (m > 0) {
+		double work[2 * m];
+		double *mean = work;
+		double *lambda = work + m;
 #pragma GCC ivdep
 		for (int i = 0; i < m; i++) {
-			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			double lambda = my_lambert_W0(mean);
-			logll[i] = y * log(lambda) + (1.0 - exp(lambda)) + normc;
+			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+		}
+		my_lambert_W0s(m, mean, lambda);
+#pragma GCC ivdep
+		for (int i = 0; i < m; i++) {
+			logll[i] = y * log(lambda[i]) - exp(lambda[i]) + normc;
 		}
 	} else {
 		int yy = (int) (y_cdf ? *y_cdf : y);
@@ -7318,7 +7324,7 @@ int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int i
 	double E = ds->data_observations.poisson0_E[idx];
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact(y);
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact((int) y);
 		G_norm_const_compute[idx] = 0;
 	}
 	double normc = G_norm_const[idx];
@@ -7375,7 +7381,7 @@ int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int 
 	double E = ds->data_observations.poisson0_E[idx];
 
 	if (G_norm_const_compute[idx]) {
-		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact(y);
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact((int) y);
 		G_norm_const_compute[idx] = 0;
 	}
 	double normc = G_norm_const[idx];
@@ -7760,7 +7766,7 @@ int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, in
 	double E = ds->data_observations.E[idx];
 	double cen_low = ds->data_observations.cen_low[idx];
 	double cen_high = ds->data_observations.cen_high[idx];
-	double normc = my_gsl_sf_lnfact(y);
+	double normc = my_gsl_sf_lnfact((int)y);
 	int int_low = (int) cen_low;
 	int int_high = (int) cen_high;
 
@@ -7834,7 +7840,7 @@ int loglikelihood_cenpoisson(int thread_id, double *logll, double *x, int m, int
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval, mu;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y), lambda;
 	int int_low = (int) interval[0], int_high = (int) interval[1];
 
 	// must use 'double' to store an INF
@@ -7896,7 +7902,7 @@ int loglikelihood_zeroinflated_cenpoisson0(int thread_id, double *logll, double 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
 	double mu, p0, fac, p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y), lambda;
 
 	LINK_INIT;
 	/*
@@ -7971,7 +7977,7 @@ int loglikelihood_zeroinflated_cenpoisson1(int thread_id, double *logll, double 
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double *interval = ds->data_observations.cenpoisson_interval;
 	double mu, p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL);
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y), lambda;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y), lambda;
 
 	LINK_INIT;
 	/*
@@ -8127,7 +8133,7 @@ int loglikelihood_zeroinflated_poisson0(int thread_id, double *logll, double *x,
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
 	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, lambda;
 
 	LINK_INIT;
@@ -8184,7 +8190,7 @@ int loglikelihood_zeroinflated_poisson1(int thread_id, double *logll, double *x,
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
 	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, lambda, logA, logB;
 
 	LINK_INIT;
@@ -8242,7 +8248,7 @@ int loglikelihood_zeroinflated_poisson2(int thread_id, double *logll, double *x,
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
 	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL), mu, log_mu, p, lambda;
 
 	LINK_INIT;
@@ -8338,7 +8344,7 @@ int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int 
 
 	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact(y),
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx], normc = my_gsl_sf_lnfact((int) y),
 	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), mu, p0, pp0;
 
 	LINK_INIT;
@@ -8442,68 +8448,66 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
-	double size;
 	double y = ds->data_observations.y[idx];
 	double E = ds->data_observations.E[idx];
 	double S = ds->data_observations.S[idx];
-	double lnorm, mu, p, lambda;
-	double cutoff = 1.0e-4;				       /* switch to Poisson if mu/size < cutoff */
-
-	switch (ds->variant) {
-	case 0:
-	{
-		size = exp(ds->data_observations.log_size[thread_id][0]);
-	}
-		break;
-	case 1:
-	{
-		size = E * exp(ds->data_observations.log_size[thread_id][0]);
-	}
-		break;
-	case 2:
-	{
-		size = S * exp(ds->data_observations.log_size[thread_id][0]);
-	}
-		break;
-	default:
-		GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
-	}
+	double size = (ds->variant == 0 ? 1.0 : (ds->variant == 1 ? E : S)) * exp(ds->data_observations.log_size[thread_id][0]);
 
 	LINK_INIT;
+	if (G_norm_const_compute[idx]) {
+		double *cache = Calloc(2, double);
+		G_norm_const_v[idx] = (void *) cache;
+		cache[0] = my_gsl_sf_lnfact((int) y);
+		cache[1] = y * log(E);
+		G_norm_const_compute[idx] = 0;
+	}
+	double *cache = (double *) G_norm_const_v[idx];
+	double normc = cache[0];
+	double y_log_E = cache[1];
+
 	if (m > 0) {
-		lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);	/* near always the case we'll need this one 
-													 */
-		for (i = 0; i < m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if (mu / size > cutoff) {
-				// NegativeBinomial 
-				p = size / (size + mu);
+		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc; 
+		double off = OFFSET(idx);
+		if (PREDICTOR_LINK_EQ(link_log)) {
+
+			if (0) {
+				// old code
+				for (int i = 0; i < m; i++) {
+					double lambda = exp(PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off));
+					double mu = E * lambda;
+					double p = size / (size + mu);
+					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
+				}
+			}
+			
+			// optimised code
+			double t2 = lnorm + size * log(size) + y_log_E;
+			double t3 = -(size + y);
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+				double t1 = log(size + E * exp(xx));
+				logll[i] = t2 + t3 * t1 + y * xx;
+			}
+		} else {
+#pragma GCC ivdep
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
+				double mu = E * lambda;
+				double p = size / (size + mu);
 				logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
-			} else {
-				// Poission limit 
-				logll[i] = y * log(mu) - mu - my_gsl_sf_lnfact(y);
 			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		for (i = 0; i < -m; i++) {
-			lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-			mu = E * lambda;
-			if (mu / size > cutoff) {
-				/*
-				 * NegativeBinomial 
-				 */
-				p = size / (size + mu);
-				logll[i] = gsl_cdf_negative_binomial_P((unsigned int) y, p, size);
-			} else {
-				/*
-				 * The Poission limit 
-				 */
-				logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu);
-			}
+		double off =  OFFSET(idx);
+#pragma GCC ivdep
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
+			double mu = E * lambda;
+			double p = size / (size + mu);
+			logll[i] = gsl_cdf_negative_binomial_P((unsigned int) y, p, size);
 		}
 	}
 
@@ -8616,7 +8620,7 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *logll, 
 			/*
 			 * this is constant for the NegativeBinomial 
 			 */
-			lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lngamma(y + 1.0);
+			lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - gsl_sf_lnfact((int) y);
 
 			for (i = 0; i < m; i++) {
 				lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -8636,7 +8640,7 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *logll, 
 					 */
 					prob_y_is_zero = gsl_ran_poisson_pdf((unsigned int) 0, mu);
 					logll[i] = log((1.0 - p_zeroinflated) / (1.0 - prob_y_is_zero))
-					    + y * log(mu) - mu - my_gsl_sf_lnfact(y);
+						+ y * log(mu) - mu - my_gsl_sf_lnfact((int)y);
 				}
 			}
 		}
@@ -8728,7 +8732,7 @@ int loglikelihood_zeroinflated_negative_binomial1(int thread_id, double *logll, 
 					/*
 					 * the Poission limit 
 					 */
-					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact(y);
+					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact((int) y);
 				}
 			}
 		}
@@ -8818,7 +8822,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata2(int thread_id, double 
 					/*
 					 * the Poission limit 
 					 */
-					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact(y);
+					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact((int) y);
 				}
 			}
 		}
@@ -8909,7 +8913,7 @@ int loglikelihood_zeroinflated_negative_binomial1_strata3(int thread_id, double 
 					/*
 					 * the Poission limit 
 					 */
-					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact(y);
+					logll[i] = LOG_ONE_MINUS(p_zeroinflated) + y * log(mu) - mu - my_gsl_sf_lnfact((int) y);
 				}
 			}
 		}
@@ -9869,9 +9873,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -10501,7 +10505,7 @@ int loglikelihood_gammacount(int thread_id, double *logll, double *x, int m, int
 			logp = log(p);
 			// this can go in over/underflow...
 			if (ISINF(logp) || ISNAN(logp)) {
-				logll[i] = log(GMRFLib_eps(1.0)) + PENALTY * SQR(x[i] + OFFSET(idx));
+				logll[i] = log(GSL_DBL_EPSILON) + PENALTY * SQR(x[i] + OFFSET(idx));
 			} else {
 				logll[i] = logp;
 			}
@@ -11193,7 +11197,7 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 	assert(y_cdf == NULL);				       // I do not think this should be used. 
 
 	if (p_min < 0.0) {
-		p_min = GMRFLib_eps(0.8943652563);	       // about 1e-14
+		p_min = 100.0 * GSL_DBL_EPSILON;
 	}
 
 	event = ds->data_observations.event[idx];
@@ -11318,7 +11322,7 @@ int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int 
 	double event, truncation, lower, upper;
 
 	assert(y_cdf == NULL);				       // I do not think this should be used.
-	double p_min = 100.0 * GMRFLib_eps(1.0);
+	double p_min = 100.0 * GSL_DBL_EPSILON;
 
 	if (0)
 		if (ds->data_observations.cure_ncov && (idx == 0)) {
@@ -30967,7 +30971,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	mb->ai_par->stencil = iniparser_getint(ini, inla_string_join(secname, "STENCIL"), mb->ai_par->stencil);
 	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
 	if (ISZERO(mb->ai_par->step_len)) {
-		double scale = GMRFLib_eps(1.0) / 2.220446049e-16;
+		double scale = GSL_DBL_EPSILON / 2.220446049e-16;
 		mb->ai_par->step_len = scale * (mb->ai_par->stencil == 5 ? 1.0e-4 : (mb->ai_par->stencil == 7 ? 5.0e-4 : 1.0e-3));
 	}
 
@@ -33316,7 +33320,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < spde->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33416,7 +33420,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < spde2->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33517,7 +33521,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < spde3->graph->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33750,7 +33754,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < arg->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33842,7 +33846,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					for (ii = 0; ii < arg->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
@@ -33919,7 +33923,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					/*
 					 * only need to add for the z-part; the last m components.
@@ -33999,7 +34003,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 
 					/*
 					 * only need to add for the z-part; the last m components.
@@ -34098,7 +34102,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				case GMRFLib_EPOSDEF:
 				{
 					int ii;
-					double eps = GMRFLib_eps(0.5);
+					double eps = GSL_SQRT_DBL_EPSILON;
 					for (ii = 0; ii < mb->f_graph_orig[i]->n; ii++) {
 						cc_add[ii] = (cc_add[ii] == 0.0 ? eps : cc_add[ii] * 10.0);
 					}
@@ -34341,7 +34345,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
-						double eps = GMRFLib_eps(0.5);
+						double eps = GSL_SQRT_DBL_EPSILON;
 						for (jj = 0; jj < n; jj++) {
 							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
 						}
@@ -34512,7 +34516,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					switch (retval) {
 					case GMRFLib_EPOSDEF:
 					{
-						double eps = GMRFLib_eps(0.5);
+						double eps = GSL_SQRT_DBL_EPSILON;
 						for (jj = 0; jj < n; jj++) {
 							cc_add[jj] = (cc_add[jj] == 0.0 ? eps : cc_add[jj] * 10.0);
 						}
@@ -35617,10 +35621,10 @@ double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * l
 
 double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
 {
-	double prec_high = 1.0E3, prec_low = 1.0E-16, eps = 1.0E-6;
+	double prec_high = 1.0E3, prec_low = 1.0E-8, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
-	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GMRFLib_eps(0.25), w;
-	int niter, niter_min = 5, niter_max = 100, stencil = 5;
+	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
+	int niter, niter_min = 5, niter_max = 100, stencil = 5; 
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
@@ -37449,7 +37453,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		mb->gcpo_param->num_level_sets = iniparser_getint(ini, inla_string_join(secname, "GCPO.NUM.LEVEL.SETS"), -1);
 		mb->gcpo_param->size_max = iniparser_getint(ini, inla_string_join(secname, "GCPO.SIZE.MAX"), -1);
 		mb->gcpo_param->correct_hyperpar = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.CORRECT.HYPERPAR"), 1);
-		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GMRFLib_eps(1.0 / 3.0));
+		mb->gcpo_param->epsilon = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.EPSILON"), GSL_ROOT3_DBL_EPSILON);
 		mb->gcpo_param->prior_diagonal = iniparser_getdouble(ini, inla_string_join(secname, "GCPO.PRIOR.DIAGONAL"), 1.0);
 		mb->gcpo_param->remove_fixed = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.REMOVE.FIXED"), 1);
 		mb->gcpo_param->verbose = iniparser_getboolean(ini, inla_string_join(secname, "GCPO.VERBOSE"), 0);
@@ -40277,7 +40281,7 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int 
 			int retval = GMRFLib_SUCCESS, ok = 0, num_try = 0, num_try_max = 100;
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
 
-			double *c = Calloc(def->graph->n, double), eps = GMRFLib_eps(0.5);
+			double *c = Calloc(def->graph->n, double), eps = GSL_SQRT_DBL_EPSILON;
 			for (i = 0; i < def->graph->n; i++) {
 				c[i] = eps;
 			}
@@ -40913,7 +40917,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 		printf("\n");
-		GMRFLib_gsl_ginv(A, GMRFLib_eps(0.5), -1);
+		GMRFLib_gsl_ginv(A, GSL_SQRT_DBL_EPSILON, -1);
 		GMRFLib_printf_gsl_matrix(stdout, A, " %.12f");
 
 		exit(EXIT_SUCCESS);
@@ -41476,7 +41480,7 @@ int testit(int argc, char **argv)
 
 	case 40:
 	{
-		printf("eps= %.12g\n", GMRFLib_eps(1.0));
+		printf("eps= %.12g\n", GSL_DBL_EPSILON);
 	}
 		break;
 
@@ -42331,10 +42335,10 @@ int testit(int argc, char **argv)
 		gsl_matrix_set(Q, 2, 1, -3);
 
 		gsl_matrix *S = GMRFLib_gsl_duplicate_matrix(Q);
-		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
+		GMRFLib_gsl_ensure_spd_inverse(S, GSL_SQRT_DBL_EPSILON, NULL);
 		GMRFLib_printf_gsl_matrix(stdout, Q, " %.8f");
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
-		GMRFLib_gsl_ensure_spd_inverse(S, GMRFLib_eps(0.5), NULL);
+		GMRFLib_gsl_ensure_spd_inverse(S, GSL_SQRT_DBL_EPSILON, NULL);
 		GMRFLib_printf_gsl_matrix(stdout, S, " %.8f");
 	}
 		break;
@@ -43450,7 +43454,8 @@ int testit(int argc, char **argv)
 	{
 		double tref[2] = { 0, 0 };
 		int n = atoi(args[0]);
-		double *y = Calloc(n, double);
+		double *y = Calloc(2 * n, double);
+		double *res = y + n;
 
 		double rel_err = 0.0;
 		for (int i = 0; i < n; i++) {
@@ -43468,28 +43473,22 @@ int testit(int argc, char **argv)
 		tref[0] += GMRFLib_cpu();
 
 		tref[1] = -GMRFLib_cpu();
-		sum = 0.0;
-		for (int i = 0; i < n; i++) {
-			sum += my_lambert_W0(y[i]);
-		}
+		my_lambert_W0s(n, y, res);
 		tref[1] += GMRFLib_cpu();
 		printf("random arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
 		qsort((void *) y, (size_t) n, sizeof(double), GMRFLib_dcmp);
 		tref[0] = -GMRFLib_cpu();
-		sum = 0.0;
 		for (int i = 0; i < n; i++) {
 			sum += gsl_sf_lambert_W0(y[i]);
 		}
 		tref[0] += GMRFLib_cpu();
 
 		tref[1] = -GMRFLib_cpu();
-		sum = 0.0;
-		for (int i = 0; i < n; i++) {
-			sum += my_lambert_W0(y[i]);
-		}
+		my_lambert_W0s(n, y, res);
 		tref[1] += GMRFLib_cpu();
 		printf("sorted arguments: GSL:  %.4f  Cache:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P(sum);
 	}
 		break;
 
@@ -43502,6 +43501,50 @@ int testit(int argc, char **argv)
 		}
 	}
 		break;
+
+	case 109: 
+	{
+		priorfunc_fgn_priorH_extract();
+	}
+	break;
+
+	case 110:
+	{
+		double tref[3] = { 0, 0, 0};
+		int n = atoi(args[0]);
+		double *y = Calloc(2 * n, double);
+
+		double rel_err = 0.0;
+		for (int i = 0; i < n; i++) {
+			y[i] = exp(2 * GMRFLib_stdnormal());
+			double ref = gsl_sf_lngamma(y[i]);
+			rel_err += ABS((ref - lgamma(y[i])));
+		}
+		P(rel_err / n);
+
+		tref[0] = -GMRFLib_cpu();
+		double sum = 0.0;
+		for (int i = 0; i < n; i++) {
+			sum += gsl_sf_lngamma(y[i]);
+		}
+		tref[0] += GMRFLib_cpu();
+		P(sum);
+
+		sum = 0.0;
+		tref[1] = -GMRFLib_cpu();
+		for (int i = 0; i < n; i++) {
+			sum += lgamma(y[i]);
+		}
+		tref[1] += GMRFLib_cpu();
+		P(sum);
+
+		printf("GSL:  %.4f  libm: %.4f NULL:  %.4f\n", tref[0] / (tref[0] + tref[1] + tref[2]),
+		       tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
+		       
+		P(sum);
+	}
+		break;
+
 
 	case 999:
 	{
@@ -43565,7 +43608,7 @@ int main(int argc, char **argv)
 
 	GMRFLib_bitmap_max_dimension = 512;
 	GMRFLib_bitmap_swap = GMRFLib_TRUE;
-	GMRFLib_aqat_m_diag_add = GMRFLib_eps(0.5);
+	GMRFLib_aqat_m_diag_add = GSL_SQRT_DBL_EPSILON;
 
 	GMRFLib_init_constr_store();
 	GMRFLib_init_constr_store_logdet();		       /* no need to reset this with preopt */

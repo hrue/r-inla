@@ -46,7 +46,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	 */
 	int nn = n, special = 0;
 	double *xx = NULL, *yy = NULL;
-	double eps = GMRFLib_eps(0.75);
+	double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
 	assert(n > 0);
@@ -81,7 +81,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 			gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
 		}
 	}
-	GMRFLib_unique_additive2(&nn, xx, yy, GMRFLib_eps(0.5));
+	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
 
 	if (nn < 3) {
 		Calloc_free();
@@ -128,7 +128,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	 * Evaluate a spline 's' in point 'x' 
 	 */
 	double xx, xx_raw, val;
-	double eps = GMRFLib_eps(0.75);
+	static double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 
 	if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
 		xx_raw = TRUNCATE(x, eps, 1.0 - eps);

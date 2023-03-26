@@ -783,7 +783,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 
 		double ddx = -val / grad;
 		x_min += ddx;
-		if (iter == max_iter - 1 || ABS(ddx) < GMRFLib_eps(1.0 / 3.0)) {
+		if (iter == max_iter - 1 || ABS(ddx) < GSL_ROOT3_DBL_EPSILON) {
 			break;
 		}
 	}

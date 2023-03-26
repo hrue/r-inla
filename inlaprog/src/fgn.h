@@ -74,6 +74,7 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *values, void *arg);
 
 int inla_fgn_get(double *phi, double *w, double H_intern, int k);
 double priorfunc_fgn_priorH(double *H_intern, double *param);
+void priorfunc_fgn_priorH_extract(void);
 
 __END_DECLS
 #endif

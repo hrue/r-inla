@@ -399,17 +399,23 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	// this is the MKL version, which is done using a sparse '1 x n' matrix.
-	// we could include <mkl.h> but we can just do this, as we only need one non-standard function
+	if (0) {
+		// this is the MKL version, which is done using a sparse '1 x n' matrix.
 
-	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
-	double darr[3] = { 1.0, 0.0, 0.0 };
-	// we need to define this with length 6. the fifth argument is not used, so we use it for the
-	// argument 'trans', the first argument in the call, trans='N'
-	const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
+		// we could include <mkl.h> but we can just do this, as we
+		// only need one non-standard function
 
-	mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
-	return (darr[2]);
+		int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
+		double darr[3] = { 1.0, 0.0, 0.0 };
+		// we need to define this with length 6. the fifth argument is not used, so we use it for the
+		// argument 'trans', the first argument in the call, trans='N'
+		const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
+
+		mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
+		return (darr[2]);
+	}
+
+	return (cblas_ddoti(n, v, idx, a));
 }
 
 #else							       /* defined(INLA_LINK_WITH_MKL) */

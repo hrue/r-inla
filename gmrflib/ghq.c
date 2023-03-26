@@ -280,7 +280,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 
 	double skew3s[sizeof(wf) / sizeof(double)], s;
 
-	double ds = GMRFLib_eps(1.0 / 3.9134);		       // ds=1.0e-4 
+	double ds = GSL_ROOT4_DBL_EPSILON;
 	double **ww = NULL;
 	int ns = sizeof(skew3s) / sizeof(double);
 	int n2 = ns / 2;
@@ -321,7 +321,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	}
 
 	double w_max = GMRFLib_max_value(w, n, NULL);
-	double limit = GMRFLib_eps(0.5);
+	double limit = GSL_SQRT_DBL_EPSILON;
 
 	for (i = k = 0; i < n; i++) {
 		if (w[i] / w_max > limit) {

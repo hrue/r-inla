@@ -1240,7 +1240,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			gsl_matrix_set_zero(A);
 			gsl_matrix_set_zero(tAinv);
 
-			double eps = GMRFLib_eps(0.33);
+			double eps = GSL_ROOT3_DBL_EPSILON;
 			double diag = sqrt(DMAX(eps, 1.0 - ((double) Adir->size1 - 1.0) * SQR(eps)));
 			gsl_matrix_set_all(Adir, eps);
 			for (i = 0; i < Adir->size1; i++) {
@@ -1345,7 +1345,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 					GMRFLib_printf_gsl_matrix2(G.ai_par->fp_log, A, "\t %6.3f", cutoff);
 				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
-				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
+				GMRFLib_gsl_ginv(tAinv, GSL_SQRT_DBL_EPSILON, -1);
 			}
 
 			dx = sqrt(dx / xx->size);
