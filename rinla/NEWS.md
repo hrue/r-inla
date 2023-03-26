@@ -1,3 +1,9 @@
+# INLA 23.03.26
+* Various code-cleanup and optimisation
+* Improved code for \code{family="nbinom"} and \code{"bell"}
+* New vignette (SPDE2mdatasurv)
+* Small change in how saturated deviance is computed
+
 # INLA 23.03.19
 * Updated family=bell
 * Fixed an issue with selection of nodes for vb.correct
