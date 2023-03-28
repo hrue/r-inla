@@ -594,8 +594,8 @@
 
         cat("slm.n = ", as.integer(slm.n), "\n", append = TRUE, sep = " ", file = file)
         cat("slm.m = ", as.integer(slm.m), "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.min = ", as.integer(random.spec$args.slm$rho.min), "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.max = ", as.integer(random.spec$args.slm$rho.max), "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.min = ", random.spec$args.slm$rho.min, "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.max = ", random.spec$args.slm$rho.max, "\n", append = TRUE, sep = " ", file = file)
 
         ## matrix A1
         A1 <- cbind(
