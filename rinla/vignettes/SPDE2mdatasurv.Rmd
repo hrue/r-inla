@@ -66,23 +66,22 @@ or $\mathbb{S}^d$, for $d=1,2$, and the theory in @lindgrenRL2011
 include higher dimentional domains.
 We consider a spatial domain, $D \in \mathbb{R}^2$
 to keep the example simple.
-
 Without loss off generality we consider $D$ as a rectangle defined as
 ```{r domain}
-bb <- rbind(c(0, 20), c(0, 12))
+bb <- rbind(c(0, 10), c(0, 7))
 ```
 
 Next, we store the length of each side and its average for later use
 ```{r rxy}
 rxy <- apply(bb, 1, diff)
-b <- mean(rxy)
+rr <- mean(rxy)
 ```
 
 We sample a set of $n$ locations,
 $l_1, ..., l_n$, in this domain, $l_i \in D$, 
 completely at random as follows:
 ```{r loc}
-n <- 500
+n <- 1000
 loc <- cbind(
     runif(n, bb[1, 1], bb[1, 2]),
     runif(n, bb[2, 1], bb[2, 2]))
@@ -94,16 +93,16 @@ Instead of simulating from a model to play as a spatial smooth term,
 we define a smooth function on this domain as follows
 ```{r sfn}
 sfn <- function(a, b)
-    sin(a + b) + cos(a - b)
+    sin(a - b) + cos(a + b)
 ```
 
 This function is evaluated at the $n$ locations and visualized with
 ```{r sloc}
-u <- sfn(2 * pi * loc[, 1] / rxy[1],
-         2 * pi * loc[, 2] / rxy[2])
+u <- sfn(2 * pi * loc[, 1] / rr,
+         2 * pi * loc[, 2] / rr) 
 summary(u)
 par(mar = c(2, 2, 0, 0), mgp = c(1.5, 0.5, 0), las = 1)
-plot(loc, pch = 19, cex = 0.5 + (2 + u)/4, xlab = "", ylab = "")
+plot(loc, asp = 1, pch = 19, cex = 0.5 + (2 + u)/4, xlab = "", ylab = "")
 ```
 
 ## Spatial sub-domains 
@@ -117,7 +116,7 @@ For simplicity of coding, but without loss of generality,
 we assume these small sub-regions to be pixels based in
 the following set of centers:
 ```{r centers}
-h <- 2 ## size of the side of each sub-region
+h <- 1 ## size of the side of each sub-region
 group.ce <- as.matrix(expand.grid(
     seq(bb[1, 1] + h/2, bb[1, 2], h),
     seq(bb[2, 1] + h/2, bb[2, 2], h)))
@@ -129,8 +128,8 @@ spatial objects and operations available in **R**
 and identify each location $l_i$ to each sub-region $r_j$
 with an integer vector as
 ```{r groupid}
-group.id <- ceiling(loc[,1]/h)+ceiling(rxy[1]/h) *
-  (ceiling(loc[,2]/h)-1)
+group.id <- ceiling(loc[,1]/h) + 
+  ceiling(rxy[1]/h) * (ceiling(loc[,2]/h)-1)
 ```
 
 This will be used as a grouping index, so that each group is made of the
@@ -283,8 +282,9 @@ We do it considering the following code
 ```{r mesh}
 mesh <- inla.mesh.2d(
     loc.domain = matrix(bb[c(1,3,3,1,1, 2,2,4,4,2)], ncol = 2), 
-    offset = c(.1, .2) * b, ## extensions size
-    max.edge = c(.05, .15) * b)
+    offset = c(.0001, .5) * rr, ## extensions size
+    max.edge = c(.05, .3) * rr, 
+    cutoff = 0.025 * rr)
 mesh$n
 ```
 
@@ -507,17 +507,17 @@ For access the DIC, WAIC and log score
 can consider the family indicator stored 
 in the DIC output as follows
 ```{r dic}
-result$dic$family.dic
 str(result$dic)
 str(result$waic)
 str(result$cpo)
+result$dic$family.dic ### DIC for each outcome
 tapply(result$waic$local.waic, 
        result$dic$family, ## taken from dic family id
-       sum)
+       sum) ## WAIC for each outcome
 tapply(result$cpo$cpo, 
        result$dic$family, ## taken fron dic family id
         function(x) 
-         c(nlCPO = -sum(log(x))))
+         c(nlCPO = -sum(log(x)))) ## -sum log CPO for each outcome
 ```
 
 
