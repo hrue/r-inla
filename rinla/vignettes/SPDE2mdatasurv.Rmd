@@ -33,19 +33,17 @@ including the `inla.surv`, which is a generalization of the
 `Surv` from the **survival** package, and `mdata`.
 It also support joint modeling different kind of outcomes.
 In this vignette we illustrate the case when we have
-three outcomes, one of each type, and model them jointly.
+three outcomes, of different type, and model them jointly.
 
 # Introduction 
 
 Usually correlations between outcomes are modeled by
-sharing common model terms in the linear predictor for each one.
+sharing common model terms in the linear predictor.
 These terms can be covariates, random effects or sums of these.
-It is possible to have cases when each likelihood for an
-observation unit depend on more than one quantity, 
-for example, one likelihood is to model the survival time, 
-which has the additional information about censoring, 
-and other likelihood is written as a function of several quantities, 
-as we will see in the example.
+In some cases, the likelihood requires more information 
+than just the vector of observations. 
+As an example, the likelihood for survival models requires
+both observed times and information about censoring.
 
 In this vignette we consider a joint model for three outcomes,
 simulate data from this model and illustrate how to fit the 
@@ -53,10 +51,10 @@ joint model accounting for shared terms.
 The linear predictor for each outcome includes covariates and 
 a spatial random effect modeled using the SPDE approach.
 
-We consider a scenario where the first outcome is known at an aggregated level,
+The first outcome is known at an aggregated level,
 in a setting were we model it considering a kind of likelihood designed in
 **INLA** to account for all the information available with respect to the aggregation.
-The second outcome is considered to be observed censored,
+The second outcome is assumed to be censored,
 so that we have to consider the observed value and the censoring information.
 The third outcome is just the usual kind of data: one scalar per data unit.
 
@@ -111,12 +109,12 @@ plot(loc, pch = 19, cex = 0.5 + (2 + u)/4, xlab = "", ylab = "")
 ## Spatial sub-domains 
 
 In order to define the first outcome,
-let us consider that the domain is being divided into a set of sub-regions, 
+let us partition our domain into a set of sub-regions, 
 $r_1, r_2, ..., r_g$, 
 so that $r_i \cap r_i = \oslash$ and $\cup_{i=1}^g r_j = D$.
 
 For simplicity of coding, but without loss of generality,
-we assume that these small sub-regions to be pixels based in
+we assume these small sub-regions to be pixels based in
 the following set of centers:
 ```{r centers}
 h <- 2 ## size of the side of each sub-region
@@ -160,24 +158,23 @@ We will consider three outcomes.
 
 ### First outcome: aggregated Gaussian
 
-We assume that one of the outcomes is a continuous random variable,
-to be considered as Gaussian, with unknown mean and variance,
+The first outcome is Gaussian distributes, 
+with unknown mean and variance,
 and a known scaling factor, $s$, such that 
 \[ 
 y_i \sim \textrm{N}(\mu_i, s_i\sigma^2).
 \]
 
-The first outcome being simulated considering that the
-expected value as $\eta_1 = \{\mu_1, ..., \mu_n\}$ as
+We assume $\boldsymbol{\eta}_y = \{\mu_1, ..., \mu_n\}$ and
 \[ 
-\eta_1 = \mathbf{X}\beta_1 + \mathbf{u}.
+\boldsymbol{\eta}_y = \mathbf{X}\boldsymbol{\beta}_y + \mathbf{u}.
 \]
 This is being evaluated considering the covariate and random effect averaged
 per group:
 ```{r y}
-betas1 <- c(5, 0, -3, 3) 
+beta.y <- c(5, 0, -3, 3) 
 u.g <- tapply(u, group.id, mean)
-eta.y.g <- drop(cbind(1, as.matrix(xxx.g[, 2:ncol(xxx.g)])) %*% betas1) + u.g
+eta.y.g <- drop(cbind(1, as.matrix(xxx.g[, 2:ncol(xxx.g)])) %*% beta.y) + u.g
 ```
 
 We will simulate the scaling factor for each observation with
@@ -220,29 +217,28 @@ str(YY <- Reduce('rbind', lapply(agg, unlist))) ## five columns matrix
 
 ## Second outcome: Survival
 
-One can fit survival modes using **INLA** considering several available 
-likelihoods. One is the `weibullsurv` and we will now consider
-that we have an outcome that follows a Weibull distribution, 
-considering the following parametrization
+For the second outcome we choose a Weibull distribution with
+the following parametrization
 \[
-f_W(w) = \alpha w^{\alpha - 1} \lambda^\alpha \textrm{e}^{-(\lambda w)^\alpha}.
+f_W(w_i) = \alpha w_i^{\alpha - 1} \lambda_i^\alpha \textrm{e}^{-(\lambda_i w_i)^\alpha}.
 \]
-We assume that $\lambda = \exp(\eta_2)$, 
-where $\eta_2$ is the linear predictor and is defined as
+
+We define the linear predictor as 
+$\boldsymbol{\eta}_w = \{\log(\lambda_1), ..., \log(\lambda_n)\}$ and
 \[ 
-\eta_2 = \mathbf{X}\beta + \gamma_1\mathbf{u}
+\boldsymbol{\eta}_w = \mathbf{X}\beta_w + \gamma_w\mathbf{u}
 \]
 and we consider the following code to sample from a Weibull distribution
 ```{r w0}
-betas2 <- c(1, -1, 0, 1)
+beta.w <- c(1, -1, 0, 1)
 alpha <- 2
-gamma1 <- 0.5
-lambdaw <- exp(cbind(1, xxx) %*% betas2 + gamma1 * u)
+gamma.w <- 0.5
+lambdaw <- exp(cbind(1, xxx) %*% beta.w + gamma.w * u)
 we0 <- rweibull(n, shape = alpha, scale = 1/lambdaw)
 summary(we0)
 ```
 
-However, suppose we do not observe the survival times for some of the observations.
+However, we suppose that some observations are censored
 ```{r event}
 summary(u.ev <- runif(n, 0.3, 1)) ## censoring factor
 table(event <- rbinom(n, 1, 0.5)) ## censored (=0) or event (=1)
@@ -258,19 +254,21 @@ summary(ee <- rgamma(n, 10, 2))
 
 We assume an outcome following a Poisson distribution with 
 \[ 
-o_i \sim \textrm{Poisson}(\lambda_i E_i)
+O_i \sim \textrm{Poisson}(\delta_i E_i). 
 \]
-where $\lambda_i$ depends on the covariates and assuming that 
+
+We assume the linear predictor as 
+$\boldsymbol{\eta}_p = \{\log(\delta_1),\;...,\; \log(\delta_n)\}$ and
 \[
-\log{\lambda} = \eta_3 = \mathbf{X}\beta_e + \gamma_2\mathbf{u}
+\boldsymbol{\eta}_p = \mathbf{X}\beta_p + \gamma_p\mathbf{u}
 \]
 
 This outcome is being simulated with
 ```{r po}
-betas3 <- c(2, 1, -1, 0)
-gamma2 <- -0.3
-lambdap <- cbind(1, xxx) %*% betas3 + gamma2 * u
-po <- rpois(n, exp(lambdap) * ee)
+beta.p <- c(2, 1, -1, 0)
+gamma.p <- -0.3
+delta.p <- exp(cbind(1, xxx) %*% beta.p + gamma.p * u)
+po <- rpois(n, delta.p * ee)
 summary(po)
 ```
 
@@ -285,8 +283,9 @@ We do it considering the following code
 ```{r mesh}
 mesh <- inla.mesh.2d(
     loc.domain = matrix(bb[c(1,3,3,1,1, 2,2,4,4,2)], ncol = 2), 
-    max.edge = c(.05, .15) * b,
-    offset = c(.1, .2) * b)
+    offset = c(.1, .2) * b, ## extensions size
+    max.edge = c(.05, .15) * b)
+mesh$n
 ```
 
 This mesh and the locations colored by the group defined for the first
@@ -309,24 +308,23 @@ spde <- inla.spde2.pcmatern(
 
 We will fit a joint model considering the linear predictor
 with terms as how it was simulated.
-The `inla.stack()` function in ment to me used
+The `inla.stack()` function in meant to me used
 when working with SPDE models.
 However, it also helps when considering multiple likelihood data
-as detailed bellow.
+as detailed below.
 
 One way to deal with multiple likelihoods in **INLA**
 is defining `matrix` data for the outcome where each column
 is used for each likelihood.
-However, we do have more complex cases.
-Therefore, **the way** to deal with more complex multiple likelihood data is to
-use `list` in the left hand side of the `formula`.
+However, in this vignette we are dealing with more complex cases.
+Therefore, he need to use `list` in the left hand side of the `formula`.
 This is the key point to implement this example.
 
 The right hand side of the formula includes each term in the linear predictor.
 When working with multiple likelihood, each term in each likelihood
 should be named uniquely.
-For example, if two likelihoods does includes the same covariate
-and each one with a different coefficient,
+For example, if two likelihoods include the same covariate
+but with a different coefficient,
 each one has to have its own name.
 Therefore, we will pass the covariate `x1` as `x1y`, 
 for the first outcome, `x1w` for the second outcome, 
@@ -348,7 +346,7 @@ fff <- list(
   a3 + x1p + x2p + x3p + f(sc2, copy = "s", fixed = FALSE)
 ```
 
-## Data stacks
+## Building data stacks
 
 The data has to be organized so it contains all the information needed,
 that is all the outcomes, covariates and random effect indexes.
@@ -358,21 +356,22 @@ The main work of the `inla.stack()` function is to check and organize
 outcomes, effects and projector matrices
 in order to guarantee that the dimentions match.
 Additionally, `inla.stack()` will deal with the problem of
-arranging the outcomes to work properly with multiple
-likelihoods, without us having to deal with the
-completion of lines and columns with NA.
-We just have to supply the data for each outcome and its linear predictor
-in a separated `inla.stack()` call and then
-it does the job properly when joining all the data stacks.
+arranging the outcomes to work properly with multiple likelihoods.
 
 For the first outcome, we need to supply a five column matrix,
-each column with each of the five statistics computed
-for each of the `ng` groups, previously computed.
+each with one of the five statistics previously computed for the `ng` groups.
 For the effects we define an intercept, 
-each one of the covariates with names according to what the
+covariates with names according to what the
 `formula` specify and the index for the SPDE model.
 The projector matrices is one for the fixed effect, which is just `1`,
 and the one for the SPDE model.
+
+We will include a different `tag` for each stack to keep track.
+This is useful to collect results associated to each outcome.
+For each outcome we can also define an indicator vector to identify it.
+This is useful for the case of having some missing data. 
+In this case the indicator can be used to identify which link to be used
+for making the predictions.
 
 The stack for the first outcome can be defined as
 ```{r stack1}
@@ -391,7 +390,7 @@ stackY <- inla.stack(
 ```
 
 For the second outcome, we have to supply
-two vectors to build the `inla.surv` data,
+two vectors (observed time and censoring) to build the `inla.surv` data,
 the covariates, with names according to the terms in the formula, 
 and the projector matrices, the single `1` for the covariates and
 the projector for the shared SPDE term.
@@ -435,12 +434,17 @@ stackP <- inla.stack(
 )
 ```
 
-Joining all the data into one data stack
+# Fitting the model and some results
+
+We now fit the model and look at some results.
+
+## Model fitting
+
+To fit the model we start by
+joining all the data into one data stack
 ```{r jstack}
 stacked <- inla.stack(stackY, stackW, stackP)
 ```
-
-# Fitting the model
 
 We now supply this to the `inla()` function in order to fit the model
 ```{r fit}
@@ -454,32 +458,67 @@ result <- inla(
     control.family = list(
         list(),
         list(variant = 1),
-        list())
+        list()), 
+   control.compute = list(dic = TRUE, waic = TRUE, cpo = TRUE)
 )
 result$cpu
 ```
+
+## Summaries
 
 We now compare the true value for each 
 fixed effect with its posterior summary.
 
 ```{r fixef}
 round(cbind(
-    true = c(betas1, betas2, betas3),
+    true = c(beta.y, beta.w, beta.p),
     result$summary.fix), 2)
 ```
 
-For the hyper-parameters, we do have fitted one for the
-`agaussian` likelihood, 
-one for the `weibulsuv` and we have those for the 
-SPDE model assumed for the spatial smooth effect 
-(defined from the sine and cosine functions)
-and the fitted parameters for this term shared 
-from the first to the second and third outcomes.
+For the hyper-parameters, we have one for the
+`agaussian` likelihood, one for the `weibulsuv`, 
+two for the SPDE model and two that define the scaling 
+for the shared SPDE terms in the second and third outome.
 
 ```{r hpars}
-round(cbind(true = c(1/sigma.y^2, alpha, NA, NA, gamma1, gamma2), 
+round(cbind(true = c(1/sigma.y^2, alpha, NA, NA, gamma.w, gamma.p), 
             result$summary.hy), 2)
 
 ```
+
+## Results considering each outcome
+
+To collect outputs associated with each data, 
+we need to consider the `tag` from each data stack to
+get the data index from the joint stack. 
+For example, the data index for the third outcome is
+```{r dindex}
+idx1 <- inla.stack.index(stacked, tag = "p")$data
+```
+
+We can see the summary for the fitted values
+for the first few observations of this outcome with
+```{r fitted}
+head(cbind(true = delta.p, 
+           result$summary.fitted.values[idx1, ]), 3)
+```
+
+For access the DIC, WAIC and log score 
+can consider the family indicator stored 
+in the DIC output as follows
+```{r dic}
+result$dic$family.dic
+str(result$dic)
+str(result$waic)
+str(result$cpo)
+tapply(result$waic$local.waic, 
+       result$dic$family, ## taken from dic family id
+       sum)
+tapply(result$cpo$cpo, 
+       result$dic$family, ## taken fron dic family id
+        function(x) 
+         c(nlCPO = -sum(log(x))))
+```
+
 
 # References
