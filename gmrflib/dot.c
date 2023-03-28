@@ -196,10 +196,13 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 
 double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
-	// so it does not fail for not-prepared ones
 	if (ELM_->g_n == 0) {
+		// so it does not fail for not-prepared ones
 		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
 	} else {
+#pragma omp atomic
+		GMRFLib_dot_product_gain += ELM_->cpu_gain;
+	
 		switch (ELM_->preference) {
 		case IDXVAL_SERIAL:
 			return (GMRFLib_dot_product_serial(ELM_, ARR_));
@@ -214,8 +217,6 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 			break;
 		case IDXVAL_UNKNOWN:
-			if (0)
-				FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
 			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 			break;
 		default:
@@ -227,6 +228,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 
 	return NAN;
 }
+
 
 
 

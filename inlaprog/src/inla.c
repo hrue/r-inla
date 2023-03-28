@@ -44253,7 +44253,8 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-
+				printf("\nDot-product gain = %.3fsec, %.6fsec/fn-call\n\n", GMRFLib_dot_product_gain,
+				       GMRFLib_dot_product_gain / nfunc[0]);
 #if !defined(WINDOWS)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT;
