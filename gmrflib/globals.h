@@ -133,7 +133,7 @@ extern int GMRFLib_preopt_predictor_strategy;		       // 0 = !data_rich, 1 = dat
 extern double GMRFLib_weight_prob;
 extern double GMRFLib_weight_prob_one;
 extern double **GMRFLib_dot_product_optim_report;
-extern double GMRFLib_dot_product_gain;
+extern double GMRFLib_dot_product_gain;			       // set to < 0 to disable it
 
 extern int GMRFLib_sort2_cut_off;
 

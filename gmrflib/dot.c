@@ -200,8 +200,10 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 		// so it does not fail for not-prepared ones
 		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
 	} else {
+		if (GMRFLib_dot_product_gain >= 0.0) {
 #pragma omp atomic
-		GMRFLib_dot_product_gain += ELM_->cpu_gain;
+			GMRFLib_dot_product_gain += ELM_->cpu_gain;
+		}
 	
 		switch (ELM_->preference) {
 		case IDXVAL_SERIAL:

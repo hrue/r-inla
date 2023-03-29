@@ -764,53 +764,48 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 	double treff[4] = { 0.0, 0.0, 0.0, 0.0 };
 	double value[4] = { 0.0, 0.0, 0.0, 0.0 };
 
-	for (int time = 0; time < ntimes; time++) {
-		int measure = (time >= 0);
-		if (measure) {
+	for (int time = -1; time < ntimes; time++) {
+		if (time < 0) {
+			GMRFLib_dot_product_serial(h, x);
+			GMRFLib_dot_product_group(h, x);
+			if (with_mkl) {
+				GMRFLib_dot_product_serial_mkl(h, x);
+				GMRFLib_dot_product_group_mkl(h, x);
+			}
+		} else {
 			treff[0] -= GMRFLib_cpu();
-		}
-
-		value[0] = GMRFLib_dot_product_serial(h, x);
-		if (measure) {
+			value[0] = GMRFLib_dot_product_serial(h, x);
 			treff[0] += GMRFLib_cpu();
-		}
-		if (with_mkl) {
-			if (measure) {
-				treff[1] -= GMRFLib_cpu();
-			}
-			value[1] = GMRFLib_dot_product_serial_mkl(h, x);
-			if (measure) {
-				treff[1] += GMRFLib_cpu();
-			}
-		} else {
-			value[1] = value[0];
-			treff[1] = treff[0];
-		}
 
-		if (measure) {
+			if (with_mkl) {
+				treff[1] -= GMRFLib_cpu();
+				value[1] = GMRFLib_dot_product_serial_mkl(h, x);
+				treff[1] += GMRFLib_cpu();
+			} else {
+				value[1] = value[0];
+				treff[1] = treff[0];
+			}
+
 			treff[2] -= GMRFLib_cpu();
-		}
-		value[2] = GMRFLib_dot_product_group(h, x);
-		if (measure) {
+			value[2] = GMRFLib_dot_product_group(h, x);
 			treff[2] += GMRFLib_cpu();
-		}
-		if (with_mkl) {
-			if (measure) {
+
+			if (with_mkl) {
 				treff[3] -= GMRFLib_cpu();
-			}
-			value[3] = GMRFLib_dot_product_group_mkl(h, x);
-			if (measure) {
+				value[3] = GMRFLib_dot_product_group_mkl(h, x);
 				treff[3] += GMRFLib_cpu();
+			} else {
+				value[3] = value[2];
+				treff[3] = treff[2];
 			}
-		} else {
-			value[3] = value[2];
-			treff[3] = treff[2];
 		}
 	}
 
-	for (k = 1; k < 4; k++) {
+	for (k = 0; k < 4; k++) {
 		treff[k] /= (double) ntimes;
+	}
 
+	for (k = 1; k < 4; k++) {
 		if (ABS(value[k] - value[0]) > FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
 			P(k);
@@ -824,10 +819,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 				printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
 			}
 			printf("ng %d\n", h->g_n);
-			for (g = 0; g < h->g_n; g++) {
-				printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
-				for (i = 0; i < IABS(h->g_len[g]); i++) {
-					printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+			if (0) {
+				for (g = 0; g < h->g_n; g++) {
+					printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
+					for (i = 0; i < IABS(h->g_len[g]); i++) {
+						printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+					}
 				}
 			}
 

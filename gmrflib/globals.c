@@ -168,5 +168,5 @@ int GMRFLib_preopt_predictor_strategy = 0;		       // 0 = !data_rich, 1 = data_r
 double GMRFLib_weight_prob = 0.975;			       // for pruning weights for densities
 double GMRFLib_weight_prob_one = 0.999;			       // for pruning weights otherwise
 double **GMRFLib_dot_product_optim_report = NULL;
-double GMRFLib_dot_product_gain = 0.0;
+double GMRFLib_dot_product_gain = -1.0;
 int GMRFLib_sort2_cut_off = 50;
