@@ -319,6 +319,10 @@
             ## :ARGUMENT+: (Default FALSE.)
             graph = FALSE,
 
+            ## :ARGUMENT+: internal.opt A boolean variable, if to do internal online
+            ## :ARGUMENT+: optimisations or not. (Default TRUE.)
+            internal.opt = TRUE,
+
             ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
             ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.
             ## :ARGUMENT+: Refer to \code{?inla.group.cv} and the vignette for details.
