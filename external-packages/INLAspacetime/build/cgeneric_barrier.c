@@ -1,1 +1,0 @@
-../INLAspacetime/inst/src/cgeneric_barrier.c
