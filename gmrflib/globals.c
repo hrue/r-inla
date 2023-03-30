@@ -170,3 +170,4 @@ double GMRFLib_weight_prob_one = 0.999;			       // for pruning weights otherwis
 double **GMRFLib_dot_product_optim_report = NULL;
 double GMRFLib_dot_product_gain = -1.0;
 int GMRFLib_sort2_cut_off = 50;
+int GMRFLib_internal_opt = 1;
