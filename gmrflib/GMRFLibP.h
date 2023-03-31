@@ -365,6 +365,7 @@ typedef enum {
 #endif
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
+
 /* 
    ABS is for double, IABS is for int, and so on.
 */

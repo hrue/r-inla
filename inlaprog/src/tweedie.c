@@ -48,7 +48,8 @@
 #define TWEEDIE_MAX_IDX 16384
 
 // this is the G.Nemes (2007) approximation from https://en.wikipedia.org/wiki/Stirling's_approximation
-#define LGAMMA_FAST(_x) ((_x) < 1.0 ? gsl_sf_lngamma(_x) : 0.5 * (1.837877066409345 - log(_x)) + (_x) * (log((_x) + 1.0/( 12.0*(_x) - 0.1/(_x))) - 1.0))
+//#define LGAMMA_FAST(_x) ((_x) < 1.0 ? gsl_sf_lngamma(_x) : 0.5 * (1.837877066409345 - log(_x)) + (_x) * (log((_x) + 1.0/( 12.0*(_x) - 0.1/(_x))) - 1.0))
+#define LGAMMA_FAST(_x) ((_x) < 1.0 ? lgamma(_x) : 0.5 * (1.837877066409345 - log(_x)) + (_x) * (log((_x) + 1.0/( 12.0*(_x) - 0.1/(_x))) - 1.0))
 
 /**
  * n scalar length of mu
@@ -85,7 +86,7 @@ void dtweedie_init_cache(void)
 		}
 		lgammas = Calloc(TWEEDIE_MAX_IDX, double);
 		for (int i = 0; i < TWEEDIE_MAX_IDX; i++) {
-			lgammas[i] = my_gsl_sf_lngamma(1.0 + i);	/* factorials for integers */
+			lgammas[i] = my_gsl_sf_lnfact(i);
 		}
 	}
 }

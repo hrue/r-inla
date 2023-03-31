@@ -1,6 +1,6 @@
 
 /* approx-inference.c
- * 
+ *
  * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -78,7 +78,7 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp ** ai_par)
 	 * none of these are used, but they are the defaults if the user wants improved approximations 
 	 */
 	(*ai_par)->n_points = 9;			       /* how many points to evaluate */
-	(*ai_par)->step_len = GMRFLib_eps(0.25);	       /* If the derivaties has to be computed numerically */
+	(*ai_par)->step_len = GSL_ROOT4_DBL_EPSILON;	       /* If the derivaties has to be computed numerically */
 	(*ai_par)->stencil = 5;				       /* number of points to use */
 	(*ai_par)->cutoff = 0.0;			       /* the cutoff for the gradient in the (Gaussian) conditional mean */
 
@@ -762,7 +762,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 	int i, j, k, nd = -1, n = -1, free_ai_par = 0, n_points, ii, free_ai_store = 0, i_idx, j_idx, one = 1, *node_map = NULL;
 	double *x_points = NULL, x_sd, x_mean, *cond_mode = NULL, *fixed_mode = NULL, *log_density = NULL,
 	    log_dens_cond = 0.0, deriv_log_dens_cond = 0.0, a, *derivative = NULL, *mean_and_variance = NULL, deldif =
-	    GMRFLib_eps(1.0 / 6.0), inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
+	    GSL_ROOT6_DBL_EPSILON, inv_stdev, *cov = NULL, corr, corr_term, *covariances = NULL, alpha;
 
 	GMRFLib_graph_tp *subgraph = NULL;
 	GMRFLib_Qinv_tp *store_Qinv = NULL;
@@ -782,7 +782,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp ** density, GMR
 			const int _debug =  0;				\
 			int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, \
 				_one = 1, _i, npx = 8, itmp, np_new = np_orig + 2*npx; \
-			double cor_eps = GMRFLib_eps(0.75), cor_max, range;	\
+			double cor_eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON), cor_max, range;	\
 									\
 			Calloc_init(4*np_new, 4);			\
 			for(itry = 0; itry < 2;	itry++)			\
@@ -6988,7 +6988,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp * 
 				idx_offset = 1;
 			}
 
-			double big = 1.0 / GMRFLib_eps(1.0);
+			double big = 1.0 / GSL_DBL_EPSILON;
 
 			// default
 #pragma GCC ivdep
@@ -7329,8 +7329,8 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 	int corr_hypar = gcpo_param->correct_hyperpar;
 	const int np = GMRFLib_INT_GHQ_POINTS;
 	double zero = 0.0;
-	double spd_eps = GMRFLib_eps(0.5);
-	double diag_eps = GMRFLib_eps(0.236);		       /* gives 0.0002, so the stdev is scaled with 1.0001 */
+	double spd_eps = GSL_SQRT_DBL_EPSILON;
+	double diag_eps = GSL_ROOT4_DBL_EPSILON;
 	double diag_scale = 1.0 + diag_eps;
 
 	if (gcpo_param->verbose || detailed_output) {
@@ -7531,7 +7531,7 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store
 		}							\
 									\
 		if (1) { /* the new low-rank solution... */		\
-			double low_rank_eps = GMRFLib_eps(0.3833);	\
+			double low_rank_eps = GSL_ROOT3_DBL_EPSILON;	\
 			/* new low-rank approach */			\
 			size_t n = (size_t) ng;				\
 			gsl_matrix *Cov = S;				\
@@ -7725,7 +7725,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp ** cpo_density, GM
 	const int debug = 0;
 	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
 	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, alpha = -1.0;
-	double cor_eps = GMRFLib_eps(0.75), cor_max, range;
+	double cor_eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON), cor_max, range;
 
 	Calloc_init(4 * np_new, 4);
 	ld = Calloc_get(np_new);
@@ -8272,7 +8272,7 @@ int GMRFLib_ai_vb_correct_mean_std(int thread_id, GMRFLib_density_tp *** density
 		gsl_blas_dgemv(CblasTrans, mone, M, B, zero, MB);
 
 		// need pivoting to solve the system
-		GMRFLib_gsl_ensure_spd(MM, GMRFLib_eps(0.5), NULL);
+		GMRFLib_gsl_ensure_spd(MM, GSL_SQRT_DBL_EPSILON, NULL);
 		gsl_linalg_pcholesky_decomp(MM, perm);
 		gsl_linalg_pcholesky_solve(MM, perm, MB, delta);
 		gsl_blas_dgemv(CblasNoTrans, one, M, delta, zero, delta_mu);
@@ -8559,7 +8559,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			// in this case, keep the inv of MM through the iterations
 			if (update_MM) {
 				time_ref_hess = GMRFLib_cpu();
-				GMRFLib_gsl_spd_inv(MM, GMRFLib_eps(1.0 / 3.0));
+				GMRFLib_gsl_spd_inv(MM, GSL_ROOT3_DBL_EPSILON);
 				time_hess += GMRFLib_cpu() - time_ref_hess;
 			}
 			if (debug) {
@@ -8573,7 +8573,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 			gsl_blas_dgemv(CblasNoTrans, one, MM, MB, zero, delta);
 		} else {
 			// solve MM %*% delta = MB
-			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GMRFLib_eps(1.0 / 3.0));
+			GMRFLib_gsl_safe_spd_solve(MM, MB, delta, GSL_ROOT3_DBL_EPSILON);
 		}
 
 		if (iter == 0) {
@@ -9113,7 +9113,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		grad_err = sqrt(grad_err / (double) vb_idx->n);
 
 		if (iter < hessian_update) {
-			GMRFLib_gsl_spd_inv(hessian, GMRFLib_eps(1.0 / 3.0));
+			GMRFLib_gsl_spd_inv(hessian, GSL_ROOT3_DBL_EPSILON);
 		}
 
 		double one = 1.0, zero = 0.0;
@@ -9517,7 +9517,7 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 
 	// yes, disable this with PARDISO as PARDISO do not have this feaure
 	int disable_opt = (GMRFLib_smtp == GMRFLib_SMTP_PARDISO ? 1 : 0);
-	
+
 	typedef struct {
 		double *v;
 		int from_idx;
@@ -10435,7 +10435,7 @@ int GMRFLib_ai_marginal_one_hyperparamter(GMRFLib_density_tp ** density, int idx
 		}
 
 		sd = std_stdev_theta[idx];
-		double ldens_min = log(GMRFLib_eps(1.0));
+		double ldens_min = log(GSL_DBL_EPSILON);
 		for (i = 0; i < npoints; i++) {
 			ldens_values[i] = log(dens[i]);
 			ldens_values[i] = IMAX(ldens_values[i], ldens_min);

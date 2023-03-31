@@ -44,7 +44,7 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp ** blockupdat
 	*blockupdate_par = Calloc(1, GMRFLib_blockupdate_param_tp);
 	(*blockupdate_par)->modeoption = GMRFLib_MODEOPTION_MODE;
 	(*blockupdate_par)->fp = NULL;
-	(*blockupdate_par)->step_len = GMRFLib_eps(0.25);
+	(*blockupdate_par)->step_len = GSL_ROOT4_DBL_EPSILON;
 	(*blockupdate_par)->stencil = 5;
 
 	return GMRFLib_SUCCESS;
@@ -222,7 +222,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		dddf = (-1.0 / 2.0 * f[4] + 1.0 * f[3] + 0.0 * f[2] - 1.0 * f[1] + 1.0 / 2.0 * f[0]) / gsl_pow_3(step);
 	} else {
 		int num_points = (stencil ? *stencil : 5);
-		step = (step_len && *step_len > 0.0 ? *step_len : GMRFLib_eps(1.0 / 3.9134));
+		step = (step_len && *step_len > 0.0 ? *step_len : GSL_ROOT4_DBL_EPSILON);
 
 		// see https://en.wikipedia.org/wiki/Finite_difference_coefficients
 		switch (num_points) {

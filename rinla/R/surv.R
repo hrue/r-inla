@@ -88,6 +88,7 @@
 
 `inla.surv` <- function(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL) 
 {
+    names.ori <- as.list(match.call())[-1]
     ret <- NULL
     if (is.null(subject)) {
         ret <- inla.surv.1(time, event, time2, truncation, cure, .special = .special)
@@ -100,6 +101,7 @@
         }
         ret <- inla.surv.2(time, event, subject, .special = .special)
     }
+    attr(ret, "names.ori") <- names.ori
     return(ret)
 }
 

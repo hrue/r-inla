@@ -68,9 +68,5 @@ double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *_
 double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 
-void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *alpha,
-		const char *matdescra, const double *val, const int *indx,
-		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
-
 __END_DECLS
 #endif

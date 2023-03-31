@@ -78,12 +78,14 @@ A=$(Xfun $A)
     else
 	echo builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
 	MKL=/opt/intel/oneapi/mkl/latest/lib
-	echo $(myreadlink $MKL/libmkl_intel_lp64.dylib)
-	echo $(myreadlink $MKL/libmkl_sequential.dylib)
-	echo $(myreadlink $MKL/libmkl_core.dylib)
-	for f in $(echo $MKL/libmkl_avx*.dylib); do
-	    echo $(myreadlink $f)
-	done
+	if false; then
+	    echo $(myreadlink $MKL/libmkl_intel_lp64.dylib)
+	    echo $(myreadlink $MKL/libmkl_sequential.dylib)
+	    echo $(myreadlink $MKL/libmkl_core.dylib)
+	    for f in $(echo $MKL/libmkl_avx*.dylib) $(echo $MKL/libmkl_vml_avx*.dylib); do
+		echo $(myreadlink $f)
+	    done
+	fi
     fi
 } | sort | awk '{gsub(/\.\//,"");print}' | uniq
 

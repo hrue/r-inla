@@ -1,3 +1,18 @@
+# INLA 23.03.26
+* Various code-cleanup and optimisation
+* Improved code for \code{family="nbinom"} and \code{"bell"}
+* New vignette (SPDE2mdatasurv)
+* Small change in how saturated deviance is computed
+
+# INLA 23.03.19
+* Updated family=bell
+* Fixed an issue with selection of nodes for vb.correct
+
+# INLA 23.03.17
+* Added family=bell (experimental)
+* Workaround for PARDISO issue with diagonal matrix
+* Various code-cleanup
+
 # INLA 23.02.27
 * New option to \code{inla.binary.install()}
 * Fix a broken build

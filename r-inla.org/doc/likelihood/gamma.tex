@@ -49,8 +49,8 @@ and the prior is defined on $\theta$.
 \subsection*{Specification}
 
 \begin{itemize}
-\item $\text{family}=\texttt{gamma}$ for regression models and
-    $\text{family}=\texttt{gamma.surv}$ for survival models.
+\item \texttt{family="gamma"} for regression models and
+    \texttt{family="gamma.surv"} for survival models.
 \item Required arguments: for \texttt{gamma.surv}, $y$ (to be given in
     a format by using $\texttt{inla.surv()}$), and for \texttt{gamma},
     $y$ and $s$.

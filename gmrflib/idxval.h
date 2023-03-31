@@ -100,7 +100,8 @@ typedef struct {
 	int *g_1;					       /* indicator if this group have 'val' all equal to 1.0 */
 	int **g_idx;					       /* indexing */
 	double **g_val;
-
+	double cpu_gain;
+	
 	int g_n_mem;
 	void **g_mem;
 } GMRFLib_idxval_tp;

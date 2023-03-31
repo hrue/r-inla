@@ -533,10 +533,11 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 		}
 	}
 
-	if (h->n <= limit || !prepare) {
+	if (h->n <= limit || !prepare || !GMRFLib_internal_opt) {
 		h->preference = IDXVAL_SERIAL_MKL;
 		return GMRFLib_SUCCESS;
 	}
+
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -764,53 +765,56 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 	double treff[4] = { 0.0, 0.0, 0.0, 0.0 };
 	double value[4] = { 0.0, 0.0, 0.0, 0.0 };
 
-	for (int time = 0; time < ntimes; time++) {
-		int measure = (time >= 0);
-		if (measure) {
+	for (int time = -1; time < ntimes; time++) {
+		if (time < 0) {
+			GMRFLib_dot_product_serial(h, x);
+			GMRFLib_dot_product_group(h, x);
+			if (with_mkl) {
+				GMRFLib_dot_product_serial_mkl(h, x);
+				GMRFLib_dot_product_group_mkl(h, x);
+			}
+		} else {
 			treff[0] -= GMRFLib_cpu();
-		}
-
-		value[0] = GMRFLib_dot_product_serial(h, x);
-		if (measure) {
+			value[0] = GMRFLib_dot_product_serial(h, x);
 			treff[0] += GMRFLib_cpu();
-		}
-		if (with_mkl) {
-			if (measure) {
-				treff[1] -= GMRFLib_cpu();
-			}
-			value[1] = GMRFLib_dot_product_serial_mkl(h, x);
-			if (measure) {
-				treff[1] += GMRFLib_cpu();
-			}
-		} else {
-			value[1] = value[0];
-			treff[1] = treff[0];
-		}
 
-		if (measure) {
+			if (with_mkl) {
+				treff[1] -= GMRFLib_cpu();
+				value[1] = GMRFLib_dot_product_serial_mkl(h, x);
+				treff[1] += GMRFLib_cpu();
+			} else {
+				value[1] = value[0];
+				treff[1] = treff[0];
+			}
+
 			treff[2] -= GMRFLib_cpu();
-		}
-		value[2] = GMRFLib_dot_product_group(h, x);
-		if (measure) {
+			value[2] = GMRFLib_dot_product_group(h, x);
 			treff[2] += GMRFLib_cpu();
-		}
-		if (with_mkl) {
-			if (measure) {
+
+			if (with_mkl) {
 				treff[3] -= GMRFLib_cpu();
-			}
-			value[3] = GMRFLib_dot_product_group_mkl(h, x);
-			if (measure) {
+				value[3] = GMRFLib_dot_product_group_mkl(h, x);
 				treff[3] += GMRFLib_cpu();
+			} else {
+				value[3] = value[2];
+				treff[3] = treff[2];
 			}
-		} else {
-			value[3] = value[2];
-			treff[3] = treff[2];
+
+			if (0) {
+				printf("idxval optimisation: length = %1d\n", h->n);
+				printf("\tserial     value   = %.16g\n", value[0]);
+				printf("\tserial_mkl abs.err = %.16g\n", ABS(value[1]-value[0]));
+				printf("\tgroup      abs.err = %.16g\n", ABS(value[2]-value[0]));
+				printf("\tgroup_mkl  abs.err = %.16g\n", ABS(value[3]-value[0]));
+			}
 		}
 	}
 
-	for (k = 1; k < 4; k++) {
+	for (k = 0; k < 4; k++) {
 		treff[k] /= (double) ntimes;
+	}
 
+	for (k = 1; k < 4; k++) {
 		if (ABS(value[k] - value[0]) > FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
 			P(k);
@@ -824,10 +828,12 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 				printf("\tidx[%1d] =  %1d  val = %g\n", i, h->idx[i], h->val[i]);
 			}
 			printf("ng %d\n", h->g_n);
-			for (g = 0; g < h->g_n; g++) {
-				printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
-				for (i = 0; i < IABS(h->g_len[g]); i++) {
-					printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+			if (0) {
+				for (g = 0; g < h->g_n; g++) {
+					printf("\tg = %d g_1 = %d\n", g, h->g_1[g]);
+					for (i = 0; i < IABS(h->g_len[g]); i++) {
+						printf("\t\tidx[%1d] =  %1d  val = %g\n", i, h->g_idx[g][i], h->g_val[g][i]);
+					}
 				}
 			}
 
@@ -866,6 +872,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 	default:
 		assert(0 == 1);
 	}
+	h->cpu_gain = treff[1] - treff[kmin]; assert(h->cpu_gain >= 0);
 
 	if (h->preference == IDXVAL_SERIAL || h->preference == IDXVAL_SERIAL_MKL) {
 		/*
@@ -1059,7 +1066,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp * hold, char *s, int case_sensitive, in
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

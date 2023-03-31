@@ -46,7 +46,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	 */
 	int nn = n, special = 0;
 	double *xx = NULL, *yy = NULL;
-	double eps = GMRFLib_eps(0.75);
+	double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_spline_tp *s = Calloc(1, GMRFLib_spline_tp);
 
 	assert(n > 0);
@@ -81,7 +81,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 			gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
 		}
 	}
-	GMRFLib_unique_additive2(&nn, xx, yy, GMRFLib_eps(0.5));
+	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
 
 	if (nn < 3) {
 		Calloc_free();
@@ -91,7 +91,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
-	s->accel = Calloc(GMRFLib_MAX_THREADS(), gsl_interp_accel *);
+	s->accel = Calloc(GMRFLib_CACHE_LEN, gsl_interp_accel *);
 	s->accel[0] = gsl_interp_accel_alloc();		       /* rest will be created if needed */
 
 	if (special) {
@@ -128,7 +128,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	 * Evaluate a spline 's' in point 'x' 
 	 */
 	double xx, xx_raw, val;
-	double eps = GMRFLib_eps(0.75);
+	static double eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 
 	if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
 		xx_raw = TRUNCATE(x, eps, 1.0 - eps);
@@ -138,7 +138,9 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	}
 	xx = TRUNCATE(xx_raw, s->xmin, s->xmax);
 
-	int tnum = omp_get_thread_num();
+	int tnum;
+	GMRFLib_CACHE_SET_ID(tnum);
+
 	if (!(s->accel[tnum])) {
 #pragma omp critical (Name_4ebacac2070ee6e249766cf77276653b9f3b684d)
 		{
@@ -204,7 +206,8 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
-		int tnum = omp_get_thread_num();
+		int tnum;
+		GMRFLib_CACHE_SET_ID(tnum);
 		if (!(s->accel[tnum])) {
 			s->accel[tnum] = gsl_interp_accel_alloc();
 		}
@@ -226,7 +229,8 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
-		int tnum = omp_get_thread_num();
+		int tnum;
+		GMRFLib_CACHE_SET_ID(tnum);
 		if (!(s->accel[tnum])) {
 			s->accel[tnum] = gsl_interp_accel_alloc();
 		}
@@ -243,7 +247,8 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
-		int tnum = omp_get_thread_num();
+		int tnum;
+		GMRFLib_CACHE_SET_ID(tnum);
 		if (!(s->accel[tnum])) {
 			s->accel[tnum] = gsl_interp_accel_alloc();
 		}
@@ -259,7 +264,8 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s)
 	if (x < s->xmin || x > s->xmax) {
 		val = NAN;
 	} else {
-		int tnum = omp_get_thread_num();
+		int tnum;
+		GMRFLib_CACHE_SET_ID(tnum);
 		if (!(s->accel[tnum])) {
 			s->accel[tnum] = gsl_interp_accel_alloc();
 		}
@@ -276,7 +282,7 @@ int GMRFLib_spline_free(GMRFLib_spline_tp * s)
 
 	if (s) {
 		gsl_spline_free(s->spline);
-		for (int i = 0; i < GMRFLib_MAX_THREADS(); i++) {
+		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			if (s->accel[i])
 				gsl_interp_accel_free(s->accel[i]);
 		}

@@ -409,7 +409,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
 
-		if ((a - alpha) * fpa <= GMRFLib_eps(0.2)) {   /* hrue */
+		if ((a - alpha) * fpa <= GSL_ROOT5_DBL_EPSILON) {	/* hrue */
 			/*
 			 * roundoff prevents progress 
 			 */
