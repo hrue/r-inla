@@ -31579,6 +31579,13 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\t\tdisable.gaussian.check=[%1d]\n", mb->expert_disable_gaussian_check);
 	}
 
+	int dot_product_gain = iniparser_getboolean(ini, inla_string_join(secname, "DOT.PRODUCT.GAIN"), 0);
+	// >=0 will measure, <0 will not (default off)
+	GMRFLib_dot_product_gain = (dot_product_gain ? 0.0 : -1.0);
+	if (mb->verbose) {
+		printf("\t\t\tMeasure dot.product.gain=[%s]\n", (dot_product_gain ? "Yes" : "No"));
+	}
+
 	/*
 	 * do error-checking later on 
 	 */
@@ -37001,7 +37008,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
 
-	if (1) {
+	if (GMRFLib_internal_opt) {
 		// cannot run this in parallel as we're changing global variables
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
@@ -37037,11 +37044,12 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
+		GMRFLib_sort2_cut_off = 128;		       // override value found 
 	}
 
 	// report timings
 	double time_loop[9] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	if (GMRFLib_dot_product_optim_report) {
+	if (GMRFLib_internal_opt && GMRFLib_dot_product_optim_report) {
 		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			for (j = 0; j < 9; j++) {
 				time_loop[j] += GMRFLib_dot_product_optim_report[i][j];
@@ -37075,20 +37083,21 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		       (GMRFLib_density_storage_strategy == GMRFLib_DENSITY_STORAGE_STRATEGY_LOW ? "Low" : "High"));
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
-		printf("\tOptimizing sort2 cut-off... [%1d]\n", GMRFLib_sort2_cut_off);
-		printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
-		       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
-		       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
-		printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
-		       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
-		       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
-		       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
-		printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
-		printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
-		printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
-		printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
-		printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
-
+		if (GMRFLib_internal_opt) {
+			printf("\tOptimizing sort2 cut-off... [%1d]\n", GMRFLib_sort2_cut_off);
+			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
+			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
+			       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
+			printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
+			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
+			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
+			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
+			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
+			printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
+			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
+			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
+			printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
+		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);
 
@@ -37413,6 +37422,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->graph = 0;
 		(*out)->config = 0;
 		(*out)->likelihood_info = 0;
+		(*out)->internal_opt = 1;
 		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
 		(*out)->mode = 1;
 		(*out)->nquantiles = 0;
@@ -37432,6 +37442,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 		(*out)->graph = mb->output->graph;
 		(*out)->config = mb->output->config;
 		(*out)->likelihood_info = mb->output->likelihood_info;
+		(*out)->internal_opt = mb->output->internal_opt;
 		(*out)->hyperparameters = mb->output->hyperparameters;
 		(*out)->mode = mb->output->mode;
 		(*out)->return_marginals = mb->output->return_marginals;
@@ -37613,7 +37624,9 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->graph = iniparser_getboolean(ini, inla_string_join(secname, "GRAPH"), (*out)->graph);
 	(*out)->config = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG"), (*out)->config);
 	(*out)->likelihood_info = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), (*out)->likelihood_info);
+	(*out)->internal_opt = GMRFLib_internal_opt = iniparser_getboolean(ini, inla_string_join(secname, "INTERNAL.OPT"), (*out)->internal_opt);
 
+	
 	if ((*out)->likelihood_info) {
 		(*out)->config = 1;
 	}
@@ -37713,6 +37726,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 			printf("\t\t\thyperparameters=[%1d]\n", (*out)->hyperparameters);
 			printf("\t\t\tconfig=[%1d]\n", (*out)->config);
 			printf("\t\t\tlikelihood.info=[%1d]\n", (*out)->likelihood_info);
+			printf("\t\t\tinternal.opt=[%1d]\n", (*out)->internal_opt);
 		}
 		printf("\t\t\tsummary=[%1d]\n", (*out)->summary);
 		printf("\t\t\treturn.marginals=[%1d]\n", (*out)->return_marginals);
@@ -44253,7 +44267,10 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-
+				if (GMRFLib_dot_product_gain >= 0.0) {
+					printf("\nDot-product gain: %.3f seconds, %.6f seconds/fn-call\n\n", GMRFLib_dot_product_gain,
+					       GMRFLib_dot_product_gain / nfunc[0]);
+				}
 #if !defined(WINDOWS)
 				if (GMRFLib_inla_mode != GMRFLib_MODE_CLASSIC) {
 					PEFF_PREOPT_OUTPUT;

@@ -239,7 +239,10 @@
             disable.gaussian.check = FALSE,
 
             ## :ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
-            jp = NULL
+            jp = NULL, 
+
+            ## :ARGUMENT: dot.product.gain Show the gain in optimizing dot-products? (Default \code{FALSE})
+            dot.product.gain = FALSE
         )
 
         ## :SEEALSO: inla
@@ -318,6 +321,10 @@
             ## :ARGUMENT+: graph A boolean variable if the graph itself should be returned.
             ## :ARGUMENT+: (Default FALSE.)
             graph = FALSE,
+
+            ## :ARGUMENT+: internal.opt A boolean variable, if to do internal online
+            ## :ARGUMENT+: optimisations or not. (Default TRUE.)
+            internal.opt = TRUE,
 
             ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
             ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.

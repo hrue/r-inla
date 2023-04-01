@@ -594,8 +594,8 @@
 
         cat("slm.n = ", as.integer(slm.n), "\n", append = TRUE, sep = " ", file = file)
         cat("slm.m = ", as.integer(slm.m), "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.min = ", as.integer(random.spec$args.slm$rho.min), "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.max = ", as.integer(random.spec$args.slm$rho.max), "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.min = ", random.spec$args.slm$rho.min, "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.max = ", random.spec$args.slm$rho.max, "\n", append = TRUE, sep = " ", file = file)
 
         ## matrix A1
         A1 <- cbind(
@@ -1201,7 +1201,8 @@
 }
 
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
-                                   cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, likelihood.info) {
+                                   cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy,
+                                   graph, config, likelihood.info, internal.opt) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1240,6 +1241,7 @@
     inla.write.boolean.field("mlik", mlik, file)
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
+    inla.write.boolean.field("internal.opt", internal.opt, file)
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("likelihood.info", likelihood.info, file)
 
@@ -1548,6 +1550,7 @@
         args$disable.gaussian.check <- FALSE
     }
     inla.write.boolean.field("DISABLE.GAUSSIAN.CHECK", args$disable.gaussian.check, file)
+    inla.write.boolean.field("DOT.PRODUCT.GAIN", args$dot.product.gain, file)
     cat("\n", sep = " ", file = file, append = TRUE)
  }
 

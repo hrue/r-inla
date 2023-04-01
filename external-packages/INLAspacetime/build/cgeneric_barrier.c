@@ -1,1 +1,1 @@
-../INLAspacetime/inst/src/cgeneric_barrier.c
+../INLAspacetime/src/cgeneric_barrier.c
