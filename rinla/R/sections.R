@@ -594,8 +594,8 @@
 
         cat("slm.n = ", as.integer(slm.n), "\n", append = TRUE, sep = " ", file = file)
         cat("slm.m = ", as.integer(slm.m), "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.min = ", as.integer(random.spec$args.slm$rho.min), "\n", append = TRUE, sep = " ", file = file)
-        cat("slm.rho.max = ", as.integer(random.spec$args.slm$rho.max), "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.min = ", random.spec$args.slm$rho.min, "\n", append = TRUE, sep = " ", file = file)
+        cat("slm.rho.max = ", random.spec$args.slm$rho.max, "\n", append = TRUE, sep = " ", file = file)
 
         ## matrix A1
         A1 <- cbind(
@@ -997,7 +997,7 @@
         cat("step.len = ", inla.spec$step.len, "\n", sep = " ", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$stencil)) {
-        stopifnot(inla.spec$stencil %in% c(3, 5, 7, 9))
+        stopifnot(inla.spec$stencil %in% c(5, 7, 9))
         cat("stencil = ", inla.spec$stencil, "\n", sep = " ", file = file, append = TRUE)
     }
     if (!is.null(inla.spec$diagonal) && inla.spec$diagonal >= 0.0) {
@@ -1201,7 +1201,8 @@
 }
 
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
-                                   cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy, graph, config, likelihood.info) {
+                                   cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy,
+                                   graph, config, likelihood.info, internal.opt) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1240,6 +1241,7 @@
     inla.write.boolean.field("mlik", mlik, file)
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
+    inla.write.boolean.field("internal.opt", internal.opt, file)
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("likelihood.info", likelihood.info, file)
 
@@ -1264,6 +1266,24 @@
                                choices = inla.set.control.compute.default()$control.gcpo$strategy)
     cat("gcpo.strategy =", gcpo$strategy, "\n", file = file, append = TRUE)
 
+    if (!is.null(gcpo$groups) && !is.null(gcpo$friends)) {
+        stop("Both the friends-list and the groups-list is non-null, only one can be used at the time.")
+    }
+
+    ## do we have CPO and a friends-list?  convert this into groups
+    gsiz <- round(gcpo$num.level.sets)
+    if (gsiz <= 0 && !is.null(gcpo$friends)) {
+        friends <- gcpo$friends
+        len <- length(friends)
+        for (i in seq_along(friends)) {
+            xx <- c(i, friends[[i]])
+            xx <- xx[!is.na(xx)]
+            friends[[i]] <- sort(unique(xx))
+        }
+        gcpo$groups <- friends
+        gcpo$friends <- NULL
+    }
+
     if (!is.null(gcpo$groups)) {
         stopifnot(is.list(gcpo$groups) && length(gcpo$groups) > 0)
         stopifnot(is.null(gcpo$selection))
@@ -1277,19 +1297,32 @@
                 gcpo$groups[[i]] <- unique(sort(gcpo$groups[[i]]))
             }
         }
-        total.len <- len + sum(unlist(lapply(gcpo$groups, length)))
-        writeBin(as.integer(len), fp.binary)
-        ## this is length of the rest of the binary file. makes reading easies
-        writeBin(as.integer(total.len), fp.binary) 
+
+        ## need to compute total.len
+        total.len <- len
         for(i in seq_len(len)) {
             g <- gcpo$groups[[i]]
-            writeBin(as.integer(length(g)), fp.binary)
             if (length(g) > 0) {
-                ## back to C indexing
+                g <- unique(c(i, g))
+                total.len <- total.len + length(g)
+            }
+        }
+
+        writeBin(as.integer(len), fp.binary)
+        ## this is length of the rest of the binary file (which we just have computed). makes
+        ## reading the file easier
+        writeBin(as.integer(total.len), fp.binary) 
+
+        for(i in seq_len(len)) {
+            g <- gcpo$groups[[i]]
+            len.g <- length(g)
+            if (len.g == 0) {
+                writeBin(as.integer(len.g), fp.binary)
+            } else {
+                ## make sure to add 'i' if its not already there
+                g <- unique(sort(c(i, g)))
+                writeBin(as.integer(length(g)), fp.binary)
                 writeBin(as.integer(g - 1), fp.binary)
-                if (!(i %in% g)) {
-                    stop(paste0("Node ", i,  " is not in group ",  i,  ". This is not supported."))
-                }
             }
         }
         close(fp.binary)
@@ -1517,6 +1550,7 @@
         args$disable.gaussian.check <- FALSE
     }
     inla.write.boolean.field("DISABLE.GAUSSIAN.CHECK", args$disable.gaussian.check, file)
+    inla.write.boolean.field("DOT.PRODUCT.GAIN", args$dot.product.gain, file)
     cat("\n", sep = " ", file = file, append = TRUE)
  }
 

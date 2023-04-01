@@ -1,7 +1,7 @@
 
 /* quantile-regression.c
  * 
- * Copyright (C) 2016-2022 Havard Rue
+ * Copyright (C) 2016-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,10 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
 #include "rmath.h"
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "GMRFLib/density.h"
 #include "quantile-regression.h"
@@ -66,7 +61,7 @@ double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess)
 #define LOGIT(p) log((p)/(1.0-(p)))
 #define DLOGIT(p) (1.0/((p)*(1.0 - (p))))
 	int iter_max = 1000, verbose = 0, first_hit = 0;
-	double eta_0, eta, max_step = 10, max_step_f = 0.8 * max_step, tol = GMRFLib_eps(0.5);
+	double eta_0, eta, max_step = 10, max_step_f = 0.8 * max_step, tol = GSL_SQRT_DBL_EPSILON;
 	double d, f, fd, lambda;
 
 	eta_0 = (initial_guess ? *initial_guess : log(quantile));

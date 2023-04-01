@@ -1,7 +1,7 @@
 
 /* smtp-pardiso.c
  * 
- * Copyright (C) 2018-2022 Havard Rue
+ * Copyright (C) 2018-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,18 +45,9 @@
 #include <io.h>
 #endif
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 // do not change: also inlaprog/src/libpardiso.c uses this code
 #define NOLIB_ECODE (270465)
@@ -730,6 +721,7 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i] = i;
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]] = i;
 	}
+	store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity = 1;
 
 	if (0 && debug) {
 		for (int i = 0; i < n; i++) {
@@ -766,13 +758,17 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 
 	assert(store);
 	assert(store->graph);
+
+	if (store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity) {
+		return GMRFLib_SUCCESS;
+	}
+
 	n = store->graph->n;
 	xx = Calloc(n * m, double);
 	Memcpy(xx, x, n * m * sizeof(double));
 	permutation = (direction ? store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm : store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm);
 	assert(permutation);
 	assert(m > 0);
-
 
 #define CODE_BLOCK						\
 	for (int j = 0; j < m; j++) {				\
@@ -867,6 +863,12 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 		store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i]] = i;
 	}
 
+	int identity = 1;
+	for (int i = 0; i < n && identity; i++) {
+		identity = (store->pstore[GMRFLib_PSTORE_TNUM_REF]->iperm[i] == i);
+	}
+	store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity = identity;
+
 	if (0 && debug) {
 		for (int i = 0; i < n; i++) {
 			printf("perm[%1d] = %1d | iperm[%1d] = %1d\n", i, store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm[i], i,
@@ -904,35 +906,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 	// this is so that the RHS can be overwritten
 	int n = store->graph->n, mnum1 = 1, nblock, block_nrhs, err_code = 0, debug = 0;
-
-	GMRFLib_pardiso_setparam(flag, store, NULL);
-	int need_workaround = (GMRFLib_openmp->max_threads_inner > 1) && (store->pstore[omp_get_thread_num()]->iparm[7] > 0);
-	assert(need_workaround == 0);			       /* disable this for the moment */
-
-	int max_nt = GMRFLib_MAX_THREADS();
-	double **ddparm = NULL;
-	int **iiparm = NULL;
-	int *factor = NULL;
-	int *init_done = NULL;
-	void ***ppt = NULL;
-
-	if (need_workaround) {
-		ppt = Calloc(max_nt, void **);
-		init_done = Calloc(max_nt, int);
-		iiparm = Calloc(max_nt, int *);
-		ddparm = Calloc(max_nt, double *);
-		factor = Calloc(max_nt, int);
-		ppt[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, void *);
-		iiparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, int);
-		ddparm[0] = Calloc(max_nt * GMRFLib_PARDISO_PLEN, double);
-		for (int i = 1; i < max_nt; i++) {
-			ppt[i] = Calloc(GMRFLib_PARDISO_PLEN, void *);
-			iiparm[i] = iiparm[i - 1] + GMRFLib_PARDISO_PLEN;
-			ddparm[i] = ddparm[i - 1] + GMRFLib_PARDISO_PLEN;
-			factor[i] = 0;
-		}
-	}
-
 	int nt = 1;
 	int nsolve;
 	div_t d;
@@ -991,6 +964,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	// printf("nrhs %d max_nrhs %d nt %d nsolve %d\n", nrhs, max_nrhs, nt, nsolve);
 
 	GMRFLib_csr_tp *Q = store->pstore[GMRFLib_PSTORE_TNUM_REF]->Q;
+
 #define CODE_BLOCK							\
 	for (int i = 0; i < nsolve; i++) {				\
 		CODE_BLOCK_ALL_WORK_ZERO();				\
@@ -999,20 +973,22 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 		int offset = i * n * block_nrhs;			\
 		int local_nrhs = (i < nblock ? block_nrhs : (int) d.rem); \
 		double *bb = CODE_BLOCK_WORK_PTR(0);			\
-									\
 		GMRFLib_pardiso_setparam(flag, store, &tnum);		\
 		Memcpy((void *) bb, (void *) (b + offset), n * local_nrhs * sizeof(double));\
-		if (need_workaround) {					\
-			if (!init_done[tnum]) {				\
-				init_done[tnum] = 1;			\
-				pardiso_copy_symbolic_factor_single(store->pt, ppt[tnum], \
-								    store->pstore[tnum]->iparm, iiparm[tnum], \
-								    store->pstore[tnum]->dparm, ddparm[tnum], \
-								    &n, &(store->maxfct), &(factor[tnum])); \
+		/* if diagonal matrix, do this manually as there is an _error_ or _feature_ in the library */ \
+		if (n == Q->s->na) {					\
+			assert(store->pstore[GMRFLib_PSTORE_TNUM_REF]->perm_identity); \
+			double *xx = x + offset, *qq = Q->a;		\
+			if (store->pstore[tnum]->iparm[25] != 0) {	\
+				/* in this case, Lx=b, L^Tx=b, are both the same */ \
+				for(int k = 0; k < n; k++) {		\
+					xx[k] = bb[k] / sqrt(qq[k]); \
+				}					\
+			} else {					\
+				for(int k = 0; k < n; k++) {		\
+					xx[k] = bb[k] / qq[k];		\
+				}					\
 			}						\
-			pardiso(ppt[tnum], &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase), \
-				&n, Q->a, Q->s->ia1, Q->s->ja1, &idum, &local_nrhs, iiparm[tnum], &(store->msglvl), \
-				bb, x + offset, &(store->pstore[tnum]->err_code), ddparm[tnum]); \
 		} else {						\
 			pardiso(store->pt, &(store->maxfct), &mnum1, &(store->mtype), &(store->pstore[tnum]->phase), \
 				&n, Q->a, Q->s->ia1, Q->s->ja1, &idum, &local_nrhs, store->pstore[tnum]->iparm, &(store->msglvl), \
@@ -1037,21 +1013,6 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 
 	RUN_CODE_BLOCK(nt, 1, block_nrhs * n);
 #undef CODE_BLOCK
-
-	if (need_workaround) {
-		for (int i = 0; i < max_nt; i++) {
-			if (ppt[i]) {
-				pardiso_delete_symbolic_factor_single(ppt[i], iiparm[i], &(factor[i]));
-			}
-		}
-		Free(iiparm[0]);
-		Free(init_done);
-		Free(iiparm);
-		Free(ddparm[0]);
-		Free(ddparm);
-		Free(ppt);
-		Free(factor);
-	}
 
 	if (err_code) {
 		GMRFLib_ERROR(err_code);
@@ -1360,6 +1321,7 @@ int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** nnew, GMRFLib_pa
 		CP2(nrhs);
 		CP2(phase);
 		CP2(L_nnz);
+		CP2(perm_identity);
 
 		CPv_ref(perm, int, old->graph->n);
 		CPv_ref(iperm, int, old->graph->n);

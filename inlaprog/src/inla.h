@@ -1,7 +1,7 @@
 
 /* inla.h
  * 
- * Copyright (C) 2007-2022 Havard Rue
+ * Copyright (C) 2007-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ __BEGIN_DECLS
  * YES, CHANGE IT MANUALLY!
  */
 #define INLA_QKUMAR_PREC_SCALE 0.10
-#define INLA_WISHARTK_KMAX (10)
+#define INLA_WISHARTK_KMAX (20)
 #define INLA_WISHARTK_KMIN  (2)
 #define INLA_WISHARTK_NTHETA(k_) (((k_)*((k_) + 1))/2L)
 #define INLA_WISHARTK_NPARAM(k_) (INLA_WISHARTK_NTHETA(k_) + 1L)
@@ -245,6 +245,7 @@ typedef enum {
 	L_0POISSONS,
 	L_0BINOMIAL,
 	L_0BINOMIALS,
+	L_BELL,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -343,6 +344,16 @@ typedef enum {
 	P_WISHARTK_8D,
 	P_WISHARTK_9D,
 	P_WISHARTK_10D,
+	P_WISHARTK_11D,
+	P_WISHARTK_12D,
+	P_WISHARTK_13D,
+	P_WISHARTK_14D,
+	P_WISHARTK_15D,
+	P_WISHARTK_16D,
+	P_WISHARTK_17D,
+	P_WISHARTK_18D,
+	P_WISHARTK_19D,
+	P_WISHARTK_20D,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -377,7 +388,8 @@ typedef enum {
 	LINK_ROBIT,
 	LINK_SN,
 	LINK_LOGa,
-	LINK_POWER_LOGIT
+	LINK_POWER_LOGIT,
+	LINK_CCLOGLOG
 } inla_component_tp;
 
 typedef enum {
@@ -826,6 +838,7 @@ typedef struct {
 	int graph;					       /* output the graph */
 	int config;					       /* output the configurations */
 	int likelihood_info;				       /* output likelihood_info (requires config=TRUE) */
+	int internal_opt;				       /* do internal optimisation? default TRUE */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
 	int mode;
@@ -1594,20 +1607,25 @@ typedef struct {
 	double *_d_store = Calloc(_d_store_len + 32L, double); size_t _d_n = 0; \
 	FILE * _fp = fopen(filename_ , "wb"); if (!_fp) inla_error_open_file(filename_)
 
-#define Dinit(filename_)   Dinit_core(1048576L, filename_)
-#define Dinit_s(filename_) Dinit_core(1024L, filename_)
-#define Dwrite() if (_d_n >= _d_store_len) { fwrite((void*)_d_store, sizeof(double), _d_n, _fp); _d_n = 0; }
+#define Dinit(filename_)   Dinit_core(8388608L, filename_)
+#define Dinit_s(filename_) Dinit_core(8192L, filename_)
+#define Dwrite()							\
+	if (_d_n >= _d_store_len) {					\
+		fwrite((void*)_d_store, sizeof(double), _d_n, _fp);	\
+		_d_n = 0;						\
+	}
 #define Dclose()							\
 	if (1) {							\
-		if (_d_n && _fp)					\
-			fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
-		if (_fp)						\
+		if (_fp) {						\
+			if (_d_n) {					\
+				fwrite((void*)_d_store, sizeof(double), _d_n, _fp); \
+			}						\
 			fclose(_fp);					\
+		}							\
 		_fp = NULL;						\
 		_d_n = 0;						\
 		Free(_d_store);						\
 	}
-
 #define D1W(a_)                 _d_store[_d_n++] = a_; Dwrite()
 #define D2W(a_, b_)             _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; Dwrite()
 #define D3W(a_, b_, c_)         _d_store[_d_n++] = a_; _d_store[_d_n++]= b_; _d_store[_d_n++]= c_; Dwrite()
@@ -1731,6 +1749,7 @@ double inla_sn_intercept(double intern_quantile, double skew);
 double inla_update_density(double *theta, inla_update_tp * arg);
 double link_cauchit(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_cloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
+double link_ccloglog(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_identity(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_inverse(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
 double link_log(int thread_id, double x, map_arg_tp typ, void *param, double *cov);
@@ -1770,6 +1789,7 @@ double map_identity_scale(double arg, map_arg_tp typ, void *param);
 double map_interval(double x, map_arg_tp typ, void *param);
 double map_invcauchit(double arg, map_arg_tp typ, void *param);
 double map_invcloglog(double arg, map_arg_tp typ, void *param);
+double map_invccloglog(double arg, map_arg_tp typ, void *param);
 double map_inverse(double arg, map_arg_tp typ, void *param);
 double map_invlogit(double x, map_arg_tp typ, void *param);
 double map_invloglog(double arg, map_arg_tp typ, void *param);
@@ -1845,6 +1865,16 @@ double priorfunc_wishartk_7d(double *x, double *parameters);
 double priorfunc_wishartk_8d(double *x, double *parameters);
 double priorfunc_wishartk_9d(double *x, double *parameters);
 double priorfunc_wishartk_10d(double *x, double *parameters);
+double priorfunc_wishartk_11d(double *x, double *parameters);
+double priorfunc_wishartk_12d(double *x, double *parameters);
+double priorfunc_wishartk_13d(double *x, double *parameters);
+double priorfunc_wishartk_14d(double *x, double *parameters);
+double priorfunc_wishartk_15d(double *x, double *parameters);
+double priorfunc_wishartk_16d(double *x, double *parameters);
+double priorfunc_wishartk_17d(double *x, double *parameters);
+double priorfunc_wishartk_18d(double *x, double *parameters);
+double priorfunc_wishartk_19d(double *x, double *parameters);
+double priorfunc_wishartk_20d(double *x, double *parameters);
 double priorfunc_wishartk_generic(int idim, double *x, double *parameters);
 inla_file_contents_tp *inla_read_file_contents(const char *filename);
 inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id);
@@ -2010,6 +2040,7 @@ int inla_wishart3d_adjust(double *rho);
 int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L);
 int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc);
 int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_beta(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_betabinomialna(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2057,7 +2088,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
@@ -2070,6 +2101,7 @@ int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int i
 int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_poisson_special1(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 				   char **arg_str);

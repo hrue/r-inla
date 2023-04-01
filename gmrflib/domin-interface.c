@@ -1,7 +1,7 @@
 
 /* domin-interface.c
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,19 +28,11 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <float.h>
 #include <math.h>
 #include <strings.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -762,11 +754,11 @@ int GMRFLib_opt_estimate_hessian(double *hessian, double *x, double *log_dens_mo
 		// we need to have f0 computed to check
 		if (CHECK_FOR_EARLY_STOP) {
 			if (!ISNAN(f0) && (ff0 > ff)) {
-#pragma omp critical
+#pragma omp critical (Name_e0ed3c765687be9d1ec160f8bcb4d241de5c3a06)
 				if (!ISNAN(f0) && (ff0 > ff)) {
 					if (G.ai_par->fp_log || debug)
-						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr), "enable early_stop ff < f0: %f < %f\n", ff,
-							ff0);
+						fprintf((G.ai_par->fp_log ? G.ai_par->fp_log : stderr),
+							"enable early_stop ff < f0: %f < %f (diff %g)\n", ff, ff0, ff - ff0);
 					early_stop = 1;
 					ff0 = ff;
 				}
@@ -1248,7 +1240,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 			gsl_matrix_set_zero(A);
 			gsl_matrix_set_zero(tAinv);
 
-			double eps = GMRFLib_eps(0.33);
+			double eps = GSL_ROOT3_DBL_EPSILON;
 			double diag = sqrt(DMAX(eps, 1.0 - ((double) Adir->size1 - 1.0) * SQR(eps)));
 			gsl_matrix_set_all(Adir, eps);
 			for (i = 0; i < Adir->size1; i++) {
@@ -1353,7 +1345,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
 					GMRFLib_printf_gsl_matrix2(G.ai_par->fp_log, A, "\t %6.3f", cutoff);
 				}
 				gsl_matrix_transpose_memcpy(tAinv, A);
-				GMRFLib_gsl_ginv(tAinv, GMRFLib_eps(0.5), -1);
+				GMRFLib_gsl_ginv(tAinv, GSL_SQRT_DBL_EPSILON, -1);
 			}
 
 			dx = sqrt(dx / xx->size);

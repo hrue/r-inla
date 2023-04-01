@@ -19,20 +19,11 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include "iniparser.h"
 #include "gsl/gsl_math.h"
 #include "my-fix.h"
 #include "strlib.h"
-
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 #define INI_INVALID_KEY     ((char*)-1)
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)

@@ -29,7 +29,7 @@
 ## !
 ## !     fmesher.arg: Additional arguments to \code{fmesher.call}
 ## !
-## !     num.threads: Character string with the number of threads to use as \code{A:B}
+## !     num.threads: Character string with the number of threads to use as \code{A:B},  see \code{?inla}
 ## !
 ## !     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
 ## !

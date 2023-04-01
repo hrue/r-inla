@@ -38,7 +38,7 @@ For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 \description{
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
-Should no longer be used with PROJ6/rgdal3;
+Should no longer be used with PROJ6;
 see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
 }
 \details{
@@ -52,7 +52,7 @@ see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
 }
 \examples{
 
-if (require(rgdal)) {
+if (require("sf") && require("sp")) {
     crs0 <- inla.CRS("longlat")
     p4s <- inla.CRSargs(crs0)
     lst <- inla.as.list.CRSargs(p4s)
@@ -65,7 +65,7 @@ if (require(rgdal)) {
 }
 }
 \seealso{
-\code{\link[rgdal:CRS-class]{rgdal::CRSargs()}}, \code{\link[=inla.CRS]{inla.CRS()}}
+\code{\link[=inla.CRS]{inla.CRS()}}
 }
 \author{
 Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}

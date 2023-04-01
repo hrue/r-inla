@@ -9,6 +9,7 @@
 ## !}
 ## !\usage{
 ## !inla.group.cv(result,
+## !          group.cv = NULL, 
 ## !          num.level.sets = -1, 
 ## !          size.max = 32, 
 ## !          strategy = c("posterior", "prior"), 
@@ -29,6 +30,11 @@
              ## !of a call to \code{inla()}.}
              result,
              
+             ## !\item{group.cv}{If given, the groups are taken from
+             ## !this argument. \code{group.cv} must be the output
+             ## !of previous call to \code{inla.group.cv()}.}
+             group.cv = NULL,
+             
              ## !\item{num.level.sets}{Number of level.sets to use. The default value
              ## !\code{-1} corresponds to leave-one-out cross-validation.}
              num.level.sets = -1, 
@@ -42,7 +48,7 @@
              size.max = 32,
              
              ## !\item{groups}{An (optional) predefined list of groups. 
-             ## !See the  vignette for details.}
+             ## !See the vignette for details.}
              groups = NULL, 
 
              ## !\item{selection}{An optional list of data-indices to use.
@@ -91,6 +97,15 @@
 
     stopifnot(!missing(result))
     stopifnot(inherits(result, "inla"))
+    if (!is.null(group.cv)) {
+        stopifnot(inherits(group.cv, "inla.group.cv"))
+        get.groups <- function(cv) {
+            lapply(seq_along(cv$groups),
+                   function(ii, cv.arg) cv.arg$groups[[ii]]$idx,
+                   cv.arg=cv)
+        }
+        return (inla.group.cv(result, groups = get.groups(group.cv), verbose = verbose))
+    }
 
     cont.gcpo <- list(enable = TRUE,
                       num.level.sets = num.level.sets, 
@@ -141,6 +156,7 @@
     group.cv$gcpo <- NULL
     r <- NULL
 
+    class(group.cv) <- "inla.group.cv"
     return (group.cv)
 }
 

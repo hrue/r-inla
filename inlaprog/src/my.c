@@ -1,7 +1,7 @@
 
 /* my.c
  * 
- * Copyright (C) 2016-2022 Havard Rue
+ * Copyright (C) 2016-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -46,11 +40,6 @@
 #include "my-fix.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/GMRFLib.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 int my_file_exists(const char *filename)
 {
@@ -107,7 +96,7 @@ int my_setenv(char *str, int prefix)
 double my_gsl_sf_lnfact(int x)
 {
 	static int first = 1;
-	static int nmax = 1048576;
+	static int nmax = 1048576L;
 	static double *lng = NULL;
 
 	if (first) {
@@ -200,6 +189,13 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
 	return GMRFLib_SUCCESS;
 }
 
+double my_gsl_sf_lnchoose(unsigned int n, unsigned int m)
+{
+	gsl_sf_result r;
+	my_gsl_sf_lnchoose_e(n, m, &r);
+	return (r.val);
+}
+
 double my_gsl_sf_lnbeta(double a, double b)
 {
 	double ab_min, ab_max;
@@ -290,4 +286,125 @@ double my_betabinomial2(int y, int n, double a, double b)
 	double s2 = my_betabinomial_helper(n - y, b);
 	double s3 = my_betabinomial_helper(n, a + b);
 	return (s1 + s2 - s3 + ladd);
+}
+
+double my_lambert_W0(double y)
+{
+	double val;
+	my_lambert_W0s(1, &y, &val);
+
+	return val;
+}
+
+void my_lambert_W0s(int m, double *y, double *res)
+{
+	// solve for x, so that x*exp(x)=y. This is lambert_W0(y). cache and interpolate the function in log-log scale
+
+	static double logy_lim[2] = { -10.0, 20.0 };
+	static GMRFLib_spline_tp *spline_lambert_W0 = NULL;
+
+	if (!spline_lambert_W0) {
+#pragma omp critical (Name_8d6da91249d12a4b187c29c3d315ea60b99212fb)
+		{
+			if (!spline_lambert_W0) {
+				int n0 = 140;
+				int n = n0 + 1;
+				double dy = (logy_lim[1] - logy_lim[0]) / n0;
+				double *work = Calloc(2 * n, double);
+				double *xx = work;
+				double *yy = work + n;
+
+				for (int i = 0; i < n; i++) {
+					yy[i] = logy_lim[0] + i * dy;
+					xx[i] = log(gsl_sf_lambert_W0(exp(yy[i])));
+				}
+				spline_lambert_W0 = GMRFLib_spline_create(yy, xx, n);
+				Free(work);
+			}
+		}
+	}
+
+	for (int k = 0; k < m; k++) {
+		if (y[k] > 0.0) {
+			double log_y = log(y[k]);
+			if (log_y < logy_lim[1]) {
+				// this version adds an extra Newton-R correction step. then we can do the caching less accurate
+				double theta = GMRFLib_spline_eval(log_y, spline_lambert_W0);
+				double exp_theta = exp(theta);
+				double err = theta + exp_theta - log_y;
+				double t1 = 1.0 + exp_theta;
+				theta -= err / (t1 + err * exp_theta / t1);
+				res[k] = exp(theta);
+			} else {
+				res[k] = gsl_sf_lambert_W0(y[k]);
+			}
+		} else {
+			if (ISZERO(y[k]) || ISNAN(y[k])) {
+				res[k] = y[k];
+			} else {
+				assert(0 == 1);
+			}
+		}
+	}
+}
+
+double my_lbell(int y)
+{
+	// return log(Bell(y)/y!)
+
+	static double *lbell = NULL;
+	static int ymax = 256L;
+
+	if (!lbell || y > ymax) {
+#pragma omp critical (Name_47ba9e44a455e20c4bf966b4712c6ece203cb147)
+		{
+			if (!lbell || y > ymax) {
+				int n = IMAX(2 * ymax, y);
+				double *lbell_tmp = my_compute_lbell(n);
+
+				ymax = n;
+				lbell = lbell_tmp;
+			}
+		}
+	}
+
+	return ((y < 0) ? NAN : lbell[y]);
+}
+
+double *my_compute_lbell(int nmax)
+{
+	// return a vector with log(Bell(y)/y!) for i=0...nmax, computed using the recursive result: B_{n+1} = \sum_{k=0}^n Choose(n,k) B_k.
+	// Since we cache these numbers, the time used is less of an issue.
+
+	nmax = IMAX(7, nmax);
+
+	double *log_bell = Calloc(nmax + 1, double);
+	double *terms = Calloc(nmax, double);
+
+	log_bell[0] = log_bell[1] = 0.0;
+	for (int n = 2; n <= nmax; n++) {
+		int n1 = n - 1;
+
+#pragma omp parallel for if(n > 1024L)
+		for (int k = 0; k < n; k++) {
+			terms[k] = my_gsl_sf_lnchoose((unsigned int) n1, (unsigned int) k) + log_bell[k];
+		}
+		qsort((void *) terms, (size_t) n, sizeof(double), GMRFLib_dcmp);
+
+		// need to compute log(exp(terms[0]) + ... + exp(terms[n1])), do this the obvious way: summing the smallest terms first using
+		// the largest element (the last one) as scaling.
+		double sum = 0.0;
+		for (int k = 0; k < n1; k++) {
+			sum += exp(terms[k] - terms[n1]);
+		}
+		log_bell[n] = terms[n1] + log1p(sum);
+	}
+
+	for (int n = 0; n <= nmax; n++) {
+		// adjust with n! as this is they way it is used in the Bell-distribution
+		log_bell[n] -= my_gsl_sf_lnfact(n);
+	}
+
+	Free(terms);
+	return (log_bell);
 }

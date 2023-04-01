@@ -81,17 +81,10 @@ inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS =
         crs_x <- inla.sp_get_crs(x)
         ## Create SpatialPoints object and transform the coordinates.
         points <- sp::SpatialPoints(points, proj4string = crs)
-        if (inla.has_PROJ6()) {
-            if (!is.null(inla.crs_get_wkt(crs)) &&
-                !is.null(inla.crs_get_wkt(crs_x))) {
-                ## Convert to the target object CRS
-                points <- inla.spTransform(points, CRSobj = crs_x)
-            }
-        } else {
-            if (!is.na(crs) & !is.na(crs_x)) {
-                ## Convert to the target object CRS
-                points <- inla.spTransform(points, CRSobj = crs_x)
-            }
+        if (!is.null(inla.crs_get_wkt(crs)) &&
+            !is.null(inla.crs_get_wkt(crs_x))) {
+            ## Convert to the target object CRS
+            points <- inla.spTransform(points, CRSobj = crs_x)
         }
     }
     ## Find indices:

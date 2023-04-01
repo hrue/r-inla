@@ -1,7 +1,7 @@
 
 /* pc-powerlink.c
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,17 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 #include "inla.h"
 #include "pc-powerlink.h"
@@ -67,7 +59,7 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 	int i, j;
 	const int debug = 0;
 	double **par, intercept_intern, power, power_intern, sd;
-	double eps = GMRFLib_eps(0.5);
+	double eps = GSL_SQRT_DBL_EPSILON;
 
 	par = (double **) param;
 	power_intern = *(par[0]);

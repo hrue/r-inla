@@ -1,7 +1,7 @@
 
 /* cgeneric.h
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -143,6 +143,18 @@ typedef struct {
 } inla_cgeneric_vec_tp;
 
 typedef struct {
+	// inla .. -t A:B
+	// max = maximum number of threads = A*B
+	// outer = number of threads in the outer loop (A)
+	// inner = number of threads in the inner loop (B)
+	int max;
+	int outer;
+	int inner;
+} inla_cgeneric_threads_tp;
+
+typedef struct {
+	inla_cgeneric_threads_tp threads;
+
 	int n_ints;
 	inla_cgeneric_vec_tp **ints;
 
@@ -164,15 +176,18 @@ typedef struct {
 #if defined(_OPENMP)
 // tools useful for creating a cache
 #include <omp.h>
-#define CGENERIC_CACHE_LEN(max_threads_) ((max_threads_) * (max_threads_))
-#define CGENERIC_CACHE_ASSIGN_IDX(idx_, max_threads_)			\
+#define IMAX_(a_,  b_) ((a_) >= (b_) ? (a_) : (b_))
+#define MAX_THREADS(data_) ((data_)->max_threads)
+#define CGENERIC_CACHE_LEN(data_) (IMAX_(1, MAX_THREADS(data_)) * (IMAX_(1, MAX_THREADS(data_)) + 1))
+#define CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)				\
         if (1) {                                                        \
                 int level_ = omp_get_level();                           \
                 int tnum_ = omp_get_thread_num();                       \
                 if (level_ <= 1)        {                               \
                         idx_ =  tnum_;                                  \
                 } else if (level_ == 2) {                               \
-                        idx_ = omp_get_ancestor_thread_num(level_ -1) * (max_threads_) + tnum_; \
+                        int level2_ = omp_get_ancestor_thread_num(level_ -1); \
+			idx_ = IMAX_(1, 1 + level2_) * IMAX_(1, MAX_THREADS(data_)) + tnum_; \
                 } else {                                                \
                         assert(0 == 1);                                 \
                 }                                                       \

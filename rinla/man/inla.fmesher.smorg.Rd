@@ -33,9 +33,11 @@ an anisotropic operator \eqn{\nabla\cdot H \nabla}{div H grad}, where
 \item{gradients}{When \code{TRUE}, calculate derivative operator matrices
 \code{dx}, dy, and dz.}
 
-\item{sph0}{Maximal order of rotationally invariant spherical harmonics.}
+\item{sph0}{Maximal order of rotationally invariant spherical harmonics.
+Deprecated. Use \code{\link[=inla.mesh.basis]{inla.mesh.basis()}} instead.}
 
-\item{sph}{Maximal order of general spherical harmonics.}
+\item{sph}{Maximal order of general spherical harmonics.
+Deprecated. Use \code{\link[=inla.mesh.basis]{inla.mesh.basis()}} instead.}
 
 \item{bspline}{Rotationally invariant B-splines on a sphere.  3-vector with
 number of basis functions \code{n}, basis degree \code{degree}, and a

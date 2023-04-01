@@ -47,6 +47,7 @@
 ## !}
 
 `inla.mdata` <- function(y, ...) {
+    names.ori <- as.list(match.call())[-1]
     y.obj <- as.list(as.data.frame(list(y)))
     x.obj <- as.list(as.data.frame(list(...)))
     if (length(list(...)) == 0) {
@@ -68,7 +69,8 @@
         obj <- y.obj
     }
     attr(obj, "inla.ncols") <- c(length(ncols), ncols)
-    class(obj) <- "inla.mdata"
+    class(obj) <- c("inla.mdata", "list")
+    attr(obj, "names.ori") <- names.ori
     return(obj)
 }
 

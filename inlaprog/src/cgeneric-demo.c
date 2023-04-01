@@ -1,7 +1,7 @@
 
 /* cgeneric-demo.c
  * 
- * Copyright (C) 2021-2022 Havard Rue
+ * Copyright (C) 2021-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,6 @@
 
 
 #include <assert.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <math.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -378,7 +375,8 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 
 	case INLA_CGENERIC_LOG_NORM_CONST:
 	{
-		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself
+		// return c(NORM_CONST) or a NULL-pointer if INLA should compute it by itself. here we ignore the part that comes from the
+		// 1/2*log(det(Q)), which could be added if needed later. this is how the 'generic0' model is implemented.
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = N / 2.0 * (lprec - log(2.0 * M_PI));
@@ -388,7 +386,6 @@ double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, in
 	case INLA_CGENERIC_LOG_PRIOR:
 	{
 		// return c(LOG_PRIOR). with a Gamma(1,1) for precision, this is the log prior for the log(precision).
-
 		ret = Calloc(1, double);
 		assert(ret);
 		ret[0] = -prec + lprec;

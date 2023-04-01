@@ -41,21 +41,22 @@ Suggests:
     mlogit,
     mvtnorm,
     numDeriv,
-    orthopolynom,
     pixmap,
-    rgdal,
-    rgeos,
     rgl,
     rmarkdown,
+    sf,
     shiny,
     sn,
     spdep,
     splancs,
+    terra,
+    tidyterra,
     testthat,
     tools
 Imports:
     graphics,
     grDevices,
+    lifecycle,
     methods,
     splines,
     stats,
@@ -66,7 +67,7 @@ LazyData: true
 License: GPL (>= 2) + file LICENSE
 Version: 99.99.9999
 Date: 9999-99-99
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
@@ -91,6 +92,7 @@ Collate:
     'doc.R'
     'expand.dataframe.R'
     'export-class.R'
+    'external-package.R'
     'f.R'
     'fgn.R'
     'finn.R'
@@ -105,6 +107,7 @@ Collate:
     'idx.R'
     'iidkd.R'
     'inla.R'
+    'inla.call.R'
     'inlaEnv.R'
     'interpret.formula.R'
     'jmarginal.R'
@@ -127,6 +130,7 @@ Collate:
     'model-wrapper.R'
     'models-generate.R'
     'models.R'
+    'models_documentation.R'
     'nmix.lambda.fitted.R'
     'obsolete.R'
     'options.R'

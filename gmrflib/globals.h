@@ -1,7 +1,7 @@
 
 /* globals.h
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,9 +49,6 @@
 #ifndef __GMRFLib_GLOBALS_H__
 #define __GMRFLib_GLOBALS_H__
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #undef __BEGIN_DECLS
@@ -136,6 +133,8 @@ extern int GMRFLib_preopt_predictor_strategy;		       // 0 = !data_rich, 1 = dat
 extern double GMRFLib_weight_prob;
 extern double GMRFLib_weight_prob_one;
 extern double **GMRFLib_dot_product_optim_report;
+extern double GMRFLib_dot_product_gain;			       // set to < 0 to disable it
+extern int GMRFLib_internal_opt;
 
 extern int GMRFLib_sort2_cut_off;
 

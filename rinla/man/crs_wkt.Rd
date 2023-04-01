@@ -102,21 +102,17 @@ Get and set CRS object or WKT string properties.
 \examples{
 
 \dontrun{
-if (inla.has_PROJ6()) {
-    c1 <- inla.CRS("globe")
-    inla.crs_get_lengthunit(c1)
-    c2 <- inla.crs_set_lengthunit(c1, "km")
-    inla.crs_get_lengthunit(c2)
-}
+  c1 <- inla.CRS("globe")
+  inla.crs_get_lengthunit(c1)
+  c2 <- inla.crs_set_lengthunit(c1, "km")
+  inla.crs_get_lengthunit(c2)
 }
 
 \dontrun{
-if (inla.has_PROJ6()) {
-    c1 <- inla.CRS("globe")
-    inla.crs_get_lengthunit(c1)
-    c2 <- inla.crs_set_lengthunit(c1, "km")
-    inla.crs_get_lengthunit(c2)
-}
+  c1 <- inla.CRS("globe")
+  inla.crs_get_lengthunit(c1)
+  c2 <- inla.crs_set_lengthunit(c1, "km")
+  inla.crs_get_lengthunit(c2)
 }
 }
 \seealso{

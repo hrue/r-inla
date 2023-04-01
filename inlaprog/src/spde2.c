@@ -1,7 +1,7 @@
 
 /* spde2.c
  * 
- * Copyright (C) 2011-2022  Havard Rue
+ * Copyright (C) 2011-2023  Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,24 +27,13 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
+
 #include <stdlib.h>
-
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 #include "inla.h"
 #include "spde2.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 extern G_tp G;						       /* import some global parametes from inla */
 
@@ -285,7 +274,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		Memcpy(cache->vals, d_i, 3 * sizeof(double));
 
 		if (debug) {
-#pragma omp critical
+#pragma omp critical (Name_81be0810e04979398ed477ac445e942f3056221b)
 			{
 				printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
 				if (debug_details) {
@@ -311,7 +300,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		}
 
 		if (debug) {
-#pragma omp critical
+#pragma omp critical (Name_170ba04061977b3f6655c4b7b4bb6c086b3a7c68)
 			{
 				if (in_cache) {
 					printf("spde2: use cache for idx=%1d i=%1d j=%1d\n", idx, i, j);
@@ -333,7 +322,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 			static double cache_hit = 0.0;
 			static double cache_miss = 0.0;
 			static double cache_count = 0.0;
-#pragma omp critical
+#pragma omp critical (Name_8a2bd7f139bfd60665130abf233f21903ff83ad9)
 			{
 				cache_count++;
 				cache_hit += in_cache;
@@ -447,7 +436,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 			Memcpy(cache->vals, d_i, 3 * sizeof(double));
 
 			if (debug) {
-#pragma omp critical
+#pragma omp critical (Name_ad1bbe7257f1c3db0c64e992dc63fdd484fda64d)
 				{
 					printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
 					if (debug_details) {

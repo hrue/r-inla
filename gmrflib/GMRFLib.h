@@ -1,7 +1,7 @@
 
 /* GMRFLib.h
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,11 +37,6 @@
 #ifndef __GMRFLib_H__
 #define __GMRFLib_H__
 
-#include <stdlib.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -63,6 +58,8 @@ __BEGIN_DECLS
 #endif
 void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int *incy);
 
+
+#include <stdlib.h>
 
 /* 
  *  include files we need from GSL
@@ -135,5 +132,21 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 #include "GMRFLib/version.h"
 #include "GMRFLib/hgmrfm.h"
 #include "GMRFLib/matern.h"
+
+#if defined(INLA_LINK_WITH_MKL)
+void vdExp(int, const double *, double *);
+void vdLog1p(int, const double *, double *);
+void vsAdd(int n, const double *a, const double *b, double *y);
+void vdLn(int, const double *, double *);
+void vdLog1p(int , const double *, double *);
+
+void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *alpha,
+		const char *matdescra, const double *val, const int *indx,
+		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
+double cblas_ddoti(const int nz, const double *x, const int *indx, const double *y);
+#endif
+
+
+
 __END_DECLS
 #endif

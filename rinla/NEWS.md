@@ -1,3 +1,74 @@
+# INLA 23.04.01
+* Fixed issue with model="slm" (thx to RB and VGB)
+* New vigette about CV and group-CV
+* New option to turn off online-optimisations
+* New option to measure gain in dot-product optimisations
+
+# INLA 23.03.26
+* Various code-cleanup and optimisation
+* Improved code for \code{family="nbinom"} and \code{"bell"}
+* New vignette (SPDE2mdatasurv)
+* Small change in how saturated deviance is computed
+
+# INLA 23.03.19
+* Updated family=bell
+* Fixed an issue with selection of nodes for vb.correct
+
+# INLA 23.03.17
+* Added family=bell (experimental)
+* Workaround for PARDISO issue with diagonal matrix
+* Various code-cleanup
+
+# INLA 23.02.27
+* New option to \code{inla.binary.install()}
+* Fix a broken build
+
+# INLA 23.02.22
+* Add linear predictor summaries to config
+* Vignette about \code{rgeneric} is updated
+* Updated doc about \code{inla.posterior.sample}
+* Fixed issue with missing covariance in A-matrix
+
+# INLA 23.02.04
+* Fix for \code{control.mode=list(..., fixed=TRUE)}
+* Various code-cleanup and improvement
+
+# INLA 23.01.31
+* Remove `rgeos` dependency
+* Remove `rgdal` dependency
+* Add new link-function: \code{ccloglog}
+* New argument to \code{inla.group.cv}
+* \code{safe}-mode improved in the \code{inla()}-call
+* Various code-cleanups
+
+# INLA 23.01.12
+* Fixed an issue with ptweedie
+* Code cleanup
+
+# INLA 23.01.02
+* Sync C++ code from the fmesher package
+* Added log-likelihood output to configs
+* Fixed a regression for \code{model="fgn"}
+* Improved code for \code{model="binomial"} and logit-link
+* Increased kmax from 10 to 20 for \code{model="iidkd"}
+
+# INLA 22.12.16
+* Fixed an issue with lincombs and PARDISO library
+
+# INLA 22.12.15
+* Minor changes to integrate cgeneric-code better
+* New stable build
+
+# INLA 22.12.14
+* Minor changes to integrate cgeneric-code better
+
+# INLA 22.12.12
+* Some minor code fixed
+* Development build to test cgeneric update
+
+# INLA 22.12.03
+* Fixed an issue with cache and nested parallelism (mostly \code{cgeneric}-related)
+
 # INLA 22.11.28
 * Added friends-list to gcpo
 * Expanded support for non-unit-radius spheres in fmesher

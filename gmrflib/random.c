@@ -1,7 +1,7 @@
 
 /* random.c
  * 
- * Copyright (C) 2005-2022 Havard Rue
+ * Copyright (C) 2005-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,17 +28,10 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
 #include <time.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <string.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -51,11 +44,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 static unsigned long int GMRFLib_rng_seed;
 #pragma omp threadprivate(GMRFLib_rng_seed)

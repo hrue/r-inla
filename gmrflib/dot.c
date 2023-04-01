@@ -1,7 +1,7 @@
 
 /* dot.c
  * 
- * Copyright (C) 2022-2022 Havard Rue
+ * Copyright (C) 2022-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,6 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -205,10 +196,15 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 
 double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
 {
-	// so it does not fail for not-prepared ones
 	if (ELM_->g_n == 0) {
+		// so it does not fail for not-prepared ones
 		return (GMRFLib_dot_product_serial_mkl(ELM_, ARR_));
 	} else {
+		if (GMRFLib_dot_product_gain >= 0.0) {
+#pragma omp atomic
+			GMRFLib_dot_product_gain += ELM_->cpu_gain;
+		}
+	
 		switch (ELM_->preference) {
 		case IDXVAL_SERIAL:
 			return (GMRFLib_dot_product_serial(ELM_, ARR_));
@@ -223,8 +219,6 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 			break;
 		case IDXVAL_UNKNOWN:
-			if (0)
-				FIXME1(" *** UNKNOWN PREFERENCE FOR DOT-PRODUCT *** ");
 			return (GMRFLib_dot_product_group_mkl(ELM_, ARR_));
 			break;
 		default:
@@ -236,6 +230,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 
 	return NAN;
 }
+
 
 
 
@@ -408,17 +403,23 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	// this is the MKL version, which is done using a sparse '1 x n' matrix.
-	// we could include <mkl.h> but we can just do this, as we only need one non-standard function
+	if (0) {
+		// this is the MKL version, which is done using a sparse '1 x n' matrix.
 
-	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
-	double darr[3] = { 1.0, 0.0, 0.0 };
-	// we need to define this with length 6. the fifth argument is not used, so we use it for the
-	// argument 'trans', the first argument in the call, trans='N'
-	const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
+		// we could include <mkl.h> but we can just do this, as we
+		// only need one non-standard function
 
-	mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
-	return (darr[2]);
+		int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
+		double darr[3] = { 1.0, 0.0, 0.0 };
+		// we need to define this with length 6. the fifth argument is not used, so we use it for the
+		// argument 'trans', the first argument in the call, trans='N'
+		const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
+
+		mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
+		return (darr[2]);
+	}
+
+	return (cblas_ddoti(n, v, idx, a));
 }
 
 #else							       /* defined(INLA_LINK_WITH_MKL) */

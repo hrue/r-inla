@@ -1,7 +1,7 @@
 
 /* GMRFLibP.h
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,9 +41,6 @@
 #include <stddef.h>
 #include <math.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -351,10 +348,10 @@ typedef enum {
 */
 #define GMRFLib_ALLOC_SAFE_SIZE(n_, type_) ((size_t)(n_) * sizeof(type_) < PTRDIFF_MAX ? (size_t)(n_) : (size_t)1)
 #if 0
-#define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__, GitID)
-#define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__, GitID); ptr=NULL;}
+#define Calloc(n, type)         (type *)GMRFLib_calloc(GMRFLib_ALLOC_SAFE_SIZE(n, type), sizeof(type), __FILE__, __GMRFLib_FuncName, __LINE__)
+#define Malloc(n, type)         (type *)GMRFLib_malloc(GMRFLib_ALLOC_SAFE_SIZE((n) * sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
+#define Realloc(ptr, n, type)   (type *)GMRFLib_realloc((void *)ptr, GMRFLib_ALLOC_SAFE_SIZE((n)*sizeof(type), char), __FILE__, __GMRFLib_FuncName, __LINE__)
+#define Free(ptr)               if (ptr) {GMRFLib_free((void *)(ptr), __FILE__, __GMRFLib_FuncName, __LINE__); ptr=NULL;}
 #define Memcpy(dest, src, n)    GMRFLib_memcpy(dest, src, n)
 #else
 #undef  GMRFLib_TRACE_MEMORY
@@ -368,6 +365,7 @@ typedef enum {
 #endif
 #define Memset(dest, value, n)  memset((void *) (dest), (int) (value), (size_t) (n))
 
+
 /* 
    ABS is for double, IABS is for int, and so on.
 */
@@ -376,42 +374,37 @@ typedef enum {
 #define ABS(x)   fabs(x)
 #define DMAX(a,b) GSL_MAX_DBL(a, b)
 #define DMIN(a,b) GSL_MIN_DBL(a, b)
-#define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
-#define SQR(x) gsl_pow_2(x)
+#define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
+#define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
+#define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
+#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
 #define IABS(x)   abs(x)
 #define IMAX(a,b) GSL_MAX_INT(a, b)
 #define IMIN(a,b) GSL_MIN_INT(a, b)
-#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
+#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
+#define ISINF(x) isinf(x)
+#define ISNAN(x) (isnan(x) != 0)
 #define ISQR(x) ((x)*(x))
+#define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
+#define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
+#define ISZERO(x) (((__typeof (x)) (x)) == 0)
+#define ITRUNCATE(x, low, high) IMIN(IMAX(x, low), high)
+#define LEGAL(i, n) ((i) >= 0 && (i) < (n))
 #define MOD(i,n)  (((i)+(n))%(n))
-#define FIXME( msg) if (1) { printf("\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
-#define FIXME1(msg) if (1) { static int first=1; if (first) { first=0; FIXME(msg); }}
-#define FIXMEstderr( msg) if (1) { fprintf(stderr, "\n{%1d}[%s:%1d] %s: FIXME [%s]\n",  omp_get_thread_num(), __FILE__, __LINE__, __GMRFLib_FuncName,(msg?msg:""));	}
-#define FIXME1stderr(msg) if (1) { static int first=1; if (first) { first=0; FIXMEstderr(msg); }}
+#define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
 #define P(x)        if (1) { printf("[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
-#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define P1(x)       if (1) { static int first=1;  if (first) { printf("[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define P1stderr(x) if (1) { static int first=1;  if (first) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n", __FILE__, __LINE__, (double)(x)); first=0; }}
 #define PP(msg,pt)  if (1) { fprintf(stdout, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
-#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
 #define PPg(msg,pt) if (1) { fprintf(stdout, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
+#define PPstderr(msg,pt)  if (1) { fprintf(stderr, "[%s:%1d] %s ptr " #pt " = %p\n", __FILE__, __LINE__, msg, pt); }
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
-#define ISINF(x) isinf(x)
-#define ISNAN(x) (isnan(x) != 0)
-#define LEGAL(i, n) ((i) >= 0 && (i) < (n))
+#define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
+#define SQR(x) gsl_pow_2(x)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
-#define OVERLAP(p_, pp_, n_) (!(((pp_) + (n_) - 1 <  (p_)) || ((p_) + (n_) - 1 <  (pp_))))
-
-
-// ``Note that x and y are compared to relative accuracy, so gsl_fcmp is not suitable for testing whether a value is approximately zero''. so we
-// make these tests relative to 1.0
-#define ISZERO(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
-#define ISZEROf(x) (gsl_fcmp(1.0 + (x), 1.0, FLT_EPSILON) == 0)
-#define ISZERO_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
-#define ISEQUAL(x, y) (gsl_fcmp(x, y, DBL_EPSILON) == 0)
-#define ISEQUALf(x, y) (gsl_fcmp(x, y, FLT_EPSILON) == 0)
-#define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
+#define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
@@ -427,8 +420,8 @@ typedef enum {
 	if (ISNAN(value) || ISINF(value)) {				\
 		if (!nan_error)						\
 			fprintf(stdout,					\
-				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
-				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+				"\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
+				__GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		nan_error = 1;						\
 	}
 
@@ -436,8 +429,8 @@ typedef enum {
 	if (!gsl_finite(value)) {					\
 		if (!nan_error)						\
 			fprintf(stdout,					\
-				"\n\t%s\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
-				GitID, __GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
+				"\n\tFunction: %s(), Line: %1d, Thread: %1d\n\tVariable evaluates to NAN or INF. idx=(%1d,%1d). I will try to fix it...", \
+				__GMRFLib_FuncName, __LINE__, omp_get_thread_num(), idx, jdx); \
 		nan_error = 1;						\
 	}
 
@@ -446,15 +439,16 @@ typedef enum {
 
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN (ISQR(GMRFLib_MAX_THREADS()))
+#define GMRFLib_CACHE_LEN (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
 #define GMRFLib_CACHE_SET_ID(__id)					\
 	if (1) {							\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
-		if (level_ <= 1)	{				\
+		if (level_ <= 1) {					\
 			__id =  tnum_;					\
 		} else if (level_ == 2) {				\
-			__id = omp_get_ancestor_thread_num(level_ -1) * GMRFLib_MAX_THREADS() + tnum_; \
+			int level2_ = omp_get_ancestor_thread_num(level_ -1); \
+			__id = IMAX(1, 1 + level2_) * GMRFLib_MAX_THREADS() + tnum_; \
 		} else {						\
 			assert(0 == 1);					\
 		}							\

@@ -1,7 +1,7 @@
 
 /* fgn.h
  * 
- * Copyright (C) 2016-2022 Havard Rue
+ * Copyright (C) 2016-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *values, void *arg);
 
 int inla_fgn_get(double *phi, double *w, double H_intern, int k);
 double priorfunc_fgn_priorH(double *H_intern, double *param);
+void priorfunc_fgn_priorH_extract(void);
 
 __END_DECLS
 #endif

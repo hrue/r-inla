@@ -505,15 +505,17 @@
     fnm <- paste(d, "/config_preopt/configs.dat", sep = "")
     if (file.exists(fnm)) {
         fp <- file(fnm, "rb")
-        iarr <- readBin(fp, integer(), 6)
+        iarr <- readBin(fp, integer(), 8)
         configs <- list(
             .preopt = TRUE, 
-            mnpred = iarr[1], 
-            Npred = iarr[2], 
-            n = iarr[3], 
-            nz = iarr[4], 
-            prior_nz = iarr[5],
-            ntheta = iarr[6])
+            mpred = iarr[1], 
+            npred = iarr[2], 
+            mnpred = iarr[3], 
+            Npred = iarr[4], 
+            n = iarr[5], 
+            nz = iarr[6], 
+            prior_nz = iarr[7],
+            ntheta = iarr[8])
         configs.i <- readBin(fp, integer(), configs$nz) ## 0-based
         configs.j <- readBin(fp, integer(), configs$nz) ## 0-based
         configs.iprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
@@ -591,6 +593,33 @@
                     }
                 }
 
+                ll.info <- NULL
+                have.ll.info <- readBin(fp, numeric(), 1)
+                if (have.ll.info > 0) {
+                    ll.info <- readBin(fp, double(), 3 * configs$Npred)
+                    ll.info[is.nan(ll.info)] <- NA
+                    ll.info <- matrix(ll.info, configs$Npred, 3, byrow = TRUE)
+                    colnames(ll.info) <- c("gradient", "hessian", "deriv3")
+                }
+
+                A.lpred.mean.variance <- matrix(0.0, nrow = 0, ncol = 2, dimnames = list(NULL, c("mean", "variance")))
+                lpred.mean.variance <- matrix(0.0, nrow = 0, ncol = 2, dimnames = list(NULL, c("mean", "variance")))
+                have.lpred <- readBin(fp, numeric(), 1)
+                if (have.lpred > 0) {
+                    lpred.mean <- readBin(fp, double(), configs$mnpred)
+                    lpred.variance <- readBin(fp, double(), configs$mnpred)
+                    lpred.mean[is.nan(lpred.mean)] <- NA
+                    lpred.variance[is.nan(lpred.variance)] <- NA
+                    offset <- 0
+                    if (configs$mpred >0) {
+                        offset <- configs$mpred
+                        idx <- 1:configs$mpred
+                        A.lpred.mean.variance <- cbind(mean = lpred.mean[idx], variance = lpred.variance[idx])
+                    }
+                    idx <- offset + 1:configs$npred
+                    lpred.mean.variance <- cbind(mean = lpred.mean[idx], variance = lpred.variance[idx])
+                }
+
                 dif <- which(configs$i != configs$j)
                 if (length(dif) > 0L) {
                     iadd <- configs.j[dif] ## yes, its the transpose part
@@ -647,7 +676,10 @@
                     ),
                     cpodens.moments = cpodens.moments,
                     gcpodens.moments = gcpodens.moments,
-                    arg.str = arg.str
+                    arg.str = arg.str,
+                    ll.info = ll.info,
+                    APredictor = A.lpred.mean.variance, 
+                    Predictor = lpred.mean.variance
                 )
             }
 

@@ -1,7 +1,7 @@
 
 /* problem-setup.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,15 +27,6 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 #include <stdlib.h>
 #include <math.h>
@@ -743,7 +734,7 @@ int GMRFLib_init_problem_store(int thread_id,
 			retval = GMRFLib_comp_chol_general(&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR);
 			if (retval != GMRFLib_SUCCESS) {
 				GMRFLib_WARNING("Matrix AQA^t is numerical singular, remove singularity and move on");
-				GMRFLib_ensure_spd(aqat_m, nc, GMRFLib_eps(0.5), NULL);
+				GMRFLib_ensure_spd(aqat_m, nc, GSL_SQRT_DBL_EPSILON, NULL);
 				GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 					       (&((*problem)->l_aqat_m), aqat_m, nc, &((*problem)->logdet_aqat), GMRFLib_ESINGCONSTR));
 			}
@@ -802,7 +793,7 @@ int GMRFLib_init_problem_store(int thread_id,
 				retval = GMRFLib_comp_chol_general(&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2);
 				if (retval != GMRFLib_SUCCESS) {
 					GMRFLib_WARNING("Matrix AA^t is numerical singular, remove singularity and move on");
-					GMRFLib_ensure_spd(aat_m, nc, GMRFLib_eps(0.5), NULL);
+					GMRFLib_ensure_spd(aat_m, nc, GSL_SQRT_DBL_EPSILON, NULL);
 					GMRFLib_EWRAP1(GMRFLib_comp_chol_general
 						       (&tmp_vector, aat_m, nc, &((*problem)->logdet_aat), GMRFLib_ESINGCONSTR2));
 				}

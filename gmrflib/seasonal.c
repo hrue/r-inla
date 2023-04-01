@@ -1,7 +1,7 @@
 
 /* seasonal.c
  * 
- * Copyright (C) 2007-2022 Havard Rue
+ * Copyright (C) 2007-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,16 +28,8 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <time.h>
 #include <strings.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
@@ -126,7 +118,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp * def)
 	constr->e_vector = Calloc(nc, double);
 	GMRFLib_prepare_constr(constr, graph, GMRFLib_TRUE);
 
-	double *c = Calloc(n, double), eps = GMRFLib_eps(.75);
+	double *c = Calloc(n, double), eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON);
 	GMRFLib_problem_tp *problem;
 
 	for (i = 0; i < n; i++) {

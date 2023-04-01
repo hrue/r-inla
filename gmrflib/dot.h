@@ -1,7 +1,7 @@
 
 /* dot.h
  * 
- * Copyright (C) 2022-2022 Havard Rue
+ * Copyright (C) 2022-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,9 +40,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -70,10 +67,6 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
-
-void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *alpha,
-		const char *matdescra, const double *val, const int *indx,
-		const int *pntrb, const int *pntre, const double *x, const double *beta, double *y);
 
 __END_DECLS
 #endif

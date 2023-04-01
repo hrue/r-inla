@@ -212,8 +212,8 @@
 `inla.barrier.polygon` <- function(mesh, barrier.triangles, Omega = NULL) {
     ## Requires an inla mesh to work
     stopifnot(inherits(mesh, "inla.mesh"))
-    ## Requires rgeos for combining polygons
-    inla.require("rgeos", stop.on.error = TRUE)
+    ## Requires sf for combining polygons
+    inla.require("sf", stop.on.error = TRUE)
 
     if (missing(barrier.triangles)) {
         ## Use Omega
@@ -233,10 +233,21 @@
         for (tri in Omega[[j]]) {
             px <- mesh$graph$tv[tri, ]
             temp <- mesh$loc[px, ] # is a 3 by 3 matrix of node locations
-            poly.list <- c(poly.list, Polygon(rbind(temp[, 1:2], temp[1, 1:2]), hole = F))
+            poly.list <-
+                c(poly.list, Polygon(rbind(temp[c(3,2,1), 1:2], temp[3, 1:2]), hole = FALSE))
         }
         mesh.polys <- SpatialPolygons(list(Polygons(poly.list, ID = "noid")))
-        Omega.SP.list[[j]] <- rgeos::gUnaryUnion(mesh.polys)
+        if (interactive() &&
+            compareVersion(getNamespaceVersion("sf"), "1.0-10") < 0) {
+            warning(
+                paste0(
+                    "The sf::st_as_sfc.SpatialPolygons() function is broken for some inputs in versions before 1.0-10.\n",
+                    "Please check your output carefully, and upgrade to sf version 1.0-10 or later."),
+                immediate. = TRUE
+            )
+        }
+        mesh.polys <- sf::st_as_sfc(mesh.polys)
+        Omega.SP.list[[j]] <- sf::as_Spatial(sf::st_union(mesh.polys))
     }
 
     if (missing(barrier.triangles)) {

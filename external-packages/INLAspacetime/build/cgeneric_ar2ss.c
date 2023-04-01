@@ -1,1 +1,1 @@
-../INLAspacetime/csource/cgeneric_ar2ss.c
+../INLAspacetime/src/cgeneric_ar2ss.c

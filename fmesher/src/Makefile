@@ -11,7 +11,7 @@ CXX = g++
 FC = gfortran
 FCEXTRAFLAGS = -fno-second-underscore
 FLAGS= -O3 -mfpmath=sse -msse2 -funroll-loops -ftracer -pipe -Wall -Wextra \
-  -Wsign-compare -Wundef -Wimplicit-fallthrough -fdiagnostics-color
+  -Wsign-compare -Wundef -Wimplicit-fallthrough -fdiagnostics-color -Wshadow=compatible-local
 LD = $(CXX)
 INSTALL = install
 RSYNC = rsync
@@ -21,7 +21,8 @@ SED = sed
 LEXTPREFIX = $(PREFIX)
 
 # The external libraries to link with
-EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
+#EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib -lgsl -lgslcblas
+EXTLIBS1 = -L$(PREFIX)/lib -L$(LEXTPREFIX)/lib
 EXTLIBS2 = 
 EXTLIBS3 = 
 
@@ -68,6 +69,9 @@ ifeq ($(FMESHER_NO_X), 1)
   OS_FLAGS:=$(OS_FLAGS) -DFMESHER_NO_X
 endif
 
+# Activate GSL, only needed for spherical harmonics, which can be computed with the R gsl package instead
+# OS_FLAGS:=$(OS_FLAGS) -DFMESHER_WITH_GSL
+
 ################################################################################
 #
 # no changes usually needed below this point
@@ -84,7 +88,7 @@ INCL    = -I$(PREFIX)/include
 LDFLAGSXX = $(FLAGS) $(OS_LDFLAGS) 
 FFLAGS  = $(FLAGS) $(FCEXTRAFLAGS) $(INCL)
 CFLAGS  = -std=gnu99 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
-CXXFLAGS  = -std=c++98 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
+CXXFLAGS  = -std=c++14 $(FLAGS) $(OS_FLAGS) $(INCL) -I$(LEXTPREFIX)/include -DCMDLINE_VERSION="\"${GITCOMMIT}\""
 
 FMESHER = fmesher
 FMESHER_TEST = fmesher_test

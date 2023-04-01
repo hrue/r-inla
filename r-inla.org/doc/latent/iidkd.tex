@@ -9,7 +9,7 @@
 
 \section*{Correlated random effects: \texttt{iidkd}}
 
-This model is available for dimensions $k=2$, to $10$. We describe in
+This model is available for dimensions $k=2$, to $20$. We describe in
 detail the case for $k=3$ as other ones are similar. This model do the
 same as models \texttt{iid2d}, \texttt{iid3d}, \texttt{iid4d},
 \texttt{iid5d}, but uses a different and more efficient parameterisation. 
@@ -40,8 +40,8 @@ $\mathbf{W}=\mathbf{L}\mathbf{L}^{T}$, where
 \end{equation}
 and $\theta_1, \theta_2, \theta_3, \theta_4, \theta_5, \theta_6$ can
 take any value. The number of hyperparameters are $k(k+1)/2$, which is
-$3$, $6$, $10$, $15$, $21$, $28$, $36$, $45$, $55$, for
-$k=2, 3, 4, 5, 6, 7, 8, 9, 10$.
+$3$, $6$, $10$, $15$, $21$, $28$, $36$, $45$, $55, \ldots$, for
+$k=2, 3, 4, 5, 6, 7, 8, 9, 10, \ldots$.
 
 For these models the precision matrix $\mathbf{W}$ is Wishart
 distributed
@@ -133,5 +133,11 @@ Just simulate some data and estimate the parameters back. This is for
 \texttt{order=}$4$.
 
 {\small\verbatiminput{example-iidkd.R}}
+
+\subsection*{Notes}
+
+Note that for higher values of $k$ the only integration scheme that is
+supported is \\
+\texttt{control.inla=list(int.strategy="eb")}.
 
 \end{document}

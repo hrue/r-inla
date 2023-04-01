@@ -1,7 +1,7 @@
 
 /* error-handler.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,18 +32,14 @@
 #include <stdarg.h>
 #include <strings.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
 #ifndef GITCOMMIT
-#define GITCOMMIT
+#define GITCOMMIT "devel"
 #endif
 
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 static GMRFLib_error_handler_tp *handler = NULL;
 
 #pragma omp threadprivate(handler)
@@ -96,13 +92,12 @@ const char *GMRFLib_error_reason(int errorno)
 #undef NMSG
 }
 
-int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const char *function, int line, const char *UNUSED(id), int errorno,
-			  const char *msg)
+int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const char *function, int line, int errorno, const char *msg)
 {
 	/*
 	 * this is the default error-handler 
 	 */
-	fprintf(stderr, "\n\n\tGitID: %s\n", GitID);
+	fprintf(stderr, "\n\n\tGitId: %s\n", GITCOMMIT);
 	if (reason) {
 		fprintf(stderr, "\tError:%1d Reason: %s\n", errorno, reason);
 	}
@@ -121,13 +116,13 @@ int GMRFLib_error_handler(const char *reason, const char *UNUSED(file), const ch
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_error_handler_null(const char *reason, const char *file, const char *function, int line, const char *id, int errorno, const char *msg)
+int GMRFLib_error_handler_null(const char *reason, const char *file, const char *function, int line, int errorno, const char *msg)
 {
 	/*
 	 * gcc produce warnings here, so i have to fake some code to make them go away 
 	 */
 
-	int dummy = (reason || file || function || line == 0 || id || msg);
+	int dummy = (reason || file || function || line == 0 || msg);
 
 	return (dummy ? errorno : errorno);
 }
@@ -140,15 +135,15 @@ GMRFLib_error_handler_tp *GMRFLib_set_error_handler_off(void)
 	return h;
 }
 
-int GMRFLib_handle_error(const char *file, const char *function, int line, const char *id, int errorno, const char *msg)
+int GMRFLib_handle_error(const char *file, const char *function, int line, int errorno, const char *msg)
 {
 	/*
 	 * this function handle an error, and is the one called from the library through the macro 'GMRFLib_ERROR' 
 	 */
 	if (handler) {
-		(*handler) (GMRFLib_error_reason(errorno), file, function, line, id, errorno, msg);
+		(*handler) (GMRFLib_error_reason(errorno), file, function, line, errorno, msg);
 	} else {
-		GMRFLib_error_handler(GMRFLib_error_reason(errorno), file, function, line, id, errorno, msg);
+		GMRFLib_error_handler(GMRFLib_error_reason(errorno), file, function, line, errorno, msg);
 	}
 	return GMRFLib_SUCCESS;
 }

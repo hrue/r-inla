@@ -1,7 +1,7 @@
 
 /* optimize.c
  * 
- * Copyright (C) 2001-2022 Havard Rue
+ * Copyright (C) 2001-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,20 +33,7 @@
   \brief The optimising routines in GMRFLib.
 */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
-
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
-
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -71,7 +58,7 @@ int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
 	(*optpar)->max_iter = 25;
 	(*optpar)->fixed_iter = 0;
 	(*optpar)->max_linesearch_iter = 25;
-	(*optpar)->step_len = GMRFLib_eps(0.25);
+	(*optpar)->step_len = GSL_ROOT4_DBL_EPSILON;
 	(*optpar)->stencil = 5;				       /* 3,5,7 */
 	(*optpar)->abserr_func = 0.005;
 	(*optpar)->abserr_step = 0.005;

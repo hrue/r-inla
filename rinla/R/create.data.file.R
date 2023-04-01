@@ -147,7 +147,8 @@
         "zeroinflatedpoisson0",
         "zeroinflatedpoisson1",
         "zeroinflatedpoisson2",
-        "poisson.special1"))) {
+        "poisson.special1",
+        "bell"))) {
         if (is.null(E)) {
             E <- rep(1.0, n.data)
         }

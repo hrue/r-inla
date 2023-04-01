@@ -1,7 +1,7 @@
 
 /* density.c
  * 
- * Copyright (C) 2006-2022 Havard Rue
+ * Copyright (C) 2006-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,20 +28,12 @@
  *
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-
 #include <stddef.h>
 #include <float.h>
 #include <math.h>
 #include <strings.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include "GMRFLib/GMRFLib.h"
@@ -349,7 +341,7 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 
 	const int debug = 0;
 	int iter = 0, status, i, imax;
-	double eps = GMRFLib_eps(1. / 3.), *log_density_scaled;
+	double eps = GSL_ROOT3_DBL_EPSILON, *log_density_scaled;
 
 	GMRFLib_EWRAP0_GSL_PTR(xx = gsl_vector_alloc(m));
 
@@ -647,10 +639,14 @@ int GMRFLib_init_density(GMRFLib_density_tp * density, int lookup_tables)
 	}
 
 	// convert scale
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(npm, ldm, ldm);
+#else
 #pragma GCC ivdep
 	for (i = 0; i < npm; i++) {
 		ldm[i] = exp(ldm[i]);
 	}
+#endif
 
 	// compute moments
 	double mm[4] = { 0.0, 0.0, 0.0, 0.0 };
@@ -811,10 +807,15 @@ int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp
 	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
+
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(n, dens, dens);
+#else
 #pragma GCC ivdep
 	for (int i = 0; i < n; i++) {
 		dens[i] = exp(dens[i]);
 	}
+#endif
 	return GMRFLib_SUCCESS;
 }
 
@@ -1225,7 +1226,7 @@ int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, doubl
 			gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
 		}
 	}
-	GMRFLib_unique_relative2(&n, xx, ldens, GMRFLib_eps(1.0 / 2.0));
+	GMRFLib_unique_relative2(&n, xx, ldens, GSL_SQRT_DBL_EPSILON);
 	GMRFLib_adjust_vector(ldens, n);
 
 	if (debug) {
@@ -1468,7 +1469,7 @@ int GMRFLib_kld(double *kld, GMRFLib_density_tp * density, GMRFLib_density_tp * 
 	/*
 	 * compute the KLD from density to ddensity, \int log(density/ddensity)*density dx 
 	 */
-	double result = 0.0, error, eps = GMRFLib_eps(1. / 2.), low0, low1, high0, high1, low, high;
+	double result = 0.0, error, eps = GSL_SQRT_DBL_EPSILON, low0, low1, high0, high1, low, high;
 	gsl_function F;
 	GMRFLib_density_tp *d[2];
 
@@ -1574,7 +1575,7 @@ int GMRFLib_gsl_integration_fix_limits(double *new_lower, double *new_upper, gsl
 	/*
 	 *  compute new and improver lower and upper limits for the integration. skip parts with |feval| < eps. 
 	 */
-	double eps = 1.0e-10, min_step = GMRFLib_eps(1. / 3.), step, x, val;
+	double eps = 1.0e-10, min_step = GSL_ROOT3_DBL_EPSILON, step, x, val;
 	int nstep = 20, i;
 	const int debug = 0;
 

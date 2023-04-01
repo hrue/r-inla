@@ -3,15 +3,6 @@
  *  This is a modified version of the VECTOR_BFGS2 optimiser in GSL 
  */
 
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-const-variable"
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
-#pragma GCC diagnostic pop
-
 /* multimin/vector_bfgs2.c
  * 
  * Copyright (C) 2007 Brian Gough
@@ -46,9 +37,6 @@ static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
-#if !defined(__FreeBSD__)
-#include <malloc.h>
-#endif
 #include <stdlib.h>
 
 #include <gsl/gsl_multimin.h>
@@ -421,7 +409,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 		if (debug)
 			printf("... roundoff check %.12g\n", (a - alpha) * fpa);
 
-		if ((a - alpha) * fpa <= GMRFLib_eps(0.2)) {   /* hrue */
+		if ((a - alpha) * fpa <= GSL_ROOT5_DBL_EPSILON) {	/* hrue */
 			/*
 			 * roundoff prevents progress 
 			 */

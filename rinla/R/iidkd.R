@@ -32,7 +32,8 @@
     stopifnot(!missing(name))
     stopifnot(n > 0)
 
-    k.max <- 10
+    ## as defined in inla.h and models.R
+    k.max <- 20
     theta.max <- (k.max * (k.max + 1L)) / 2L
 
     names <- paste0("Theta", 1:theta.max, " for ", name)

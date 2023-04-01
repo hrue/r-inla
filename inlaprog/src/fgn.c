@@ -1,7 +1,7 @@
 
 /* fgn.c
  * 
- * Copyright (C) 2016-2022 Havard Rue
+ * Copyright (C) 2016-2023 Havard Rue
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,14 +27,9 @@
  *        Office: +966 (0)12 808 0640
  *
  */
-#ifndef GITCOMMIT
-#define GITCOMMIT
-#endif
 
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
-
-static const char GitID[] = "file: " __FILE__ "  " GITCOMMIT;
 
 #include "fgn.h"
 
@@ -101,27 +96,21 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	const int debug = 0;
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
-	if (!arg) {
-		assert(i < 0 && j < 0);			       /* safety check */
-		if (phi_cache == NULL) {
+	if (phi_cache == NULL) {
 #pragma omp critical (Name_6cee800e55124771d0e7fd552ae7e48a27e4f94e)
-			{
-				if (phi_cache == NULL) {
-					phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-					w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-					H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
+		{
+			if (phi_cache == NULL) {
+				double **cache = Calloc(GMRFLib_CACHE_LEN, double *);
+				w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+				H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-					for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
-						phi_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-						w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-					}
-					if (debug) {
-						printf("Qfunc_fgn: initialize cache\n");
-					}
+				for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+					cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+					w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 				}
+				phi_cache = cache;
 			}
 		}
-		return NAN;				       /* so it will break if used wrong */
 	}
 
 	inla_fgn_arg_tp *a = (inla_fgn_arg_tp *) arg;
@@ -210,20 +199,19 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	const int debug = 0;
 	static double **phi_cache = NULL, **w_cache = NULL, *H_intern_cache = NULL;
 
-	if (!arg) {
-		assert(phi_cache == NULL);		       /* do not initialize twice */
-		phi_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-		w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-		H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
+	if (!phi_cache) {
+#pragma omp critical (Name_31036ca2cfd217477a399b276d2192bbc39a5fb7)
+		if (!phi_cache) {
+			double **cache = Calloc(GMRFLib_CACHE_LEN, double *);
+			w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
+			H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
 
-		for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
-			phi_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
-			w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+			for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+				cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+				w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
+			}
+			phi_cache = cache;
 		}
-		if (debug) {
-			printf("Qfunc_fgn2: initialize cache\n");
-		}
-		return NAN;
 	}
 
 	inla_fgn2_arg_tp *a = (inla_fgn2_arg_tp *) arg;
@@ -285,26 +273,51 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 	// return the log-prior for H_intern
 	double lprior;
 #include "fgn-prior-tables.h"
+
+	static GMRFLib_spline_tp *dist_spline = NULL;
 #pragma omp critical (Name_f88269b9720b21345f72723d8de2fc329de96a39)
 	{
-		static GMRFLib_spline_tp *dist_spline = NULL;
 		if (!dist_spline) {
 			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
+	}
+	
+	double U_intern, lambda;
+	U_intern = map_H(param[0], MAP_BACKWARD, NULL);
+	lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
+	lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) +
+		log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
 
-		double U_intern, lambda;
-		U_intern = map_H(param[0], MAP_BACKWARD, NULL);
-		lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
-		lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) +
-		    log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
+	return lprior;
+}
 
-		if (0) {
-			P(*H_intern);
-			P(lambda);
-			P(GMRFLib_spline_eval(*H_intern, dist_spline));
-			P(GMRFLib_spline_eval_deriv(*H_intern, dist_spline));
-			P(lprior);
+void priorfunc_fgn_priorH_extract(void)
+{
+	// extract the prior so we can get it into R
+#include "fgn-prior-tables.h"
+
+	static GMRFLib_spline_tp *dist_spline = NULL;
+#pragma omp critical (Name_1083cc49be9497f3e0b14820ba227f6584988f41)
+	{
+		if (!dist_spline) {
+			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 	}
-	return lprior;
+	
+	for(double H_intern = -10.0, dH = 0.05; H_intern <= 10.0 + dH/2.0; H_intern += dH) {
+		double dist = GMRFLib_spline_eval(H_intern, dist_spline);
+		printf("%.12f %.12f\n", H_intern, dist);
+	}
+
+	double param[] = {0.9, 0.1};
+	printf("\n\n## check:  param = 0.9 0.1\n");
+
+	double theta;
+
+	theta = -1.1;
+	printf("## check:  log.prior(%.8f) =  %.8f\n", theta, priorfunc_fgn_priorH(&theta, param));
+	theta = 0.2;
+	printf("## check:  log.prior(%.8f) =  %.8f\n", theta, priorfunc_fgn_priorH(&theta, param));
+	theta = 1.3;
+	printf("## check:  log.prior(%.8f) =  %.8f\n", theta, priorfunc_fgn_priorH(&theta, param));
 }

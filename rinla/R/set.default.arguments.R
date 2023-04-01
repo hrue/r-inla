@@ -239,7 +239,10 @@
             disable.gaussian.check = FALSE,
 
             ## :ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
-            jp = NULL
+            jp = NULL, 
+
+            ## :ARGUMENT: dot.product.gain Show the gain in optimizing dot-products? (Default \code{FALSE})
+            dot.product.gain = FALSE
         )
 
         ## :SEEALSO: inla
@@ -318,6 +321,10 @@
             ## :ARGUMENT+: graph A boolean variable if the graph itself should be returned.
             ## :ARGUMENT+: (Default FALSE.)
             graph = FALSE,
+
+            ## :ARGUMENT+: internal.opt A boolean variable, if to do internal online
+            ## :ARGUMENT+: optimisations or not. (Default TRUE.)
+            internal.opt = TRUE,
 
             ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
             ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.
@@ -672,11 +679,12 @@
             huge = FALSE,
 
             ## :ARGUMENT+: step.len Numerical The step-length used to compute numerical
-            ## :ARGUMENT+: derivaties of the log-likelihood
-            step.len = .Machine$double.eps^(1.0 / 3.9134),
+            ## :ARGUMENT+: derivaties of the log-likelihood (0 means \code{default} which
+            ## :ARGUMENT+: depends on \code{stencil})
+            step.len = 0.0, 
 
             ## :ARGUMENT+: stencil Numerical Number of points in the stencil used to compute the
-            ## :ARGUMENT+: numerical derivaties of the log-likelihood (3, 5, 7 or 9). (default 5)
+            ## :ARGUMENT+: numerical derivaties of the log-likelihood (5, 7 or 9). (default 5)
             stencil = 5L,
 
             ## :ARGUMENT+: lincomb.derived.correlation.matrix Logical If TRUE compute also the
