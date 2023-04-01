@@ -110,11 +110,7 @@ for(rat_idx in c(1,11)){
     mode_eta_mu = res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"mean"]
     mode_eta_sd = sqrt(res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"variance"])
     eta_eval = mode_eta_mu + seq(-5,5)*mode_eta_sd
-    y_eval = c()
-    for(i in 1:length(q)){
-        y_eval = c(y_eval,qnorm(q[i],mean = mode_eta_mu,sd = sqrt(mode_eta_sd^2 + sd^2)))
-    }
-    y_eval = sort(y_eval)
+    y_eval = qnorm(q,mean = mode_eta_mu,sd = sqrt(mode_eta_sd^2 + sd^2))
     
     preddensity_conditional = list(mode = "list",length = nconfig)
     preddensity[[rat_idx]]$y_eval = y_eval
