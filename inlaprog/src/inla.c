@@ -31579,6 +31579,13 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		printf("\t\t\tdisable.gaussian.check=[%1d]\n", mb->expert_disable_gaussian_check);
 	}
 
+	int dot_product_gain = iniparser_getboolean(ini, inla_string_join(secname, "DOT.PRODUCT.GAIN"), 0);
+	// >=0 will measure, <0 will not (default off)
+	GMRFLib_dot_product_gain = (dot_product_gain ? 0.0 : -1.0);
+	if (mb->verbose) {
+		printf("\t\t\tMeasure dot.product.gain=[%s]\n", (dot_product_gain ? "Yes" : "No"));
+	}
+
 	/*
 	 * do error-checking later on 
 	 */
@@ -43625,7 +43632,6 @@ int main(int argc, char **argv)
 	GMRFLib_debug_functions(NULL);
 	GMRFLib_reorder = G.reorder;
 	GMRFLib_inla_mode = GMRFLib_MODE_COMPACT;
-	GMRFLib_dot_product_gain = 0.0;			       /* measure gain */
 	my_sort2_test_cutoff(0);
 
 	/*
@@ -44261,7 +44267,7 @@ int main(int argc, char **argv)
 						       rgeneric_cpu[1] / (time_used[1] - time_used[3]) * 100.0);
 					}
 				}
-				if (GMRFLib_dot_product_gain > 0.0) {
+				if (GMRFLib_dot_product_gain >= 0.0) {
 					printf("\nDot-product gain: %.3f seconds, %.6f seconds/fn-call\n\n", GMRFLib_dot_product_gain,
 					       GMRFLib_dot_product_gain / nfunc[0]);
 				}

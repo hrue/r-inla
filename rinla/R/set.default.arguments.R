@@ -239,7 +239,10 @@
             disable.gaussian.check = FALSE,
 
             ## :ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
-            jp = NULL
+            jp = NULL, 
+
+            ## :ARGUMENT: dot.product.gain Show the gain in optimizing dot-products? (Default \code{FALSE})
+            dot.product.gain = FALSE
         )
 
         ## :SEEALSO: inla

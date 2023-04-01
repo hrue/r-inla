@@ -1550,6 +1550,7 @@
         args$disable.gaussian.check <- FALSE
     }
     inla.write.boolean.field("DISABLE.GAUSSIAN.CHECK", args$disable.gaussian.check, file)
+    inla.write.boolean.field("DOT.PRODUCT.GAIN", args$dot.product.gain, file)
     cat("\n", sep = " ", file = file, append = TRUE)
  }
 
