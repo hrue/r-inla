@@ -4,7 +4,7 @@ author: "Haavard Rue (hrue@r-inla.org)"
 date: "KAUST, Aug 2020"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Short tutorials}
+  %\VignetteIndexEntry{Short tutorials from old www-page}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---

@@ -1,5 +1,5 @@
 ---
-title: 'Spatially Varying Coefficient Models with R-INLA'
+title: "Spatially Varying Coefficient Models with R-INLA"
 author: "Timothy D. Meehan (tmeeha@gmail.com), Elias T. Krainski, Finn Lindgren, and Håvard Rue"
 date: "Generated on `r Sys.Date()`"
 output: rmarkdown::pdf_document

@@ -1,5 +1,5 @@
 ---
-title: "The `inla.posterior.sample.eval()`-function"
+title: "The inla.posterior.sample.eval-function"
 author: "Haavard Rue"
 date: "KAUST, Aug 2022"
 output: rmarkdown::pdf_document
