@@ -1,10 +1,10 @@
 ---
-title: "Defining a latent model in `R` or `C`: The `rgeneric` and `cgeneric` model"
+title: "Defining a latent model in R or C"
 author: "Haavard Rue `(hrue@r-inla.org)`"
 date: "Dec 9th 2021"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{rgeneric and cgeneric model}
+  %\VignetteIndexEntry{Defining a latent model in R or C}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---

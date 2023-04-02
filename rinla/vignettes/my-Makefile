@@ -1,13 +1,13 @@
 # Allow caller to override the R version:
 R=R
 
-RMDs := bGEVtutorial1-2.Rmd conditional_logit.Rmd  jmarginal.Rmd  old-faq.Rmd stack-with-factors.Rmd conditional-sampling.Rmd  int-design.Rmd multinomial.Rmd  rgeneric.Rmd svc.Rmd sample-eval.Rmd
+RMDs := bGEVtutorial1-2.Rmd conditional_logit.Rmd  jmarginal.Rmd  old-faq.Rmd stack-with-factors.Rmd conditional-sampling.Rmd  int-design.Rmd multinomial.Rmd  rgeneric.Rmd svc.Rmd sample-eval.Rmd group-cv.Rmd SPDE2mdatasurv.Rmd
 
 RNWs := SPDE1d.Rnw  SPDEhowto.Rnw  scale-model.Rnw
 
-PDFs := SPDE1d.pdf bGEVtutorial1-2.pdf conditional_logit.pdf  jmarginal.pdf  old-faq.pdf scale-model.pdf SPDEhowto.pdf  conditional-sampling.pdf  int-design.pdf multinomial.pdf  rgeneric.pdf  stack-with-factors.pdf svc.pdf sample-eval.pdf
+PDFs := SPDE1d.pdf bGEVtutorial1-2.pdf conditional_logit.pdf  jmarginal.pdf  old-faq.pdf scale-model.pdf SPDEhowto.pdf  conditional-sampling.pdf  int-design.pdf multinomial.pdf  rgeneric.pdf  stack-with-factors.pdf svc.pdf sample-eval.pdf group-cv.pdf SPDE2mdatasurv.pdf
 
-HTMLs := bGEVtutorial1-2.html conditional_logit.html  jmarginal.html  old-faq.html stack-with-factors.html conditional-sampling.html  int-design.html multinomial.html  rgeneric.html
+HTMLs := bGEVtutorial1-2.html conditional_logit.html  jmarginal.html  old-faq.html stack-with-factors.html conditional-sampling.html  int-design.html multinomial.html  rgeneric.html svc.html sample-eval.html group-cv.html SPDE2mdatasurv.html
 
 
 

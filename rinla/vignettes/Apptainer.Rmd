@@ -4,7 +4,7 @@ author: Man Ho Suen (m.h.suen@sms.ed.ac.uk)
 output:
   rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Apptainer}
+  %\VignetteIndexEntry{Installation of INLA and inlabru with Apptainer on HPC}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

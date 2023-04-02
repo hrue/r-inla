@@ -1,11 +1,11 @@
 ---
-title: "Avoiding trouble with factors in _inla.stack()_"
+title: "Avoiding trouble with factors in inla.stack"
 author: "Elias T. Krainski `(elias@r-inla.org)`"
 date: "Aug 7th 2017"
 output: rmarkdown::pdf_document
 bibliography: spde-tutorial.bib
 vignette: >
-  %\VignetteIndexEntry{stack-with-factors}
+  %\VignetteIndexEntry{Avoiding trouble with factors in inla.stack}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 ---

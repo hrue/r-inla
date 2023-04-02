@@ -4,7 +4,7 @@ author: "Francesco Serafini (serafini314@gmail.com)"
 date: "April 2018, revised Nov 2019"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Multinomial logit models}
+  %\VignetteIndexEntry{Multinomial logit models with INLA}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 bibliography: multinomial.bib

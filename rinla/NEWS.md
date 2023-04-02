@@ -1,3 +1,12 @@
+# INLA 23.04.02
+* Fixed an issue with group-cv vigette
+
+# INLA 23.04.01
+* Fixed issue with model="slm" (thx to RB and VGB)
+* New vigette about CV and group-CV
+* New option to turn off online-optimisations
+* New option to measure gain in dot-product optimisations
+
 # INLA 23.03.26
 * Various code-cleanup and optimisation
 * Improved code for \code{family="nbinom"} and \code{"bell"}

@@ -23,16 +23,13 @@ set.seed(20202)
 opts_chunk$set(echo = TRUE)
 opts_chunk$set(size='small'
                , cache=FALSE
-               , cache.path='cache/gcpo'
+               , cache.path='cache/group-cv'
                , comment=NA
                , warning=FALSE
                , message=FALSE
                , fig.align='center'
-               , fig.path='figures/gcpo/'
-               , fig.pos='H'
-               , background='#ffffff'
-               , results='hold'
-               , eval=TRUE)
+               , fig.path='figures/group-cv/'
+               , fig.pos='H')
 ```
 
 We present examples to illustrate the use of leave-group-out
@@ -90,15 +87,10 @@ associated with a specific
 $\pi(\tilde{Y}|\tilde{\eta},\boldsymbol{\theta})$.
 
 ```{R message = FALSE, warning=FALSE, echo = FALSE}
-inla.lik.pred = function(y,args = NULL,args.string,eta.mean,eta.sd,eta.skewness){
-    res = dnorm(y,mean = eta.mean,sd = sqrt(eta.sd^2 + 1/exp(args$theta)))
-    return(res)
-}
-
 res = inla(formula = formula,
            data = data.frame(y = c(y,rep(NA,n_rat+1)), id = c(id,1:n_rat,n_rat+1)),
            family = "normal",
-           control.compute = list(config = TRUE,likelihood.info = T)
+           control.compute = list(config = TRUE)
            )
 
 nconfig = res$misc$configs$nconfig
@@ -111,31 +103,18 @@ preddensity = vector(mode = "list",length = n_rat+1)
 for(rat_idx in c(1,11)){
     predictor_idx = n + rat_idx
     mode_idx = which.max(weights)
-    args = INLA:::inla.likelihood.parser(res$misc$configs$config[[1]]$arg.str[1])
-    for(mode_idx in mode_idx){
-        args$theta = res$misc$configs$config[[mode_idx]]$theta[1]
-        mode_eta_mu = res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"mean"]
-        mode_eta_sd = sqrt(res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"variance"])
-        eta_eval = mode_eta_mu + seq(-5,5)*mode_eta_sd
-        args$linear.predictor = eta_eval
-        qfunc = inla.likelihood(type = "q",args)
-        y_eval = c()
-        for(i in 1:length(q)){
-            y_eval = c(y_eval,qfunc(q[i]))
-        }
-    }
-    y_eval = sort(y_eval)
+    sd = 1/sqrt(exp(res$misc$configs$config[[mode_idx]]$theta[1]))
+    mode_eta_mu = res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"mean"]
+    mode_eta_sd = sqrt(res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"variance"])
+    eta_eval = mode_eta_mu + seq(-5,5)*mode_eta_sd
+    y_eval = qnorm(q,mean = mode_eta_mu,sd = sqrt(mode_eta_sd^2 + sd^2))
     
     preddensity_conditional = list(mode = "list",length = nconfig)
     preddensity[[rat_idx]]$y_eval = y_eval
     preddensity[[rat_idx]]$density = numeric(length(y_eval))
     for(config_idx in 1:nconfig){
-        args$theta = res$misc$configs$config[[config_idx]]$theta[1]
-        preddensity_conditional[[config_idx]] = inla.lik.pred(y_eval,
-                                                  args = args,
-                                                  eta.mean = res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"mean"],
-                                                  eta.sd = sqrt(res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"variance"])
-                                                  )
+        sd = 1/sqrt(exp(res$misc$configs$config[[config_idx]]$theta[1]))
+        preddensity_conditional[[config_idx]] = dnorm(y_eval,mean = res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"mean"],sd = sqrt(sqrt(res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"variance"])^2 + sd^2))
         preddensity[[rat_idx]]$density  = preddensity[[rat_idx]]$density +  weights[config_idx]*preddensity_conditional[[config_idx]]
     }
 }
@@ -248,7 +227,7 @@ formula = y ~ 1 + x + f(id, model = "iid") + f(id2, W = x,model = "iid")
 res = inla(formula = formula,
            data = data,
            family = "normal",
-           control.compute = list(config = TRUE,likelihood.info = T)
+           control.compute = list(config = TRUE)
            )
 ```
 
@@ -265,7 +244,7 @@ formula_alt =  y ~ 1 + x + f(id, model = "iid")
 res_alt = inla(formula = formula_alt,
            data = data,
            family = "normal",
-           control.compute = list(config = TRUE,likelihood.info = T)
+           control.compute = list(config = TRUE)
            )
 ```
 
