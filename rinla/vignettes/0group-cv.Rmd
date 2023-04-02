@@ -23,16 +23,13 @@ set.seed(20202)
 opts_chunk$set(echo = TRUE)
 opts_chunk$set(size='small'
                , cache=FALSE
-               , cache.path='cache/gcpo'
+               , cache.path='cache/group-cv'
                , comment=NA
                , warning=FALSE
                , message=FALSE
                , fig.align='center'
-               , fig.path='figures/gcpo/'
-               , fig.pos='H'
-               , background='#ffffff'
-               , results='hold'
-               , eval=TRUE)
+               , fig.path='figures/group-cv/'
+               , fig.pos='H')
 ```
 
 We present examples to illustrate the use of leave-group-out
