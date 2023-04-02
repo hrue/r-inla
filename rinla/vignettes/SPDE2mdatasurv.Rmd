@@ -1,11 +1,11 @@
 ---
-title: "SPDE example with multiple kind of outcomes:"
-subtitle: "Joint modeling with `mdata`, `inla.surv` and counts with exposure."
+title: "SPDE example with multiple kind of outcomes"
+subtitle: "Joint modeling with `mdata`, `inla.surv` and counts with exposure"
 author: "Elias T Krainski"
 date: "2023, March"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{SPDE example with multiple kind of outcomes.}
+  %\VignetteIndexEntry{SPDE example with multiple kind of outcomes}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: spdeshort.bib

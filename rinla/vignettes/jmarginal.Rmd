@@ -1,10 +1,10 @@
 ---
-title: "Approximating joint marginals in R-INLA"
+title: "Approximating joint marginals"
 author: "Cristian Chiuchiolo and Haavard Rue"
 date: "KAUST, Aug 2020"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{Joint marginals}
+  %\VignetteIndexEntry{Approximating joint marginals}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
 bibliography: jmarginal.bib
