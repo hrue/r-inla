@@ -1,3 +1,6 @@
+# INLA 23.04.02
+* Fixed an issue with group-cv vigette
+
 # INLA 23.04.01
 * Fixed issue with model="slm" (thx to RB and VGB)
 * New vigette about CV and group-CV
