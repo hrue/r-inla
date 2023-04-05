@@ -227,9 +227,9 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 		if (ngc) {
 			// validate. we cannot do this before now
 			if (!(ngc * nn == global_constr[0]->nrow)) {
-				fprintf(stderr, "\n\n");
-				fprintf(stderr, "Number of global constraints = %1d,  but the length = %1d\n", ngc, global_constr[0]->nrow);
-				fprintf(stderr, "is not a multiplum of the size of the latent = %1d, exit...\n", nn);
+				fprintf(stderr, "\n\n\n");
+				fprintf(stderr, "\t*** Number of global constraints = %1d,  but the length = %1d\n", ngc, global_constr[0]->nrow);
+				fprintf(stderr, "\t*** is not a multiplum of the size of the latent = %1d, exit...\n", nn);
 				GMRFLib_ASSERT(ngc * nn == global_constr[0]->nrow, GMRFLib_ESNH);
 			}
 
