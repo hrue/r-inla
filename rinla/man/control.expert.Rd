@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
 inla.set.control.expert.default(...)
-control.expert(cpo.idx, cpo.manual, disable.gaussian.check, dot.product.gain, jp)
+control.expert(cpo.idx, cpo.manual, disable.gaussian.check, dot.product.gain, global.constr, jp)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -23,7 +23,10 @@ control.expert(cpo.idx, cpo.manual, disable.gaussian.check, dot.product.gain, jp
 \item{disable.gaussian.check}{   Disable the check for fast computations with a  Gaussian likelihood and identity link (default \code{FALSE})}
 
 \item{jp}{   An object of class \code{inla.jp} defining a joint prior}
-\item{dot.product.gain}{   Show the gain in optimizing dot-products? (Default \code{FALSE})}
+\item{dot.product.gain}{   Output the gain in  optimizing dot-products? (Default \code{FALSE})}
+
+\item{global.constr}{   Add a global constraint (see \code{?f} and argument  \code{extraconstr}). Note that a global constraint does NOT  correct the normalisation constant.}
+
 }
 \value{
   
