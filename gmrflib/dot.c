@@ -204,7 +204,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 #pragma omp atomic
 			GMRFLib_dot_product_gain += ELM_->cpu_gain;
 		}
-	
+
 		switch (ELM_->preference) {
 		case IDXVAL_SERIAL:
 			return (GMRFLib_dot_product_serial(ELM_, ARR_));
@@ -230,8 +230,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 
 	return NAN;
 }
-
 
+
 
 
 

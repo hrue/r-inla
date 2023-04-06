@@ -241,8 +241,14 @@
             ## :ARGUMENT: jp An object of class \code{inla.jp} defining a joint prior
             jp = NULL, 
 
-            ## :ARGUMENT: dot.product.gain Show the gain in optimizing dot-products? (Default \code{FALSE})
-            dot.product.gain = FALSE
+            ## :ARGUMENT+: dot.product.gain Output the gain in
+            ## :ARGUMENT+: optimizing dot-products? (Default \code{FALSE})
+            dot.product.gain = FALSE,
+
+            ## :ARGUMENT+: global.constr Add a global constraint (see \code{?f} and argument
+            ## :ARGUMENT+: \code{extraconstr}). Note that a global constraint does NOT
+            ## :ARGUMENT+: correct the normalisation constant. 
+            globalconstr = list(A = NULL, e = NULL)
         )
 
         ## :SEEALSO: inla

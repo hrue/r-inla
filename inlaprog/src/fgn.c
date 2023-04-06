@@ -281,12 +281,11 @@ double priorfunc_fgn_priorH(double *H_intern, double *param)
 			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 	}
-	
+
 	double U_intern, lambda;
 	U_intern = map_H(param[0], MAP_BACKWARD, NULL);
 	lambda = -log(param[1]) / GMRFLib_spline_eval(U_intern, dist_spline);
-	lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) +
-		log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
+	lprior = log(lambda) - lambda * GMRFLib_spline_eval(*H_intern, dist_spline) + log(fabs(GMRFLib_spline_eval_deriv(*H_intern, dist_spline)));
 
 	return lprior;
 }
@@ -303,13 +302,13 @@ void priorfunc_fgn_priorH_extract(void)
 			dist_spline = GMRFLib_spline_create(H_int, Dist, sizeof(H_int) / sizeof(double));
 		}
 	}
-	
-	for(double H_intern = -10.0, dH = 0.05; H_intern <= 10.0 + dH/2.0; H_intern += dH) {
+
+	for (double H_intern = -10.0, dH = 0.05; H_intern <= 10.0 + dH / 2.0; H_intern += dH) {
 		double dist = GMRFLib_spline_eval(H_intern, dist_spline);
 		printf("%.12f %.12f\n", H_intern, dist);
 	}
 
-	double param[] = {0.9, 0.1};
+	double param[] = { 0.9, 0.1 };
 	printf("\n\n## check:  param = 0.9 0.1\n");
 
 	double theta;

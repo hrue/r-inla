@@ -42,7 +42,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			double *f_diag,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
-			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm)
+			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm, GMRFLib_matrix_tp ** global_constr)
 {
 	assert(omp_get_thread_num() == 0);
 
@@ -181,14 +181,23 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 			}
 		}
 	}
+
+	int ngc = 0;
+	if (global_constr) {
+		ngc = global_constr[1]->nrow;
+		nconstr += ngc;
+	}
+
 	if (nconstr) {
+		int constr_no = 0;
+		int nn = (*preopt)->latent_graph->n;
 		GMRFLib_constr_tp *constr = NULL;
-		int constr_no;
+
 		GMRFLib_make_empty_constr(&constr);
-		constr->a_matrix = Calloc((*preopt)->latent_graph->n * nconstr, double);
+		constr->a_matrix = Calloc(nn * nconstr, double);
 		constr->e_vector = Calloc(nconstr, double);
 		constr->nc = nconstr;
-		constr_no = 0;
+
 		if (nf && f_sumzero) {
 			for (int k = 0; k < nf; k++) {
 				if (f_sumzero[k]) {
@@ -214,6 +223,30 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 				}
 			}
 		}
+
+		if (ngc) {
+			// validate. we cannot do this before now
+			if (!(ngc * nn == global_constr[0]->nrow)) {
+				fprintf(stderr, "\n\n\n");
+				fprintf(stderr, "\t*** Number of global constraints = %1d,  but the length = %1d\n", ngc, global_constr[0]->nrow);
+				fprintf(stderr, "\t*** is not a multiplum of the size of the latent = %1d, exit...\n", nn);
+				GMRFLib_ASSERT(ngc * nn == global_constr[0]->nrow, GMRFLib_ESNH);
+			}
+
+			for (int j = 0; j < ngc; j++) {
+				int off = j * nn;
+				for (int i = 0; i < nn; i++) {
+					constr->a_matrix[i * constr->nc + constr_no] = global_constr[0]->A[i + off];
+				}
+				constr->e_vector[constr_no] = global_constr[1]->A[j];
+				constr_no++;
+			}
+
+			if (0) {
+				GMRFLib_printf_constr(stdout, constr, (*preopt)->latent_graph);
+			}
+		}
+
 		GMRFLib_ASSERT(constr_no == constr->nc, GMRFLib_ESNH);
 		GMRFLib_prepare_constr(constr, (*preopt)->latent_graph, 0);
 		(*preopt)->latent_constr = constr;

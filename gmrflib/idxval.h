@@ -101,7 +101,7 @@ typedef struct {
 	int **g_idx;					       /* indexing */
 	double **g_val;
 	double cpu_gain;
-	
+
 	int g_n_mem;
 	void **g_mem;
 } GMRFLib_idxval_tp;

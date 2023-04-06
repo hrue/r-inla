@@ -7766,7 +7766,7 @@ int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, in
 	double E = ds->data_observations.E[idx];
 	double cen_low = ds->data_observations.cen_low[idx];
 	double cen_high = ds->data_observations.cen_high[idx];
-	double normc = my_gsl_sf_lnfact((int)y);
+	double normc = my_gsl_sf_lnfact((int) y);
 	int int_low = (int) cen_low;
 	int int_high = (int) cen_high;
 
@@ -8467,7 +8467,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 	double y_log_E = cache[1];
 
 	if (m > 0) {
-		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc; 
+		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc;
 		double off = OFFSET(idx);
 		if (PREDICTOR_LINK_EQ(link_log)) {
 
@@ -8480,7 +8480,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 				}
 			}
-			
+
 			// optimised code
 			double t2 = lnorm + size * log(size) + y_log_E;
 			double t3 = -(size + y);
@@ -8501,7 +8501,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		double off =  OFFSET(idx);
+		double off = OFFSET(idx);
 #pragma GCC ivdep
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
@@ -8640,7 +8640,7 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *logll, 
 					 */
 					prob_y_is_zero = gsl_ran_poisson_pdf((unsigned int) 0, mu);
 					logll[i] = log((1.0 - p_zeroinflated) / (1.0 - prob_y_is_zero))
-						+ y * log(mu) - mu - my_gsl_sf_lnfact((int)y);
+					    + y * log(mu) - mu - my_gsl_sf_lnfact((int) y);
 				}
 			}
 		}
@@ -9873,9 +9873,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -31630,6 +31630,19 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		mb->jp = NULL;
 	}
 
+	Free(file);
+	file = iniparser_getstring(ini, inla_string_join(secname, "GLOBALCONSTR.A.FILE"), NULL);
+	if (file) {
+		mb->global_constr = Calloc(2, GMRFLib_matrix_tp *);
+		mb->global_constr[0] = GMRFLib_read_fmesher_file(file, 0, -1);
+		assert(mb->global_constr[0]);
+
+		file = iniparser_getstring(ini, inla_string_join(secname, "GLOBALCONSTR.E.FILE"), NULL);
+		mb->global_constr[1] = GMRFLib_read_fmesher_file(file, 0, -1);
+		assert(mb->global_constr[1]);
+		printf("\t\t\tnumber of global.constr=[%1d]\n", mb->global_constr[1]->nrow);
+	}
+
 	return INLA_OK;
 }
 
@@ -35631,7 +35644,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 	double prec_high = 1.0E3, prec_low = 1.0E-8, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
-	int niter, niter_min = 5, niter_max = 100, stencil = 5; 
+	int niter, niter_min = 5, niter_max = 100, stencil = 5;
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
@@ -36255,7 +36268,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->f_diag,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
-			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
+			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
 
@@ -37000,7 +37013,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->f_diag,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
-			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
+			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
 
@@ -37626,7 +37639,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->likelihood_info = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), (*out)->likelihood_info);
 	(*out)->internal_opt = GMRFLib_internal_opt = iniparser_getboolean(ini, inla_string_join(secname, "INTERNAL.OPT"), (*out)->internal_opt);
 
-	
+
 	if ((*out)->likelihood_info) {
 		(*out)->config = 1;
 	}
@@ -43516,15 +43529,15 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 109: 
+	case 109:
 	{
 		priorfunc_fgn_priorH_extract();
 	}
-	break;
+		break;
 
 	case 110:
 	{
-		double tref[3] = { 0, 0, 0};
+		double tref[3] = { 0, 0, 0 };
 		int n = atoi(args[0]);
 		double *y = Calloc(2 * n, double);
 
@@ -43554,7 +43567,7 @@ int testit(int argc, char **argv)
 
 		printf("GSL:  %.4f  libm: %.4f NULL:  %.4f\n", tref[0] / (tref[0] + tref[1] + tref[2]),
 		       tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
-		       
+
 		P(sum);
 	}
 		break;
