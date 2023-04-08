@@ -1387,13 +1387,14 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 		if (run_parallel) {
 			if (debug)
 				FIXME("Qx2: run block parallel");
-			double *local_result = Calloc(max_t * graph->n, double);
+			int off = 8;
+			double *local_result = Calloc(max_t * (graph->n + off), double);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
 				CODE_BLOCK_ALL_WORK_ZERO();		\
 				double *r, *local_values;		\
 				int tnum = omp_get_thread_num();	\
-				r = local_result + tnum * graph->n;	\
+				r = local_result + tnum * (graph->n + off); \
 				local_values = CODE_BLOCK_WORK_PTR(0); \
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
@@ -1409,7 +1410,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 #undef CODE_BLOCK
 
 			for (int j = 0; j < max_t; j++) {
-				int offset = j * graph->n;
+				int offset = j * (graph->n + off);
 				double *r = local_result + offset;
 #pragma GCC ivdep
 				for (int i = 0; i < graph->n; i++) {

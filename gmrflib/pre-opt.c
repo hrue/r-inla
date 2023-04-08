@@ -1301,7 +1301,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	return GMRFLib_SUCCESS;
 }
 
-double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
+double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt, double *res, double *test_vector)
 {
 	// return alloc'ed double *cpu measurements.
 	// cpu[0] and cpu[1] is the time for doing Q %*% x.
@@ -1331,10 +1331,15 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
 
 	Calloc_init(2 * graph->n, 2);
-	double *x = Calloc_get(graph->n);
+	double *x = NULL;
 	double *xx = Calloc_get(graph->n);
-	for (int i = 0; i < graph->n; i++) {
-		x[i] = GMRFLib_uniform();
+	if (!test_vector) {
+		x = Calloc_get(graph->n);
+		for (int i = 0; i < graph->n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+	} else {
+		x = test_vector;
 	}
 
 	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
@@ -1345,8 +1350,17 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt)
 	GMRFLib_Qx(thread_id, xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
 	cpu[1] += GMRFLib_cpu();
 
+	if (res) {
+		res[0] = value;
+		value = 0.0;
+		for (int i = 0; i < graph->n; i++) {
+			value += ABS(xx[i]);
+		}
+		res[1] = value;
+	}
+
 	Calloc_free();
-	// GMRFLib_free_tabulate_Qfunc(tab);
+	GMRFLib_free_tabulate_Qfunc(tab);
 
 	return cpu;
 }

@@ -54,6 +54,8 @@
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
 int GMRFLib_isum(int n, int *ix);
 int GMRFLib_isum2(int n, int *ix);
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y);
