@@ -43589,6 +43589,34 @@ int testit(int argc, char **argv)
 		break;
 
 
+	case 111: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n, double);
+		double *xx = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			x[i] = xx[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = {0, 0};
+		for(int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+			qsort(x, (size_t)n, sizeof(double), GMRFLib_dcmp);
+			tref[0] += GMRFLib_cpu();
+			Memcpy(x, xx, n * sizeof(double));
+			
+			tref[1] -= GMRFLib_cpu();
+			qsort(x, (size_t)n, sizeof(double), GMRFLib_dcmp);
+			tref[1] += GMRFLib_cpu();
+			Memcpy(x, xx, n * sizeof(double));
+		}
+		printf("sorted arguments: qsort:  %.4f  mkl:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
