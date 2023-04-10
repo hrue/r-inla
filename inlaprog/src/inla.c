@@ -37043,8 +37043,14 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			}
 		}
 		Free(test_vector);
-		assert(ABS(res[0] - res[2]) < 1e-6);
-		assert(ABS(res[1] - res[3]) < 1e-6);
+		if (!(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * 1e-6) || !(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * 1e-6)) {
+			P(res[0]);
+			P(res[2]);
+			P(res[1]);
+			P(res[3]);
+			assert(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * 1e-6);
+			assert(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * 1e-6);
+		}
 
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);

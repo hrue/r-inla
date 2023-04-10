@@ -54,11 +54,11 @@
 %\hypersetup{colorlinks,linkcolor=,urlcolor=links}
 
 %\VignetteEngine{knitr::knitr} 
-%\VignetteIndexEntry{ScaleModel}
+%\VignetteIndexEntry{Scaling IGMRF-models in R-INLA}
 
 \begin{document}
 \begin{titlepage}
-    \title{Tutorial: Scaling IGMRF-models in \texttt{R-INLA}}
+    \title{Scaling IGMRF-models in R-INLA}
     \vspace{0.5cm} \author{Sigrunn Holbek S\o rbye \\ Department of
         Mathematics and Statistics, University of Troms{\o}}
 \end{titlepage}
