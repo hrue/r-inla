@@ -150,7 +150,7 @@ typedef struct {
 } GMRFLib_preopt_tp;
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
-double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt);
+double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt, double *res, double *test_vector);
 double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt);
 double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
 double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
@@ -166,7 +166,8 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt, int n, int nf, int **c, dou
 			double *f_diag,
 			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
 			int nbeta, double **covariate, double *prior_precision,
-			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par), char *predictor_pA_fnm);
+			GMRFLib_bfunc_tp ** bfunc, GMRFLib_ai_param_tp * UNUSED(ai_par), char *predictor_pA_fnm,
+			GMRFLib_matrix_tp ** global_constr);
 int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp * preopt, int likelihood_only);

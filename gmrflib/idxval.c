@@ -537,7 +537,6 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 		h->preference = IDXVAL_SERIAL_MKL;
 		return GMRFLib_SUCCESS;
 	}
-
 	// an upper bound for the number of groups for memory allocation
 	int ng = 1;
 	int i = 1;
@@ -803,9 +802,9 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 			if (0) {
 				printf("idxval optimisation: length = %1d\n", h->n);
 				printf("\tserial     value   = %.16g\n", value[0]);
-				printf("\tserial_mkl abs.err = %.16g\n", ABS(value[1]-value[0]));
-				printf("\tgroup      abs.err = %.16g\n", ABS(value[2]-value[0]));
-				printf("\tgroup_mkl  abs.err = %.16g\n", ABS(value[3]-value[0]));
+				printf("\tserial_mkl abs.err = %.16g\n", ABS(value[1] - value[0]));
+				printf("\tgroup      abs.err = %.16g\n", ABS(value[2] - value[0]));
+				printf("\tgroup_mkl  abs.err = %.16g\n", ABS(value[3] - value[0]));
 			}
 		}
 	}
@@ -872,7 +871,8 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp * h, double *x, int prepare, i
 	default:
 		assert(0 == 1);
 	}
-	h->cpu_gain = treff[1] - treff[kmin]; assert(h->cpu_gain >= 0);
+	h->cpu_gain = treff[1] - treff[kmin];
+	assert(h->cpu_gain >= 0);
 
 	if (h->preference == IDXVAL_SERIAL || h->preference == IDXVAL_SERIAL_MKL) {
 		/*

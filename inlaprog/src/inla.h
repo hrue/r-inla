@@ -1151,6 +1151,11 @@ struct inla_tp_struct {
 	double *lc_derived_c;				       /* optional: correlation for the lincombs (derived) */
 
 	/*
+	 * global constraint (before its merged with the model-constr) ...[0] is A, ...[1] is e, both vectors 'n x 1' 
+	 */
+	GMRFLib_matrix_tp **global_constr;
+
+	/*
 	 * The final model 
 	 */
 	GMRFLib_hgmrfm_tp *hgmrfm;

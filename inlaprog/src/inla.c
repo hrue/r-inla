@@ -7766,7 +7766,7 @@ int loglikelihood_cenpoisson2(int thread_id, double *logll, double *x, int m, in
 	double E = ds->data_observations.E[idx];
 	double cen_low = ds->data_observations.cen_low[idx];
 	double cen_high = ds->data_observations.cen_high[idx];
-	double normc = my_gsl_sf_lnfact((int)y);
+	double normc = my_gsl_sf_lnfact((int) y);
 	int int_low = (int) cen_low;
 	int int_high = (int) cen_high;
 
@@ -8467,7 +8467,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 	double y_log_E = cache[1];
 
 	if (m > 0) {
-		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc; 
+		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc;
 		double off = OFFSET(idx);
 		if (PREDICTOR_LINK_EQ(link_log)) {
 
@@ -8480,7 +8480,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 				}
 			}
-			
+
 			// optimised code
 			double t2 = lnorm + size * log(size) + y_log_E;
 			double t3 = -(size + y);
@@ -8501,7 +8501,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
-		double off =  OFFSET(idx);
+		double off = OFFSET(idx);
 #pragma GCC ivdep
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
@@ -8640,7 +8640,7 @@ int loglikelihood_zeroinflated_negative_binomial0(int thread_id, double *logll, 
 					 */
 					prob_y_is_zero = gsl_ran_poisson_pdf((unsigned int) 0, mu);
 					logll[i] = log((1.0 - p_zeroinflated) / (1.0 - prob_y_is_zero))
-						+ y * log(mu) - mu - my_gsl_sf_lnfact((int)y);
+					    + y * log(mu) - mu - my_gsl_sf_lnfact((int) y);
 				}
 			}
 		}
@@ -31630,6 +31630,19 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		mb->jp = NULL;
 	}
 
+	Free(file);
+	file = iniparser_getstring(ini, inla_string_join(secname, "GLOBALCONSTR.A.FILE"), NULL);
+	if (file) {
+		mb->global_constr = Calloc(2, GMRFLib_matrix_tp *);
+		mb->global_constr[0] = GMRFLib_read_fmesher_file(file, 0, -1);
+		assert(mb->global_constr[0]);
+
+		file = iniparser_getstring(ini, inla_string_join(secname, "GLOBALCONSTR.E.FILE"), NULL);
+		mb->global_constr[1] = GMRFLib_read_fmesher_file(file, 0, -1);
+		assert(mb->global_constr[1]);
+		printf("\t\t\tnumber of global.constr=[%1d]\n", mb->global_constr[1]->nrow);
+	}
+
 	return INLA_OK;
 }
 
@@ -34259,9 +34272,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			nt = def->ntheta;
+			param = Calloc(nt, double);
 			if (nt) {
 				all_fixed = 1;
-				param = Calloc(nt, double);
 				for (ii = 0; ii < nt; ii++) {
 					if (_NOT_FIXED(f_fixed[i][ii])) {
 						param[ii] = theta[count];
@@ -34424,9 +34437,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			def = (inla_cgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			nt = def->ntheta;
-			if (ntheta) {
+			param = Calloc(nt, double);
+			if (nt) {
 				all_fixed = 1;
-				param = Calloc(nt, double);
 				for (ii = 0; ii < nt; ii++) {
 					if (_NOT_FIXED(f_fixed[i][ii])) {
 						param[ii] = theta[count];
@@ -35631,7 +35644,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 	double prec_high = 1.0E3, prec_low = 1.0E-8, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
 	double prec, x, xsol, xnew, f, deriv, dderiv, arr[3], steplen = GSL_ROOT4_DBL_EPSILON, w;
-	int niter, niter_min = 5, niter_max = 100, stencil = 5; 
+	int niter, niter_min = 5, niter_max = 100, stencil = 5;
 	const int debug = 0;
 
 	(void) loglfunc(thread_id, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL);
@@ -36255,7 +36268,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->f_diag,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
-			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
+			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
 
@@ -37000,7 +37013,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 			    mb->f_graph, mb->f_Qfunc, mb->f_Qfunc_arg, mb->f_sumzero, mb->f_constr,
 			    mb->f_diag,
 			    mb->ff_Qfunc, mb->ff_Qfunc_arg,
-			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm);
+			    mb->nlinear, mb->linear_covariate, mb->linear_precision, bfunc, mb->ai_par, mb->predictor_A_fnm, mb->global_constr);
 	mb->preopt = preopt;
 	assert(preopt->latent_graph->n == N);
 
@@ -37013,10 +37026,15 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
 		assert(omp_get_thread_num() == 0);
+		double res[4] = { 0, 0, 0, 0 };
+		double *test_vector = Calloc(preopt->preopt_graph->n, double);
+		for (i = 0; i < preopt->preopt_graph->n; i++) {
+			test_vector[i] = GMRFLib_uniform();
+		}
 		for (int time = -2; time < 4; time++) {
 			for (int mett = 0; mett < 2; mett++) {
 				GMRFLib_Qx_strategy = mett;
-				double *cpu = GMRFLib_preopt_measure_time(thread_id, preopt);
+				double *cpu = GMRFLib_preopt_measure_time(thread_id, preopt, res + mett * 2, test_vector);
 				if (time > 0) {
 					time_used_Qx[mett] += cpu[1];
 				}
@@ -37024,6 +37042,10 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				Free(cpu);
 			}
 		}
+		Free(test_vector);
+		assert(ABS(res[0] - res[2]) < 1e-6);
+		assert(ABS(res[1] - res[3]) < 1e-6);
+
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_Qx_strategy = (time_used_Qx[0] / time_used_Qx[1] < 1.1 ? 0 : 1);
 
@@ -37626,7 +37648,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	(*out)->likelihood_info = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), (*out)->likelihood_info);
 	(*out)->internal_opt = GMRFLib_internal_opt = iniparser_getboolean(ini, inla_string_join(secname, "INTERNAL.OPT"), (*out)->internal_opt);
 
-	
+
 	if ((*out)->likelihood_info) {
 		(*out)->config = 1;
 	}
@@ -42751,7 +42773,7 @@ int testit(int argc, char **argv)
 
 	case 83:
 	{
-		FIXME("FREE in idxval.c needs to disabled for this to run");
+		FIXME("????????????????? FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -42967,50 +42989,57 @@ int testit(int argc, char **argv)
 
 	case 89:
 	{
-		FIXME("FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
+		P(n);
+		P(m);
 		GMRFLib_idxval_tp *h = NULL;
-		double *xx = Calloc(n, double);
-		for (int i = 0; i < n; i++) {
+		double *xx = Calloc(n + 1, double);
+		for (int i = 0; i < n + 1; i++) {
 			xx[i] = GMRFLib_uniform();
 		}
 
-		for (int i = 0, j = 0; i < n; i++) {
-			j += 1 + (GMRFLib_uniform() < 0.9 ? 0 : 1 + (int) (GMRFLib_uniform() * 31));
-			if (j >= n) {
-				break;
-			}
+		for (int i = 0, j = 0; i < ISQR(n); i++) {
+			j += 1 + (GMRFLib_uniform() < 0.8 ? 0 : 1 + (int) (GMRFLib_uniform() * 63));
 			GMRFLib_idxval_add(&h, j, GMRFLib_uniform());
+			if (h->n >= n)
+				break;
 		}
-		GMRFLib_idxval_prepare(&h, 1, 1);
-		if (n == 0) {
-			FIXME("n = 0,  try again.");
-			exit(0);
-		}
-		P(n);
-		P(m);
-		P(h->g_n);
-		P(h->n / h->g_n);
-
-		double sum1 = 0.0, sum2 = 0.0;
-		double tref1 = 0.0, tref2 = 0.0;
+		GMRFLib_idxval_nsort_x(&h, 1, 1, 0, 0);
+		P(h->n);
+		double sum1 = 0.0, sum2 = 0.0, sum3 = 0.0, sum4 = 0.0;
+		double tref1 = 0.0, tref2 = 0.0, tref3 = 0.0, tref4 = 0.0;
 		for (int k = 0; k < m; k++) {
-			sum1 = sum2 = 0.0;
+
+			sum1 = sum2 = sum3 = sum4 = 0.0;
 			tref1 -= GMRFLib_cpu();
 			sum1 = GMRFLib_ddot_idx(h->n, h->val, xx, h->idx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			sum2 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			sum2 = GMRFLib_ddot_idx_mkl_OLD(h->n, h->val, xx, h->idx);
 			tref2 += GMRFLib_cpu();
-			if (ABS(sum1 - sum2) > 1e-8) {
+
+			tref3 -= GMRFLib_cpu();
+			sum3 = GMRFLib_ddot_idx_mkl_NEW(h->n, h->val, xx, h->idx);
+			tref3 += GMRFLib_cpu();
+
+			tref4 -= GMRFLib_cpu();
+			sum4 = GMRFLib_ddot_idx_mkl(h->n, h->val, xx, h->idx);
+			tref4 += GMRFLib_cpu();
+
+			if (ABS(sum1 - sum2) > 1e-8 || ABS(sum1 - sum3) > 1e-8 || ABS(sum1 - sum4) > 1e-8) {
 				P(sum1);
 				P(sum2);
+				P(sum3);
+				P(sum4);
 				exit(88);
 			}
 		}
-		printf("dot_idx %.3f dot_idx_mkl %.3f (%.3f, %.3f)\n", tref1, tref2, tref1 / (tref1 + tref2), tref2 / (tref1 + tref2));
+		printf("dot_idx %.3f mkl_OLD %.3f mkl_NEW %.3f mkl %.3f (%.3f, %.3f, %.3f, %.3f)\n",
+		       tref1, tref2, tref3, tref4,
+		       tref1 / (tref1 + tref2 + tref3 + tref4),
+		       tref2 / (tref1 + tref2 + tref3 + tref4), tref3 / (tref1 + tref2 + tref3 + tref4), tref4 / (tref1 + tref2 + tref3 + tref4));
 		Free(xx);
 	}
 		break;
@@ -43516,15 +43545,15 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 109: 
+	case 109:
 	{
 		priorfunc_fgn_priorH_extract();
 	}
-	break;
+		break;
 
 	case 110:
 	{
-		double tref[3] = { 0, 0, 0};
+		double tref[3] = { 0, 0, 0 };
 		int n = atoi(args[0]);
 		double *y = Calloc(2 * n, double);
 
@@ -43554,11 +43583,39 @@ int testit(int argc, char **argv)
 
 		printf("GSL:  %.4f  libm: %.4f NULL:  %.4f\n", tref[0] / (tref[0] + tref[1] + tref[2]),
 		       tref[1] / (tref[0] + tref[1] + tref[2]), tref[2] / (tref[0] + tref[1] + tref[2]));
-		       
+
 		P(sum);
 	}
 		break;
 
+
+	case 111: 
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(n, double);
+		double *xx = Calloc(n, double);
+		for (int i = 0; i < n; i++) {
+			x[i] = xx[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = {0, 0};
+		for(int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+			qsort(x, (size_t)n, sizeof(double), GMRFLib_dcmp);
+			tref[0] += GMRFLib_cpu();
+			Memcpy(x, xx, n * sizeof(double));
+			
+			tref[1] -= GMRFLib_cpu();
+			qsort(x, (size_t)n, sizeof(double), GMRFLib_dcmp);
+			tref[1] += GMRFLib_cpu();
+			Memcpy(x, xx, n * sizeof(double));
+		}
+		printf("sorted arguments: qsort:  %.4f  mkl:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+	break;
 
 	case 999:
 	{

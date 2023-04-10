@@ -204,7 +204,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 #pragma omp atomic
 			GMRFLib_dot_product_gain += ELM_->cpu_gain;
 		}
-	
+
 		switch (ELM_->preference) {
 		case IDXVAL_SERIAL:
 			return (GMRFLib_dot_product_serial(ELM_, ARR_));
@@ -230,8 +230,8 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restri
 
 	return NAN;
 }
-
 
+
 
 
 
@@ -401,28 +401,40 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 
 #if defined(INLA_LINK_WITH_MKL)
 
+double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
+	double darr[3] = { 1.0, 0.0, 0.0 };
+
+	// we need to define this with length 6. the fifth argument is not used, so we use it for the
+	// argument 'trans', the first argument in the call, trans='N'
+	const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
+
+	mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
+	return (darr[2]);
+}
+double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	return (cblas_ddoti(n, v, idx, a));
+}
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
-	if (0) {
-		// this is the MKL version, which is done using a sparse '1 x n' matrix.
-
-		// we could include <mkl.h> but we can just do this, as we
-		// only need one non-standard function
-
-		int iarr[4] = { 1, 0, n, idx[n - 1] + 1 };
-		double darr[3] = { 1.0, 0.0, 0.0 };
-		// we need to define this with length 6. the fifth argument is not used, so we use it for the
-		// argument 'trans', the first argument in the call, trans='N'
-		const char matdescra[6] = { 'G', '.', '.', 'C', 'N', '.' };
-
-		mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
-		return (darr[2]);
+	if (n > 512L) {
+		return (GMRFLib_ddot_idx_mkl_OLD(n, v, a, idx));
+	} else {
+		return (GMRFLib_ddot_idx_mkl_NEW(n, v, a, idx));
 	}
-
-	return (cblas_ddoti(n, v, idx, a));
 }
 
 #else							       /* defined(INLA_LINK_WITH_MKL) */
+double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	return GMRFLib_ddot_idx(n, v, a, idx);
+}
+double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
+{
+	return GMRFLib_ddot_idx(n, v, a, idx);
+}
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);

@@ -1551,6 +1551,25 @@
     }
     inla.write.boolean.field("DISABLE.GAUSSIAN.CHECK", args$disable.gaussian.check, file)
     inla.write.boolean.field("DOT.PRODUCT.GAIN", args$dot.product.gain, file)
+
+    gconstr <- args$globalconstr
+    if (!is.null(gconstr) && !is.null(gconstr$A)) {
+
+        warning("INLA:: Be aware that global-constrains does not correct the normalisation constant")
+
+        gconstr$e <- as.vector(gconstr$e)
+        stopifnot(nrow(gconstr$A) == length(gconstr$e))
+
+        file.gconstr <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(as.matrix(as.vector(t(gconstr$A)), ncol = 1), filename = file.gconstr)
+        file.globalconstr <- gsub(data.dir, "$inladatadir", file.gconstr, fixed = TRUE)
+        cat("globalconstr.A.file =", file.gconstr, "\n", file = file, append = TRUE)
+
+        file.gconstr <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(as.matrix(as.vector(gconstr$e), ncol = 1), filename = file.gconstr)
+        file.globalconstr <- gsub(data.dir, "$inladatadir", file.gconstr, fixed = TRUE)
+        cat("globalconstr.e.file =", file.gconstr, "\n", file = file, append = TRUE)
+    }
     cat("\n", sep = " ", file = file, append = TRUE)
  }
 
