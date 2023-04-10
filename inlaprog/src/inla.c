@@ -34272,9 +34272,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			def = (inla_rgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			nt = def->ntheta;
+			param = Calloc(nt, double);
 			if (nt) {
 				all_fixed = 1;
-				param = Calloc(nt, double);
 				for (ii = 0; ii < nt; ii++) {
 					if (_NOT_FIXED(f_fixed[i][ii])) {
 						param[ii] = theta[count];
@@ -34437,9 +34437,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			def = (inla_cgeneric_tp *) mb->f_Qfunc_arg_orig[i];
 
 			nt = def->ntheta;
-			if (ntheta) {
+			param = Calloc(nt, double);
+			if (nt) {
 				all_fixed = 1;
-				param = Calloc(nt, double);
 				for (ii = 0; ii < nt; ii++) {
 					if (_NOT_FIXED(f_fixed[i][ii])) {
 						param[ii] = theta[count];
