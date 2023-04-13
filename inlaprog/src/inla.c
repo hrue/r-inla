@@ -43623,6 +43623,29 @@ int testit(int argc, char **argv)
 	}
 	break;
 
+	case 112: 
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(2*n, double);
+		double *y = x + n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = i;
+			y[i] = sin(x[i] / n * 6.0 * M_PI);
+		}
+
+		GMRFLib_spline_tp *s = GMRFLib_spline_create(x, y, n);
+
+		for (int i = 0; i < n; i++) {
+			printf("X:  %g %g\n", x[i], y[i]);
+		}
+		printf("X:\n");
+		for (double xx= -n/4.0; xx < n + n/4.0; xx += 0.01) {
+			printf("X:  %g %g\n", xx, GMRFLib_spline_eval(xx, s));
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
