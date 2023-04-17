@@ -5920,11 +5920,14 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 							  loglFunc, loglFunc_arg, preopt);
 		}
 
+		double *c_corrected = NULL;
 		if (ai_par->vb_enable && (ai_par->vb_strategy == GMRFLib_AI_VB_VARIANCE)) {
+			c_corrected = Calloc(graph->n, double);
 			GMRFLib_ai_vb_correct_variance_preopt(thread_id, dens, dens_count,
 							      c, d, ai_par, ai_store_id, graph,
 							      (tabQfunc ? tabQfunc->Qfunc : Qfunc), (tabQfunc ? tabQfunc->Qfunc_arg : Qfunc_arg),
-							      loglFunc, loglFunc_arg, preopt);
+							      loglFunc, loglFunc_arg, preopt,
+							      c_corrected);
 		}
 
 		double *mean_corrected = Calloc(graph->n, double);
@@ -6041,7 +6044,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 		if (misc_output->configs_preopt) {
 			GMRFLib_ai_store_config_preopt(thread_id, misc_output, nhyper, theta_local, log_dens, log_dens_orig, ai_store_id->problem,
 						       mean_corrected, preopt, Qfunc, Qfunc_arg, cpodens_moments, gcpodens_moments, arg_str,
-						       ll_info, lpred_mean, lpred_variance);
+						       ll_info, lpred_mean, lpred_variance, c_corrected);
 			free_if_not_configs = 0;
 		}
 
@@ -6074,6 +6077,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp *** density,
 			Free(gcpodens_moments);
 		}
 		Free(mean_corrected);
+		Free(c_corrected);
 	}
 
 	if (place_save) {
@@ -8705,7 +8709,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 					  GMRFLib_ai_store_tp * ai_store,
 					  GMRFLib_graph_tp * graph,
 					  GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-					  GMRFLib_preopt_tp * preopt)
+					  GMRFLib_preopt_tp * preopt, double *c_corrected)
 {
 	GMRFLib_ENTER_ROUTINE;
 	assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
@@ -8843,7 +8847,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	}
 
 	double diff_sigma_max = 0.0;
-	double diff_sigma_max_limit = 0.01;
+	double diff_sigma_max_limit = 0.005;
 	GMRFLib_problem_tp *problem = NULL;
 
 	// main loop
@@ -9136,6 +9140,15 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 		}
 	}
 
+	if (c_corrected) {
+		for (int ii = 0; ii < vb_idx->n; ii++) {
+			int i = vb_idx->idx[ii];
+			theta[ii] -= gsl_vector_get(delta, ii);
+			c_corrected[i] = c_like[i] * FUN(theta[ii]);
+			// printf("c_corrected[%1d] =  %f\n", i,  c_corrected[i]);
+		}
+	}
+
 	if (enable_tref_a) {
 		count_tref_a++;
 		for (int i = 0; i < 6; i++) {
@@ -9339,7 +9352,8 @@ int GMRFLib_ai_store_config(int thread_id, GMRFLib_ai_misc_output_tp * mo, int n
 int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo, int ntheta, double *theta, double log_posterior,
 				   double log_posterior_orig, GMRFLib_problem_tp * problem, double *mean_corrected,
 				   GMRFLib_preopt_tp * preopt, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *cpodens_moments,
-				   double *gcpodens_moments, char **arg_str, double *ll_info, double *lpred_mean, double *lpred_variance)
+				   double *gcpodens_moments, char **arg_str, double *ll_info, double *lpred_mean, double *lpred_variance,
+				   double *c_corrected)
 {
 	if (!mo || !(mo->configs_preopt)) {
 		return GMRFLib_SUCCESS;
@@ -9416,7 +9430,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp * mo
 	Q = Calloc(mo->configs_preopt[id]->nz, double);
 	g = preopt->preopt_graph;
 	for (ii = k = 0; ii < g->n; ii++) {
-		Q[k++] = Qfunc(thread_id, ii, ii, NULL, Qfunc_arg);
+		Q[k++] = Qfunc(thread_id, ii, ii, NULL, Qfunc_arg) + (c_corrected ? c_corrected[ii] : 0.0);
 		for (kk = 0; kk < g->lnnbs[ii]; kk++) {
 			jj = g->lnbs[ii][kk];
 			Q[k++] = Qfunc(thread_id, ii, jj, NULL, Qfunc_arg);
