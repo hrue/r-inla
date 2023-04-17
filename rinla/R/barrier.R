@@ -53,6 +53,20 @@
     stopifnot(inherits(mesh, "inla.mesh"))
     stopifnot(range.fraction > 0.000001)
 
+    if(require(INLAspacetime)) {
+	warning("Using implementation from the `INLAspacetime` package")
+	return(INLAspacetime::barrierModel.define(
+	    mesh = mesh,
+            barrier.triangles = barrier.triangles,
+            prior.range = prior.range, 
+            prior.sigma = prior.sigma,
+            range.fraction = range.fraction))
+    } else {
+	warning(paste(
+	"Please install the `INLAspacetime` package\n"
+        "which contains an implementation that runs faster!"))
+    }
+
     ## ## ## FUNCTIONS FOR RGENERIC MODEL SETUP ## ## ##
 
     ## This function is the model component definition in the rgeneric inla framework
@@ -450,17 +464,28 @@
     ## Call all the functions to get the resulting list of fem matrices
 
     xi <- length(Omega)
-    fem <- list()
-    fem$I <- dt.fem.identity(mesh)
-    fem$D <- list()
-    fem$C <- list()
-    for (k in 1:xi) {
-        fem$D[[k]] <- dt.fem.laplace(mesh, Omega[[k]])
+    
+    if(require(INLAspacetime)) {
+        warning("Using implementation from the `INLAspacetime` package")
+        fem <- INLAspacetime::mesh2fem.barrier(
+	    mesh = mesh, 
+	    barrier.triangles = Omega[[2L]])
+    } else {
+        warning(paste(
+        "Please install the `INLAspacetime` package\n"
+        "which contains an implementation that runs faster!"))
+        fem <- list()
+        fem$I <- dt.fem.identity(mesh)
+        fem$D <- list()
+        fem$C <- list()
+        for (k in 1:xi) {
+            fem$D[[k]] <- dt.fem.laplace(mesh, Omega[[k]])
+        }
+        for (k in 1:xi) {
+            fem$C[[k]] <- dt.fem.white(mesh, Omega[[k]])
+        }
+        fem$hdim <- xi
     }
-    for (k in 1:xi) {
-        fem$C[[k]] <- dt.fem.white(mesh, Omega[[k]])
-    }
-    fem$hdim <- xi
 
     return(fem)
 }
