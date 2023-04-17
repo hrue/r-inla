@@ -55,7 +55,7 @@
 
     if(require(INLAspacetime)) {
 	warning("Using implementation from the `INLAspacetime` package")
-	return(barrierModel.define(
+	return(INLAspacetime::barrierModel.define(
 	    mesh = mesh,
             barrier.triangles = barrier.triangles,
             prior.range = prior.range, 
