@@ -52,7 +52,8 @@ Suggests:
     terra,
     tidyterra,
     testthat,
-    tools
+    tools,
+    INLAspacetime
 Imports:
     graphics,
     grDevices,
