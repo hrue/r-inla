@@ -3,14 +3,13 @@
 \usepackage[margin={2cm,2cm}]{geometry} 
 \usepackage{multicol,hyperref}
 
-\title{\vspace{-2cm}
-  A short introduction on how to fit a \textbf{SPDE} model 
-  with \textbf{\textsf{INLA}}}
+\title{A short introduction on how to fit a SPDE
+    model with INLA}
 \author{Elias T. Krainski and H{\aa}vard Rue} 
 \date{Created: November, 20 2013 - Last update: August, 9 2017}
 
 %\VignetteEngine{knitr::knitr} 
-%\VignetteIndexEntry{SPDEhowto}
+%\VignetteIndexEntry{A short introduction on how to fit a SPDE model with INLA}
 \begin{document} 
 
 \maketitle 

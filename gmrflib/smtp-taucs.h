@@ -89,6 +89,7 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *len, int iwlen, int pfree, int
 		    int ncmpa, int *w);
 
 int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
+int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix);
 
 taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags);
 int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L);

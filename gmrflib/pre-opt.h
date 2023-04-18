@@ -150,7 +150,7 @@ typedef struct {
 } GMRFLib_preopt_tp;
 
 GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * a);
-double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt);
+double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt, double *res, double *test_vector);
 double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt);
 double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
 double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);

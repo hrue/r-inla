@@ -1,3 +1,9 @@
+# INLA 23.04.11
+* Fixed an issue with cgeneric
+* Dot-product optimization for MKL
+* Improved Qinv for TAUCS
+* Added global-constraint(s) to the expert option
+
 # INLA 23.04.02
 * Fixed an issue with group-cv vigette
 

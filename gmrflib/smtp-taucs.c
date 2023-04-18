@@ -46,8 +46,6 @@
 #include "amd.h"
 #include "metis.h"
 
-#define GMRFLib_NSET_LIMIT(nset, size, n)  IMAX(10, (n)/10/(size))
-
 taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 {
 	/*
@@ -1089,11 +1087,26 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
 		return GMRFLib_SUCCESS;
 	}
 
-	GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL));
+	if (1) {
+		GMRFLib_EWRAP0(GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL));
+	} else {
+		double tref[] = { 0, 0 };
+		FIXME("NEW");
+		tref[0] -= GMRFLib_cpu();
+		GMRFLib_compute_Qinv_TAUCS_compute(problem, NULL);
+		tref[0] += GMRFLib_cpu();
+		FIXME("OLD");
+		tref[1] -= GMRFLib_cpu();
+		GMRFLib_compute_Qinv_TAUCS_compute_OLD(problem, NULL);
+		tref[1] += GMRFLib_cpu();
+		P(tref[0] / (tref[0] + tref[1]));
+		P(tref[1] / (tref[0] + tref[1]));
+	}
+
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
+int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
 {
 	double *ptr = NULL, value, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
@@ -1171,14 +1184,8 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 
 			map_id_set(Qinv_L[i], j, value);
 		}
-		if (j > 0) {				       /* not needed for j=0 */
-			if (nset > GMRFLib_NSET_LIMIT(nset, (int) sizeof(double), n)) {
-				Memset(Zj, 0, n * sizeof(double));	/* faster if nset is large */
-			} else {
-				for (kk = 0; kk < nset; kk++) {
-					Zj[Zj_set[kk]] = 0.0;  /* set those to zero */
-				}
-			}
+		if (j > 0) {
+			Memset(Zj, 0, n * sizeof(double));
 		}
 	}
 	if (0) {
@@ -1233,7 +1240,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 			for (k = 0; k < nrremove; k++) {
 				map_id_remove(Qinv_L[i], rremove[k]);
 			}
-			map_id_adjustcapacity(Qinv_L[i]);
+			// map_id_adjustcapacity(Qinv_L[i]);
 		}
 	}
 
@@ -1287,6 +1294,163 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_m
 	Free(rremove);
 	Free(Zj);
 	Free(Zj_set);
+
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
+{
+	int n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *inv_remap = NULL;
+	taucs_ccs_matrix *L = NULL;
+	map_id **Qinv_L = NULL;
+
+	L = (Lmatrix ? Lmatrix : problem->sub_sm_fact.TAUCS_L);	/* chose matrix to use */
+	n = L->n;
+
+	/*
+	 * construct a row-list of L_ij's including the diagonal 
+	 */
+
+	nnbs = Calloc(2 * n, int);
+	nnbsQ = nnbs + n;
+
+	for (int i = 0; i < n; i++) {
+		for (int jp = L->colptr[i]; jp < L->colptr[i + 1]; jp++) {
+			nnbs[L->rowind[jp]]++;
+		}
+	}
+
+	int mm = GMRFLib_isum(n, nnbs);
+	int *work_nnbs = Calloc(mm, int);
+	nbs = Calloc(n, int *);
+	for (int i = 0, m = 0; i < n; m += nnbs[i], i++) {
+		nbs[i] = work_nnbs + m;
+	}
+	Memset(nnbs, 0, n * sizeof(int));
+
+	for (int j = 0; j < n; j++) {
+		for (int jp = L->colptr[j]; jp < L->colptr[j + 1]; jp++) {	/* including the diagonal */
+			int i = L->rowind[jp];
+			nbs[i][nnbs[i]] = j;
+			nnbs[i]++;
+			nnbsQ[IMIN(i, j)]++;		       /* for the Qinv_L[] hash-table */
+		}
+	}
+
+	/*
+	 * sort and setup the hash-table for storing Qinv_L 
+	 */
+	Qinv_L = Calloc(n, map_id *);
+#pragma omp parallel for
+	for (int i = 0; i < n; i++) {
+		// looks like it is sorted, but its best to check...
+		int is_sorted = 1;
+		for (int j = 0; j < nnbs[i] - 1 && is_sorted; j++) {
+			if (nbs[i][j] > nbs[i][j + 1]) {
+				is_sorted = 0;
+			}
+		}
+		if (!is_sorted) {
+			qsort(nbs[i], (size_t) nnbs[i], sizeof(int), GMRFLib_icmp);
+		}
+		Qinv_L[i] = Calloc(1, map_id);
+		map_id_init_hint(Qinv_L[i], nnbsQ[i]);
+	}
+
+	double *Zj = Calloc(n, double);
+	double *d = L->values.d;
+	for (int j = n - 1; j >= 0; j--) {
+		// store those indices that are used and set only those to zero 
+		map_id *q = Qinv_L[j];
+		for (int k = -1; (k = (int) map_id_next(q, k)) != -1;) {
+			int jj = q->contents[k].key;
+			Zj[jj] = q->contents[k].value;
+		}
+
+		for (int ii = nnbs[j] - 1; ii >= 0; ii--) {
+			int i = nbs[j][ii];
+			double diag = L->values.d[L->colptr[i]];
+			double value = (i == j ? 1.0 / diag : 0.0);
+
+			int nn = L->colptr[i + 1] - (L->colptr[i] + 1);
+			int kk = L->colptr[i] + 1;
+			double dot = GMRFLib_ddot_idx_mkl(nn, d + kk, Zj, L->rowind + kk);
+
+			value = (value - dot) / diag;
+			Zj[i] = value;
+			map_id_set(Qinv_L[i], j, value);
+		}
+	}
+
+	// compute the mapping 
+	inv_remap = Calloc(n, int);
+	for (int k = 0; k < n; k++) {
+		inv_remap[problem->sub_sm_fact.remap[k]] = k;
+	}
+
+	// its good to remove as then we do not need to correct that many for constraints
+	int *rremove = nnbsQ;
+	Memset(rremove, 0, n * sizeof(int));
+	for (int i = 0; i < n; i++) {
+		int iii = inv_remap[i];
+		int nrremove = 0;
+		for (int k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
+			int j = Qinv_L[i]->contents[k].key;
+			if (j != i) {
+				int jjj = inv_remap[j];
+				if (!GMRFLib_graph_is_nb(iii, jjj, problem->sub_graph)) {
+					rremove[nrremove++] = j;
+				}
+			}
+		}
+		for (int k = 0; k < nrremove; k++) {
+			map_id_remove(Qinv_L[i], rremove[k]);
+		}
+		// this can be costly, so we ignore. this will do 'realloc'
+		// map_id_adjustcapacity(Qinv_L[i]);
+	}
+
+	/*
+	 * correct for constraints, if any. need `iremap' as the matrix terms, constr_m and qi_at_m, is in the sub_graph
+	 * coordinates without reordering!
+	 * 
+	 * not that this is correct for both hard and soft constraints, as the constr_m matrix contains the needed noise-term. 
+	 */
+	if (problem->sub_constr && problem->sub_constr->nc > 0) {
+#pragma omp parallel for
+		for (int i = 0; i < n; i++) {
+			int inc = n;
+			int iii = inv_remap[i];
+			double *xx = &(problem->constr_m[iii]);
+			for (int k = -1; (k = (int) map_id_next(Qinv_L[i], k)) != -1;) {
+				int j = Qinv_L[i]->contents[k].key;
+				int jjj = inv_remap[j];
+				double value = 0.0;
+				double *yy = &(problem->qi_at_m[jjj]);
+				double sum = 0.0;
+
+				map_id_get(Qinv_L[i], j, &value);
+				sum = ddot_(&(problem->sub_constr->nc), xx, &inc, yy, &inc);
+				map_id_set(Qinv_L[i], j, value - sum);
+			}
+		}
+	}
+
+	problem->sub_inverse = Calloc(1, GMRFLib_Qinv_tp);
+	problem->sub_inverse->Qinv = Qinv_L;
+
+	/*
+	 * compute the mapping for lookup using GMRFLib_Qinv_get(). here, the user lookup using a global index, which is then
+	 * transformed to the reordered sub_graph. 
+	 */
+	problem->sub_inverse->mapping = Calloc(n, int);
+	Memcpy(problem->sub_inverse->mapping, problem->sub_sm_fact.remap, n * sizeof(int));
+
+	Free(inv_remap);
+	Free(Zj);
+	Free(work_nnbs);
+	Free(nbs);
+	Free(nnbs);
 
 	return GMRFLib_SUCCESS;
 }
@@ -1690,5 +1854,3 @@ int GMRFLib_amdbarc(int n, int *pe, int *iw, int *UNUSED(len), int UNUSED(iwlen)
 
 	return (result == AMD_OK ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
-
-#undef GMRFLib_NSET_LIMIT

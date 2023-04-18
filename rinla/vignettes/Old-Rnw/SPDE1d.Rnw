@@ -6,13 +6,12 @@
 \usepackage[T1]{fontenc}
 \usepackage{textcomp}
 
-\title{\vspace{-2cm}
-  SPDE one dimensional example}
+\title{SPDE one dimensional example}
 \author{Elias T. Krainski and H{\aa}vard Rue}
 \date{Created: September 26th 2016 - Last update: August 9th 2017}
 
 %\VignetteEngine{knitr::knitr} 
-%\VignetteIndexEntry{SPDE1d}
+%\VignetteIndexEntry{SPDE one dimensional example}
 \begin{document}
 
 \maketitle
