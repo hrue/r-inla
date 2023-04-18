@@ -63,7 +63,7 @@
             range.fraction = range.fraction))
     } else {
 	warning(paste(
-	"Please install the `INLAspacetime` package\n"
+	"Please install the `INLAspacetime` package\n",
         "which contains an implementation that runs faster!"))
     }
 
