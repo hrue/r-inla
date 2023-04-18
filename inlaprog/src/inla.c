@@ -13879,6 +13879,14 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		for (i = 0; i < mb->idx_tot; i++) {
 			printf("\t\t%-30s %10d %10d\n", mb->idx_tag[i], mb->idx_start[i], mb->idx_n[i]);
 		}
+		if (mb->ntheta) {
+			printf("\tList of hyperparameters: \n");
+			for (i = 0; i < mb->ntheta; i++) {
+				printf("\t\ttheta[%1d] = [%s]\n", i, mb->theta_tag[i]);
+			}
+		} else {
+			printf("\tNone hyperparameters\n");
+		}
 		printf("\n");
 	}
 
