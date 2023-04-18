@@ -472,7 +472,7 @@
 	    barrier.triangles = Omega[[2L]])
     } else {
         warning(paste(
-        "Please install the `INLAspacetime` package\n"
+        "Please install the `INLAspacetime` package\n",
         "which contains an implementation that runs faster!"))
         fem <- list()
         fem$I <- dt.fem.identity(mesh)
