@@ -52,7 +52,8 @@ Suggests:
     terra,
     tidyterra,
     testthat,
-    tools
+    tools,
+    INLAspacetime
 Imports:
     graphics,
     grDevices,
@@ -90,6 +91,7 @@ Collate:
     'dev.new.R'
     'display.matrix.R'
     'doc.R'
+    'dryrun.R'
     'expand.dataframe.R'
     'export-class.R'
     'external-package.R'

@@ -1,3 +1,8 @@
+# INLA 23.04.19
+* Update config-output with vb-variance corrections
+* Added \code{INLAspacetime} functions in \code{barrier.R}
+* Added \code{inla.dryrun} (experimental)
+
 # INLA 23.04.11
 * Fixed an issue with cgeneric
 * Dot-product optimization for MKL

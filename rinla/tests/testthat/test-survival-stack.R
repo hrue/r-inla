@@ -39,6 +39,9 @@ test_hat("Case 1: weibullsurv", {
     class(sv)
     str(sv)
 
+    attr(sv, "names.ori")
+    sapply(attr(sv, "names.ori"), as.character)
+
     ## hack 1: to work for the names
     attr(sv, 'class') <- c("inla.surv", "data.frame")
     is.data.frame(sv)
@@ -72,7 +75,19 @@ test_hat("Case 1: weibullsurv", {
 
     ## TO DO: make inla.stack() to collect the "names.ori"
     str(inla.stack.data(dstackS))
+
+    source("~/github/r-inla/rinla/R/working.inla.stack.R")
         
+    wdstackS <- winla.stack(
+        data = list(sv[1:5]), 
+        effects = list(
+            data.frame(
+                a0 = 1,
+                Leuk[c("age", "sex", "wbc", "tpi")])),
+        A = list(1))
+
+    str(wdstackS)
+
     ## problem: how do user use this to fit the model ???
     ## for now the problem is that we have to use the
     ## outcome names from inla.surv()
