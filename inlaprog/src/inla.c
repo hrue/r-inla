@@ -13879,6 +13879,14 @@ inla_tp *inla_build(const char *dict_filename, int verbose, int make_dir)
 		for (i = 0; i < mb->idx_tot; i++) {
 			printf("\t\t%-30s %10d %10d\n", mb->idx_tag[i], mb->idx_start[i], mb->idx_n[i]);
 		}
+		if (mb->ntheta) {
+			printf("\tList of hyperparameters: \n");
+			for (i = 0; i < mb->ntheta; i++) {
+				printf("\t\ttheta[%1d] = [%s]\n", i, mb->theta_tag[i]);
+			}
+		} else {
+			printf("\tNone hyperparameters\n");
+		}
 		printf("\n");
 	}
 
@@ -31641,6 +31649,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 		mb->global_constr[1] = GMRFLib_read_fmesher_file(file, 0, -1);
 		assert(mb->global_constr[1]);
 		printf("\t\t\tnumber of global.constr=[%1d]\n", mb->global_constr[1]->nrow);
+		assert(GMRFLib_inla_mode == GMRFLib_MODE_COMPACT);
 	}
 
 	return INLA_OK;
@@ -43809,6 +43818,8 @@ int main(int argc, char **argv)
 				G.mode = INLA_MODE_PARDISO;
 			} else if (!strncasecmp(optarg, "OPENMP", 6)) {
 				G.mode = INLA_MODE_OPENMP;
+			} else if (!strncasecmp(optarg, "DRYRUN", 6)) {
+				G.mode = INLA_MODE_DRYRUN;
 			} else if (!strncasecmp(optarg, "TESTIT", 6)) {
 				G.mode = INLA_MODE_TESTIT;
 			} else {
@@ -44164,6 +44175,31 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (G.mode == INLA_MODE_DRYRUN) {
+		for (arg = optind; arg < argc; arg++) {
+			mb = inla_build(argv[arg], verbose, 1);
+
+			char *nndir = NULL;
+			FILE *fp = NULL;
+			GMRFLib_sprintf(&nndir, "%s/%s", mb->dir, "dryrun");
+			fp = fopen(nndir, "w");
+			if (!fp) {
+				inla_error_open_file(nndir);
+			}
+			fprintf(fp, "%1d %1d\n", mb->idx_tot, mb->idx_ntot);
+			for (i = 0; i < mb->idx_tot; i++) {
+				fprintf(fp, "%s %1d %1d\n", mb->idx_tag[i], mb->idx_start[i], mb->idx_n[i]);
+			}
+			fprintf(fp, "%1d\n", mb->ntheta);
+			if (mb->ntheta) {
+				for (i = 0; i < mb->ntheta; i++) {
+					fprintf(fp, "%s\n", mb->theta_tag[i]);
+				}
+			}
+			fclose(fp);
+		}
+	}
+	
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {

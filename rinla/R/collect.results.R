@@ -53,7 +53,7 @@
         stop(paste("This is not a directory: ", results.dir, "\n"))
     }
 
-    filename <- paste(results.dir, "/.ok", sep = "")
+    filename <- paste0(results.dir, "/.ok")
     res.ok <- file.exists(filename)
     if (!res.ok) {
         ## try this one instead
@@ -75,6 +75,13 @@
             ## assume the inla-program has crashed
             return (if (silent != 2L) inla.inlaprogram.has.crashed() else NULL)
         }
+    }
+
+    filename <- paste0(results.dir, "/dryrun")
+    if (file.exists(filename)) {
+        res <- list(dryrun = readLines(filename))
+        class(res) <- "inla.dryrun"
+        return(res)
     }
 
     is.null.list <- function(alist) {

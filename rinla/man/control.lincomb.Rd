@@ -16,7 +16,7 @@ control.lincomb(verbose)
 }
 \arguments{
 \item{...}{Possible arguments}
-\item{verbose}{   Use verbose mode for linear combinations if verbose model is  set globally. (Default TRUE)}
+\item{verbose}{   Use verbose mode for linear combinations if verbose model is  set globally. (Default TRUE). This option is only available for  the default \code{inla.mode} (\code{inla.mode="compact"}).}
 
 }
 \value{

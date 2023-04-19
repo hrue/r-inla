@@ -57,7 +57,8 @@
         ## :NAME: control.lincomb
         list(
             ## :ARGUMENT+: verbose Use verbose mode for linear combinations if verbose model is
-            ## :ARGUMENT+: set globally. (Default TRUE)
+            ## :ARGUMENT+: set globally. (Default TRUE). This option is only available for
+            ## :ARGUMENT+: the default \code{inla.mode} (\code{inla.mode="compact"}).
             verbose = FALSE
         )
 
