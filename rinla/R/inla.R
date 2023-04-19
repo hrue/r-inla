@@ -2458,6 +2458,15 @@
                 if (!is.list(ret)) {
                     ret <- list()
                 }
+
+                ## this is a special case using 'inla.dryrun()'. return the dryrun object and
+                ## exit after a cleanup
+                if (inherits(ret, "inla.dryrun")) {
+                    try(unlink(inla.dir, recursive = TRUE), silent = TRUE)
+                    idx <- which(unlist(lapply(ret$dryrun, function(x) (nchar(x) > 0))))
+                    return (ret$dryrun[idx])
+                }
+
             } else {
                 ret <- list()
             }
