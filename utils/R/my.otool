@@ -78,11 +78,11 @@ A=$(Xfun $A)
     else
 	echo builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
 	MKL=/opt/intel/oneapi/mkl/latest/lib
-	if false; then
-	    echo $(myreadlink $MKL/libmkl_intel_lp64.dylib)
-	    echo $(myreadlink $MKL/libmkl_sequential.dylib)
-	    echo $(myreadlink $MKL/libmkl_core.dylib)
-	    for f in $(echo $MKL/libmkl_avx*.dylib) $(echo $MKL/libmkl_vml_avx*.dylib); do
+	if true; then
+	    echo $(myreadlink $MKL/libmkl_intel_lp64.2.dylib)
+	    echo $(myreadlink $MKL/libmkl_sequential.2.dylib)
+	    echo $(myreadlink $MKL/libmkl_core.2.dylib)
+	    for f in $(echo $MKL/libmkl_avx*.2.dylib) $(echo $MKL/libmkl_vml_avx*.2.dylib); do
 		echo $(myreadlink $f)
 	    done
 	fi
