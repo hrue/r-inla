@@ -1,3 +1,7 @@
+# INLA 23.04.20
+* Small fix in \code{inla.dryrun}
+* Change to dynamic libs for Mac
+
 # INLA 23.04.19
 * Update config-output with vb-variance corrections
 * Added \code{INLAspacetime} functions in \code{barrier.R}
