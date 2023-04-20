@@ -21,6 +21,7 @@ for m in 64; do
 	    echo sync $f
 	    for i in {1..10}; do
 		rsync -auvL $INLA_MAC:$f $DIR/. && break
+		sleep 2
 	    done
 	done
     done
@@ -37,6 +38,7 @@ for m in Something; do
 	    echo sync $f
 	    for i in {1..10}; do
 		rsync -auvL $INLA_MAC_ARM64:$f $DIR/.
+		sleep 2
 	    done
 	done
     done
