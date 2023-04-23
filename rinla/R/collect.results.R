@@ -613,7 +613,8 @@
                 lpred.mean.variance <- matrix(0.0, nrow = 0, ncol = 2, dimnames = list(NULL, c("mean", "variance")))
                 have.lpred <- readBin(fp, numeric(), 1)
                 if (have.lpred > 0) {
-                    lpred.mean <- readBin(fp, double(), configs$mnpred)
+                    ## need to add offsets here as its not added when its stored
+                    lpred.mean <- readBin(fp, double(), configs$mnpred) + configs$offsets[1:configs$mnpred]
                     lpred.variance <- readBin(fp, double(), configs$mnpred)
                     lpred.mean[is.nan(lpred.mean)] <- NA
                     lpred.variance[is.nan(lpred.variance)] <- NA

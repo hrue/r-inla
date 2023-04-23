@@ -37422,6 +37422,21 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 				     loglikelihood_inla, (void *) mb,
 				     preopt->preopt_graph, preopt->preopt_Qfunc, preopt->preopt_Qfunc_arg, preopt->latent_constr,
 				     mb->ai_par, ai_store, mb->nlc, mb->lc_lc, &(mb->density_lin), mb->misc_output, preopt);
+
+
+	/*
+	 * add the offsets to the linear predictor. Add the offsets to the 'configs' (if any), at a later stage. 
+	 */
+#pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
+	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
+		GMRFLib_density_tp *d;
+		if (mb->density[i]) {
+			d = mb->density[i];
+			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
+			GMRFLib_free_density(d);
+		}
+	}
+
 	GMRFLib_free_ai_store(ai_store);
 	Free(bfunc);
 	Calloc_free();
@@ -44250,6 +44265,10 @@ int main(int argc, char **argv)
 				}
 				mb->x_file = Calloc(mb->preopt->n + mb->preopt->mnpred, double);
 				Memcpy(mb->x_file, mb->preopt->mode_x, (mb->preopt->n + mb->preopt->mnpred) * sizeof(double));
+				for (i = 0; i < mb->preopt->mnpred; i++) {
+					mb->x_file[i] += OFFSET3(i);
+				}
+
 				mb->ntheta_file = mb->ntheta;
 				mb->nx_file = mb->preopt->n + mb->preopt->mnpred;
 				mb->reuse_mode = GMRFLib_TRUE;
