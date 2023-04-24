@@ -1,3 +1,8 @@
+# INLA 23.04.24
+* Fixed inconsistent treatment of 'offset()' 
+  and 'offset=' in the output, compared with 
+  \code{mode='classic'}
+
 # INLA 23.04.20
 * Small fix in \code{inla.dryrun}
 * Change to dynamic libs for Mac
