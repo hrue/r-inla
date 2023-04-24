@@ -40524,38 +40524,6 @@ int inla_fgn(char *infile, char *outfile)
 	return GMRFLib_SUCCESS;
 }
 
-int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
-			 void *UNUSED(arg), char **UNUSED(arg_str))
-{
-	if (m == 0) {
-		return GMRFLib_LOGL_COMPUTE_CDF;
-	}
-
-	int i;
-	double a = 1.0, b = 2.0, c = 3.0, d = 4.0, x0;
-	x0 = x_vec[0];
-
-	if (m > 0) {
-		for (i = 0; i < m; i++) {
-			double xx = x[i] - x0;
-			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * gsl_pow_3(xx);
-		}
-	} else {
-		abort();
-	}
-	return GMRFLib_SUCCESS;
-}
-
-int inla_testit_timer(void)
-{
-	GMRFLib_ENTER_ROUTINE;
-	int ret = system("sleep 1");
-	if (ret != 0)
-		exit(1);
-	GMRFLib_LEAVE_ROUTINE;
-	return 0;
-}
-
 int inla_check_pardiso(void)
 {
 	// check if PARDISO-lib is installed and working
@@ -40597,6 +40565,38 @@ int inla_reset(void)
 	R_rgeneric_cputime = 0.0;
 
 	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *x_vec, double *UNUSED(y_cdf),
+			 void *UNUSED(arg), char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	double a = 1.0, b = 2.0, c = 3.0, d = 4.0, x0;
+	x0 = x_vec[0];
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			double xx = x[i] - x0;
+			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * gsl_pow_3(xx);
+		}
+	} else {
+		abort();
+	}
+	return GMRFLib_SUCCESS;
+}
+
+int inla_testit_timer(void)
+{
+	GMRFLib_ENTER_ROUTINE;
+	int ret = system("sleep 1");
+	if (ret != 0)
+		exit(1);
+	GMRFLib_LEAVE_ROUTINE;
+	return 0;
 }
 
 double testit_Qfunc(int UNUSED(thread_id), int i, int j, double *UNUSED(values), void *UNUSED(arg))
