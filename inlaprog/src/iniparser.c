@@ -28,7 +28,7 @@
 #define INI_INVALID_KEY     ((char*)-1)
 #define MY_STRING_LOWERCASE(a) my_strlwc(a)
 
-static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
+static void iniparser_add_entry(dictionary *d, char *sec, char *key, char *val)
 {
 	char *longkey = NULL;
 
@@ -68,7 +68,7 @@ static void iniparser_add_entry(dictionary * d, char *sec, char *key, char *val)
 
   This function returns -1 in case of error.
  */
-int iniparser_getnsec(dictionary * d)
+int iniparser_getnsec(dictionary *d)
 {
 	int i;
 	int nsec;
@@ -98,7 +98,7 @@ int iniparser_getnsec(dictionary * d)
 
   This function returns NULL in case of error.
  */
-char *iniparser_getsecname(dictionary * d, int n)
+char *iniparser_getsecname(dictionary *d, int n)
 {
 	int i;
 	int foundsec;
@@ -132,7 +132,7 @@ char *iniparser_getsecname(dictionary * d, int n)
   or @c stdout as output files. This function is meant for debugging
   purposes mostly.
  */
-void iniparser_dump(dictionary * d, FILE * f)
+void iniparser_dump(dictionary *d, FILE *f)
 {
 	int i;
 
@@ -159,7 +159,7 @@ void iniparser_dump(dictionary * d, FILE * f)
   This function dumps a given dictionary into a loadable ini file.
   It is Ok to specify @c stderr or @c stdout as output files.
  */
-void iniparser_dump_ini(dictionary * d, FILE * f)
+void iniparser_dump_ini(dictionary *d, FILE *f)
 {
 	int i, j;
 	char *keym = NULL;
@@ -220,7 +220,7 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
   previous versions of iniparser. It is recommended to use
   iniparser_getstring() instead.
  */
-char *iniparser_getstr(dictionary * d, const char *key)
+char *iniparser_getstr(dictionary *d, const char *key)
 {
 	return iniparser_getstring(d, key, NULL);
 }
@@ -238,7 +238,7 @@ char *iniparser_getstr(dictionary * d, const char *key)
   The returned char pointer is pointing to a string allocated in
   the dictionary, do not free or modify it.
  */
-char *iniparser_getstring(dictionary * d, const char *key, char *def)
+char *iniparser_getstring(dictionary *d, const char *key, char *def)
 {
 	char *lc_key = NULL;
 	char *sval = NULL;
@@ -266,7 +266,7 @@ char *iniparser_getstring(dictionary * d, const char *key, char *def)
   the notfound value is returned.
 
  */
-int iniparser_getint(dictionary * d, const char *key, int notfound)
+int iniparser_getint(dictionary *d, const char *key, int notfound)
 {
 	char *str = NULL;
 
@@ -299,7 +299,7 @@ int iniparser_getint(dictionary * d, const char *key, int notfound)
   ini file is given as "section:key". If the key cannot be found,
   the notfound value is returned.
  */
-double iniparser_getdouble(dictionary * d, const char *key, double notfound)
+double iniparser_getdouble(dictionary *d, const char *key, double notfound)
 {
 	char *str = NULL;
 
@@ -352,7 +352,7 @@ double iniparser_getdouble(dictionary * d, const char *key, double notfound)
   The notfound value returned if no boolean is identified, does not
   necessarily have to be 0 or 1.
  */
-int iniparser_getboolean(dictionary * d, const char *key, int notfound)
+int iniparser_getboolean(dictionary *d, const char *key, int notfound)
 {
 	char *c = NULL;
 	int ret = notfound;
@@ -381,7 +381,7 @@ int iniparser_getboolean(dictionary * d, const char *key, int notfound)
   are stored as keys with NULL associated values, this is the only way
   of querying for the presence of sections in a dictionary.
  */
-int iniparser_find_entry(dictionary * ini, char *entry)
+int iniparser_find_entry(dictionary *ini, char *entry)
 {
 	int found = 0;
 
@@ -402,7 +402,7 @@ int iniparser_find_entry(dictionary * ini, char *entry)
   contain the provided value. If it cannot be found, -1 is returned.
   It is Ok to set val to NULL.
  */
-int iniparser_setstr(dictionary * ini, char *entry, char *val)
+int iniparser_setstr(dictionary *ini, char *entry, char *val)
 {
 	dictionary_set(ini, MY_STRING_LOWERCASE(entry), val);
 	return 0;
@@ -416,7 +416,7 @@ int iniparser_setstr(dictionary * ini, char *entry, char *val)
 
   If the given entry can be found, it is deleted from the dictionary.
  */
-void iniparser_unset(dictionary * ini, char *entry)
+void iniparser_unset(dictionary *ini, char *entry)
 {
 	dictionary_unset(ini, MY_STRING_LOWERCASE(entry));
 }
@@ -433,7 +433,7 @@ void iniparser_unset(dictionary * ini, char *entry)
 
   The returned dictionary must be freed using iniparser_freedict().
  */
-char *iniparser_getline(FILE * fp)
+char *iniparser_getline(FILE *fp)
 {
 	if (feof(fp)) {
 		return NULL;
@@ -564,7 +564,7 @@ dictionary *iniparser_load(const char *ininame)
   It is mandatory to call this function before the dictionary object
   gets out of the current context.
  */
-void iniparser_freedict(dictionary * d)
+void iniparser_freedict(dictionary *d)
 {
 	dictionary_del(d);
 }

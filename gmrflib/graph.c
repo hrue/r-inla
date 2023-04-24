@@ -63,7 +63,7 @@ int GMRFLib_graph_init_store(void)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
+int GMRFLib_graph_mk_empty(GMRFLib_graph_tp **graph)
 {
 	/*
 	 * this function creates an empty graph 
@@ -82,7 +82,7 @@ int GMRFLib_graph_mk_empty(GMRFLib_graph_tp ** graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read(GMRFLib_graph_tp **graph, const char *filename)
 {
 	GMRFLib_graph_read_binary(graph, filename);
 	if (*graph != NULL) {
@@ -92,7 +92,7 @@ int GMRFLib_graph_read(GMRFLib_graph_tp ** graph, const char *filename)
 	}
 }
 
-int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read_ascii(GMRFLib_graph_tp **graph, const char *filename)
 {
 #define TO_INT(_ix, _x) \
 	if (1) {							\
@@ -230,7 +230,7 @@ int GMRFLib_graph_read_ascii(GMRFLib_graph_tp ** graph, const char *filename)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_printf_graph(FILE *fp, GMRFLib_graph_tp *graph)
 {
 	int i, j;
 	FILE *fpp = NULL;
@@ -264,7 +264,7 @@ int GMRFLib_printf_graph(FILE * fp, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * write graph to file filename in the format so it can be read by 'read_graph' 
@@ -290,7 +290,7 @@ int GMRFLib_graph_write(const char *filename, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write2(FILE *fp, GMRFLib_graph_tp *graph)
 {
 	int i, j;
 
@@ -305,7 +305,7 @@ int GMRFLib_graph_write2(FILE * fp, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * use base 1: so the nodes are 1...n, not 0..n-1. this makes the connection to R and R-inla easier. However, the read_graph routines will autodetect if
@@ -342,7 +342,7 @@ int GMRFLib_graph_write_b(const char *filename, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
+int GMRFLib_graph_read_binary(GMRFLib_graph_tp **graph, const char *filename)
 {
 	int i, j, ii, idx, tag = 0;
 	GMRFLib_io_tp *io = NULL;
@@ -432,7 +432,7 @@ int GMRFLib_graph_read_binary(GMRFLib_graph_tp ** graph, const char *filename)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_free(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_free(GMRFLib_graph_tp *graph)
 {
 	/*
 	 * free a graph build with ``GMRFLib_graph_read'' 
@@ -491,7 +491,7 @@ int GMRFLib_getbit(GMRFLib_uchar c, unsigned int bitno)
 	return (int) ((c >> bitno) & ~(~zero << 1));
 }
 
-int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno)
+int GMRFLib_setbit(GMRFLib_uchar *c, unsigned int bitno)
 {
 	/*
 	 * set bitno 0, 1, 2, ..., 7, to TRUE 
@@ -503,7 +503,7 @@ int GMRFLib_setbit(GMRFLib_uchar * c, unsigned int bitno)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printbits(FILE * fp, GMRFLib_uchar c)
+int GMRFLib_printbits(FILE *fp, GMRFLib_uchar c)
 {
 	/*
 	 * just print all the bits in C to FP 
@@ -571,7 +571,7 @@ void *GMRFLib_bsearch(int key, int n, int *array)
 	return NULL;
 }
 
-int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp *graph)
 {
 	int imin, imax;
 	if (node < nnode) {
@@ -593,7 +593,7 @@ int GMRFLib_graph_is_nb(int node, int nnode, GMRFLib_graph_tp * graph)
 	return 0;
 }
 
-int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int *g)
+int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp *graph, int *g)
 {
 	/*
 	 * return 1 if nnode is a neighbour of node, otherwise 0. assume that the nodes are sorted. note that if node == nnode,
@@ -612,7 +612,7 @@ int GMRFLib_graph_is_nb_g(int node, int nnode, GMRFLib_graph_tp * graph, int *g)
 	return 0;
 }
 
-int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp *graph)
 {
 
 	if (!graph) {
@@ -659,7 +659,7 @@ int GMRFLib_graph_add_crs_crc(GMRFLib_graph_tp * graph)
 }
 
 
-int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_add_row2col(GMRFLib_graph_tp *graph)
 {
 	// mapping between the CSR and CSC; see build_TAUCS.
 	// only used for TAUCS
@@ -694,7 +694,7 @@ int GMRFLib_graph_add_row2col(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_prepare(GMRFLib_graph_tp *graph)
 {
 	/*
 	 * prepare the graph by sort the vertices in increasing orders 
@@ -713,7 +713,7 @@ int GMRFLib_graph_prepare(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp *graph)
 {
 	// these nodes are sorted
 
@@ -763,7 +763,7 @@ int GMRFLib_graph_add_lnbs_info(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_mk_unique(GMRFLib_graph_tp *graph)
 {
 	/*
 	 * ensure the neigbours are unique. the neigbours must be sorted. 
@@ -792,7 +792,7 @@ int GMRFLib_graph_mk_unique(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_sort(GMRFLib_graph_tp *graph)
 {
 	/*
 	 * sort the vertices in increasing order 
@@ -822,7 +822,7 @@ int GMRFLib_graph_sort(GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_graph_comp_bw(int *bandwidth, GMRFLib_graph_tp *graph, int *remap)
 {
 	int bw = 0, i, j, node;
 
@@ -851,7 +851,7 @@ int GMRFLib_find_idx(int *idx, int n, int *iarray, int value)
 	return GMRFLib_EINDEX;
 }
 
-int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_validate(FILE *fp, GMRFLib_graph_tp *graph)
 {
 
 	int i, j, jj, error = 0;
@@ -917,7 +917,7 @@ int GMRFLib_graph_validate(FILE * fp, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_graph_remap(GMRFLib_graph_tp **ngraph, GMRFLib_graph_tp *graph, int *remap)
 {
 	/*
 	 * return the remapped graph based on 'graph'. the returned graph has the identity mapping. 
@@ -974,7 +974,7 @@ int GMRFLib_graph_remap(GMRFLib_graph_tp ** ngraph, GMRFLib_graph_tp * graph, in
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * graph_old)
+int GMRFLib_graph_duplicate(GMRFLib_graph_tp **graph_new, GMRFLib_graph_tp *graph_old)
 {
 	/*
 	 * there is no need to do call _prepare_graph as the old graph is assumed to be ok. 
@@ -1040,7 +1040,7 @@ int GMRFLib_graph_duplicate(GMRFLib_graph_tp ** graph_new, GMRFLib_graph_tp * gr
 	return GMRFLib_SUCCESS;
 }
 
-size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
+size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp *graph)
 {
 	/*
 	 * return, approximately, the sizeof GRAPH 
@@ -1060,7 +1060,7 @@ size_t GMRFLib_graph_sizeof(GMRFLib_graph_tp * graph)
 	return siz;
 }
 
-int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp * graph, char *remove_flag, int **node_map)
+int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *graph, char *remove_flag, int **node_map)
 {
 	if (!remove_flag) {
 		if (node_map) {
@@ -1210,7 +1210,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp ** subgraph, GMRFLib_graph_tp *
 	}
 }
 
-int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
 {
 	/*
 	 * convert from the real-world to the mapped world. source might be NULL. 
@@ -1252,7 +1252,7 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_graph_tp *graph, int *remap)
 {
 	/*
 	 * convert from the mapped-world to the real world. source might be NULL. 
@@ -1294,7 +1294,7 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp *graph)
 {
 	int m = 0;
 	for (int i = 0; i < graph->n; i++) {
@@ -1303,7 +1303,7 @@ int GMRFLib_graph_max_nnbs(GMRFLib_graph_tp * graph)
 	return m;
 }
 
-int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp *graph)
 {
 	int m = 0;
 	for (int i = 0; i < graph->n; i++) {
@@ -1312,7 +1312,7 @@ int GMRFLib_graph_max_lnnbs(GMRFLib_graph_tp * graph)
 	return m;
 }
 
-int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph)
+int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp *graph)
 {
 	int m = 0;
 	for (int i = 0; i < graph->n; i++) {
@@ -1321,12 +1321,12 @@ int GMRFLib_graph_max_snnbs(GMRFLib_graph_tp * graph)
 	return m;
 }
 
-int GMRFLib_Qx(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_Qx(int thread_id, double *result, double *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	return (GMRFLib_Qx2(thread_id, result, x, graph, Qfunc, Qfunc_arg, NULL));
 }
 
-int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag)
+int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double *diag)
 {
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1439,7 +1439,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gra
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1572,7 +1572,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix * result, gsl_matrix * x, GMRFLib_graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_Qfunc2(int thread_id, FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_printf_Qfunc2(int thread_id, FILE *fp, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	// print in sparse matrix style. only for small graphs...
 	int i, j;
@@ -1597,7 +1597,7 @@ int GMRFLib_printf_Qfunc2(int thread_id, FILE * fp, GMRFLib_graph_tp * graph, GM
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_Qfunc(int thread_id, FILE * fp, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_printf_Qfunc(int thread_id, FILE *fp, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	int i, j, jj;
 
@@ -1614,12 +1614,12 @@ int GMRFLib_printf_Qfunc(int thread_id, FILE * fp, GMRFLib_graph_tp * graph, GMR
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_xQx(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_xQx(int thread_id, double *result, double *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	return (GMRFLib_xQx2(thread_id, result, x, graph, Qfunc, Qfunc_arg, NULL));
 }
 
-int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double *diag)
+int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double *diag)
 {
 	double *y = NULL;
 	Calloc_init(graph->n, 1);
@@ -1632,7 +1632,7 @@ int GMRFLib_xQx2(int thread_id, double *result, double *x, GMRFLib_graph_tp * gr
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp ** graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag)
+int GMRFLib_graph_mk_lattice(GMRFLib_graph_tp **graph, int nrow, int ncol, int nb_row, int nb_col, int cyclic_flag)
 {
 	/*
 	 * make an lattice graph, with nodes from 0...n-1, and a (2 x nb_row +1) x (2 x nb_col + 1) neighborhood. if
@@ -1712,7 +1712,7 @@ int GMRFLib_node2lattice(int node, int *irow, int *icol, int nrow, int UNUSED(nc
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic_flag)
+int GMRFLib_graph_mk_linear(GMRFLib_graph_tp **graph, int n, int bw, int cyclic_flag)
 {
 	int i, j, k, *hold = NULL;
 
@@ -1761,7 +1761,7 @@ int GMRFLib_graph_mk_linear(GMRFLib_graph_tp ** graph, int n, int bw, int cyclic
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_graph_tp * gg)
+int GMRFLib_graph_fold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *g, GMRFLib_graph_tp *gg)
 {
 	/*
 	 * return ng = g * gg, meaning that ng is g expanded by gg 
@@ -1851,7 +1851,7 @@ int GMRFLib_graph_fold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * g, GMRFLib_gra
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold)
+int GMRFLib_graph_nfold(GMRFLib_graph_tp **ng, GMRFLib_graph_tp *og, int nfold)
 {
 	/*
 	 * make new graph, 'ng', that is 'nfold' of 'og'
@@ -1886,7 +1886,7 @@ int GMRFLib_graph_nfold(GMRFLib_graph_tp ** ng, GMRFLib_graph_tp * og, int nfold
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** graph_array, int n_graphs)
+int GMRFLib_graph_union(GMRFLib_graph_tp **union_graph, GMRFLib_graph_tp **graph_array, int n_graphs)
 {
 	GMRFLib_ged_tp *ged = NULL;
 
@@ -1901,7 +1901,7 @@ int GMRFLib_graph_union(GMRFLib_graph_tp ** union_graph, GMRFLib_graph_tp ** gra
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_complete(GMRFLib_graph_tp **n_graph, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * return a new graph that is complete: if i~j but j!~i, then add j~i 
@@ -1984,7 +1984,7 @@ int GMRFLib_graph_complete(GMRFLib_graph_tp ** n_graph, GMRFLib_graph_tp * graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_insert(GMRFLib_graph_tp ** new_graph, int n_new, int offset, GMRFLib_graph_tp * graph)
+int GMRFLib_graph_insert(GMRFLib_graph_tp **new_graph, int n_new, int offset, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * insert graph into a larger graph with n_new nodes such that node `i' in graph corresponds to node `offset +i' in the 
@@ -2041,7 +2041,7 @@ double GMRFLib_offset_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	return (*a->Qfunc) (thread_id, node - a->offset, nnode - a->offset, NULL, a->Qfunc_arg);
 }
 
-int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_offset(GMRFLib_offset_tp **off, int n_new, int offset, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	/*
 	 * make an object containg the new graph, Qfunc and Qfunc_arg when an graph if inserted into a graph. 
@@ -2067,7 +2067,7 @@ int GMRFLib_offset(GMRFLib_offset_tp ** off, int n_new, int offset, GMRFLib_grap
 	return GMRFLib_SUCCESS;
 }
 
-int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
+int *GMRFLib_graph_cc(GMRFLib_graph_tp *g)
 {
 	/*
 	 * return a vector of length n, indicating which connecting component each node belongs to 
@@ -2097,7 +2097,7 @@ int *GMRFLib_graph_cc(GMRFLib_graph_tp * g)
 	return cc;
 }
 
-int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, int *ccc)
+int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp *g, int *cc, char *visited, int *ccc)
 {
 	if (visited[node]) {				       /* I don't need this but include it for clarity */
 		return GMRFLib_SUCCESS;
@@ -2116,7 +2116,7 @@ int GMRFLib_graph_cc_do(int node, GMRFLib_graph_tp * g, int *cc, char *visited, 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_graph_add_sha(GMRFLib_graph_tp * g)
+int GMRFLib_graph_add_sha(GMRFLib_graph_tp *g)
 {
 	if (g->n == 0) {
 		g->sha = NULL;

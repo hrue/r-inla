@@ -578,7 +578,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	return value;
 }
 
-int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp ** smodel, const char *prefix, const char *transform)
+int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const char *prefix, const char *transform)
 {
 	int i;
 	const int debug = 0;

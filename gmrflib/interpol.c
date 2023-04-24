@@ -106,7 +106,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	return s;
 }
 
-GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M)
+GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp *M)
 {
 	/*
 	 * Return a spline interpolant between {(x,y)} where x is the first column in M and y is the second column of M. 
@@ -122,7 +122,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M)
 	return GMRFLib_spline_create(x, y, M->nrow);
 }
 
-double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 {
 	/*
 	 * Evaluate a spline 's' in point 'x' 
@@ -194,7 +194,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 {
 	/*
 	 * Evaluate the derivative of the spline 's' in point 'x' 
@@ -217,7 +217,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 {
 	/*
 	 * Evaluate the 2.derivative of the spline 's' in point 'x' 
@@ -240,7 +240,7 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 {
 	// this expert version do not check for 's->trans'
 	double val;
@@ -257,7 +257,7 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s)
+double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 {
 	// this expert version do not check for 's->trans'
 	double val;
@@ -274,7 +274,7 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s)
 	return val;
 }
 
-int GMRFLib_spline_free(GMRFLib_spline_tp * s)
+int GMRFLib_spline_free(GMRFLib_spline_tp *s)
 {
 	/*
 	 * Free spline in 's' including 's' iteself. 

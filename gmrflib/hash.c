@@ -577,12 +577,12 @@ static mapkit_size_t map_ii_insertionindex(map_ii * spm, int key);
 
 /* Implementation */
 
-mapkit_error map_ii_init(map_ii * spm)
+mapkit_error map_ii_init(map_ii *spm)
 {
 	return map_ii_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_ii_init_hint(map_ii * spm, mapkit_size_t used)
+mapkit_error map_ii_init_hint(map_ii *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -604,7 +604,7 @@ mapkit_error map_ii_init_hint(map_ii * spm, mapkit_size_t used)
 	return map_ii_reallocate(spm, map_ii_meansize(spm, used));
 }
 
-mapkit_error map_ii_ensurecapacity(map_ii * spm, mapkit_size_t used)
+mapkit_error map_ii_ensurecapacity(map_ii *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -615,7 +615,7 @@ mapkit_error map_ii_ensurecapacity(map_ii * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_ii_adjustcapacity(map_ii * spm)
+mapkit_error map_ii_adjustcapacity(map_ii *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -634,7 +634,7 @@ mapkit_error map_ii_adjustcapacity(map_ii * spm)
 		return MAPKIT_OK;
 }
 
-void map_ii_free(map_ii * spm)
+void map_ii_free(map_ii *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -649,7 +649,7 @@ void map_ii_free(map_ii * spm)
 #endif
 }
 
-mapkit_error map_ii_copy(map_ii * to, map_ii * from)
+mapkit_error map_ii_copy(map_ii *to, map_ii *from)
 {
 	map_ii_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -665,22 +665,22 @@ mapkit_error map_ii_copy(map_ii * to, map_ii * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_ii_growsize(map_ii * spm, mapkit_size_t used)
+mapkit_size_t map_ii_growsize(map_ii *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_ii_shrinksize(map_ii * spm, mapkit_size_t used)
+mapkit_size_t map_ii_shrinksize(map_ii *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_ii_meansize(map_ii * spm, mapkit_size_t used)
+mapkit_size_t map_ii_meansize(map_ii *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_ii_reallocate(map_ii * spm, mapkit_size_t newsize)
+mapkit_error map_ii_reallocate(map_ii *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -768,7 +768,7 @@ mapkit_error map_ii_reallocate(map_ii * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-int map_ii_value_s(map_ii * spm, int key)
+int map_ii_value_s(map_ii *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -784,7 +784,7 @@ int map_ii_value_s(map_ii * spm, int key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_ii_get_s(map_ii * spm, int key, int *value)
+mapkit_error map_ii_get_s(map_ii *spm, int key, int *value)
 {
 	mapkit_size_t iindex;
 
@@ -803,7 +803,7 @@ mapkit_error map_ii_get_s(map_ii * spm, int key, int *value)
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ii_set_s(map_ii * spm, int key, int value)
+mapkit_error map_ii_set_s(map_ii *spm, int key, int value)
 {
 	mapkit_size_t iindex;
 
@@ -833,7 +833,7 @@ mapkit_error map_ii_set_s(map_ii * spm, int key, int value)
 	return MAPKIT_OK;
 }
 
-int *map_ii_insertptr_s(map_ii * spm, int key)
+int *map_ii_insertptr_s(map_ii *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -885,7 +885,7 @@ int *map_ii_insertptr_s(map_ii * spm, int key)
 	}
 }
 
-int *map_ii_ptr_s(map_ii * spm, int key)
+int *map_ii_ptr_s(map_ii *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -897,7 +897,7 @@ int *map_ii_ptr_s(map_ii * spm, int key)
 		return NULL;
 }
 
-mapkit_error map_ii_remove_s(map_ii * spm, int key)
+mapkit_error map_ii_remove_s(map_ii *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -922,7 +922,7 @@ mapkit_error map_ii_remove_s(map_ii * spm, int key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_ii_keyindex(map_ii * spm, int key)
+mapkit_size_t map_ii_keyindex(map_ii *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -951,7 +951,7 @@ mapkit_size_t map_ii_keyindex(map_ii * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t map_ii_insertionindex(map_ii * spm, int key)
+mapkit_size_t map_ii_insertionindex(map_ii *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -1004,7 +1004,7 @@ mapkit_size_t map_ii_insertionindex(map_ii * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t map_ii_next(map_ii * spm, mapkit_size_t iindex)
+mapkit_size_t map_ii_next(map_ii *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_ii_storage *pos_contents;
@@ -1021,7 +1021,7 @@ mapkit_size_t map_ii_next(map_ii * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_ii_storage *map_ii_nextptr(map_ii * spm, map_ii_storage * pos_contents)
+map_ii_storage *map_ii_nextptr(map_ii *spm, map_ii_storage *pos_contents)
 {
 	map_ii_storage *end = &(spm->contents[spm->size]);
 	int defaultvalue = spm->defaultvalue;
@@ -1043,7 +1043,7 @@ map_ii_storage *map_ii_nextptr(map_ii * spm, map_ii_storage * pos_contents)
 	return NULL;
 }
 
-mapkit_error map_ii_getall(map_ii * spm, map_ii_element ** array, mapkit_size_t * count)
+mapkit_error map_ii_getall(map_ii *spm, map_ii_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -1071,7 +1071,7 @@ mapkit_error map_ii_getall(map_ii * spm, map_ii_element ** array, mapkit_size_t 
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ii_clean(map_ii * spm)
+mapkit_error map_ii_clean(map_ii *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -1105,7 +1105,7 @@ int map_ii_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_ii_getall_sorted(map_ii * spm, map_ii_element ** array, mapkit_size_t * count)
+mapkit_error map_ii_getall_sorted(map_ii *spm, map_ii_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -1118,7 +1118,7 @@ mapkit_error map_ii_getall_sorted(map_ii * spm, map_ii_element ** array, mapkit_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ii_setall(map_ii * spm, map_ii_element * array, mapkit_size_t count)
+mapkit_error map_ii_setall(map_ii *spm, map_ii_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -1145,7 +1145,7 @@ mapkit_error map_ii_setall(map_ii * spm, map_ii_element * array, mapkit_size_t c
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ii_removeall(map_ii * spm, int *array, mapkit_size_t count)
+mapkit_error map_ii_removeall(map_ii *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -1166,7 +1166,7 @@ mapkit_error map_ii_removeall(map_ii * spm, int *array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_ii_printstats(map_ii * spm)
+void map_ii_printstats(map_ii *spm)
 {
 	fprintf(stderr, "MAPKIT: map_ii statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -1199,12 +1199,12 @@ static mapkit_size_t map_id_insertionindex(map_id * spm, int key);
 
 /* Implementation */
 
-mapkit_error map_id_init(map_id * spm)
+mapkit_error map_id_init(map_id *spm)
 {
 	return map_id_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_id_init_hint(map_id * spm, mapkit_size_t used)
+mapkit_error map_id_init_hint(map_id *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -1226,7 +1226,7 @@ mapkit_error map_id_init_hint(map_id * spm, mapkit_size_t used)
 	return map_id_reallocate(spm, map_id_meansize(spm, used));
 }
 
-mapkit_error map_id_ensurecapacity(map_id * spm, mapkit_size_t used)
+mapkit_error map_id_ensurecapacity(map_id *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -1237,7 +1237,7 @@ mapkit_error map_id_ensurecapacity(map_id * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_id_adjustcapacity(map_id * spm)
+mapkit_error map_id_adjustcapacity(map_id *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -1256,7 +1256,7 @@ mapkit_error map_id_adjustcapacity(map_id * spm)
 		return MAPKIT_OK;
 }
 
-void map_id_free(map_id * spm)
+void map_id_free(map_id *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -1271,7 +1271,7 @@ void map_id_free(map_id * spm)
 #endif
 }
 
-mapkit_error map_id_copy(map_id * to, map_id * from)
+mapkit_error map_id_copy(map_id *to, map_id *from)
 {
 	map_id_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -1287,22 +1287,22 @@ mapkit_error map_id_copy(map_id * to, map_id * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_id_growsize(map_id * spm, mapkit_size_t used)
+mapkit_size_t map_id_growsize(map_id *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_id_shrinksize(map_id * spm, mapkit_size_t used)
+mapkit_size_t map_id_shrinksize(map_id *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_id_meansize(map_id * spm, mapkit_size_t used)
+mapkit_size_t map_id_meansize(map_id *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_id_reallocate(map_id * spm, mapkit_size_t newsize)
+mapkit_error map_id_reallocate(map_id *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -1390,7 +1390,7 @@ mapkit_error map_id_reallocate(map_id * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double map_id_value_s(map_id * spm, int key)
+double map_id_value_s(map_id *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -1406,7 +1406,7 @@ double map_id_value_s(map_id * spm, int key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_id_get_s(map_id * spm, int key, double *value)
+mapkit_error map_id_get_s(map_id *spm, int key, double *value)
 {
 	mapkit_size_t iindex;
 
@@ -1425,7 +1425,7 @@ mapkit_error map_id_get_s(map_id * spm, int key, double *value)
 	return MAPKIT_OK;
 }
 
-mapkit_error map_id_set_s(map_id * spm, int key, double value)
+mapkit_error map_id_set_s(map_id *spm, int key, double value)
 {
 	mapkit_size_t iindex;
 
@@ -1455,7 +1455,7 @@ mapkit_error map_id_set_s(map_id * spm, int key, double value)
 	return MAPKIT_OK;
 }
 
-double *map_id_insertptr_s(map_id * spm, int key)
+double *map_id_insertptr_s(map_id *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -1507,7 +1507,7 @@ double *map_id_insertptr_s(map_id * spm, int key)
 	}
 }
 
-double *map_id_ptr_s(map_id * spm, int key)
+double *map_id_ptr_s(map_id *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -1519,7 +1519,7 @@ double *map_id_ptr_s(map_id * spm, int key)
 		return NULL;
 }
 
-mapkit_error map_id_remove_s(map_id * spm, int key)
+mapkit_error map_id_remove_s(map_id *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -1544,7 +1544,7 @@ mapkit_error map_id_remove_s(map_id * spm, int key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_id_keyindex(map_id * spm, int key)
+mapkit_size_t map_id_keyindex(map_id *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -1573,7 +1573,7 @@ mapkit_size_t map_id_keyindex(map_id * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t map_id_insertionindex(map_id * spm, int key)
+mapkit_size_t map_id_insertionindex(map_id *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -1626,7 +1626,7 @@ mapkit_size_t map_id_insertionindex(map_id * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t map_id_next(map_id * spm, mapkit_size_t iindex)
+mapkit_size_t map_id_next(map_id *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_id_storage *pos_contents;
@@ -1643,7 +1643,7 @@ mapkit_size_t map_id_next(map_id * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_id_storage *map_id_nextptr(map_id * spm, map_id_storage * pos_contents)
+map_id_storage *map_id_nextptr(map_id *spm, map_id_storage *pos_contents)
 {
 	map_id_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -1665,7 +1665,7 @@ map_id_storage *map_id_nextptr(map_id * spm, map_id_storage * pos_contents)
 	return NULL;
 }
 
-mapkit_error map_id_getall(map_id * spm, map_id_element ** array, mapkit_size_t * count)
+mapkit_error map_id_getall(map_id *spm, map_id_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -1693,7 +1693,7 @@ mapkit_error map_id_getall(map_id * spm, map_id_element ** array, mapkit_size_t 
 	return MAPKIT_OK;
 }
 
-mapkit_error map_id_clean(map_id * spm)
+mapkit_error map_id_clean(map_id *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -1727,7 +1727,7 @@ int map_id_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_id_getall_sorted(map_id * spm, map_id_element ** array, mapkit_size_t * count)
+mapkit_error map_id_getall_sorted(map_id *spm, map_id_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -1740,7 +1740,7 @@ mapkit_error map_id_getall_sorted(map_id * spm, map_id_element ** array, mapkit_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_id_setall(map_id * spm, map_id_element * array, mapkit_size_t count)
+mapkit_error map_id_setall(map_id *spm, map_id_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -1767,7 +1767,7 @@ mapkit_error map_id_setall(map_id * spm, map_id_element * array, mapkit_size_t c
 	return MAPKIT_OK;
 }
 
-mapkit_error map_id_removeall(map_id * spm, int *array, mapkit_size_t count)
+mapkit_error map_id_removeall(map_id *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -1788,7 +1788,7 @@ mapkit_error map_id_removeall(map_id * spm, int *array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_id_printstats(map_id * spm)
+void map_id_printstats(map_id *spm)
 {
 	fprintf(stderr, "MAPKIT: map_id statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -1821,12 +1821,12 @@ static mapkit_size_t map_ivp_insertionindex(map_ivp * spm, int key);
 
 /* Implementation */
 
-mapkit_error map_ivp_init(map_ivp * spm)
+mapkit_error map_ivp_init(map_ivp *spm)
 {
 	return map_ivp_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_ivp_init_hint(map_ivp * spm, mapkit_size_t used)
+mapkit_error map_ivp_init_hint(map_ivp *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -1848,7 +1848,7 @@ mapkit_error map_ivp_init_hint(map_ivp * spm, mapkit_size_t used)
 	return map_ivp_reallocate(spm, map_ivp_meansize(spm, used));
 }
 
-mapkit_error map_ivp_ensurecapacity(map_ivp * spm, mapkit_size_t used)
+mapkit_error map_ivp_ensurecapacity(map_ivp *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -1859,7 +1859,7 @@ mapkit_error map_ivp_ensurecapacity(map_ivp * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_ivp_adjustcapacity(map_ivp * spm)
+mapkit_error map_ivp_adjustcapacity(map_ivp *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -1878,7 +1878,7 @@ mapkit_error map_ivp_adjustcapacity(map_ivp * spm)
 		return MAPKIT_OK;
 }
 
-void map_ivp_free(map_ivp * spm)
+void map_ivp_free(map_ivp *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -1893,7 +1893,7 @@ void map_ivp_free(map_ivp * spm)
 #endif
 }
 
-mapkit_error map_ivp_copy(map_ivp * to, map_ivp * from)
+mapkit_error map_ivp_copy(map_ivp *to, map_ivp *from)
 {
 	map_ivp_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -1909,22 +1909,22 @@ mapkit_error map_ivp_copy(map_ivp * to, map_ivp * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_ivp_growsize(map_ivp * spm, mapkit_size_t used)
+mapkit_size_t map_ivp_growsize(map_ivp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_ivp_shrinksize(map_ivp * spm, mapkit_size_t used)
+mapkit_size_t map_ivp_shrinksize(map_ivp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_ivp_meansize(map_ivp * spm, mapkit_size_t used)
+mapkit_size_t map_ivp_meansize(map_ivp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_ivp_reallocate(map_ivp * spm, mapkit_size_t newsize)
+mapkit_error map_ivp_reallocate(map_ivp *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -2012,7 +2012,7 @@ mapkit_error map_ivp_reallocate(map_ivp * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-void *map_ivp_value_s(map_ivp * spm, int key)
+void *map_ivp_value_s(map_ivp *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -2028,7 +2028,7 @@ void *map_ivp_value_s(map_ivp * spm, int key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_ivp_get_s(map_ivp * spm, int key, void **value)
+mapkit_error map_ivp_get_s(map_ivp *spm, int key, void **value)
 {
 	mapkit_size_t iindex;
 
@@ -2046,7 +2046,7 @@ mapkit_error map_ivp_get_s(map_ivp * spm, int key, void **value)
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ivp_set_s(map_ivp * spm, int key, void *value)
+mapkit_error map_ivp_set_s(map_ivp *spm, int key, void *value)
 {
 	mapkit_size_t iindex;
 
@@ -2076,7 +2076,7 @@ mapkit_error map_ivp_set_s(map_ivp * spm, int key, void *value)
 	return MAPKIT_OK;
 }
 
-void **map_ivp_insertptr_s(map_ivp * spm, int key)
+void **map_ivp_insertptr_s(map_ivp *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -2128,7 +2128,7 @@ void **map_ivp_insertptr_s(map_ivp * spm, int key)
 	}
 }
 
-void **map_ivp_ptr_s(map_ivp * spm, int key)
+void **map_ivp_ptr_s(map_ivp *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -2140,7 +2140,7 @@ void **map_ivp_ptr_s(map_ivp * spm, int key)
 		return NULL;
 }
 
-mapkit_error map_ivp_remove_s(map_ivp * spm, int key)
+mapkit_error map_ivp_remove_s(map_ivp *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -2165,7 +2165,7 @@ mapkit_error map_ivp_remove_s(map_ivp * spm, int key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_ivp_keyindex(map_ivp * spm, int key)
+mapkit_size_t map_ivp_keyindex(map_ivp *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -2194,7 +2194,7 @@ mapkit_size_t map_ivp_keyindex(map_ivp * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t map_ivp_insertionindex(map_ivp * spm, int key)
+mapkit_size_t map_ivp_insertionindex(map_ivp *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -2247,7 +2247,7 @@ mapkit_size_t map_ivp_insertionindex(map_ivp * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t map_ivp_next(map_ivp * spm, mapkit_size_t iindex)
+mapkit_size_t map_ivp_next(map_ivp *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_ivp_storage *pos_contents;
@@ -2264,7 +2264,7 @@ mapkit_size_t map_ivp_next(map_ivp * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_ivp_storage *map_ivp_nextptr(map_ivp * spm, map_ivp_storage * pos_contents)
+map_ivp_storage *map_ivp_nextptr(map_ivp *spm, map_ivp_storage *pos_contents)
 {
 	map_ivp_storage *end = &(spm->contents[spm->size]);
 	void *defaultvalue = spm->defaultvalue;
@@ -2286,7 +2286,7 @@ map_ivp_storage *map_ivp_nextptr(map_ivp * spm, map_ivp_storage * pos_contents)
 	return NULL;
 }
 
-mapkit_error map_ivp_getall(map_ivp * spm, map_ivp_element ** array, mapkit_size_t * count)
+mapkit_error map_ivp_getall(map_ivp *spm, map_ivp_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -2314,7 +2314,7 @@ mapkit_error map_ivp_getall(map_ivp * spm, map_ivp_element ** array, mapkit_size
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ivp_clean(map_ivp * spm)
+mapkit_error map_ivp_clean(map_ivp *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -2348,7 +2348,7 @@ int map_ivp_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_ivp_getall_sorted(map_ivp * spm, map_ivp_element ** array, mapkit_size_t * count)
+mapkit_error map_ivp_getall_sorted(map_ivp *spm, map_ivp_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -2361,7 +2361,7 @@ mapkit_error map_ivp_getall_sorted(map_ivp * spm, map_ivp_element ** array, mapk
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ivp_setall(map_ivp * spm, map_ivp_element * array, mapkit_size_t count)
+mapkit_error map_ivp_setall(map_ivp *spm, map_ivp_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -2388,7 +2388,7 @@ mapkit_error map_ivp_setall(map_ivp * spm, map_ivp_element * array, mapkit_size_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_ivp_removeall(map_ivp * spm, int *array, mapkit_size_t count)
+mapkit_error map_ivp_removeall(map_ivp *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -2409,7 +2409,7 @@ mapkit_error map_ivp_removeall(map_ivp * spm, int *array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_ivp_printstats(map_ivp * spm)
+void map_ivp_printstats(map_ivp *spm)
 {
 	fprintf(stderr, "MAPKIT: map_ivp statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -2442,12 +2442,12 @@ static mapkit_size_t map_h_ii_insertionindex(map_h_ii * spm, int key, mapkit_has
 
 /* Implementation */
 
-mapkit_error map_h_ii_init(map_h_ii * spm)
+mapkit_error map_h_ii_init(map_h_ii *spm)
 {
 	return map_h_ii_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_h_ii_init_hint(map_h_ii * spm, mapkit_size_t used)
+mapkit_error map_h_ii_init_hint(map_h_ii *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -2469,7 +2469,7 @@ mapkit_error map_h_ii_init_hint(map_h_ii * spm, mapkit_size_t used)
 	return map_h_ii_reallocate(spm, map_h_ii_meansize(spm, used));
 }
 
-mapkit_error map_h_ii_ensurecapacity(map_h_ii * spm, mapkit_size_t used)
+mapkit_error map_h_ii_ensurecapacity(map_h_ii *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -2480,7 +2480,7 @@ mapkit_error map_h_ii_ensurecapacity(map_h_ii * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_h_ii_adjustcapacity(map_h_ii * spm)
+mapkit_error map_h_ii_adjustcapacity(map_h_ii *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -2499,7 +2499,7 @@ mapkit_error map_h_ii_adjustcapacity(map_h_ii * spm)
 		return MAPKIT_OK;
 }
 
-void map_h_ii_free(map_h_ii * spm)
+void map_h_ii_free(map_h_ii *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -2514,7 +2514,7 @@ void map_h_ii_free(map_h_ii * spm)
 #endif
 }
 
-mapkit_error map_h_ii_copy(map_h_ii * to, map_h_ii * from)
+mapkit_error map_h_ii_copy(map_h_ii *to, map_h_ii *from)
 {
 	map_h_ii_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -2530,22 +2530,22 @@ mapkit_error map_h_ii_copy(map_h_ii * to, map_h_ii * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_ii_growsize(map_h_ii * spm, mapkit_size_t used)
+mapkit_size_t map_h_ii_growsize(map_h_ii *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_ii_shrinksize(map_h_ii * spm, mapkit_size_t used)
+mapkit_size_t map_h_ii_shrinksize(map_h_ii *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_ii_meansize(map_h_ii * spm, mapkit_size_t used)
+mapkit_size_t map_h_ii_meansize(map_h_ii *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_h_ii_reallocate(map_h_ii * spm, mapkit_size_t newsize)
+mapkit_error map_h_ii_reallocate(map_h_ii *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -2634,7 +2634,7 @@ mapkit_error map_h_ii_reallocate(map_h_ii * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-int map_h_ii_value_s(map_h_ii * spm, int key, mapkit_hash_t hash)
+int map_h_ii_value_s(map_h_ii *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -2650,7 +2650,7 @@ int map_h_ii_value_s(map_h_ii * spm, int key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_h_ii_get_s(map_h_ii * spm, int key, int *value, mapkit_hash_t hash)
+mapkit_error map_h_ii_get_s(map_h_ii *spm, int key, int *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -2668,7 +2668,7 @@ mapkit_error map_h_ii_get_s(map_h_ii * spm, int key, int *value, mapkit_hash_t h
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ii_set_s(map_h_ii * spm, int key, int value, mapkit_hash_t hash)
+mapkit_error map_h_ii_set_s(map_h_ii *spm, int key, int value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -2698,7 +2698,7 @@ mapkit_error map_h_ii_set_s(map_h_ii * spm, int key, int value, mapkit_hash_t ha
 	return MAPKIT_OK;
 }
 
-int *map_h_ii_insertptr_s(map_h_ii * spm, int key, mapkit_hash_t hash)
+int *map_h_ii_insertptr_s(map_h_ii *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -2750,7 +2750,7 @@ int *map_h_ii_insertptr_s(map_h_ii * spm, int key, mapkit_hash_t hash)
 	}
 }
 
-int *map_h_ii_ptr_s(map_h_ii * spm, int key, mapkit_hash_t hash)
+int *map_h_ii_ptr_s(map_h_ii *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -2762,7 +2762,7 @@ int *map_h_ii_ptr_s(map_h_ii * spm, int key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_h_ii_remove_s(map_h_ii * spm, int key, mapkit_hash_t hash)
+mapkit_error map_h_ii_remove_s(map_h_ii *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -2787,7 +2787,7 @@ mapkit_error map_h_ii_remove_s(map_h_ii * spm, int key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_ii_keyindex(map_h_ii * spm, int key, mapkit_hash_t hash)
+mapkit_size_t map_h_ii_keyindex(map_h_ii *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -2816,7 +2816,7 @@ mapkit_size_t map_h_ii_keyindex(map_h_ii * spm, int key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_h_ii_insertionindex(map_h_ii * spm, int key, mapkit_hash_t hash)
+mapkit_size_t map_h_ii_insertionindex(map_h_ii *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -2869,7 +2869,7 @@ mapkit_size_t map_h_ii_insertionindex(map_h_ii * spm, int key, mapkit_hash_t has
 	return iindex;
 }
 
-mapkit_size_t map_h_ii_next(map_h_ii * spm, mapkit_size_t iindex)
+mapkit_size_t map_h_ii_next(map_h_ii *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_h_ii_storage *pos_contents;
@@ -2886,7 +2886,7 @@ mapkit_size_t map_h_ii_next(map_h_ii * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_h_ii_storage *map_h_ii_nextptr(map_h_ii * spm, map_h_ii_storage * pos_contents)
+map_h_ii_storage *map_h_ii_nextptr(map_h_ii *spm, map_h_ii_storage *pos_contents)
 {
 	map_h_ii_storage *end = &(spm->contents[spm->size]);
 	int defaultvalue = spm->defaultvalue;
@@ -2908,7 +2908,7 @@ map_h_ii_storage *map_h_ii_nextptr(map_h_ii * spm, map_h_ii_storage * pos_conten
 	return NULL;
 }
 
-mapkit_error map_h_ii_getall(map_h_ii * spm, map_h_ii_element ** array, mapkit_size_t * count)
+mapkit_error map_h_ii_getall(map_h_ii *spm, map_h_ii_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -2936,7 +2936,7 @@ mapkit_error map_h_ii_getall(map_h_ii * spm, map_h_ii_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ii_clean(map_h_ii * spm)
+mapkit_error map_h_ii_clean(map_h_ii *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -2970,7 +2970,7 @@ int map_h_ii_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_h_ii_getall_sorted(map_h_ii * spm, map_h_ii_element ** array, mapkit_size_t * count)
+mapkit_error map_h_ii_getall_sorted(map_h_ii *spm, map_h_ii_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -2983,7 +2983,7 @@ mapkit_error map_h_ii_getall_sorted(map_h_ii * spm, map_h_ii_element ** array, m
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ii_setall(map_h_ii * spm, map_h_ii_element * array, mapkit_size_t count)
+mapkit_error map_h_ii_setall(map_h_ii *spm, map_h_ii_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -3010,7 +3010,7 @@ mapkit_error map_h_ii_setall(map_h_ii * spm, map_h_ii_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ii_removeall(map_h_ii * spm, int *array, mapkit_size_t count)
+mapkit_error map_h_ii_removeall(map_h_ii *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -3031,7 +3031,7 @@ mapkit_error map_h_ii_removeall(map_h_ii * spm, int *array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_h_ii_printstats(map_h_ii * spm)
+void map_h_ii_printstats(map_h_ii *spm)
 {
 	fprintf(stderr, "MAPKIT: map_h_ii statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -3064,12 +3064,12 @@ static mapkit_size_t map_h_id_insertionindex(map_h_id * spm, int key, mapkit_has
 
 /* Implementation */
 
-mapkit_error map_h_id_init(map_h_id * spm)
+mapkit_error map_h_id_init(map_h_id *spm)
 {
 	return map_h_id_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_h_id_init_hint(map_h_id * spm, mapkit_size_t used)
+mapkit_error map_h_id_init_hint(map_h_id *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -3091,7 +3091,7 @@ mapkit_error map_h_id_init_hint(map_h_id * spm, mapkit_size_t used)
 	return map_h_id_reallocate(spm, map_h_id_meansize(spm, used));
 }
 
-mapkit_error map_h_id_ensurecapacity(map_h_id * spm, mapkit_size_t used)
+mapkit_error map_h_id_ensurecapacity(map_h_id *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -3102,7 +3102,7 @@ mapkit_error map_h_id_ensurecapacity(map_h_id * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_h_id_adjustcapacity(map_h_id * spm)
+mapkit_error map_h_id_adjustcapacity(map_h_id *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -3121,7 +3121,7 @@ mapkit_error map_h_id_adjustcapacity(map_h_id * spm)
 		return MAPKIT_OK;
 }
 
-void map_h_id_free(map_h_id * spm)
+void map_h_id_free(map_h_id *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -3136,7 +3136,7 @@ void map_h_id_free(map_h_id * spm)
 #endif
 }
 
-mapkit_error map_h_id_copy(map_h_id * to, map_h_id * from)
+mapkit_error map_h_id_copy(map_h_id *to, map_h_id *from)
 {
 	map_h_id_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -3152,22 +3152,22 @@ mapkit_error map_h_id_copy(map_h_id * to, map_h_id * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_id_growsize(map_h_id * spm, mapkit_size_t used)
+mapkit_size_t map_h_id_growsize(map_h_id *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_id_shrinksize(map_h_id * spm, mapkit_size_t used)
+mapkit_size_t map_h_id_shrinksize(map_h_id *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_id_meansize(map_h_id * spm, mapkit_size_t used)
+mapkit_size_t map_h_id_meansize(map_h_id *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_h_id_reallocate(map_h_id * spm, mapkit_size_t newsize)
+mapkit_error map_h_id_reallocate(map_h_id *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -3256,7 +3256,7 @@ mapkit_error map_h_id_reallocate(map_h_id * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double map_h_id_value_s(map_h_id * spm, int key, mapkit_hash_t hash)
+double map_h_id_value_s(map_h_id *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3272,7 +3272,7 @@ double map_h_id_value_s(map_h_id * spm, int key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_h_id_get_s(map_h_id * spm, int key, double *value, mapkit_hash_t hash)
+mapkit_error map_h_id_get_s(map_h_id *spm, int key, double *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3290,7 +3290,7 @@ mapkit_error map_h_id_get_s(map_h_id * spm, int key, double *value, mapkit_hash_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_id_set_s(map_h_id * spm, int key, double value, mapkit_hash_t hash)
+mapkit_error map_h_id_set_s(map_h_id *spm, int key, double value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3320,7 +3320,7 @@ mapkit_error map_h_id_set_s(map_h_id * spm, int key, double value, mapkit_hash_t
 	return MAPKIT_OK;
 }
 
-double *map_h_id_insertptr_s(map_h_id * spm, int key, mapkit_hash_t hash)
+double *map_h_id_insertptr_s(map_h_id *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3372,7 +3372,7 @@ double *map_h_id_insertptr_s(map_h_id * spm, int key, mapkit_hash_t hash)
 	}
 }
 
-double *map_h_id_ptr_s(map_h_id * spm, int key, mapkit_hash_t hash)
+double *map_h_id_ptr_s(map_h_id *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3384,7 +3384,7 @@ double *map_h_id_ptr_s(map_h_id * spm, int key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_h_id_remove_s(map_h_id * spm, int key, mapkit_hash_t hash)
+mapkit_error map_h_id_remove_s(map_h_id *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3409,7 +3409,7 @@ mapkit_error map_h_id_remove_s(map_h_id * spm, int key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_id_keyindex(map_h_id * spm, int key, mapkit_hash_t hash)
+mapkit_size_t map_h_id_keyindex(map_h_id *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -3438,7 +3438,7 @@ mapkit_size_t map_h_id_keyindex(map_h_id * spm, int key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_h_id_insertionindex(map_h_id * spm, int key, mapkit_hash_t hash)
+mapkit_size_t map_h_id_insertionindex(map_h_id *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -3491,7 +3491,7 @@ mapkit_size_t map_h_id_insertionindex(map_h_id * spm, int key, mapkit_hash_t has
 	return iindex;
 }
 
-mapkit_size_t map_h_id_next(map_h_id * spm, mapkit_size_t iindex)
+mapkit_size_t map_h_id_next(map_h_id *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_h_id_storage *pos_contents;
@@ -3508,7 +3508,7 @@ mapkit_size_t map_h_id_next(map_h_id * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_h_id_storage *map_h_id_nextptr(map_h_id * spm, map_h_id_storage * pos_contents)
+map_h_id_storage *map_h_id_nextptr(map_h_id *spm, map_h_id_storage *pos_contents)
 {
 	map_h_id_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -3530,7 +3530,7 @@ map_h_id_storage *map_h_id_nextptr(map_h_id * spm, map_h_id_storage * pos_conten
 	return NULL;
 }
 
-mapkit_error map_h_id_getall(map_h_id * spm, map_h_id_element ** array, mapkit_size_t * count)
+mapkit_error map_h_id_getall(map_h_id *spm, map_h_id_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -3558,7 +3558,7 @@ mapkit_error map_h_id_getall(map_h_id * spm, map_h_id_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_id_clean(map_h_id * spm)
+mapkit_error map_h_id_clean(map_h_id *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -3592,7 +3592,7 @@ int map_h_id_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_h_id_getall_sorted(map_h_id * spm, map_h_id_element ** array, mapkit_size_t * count)
+mapkit_error map_h_id_getall_sorted(map_h_id *spm, map_h_id_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -3605,7 +3605,7 @@ mapkit_error map_h_id_getall_sorted(map_h_id * spm, map_h_id_element ** array, m
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_id_setall(map_h_id * spm, map_h_id_element * array, mapkit_size_t count)
+mapkit_error map_h_id_setall(map_h_id *spm, map_h_id_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -3632,7 +3632,7 @@ mapkit_error map_h_id_setall(map_h_id * spm, map_h_id_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_id_removeall(map_h_id * spm, int *array, mapkit_size_t count)
+mapkit_error map_h_id_removeall(map_h_id *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -3653,7 +3653,7 @@ mapkit_error map_h_id_removeall(map_h_id * spm, int *array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_h_id_printstats(map_h_id * spm)
+void map_h_id_printstats(map_h_id *spm)
 {
 	fprintf(stderr, "MAPKIT: map_h_id statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -3686,12 +3686,12 @@ static mapkit_size_t map_h_ivp_insertionindex(map_h_ivp * spm, int key, mapkit_h
 
 /* Implementation */
 
-mapkit_error map_h_ivp_init(map_h_ivp * spm)
+mapkit_error map_h_ivp_init(map_h_ivp *spm)
 {
 	return map_h_ivp_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_h_ivp_init_hint(map_h_ivp * spm, mapkit_size_t used)
+mapkit_error map_h_ivp_init_hint(map_h_ivp *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -3713,7 +3713,7 @@ mapkit_error map_h_ivp_init_hint(map_h_ivp * spm, mapkit_size_t used)
 	return map_h_ivp_reallocate(spm, map_h_ivp_meansize(spm, used));
 }
 
-mapkit_error map_h_ivp_ensurecapacity(map_h_ivp * spm, mapkit_size_t used)
+mapkit_error map_h_ivp_ensurecapacity(map_h_ivp *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -3724,7 +3724,7 @@ mapkit_error map_h_ivp_ensurecapacity(map_h_ivp * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_h_ivp_adjustcapacity(map_h_ivp * spm)
+mapkit_error map_h_ivp_adjustcapacity(map_h_ivp *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -3743,7 +3743,7 @@ mapkit_error map_h_ivp_adjustcapacity(map_h_ivp * spm)
 		return MAPKIT_OK;
 }
 
-void map_h_ivp_free(map_h_ivp * spm)
+void map_h_ivp_free(map_h_ivp *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -3758,7 +3758,7 @@ void map_h_ivp_free(map_h_ivp * spm)
 #endif
 }
 
-mapkit_error map_h_ivp_copy(map_h_ivp * to, map_h_ivp * from)
+mapkit_error map_h_ivp_copy(map_h_ivp *to, map_h_ivp *from)
 {
 	map_h_ivp_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -3774,22 +3774,22 @@ mapkit_error map_h_ivp_copy(map_h_ivp * to, map_h_ivp * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_ivp_growsize(map_h_ivp * spm, mapkit_size_t used)
+mapkit_size_t map_h_ivp_growsize(map_h_ivp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_ivp_shrinksize(map_h_ivp * spm, mapkit_size_t used)
+mapkit_size_t map_h_ivp_shrinksize(map_h_ivp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_ivp_meansize(map_h_ivp * spm, mapkit_size_t used)
+mapkit_size_t map_h_ivp_meansize(map_h_ivp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_h_ivp_reallocate(map_h_ivp * spm, mapkit_size_t newsize)
+mapkit_error map_h_ivp_reallocate(map_h_ivp *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -3878,7 +3878,7 @@ mapkit_error map_h_ivp_reallocate(map_h_ivp * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-void *map_h_ivp_value_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
+void *map_h_ivp_value_s(map_h_ivp *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3894,7 +3894,7 @@ void *map_h_ivp_value_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_h_ivp_get_s(map_h_ivp * spm, int key, void **value, mapkit_hash_t hash)
+mapkit_error map_h_ivp_get_s(map_h_ivp *spm, int key, void **value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3912,7 +3912,7 @@ mapkit_error map_h_ivp_get_s(map_h_ivp * spm, int key, void **value, mapkit_hash
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ivp_set_s(map_h_ivp * spm, int key, void *value, mapkit_hash_t hash)
+mapkit_error map_h_ivp_set_s(map_h_ivp *spm, int key, void *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3942,7 +3942,7 @@ mapkit_error map_h_ivp_set_s(map_h_ivp * spm, int key, void *value, mapkit_hash_
 	return MAPKIT_OK;
 }
 
-void **map_h_ivp_insertptr_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
+void **map_h_ivp_insertptr_s(map_h_ivp *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -3994,7 +3994,7 @@ void **map_h_ivp_insertptr_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
 	}
 }
 
-void **map_h_ivp_ptr_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
+void **map_h_ivp_ptr_s(map_h_ivp *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -4006,7 +4006,7 @@ void **map_h_ivp_ptr_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_h_ivp_remove_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
+mapkit_error map_h_ivp_remove_s(map_h_ivp *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -4031,7 +4031,7 @@ mapkit_error map_h_ivp_remove_s(map_h_ivp * spm, int key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_ivp_keyindex(map_h_ivp * spm, int key, mapkit_hash_t hash)
+mapkit_size_t map_h_ivp_keyindex(map_h_ivp *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -4060,7 +4060,7 @@ mapkit_size_t map_h_ivp_keyindex(map_h_ivp * spm, int key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_h_ivp_insertionindex(map_h_ivp * spm, int key, mapkit_hash_t hash)
+mapkit_size_t map_h_ivp_insertionindex(map_h_ivp *spm, int key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -4113,7 +4113,7 @@ mapkit_size_t map_h_ivp_insertionindex(map_h_ivp * spm, int key, mapkit_hash_t h
 	return iindex;
 }
 
-mapkit_size_t map_h_ivp_next(map_h_ivp * spm, mapkit_size_t iindex)
+mapkit_size_t map_h_ivp_next(map_h_ivp *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_h_ivp_storage *pos_contents;
@@ -4130,7 +4130,7 @@ mapkit_size_t map_h_ivp_next(map_h_ivp * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_h_ivp_storage *map_h_ivp_nextptr(map_h_ivp * spm, map_h_ivp_storage * pos_contents)
+map_h_ivp_storage *map_h_ivp_nextptr(map_h_ivp *spm, map_h_ivp_storage *pos_contents)
 {
 	map_h_ivp_storage *end = &(spm->contents[spm->size]);
 	void *defaultvalue = spm->defaultvalue;
@@ -4152,7 +4152,7 @@ map_h_ivp_storage *map_h_ivp_nextptr(map_h_ivp * spm, map_h_ivp_storage * pos_co
 	return NULL;
 }
 
-mapkit_error map_h_ivp_getall(map_h_ivp * spm, map_h_ivp_element ** array, mapkit_size_t * count)
+mapkit_error map_h_ivp_getall(map_h_ivp *spm, map_h_ivp_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -4180,7 +4180,7 @@ mapkit_error map_h_ivp_getall(map_h_ivp * spm, map_h_ivp_element ** array, mapki
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ivp_clean(map_h_ivp * spm)
+mapkit_error map_h_ivp_clean(map_h_ivp *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -4214,7 +4214,7 @@ int map_h_ivp_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_h_ivp_getall_sorted(map_h_ivp * spm, map_h_ivp_element ** array, mapkit_size_t * count)
+mapkit_error map_h_ivp_getall_sorted(map_h_ivp *spm, map_h_ivp_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -4227,7 +4227,7 @@ mapkit_error map_h_ivp_getall_sorted(map_h_ivp * spm, map_h_ivp_element ** array
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ivp_setall(map_h_ivp * spm, map_h_ivp_element * array, mapkit_size_t count)
+mapkit_error map_h_ivp_setall(map_h_ivp *spm, map_h_ivp_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -4254,7 +4254,7 @@ mapkit_error map_h_ivp_setall(map_h_ivp * spm, map_h_ivp_element * array, mapkit
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_ivp_removeall(map_h_ivp * spm, int *array, mapkit_size_t count)
+mapkit_error map_h_ivp_removeall(map_h_ivp *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -4275,7 +4275,7 @@ mapkit_error map_h_ivp_removeall(map_h_ivp * spm, int *array, mapkit_size_t coun
 	return MAPKIT_OK;
 }
 
-void map_h_ivp_printstats(map_h_ivp * spm)
+void map_h_ivp_printstats(map_h_ivp *spm)
 {
 	fprintf(stderr, "MAPKIT: map_h_ivp statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -4308,12 +4308,12 @@ static mapkit_size_t map_vpi_insertionindex(map_vpi * spm, void *key);
 
 /* Implementation */
 
-mapkit_error map_vpi_init(map_vpi * spm)
+mapkit_error map_vpi_init(map_vpi *spm)
 {
 	return map_vpi_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_vpi_init_hint(map_vpi * spm, mapkit_size_t used)
+mapkit_error map_vpi_init_hint(map_vpi *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -4335,7 +4335,7 @@ mapkit_error map_vpi_init_hint(map_vpi * spm, mapkit_size_t used)
 	return map_vpi_reallocate(spm, map_vpi_meansize(spm, used));
 }
 
-mapkit_error map_vpi_ensurecapacity(map_vpi * spm, mapkit_size_t used)
+mapkit_error map_vpi_ensurecapacity(map_vpi *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -4346,7 +4346,7 @@ mapkit_error map_vpi_ensurecapacity(map_vpi * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_vpi_adjustcapacity(map_vpi * spm)
+mapkit_error map_vpi_adjustcapacity(map_vpi *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -4365,7 +4365,7 @@ mapkit_error map_vpi_adjustcapacity(map_vpi * spm)
 		return MAPKIT_OK;
 }
 
-void map_vpi_free(map_vpi * spm)
+void map_vpi_free(map_vpi *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -4380,7 +4380,7 @@ void map_vpi_free(map_vpi * spm)
 #endif
 }
 
-mapkit_error map_vpi_copy(map_vpi * to, map_vpi * from)
+mapkit_error map_vpi_copy(map_vpi *to, map_vpi *from)
 {
 	map_vpi_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -4396,22 +4396,22 @@ mapkit_error map_vpi_copy(map_vpi * to, map_vpi * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_vpi_growsize(map_vpi * spm, mapkit_size_t used)
+mapkit_size_t map_vpi_growsize(map_vpi *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_vpi_shrinksize(map_vpi * spm, mapkit_size_t used)
+mapkit_size_t map_vpi_shrinksize(map_vpi *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_vpi_meansize(map_vpi * spm, mapkit_size_t used)
+mapkit_size_t map_vpi_meansize(map_vpi *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_vpi_reallocate(map_vpi * spm, mapkit_size_t newsize)
+mapkit_error map_vpi_reallocate(map_vpi *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -4499,7 +4499,7 @@ mapkit_error map_vpi_reallocate(map_vpi * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-int map_vpi_value_s(map_vpi * spm, void *key)
+int map_vpi_value_s(map_vpi *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -4515,7 +4515,7 @@ int map_vpi_value_s(map_vpi * spm, void *key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_vpi_get_s(map_vpi * spm, void *key, int *value)
+mapkit_error map_vpi_get_s(map_vpi *spm, void *key, int *value)
 {
 	mapkit_size_t iindex;
 
@@ -4533,7 +4533,7 @@ mapkit_error map_vpi_get_s(map_vpi * spm, void *key, int *value)
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpi_set_s(map_vpi * spm, void *key, int value)
+mapkit_error map_vpi_set_s(map_vpi *spm, void *key, int value)
 {
 	mapkit_size_t iindex;
 
@@ -4563,7 +4563,7 @@ mapkit_error map_vpi_set_s(map_vpi * spm, void *key, int value)
 	return MAPKIT_OK;
 }
 
-int *map_vpi_insertptr_s(map_vpi * spm, void *key)
+int *map_vpi_insertptr_s(map_vpi *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -4615,7 +4615,7 @@ int *map_vpi_insertptr_s(map_vpi * spm, void *key)
 	}
 }
 
-int *map_vpi_ptr_s(map_vpi * spm, void *key)
+int *map_vpi_ptr_s(map_vpi *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -4627,7 +4627,7 @@ int *map_vpi_ptr_s(map_vpi * spm, void *key)
 		return NULL;
 }
 
-mapkit_error map_vpi_remove_s(map_vpi * spm, void *key)
+mapkit_error map_vpi_remove_s(map_vpi *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -4652,7 +4652,7 @@ mapkit_error map_vpi_remove_s(map_vpi * spm, void *key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_vpi_keyindex(map_vpi * spm, void *key)
+mapkit_size_t map_vpi_keyindex(map_vpi *spm, void *key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -4681,7 +4681,7 @@ mapkit_size_t map_vpi_keyindex(map_vpi * spm, void *key)
 	return iindex;
 }
 
-mapkit_size_t map_vpi_insertionindex(map_vpi * spm, void *key)
+mapkit_size_t map_vpi_insertionindex(map_vpi *spm, void *key)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -4734,7 +4734,7 @@ mapkit_size_t map_vpi_insertionindex(map_vpi * spm, void *key)
 	return iindex;
 }
 
-mapkit_size_t map_vpi_next(map_vpi * spm, mapkit_size_t iindex)
+mapkit_size_t map_vpi_next(map_vpi *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_vpi_storage *pos_contents;
@@ -4751,7 +4751,7 @@ mapkit_size_t map_vpi_next(map_vpi * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_vpi_storage *map_vpi_nextptr(map_vpi * spm, map_vpi_storage * pos_contents)
+map_vpi_storage *map_vpi_nextptr(map_vpi *spm, map_vpi_storage *pos_contents)
 {
 	map_vpi_storage *end = &(spm->contents[spm->size]);
 	int defaultvalue = spm->defaultvalue;
@@ -4773,7 +4773,7 @@ map_vpi_storage *map_vpi_nextptr(map_vpi * spm, map_vpi_storage * pos_contents)
 	return NULL;
 }
 
-mapkit_error map_vpi_getall(map_vpi * spm, map_vpi_element ** array, mapkit_size_t * count)
+mapkit_error map_vpi_getall(map_vpi *spm, map_vpi_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -4801,7 +4801,7 @@ mapkit_error map_vpi_getall(map_vpi * spm, map_vpi_element ** array, mapkit_size
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpi_clean(map_vpi * spm)
+mapkit_error map_vpi_clean(map_vpi *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -4835,7 +4835,7 @@ int map_vpi_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_vpi_getall_sorted(map_vpi * spm, map_vpi_element ** array, mapkit_size_t * count)
+mapkit_error map_vpi_getall_sorted(map_vpi *spm, map_vpi_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -4848,7 +4848,7 @@ mapkit_error map_vpi_getall_sorted(map_vpi * spm, map_vpi_element ** array, mapk
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpi_setall(map_vpi * spm, map_vpi_element * array, mapkit_size_t count)
+mapkit_error map_vpi_setall(map_vpi *spm, map_vpi_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -4875,7 +4875,7 @@ mapkit_error map_vpi_setall(map_vpi * spm, map_vpi_element * array, mapkit_size_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpi_removeall(map_vpi * spm, void **array, mapkit_size_t count)
+mapkit_error map_vpi_removeall(map_vpi *spm, void **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -4896,7 +4896,7 @@ mapkit_error map_vpi_removeall(map_vpi * spm, void **array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_vpi_printstats(map_vpi * spm)
+void map_vpi_printstats(map_vpi *spm)
 {
 	fprintf(stderr, "MAPKIT: map_vpi statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -4929,12 +4929,12 @@ static mapkit_size_t map_vpd_insertionindex(map_vpd * spm, void *key);
 
 /* Implementation */
 
-mapkit_error map_vpd_init(map_vpd * spm)
+mapkit_error map_vpd_init(map_vpd *spm)
 {
 	return map_vpd_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_vpd_init_hint(map_vpd * spm, mapkit_size_t used)
+mapkit_error map_vpd_init_hint(map_vpd *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -4956,7 +4956,7 @@ mapkit_error map_vpd_init_hint(map_vpd * spm, mapkit_size_t used)
 	return map_vpd_reallocate(spm, map_vpd_meansize(spm, used));
 }
 
-mapkit_error map_vpd_ensurecapacity(map_vpd * spm, mapkit_size_t used)
+mapkit_error map_vpd_ensurecapacity(map_vpd *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -4967,7 +4967,7 @@ mapkit_error map_vpd_ensurecapacity(map_vpd * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_vpd_adjustcapacity(map_vpd * spm)
+mapkit_error map_vpd_adjustcapacity(map_vpd *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -4986,7 +4986,7 @@ mapkit_error map_vpd_adjustcapacity(map_vpd * spm)
 		return MAPKIT_OK;
 }
 
-void map_vpd_free(map_vpd * spm)
+void map_vpd_free(map_vpd *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -5001,7 +5001,7 @@ void map_vpd_free(map_vpd * spm)
 #endif
 }
 
-mapkit_error map_vpd_copy(map_vpd * to, map_vpd * from)
+mapkit_error map_vpd_copy(map_vpd *to, map_vpd *from)
 {
 	map_vpd_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -5017,22 +5017,22 @@ mapkit_error map_vpd_copy(map_vpd * to, map_vpd * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_vpd_growsize(map_vpd * spm, mapkit_size_t used)
+mapkit_size_t map_vpd_growsize(map_vpd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_vpd_shrinksize(map_vpd * spm, mapkit_size_t used)
+mapkit_size_t map_vpd_shrinksize(map_vpd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_vpd_meansize(map_vpd * spm, mapkit_size_t used)
+mapkit_size_t map_vpd_meansize(map_vpd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_vpd_reallocate(map_vpd * spm, mapkit_size_t newsize)
+mapkit_error map_vpd_reallocate(map_vpd *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -5120,7 +5120,7 @@ mapkit_error map_vpd_reallocate(map_vpd * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double map_vpd_value_s(map_vpd * spm, void *key)
+double map_vpd_value_s(map_vpd *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5136,7 +5136,7 @@ double map_vpd_value_s(map_vpd * spm, void *key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_vpd_get_s(map_vpd * spm, void *key, double *value)
+mapkit_error map_vpd_get_s(map_vpd *spm, void *key, double *value)
 {
 	mapkit_size_t iindex;
 
@@ -5154,7 +5154,7 @@ mapkit_error map_vpd_get_s(map_vpd * spm, void *key, double *value)
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpd_set_s(map_vpd * spm, void *key, double value)
+mapkit_error map_vpd_set_s(map_vpd *spm, void *key, double value)
 {
 	mapkit_size_t iindex;
 
@@ -5184,7 +5184,7 @@ mapkit_error map_vpd_set_s(map_vpd * spm, void *key, double value)
 	return MAPKIT_OK;
 }
 
-double *map_vpd_insertptr_s(map_vpd * spm, void *key)
+double *map_vpd_insertptr_s(map_vpd *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5236,7 +5236,7 @@ double *map_vpd_insertptr_s(map_vpd * spm, void *key)
 	}
 }
 
-double *map_vpd_ptr_s(map_vpd * spm, void *key)
+double *map_vpd_ptr_s(map_vpd *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5248,7 +5248,7 @@ double *map_vpd_ptr_s(map_vpd * spm, void *key)
 		return NULL;
 }
 
-mapkit_error map_vpd_remove_s(map_vpd * spm, void *key)
+mapkit_error map_vpd_remove_s(map_vpd *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5273,7 +5273,7 @@ mapkit_error map_vpd_remove_s(map_vpd * spm, void *key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_vpd_keyindex(map_vpd * spm, void *key)
+mapkit_size_t map_vpd_keyindex(map_vpd *spm, void *key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -5302,7 +5302,7 @@ mapkit_size_t map_vpd_keyindex(map_vpd * spm, void *key)
 	return iindex;
 }
 
-mapkit_size_t map_vpd_insertionindex(map_vpd * spm, void *key)
+mapkit_size_t map_vpd_insertionindex(map_vpd *spm, void *key)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -5355,7 +5355,7 @@ mapkit_size_t map_vpd_insertionindex(map_vpd * spm, void *key)
 	return iindex;
 }
 
-mapkit_size_t map_vpd_next(map_vpd * spm, mapkit_size_t iindex)
+mapkit_size_t map_vpd_next(map_vpd *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_vpd_storage *pos_contents;
@@ -5372,7 +5372,7 @@ mapkit_size_t map_vpd_next(map_vpd * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_vpd_storage *map_vpd_nextptr(map_vpd * spm, map_vpd_storage * pos_contents)
+map_vpd_storage *map_vpd_nextptr(map_vpd *spm, map_vpd_storage *pos_contents)
 {
 	map_vpd_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -5394,7 +5394,7 @@ map_vpd_storage *map_vpd_nextptr(map_vpd * spm, map_vpd_storage * pos_contents)
 	return NULL;
 }
 
-mapkit_error map_vpd_getall(map_vpd * spm, map_vpd_element ** array, mapkit_size_t * count)
+mapkit_error map_vpd_getall(map_vpd *spm, map_vpd_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -5422,7 +5422,7 @@ mapkit_error map_vpd_getall(map_vpd * spm, map_vpd_element ** array, mapkit_size
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpd_clean(map_vpd * spm)
+mapkit_error map_vpd_clean(map_vpd *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -5456,7 +5456,7 @@ int map_vpd_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_vpd_getall_sorted(map_vpd * spm, map_vpd_element ** array, mapkit_size_t * count)
+mapkit_error map_vpd_getall_sorted(map_vpd *spm, map_vpd_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -5469,7 +5469,7 @@ mapkit_error map_vpd_getall_sorted(map_vpd * spm, map_vpd_element ** array, mapk
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpd_setall(map_vpd * spm, map_vpd_element * array, mapkit_size_t count)
+mapkit_error map_vpd_setall(map_vpd *spm, map_vpd_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -5496,7 +5496,7 @@ mapkit_error map_vpd_setall(map_vpd * spm, map_vpd_element * array, mapkit_size_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpd_removeall(map_vpd * spm, void **array, mapkit_size_t count)
+mapkit_error map_vpd_removeall(map_vpd *spm, void **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -5517,7 +5517,7 @@ mapkit_error map_vpd_removeall(map_vpd * spm, void **array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void map_vpd_printstats(map_vpd * spm)
+void map_vpd_printstats(map_vpd *spm)
 {
 	fprintf(stderr, "MAPKIT: map_vpd statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -5550,12 +5550,12 @@ static mapkit_size_t map_vpvp_insertionindex(map_vpvp * spm, void *key);
 
 /* Implementation */
 
-mapkit_error map_vpvp_init(map_vpvp * spm)
+mapkit_error map_vpvp_init(map_vpvp *spm)
 {
 	return map_vpvp_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_vpvp_init_hint(map_vpvp * spm, mapkit_size_t used)
+mapkit_error map_vpvp_init_hint(map_vpvp *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -5577,7 +5577,7 @@ mapkit_error map_vpvp_init_hint(map_vpvp * spm, mapkit_size_t used)
 	return map_vpvp_reallocate(spm, map_vpvp_meansize(spm, used));
 }
 
-mapkit_error map_vpvp_ensurecapacity(map_vpvp * spm, mapkit_size_t used)
+mapkit_error map_vpvp_ensurecapacity(map_vpvp *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -5588,7 +5588,7 @@ mapkit_error map_vpvp_ensurecapacity(map_vpvp * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_vpvp_adjustcapacity(map_vpvp * spm)
+mapkit_error map_vpvp_adjustcapacity(map_vpvp *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -5607,7 +5607,7 @@ mapkit_error map_vpvp_adjustcapacity(map_vpvp * spm)
 		return MAPKIT_OK;
 }
 
-void map_vpvp_free(map_vpvp * spm)
+void map_vpvp_free(map_vpvp *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -5622,7 +5622,7 @@ void map_vpvp_free(map_vpvp * spm)
 #endif
 }
 
-mapkit_error map_vpvp_copy(map_vpvp * to, map_vpvp * from)
+mapkit_error map_vpvp_copy(map_vpvp *to, map_vpvp *from)
 {
 	map_vpvp_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -5638,22 +5638,22 @@ mapkit_error map_vpvp_copy(map_vpvp * to, map_vpvp * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_vpvp_growsize(map_vpvp * spm, mapkit_size_t used)
+mapkit_size_t map_vpvp_growsize(map_vpvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_vpvp_shrinksize(map_vpvp * spm, mapkit_size_t used)
+mapkit_size_t map_vpvp_shrinksize(map_vpvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_vpvp_meansize(map_vpvp * spm, mapkit_size_t used)
+mapkit_size_t map_vpvp_meansize(map_vpvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_vpvp_reallocate(map_vpvp * spm, mapkit_size_t newsize)
+mapkit_error map_vpvp_reallocate(map_vpvp *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -5741,7 +5741,7 @@ mapkit_error map_vpvp_reallocate(map_vpvp * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-void *map_vpvp_value_s(map_vpvp * spm, void *key)
+void *map_vpvp_value_s(map_vpvp *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5757,7 +5757,7 @@ void *map_vpvp_value_s(map_vpvp * spm, void *key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_vpvp_get_s(map_vpvp * spm, void *key, void **value)
+mapkit_error map_vpvp_get_s(map_vpvp *spm, void *key, void **value)
 {
 	mapkit_size_t iindex;
 
@@ -5775,7 +5775,7 @@ mapkit_error map_vpvp_get_s(map_vpvp * spm, void *key, void **value)
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpvp_set_s(map_vpvp * spm, void *key, void *value)
+mapkit_error map_vpvp_set_s(map_vpvp *spm, void *key, void *value)
 {
 	mapkit_size_t iindex;
 
@@ -5805,7 +5805,7 @@ mapkit_error map_vpvp_set_s(map_vpvp * spm, void *key, void *value)
 	return MAPKIT_OK;
 }
 
-void **map_vpvp_insertptr_s(map_vpvp * spm, void *key)
+void **map_vpvp_insertptr_s(map_vpvp *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5857,7 +5857,7 @@ void **map_vpvp_insertptr_s(map_vpvp * spm, void *key)
 	}
 }
 
-void **map_vpvp_ptr_s(map_vpvp * spm, void *key)
+void **map_vpvp_ptr_s(map_vpvp *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5869,7 +5869,7 @@ void **map_vpvp_ptr_s(map_vpvp * spm, void *key)
 		return NULL;
 }
 
-mapkit_error map_vpvp_remove_s(map_vpvp * spm, void *key)
+mapkit_error map_vpvp_remove_s(map_vpvp *spm, void *key)
 {
 	mapkit_size_t iindex;
 
@@ -5894,7 +5894,7 @@ mapkit_error map_vpvp_remove_s(map_vpvp * spm, void *key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_vpvp_keyindex(map_vpvp * spm, void *key)
+mapkit_size_t map_vpvp_keyindex(map_vpvp *spm, void *key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -5923,7 +5923,7 @@ mapkit_size_t map_vpvp_keyindex(map_vpvp * spm, void *key)
 	return iindex;
 }
 
-mapkit_size_t map_vpvp_insertionindex(map_vpvp * spm, void *key)
+mapkit_size_t map_vpvp_insertionindex(map_vpvp *spm, void *key)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -5976,7 +5976,7 @@ mapkit_size_t map_vpvp_insertionindex(map_vpvp * spm, void *key)
 	return iindex;
 }
 
-mapkit_size_t map_vpvp_next(map_vpvp * spm, mapkit_size_t iindex)
+mapkit_size_t map_vpvp_next(map_vpvp *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_vpvp_storage *pos_contents;
@@ -5993,7 +5993,7 @@ mapkit_size_t map_vpvp_next(map_vpvp * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_vpvp_storage *map_vpvp_nextptr(map_vpvp * spm, map_vpvp_storage * pos_contents)
+map_vpvp_storage *map_vpvp_nextptr(map_vpvp *spm, map_vpvp_storage *pos_contents)
 {
 	map_vpvp_storage *end = &(spm->contents[spm->size]);
 	void *defaultvalue = spm->defaultvalue;
@@ -6015,7 +6015,7 @@ map_vpvp_storage *map_vpvp_nextptr(map_vpvp * spm, map_vpvp_storage * pos_conten
 	return NULL;
 }
 
-mapkit_error map_vpvp_getall(map_vpvp * spm, map_vpvp_element ** array, mapkit_size_t * count)
+mapkit_error map_vpvp_getall(map_vpvp *spm, map_vpvp_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -6043,7 +6043,7 @@ mapkit_error map_vpvp_getall(map_vpvp * spm, map_vpvp_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpvp_clean(map_vpvp * spm)
+mapkit_error map_vpvp_clean(map_vpvp *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -6077,7 +6077,7 @@ int map_vpvp_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_vpvp_getall_sorted(map_vpvp * spm, map_vpvp_element ** array, mapkit_size_t * count)
+mapkit_error map_vpvp_getall_sorted(map_vpvp *spm, map_vpvp_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -6090,7 +6090,7 @@ mapkit_error map_vpvp_getall_sorted(map_vpvp * spm, map_vpvp_element ** array, m
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpvp_setall(map_vpvp * spm, map_vpvp_element * array, mapkit_size_t count)
+mapkit_error map_vpvp_setall(map_vpvp *spm, map_vpvp_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -6117,7 +6117,7 @@ mapkit_error map_vpvp_setall(map_vpvp * spm, map_vpvp_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error map_vpvp_removeall(map_vpvp * spm, void **array, mapkit_size_t count)
+mapkit_error map_vpvp_removeall(map_vpvp *spm, void **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -6138,7 +6138,7 @@ mapkit_error map_vpvp_removeall(map_vpvp * spm, void **array, mapkit_size_t coun
 	return MAPKIT_OK;
 }
 
-void map_vpvp_printstats(map_vpvp * spm)
+void map_vpvp_printstats(map_vpvp *spm)
 {
 	fprintf(stderr, "MAPKIT: map_vpvp statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -6171,12 +6171,12 @@ static mapkit_size_t map_h_vpi_insertionindex(map_h_vpi * spm, void *key, mapkit
 
 /* Implementation */
 
-mapkit_error map_h_vpi_init(map_h_vpi * spm)
+mapkit_error map_h_vpi_init(map_h_vpi *spm)
 {
 	return map_h_vpi_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_h_vpi_init_hint(map_h_vpi * spm, mapkit_size_t used)
+mapkit_error map_h_vpi_init_hint(map_h_vpi *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -6198,7 +6198,7 @@ mapkit_error map_h_vpi_init_hint(map_h_vpi * spm, mapkit_size_t used)
 	return map_h_vpi_reallocate(spm, map_h_vpi_meansize(spm, used));
 }
 
-mapkit_error map_h_vpi_ensurecapacity(map_h_vpi * spm, mapkit_size_t used)
+mapkit_error map_h_vpi_ensurecapacity(map_h_vpi *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -6209,7 +6209,7 @@ mapkit_error map_h_vpi_ensurecapacity(map_h_vpi * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpi_adjustcapacity(map_h_vpi * spm)
+mapkit_error map_h_vpi_adjustcapacity(map_h_vpi *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -6228,7 +6228,7 @@ mapkit_error map_h_vpi_adjustcapacity(map_h_vpi * spm)
 		return MAPKIT_OK;
 }
 
-void map_h_vpi_free(map_h_vpi * spm)
+void map_h_vpi_free(map_h_vpi *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -6243,7 +6243,7 @@ void map_h_vpi_free(map_h_vpi * spm)
 #endif
 }
 
-mapkit_error map_h_vpi_copy(map_h_vpi * to, map_h_vpi * from)
+mapkit_error map_h_vpi_copy(map_h_vpi *to, map_h_vpi *from)
 {
 	map_h_vpi_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -6259,22 +6259,22 @@ mapkit_error map_h_vpi_copy(map_h_vpi * to, map_h_vpi * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_vpi_growsize(map_h_vpi * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpi_growsize(map_h_vpi *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_vpi_shrinksize(map_h_vpi * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpi_shrinksize(map_h_vpi *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_vpi_meansize(map_h_vpi * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpi_meansize(map_h_vpi *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_h_vpi_reallocate(map_h_vpi * spm, mapkit_size_t newsize)
+mapkit_error map_h_vpi_reallocate(map_h_vpi *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -6363,7 +6363,7 @@ mapkit_error map_h_vpi_reallocate(map_h_vpi * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-int map_h_vpi_value_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
+int map_h_vpi_value_s(map_h_vpi *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -6379,7 +6379,7 @@ int map_h_vpi_value_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_h_vpi_get_s(map_h_vpi * spm, void *key, int *value, mapkit_hash_t hash)
+mapkit_error map_h_vpi_get_s(map_h_vpi *spm, void *key, int *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -6397,7 +6397,7 @@ mapkit_error map_h_vpi_get_s(map_h_vpi * spm, void *key, int *value, mapkit_hash
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpi_set_s(map_h_vpi * spm, void *key, int value, mapkit_hash_t hash)
+mapkit_error map_h_vpi_set_s(map_h_vpi *spm, void *key, int value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -6427,7 +6427,7 @@ mapkit_error map_h_vpi_set_s(map_h_vpi * spm, void *key, int value, mapkit_hash_
 	return MAPKIT_OK;
 }
 
-int *map_h_vpi_insertptr_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
+int *map_h_vpi_insertptr_s(map_h_vpi *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -6479,7 +6479,7 @@ int *map_h_vpi_insertptr_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 	}
 }
 
-int *map_h_vpi_ptr_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
+int *map_h_vpi_ptr_s(map_h_vpi *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -6491,7 +6491,7 @@ int *map_h_vpi_ptr_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_h_vpi_remove_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
+mapkit_error map_h_vpi_remove_s(map_h_vpi *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -6516,7 +6516,7 @@ mapkit_error map_h_vpi_remove_s(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_vpi_keyindex(map_h_vpi * spm, void *key, mapkit_hash_t hash)
+mapkit_size_t map_h_vpi_keyindex(map_h_vpi *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -6545,7 +6545,7 @@ mapkit_size_t map_h_vpi_keyindex(map_h_vpi * spm, void *key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_h_vpi_insertionindex(map_h_vpi * spm, void *key, mapkit_hash_t hash)
+mapkit_size_t map_h_vpi_insertionindex(map_h_vpi *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -6598,7 +6598,7 @@ mapkit_size_t map_h_vpi_insertionindex(map_h_vpi * spm, void *key, mapkit_hash_t
 	return iindex;
 }
 
-mapkit_size_t map_h_vpi_next(map_h_vpi * spm, mapkit_size_t iindex)
+mapkit_size_t map_h_vpi_next(map_h_vpi *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_h_vpi_storage *pos_contents;
@@ -6615,7 +6615,7 @@ mapkit_size_t map_h_vpi_next(map_h_vpi * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_h_vpi_storage *map_h_vpi_nextptr(map_h_vpi * spm, map_h_vpi_storage * pos_contents)
+map_h_vpi_storage *map_h_vpi_nextptr(map_h_vpi *spm, map_h_vpi_storage *pos_contents)
 {
 	map_h_vpi_storage *end = &(spm->contents[spm->size]);
 	int defaultvalue = spm->defaultvalue;
@@ -6637,7 +6637,7 @@ map_h_vpi_storage *map_h_vpi_nextptr(map_h_vpi * spm, map_h_vpi_storage * pos_co
 	return NULL;
 }
 
-mapkit_error map_h_vpi_getall(map_h_vpi * spm, map_h_vpi_element ** array, mapkit_size_t * count)
+mapkit_error map_h_vpi_getall(map_h_vpi *spm, map_h_vpi_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -6665,7 +6665,7 @@ mapkit_error map_h_vpi_getall(map_h_vpi * spm, map_h_vpi_element ** array, mapki
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpi_clean(map_h_vpi * spm)
+mapkit_error map_h_vpi_clean(map_h_vpi *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -6699,7 +6699,7 @@ int map_h_vpi_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_h_vpi_getall_sorted(map_h_vpi * spm, map_h_vpi_element ** array, mapkit_size_t * count)
+mapkit_error map_h_vpi_getall_sorted(map_h_vpi *spm, map_h_vpi_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -6712,7 +6712,7 @@ mapkit_error map_h_vpi_getall_sorted(map_h_vpi * spm, map_h_vpi_element ** array
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpi_setall(map_h_vpi * spm, map_h_vpi_element * array, mapkit_size_t count)
+mapkit_error map_h_vpi_setall(map_h_vpi *spm, map_h_vpi_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -6739,7 +6739,7 @@ mapkit_error map_h_vpi_setall(map_h_vpi * spm, map_h_vpi_element * array, mapkit
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpi_removeall(map_h_vpi * spm, void **array, mapkit_size_t count)
+mapkit_error map_h_vpi_removeall(map_h_vpi *spm, void **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -6760,7 +6760,7 @@ mapkit_error map_h_vpi_removeall(map_h_vpi * spm, void **array, mapkit_size_t co
 	return MAPKIT_OK;
 }
 
-void map_h_vpi_printstats(map_h_vpi * spm)
+void map_h_vpi_printstats(map_h_vpi *spm)
 {
 	fprintf(stderr, "MAPKIT: map_h_vpi statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -6793,12 +6793,12 @@ static mapkit_size_t map_h_vpd_insertionindex(map_h_vpd * spm, void *key, mapkit
 
 /* Implementation */
 
-mapkit_error map_h_vpd_init(map_h_vpd * spm)
+mapkit_error map_h_vpd_init(map_h_vpd *spm)
 {
 	return map_h_vpd_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_h_vpd_init_hint(map_h_vpd * spm, mapkit_size_t used)
+mapkit_error map_h_vpd_init_hint(map_h_vpd *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -6820,7 +6820,7 @@ mapkit_error map_h_vpd_init_hint(map_h_vpd * spm, mapkit_size_t used)
 	return map_h_vpd_reallocate(spm, map_h_vpd_meansize(spm, used));
 }
 
-mapkit_error map_h_vpd_ensurecapacity(map_h_vpd * spm, mapkit_size_t used)
+mapkit_error map_h_vpd_ensurecapacity(map_h_vpd *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -6831,7 +6831,7 @@ mapkit_error map_h_vpd_ensurecapacity(map_h_vpd * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpd_adjustcapacity(map_h_vpd * spm)
+mapkit_error map_h_vpd_adjustcapacity(map_h_vpd *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -6850,7 +6850,7 @@ mapkit_error map_h_vpd_adjustcapacity(map_h_vpd * spm)
 		return MAPKIT_OK;
 }
 
-void map_h_vpd_free(map_h_vpd * spm)
+void map_h_vpd_free(map_h_vpd *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -6865,7 +6865,7 @@ void map_h_vpd_free(map_h_vpd * spm)
 #endif
 }
 
-mapkit_error map_h_vpd_copy(map_h_vpd * to, map_h_vpd * from)
+mapkit_error map_h_vpd_copy(map_h_vpd *to, map_h_vpd *from)
 {
 	map_h_vpd_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -6881,22 +6881,22 @@ mapkit_error map_h_vpd_copy(map_h_vpd * to, map_h_vpd * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_vpd_growsize(map_h_vpd * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpd_growsize(map_h_vpd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_vpd_shrinksize(map_h_vpd * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpd_shrinksize(map_h_vpd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_vpd_meansize(map_h_vpd * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpd_meansize(map_h_vpd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_h_vpd_reallocate(map_h_vpd * spm, mapkit_size_t newsize)
+mapkit_error map_h_vpd_reallocate(map_h_vpd *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -6985,7 +6985,7 @@ mapkit_error map_h_vpd_reallocate(map_h_vpd * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double map_h_vpd_value_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
+double map_h_vpd_value_s(map_h_vpd *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7001,7 +7001,7 @@ double map_h_vpd_value_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_h_vpd_get_s(map_h_vpd * spm, void *key, double *value, mapkit_hash_t hash)
+mapkit_error map_h_vpd_get_s(map_h_vpd *spm, void *key, double *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7019,7 +7019,7 @@ mapkit_error map_h_vpd_get_s(map_h_vpd * spm, void *key, double *value, mapkit_h
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpd_set_s(map_h_vpd * spm, void *key, double value, mapkit_hash_t hash)
+mapkit_error map_h_vpd_set_s(map_h_vpd *spm, void *key, double value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7049,7 +7049,7 @@ mapkit_error map_h_vpd_set_s(map_h_vpd * spm, void *key, double value, mapkit_ha
 	return MAPKIT_OK;
 }
 
-double *map_h_vpd_insertptr_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
+double *map_h_vpd_insertptr_s(map_h_vpd *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7101,7 +7101,7 @@ double *map_h_vpd_insertptr_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 	}
 }
 
-double *map_h_vpd_ptr_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
+double *map_h_vpd_ptr_s(map_h_vpd *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7113,7 +7113,7 @@ double *map_h_vpd_ptr_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_h_vpd_remove_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
+mapkit_error map_h_vpd_remove_s(map_h_vpd *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7138,7 +7138,7 @@ mapkit_error map_h_vpd_remove_s(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_vpd_keyindex(map_h_vpd * spm, void *key, mapkit_hash_t hash)
+mapkit_size_t map_h_vpd_keyindex(map_h_vpd *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -7167,7 +7167,7 @@ mapkit_size_t map_h_vpd_keyindex(map_h_vpd * spm, void *key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_h_vpd_insertionindex(map_h_vpd * spm, void *key, mapkit_hash_t hash)
+mapkit_size_t map_h_vpd_insertionindex(map_h_vpd *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -7220,7 +7220,7 @@ mapkit_size_t map_h_vpd_insertionindex(map_h_vpd * spm, void *key, mapkit_hash_t
 	return iindex;
 }
 
-mapkit_size_t map_h_vpd_next(map_h_vpd * spm, mapkit_size_t iindex)
+mapkit_size_t map_h_vpd_next(map_h_vpd *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_h_vpd_storage *pos_contents;
@@ -7237,7 +7237,7 @@ mapkit_size_t map_h_vpd_next(map_h_vpd * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_h_vpd_storage *map_h_vpd_nextptr(map_h_vpd * spm, map_h_vpd_storage * pos_contents)
+map_h_vpd_storage *map_h_vpd_nextptr(map_h_vpd *spm, map_h_vpd_storage *pos_contents)
 {
 	map_h_vpd_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -7259,7 +7259,7 @@ map_h_vpd_storage *map_h_vpd_nextptr(map_h_vpd * spm, map_h_vpd_storage * pos_co
 	return NULL;
 }
 
-mapkit_error map_h_vpd_getall(map_h_vpd * spm, map_h_vpd_element ** array, mapkit_size_t * count)
+mapkit_error map_h_vpd_getall(map_h_vpd *spm, map_h_vpd_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -7287,7 +7287,7 @@ mapkit_error map_h_vpd_getall(map_h_vpd * spm, map_h_vpd_element ** array, mapki
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpd_clean(map_h_vpd * spm)
+mapkit_error map_h_vpd_clean(map_h_vpd *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -7321,7 +7321,7 @@ int map_h_vpd_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_h_vpd_getall_sorted(map_h_vpd * spm, map_h_vpd_element ** array, mapkit_size_t * count)
+mapkit_error map_h_vpd_getall_sorted(map_h_vpd *spm, map_h_vpd_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -7334,7 +7334,7 @@ mapkit_error map_h_vpd_getall_sorted(map_h_vpd * spm, map_h_vpd_element ** array
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpd_setall(map_h_vpd * spm, map_h_vpd_element * array, mapkit_size_t count)
+mapkit_error map_h_vpd_setall(map_h_vpd *spm, map_h_vpd_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -7361,7 +7361,7 @@ mapkit_error map_h_vpd_setall(map_h_vpd * spm, map_h_vpd_element * array, mapkit
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpd_removeall(map_h_vpd * spm, void **array, mapkit_size_t count)
+mapkit_error map_h_vpd_removeall(map_h_vpd *spm, void **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -7382,7 +7382,7 @@ mapkit_error map_h_vpd_removeall(map_h_vpd * spm, void **array, mapkit_size_t co
 	return MAPKIT_OK;
 }
 
-void map_h_vpd_printstats(map_h_vpd * spm)
+void map_h_vpd_printstats(map_h_vpd *spm)
 {
 	fprintf(stderr, "MAPKIT: map_h_vpd statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -7415,12 +7415,12 @@ static mapkit_size_t map_h_vpvp_insertionindex(map_h_vpvp * spm, void *key, mapk
 
 /* Implementation */
 
-mapkit_error map_h_vpvp_init(map_h_vpvp * spm)
+mapkit_error map_h_vpvp_init(map_h_vpvp *spm)
 {
 	return map_h_vpvp_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_h_vpvp_init_hint(map_h_vpvp * spm, mapkit_size_t used)
+mapkit_error map_h_vpvp_init_hint(map_h_vpvp *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -7442,7 +7442,7 @@ mapkit_error map_h_vpvp_init_hint(map_h_vpvp * spm, mapkit_size_t used)
 	return map_h_vpvp_reallocate(spm, map_h_vpvp_meansize(spm, used));
 }
 
-mapkit_error map_h_vpvp_ensurecapacity(map_h_vpvp * spm, mapkit_size_t used)
+mapkit_error map_h_vpvp_ensurecapacity(map_h_vpvp *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -7453,7 +7453,7 @@ mapkit_error map_h_vpvp_ensurecapacity(map_h_vpvp * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpvp_adjustcapacity(map_h_vpvp * spm)
+mapkit_error map_h_vpvp_adjustcapacity(map_h_vpvp *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -7472,7 +7472,7 @@ mapkit_error map_h_vpvp_adjustcapacity(map_h_vpvp * spm)
 		return MAPKIT_OK;
 }
 
-void map_h_vpvp_free(map_h_vpvp * spm)
+void map_h_vpvp_free(map_h_vpvp *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -7487,7 +7487,7 @@ void map_h_vpvp_free(map_h_vpvp * spm)
 #endif
 }
 
-mapkit_error map_h_vpvp_copy(map_h_vpvp * to, map_h_vpvp * from)
+mapkit_error map_h_vpvp_copy(map_h_vpvp *to, map_h_vpvp *from)
 {
 	map_h_vpvp_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -7503,22 +7503,22 @@ mapkit_error map_h_vpvp_copy(map_h_vpvp * to, map_h_vpvp * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_vpvp_growsize(map_h_vpvp * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpvp_growsize(map_h_vpvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_vpvp_shrinksize(map_h_vpvp * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpvp_shrinksize(map_h_vpvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_h_vpvp_meansize(map_h_vpvp * spm, mapkit_size_t used)
+mapkit_size_t map_h_vpvp_meansize(map_h_vpvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_h_vpvp_reallocate(map_h_vpvp * spm, mapkit_size_t newsize)
+mapkit_error map_h_vpvp_reallocate(map_h_vpvp *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -7607,7 +7607,7 @@ mapkit_error map_h_vpvp_reallocate(map_h_vpvp * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-void *map_h_vpvp_value_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
+void *map_h_vpvp_value_s(map_h_vpvp *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7623,7 +7623,7 @@ void *map_h_vpvp_value_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_h_vpvp_get_s(map_h_vpvp * spm, void *key, void **value, mapkit_hash_t hash)
+mapkit_error map_h_vpvp_get_s(map_h_vpvp *spm, void *key, void **value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7641,7 +7641,7 @@ mapkit_error map_h_vpvp_get_s(map_h_vpvp * spm, void *key, void **value, mapkit_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpvp_set_s(map_h_vpvp * spm, void *key, void *value, mapkit_hash_t hash)
+mapkit_error map_h_vpvp_set_s(map_h_vpvp *spm, void *key, void *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7671,7 +7671,7 @@ mapkit_error map_h_vpvp_set_s(map_h_vpvp * spm, void *key, void *value, mapkit_h
 	return MAPKIT_OK;
 }
 
-void **map_h_vpvp_insertptr_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
+void **map_h_vpvp_insertptr_s(map_h_vpvp *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7723,7 +7723,7 @@ void **map_h_vpvp_insertptr_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
 	}
 }
 
-void **map_h_vpvp_ptr_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
+void **map_h_vpvp_ptr_s(map_h_vpvp *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7735,7 +7735,7 @@ void **map_h_vpvp_ptr_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_h_vpvp_remove_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
+mapkit_error map_h_vpvp_remove_s(map_h_vpvp *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -7760,7 +7760,7 @@ mapkit_error map_h_vpvp_remove_s(map_h_vpvp * spm, void *key, mapkit_hash_t hash
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_h_vpvp_keyindex(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
+mapkit_size_t map_h_vpvp_keyindex(map_h_vpvp *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -7789,7 +7789,7 @@ mapkit_size_t map_h_vpvp_keyindex(map_h_vpvp * spm, void *key, mapkit_hash_t has
 	return iindex;
 }
 
-mapkit_size_t map_h_vpvp_insertionindex(map_h_vpvp * spm, void *key, mapkit_hash_t hash)
+mapkit_size_t map_h_vpvp_insertionindex(map_h_vpvp *spm, void *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -7842,7 +7842,7 @@ mapkit_size_t map_h_vpvp_insertionindex(map_h_vpvp * spm, void *key, mapkit_hash
 	return iindex;
 }
 
-mapkit_size_t map_h_vpvp_next(map_h_vpvp * spm, mapkit_size_t iindex)
+mapkit_size_t map_h_vpvp_next(map_h_vpvp *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_h_vpvp_storage *pos_contents;
@@ -7859,7 +7859,7 @@ mapkit_size_t map_h_vpvp_next(map_h_vpvp * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_h_vpvp_storage *map_h_vpvp_nextptr(map_h_vpvp * spm, map_h_vpvp_storage * pos_contents)
+map_h_vpvp_storage *map_h_vpvp_nextptr(map_h_vpvp *spm, map_h_vpvp_storage *pos_contents)
 {
 	map_h_vpvp_storage *end = &(spm->contents[spm->size]);
 	void *defaultvalue = spm->defaultvalue;
@@ -7881,7 +7881,7 @@ map_h_vpvp_storage *map_h_vpvp_nextptr(map_h_vpvp * spm, map_h_vpvp_storage * po
 	return NULL;
 }
 
-mapkit_error map_h_vpvp_getall(map_h_vpvp * spm, map_h_vpvp_element ** array, mapkit_size_t * count)
+mapkit_error map_h_vpvp_getall(map_h_vpvp *spm, map_h_vpvp_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -7909,7 +7909,7 @@ mapkit_error map_h_vpvp_getall(map_h_vpvp * spm, map_h_vpvp_element ** array, ma
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpvp_clean(map_h_vpvp * spm)
+mapkit_error map_h_vpvp_clean(map_h_vpvp *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -7943,7 +7943,7 @@ int map_h_vpvp_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error map_h_vpvp_getall_sorted(map_h_vpvp * spm, map_h_vpvp_element ** array, mapkit_size_t * count)
+mapkit_error map_h_vpvp_getall_sorted(map_h_vpvp *spm, map_h_vpvp_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -7956,7 +7956,7 @@ mapkit_error map_h_vpvp_getall_sorted(map_h_vpvp * spm, map_h_vpvp_element ** ar
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpvp_setall(map_h_vpvp * spm, map_h_vpvp_element * array, mapkit_size_t count)
+mapkit_error map_h_vpvp_setall(map_h_vpvp *spm, map_h_vpvp_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -7983,7 +7983,7 @@ mapkit_error map_h_vpvp_setall(map_h_vpvp * spm, map_h_vpvp_element * array, map
 	return MAPKIT_OK;
 }
 
-mapkit_error map_h_vpvp_removeall(map_h_vpvp * spm, void **array, mapkit_size_t count)
+mapkit_error map_h_vpvp_removeall(map_h_vpvp *spm, void **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -8004,7 +8004,7 @@ mapkit_error map_h_vpvp_removeall(map_h_vpvp * spm, void **array, mapkit_size_t 
 	return MAPKIT_OK;
 }
 
-void map_h_vpvp_printstats(map_h_vpvp * spm)
+void map_h_vpvp_printstats(map_h_vpvp *spm)
 {
 	fprintf(stderr, "MAPKIT: map_h_vpvp statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -8037,12 +8037,12 @@ static mapkit_size_t map_stri_insertionindex(map_stri * spm, char *key, mapkit_h
 
 /* Implementation */
 
-mapkit_error map_stri_init(map_stri * spm)
+mapkit_error map_stri_init(map_stri *spm)
 {
 	return map_stri_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_stri_init_hint(map_stri * spm, mapkit_size_t used)
+mapkit_error map_stri_init_hint(map_stri *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -8064,7 +8064,7 @@ mapkit_error map_stri_init_hint(map_stri * spm, mapkit_size_t used)
 	return map_stri_reallocate(spm, map_stri_meansize(spm, used));
 }
 
-mapkit_error map_stri_ensurecapacity(map_stri * spm, mapkit_size_t used)
+mapkit_error map_stri_ensurecapacity(map_stri *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -8075,7 +8075,7 @@ mapkit_error map_stri_ensurecapacity(map_stri * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_stri_adjustcapacity(map_stri * spm)
+mapkit_error map_stri_adjustcapacity(map_stri *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -8094,7 +8094,7 @@ mapkit_error map_stri_adjustcapacity(map_stri * spm)
 		return MAPKIT_OK;
 }
 
-void map_stri_free(map_stri * spm)
+void map_stri_free(map_stri *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -8109,7 +8109,7 @@ void map_stri_free(map_stri * spm)
 #endif
 }
 
-mapkit_error map_stri_copy(map_stri * to, map_stri * from)
+mapkit_error map_stri_copy(map_stri *to, map_stri *from)
 {
 	map_stri_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -8125,22 +8125,22 @@ mapkit_error map_stri_copy(map_stri * to, map_stri * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_stri_growsize(map_stri * spm, mapkit_size_t used)
+mapkit_size_t map_stri_growsize(map_stri *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_stri_shrinksize(map_stri * spm, mapkit_size_t used)
+mapkit_size_t map_stri_shrinksize(map_stri *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_stri_meansize(map_stri * spm, mapkit_size_t used)
+mapkit_size_t map_stri_meansize(map_stri *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_stri_reallocate(map_stri * spm, mapkit_size_t newsize)
+mapkit_error map_stri_reallocate(map_stri *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -8229,7 +8229,7 @@ mapkit_error map_stri_reallocate(map_stri * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-int map_stri_value_s(map_stri * spm, char *key, mapkit_hash_t hash)
+int map_stri_value_s(map_stri *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8245,7 +8245,7 @@ int map_stri_value_s(map_stri * spm, char *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_stri_get_s(map_stri * spm, char *key, int *value, mapkit_hash_t hash)
+mapkit_error map_stri_get_s(map_stri *spm, char *key, int *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8263,7 +8263,7 @@ mapkit_error map_stri_get_s(map_stri * spm, char *key, int *value, mapkit_hash_t
 	return MAPKIT_OK;
 }
 
-mapkit_error map_stri_set_s(map_stri * spm, char *key, int value, mapkit_hash_t hash)
+mapkit_error map_stri_set_s(map_stri *spm, char *key, int value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8293,7 +8293,7 @@ mapkit_error map_stri_set_s(map_stri * spm, char *key, int value, mapkit_hash_t 
 	return MAPKIT_OK;
 }
 
-int *map_stri_insertptr_s(map_stri * spm, char *key, mapkit_hash_t hash)
+int *map_stri_insertptr_s(map_stri *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8345,7 +8345,7 @@ int *map_stri_insertptr_s(map_stri * spm, char *key, mapkit_hash_t hash)
 	}
 }
 
-int *map_stri_ptr_s(map_stri * spm, char *key, mapkit_hash_t hash)
+int *map_stri_ptr_s(map_stri *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8357,7 +8357,7 @@ int *map_stri_ptr_s(map_stri * spm, char *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_stri_remove_s(map_stri * spm, char *key, mapkit_hash_t hash)
+mapkit_error map_stri_remove_s(map_stri *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8382,7 +8382,7 @@ mapkit_error map_stri_remove_s(map_stri * spm, char *key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_stri_keyindex(map_stri * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_stri_keyindex(map_stri *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -8411,7 +8411,7 @@ mapkit_size_t map_stri_keyindex(map_stri * spm, char *key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_stri_insertionindex(map_stri * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_stri_insertionindex(map_stri *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -8464,7 +8464,7 @@ mapkit_size_t map_stri_insertionindex(map_stri * spm, char *key, mapkit_hash_t h
 	return iindex;
 }
 
-mapkit_size_t map_stri_next(map_stri * spm, mapkit_size_t iindex)
+mapkit_size_t map_stri_next(map_stri *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_stri_storage *pos_contents;
@@ -8481,7 +8481,7 @@ mapkit_size_t map_stri_next(map_stri * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_stri_storage *map_stri_nextptr(map_stri * spm, map_stri_storage * pos_contents)
+map_stri_storage *map_stri_nextptr(map_stri *spm, map_stri_storage *pos_contents)
 {
 	map_stri_storage *end = &(spm->contents[spm->size]);
 	int defaultvalue = spm->defaultvalue;
@@ -8503,7 +8503,7 @@ map_stri_storage *map_stri_nextptr(map_stri * spm, map_stri_storage * pos_conten
 	return NULL;
 }
 
-mapkit_error map_stri_getall(map_stri * spm, map_stri_element ** array, mapkit_size_t * count)
+mapkit_error map_stri_getall(map_stri *spm, map_stri_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -8531,7 +8531,7 @@ mapkit_error map_stri_getall(map_stri * spm, map_stri_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error map_stri_clean(map_stri * spm)
+mapkit_error map_stri_clean(map_stri *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -8565,7 +8565,7 @@ int map_stri_compare(const void *e1, const void *e2)
 	return strcmp(key1, key2);
 }
 
-mapkit_error map_stri_getall_sorted(map_stri * spm, map_stri_element ** array, mapkit_size_t * count)
+mapkit_error map_stri_getall_sorted(map_stri *spm, map_stri_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -8578,7 +8578,7 @@ mapkit_error map_stri_getall_sorted(map_stri * spm, map_stri_element ** array, m
 	return MAPKIT_OK;
 }
 
-mapkit_error map_stri_setall(map_stri * spm, map_stri_element * array, mapkit_size_t count)
+mapkit_error map_stri_setall(map_stri *spm, map_stri_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -8605,7 +8605,7 @@ mapkit_error map_stri_setall(map_stri * spm, map_stri_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error map_stri_removeall(map_stri * spm, char **array, mapkit_size_t count)
+mapkit_error map_stri_removeall(map_stri *spm, char **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -8626,7 +8626,7 @@ mapkit_error map_stri_removeall(map_stri * spm, char **array, mapkit_size_t coun
 	return MAPKIT_OK;
 }
 
-void map_stri_printstats(map_stri * spm)
+void map_stri_printstats(map_stri *spm)
 {
 	fprintf(stderr, "MAPKIT: map_stri statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -8659,12 +8659,12 @@ static mapkit_size_t map_strd_insertionindex(map_strd * spm, char *key, mapkit_h
 
 /* Implementation */
 
-mapkit_error map_strd_init(map_strd * spm)
+mapkit_error map_strd_init(map_strd *spm)
 {
 	return map_strd_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_strd_init_hint(map_strd * spm, mapkit_size_t used)
+mapkit_error map_strd_init_hint(map_strd *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -8686,7 +8686,7 @@ mapkit_error map_strd_init_hint(map_strd * spm, mapkit_size_t used)
 	return map_strd_reallocate(spm, map_strd_meansize(spm, used));
 }
 
-mapkit_error map_strd_ensurecapacity(map_strd * spm, mapkit_size_t used)
+mapkit_error map_strd_ensurecapacity(map_strd *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -8697,7 +8697,7 @@ mapkit_error map_strd_ensurecapacity(map_strd * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_strd_adjustcapacity(map_strd * spm)
+mapkit_error map_strd_adjustcapacity(map_strd *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -8716,7 +8716,7 @@ mapkit_error map_strd_adjustcapacity(map_strd * spm)
 		return MAPKIT_OK;
 }
 
-void map_strd_free(map_strd * spm)
+void map_strd_free(map_strd *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -8731,7 +8731,7 @@ void map_strd_free(map_strd * spm)
 #endif
 }
 
-mapkit_error map_strd_copy(map_strd * to, map_strd * from)
+mapkit_error map_strd_copy(map_strd *to, map_strd *from)
 {
 	map_strd_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -8747,22 +8747,22 @@ mapkit_error map_strd_copy(map_strd * to, map_strd * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_strd_growsize(map_strd * spm, mapkit_size_t used)
+mapkit_size_t map_strd_growsize(map_strd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_strd_shrinksize(map_strd * spm, mapkit_size_t used)
+mapkit_size_t map_strd_shrinksize(map_strd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_strd_meansize(map_strd * spm, mapkit_size_t used)
+mapkit_size_t map_strd_meansize(map_strd *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_strd_reallocate(map_strd * spm, mapkit_size_t newsize)
+mapkit_error map_strd_reallocate(map_strd *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -8851,7 +8851,7 @@ mapkit_error map_strd_reallocate(map_strd * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double map_strd_value_s(map_strd * spm, char *key, mapkit_hash_t hash)
+double map_strd_value_s(map_strd *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8867,7 +8867,7 @@ double map_strd_value_s(map_strd * spm, char *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_strd_get_s(map_strd * spm, char *key, double *value, mapkit_hash_t hash)
+mapkit_error map_strd_get_s(map_strd *spm, char *key, double *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8885,7 +8885,7 @@ mapkit_error map_strd_get_s(map_strd * spm, char *key, double *value, mapkit_has
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strd_set_s(map_strd * spm, char *key, double value, mapkit_hash_t hash)
+mapkit_error map_strd_set_s(map_strd *spm, char *key, double value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8915,7 +8915,7 @@ mapkit_error map_strd_set_s(map_strd * spm, char *key, double value, mapkit_hash
 	return MAPKIT_OK;
 }
 
-double *map_strd_insertptr_s(map_strd * spm, char *key, mapkit_hash_t hash)
+double *map_strd_insertptr_s(map_strd *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8967,7 +8967,7 @@ double *map_strd_insertptr_s(map_strd * spm, char *key, mapkit_hash_t hash)
 	}
 }
 
-double *map_strd_ptr_s(map_strd * spm, char *key, mapkit_hash_t hash)
+double *map_strd_ptr_s(map_strd *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -8979,7 +8979,7 @@ double *map_strd_ptr_s(map_strd * spm, char *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_strd_remove_s(map_strd * spm, char *key, mapkit_hash_t hash)
+mapkit_error map_strd_remove_s(map_strd *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9004,7 +9004,7 @@ mapkit_error map_strd_remove_s(map_strd * spm, char *key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_strd_keyindex(map_strd * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_strd_keyindex(map_strd *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -9033,7 +9033,7 @@ mapkit_size_t map_strd_keyindex(map_strd * spm, char *key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_strd_insertionindex(map_strd * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_strd_insertionindex(map_strd *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -9086,7 +9086,7 @@ mapkit_size_t map_strd_insertionindex(map_strd * spm, char *key, mapkit_hash_t h
 	return iindex;
 }
 
-mapkit_size_t map_strd_next(map_strd * spm, mapkit_size_t iindex)
+mapkit_size_t map_strd_next(map_strd *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_strd_storage *pos_contents;
@@ -9103,7 +9103,7 @@ mapkit_size_t map_strd_next(map_strd * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_strd_storage *map_strd_nextptr(map_strd * spm, map_strd_storage * pos_contents)
+map_strd_storage *map_strd_nextptr(map_strd *spm, map_strd_storage *pos_contents)
 {
 	map_strd_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -9125,7 +9125,7 @@ map_strd_storage *map_strd_nextptr(map_strd * spm, map_strd_storage * pos_conten
 	return NULL;
 }
 
-mapkit_error map_strd_getall(map_strd * spm, map_strd_element ** array, mapkit_size_t * count)
+mapkit_error map_strd_getall(map_strd *spm, map_strd_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -9153,7 +9153,7 @@ mapkit_error map_strd_getall(map_strd * spm, map_strd_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strd_clean(map_strd * spm)
+mapkit_error map_strd_clean(map_strd *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -9187,7 +9187,7 @@ int map_strd_compare(const void *e1, const void *e2)
 	return strcmp(key1, key2);
 }
 
-mapkit_error map_strd_getall_sorted(map_strd * spm, map_strd_element ** array, mapkit_size_t * count)
+mapkit_error map_strd_getall_sorted(map_strd *spm, map_strd_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -9200,7 +9200,7 @@ mapkit_error map_strd_getall_sorted(map_strd * spm, map_strd_element ** array, m
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strd_setall(map_strd * spm, map_strd_element * array, mapkit_size_t count)
+mapkit_error map_strd_setall(map_strd *spm, map_strd_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -9227,7 +9227,7 @@ mapkit_error map_strd_setall(map_strd * spm, map_strd_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strd_removeall(map_strd * spm, char **array, mapkit_size_t count)
+mapkit_error map_strd_removeall(map_strd *spm, char **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -9248,7 +9248,7 @@ mapkit_error map_strd_removeall(map_strd * spm, char **array, mapkit_size_t coun
 	return MAPKIT_OK;
 }
 
-void map_strd_printstats(map_strd * spm)
+void map_strd_printstats(map_strd *spm)
 {
 	fprintf(stderr, "MAPKIT: map_strd statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -9281,12 +9281,12 @@ static mapkit_size_t map_strvp_insertionindex(map_strvp * spm, char *key, mapkit
 
 /* Implementation */
 
-mapkit_error map_strvp_init(map_strvp * spm)
+mapkit_error map_strvp_init(map_strvp *spm)
 {
 	return map_strvp_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_strvp_init_hint(map_strvp * spm, mapkit_size_t used)
+mapkit_error map_strvp_init_hint(map_strvp *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -9308,7 +9308,7 @@ mapkit_error map_strvp_init_hint(map_strvp * spm, mapkit_size_t used)
 	return map_strvp_reallocate(spm, map_strvp_meansize(spm, used));
 }
 
-mapkit_error map_strvp_ensurecapacity(map_strvp * spm, mapkit_size_t used)
+mapkit_error map_strvp_ensurecapacity(map_strvp *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -9319,7 +9319,7 @@ mapkit_error map_strvp_ensurecapacity(map_strvp * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_strvp_adjustcapacity(map_strvp * spm)
+mapkit_error map_strvp_adjustcapacity(map_strvp *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -9338,7 +9338,7 @@ mapkit_error map_strvp_adjustcapacity(map_strvp * spm)
 		return MAPKIT_OK;
 }
 
-void map_strvp_free(map_strvp * spm)
+void map_strvp_free(map_strvp *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -9353,7 +9353,7 @@ void map_strvp_free(map_strvp * spm)
 #endif
 }
 
-mapkit_error map_strvp_copy(map_strvp * to, map_strvp * from)
+mapkit_error map_strvp_copy(map_strvp *to, map_strvp *from)
 {
 	map_strvp_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -9369,22 +9369,22 @@ mapkit_error map_strvp_copy(map_strvp * to, map_strvp * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_strvp_growsize(map_strvp * spm, mapkit_size_t used)
+mapkit_size_t map_strvp_growsize(map_strvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_strvp_shrinksize(map_strvp * spm, mapkit_size_t used)
+mapkit_size_t map_strvp_shrinksize(map_strvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_strvp_meansize(map_strvp * spm, mapkit_size_t used)
+mapkit_size_t map_strvp_meansize(map_strvp *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_strvp_reallocate(map_strvp * spm, mapkit_size_t newsize)
+mapkit_error map_strvp_reallocate(map_strvp *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -9473,7 +9473,7 @@ mapkit_error map_strvp_reallocate(map_strvp * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-void *map_strvp_value_s(map_strvp * spm, char *key, mapkit_hash_t hash)
+void *map_strvp_value_s(map_strvp *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9489,7 +9489,7 @@ void *map_strvp_value_s(map_strvp * spm, char *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_strvp_get_s(map_strvp * spm, char *key, void **value, mapkit_hash_t hash)
+mapkit_error map_strvp_get_s(map_strvp *spm, char *key, void **value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9507,7 +9507,7 @@ mapkit_error map_strvp_get_s(map_strvp * spm, char *key, void **value, mapkit_ha
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strvp_set_s(map_strvp * spm, char *key, void *value, mapkit_hash_t hash)
+mapkit_error map_strvp_set_s(map_strvp *spm, char *key, void *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9537,7 +9537,7 @@ mapkit_error map_strvp_set_s(map_strvp * spm, char *key, void *value, mapkit_has
 	return MAPKIT_OK;
 }
 
-void **map_strvp_insertptr_s(map_strvp * spm, char *key, mapkit_hash_t hash)
+void **map_strvp_insertptr_s(map_strvp *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9589,7 +9589,7 @@ void **map_strvp_insertptr_s(map_strvp * spm, char *key, mapkit_hash_t hash)
 	}
 }
 
-void **map_strvp_ptr_s(map_strvp * spm, char *key, mapkit_hash_t hash)
+void **map_strvp_ptr_s(map_strvp *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9601,7 +9601,7 @@ void **map_strvp_ptr_s(map_strvp * spm, char *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_strvp_remove_s(map_strvp * spm, char *key, mapkit_hash_t hash)
+mapkit_error map_strvp_remove_s(map_strvp *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -9626,7 +9626,7 @@ mapkit_error map_strvp_remove_s(map_strvp * spm, char *key, mapkit_hash_t hash)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_strvp_keyindex(map_strvp * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_strvp_keyindex(map_strvp *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -9655,7 +9655,7 @@ mapkit_size_t map_strvp_keyindex(map_strvp * spm, char *key, mapkit_hash_t hash)
 	return iindex;
 }
 
-mapkit_size_t map_strvp_insertionindex(map_strvp * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_strvp_insertionindex(map_strvp *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -9708,7 +9708,7 @@ mapkit_size_t map_strvp_insertionindex(map_strvp * spm, char *key, mapkit_hash_t
 	return iindex;
 }
 
-mapkit_size_t map_strvp_next(map_strvp * spm, mapkit_size_t iindex)
+mapkit_size_t map_strvp_next(map_strvp *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_strvp_storage *pos_contents;
@@ -9725,7 +9725,7 @@ mapkit_size_t map_strvp_next(map_strvp * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_strvp_storage *map_strvp_nextptr(map_strvp * spm, map_strvp_storage * pos_contents)
+map_strvp_storage *map_strvp_nextptr(map_strvp *spm, map_strvp_storage *pos_contents)
 {
 	map_strvp_storage *end = &(spm->contents[spm->size]);
 	void *defaultvalue = spm->defaultvalue;
@@ -9747,7 +9747,7 @@ map_strvp_storage *map_strvp_nextptr(map_strvp * spm, map_strvp_storage * pos_co
 	return NULL;
 }
 
-mapkit_error map_strvp_getall(map_strvp * spm, map_strvp_element ** array, mapkit_size_t * count)
+mapkit_error map_strvp_getall(map_strvp *spm, map_strvp_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -9775,7 +9775,7 @@ mapkit_error map_strvp_getall(map_strvp * spm, map_strvp_element ** array, mapki
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strvp_clean(map_strvp * spm)
+mapkit_error map_strvp_clean(map_strvp *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -9809,7 +9809,7 @@ int map_strvp_compare(const void *e1, const void *e2)
 	return strcmp(key1, key2);
 }
 
-mapkit_error map_strvp_getall_sorted(map_strvp * spm, map_strvp_element ** array, mapkit_size_t * count)
+mapkit_error map_strvp_getall_sorted(map_strvp *spm, map_strvp_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -9822,7 +9822,7 @@ mapkit_error map_strvp_getall_sorted(map_strvp * spm, map_strvp_element ** array
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strvp_setall(map_strvp * spm, map_strvp_element * array, mapkit_size_t count)
+mapkit_error map_strvp_setall(map_strvp *spm, map_strvp_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -9849,7 +9849,7 @@ mapkit_error map_strvp_setall(map_strvp * spm, map_strvp_element * array, mapkit
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strvp_removeall(map_strvp * spm, char **array, mapkit_size_t count)
+mapkit_error map_strvp_removeall(map_strvp *spm, char **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -9870,7 +9870,7 @@ mapkit_error map_strvp_removeall(map_strvp * spm, char **array, mapkit_size_t co
 	return MAPKIT_OK;
 }
 
-void map_strvp_printstats(map_strvp * spm)
+void map_strvp_printstats(map_strvp *spm)
 {
 	fprintf(stderr, "MAPKIT: map_strvp statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -9903,12 +9903,12 @@ static mapkit_size_t map_strstr_insertionindex(map_strstr * spm, char *key, mapk
 
 /* Implementation */
 
-mapkit_error map_strstr_init(map_strstr * spm)
+mapkit_error map_strstr_init(map_strstr *spm)
 {
 	return map_strstr_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error map_strstr_init_hint(map_strstr * spm, mapkit_size_t used)
+mapkit_error map_strstr_init_hint(map_strstr *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -9930,7 +9930,7 @@ mapkit_error map_strstr_init_hint(map_strstr * spm, mapkit_size_t used)
 	return map_strstr_reallocate(spm, map_strstr_meansize(spm, used));
 }
 
-mapkit_error map_strstr_ensurecapacity(map_strstr * spm, mapkit_size_t used)
+mapkit_error map_strstr_ensurecapacity(map_strstr *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -9941,7 +9941,7 @@ mapkit_error map_strstr_ensurecapacity(map_strstr * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error map_strstr_adjustcapacity(map_strstr * spm)
+mapkit_error map_strstr_adjustcapacity(map_strstr *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -9960,7 +9960,7 @@ mapkit_error map_strstr_adjustcapacity(map_strstr * spm)
 		return MAPKIT_OK;
 }
 
-void map_strstr_free(map_strstr * spm)
+void map_strstr_free(map_strstr *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -9975,7 +9975,7 @@ void map_strstr_free(map_strstr * spm)
 #endif
 }
 
-mapkit_error map_strstr_copy(map_strstr * to, map_strstr * from)
+mapkit_error map_strstr_copy(map_strstr *to, map_strstr *from)
 {
 	map_strstr_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -9991,22 +9991,22 @@ mapkit_error map_strstr_copy(map_strstr * to, map_strstr * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_strstr_growsize(map_strstr * spm, mapkit_size_t used)
+mapkit_size_t map_strstr_growsize(map_strstr *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t map_strstr_shrinksize(map_strstr * spm, mapkit_size_t used)
+mapkit_size_t map_strstr_shrinksize(map_strstr *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t map_strstr_meansize(map_strstr * spm, mapkit_size_t used)
+mapkit_size_t map_strstr_meansize(map_strstr *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error map_strstr_reallocate(map_strstr * spm, mapkit_size_t newsize)
+mapkit_error map_strstr_reallocate(map_strstr *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -10095,7 +10095,7 @@ mapkit_error map_strstr_reallocate(map_strstr * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-char *map_strstr_value_s(map_strstr * spm, char *key, mapkit_hash_t hash)
+char *map_strstr_value_s(map_strstr *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -10111,7 +10111,7 @@ char *map_strstr_value_s(map_strstr * spm, char *key, mapkit_hash_t hash)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error map_strstr_get_s(map_strstr * spm, char *key, char **value, mapkit_hash_t hash)
+mapkit_error map_strstr_get_s(map_strstr *spm, char *key, char **value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -10129,7 +10129,7 @@ mapkit_error map_strstr_get_s(map_strstr * spm, char *key, char **value, mapkit_
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strstr_set_s(map_strstr * spm, char *key, char *value, mapkit_hash_t hash)
+mapkit_error map_strstr_set_s(map_strstr *spm, char *key, char *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -10159,7 +10159,7 @@ mapkit_error map_strstr_set_s(map_strstr * spm, char *key, char *value, mapkit_h
 	return MAPKIT_OK;
 }
 
-char **map_strstr_insertptr_s(map_strstr * spm, char *key, mapkit_hash_t hash)
+char **map_strstr_insertptr_s(map_strstr *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -10211,7 +10211,7 @@ char **map_strstr_insertptr_s(map_strstr * spm, char *key, mapkit_hash_t hash)
 	}
 }
 
-char **map_strstr_ptr_s(map_strstr * spm, char *key, mapkit_hash_t hash)
+char **map_strstr_ptr_s(map_strstr *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -10223,7 +10223,7 @@ char **map_strstr_ptr_s(map_strstr * spm, char *key, mapkit_hash_t hash)
 		return NULL;
 }
 
-mapkit_error map_strstr_remove_s(map_strstr * spm, char *key, mapkit_hash_t hash)
+mapkit_error map_strstr_remove_s(map_strstr *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -10248,7 +10248,7 @@ mapkit_error map_strstr_remove_s(map_strstr * spm, char *key, mapkit_hash_t hash
 	return MAPKIT_OK;
 }
 
-mapkit_size_t map_strstr_keyindex(map_strstr * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_strstr_keyindex(map_strstr *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -10277,7 +10277,7 @@ mapkit_size_t map_strstr_keyindex(map_strstr * spm, char *key, mapkit_hash_t has
 	return iindex;
 }
 
-mapkit_size_t map_strstr_insertionindex(map_strstr * spm, char *key, mapkit_hash_t hash)
+mapkit_size_t map_strstr_insertionindex(map_strstr *spm, char *key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -10330,7 +10330,7 @@ mapkit_size_t map_strstr_insertionindex(map_strstr * spm, char *key, mapkit_hash
 	return iindex;
 }
 
-mapkit_size_t map_strstr_next(map_strstr * spm, mapkit_size_t iindex)
+mapkit_size_t map_strstr_next(map_strstr *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	map_strstr_storage *pos_contents;
@@ -10347,7 +10347,7 @@ mapkit_size_t map_strstr_next(map_strstr * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-map_strstr_storage *map_strstr_nextptr(map_strstr * spm, map_strstr_storage * pos_contents)
+map_strstr_storage *map_strstr_nextptr(map_strstr *spm, map_strstr_storage *pos_contents)
 {
 	map_strstr_storage *end = &(spm->contents[spm->size]);
 	char *defaultvalue = spm->defaultvalue;
@@ -10369,7 +10369,7 @@ map_strstr_storage *map_strstr_nextptr(map_strstr * spm, map_strstr_storage * po
 	return NULL;
 }
 
-mapkit_error map_strstr_getall(map_strstr * spm, map_strstr_element ** array, mapkit_size_t * count)
+mapkit_error map_strstr_getall(map_strstr *spm, map_strstr_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -10397,7 +10397,7 @@ mapkit_error map_strstr_getall(map_strstr * spm, map_strstr_element ** array, ma
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strstr_clean(map_strstr * spm)
+mapkit_error map_strstr_clean(map_strstr *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -10431,7 +10431,7 @@ int map_strstr_compare(const void *e1, const void *e2)
 	return strcmp(key1, key2);
 }
 
-mapkit_error map_strstr_getall_sorted(map_strstr * spm, map_strstr_element ** array, mapkit_size_t * count)
+mapkit_error map_strstr_getall_sorted(map_strstr *spm, map_strstr_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -10444,7 +10444,7 @@ mapkit_error map_strstr_getall_sorted(map_strstr * spm, map_strstr_element ** ar
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strstr_setall(map_strstr * spm, map_strstr_element * array, mapkit_size_t count)
+mapkit_error map_strstr_setall(map_strstr *spm, map_strstr_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -10471,7 +10471,7 @@ mapkit_error map_strstr_setall(map_strstr * spm, map_strstr_element * array, map
 	return MAPKIT_OK;
 }
 
-mapkit_error map_strstr_removeall(map_strstr * spm, char **array, mapkit_size_t count)
+mapkit_error map_strstr_removeall(map_strstr *spm, char **array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -10492,7 +10492,7 @@ mapkit_error map_strstr_removeall(map_strstr * spm, char **array, mapkit_size_t 
 	return MAPKIT_OK;
 }
 
-void map_strstr_printstats(map_strstr * spm)
+void map_strstr_printstats(map_strstr *spm)
 {
 	fprintf(stderr, "MAPKIT: map_strstr statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -10527,12 +10527,12 @@ static mapkit_size_t spvector_insertionindex(spvector * spm, int key);
 
 /* Implementation */
 
-mapkit_error spvector_init(spvector * spm)
+mapkit_error spvector_init(spvector *spm)
 {
 	return spvector_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error spvector_init_hint(spvector * spm, mapkit_size_t used)
+mapkit_error spvector_init_hint(spvector *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -10554,7 +10554,7 @@ mapkit_error spvector_init_hint(spvector * spm, mapkit_size_t used)
 	return spvector_reallocate(spm, spvector_meansize(spm, used));
 }
 
-mapkit_error spvector_ensurecapacity(spvector * spm, mapkit_size_t used)
+mapkit_error spvector_ensurecapacity(spvector *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -10565,7 +10565,7 @@ mapkit_error spvector_ensurecapacity(spvector * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error spvector_adjustcapacity(spvector * spm)
+mapkit_error spvector_adjustcapacity(spvector *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -10584,7 +10584,7 @@ mapkit_error spvector_adjustcapacity(spvector * spm)
 		return MAPKIT_OK;
 }
 
-void spvector_free(spvector * spm)
+void spvector_free(spvector *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -10599,7 +10599,7 @@ void spvector_free(spvector * spm)
 #endif
 }
 
-mapkit_error spvector_copy(spvector * to, spvector * from)
+mapkit_error spvector_copy(spvector *to, spvector *from)
 {
 	spvector_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -10615,22 +10615,22 @@ mapkit_error spvector_copy(spvector * to, spvector * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t spvector_growsize(spvector * spm, mapkit_size_t used)
+mapkit_size_t spvector_growsize(spvector *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t spvector_shrinksize(spvector * spm, mapkit_size_t used)
+mapkit_size_t spvector_shrinksize(spvector *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t spvector_meansize(spvector * spm, mapkit_size_t used)
+mapkit_size_t spvector_meansize(spvector *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error spvector_reallocate(spvector * spm, mapkit_size_t newsize)
+mapkit_error spvector_reallocate(spvector *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -10715,7 +10715,7 @@ mapkit_error spvector_reallocate(spvector * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double spvector_value_s(spvector * spm, int key)
+double spvector_value_s(spvector *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -10731,7 +10731,7 @@ double spvector_value_s(spvector * spm, int key)
 	return spm->contents[iindex].value;
 }
 
-mapkit_error spvector_get_s(spvector * spm, int key, double *value)
+mapkit_error spvector_get_s(spvector *spm, int key, double *value)
 {
 	mapkit_size_t iindex;
 
@@ -10749,7 +10749,7 @@ mapkit_error spvector_get_s(spvector * spm, int key, double *value)
 	return MAPKIT_OK;
 }
 
-mapkit_error spvector_set_s(spvector * spm, int key, double value)
+mapkit_error spvector_set_s(spvector *spm, int key, double value)
 {
 	mapkit_size_t iindex;
 
@@ -10778,7 +10778,7 @@ mapkit_error spvector_set_s(spvector * spm, int key, double value)
 	return MAPKIT_OK;
 }
 
-double *spvector_insertptr_s(spvector * spm, int key)
+double *spvector_insertptr_s(spvector *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -10828,7 +10828,7 @@ double *spvector_insertptr_s(spvector * spm, int key)
 	}
 }
 
-double *spvector_ptr_s(spvector * spm, int key)
+double *spvector_ptr_s(spvector *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -10840,7 +10840,7 @@ double *spvector_ptr_s(spvector * spm, int key)
 		return NULL;
 }
 
-mapkit_error spvector_remove_s(spvector * spm, int key)
+mapkit_error spvector_remove_s(spvector *spm, int key)
 {
 	mapkit_size_t iindex;
 
@@ -10865,7 +10865,7 @@ mapkit_error spvector_remove_s(spvector * spm, int key)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t spvector_keyindex(spvector * spm, int key)
+mapkit_size_t spvector_keyindex(spvector *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -10903,7 +10903,7 @@ mapkit_size_t spvector_keyindex(spvector * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t spvector_insertionindex(spvector * spm, int key)
+mapkit_size_t spvector_insertionindex(spvector *spm, int key)
 {
 	mapkit_size_t iindex, decrement;
 	int ckey;
@@ -10962,7 +10962,7 @@ mapkit_size_t spvector_insertionindex(spvector * spm, int key)
 	return iindex;
 }
 
-mapkit_size_t spvector_next(spvector * spm, mapkit_size_t iindex)
+mapkit_size_t spvector_next(spvector *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	spvector_storage *pos_contents;
@@ -10979,7 +10979,7 @@ mapkit_size_t spvector_next(spvector * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-spvector_storage *spvector_nextptr(spvector * spm, spvector_storage * pos_contents)
+spvector_storage *spvector_nextptr(spvector *spm, spvector_storage *pos_contents)
 {
 	spvector_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -11001,7 +11001,7 @@ spvector_storage *spvector_nextptr(spvector * spm, spvector_storage * pos_conten
 	return NULL;
 }
 
-mapkit_error spvector_getall(spvector * spm, spvector_element ** array, mapkit_size_t * count)
+mapkit_error spvector_getall(spvector *spm, spvector_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -11030,7 +11030,7 @@ mapkit_error spvector_getall(spvector * spm, spvector_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error spvector_clean(spvector * spm)
+mapkit_error spvector_clean(spvector *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -11064,7 +11064,7 @@ int spvector_compare(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error spvector_getall_sorted(spvector * spm, spvector_element ** array, mapkit_size_t * count)
+mapkit_error spvector_getall_sorted(spvector *spm, spvector_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -11077,7 +11077,7 @@ mapkit_error spvector_getall_sorted(spvector * spm, spvector_element ** array, m
 	return MAPKIT_OK;
 }
 
-mapkit_error spvector_setall(spvector * spm, spvector_element * array, mapkit_size_t count)
+mapkit_error spvector_setall(spvector *spm, spvector_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -11104,7 +11104,7 @@ mapkit_error spvector_setall(spvector * spm, spvector_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error spvector_removeall(spvector * spm, int *array, mapkit_size_t count)
+mapkit_error spvector_removeall(spvector *spm, int *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -11125,7 +11125,7 @@ mapkit_error spvector_removeall(spvector * spm, int *array, mapkit_size_t count)
 	return MAPKIT_OK;
 }
 
-void spvector_printstats(spvector * spm)
+void spvector_printstats(spvector *spm)
 {
 	fprintf(stderr, "MAPKIT: spvector statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -11159,12 +11159,12 @@ static mapkit_size_t _spmatrix_insertionindex(_spmatrix * spm, spmatrix_key_pair
 
 /* Implementation */
 
-mapkit_error _spmatrix_init(_spmatrix * spm)
+mapkit_error _spmatrix_init(_spmatrix *spm)
 {
 	return _spmatrix_init_hint(spm, MAPKIT_DEFAULT_EXPECTEDUSED);
 }
 
-mapkit_error _spmatrix_init_hint(_spmatrix * spm, mapkit_size_t used)
+mapkit_error _spmatrix_init_hint(_spmatrix *spm, mapkit_size_t used)
 {
 #ifdef MAPKIT_DEBUG
 	fprintf(stderr, "MAPKIT: init\n");
@@ -11186,7 +11186,7 @@ mapkit_error _spmatrix_init_hint(_spmatrix * spm, mapkit_size_t used)
 	return _spmatrix_reallocate(spm, _spmatrix_meansize(spm, used));
 }
 
-mapkit_error _spmatrix_ensurecapacity(_spmatrix * spm, mapkit_size_t used)
+mapkit_error _spmatrix_ensurecapacity(_spmatrix *spm, mapkit_size_t used)
 {
 	if (used > (spm->used + spm->maxfill - spm->fill)) {
 #ifdef MAPKIT_DEBUG
@@ -11197,7 +11197,7 @@ mapkit_error _spmatrix_ensurecapacity(_spmatrix * spm, mapkit_size_t used)
 		return MAPKIT_OK;
 }
 
-mapkit_error _spmatrix_adjustcapacity(_spmatrix * spm)
+mapkit_error _spmatrix_adjustcapacity(_spmatrix *spm)
 {
 	spm->minused = (mapkit_size_t) (spm->size * spm->minusedfactor);
 	spm->maxfill = (mapkit_size_t) (spm->size * spm->maxfillfactor);
@@ -11216,7 +11216,7 @@ mapkit_error _spmatrix_adjustcapacity(_spmatrix * spm)
 		return MAPKIT_OK;
 }
 
-void _spmatrix_free(_spmatrix * spm)
+void _spmatrix_free(_spmatrix *spm)
 {
 	free(spm->contents);
 	spm->contents = NULL;
@@ -11231,7 +11231,7 @@ void _spmatrix_free(_spmatrix * spm)
 #endif
 }
 
-mapkit_error _spmatrix_copy(_spmatrix * to, _spmatrix * from)
+mapkit_error _spmatrix_copy(_spmatrix *to, _spmatrix *from)
 {
 	_spmatrix_storage *contentscopy;
 	size_t size = from->size * sizeof(*from->contents);
@@ -11247,22 +11247,22 @@ mapkit_error _spmatrix_copy(_spmatrix * to, _spmatrix * from)
 	return MAPKIT_OK;
 }
 
-mapkit_size_t _spmatrix_growsize(_spmatrix * spm, mapkit_size_t used)
+mapkit_size_t _spmatrix_growsize(_spmatrix *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (3 * spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_size_t _spmatrix_shrinksize(_spmatrix * spm, mapkit_size_t used)
+mapkit_size_t _spmatrix_shrinksize(_spmatrix *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (4.0 * used / (spm->minusedfactor + 3 * spm->maxfillfactor));
 }
 
-mapkit_size_t _spmatrix_meansize(_spmatrix * spm, mapkit_size_t used)
+mapkit_size_t _spmatrix_meansize(_spmatrix *spm, mapkit_size_t used)
 {
 	return (mapkit_size_t) (2.0 * used / (spm->minusedfactor + spm->maxfillfactor));
 }
 
-mapkit_error _spmatrix_reallocate(_spmatrix * spm, mapkit_size_t newsize)
+mapkit_error _spmatrix_reallocate(_spmatrix *spm, mapkit_size_t newsize)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t oldsize;
@@ -11351,7 +11351,7 @@ mapkit_error _spmatrix_reallocate(_spmatrix * spm, mapkit_size_t newsize)
 	return MAPKIT_OK;
 }
 
-double _spmatrix_value_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t hash)
+double _spmatrix_value_s(_spmatrix *spm, spmatrix_key_pair key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -11367,7 +11367,7 @@ double _spmatrix_value_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t h
 	return spm->contents[iindex].value;
 }
 
-mapkit_error _spmatrix_get_s(_spmatrix * spm, spmatrix_key_pair key, double *value, mapkit_hash_t hash)
+mapkit_error _spmatrix_get_s(_spmatrix *spm, spmatrix_key_pair key, double *value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -11385,7 +11385,7 @@ mapkit_error _spmatrix_get_s(_spmatrix * spm, spmatrix_key_pair key, double *val
 	return MAPKIT_OK;
 }
 
-mapkit_error _spmatrix_set_s(_spmatrix * spm, spmatrix_key_pair key, double value, mapkit_hash_t hash)
+mapkit_error _spmatrix_set_s(_spmatrix *spm, spmatrix_key_pair key, double value, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -11415,7 +11415,7 @@ mapkit_error _spmatrix_set_s(_spmatrix * spm, spmatrix_key_pair key, double valu
 	return MAPKIT_OK;
 }
 
-double *_spmatrix_insertptr_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t hash)
+double *_spmatrix_insertptr_s(_spmatrix *spm, spmatrix_key_pair key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -11467,7 +11467,7 @@ double *_spmatrix_insertptr_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_has
 	}
 }
 
-double *_spmatrix_ptr_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t hash)
+double *_spmatrix_ptr_s(_spmatrix *spm, spmatrix_key_pair key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -11479,7 +11479,7 @@ double *_spmatrix_ptr_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t ha
 		return NULL;
 }
 
-mapkit_error _spmatrix_remove_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t hash)
+mapkit_error _spmatrix_remove_s(_spmatrix *spm, spmatrix_key_pair key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex;
 
@@ -11504,7 +11504,7 @@ mapkit_error _spmatrix_remove_s(_spmatrix * spm, spmatrix_key_pair key, mapkit_h
 	return MAPKIT_OK;
 }
 
-mapkit_size_t _spmatrix_keyindex(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t hash)
+mapkit_size_t _spmatrix_keyindex(_spmatrix *spm, spmatrix_key_pair key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 
@@ -11534,7 +11534,7 @@ mapkit_size_t _spmatrix_keyindex(_spmatrix * spm, spmatrix_key_pair key, mapkit_
 	return iindex;
 }
 
-mapkit_size_t _spmatrix_insertionindex(_spmatrix * spm, spmatrix_key_pair key, mapkit_hash_t hash)
+mapkit_size_t _spmatrix_insertionindex(_spmatrix *spm, spmatrix_key_pair key, mapkit_hash_t hash)
 {
 	mapkit_size_t iindex, decrement;
 	signed char state;
@@ -11588,7 +11588,7 @@ mapkit_size_t _spmatrix_insertionindex(_spmatrix * spm, spmatrix_key_pair key, m
 	return iindex;
 }
 
-mapkit_size_t _spmatrix_next(_spmatrix * spm, mapkit_size_t iindex)
+mapkit_size_t _spmatrix_next(_spmatrix *spm, mapkit_size_t iindex)
 {
 	mapkit_size_t size = spm->size;
 	_spmatrix_storage *pos_contents;
@@ -11605,7 +11605,7 @@ mapkit_size_t _spmatrix_next(_spmatrix * spm, mapkit_size_t iindex)
 	return -1;
 }
 
-_spmatrix_storage *_spmatrix_nextptr(_spmatrix * spm, _spmatrix_storage * pos_contents)
+_spmatrix_storage *_spmatrix_nextptr(_spmatrix *spm, _spmatrix_storage *pos_contents)
 {
 	_spmatrix_storage *end = &(spm->contents[spm->size]);
 	double defaultvalue = spm->defaultvalue;
@@ -11627,7 +11627,7 @@ _spmatrix_storage *_spmatrix_nextptr(_spmatrix * spm, _spmatrix_storage * pos_co
 	return NULL;
 }
 
-mapkit_error _spmatrix_getall(_spmatrix * spm, _spmatrix_element ** array, mapkit_size_t * count)
+mapkit_error _spmatrix_getall(_spmatrix *spm, _spmatrix_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -11655,7 +11655,7 @@ mapkit_error _spmatrix_getall(_spmatrix * spm, _spmatrix_element ** array, mapki
 	return MAPKIT_OK;
 }
 
-mapkit_error _spmatrix_clean(_spmatrix * spm)
+mapkit_error _spmatrix_clean(_spmatrix *spm)
 {
 	mapkit_size_t iindex, count = 0;
 	mapkit_size_t size = spm->size;
@@ -11691,7 +11691,7 @@ int _spmatrix_compare(const void *e1, const void *e2)
 				       (key2).key1) ? 1 : (((key1).key2 < (key2).key2) ? -1 : (((key1).key2 == (key2).key2) ? 0 : 1))));
 }
 
-mapkit_error _spmatrix_getall_sorted(_spmatrix * spm, _spmatrix_element ** array, mapkit_size_t * count)
+mapkit_error _spmatrix_getall_sorted(_spmatrix *spm, _spmatrix_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -11704,7 +11704,7 @@ mapkit_error _spmatrix_getall_sorted(_spmatrix * spm, _spmatrix_element ** array
 	return MAPKIT_OK;
 }
 
-mapkit_error _spmatrix_setall(_spmatrix * spm, _spmatrix_element * array, mapkit_size_t count)
+mapkit_error _spmatrix_setall(_spmatrix *spm, _spmatrix_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -11731,7 +11731,7 @@ mapkit_error _spmatrix_setall(_spmatrix * spm, _spmatrix_element * array, mapkit
 	return MAPKIT_OK;
 }
 
-mapkit_error _spmatrix_removeall(_spmatrix * spm, spmatrix_key_pair * array, mapkit_size_t count)
+mapkit_error _spmatrix_removeall(_spmatrix *spm, spmatrix_key_pair *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -11752,7 +11752,7 @@ mapkit_error _spmatrix_removeall(_spmatrix * spm, spmatrix_key_pair * array, map
 	return MAPKIT_OK;
 }
 
-void _spmatrix_printstats(_spmatrix * spm)
+void _spmatrix_printstats(_spmatrix *spm)
 {
 	fprintf(stderr, "MAPKIT: _spmatrix statistics\n");
 	fprintf(stderr, "MAPKIT: alwaysdefault = %d\n", spm->alwaysdefault);
@@ -11779,37 +11779,37 @@ INLINE int spmatrix_compare2(const void *e1, const void *e2);
 
 /* Implementation */
 
-mapkit_error spmatrix_init(spmatrix * spm)
+mapkit_error spmatrix_init(spmatrix *spm)
 {
 	return _spmatrix_init(spm);
 }
 
-void spmatrix_free(spmatrix * spm)
+void spmatrix_free(spmatrix *spm)
 {
 	_spmatrix_free(spm);
 }
 
-mapkit_error spmatrix_copy(spmatrix * to, spmatrix * from)
+mapkit_error spmatrix_copy(spmatrix *to, spmatrix *from)
 {
 	return _spmatrix_copy(to, from);
 }
 
-mapkit_error spmatrix_init_hint(spmatrix * spm, mapkit_size_t newsize)
+mapkit_error spmatrix_init_hint(spmatrix *spm, mapkit_size_t newsize)
 {
 	return _spmatrix_init_hint(spm, newsize);
 }
 
-mapkit_error spmatrix_ensurecapacity(spmatrix * spm, mapkit_size_t used)
+mapkit_error spmatrix_ensurecapacity(spmatrix *spm, mapkit_size_t used)
 {
 	return _spmatrix_ensurecapacity(spm, used);
 }
 
-mapkit_error spmatrix_adjustcapacity(spmatrix * spm)
+mapkit_error spmatrix_adjustcapacity(spmatrix *spm)
 {
 	return _spmatrix_adjustcapacity(spm);
 }
 
-mapkit_error spmatrix_getall(spmatrix * spm, spmatrix_element ** array, mapkit_size_t * count)
+mapkit_error spmatrix_getall(spmatrix *spm, spmatrix_element **array, mapkit_size_t *count)
 {
 	mapkit_size_t iindex;
 	mapkit_size_t size = spm->size, vcount = 0;
@@ -11840,7 +11840,7 @@ mapkit_error spmatrix_getall(spmatrix * spm, spmatrix_element ** array, mapkit_s
 	return MAPKIT_OK;
 }
 
-mapkit_error spmatrix_clean(spmatrix * spm)
+mapkit_error spmatrix_clean(spmatrix *spm)
 {
 	return _spmatrix_clean(spm);
 }
@@ -11873,7 +11873,7 @@ int spmatrix_compare2(const void *e1, const void *e2)
 	return ((key1) < (key2) ? -1 : ((key1) == (key2) ? 0 : 1));
 }
 
-mapkit_error spmatrix_getall_sorted1(spmatrix * spm, spmatrix_element ** array, mapkit_size_t * count)
+mapkit_error spmatrix_getall_sorted1(spmatrix *spm, spmatrix_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -11886,7 +11886,7 @@ mapkit_error spmatrix_getall_sorted1(spmatrix * spm, spmatrix_element ** array, 
 	return MAPKIT_OK;
 }
 
-mapkit_error spmatrix_getall_sorted2(spmatrix * spm, spmatrix_element ** array, mapkit_size_t * count)
+mapkit_error spmatrix_getall_sorted2(spmatrix *spm, spmatrix_element **array, mapkit_size_t *count)
 {
 	mapkit_error err;
 
@@ -11899,7 +11899,7 @@ mapkit_error spmatrix_getall_sorted2(spmatrix * spm, spmatrix_element ** array, 
 	return MAPKIT_OK;
 }
 
-mapkit_error spmatrix_setall(spmatrix * spm, spmatrix_element * array, mapkit_size_t count)
+mapkit_error spmatrix_setall(spmatrix *spm, spmatrix_element *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -11926,7 +11926,7 @@ mapkit_error spmatrix_setall(spmatrix * spm, spmatrix_element * array, mapkit_si
 	return MAPKIT_OK;
 }
 
-mapkit_error spmatrix_removeall(spmatrix * spm, spmatrix_key * array, mapkit_size_t count)
+mapkit_error spmatrix_removeall(spmatrix *spm, spmatrix_key *array, mapkit_size_t count)
 {
 	mapkit_size_t array_iindex;
 	mapkit_error err;
@@ -11947,7 +11947,7 @@ mapkit_error spmatrix_removeall(spmatrix * spm, spmatrix_key * array, mapkit_siz
 	return MAPKIT_OK;
 }
 
-void spmatrix_printstats(spmatrix * spm)
+void spmatrix_printstats(spmatrix *spm)
 {
 	_spmatrix_printstats(spm);
 }

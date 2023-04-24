@@ -53,7 +53,7 @@
 
 static const int debug = 0;
 
-static int bfgs3_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X, const gsl_vector * y, gsl_vector * c, gsl_matrix * cov)
+static int bfgs3_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, const gsl_vector *y, gsl_vector *c, gsl_matrix *cov)
 {
 	gsl_multifit_robust_workspace *work = gsl_multifit_robust_alloc(T, X->size1, X->size2);
 	int s = gsl_multifit_robust(X, y, c, cov, work);
@@ -236,7 +236,7 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 /* recommended values from Fletcher are 
    rho = 0.01, sigma = 0.1, tau1 = 9, tau2 = 0.05, tau3 = 0.5 */
 
-static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
+static int minimize(gsl_function_fdf *fn, double rho, double sigma, double tau1, double tau2, double tau3, int order, double alpha1,
 		    double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
@@ -519,7 +519,7 @@ static int minimize(gsl_function_fdf * fn, double rho, double sigma, double tau1
 	return GSL_SUCCESS;
 }
 
-static void moveto(double alpha, bfgs3_wrapper_t * w)
+static void moveto(double alpha, bfgs3_wrapper_t *w)
 {
 	if (alpha == w->x_cache_key) {			       /* using previously cached position */
 		return;
@@ -535,7 +535,7 @@ static void moveto(double alpha, bfgs3_wrapper_t * w)
 	w->x_cache_key = alpha;
 }
 
-static double slope(bfgs3_wrapper_t * w)
+static double slope(bfgs3_wrapper_t *w)
 {							       /* compute gradient . direction */
 	double df;
 	gsl_blas_ddot(w->g_alpha, w->p, &df);
@@ -610,8 +610,8 @@ static void wrap_fdf(double alpha, void *params, double *f, double *df)
 }
 
 static void
-prepare_wrapper(bfgs3_wrapper_t * w, gsl_multimin_function_fdf * fdf,
-		const gsl_vector * x, double f, const gsl_vector * g, const gsl_vector * p, gsl_vector * x_alpha, gsl_vector * g_alpha)
+prepare_wrapper(bfgs3_wrapper_t *w, gsl_multimin_function_fdf *fdf,
+		const gsl_vector *x, double f, const gsl_vector *g, const gsl_vector *p, gsl_vector *x_alpha, gsl_vector *g_alpha)
 {
 	w->fdf_linear.f = &wrap_f;
 	w->fdf_linear.df = &wrap_df;
@@ -640,7 +640,7 @@ prepare_wrapper(bfgs3_wrapper_t * w, gsl_multimin_function_fdf * fdf,
 	w->df_cache_key = 0.0;
 }
 
-static void update_position(bfgs3_wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g)
+static void update_position(bfgs3_wrapper_t *w, double alpha, gsl_vector *x, double *f, gsl_vector *g)
 {
 	/*
 	 * ensure that everything is fully cached 
@@ -655,7 +655,7 @@ static void update_position(bfgs3_wrapper_t * w, double alpha, gsl_vector * x, d
 	gsl_vector_memcpy(g, w->g_alpha);
 }
 
-static void change_direction(bfgs3_wrapper_t * w)
+static void change_direction(bfgs3_wrapper_t *w)
 {
 	/*
 	 * Convert the cache values from the end of the current minimisation to those needed for the start of the next minimisation, alpha=0 
@@ -755,7 +755,7 @@ static int vector_bfgs3_alloc(void *vstate, size_t n)
 	return GSL_SUCCESS;
 }
 
-static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size,
+static int vector_bfgs3_set(void *vstate, gsl_multimin_function_fdf *fdf, const gsl_vector *x, double *f, gsl_vector *gradient, double step_size,
 			    double tol)
 {
 	vector_bfgs3_state_t *state = (vector_bfgs3_state_t *) vstate;
@@ -820,8 +820,8 @@ static int vector_bfgs3_restart(void *vstate)
 	return GSL_SUCCESS;
 }
 
-static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf * UNUSED(fdf),
-				gsl_vector * x, double *f, gsl_vector * gradient, gsl_vector * dx)
+static int vector_bfgs3_iterate(void *vstate, gsl_multimin_function_fdf *UNUSED(fdf),
+				gsl_vector *x, double *f, gsl_vector *gradient, gsl_vector *dx)
 {
 	vector_bfgs3_state_t *state = (vector_bfgs3_state_t *) vstate;
 	double alpha = 0.0, alpha1;

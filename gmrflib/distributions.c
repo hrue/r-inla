@@ -64,7 +64,7 @@ double GMRFLib_scale_proposal(double F)
 	}
 }
 
-double GMRFLib_Wishart_logdens(gsl_matrix * Q, double r, gsl_matrix * R)
+double GMRFLib_Wishart_logdens(gsl_matrix *Q, double r, gsl_matrix *R)
 {
 	/*
 	 * this function computes the log-density of the Wishart_p(r, R^-1) density

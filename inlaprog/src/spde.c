@@ -41,7 +41,7 @@ extern G_tp G;						       /* import some global parametes from inla */
  */
 static inla_spde_tp *func_smodel = NULL;
 
-inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp * M)
+inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp *M)
 {
 	assert(M->nrow > 0);
 	assert(M->ncol > 0);
@@ -67,7 +67,7 @@ inla_spde_points_tp *inla_spde_set_points(GMRFLib_matrix_tp * M)
 
 	return p;
 }
-int inla_spde_free_points(inla_spde_points_tp * p)
+int inla_spde_free_points(inla_spde_points_tp *p)
 {
 	if (p) {
 		Free(p->s);
@@ -158,7 +158,7 @@ double inla_spde_Qfunction(int thread_id, int node, int nnode, double *UNUSED(va
 	return value;
 }
 
-int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp * basis)
+int inla_spde_KT_model_init(inla_spde_theta_tp *theta_model, GMRFLib_matrix_tp *basis)
 {
 	double ***theta, *hold;
 	int i, j;
@@ -182,7 +182,7 @@ int inla_spde_KT_model_init(inla_spde_theta_tp * theta_model, GMRFLib_matrix_tp 
 	}
 	return INLA_OK;
 }
-double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp * theta_model, int idx)
+double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp *theta_model, int idx)
 {
 	int i;
 	double value;
@@ -206,7 +206,7 @@ double inla_spde_KT_model_eval(int thread_id, inla_spde_theta_tp * theta_model, 
 	}
 	return exp(value);
 }
-int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla_spde_theta_tp * theta_model, int idx, int iidx)
+int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla_spde_theta_tp *theta_model, int idx, int iidx)
 {
 	/*
 	 * for speedup; do this for two locations at the same time 
@@ -244,7 +244,7 @@ int inla_spde_KT_model_eval2(int thread_id, double *value0, double *value1, inla
 
 	return INLA_OK;
 }
-int inla_spde_build_model(int thread_id, inla_spde_tp ** smodel, const char *prefix)
+int inla_spde_build_model(int thread_id, inla_spde_tp **smodel, const char *prefix)
 {
 	int n, i, j;
 	inla_spde_tp *model;
@@ -371,7 +371,7 @@ int inla_spde_build_model(int thread_id, inla_spde_tp ** smodel, const char *pre
 	return INLA_OK;
 }
 
-double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp * UNUSED(problem), double *UNUSED(theta), int UNUSED(nhyper))
+double *inla_spde_userfunc0(int thread_id, GMRFLib_problem_tp *UNUSED(problem), double *UNUSED(theta), int UNUSED(nhyper))
 {
 	/*
 	 * return the log(deformations). First the T's so the K's

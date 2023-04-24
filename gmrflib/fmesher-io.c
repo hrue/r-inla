@@ -373,7 +373,7 @@ GMRFLib_matrix_tp *GMRFLib_read_fmesher_file(const char *filename, long int offs
 	return (M);
 }
 
-int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long int offset, int whence)
+int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp *M, const char *filename, long int offset, int whence)
 {
 	/*
 	 * write fmesher-file at (offset,whence).
@@ -480,7 +480,7 @@ int GMRFLib_write_fmesher_file(GMRFLib_matrix_tp * M, const char *filename, long
 	return (0);
 }
 
-int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
+int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp *M)
 {
 	/*
 	 * add further info if this is a sparse matrix: the graph and the array of hash tables for the values. we slightly misuse the graph_tp and extend it to the
@@ -576,7 +576,7 @@ int GMRFLib_matrix_add_graph_and_hash(GMRFLib_matrix_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
+double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp *M)
 {
 	/*
 	 * return the diagonal of the matrix as a new and alloced double vector. 
@@ -609,7 +609,7 @@ double *GMRFLib_matrix_get_diagonal(GMRFLib_matrix_tp * M)
 	return diag;
 }
 
-double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
+double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp *M)
 {
 	/*
 	 * get element (i,j) of matrix. 
@@ -633,7 +633,7 @@ double GMRFLib_matrix_get(int i, int j, GMRFLib_matrix_tp * M)
 	}
 }
 
-int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
+int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp *M)
 {
 	/*
 	 * fill the i-th row in 'values'. THIS IS SLOW FOR SPARSE, FAST FOR DENSE!!
@@ -691,7 +691,7 @@ int GMRFLib_matrix_get_row(double *values, int i, GMRFLib_matrix_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matrix_tp * M, int sort)
+int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp **row, int i, GMRFLib_matrix_tp *M, int sort)
 {
 	/*
 	 * store values in 'row', must be NULL on entry. 
@@ -725,7 +725,7 @@ int GMRFLib_matrix_get_row_idxval(GMRFLib_idxval_tp ** row, int i, GMRFLib_matri
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_matrix_free(GMRFLib_matrix_tp * M)
+int GMRFLib_matrix_free(GMRFLib_matrix_tp *M)
 {
 	if (M) {
 		Free(M->i);
@@ -806,7 +806,7 @@ int GMRFLib_file_exists(const char *filename, const char *mode)
 	}
 }
 
-GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
+GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp *M)
 {
 	/*
 	 * return a transpose of the matrix as a new matrix 
@@ -865,7 +865,7 @@ GMRFLib_matrix_tp *GMRFLib_matrix_transpose(GMRFLib_matrix_tp * M)
 	return N;
 }
 
-int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp ** M, GMRFLib_idxval_tp ** idxval, int nrow, int ncol)
+int GMRFLib_idxval_to_matrix(GMRFLib_matrix_tp **M, GMRFLib_idxval_tp **idxval, int nrow, int ncol)
 {
 	int nelm = 0, i, j, jj, k;
 

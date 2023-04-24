@@ -43,14 +43,14 @@
 		}							\
 	}
 
-int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
+int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp **hgmrfm, int n, int n_ext,
 			int *eta_sumzero, double **logprec_unstruct_omp,
 			const char *Aext_fnm, double Aext_precision,
 			int nf, int **c, double **w,
-			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
-			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
-			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, GMRFLib_ai_param_tp * UNUSED(ai_par))
+			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc,
+			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp **f_constr,
+			GMRFLib_Qfunc_tp ***ff_Qfunc, void ***ff_Qfunc_arg,
+			int nbeta, double **covariate, double *prior_precision, GMRFLib_ai_param_tp *UNUSED(ai_par))
 {
 	/*
 	 * define a HGMRF-model, of the form
@@ -700,7 +700,7 @@ int GMRFLib_init_hgmrfm(GMRFLib_hgmrfm_tp ** hgmrfm, int n, int n_ext,
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp * a)
+GMRFLib_hgmrfm_type_tp GMRFLib_hgmrfm_what_type(int node, GMRFLib_hgmrfm_arg_tp *a)
 {
 	int i;
 	GMRFLib_hgmrfm_type_tp t = { GMRFLib_HGMRFM_TP___VOID, -1, -1 };
@@ -843,7 +843,7 @@ double GMRFLib_hgmrfm_Qfunc(int thread_id, int node, int nnode, double *UNUSED(v
 	return value;
 }
 
-int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp * hgmrfm)
+int GMRFLib_free_hgmrfm(GMRFLib_hgmrfm_tp *hgmrfm)
 {
 	if (!hgmrfm) {
 		return GMRFLib_SUCCESS;

@@ -98,15 +98,15 @@ double GMRFLib_tabulate_Qfunction_std(int thread_id, int node, int nnode, double
 }
 
 int GMRFLib_tabulate_Qfunc(int thread_id,
-			   GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-			   GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp)
+			   GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp *graph,
+			   GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double **log_prec_omp)
 {
 	return (GMRFLib_tabulate_Qfunc_core(thread_id, tabulate_Qfunc, graph, Qfunc, Qfunc_arg, log_prec_omp, 0));
 }
 
 int GMRFLib_tabulate_Qfunc_core(int thread_id,
-				GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
-				GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
+				GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp *graph,
+				GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, double **log_prec_omp, int force)
 {
 	int i, j, k;
 	*tabulate_Qfunc = Calloc(1, GMRFLib_tabulate_Qfunc_tp);
@@ -169,7 +169,7 @@ int GMRFLib_tabulate_Qfunc_core(int thread_id,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph, const char *filename,
+int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp **graph, const char *filename,
 				     int dim, double **log_prec_omp)
 {
 	/*
@@ -424,7 +424,7 @@ int GMRFLib_tabulate_Qfunc_from_file(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp ** graph,
+int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp **graph,
 				     int ntriples, int *ilist, int *jlist, double *Qijlist, int dim, double **log_prec_omp)
 {
 	/*
@@ -518,7 +518,7 @@ int GMRFLib_tabulate_Qfunc_from_list(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfunc, GMRFLib_graph_tp * graph,
+int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp **tabulate_Qfunc, GMRFLib_graph_tp *graph,
 				      int ntriples, int *ilist, int *jlist, double *Qijlist, int UNUSED(dim), double **log_prec_omp)
 {
 	// this is a special version for Qfunc_rgeneric, as we assume here that graph is know.
@@ -587,7 +587,7 @@ int GMRFLib_tabulate_Qfunc_from_list2(GMRFLib_tabulate_Qfunc_tp ** tabulate_Qfun
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp * tabulate_Qfunc)
+int GMRFLib_free_tabulate_Qfunc(GMRFLib_tabulate_Qfunc_tp *tabulate_Qfunc)
 {
 	if (!tabulate_Qfunc)
 		return GMRFLib_SUCCESS;

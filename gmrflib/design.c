@@ -47,7 +47,7 @@
 
 #include "designP.h"					       /* define the designs */
 
-int GMRFLib_design_eb(GMRFLib_design_tp ** design, int nhyper)
+int GMRFLib_design_eb(GMRFLib_design_tp **design, int nhyper)
 {
 	// create an EB design
 	*design = Calloc(1, GMRFLib_design_tp);
@@ -62,7 +62,7 @@ int GMRFLib_design_eb(GMRFLib_design_tp ** design, int nhyper)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_design_grid(GMRFLib_design_tp ** design, int nhyper)
+int GMRFLib_design_grid(GMRFLib_design_tp **design, int nhyper)
 {
 	// this returns the int.strategy="grid" design for the experimental mode, which
 	// is different for nhyper=1 and 2, and otherwise equal to the ccd
@@ -227,7 +227,7 @@ int GMRFLib_design_grid(GMRFLib_design_tp ** design, int nhyper)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_design_ccd(GMRFLib_design_tp ** design, int nfactors)
+int GMRFLib_design_ccd(GMRFLib_design_tp **design, int nfactors)
 {
 	/*
 	 * return the CCD design with nfactors in design.  the the design computed as described in: Sanchez, S. M. and
@@ -271,7 +271,7 @@ int GMRFLib_design_ccd(GMRFLib_design_tp ** design, int nfactors)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int std_scale)
+int GMRFLib_design_read(GMRFLib_design_tp **design, GMRFLib_matrix_tp *D, int std_scale)
 {
 	/*
 	 * read the design from D
@@ -303,7 +303,7 @@ int GMRFLib_design_read(GMRFLib_design_tp ** design, GMRFLib_matrix_tp * D, int 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_design_free(GMRFLib_design_tp * design)
+int GMRFLib_design_free(GMRFLib_design_tp *design)
 {
 	if (design) {
 		int i;
@@ -319,7 +319,7 @@ int GMRFLib_design_free(GMRFLib_design_tp * design)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design)
+int GMRFLib_design_print(FILE *fp, GMRFLib_design_tp *design)
 {
 	int i, j;
 
@@ -351,7 +351,7 @@ int GMRFLib_design_print(FILE * fp, GMRFLib_design_tp * design)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_design_prune(GMRFLib_design_tp * design, double prob)
+int GMRFLib_design_prune(GMRFLib_design_tp *design, double prob)
 {
 	if (!design) {
 		return GMRFLib_SUCCESS;
