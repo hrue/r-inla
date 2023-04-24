@@ -393,7 +393,7 @@ double GMRFLib_eps(double power)
 	// return (pow(DBL_EPSILON, power));
 }
 
-int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc)
+int GMRFLib_print_darray(FILE *fp, double *x, int n, const char *desc)
 {
 	int i;
 
@@ -405,7 +405,7 @@ int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc)
+int GMRFLib_print_iarray(FILE *fp, int *x, int n, const char *desc)
 {
 	int i;
 
@@ -723,7 +723,7 @@ int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
+int GMRFLib_printf_matrix(FILE *fp, double *A, int m, int n)
 {
 	// A is m x n matrix
 #pragma omp critical (Name_bb051132870d1f0b90133946052e91194aa163a5)
@@ -741,7 +741,7 @@ int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n)
 	return 0;
 }
 
-int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value)
+int GMRFLib_gsl_matrix_count_eq(gsl_matrix *A, double value)
 {
 	int num = 0;
 	for (size_t i = 0; i < A->size1; i++) {
@@ -752,7 +752,7 @@ int GMRFLib_gsl_matrix_count_eq(gsl_matrix * A, double value)
 	return num;
 }
 
-int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format)
+int GMRFLib_printf_gsl_matrix(FILE *fp, gsl_matrix *matrix, const char *format)
 {
 	size_t i, j;
 
@@ -765,7 +765,7 @@ int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff)
+int GMRFLib_printf_gsl_matrix2(FILE *fp, gsl_matrix *matrix, const char *format, double cutoff)
 {
 	size_t i, j;
 
@@ -783,7 +783,7 @@ int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *forma
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format)
+int GMRFLib_printf_gsl_vector(FILE *fp, gsl_vector *vector, const char *format)
 {
 	size_t i;
 
@@ -835,7 +835,7 @@ int GMRFLib_2order_poleq(double *sol1, double *sol2, double a, double b, double 
 	return GMRFLib_SUCCESS;
 }
 
-mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash)
+mapkit_size_t GMRFLib_nelm_map_ii(map_ii *hash)
 {
 	/*
 	 * return the number of elements in HASH 
@@ -849,7 +849,7 @@ mapkit_size_t GMRFLib_nelm_map_ii(map_ii * hash)
 	return nelm;
 }
 
-mapkit_size_t GMRFLib_nelm_map_id(map_id * hash)
+mapkit_size_t GMRFLib_nelm_map_id(map_id *hash)
 {
 	/*
 	 * return the number of elements in HASH 
@@ -862,7 +862,7 @@ mapkit_size_t GMRFLib_nelm_map_id(map_id * hash)
 	return nelm;
 }
 
-map_ii *GMRFLib_duplicate_map_ii(map_ii * hash)
+map_ii *GMRFLib_duplicate_map_ii(map_ii *hash)
 {
 	/*
 	 * return a copy of HASH 
@@ -887,7 +887,7 @@ map_ii *GMRFLib_duplicate_map_ii(map_ii * hash)
 	return newhash;
 }
 
-map_id *GMRFLib_duplicate_map_id(map_id * hash)
+map_id *GMRFLib_duplicate_map_id(map_id *hash)
 {
 	/*
 	 * return a copy of HASH 
@@ -1021,7 +1021,7 @@ int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec)
+int GMRFLib_gsl_vec2plain(double **out, gsl_vector *vec)
 {
 	if (!vec || vec->size == 0) {
 		*out = NULL;
@@ -1034,7 +1034,7 @@ int GMRFLib_gsl_vec2plain(double **out, gsl_vector * vec)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mat2plain(double **out, gsl_matrix * mat)
+int GMRFLib_gsl_mat2plain(double **out, gsl_matrix *mat)
 {
 	if (!mat || mat->size1 == 0 || mat->size2 == 0) {
 		*out = NULL;
@@ -1408,7 +1408,7 @@ int GMRFLib_trace_functions(const char *name)
 
 // ******************************************************************************************
 
-int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_tp * graph)
+int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp **vmatrix, int nrow, GMRFLib_graph_tp *graph)
 {
 	// graph is optional. If given, the initialise with lnnbs+1
 
@@ -1428,20 +1428,20 @@ int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec)
+int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp *vmatrix, int i, int j, double *vec)
 {
 	map_ivp_set(&(vmatrix->vmat[i]), j, (void *) vec);
 	return GMRFLib_SUCCESS;
 }
 
-double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j)
+double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp *vmatrix, int i, int j)
 {
 	void *p = NULL;
 	map_ivp_get(&(vmatrix->vmat[i]), j, &p);
 	return ((double *) p);
 }
 
-int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content)
+int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp *vmatrix, int free_content)
 {
 	if (free_content) {
 		for (int i = 0; i < vmatrix->nrow; i++) {

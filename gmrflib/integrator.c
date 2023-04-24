@@ -110,7 +110,7 @@ typedef struct {
 	double vol;					       /* cache volume = product of widths */
 } hypercube;
 
-static double compute_vol(const hypercube * h)
+static double compute_vol(const hypercube *h)
 {
 	unsigned i;
 	double vol = 1;
@@ -148,7 +148,7 @@ static hypercube make_hypercube_range(unsigned dim, const double *xmin, const do
 	return h;
 }
 
-static void destroy_hypercube(hypercube * h)
+static void destroy_hypercube(hypercube *h)
 {
 	free(h->data);
 	h->dim = 0;
@@ -160,7 +160,7 @@ typedef struct {
 	unsigned splitDim;
 } region;
 
-static region make_region(const hypercube * h)
+static region make_region(const hypercube *h)
 {
 	region R;
 
@@ -171,12 +171,12 @@ static region make_region(const hypercube * h)
 	return R;
 }
 
-static void destroy_region(region * R)
+static void destroy_region(region *R)
 {
 	destroy_hypercube(&R->h);
 }
 
-static void cut_region(region * R, region * R2)
+static void cut_region(region *R, region *R2)
 {
 	unsigned d = R->splitDim, dim = R->h.dim;
 
@@ -195,14 +195,14 @@ typedef struct rule_s {
 	void (*destroy)(struct rule_s * r);
 } rule;
 
-static void destroy_rule(rule * r)
+static void destroy_rule(rule *r)
 {
 	if (r->destroy)
 		r->destroy(r);
 	free(r);
 }
 
-static region eval_region(region R, integrand f, void *fdata, rule * r)
+static region eval_region(region R, integrand f, void *fdata, rule *r)
 {
 	R.splitDim = r->evalError(r, f, fdata, &R.h, &R.ee);
 	return R;
@@ -403,14 +403,14 @@ static int isqr(int x)
 	return x * x;
 }
 
-static void destroy_rule75genzmalik(rule * r_)
+static void destroy_rule75genzmalik(rule *r_)
 {
 	rule75genzmalik *r = (rule75genzmalik *) r_;
 
 	free(r->p);
 }
 
-static unsigned rule75genzmalik_evalError(rule * r_, integrand f, void *fdata, const hypercube * h, esterr * ee)
+static unsigned rule75genzmalik_evalError(rule *r_, integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
 	/*
 	 * lambda2 = sqrt(9/70), lambda4 = sqrt(9/10), lambda5 = sqrt(9/19) 
@@ -513,7 +513,7 @@ static rule *make_rule75genzmalik(unsigned dim)
 /* 1d 15-point Gaussian quadrature rule, based on qk15.c and qk.c in
    GNU GSL (which in turn is based on QUADPACK). */
 
-static unsigned rule15gauss_evalError(rule * UNUSED(r), integrand f, void *fdata, const hypercube * h, esterr * ee)
+static unsigned rule15gauss_evalError(rule *UNUSED(r), integrand f, void *fdata, const hypercube *h, esterr *ee)
 {
 	/*
 	 * Gauss quadrature weights and kronrod quadrature abscissae and weights as evaluated with 80 decimal digit arithmetic by L. W.
@@ -649,7 +649,7 @@ typedef struct {
 	esterr ee;
 } heap;
 
-static void heap_resize(heap * h, unsigned nalloc)
+static void heap_resize(heap *h, unsigned nalloc)
 {
 	h->nalloc = nalloc;
 	h->items = (heap_item *) realloc(h->items, sizeof(heap_item) * nalloc);
@@ -668,13 +668,13 @@ static heap heap_alloc(unsigned nalloc)
 }
 
 /* note that heap_free does not deallocate anything referenced by the items */
-static void heap_free(heap * h)
+static void heap_free(heap *h)
 {
 	h->n = 0;
 	heap_resize(h, 0);
 }
 
-static void heap_push(heap * h, heap_item hi)
+static void heap_push(heap *h, heap_item hi)
 {
 	int insert;
 
@@ -697,7 +697,7 @@ static void heap_push(heap * h, heap_item hi)
 	h->items[insert] = hi;
 }
 
-static heap_item heap_pop(heap * h)
+static heap_item heap_pop(heap *h)
 {
 	heap_item ret;
 	int i, n, child;
@@ -735,8 +735,8 @@ static heap_item heap_pop(heap * h)
 
 /* adaptive integration, analogous to adaptintegrator.cpp in HIntLib */
 
-static int ruleadapt_integrate(rule * r, integrand f, void *fdata, const hypercube * h, unsigned maxEval, double reqAbsError, double reqRelError,
-			       esterr * ee)
+static int ruleadapt_integrate(rule *r, integrand f, void *fdata, const hypercube *h, unsigned maxEval, double reqAbsError, double reqRelError,
+			       esterr *ee)
 {
 	unsigned maxIter;				       /* maximum number of adaptive subdivisions */
 	heap regions;

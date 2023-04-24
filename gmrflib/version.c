@@ -40,7 +40,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_version(FILE * fp)
+int GMRFLib_version(FILE *fp)
 {
 	const char *GitIDs[] = {
 #include "GitID.all"

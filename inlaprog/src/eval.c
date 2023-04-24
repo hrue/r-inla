@@ -108,7 +108,7 @@ void inla_eval_OnError(muParserHandle_t hParser)
 	exit(1);
 }
 
-muFloat_t *inla_eval_AddVariable(const muChar_t * a_szName, void *pUserData)
+muFloat_t *inla_eval_AddVariable(const muChar_t *a_szName, void *pUserData)
 {
 	eval_keep_vars_tp **aa = (eval_keep_vars_tp **) pUserData;
 	if (*aa == NULL) {

@@ -720,13 +720,13 @@ double GMRFLib_rw2d(int thread_id, int node, int nnode, double *UNUSED(values), 
 	return 0.0;
 }
 
-int GMRFLib_make_rw_graph(GMRFLib_graph_tp ** graph, GMRFLib_rwdef_tp * def)
+int GMRFLib_make_rw_graph(GMRFLib_graph_tp **graph, GMRFLib_rwdef_tp *def)
 {
 	GMRFLib_graph_mk_linear(graph, def->n, def->order, def->cyclic);
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
+int GMRFLib_make_crw_graph(GMRFLib_graph_tp **graph, GMRFLib_crwdef_tp *def)
 {
 	int i, *hold = NULL, n;
 	GMRFLib_graph_tp *gg = NULL;
@@ -799,7 +799,7 @@ int GMRFLib_make_crw_graph(GMRFLib_graph_tp ** graph, GMRFLib_crwdef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
+int GMRFLib_make_rw2d_graph(GMRFLib_graph_tp **graph, GMRFLib_rw2ddef_tp *def)
 {
 	GMRFLib_graph_mk_lattice(graph, def->nrow, def->ncol, 2, 2, def->cyclic);
 	return GMRFLib_SUCCESS;

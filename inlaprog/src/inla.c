@@ -545,7 +545,7 @@ double map_invrobit(double arg, map_arg_tp typ, void *param)
 	return 0.0;
 }
 
-double inla_get_sn_param(inla_sn_arg_tp * output, double **param)
+double inla_get_sn_param(inla_sn_arg_tp *output, double **param)
 {
 	// param = *(skew_intern, intercept_intern)
 	return (map_invsn_core(0.0, MAP_FORWARD, (void *) param, output));
@@ -556,7 +556,7 @@ double map_invsn(double arg, map_arg_tp typ, void *param)
 	return (map_invsn_core(arg, typ, param, NULL));
 }
 
-double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp * output)
+double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *output)
 {
 	// if 'output' is !NULL, just return the contents. its a backdoor avoid duplicating code
 
@@ -2153,7 +2153,7 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 	return 0.0;
 }
 
-int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp * def)
+int inla_make_ar1c_graph(GMRFLib_graph_tp **graph_out, inla_ar1c_arg_tp *def)
 {
 	int i, j;
 	GMRFLib_ged_tp *ged = NULL;
@@ -2179,7 +2179,7 @@ int inla_make_ar1c_graph(GMRFLib_graph_tp ** graph_out, inla_ar1c_arg_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * graph)
+int inla_make_besag2_graph(GMRFLib_graph_tp **graph_out, GMRFLib_graph_tp *graph)
 {
 	int i;
 	GMRFLib_ged_tp *ged = NULL;
@@ -2194,7 +2194,7 @@ int inla_make_besag2_graph(GMRFLib_graph_tp ** graph_out, GMRFLib_graph_tp * gra
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
+int inla_make_2diid_graph(GMRFLib_graph_tp **graph, inla_2diid_arg_tp *arg)
 {
 	int i;
 	GMRFLib_ged_tp *ged = NULL;
@@ -2209,7 +2209,7 @@ int inla_make_2diid_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp * arg)
+int inla_make_2diid_wishart_graph(GMRFLib_graph_tp **graph, inla_2diid_arg_tp *arg)
 {
 	int i;
 	GMRFLib_ged_tp *ged = NULL;
@@ -2224,7 +2224,7 @@ int inla_make_2diid_wishart_graph(GMRFLib_graph_tp ** graph, inla_2diid_arg_tp *
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_tp * arg)
+int inla_make_iid_wishart_graph(GMRFLib_graph_tp **graph, inla_iid_wishart_arg_tp *arg)
 {
 	int i, j, k, n = arg->n, dim = arg->dim;
 
@@ -2245,7 +2245,7 @@ int inla_make_iid_wishart_graph(GMRFLib_graph_tp ** graph, inla_iid_wishart_arg_
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_arg_tp * arg)
+int inla_make_iid_wishartk_graph(GMRFLib_graph_tp **graph, inla_iid_wishartk_arg_tp *arg)
 {
 	int i, j, k, n = arg->n, dim = arg->dim;
 	GMRFLib_ged_tp *ged = NULL;
@@ -2265,7 +2265,7 @@ int inla_make_iid_wishartk_graph(GMRFLib_graph_tp ** graph, inla_iid_wishartk_ar
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
+int inla_make_rw2diid_graph(GMRFLib_graph_tp **graph, GMRFLib_rw2ddef_tp *def)
 {
 	int i, n;
 	GMRFLib_ged_tp *ged = NULL;
@@ -2284,7 +2284,7 @@ int inla_make_rw2diid_graph(GMRFLib_graph_tp ** graph, GMRFLib_rw2ddef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-int inla_make_bym_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph)
+int inla_make_bym_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * for layout: see Qfunc_bym() 
@@ -2540,8 +2540,8 @@ double Qfunc_group(int thread_id, int i, int j, double *UNUSED(values), void *ar
 	return val;
 }
 
-int inla_make_group_graph(GMRFLib_graph_tp ** new_graph, GMRFLib_graph_tp * graph, int ngroup, int type, int cyclic, int order,
-			  GMRFLib_graph_tp * group_graph)
+int inla_make_group_graph(GMRFLib_graph_tp **new_graph, GMRFLib_graph_tp *graph, int ngroup, int type, int cyclic, int order,
+			  GMRFLib_graph_tp *group_graph)
 {
 	int i, j, n = graph->n;
 	const int debug = 0;
@@ -2765,7 +2765,7 @@ double Qfunc_replicate(int thread_id, int i, int j, double *UNUSED(values), void
 	return a->Qfunc(thread_id, ii, jj, NULL, a->Qfunc_arg);
 }
 
-int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate)
+int inla_replicate_graph(GMRFLib_graph_tp **g, int replicate)
 {
 	/*
 	 * replace the graph G, with on that is replicated REPLICATE times 
@@ -3491,7 +3491,7 @@ double Qfunc_iid_wishart(int thread_id, int node, int nnode, double *UNUSED(valu
 	return gsl_matrix_get(hold->Q, node / a->n, nnode / a->n);
 }
 
-int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix * Q, gsl_matrix * L)
+int inla_wishartk_build_Q(int dim, double *theta, gsl_matrix *Q, gsl_matrix *L)
 {
 	int i, j, k = 0, n_theta = INLA_WISHARTK_NTHETA(dim);
 	const int debug = 0;
@@ -3628,12 +3628,12 @@ double Qfunc_2diid_wishart(int thread_id, int i, int j, double *UNUSED(values), 
 	return -rho * sqrt(prec0 * prec1) / (1.0 - SQR(rho));
 }
 
-int inla_make_ar1_graph(GMRFLib_graph_tp ** graph, inla_ar1_arg_tp * arg)
+int inla_make_ar1_graph(GMRFLib_graph_tp **graph, inla_ar1_arg_tp *arg)
 {
 	return GMRFLib_graph_mk_linear(graph, arg->n, 1, arg->cyclic);
 }
 
-int inla_make_ou_graph(GMRFLib_graph_tp ** graph, inla_ou_arg_tp * arg)
+int inla_make_ou_graph(GMRFLib_graph_tp **graph, inla_ou_arg_tp *arg)
 {
 	return GMRFLib_graph_mk_linear(graph, arg->n, 1, 0);
 }
@@ -5126,7 +5126,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 	}
 }
 
-int inla_read_data_likelihood(inla_tp * mb, dictionary * UNUSED(ini), int UNUSED(sec))
+int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(sec))
 {
 	/*
 	 * read data from file 
@@ -9873,9 +9873,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -11182,7 +11182,7 @@ int loglikelihood_expsurv(int thread_id, double *logll, double *x, int m, int id
 }
 
 int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			       GMRFLib_logl_tp * loglfun, char **arg_str)
+			       GMRFLib_logl_tp *loglfun, char **arg_str)
 {
 	// this function makes a survival likelihood out of a regression likelihood
 
@@ -11312,7 +11312,7 @@ int loglikelihood_generic_surv(int thread_id, double *logll, double *x, int m, i
 }
 
 int loglikelihood_generic_surv_NEW(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-				   GMRFLib_logl_tp * loglfun, char **arg_str)
+				   GMRFLib_logl_tp *loglfun, char **arg_str)
 {
 	// this safeguard computed CDF's that should not be exactly 0 or 1
 #define SAFEGUARD(value_) for(int i_ = 0; i_ < (m); i_++) value_[i_] = TRUNCATE(value_[i_], 0.0, 1.0 - p_min)
@@ -12179,7 +12179,7 @@ int inla_error_file_error2(const char *funcname, const char *filename, int n, in
 	return INLA_OK;
 }
 
-int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, const char *FILENAME)
+int inla_read_fileinfo(inla_tp *mb, dictionary *ini, int sec, File_tp *file, const char *FILENAME)
 {
 	char *tag = (FILENAME ? GMRFLib_strdup(FILENAME) : GMRFLib_strdup("FILENAME"));
 	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
@@ -12200,7 +12200,7 @@ int inla_read_fileinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file, 
 	return INLA_OK;
 }
 
-int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file)
+int inla_read_weightsinfo(inla_tp *mb, dictionary *ini, int sec, File_tp *file)
 {
 	char *secname = GMRFLib_strdup(iniparser_getsecname(ini, sec));
 
@@ -12214,169 +12214,169 @@ int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * fil
 	return INLA_OK;
 }
 
-int inla_read_prior(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "PRIOR", "PARAMETERS", "FROM.THETA", "TO.THETA", "HYPERID", default_prior, args);
 }
 
-int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_mix(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "MIX.PRIOR", "MIX.PARAMETERS", "MIX.FROM.THETA", "MIX.TO.THETA",
 				       "MIX.HYPERID", default_prior, args);
 }
 
-int inla_read_prior_link(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_link(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR", "LINK.PARAMETERS", "LINK.FROM.THETA", "LINK.TO.THETA",
 				       "LINK.HYPERID", default_prior, args);
 }
 
-int inla_read_prior_link0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_link0(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR0", "LINK.PARAMETERS0", "LINK.FROM.THETA0", "LINK.TO.THETA0",
 				       "LINK.HYPERID0", default_prior, args);
 }
 
-int inla_read_prior_link1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_link1(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR1", "LINK.PARAMETERS1", "LINK.FROM.THETA1", "LINK.TO.THETA1",
 				       "LINK.HYPERID1", default_prior, args);
 }
 
-int inla_read_prior_link2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_link2(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "LINK.PRIOR2", "LINK.PARAMETERS2", "LINK.FROM.THETA2", "LINK.TO.THETA2",
 				       "LINK.HYPERID2", default_prior, args);
 }
 
-int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR", "GROUP.PARAMETERS", "GROUP.FROM.THETA", "GROUP.TO.THETA",
 				       "GROUP.HYPERID", default_prior, args);
 }
 
-int inla_read_prior_group0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group0(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR0", "GROUP.PARAMETERS0", "GROUP.FROM.THETA0",
 				       "GROUP.TO.THETA0", "GROUP.HYPERID0", default_prior, args);
 }
 
-int inla_read_prior_group1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group1(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR1", "GROUP.PARAMETERS1", "GROUP.FROM.THETA1",
 				       "GROUP.TO.THETA1", "GROUP.HYPERID1", default_prior, args);
 }
 
-int inla_read_prior_group2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group2(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR2", "GROUP.PARAMETERS2", "GROUP.FROM.THETA2",
 				       "GROUP.TO.THETA2", "GROUP.HYPERID2", default_prior, args);
 }
 
-int inla_read_prior_group3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group3(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR3", "GROUP.PARAMETERS3", "GROUP.FROM.THETA3",
 				       "GROUP.TO.THETA3", "GROUP.HYPERID3", default_prior, args);
 }
 
-int inla_read_prior_group4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group4(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR4", "GROUP.PARAMETERS4", "GROUP.FROM.THETA4",
 				       "GROUP.TO.THETA4", "GROUP.HYPERID4", default_prior, args);
 }
 
-int inla_read_prior_group5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group5(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR5", "GROUP.PARAMETERS5", "GROUP.FROM.THETA5",
 				       "GROUP.TO.THETA5", "GROUP.HYPERID5", default_prior, args);
 }
 
-int inla_read_prior_group6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group6(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR6", "GROUP.PARAMETERS6", "GROUP.FROM.THETA6",
 				       "GROUP.TO.THETA6", "GROUP.HYPERID6", default_prior, args);
 }
 
-int inla_read_prior_group7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group7(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR7", "GROUP.PARAMETERS7", "GROUP.FROM.THETA7",
 				       "GROUP.TO.THETA7", "GROUP.HYPERID7", default_prior, args);
 }
 
-int inla_read_prior_group8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group8(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR8", "GROUP.PARAMETERS8", "GROUP.FROM.THETA8",
 				       "GROUP.TO.THETA8", "GROUP.HYPERID8", default_prior, args);
 }
 
-int inla_read_prior_group9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group9(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR9", "GROUP.PARAMETERS9", "GROUP.FROM.THETA9",
 				       "GROUP.TO.THETA9", "GROUP.HYPERID9", default_prior, args);
 }
 
-int inla_read_prior_group10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior_group10(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_prior_generic(mb, ini, sec, prior, "GROUP.PRIOR10", "GROUP.PARAMETERS10", "GROUP.FROM.THETA10",
 				       "GROUP.TO.THETA10", "GROUP.HYPERID10", default_prior, args);
 }
 
-int inla_read_prior0(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior0(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 0, args);
 }
 
-int inla_read_prior1(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior1(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 1, args);
 }
 
-int inla_read_prior2(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior2(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 2, args);
 }
 
-int inla_read_prior3(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior3(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 3, args);
 }
 
-int inla_read_prior4(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior4(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 4, args);
 }
 
-int inla_read_prior5(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior5(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 5, args);
 }
 
-int inla_read_prior6(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior6(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 6, args);
 }
 
-int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior7(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 7, args);
 }
 
-int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior8(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 8, args);
 }
 
-int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior9(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 9, args);
 }
 
-int inla_read_prior10(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args)
+int inla_read_prior10(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, void *args)
 {
 	return inla_read_priorN(mb, ini, sec, prior, default_prior, 10, args);
 }
 
-int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args)
+int inla_read_priorN(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, int N, void *args)
 {
 	int val;
 	char *a = NULL, *b = NULL, *c = NULL, *d = NULL, *e = NULL;
@@ -12398,7 +12398,7 @@ int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 	return val;
 }
 
-int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag,
+int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *prior_tag,
 			    const char *param_tag, const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior,
 			    void *UNUSED(args))
 {
@@ -14125,7 +14125,7 @@ int inla_tolower(char *string)
 	return GMRFLib_SUCCESS;
 }
 
-int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_lincomb(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = LINCOMB. Here we assume the binary files are written by Rinla, so they are index-1 based!!!!!
@@ -14287,7 +14287,7 @@ int inla_parse_lincomb(inla_tp * mb, dictionary * ini, int sec)
 	return INLA_OK;
 }
 
-int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_mode(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = MODE
@@ -14387,7 +14387,7 @@ int inla_parse_mode(inla_tp * mb, dictionary * ini, int sec)
 	return INLA_OK;
 }
 
-int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
+int inla_parse_problem(inla_tp *mb, dictionary *ini, int sec, int make_dir)
 {
 	/*
 	 * parse section = PROBLEM
@@ -14541,7 +14541,7 @@ int inla_parse_problem(inla_tp * mb, dictionary * ini, int sec, int make_dir)
 	return INLA_OK;
 }
 
-int inla_parse_predictor(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_predictor(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = PREDICTOR 
@@ -14762,7 +14762,7 @@ char *inla_make_tag2(const char *string, int ds, const char *estr)
 	return res;
 }
 
-int inla_parse_data(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = DATA 
@@ -22265,7 +22265,7 @@ GMRFLib_constr_tp *inla_read_constraint(const char *filename, int n)
 	return c;
 }
 
-GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * constr)
+GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp *constr)
 {
 	/*
 	 * merge the constraints, if any. yes, i have to do this manually. 
@@ -22330,7 +22330,7 @@ GMRFLib_constr_tp *inla_make_constraint(int n, int sumzero, GMRFLib_constr_tp * 
 	return c;
 }
 
-GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp * constr)
+GMRFLib_constr_tp *inla_make_constraint2(int n, int replicate, int sumzero, GMRFLib_constr_tp *constr)
 {
 	/*
 	 * merge the constraints, if any. yes, i have to do this manually.
@@ -22453,7 +22453,7 @@ double Qfunc_intslope(int thread_id, int node, int nnode, double *UNUSED(values)
 	return 0.0;
 }
 
-int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * arg)
+int inla_make_intslope_graph(GMRFLib_graph_tp **graph, inla_intslope_arg_tp *arg)
 {
 	int idx, subject;
 	GMRFLib_ged_tp *ged = NULL;
@@ -22481,7 +22481,7 @@ int inla_make_intslope_graph(GMRFLib_graph_tp ** graph, inla_intslope_arg_tp * a
 	return GMRFLib_SUCCESS;
 }
 
-int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out)
+int inla_cgeneric_debug(FILE *fp, char *secname, inla_cgeneric_cmd_tp cmd, double *out)
 {
 	int i, n, m;
 
@@ -22568,7 +22568,7 @@ int inla_cgeneric_debug(FILE * fp, char *secname, inla_cgeneric_cmd_tp cmd, doub
 	return GMRFLib_SUCCESS;
 }
 
-int inla_parse_ffield(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 {
 #define _SET(a_, b_) mb->f_ ## a_[mb->nf] = b_
 #define _OneOf(a_) (!strcasecmp(model, a_))
@@ -30487,7 +30487,7 @@ double Qfunc_copy_part11(int UNUSED(thread_id), int UNUSED(i), int j, double *UN
 	return a->precision;
 }
 
-int inla_add_copyof(inla_tp * mb)
+int inla_add_copyof(inla_tp *mb)
 {
 	int i, k, kk, kkk, nf = mb->nf;
 	const int debug = 0;
@@ -30619,7 +30619,7 @@ int inla_add_copyof(inla_tp * mb)
 	return 0;
 }
 
-inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id)
+inla_iarray_tp *find_all_f(inla_tp *mb, inla_component_tp id)
 {
 	inla_iarray_tp *ia = Calloc(1, inla_iarray_tp);
 
@@ -30639,7 +30639,7 @@ inla_iarray_tp *find_all_f(inla_tp * mb, inla_component_tp id)
 	return ia;
 }
 
-int find_f(inla_tp * mb, inla_component_tp id)
+int find_f(inla_tp *mb, inla_component_tp id)
 {
 	int i;
 	for (i = 0; i < mb->nf; i++) {
@@ -30650,7 +30650,7 @@ int find_f(inla_tp * mb, inla_component_tp id)
 	return -1;
 }
 
-int find_tag(inla_tp * mb, const char *name)
+int find_tag(inla_tp *mb, const char *name)
 {
 	int i;
 	for (i = 0; i < mb->nf; i++) {
@@ -30660,7 +30660,7 @@ int find_tag(inla_tp * mb, const char *name)
 	return -1;
 }
 
-int count_f(inla_tp * mb, inla_component_tp id)
+int count_f(inla_tp *mb, inla_component_tp id)
 {
 	int i, n = 0;
 	for (i = 0; i < mb->nf; i++) {
@@ -30671,7 +30671,7 @@ int count_f(inla_tp * mb, inla_component_tp id)
 	return n;
 }
 
-int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_linear(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = LINEAR 
@@ -30739,7 +30739,7 @@ int inla_parse_linear(inla_tp * mb, dictionary * ini, int sec)
 	return INLA_OK;
 }
 
-int inla_setup_ai_par_default(inla_tp * mb)
+int inla_setup_ai_par_default(inla_tp *mb)
 {
 	/*
 	 * change some these values to provide a inla-spesific defaults:
@@ -30824,7 +30824,7 @@ int inla_setup_ai_par_default(inla_tp * mb)
 	return INLA_OK;
 }
 
-int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
+int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 {
 	/*
 	 * parse section = INLA 
@@ -31327,7 +31327,7 @@ int inla_parse_INLA(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir
 	return INLA_OK;
 }
 
-int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
+int inla_parse_update(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 {
 	/*
 	 * parse section = UPDATE
@@ -31406,7 +31406,7 @@ int inla_parse_update(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_d
 	return INLA_OK;
 }
 
-int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
+int inla_parse_pardiso(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 {
 	/*
 	 * parse section = PARDISO
@@ -31449,7 +31449,7 @@ int inla_parse_pardiso(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_
 	return INLA_OK;
 }
 
-int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make_dir))
+int inla_parse_lp_scale(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 {
 	/*
 	 * parse section = LP.SCALE
@@ -31567,7 +31567,7 @@ int inla_parse_lp_scale(inla_tp * mb, dictionary * ini, int sec, int UNUSED(make
 	return INLA_OK;
 }
 
-int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = expert
@@ -31655,7 +31655,7 @@ int inla_parse_expert(inla_tp * mb, dictionary * ini, int sec)
 	return INLA_OK;
 }
 
-int inla_parse_libR(inla_tp * mb, dictionary * ini, int sec)
+int inla_parse_libR(inla_tp *mb, dictionary *ini, int sec)
 {
 	/*
 	 * parse section = libR
@@ -35602,7 +35602,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 }
 #pragma GCC pop_options
 
-double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
+double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
 	/*
 	 * solve arg min logl(x[i]) - prec * 0.5*(x[i]-mean)^2. But we have no option of what PREC is, so I set it to 10.0
@@ -35641,14 +35641,14 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp * loglfunc, double *x
 	return x;
 }
 
-double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
+double inla_compute_saturated_loglik(int thread_id, int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
 	inla_tp *a = (inla_tp *) arg;
 	assert(loglfunc == loglikelihood_inla);
 	return inla_compute_saturated_loglik_core(thread_id, idx, a->loglikelihood[idx], x_vec, a->loglikelihood_arg[idx]);
 }
 
-double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp * loglfunc, double *x_vec, void *arg)
+double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_tp *loglfunc, double *x_vec, void *arg)
 {
 	double prec_high = 1.0E3, prec_low = 1.0E-8, eps = 1.0E-6;
 	double log_prec_high = log(prec_high), log_prec_low = log(prec_low);
@@ -35682,7 +35682,7 @@ double inla_compute_saturated_loglik_core(int thread_id, int idx, GMRFLib_logl_t
 	return (arr[0]);
 }
 
-int inla_INLA(inla_tp * mb)
+int inla_INLA(inla_tp *mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
@@ -36171,7 +36171,7 @@ int inla_INLA(inla_tp * mb)
 	return INLA_OK;
 }
 
-int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
+int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, count;
@@ -36412,7 +36412,7 @@ int inla_INLA_preopt_stage1(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	return INLA_OK;
 }
 
-int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
+int inla_INLA_preopt_stage2(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, i, j, k, count, local_count;
@@ -36872,7 +36872,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt)
 	return INLA_OK;
 }
 
-int inla_INLA_preopt_experimental(inla_tp * mb)
+int inla_INLA_preopt_experimental(inla_tp *mb)
 {
 	double *c = NULL, *x = NULL, *b = NULL;
 	int N, count, i, j;
@@ -37444,7 +37444,7 @@ int inla_INLA_preopt_experimental(inla_tp * mb)
 	return INLA_OK;
 }
 
-int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
+int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 {
 	/*
 	 * parse the output-options. defaults are given in the type=output-section, which are initialised with program defaults if
@@ -37797,7 +37797,7 @@ int inla_parse_output(inla_tp * mb, dictionary * ini, int sec, Output_tp ** out)
 	return INLA_OK;
 }
 
-int inla_computed(GMRFLib_density_tp ** d, int n)
+int inla_computed(GMRFLib_density_tp **d, int n)
 {
 	/*
 	 * return 0 if all d[i]'s are NULL, and 1 otherwise. 
@@ -37815,7 +37815,7 @@ int inla_computed(GMRFLib_density_tp ** d, int n)
 	return INLA_OK;
 }
 
-int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
+int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_problem_tp *p = NULL;
 	char *fnm = NULL, *newdir = NULL;
@@ -37851,7 +37851,7 @@ int inla_output_Q(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
 	return INLA_OK;
 }
 
-int inla_output_graph(inla_tp * mb, const char *dir, GMRFLib_graph_tp * graph)
+int inla_output_graph(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 {
 	char *fnm = NULL;
 	GMRFLib_sprintf(&fnm, "%s/graph.dat", dir);
@@ -37972,7 +37972,7 @@ int inla_output_hyperid(const char *dir, const char *sdir, char *hyperid)
 	return INLA_OK;
 }
 
-int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp * fc)
+int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_tp *fc)
 {
 	if (!fc) {
 		return INLA_OK;
@@ -37991,7 +37991,7 @@ int inla_output_id_names(const char *dir, const char *sdir, inla_file_contents_t
 	return INLA_OK;
 }
 
-int inla_output(inla_tp * mb)
+int inla_output(inla_tp *mb)
 {
 	int n = 0, j, *offsets = NULL, len_offsets, local_verbose = 0;
 	assert(mb);
@@ -38244,7 +38244,7 @@ int inla_output(inla_tp * mb)
 	return INLA_OK;
 }
 
-int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose)
+int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp *gcpo, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -38302,7 +38302,7 @@ int inla_output_detail_gcpo(const char *dir, GMRFLib_gcpo_tp * gcpo, int verbose
 	return INLA_OK;
 }
 
-int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predictor_n, int verbose)
+int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp *cpo, int predictor_n, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -38404,7 +38404,7 @@ int inla_output_detail_cpo(const char *dir, GMRFLib_ai_cpo_tp * cpo, int predict
 	return INLA_OK;
 }
 
-int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_n, int verbose)
+int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp *po, int predictor_n, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -38447,7 +38447,7 @@ int inla_output_detail_po(const char *dir, GMRFLib_ai_po_tp * po, int predictor_
 	return INLA_OK;
 }
 
-int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *family_idx, int len_family_idx, int verbose)
+int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp *dic, double *family_idx, int len_family_idx, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -38535,8 +38535,8 @@ int inla_output_detail_dic(const char *dir, GMRFLib_ai_dic_tp * dic, double *fam
 	return INLA_OK;
 }
 
-int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta, char **theta_tag, char **theta_from,
-		     char **theta_to, double *lc_order, int verbose, inla_tp * mb)
+int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta, char **theta_tag, char **theta_from,
+		     char **theta_to, double *lc_order, int verbose, inla_tp *mb)
 {
 	/*
 	 * output whatever is requested.... 
@@ -38979,7 +38979,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp * mo, int ntheta
 	return INLA_OK;
 }
 
-int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp * mlik, int verbose)
+int inla_output_detail_mlik(const char *dir, GMRFLib_ai_marginal_likelihood_tp *mlik, int verbose)
 {
 	/*
 	 * output whatever is requested.... 
@@ -39027,7 +39027,7 @@ int inla_output_gitid(const char *dir)
 	return INLA_OK;
 }
 
-int inla_output_linkfunctions(const char *dir, inla_tp * mb)
+int inla_output_linkfunctions(const char *dir, inla_tp *mb)
 {
 	int i, j;
 	char *nndir = NULL;
@@ -39184,8 +39184,8 @@ int inla_output_detail_x(const char *dir, double *x, int n_x)
 	return INLA_OK;
 }
 
-int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp * density, map_func_tp * func,
-			void *func_arg, GMRFLib_transform_array_func_tp * tfunc)
+int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib_density_tp *density, map_func_tp *func,
+			void *func_arg, GMRFLib_transform_array_func_tp *tfunc)
 {
 	// this require 'i_max', 'np', 'z' and 'ldz'
 #define COMPUTE_MODE()							\
@@ -39422,12 +39422,12 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 	return GMRFLib_SUCCESS;
 }
 
-int inla_output_detail(const char *dir, GMRFLib_density_tp ** density, double *locations, int n, int nrep, Output_tp * output, const char *sdir,
+int inla_output_detail(const char *dir, GMRFLib_density_tp **density, double *locations, int n, int nrep, Output_tp *output, const char *sdir,
 		       int return_marginals,
 		       // Either this
-		       map_func_tp * func, void *func_arg,
+		       map_func_tp *func, void *func_arg,
 		       // .. or this
-		       GMRFLib_transform_array_func_tp ** tfunc,
+		       GMRFLib_transform_array_func_tp **tfunc,
 		       // 
 		       const char *tag, const char *modelname, int UNUSED(verbose))
 {
@@ -40243,7 +40243,7 @@ inla_file_contents_tp *inla_read_file_contents(const char *filename)
 	return fc;
 }
 
-int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
+int inla_write_file_contents(const char *filename, inla_file_contents_tp *fc)
 {
 	/*
 	 * just dump the file contents to the new file 
@@ -40265,7 +40265,7 @@ int inla_write_file_contents(const char *filename, inla_file_contents_tp * fc)
 	return INLA_OK;
 }
 
-int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int verbose)
+int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp *arg, int adj, int verbose)
 {
 	// if VERBOSE, write out the scalings.
 	inla_besag_Qfunc_arg_tp *def = Calloc(1, inla_besag_Qfunc_arg_tp);
@@ -40428,7 +40428,7 @@ int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int 
 	return GMRFLib_SUCCESS;
 }
 
-double inla_update_density(double *theta, inla_update_tp * arg)
+double inla_update_density(double *theta, inla_update_tp *arg)
 {
 	/*
 	 * joint posterior for theta
@@ -43619,7 +43619,7 @@ int testit(int argc, char **argv)
 		break;
 
 
-	case 111: 
+	case 111:
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
@@ -43631,26 +43631,26 @@ int testit(int argc, char **argv)
 			x[i] = xx[i] = GMRFLib_uniform();
 		}
 
-		double tref[] = {0, 0};
-		for(int i = 0; i < m; i++) {
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
 			tref[0] -= GMRFLib_cpu();
-			qsort(x, (size_t)n, sizeof(double), GMRFLib_dcmp);
+			qsort(x, (size_t) n, sizeof(double), GMRFLib_dcmp);
 			tref[0] += GMRFLib_cpu();
 			Memcpy(x, xx, n * sizeof(double));
-			
+
 			tref[1] -= GMRFLib_cpu();
-			qsort(x, (size_t)n, sizeof(double), GMRFLib_dcmp);
+			qsort(x, (size_t) n, sizeof(double), GMRFLib_dcmp);
 			tref[1] += GMRFLib_cpu();
 			Memcpy(x, xx, n * sizeof(double));
 		}
 		printf("sorted arguments: qsort:  %.4f  mkl:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
-	break;
+		break;
 
-	case 112: 
+	case 112:
 	{
 		int n = atoi(args[0]);
-		double *x = Calloc(2*n, double);
+		double *x = Calloc(2 * n, double);
 		double *y = x + n;
 
 		for (int i = 0; i < n; i++) {
@@ -43664,11 +43664,11 @@ int testit(int argc, char **argv)
 			printf("X:  %g %g\n", x[i], y[i]);
 		}
 		printf("X:\n");
-		for (double xx= -n/4.0; xx < n + n/4.0; xx += 0.01) {
+		for (double xx = -n / 4.0; xx < n + n / 4.0; xx += 0.01) {
 			printf("X:  %g %g\n", xx, GMRFLib_spline_eval(xx, s));
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{
@@ -44214,7 +44214,7 @@ int main(int argc, char **argv)
 			fclose(fp);
 		}
 	}
-	
+
 	if (G.mode == INLA_MODE_DEFAULT || G.mode == INLA_MODE_HYPER) {
 		for (arg = optind; arg < argc; arg++) {
 			if (verbose) {

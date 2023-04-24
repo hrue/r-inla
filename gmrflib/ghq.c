@@ -366,7 +366,7 @@ GMRFLib_snq_tp *GMRFLib_snq(int n, double skew3)
 	return snq;
 }
 
-int GMRFLib_snq_free(GMRFLib_snq_tp * q)
+int GMRFLib_snq_free(GMRFLib_snq_tp *q)
 {
 	if (q) {
 		Free(q->nodes);

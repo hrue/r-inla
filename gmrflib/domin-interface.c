@@ -70,13 +70,13 @@ static fncall_timing_tp fncall_timing = {
 };
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
-		      GMRFLib_ai_log_extra_tp * log_extra, void *log_extra_arg,
+		      GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 		      char *compute,
 		      double *x, double *b, double *c, double *mean,
-		      GMRFLib_bfunc_tp ** bfunc, double *d,
-		      GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
-		      GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp * constr, GMRFLib_ai_param_tp * ai_par, GMRFLib_ai_store_tp * ai_store, GMRFLib_preopt_tp * preopt)
+		      GMRFLib_bfunc_tp **bfunc, double *d,
+		      GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
+		      GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
+		      GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt)
 {
 	opt_setup = 1;
 	fncall_timing.time_used = 0.0;
@@ -176,7 +176,7 @@ int GMRFLib_opt_exit(void)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
+int GMRFLib_opt_f(int thread_id, double *x, double *fx, int *ierr, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double **bnew)
 {
 	/*
 	 * this function is called only for thread=0!!! 
@@ -245,7 +245,7 @@ int GMRFLib_opt_f_omp(double **x, int nx, double *f, int *ierr)
 }
 
 int GMRFLib_opt_f_intern(int thread_id,
-			 double *x, double *fx, int *ierr, GMRFLib_ai_store_tp * ais, GMRFLib_tabulate_Qfunc_tp ** tabQfunc, double **bnew)
+			 double *x, double *fx, int *ierr, GMRFLib_ai_store_tp *ais, GMRFLib_tabulate_Qfunc_tp **tabQfunc, double **bnew)
 {
 	/*
 	 * this version controls AI_STORE 
@@ -1080,7 +1080,7 @@ int GMRFLib_opt_get_f_count(void)
 	}
 }
 
-double GMRFLib_gsl_f(const gsl_vector * v, void *params)
+double GMRFLib_gsl_f(const gsl_vector *v, void *params)
 {
 	opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 	double fx = NAN, *x;
@@ -1096,7 +1096,7 @@ double GMRFLib_gsl_f(const gsl_vector * v, void *params)
 	return fx;
 }
 
-void GMRFLib_gsl_df(const gsl_vector * v, void *UNUSED(params), gsl_vector * df)
+void GMRFLib_gsl_df(const gsl_vector *v, void *UNUSED(params), gsl_vector *df)
 {
 	// opt_dir_params_tp *par = (opt_dir_params_tp *) params;
 
@@ -1118,7 +1118,7 @@ void GMRFLib_gsl_df(const gsl_vector * v, void *UNUSED(params), gsl_vector * df)
 	Free(gradx);
 }
 
-void GMRFLib_gsl_fdf(const gsl_vector * v, void *UNUSED(params), double *f, gsl_vector * df)
+void GMRFLib_gsl_fdf(const gsl_vector *v, void *UNUSED(params), double *f, gsl_vector *df)
 {
 	/*
 	 * This function is a merge of the _f and _df function, but we can compute the 'f' value through the gradient
@@ -1214,7 +1214,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp * ai_par)
+int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
 	size_t i, j;

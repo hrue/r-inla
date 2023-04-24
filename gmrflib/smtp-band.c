@@ -36,7 +36,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
+int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * compute the reordering from the graph using the routine in acm582.F 
@@ -102,7 +102,7 @@ int GMRFLib_compute_reordering_BAND(int **remap, GMRFLib_graph_tp * graph)
 }
 
 int GMRFLib_build_sparse_matrix_BAND(int thread_id,
-				     double **bandmatrix, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph, int *remap,
+				     double **bandmatrix, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_graph_tp *graph, int *remap,
 				     int bandwidth)
 {
 #define BIDX(i,j) ((i)+(j)*nrow)			       /* band index'ing */
@@ -147,7 +147,7 @@ int GMRFLib_build_sparse_matrix_BAND(int thread_id,
 #undef BIDX
 }
 
-int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp * finfo, GMRFLib_graph_tp * graph, int bandwidth)
+int GMRFLib_factorise_sparse_matrix_BAND(double *band, GMRFLib_fact_info_tp *finfo, GMRFLib_graph_tp *graph, int bandwidth)
 {
 	/*
 	 * compute the factorisation of 'band' and overwrite it with the Cholesky-factorisation 
@@ -203,7 +203,7 @@ int GMRFLib_free_fact_sparse_matrix_BAND(double *bchol)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_lt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_solve_lt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp *graph, int *remap, int bandwidth)
 {
 	/*
 	 * rhs in real world, bchol in mapped word
@@ -222,7 +222,7 @@ int GMRFLib_solve_lt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_grap
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp *graph, int *remap, int bandwidth)
 {
 	/*
 	 * rhs in real world, bchol in mapped wordy
@@ -242,7 +242,7 @@ int GMRFLib_solve_llt_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_gra
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_l_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_solve_l_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph_tp *graph, int *remap, int bandwidth)
 {
 	/*
 	 * rhs in real world, bchol in mapped word
@@ -261,7 +261,7 @@ int GMRFLib_solve_l_sparse_matrix_BAND(double *rhs, double *bchol, GMRFLib_graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth,
+int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp *graph, int *remap, int bandwidth,
 						int findx, int toindx, int remapped)
 {
 	/*
@@ -287,7 +287,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int findx,
+int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp *graph, int *remap, int bandwidth, int findx,
 					       int toindx, int remapped)
 {
 	/*
@@ -313,7 +313,7 @@ int GMRFLib_solve_l_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp * graph, int *remap, int bandwidth, int idx)
+int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMRFLib_graph_tp *graph, int *remap, int bandwidth, int idx)
 {
 	/*
 	 * rhs in real world, bchol in mapped word
@@ -347,7 +347,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_BAND(double *rhs, double *bchol, GMR
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp * graph,
+int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *x, int remapped, double *bchol, GMRFLib_graph_tp *graph,
 				  int *remap, int bandwidth)
 {
 	/*
@@ -383,7 +383,7 @@ int GMRFLib_comp_cond_meansd_BAND(double *cmean, double *csd, int indx, double *
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp * graph, int bandwidth)
+int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp *graph, int bandwidth)
 {
 	int ldim = bandwidth + 1, i;
 
@@ -394,7 +394,7 @@ int GMRFLib_log_determinant_BAND(double *logdet, double *bchol, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
+int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp *problem)
 {
 	/*
 	 * large parts of this code is copied from the TAUCS version. be aware.... 
@@ -580,7 +580,7 @@ int GMRFLib_compute_Qinv_BAND(GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp * graph, int *UNUSED(remap), int bandwidth)
+int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band, GMRFLib_graph_tp *graph, int *UNUSED(remap), int bandwidth)
 {
 #define BIDX(i,j) ((i)+(j)*ldim)			       /* band index'ing */
 
@@ -646,7 +646,7 @@ int GMRFLib_bitmap_factorisation_BAND__intern(const char *filename, double *band
 #undef BIDX
 }
 
-int GMRFLib_bitmap_factorisation_BAND(const char *filename_body, double *band, GMRFLib_graph_tp * graph, int *remap, int bandwidth)
+int GMRFLib_bitmap_factorisation_BAND(const char *filename_body, double *band, GMRFLib_graph_tp *graph, int *remap, int bandwidth)
 {
 	/*
 	 * create a bitmap-file of the factorization 

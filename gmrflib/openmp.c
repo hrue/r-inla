@@ -68,7 +68,7 @@ int GMRFLib_openmp_implement_strategy_special(int outer, int inner)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp * smtp)
+int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, GMRFLib_smtp_tp *smtp)
 {
 	GMRFLib_DEBUG_INIT();
 

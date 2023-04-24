@@ -42,7 +42,7 @@
 #define GED_INIT 64
 #define GED_GROW 1024
 
-int GMRFLib_ged_init2(GMRFLib_ged_tp ** ged, int n)
+int GMRFLib_ged_init2(GMRFLib_ged_tp **ged, int n)
 {
 	*ged = Calloc(1, GMRFLib_ged_tp);
 	(*ged)->n = 0;
@@ -58,7 +58,7 @@ int GMRFLib_ged_init2(GMRFLib_ged_tp ** ged, int n)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
+int GMRFLib_ged_init(GMRFLib_ged_tp **ged, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_ged_init2(ged, (graph ? graph->n : 0));
 	if (graph) {
@@ -68,7 +68,7 @@ int GMRFLib_ged_init(GMRFLib_ged_tp ** ged, GMRFLib_graph_tp * graph)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
+int GMRFLib_ged_add(GMRFLib_ged_tp *ged, int node, int nnode)
 {
 	int imax = IMAX(node, nnode);
 	int imin = IMIN(node, nnode);
@@ -90,18 +90,18 @@ int GMRFLib_ged_add(GMRFLib_ged_tp * ged, int node, int nnode)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_append_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph)
+int GMRFLib_ged_append_graph(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_ged_insert_graph(ged, graph, ged->n);
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_insert_graph(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_node)
+int GMRFLib_ged_insert_graph(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int at_node)
 {
 	return GMRFLib_ged_insert_graph2(ged, graph, at_node, at_node);
 }
 
-int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, int at_i_node, int at_j_node)
+int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp *ged, GMRFLib_graph_tp *graph, int at_i_node, int at_j_node)
 {
 	if (graph) {
 		for (int i = 0; i < graph->n; i++) {
@@ -120,7 +120,7 @@ int GMRFLib_ged_insert_graph2(GMRFLib_ged_tp * ged, GMRFLib_graph_tp * graph, in
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
+int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 {
 	GMRFLib_graph_tp *g = NULL;
 	int n, *nnbs = NULL, **nbs = NULL;
@@ -176,7 +176,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp ** graph, GMRFLib_ged_tp * ged)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ged_free(GMRFLib_ged_tp * ged)
+int GMRFLib_ged_free(GMRFLib_ged_tp *ged)
 {
 	for (int i = 0; i < ged->n; i++) {
 		map_ii_free(&(ged->Q[i]));

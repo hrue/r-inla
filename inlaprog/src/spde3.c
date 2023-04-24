@@ -36,7 +36,7 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp ** smodel, const char *prefix, const char *transform)
+int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const char *prefix, const char *transform)
 {
 	int i;
 	const int debug = 0;

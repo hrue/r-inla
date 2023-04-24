@@ -142,7 +142,7 @@ int GMRFLib_pardiso_set_debug(int debug)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
+int GMRFLib_csr_free(GMRFLib_csr_tp **csr)
 {
 	if (*csr) {
 		// Free((*csr)->s->iwork);
@@ -156,7 +156,7 @@ int GMRFLib_csr_free(GMRFLib_csr_tp ** csr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, int skeleton)
+int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int skeleton)
 {
 	// skeleton: if TRUE, point to the copy of 'a' if its a copy, otherwise alloc. if FALSE, always alloc.
 	if (csr_from == NULL) {
@@ -224,7 +224,7 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp ** csr_to, GMRFLib_csr_tp * csr_from, i
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_check(GMRFLib_csr_tp * M)
+int GMRFLib_csr_check(GMRFLib_csr_tp *M)
 {
 	int mtype = S.mtype, error = 0;
 
@@ -236,7 +236,7 @@ int GMRFLib_csr_check(GMRFLib_csr_tp * M)
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
+GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
 
@@ -323,7 +323,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp * graph)
 	return (Ms);
 }
 
-int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp **csr, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	GMRFLib_ENTER_ROUTINE;
 
@@ -385,7 +385,7 @@ int GMRFLib_Q2csr(int thread_id, GMRFLib_csr_tp ** csr, GMRFLib_graph_tp * graph
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr)
+int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp *csr)
 {
 	// write to file
 	GMRFLib_io_tp *io = NULL;
@@ -402,7 +402,7 @@ int GMRFLib_csr_write(char *filename, GMRFLib_csr_tp * csr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
+int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp **csr)
 {
 	// write to file
 	GMRFLib_io_tp *io = NULL;
@@ -434,7 +434,7 @@ int GMRFLib_csr_read(char *filename, GMRFLib_csr_tp ** csr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr)
+int GMRFLib_csr_print(FILE *fp, GMRFLib_csr_tp *csr)
 {
 	int i, j, k, jj, nnb;
 	double value;
@@ -454,7 +454,7 @@ int GMRFLib_csr_print(FILE * fp, GMRFLib_csr_tp * csr)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, GMRFLib_csr_tp * csr)
+int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp **Qtab, GMRFLib_graph_tp **graph, GMRFLib_csr_tp *csr)
 {
 	int i, j, k, jj, nnb;
 
@@ -482,7 +482,7 @@ int GMRFLib_csr2Q(GMRFLib_tabulate_Qfunc_tp ** Qtab, GMRFLib_graph_tp ** graph, 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
+int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp **store)
 {
 	int error = 0;
 	int inla_ncpu(void);				       /* external function */
@@ -557,7 +557,7 @@ int GMRFLib_pardiso_init(GMRFLib_pardiso_store_tp ** store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp * store, int *thread_num)
+int GMRFLib_pardiso_setparam(GMRFLib_pardiso_flag_tp flag, GMRFLib_pardiso_store_tp *store, int *thread_num)
 {
 	int tnum = (thread_num ? *thread_num : omp_get_thread_num());
 
@@ -667,7 +667,7 @@ double GMRFLib_pardiso_Qfunc_default(int UNUSED(thread_id), int i, int j, double
 	return (i == j ? g->n + 2.0 * g->nnbs[i] : -1.0);
 }
 
-int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph)
+int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph)
 {
 	int tnum = omp_get_thread_num();
 	int debug = S.debug;
@@ -741,17 +741,17 @@ int GMRFLib_pardiso_reorder(GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp *
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp * store)
+int GMRFLib_pardiso_perm(double *x, int m, GMRFLib_pardiso_store_tp *store)
 {
 	return GMRFLib_pardiso_perm_core(x, m, store, 1);
 }
 
-int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp * store)
+int GMRFLib_pardiso_iperm(double *x, int m, GMRFLib_pardiso_store_tp *store)
 {
 	return GMRFLib_pardiso_perm_core(x, m, store, 0);
 }
 
-int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store, int direction)
+int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp *store, int direction)
 {
 	int n, *permutation = NULL;
 	double *xx = NULL;
@@ -785,7 +785,7 @@ int GMRFLib_pardiso_perm_core(double *x, int m, GMRFLib_pardiso_store_tp * store
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
+int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp *store)
 {
 	assert(store->done_with_init == GMRFLib_TRUE);
 	assert(store->done_with_reorder == GMRFLib_TRUE);
@@ -793,7 +793,7 @@ int GMRFLib_pardiso_symfact(GMRFLib_pardiso_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp * store, GMRFLib_graph_tp * graph, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg)
+int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp *store, GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg)
 {
 	assert(store != NULL);
 	assert(store->done_with_init == GMRFLib_TRUE);
@@ -817,7 +817,7 @@ int GMRFLib_pardiso_build(int thread_id, GMRFLib_pardiso_store_tp * store, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
+int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp *store)
 {
 	int tnum = omp_get_thread_num();
 	int debug = S.debug;
@@ -893,7 +893,7 @@ int GMRFLib_pardiso_chol(GMRFLib_pardiso_store_tp * store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs)
+int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp *store, GMRFLib_pardiso_flag_tp flag, double *x, double *b, int nrhs)
 {
 	// note that 'x' = 'b' !!!!!!!!!!!!!!!
 
@@ -1021,7 +1021,7 @@ int GMRFLib_pardiso_solve_core(GMRFLib_pardiso_store_tp * store, GMRFLib_pardiso
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
+int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp *store, double *x, double *b, int nrhs)
 {
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_L, x, b, nrhs);
 	GMRFLib_pardiso_iperm(x, nrhs, store);
@@ -1029,7 +1029,7 @@ int GMRFLib_pardiso_solve_L(GMRFLib_pardiso_store_tp * store, double *x, double 
 	return res;
 }
 
-int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
+int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp *store, double *x, double *b, int nrhs)
 {
 	GMRFLib_pardiso_perm(b, nrhs, store);
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LT, x, b, nrhs);
@@ -1040,13 +1040,13 @@ int GMRFLib_pardiso_solve_LT(GMRFLib_pardiso_store_tp * store, double *x, double
 	return res;
 }
 
-int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp * store, double *x, double *b, int nrhs)
+int GMRFLib_pardiso_solve_LLT(GMRFLib_pardiso_store_tp *store, double *x, double *b, int nrhs)
 {
 	int res = GMRFLib_pardiso_solve_core(store, GMRFLib_PARDISO_FLAG_SOLVE_LLT, x, b, nrhs);
 	return res;
 }
 
-double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp * store)
+double GMRFLib_pardiso_logdet(GMRFLib_pardiso_store_tp *store)
 {
 	int tnum = omp_get_thread_num();
 	return (store->pstore[tnum]->log_det_Q);
@@ -1057,7 +1057,7 @@ int GMRFLib_pardiso_bitmap(void)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
+int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp *problem)
 {
 	if (problem == NULL) {
 		return GMRFLib_SUCCESS;
@@ -1111,7 +1111,7 @@ int GMRFLib_pardiso_Qinv_INLA(GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp * store)
+int GMRFLib_pardiso_Qinv(GMRFLib_pardiso_store_tp *store)
 {
 	int tnum = omp_get_thread_num();
 	assert(store->done_with_reorder == GMRFLib_TRUE);
@@ -1166,7 +1166,7 @@ int GMRFLib_pardiso_exit(void)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
+int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp **store)
 {
 	int tnum = omp_get_thread_num();
 	if (store == NULL || *store == NULL) {
@@ -1258,7 +1258,7 @@ int GMRFLib_pardiso_free(GMRFLib_pardiso_store_tp ** store)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp ** nnew, GMRFLib_pardiso_store_tp * old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
+int GMRFLib_duplicate_pardiso_store(GMRFLib_pardiso_store_tp **nnew, GMRFLib_pardiso_store_tp *old, int UNUSED(copy_ptr), int copy_pardiso_ptr)
 {
 	int tnum = omp_get_thread_num();
 	// if copy_pardiso_ptr, then copy the ptr to read-only objects. 'copy_ptr' is NOT USED

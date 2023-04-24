@@ -41,7 +41,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp ** optpar)
+int GMRFLib_default_optimize_param(GMRFLib_optimize_param_tp **optpar)
 {
 	/*
 	 * define default values for the optimizer. methods are

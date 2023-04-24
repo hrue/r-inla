@@ -93,7 +93,7 @@ int GMRFLib_io_find_file_in_path(char **ptr, const char *filename, int must_find
 	return (found ? GMRFLib_SUCCESS : GMRFLib_EOPENFILE);
 }
 
-int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
+int GMRFLib_io_open(GMRFLib_io_tp **io, const char *filename, const char *mode)
 {
 	GMRFLib_ASSERT(filename, GMRFLib_EPARAMETER);
 	GMRFLib_ASSERT(io, GMRFLib_EPARAMETER);
@@ -115,7 +115,7 @@ int GMRFLib_io_open(GMRFLib_io_tp ** io, const char *filename, const char *mode)
 	}
 }
 
-int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
+int GMRFLib_io_seek(GMRFLib_io_tp *io, size_t offset, int whence)
 {
 	/*
 	 * whence is one of SEEK_SET and SEEK_CURRENT. SEEK_END is not supported. 
@@ -124,7 +124,7 @@ int GMRFLib_io_seek(GMRFLib_io_tp * io, size_t offset, int whence)
 	return ((int) gzseek(io->fp, (z_off_t) offset, whence));
 }
 
-int GMRFLib_io_close(GMRFLib_io_tp * io)
+int GMRFLib_io_close(GMRFLib_io_tp *io)
 {
 	if (io) {
 		if (io->fp) {
@@ -138,7 +138,7 @@ int GMRFLib_io_close(GMRFLib_io_tp * io)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_io_error(GMRFLib_io_tp * io, int error)
+int GMRFLib_io_error(GMRFLib_io_tp *io, int error)
 {
 	char *msg = NULL;
 	int ecode;
@@ -228,7 +228,7 @@ int GMRFLib_io_strip_blanks(char *line)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
+int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp *io)
 {
 	char *line = NULL;
 	int maxlen = 4096, read_ok;
@@ -292,7 +292,7 @@ int GMRFLib_io_nextline(char **ptr, GMRFLib_io_tp * io)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
+int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp *io)
 {
 	char *tok = NULL;
 	static char **lline = NULL;
@@ -345,7 +345,7 @@ int GMRFLib_io_next_token(char **ptr, GMRFLib_io_tp * io)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
+int GMRFLib_io_read_next(GMRFLib_io_tp *io, void *ptr, const char *fmt)
 {
 	/*
 	 * read next int/double etc, signalling an error if not successful 
@@ -370,7 +370,7 @@ int GMRFLib_io_read_next(GMRFLib_io_tp * io, void *ptr, const char *fmt)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
+int GMRFLib_io_read(GMRFLib_io_tp *io, void *buf, size_t len)
 {
 	/*
 	 * binary: read the next LEN bytes into BUF 
@@ -388,7 +388,7 @@ int GMRFLib_io_read(GMRFLib_io_tp * io, void *buf, size_t len)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_io_write(GMRFLib_io_tp * io, const void *buf, size_t len)
+int GMRFLib_io_write(GMRFLib_io_tp *io, const void *buf, size_t len)
 {
 	/*
 	 * binary: write LEN bytes in BUF to file 

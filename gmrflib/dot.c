@@ -34,7 +34,7 @@
 
 #define SIMPLE_LOOP_LIMIT 8L
 
-double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// this uses g_idx and g_val
 
@@ -95,7 +95,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 	return (value_);
 }
 
-double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// this uses n_idx and n_val
 
@@ -156,7 +156,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 	return (value_);
 }
 
-double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double value_ = 0.0;
 	double *__restrict vv_ = ELM_->val;
@@ -175,7 +175,7 @@ double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *_
 	return (value_);
 }
 
-double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double value_ = 0.0;
 	double *__restrict vv_ = ELM_->val;
@@ -194,7 +194,7 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 	return (value_);
 }
 
-double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	if (ELM_->g_n == 0) {
 		// so it does not fail for not-prepared ones

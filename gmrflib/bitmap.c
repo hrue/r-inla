@@ -34,7 +34,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar * image, int nx, int ny)
+int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar *image, int nx, int ny)
 {
 	/*
 	 * Create a PNB file of image, x-based storage 
@@ -67,7 +67,7 @@ int GMRFLib_bitmap_image(const char *filename, GMRFLib_uchar * image, int nx, in
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename, int *mapping)
+int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp *graph, const char *filename, int *mapping)
 {
 #define ROUND(_i) ((int) ((_i) * reduce_factor))
 #define SET(_i, _j) bitmap[ROUND(_i) + ROUND(_j) * N] = 1
@@ -104,7 +104,7 @@ int GMRFLib_bitmap_graph__intern(GMRFLib_graph_tp * graph, const char *filename,
 	return err;
 }
 
-int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp * graph)
+int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp *graph)
 {
 	int i, *mapping;
 	char *filename;
@@ -128,7 +128,7 @@ int GMRFLib_bitmap_graph(const char *filename_body, int *remap, GMRFLib_graph_tp
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_bitmap_problem(const char *filename_body, GMRFLib_problem_tp * problem)
+int GMRFLib_bitmap_problem(const char *filename_body, GMRFLib_problem_tp *problem)
 {
 	GMRFLib_EWRAP0(GMRFLib_bitmap_graph(filename_body, problem->sub_sm_fact.remap, problem->sub_graph));
 	GMRFLib_EWRAP0(GMRFLib_bitmap_factorisation(filename_body, &(problem->sub_sm_fact), problem->sub_graph));

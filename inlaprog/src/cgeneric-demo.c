@@ -39,7 +39,7 @@
 #define Calloc(n_, type_)  (type_ *)calloc((n_), sizeof(type_))
 #define SQR(x) ((x)*(x))
 
-double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
+double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp *data)
 {
 	// this reimplement `inla.rgeneric.iid.model` using cgeneric
 
@@ -140,7 +140,7 @@ double *inla_cgeneric_iid_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	return (ret);
 }
 
-double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
+double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp *data)
 {
 	// this reimplement `inla.rgeneric.ar1.model` using cgeneric
 
@@ -270,7 +270,7 @@ double *inla_cgeneric_ar1_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cg
 	return (ret);
 }
 
-double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp * data)
+double *inla_cgeneric_generic0_model(inla_cgeneric_cmd_tp cmd, double *theta, inla_cgeneric_data_tp *data)
 {
 	double *ret = NULL, prec, lprec;
 

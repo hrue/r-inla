@@ -33,7 +33,7 @@
 
 #include "fgn.h"
 
-int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
+int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 {
 	int i, j;
 	GMRFLib_graph_tp *g_ar1 = NULL, *g_I = 0;
@@ -63,7 +63,7 @@ int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 	return (GMRFLib_SUCCESS);
 }
 
-int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
+int inla_make_fgn2_graph(GMRFLib_graph_tp **graph, inla_fgn2_arg_tp *def)
 {
 	int i;
 	GMRFLib_graph_tp *g_ar1 = NULL;

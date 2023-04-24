@@ -100,7 +100,7 @@ dictionary *dictionary_new(int size)
 
   Deallocate a dictionary object and all memory associated to it.
  */
-void dictionary_del(dictionary * d)
+void dictionary_del(dictionary *d)
 {
 	int i;
 
@@ -134,7 +134,7 @@ void dictionary_del(dictionary * d)
   dictionary. The returned character pointer points to data internal to the
   dictionary object, you should not try to free it or modify it.
  */
-char *dictionary_get(dictionary * d, char *key, char *def)
+char *dictionary_get(dictionary *d, char *key, char *def)
 {
 	int i, *ip;
 
@@ -158,7 +158,7 @@ char *dictionary_get(dictionary * d, char *key, char *def)
   This function locates a key in a dictionary using dictionary_get,
   and returns the first char of the found string.
  */
-char dictionary_getchar(dictionary * d, char *key, char def)
+char dictionary_getchar(dictionary *d, char *key, char def)
 {
 	char *v = NULL;
 
@@ -180,7 +180,7 @@ char dictionary_getchar(dictionary * d, char *key, char def)
   and applies atoi on it to return an int. If the value cannot be found
   in the dictionary, the default is returned.
  */
-int dictionary_getint(dictionary * d, char *key, int def)
+int dictionary_getint(dictionary *d, char *key, int def)
 {
 	char *v = NULL;
 
@@ -202,7 +202,7 @@ int dictionary_getint(dictionary * d, char *key, int def)
   and applies atof on it to return a double. If the value cannot be found
   in the dictionary, the default is returned.
  */
-double dictionary_getdouble(dictionary * d, char *key, double def)
+double dictionary_getdouble(dictionary *d, char *key, double def)
 {
 	char *v = NULL;
 
@@ -235,7 +235,7 @@ double dictionary_getdouble(dictionary * d, char *key, double def)
   dictionary. It is not possible (in this implementation) to have a key in
   the dictionary without value.
  */
-void dictionary_set(dictionary * d, char *key, char *val)
+void dictionary_set(dictionary *d, char *key, char *val)
 {
 	int i = 0, *ip = NULL;
 
@@ -334,7 +334,7 @@ void dictionary_set(dictionary * d, char *key, char *val)
   This function deletes a key in a dictionary. Nothing is done if the
   key cannot be found.
  */
-void dictionary_unset(dictionary * d, char *key)
+void dictionary_unset(dictionary *d, char *key)
 {
 	int i, *ip;
 
@@ -373,7 +373,7 @@ void dictionary_unset(dictionary * d, char *key)
   This helper function calls dictionary_set() with the provided integer
   converted to a string using %d.
  */
-void dictionary_setint(dictionary * d, char *key, int val)
+void dictionary_setint(dictionary *d, char *key, int val)
 {
 	char sval[MAXVALSZ];
 
@@ -391,7 +391,7 @@ void dictionary_setint(dictionary * d, char *key, int val)
   This helper function calls dictionary_set() with the provided double
   converted to a string using %g.
  */
-void dictionary_setdouble(dictionary * d, char *key, double val)
+void dictionary_setdouble(dictionary *d, char *key, double val)
 {
 	char sval[MAXVALSZ];
 
@@ -409,7 +409,7 @@ void dictionary_setdouble(dictionary * d, char *key, double val)
   as @c [Key]=[Value], one per line. It is Ok to provide stdout or stderr as
   output file pointers.
  */
-void dictionary_dump(dictionary * d, FILE * out)
+void dictionary_dump(dictionary *d, FILE *out)
 {
 	int i;
 
@@ -426,7 +426,7 @@ void dictionary_dump(dictionary * d, FILE * out)
 	}
 	return;
 }
-char *dictionary_replace_variables(dictionary * d, char *str)
+char *dictionary_replace_variables(dictionary *d, char *str)
 {
 	/*
 	 * variable-replacement! added by hrue@math.ntnu.no 
@@ -513,7 +513,7 @@ char *dictionary_replace_variables(dictionary * d, char *str)
 
 	return str;
 }
-int dictionary_dump_unused(dictionary * d, FILE * out)
+int dictionary_dump_unused(dictionary *d, FILE *out)
 {
 	/*
 	 * dump unused entries, added by hrue@math.ntnu.no

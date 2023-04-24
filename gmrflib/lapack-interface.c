@@ -39,7 +39,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q)
+double GMRFLib_gsl_xQx(gsl_vector *x, gsl_matrix *Q)
 {
 	size_t n = Q->size1;
 	assert(n == Q->size2);
@@ -58,7 +58,7 @@ double GMRFLib_gsl_xQx(gsl_vector * x, gsl_matrix * Q)
 	return sqr;
 }
 
-double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, gsl_matrix * S, int identity)
+double GMRFLib_gsl_log_dnorm(gsl_vector *x, gsl_vector *mean, gsl_matrix *Q, gsl_matrix *S, int identity)
 {
 	// 'identity' says that Q=S=I
 
@@ -143,7 +143,7 @@ double GMRFLib_gsl_log_dnorm(gsl_vector * x, gsl_vector * mean, gsl_matrix * Q, 
 	return ((-(double) n * 1.83787706640934548356065947281 + log_det_Q - sqr) * 0.5);
 }
 
-int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S, double epsilon)
+int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix *S, double epsilon)
 {
 	// give a covariance matrix S with mid-node 'idx_node', then detect those indices singular with 'idx_node'.
 	// idx_map will map contribution from likelihood to that node.
@@ -211,7 +211,7 @@ int GMRFLib_gsl_gcpo_singular_fix(int *idx_map, size_t idx_node, gsl_matrix * S,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mv(gsl_matrix * A, gsl_vector * x, gsl_vector * b)
+int GMRFLib_gsl_mv(gsl_matrix *A, gsl_vector *x, gsl_vector *b)
 {
 	// b = A x
 
@@ -219,14 +219,14 @@ int GMRFLib_gsl_mv(gsl_matrix * A, gsl_vector * x, gsl_vector * b)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C)
+int GMRFLib_gsl_mm(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C)
 {
 	// C = A B
 	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, (const gsl_matrix *) A, (const gsl_matrix *) B, 0.0, (gsl_matrix *) C);
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mmm(gsl_matrix * A, gsl_matrix * B, gsl_matrix * C, gsl_matrix * D)
+int GMRFLib_gsl_mmm(gsl_matrix *A, gsl_matrix *B, gsl_matrix *C, gsl_matrix *D)
 {
 	// D = A B C
 	gsl_matrix *T = gsl_matrix_alloc(A->size1, B->size2);
@@ -402,7 +402,7 @@ int GMRFLib_solveAxb_posdef(double *sol, double *chol, double *b, int dim, int n
 	return GMRFLib_SUCCESS;
 }
 
-gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A)
+gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix *A)
 {
 	/*
 	 * return a new (alloced) copy of matrix A 
@@ -415,7 +415,7 @@ gsl_matrix *GMRFLib_gsl_duplicate_matrix(gsl_matrix * A)
 	return B;
 }
 
-gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix * A)
+gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix *A)
 {
 	/*
 	 * return a new (alloced) t(A)
@@ -441,7 +441,7 @@ gsl_matrix *GMRFLib_gsl_transpose_matrix(gsl_matrix * A)
 	return At;
 }
 
-double GMRFLib_gsl_spd_logdet(gsl_matrix * A)
+double GMRFLib_gsl_spd_logdet(gsl_matrix *A)
 {
 	/*
 	 * compute the log determinant of a SPD matrix A 
@@ -464,7 +464,7 @@ double GMRFLib_gsl_spd_logdet(gsl_matrix * A)
 	return logdet;
 }
 
-int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
+int GMRFLib_gsl_spd_inverse(gsl_matrix *A)
 {
 	/*
 	 * replace SPD matrix A with its inverse 
@@ -491,7 +491,7 @@ int GMRFLib_gsl_spd_inverse(gsl_matrix * A)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_ginv(gsl_matrix * A, double tol, int rankdef)
+int GMRFLib_gsl_ginv(gsl_matrix *A, double tol, int rankdef)
 {
 	/*
 	 * replace n x n matrix A with its generlized inverse.  if TOL > 0, use that tolerance. If rankdef is set, use that. If both are set, give an error.
@@ -592,17 +592,17 @@ int GMRFLib_ensure_spd(double *A, int dim, double tol, char **msg)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_ensure_spd(gsl_matrix * A, double tol, char **msg)
+int GMRFLib_gsl_ensure_spd(gsl_matrix *A, double tol, char **msg)
 {
 	return GMRFLib_gsl_ensure_spd_core(A, tol, 0, msg);
 }
 
-int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix * A, double tol, char **msg)
+int GMRFLib_gsl_ensure_spd_inverse(gsl_matrix *A, double tol, char **msg)
 {
 	return GMRFLib_gsl_ensure_spd_core(A, tol, 1, msg);
 }
 
-int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **msg)
+int GMRFLib_gsl_ensure_spd_core(gsl_matrix *A, double tol, int method, char **msg)
 {
 	/*
 	 * replace n x n matrix A with its SPD matrix, replacing small eigenvalues with 'tol' * max(|eigenvalue|).
@@ -678,7 +678,7 @@ int GMRFLib_gsl_ensure_spd_core(gsl_matrix * A, double tol, int method, char **m
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, double tol)
+int GMRFLib_gsl_safe_spd_solve(gsl_matrix *A, gsl_vector *b, gsl_vector *x, double tol)
 {
 	/*
 	 * solve Ax=b, ignoring contributions from eigenvalues < tol*max(eigenval)
@@ -744,7 +744,7 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, d
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
+int GMRFLib_gsl_spd_inv(gsl_matrix *A, double tol)
 {
 	/*
 	 * A=inv(A) for symmetric A, ignoring contributions from eigenvalues < tol*max(eigenval)
@@ -797,7 +797,7 @@ int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_gsl_mgs(gsl_matrix * A)
+int GMRFLib_gsl_mgs(gsl_matrix *A)
 {
 	// this is the modified Gram-Schmith ortogonalisation, and it 
 	// overwrite matrix A with its ortogonal normalized basis, column by column.
@@ -843,7 +843,7 @@ int GMRFLib_gsl_mgs(gsl_matrix * A)
 	return (GMRFLib_SUCCESS);
 }
 
-gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
+gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix *Cov, double tol)
 {
 	/*
 	 * Compute the low-rank representation in terms of x=Bz from a given possible singular covariance matrix.
@@ -892,7 +892,7 @@ gsl_matrix *GMRFLib_gsl_low_rank(gsl_matrix * Cov, double tol)
 }
 
 
-double GMRFLib_gsl_kld(gsl_vector * m_base, gsl_matrix * Q_base, gsl_vector * m, gsl_matrix * Q, double tol, int *rankdef)
+double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gsl_matrix *Q, double tol, int *rankdef)
 {
 	// compute the KLD between two mult-var normals, where either or both matrices can be numerical singular. Make sure that the rank is the
 	// same for both, and return the computed rank-deficiency in 'rankdef' if given

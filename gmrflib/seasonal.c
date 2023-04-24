@@ -77,7 +77,7 @@ double GMRFLib_seasonal(int thread_id, int node, int nnode, double *UNUSED(value
 	return val * prec;
 }
 
-int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp * def)
+int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp *def)
 {
 	GMRFLib_seasonaldef_tp *sdef = Calloc(1, GMRFLib_seasonaldef_tp);
 
@@ -171,7 +171,7 @@ int GMRFLib_seasonal_scale(int thread_id, GMRFLib_seasonaldef_tp * def)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp ** graph, GMRFLib_seasonaldef_tp * def)
+int GMRFLib_make_seasonal_graph(GMRFLib_graph_tp **graph, GMRFLib_seasonaldef_tp *def)
 {
 	GMRFLib_graph_mk_linear(graph, def->n, def->s - 1, def->cyclic);
 	return GMRFLib_SUCCESS;

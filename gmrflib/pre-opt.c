@@ -35,14 +35,14 @@
 #include "GMRFLib/GMRFLibP.h"
 
 
-int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
+int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 			int npred, int nf, int **c, double **w,
-			GMRFLib_graph_tp ** f_graph, GMRFLib_Qfunc_tp ** f_Qfunc,
-			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp ** f_constr,
+			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc,
+			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp **f_constr,
 			double *f_diag,
-			GMRFLib_Qfunc_tp *** ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp ** bfunc,
-			GMRFLib_ai_param_tp * UNUSED(ai_par), char *pA_fnm, GMRFLib_matrix_tp ** global_constr)
+			GMRFLib_Qfunc_tp ***ff_Qfunc, void ***ff_Qfunc_arg,
+			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp **bfunc,
+			GMRFLib_ai_param_tp *UNUSED(ai_par), char *pA_fnm, GMRFLib_matrix_tp **global_constr)
 {
 	assert(omp_get_thread_num() == 0);
 
@@ -671,7 +671,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp ** preopt,
 	return GMRFLib_SUCCESS;
 }
 
-GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp * preopt)
+GMRFLib_preopt_type_tp GMRFLib_preopt_what_type(int node, GMRFLib_preopt_tp *preopt)
 {
 	GMRFLib_preopt_type_tp t = { GMRFLib_PREOPT_TP___VOID, -1, -1 };
 	if (preopt->nf && node < preopt->idx_map_f[preopt->nf]) {
@@ -882,7 +882,7 @@ double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UN
 }
 
 
-int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp * preopt)
+int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp *preopt)
 {
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_preopt_bnew_like(b, preopt->like_b[thread_id], preopt);
@@ -891,7 +891,7 @@ int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp * preopt)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * preopt)
+int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp *preopt)
 {
 	// add to 'bnew' the contribution from the likelihood for preopt
 
@@ -919,17 +919,17 @@ int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * pr
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt)
+int GMRFLib_preopt_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
 {
 	return GMRFLib_preopt_predictor_core(predictor, latent, preopt, 1);
 }
 
-int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp * preopt)
+int GMRFLib_preopt_full_predictor(double *predictor, double *latent, GMRFLib_preopt_tp *preopt)
 {
 	return GMRFLib_preopt_predictor_core(predictor, latent, preopt, 0);
 }
 
-int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp * preopt, int likelihood_only)
+int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_preopt_tp *preopt, int likelihood_only)
 {
 	// if likelihood_only, only compute the part that is needed for the likelihood.
 
@@ -1046,8 +1046,7 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp * preopt,
-				     GMRFLib_problem_tp * problem, double *optional_mean)
+int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_preopt_tp *preopt, GMRFLib_problem_tp *problem, double *optional_mean)
 {
 	GMRFLib_ENTER_ROUTINE;
 
@@ -1214,7 +1213,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp * preopt, double *like_b, double *like_c)
+int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp *preopt, double *like_b, double *like_c)
 {
 	int np = preopt->Npred;
 
@@ -1234,7 +1233,7 @@ int GMRFLib_preopt_update(int thread_id, GMRFLib_preopt_tp * preopt, double *lik
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
+int GMRFLib_preopt_free(GMRFLib_preopt_tp *preopt)
 {
 	if (!preopt) {
 		return GMRFLib_SUCCESS;
@@ -1301,7 +1300,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt)
 	return GMRFLib_SUCCESS;
 }
 
-double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt, double *res, double *test_vector)
+double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, double *res, double *test_vector)
 {
 	// return alloc'ed double *cpu measurements.
 	// cpu[0] and cpu[1] is the time for doing Q %*% x.
@@ -1365,7 +1364,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp * preopt, d
 	return cpu;
 }
 
-double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp * preopt)
+double *GMRFLib_preopt_measure_time2(GMRFLib_preopt_tp *preopt)
 {
 	// cpu[0] measure predictor calculations for !data_rich and data_rich case
 	double *cpu = Calloc(1, double);
