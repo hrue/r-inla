@@ -113,6 +113,7 @@
 #define POISSON0_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
+#define SCOPY_MAXTHETA (10L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
@@ -22937,6 +22938,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_id[mb->nf] = F_COPY;
 		mb->f_ntheta[mb->nf] = 1;
 		mb->f_modelname[mb->nf] = GMRFLib_strdup("Copy");
+	} else if (_OneOf("SCOPY")) {
+		mb->f_id[mb->nf] = F_SCOPY;
+		mb->f_ntheta[mb->nf] = SCOPY_MAXTHETA;
+		mb->f_modelname[mb->nf] = GMRFLib_strdup("SCopy");
 	} else if (_OneOf("CLINEAR")) {
 		mb->f_id[mb->nf] = F_CLINEAR;
 		mb->f_ntheta[mb->nf] = 1;
@@ -23047,10 +23052,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 
 	case F_AR:
 	{
-		mb->f_prior[mb->nf] = Calloc(11, Prior_tp);
 		assert(11 == AR_MAXTHETA + 1);
+		mb->f_prior[mb->nf] = Calloc(11, Prior_tp);
 		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "PCPREC", NULL);	// log precision
 		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "PCRHO0", NULL);	// the pacf
+		assert(mb->f_prior[mb->nf][1]->fixed == TRUE);
 		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "PCRHO0", NULL);	// the pacf
 		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "PCRHO0", NULL);	// the pacf
 		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "PCRHO0", NULL);	// the pacf
@@ -23069,6 +23075,25 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+	case F_SCOPY: 
+	{
+		// we do not really use these, as we define priors differently, and we do that in
+		// control.scopy
+		assert(10 == SCOPY_MAXTHETA);
+		mb->f_prior[mb->nf] = Calloc(SCOPY_MAXTHETA, Prior_tp);
+		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NONE", NULL);
+		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE", NULL);
+		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE", NULL);
+		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE", NULL);
+		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NONE", NULL);
+		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NONE", NULL);
+		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "NONE", NULL);
+		inla_read_prior7(mb, ini, sec, &(mb->f_prior[mb->nf][7]), "NONE", NULL);
+		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "NONE", NULL);
+		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "NONE", NULL);
+	}
+	break;
+	
 	case F_CLINEAR:
 	{
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);
@@ -24141,6 +24166,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		case F_CRW2:
 		case F_OU:
 		case F_COPY:
+		case F_SCOPY:
 		case F_MEC:
 		case F_MEB:
 		case F_CLINEAR:
@@ -26710,6 +26736,123 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_map[mb->ntheta] = map_beta;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = (void *) range;
+			mb->ntheta++;
+		}
+	}
+		break;
+
+	case F_SCOPY:
+	{
+		for (i = 0; i < SCOPY_MAXTHETA; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			GMRFLib_sprintf(&ctmp, "PRIOR%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			GMRFLib_sprintf(&ctmp, "HYPERID%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			GMRFLib_sprintf(&ctmp, "PARAMETERS%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			GMRFLib_sprintf(&ctmp, "to.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+			GMRFLib_sprintf(&ctmp, "from.theta%1d", i);
+			iniparser_getstring(ini, inla_string_join(secname, ctmp), NULL);
+		}
+
+		mb->f_of[mb->nf] = iniparser_getstring(ini, inla_string_join(secname, "OF"), NULL);
+		if (mb->verbose && mb->f_of[mb->nf]) {
+			printf("\t\tof=[%s]\n", mb->f_of[mb->nf]);
+		}
+
+		mb->f_precision[mb->nf] = iniparser_getdouble(ini, inla_string_join(secname, "PRECISION"), mb->f_precision[mb->nf]);
+		if (mb->verbose) {
+			printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
+		}
+
+		int nbeta = 0;
+		nbeta = iniparser_getint(ini, inla_string_join(secname, "SCOPY.N"), nbeta);
+		if (mb->verbose) {
+			printf("\t\tnbeta=[%1d]\n", nbeta);
+		}
+		assert(nbeta <= SCOPY_MAXTHETA);
+		
+		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.COVARIATE"), NULL));
+		if (!filenamec) {
+			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariate");
+		}
+		GMRFLib_matrix_tp *cov_m = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		double *cov = cov_m->A;
+		int ncov = cov_m->nrow;
+		cov_m = NULL;				       /* that is ok */
+		assert(cov);
+		assert(ncov >= 3);
+		if (mb->verbose) {
+			printf("\t\tread covariates from file=[%s]\n", filenamec);
+			for (i = 0; i < IMIN(PREVIEW, ncov); i++){
+				printf("\t\t\tcovariate[%1d] = %g\n", i, cov[i]);
+			}
+		}
+
+		double *loc = Calloc(nbeta, double);
+		double cov_min = GMRFLib_min_value(cov, ncov, NULL);
+		double cov_max = GMRFLib_max_value(cov, ncov, NULL);
+		double beta_step = (cov_max - cov_min) / (nbeta - 1.0);
+		for (i = 0; i < nbeta; i++) {
+			loc[i] = cov_min + i * beta_step;
+		}
+		loc[nbeta-1] = cov_max;			       /* make it exact */
+		if (mb->verbose) {
+			printf("\t\tUse nbeta = %1d\n", nbeta);
+			for (i = 0; i < nbeta; i++){
+				printf("\t\t\tlocation.beta[%1d] = %.3g\n", i, loc[i]);
+			}
+		}
+
+		double ***betas = Calloc(nbeta, double **);
+		for (i = 0; i < nbeta; i++) {
+			HYPER_NEW(betas[i], 1.0);
+		}
+
+		for (i = 0; i < nbeta; i++) {
+			GMRFLib_sprintf(&ctmp, "FIXED%1d", i);
+			mb->f_fixed[mb->nf][i] = iniparser_getint(ini, inla_string_join(secname, ctmp), 0);
+
+			GMRFLib_sprintf(&ctmp, "INITIAL%1d", i);
+			double init = iniparser_getdouble(ini, inla_string_join(secname, ctmp), 1.0);
+
+			if (!mb->f_fixed[mb->nf][i] && mb->reuse_mode) {
+				init = mb->theta_file[mb->theta_counter_file++];
+			}
+			_SetInitial(i, init);
+			HYPER_INIT(betas[i], init);
+			if (mb->verbose) {
+				printf("\t\tbeta[%1d] init  = %g\n", i, init);
+				printf("\t\tbeta[%1d] fixed = %1d\n", i, mb->f_fixed[mb->nf][i]);
+			}
+
+			mb->theta = Realloc(mb->theta, mb->ntheta + 1, double **);
+			mb->theta_hyperid = Realloc(mb->theta_hyperid, mb->ntheta + 1, char *);
+			mb->theta_hyperid[mb->ntheta] = mb->f_prior[mb->nf][i].hyperid;
+			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
+			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
+			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
+			GMRFLib_sprintf(&msg, "Beta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "Beta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			mb->theta_tag_userscale[mb->ntheta] = msg;
+			GMRFLib_sprintf(&msg, "%s-parameter", mb->f_dir[mb->nf]);
+			mb->theta_dir[mb->ntheta] = msg;
+
+			mb->theta_from = Realloc(mb->theta_from, mb->ntheta + 1, char *);
+			mb->theta_to = Realloc(mb->theta_to, mb->ntheta + 1, char *);
+			mb->theta_from[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].from_theta);
+			mb->theta_to[mb->ntheta] = GMRFLib_strdup(mb->f_prior[mb->nf][0].to_theta);
+
+			mb->theta[mb->ntheta] = betas[i];
+			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
+			mb->theta_map[mb->ntheta] = map_identity;
+			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->ntheta++;
 		}
 	}

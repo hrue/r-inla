@@ -296,6 +296,7 @@ typedef enum {
 	F_INTSLOPE,
 	F_IIDKD,
 	F_C_GENERIC,
+	F_SCOPY, 
 	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
 	P_DIRICHLET,
@@ -957,6 +958,16 @@ typedef struct {
 	map_func_tp *map_beta;
 	void *map_beta_arg;
 } inla_copy_arg_tp;
+
+typedef struct {
+	int nbeta;
+	double *loc_beta;
+	double ***beta;
+	double precision;
+
+	GMRFLib_Qfunc_tp *Qfunc;
+	void *Qfunc_arg;
+} inla_scopy_arg_tp;
 
 typedef struct {
 	int ntheta;
@@ -1704,6 +1715,7 @@ double Qfunc_besagproper(int thread_id, int i, int j, double *values, void *arg)
 double Qfunc_besagproper2(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_bym(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_bym2(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_clinear(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_copy_part00(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_copy_part01(int thread_id, int i, int j, double *values, void *arg);
@@ -1720,9 +1732,11 @@ double Qfunc_logdist(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_mec(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_ou(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_replicate(int thread_id, int i, int j, double *values, void *arg);
-double Qfunc_cgeneric(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_rgeneric(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_rw2diid(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_scopy_part00(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_scopy_part01(int thread_id, int i, int j, double *values, void *arg);
+double Qfunc_scopy_part11(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_sigm(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_slm(int thread_id, int i, int j, double *values, void *arg);
 double Qfunc_z(int thread_id, int i, int j, double *values, void *arg);

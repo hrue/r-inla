@@ -357,12 +357,12 @@
         cat("spde3.prefix =", fnm, "\n", sep = " ", file = file, append = TRUE)
         cat("spde3.transform =", random.spec$spde3.transform, "\n", sep = " ", file = file, append = TRUE)
     }
-    if (inla.one.of(random.spec$model, "copy")) {
+    if (inla.one.of(random.spec$model, c("copy", "scopy"))) {
         if (!is.null(random.spec$of)) {
             cat("of =", random.spec$of, "\n", sep = " ", file = file, append = TRUE)
         }
     }
-    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp", "fgn", "intslope"))) {
+    if (inla.one.of(random.spec$model, c("copy", "scopy", "sigm", "revsigm", "log1exp", "fgn", "intslope"))) {
         if (!is.null(random.spec$precision)) {
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file, append = TRUE)
         }
@@ -487,6 +487,25 @@
         }
     }
 
+    if (inla.one.of(random.spec$model, "scopy")) {
+        cat("scopy.model = ", random.spec$control.scopy$model, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.n = ", random.spec$control.scopy$n, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.mean = ", random.spec$control.scopy$mean, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.precision = ", random.spec$control.scopy$precision
+          , "\n", sep = " ", file = file, append = TRUE)
+
+        file.covariate <- inla.tempfile(tmpdir = data.dir)
+        xx <- random.spec$control.scopy$covariate
+        xx <- unique(sort(xx[!is.na(xx)]))
+        inla.write.fmesher.file(random.spec$control.scopy$covariate, filename = file.covariate)
+        file.covariate <- gsub(data.dir, "$inladatadir", file.covariate, fixed = TRUE)
+        cat("scopy.covariate = ", file.covariate, "\n", append = TRUE, sep = " ", file = file)
+
+        random.spec$control.scopy$hyper <- (inla.write.hyper(random.spec$control.scopy$hyper,
+                                                             file = file, prefix = "scopy.",
+                                                             data.dir = data.dir))
+    }
+    
     if (!is.null(random.spec$cyclic)) {
         cat("cyclic = ", as.numeric(random.spec$cyclic), "\n", sep = " ", file = file, append = TRUE)
     }
