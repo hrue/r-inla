@@ -833,7 +833,12 @@
             
             ## :ARGUMENT+: compute.initial.values Compute initial values for the latent field or not.
             ## :ARGUMENT+: (experimental-mode only)
-            compute.initial.values = TRUE
+            compute.initial.values = TRUE,
+
+            ## :ARGUMENT+: hessian.correct.skewness.only If TRUE then correct only
+            ## :ARGUMENT+: skewness in the Hessian, for the hyperparameters. If FALSE (default),
+            ## :ARGUMENT+: correct also variance (experimental-mode only)
+            hessian.correct.skewness.only = FALSE
         )
 
         ## :SEEALSO: inla
