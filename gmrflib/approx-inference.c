@@ -5607,7 +5607,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int k = 0; k < nhyper; k++) {
 				int thread_id = omp_get_thread_num();
-
+				double step = M_SQRT2; 
 				double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 				GMRFLib_ai_store_tp *s = NULL;
 
@@ -5624,22 +5624,33 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					s = ai_store;	       /* the common one */
 				}
 
-				zz[k] = 2.0;
+				zz[k] = step;
 				GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 				GMRFLib_opt_f_intern(thread_id, ttheta, &llog_dens, &ierr, s, NULL, NULL);
 				llog_dens *= -1.0;
 				f0 = log_dens_mode - llog_dens;
-				stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+				stdev_corr_pos[k] = (f0 > 0.0 ? sqrt(SQR(step) / (2.0 * f0)) : 1.0);
 
-				zz[k] = -2.0;
+				zz[k] = -step;
 				GMRFLib_ai_z2theta(ttheta, nhyper, theta_mode, zz, sqrt_eigen_values, eigen_vectors);
 				GMRFLib_opt_f_intern(thread_id, ttheta, &llog_dens, &ierr, s, NULL, NULL);
 				llog_dens *= -1.0;
 				f0 = log_dens_mode - llog_dens;
-				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
+				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(SQR(step) / (2.0 * f0)) : 1.0);
 
 				if (ai_par->hessian_correct_skewness_only) {
 					double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
+
+					double lim = 0.95;
+					if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
+					    (stdev_corr_neg[k] > 1.0/lim && stdev_corr_pos[k] > 1.0/lim)) {
+						if (ai_par->fp_log) {
+#pragma omp critical 
+							fprintf(ai_par->fp_log, "gmean[%1d] = %g,  old.corr = (%g, %g)\n",
+								k, gmean, stdev_corr_neg[k], stdev_corr_pos[k]);
+						}
+					}
+
 					stdev_corr_pos[k] /= gmean;
 					stdev_corr_neg[k] /= gmean;
 				}
