@@ -5,6 +5,7 @@ if [ $# -eq 0 ]; then
     exit 0
 fi
 
+umask 0022
 tt=$(mktemp)
 if [ $# -eq 2 ]; then
     IP=$2
