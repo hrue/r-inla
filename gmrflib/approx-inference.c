@@ -190,6 +190,8 @@ int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 	(*ai_par)->vb_nodes_mean = NULL;
 	(*ai_par)->vb_nodes_variance = NULL;
 
+	(*ai_par)->hessian_correct_skewness_only = 0;
+
 	return GMRFLib_SUCCESS;
 }
 
@@ -401,6 +403,9 @@ int GMRFLib_print_ai_param(FILE *fp, GMRFLib_ai_param_tp *ai_par)
 	} else {
 		fprintf(fp, "\tVB-correction is [Disabled]\n");
 	}
+
+	fprintf(fp, "\tMisc options: \n");
+	fprintf(fp, "\t\tHessian correct skewness only [%1d]\n", ai_par->hessian_correct_skewness_only);
 
 	return GMRFLib_SUCCESS;
 }
@@ -5633,6 +5638,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				f0 = log_dens_mode - llog_dens;
 				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(2.0 / f0) : 1.0);
 
+				if (ai_par->hessian_correct_skewness_only) {
+					double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
+					stdev_corr_pos[k] /= gmean;
+					stdev_corr_neg[k] /= gmean;
+				}
+				
 				Free(zz);
 				Free(ttheta);
 			}

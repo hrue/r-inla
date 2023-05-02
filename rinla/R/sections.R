@@ -1107,6 +1107,7 @@
     inla.write.boolean.field("improved.simplified.laplace", inla.spec$improved.simplified.laplace, file)
     inla.write.boolean.field("parallel.linesearch", inla.spec$parallel.linesearch, file)
     inla.write.boolean.field("compute.initial.values", inla.spec$compute.initial.values, file)
+    inla.write.boolean.field("hessian.correct.skewness.only", inla.spec$hessian.correct.skewness.only, file)
     
     cat("\n", sep = " ", file = file, append = TRUE)
 }

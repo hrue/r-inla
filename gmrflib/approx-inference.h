@@ -597,6 +597,7 @@ typedef struct {
 
 	int parallel_linesearch;
 	int fixed_mode;
+	int hessian_correct_skewness_only;
 } GMRFLib_ai_param_tp;
 
 /**
