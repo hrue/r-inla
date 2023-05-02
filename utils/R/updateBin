@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 d="INLA/inst/bin"
+umask 0022
 
 fix-perm () {
     local d
     local f
     for d in "$@"; do
-	for f in {fmesher,inla}{,.run,.exe}; do
+	for f in {fmesher,inla,inla.mkl}{,.run,.exe}; do
 	    test -f "$d/$f" && chmod 755 "$d/$f"
 	done
 	for lib in "$d"/*.a "$d"/*.so "$d"/*.so.* "$d"/*.dylib "$d"/*.dll; do
