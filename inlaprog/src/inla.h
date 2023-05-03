@@ -959,14 +959,37 @@ typedef struct {
 	void *map_beta_arg;
 } inla_copy_arg_tp;
 
+typedef struct 
+{
+	double *betas;
+	double *betas_tmp;
+	GMRFLib_spline_tp *splinefun;
+}
+	inla_scopy_cache_tp;
+
 typedef struct {
 	int nbeta;
+	int rankdef;
 	double *loc_beta;
-	double ***beta;
+	double *cov_beta;
+	double ***betas;
 	double precision;
 
+	double prior_mean;
+	double prior_prec_mean;
+	double prior_prec_betas;
+	
+	GMRFLib_rwdef_tp *rwdef;
+	GMRFLib_graph_tp *graph_prior;
+	GMRFLib_Qfunc_tp *Qfunc_prior;
+	void *Qfunc_arg_prior;
+
+	GMRFLib_graph_tp *graph;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
+
+	inla_scopy_cache_tp **cache00;
+	inla_scopy_cache_tp **cache01;
 } inla_scopy_arg_tp;
 
 typedef struct {
@@ -1912,6 +1935,7 @@ int inla_INLA_preopt_stage2(inla_tp * mb, GMRFLib_preopt_res_tp * rpreopt);
 int inla_INLA_preopt_experimental(inla_tp * mb);
 int inla_R(char **argv);
 int inla_add_copyof(inla_tp * mb);
+int inla_add_scopyof(inla_tp * mb);
 int inla_besag_scale(int thread_id, inla_besag_Qfunc_arg_tp * arg, int adj, int verbose);
 int inla_check_pardiso(void);
 int inla_computed(GMRFLib_density_tp ** d, int n);

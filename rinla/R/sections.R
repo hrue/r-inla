@@ -491,8 +491,8 @@
         cat("scopy.model = ", random.spec$control.scopy$model, "\n", sep = " ", file = file, append = TRUE)
         cat("scopy.n = ", random.spec$control.scopy$n, "\n", sep = " ", file = file, append = TRUE)
         cat("scopy.mean = ", random.spec$control.scopy$mean, "\n", sep = " ", file = file, append = TRUE)
-        cat("scopy.precision = ", random.spec$control.scopy$precision
-          , "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.prec.mean = ", random.spec$control.scopy$prec.mean, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.prec.betas = ", random.spec$control.scopy$prec.betas, "\n", sep = " ", file = file, append = TRUE)
 
         file.covariate <- inla.tempfile(tmpdir = data.dir)
         xx <- random.spec$control.scopy$covariate

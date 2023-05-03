@@ -133,11 +133,14 @@
             ## :ARGUMENT: model scopy model (one of 'rw1' and 'rw2')
             model = "rw2",
 
-            ## :ARGUMENT: mean The prior mean for beta
+            ## :ARGUMENT: mean The prior mean for mean(betas)
             mean = 1.0,
 
-            ## :ARGUMENT: precision The prior precision for beta
-            precision =  10.0
+            ## :ARGUMENT: precision The prior precision for mean(betas)
+            prec.mean =  1.0, 
+
+            ## :ARGUMENT: precision The prior precision prec(betas-mean(betas))
+            prec.betas =  100.0
         )
 
         ## :SEEALSO: inla
