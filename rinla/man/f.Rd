@@ -18,6 +18,7 @@
     f(...,
          model = "iid",
          copy=NULL,
+         scopy=NULL,
          same.as = NULL,
          n=NULL,
          nrep = NULL,
@@ -25,6 +26,7 @@
          ngroup = NULL,
          group = NULL,
          control.group = inla.set.control.group.default(),
+         control.scopy = inla.set.control.scopy.default(),
          hyper = NULL,
          initial=NULL,
          prior=NULL,
@@ -83,6 +85,7 @@ weights (which can be negative).}
  \code{names(inla.models()$latent)} for a list of possible
  alternatives and \code{\link{inla.doc}} for detailed docs.}
 \item{copy}{TODO}
+\item{scopy}{TODO}
 \item{same.as}{TODO}
 \item{n}{An optional argument which defines the dimension
 of the model if this is different from
@@ -92,6 +95,7 @@ of the model if this is different from
 \item{ngroup}{TODO}
 \item{group}{TODO}
 \item{control.group}{TODO}
+\item{control.scopy}{TODO}
 \item{hyper}{Specification of the hyperparameter, fixed or
 random, initial values, priors and its parameters. See
 \code{?inla.models} for the list of hyparameters for each
