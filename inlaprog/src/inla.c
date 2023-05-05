@@ -113,7 +113,7 @@
 #define POISSON0_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
-#define SCOPY_MAXTHETA (10L)
+#define SCOPY_MAXTHETA (15L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
@@ -23080,18 +23080,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		// we do not really use these, as we define priors differently, and we do that in
 		// control.scopy
-		assert(10 == SCOPY_MAXTHETA);
 		mb->f_prior[mb->nf] = Calloc(SCOPY_MAXTHETA, Prior_tp);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NONE", NULL);
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE", NULL);
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE", NULL);
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE", NULL);
-		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NONE", NULL);
-		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NONE", NULL);
-		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "NONE", NULL);
-		inla_read_prior7(mb, ini, sec, &(mb->f_prior[mb->nf][7]), "NONE", NULL);
-		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "NONE", NULL);
-		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "NONE", NULL);
+		for(k = 0; k < SCOPY_MAXTHETA; k++) {
+			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][k]), "NONE", k, NULL);
+		}
 	}
 	break;
 	
@@ -26742,6 +26734,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+
 	case F_SCOPY:
 	{
 		for (i = 0; i < SCOPY_MAXTHETA; i++) {
@@ -28398,6 +28391,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		} else {
 			assert(0 == 1);
 		}
+		// we'll add the prior_prec_betas later in the extra() function
 		HYPER_NEW(rwdef->log_prec_omp, 1.0);
 		GMRFLib_make_rw_graph(&(def->graph_prior), rwdef);
 		GMRFLib_rw_scale(thread_id, (void *) rwdef);
@@ -30992,15 +30986,8 @@ int inla_add_scopyof(inla_tp *mb)
 
 			mb->f_Qfunc[kk] = Qfunc_scopy_part00;
 			mb->f_Qfunc_arg[kk] = (void *) arg;
-
 			mb->f_Qfunc[k] = Qfunc_scopy_part11;
 			mb->f_Qfunc_arg[k] = (void *) arg;
-
-			// this assume that we cannot copy and scopy the same object. if this is an issue we need to an 'fff_Qfunc' additionally
-			// just for 'scopy'. maybe we'll add this later, but we keep the same for now
-			assert(!(mb->ff_Qfunc[k][kk]));
-			assert(!(mb->ff_Qfunc[kk][k]));
-			
 			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_scopy_part01;
 			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = (void *) arg;
 

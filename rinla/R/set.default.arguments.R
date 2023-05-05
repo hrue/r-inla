@@ -140,7 +140,7 @@
             prec.mean =  1.0, 
 
             ## :ARGUMENT: precision The prior precision prec(betas-mean(betas))
-            prec.betas =  100.0
+            prec.betas =  10.0
         )
 
         ## :SEEALSO: inla

@@ -1,0 +1,124 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\def\opening\null
+\usepackage{block}
+\begin{document}
+
+\section*{Copy of another model component: ``copy''}
+
+This describes the way to copy another model component with an
+optional scaling. This issue arise frequently, like with a model like
+\begin{displaymath}
+    \eta_{ij} = u_i + u_j
+\end{displaymath}
+where $u$ is the \textbf{same model component}. This is not doable
+with normal use of 'formula', hence we introduce an identical (up to
+numerical error)
+\begin{displaymath}
+    v = \texttt{copy}(u)
+\end{displaymath}
+so we can write
+\begin{displaymath}
+    \eta = u + v
+\end{displaymath}
+We can also enable an optional scaling, so that
+\begin{displaymath}
+    v = \beta\times\text{copy}(u)
+\end{displaymath}
+where $\beta$ is estimated as well.
+
+Note the following.
+\begin{itemize}
+\item One model component can be copied many times.
+\item $v$ will inherit the main properties from $u$, such as
+    \texttt{replicate}, \texttt{nrep}, \texttt{group}, \texttt{ngroup}
+    and \texttt{values}. So it is natural to use same kind of indexing
+    for $v$ as $u$. For example
+    \begin{quote}
+        \texttt{y $\sim$ f(i, replicate=r, group=g) +
+            f(j, copy="i", replicate=rr, group=gg)}
+    \end{quote}
+    Here, the argument \texttt{copy}, say that this model component
+    is a copy of \texttt{"i"}.
+\item If the same indexing is \textbf{not} used, then the equivalent
+    one-dimensional indexing is used as defined in
+    \texttt{inla.idx()}.
+
+\subsection*{Hyperparameters}
+
+The optional hyperparameter is $\beta$ which is \textbf{default fixed
+    to $\beta=1$}.
+
+We can estimate $\beta$ by setting \texttt{fixed=FALSE}, like
+\begin{quote}
+    \texttt{f(j, copy="i", hyper=list(beta=list(fixed=FALSE)))}
+\end{quote}
+
+We can control $\beta$, in two ways.
+\begin{enumerate}
+\item We can fix $\beta$ to be in an interval defined by argument
+    \texttt{range=c(r1,r2)}$, where $r_1 \leq r2$
+
+    \begin{itemize}
+    \item If $r_1=r_2$, then there is no restrictions on $\beta$.
+    \item If $-\infty < r_1 < r2 < \infty$, then
+        $\beta$ is defined to be in the interval $(r_1,
+        r_2)$, and the prior, initial values are defined on
+        $\tilde{\beta}$, where
+        \begin{displaymath}
+            \beta = r_1 + (r_2-r_1) \frac{1}{1+\exp(-\tilde{\beta})}
+        \end{displaymath}
+    \item If $-\infty < r_1 < r_2=\infty$, then
+        $\beta$ is defined to be in the interval
+        $(r_1,\infty)$ and the prior, initial values are defined on
+        $\tilde{\beta}$, where
+        \begin{displaymath}
+            \beta = r_1 + \exp(\tilde{\beta})
+        \end{displaymath}
+    \end{itemize}
+\item We can make $\beta$ the same as a $\beta$ in another copy, with
+    argument \texttt{same.as}, so that
+    \begin{displaymath}
+        \eta_{ijk} = u_i + \beta u_j + \beta u_k
+    \end{displaymath}
+    with
+    \begin{quote}
+        \texttt{y $\sim$ f(i) +\\
+                f(j, copy="i", hyper=list(beta=list(fixed=FALSE)))
+                +\\
+                f(k, copy="i", same.as="j")}
+    \end{quote}
+\item How cloes a the copy is, is determined by the argument
+    \texttt{precision=...}, and the default value is
+    \begin{quote}
+        \texttt{f(j, copy="i", precision=exp(14))}
+    \end{quote}
+    meaning that $v = u + \epsilon$, where $\epsilon$ is iid zero mean
+    Normal with precision $\exp(14)$.
+\end{enumerate}
+
+\section*{Spesification}
+
+\input{../hyper/latent/copy.tex}
+
+\subsection*{Example}
+
+Just simulate some data and estimate the parameters back. This is for
+\texttt{order=}$4$.
+
+{\small\verbatiminput{example-copy.R}}
+
+\subsection*{Notes}
+
+\end{document}
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
