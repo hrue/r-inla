@@ -494,12 +494,14 @@
         cat("scopy.prec.mean = ", random.spec$control.scopy$prec.mean, "\n", sep = " ", file = file, append = TRUE)
         cat("scopy.prec.betas = ", random.spec$control.scopy$prec.betas, "\n", sep = " ", file = file, append = TRUE)
 
-        file.covariate <- inla.tempfile(tmpdir = data.dir)
-        xx <- random.spec$control.scopy$covariate
-        xx <- unique(sort(xx[!is.na(xx)]))
-        inla.write.fmesher.file(random.spec$control.scopy$covariate, filename = file.covariate)
-        file.covariate <- gsub(data.dir, "$inladatadir", file.covariate, fixed = TRUE)
-        cat("scopy.covariate = ", file.covariate, "\n", append = TRUE, sep = " ", file = file)
+        file.scopy.z <- inla.tempfile(tmpdir = data.dir)
+        xx <- as.double(random.spec$control.scopy$covariate)
+        stopifnot(all(!is.na(xx)))
+        inla.write.fmesher.file(matrix(xx, ncol = 1), filename = file.scopy.z)
+        print(file.scopy.z)
+        
+        file.scopy.z <- gsub(data.dir, "$inladatadir", file.scopy.z, fixed = TRUE)
+        cat("scopy.covariate = ", file.scopy.z, "\n", append = TRUE, sep = " ", file = file)
 
         random.spec$control.scopy$hyper <- (inla.write.hyper(random.spec$control.scopy$hyper,
                                                              file = file, prefix = "scopy.",

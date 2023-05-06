@@ -128,7 +128,7 @@
             covariate = NULL,
 
             ## :ARGUMENT: n Number of betas
-            n = NULL,
+            n = 5,
 
             ## :ARGUMENT: model scopy model (one of 'rw1' and 'rw2')
             model = "rw2",

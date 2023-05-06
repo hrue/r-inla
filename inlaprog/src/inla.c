@@ -26782,18 +26782,22 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		if (!filenamec) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariate");
 		}
-		GMRFLib_matrix_tp *cov_m = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		GMRFLib_matrix_tp *cov_m = GMRFLib_read_fmesher_file(filenamec, (long int) 0, -1);
 		cov = cov_m->A;
 		ncov = cov_m->nrow;
+		P(cov_m->nrow);
+		P(cov_m->ncol);
+		
+
 		cov_m = NULL;				       /* that is ok */
 		assert(cov);
-		assert(ncov >= 3);
 		if (mb->verbose) {
 			printf("\t\tread covariates from file=[%s]\n", filenamec);
 			for (i = 0; i < IMIN(PREVIEW, ncov); i++){
 				printf("\t\t\tcovariate[%1d] = %g\n", i, cov[i]);
 			}
 		}
+		assert(ncov >= 3);
 
 		loc = Calloc(nbeta, double);
 		double cov_min = GMRFLib_min_value(cov, ncov, NULL);
@@ -44074,6 +44078,29 @@ int testit(int argc, char **argv)
 		printf("X:\n");
 		for (double xx = -n / 4.0; xx < n + n / 4.0; xx += 0.01) {
 			printf("X:  %g %g\n", xx, GMRFLib_spline_eval(xx, s));
+		}
+	}
+		break;
+
+	case 113:
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(2 * n, double);
+		double *y = x + n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = (i > 0 ? x[i-1] + 2.0*GMRFLib_uniform() : 0);
+			y[i] = i * (GSL_IS_ODD(i) ? 1.0 : -1.0);
+		}
+
+		GMRFLib_spline_tp *s = GMRFLib_spline_create(x, y, n);
+
+		for (int i = 0; i < n; i++) {
+			printf("X:  %g %g\n", x[i], y[i]);
+		}
+		printf("X:\n");
+		for (double xx = -5; xx < n + 1; xx += 0.01) {
+			printf("X:  %.12g %.12g\n", xx, GMRFLib_spline_eval(xx, s));
 		}
 	}
 		break;
