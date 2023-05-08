@@ -9874,9 +9874,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -22581,7 +22581,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	 * parse section = ffield 
 	 */
 	int i, j, k, jj, nlocations, nc, n = 0, zn = 0, zm = 0, s = 0, itmp, id = 0, bvalue = 0, fixed, order, slm_n = -1, slm_m = -1,
-		nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0, nbeta = 0, ncov = 0;
+	    nstrata = 0, nsubject = 0, cgeneric_n = -1, cgeneric_debug = 0, nbeta = 0, ncov = 0;
 	char *filename = NULL, *filenamec = NULL, *secname = NULL, *model = NULL, *ptmp = NULL, *ptmp2 = NULL, *msg =
 	    NULL, default_tag[100], *file_loc, *ctmp = NULL, *rgeneric_filename = NULL, *rgeneric_model = NULL,
 	    *cgeneric_shlib = NULL, *cgeneric_model = NULL;
@@ -22590,8 +22590,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	    NULL, **rho_intern12 = NULL, **range_intern = NULL, tmp, **beta_intern = NULL, **beta = NULL, **h2_intern =
 	    NULL, **a_intern = NULL, ***theta_iidwishart = NULL, **log_diag, rd, **mean_x = NULL, **log_prec_x =
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
-		NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL, *cov = NULL,
-		*loc = NULL, ***betas = NULL, prior_mean = 0.0, prior_prec_mean = 0.0, prior_prec_betas = 0.0;
+	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL, *cov = NULL,
+	    *loc = NULL, ***betas = NULL, prior_mean = 0.0, prior_prec_mean = 0.0, prior_prec_betas = 0.0;
 
 	lt_dlhandle handle;
 	inla_cgeneric_func_tp *model_func = NULL;
@@ -23076,17 +23076,17 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case F_SCOPY: 
+	case F_SCOPY:
 	{
 		// we do not really use these, as we define priors differently, and we do that in
 		// control.scopy
 		mb->f_prior[mb->nf] = Calloc(SCOPY_MAXTHETA, Prior_tp);
-		for(k = 0; k < SCOPY_MAXTHETA; k++) {
+		for (k = 0; k < SCOPY_MAXTHETA; k++) {
 			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][k]), "NONE", k, NULL);
 		}
 	}
-	break;
-	
+		break;
+
 	case F_CLINEAR:
 	{
 		inla_read_prior(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NORMAL", NULL);
@@ -26777,7 +26777,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tprior for prec(beta-mean(betas)) = %g\n", prior_prec_betas);
 		}
 		assert(nbeta <= SCOPY_MAXTHETA);
-		
+
 		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.COVARIATE"), NULL));
 		if (!filenamec) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariate");
@@ -26787,13 +26787,13 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		ncov = cov_m->nrow;
 		P(cov_m->nrow);
 		P(cov_m->ncol);
-		
+
 
 		cov_m = NULL;				       /* that is ok */
 		assert(cov);
 		if (mb->verbose) {
 			printf("\t\tread covariates from file=[%s]\n", filenamec);
-			for (i = 0; i < IMIN(PREVIEW, ncov); i++){
+			for (i = 0; i < IMIN(PREVIEW, ncov); i++) {
 				printf("\t\t\tcovariate[%1d] = %g\n", i, cov[i]);
 			}
 		}
@@ -26806,10 +26806,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		for (i = 0; i < nbeta; i++) {
 			loc[i] = cov_min + i * beta_step;
 		}
-		loc[nbeta-1] = cov_max;			       /* make it exact */
+		loc[nbeta - 1] = cov_max;		       /* make it exact */
 		if (mb->verbose) {
 			printf("\t\tUse nbeta = %1d\n", nbeta);
-			for (i = 0; i < nbeta; i++){
+			for (i = 0; i < nbeta; i++) {
 				printf("\t\t\tlocation.beta[%1d] = %.3g\n", i, loc[i]);
 			}
 		}
@@ -28346,7 +28346,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
-	case F_SCOPY: 
+	case F_SCOPY:
 	{
 		/*
 		 * these are to be filled in later 
@@ -28367,9 +28367,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		def->prior_mean = prior_mean;
 		def->prior_prec_mean = prior_prec_mean;
 		def->prior_prec_betas = prior_prec_betas;
-		
+
 		def->cache00 = Calloc(GMRFLib_CACHE_LEN, inla_scopy_cache_tp *);
-		for(i = 0; i < GMRFLib_CACHE_LEN; i++) {
+		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			def->cache00[i] = Calloc(1, inla_scopy_cache_tp);
 			def->cache00[i]->betas = Calloc(nbeta, double);
 			def->cache00[i]->betas[0] = GMRFLib_uniform();
@@ -28378,7 +28378,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		def->cache01 = Calloc(GMRFLib_CACHE_LEN, inla_scopy_cache_tp *);
-		for(i = 0; i < GMRFLib_CACHE_LEN; i++) {
+		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
 			def->cache01[i] = Calloc(1, inla_scopy_cache_tp);
 			def->cache01[i]->betas = Calloc(nbeta, double);
 			def->cache01[i]->betas[0] = GMRFLib_uniform();
@@ -28410,8 +28410,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		mb->f_Qfunc_orig[mb->nf] = NULL;
 		mb->f_Qfunc_arg_orig[mb->nf] = (void *) def;
 	}
-	break;
-	
+		break;
+
 	case F_CLINEAR:
 	{
 		inla_clinear_tp *def = Calloc(1, inla_clinear_tp);
@@ -30716,7 +30716,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 
 		int build = 0;
 		for (int k = 0; k < a->nbeta; k++) {
-			if (a->betas[k][thread_id][0] != a->cache00[cache_idx]->betas[k]){
+			if (a->betas[k][thread_id][0] != a->cache00[cache_idx]->betas[k]) {
 				build = 1;
 				break;
 			}
@@ -30729,8 +30729,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 					a->cache00[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 				}
 				GMRFLib_spline_free(a->cache00[cache_idx]->splinefun);
-				a->cache00[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, a->cache00[cache_idx]->betas_tmp,
-											 a->nbeta);
+				a->cache00[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, a->cache00[cache_idx]->betas_tmp, a->nbeta);
 
 				Memcpy(a->cache00[cache_idx]->betas, a->cache00[cache_idx]->betas_tmp, a->nbeta * sizeof(double));
 			}
@@ -30756,7 +30755,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 
 	int build = 0;
 	for (int k = 0; k < a->nbeta; k++) {
-		if (a->betas[k][thread_id][0] != a->cache01[cache_idx]->betas[k]){
+		if (a->betas[k][thread_id][0] != a->cache01[cache_idx]->betas[k]) {
 			build = 1;
 			break;
 		}
@@ -30769,8 +30768,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 				a->cache01[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
 			GMRFLib_spline_free(a->cache01[cache_idx]->splinefun);
-			a->cache01[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, a->cache01[cache_idx]->betas_tmp,
-										 a->nbeta);
+			a->cache01[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, a->cache01[cache_idx]->betas_tmp, a->nbeta);
 
 			Memcpy(a->cache01[cache_idx]->betas, a->cache01[cache_idx]->betas_tmp, a->nbeta * sizeof(double));
 		}
@@ -30913,7 +30911,7 @@ int inla_add_copyof(inla_tp *mb)
 
 			mb->f_Qfunc[k] = Qfunc_copy_part11;
 			mb->f_Qfunc_arg[k] = (void *) arg;
-			
+
 			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_copy_part01;
 			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = (void *) arg;
 
@@ -35880,14 +35878,14 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) mb->f_Qfunc_arg_orig[i];
 			double *betas = Calloc(a->nbeta, double);
 			double sum = 0.0;
-			for(int k = 0; k < a->nbeta; k++) {
+			for (int k = 0; k < a->nbeta; k++) {
 				if (_NOT_FIXED(f_fixed[i][k])) {
 					betas[k] = theta[count];
 					count++;
 				} else {
 					betas[k] = a->betas[k][0][0];
 				}
-				sum += betas[k] * (k == 0 || k == a->nbeta-1 ? 0.5 :  1.0);
+				sum += betas[k] * (k == 0 || k == a->nbeta - 1 ? 0.5 : 1.0);
 			}
 			sum /= (a->nbeta - 1.0);
 
@@ -35895,8 +35893,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			GMRFLib_xQx(thread_id, &xQx, betas, a->graph_prior, a->Qfunc_prior, a->Qfunc_arg_prior);
 
 			val += a->nbeta * (-0.91893853320467266954) +
-				(0.5 * log(a->prior_prec_mean) - 0.5 * a->prior_prec_mean * SQR(sum - a->prior_mean)) + 
-				((a->nbeta - a->rwdef->order) / 2.0 * log(a->prior_prec_betas) - 0.5 * a->prior_prec_betas * xQx);
+			    (0.5 * log(a->prior_prec_mean) - 0.5 * a->prior_prec_mean * SQR(sum - a->prior_mean)) +
+			    ((a->nbeta - a->rwdef->order) / 2.0 * log(a->prior_prec_betas) - 0.5 * a->prior_prec_betas * xQx);
 
 			Free(betas);
 		}
@@ -44089,7 +44087,7 @@ int testit(int argc, char **argv)
 		double *y = x + n;
 
 		for (int i = 0; i < n; i++) {
-			x[i] = (i > 0 ? x[i-1] + 2.0*GMRFLib_uniform() : 0);
+			x[i] = (i > 0 ? x[i - 1] + 2.0 * GMRFLib_uniform() : 0);
 			y[i] = i * (GSL_IS_ODD(i) ? 1.0 : -1.0);
 		}
 

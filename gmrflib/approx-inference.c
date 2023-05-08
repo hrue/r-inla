@@ -5607,7 +5607,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 			for (int k = 0; k < nhyper; k++) {
 				int thread_id = omp_get_thread_num();
-				double step = M_SQRT2; 
+				double step = M_SQRT2;
 				double f0, *zz = NULL, *ttheta = NULL, llog_dens;
 				GMRFLib_ai_store_tp *s = NULL;
 
@@ -5643,9 +5643,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 					double lim = 0.95;
 					if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
-					    (stdev_corr_neg[k] > 1.0/lim && stdev_corr_pos[k] > 1.0/lim)) {
+					    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
 						if (ai_par->fp_log) {
-#pragma omp critical 
+#pragma omp critical
 							fprintf(ai_par->fp_log, "gmean[%1d] = %g,  old.corr = (%g, %g)\n",
 								k, gmean, stdev_corr_neg[k], stdev_corr_pos[k]);
 						}
@@ -5654,7 +5654,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					stdev_corr_pos[k] /= gmean;
 					stdev_corr_neg[k] /= gmean;
 				}
-				
+
 				Free(zz);
 				Free(ttheta);
 			}

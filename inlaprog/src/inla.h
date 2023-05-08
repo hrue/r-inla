@@ -296,7 +296,7 @@ typedef enum {
 	F_INTSLOPE,
 	F_IIDKD,
 	F_C_GENERIC,
-	F_SCOPY, 
+	F_SCOPY,
 	P_FIRST_ENTRY_FOR_PRIORS____NOT_FOR_USE = 2000,	       /* priors */
 	P_BETACORRELATION,
 	P_DIRICHLET,
@@ -959,13 +959,11 @@ typedef struct {
 	void *map_beta_arg;
 } inla_copy_arg_tp;
 
-typedef struct 
-{
+typedef struct {
 	double *betas;
 	double *betas_tmp;
 	GMRFLib_spline_tp *splinefun;
-}
-	inla_scopy_cache_tp;
+} inla_scopy_cache_tp;
 
 typedef struct {
 	int nbeta;
@@ -978,7 +976,7 @@ typedef struct {
 	double prior_mean;
 	double prior_prec_mean;
 	double prior_prec_betas;
-	
+
 	GMRFLib_rwdef_tp *rwdef;
 	GMRFLib_graph_tp *graph_prior;
 	GMRFLib_Qfunc_tp *Qfunc_prior;
@@ -2132,7 +2130,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
