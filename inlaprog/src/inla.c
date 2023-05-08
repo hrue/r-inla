@@ -113,7 +113,7 @@
 #define POISSON0_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
-#define SCOPY_MAXTHETA (10L)
+#define SCOPY_MAXTHETA (15L)
 
 G_tp G = { 1, INLA_MODE_DEFAULT, 4.0, 0.5, 2, 0, GMRFLib_REORDER_DEFAULT, 0, 0 };
 
@@ -23080,18 +23080,10 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	{
 		// we do not really use these, as we define priors differently, and we do that in
 		// control.scopy
-		assert(10 == SCOPY_MAXTHETA);
 		mb->f_prior[mb->nf] = Calloc(SCOPY_MAXTHETA, Prior_tp);
-		inla_read_prior0(mb, ini, sec, &(mb->f_prior[mb->nf][0]), "NONE", NULL);
-		inla_read_prior1(mb, ini, sec, &(mb->f_prior[mb->nf][1]), "NONE", NULL);
-		inla_read_prior2(mb, ini, sec, &(mb->f_prior[mb->nf][2]), "NONE", NULL);
-		inla_read_prior3(mb, ini, sec, &(mb->f_prior[mb->nf][3]), "NONE", NULL);
-		inla_read_prior4(mb, ini, sec, &(mb->f_prior[mb->nf][4]), "NONE", NULL);
-		inla_read_prior5(mb, ini, sec, &(mb->f_prior[mb->nf][5]), "NONE", NULL);
-		inla_read_prior6(mb, ini, sec, &(mb->f_prior[mb->nf][6]), "NONE", NULL);
-		inla_read_prior7(mb, ini, sec, &(mb->f_prior[mb->nf][7]), "NONE", NULL);
-		inla_read_prior8(mb, ini, sec, &(mb->f_prior[mb->nf][8]), "NONE", NULL);
-		inla_read_prior9(mb, ini, sec, &(mb->f_prior[mb->nf][9]), "NONE", NULL);
+		for(k = 0; k < SCOPY_MAXTHETA; k++) {
+			inla_read_priorN(mb, ini, sec, &(mb->f_prior[mb->nf][k]), "NONE", k, NULL);
+		}
 	}
 	break;
 	
@@ -26742,6 +26734,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	}
 		break;
 
+
 	case F_SCOPY:
 	{
 		for (i = 0; i < SCOPY_MAXTHETA; i++) {
@@ -26789,18 +26782,22 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		if (!filenamec) {
 			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "covariate");
 		}
-		GMRFLib_matrix_tp *cov_m = GMRFLib_read_fmesher_file(filename, (long int) 0, -1);
+		GMRFLib_matrix_tp *cov_m = GMRFLib_read_fmesher_file(filenamec, (long int) 0, -1);
 		cov = cov_m->A;
 		ncov = cov_m->nrow;
+		P(cov_m->nrow);
+		P(cov_m->ncol);
+		
+
 		cov_m = NULL;				       /* that is ok */
 		assert(cov);
-		assert(ncov >= 3);
 		if (mb->verbose) {
 			printf("\t\tread covariates from file=[%s]\n", filenamec);
 			for (i = 0; i < IMIN(PREVIEW, ncov); i++){
 				printf("\t\t\tcovariate[%1d] = %g\n", i, cov[i]);
 			}
 		}
+		assert(ncov >= 3);
 
 		loc = Calloc(nbeta, double);
 		double cov_min = GMRFLib_min_value(cov, ncov, NULL);
@@ -26845,9 +26842,9 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			GMRFLib_sprintf(&msg, "Beta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Beta%1d for %s (scopy)", i, (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag[mb->ntheta] = msg;
-			GMRFLib_sprintf(&msg, "Beta%1d for %s", i, (secname ? secname : mb->f_tag[mb->nf]));
+			GMRFLib_sprintf(&msg, "Beta%1d for %s (scopy)", i, (secname ? secname : mb->f_tag[mb->nf]));
 			mb->theta_tag_userscale[mb->ntheta] = msg;
 			GMRFLib_sprintf(&msg, "%s-parameter", mb->f_dir[mb->nf]);
 			mb->theta_dir[mb->ntheta] = msg;
@@ -28398,6 +28395,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		} else {
 			assert(0 == 1);
 		}
+		// we'll add the prior_prec_betas later in the extra() function
 		HYPER_NEW(rwdef->log_prec_omp, 1.0);
 		GMRFLib_make_rw_graph(&(def->graph_prior), rwdef);
 		GMRFLib_rw_scale(thread_id, (void *) rwdef);
@@ -30992,15 +30990,8 @@ int inla_add_scopyof(inla_tp *mb)
 
 			mb->f_Qfunc[kk] = Qfunc_scopy_part00;
 			mb->f_Qfunc_arg[kk] = (void *) arg;
-
 			mb->f_Qfunc[k] = Qfunc_scopy_part11;
 			mb->f_Qfunc_arg[k] = (void *) arg;
-
-			// this assume that we cannot copy and scopy the same object. if this is an issue we need to an 'fff_Qfunc' additionally
-			// just for 'scopy'. maybe we'll add this later, but we keep the same for now
-			assert(!(mb->ff_Qfunc[k][kk]));
-			assert(!(mb->ff_Qfunc[kk][k]));
-			
 			mb->ff_Qfunc[k][kk] = mb->ff_Qfunc[kk][k] = Qfunc_scopy_part01;
 			mb->ff_Qfunc_arg[k][kk] = mb->ff_Qfunc_arg[kk][k] = (void *) arg;
 
@@ -35896,9 +35887,9 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				} else {
 					betas[k] = a->betas[k][0][0];
 				}
-				sum += betas[k];
+				sum += betas[k] * (k == 0 || k == a->nbeta-1 ? 0.5 :  1.0);
 			}
-			sum /= a->nbeta;
+			sum /= (a->nbeta - 1.0);
 
 			double xQx = 0.0;
 			GMRFLib_xQx(thread_id, &xQx, betas, a->graph_prior, a->Qfunc_prior, a->Qfunc_arg_prior);
@@ -44087,6 +44078,29 @@ int testit(int argc, char **argv)
 		printf("X:\n");
 		for (double xx = -n / 4.0; xx < n + n / 4.0; xx += 0.01) {
 			printf("X:  %g %g\n", xx, GMRFLib_spline_eval(xx, s));
+		}
+	}
+		break;
+
+	case 113:
+	{
+		int n = atoi(args[0]);
+		double *x = Calloc(2 * n, double);
+		double *y = x + n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = (i > 0 ? x[i-1] + 2.0*GMRFLib_uniform() : 0);
+			y[i] = i * (GSL_IS_ODD(i) ? 1.0 : -1.0);
+		}
+
+		GMRFLib_spline_tp *s = GMRFLib_spline_create(x, y, n);
+
+		for (int i = 0; i < n; i++) {
+			printf("X:  %g %g\n", x[i], y[i]);
+		}
+		printf("X:\n");
+		for (double xx = -5; xx < n + 1; xx += 0.01) {
+			printf("X:  %.12g %.12g\n", xx, GMRFLib_spline_eval(xx, s));
 		}
 	}
 		break;

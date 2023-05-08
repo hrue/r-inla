@@ -128,7 +128,7 @@
             covariate = NULL,
 
             ## :ARGUMENT: n Number of betas
-            n = NULL,
+            n = 5,
 
             ## :ARGUMENT: model scopy model (one of 'rw1' and 'rw2')
             model = "rw2",
@@ -140,7 +140,7 @@
             prec.mean =  1.0, 
 
             ## :ARGUMENT: precision The prior precision prec(betas-mean(betas))
-            prec.betas =  100.0
+            prec.betas =  10.0
         )
 
         ## :SEEALSO: inla

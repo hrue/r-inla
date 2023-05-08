@@ -6653,7 +6653,7 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    pdf = NA
+                    pdf = "copy"
                 ),
 
                 scopy = list(
@@ -6768,6 +6768,61 @@
                             param = numeric(0), 
                             to.theta = function(x) x, 
                             from.theta = function(x) x
+                        ), 
+                        theta11 = list(
+                            hyperid = 36111,
+                            name = "beta11",
+                            short.name = "b11",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta12 = list(
+                            hyperid = 36112,
+                            name = "beta12",
+                            short.name = "b12",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta13 = list(
+                            hyperid = 36113,
+                            name = "beta13",
+                            short.name = "b13",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta14 = list(
+                            hyperid = 36114,
+                            name = "beta14",
+                            short.name = "b14",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta15 = list(
+                            hyperid = 36115,
+                            name = "beta15",
+                            short.name = "b15",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
                         )
                     ),
                     constr = FALSE,
@@ -6778,7 +6833,8 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    pdf = NA
+                    status = "experimental", 
+                    pdf = "scopy"
                 ),
 
                 clinear = list(

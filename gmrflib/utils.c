@@ -1183,7 +1183,7 @@ int GMRFLib_imax_value(int *x, int n, int *idx)
 double GMRFLib_logit(double p)
 {
 	// evaluate log(p/(1-p)) more safe than just log(p/(1-p))
-	const double lim = 0.01;
+	const double lim = 0.001;
 
 	if (p > lim && p < 1.0 - lim) {
 		return log(p / (1.0 - p));

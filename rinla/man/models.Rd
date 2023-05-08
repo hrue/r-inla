@@ -7871,12 +7871,12 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
-								\item{pdf = }{`NA'}
+								\item{pdf = }{`copy'}
 							 }
 						 }
 					 }
 				 }
-				\item{Model `scopy'.}{Number of hyperparmeters are 10.
+				\item{Model `scopy'.}{Number of hyperparmeters are 15.
 					 \describe{
 						\item{Hyperparameter `theta1'}{
 							 \describe{
@@ -8008,6 +8008,71 @@ inla.models()
 							\item{from.theta = }{`\code{function(x) x}'}
 							}
 						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`36111'}
+							\item{name = }{`beta11'}
+							\item{short.name = }{`b11'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta12'}{
+							 \describe{
+							\item{hyperid = }{`36112'}
+							\item{name = }{`beta12'}
+							\item{short.name = }{`b12'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta13'}{
+							 \describe{
+							\item{hyperid = }{`36113'}
+							\item{name = }{`beta13'}
+							\item{short.name = }{`b13'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta14'}{
+							 \describe{
+							\item{hyperid = }{`36114'}
+							\item{name = }{`beta14'}
+							\item{short.name = }{`b14'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta15'}{
+							 \describe{
+							\item{hyperid = }{`36115'}
+							\item{name = }{`beta15'}
+							\item{short.name = }{`b15'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
 					 }
 					 \describe{
 						\item{Properties:}{
@@ -8021,7 +8086,8 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
-								\item{pdf = }{`NA'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`scopy'}
 							 }
 						 }
 					 }

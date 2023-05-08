@@ -182,6 +182,7 @@ Collate:
     'spmesh.R'
     'startup.R'
     'summary.R'
+    'summary.scopy.R'
     'surv.R'
     'upgrade.R'
     'utils.R'
