@@ -16,7 +16,7 @@
 ## !   \item{result}{An \code{inla}-object,  ie the output from an \code{inla()} call}
 ## !   \item{name}{The name of the \code{scopy} model component
 ## !                 see \code{?inla::f} and argument \code{extraconstr}}
-## !   \item{by}{The resolution of the results, in the scale where distance between to nearby
+## !   \item{by}{The resolution of the results, in the scale where distance between two nearby
 ## !             locations is 1}
 ## !   \item{range}{The range of the locations, in \code{(from, to)}}
 ## ! }
@@ -46,7 +46,7 @@
     p <- p / sum(p)
 
     k <- 1:length(inla.models()$latent$scopy$hyper)
-    nms <- paste0("beta", k, " for ", name, " (scopy)")
+    nms <- paste0("Beta", k, " for ", name, " (scopy)")
 
     idx <- c()
     theta <- names(cs$config[[1]]$theta)
@@ -58,15 +58,19 @@
         }
     }
     if (length(idx) == 0) {
-        return (null)
+        return (NULL)
     }
 
     n <- length(idx)
-    xx <- seq(range[1], range[2], by = diff(range) * max(1.0e-6, min(1.0, by)))
+    eps <- 1e-6
+    stopifnot(diff(range) >= eps * n)
+    by <- max(eps, min(1.0, by)) * diff(range) / (n - 1)
+    xx <- seq(range[1], range[2], by = by)
+    xx.loc <- range[1] + diff(range) * (0:(n-1)) / (n-1)
     ex <- numeric(length(xx))
     exx <- numeric(length(xx))
     for(i in 1:cs$nconfig) {
-        fun <- splinefun(1:n, cs$config[[i]]$theta[idx], method = "natural")
+        fun <- splinefun(xx.loc, cs$config[[i]]$theta[idx], method = "natural")
         vals <- fun(xx)
         ex <- ex + p[i] * vals
         exx <- exx + p[i] * vals^2

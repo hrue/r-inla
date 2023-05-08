@@ -6,26 +6,27 @@
  \alias{inla.summary.scopy}
  \alias{summary.scopy}
 
- \title{Computes the mean and stdev for the spline from \code{scopy}}
+ \title{computes the mean and stdev for the spline from \code{scopy}}
 
- \description{This functin computes the mean and stdev for the
+ \description{this functin computes the mean and stdev for the
               spline function that is implicite from an \code{scopy}
               model component}
  \usage{
-     inla.summary.scopy(result, name, by = 0.05, range=c(0, 1))
+     inla.summary.scopy(result, name, by = 0.05, range = c(0, 1))
  }
  \arguments{
    \item{result}{An \code{inla}-object,  ie the output from an \code{inla()} call}
    \item{name}{The name of the \code{scopy} model component
-                 see \code{?INLA::f} and argument \code{extraconstr}}
-   \item{by}{The resolution of the results, between two nearby locations.}
-   \item{range}{The range of the locations,  in \code{(from, to)}}
+                 see \code{?inla::f} and argument \code{extraconstr}}
+   \item{by}{The resolution of the results, in the scale where distance between two nearby
+             locations is 1}
+   \item{range}{The range of the locations, in \code{(from, to)}}
  }
  \value{
-   A \code{data.frame} with argument-value,  mean and stdev.
-   If \code{name} is not found, NULL is returned.
+   A \code{data.frame} with locations, mean and stdev.
+   if \code{name} is not found, NULL is returned.
  }
- \author{Havard Rue \email{hrue@r-inla.org}}
+ \author{havard rue \email{hrue@r-inla.org}}
  \examples{
  ## see example in inla.doc("scopy")
  }
