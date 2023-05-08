@@ -249,7 +249,10 @@ export(inla.as.sparse)
 export(inla.as.dgTMatrix)
 S3method(summary, inla)
 S3method(print, summary.inla)
+<<<<<<< HEAD
 export(inla.summary.scopy)
+=======
+>>>>>>> scopy
 export(inla.surv)
 export(is.inla.surv)
 export(as.inla.surv)

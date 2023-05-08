@@ -17,6 +17,7 @@ optional smooth/spline scaling, like with
 \begin{displaymath}
     \eta = u + v
 \end{displaymath}
+<<<<<<< HEAD
 where $v$ is a smooth copy of $u$ (component-wise)
 \begin{displaymath}
     v = \beta(z)\times\text{copy}(u)
@@ -29,6 +30,13 @@ $z=(z_1, z_2, \ldots, z_m)$, so that
 \begin{displaymath}
     v_i = \beta(z_i) u_i, \qquad i=1, 2, \ldots, m.
 \end{displaymath}
+=======
+where $v$ is a smooth copy of $u$
+\begin{displaymath}
+    v = \beta(z)\times\text{copy}(u)
+\end{displaymath}
+where $\beta(z)$, a smooth/spline function of the covariate $z$.
+>>>>>>> scopy
 
 \subsection*{Hyperparameters}
 
@@ -55,6 +63,7 @@ We can control $\beta$ and its prior distribution using argument
 where
 \begin{description}
 \item[covariate] gives the covariate that is used
+<<<<<<< HEAD
 \item[n] is the number of hyperparameters used in the spline
     ($3 \leq n \leq 15$).
 \item[model] the prior model for $\{\beta_i\}$, either \texttt{rw1} or
@@ -72,6 +81,19 @@ where
 \end{description}
 Note that the prior mean and both prior precisions, are \emph{fixed}
 and not \emph{random}.
+=======
+\item[n] is the number of hyperparameters used in the spline ($3 \leq
+    n \leq 15$).
+\item[model] the prior model for $\{\beta_i\}$, either \texttt{rw1} or
+    \texttt{rw2}. This model is scaled (like with
+    \texttt{scale.model=TRUE}).
+\item[mean] The prior mean for the mean of $\{\beta_i\}$
+\item[prec.mean] The prior precision for the mean of $\{\beta_i\}$
+\item[prec.betas] The prior precision for the \texttt{rw1/rw2} model
+    for $\{\beta_i\}$.
+\end{description}
+Note that both precisions are \emph{fixed} and not \emph{random}.
+>>>>>>> scopy
 
 The \texttt{f()}-argument \texttt{precision}, defines how close the
 copy is, is similar as for model \texttt{copy}.
