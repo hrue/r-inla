@@ -6653,7 +6653,188 @@
                     n.div.by = NULL,
                     n.required = FALSE,
                     set.default.values = FALSE,
-                    pdf = NA
+                    pdf = "copy"
+                ),
+
+                scopy = list(
+                    doc = "Create a scopy of a model component",
+                    hyper = list(
+                        theta1 = list(
+                            hyperid = 36101,
+                            name = "beta1",
+                            short.name = "b1",
+                            initial = 0.1, ## adaptive: if (fixed) initial=1.0 else initial=0.1
+                            fixed = FALSE,
+                            prior = "none", 
+                            param = numeric(0),
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ),
+                        theta2 = list(
+                            hyperid = 36102,
+                            name = "beta2",
+                            short.name = "b2",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ),
+                        theta3 = list(
+                            hyperid = 36103,
+                            name = "beta3",
+                            short.name = "b3",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta4 = list(
+                            hyperid = 36104,
+                            name = "beta4",
+                            short.name = "b4",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta5 = list(
+                            hyperid = 36105,
+                            name = "beta5",
+                            short.name = "b5",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta6 = list(
+                            hyperid = 36106,
+                            name = "beta6",
+                            short.name = "b6",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta7 = list(
+                            hyperid = 36107,
+                            name = "beta7",
+                            short.name = "b7",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta8 = list(
+                            hyperid = 36108,
+                            name = "beta8",
+                            short.name = "b8",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta9 = list(
+                            hyperid = 36109,
+                            name = "beta9",
+                            short.name = "b9",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta10 = list(
+                            hyperid = 36110,
+                            name = "beta10",
+                            short.name = "b10",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta11 = list(
+                            hyperid = 36111,
+                            name = "beta11",
+                            short.name = "b11",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta12 = list(
+                            hyperid = 36112,
+                            name = "beta12",
+                            short.name = "b12",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta13 = list(
+                            hyperid = 36113,
+                            name = "beta13",
+                            short.name = "b13",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta14 = list(
+                            hyperid = 36114,
+                            name = "beta14",
+                            short.name = "b14",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        ), 
+                        theta15 = list(
+                            hyperid = 36115,
+                            name = "beta15",
+                            short.name = "b15",
+                            initial = 0.1,
+                            fixed = FALSE,
+                            prior = "none",
+                            param = numeric(0), 
+                            to.theta = function(x) x, 
+                            from.theta = function(x) x
+                        )
+                    ),
+                    constr = FALSE,
+                    nrow.ncol = FALSE,
+                    augmented = FALSE,
+                    aug.factor = 1L,
+                    aug.constr = NULL,
+                    n.div.by = NULL,
+                    n.required = FALSE,
+                    set.default.values = FALSE,
+                    status = "experimental", 
+                    pdf = "scopy"
                 ),
 
                 clinear = list(
@@ -7158,6 +7339,26 @@
                             from.theta = function(x) exp(x)
                         )
                     )
+                )
+            )
+    )
+}
+
+`inla.models.section.scopy` <- function() {
+    ## the priors for the overall mean and the precision is given elsewhere. this is just to
+    ## give the allowed models. 
+    return
+    list(
+        scopy =
+            list(
+                rw1 = list(
+                    doc = "Random walk of order 1",
+                    hyper = list()
+                ),
+
+                rw2 = list(
+                    doc = "Random walk of order 2",
+                    hyper = list()
                 )
             )
     )
@@ -13186,6 +13387,7 @@
         models <- c(
             inla.models.section.latent(),
             inla.models.section.group(),
+            inla.models.section.scopy(),
             inla.models.section.mix(),
             inla.models.section.link(),
             inla.models.section.predictor(),

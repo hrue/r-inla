@@ -16,6 +16,7 @@
 ## !    f(...,
 ## !         model = "iid",
 ## !         copy=NULL,
+## !         scopy=NULL,
 ## !         same.as = NULL,
 ## !         n=NULL,
 ## !         nrep = NULL,
@@ -23,6 +24,7 @@
 ## !         ngroup = NULL,
 ## !         group = NULL,
 ## !         control.group = inla.set.control.group.default(),
+## !         control.scopy = inla.set.control.scopy.default(),
 ## !         hyper = NULL,
 ## !         initial=NULL,
 ## !         prior=NULL,
@@ -88,6 +90,9 @@
                 ## !\item{copy}{TODO}
                 copy = NULL,
 
+                ## !\item{scopy}{TODO}
+                scopy = NULL,
+
                 ## !\item{same.as}{TODO}
                 same.as = NULL,
 
@@ -111,6 +116,9 @@
 
                 ## !\item{control.group}{TODO}
                 control.group = inla.set.control.group.default(),
+
+                ## !\item{control.scopy}{TODO}
+                control.scopy = inla.set.control.scopy.default(),
 
                 ## !\item{hyper}{Specification of the hyperparameter, fixed or
                 ## !random, initial values, priors and its parameters. See
@@ -438,6 +446,8 @@
         model <- model$f$model
     }
 
+    stopifnot(!(!is.null(copy) && !is.null(scopy)))
+
     ## this is a nice trick
     if (!is.null(copy)) {
         if (!missing(model)) {
@@ -452,6 +462,20 @@
         model <- "copy"
         of <- copy
         copy <- NULL
+    }
+    if (!is.null(scopy)) {
+        if (!missing(model)) {
+            warning(paste("Ignored argument model=`", model,
+                "' in f() due to scopy=`", scopy, "'",
+                sep = ""
+            ))
+        }
+        if (!is.null(of)) {
+            stop("Argument `of=NULL' is required when `scopy=...' is used.")
+        }
+        model <- "scopy"
+        of <- scopy
+        scopy <- NULL
     }
 
     if (is.null(model)) {
@@ -500,7 +524,7 @@
     )
 
     ## for model = copy, its is not allowed to define constr or extraconstr
-    if (inla.one.of(model, "copy")) {
+    if (inla.one.of(model, c("copy", "scopy"))) {
         stopifnot(missing(constr))
         stopifnot(missing(extraconstr))
         ## unless stated otherwise, do not vb.correct copies
@@ -523,6 +547,14 @@
     cont.group$hyper <- inla.set.hyper(
         cont.group$model, "group", cont.group$hyper,
         cont.group$initial, cont.group$fixed, cont.group$prior, cont.group$param
+    )
+
+    inla.check.control(control.scopy)
+    cont.scopy <- inla.set.control.scopy.default()
+    cont.scopy[(namc <- names(control.scopy))] <- control.scopy
+    cont.scopy$hyper <- inla.set.hyper(
+        cont.scopy$model, "scopy", cont.scopy$hyper,
+        cont.scopy$initial, cont.scopy$fixed, cont.scopy$prior, cont.scopy$param
     )
 
     ## CHECK ARGUMENTS.
@@ -1081,6 +1113,7 @@
         compute = compute,
         constr = constr,
         control.group = cont.group,
+        control.scopy = cont.scopy,
         cyclic = cyclic,
         d = d,
         diagonal = diagonal,

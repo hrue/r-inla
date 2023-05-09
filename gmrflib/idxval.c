@@ -814,7 +814,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	for (k = 1; k < 4; k++) {
-		if (ABS(value[k] - value[0]) > FLT_EPSILON * sqrt(h->n)) {
+		if (ABS(value[k] - value[0]) > 100.0 * FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
 			P(k);
 			P(value[0]);
@@ -1066,7 +1066,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {

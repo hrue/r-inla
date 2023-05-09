@@ -4,6 +4,7 @@ is_set() {
     [[ -n "${1}" ]] && [[ ${!1+x} ]]
 }
 
+umask 0022
 
 export INLA_MAC=${INLA_MAC-"rueh@kw-16659.kaust.edu.sa"}
 export INLA_MAC_ARM64=${INLA_MAC_ARM64-"rueh@kw-18302.kaust.edu.sa"}
