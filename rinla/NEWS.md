@@ -1,4 +1,4 @@
-# INLA 23.05.09
+# INLA 23.05.10
 * Added documentation for `copy`
 * New `scopy` model added (experimental)
 * Added option `hessian.correct.skewness.only` in `control.inla`
