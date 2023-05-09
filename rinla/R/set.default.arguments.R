@@ -121,7 +121,7 @@
 `inla.set.control.scopy.default` <-
     function(...) {
         ## :EXTRA:
-        ## :NAME: control.group
+        ## :NAME: control.scopy
         list(
             
             ## :ARGUMENT: covariate The covariate for the scopy function
