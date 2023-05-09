@@ -1100,6 +1100,7 @@ if (TRUE) {
     control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))
     control.lp.scale <- inla.make.completion.function(names(inla.set.control.lp.scale.default()))
     control.pardiso <- inla.make.completion.function(names(inla.set.control.pardiso.default()))
+    control.scopy <- inla.make.completion.function(names(inla.set.control.scopy.default()))
 } else {
     control.update <- NULL
     control.lincomb <-NULL
@@ -1120,4 +1121,5 @@ if (TRUE) {
     control.bgev <- NULL
     control.lp.scale <- NULL
     control.pardiso <- NULL
+    control.scopy <- NULL
 }
