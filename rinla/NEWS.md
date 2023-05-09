@@ -1,3 +1,9 @@
+# INLA 23.05.09
+* Added documentation for `copy`
+* New `scopy` model added (experimental)
+* Added option `hessian.correct.skewness.only` in `control.inla`
+* Minor code changes
+
 # INLA 23.04.24
 * Fixed inconsistent treatment of `offset()`
   and `offset=` in the output, compared with 
