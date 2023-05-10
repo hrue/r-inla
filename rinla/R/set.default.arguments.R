@@ -136,10 +136,10 @@
             ## :ARGUMENT: mean The prior mean for mean(betas)
             mean = 1.0,
 
-            ## :ARGUMENT: precision The prior precision for mean(betas)
+            ## :ARGUMENT: prec.mean The prior precision for mean(betas)
             prec.mean =  1.0, 
 
-            ## :ARGUMENT: precision The prior precision prec(betas-mean(betas))
+            ## :ARGUMENT: prec.betas The prior precision prec(betas-mean(betas))
             prec.betas =  10.0
         )
 
