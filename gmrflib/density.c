@@ -41,7 +41,8 @@
 
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
 #define CONST_2 (-0.69314718055994528623)		       // log(0.5);
-
+#define CONST_3 (-0.918938533204672741780329736407)	       // log(1.0/sqrt(2.0*M_PI)) 
+#define CONST_4 (0.398942280401432677939946059934)	       // 1.0/sqrt(2.0*M_PI) 
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
 	/*
@@ -185,11 +186,10 @@ int GMRFLib_sn_logdensity(double *ldens, double x, void *param)
 	/*
 	 * compute the log sn-density 
 	 */
-	static const double log_norm_const_gaussian = -0.918938533204672741780329736407;	/* log(1.0/sqrt(2.0*M_PI)) */
 	GMRFLib_sn_param_tp *p = (GMRFLib_sn_param_tp *) param;
 	double z = (x - p->xi) / p->omega;
 
-	*ldens = M_LN2 + log_norm_const_gaussian - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
+	*ldens = M_LN2 + CONST_3 - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
 
 	return GMRFLib_SUCCESS;
 }
@@ -516,7 +516,6 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	}
 
 	// GMRFLib_ENTER_ROUTINE;
-
 	Calloc_init(4 * npm + 2 * np, 6);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
@@ -605,31 +604,33 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	pm = Calloc_get(npm);
 
 	if (GMRFLib_INT_NUM_INTERPOL == 3) {
+		const double div3 = 1.0 / 3.0;
 #pragma GCC ivdep
 		for (i = 0; i < np - 1; i++) {
 			xpm[3 * i + 0] = xp[i];
-			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) / 3.0;
-			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) / 3.0;
+			xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) * div3;
+			xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) * div3;
 		}
 #pragma GCC ivdep
 		for (i = 0; i < np - 1; i++) {
 			ldm[3 * i + 0] = ld[i];
-			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) / 3.0;
-			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) / 3.0;
+			ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) * div3;
+			ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) * div3;
 		}
 		xpm[3 * (np - 2) + 3] = xp[np - 1];
 		ldm[3 * (np - 2) + 3] = ld[np - 1];
 		assert(3 * (np - 2) + 3 == npm - 1);
 	} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
+		const double div2 = 0.5;
 #pragma GCC ivdep
 		for (i = 0; i < np - 1; i++) {
 			xpm[2 * i + 0] = xp[i];
-			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) / 2.0;
+			xpm[2 * i + 1] = (xp[i] + xp[i + 1]) * div2;
 		}
 #pragma GCC ivdep
 		for (i = 0; i < np - 1; i++) {
 			ldm[2 * i + 0] = ld[i];
-			ldm[2 * i + 1] = (ld[i] + ld[i + 1]) / 2.0;
+			ldm[2 * i + 1] = (ld[i] + ld[i + 1]) * div2;
 		}
 		xpm[2 * (np - 2) + 2] = xp[np - 1];
 		ldm[2 * (np - 2) + 2] = ld[np - 1];
@@ -720,7 +721,6 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	/*
 	 * evaluate the log-density-object. Note that x is in *standardised scale* . 
 	 */
-	static double log_norm_const_gaussian = -0.918938533204672741780329736407;	/* log(1.0/sqrt(2.0*M_PI)) */
 	int i;
 
 	assert(density);
@@ -728,7 +728,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	switch (density->type) {
 	case GMRFLib_DENSITY_TYPE_GAUSSIAN:
 	{
-		double c1 = log_norm_const_gaussian - log(density->stdev);
+		double c1 = CONST_3 - log(density->stdev);
 		double c2 = -0.5 / SQR(density->stdev);
 		double m = density->mean;
 #pragma GCC ivdep
@@ -746,7 +746,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		 */
 
 		GMRFLib_sn_param_tp *p = density->sn_param;
-		double local_const_1 = M_LN2 + log_norm_const_gaussian - log(p->omega);
+		double local_const_1 = M_LN2 + CONST_3 - log(p->omega);
 		double a = 1.0 / p->omega;
 		double b = -p->xi / p->omega;
 		double z, zz, val;
@@ -872,12 +872,10 @@ int GMRFLib_free_density(GMRFLib_density_tp *density)
 
 double GMRFLib_evaluate_density_kld__intern(double x, void *param)
 {
-	static double norm_const_gaussian = 0.398942280401432677939946059934;	/* 1.0/sqrt(2.0*M_PI) */
-	static double log_norm_const_gaussian = -0.918938533204672741780329736407;	/* log(1.0/sqrt(2.0*M_PI)) */
 	GMRFLib_density_properties_tp *prop = (GMRFLib_density_properties_tp *) param;
 	double ldens = 0.0;
 	GMRFLib_evaluate_logdensity(&ldens, x, prop->density);
-	return norm_const_gaussian * exp(-0.5 * SQR(x)) * (log_norm_const_gaussian - 0.5 * SQR(x) - ldens);
+	return CONST_4 * exp(-0.5 * SQR(x)) * (CONST_3 - 0.5 * SQR(x) - ldens);
 }
 
 double GMRFLib_density_Pinv_f(double x, void *param)
@@ -995,7 +993,7 @@ int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_de
 	 * the weights need not to be scaled. 
 	 */
 	int nd = (probs ? probs->n : 1);
-	int i, j, k, n_alloc = IMAX(nd, nx);
+	int i, k, n_alloc = IMAX(nd, nx);
 	double *d_tmp = NULL, *x_std = NULL, p;
 
 	Calloc_init(2 * n_alloc, 2);
@@ -1013,12 +1011,8 @@ int GMRFLib_evaluate_ndensities(double *dens, double *x_user, int nx, GMRFLib_de
 		int inc = 1;
 		daxpy_(&nx, &a, d_tmp, &inc, dens, &inc);
 
-		// old code
-		if (0) {
-			for (j = 0; j < nx; j++) {
-				dens[j] += p * d_tmp[j] / densities[i]->std_stdev;
-			}
-		}
+		// for (j = 0; j < nx; j++) 
+		// dens[j] += p * d_tmp[j] / densities[i]->std_stdev;
 	}
 
 	Calloc_free();
@@ -1108,7 +1102,6 @@ int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **d
 	stdev = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean)));
 
 	Calloc_init(2 * nx, 2);
-
 	/*
 	 * compute the weighted density. note that we have to go through the user/real-scale to get this right 
 	 */
@@ -1220,11 +1213,8 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
-		if (0) {
-			GMRFLib_qsorts(xx, (size_t) n, sizeof(double), ldens, sizeof(double), NULL, 0, GMRFLib_dcmp);
-		} else {
-			gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
-		}
+		//gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
+		my_sort2_dd(xx, ldens, n);
 	}
 	GMRFLib_unique_relative2(&n, xx, ldens, GSL_SQRT_DBL_EPSILON);
 	GMRFLib_adjust_vector(ldens, n);

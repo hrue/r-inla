@@ -55,7 +55,10 @@ __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/graph.h"
 #include "GMRFLib/GMRFLibP.h"
-    typedef struct {
+
+#define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
+
+typedef struct {
 	int nrow;
 	map_ivp *vmat;
 } GMRFLib_vmatrix_tp;
@@ -133,13 +136,20 @@ int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec)
 double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j);
 int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content);
 
-int my_sort2_test_cutoff(int verbose);
+int my_sort2_id_test_cutoff(int verbose);
+int my_sort2_dd_test_cutoff(int verbose);
 void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n);
 void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n);
+void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int n);
 void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n);
 void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n);
+void my_insertionSort_dd(double *__restrict iarr, double *__restrict darr, int n);
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
+void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
+
+void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem);
+void GMRFLib_printMem_core(FILE *fp, char *file, int lineno);
 
 __END_DECLS
 #endif

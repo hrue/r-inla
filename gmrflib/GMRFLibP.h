@@ -309,7 +309,7 @@ typedef enum {
 
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
-	size_t calloc_l1_cacheline_ = 8;				\
+	size_t calloc_l1_cacheline_ = 64L / sizeof(double);		\
 	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_l1_cacheline_); \
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
@@ -318,7 +318,7 @@ typedef enum {
 
 #define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
-	size_t icalloc_l1_cacheline_ = 16;				\
+	size_t icalloc_l1_cacheline_ = 64L / sizeof(int);		\
 	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_l1_cacheline_); \
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
@@ -410,6 +410,8 @@ typedef enum {
 #define SQR(x) gsl_pow_2(x)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
+#define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
+
 
 #define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
 #define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
@@ -503,7 +505,7 @@ typedef enum {
 		Free(work__);						\
         }
 
-#define GMRFLib_INT_NUM_POINTS   (60)			       /* number of points for integration,... */
+#define GMRFLib_INT_NUM_POINTS   (31)			       /* number of points for integration,... */
 #define GMRFLib_INT_NUM_INTERPOL  (2)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (15)			       /* MUST BE ODD!!!! for the quadrature */
 

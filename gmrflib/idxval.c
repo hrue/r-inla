@@ -814,7 +814,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	for (k = 1; k < 4; k++) {
-		if (ABS(value[k] - value[0]) > 100.0 * FLT_EPSILON * sqrt(h->n)) {
+		if (ABS(value[k] - value[0]) > 1000.0 * FLT_EPSILON * sqrt(h->n)) {
 			P(ABS(value[k] - value[0]));
 			P(k);
 			P(value[0]);
