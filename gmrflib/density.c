@@ -43,6 +43,7 @@
 #define CONST_2 (-0.69314718055994528623)		       // log(0.5);
 #define CONST_3 (-0.918938533204672741780329736407)	       // log(1.0/sqrt(2.0*M_PI)) 
 #define CONST_4 (0.398942280401432677939946059934)	       // 1.0/sqrt(2.0*M_PI) 
+
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
 	/*
@@ -568,9 +569,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	dx = (high - low) / (np - 1.0);
 	dxm = (high - low) / (npm - 1.0);
 
-	int idx_max;
 	double x_max;
-
 	double ldmax;
 	double w[2] = { 4.0, 2.0 };
 
@@ -582,21 +581,8 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	}
 	density->log_norm_const = 0.0;
 	GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
-	ldmax = GMRFLib_max_value(ld, np, &idx_max);
+	ldmax = GMRFLib_max_value(ld, np, NULL);
 	GMRFLib_adjust_vector(ld, np);
-
-	if (idx_max == 0) {
-		x_max = xp[0];
-	} else if (idx_max == np - 1) {
-		x_max = xp[np - 1];
-	} else {
-		double *xx = xp + idx_max - 1;
-		double *tld = ld + idx_max - 1;
-		// see inla.c and 'inla_integrate_func'
-		x_max = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
-			 tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) /
-		    (tld[0] * xx[1] - tld[0] * xx[2] - tld[1] * xx[0] + tld[1] * xx[2] + tld[2] * xx[0] - xx[1] * tld[2]) / 0.2e1;
-	}
 
 	// interpolate
 	xpm = Calloc_get(npm);
@@ -648,6 +634,21 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		ldm[i] = exp(ldm[i]);
 	}
 #endif
+
+	int idx_max = 0;
+	GMRFLib_max_value(ldm, npm, &idx_max);
+	if (idx_max == 0) {
+		x_max = xpm[0];
+	} else if (idx_max == npm - 1) {
+		x_max = xpm[npm - 1];
+	} else {
+		double *xx = xpm + idx_max - 1;
+		double *tld = ldm + idx_max - 1;
+		// see inla.c and 'inla_integrate_func'
+		x_max = (tld[0] * xx[1] * xx[1] - tld[0] * xx[2] * xx[2] - tld[1] * xx[0] * xx[0] +
+			 tld[1] * xx[2] * xx[2] + tld[2] * xx[0] * xx[0] - tld[2] * xx[1] * xx[1]) /
+		    (tld[0] * xx[1] - tld[0] * xx[2] - tld[1] * xx[0] + tld[1] * xx[2] + tld[2] * xx[0] - xx[1] * tld[2]) / 0.2e1;
+	}
 
 	// compute moments
 	double mm[4] = { 0.0, 0.0, 0.0, 0.0 };
@@ -701,6 +702,15 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		for (i = 0; i < npm; i++) {
 			pm[i] *= cc;
 		}
+
+		// for storage reasons, we have to shrink this one before creating the spline
+		int k = 0;
+		for (i = 0; i < npm; i += GMRFLib_INT_NUM_INTERPOL) {
+			xpm[k] = xpm[i];
+			pm[k] = pm[i];
+			k++;
+		}
+		npm = k;
 		density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
 		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv);
 	}

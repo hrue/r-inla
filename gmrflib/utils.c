@@ -67,16 +67,16 @@ void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int
 		while (fscanf(file, " %1023s", buffer) == 1) {
 
 			if (strcmp(buffer, "VmRSS:") == 0) {
-				fscanf(file, " %d", currRealMem);
+				if (fscanf(file, " %d", currRealMem) == 0) currRealMem = 0;
 			}
 			if (strcmp(buffer, "VmHWM:") == 0) {
-				fscanf(file, " %d", peakRealMem);
+				if (fscanf(file, " %d", peakRealMem) == 0) peakRealMem = 0;
 			}
 			if (strcmp(buffer, "VmSize:") == 0) {
-				fscanf(file, " %d", currVirtMem);
+				if (fscanf(file, " %d", currVirtMem) == 0) currVirtMem = 0;
 			}
 			if (strcmp(buffer, "VmPeak:") == 0) {
-				fscanf(file, " %d", peakVirtMem);
+				if (fscanf(file, " %d", peakVirtMem) == 0) peakVirtMem = 0;
 			}
 		}
 		fclose(file);

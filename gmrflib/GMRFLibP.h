@@ -505,8 +505,8 @@ typedef enum {
 		Free(work__);						\
         }
 
-#define GMRFLib_INT_NUM_POINTS   (31)			       /* number of points for integration,... */
-#define GMRFLib_INT_NUM_INTERPOL  (2)			       /* ...which are then interpolated: use 2 or 3 */
+#define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */
+#define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (15)			       /* MUST BE ODD!!!! for the quadrature */
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
