@@ -258,7 +258,7 @@ int GMRFLib_isum(int n, int *ix)
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += ix[i];
 	}
 
@@ -306,7 +306,7 @@ double GMRFLib_dsum(int n, double *x)
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += x[i];
 	}
 
@@ -343,9 +343,10 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
+	int m = d.quot * roll;
 
 #pragma GCC ivdep
-	for (int i = 0; i < d.quot * roll; i += roll) {
+	for (int i = 0; i < m; i += roll) {
 		int *iidx = idx + i;
 
 		s0 += a[iidx[0]];
@@ -360,7 +361,7 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += a[idx[i]];
 	}
 
@@ -392,7 +393,7 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}
 
