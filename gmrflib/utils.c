@@ -86,7 +86,7 @@ void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int
 #endif
 }
 
-void GMRFLib_printMem_core(FILE *fp, char *fnm, int lineno) 
+void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno) 
 {
 #if defined(__linux__)
 	int crm, prm, cvm, pvm;

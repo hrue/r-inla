@@ -149,7 +149,7 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
 
 void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem);
-void GMRFLib_printMem_core(FILE *fp, char *file, int lineno);
+void GMRFLib_printMem_core(FILE *fp, const char *file, int lineno);
 
 __END_DECLS
 #endif

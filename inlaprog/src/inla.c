@@ -26764,7 +26764,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 			printf("\t\tprecision=[%f]\n", mb->f_precision[mb->nf]);
 		}
 
-		model = iniparser_getstring(ini, inla_string_join(secname, "SCOPY.MODEL"), "rw2");
+		model = iniparser_getstring(ini, inla_string_join(secname, "SCOPY.MODEL"), GMRFLib_strdup("rw2"));
 		prior_mean = iniparser_getdouble(ini, inla_string_join(secname, "SCOPY.MEAN"), 1.0);
 		prior_prec_mean = iniparser_getdouble(ini, inla_string_join(secname, "SCOPY.PREC.MEAN"), 10.0);
 		prior_prec_betas = iniparser_getdouble(ini, inla_string_join(secname, "SCOPY.PREC.BETAS"), 40.0);
@@ -28402,7 +28402,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		if (mb->verbose) {
 			printf("\t\tscale.model: prec_scale[%g]\n", rwdef->prec_scale[0]);
 		}
-		def->Qfunc_prior = (void *) GMRFLib_rw;
+		def->Qfunc_prior = GMRFLib_rw;
 		def->Qfunc_arg_prior = (void *) rwdef;
 		def->rwdef = rwdef;
 
