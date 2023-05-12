@@ -39633,15 +39633,18 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			}						\
 	}
 
-#define _MAP_X(_x_user) (func ? func(_x_user, MAP_FORWARD, func_arg) :	\
-			 (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
-			  (_x_user)))
+#define _MAP_X(_x_user) (plain_case ? (_x_user) : \
+			 (func ? func(_x_user, MAP_FORWARD, func_arg) : \
+			  (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_FORWARD, tfunc->arg, tfunc->cov) : \
+			   (_x_user))))
 
-#define _MAP_DX(_x_user) (func ? func(_x_user, MAP_DFORWARD, func_arg) :	\
-			  (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov) : \
-			   SIGN(_x_user)))
+#define _MAP_DX(_x_user) (plain_case ? SIGN(_x_user) : \
+			  (func ? func(_x_user, MAP_DFORWARD, func_arg) : \
+			   (tfunc ? tfunc->func(thread_id, _x_user, GMRFLib_TRANSFORM_DFORWARD, tfunc->arg, tfunc->cov) : \
+			    SIGN(_x_user))))
 
 	int thread_id = 0;
+	const int plain_case = (!func && !tfunc);
 
 	/*
 	 * We need to integrate to get the transformed mean and variance. Use a simple Simpsons-rule.  The simple mapping we did before was not good enough,
@@ -39665,15 +39668,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		return GMRFLib_SUCCESS;
 	}
 
-	int num_interpol = GMRFLib_INT_NUM_INTERPOL;
-	if (num_interpol == 2) {
-		// little to loose
-		num_interpol = 3;
-	}
-
 	int i;
 	int np = GMRFLib_INT_NUM_POINTS;
-	int npm = num_interpol * np - (num_interpol - 1);
+	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
 	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
@@ -39744,20 +39741,23 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		if (d_mode) {
 			// reusing 'z' for x_user here
 			GMRFLib_density_std2user_n(z, xp, np, density);
-			for (i = 0; i < np; i++) {
-				ldz[i] = ld[i] - log(ABS(_MAP_DX(z[i])));
-				z[i] = _MAP_X(z[i]);
-				if (i == 0 || ldz[i] > ldz[i_max]) {
-					i_max = i;
+
+			if (plain_case) {
+				Memcpy(ldz, ld, np * sizeof(double));
+			} else {
+				for (i = 0; i < np; i++) {
+					z[i] = _MAP_X(z[i]);
+					ldz[i] = ld[i] - log(ABS(_MAP_DX(z[i])));
 				}
 			}
+			GMRFLib_max_value(ldz, np, &i_max);
 		}
 
 		// interpolate
 		xpm = Calloc_get(npm);
 		ldm = Calloc_get(npm);
 
-		if (num_interpol == 3) {
+		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 			const double div3 = 1.0 / 3.0;
 #pragma GCC ivdep
 			for (i = 0; i < np - 1; i++) {
@@ -39774,7 +39774,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			xpm[3 * (np - 2) + 3] = xp[np - 1];
 			ldm[3 * (np - 2) + 3] = ld[np - 1];
 			assert(3 * (np - 2) + 3 == npm - 1);
-		} else if (num_interpol == 2) {
+		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 			const double div2 = 0.5;
 #pragma GCC ivdep
 			for (i = 0; i < np - 1; i++) {
@@ -39790,7 +39790,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			ldm[2 * (np - 2) + 2] = ld[np - 1];
 			assert(2 * (np - 2) + 2 == npm - 1);
 		} else {
-			assert(num_interpol == 2 || num_interpol == 3);
+			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 		}
 
 #if defined(INLA_LINK_WITH_MKL)
@@ -39804,9 +39804,11 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		xx = Calloc_get(npm);
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
+		if (!plain_case) {
 #pragma GCC ivdep
-		for (i = 0; i < npm - 1; i++) {
-			xx[i] = _MAP_X(xx[i]);
+			for (i = 0; i < npm - 1; i++) {
+				xx[i] = _MAP_X(xx[i]);
+			}
 		}
 
 		// compute moments
@@ -39820,7 +39822,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 #pragma GCC ivdep
 		for (i = 1; i < npm - 1; i++) {
-			double d = ldm[i] * w[(i - 1) % 2];
+			double d = ldm[i] * w[(i - 1) % 2L];
 			double x = xx[i];
 			double x2 = x * x;
 
@@ -39840,6 +39842,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 #undef COMPUTE_MODE
 #undef _MAP_X
+#undef _MAP_DX
 
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
@@ -44133,6 +44136,46 @@ int testit(int argc, char **argv)
 		}
 	}
 		break;
+
+	case 114:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(3 * n, double);
+		double *y = x + n;
+		double *yy = x + 2*n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			double a = GMRFLib_uniform();
+			double b = GMRFLib_uniform();
+			
+			tref[0] -= GMRFLib_cpu();
+			GMRFLib_daxpb(n, a, x, b, y);
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+#pragma GCC ivdep
+			for(int j = 0; j < n; j++) {
+				yy[j] = a * x[j] + b;
+			}
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for(int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+	break;
 
 	case 999:
 	{

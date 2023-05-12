@@ -295,7 +295,6 @@ int GMRFLib_normal_fit(double *mean, double *variance, double *fval, double *x, 
 	int retval;
 	GMRFLib_sn_param_tp param = { 0.0, 0.0, 0.0 };
 
-
 	retval = GMRFLib_sn_fit__intern((void *) &param, fval, x, log_density, (size_t) n, (size_t) 3);
 	if (retval == GMRFLib_SUCCESS) {
 		if (mean) {
@@ -698,12 +697,11 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		}
 
 		double cc = 1.0 / (pm[npm - 1] + 0.5 * ldm[npm - 1]);
-#pragma GCC ivdep
-		for (i = 0; i < npm; i++) {
-			pm[i] *= cc;
-		}
 
-		// for storage reasons, we have to shrink this one before creating the spline
+		//for (i = 0; i < npm; i++) pm[i] *= cc;
+		GMRFLib_dscale(npm, cc, pm);
+
+		// shrink before creating the spline
 		int k = 0;
 		for (i = 0; i < npm; i += GMRFLib_INT_NUM_INTERPOL) {
 			xpm[k] = xpm[i];
@@ -1547,9 +1545,14 @@ double GMRFLib_density_std2user_n(double *__restrict x_user, double *__restrict 
 {
 	double m = density->std_mean;
 	double s = density->std_stdev;
+
+	if (1) {
+		GMRFLib_daxpb(n, s, x, m, x_user);
+	} else {
 #pragma GCC ivdep
-	for (int i = 0; i < n; i++) {
-		x_user[i] = m + x[i] * s;
+		for (int i = 0; i < n; i++) {
+			x_user[i] = m + x[i] * s;
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
@@ -1563,9 +1566,14 @@ int GMRFLib_density_user2std_n(double *__restrict x_std, double *__restrict x, G
 {
 	double a = 1.0 / density->std_stdev;
 	double b = -density->std_mean / density->std_stdev;
+
+	if (1) {
+		GMRFLib_daxpb(n, a, x, b, x_std);
+	} else {
 #pragma GCC ivdep
-	for (int i = 0; i < n; i++) {
-		x_std[i] = a * x[i] + b;
+		for (int i = 0; i < n; i++) {
+			x_std[i] = a * x[i] + b;
+		}
 	}
 	return GMRFLib_SUCCESS;
 }
