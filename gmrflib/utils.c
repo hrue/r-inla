@@ -53,7 +53,7 @@
  * taken from
  * https://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
  */
-void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem)
+void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem)
 {
 #if defined(__linux__)
 	// stores each word in status file
@@ -67,16 +67,20 @@ void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int
 		while (fscanf(file, " %1023s", buffer) == 1) {
 
 			if (strcmp(buffer, "VmRSS:") == 0) {
-				if (fscanf(file, " %d", currRealMem) == 0) currRealMem = 0;
+				if (fscanf(file, " %d", currRealMem) == 0)
+					currRealMem = 0;
 			}
 			if (strcmp(buffer, "VmHWM:") == 0) {
-				if (fscanf(file, " %d", peakRealMem) == 0) peakRealMem = 0;
+				if (fscanf(file, " %d", peakRealMem) == 0)
+					peakRealMem = 0;
 			}
 			if (strcmp(buffer, "VmSize:") == 0) {
-				if (fscanf(file, " %d", currVirtMem) == 0) currVirtMem = 0;
+				if (fscanf(file, " %d", currVirtMem) == 0)
+					currVirtMem = 0;
 			}
 			if (strcmp(buffer, "VmPeak:") == 0) {
-				if (fscanf(file, " %d", peakVirtMem) == 0) peakVirtMem = 0;
+				if (fscanf(file, " %d", peakVirtMem) == 0)
+					peakVirtMem = 0;
 			}
 		}
 		fclose(file);
@@ -86,7 +90,7 @@ void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int
 #endif
 }
 
-void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno) 
+void GMRFLib_printMem_core(FILE *fp, const char *fnm, int lineno)
 {
 #if defined(__linux__)
 	int crm, prm, cvm, pvm;

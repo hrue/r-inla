@@ -75,7 +75,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
-		//gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
+		// gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
 		my_sort2_dd(xx, yy, n);
 	}
 	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);

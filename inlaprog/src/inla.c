@@ -9874,9 +9874,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -39768,7 +39768,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #pragma GCC ivdep
 			for (i = 0; i < np - 1; i++) {
 				ldm[3 * i + 0] = ld[i];
-				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) * div3; 
+				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) * div3;
 				ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) * div3;
 			}
 			xpm[3 * (np - 2) + 3] = xp[np - 1];
@@ -44145,7 +44145,7 @@ int testit(int argc, char **argv)
 		P(m);
 		double *x = Calloc(3 * n, double);
 		double *y = x + n;
-		double *yy = x + 2*n;
+		double *yy = x + 2 * n;
 
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
@@ -44155,27 +44155,27 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < m; i++) {
 			double a = GMRFLib_uniform();
 			double b = GMRFLib_uniform();
-			
+
 			tref[0] -= GMRFLib_cpu();
 			GMRFLib_daxpb(n, a, x, b, y);
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
 #pragma GCC ivdep
-			for(int j = 0; j < n; j++) {
+			for (int j = 0; j < n; j++) {
 				yy[j] = a * x[j] + b;
 			}
 			tref[1] += GMRFLib_cpu();
 
 			double err = 0.0;
-			for(int j = 0; j < n; j++) {
+			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
 			assert(err < FLT_EPSILON);
 		}
 		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}
-	break;
+		break;
 
 	case 999:
 	{

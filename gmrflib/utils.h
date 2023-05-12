@@ -55,10 +55,8 @@ __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/graph.h"
 #include "GMRFLib/GMRFLibP.h"
-
 #define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
-
-typedef struct {
+    typedef struct {
 	int nrow;
 	map_ivp *vmat;
 } GMRFLib_vmatrix_tp;
@@ -148,8 +146,8 @@ void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
 
-void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem);
-void GMRFLib_printMem_core(FILE *fp, const char *file, int lineno);
+void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem);
+void GMRFLib_printMem_core(FILE * fp, const char *file, int lineno);
 
 __END_DECLS
 #endif

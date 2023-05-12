@@ -41,8 +41,8 @@
 
 #define CONST_1 0.6266570686577500604			       // sqrt(M_PI/8.0);
 #define CONST_2 (-0.69314718055994528623)		       // log(0.5);
-#define CONST_3 (-0.918938533204672741780329736407)	       // log(1.0/sqrt(2.0*M_PI)) 
-#define CONST_4 (0.398942280401432677939946059934)	       // 1.0/sqrt(2.0*M_PI) 
+#define CONST_3 (-0.918938533204672741780329736407)	       // log(1.0/sqrt(2.0*M_PI))
+#define CONST_4 (0.398942280401432677939946059934)	       // 1.0/sqrt(2.0*M_PI)
 
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
@@ -698,7 +698,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 
 		double cc = 1.0 / (pm[npm - 1] + 0.5 * ldm[npm - 1]);
 
-		//for (i = 0; i < npm; i++) pm[i] *= cc;
+		// for (i = 0; i < npm; i++) pm[i] *= cc;
 		GMRFLib_dscale(npm, cc, pm);
 
 		// shrink before creating the spline
@@ -1221,7 +1221,7 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
-		//gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
+		// gsl_sort2(xx, (size_t) 1, ldens, (size_t) 1, (size_t) n);
 		my_sort2_dd(xx, ldens, n);
 	}
 	GMRFLib_unique_relative2(&n, xx, ldens, GSL_SQRT_DBL_EPSILON);

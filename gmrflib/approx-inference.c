@@ -6223,7 +6223,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 	}
-	
+
 	if (ai_par->fp_log) {
 		GMRFLib_printMem(ai_par->fp_log);
 	}
@@ -7918,7 +7918,7 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 		Calloc_free();
 		return GMRFLib_SUCCESS;
 	} else {
-		int i, k, np = GMRFLib_INT_NUM_POINTS; 
+		int i, k, np = GMRFLib_INT_NUM_POINTS;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *loglik = NULL, w[2] =
 		    { 4.0, 2.0 }, integral_one, integral, integral_p, integral_m;
 
@@ -9913,7 +9913,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	/*
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
-	int retval, compute_cpo = 1, i, k, np = GMRFLib_INT_NUM_POINTS; 
+	int retval, compute_cpo = 1, i, k, np = GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
@@ -10066,7 +10066,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		int np = GMRFLib_INT_NUM_POINTS;
 		int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-		
+
 		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, 0.0);
 		Calloc_init(4 * np + 2 * npm, 6);
 		xp = Calloc_get(np);
@@ -10211,7 +10211,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 
 		int np = GMRFLib_INT_NUM_POINTS;
 		int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-		
+
 		GMRFLib_ASSERT_RETVAL(np > 3, GMRFLib_ESNH, NULL);
 
 		Calloc_init(4 * np + 3 * npm, 7);
