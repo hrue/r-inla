@@ -169,5 +169,6 @@ double GMRFLib_weight_prob = 0.975;			       // for pruning weights for densitie
 double GMRFLib_weight_prob_one = 0.999;			       // for pruning weights otherwise
 double **GMRFLib_dot_product_optim_report = NULL;
 double GMRFLib_dot_product_gain = -1.0;
-int GMRFLib_sort2_cut_off = 50;
+int GMRFLib_sort2_id_cut_off = 50;
+int GMRFLib_sort2_dd_cut_off = 70;
 int GMRFLib_internal_opt = 1;

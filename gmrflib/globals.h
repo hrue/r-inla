@@ -136,7 +136,8 @@ extern double **GMRFLib_dot_product_optim_report;
 extern double GMRFLib_dot_product_gain;			       // set to < 0 to disable it
 extern int GMRFLib_internal_opt;
 
-extern int GMRFLib_sort2_cut_off;
+extern int GMRFLib_sort2_id_cut_off;
+extern int GMRFLib_sort2_dd_cut_off;
 
 #endif
 __END_DECLS

@@ -1052,3 +1052,23 @@ int GMRFLib_dscale(int n, double a, double *x)
 	int one = 1;
 	return (dscal_(&n, &a, x, &one));
 }
+
+void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
+{
+	const int roll = 4L;
+	div_t d = div(n, roll);
+	int m = d.quot * roll;
+
+#pragma GCC ivdep
+	for (int i = 0; i < m; i += roll) {
+		y[i] = a * x[i] + b;
+		y[i + 1] = a * x[i + 1] + b;
+		y[i + 2] = a * x[i + 2] + b;
+		y[i + 3] = a * x[i + 3] + b;
+	}
+
+#pragma GCC ivdep
+	for (int i = m; i < n; i++) {
+		y[i] = a * x[i] + b;
+	}
+}

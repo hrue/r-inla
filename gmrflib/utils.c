@@ -46,6 +46,57 @@
 #define IDX_ALLOC_INITIAL 64
 #define IDX_ALLOC_ADD     512
 
+/*
+ * Measures the current (and peak) resident and virtual memories
+ * usage of your linux C process, in kB
+ *
+ * taken from
+ * https://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
+ */
+void GMRFLib_getMemory(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem)
+{
+#if defined(__linux__)
+	// stores each word in status file
+	char buffer[1024] = "";
+
+	// linux file contains this-process info
+	FILE *file = fopen("/proc/self/status", "r");
+
+	if (file) {
+		// read the entire file
+		while (fscanf(file, " %1023s", buffer) == 1) {
+
+			if (strcmp(buffer, "VmRSS:") == 0) {
+				if (fscanf(file, " %d", currRealMem) == 0) currRealMem = 0;
+			}
+			if (strcmp(buffer, "VmHWM:") == 0) {
+				if (fscanf(file, " %d", peakRealMem) == 0) peakRealMem = 0;
+			}
+			if (strcmp(buffer, "VmSize:") == 0) {
+				if (fscanf(file, " %d", currVirtMem) == 0) currVirtMem = 0;
+			}
+			if (strcmp(buffer, "VmPeak:") == 0) {
+				if (fscanf(file, " %d", peakVirtMem) == 0) peakVirtMem = 0;
+			}
+		}
+		fclose(file);
+	} else {
+		currRealMem = peakRealMem = currVirtMem = peakVirtMem = 0;
+	}
+#endif
+}
+
+void GMRFLib_printMem_core(FILE *fp, char *fnm, int lineno) 
+{
+#if defined(__linux__)
+	int crm, prm, cvm, pvm;
+	FILE *ffp = (fp ? fp : stdout);
+	GMRFLib_getMemory(&crm, &prm, &cvm, &pvm);
+	fprintf(ffp, "%s:%d: {cur,peak}-Mem used: Real[%.1f, %.1f]Mb, Virt[%.1f, %.1f]Mb\n",
+		fnm, lineno, crm / 1024.0, prm / 1024.0, cvm / 1024.0, pvm / 1024.0);
+#endif
+}
+
 void GMRFLib_delay(int msec)
 {
 	long pause;
@@ -1658,9 +1709,42 @@ void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n)
 	}
 }
 
+void my_insertionSort_dd(double *__restrict iarr, double *__restrict darr, int n)
+{
+	if (darr) {
+		for (int i = 1; i < n; i++) {
+			double key = iarr[i];
+			double dkey = darr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				darr[j + 1] = darr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+			darr[j + 1] = dkey;
+		}
+	} else {
+		for (int i = 1; i < n; i++) {
+			double key = iarr[i];
+			int j = i - 1;
+			while (j >= 0 && iarr[j] > key) {
+				iarr[j + 1] = iarr[j];
+				j--;
+			}
+			iarr[j + 1] = key;
+		}
+	}
+}
+
+void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int n)
+{
+	gsl_sort2(data1, (size_t) 1, data2, (size_t) 1, (size_t) n);
+}
+
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 {
-	if (n < GMRFLib_sort2_cut_off) {
+	if (n < GMRFLib_sort2_id_cut_off) {
 		my_insertionSort_ii(ix, x, n);
 	} else {
 		gsl_sort2_ii(ix, x, n);
@@ -1669,14 +1753,23 @@ void my_sort2_ii(int *__restrict ix, int *__restrict x, int n)
 
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n)
 {
-	if (n < GMRFLib_sort2_cut_off) {
+	if (n < GMRFLib_sort2_id_cut_off) {
 		my_insertionSort_id(ix, x, n);
 	} else {
 		gsl_sort2_id(ix, x, n);
 	}
 }
 
-int my_sort2_test_cutoff(int verbose)
+void my_sort2_dd(double *__restrict ix, double *__restrict x, int n)
+{
+	if (n < GMRFLib_sort2_dd_cut_off) {
+		my_insertionSort_dd(ix, x, n);
+	} else {
+		gsl_sort2_dd(ix, x, n);
+	}
+}
+
+int my_sort2_id_test_cutoff(int verbose)
 {
 	const int nmax = 384;
 	const int nmin = 64;
@@ -1703,7 +1796,7 @@ int my_sort2_test_cutoff(int verbose)
 		double *xx = x + nmax;
 		double time[2] = { 0.0, 0.0 };
 
-		for (int times = -2; times < ntimes; times++) {
+		for (int times = 0; times < ntimes; times++) {
 
 			for (int i = 0; i < n; i++) {
 				ix[i] = (int) ((100 * nmax) * GMRFLib_uniform());
@@ -1712,25 +1805,15 @@ int my_sort2_test_cutoff(int verbose)
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			if (times > 0) {
-				time[0] -= GMRFLib_cpu();
-			}
+			time[0] -= GMRFLib_cpu();
 			my_insertionSort_id(ixx, xx, n);
-
-			if (times > 0) {
-				time[0] += GMRFLib_cpu();
-			}
+			time[0] += GMRFLib_cpu();
 
 			Memcpy(ixx, ix, n * sizeof(int));
 			Memcpy(xx, x, n * sizeof(double));
-			if (times > 0) {
-				time[1] -= GMRFLib_cpu();
-			}
+			time[1] -= GMRFLib_cpu();
 			gsl_sort2_id(ixx, xx, n);
-
-			if (times > 0) {
-				time[1] += GMRFLib_cpu();
-			}
+			time[1] += GMRFLib_cpu();
 		}
 
 		slope_xx += SQR(n);
@@ -1750,7 +1833,7 @@ int my_sort2_test_cutoff(int verbose)
 	}
 
 	// this is a global variable
-	GMRFLib_sort2_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
+	GMRFLib_sort2_id_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
 
 	time_used += GMRFLib_cpu();
 	if (verbose) {
@@ -1760,5 +1843,82 @@ int my_sort2_test_cutoff(int verbose)
 	Free(ix);
 	Free(x);
 
-	return GMRFLib_sort2_cut_off;
+	return GMRFLib_sort2_id_cut_off;
+}
+
+int my_sort2_dd_test_cutoff(int verbose)
+{
+	const int nmax = 448;
+	const int nmin = 64;
+	const int nstep = 64;
+	const int ntimes = 100;
+
+	double time_used = 0.0;
+	double *ix = Calloc(2 * nmax, double);
+	double *x = Calloc(2 * nmax, double);
+
+	double slope_xy = 0.0;
+	double slope_xx = 0.0;
+	double slope_x = 0.0;
+	double slope_y = 0.0;
+	double slope_n = 0.0;
+	double cutoff = 1;
+	double b;
+
+	time_used -= GMRFLib_cpu();
+
+	for (int n = nmin; n <= nmax; n += nstep) {
+
+		double *ixx = ix + nmax;
+		double *xx = x + nmax;
+		double time[2] = { 0.0, 0.0 };
+
+		for (int times = 0; times < ntimes; times++) {
+
+			for (int i = 0; i < n; i++) {
+				ix[i] = GMRFLib_uniform();
+				x[i] = GMRFLib_uniform();
+			}
+
+			Memcpy(ixx, ix, n * sizeof(double));
+			Memcpy(xx, x, n * sizeof(double));
+			time[0] -= GMRFLib_cpu();
+			my_insertionSort_dd(ixx, xx, n);
+			time[0] += GMRFLib_cpu();
+
+			Memcpy(ixx, ix, n * sizeof(double));
+			Memcpy(xx, x, n * sizeof(double));
+			time[1] -= GMRFLib_cpu();
+			gsl_sort2_dd(ixx, xx, n);
+			time[1] += GMRFLib_cpu();
+		}
+
+		slope_xx += SQR(n);
+		slope_xy += n * (time[0] / time[1]);
+		slope_x += n;
+		slope_y += (time[0] / time[1]);
+		slope_n++;
+
+		b = (slope_xy / slope_n - (slope_x / slope_n) * (slope_y / slope_n)) / (slope_xx / slope_n - SQR(slope_x / slope_n));
+		if (ISZERO(b))
+			b = 1.0;
+		cutoff = (slope_x / slope_n) + (1.0 - (slope_y / slope_n)) / b;
+
+		if (verbose) {
+			printf("sort-test n = %1d  time(insertSort/gsl_sort2) =  %.2f cutoff.est = %1d\n", n, time[0] / time[1], (int) cutoff);
+		}
+	}
+
+	// this is a global variable
+	GMRFLib_sort2_dd_cut_off = IMAX(nmin, IMIN(nmax, (int) cutoff));
+
+	time_used += GMRFLib_cpu();
+	if (verbose) {
+		printf("sort-test took %.4f seconds\n", time_used);
+	}
+
+	Free(ix);
+	Free(x);
+
+	return GMRFLib_sort2_dd_cut_off;
 }
