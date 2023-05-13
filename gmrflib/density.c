@@ -709,8 +709,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 			k++;
 		}
 		npm = k;
-		// I do not think I use this one...
-		//density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
+		density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
 		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv);
 	}
 
