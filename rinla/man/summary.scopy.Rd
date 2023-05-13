@@ -6,9 +6,9 @@
  \alias{inla.summary.scopy}
  \alias{summary.scopy}
 
- \title{computes the mean and stdev for the spline from \code{scopy}}
+ \title{Computes the mean and stdev for the spline from \code{scopy}}
 
- \description{this functin computes the mean and stdev for the
+ \description{This function computes the mean and stdev for the
               spline function that is implicite from an \code{scopy}
               model component}
  \usage{
