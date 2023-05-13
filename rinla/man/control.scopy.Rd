@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.scopy} for use in \code{inla}}
 \usage{
 inla.set.control.scopy.default(...)
-control.scopy(covariate, mean, model, n, precision, precision)
+control.scopy(covariate, mean, model, n, prec.betas, prec.mean)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -20,8 +20,8 @@ control.scopy(covariate, mean, model, n, precision, precision)
 \item{n}{   Number of betas}
 \item{model}{   scopy model (one of 'rw1' and 'rw2')}
 \item{mean}{   The prior mean for mean(betas)}
-\item{precision}{   The prior precision for mean(betas)}
-\item{precision}{   The prior precision prec(betas-mean(betas))}
+\item{prec.mean}{   The prior precision for mean(betas)}
+\item{prec.betas}{   The prior precision prec(betas-mean(betas))}
 }
 \value{
   

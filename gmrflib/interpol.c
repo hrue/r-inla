@@ -75,11 +75,8 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		is_sorted = (xx[i] > xx[i - 1]);
 	}
 	if (!is_sorted) {
-		if (0) {
-			GMRFLib_qsorts(xx, (size_t) n, sizeof(double), yy, sizeof(double), NULL, 0, GMRFLib_dcmp);
-		} else {
-			gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
-		}
+		// gsl_sort2(xx, (size_t) 1, yy, (size_t) 1, (size_t) n);
+		my_sort2_dd(xx, yy, n);
 	}
 	GMRFLib_unique_additive2(&nn, xx, yy, GSL_SQRT_DBL_EPSILON);
 
@@ -102,8 +99,8 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 		// s->spline = gsl_spline_alloc((nn <= 2 ? gsl_interp_linear : gsl_interp_akima), (unsigned int) nn);
 	}
 	gsl_spline_init(s->spline, xx, yy, (unsigned int) nn);
-
 	Calloc_free();
+
 	return s;
 }
 

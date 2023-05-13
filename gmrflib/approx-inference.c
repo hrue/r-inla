@@ -5079,9 +5079,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	GMRFLib_ENTER_ROUTINE;
 
+	int n_warnings = 0;
 	if (misc_output) {
 		timer = misc_output->wall_clock_time_used;
 		misc_output->mode_status = 0;
+		misc_output->warnings = Calloc(1, char *);
 	} else {
 		timer = NULL;
 	}
@@ -5638,19 +5640,40 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				f0 = log_dens_mode - llog_dens;
 				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(SQR(step) / (2.0 * f0)) : 1.0);
 
-				if (ai_par->hessian_correct_skewness_only) {
-					double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
-
-					double lim = 0.95;
-					if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
-					    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
-						if (ai_par->fp_log) {
+				double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
+				double lim = 0.85;
+				if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
+				    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
 #pragma omp critical
-							fprintf(ai_par->fp_log, "gmean[%1d] = %g,  old.corr = (%g, %g)\n",
-								k, gmean, stdev_corr_neg[k], stdev_corr_pos[k]);
+					{
+						char *w1 = NULL;
+						char *w2 = NULL;
+						GMRFLib_sprintf(&w1,
+								"Skewness correction for transf.hyperpar[%1d] is to high/low: gmean = %.2g, corr=(%.2f,%.2f).",
+								k, gmean,  stdev_corr_neg[k], stdev_corr_pos[k]);
+						GMRFLib_sprintf(&w2, "%s.", 
+								(ai_par->hessian_correct_skewness_only ?
+								 "This IS corrected for, but is usually a sign of a ill-defined model and/or issues with the fit" :
+								 "This IS NOT corrected for and is usually a sign of a ill-defined model and/or issues with the fit"));
+						if (ai_par->fp_log) {
+							fprintf(ai_par->fp_log, "\n*** Warning *** %s\n                %s\n\n", w1, w2);
 						}
+						if (misc_output) {
+							// yes, we have warnings[n_warnings] be the NULL-ptr so we do not need
+							// to pass 'n_warnings'
+							n_warnings++;
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+							char *w12 = NULL;
+							GMRFLib_sprintf(&w12, "%s %s", w1, w2);
+							misc_output->warnings[n_warnings - 1] = w12;
+							misc_output->warnings[n_warnings] = NULL;
+						}
+						Free(w1);
+						Free(w2);
 					}
+				}
 
+				if (ai_par->hessian_correct_skewness_only) {
 					stdev_corr_pos[k] /= gmean;
 					stdev_corr_neg[k] /= gmean;
 				}
@@ -6171,6 +6194,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 
+	if (ai_par->fp_log) {
+		GMRFLib_printMem(ai_par->fp_log);
+	}
+
 	/*
 	 * to keep the same code as before 
 	 */
@@ -6179,6 +6206,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
+
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < preopt->mnpred + graph->n; ii++) {
 		int i;
@@ -6187,17 +6215,40 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			GMRFLib_density_tp *dens_combine = NULL;
 			GMRFLib_density_combine(&dens_combine, lpred[i], probs_combine);
 			(*density)[i] = dens_combine;
+
+			for (int k = 0; k < probs_combine->n; k++) {
+				GMRFLib_free_density(lpred[i][k]);
+				lpred[i][k] = NULL;
+			}
+			Free(lpred[i]);
 		} else {
 			i = ii - preopt->mnpred;
 			GMRFLib_density_tp *dens_combine = NULL;
 			GMRFLib_density_combine(&dens_combine, dens[i], probs);
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
+
+			for (int k = 0; k < probs_combine->n; k++) {
+				GMRFLib_free_density(dens[i][k]);
+				dens[i][k] = NULL;
+			}
+			Free(dens[i]);
+
 			if (tfunc && tfunc[i]) {
 				GMRFLib_density_tp *dens_c = NULL;
 				GMRFLib_density_combine(&dens_c, dens_transform[i], probs_combine);
 				(*density_transform)[i] = dens_c;
+
+				for (int k = 0; k < probs_combine->n; k++) {
+					GMRFLib_free_density(dens_transform[i][k]);
+					dens_transform[i][k] = NULL;
+				}
+				Free(dens_transform[i]);
 			}
 		}
+	}
+
+	if (ai_par->fp_log) {
+		GMRFLib_printMem(ai_par->fp_log);
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_DEFAULT, NULL, NULL);
 
@@ -6795,6 +6846,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		Free(arg);
 	}
 
+	if (ai_par->fp_log) {
+		GMRFLib_printMem(ai_par->fp_log);
+	}
+
 	/*
 	 * cleanup 
 	 */
@@ -6916,10 +6971,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	Free(hyper_ldens);
 
 	for (int i = 0; i < graph->n; i++) {
-		for (int j = 0; j < dens_max; j++) {
-			GMRFLib_free_density(dens[i][j]);
+		if (dens[i]) {
+			for (int j = 0; j < dens_max; j++) {
+				GMRFLib_free_density(dens[i][j]);
+			}
+			Free(dens[i]);
 		}
-		Free(dens[i]);
 	}
 	Free(dens);
 
@@ -9883,6 +9940,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
 	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 	double fail = 0.0;
+
 	if (!cpo_density) {
 		if (cpo) {
 			*cpo = NAN;
@@ -9931,6 +9989,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 		loglik[i] *= d;
 	}
 
+#pragma GCC ivdep
 	for (i = 0; i < np; i++) {
 		xp[i] = prob[i] * dens[i];		       /* reuse and redefine xp! */
 		xpi[i] = exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
