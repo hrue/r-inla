@@ -5641,7 +5641,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(SQR(step) / (2.0 * f0)) : 1.0);
 
 				double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
-				double lim = 0.9;
+				double lim = 0.85;
 				if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
 				    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
 #pragma omp critical
@@ -5653,10 +5653,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 								k, gmean,  stdev_corr_neg[k], stdev_corr_pos[k]);
 						GMRFLib_sprintf(&w2, "%s.", 
 								(ai_par->hessian_correct_skewness_only ?
-								 "This IS corrected for, but is usually a sign of a ill-defined model and/or a bad fit with data" :
-								 "This IS NOT corrected for and is usually a sign of a ill-defined model and/or a bad fit with data"));
+								 "This IS corrected for, but is usually a sign of a ill-defined model and/or issues with the fit" :
+								 "This IS NOT corrected for and is usually a sign of a ill-defined model and/or issues with the fit"));
 						if (ai_par->fp_log) {
-							fprintf(ai_par->fp_log, "\n*** Warning *** %s\n*** Warning *** %s\n", w1, w2);
+							fprintf(ai_par->fp_log, "\n*** Warning *** %s\n                %s\n\n", w1, w2);
 						}
 						if (misc_output) {
 							// yes, we have warnings[n_warnings] be the NULL-ptr so we do not need
