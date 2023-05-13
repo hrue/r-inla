@@ -991,6 +991,7 @@ typedef struct {
 	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
 
 	int likelihood_info;
+	char **warnings;
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {

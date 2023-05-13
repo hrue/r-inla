@@ -5079,9 +5079,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 	GMRFLib_ENTER_ROUTINE;
 
+	int n_warnings = 0;
 	if (misc_output) {
 		timer = misc_output->wall_clock_time_used;
 		misc_output->mode_status = 0;
+		misc_output->warnings = Calloc(1, char *);
 	} else {
 		timer = NULL;
 	}
@@ -5638,19 +5640,40 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				f0 = log_dens_mode - llog_dens;
 				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(SQR(step) / (2.0 * f0)) : 1.0);
 
-				if (ai_par->hessian_correct_skewness_only) {
-					double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
-
-					double lim = 0.95;
-					if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
-					    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
-						if (ai_par->fp_log) {
+				double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
+				double lim = 0.9;
+				if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
+				    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
 #pragma omp critical
-							fprintf(ai_par->fp_log, "gmean[%1d] = %g,  old.corr = (%g, %g)\n",
-								k, gmean, stdev_corr_neg[k], stdev_corr_pos[k]);
+					{
+						char *w1 = NULL;
+						char *w2 = NULL;
+						GMRFLib_sprintf(&w1,
+								"Skewness correction for transf.hyperpar[%1d] is to high/low: gmean = %.2g, corr=(%.2f,%.2f).",
+								k, gmean,  stdev_corr_neg[k], stdev_corr_pos[k]);
+						GMRFLib_sprintf(&w2, "%s.", 
+								(ai_par->hessian_correct_skewness_only ?
+								 "This IS corrected for, but is usually a sign of a ill-defined model and/or a bad fit with data" :
+								 "This IS NOT corrected for and is usually a sign of a ill-defined model and/or a bad fit with data"));
+						if (ai_par->fp_log) {
+							fprintf(ai_par->fp_log, "\n*** Warning *** %s\n*** Warning *** %s\n", w1, w2);
 						}
+						if (misc_output) {
+							// yes, we have warnings[n_warnings] be the NULL-ptr so we do not need
+							// to pass 'n_warnings'
+							n_warnings++;
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+							char *w12 = NULL;
+							GMRFLib_sprintf(&w12, "%s %s", w1, w2);
+							misc_output->warnings[n_warnings - 1] = w12;
+							misc_output->warnings[n_warnings] = NULL;
+						}
+						Free(w1);
+						Free(w2);
 					}
+				}
 
+				if (ai_par->hessian_correct_skewness_only) {
 					stdev_corr_pos[k] /= gmean;
 					stdev_corr_neg[k] /= gmean;
 				}

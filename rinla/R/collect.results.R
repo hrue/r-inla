@@ -703,6 +703,13 @@
         close(fp)
     }
 
+    fnm <- paste(d, "/warnings.txt", sep = "")
+    if (file.exists(fnm)) {
+        warn <- readLines(fnm)
+    } else {
+        warn <- NULL
+    }
+
     if (debug) {
         print(paste("collect misc from", d, "...done"))
     }
@@ -716,7 +723,7 @@
         lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
         lincomb.derived.covariance.matrix = lincomb.derived.covariance.matrix,
         opt.directions = opt.directions,
-        configs = configs, nfunc = nfunc
+        configs = configs, nfunc = nfunc, warnings = warn
     ))
 }
 

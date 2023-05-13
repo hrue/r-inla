@@ -39388,6 +39388,22 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		fclose(fp);
 	}
 
+	GMRFLib_sprintf(&nnndir, "%s/%s", ndir, "warnings.txt");
+	{
+		if (mo->warnings) {
+			FILE *fp = fopen(nnndir, "w");
+			for(int k = 0;; k++) {
+				if (mo->warnings[k]) {
+					fprintf(fp, "%s\n", mo->warnings[k]);
+				} else {
+					break;
+				}
+			}
+			fclose(fp);
+		}
+	}
+	Free(nnndir);
+
 	return INLA_OK;
 }
 
