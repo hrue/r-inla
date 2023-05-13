@@ -5364,11 +5364,19 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
 					if (!stupid_mode_iter) {
-						if (ai_par->fp_log)
-							fprintf(ai_par->fp_log,
-								"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+#pragma omp critical 
+						{
+							if (ai_par->fp_log) {
+								fprintf(ai_par->fp_log,
+									"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+							}
+							n_warnings++;
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+							misc_output->warnings[n_warnings - 1] = GMRFLib_strdup("Stupid local search strategy used: This is usually a sign of a ill-defined model and/or non-informative data.");
+							misc_output->warnings[n_warnings] = NULL;
+						}
+						stupid_mode_iter++;
 					}
-					stupid_mode_iter++;
 
 					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
 						if (ai_par->fp_log) {
@@ -5470,14 +5478,25 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
 			if (eigv < 0.0) {
-				fprintf(stderr, "\n");
-				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
-				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
-				fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
-				fprintf(stderr, "\n");
-
-				gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
-				a_change += 1000;
+#pragma omp critical 
+				{
+					fprintf(stderr, "\n");
+					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
+					fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
+					fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
+					fprintf(stderr, "\n");
+					char *msg = NULL;
+					GMRFLib_sprintf(&msg,
+							"Hessian.eigen.value[%1d] = %.3f < 0. This is usually a sign of a ill-defined model and/or non-informative data.",
+							i, eigv);
+					n_warnings++;
+					misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+					misc_output->warnings[n_warnings - 1] = msg;
+					misc_output->warnings[n_warnings] = NULL;
+				
+					gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
+					a_change += 1000;
+				}
 			}
 		}
 
