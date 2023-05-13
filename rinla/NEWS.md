@@ -1,3 +1,7 @@
+# INLA 23.05.13
+* Reduce memory consumtion
+* New diagostic: `result$misc$warnings`
+
 # INLA 23.05.10
 * Added documentation for `copy`
 * New `scopy` model added (experimental)
