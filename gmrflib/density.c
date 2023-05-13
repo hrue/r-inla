@@ -709,8 +709,9 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 			k++;
 		}
 		npm = k;
-		density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
 		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv);
+		//density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
+		density->P = NULL;
 	}
 
 	Calloc_free();
@@ -870,8 +871,12 @@ int GMRFLib_free_density(GMRFLib_density_tp *density)
 			GMRFLib_ASSERT(0 == 1, GMRFLib_ESNH);
 			break;
 		}
-		GMRFLib_spline_free(density->P);
-		GMRFLib_spline_free(density->Pinv);
+		if (density->P) {
+			GMRFLib_spline_free(density->P);
+		}
+		if (density->Pinv) {
+			GMRFLib_spline_free(density->Pinv);
+		}
 		Free(density);
 	}
 
@@ -1063,10 +1068,10 @@ int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **d
 		if ((*densities)->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 			GMRFLib_density_create_normal(density, (*densities)->mean, (*densities)->stdev,
 						      (*densities)->std_mean, (*densities)->std_stdev,
-						      ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+						      ((*densities)->P || (*densities)->Pinv ? 1 : 0));
 		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
 			GMRFLib_density_create_sn(density, *((*densities)->sn_param),
-						  (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+						  (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P || (*densities)->Pinv ? 1 : 0));
 		} else if ((*densities)->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 			int m = 0;
 			double *x = NULL, *ld = NULL;
@@ -1078,7 +1083,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **d
 			GMRFLib_density_layout_x(x, &m, *densities);
 			GMRFLib_evaluate_nlogdensity(ld, x, m, *densities);
 			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, m, x, ld,
-					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P && (*densities)->Pinv ? 1 : 0));
+					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P || (*densities)->Pinv ? 1 : 0));
 			Calloc_free();
 		} else {
 			FIXME("Unknown type");
