@@ -432,8 +432,8 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 #pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
 		{
 			if (!nnr_step_factor_first_time_only) {
-				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN, int);
-				for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN(), int);
+				for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 					nnr_step_factor_first_time_only[i] = 1;
 				}
 			}

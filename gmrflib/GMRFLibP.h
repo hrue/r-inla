@@ -446,9 +446,9 @@ typedef enum {
 
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
+#define GMRFLib_CACHE_LEN() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
 #define GMRFLib_CACHE_SET_ID(__id)					\
-	if (1) {							\
+	{								\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		if (level_ <= 1) {					\
@@ -460,6 +460,11 @@ typedef enum {
 			assert(0 == 1);					\
 		}							\
 	}
+
+// this use level1 only. set __id to -1 if we're on level2
+#define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
+#define GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(__id)				\
+	__id = (omp_get_level() <= 1 ? omp_get_thread_num() : -1)
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set

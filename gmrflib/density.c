@@ -709,8 +709,9 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 			k++;
 		}
 		npm = k;
-		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv);
-		//density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P);
+		// level1 only cache
+		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, 1);
+		//density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P, 1);
 		density->P = NULL;
 	}
 
@@ -1832,7 +1833,7 @@ double GMRFLib_sn_mode(double skew)
 #pragma omp critical (Name_f7f083055f5255ebc7e4aae6b1b8f1baa3991d18)
 		{
 			if (!spline) {
-				spline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				spline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			}
 		}
 	}
@@ -1968,7 +1969,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 #pragma omp critical (Name_06501c73f0089b8702336f89a7e7c85e10465cf1)
 		{
 			if (!spline) {
-				spline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				spline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			}
 		}
 	}

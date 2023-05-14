@@ -75,9 +75,9 @@ static double *lgammas = NULL;
 void dtweedie_init_cache(void)
 {
 	if (!cache) {
-		cache = Calloc(GMRFLib_CACHE_LEN, dtweedie_cache_tp *);
-		for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
-			cache[i] = Calloc(GMRFLib_CACHE_LEN, dtweedie_cache_tp);
+		cache = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp *);
+		for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
+			cache[i] = Calloc(GMRFLib_CACHE_LEN(), dtweedie_cache_tp);
 			cache[i]->nterms = -1;
 			cache[i]->interpolation_ok = 0;
 			cache[i]->save_p = -9999.9999;

@@ -186,8 +186,8 @@ int inla_spde3_build_model(int UNUSED(thread_id), inla_spde3_tp **smodel, const 
 	model->Qfunc = inla_spde3_Qfunction;
 	model->Qfunc_arg = (void *) model;
 
-	model->store = Calloc(GMRFLib_CACHE_LEN, inla_spde3_d3store_tp *);
-	for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+	model->store = Calloc(GMRFLib_CACHE_LEN(), inla_spde3_d3store_tp *);
+	for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 		int j;
 
 		model->store[i] = Calloc(1, inla_spde3_d3store_tp);

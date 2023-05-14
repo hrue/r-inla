@@ -76,8 +76,8 @@ double map_inv_powerlink_core(double arg, map_arg_tp typ, void *param, double *i
 			if (1) {
 				fprintf(stderr, "map_inv_powerlink: build table with power=%f\n", power);
 			}
-			table = Calloc(GMRFLib_CACHE_LEN, inla_powerlink_table_tp *);
-			for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+			table = Calloc(GMRFLib_CACHE_LEN(), inla_powerlink_table_tp *);
+			for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 				table[i] = Calloc(1, inla_powerlink_table_tp);
 				table[i]->power = INLA_REAL_BIG;
 				table[i]->cdf = NULL;
