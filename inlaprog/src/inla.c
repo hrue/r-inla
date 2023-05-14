@@ -37532,8 +37532,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
-			printf("\tOptimizing sort2_id cut-off... [%1d]\n", GMRFLib_sort2_id_cut_off);
-			printf("\tOptimizing sort2_dd cut-off... [%1d]\n", GMRFLib_sort2_dd_cut_off);
+			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
+			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
 			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
 			       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
