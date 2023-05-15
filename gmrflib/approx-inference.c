@@ -7053,12 +7053,17 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 {
 	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
-#define EQUAL_COR(c1_, c2_) (ABS((c1_) - (c2_)) < gcpo_param->epsilon)
+
+// comparison of correlations is done in this scale
+#define COR2INTERN(c_) log((1.0 + (c_))/(1.0 - (c_)))
+// the first check will act as a quick test, so that we can avoid computing the log's in the real test
+#define EQUAL_COR(c1_, c2_) ((ABS((c1_) - (c2_)) < gparm_epsilon_sqrt) && (ABS(COR2INTERN(c1_) - COR2INTERN(c2_)) < gcpo_param->epsilon))
 
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
+	double gparm_epsilon_sqrt = sqrt(gcpo_param->epsilon);
 	GMRFLib_idxval_tp **groups = NULL;
 
 	if (!(gcpo_param->groups)) {
@@ -7406,7 +7411,8 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 #undef A_idx
 #undef EQUAL_COR
-
+#undef COR2INTERN
+	
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
 }
