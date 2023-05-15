@@ -37705,7 +37705,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		G_norm_const_compute[i] = 1;
 	}
 
-	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values && (mb->gaussian_data == GMRFLib_FALSE)) {
+	if (!(mb->reuse_mode && mb->x_file) && mb->compute_initial_values) {
 		tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
