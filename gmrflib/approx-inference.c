@@ -7048,22 +7048,39 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_equal_cor(double c1, double c2, double eps) 
+{
+#define COR2INTERN(c_) log(DMAX(FLT_EPSILON, 1.0 + (c_)) / DMAX(FLT_EPSILON, 1.0 - (c_)))
+
+	static double eps_sqrt = 0.0;
+	if (!eps_sqrt) {
+#pragma omp critical 
+		if (!eps_sqrt) {
+			eps_sqrt = sqrt(eps);
+		}
+	}
+
+	// quick check
+	if (ABS(c1 - c2) > eps_sqrt) {
+		return 0;
+	}
+
+	if (ABS(COR2INTERN(c1) - COR2INTERN(c2)) < eps) {
+		return 1;
+	}
+
+	return 0;
+}
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
 	GMRFLib_ENTER_ROUTINE;
+
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
-
-// comparison of correlations is done in this scale
-#define COR2INTERN(c_) log((1.0 + (c_))/(1.0 - (c_)))
-// the first check will act as a quick test, so that we can avoid computing the log's in the real test
-#define EQUAL_COR(c1_, c2_) ((ABS((c1_) - (c2_)) < gparm_epsilon_sqrt) && (ABS(COR2INTERN(c1_) - COR2INTERN(c2_)) < gcpo_param->epsilon))
-
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;
 	int N = IMAX(preopt->n, Npred);
-	double gparm_epsilon_sqrt = sqrt(gcpo_param->epsilon);
 	GMRFLib_idxval_tp **groups = NULL;
 
 	if (!(gcpo_param->groups)) {
@@ -7290,7 +7307,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
-					if (!EQUAL_COR(cor_abs_new, cor_abs_prev)) { \
+					if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
 						nlevels++;		\
 						i_prev = i;		\
 						cor_abs_prev = cor_abs_new; \
@@ -7410,9 +7427,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	}
 
 #undef A_idx
-#undef EQUAL_COR
-#undef COR2INTERN
-	
+
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
 }
