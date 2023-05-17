@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, internal.opt, likelihood.info, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, smtp, waic)
+control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, internal.opt, likelihood.info, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, save.memory, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -47,6 +47,8 @@ control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, internal.opt, l
 \item{graph}{   A boolean variable if the graph itself should be returned.  (Default FALSE.)}
 
 \item{internal.opt}{   A boolean variable, if to do internal online  optimisations or not. (Default TRUE.)}
+
+\item{save.memory}{   A boolean variable, make choices which  saves memory over accuracy. (Default FALSE.)}
 
 \item{control.gcpo}{   (For experts only!) Set control variables for the gcpo.  The intended use is to use \code{inla.group.cv}.  Refer to \code{?inla.group.cv} and the vignette for details.}
 
