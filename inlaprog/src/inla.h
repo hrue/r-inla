@@ -841,6 +841,7 @@ typedef struct {
 	int config;					       /* output the configurations */
 	int likelihood_info;				       /* output likelihood_info (requires config=TRUE) */
 	int internal_opt;				       /* do internal optimisation? default TRUE */
+	int save_memory;				       /* save memory? default FALSE */
 	int nquantiles;					       /* compute cdfs and/or quantiles; max 10 */
 	int ncdf;
 	int mode;

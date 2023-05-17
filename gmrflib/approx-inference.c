@@ -6232,7 +6232,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (ii < preopt->mnpred) {
 			i = ii;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, lpred[i], probs_combine);
+			if (GMRFLib_save_memory) {
+				// if skewness is to large then it will switch to the default...
+				GMRFLib_density_combine_x(&dens_combine, lpred[i], probs_combine, GMRFLib_DENSITY_TYPE_SKEWNORMAL);
+			} else {
+				GMRFLib_density_combine(&dens_combine, lpred[i], probs_combine);
+			}
 			(*density)[i] = dens_combine;
 
 			for (int k = 0; k < probs_combine->n; k++) {
@@ -7074,9 +7079,10 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
-	GMRFLib_ENTER_ROUTINE;
-
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+
+	GMRFLib_ENTER_ROUTINE;
+	
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;

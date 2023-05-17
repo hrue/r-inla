@@ -362,6 +362,10 @@
             ## :ARGUMENT+: optimisations or not. (Default TRUE.)
             internal.opt = TRUE,
 
+            ## :ARGUMENT+: save.memory A boolean variable, make choices which
+            ## :ARGUMENT+: saves memory over accuracy. (Default FALSE.)
+            save.memory = FALSE,
+
             ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
             ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.
             ## :ARGUMENT+: Refer to \code{?inla.group.cv} and the vignette for details.

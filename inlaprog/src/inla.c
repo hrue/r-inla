@@ -37887,6 +37887,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		(*out)->config = 0;
 		(*out)->likelihood_info = 0;
 		(*out)->internal_opt = 1;
+		(*out)->save_memory = 0;
 		(*out)->hyperparameters = (G.mode == INLA_MODE_HYPER ? 1 : 1);
 		(*out)->mode = 1;
 		(*out)->nquantiles = 0;
@@ -37907,6 +37908,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 		(*out)->config = mb->output->config;
 		(*out)->likelihood_info = mb->output->likelihood_info;
 		(*out)->internal_opt = mb->output->internal_opt;
+		(*out)->save_memory = mb->output->save_memory;
 		(*out)->hyperparameters = mb->output->hyperparameters;
 		(*out)->mode = mb->output->mode;
 		(*out)->return_marginals = mb->output->return_marginals;
@@ -38089,7 +38091,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 	(*out)->config = iniparser_getboolean(ini, inla_string_join(secname, "CONFIG"), (*out)->config);
 	(*out)->likelihood_info = iniparser_getboolean(ini, inla_string_join(secname, "LIKELIHOOD.INFO"), (*out)->likelihood_info);
 	(*out)->internal_opt = GMRFLib_internal_opt = iniparser_getboolean(ini, inla_string_join(secname, "INTERNAL.OPT"), (*out)->internal_opt);
-
+	(*out)->save_memory = GMRFLib_save_memory = iniparser_getboolean(ini, inla_string_join(secname, "SAVE.MEMORY"), (*out)->save_memory);
 
 	if ((*out)->likelihood_info) {
 		(*out)->config = 1;
@@ -38191,6 +38193,7 @@ int inla_parse_output(inla_tp *mb, dictionary *ini, int sec, Output_tp **out)
 			printf("\t\t\tconfig=[%1d]\n", (*out)->config);
 			printf("\t\t\tlikelihood.info=[%1d]\n", (*out)->likelihood_info);
 			printf("\t\t\tinternal.opt=[%1d]\n", (*out)->internal_opt);
+			printf("\t\t\tsave.memory=[%1d]\n", (*out)->save_memory);
 		}
 		printf("\t\t\tsummary=[%1d]\n", (*out)->summary);
 		printf("\t\t\treturn.marginals=[%1d]\n", (*out)->return_marginals);
@@ -42390,14 +42393,15 @@ int testit(int argc, char **argv)
 
 	case 60:
 	{
-		double x = GMRFLib_uniform();
-		double a = GMRFLib_uniform() - 0.5;
+		for(int i = 0; i < 10; i++) {
+			double p = GMRFLib_uniform();
+			double a = GMRFLib_uniform() - 0.5;
+			printf("p= %.12f\n", p);
+			printf("a= %.12f\n", a);
+			printf("sn_inv= %.12f\n", GMRFLib_sn_Pinv(p, a));
 
-		printf("x= %.12f\n", x);
-		printf("a= %.12f\n", a);
-		printf("sn_inv= %.12f\n", GMRFLib_sn_Pinv(x, a));
-
-		printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);x=", x, "; a=", a, "; print(qsn(x,alpha=a))'\n");
+			printf("%s%.12f%s%.12f%s\n", "R --vanilla --quiet -e 'library(sn);p=", p, "; a=", a, "; print(qsn(p,alpha=a))'\n");
+		}
 	}
 		break;
 
@@ -44229,8 +44233,62 @@ int testit(int argc, char **argv)
 		}
 	}
 		break;
-	
 
+	case 117: 
+	{
+		GMRFLib_sn_param_tp p;
+		p.xi = GMRFLib_uniform();
+		p.omega = 1 + exp(GMRFLib_uniform()-0.5);
+		p.alpha = 3.0 * (GMRFLib_uniform() - 0.5);
+		
+		int n = 100;
+		double mom[3];
+		GMRFLib_sn_par2moments(mom, mom+1, mom+2, &p);
+
+		double xlow = mom[0] - 5 * mom[1];
+		double xhigh = mom[0] + 5 * mom[1];
+		double dx = mom[1] / 5.0;
+
+		n = (xhigh - xlow) / dx + 2;
+
+		double *x = Calloc(n, double);
+		double *ld = Calloc(n, double);
+
+		int k = 0;
+		for(double xx =  xlow; xx <= xhigh; xx += dx) {
+			x[k] = xx;
+			double xs =  (xx - p.xi) / p.omega;
+			ld[k] =  -0.5 * SQR(xs) + inla_log_Phi(p.alpha * xs);
+			k++;
+		}
+		n = k;
+				
+		double std_mean = GMRFLib_uniform();
+		double std_sd = GMRFLib_uniform();
+		
+		printf("std mean sd %g %g\n", std_mean, std_sd);
+		GMRFLib_density_tp *d1 = NULL, *d2 = NULL;
+		GMRFLib_density_create_sn(&d1, p, std_mean, std_sd, 1);
+		GMRFLib_density_create(&d2, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, std_mean, std_sd, 1);
+
+		for(int i = 0; i < 10; i++) {
+			double z = xlow + GMRFLib_uniform() * (xhigh - xlow);
+			double pp = GMRFLib_uniform();
+			printf("z %g pp %g\n", z, pp);
+
+			double dd1, dd2;
+			GMRFLib_evaluate_logdensity(&dd1, z, d1);
+			GMRFLib_evaluate_logdensity(&dd2, z, d2);
+			printf("\tld %g %g\n", dd1, dd2);
+
+			double q1, q2;
+			GMRFLib_density_Pinv(&q1, pp, d1);
+			GMRFLib_density_Pinv(&q2, pp, d2);
+			printf("\tq  %g %g\n", q1, q2);
+		}
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

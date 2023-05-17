@@ -1222,7 +1222,7 @@
 
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
                                    cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy,
-                                   graph, config, likelihood.info, internal.opt) {
+                                   graph, config, likelihood.info, internal.opt,  save.memory) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1262,6 +1262,7 @@
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("internal.opt", internal.opt, file)
+    inla.write.boolean.field("save.memory", save.memory, file)
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("likelihood.info", likelihood.info, file)
 
