@@ -51,6 +51,8 @@
 
      verbose: Verbose output?
 
+     save.memory: Save memory at the cost of (minor) accuracy and computing time? 
+
      working.directory: The name of the working directory.
 
      silent: Run the inla-program in a silent mode?

@@ -1262,7 +1262,11 @@
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("internal.opt", internal.opt, file)
+
+    if (is.null(save.memory))
+        save.memory <- inla.getOption('save.memory')
     inla.write.boolean.field("save.memory", save.memory, file)
+
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("likelihood.info", likelihood.info, file)
 

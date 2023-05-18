@@ -49,6 +49,8 @@
 ## !
 ## !     verbose: Verbose output?
 ## !
+## !     save.memory: Save memory at the cost of (minor) accuracy and computing time? 
+## !
 ## !     working.directory: The name of the working directory.
 ## !
 ## !     silent: Run the inla-program in a silent mode?
@@ -115,6 +117,7 @@
             pardiso.license = NULL,
             keep = FALSE,
             verbose = FALSE,
+            save.memory = FALSE,
             working.directory = NULL,
             silent = TRUE,
             debug = FALSE,
@@ -147,6 +150,7 @@
                                  "pardiso.license",
                                  "keep",
                                  "verbose",
+                                 "save.memory",
                                  "working.directory",
                                  "silent",
                                  "debug",
@@ -240,6 +244,7 @@
                                           "pardiso.license",
                                           "keep",
                                           "verbose",
+                                          "save.memory",
                                           "working.directory",
                                           "silent",
                                           "debug",
