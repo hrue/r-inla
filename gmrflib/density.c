@@ -1197,11 +1197,12 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		for(int i = 0; i < nx; i++) {
 			double d = ww[i] * ddens[i];
 			double x = xx[i];
+			double dx = d * x;
 			double x2 = x * x;
 			mom[0] += d;
-			mom[1] += d * x;
-			mom[2] += d * x2;
-			mom[3] += d * x2 * x;
+			mom[1] += dx;
+			mom[2] += dx * x;
+			mom[3] += dx * x2;
 		}
 		mom[1] /= mom[0];
 		mom[2] /= mom[0];
@@ -1213,7 +1214,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		double sn_skew = (mom[3] - 3.0 * sn_mean * sn_var + gsl_pow_3(sn_mean)) / gsl_pow_3(sn_stdev);
 
 		// if skewness is extreme, we're better off switching...
-		if (ABS(sn_skew) > 0.85) {
+		if (ABS(sn_skew) > 0.7) {
 			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
 		} else {
 			// we know the mean and variance, as we have computed this above more accurately, above, from the mixture. it seems reasonable
