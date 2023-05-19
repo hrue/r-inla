@@ -237,7 +237,9 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			f0 = f[1];
 			df = 0.5 * (f[2] - f[0]) / step;
 			ddf = (f[2] - 2.0 * f[1] + f[0]) / SQR(step);
-			ERR;
+			if (dd) {
+				ERR;
+			}
 		}
 			break;
 

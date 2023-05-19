@@ -44,6 +44,9 @@
 #define CONST_3 (-0.918938533204672741780329736407)	       // log(1.0/sqrt(2.0*M_PI))
 #define CONST_4 (0.398942280401432677939946059934)	       // 1.0/sqrt(2.0*M_PI)
 
+// if |skewness| is larger than this, use scgaussian
+#define SKEW_LIMIT 0.6 					       
+
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
 	/*
@@ -1214,7 +1217,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		double sn_skew = (mom[3] - 3.0 * sn_mean * sn_var + gsl_pow_3(sn_mean)) / gsl_pow_3(sn_stdev);
 
 		// if skewness is extreme, we're better off switching...
-		if (ABS(sn_skew) > 0.7) {
+		if (ABS(sn_skew) > SKEW_LIMIT) {
 			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
 		} else {
 			// we know the mean and variance, as we have computed this above more accurately, above, from the mixture. it seems reasonable

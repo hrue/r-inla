@@ -521,7 +521,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	ai_store->mode = Calloc(n, double);
 	Memcpy(ai_store->mode, problem->mean_constr, n * sizeof(double));
 
-	if (mean == NULL && 1) {
+	if (mean == NULL) {
 		/*
 		 * Here we use the joint expression and take advantage of that we have already evaluated the log-likelihood in the mode.
 		 * 
@@ -606,6 +606,8 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 		 * do not include fixed points 
 		 */
 		if (1) {
+			// THIS CODE IS VERY STUPID!!! FIX
+
 			/*
 			 * new code; better for omp 
 			 */
@@ -6248,7 +6250,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		} else {
 			i = ii - preopt->mnpred;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, dens[i], probs);
+			if (GMRFLib_save_memory) {
+				// if skewness is to large then it will switch to the default...
+				GMRFLib_density_combine_x(&dens_combine, dens[i], probs, GMRFLib_DENSITY_TYPE_SKEWNORMAL);
+			} else {
+				GMRFLib_density_combine(&dens_combine, dens[i], probs);
+			}
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
 
 			for (int k = 0; k < probs_combine->n; k++) {
