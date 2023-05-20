@@ -1845,7 +1845,8 @@ double plog(double x)
 
 double GMRFLib_sn_Pinv(double u, double a)
 {
-	double tol = 0.01;
+	static double tol = 0.01;
+	static double right_limit const_tol = GMRFLib_erfc_inv(2 * tol);
 
 	if (u == 0.0) {
 		return -INFINITY;
@@ -1874,7 +1875,7 @@ double GMRFLib_sn_Pinv(double u, double a)
 		z = -z;
 
 	double A = ABS(a);
-	double right_limit = GMRFLib_erf(GMRFLib_erfc_inv(2 * tol) / A);
+	double right_limit = GMRFLib_erf(const_tol / A);
 
 	/*
 	 * Tails
