@@ -5366,15 +5366,17 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
 					if (!stupid_mode_iter) {
-#pragma omp critical 
+#pragma omp critical
 						{
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log,
 									"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
 							}
 							n_warnings++;
-							misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
-							misc_output->warnings[n_warnings - 1] = GMRFLib_strdup("Stupid local search strategy used: This is usually a sign of a ill-defined model and/or non-informative data.");
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
+							misc_output->warnings[n_warnings - 1] =
+							    GMRFLib_strdup
+							    ("Stupid local search strategy used: This is usually a sign of a ill-defined model and/or non-informative data.");
 							misc_output->warnings[n_warnings] = NULL;
 						}
 						stupid_mode_iter++;
@@ -5480,7 +5482,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
 			if (eigv < 0.0) {
-#pragma omp critical 
+#pragma omp critical
 				{
 					fprintf(stderr, "\n");
 					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
@@ -5492,10 +5494,10 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							"Hessian.eigen.value[%1d] = %.3f < 0. This is usually a sign of a ill-defined model and/or non-informative data.",
 							i, eigv);
 					n_warnings++;
-					misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+					misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
 					misc_output->warnings[n_warnings - 1] = msg;
 					misc_output->warnings[n_warnings] = NULL;
-				
+
 					gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
 					a_change += 1000;
 				}
@@ -5671,10 +5673,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 						char *w2 = NULL;
 						GMRFLib_sprintf(&w1,
 								"Skewness correction for transf.hyperpar[%1d] is to high/low: gmean = %.2g, corr=(%.2f,%.2f).",
-								k, gmean,  stdev_corr_neg[k], stdev_corr_pos[k]);
-						GMRFLib_sprintf(&w2, "%s.", 
+								k, gmean, stdev_corr_neg[k], stdev_corr_pos[k]);
+						GMRFLib_sprintf(&w2, "%s.",
 								(ai_par->hessian_correct_skewness_only ?
-								 "This IS corrected for, but is usually a sign of a ill-defined model and/or issues with the fit" :
+								 "This IS corrected for, but is usually a sign of a ill-defined model and/or issues with the fit"
+								 :
 								 "This IS NOT corrected for and is usually a sign of a ill-defined model and/or issues with the fit"));
 						if (ai_par->fp_log) {
 							fprintf(ai_par->fp_log, "\n*** Warning *** %s\n                %s\n\n", w1, w2);
@@ -5683,7 +5686,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							// yes, we have warnings[n_warnings] be the NULL-ptr so we do not need
 							// to pass 'n_warnings'
 							n_warnings++;
-							misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
 							char *w12 = NULL;
 							GMRFLib_sprintf(&w12, "%s %s", w1, w2);
 							misc_output->warnings[n_warnings - 1] = w12;
@@ -7060,13 +7063,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_equal_cor(double c1, double c2, double eps) 
+int GMRFLib_equal_cor(double c1, double c2, double eps)
 {
 #define COR2INTERN(c_) log(DMAX(FLT_EPSILON, 1.0 + (c_)) / DMAX(FLT_EPSILON, 1.0 - (c_)))
 
 	static double eps_sqrt = 0.0;
 	if (!eps_sqrt) {
-#pragma omp critical 
+#pragma omp critical
 		if (!eps_sqrt) {
 			eps_sqrt = sqrt(eps);
 		}
@@ -7089,7 +7092,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
 
 	GMRFLib_ENTER_ROUTINE;
-	
+
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
 	int mnpred = preopt->mnpred;

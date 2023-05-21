@@ -9874,9 +9874,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -39395,7 +39395,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	{
 		if (mo->warnings) {
 			FILE *fp = fopen(nnndir, "w");
-			for(int k = 0;; k++) {
+			for (int k = 0;; k++) {
 				if (mo->warnings[k]) {
 					fprintf(fp, "%s\n", mo->warnings[k]);
 				} else {
@@ -42393,7 +42393,7 @@ int testit(int argc, char **argv)
 
 	case 60:
 	{
-		for(int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			double p = GMRFLib_uniform();
 			double a = GMRFLib_uniform() - 0.5;
 			printf("p= %.12f\n", p);
@@ -44197,13 +44197,13 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 115: 
+	case 115:
 	{
 		P(GMRFLib_CACHE_LEN());
 		P(sizeof(gsl_interp_accel *));
 	}
-	break;
-		
+		break;
+
 	case 116:
 	{
 		int n = atoi(args[0]);
@@ -44234,16 +44234,16 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 117: 
+	case 117:
 	{
 		GMRFLib_sn_param_tp p;
 		p.xi = GMRFLib_uniform();
-		p.omega = 1 + exp(GMRFLib_uniform()-0.5);
+		p.omega = 1 + exp(GMRFLib_uniform() - 0.5);
 		p.alpha = 3.0 * (GMRFLib_uniform() - 0.5);
-		
+
 		int n = 100;
 		double mom[3];
-		GMRFLib_sn_par2moments(mom, mom+1, mom+2, &p);
+		GMRFLib_sn_par2moments(mom, mom + 1, mom + 2, &p);
 
 		double xlow = mom[0] - 5 * mom[1];
 		double xhigh = mom[0] + 5 * mom[1];
@@ -44255,23 +44255,23 @@ int testit(int argc, char **argv)
 		double *ld = Calloc(n, double);
 
 		int k = 0;
-		for(double xx =  xlow; xx <= xhigh; xx += dx) {
+		for (double xx = xlow; xx <= xhigh; xx += dx) {
 			x[k] = xx;
-			double xs =  (xx - p.xi) / p.omega;
-			ld[k] =  -0.5 * SQR(xs) + inla_log_Phi(p.alpha * xs);
+			double xs = (xx - p.xi) / p.omega;
+			ld[k] = -0.5 * SQR(xs) + inla_log_Phi(p.alpha * xs);
 			k++;
 		}
 		n = k;
-				
+
 		double std_mean = GMRFLib_uniform();
 		double std_sd = GMRFLib_uniform();
-		
+
 		printf("std mean sd %g %g\n", std_mean, std_sd);
 		GMRFLib_density_tp *d1 = NULL, *d2 = NULL;
 		GMRFLib_density_create_sn(&d1, p, std_mean, std_sd, 1);
 		GMRFLib_density_create(&d2, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, n, x, ld, std_mean, std_sd, 1);
 
-		for(int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			double z = xlow + GMRFLib_uniform() * (xhigh - xlow);
 			double pp = GMRFLib_uniform();
 			printf("z %g pp %g\n", z, pp);
@@ -44287,71 +44287,65 @@ int testit(int argc, char **argv)
 			printf("\tq  %g %g\n", q1, q2);
 		}
 	}
-	break;
-	
-	case 118: 
+		break;
+
+	case 118:
 	{
 		typedef double fun_tp(double arg);
 
-		typedef struct 
-		{
+		typedef struct {
 			fun_tp *fun[2];
-			char * name;
-		}
-			cmp_tp;
+			char *name;
+		} cmp_tp;
 
-		cmp_tp cmp[] = { 
-			{ {GMRFLib_erf, gsl_sf_erf},  "erf"}, 
-			{ {GMRFLib_erfc, gsl_sf_erfc},  "erfc"}, 
-			{ {GMRFLib_cdfnorm, gsl_cdf_ugaussian_P},  "cdfnorm"}, 
-			{ {GMRFLib_cdfnorm_inv, gsl_cdf_ugaussian_Pinv},  "cdfnorm_inv"}, 
+		cmp_tp cmp[] = {
+			{ { GMRFLib_erf, gsl_sf_erf}, "erf" },
+			{ { GMRFLib_erfc, gsl_sf_erfc}, "erfc" },
+			{ { GMRFLib_cdfnorm, gsl_cdf_ugaussian_P}, "cdfnorm" },
+			{ { GMRFLib_cdfnorm_inv, gsl_cdf_ugaussian_Pinv}, "cdfnorm_inv" },
 		};
-		
+
 		int n = atoi(args[0]);
 		double *x = Calloc(3 * n, double);
-		double *y[] = {x + n, x + 2 * n};
+		double *y[] = { x + n, x + 2 * n };
 
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 		}
 
 		int K = sizeof(cmp) / sizeof(cmp_tp);
-		for(int k = 0; k < K; k++) {
-			double tref[] = {0, 0};
-			for(int j = 0; j < 2; j++) {
+		for (int k = 0; k < K; k++) {
+			double tref[] = { 0, 0 };
+			for (int j = 0; j < 2; j++) {
 				tref[j] -= GMRFLib_cpu();
 				double *yy = y[j];
-				for(int i = 0; i < n; i++) {
-					yy[i] = cmp[k].fun[j](x[i]);
+				for (int i = 0; i < n; i++) {
+					yy[i] = cmp[k].fun[j] (x[i]);
 				}
 				tref[j] += GMRFLib_cpu();
 			}
 			double max_err = 0.0;
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				max_err = DMAX(max_err, y[0][i] - y[1][i]);
 			}
-			printf("%s %.4f %.4f (max.err %g)\n", cmp[k].name, 
-			       tref[0] / (tref[0] + tref[1]),
-			       tref[1] / (tref[0] + tref[1]),
-			       max_err);
+			printf("%s %.4f %.4f (max.err %g)\n", cmp[k].name, tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]), max_err);
 		}
 	}
 		break;
 
-	case 119: 
+	case 119:
 	{
 		double p = GMRFLib_uniform();
 		P(p - GMRFLib_erf(GMRFLib_erf_inv(p)));
 		P(p - GMRFLib_erfc(GMRFLib_erfc_inv(p)));
 		P(p - GMRFLib_cdfnorm(GMRFLib_cdfnorm_inv(p)));
-		
-		for(double x = -20.0; x < 20.0; x += 0.5) {
+
+		for (double x = -20.0; x < 20.0; x += 0.5) {
 			p = 1.0 / (1.0 + exp(-x));
-			printf("%g gsl %g cdfnorm_inv %g\n",
-			       p, gsl_cdf_ugaussian_Pinv(p), GMRFLib_cdfnorm_inv(p));
+			printf("%g gsl %g cdfnorm_inv %g\n", p, gsl_cdf_ugaussian_Pinv(p), GMRFLib_cdfnorm_inv(p));
 		}
 	}
-	break;
+		break;
 
 	case 999:
 	{

@@ -45,7 +45,7 @@
 #define CONST_4 (0.398942280401432677939946059934)	       // 1.0/sqrt(2.0*M_PI)
 
 // if |skewness| is larger than this, use scgaussian
-#define SKEW_LIMIT 0.6 					       
+#define SKEW_LIMIT 0.6
 
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
@@ -193,7 +193,7 @@ int GMRFLib_sn_logdensity(double *ldens, double x, void *param)
 	GMRFLib_sn_param_tp *p = (GMRFLib_sn_param_tp *) param;
 	double z = (x - p->xi) / p->omega;
 
-	*ldens = M_LN2 + CONST_3 - 0.5 * SQR(z) +GMRFLib_log_cdfnorm(p->alpha * z) - log(p->omega);
+	*ldens = M_LN2 + CONST_3 - 0.5 * SQR(z) + GMRFLib_log_cdfnorm(p->alpha * z) - log(p->omega);
 
 	return GMRFLib_SUCCESS;
 }
@@ -714,7 +714,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		npm = k;
 		// level1 only cache
 		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, 1);
-		//density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P, 1);
+		// density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P, 1);
 		density->P = NULL;
 	}
 
@@ -779,7 +779,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 			} else {
 				// use the more complitated asympt expression, which we do here (for which the code in
 				// the prev {} is a copy of
-				val =GMRFLib_log_cdfnorm(zz);
+				val = GMRFLib_log_cdfnorm(zz);
 			}
 			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
 		}
@@ -1046,12 +1046,11 @@ int GMRFLib_density_duplicate(GMRFLib_density_tp **density_to, GMRFLib_density_t
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs) 
+int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs)
 {
 	return GMRFLib_density_combine_x(density, densities, probs, GMRFLib_DENSITY_TYPE_AUTO);
 }
-int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs,
-			      GMRFLib_density_type_tp type)
+int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs, GMRFLib_density_type_tp type)
 {
 	/*
 	 * make a new spline-corrected-gaussian density out of a weighted sum of densities and return this in DENSITY.  make a
@@ -1074,21 +1073,22 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 
 	// this actually happens like for 'eb' and is also how 'duplicate' is implemented
 	if (n == 1) {
-		switch((*densities)->type) {
-		case GMRFLib_DENSITY_TYPE_GAUSSIAN: 
+		switch ((*densities)->type) {
+		case GMRFLib_DENSITY_TYPE_GAUSSIAN:
 		{
 			// there no no cost of doing lookup_tables
-			GMRFLib_density_create_normal(density, (*densities)->mean, (*densities)->stdev, (*densities)->std_mean, (*densities)->std_stdev, 1);
+			GMRFLib_density_create_normal(density, (*densities)->mean, (*densities)->stdev, (*densities)->std_mean,
+						      (*densities)->std_stdev, 1);
 		}
-		break;
-		case GMRFLib_DENSITY_TYPE_SKEWNORMAL: 
+			break;
+		case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
 		{
 			// there no no cost of doing lookup_tables
 			GMRFLib_density_create_sn(density, *((*densities)->sn_param), (*densities)->std_mean, (*densities)->std_stdev, 1);
 		}
-		break;
-		case GMRFLib_DENSITY_TYPE_AUTO: 
-		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN: 
+			break;
+		case GMRFLib_DENSITY_TYPE_AUTO:
+		case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 		{
 			int m = 0;
 			double *x = NULL, *ld = NULL;
@@ -1103,9 +1103,9 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 					       (*densities)->std_mean, (*densities)->std_stdev, ((*densities)->P || (*densities)->Pinv ? 1 : 0));
 			Calloc_free();
 		}
-		break;
-		
-		default: 
+			break;
+
+		default:
 			assert(0 == 1);
 		}
 		return GMRFLib_SUCCESS;
@@ -1116,9 +1116,9 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0
 	};
 	// DO NOT CHANGE xx[] without changing ww[] below
-	//double ww[] = { 1.0, 0.75, 0.5, 0.5, 0.5, 0.5, 0.375, 0.25, 0.25, 0.25, 0.25, 0.1875, 0.125, 0.125,
-	//0.125, 0.1875, 0.25, 0.25, 0.25, 0.25, 0.375, 0.5, 0.5, 0.5, 0.5, 0.75, 1.0
-        //};
+	// double ww[] = { 1.0, 0.75, 0.5, 0.5, 0.5, 0.5, 0.375, 0.25, 0.25, 0.25, 0.25, 0.1875, 0.125, 0.125,
+	// 0.125, 0.1875, 0.25, 0.25, 0.25, 0.25, 0.375, 0.5, 0.5, 0.5, 0.5, 0.75, 1.0
+	// };
 	int nx = sizeof(xx) / sizeof(double);
 
 	/*
@@ -1148,7 +1148,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 
 	// for (int i = 0; i < nx; i++) xx_real[i] = xx[i] * stdev + mean;
 	GMRFLib_daxpb(nx, stdev, xx, mean, xx_real);
-	
+
 	if (type != GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		GMRFLib_evaluate_ndensities(ddens, xx_real, nx, densities, probs);
 
@@ -1172,32 +1172,32 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 			}
 		}
 	}
-	
-	switch(type) {
-	case GMRFLib_DENSITY_TYPE_GAUSSIAN: 
+
+	switch (type) {
+	case GMRFLib_DENSITY_TYPE_GAUSSIAN:
 	{
 		GMRFLib_density_create_normal(density, 0.0, 1.0, mean, stdev, GMRFLib_TRUE);
 	}
-	break;
+		break;
 
-	case GMRFLib_DENSITY_TYPE_AUTO: 
-	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN: 
+	case GMRFLib_DENSITY_TYPE_AUTO:
+	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
 		GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
 	}
-	break;
+		break;
 
-	case GMRFLib_DENSITY_TYPE_SKEWNORMAL: 
+	case GMRFLib_DENSITY_TYPE_SKEWNORMAL:
 	{
 		// sum(ww[])=11
 		double ww[] = { 1.0, 0.75, 0.5, 0.5, 0.5, 0.5, 0.375, 0.25, 0.25, 0.25, 0.25, 0.1875, 0.125, 0.125,
 			0.125, 0.1875, 0.25, 0.25, 0.25, 0.25, 0.375, 0.5, 0.5, 0.5, 0.5, 0.75, 1.0
 		};
 		assert(sizeof(xx) == sizeof(ww));
-		
-		double mom[4] = {0.0, 0.0, 0.0, 0.0};
+
+		double mom[4] = { 0.0, 0.0, 0.0, 0.0 };
 #pragma GCC ivdep
-		for(int i = 0; i < nx; i++) {
+		for (int i = 0; i < nx; i++) {
 			double d = ww[i] * ddens[i];
 			double x = xx[i];
 			double dx = d * x;
@@ -1220,8 +1220,10 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		if (ABS(sn_skew) > SKEW_LIMIT) {
 			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
 		} else {
-			// we know the mean and variance, as we have computed this above more accurately, above, from the mixture. it seems reasonable
-			// to estimate skewness using the numerical compute mean and variance, so its coherent. but after our skewness estimate, we can
+			// we know the mean and variance, as we have computed this above more accurately, above, from the mixture. it seems
+			// reasonable
+			// to estimate skewness using the numerical compute mean and variance, so its coherent. but after our skewness estimate, we 
+			// can
 			// revert back to the previously computed values, which is (0,1) in the standarized scale.
 			sn_mean = 0.0;
 			sn_stdev = sn_var = 1.0;
@@ -1230,8 +1232,8 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 			GMRFLib_density_create_sn(density, sn_p, mean, stdev, GMRFLib_TRUE);
 		}
 	}
-	break;
-	
+		break;
+
 	default:
 		assert(0 == 1);
 	}
@@ -1294,7 +1296,7 @@ int GMRFLib_density_adjust_vector(double *ldens, int n)
 }
 
 int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double *x, double *logdens, double std_mean,
-			     double std_stdev, int lookup_tables)
+			   double std_stdev, int lookup_tables)
 {
 	/*
 	 * create a density of type 'type', so that
@@ -1849,7 +1851,7 @@ double GMRFLib_sn_Pinv(double u, double a)
 	static double const_tol = 0.0;
 
 	if (!const_tol) {
-#pragma omp critical 
+#pragma omp critical
 		{
 			if (!const_tol) {
 				const_tol = GMRFLib_erfc_inv(2 * tol);

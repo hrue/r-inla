@@ -408,4 +408,3 @@ double *my_compute_lbell(int nmax)
 	Free(terms);
 	return (log_bell);
 }
-

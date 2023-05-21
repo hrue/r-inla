@@ -39,8 +39,7 @@ GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n)
 	return GMRFLib_spline_create_x(x, y, n, GMRFLib_INTPOL_TRANS_NONE, 0);
 }
 
-GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans,
-	int cache)
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, int cache)
 {
 	/*
 	 * Return a spline interpolant for {(x,y)}
@@ -166,7 +165,7 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	} else {
 		acc = NULL;
 	}
-	
+
 	val = gsl_spline_eval(s->spline, xx, acc);
 
 	if (xx > s->xmin && xx < s->xmax) {

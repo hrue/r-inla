@@ -111,9 +111,8 @@ __BEGIN_DECLS
 			*(My_error) += My_err;				\
 		}							\
 	}
-
 // Available densities.
-typedef enum {
+    typedef enum {
 	GMRFLib_DENSITY_TYPE_AUTO = -1,
 	GMRFLib_DENSITY_TYPE_GAUSSIAN = 1,
 	GMRFLib_DENSITY_TYPE_SKEWNORMAL = 2,
@@ -283,8 +282,10 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp * density);
 int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp * density);
 int GMRFLib_density_adjust_vector(double *ldens, int n);
 int GMRFLib_density_combine(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs);
-int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs, GMRFLib_density_type_tp type);
-int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean, double std_stdev,int lookup_tables);
+int GMRFLib_density_combine_x(GMRFLib_density_tp ** density, GMRFLib_density_tp ** densities, GMRFLib_idxval_tp * probs,
+			      GMRFLib_density_type_tp type);
+int GMRFLib_density_create(GMRFLib_density_tp ** density, int type, int n, double *x, double *logdens, double std_mean, double std_stdev,
+			   int lookup_tables);
 int GMRFLib_density_create_normal(GMRFLib_density_tp ** density, double mean, double stdev, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_create_sn(GMRFLib_density_tp ** density, GMRFLib_sn_param_tp sn_param, double std_mean, double std_stdev, int lookup_tables);
 int GMRFLib_density_duplicate(GMRFLib_density_tp ** density_to, GMRFLib_density_tp * density_from);
