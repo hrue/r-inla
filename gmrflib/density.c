@@ -1157,7 +1157,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 #else
 #pragma GCC ivdep
 		for (int i = 0; i < nx; i++) {
-			log_dens[i] = log(dens[i]);
+			log_dens[i] = log(ddens[i]);
 		}
 #endif
 
