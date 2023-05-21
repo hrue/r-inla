@@ -1,3 +1,10 @@
+# INLA 23.05.21
+* Reduced memory usage for data-rich models
+* Added new option `control.compute=list(save.memory=FALSE|TRUE)` for
+  more agressive savings
+* Change how equal correlations are defined in `gcpo`
+* Code optimization
+
 # INLA 23.05.13
 * Reduce memory consumtion
 * New diagostic: `result$misc$warnings`
