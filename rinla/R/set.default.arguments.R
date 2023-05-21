@@ -350,7 +350,7 @@
             likelihood.info = FALSE,
 
             ## :ARGUMENT+: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or
-            ## :ARGUMENT+: 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies
+            ## :ARGUMENT+: 'pardiso' (default \code{inla.getOption("smtp")}). \code{smtp='pardiso'} implies
             ## :ARGUMENT+: \code{openmp.strategy='pardiso'}.
             smtp = NULL,
 
@@ -361,6 +361,10 @@
             ## :ARGUMENT+: internal.opt A boolean variable, if to do internal online
             ## :ARGUMENT+: optimisations or not. (Default TRUE.)
             internal.opt = TRUE,
+
+            ## :ARGUMENT+: save.memory A boolean variable, make choices which
+            ## :ARGUMENT+: saves memory over accuracy. (Default 'inla.getOption("save.memory")')
+            save.memory = NULL, 
 
             ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
             ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.

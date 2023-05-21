@@ -172,3 +172,4 @@ double GMRFLib_dot_product_gain = -1.0;
 int GMRFLib_sort2_id_cut_off = 50;
 int GMRFLib_sort2_dd_cut_off = 70;
 int GMRFLib_internal_opt = 1;
+int GMRFLib_save_memory = 0;

@@ -412,14 +412,6 @@ typedef enum {
 #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
 
-
-#define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
-#define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
-#define GMRFLib_erf(_x) (2.0 * GMRFLib_Phi((_x)*M_SQRT2) - 1.0)
-#define GMRFLib_erf_inv(_x) (M_SQRT1_2 * GMRFLib_Phi_inv(((_x) + 1.0)/2.0))
-#define GMRFLib_erfc(_x) (2.0 * GMRFLib_Phi(- (_x) * M_SQRT2))
-#define GMRFLib_erfc_inv(_x) (- GMRFLib_Phi_inv((_x) / 2.0) * M_SQRT1_2)
-
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 
@@ -446,9 +438,9 @@ typedef enum {
 
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
+#define GMRFLib_CACHE_LEN() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
 #define GMRFLib_CACHE_SET_ID(__id)					\
-	if (1) {							\
+	{								\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		if (level_ <= 1) {					\
@@ -460,6 +452,11 @@ typedef enum {
 			assert(0 == 1);					\
 		}							\
 	}
+
+// this use level1 only. set __id to -1 if we're on level2
+#define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
+#define GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(__id)				\
+	__id = (omp_get_level() <= 1 ? omp_get_thread_num() : -1)
 
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set

@@ -127,7 +127,7 @@ double inla_pcp_dof_d(double dof)
 #pragma omp critical (Name_f3f0c987d0742e1573765d7104c8e37045f88482)
 		{
 			if (!sspline) {
-				sspline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				sspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			}
 		}
 	}
@@ -166,7 +166,7 @@ double inla_pcp_dof_dof(double d)
 #pragma omp critical (Name_4f48f0fd388e49349a6f90a044c75f3c09eb4e84)
 		{
 			if (!sspline) {
-				sspline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				sspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			}
 		}
 	}
@@ -201,7 +201,7 @@ double inla_pc_sn_d(double skew, double *deriv)
 #pragma omp critical (Name_ab280d167e4b0884bba69b326db425701a278efa)
 		{
 			if (!sspline) {
-				sspline = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				sspline = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			}
 		}
 	}
@@ -230,8 +230,8 @@ double inla_pc_sn_core(int code, double arg)
 #pragma omp critical (Name_39fdc1ba34f6bdbf4ea179f308a32b93efb686d7)
 		{
 			if (!sspline_s2a) {
-				sspline_s2a = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
-				sspline_a2s = Calloc(GMRFLib_CACHE_LEN, GMRFLib_spline_tp *);
+				sspline_s2a = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
+				sspline_a2s = Calloc(GMRFLib_CACHE_LEN(), GMRFLib_spline_tp *);
 			}
 		}
 	}

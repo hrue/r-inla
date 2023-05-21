@@ -1,7 +1,7 @@
 ---
 title: "User defined integration points"
 author: "Haavard Rue `(hrue@r-inla.org)`"
-date: "May 29th 2017 (updated April 9th 2019)"
+date: "May 2017 (updated April 2019 and May 2023)"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{User defined integration points}
@@ -116,22 +116,20 @@ r = inla(y ~ -1 + f(time, model="ar1",
 sd.0 = r$summary.random$time[1,"sd"]
 print(sd.0)
 ```
-The ordering of the hyperparamters are as follows,
-```{r}
-nm = names(r$joint.hyper)
-nm = nm[-length(nm)]
-print(nm)
-```
-which may sometimes be useful to know about.
 
-Anyway, we will now change $\rho$ a little, while we keep the same
+We will now change $\rho$ a little, while we keep the same
 integration
 points,
 ```{r}
-Design = as.matrix(cbind(r$joint.hyper[, seq_along(nm)], 1))
+summary(r)
+nm <- nrow(r$summary.hyperpar)
+Design = as.matrix(cbind(r$joint.hyper[, seq_len(nm)], 1))
 head(Design)
 ```
-where the last column is the (un-normalised) integration weights.
+where the last column is the (un-normalised) integration weights. The
+integration weights should depend on the area associated with every
+point, but for simplicity we just set the weights to be a constant. 
+
 `Design` has dimension `r dim(Design)`.
 We  call `inla()` again reusing the previous found mode
 ```{r}

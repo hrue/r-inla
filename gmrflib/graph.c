@@ -1227,8 +1227,8 @@ int GMRFLib_convert_to_mapped(double *destination, double *source, GMRFLib_graph
 #pragma omp critical (Name_3fd48b64af36f6b6464b44ae9bf0fc94062b77fc)
 			{
 				if (!wwork) {
-					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+					wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+					wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 				}
 			}
 		}
@@ -1269,8 +1269,8 @@ int GMRFLib_convert_from_mapped(double *destination, double *source, GMRFLib_gra
 #pragma omp critical (Name_1a7225070120a13086515e5c250e27a43a27bdd8)
 			{
 				if (!wwork) {
-					wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-					wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+					wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+					wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 				}
 			}
 		}

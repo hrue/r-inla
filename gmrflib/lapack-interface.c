@@ -1055,6 +1055,8 @@ int GMRFLib_dscale(int n, double a, double *x)
 
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
+	// y[i] = a * x[i] + b
+
 	const int roll = 4L;
 	div_t d = div(n, roll);
 	int m = d.quot * roll;

@@ -432,8 +432,8 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 #pragma omp critical (Name_4afa98d4e0e7cc3aec97acb922c2fa7fb65a660f)
 		{
 			if (!nnr_step_factor_first_time_only) {
-				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN, int);
-				for (int i = 0; i < GMRFLib_CACHE_LEN; i++) {
+				nnr_step_factor_first_time_only = Calloc(GMRFLib_CACHE_LEN(), int);
+				for (int i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 					nnr_step_factor_first_time_only[i] = 1;
 				}
 			}
@@ -521,7 +521,7 @@ int GMRFLib_ai_marginal_hyperparam(int thread_id,
 	ai_store->mode = Calloc(n, double);
 	Memcpy(ai_store->mode, problem->mean_constr, n * sizeof(double));
 
-	if (mean == NULL && 1) {
+	if (mean == NULL) {
 		/*
 		 * Here we use the joint expression and take advantage of that we have already evaluated the log-likelihood in the mode.
 		 * 
@@ -606,6 +606,8 @@ int GMRFLib_ai_log_posterior(int thread_id, double *logdens,
 		 * do not include fixed points 
 		 */
 		if (1) {
+			// THIS CODE IS VERY STUPID!!! FIX
+
 			/*
 			 * new code; better for omp 
 			 */
@@ -5364,11 +5366,21 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
 					if (!stupid_mode_iter) {
-						if (ai_par->fp_log)
-							fprintf(ai_par->fp_log,
-								"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+#pragma omp critical
+						{
+							if (ai_par->fp_log) {
+								fprintf(ai_par->fp_log,
+									"Mode not sufficient accurate; switch to a stupid local search strategy.\n");
+							}
+							n_warnings++;
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
+							misc_output->warnings[n_warnings - 1] =
+							    GMRFLib_strdup
+							    ("Stupid local search strategy used: This is usually a sign of a ill-defined model and/or non-informative data.");
+							misc_output->warnings[n_warnings] = NULL;
+						}
+						stupid_mode_iter++;
 					}
-					stupid_mode_iter++;
 
 					if (log_dens_mode_save > log_dens_mode && stupid_mode_iter > ai_par->stupid_search_max_iter) {
 						if (ai_par->fp_log) {
@@ -5470,14 +5482,25 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
 			if (eigv < 0.0) {
-				fprintf(stderr, "\n");
-				fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
-				fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
-				fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
-				fprintf(stderr, "\n");
+#pragma omp critical
+				{
+					fprintf(stderr, "\n");
+					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
+					fprintf(stderr, "\t*** WARNING *** This have consequence for the accurancy of the hyperpar\n");
+					fprintf(stderr, "\t*** WARNING *** Continue with a diagonal Hessian.\n");
+					fprintf(stderr, "\n");
+					char *msg = NULL;
+					GMRFLib_sprintf(&msg,
+							"Hessian.eigen.value[%1d] = %.3f < 0. This is usually a sign of a ill-defined model and/or non-informative data.",
+							i, eigv);
+					n_warnings++;
+					misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
+					misc_output->warnings[n_warnings - 1] = msg;
+					misc_output->warnings[n_warnings] = NULL;
 
-				gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
-				a_change += 1000;
+					gsl_vector_set(eigen_values, (unsigned int) i, min_pos_eigenvalue);
+					a_change += 1000;
+				}
 			}
 		}
 
@@ -5650,10 +5673,11 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 						char *w2 = NULL;
 						GMRFLib_sprintf(&w1,
 								"Skewness correction for transf.hyperpar[%1d] is to high/low: gmean = %.2g, corr=(%.2f,%.2f).",
-								k, gmean,  stdev_corr_neg[k], stdev_corr_pos[k]);
-						GMRFLib_sprintf(&w2, "%s.", 
+								k, gmean, stdev_corr_neg[k], stdev_corr_pos[k]);
+						GMRFLib_sprintf(&w2, "%s.",
 								(ai_par->hessian_correct_skewness_only ?
-								 "This IS corrected for, but is usually a sign of a ill-defined model and/or issues with the fit" :
+								 "This IS corrected for, but is usually a sign of a ill-defined model and/or issues with the fit"
+								 :
 								 "This IS NOT corrected for and is usually a sign of a ill-defined model and/or issues with the fit"));
 						if (ai_par->fp_log) {
 							fprintf(ai_par->fp_log, "\n*** Warning *** %s\n                %s\n\n", w1, w2);
@@ -5662,7 +5686,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 							// yes, we have warnings[n_warnings] be the NULL-ptr so we do not need
 							// to pass 'n_warnings'
 							n_warnings++;
-							misc_output->warnings = Realloc(misc_output->warnings, n_warnings+1, char *);
+							misc_output->warnings = Realloc(misc_output->warnings, n_warnings + 1, char *);
 							char *w12 = NULL;
 							GMRFLib_sprintf(&w12, "%s %s", w1, w2);
 							misc_output->warnings[n_warnings - 1] = w12;
@@ -6213,7 +6237,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		if (ii < preopt->mnpred) {
 			i = ii;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, lpred[i], probs_combine);
+			if (GMRFLib_save_memory) {
+				// if skewness is to large then it will switch to the default...
+				GMRFLib_density_combine_x(&dens_combine, lpred[i], probs_combine, GMRFLib_DENSITY_TYPE_SKEWNORMAL);
+			} else {
+				GMRFLib_density_combine(&dens_combine, lpred[i], probs_combine);
+			}
 			(*density)[i] = dens_combine;
 
 			for (int k = 0; k < probs_combine->n; k++) {
@@ -6224,7 +6253,12 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		} else {
 			i = ii - preopt->mnpred;
 			GMRFLib_density_tp *dens_combine = NULL;
-			GMRFLib_density_combine(&dens_combine, dens[i], probs);
+			if (GMRFLib_save_memory) {
+				// if skewness is to large then it will switch to the default...
+				GMRFLib_density_combine_x(&dens_combine, dens[i], probs, GMRFLib_DENSITY_TYPE_SKEWNORMAL);
+			} else {
+				GMRFLib_density_combine(&dens_combine, dens[i], probs);
+			}
 			(*density)[ii] = dens_combine;	       /* yes, its 'ii' */
 
 			for (int k = 0; k < probs_combine->n; k++) {
@@ -7029,12 +7063,35 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	return GMRFLib_SUCCESS;
 }
 
+int GMRFLib_equal_cor(double c1, double c2, double eps)
+{
+#define COR2INTERN(c_) log(DMAX(FLT_EPSILON, 1.0 + (c_)) / DMAX(FLT_EPSILON, 1.0 - (c_)))
+
+	static double eps_sqrt = 0.0;
+	if (!eps_sqrt) {
+#pragma omp critical
+		if (!eps_sqrt) {
+			eps_sqrt = sqrt(eps);
+		}
+	}
+
+	// quick check
+	if (ABS(c1 - c2) > eps_sqrt) {
+		return 0;
+	}
+
+	if (ABS(COR2INTERN(c1) - COR2INTERN(c2)) < eps) {
+		return 1;
+	}
+
+	return 0;
+}
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
-	GMRFLib_ENTER_ROUTINE;
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
-#define EQUAL_COR(c1_, c2_) (ABS((c1_) - (c2_)) < gcpo_param->epsilon)
+
+	GMRFLib_ENTER_ROUTINE;
 
 	int detailed_output = GMRFLib_DEBUG_IF();
 	int Npred = preopt->Npred;
@@ -7266,7 +7323,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				for (int i = 1; i < siz_g && !levels_ok; i++) {	\
 					int i_new = (int) largest[i];	\
 					double cor_abs_new = cor_abs[i_new]; \
-					if (!EQUAL_COR(cor_abs_new, cor_abs_prev)) { \
+					if (!GMRFLib_equal_cor(cor_abs_new, cor_abs_prev, gcpo_param->epsilon)) { \
 						nlevels++;		\
 						i_prev = i;		\
 						cor_abs_prev = cor_abs_new; \
@@ -7386,7 +7443,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 	}
 
 #undef A_idx
-#undef EQUAL_COR
 
 	GMRFLib_LEAVE_ROUTINE;
 	return ggroups;
@@ -10416,7 +10472,7 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 		correction = 1.0;
 		for (k = 0; k < nhyper; k++) {
 			x = izs[i][k];
-			correction *= (gsl_cdf_ugaussian_P(x + dz / 2.0) - gsl_cdf_ugaussian_P(x - dz / 2.0)) / (dz * f * exp(-0.5 * SQR(x)));
+			correction *= (GMRFLib_cdfnorm(x + dz / 2.0) - GMRFLib_cdfnorm(x - dz / 2.0)) / (dz * f * exp(-0.5 * SQR(x)));
 		}
 		adj_weights[i] = correction * weights[i];
 		if (ISZERO(correction)) {

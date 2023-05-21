@@ -175,7 +175,7 @@ int dgemm_special(int m, int n, double *C, double *A, double *B, GMRFLib_constr_
 #pragma omp critical (Name_e4b888063524c281c8bef772bc2579873731fa49)
 		{
 			if (!storage) {
-				storage = Calloc(GMRFLib_CACHE_LEN, storage_t *);
+				storage = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ int dgemm_special2(int m, double *C, double *A, GMRFLib_constr_tp *constr)
 #pragma omp critical (Name_756fb3e47fb1205cd5e595775867506d805d78f6)
 		{
 			if (!storage) {
-				storage = Calloc(GMRFLib_CACHE_LEN, storage_t *);
+				storage = Calloc(GMRFLib_CACHE_LEN(), storage_t *);
 			}
 		}
 	}
@@ -343,8 +343,8 @@ int GMRFLib_Qsolve(double *x, double *b, GMRFLib_problem_tp *problem, int idx)
 #pragma omp critical (Name_415e5dc8137b4c7fc43dd511591be71a0710d398)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}

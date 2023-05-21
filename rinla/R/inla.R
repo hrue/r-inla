@@ -1290,7 +1290,8 @@
         openmp.strategy = cont.compute$openmp.strategy, graph = cont.compute$graph,
         config = cont.compute$config,
         likelihood.info = cont.compute$likelihood.info,
-        internal.opt = cont.compute$internal.opt
+        internal.opt = cont.compute$internal.opt, 
+        save.memory = cont.compute$save.memory
     )
 
     ## PREPARE RESPONSE AND FIXED EFFECTS
