@@ -272,7 +272,7 @@ double GMRFLib_evaluate_density__intern(double x, void *param);
 double GMRFLib_evaluate_density_kld2__intern(double x, void *param);
 double GMRFLib_evaluate_density_kld__intern(double x, void *param);
 double GMRFLib_evaluate_density_power__intern(double x, void *param);
-double GMRFLib_log_gsl_cdf_ugaussian_P(double z);
+double GMRFLib_log_cdfnorm(double z);
 double GMRFLib_sn_Pinv(double u, double a);
 double GMRFLib_sn_d3_to_skew(double d3);
 double GMRFLib_sn_logdensity_diff_alpha(double x, void *param);

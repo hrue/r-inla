@@ -10469,7 +10469,7 @@ int GMRFLib_ai_adjust_integration_weights(double *adj_weights, double *weights, 
 		correction = 1.0;
 		for (k = 0; k < nhyper; k++) {
 			x = izs[i][k];
-			correction *= (gsl_cdf_ugaussian_P(x + dz / 2.0) - gsl_cdf_ugaussian_P(x - dz / 2.0)) / (dz * f * exp(-0.5 * SQR(x)));
+			correction *= (GMRFLib_cdfnorm(x + dz / 2.0) - GMRFLib_cdfnorm(x - dz / 2.0)) / (dz * f * exp(-0.5 * SQR(x)));
 		}
 		adj_weights[i] = correction * weights[i];
 		if (ISZERO(correction)) {

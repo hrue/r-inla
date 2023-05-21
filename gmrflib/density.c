@@ -143,10 +143,10 @@ int GMRFLib_sn_density(double *dens, double x, void *param)
 	return GMRFLib_SUCCESS;
 }
 
-double GMRFLib_log_gsl_cdf_ugaussian_P(double z)
+double GMRFLib_log_cdfnorm(double z)
 {
 	/*
-	 * compute log(gsl_cdf_ugaussian_P(z)) for large |z| as well 
+	 * compute log(GMRFLib_cdfnorm(z)) for large |z| as well 
 	 */
 	if (ABS(z) < 8.0) {
 		if (0) {
@@ -160,7 +160,7 @@ double GMRFLib_log_gsl_cdf_ugaussian_P(double z)
 			}
 			return (log(val));
 		} else {
-			return log(gsl_cdf_ugaussian_P(z));
+			return log(GMRFLib_cdfnorm(z));
 		}
 	} else {
 		if (z > 0) {
@@ -193,7 +193,7 @@ int GMRFLib_sn_logdensity(double *ldens, double x, void *param)
 	GMRFLib_sn_param_tp *p = (GMRFLib_sn_param_tp *) param;
 	double z = (x - p->xi) / p->omega;
 
-	*ldens = M_LN2 + CONST_3 - 0.5 * SQR(z) + GMRFLib_log_gsl_cdf_ugaussian_P(p->alpha * z) - log(p->omega);
+	*ldens = M_LN2 + CONST_3 - 0.5 * SQR(z) +GMRFLib_log_cdfnorm(p->alpha * z) - log(p->omega);
 
 	return GMRFLib_SUCCESS;
 }
@@ -779,7 +779,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 			} else {
 				// use the more complitated asympt expression, which we do here (for which the code in
 				// the prev {} is a copy of
-				val = GMRFLib_log_gsl_cdf_ugaussian_P(zz);
+				val =GMRFLib_log_cdfnorm(zz);
 			}
 			logdens[i] = local_const_1 - 0.5 * SQR(z) + val;
 		}
@@ -936,7 +936,7 @@ int GMRFLib_density_Pinv(double *xp, double p, GMRFLib_density_tp *density)
 	 * if the density is Gaussian, then its easy 
 	 */
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		*xp = density->mean + density->stdev * gsl_cdf_ugaussian_Pinv(p);
+		*xp = density->mean + density->stdev * GMRFLib_cdfnorm_inv(p);
 	} else if (density->type == GMRFLib_DENSITY_TYPE_SKEWNORMAL) {
 		*xp = density->sn_param->xi + density->sn_param->omega * GMRFLib_sn_Pinv(p, density->sn_param->alpha);
 	} else {
@@ -965,7 +965,7 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp *density)
 	 * if the density is Gaussian, then its easy 
 	 */
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		result = gsl_cdf_ugaussian_P((x - density->mean) / density->stdev);
+		result = GMRFLib_cdfnorm((x - density->mean) / density->stdev);
 	} else {
 		result = GMRFLib_spline_eval(x, density->P);
 	}
@@ -1846,7 +1846,16 @@ double plog(double x)
 double GMRFLib_sn_Pinv(double u, double a)
 {
 	static double tol = 0.01;
-	static double right_limit const_tol = GMRFLib_erfc_inv(2 * tol);
+	static double const_tol = 0.0;
+
+	if (!const_tol) {
+#pragma omp critical 
+		{
+			if (!const_tol) {
+				const_tol = GMRFLib_erfc_inv(2 * tol);
+			}
+		}
+	}
 
 	if (u == 0.0) {
 		return -INFINITY;
@@ -1863,7 +1872,7 @@ double GMRFLib_sn_Pinv(double u, double a)
 		u = sqrt(u);
 	if (a == -1.0)
 		u = sqrt(1.0 - u);
-	double z = GMRFLib_Phi_inv(u);
+	double z = GMRFLib_cdfnorm_inv(u);
 
 	if (a == 0)
 		return z;
@@ -1886,7 +1895,7 @@ double GMRFLib_sn_Pinv(double u, double a)
 		return -1.4142135623730950488 * GMRFLib_erfc_inv(u);
 	}
 
-	double x = GMRFLib_Phi_inv(0.5 - 0.31830988618379067154 * atan(A));
+	double x = GMRFLib_cdfnorm_inv(0.5 - 0.31830988618379067154 * atan(A));
 	double expon = exp(0.5 * (-x * x));
 	double errfn = 1.0;
 	double efder = expon * 0.79788456080286535588 * A / errfn;

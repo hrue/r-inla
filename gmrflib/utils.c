@@ -1926,3 +1926,48 @@ int my_sort2_dd_test_cutoff(int verbose)
 
 	return GMRFLib_sort2_dd_cut_off;
 }
+
+double GMRFLib_cdfnorm_inv(double p)
+{
+	// https://arxiv.org/abs/0901.0638
+	int sign = (p < 0.5 ? -1 : 1);
+	double u = DMAX(p, 1.0 - p);
+	double v = -log(2.0 * (1.0 - u));
+	double P = 1.2533141359896652729 +
+	    v * (3.0333178251950406994 +
+		 v * (2.3884158540184385711 +
+		      v * (0.73176759583280610539 +
+			   v * (0.085838533424158257377 +
+				v * (0.0034424140686962222423 + (0.000036313870818023761224 + 4.3304513840364031401e-8 * v) * v)))));
+	double Q = 1 + v * (2.9202373175993672857 +
+			    v * (2.9373357991677046357 +
+				 v * (1.2356513216582148689 +
+				      v * (0.2168237095066675527 +
+					   v * (0.014494272424798068406 + (0.00030617264753008793976 + 1.3141263119543315917e-6 * v) * v)))));
+	return (sign * v * P / Q);
+};
+
+double GMRFLib_cdfnorm(double x)
+{
+	return (0.5 * (1.0 + GMRFLib_erf(M_SQRT1_2 * x)));
+}
+
+double GMRFLib_erf(double x)
+{
+	return erf(x);
+}
+
+double GMRFLib_erfc(double x)
+{
+	return erfc(x);
+}
+
+double GMRFLib_erf_inv(double x)
+{
+	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv((x + 1.0) * 0.5));
+}
+
+double GMRFLib_erfc_inv(double x)
+{
+	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
+}

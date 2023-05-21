@@ -412,14 +412,6 @@ typedef enum {
 #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
 
-
-#define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
-#define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
-#define GMRFLib_erf(_x) (2.0 * GMRFLib_Phi((_x)*M_SQRT2) - 1.0)
-#define GMRFLib_erf_inv(_x) (M_SQRT1_2 * GMRFLib_Phi_inv(((_x) + 1.0)/2.0))
-#define GMRFLib_erfc(_x) (2.0 * GMRFLib_Phi(- (_x) * M_SQRT2))
-#define GMRFLib_erfc_inv(_x) (- GMRFLib_Phi_inv((_x) / 2.0) * M_SQRT1_2)
-
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
 

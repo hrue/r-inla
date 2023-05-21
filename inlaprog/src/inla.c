@@ -786,12 +786,12 @@ double map_invprobit(double arg, map_arg_tp typ, void *UNUSED(param))
 		/*
 		 * extern = func(local) 
 		 */
-		return gsl_cdf_ugaussian_P(arg);
+		return GMRFLib_cdfnorm(arg);
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return gsl_cdf_ugaussian_Pinv(arg);
+		return GMRFLib_cdfnorm_inv(arg);
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
@@ -2129,7 +2129,7 @@ double link_special1(int thread_id, double x, map_arg_tp typ, void *param, doubl
 
 	case MAP_BACKWARD:
 	{
-		return gsl_cdf_ugaussian_Pinv(gsl_cdf_lognormal_P(x, covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)));
+		return GMRFLib_cdfnorm_inv(gsl_cdf_lognormal_P(x, covariate_contribution - 0.5 / prec, 1.0 / sqrt(prec)));
 	}
 		break;
 
@@ -3782,11 +3782,11 @@ double priorfunc_linksnintercept(double *x, double *parameters)
 
 	// we should not be outside the limits, really...
 	if (ABS(theta) < theta_lim) {
-		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-theta)));
+		mu = GMRFLib_cdfnorm_inv(1.0 / (1.0 + exp(-theta)));
 	} else if (theta >= theta_lim) {
-		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-theta_lim)));
+		mu = GMRFLib_cdfnorm_inv(1.0 / (1.0 + exp(-theta_lim)));
 	} else {
-		mu = gsl_cdf_ugaussian_Pinv(1.0 / (1.0 + exp(-(-theta_lim))));
+		mu = GMRFLib_cdfnorm_inv(1.0 / (1.0 + exp(-(-theta_lim))));
 	}
 
 	// d_mu/d_theta = 1 / (d_theta/d_mu) 
@@ -5748,7 +5748,7 @@ double inla_Phi(double x)
 	 * the un-log version of inla_log_Phi 
 	 */
 	if (ABS(x) < 7.0) {
-		return gsl_cdf_ugaussian_P(x);
+		return GMRFLib_cdfnorm(x);
 	} else {
 		return exp(inla_log_Phi(x));
 	}
@@ -5779,7 +5779,7 @@ double inla_log_Phi(double x)
 	// return the log of the cummulative distribution function for a standard normal.
 	// This version is ok for all x 
 	if (ABS(x) <= 7.0) {
-		return (log(gsl_cdf_ugaussian_P(x)));
+		return (log(GMRFLib_cdfnorm(x)));
 	} else {
 		double t1, t4, t3, t8, t9, t13, t27, t28, t31, t47;
 
@@ -7244,7 +7244,7 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 			} else {
 				double mean = E * lambda;
 				if (mean > 10000.0) {
-					logll[i] = gsl_cdf_ugaussian_P((y + 0.5 - mean) / sqrt(mean));
+					logll[i] = GMRFLib_cdfnorm((y + 0.5 - mean) / sqrt(mean));
 				} else {
 					logll[i] = gsl_cdf_poisson_P((unsigned int) y, mean);
 				}
@@ -42379,8 +42379,8 @@ int testit(int argc, char **argv)
 		double x = GMRFLib_uniform();
 
 		printf("x= %.12f\n", x);
-		printf("Phi= %.12f\n", GMRFLib_Phi(x));
-		printf("Phi_inv = %.12f\n", GMRFLib_Phi_inv(x));
+		printf("Phi= %.12f\n", GMRFLib_cdfnorm(x));
+		printf("Phi_inv = %.12f\n", GMRFLib_cdfnorm_inv(x));
 		printf("erf = %.12f\n", GMRFLib_erf(x));
 		printf("erfinv = %.12f\n", GMRFLib_erf_inv(x));
 		printf("erfc = %.12f\n", GMRFLib_erfc(x));
@@ -44289,6 +44289,70 @@ int testit(int argc, char **argv)
 	}
 	break;
 	
+	case 118: 
+	{
+		typedef double fun_tp(double arg);
+
+		typedef struct 
+		{
+			fun_tp *fun[2];
+			char * name;
+		}
+			cmp_tp;
+
+		cmp_tp cmp[] = { 
+			{ {GMRFLib_erf, gsl_sf_erf},  "erf"}, 
+			{ {GMRFLib_erfc, gsl_sf_erfc},  "erfc"}, 
+			{ {GMRFLib_cdfnorm, gsl_cdf_ugaussian_P},  "cdfnorm"}, 
+			{ {GMRFLib_cdfnorm_inv, gsl_cdf_ugaussian_Pinv},  "cdfnorm_inv"}, 
+		};
+		
+		int n = atoi(args[0]);
+		double *x = Calloc(3 * n, double);
+		double *y[] = {x + n, x + 2 * n};
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		int K = sizeof(cmp) / sizeof(cmp_tp);
+		for(int k = 0; k < K; k++) {
+			double tref[] = {0, 0};
+			for(int j = 0; j < 2; j++) {
+				tref[j] -= GMRFLib_cpu();
+				double *yy = y[j];
+				for(int i = 0; i < n; i++) {
+					yy[i] = cmp[k].fun[j](x[i]);
+				}
+				tref[j] += GMRFLib_cpu();
+			}
+			double max_err = 0.0;
+			for(int i = 0; i < n; i++) {
+				max_err = DMAX(max_err, y[0][i] - y[1][i]);
+			}
+			printf("%s %.4f %.4f (max.err %g)\n", cmp[k].name, 
+			       tref[0] / (tref[0] + tref[1]),
+			       tref[1] / (tref[0] + tref[1]),
+			       max_err);
+		}
+	}
+		break;
+
+	case 119: 
+	{
+		double p = GMRFLib_uniform();
+		P(p - GMRFLib_erf(GMRFLib_erf_inv(p)));
+		P(p - GMRFLib_erfc(GMRFLib_erfc_inv(p)));
+		P(p - GMRFLib_cdfnorm(GMRFLib_cdfnorm_inv(p)));
+		
+		for(double x = -20.0; x < 20.0; x += 0.5) {
+			p = 1.0 / (1.0 + exp(-x));
+			printf("%g gsl %g cdfnorm_inv %g\n",
+			       p, gsl_cdf_ugaussian_Pinv(p), GMRFLib_cdfnorm_inv(p));
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
