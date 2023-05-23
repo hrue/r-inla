@@ -1948,7 +1948,7 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 	switch (typ) {
 	case INVLINK:
 	{
-		//ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape/100, 1.0, 1, 0);
+		// ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape/100, 1.0, 1, 0);
 		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile);
 	}
 		break;
@@ -9874,9 +9874,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -41096,30 +41096,29 @@ int testit(int argc, char **argv)
 
 		if (nargs) {
 			int n = atoi(args[0]);
-			double *x =  Calloc(n, double);
-			double *y =  Calloc(n, double);
-			double *yy =  Calloc(n, double);
+			double *x = Calloc(n, double);
+			double *y = Calloc(n, double);
+			double *yy = Calloc(n, double);
 
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				x[i] = GMRFLib_uniform();
 			}
 
-			double tref[] = {0, 0};
+			double tref[] = { 0, 0 };
 			tref[0] -= GMRFLib_cpu();
-			for(int i = 0; i < n; i++) {
-				y[i] = MATHLIB_FUN(qgamma)(x[i], exp(x[i]), 1.0, 1, 0);
+			for (int i = 0; i < n; i++) {
+				y[i] = MATHLIB_FUN(qgamma) (x[i], exp(x[i]), 1.0, 1, 0);
 			}
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-			for(int i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				yy[i] = gsl_cdf_gamma_Pinv(x[i], exp(x[i]), 1.0);
 			}
 			tref[1] += GMRFLib_cpu();
 
-			P(y[0]-yy[0]);
-			printf("MATHLIB %f GSL %f\n", tref[0] / (tref[0] + tref[1]),
-			       tref[1] / (tref[0] + tref[1]));
+			P(y[0] - yy[0]);
+			printf("MATHLIB %f GSL %f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 
 			Free(x);
 			Free(y);
