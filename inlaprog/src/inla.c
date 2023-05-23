@@ -1940,7 +1940,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
-	double s = lparam->scale[lparam->idx];
+	double s = (lparam->scale ? lparam->scale[lparam->idx] : 1.0);
 	double phi_param = map_exp(lparam->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double shape = phi_param * s;
 	double ret = 0.0;
@@ -1948,8 +1948,8 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 	switch (typ) {
 	case INVLINK:
 	{
-		// ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
-		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile, 0);
+		//ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape/100, 1.0, 1, 0);
+		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile);
 	}
 		break;
 
@@ -21110,6 +21110,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_qpoisson;
 		}
 			break;
+
 		case L_BINOMIAL:
 		case L_XBINOMIAL:
 		{
@@ -21126,14 +21127,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_qweibull;
 		}
 			break;
+
 		case L_GAMMA:
+		case L_GAMMASURV:
 		{
 			ds->link_id = LINK_QGAMMA;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qgamma;
-			inla_qgamma_cache(0.0, ds->data_observations.quantile, -1);
+			inla_qgamma_cache(0.0, ds->data_observations.quantile);
 		}
 			break;
+
 		case L_GP:
 		{
 			ds->link_id = LINK_LOG;
@@ -21141,6 +21145,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_log;
 		}
 			break;
+
 		case L_DGP:
 		{
 			ds->link_id = LINK_LOG;
@@ -21148,6 +21153,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_log;
 		}
 			break;
+
 		default:
 			assert(0 == 1);
 		}
@@ -30723,7 +30729,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 		}
 
 		if (build) {
-#pragma omp critical
+#pragma omp critical (Name_a1fd55509a70889a1417fb08664e246f4517ee2a)
 			{
 				for (int k = 0; k < a->nbeta; k++) {
 					a->cache00[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
@@ -30762,7 +30768,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	}
 
 	if (build) {
-#pragma omp critical
+#pragma omp critical (Name_562559af23fb070f255b55089f79f0c69a8b73a2)
 		{
 			for (int k = 0; k < a->nbeta; k++) {
 				a->cache01[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
@@ -41069,26 +41075,56 @@ int testit(int argc, char **argv)
 	case -1:
 	case 0:
 	{
-		double s, phi, mu, y, shape, rate, q, mmu, scale, alpha;
+		double s, phi, mu, yyy, shape, rate, q, mmu, scale, alpha;
 		s = 1.2;
 		phi = 2.3;
 		mu = 3.4;
-		y = 4.5;
+		yyy = 4.5;
 		shape = s * phi;
 		rate = s * phi / mu;
 		scale = 1.0 / rate;
 		alpha = 0.5;
-		alpha = MATHLIB_FUN(pgamma) (y, shape, scale, 1, 0);
+		alpha = MATHLIB_FUN(pgamma) (yyy, shape, scale, 1, 0);
 		q = MATHLIB_FUN(qgamma) (alpha, shape, 1.0, 1, 0);
-		mmu = y * s * phi / q;
+		mmu = yyy * s * phi / q;
 		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu - mmu);
 
-		P(MATHLIB_FUN(pgamma) (y, shape, scale, 1, 0));
+		P(MATHLIB_FUN(pgamma) (yyy, shape, scale, 1, 0));
 		P(MATHLIB_FUN(qgamma) (alpha, shape, 1.0, 1, 0));
-		P(gsl_cdf_gamma_P(y, shape, scale));
+		P(gsl_cdf_gamma_P(yyy, shape, scale));
 		P(gsl_cdf_gamma_Pinv(alpha, shape, 1.0));
 
-		exit(0);
+		if (nargs) {
+			int n = atoi(args[0]);
+			double *x =  Calloc(n, double);
+			double *y =  Calloc(n, double);
+			double *yy =  Calloc(n, double);
+
+			for(int i = 0; i < n; i++) {
+				x[i] = GMRFLib_uniform();
+			}
+
+			double tref[] = {0, 0};
+			tref[0] -= GMRFLib_cpu();
+			for(int i = 0; i < n; i++) {
+				y[i] = MATHLIB_FUN(qgamma)(x[i], exp(x[i]), 1.0, 1, 0);
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			for(int i = 0; i < n; i++) {
+				yy[i] = gsl_cdf_gamma_Pinv(x[i], exp(x[i]), 1.0);
+			}
+			tref[1] += GMRFLib_cpu();
+
+			P(y[0]-yy[0]);
+			printf("MATHLIB %f GSL %f\n", tref[0] / (tref[0] + tref[1]),
+			       tref[1] / (tref[0] + tref[1]));
+
+			Free(x);
+			Free(y);
+			Free(yy);
+		}
 	}
 		break;
 

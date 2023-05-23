@@ -5366,7 +5366,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
 					if (!stupid_mode_iter) {
-#pragma omp critical
+#pragma omp critical (Name_4edc3808412cc155a1bc15b9d4cd319a85e133b9)
 						{
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log,
@@ -5482,7 +5482,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
 			if (eigv < 0.0) {
-#pragma omp critical
+#pragma omp critical (Name_5de6e658f0ecd07258a12caddb9702c5fdf878dc)
 				{
 					fprintf(stderr, "\n");
 					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
@@ -5667,7 +5667,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				double lim = 0.85;
 				if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
 				    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
-#pragma omp critical
+#pragma omp critical (Name_4267c78b945bb634ad14f44c9e0a55dc1213e726)
 					{
 						char *w1 = NULL;
 						char *w2 = NULL;
@@ -7069,7 +7069,7 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 
 	static double eps_sqrt = 0.0;
 	if (!eps_sqrt) {
-#pragma omp critical
+#pragma omp critical (Name_4bb766a56722a3752af90c7828e0fd60e85365fe)
 		if (!eps_sqrt) {
 			eps_sqrt = sqrt(eps);
 		}

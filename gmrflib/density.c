@@ -1851,7 +1851,7 @@ double GMRFLib_sn_Pinv(double u, double a)
 	static double const_tol = 0.0;
 
 	if (!const_tol) {
-#pragma omp critical
+#pragma omp critical (Name_51544e7cd5571841703b1cfea4c3883165bc97e5)
 		{
 			if (!const_tol) {
 				const_tol = GMRFLib_erfc_inv(2 * tol);

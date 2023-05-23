@@ -46,7 +46,7 @@ __BEGIN_DECLS
 #include "GMRFLib/density.h"
     struct inla_qgamma_cache_tp {
 	double quantile;
-	GMRFLib_spline_tp **s;
+	GMRFLib_spline_tp *s;
 };
 
 GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num);
@@ -54,7 +54,7 @@ double inla_pcontpois(double y, double lambda);
 double inla_pcontpois_deriv(double y, double lambda);
 double inla_qcontpois(double quantile, double alpha, double *initial_guess);
 double inla_qcontpois_eta(double quantile, double alpha, double *initial_guess);
-double inla_qgamma_cache(double shape, double quantile, int id);
+double inla_qgamma_cache(double shape, double quantile);
 
 __END_DECLS
 #endif

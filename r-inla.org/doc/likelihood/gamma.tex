@@ -21,7 +21,8 @@ following parameterisation for the precision
     \tau = (s\phi) / \mu^{2}
 \end{displaymath}
 where $\phi$ is the precision parameter (or $1/\phi$ is the dispersion
-parameter) and $s>0$ is a fixed scaling, which gives this density
+parameter) and $s>0$ is a fixed scaling (for the regression model),
+which gives this density
 \begin{displaymath}
     \pi(y) = \frac{1}{\Gamma(s\phi)}
     \left(\frac{(s\phi)}{\mu}\right)^{(s\phi)}
@@ -53,9 +54,9 @@ and the prior is defined on $\theta$.
     \texttt{family="gamma.surv"} for survival models.
 \item Required arguments: for \texttt{gamma.surv}, $y$ (to be given in
     a format by using $\texttt{inla.surv()}$), and for \texttt{gamma},
-    $y$ and $s$.
+    $y$ and $s$ (default value 1).
 \end{itemize}
-The scalings have default value 1.
+The scalings $s$ is \textbf{not} used for \texttt{family="gamma.surv"}.
 
 \subsubsection*{Hyperparameter spesification and default values}
 \input{../hyper/likelihood/gamma.tex}
