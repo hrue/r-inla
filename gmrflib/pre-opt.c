@@ -841,9 +841,6 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *values, 
 		}
 		return 0.0;
 	} else {
-		FIXME("THIS SHOULD NOT HAPPEN");
-		abort();
-
 		GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 		double value = 0.0;
 
