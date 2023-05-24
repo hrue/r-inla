@@ -156,8 +156,11 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 		_lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][thread_id][0]; \
 	}
 
+
 #define LINK_END				\
 	Free(_link_covariates)
+
+#define PREDICTOR_SCALE _lp_scale
 
 #define PREDICTOR_LINK_EQ(_fun) (ds->predictor_invlinkfunc == (_fun))
 
@@ -7210,17 +7213,32 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			double off = OFFSET(idx);
+			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
 			if (y > 0.0) {
+				if (fast) {
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+					for (int i = 0; i < m; i++) {
+						logll[i] = y * x[i] + ylEmn - E * exp(x[i]);
+					}
+				} else {
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+					}
 				}
 			} else {
+				if (fast) {
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = ylEmn - E * exp(log_lambda);
+					for (int i = 0; i < m; i++) {
+						logll[i] = ylEmn - E * exp(x[i]);
+					}
+				} else {
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						logll[i] = ylEmn - E * exp(log_lambda);
+					}
 				}
 			}
 		} else {

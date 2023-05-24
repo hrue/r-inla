@@ -417,7 +417,6 @@ int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
 	return -1;
 }
 
-
 int GMRFLib_find_nonzero(double *array, int len, int direction)
 {
 	/*
