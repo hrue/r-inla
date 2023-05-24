@@ -317,16 +317,9 @@ double GMRFLib_dsum2(int n, double *x)
 {
 	double s = 0.0;
 
-	if (0) {
-#pragma GCC ivdep
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
-	} else {
 #pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
+	for (int i = 0; i < n; i++) {
+		s += x[i];
 	}
 
 	return (s);

@@ -1347,13 +1347,12 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 		diag = Calloc_get(graph->n);
 	}
 	res = Qfunc(thread_id, 0, -1, values, Qfunc_arg);
-	if (debug)
-		P(max_t);
 
 	if (ISNAN(res)) {
 		if (run_parallel) {
-			if (debug)
+			if (debug) {
 				FIXME("Qx2: run parallel");
+			}
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
 				double qij;				\
@@ -1369,8 +1368,9 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
 #undef CODE_BLOCK
 		} else {
-			if (debug)
+			if (debug) {
 				FIXME("Qx2: run serial");
+			}
 			for (int i = 0; i < graph->n; i++) {
 				double qij;
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
@@ -1385,17 +1385,19 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 		}
 	} else {
 		if (run_parallel) {
-			if (debug)
+			if (debug) {
 				FIXME("Qx2: run block parallel");
+			}
 			int off = 8;
 			double *local_result = Calloc(max_t * (graph->n + off), double);
+			char *used = Calloc(max_t, char);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				CODE_BLOCK_ALL_WORK_ZERO();		\
 				double *r, *local_values;		\
 				int tnum = omp_get_thread_num();	\
+				used[tnum] = 1;				\
 				r = local_result + tnum * (graph->n + off); \
-				local_values = CODE_BLOCK_WORK_PTR(0); \
+				local_values = CODE_BLOCK_WORK_PTR(tnum); \
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
 				int *j_a = graph->lnbs[i];		\
@@ -1410,17 +1412,22 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 #undef CODE_BLOCK
 
 			for (int j = 0; j < max_t; j++) {
-				int offset = j * (graph->n + off);
-				double *r = local_result + offset;
+				if (used[j]) {
+					int offset = j * (graph->n + off);
+					double *r = local_result + offset;
 #pragma GCC ivdep
-				for (int i = 0; i < graph->n; i++) {
-					result[i] += r[i];
+					for (int i = 0; i < graph->n; i++) {
+						result[i] += r[i];
+					}
 				}
 			}
+
+			Free(used);
 			Free(local_result);
 		} else {
-			if (debug)
+			if (debug) {
 				FIXME("Qx2: run block serial");
+			}
 			for (int i = 0; i < graph->n; i++) {
 				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
 				result[i] += (values[0] + diag[i]) * x[i];

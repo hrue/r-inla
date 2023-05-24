@@ -37463,7 +37463,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				if (time > 0) {
 					time_used_Qx[mett] += cpu[1];
 				}
-				// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
+				// printf("%d %d %f %f\n", time, mett, cpu[0], cpu[1]);
 				Free(cpu);
 			}
 		}

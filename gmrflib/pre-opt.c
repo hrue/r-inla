@@ -657,6 +657,28 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 	(*preopt)->preopt_Qfunc_arg = (void *) *preopt;
 	(*preopt)->gcpo_Qfunc = GMRFLib_preopt_gcpo_Qfunc;
 
+	// tabulate _is_nb() as this will speedup _preopt_Qfunc()
+	(*preopt)->preopt_graph_latent_is_nb = Calloc((*preopt)->preopt_graph->n, char *);
+	(*preopt)->preopt_graph_like_is_nb = Calloc((*preopt)->preopt_graph->n, char *);
+//#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
+	for(int i = 0; i < (*preopt)->preopt_graph->n; i++) {
+		int lnnbs = (*preopt)->preopt_graph->lnnbs[i];
+		if (lnnbs) {
+			char *store = Calloc(2 * lnnbs, char);
+			(*preopt)->preopt_graph_latent_is_nb[i] = store;
+			(*preopt)->preopt_graph_like_is_nb[i] = store + lnnbs;
+			for(int k = 0; k < lnnbs;  k++) {
+				int j = (*preopt)->preopt_graph->lnbs[i][k];
+				if (GMRFLib_graph_is_nb(i, j, (*preopt)->latent_graph)) {
+					(*preopt)->preopt_graph_latent_is_nb[i][k] = 1;
+				}
+				if (GMRFLib_graph_is_nb(i, j, (*preopt)->like_graph)) {
+					(*preopt)->preopt_graph_like_is_nb[i][k] = 1;
+				}
+			}
+		}
+	}
+
 	for (int i = 0; i < nf; i++) {
 		Free(ww[i]);
 	}
@@ -801,28 +823,43 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 	return value;
 }
 
-double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
+double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *values, void *arg)
 {
 	if (nnode < 0) {
-		return NAN;
-	}
+		assert(values);
+		GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+		int *jj = a->preopt_graph->lnbs[node];
+		int lnnbs = a->preopt_graph->lnnbs[node];
+		char *like_is_nb = a->preopt_graph_like_is_nb[node];
+		char *latent_is_nb = a->preopt_graph_latent_is_nb[node];
 
-	GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
-	double value = 0.0;
-
-	if (node == nnode) {
-		value = a->like_Qfunc(thread_id, node, node, NULL, a->like_Qfunc_arg)
-		    + a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+		values[0] = a->like_Qfunc(thread_id, node, node, NULL, a->like_Qfunc_arg)
+			+ a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+		for(int k = 0; k < lnnbs; k++) {
+			values[1 + k] = (like_is_nb[k] ? a->like_Qfunc(thread_id, node, jj[k], NULL, a->like_Qfunc_arg) : 0.0)
+				+ (latent_is_nb[k] ? a->latent_Qfunc(thread_id, node, jj[k], NULL, a->latent_Qfunc_arg) : 0.0);
+		} 
+		return 0.0;
 	} else {
-		if (GMRFLib_graph_is_nb(node, nnode, a->like_graph)) {
-			value = a->like_Qfunc(thread_id, node, nnode, NULL, a->like_Qfunc_arg);
-		}
-		if (GMRFLib_graph_is_nb(node, nnode, a->latent_graph)) {
-			value += a->latent_Qfunc(thread_id, node, nnode, NULL, a->latent_Qfunc_arg);
-		}
-	}
+		FIXME("THIS SHOULD NOT HAPPEN");
+		abort();
+		
+		GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
+		double value = 0.0;
 
-	return value;
+		if (node == nnode) {
+			value = a->like_Qfunc(thread_id, node, node, NULL, a->like_Qfunc_arg)
+				+ a->latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+		} else {
+			if (GMRFLib_graph_is_nb(node, nnode, a->like_graph)) {
+				value = a->like_Qfunc(thread_id, node, nnode, NULL, a->like_Qfunc_arg);
+			}
+			if (GMRFLib_graph_is_nb(node, nnode, a->latent_graph)) {
+				value += a->latent_Qfunc(thread_id, node, nnode, NULL, a->latent_Qfunc_arg);
+			}
+		}
+		return value;
+	}
 }
 
 double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg)
@@ -1288,6 +1325,12 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp *preopt)
 			Free(preopt->like_b);
 			Free(preopt->like_c);
 			Free(preopt->total_b);
+			
+			for(int i = 0; i < preopt->preopt_graph->n; i++) {
+				Free(preopt->preopt_graph_latent_is_nb[i]);
+			}
+			Free(preopt->preopt_graph_latent_is_nb);
+			Free(preopt->preopt_graph_like_is_nb);
 
 			GMRFLib_graph_free(preopt->preopt_graph);
 			GMRFLib_graph_free(preopt->like_graph);
@@ -1328,7 +1371,7 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 	GMRFLib_Qfunc_tp *Qfunc = preopt->preopt_Qfunc;
 	GMRFLib_graph_tp *graph = preopt->preopt_graph;
 	void *Qfunc_arg = preopt->preopt_Qfunc_arg;
-
+	
 	Calloc_init(2 * graph->n, 2);
 	double *x = NULL;
 	double *xx = Calloc_get(graph->n);
@@ -1342,20 +1385,24 @@ double *GMRFLib_preopt_measure_time(int thread_id, GMRFLib_preopt_tp *preopt, do
 	}
 
 	GMRFLib_tabulate_Qfunc_tp *tab = NULL;
-	GMRFLib_tabulate_Qfunc(thread_id, &tab, graph, Qfunc, Qfunc_arg, NULL);
+	GMRFLib_tabulate_Qfunc_core(thread_id, &tab, graph, Qfunc, Qfunc_arg, NULL, 1);
 
 	// this will be measured with serial or parallel
 	cpu[1] = -GMRFLib_cpu();
 	GMRFLib_Qx(thread_id, xx, x, graph, tab->Qfunc, tab->Qfunc_arg);
 	cpu[1] += GMRFLib_cpu();
 
-	if (res) {
-		res[0] = value;
-		value = 0.0;
-		for (int i = 0; i < graph->n; i++) {
-			value += ABS(xx[i]);
+	if (0) {
+		double check = 0.0;
+		for(int i = 0; i < graph->n; i++) {
+			check += ABS(xx[i]);
 		}
-		res[1] = value;
+	}
+	
+	if (res) {
+		int inc = 1;
+		res[0] = value;
+		res[1]= dasum_(&(graph->n), xx, &inc);
 	}
 
 	Calloc_free();
