@@ -826,7 +826,10 @@ double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *UNU
 double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *values, void *arg)
 {
 	if (nnode < 0) {
-		assert(values);
+		// can be used as a check
+		if (!values) {
+			return 0.0;
+		}
 		GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 		int *jj = a->preopt_graph->lnbs[node];
 		int lnnbs = a->preopt_graph->lnnbs[node];

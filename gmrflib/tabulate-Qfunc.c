@@ -79,7 +79,7 @@
 		}							\
 									\
 		if (_prec_scale) {					\
-			GMRFLib_dscale(len, prec, values);			\
+			GMRFLib_dscale(len, prec, values);		\
 		}							\
 	}
 
