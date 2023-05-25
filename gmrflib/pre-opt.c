@@ -359,7 +359,7 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 		for (int i = 0; i < nrow; i++) {
-			int thread = omp_get_thread_num();
+ 			int thread = omp_get_thread_num();
 			GMRFLib_idxval_tp *row_idxval = row_idxval_hold[thread];
 			if (row_idxval) {
 				// we do not free it, we can just pretend its empty and use it again

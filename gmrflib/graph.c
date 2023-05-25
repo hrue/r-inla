@@ -1394,7 +1394,8 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
 				double *r, *local_values;		\
-				int tnum = omp_get_thread_num();	\
+				/* may run in serial */			\
+				int tnum = (nt__ > 1 ? omp_get_thread_num() : 0); \
 				used[tnum] = 1;				\
 				r = local_result + tnum * (graph->n + off); \
 				local_values = CODE_BLOCK_WORK_PTR(tnum); \
@@ -1407,7 +1408,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 					r[j] += local_values[k] * x[i];	\
 				}					\
 			}
-
+			
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m + 1);
 #undef CODE_BLOCK
 
