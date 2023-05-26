@@ -111,6 +111,7 @@ typedef struct {
 
 	GMRFLib_graph_tp *like_graph;
 	GMRFLib_Qfunc_tp *like_Qfunc;
+	GMRFLib_Qfunc_tp *like_Qfunc_k;
 	void *like_Qfunc_arg;
 
 	GMRFLib_bfunc_tp **bfunc;
@@ -160,6 +161,7 @@ double GMRFLib_preopt_Qfunc_prior(int thread_id, int node, int nnode, double *UN
 double GMRFLib_preopt_gcpo_Qfunc(int thread_id, int node, int nnode, double *UNUSED(values), void *arg);
 double GMRFLib_preopt_latent_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
 double GMRFLib_preopt_like_Qfunc(int thread_id, int node, int nnode, double *values, void *arg);
+double GMRFLib_preopt_like_Qfunc_k(int thread_id, int node, int k, double *UNUSED(values), void *arg);
 int GMRFLib_preopt_free(GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew(int thread_id, double *b, GMRFLib_preopt_tp * preopt);
 int GMRFLib_preopt_bnew_like(double *bnew, double *blike, GMRFLib_preopt_tp * arg);
