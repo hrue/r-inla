@@ -1221,12 +1221,8 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 			GMRFLib_density_create(density, GMRFLib_DENSITY_TYPE_SCGAUSSIAN, nx, xx, log_dens, mean, stdev, GMRFLib_TRUE);
 		} else {
 			// we know the mean and variance, as we have computed this above more accurately, above, from the mixture. it seems
-			// reasonable
-			// to estimate skewness using the numerical compute mean and variance, so its coherent. but after our skewness estimate, we 
-			// 
-			// 
-			// can
-			// revert back to the previously computed values, which is (0,1) in the standarized scale.
+			// reasonable to estimate skewness using the numerical compute mean and variance, so its coherent. but after our
+			// skewness estimate, we can revert back to the previously computed values, which is (0,1) in the standarized scale.
 			sn_mean = 0.0;
 			sn_stdev = sn_var = 1.0;
 			GMRFLib_sn_param_tp sn_p;

@@ -1408,7 +1408,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 					r[j] += local_values[k] * x[i];	\
 				}					\
 			}
-			
+
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m + 1);
 #undef CODE_BLOCK
 
