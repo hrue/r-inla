@@ -105,13 +105,15 @@ typedef struct {
 	GMRFLib_Qfunc_tp *gcpo_Qfunc;
 
 	GMRFLib_graph_tp *latent_graph;
-	GMRFLib_Qfunc_tp *latent_Qfunc;
+	// not needed as its only one option
+	// GMRFLib_Qfunc_tp *latent_Qfunc;
 	void *latent_Qfunc_arg;
 	GMRFLib_constr_tp *latent_constr;
 
 	GMRFLib_graph_tp *like_graph;
-	GMRFLib_Qfunc_tp *like_Qfunc;
-	GMRFLib_Qfunc_tp *like_Qfunc_k;
+	// not needed as its only one option
+	// GMRFLib_Qfunc_tp *like_Qfunc;
+	// GMRFLib_Qfunc_tp *like_Qfunc_k;
 	void *like_Qfunc_arg;
 
 	GMRFLib_bfunc_tp **bfunc;
