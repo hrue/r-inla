@@ -129,7 +129,8 @@
 ## ! \code{nbinomial2} likelihood. Default value is \code{rep(1, n.data)}.}
 
 ## ! \item{strata}{Fixed (optional) strata indicators
-## ! for tstrata likelihood model.}
+## ! for tstrata likelihood model and similar. The documentaion for each likelihood will
+## ! inform if this argument is required.}
 
 ## ! \item{lp.scale}{ A vector with same length as the predictor going into the likelihood with
 ## ! either \code{NA}'s or indices indexing the scaling coefficients. \code{NA} or a index less
@@ -140,26 +141,24 @@
 
 ## ! \item{verbose}{
 ## ! Boolean indicating if the \code{inla}-program should
-## ! run in a verbose mode (default \code{FALSE}).}
+## ! run in a verbose mode (default \code{inla.getOption("verbose")}) }
 
 ## ! \item{lincomb}{Used to define linear combination of
 ## ! nodes in the latent field. The posterior distribution
 ## ! of such linear combination is computed by the
-## ! \code{inla} function. See
-## ! \url{www.r-inla.org/faq} for examples of
-## ! how to define such linear combinations.}
+## ! \code{inla} function. See vignette \code{Short tutorials from old www-page}
+## ! for information on how to define such linear combinations.}
 
 ## ! \item{selection}{ This is a similar argument to the one in
 ## ! \code{inla.posterior.sample}  and follow the same format.
 ## ! This argument allows to define a subset of the latent field
 ## ! for which to compute an approximated joint
 ## ! distribution. It will appear in \code{result$selection}.
-## ! See also \code{?inla.rjmarginal}. }
+## ! See also \code{?inla.rjmarginal} and the approriate vignette. }
 
 ## ! \item{control.compute}{ See \code{?control.compute}}
 
-## ! \item{control.predictor}{ See
-## ! \code{?control.predictor}}
+## ! \item{control.predictor}{ See \code{?control.predictor}}
 
 ## ! \item{control.family}{ See \code{?control.family}}
 
@@ -181,9 +180,8 @@
 
 ## ! \item{control.pardiso}{ See \code{?control.pardiso}}
 
-## ! \item{only.hyperparam}{ A boolean variable saying if
-## ! only the hyperparameters should be computed. This option is mainly used
-## ! internally. (TODO: This option should not be located here,  change it!)}
+## ! \item{only.hyperparam}{ If \code{TRUE},  then
+## ! only the hyperparameters are computed.}
 
 ## ! \item{inla.call}{ The path to, or the name of, the
 ## ! \code{inla}-program. This is program is installed
@@ -193,7 +191,7 @@
 
 ## ! \item{inla.arg}{ A string indicating ALL arguments to
 ## ! the 'inla' program and do not include default
-## ! arguments. (OOPS: This is an expert option!)}
+## ! arguments. (This is an expert option and not intended for normal usage.)}
 
 ## ! \item{num.threads}{ Maximum number of threads the
 ## ! \code{inla}-program will use, or as 'A:B' defining the number threads in the
@@ -204,27 +202,30 @@
 ## ! If \code{B > 1} then \code{num.threads=A:B} and
 ## ! \code{num.threads=A:-B} are equivalent.}
 
-## ! \item{blas.num.threads}{The absolute value of \code{blas.num.threads} is the maximum
-## ! number of threads the the \code{openblas}/\code{mklblas} will use (if
-## ! available). Value is ignored if \code{<=0} (then environment variables are used).}
+## ! \item{blas.num.threads}{THIS OPTION IS CURRENTLY NOT IN USE.
+## ! (The absolute value of \code{blas.num.threads} is the maximum
+## !  number of threads the the \code{openblas}/\code{mklblas} will use (if
+## !  available). Value is ignored if \code{<=0} (then environment variables are used).)
+## ! }
 
 ## ! \item{keep}{ A boolean variable indicating that the
 ## ! working files (ini file, data files and results
 ## ! files) should be kept. If TRUE and no
-## ! \code{working.directory} is specified the working
-## ! files are stored in a directory called "inla".  }
+## ! \code{working.directory} is specified, the model-files
+## !  are stored in the current directory called "inla.model" or "inla.model-NUMBER". }
 
 ## ! \item{working.directory}{ A string giving the name
 ## ! of an non-existing directory where to store the
-## ! working files.}
+## ! model-files. Sometimes this argument is required if the
+## ! temporary directory returned with \code{tempdir()} not writeable or has
+## ! an encoding that is not supported.}
 
 ## ! \item{silent}{If equal to 1L or TRUE, then the
 ## ! \code{inla}-program would be ``silent''. If equal to
 ## ! 2L, then supress also error messages from the
 ## ! \code{inla}-program.}
 
-## ! \item{inla.mode}{Run \code{inla} in \code{compact}-mode,  \code{classic}-mode,
-## !             \code{twostage}-mode?
+## ! \item{inla.mode}{Run \code{inla} in \code{compact}-mode, or the \code{classic}-mode.
 ## !             Default is to use the 
 ## !             mode set by \code{inla.getOption("inla.mode")} which is default
 ## !             \code{compact}-mode. }
@@ -232,14 +233,11 @@
 ## ! \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
 ## ! Hessian if needed. }
 
-## ! \item{debug}{ If \code{TRUE}, then enable some debug
-## ! output.  }
+## ! \item{debug}{ If \code{TRUE}, print some debug output.  }
 
-## ! \item{.parent.frame}{Internal use only}
-## ! }
+## ! \item{.parent.frame}{Internal use only}}
 
 ## ! \value{%%
-
 ## ! \code{inla} returns an object of class \code{"inla"}. This is a list
 ## ! containing at least the following arguments:
 
@@ -383,20 +381,8 @@
 ## ! The cpu time used by the \code{inla} function}
 ## ! }
 
-## ! \references{
-## ! Rue, H. and Martino, S. and Chopin, N. (2009)
-## ! \emph{Approximate Bayesian Inference for latent Gaussian models
-## ! using Integrated Nested Laplace Approximations, JRSS-series B
-## ! (with discussion)}, vol 71, no 2, pp 319-392.
-## ! Rue, H and Held, L. (2005) \emph{Gaussian Markov Random Fields
-## ! - Theory and Applications} Chapman and Hall}
 ## ! \author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
-## ! \seealso{\code{\link{f}},
-## ! \code{\link{inla.hyperpar}} }
-## ! \examples{
-## ! \dontrun{
-## ! ##See the web page \url{www.r-inla.org} for a series of worked out examples
-## ! }
+## ! \seealso{\code{\link{f}}}
 ## ! }
 
 `inla` <- function(formula = NULL,

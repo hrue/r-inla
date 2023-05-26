@@ -61,7 +61,6 @@
 ## !         adjust.for.con.comp = TRUE,
 ## !         order = NULL,
 ## !         scale = NULL,
-## !         strata = NULL,
 ## !         rgeneric = NULL,
 ## !         cgeneric = NULL,
 ## !         scale.model = NULL,
@@ -87,13 +86,16 @@
                 ## ! alternatives and \code{\link{inla.doc}} for detailed docs.}
                 model = "iid",
 
-                ## !\item{copy}{TODO}
+                ## !\item{copy}{The name of the model-component to copy}
                 copy = NULL,
 
-                ## !\item{scopy}{TODO}
+                ## !\item{scopy}{The name of the model-component to smooth-copy (where the
+                ## copy-function is a spline)}
                 scopy = NULL,
 
-                ## !\item{same.as}{TODO}
+                ## !\item{same.as}{Can be used with \code{copy=".."}. \code{same.as="A"} says
+                ## !that this \code{copy} should use the same scaling parameter as another
+                ## !\code{copy} "A"}
                 same.as = NULL,
 
                 ## !\item{n}{An optional argument which defines the dimension
@@ -101,23 +103,22 @@
                 ## !\code{length(sort(unique(covariate)))}}
                 n = NULL,
 
-                ## !\item{nrep}{TODO}
-
+                ## !\item{nrep}{Number of replications, if not given,  then \code{nrep=max(replications)}}
                 nrep = NULL,
 
-                ## !\item{replicate}{We need to write documentation here}
+                ## !\item{replicate}{A vector of which replications to use.}
                 replicate = NULL,
 
-                ## !\item{ngroup}{TODO}
+                ## !\item{ngroup}{Number of groups,  if not given,  then \code{ngroup=max(group)}}
                 ngroup = NULL,
 
-                ## !\item{group}{TODO}
+                ## !\item{group}{A vector of which groups to use.}
                 group = NULL,
 
-                ## !\item{control.group}{TODO}
+                ## !\item{control.group}{Controls the use of \code{group}}
                 control.group = inla.set.control.group.default(),
 
-                ## !\item{control.scopy}{TODO}
+                ## !\item{control.scopy}{Controls the use of \code{scopy}}
                 control.scopy = inla.set.control.scopy.default(),
 
                 ## !\item{hyper}{Specification of the hyperparameter, fixed or
@@ -129,43 +130,19 @@
                 ## !supported prior distributions.}
                 hyper = NULL,
 
-                ## !\item{initial}{THIS OPTION IS OBSOLETE; use
-                ## !\code{hyper}!!! Vector indicating the starting values for
-                ## !the optimization algorithm. The length of the vector
-                ## !depends on the number of hyperparamters in the choosen
-                ## !\code{model}. If \code{fixed=T} the value at which the
-                ## !parameters are fixed is determines through \code{initial}.
-                ## !See \code{inla.models()$latent$'model name'} to have info
-                ## !about the choosen model.}
+                ## !\item{initial}{THIS OPTION IS OBSOLETE,  DO NOT USE}
                 initial = NULL,
 
-                ## !\item{prior}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-                ## !Prior distribution(s) for the hyperparameters of the
-                ## !!random model. The default value depends on the type of
-                ## !model, see !\url{www.r-inla.org} for a detailed
-                ## !description of the models. See
-                ## !\code{names(inla.models()$priors)} for possible prior
-                ## !choices}
+                ## !\item{prior}{THIS OPTION IS OBSOLETE,  DO NOT USE}
                 prior = NULL,
 
-                ## !\item{param}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-                ## !Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
-                ## !of the prior distribution for the hyperparameters. The
-                ## !length of the vector depends on the choosen \code{model}.
-                ## !See \code{inla.models()$latent$'model name'} to have info
-                ## !about the choosen model.}
+                ## !\item{param}{THIS OPTION IS OBSOLETE,  DO NOT USE}
                 param = NULL,
 
-                ## !\item{fixed}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-                ## !Vector of boolean variables indicating wheater the
-                ## !hyperparameters of the model are fixed or random. The
-                ## !length of the vector depends on the choosen \code{model}
-                ## !See \code{inla.models()$latent$'model name'} to have info
-                ## !about the choosen model.}
+                ## !\item{fixed}{THIS OPTION IS OBSOLETE; DO NOT USE}
                 fixed = NULL,
 
-                ## !\item{season.length}{Lenght of the seasonal compoment
-                ## !(ONLY if \code{model="seasonal"}) }
+                ## !\item{season.length}{Length of the seasonal compoment for \code{model="seasonal"}) }
                 season.length = NULL,
 
                 ## !\item{constr}{A boolean variable indicating whater to set
@@ -199,7 +176,7 @@
                 cyclic = NULL,
 
                 ## !\item{diagonal}{An extra constant added to the diagonal of
-                ## !the precision matrix.}
+                ## !the precision matrix to prevent numerical issues.}
                 diagonal = NULL,
 
                 ## !\item{graph}{Defines the graph-object either as a file with
@@ -207,18 +184,10 @@
                 ## !(sparse) symmetric matrix.}
                 graph = NULL,
 
-                ## !\item{graph.file}{THIS OPTION IS OBSOLETE AND REPLACED BY
-                ## !THE MORE GENERAL ARGUMENT \code{graph}. PLEASE CHANGE YOUR
-                ## !CODE.
-                ## !Name of the file containing the graph
-                ## !of the model; see
-                ## !\url{www.r-inla.org/faq}.}
+                ## !\item{graph.file}{THIS OPTION IS OBSOLETE,  DO NOT USE}
                 graph.file = NULL,
 
-                ## !\item{cdf}{A vector of maximum 10 values between 0 and 1
-                ## !\eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
-                ## !returns, for each posterior marginal the probabilities
-                ## !\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
+                ## !\item{cdf}{THIS OPTION IS OBSOLETE,  DO NOT USE}
                 cdf = NULL,
 
                 ## !\item{quantiles}{A vector of maximum 10 quantiles,
@@ -258,30 +227,29 @@
                 ## !possible values are \code{c(0, 1, 2, 3)}}
                 nu = NULL,
 
-                ## !\item{bvalue}{TODO}
+                ## !\item{bvalue}{The boundary conditions for model \code{rw2d},  0 means use
+                ## the correct subspace (default),  while 1 means condition on 0's outside}
                 bvalue = NULL,
 
-                ## !\item{spde.prefix}{TODO}
+                ## !\item{spde.prefix}{Internal use only}
                 spde.prefix = NULL,
 
-                ## !\item{spde2.prefix}{TODO}
+                ## !\item{spde2.prefix}{Internal use only}
                 spde2.prefix = NULL,
 
-                ## !\item{spde2.transform}{TODO}
+                ## !\item{spde2.transform}{Internal use only}
                 spde2.transform = c("logit", "log", "identity"),
 
-                ## !\item{spde3.prefix}{TODO}
+                ## !\item{spde3.prefix}{Internal use only}
                 spde3.prefix = NULL,
 
-                ## !\item{spde3.transform}{TODO}
+                ## !\item{spde3.transform}{Internal use only}
                 spde3.transform = c("logit", "log", "identity"),
 
-                ## !\item{mean.linear}{Prior mean for the linear component,
-                ## !only used if \code{model="linear"}}
+                ## !\item{mean.linear}{Prior mean for \code{model="linear"}}
                 mean.linear = inla.set.control.fixed.default()$mean,
 
-                ## !\item{prec.linear}{Prior precision for the linear
-                ## !component, only used if \code{model="linear"}}
+                ## !\item{prec.linear}{Prior precision for \code{model="linear"}}
                 prec.linear = inla.set.control.fixed.default()$prec,
 
                 ## !\item{compute}{ A boolean variable indicating wheather the
@@ -291,7 +259,7 @@
                 ## ! some posterior marginals.}
                 compute = TRUE,
 
-                ## !\item{of}{TODO}
+                ## !\item{of}{Internal use only}
                 of = NULL,
 
                 ## !\item{precision}{The precision for the artifical noise added when creating a copy of a model and others.}
@@ -317,9 +285,6 @@
 
                 ## !\item{scale}{A scaling vector. Its meaning depends on the model.}
                 scale = NULL,
-
-                ## !\item{strata}{Currently not in use}
-                strata = NULL,
 
                 ## !\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
                 rgeneric = NULL,
@@ -429,15 +394,15 @@
         for (nm in names(model$f)) {
             if (inla.one.of(nm, arguments)) {
                 inla.eval(paste("if (missing(", nm, ") || is.null(", nm, ")) ",
-                    nm, "=", "model$f$", nm,
-                    sep = ""
-                ))
+                                nm, "=", "model$f$", nm,
+                                sep = ""
+                                ))
             } else {
                 ## this should not happen
                 stop(paste("Argument `", nm, "' is not an argument in f().",
-                    " This is likely not what you want!",
-                    sep = ""
-                ))
+                           " This is likely not what you want!",
+                           sep = ""
+                           ))
             }
         }
 
@@ -447,14 +412,17 @@
     }
 
     stopifnot(!(!is.null(copy) && !is.null(scopy)))
+    if (!is.null(cdf)) {
+        stop("The argument 'cdf' is no longer in use. Please fix.")
+    }
 
     ## this is a nice trick
     if (!is.null(copy)) {
         if (!missing(model)) {
             warning(paste("Ignored argument model=`", model,
-                "' in f() due to copy=`", copy, "'",
-                sep = ""
-            ))
+                          "' in f() due to copy=`", copy, "'",
+                          sep = ""
+                          ))
         }
         if (!is.null(of)) {
             stop("Argument `of=NULL' is required when `copy=...' is used.")
@@ -466,9 +434,9 @@
     if (!is.null(scopy)) {
         if (!missing(model)) {
             warning(paste("Ignored argument model=`", model,
-                "' in f() due to scopy=`", scopy, "'",
-                sep = ""
-            ))
+                          "' in f() due to scopy=`", scopy, "'",
+                          sep = ""
+                          ))
         }
         if (!is.null(of)) {
             stop("Argument `of=NULL' is required when `scopy=...' is used.")
@@ -494,8 +462,8 @@
     vars <- as.list(substitute(list(...)))[-1]
     d <- length(vars)
     if (d == 0L) {
-          stop(paste("Missing covariate in f(...) for model=", model))
-      }
+        stop(paste("Missing covariate in f(...) for model=", model))
+    }
     term <- deparse(vars[[1]], backtick = TRUE, width.cutoff = 500)
     if (debug) {
         print(vars)
@@ -586,9 +554,9 @@
             f.call <- as.character(as.expression(match.call(expand.dots = TRUE)))
             valid.args <- inla.paste(sort(arguments), sep = "\n\t")
             stop(paste("Argument `", elm, "' in formula specification\n\n\t\t",
-                f.call, "\n\n  is invalid. Valid arguments are:\n\n\t", valid.args,
-                sep = ""
-            ))
+                       f.call, "\n\n  is invalid. Valid arguments are:\n\n\t", valid.args,
+                       sep = ""
+                       ))
         }
     }
 
@@ -841,7 +809,7 @@
             stop(paste("Argument `n'", n, "is not divisible by", n.div.by))
         }
     } else if ((!is.null(inla.model.properties(model, "latent")$n.div.by)
-        && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
+               && inla.model.properties(model, "latent")$n.div.by) && !is.null(n)) {
         if (!inla.divisible(n, inla.model.properties(model, "latent")$n.div.by)) {
             stop(paste("Argument `n'", n, "is not divisible by", inla.model.properties(model, "latent")$n.div.by))
         }
@@ -851,7 +819,7 @@
     ## models further below.
     if (!is.null(n) && is.null(values) &&
         (!is.null(inla.model.properties(model, "latent")$set.default.values)
-        && inla.model.properties(model, "latent")$set.default.values)) {
+            && inla.model.properties(model, "latent")$set.default.values)) {
         values <- 1:n
     }
 
@@ -981,10 +949,10 @@
     }
 
     if (!missing(scale.model) && !inla.one.of(model, c(
-        "rw1", "rw2", "besag", "bym",
-        "bym2", "besag2", "rw2d",
-        "rw2diid", "seasonal"
-    ))) {
+                                                         "rw1", "rw2", "besag", "bym",
+                                                         "bym2", "besag2", "rw2d",
+                                                         "rw2diid", "seasonal"
+                                                     ))) {
         stop(paste("Option 'scale.model' is not used for model:", model))
     }
     if (missing(scale.model) || is.null(scale.model)) {
@@ -1147,7 +1115,6 @@
         order = order,
         weights = weights,
         scale = scale,
-        strata = strata,
         rgeneric = rgeneric,
         cgeneric = cgeneric,
         scale.model = as.logical(scale.model),
