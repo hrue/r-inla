@@ -98,9 +98,6 @@ typedef struct {
 	char **preopt_graph_latent_is_nb;
 	char **preopt_graph_like_is_nb;
 
-	GMRFLib_idx2_tp **like_idx2;
-	GMRFLib_idx_tp **latent_idx;
-
 	GMRFLib_graph_tp *preopt_graph;
 	GMRFLib_Qfunc_tp *preopt_Qfunc;
 	void *preopt_Qfunc_arg;
