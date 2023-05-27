@@ -663,6 +663,12 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 	// tabulate _is_nb() as this will speedup _preopt_Qfunc()
 	(*preopt)->preopt_graph_latent_is_nb = Calloc((*preopt)->preopt_graph->n, char *);
 	(*preopt)->preopt_graph_like_is_nb = Calloc((*preopt)->preopt_graph->n, char *);
+
+	GMRFLib_idx2_tp **like_idx2 = Calloc((*preopt)->preopt_graph->n, GMRFLib_idx2_tp *);
+	GMRFLib_idx_tp **latent_idx = Calloc((*preopt)->preopt_graph->n, GMRFLib_idx_tp *);
+	(*preopt)->like_idx2 = like_idx2;
+	(*preopt)->latent_idx = latent_idx;
+
 //#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int i = 0; i < (*preopt)->preopt_graph->n; i++) {
 		int lnnbs = (*preopt)->preopt_graph->lnnbs[i];
@@ -670,13 +676,33 @@ int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
 			char *store = Calloc(2 * lnnbs, char);
 			(*preopt)->preopt_graph_latent_is_nb[i] = store;
 			(*preopt)->preopt_graph_like_is_nb[i] = store + lnnbs;
+
+			int n_like = 0;
+			int n_latent = 0;
 			for (int k = 0; k < lnnbs; k++) {
 				int j = (*preopt)->preopt_graph->lnbs[i][k];
 				if (GMRFLib_graph_is_nb(i, j, (*preopt)->latent_graph)) {
 					(*preopt)->preopt_graph_latent_is_nb[i][k] = 1;
+					n_latent++;
 				}
 				if (GMRFLib_graph_is_nb(i, j, (*preopt)->like_graph)) {
 					(*preopt)->preopt_graph_like_is_nb[i][k] = 1;
+					n_like++;
+				}
+			}
+
+			GMRFLib_idx_create_x(&(latent_idx[i]), n_latent);
+			for (int k = 0; k < lnnbs; k++) {
+				if ((*preopt)->preopt_graph_latent_is_nb[i][k]) {
+					GMRFLib_idx_add(&(latent_idx[i]), k);
+				}
+			}
+
+			GMRFLib_idx2_create_x(&(like_idx2[i]), n_like);
+			for (int k = 0, kk = 0; k < lnnbs; k++) {
+				if ((*preopt)->preopt_graph_like_is_nb[i][k]) {
+					kk++;
+					GMRFLib_idx2_add(&(like_idx2[i]), k, kk);
 				}
 			}
 		}
@@ -889,17 +915,41 @@ double GMRFLib_preopt_Qfunc(int thread_id, int node, int nnode, double *values, 
 			GMRFLib_preopt_tp *a = (GMRFLib_preopt_tp *) arg;
 			int *jj = a->preopt_graph->lnbs[node];
 			int lnnbs = a->preopt_graph->lnnbs[node];
-			char *like_is_nb = a->preopt_graph_like_is_nb[node];
-			char *latent_is_nb = a->preopt_graph_latent_is_nb[node];
+			if (1) {
+				// this used like_Qfunc_k for which we do not need to find the index as we know it already (=kk). we can do this as we
+				// do all in a increasing sequence
 
-			// this used like_Qfunc_k for which we do not need to find the index as we know it already (=kk). we can do this as we
-			// do all in a increasing sequence
-			int kk = 0;
-			values[0] = GMRFLib_preopt_like_Qfunc_k(thread_id, node, kk, NULL, a->like_Qfunc_arg)
-			    + GMRFLib_preopt_latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
-			for (int k = 0; k < lnnbs; k++) {
-				values[1 + k] = (like_is_nb[k] ? GMRFLib_preopt_like_Qfunc_k(thread_id, node, ++kk, NULL, a->like_Qfunc_arg) : 0.0)
-				    + (latent_is_nb[k] ? GMRFLib_preopt_latent_Qfunc(thread_id, node, jj[k], NULL, a->latent_Qfunc_arg) : 0.0);
+				char *like_is_nb = a->preopt_graph_like_is_nb[node];
+				char *latent_is_nb = a->preopt_graph_latent_is_nb[node];
+				int kk = 0;
+
+				values[0] = GMRFLib_preopt_like_Qfunc_k(thread_id, node, kk, NULL, a->like_Qfunc_arg)
+					+ GMRFLib_preopt_latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+				for (int k = 0; k < lnnbs; k++) {
+					values[1 + k] = (like_is_nb[k] ? GMRFLib_preopt_like_Qfunc_k(thread_id, node, ++kk, NULL, a->like_Qfunc_arg) : 0.0)
+						+ (latent_is_nb[k] ? GMRFLib_preopt_latent_Qfunc(thread_id, node, jj[k], NULL, a->latent_Qfunc_arg) : 0.0);
+				}
+			}
+			if (0) {
+				Memset(values+1, 0, lnnbs * sizeof(double));
+				values[0] = GMRFLib_preopt_like_Qfunc_k(thread_id, node, 0, NULL, a->like_Qfunc_arg)
+					+ GMRFLib_preopt_latent_Qfunc(thread_id, node, node, NULL, a->latent_Qfunc_arg);
+
+				GMRFLib_idx_tp *idx = a->latent_idx[node];
+				if (idx) {
+					for (int j = 0; j < idx->n; j++) {
+						int k = idx->idx[j];
+						values[1 + k] = GMRFLib_preopt_latent_Qfunc(thread_id, node, jj[k], NULL, a->like_Qfunc_arg);
+					}
+				}
+				GMRFLib_idx2_tp *idx2 = a->like_idx2[node];
+				if (idx2) {
+					for (int j = 0; j < idx2->n; j++) {
+						int k = idx2->idx[0][j];
+						int kk = idx2->idx[1][j];
+						values[1 + k] += GMRFLib_preopt_like_Qfunc_k(thread_id, node, kk, NULL, a->like_Qfunc_arg);
+					}
+				}
 			}
 		}
 		return 0.0;
