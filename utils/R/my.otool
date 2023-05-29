@@ -81,7 +81,6 @@ replace () {
 	fi
 	fff=$d/$ff
 	if [ -f $fff ]; then
-	    ## echo ">>> $fff"
 	    echo $(myreadlink $fff)
 	else
 	    d="/Library/Frameworks/R.framework/Versions/Current/Resources/lib"
