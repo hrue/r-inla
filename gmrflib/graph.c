@@ -1398,7 +1398,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				int tnum = (nt__ > 1 ? omp_get_thread_num() : 0); \
 				used[tnum] = 1;				\
 				r = local_result + tnum * (graph->n + off); \
-				local_values = CODE_BLOCK_WORK_PTR(tnum); \
+				local_values = CODE_BLOCK_WORK_PTR_x(0, tnum);	\
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
 				r[i] += (local_values[0] + diag[i]) * x[i]; \
 				int *j_a = graph->lnbs[i];		\
