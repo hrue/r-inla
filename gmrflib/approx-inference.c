@@ -7970,14 +7970,12 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
 
-#pragma GCC ivdep
-		for (int i = 0; i < np; i++) {
-			x_user[i] = m + s * xp[i];
-		}
+		GMRFLib_daxpb(np, s, xp, m, x_user);
 		GMRFLib_density_user2std_n(x_std, x_user, density, np);
 		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
+#pragma omp simd reduction(-: A, B, C)
 		for (int i = 0; i < np; i++) {
 			double tmp = wp[i] * loglik[i];
 			A -= tmp;
@@ -8084,10 +8082,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
 	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
 
-#pragma GCC ivdep
-	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-		x_user[i] = mean + sd * xp[i];
-	}
+	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	// I do not use 'A'
@@ -8101,12 +8096,12 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	B = 0.0;
 	C = -tmp;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: C, B)
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
 		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
-		// A += tt;
+		// A += tt; add reduction...
 		C += tt * xp2[i];
 		B += tt2 * xp[i];
 	}
@@ -8156,10 +8151,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
 	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
 
-#pragma GCC ivdep
-	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-		x_user[i] = mean + sd * xp[i];
-	}
+	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	// I do not use 'A'
@@ -8173,11 +8165,11 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	B = -tmp;
 	C = 3.0 * tmp;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: B, C)
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
-		// A += tt;
+		// A += tt; add reduction
 		B += tt * xp2[i];
 		C += tt * xp3[i];
 	}

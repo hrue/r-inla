@@ -1319,9 +1319,15 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 
 	if (GMRFLib_faster_constr) {
 		dgemv_special(res, x, constr);
+		if (nc >= GMRFLib_SIMD_LIM) {
 #pragma omp simd
-		for (int i = 0; i < nc; i++) {
-			t_vector[i] = res[i] - t_vector[i];
+			for (int i = 0; i < nc; i++) {
+				t_vector[i] = res[i] - t_vector[i];
+			}
+		} else {
+			for (int i = 0; i < nc; i++) {
+				t_vector[i] = res[i] - t_vector[i];
+			}
 		}
 	} else {
 		int inc = 1;
@@ -1351,13 +1357,18 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 
 	double *t_vector = Calloc_get(nc);
 	double *res = Calloc_get(nc);
-	Memset(t_vector, 0, nc * sizeof(double));
 
 	if (GMRFLib_faster_constr) {
 		dgemv_special(res, x, constr);
+		if (nc >= GMRFLib_SIMD_LIM) {
 #pragma omp simd
-		for (int i = 0; i < nc; i++) {
-			t_vector[i] = res[i] - t_vector[i];
+			for (int i = 0; i < nc; i++) {
+				t_vector[i] = res[i] - t_vector[i];
+			}
+		} else {
+			for (int i = 0; i < nc; i++) {
+				t_vector[i] = res[i] - t_vector[i];
+			}
 		}
 	} else {
 		int inc = 1;
