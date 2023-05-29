@@ -35,14 +35,12 @@
 #include "GMRFLib/GMRFLibP.h"
 
 
-int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt,
-			int npred, int nf, int **c, double **w,
-			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc,
-			void **f_Qfunc_arg, char *f_sumzero, GMRFLib_constr_tp **f_constr,
-			double *f_diag,
-			GMRFLib_Qfunc_tp ***ff_Qfunc, void ***ff_Qfunc_arg,
-			int nbeta, double **covariate, double *prior_precision, GMRFLib_bfunc_tp **bfunc,
-			GMRFLib_ai_param_tp *UNUSED(ai_par), char *pA_fnm, GMRFLib_matrix_tp **global_constr)
+int GMRFLib_preopt_init(GMRFLib_preopt_tp **preopt, int npred, int nf, int **c, double **w,
+			GMRFLib_graph_tp **f_graph, GMRFLib_Qfunc_tp **f_Qfunc, void **f_Qfunc_arg,
+			char *f_sumzero, GMRFLib_constr_tp **f_constr, double *f_diag,
+			GMRFLib_Qfunc_tp ***ff_Qfunc, void ***ff_Qfunc_arg, int nbeta, double **covariate,
+			double *prior_precision, GMRFLib_bfunc_tp **bfunc, GMRFLib_ai_param_tp *UNUSED(ai_par),
+			char *pA_fnm, GMRFLib_matrix_tp **global_constr)
 {
 	assert(omp_get_thread_num() == 0);
 
@@ -1389,6 +1387,7 @@ int GMRFLib_preopt_free(GMRFLib_preopt_tp *preopt)
 
 			for (int i = 0; i < preopt->preopt_graph->n; i++) {
 				Free(preopt->preopt_graph_latent_is_nb[i]);
+				Free(preopt->preopt_graph_like_is_nb[i]);
 			}
 			Free(preopt->preopt_graph_latent_is_nb);
 			Free(preopt->preopt_graph_like_is_nb);
