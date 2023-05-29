@@ -59,7 +59,7 @@ Xfun () {
 		test -f "$lib" && otool -l $lib | grep .dylib | grep /Accelerate.framework
 		;;
 	    *)
-		echo $lib | grep -v ^/usr/lib | grep -v ^/Library/Frameworks/R.framework
+		echo $lib | grep -v ^/usr/lib ## | grep -v ^/Library/Frameworks/R.framework
 		;;
 	esac
     done
@@ -71,12 +71,36 @@ A=$(Xfun $A)
 A=$(Xfun $A)
 A=$(Xfun $A)
 
+replace () {
+    cat | while read f; do
+	ff=$(basename $f)
+	if $(uname -a |grep -q ARM64); then 
+	    d="$HOME/builds/arm64/local/lib"
+	else
+	    d="$HOME/builds/build64/local/lib"
+	fi
+	fff=$d/$ff
+	if [ -f $fff ]; then
+	    ## echo ">>> $fff"
+	    echo $(myreadlink $fff)
+	else
+	    d="/Library/Frameworks/R.framework/Versions/Current/Resources/lib"
+	    fff=$d/$ff
+	    if [ -f $fff ]; then
+		echo $(myreadlink $fff)
+	    else
+		echo $(myreadlink $f)
+	    fi
+	fi
+    done
+}	     
+
 {
     echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : 
     if $(uname -a |grep -q ARM64); then 
-	echo builds/arm64/local/lib/libpardiso720-MACOS-ARM64-RINLA.so
+	echo $HOME/builds/arm64/local/lib/libpardiso720-MACOS-ARM64-RINLA.so
     else
-	echo builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
+	echo $HOME/builds/build64/local/lib/libpardiso720-MACOS-X86-64-RINLA.dylib
 	MKL=/opt/intel/oneapi/mkl/latest/lib
 	if true; then
 	    echo $(myreadlink $MKL/libmkl_intel_lp64.2.dylib)
@@ -87,5 +111,6 @@ A=$(Xfun $A)
 	    done
 	fi
     fi
-} | sort | awk '{gsub(/\.\//,"");print}' | uniq
+} | sort | awk '{gsub(/\.\//,"");print}' | uniq | replace | sort | uniq
+
 
