@@ -583,10 +583,7 @@ int GMRFLib_init_problem_store(int thread_id,
 	if (mean) {
 		double *tmp = Calloc(sub_n, double);
 		GMRFLib_Qx(thread_id, tmp, mean, (*problem)->sub_graph, (*problem)->tab->Qfunc, (*problem)->tab->Qfunc_arg);
-#pragma GCC ivdep
-		for (int i = 0; i < sub_n; i++) {
-			bb[i] += tmp[i];
-		}
+		GMRFLib_daddto(sub_n, tmp, bb);
 		Free(tmp);
 	}
 
@@ -656,10 +653,7 @@ int GMRFLib_init_problem_store(int thread_id,
 		/*
 		 * if we should keep the mean, then do not add the correction-terms 
 		 */
-#pragma GCC ivdep
-		for (int k = 0; k < (*problem)->sub_graph->n; k++) {
-			(*problem)->sub_mean[k] += b_add[k];
-		}
+		GMRFLib_daddto((*problem)->sub_graph->n, b_add, (*problem)->sub_mean);
 		Free(b_add);
 
 		if ((*problem)->sub_constr && (*problem)->sub_constr->nc > 0) {
@@ -895,10 +889,8 @@ int GMRFLib_sample(GMRFLib_problem_tp *problem)
 	}
 
 	GMRFLib_EWRAP1(GMRFLib_solve_lt_sparse_matrix(problem->sub_sample, 1, &(problem->sub_sm_fact), problem->sub_graph));
-	for (i = 0; i < n; i++) {
-		problem->sub_sample[i] += problem->sub_mean[i];
-		problem->sample[i] = problem->sub_sample[i];   /* will be modified later if constraints */
-	}
+	GMRFLib_daddto(n, problem->sub_mean, problem->sub_sample);
+	Memcpy(problem->sample, problem->sub_sample, n * sizeof(double));
 
 	/*
 	 * if there is no constraints, then we can evaluate the log-density and return 
@@ -968,9 +960,10 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 	/*
 	 * user has altered the 'sample', put the correct subset into sub_sample and compute (x-\mu)^TQ(x-\mu)
 	 */
-#pragma GCC ivdep
+
+	Memcpy(problem->sub_sample, problem->sample, n * sizeof(double));
+#pragma omp simd private(i)
 	for (i = 0; i < n; i++) {
-		problem->sub_sample[i] = problem->sample[i];
 		xx[i] = problem->sub_sample[i] - problem->sub_mean[i];
 	}
 	GMRFLib_Qx(thread_id, yy, xx, problem->sub_graph, problem->tab->Qfunc, (void *) problem->tab->Qfunc_arg);
@@ -1326,7 +1319,7 @@ int GMRFLib_eval_constr(double *value, double *sqr_value, double *x, GMRFLib_con
 
 	if (GMRFLib_faster_constr) {
 		dgemv_special(res, x, constr);
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < nc; i++) {
 			t_vector[i] = res[i] - t_vector[i];
 		}
@@ -1362,7 +1355,7 @@ int GMRFLib_eval_constr0(double *value, double *sqr_value, double *x, GMRFLib_co
 
 	if (GMRFLib_faster_constr) {
 		dgemv_special(res, x, constr);
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < nc; i++) {
 			t_vector[i] = res[i] - t_vector[i];
 		}

@@ -43287,7 +43287,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-#pragma GCC ivdep
+#pragma omp simd reduction(+: rr)
 			for (int i = 0; i < n; i++) {
 				rr += x[i];
 			}
@@ -44399,6 +44399,104 @@ int testit(int argc, char **argv)
 		}
 	}
 		break;
+
+	case 120:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(3 * n, double);
+		double *y = x + n;
+		double *yy = x + 2 * n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+			yy[i] = y[i]; 
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+			GMRFLib_daddto(n, x, y);	       /* y += x */
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				yy[j] += x[j]; 
+			}
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 121:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		int inc = atoi(args[2]);
+		
+		P(n);
+		P(m);
+		P(inc);
+		
+		double *x = Calloc(3 * inc * n, double);
+		double *y = x + inc * n;
+		double *yy = x + 2 * inc * n;
+
+		for (int i = 0; i < inc * n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+			yy[i] = y[i]; 
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+			if (inc == 1) {
+#pragma omp simd
+				for (int j = 0; j < n; j++) {
+					y[i] = x[i] - y[i];
+				}
+			} else {
+#pragma omp simd
+				for (int j = 0; j < n; j++) {
+					y[i] = x[i*inc] - y[i];
+				}
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			if (inc == 1) {
+				for (int j = 0; j < n; j++) {
+					yy[i] =  x[i] - yy[i];
+				}
+			} else {
+				for (int j = 0; j < n; j++) {
+					yy[i] =  x[i*inc] - yy[i];
+				}
+			}
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 
 	case 999:
 	{

@@ -1943,10 +1943,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (preopt) {
 			GMRFLib_preopt_update(thread_id, preopt, bb, cc);
 			bb_use = preopt->total_b[thread_id];
-#pragma GCC ivdep
-			for (i = 0; i < n; i++) {
-				bb_use[i] += b[i];
-			}
+			GMRFLib_daddto(n, b, bb_use);
 			cc_use = c;			       /* that what is there from before */
 			if (0)
 				for (i = 0; i < n; i++) {
@@ -1955,11 +1952,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		} else {
 			assert(Npred == n);
 
-#pragma GCC ivdep
-			for (i = 0; i < n; i++) {
-				bb[i] += b[i];
-				cc[i] += c[i];
-			}
+			GMRFLib_daddto(n, b, bb);
+			GMRFLib_daddto(n, c, cc);
 			bb_use = bb;
 			cc_use = cc;
 			if (0)
@@ -2010,13 +2004,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		double err = 0.0;
-#pragma GCC ivdep
+#pragma omp simd reduction(+: err) private(i)
 		for (i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
 		}
 		err = sqrt(err / n);
 
-#pragma GCC ivdep
+#pragma omp simd private(i)
 		for (i = 0; i < n; i++) {
 			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 		}
