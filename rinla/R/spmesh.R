@@ -40,6 +40,9 @@ inla.has_PROJ6 <- function() {
 #' @param fun The name of the calling function
 
 inla.not_for_PROJ6 <- function(fun) {
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.not_for_PROJ6()",
+                              details = "Should no longer be used.")
     if (inla.has_PROJ6()) {
         stack <- sys.calls()
         stack <- lapply(as.list(stack), function(x) as.character(deparse(x)))
@@ -59,6 +62,9 @@ inla.not_for_PROJ6 <- function(fun) {
 #' calling methods that are only available for PROJ6
 
 inla.not_for_PROJ4 <- function(fun) {
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.not_for_PROJ4()",
+                              details = "Should no longer be used.")
     if (!inla.has_PROJ6()) {
         stop(paste0(
             "'",
@@ -72,6 +78,9 @@ inla.not_for_PROJ4 <- function(fun) {
 #' to using old PROJ4 methods when a RPOJ6 method hasn't been implemented
 
 inla.fallback_PROJ6 <- function(fun) {
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.fallback_PROJ6()",
+                              details = "Should no longer be used.")
     if (inla.has_PROJ6()) {
         stop(paste0(
             "'",
@@ -85,6 +94,9 @@ inla.fallback_PROJ6 <- function(fun) {
 #' is required but not available
 
 inla.requires_PROJ6 <- function(fun) {
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.requires_PROJ6()",
+                              details = "Should no longer be used.")
     if (!inla.has_PROJ6()) {
         stop(paste0(
             "'",
@@ -122,9 +134,13 @@ inla.requires_PROJ6 <- function(fun) {
 #'
 #' @export inla.sp_get_crs
 inla.sp_get_crs <- function(x) {
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.sp_get_crs()",
+                              with = "inlabru::fm_CRS()")
     if (is.null(x)) {
         return(NULL)
     }
+    fm_CRS(x)
     suppressWarnings(crs <- sp::CRS(SRS_string = sp::wkt(x)))
     crs
 }
@@ -215,53 +231,20 @@ internal.clip <- function(bounds, coords, eps = 0.05) {
 #' @rdname crs_wkt
 #' @export inla.wkt_is_geocent
 inla.wkt_is_geocent <- function(wkt) {
-    if (is.null(wkt) || identical(wkt, "")) {
-        return(FALSE)
-    }
-    # See https://proceedings.esri.com/library/userconf/proc17/tech-workshops/tw_2588-212.pdf
-    geo_crs_items <- c(
-        "GEODCRS", "GEOGCRS",
-        "BASEGEODCRS", "BASEGEOGCRS"
-    )
-    wt <- inla.as.wkt_tree.wkt(wkt)
-    if (identical(wt[["label"]], "BOUNDCRS")) {
-        wt <- inla.wkt_tree_get_item(wt, "SOURCECRS")
-        wt <- inla.wkt_tree_get_item(wt, c("PROJCRS", geo_crs_items))
-    }
-    if (identical(wt[["label"]], "PROJCRS")) {
-        wt <- inla.wkt_tree_get_item(wt, geo_crs_items)
-    }
-    if (!(wt[["label"]] %in% geo_crs_items)) {
-        return(FALSE)
-    }
-    cs <- inla.wkt_tree_get_item(wt, "CS")
-    if (is.null(cs)) {
-        return(FALSE)
-    }
-    cart <- ((cs[["params"]][[1]] == "Cartesian") &&
-        (cs[["params"]][[2]] == "3"))
-    if (!cart) {
-        return(FALSE)
-    }
-    axis_names <- c('"(X)"', '"(Y)"', '"(Z)"')
-    axis_types <- c("geocentricX", "geocentricY", "geocentricZ")
-    for (k in seq_len(3)) {
-        axis <- inla.wkt_tree_get_item(wt, "AXIS", k)
-        if (!((axis[["params"]][[1]] == axis_names[k]) &&
-            (axis[["params"]][[2]] == axis_types[k]))) {
-            return(FALSE)
-        }
-    }
-    TRUE
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.wkt_is_geocent()",
+                              with = "inlabru::fm_wkt_is_geocent()")
+    inlabru::fm_wkt_is_geocent(wkt)
 }
 
 #' @export
 #' @rdname crs_wkt
 
 inla.crs_is_geocent <- function(crs) {
-    wkt <- inla.crs_get_wkt(crs)
-    result <- inla.wkt_is_geocent(wkt)
-    result
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.crs_is_geocent()",
+                              with = "inlabru::fm_crs_is_geocent()")
+    inlabru::fm_crs_is_geocent(crs)
 }
 
 
@@ -269,39 +252,20 @@ inla.crs_is_geocent <- function(crs) {
 #' @export
 
 inla.wkt_get_ellipsoid_radius <- function(wkt) {
-    geo_crs_items <- c(
-        "GEODCRS", "GEOGCRS",
-        "BASEGEODCRS", "BASEGEOGCRS"
-    )
-    wt <- inla.as.wkt_tree.wkt(wkt)
-
-    if (identical(wt[["label"]], "BOUNDCRS")) {
-        wt <- inla.wkt_tree_get_item(wt, "SOURCECRS")
-        wt <- inla.wkt_tree_get_item(wt, c("PROJCRS", geo_crs_items))
-    }
-    if (identical(wt[["label"]], "PROJCRS")) {
-        wt <- inla.wkt_tree_get_item(wt, geo_crs_items)
-    }
-    if (is.null(wt) || !(wt[["label"]] %in% geo_crs_items)) {
-        stop("Ellipsoid settings not found")
-    }
-
-    datum <- inla.wkt_tree_get_item(wt, c("DATUM", "ENSEMBLE"))
-    if (is.null(datum)) {
-        stop("Ellipsoid settings not found")
-    }
-    ellipsoid <- inla.wkt_tree_get_item(datum, "ELLIPSOID")
-    if (is.null(ellipsoid)) {
-        stop("Ellipsoid settings not found")
-    }
-    as.numeric(ellipsoid[["params"]][[2]])
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.wkt_get_ellipsoid_radius()",
+                              with = "inlabru::fm_ellipsoid_radius()")
+    inlabru::fm_ellipsoid_radius(wkt)
 }
 
 #' @rdname crs_wkt
 #' @export
 
 inla.crs_get_ellipsoid_radius <- function(crs) {
-    inla.wkt_get_ellipsoid_radius(inla.crs_get_wkt(crs))
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.crs_get_ellipsoid_radius()",
+                              with = "inlabru::fm_ellipsoid_radius()")
+    inlabru::fm_ellipsoid_radius(crs)
 }
 
 
@@ -309,64 +273,20 @@ inla.crs_get_ellipsoid_radius <- function(crs) {
 #' @export
 
 inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
-    geo_crs_items <- c(
-        "GEODCRS", "GEOGCRS",
-        "BASEGEODCRS", "BASEGEOGCRS"
-    )
-
-    set_radius <- function(wt) {
-        if (is.null(wt)) {
-            stop("Ellipsoid settings not found")
-        } else if (wt[["label"]] %in% geo_crs_items) {
-            datum <- inla.wkt_tree_get_item(wt, c("DATUM", "ENSEMBLE"))
-            null_datum <- is.null(datum)
-            if (null_datum) {
-                stop("Ellipsoid settings not found")
-            }
-            ellipsoid <- inla.wkt_tree_get_item(datum, "ELLIPSOID")
-            if (is.null(ellipsoid)) {
-                stop("Ellipsoid settings not found")
-            }
-            ellipsoid[["params"]][[2]] <- as.character(radius)
-            datum <- inla.wkt_tree_set_item(datum, ellipsoid)
-            wt <- inla.wkt_tree_set_item(wt, datum)
-        } else if (wt[["label"]] %in% c("BOUNDCRS", "SOURCECRS", "PROJCRS")) {
-            wt_sub <- inla.wkt_tree_get_item(
-                wt,
-                c(
-                    "BOUNDCRS", "SOURCECRS", "PROJCRS",
-                    geo_crs_items
-                )
-            )
-            if (is.null(wt_sub)) {
-                stop("Ellipsoid settings not found")
-            }
-            wt_sub_new <- set_radius(wt_sub)
-            wt <- inla.wkt_tree_set_item(wt, wt_sub_new)
-        } else {
-            stop("Ellipsoid settings not found")
-        }
-        wt
-    }
-
-    wt <- inla.as.wkt_tree.wkt(wkt)
-    wt <- set_radius(wt)
-    inla.as.wkt.wkt_tree(wt)
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.wkt_set_ellipsoid_radius()",
+                              with = "inlabru::fm_ellipsoid_radius<-()")
+    inlabru::fm_wkt_get_ellisoid_radius(wkt) <- radius
 }
 
 #' @rdname crs_wkt
 #' @export
 
 inla.crs_set_ellipsoid_radius <- function(crs, radius) {
-    wkt <- inla.crs_get_wkt(crs)
-    wkt <- inla.wkt_set_ellipsoid_radius(wkt, radius)
-    new_crs <- inla.CRS(SRS_string = wkt)
-    if (inherits(crs, "inla.CRS")) {
-        crs$crs <- new_crs
-        crs
-    } else {
-        new_crs
-    }
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.crs_set_ellipsoid_radius()",
+                              with = "inlabru::fm_ellipsoid_radius<-()")
+    inlabru::fm_wkt_get_ellisoid_radius(crs) <- radius
 }
 
 
@@ -821,6 +741,10 @@ inla.CRS <- function(projargs = NULL, doCheckCRSArgs = FALSE,
                      args = NULL, oblique = NULL,
                      SRS_string = NULL,
                      ...) {
+    lifecycle::deprecate_soft(when = "2023.04.19",
+                              what = "inla.CRS()",
+                              with = "inlabru::fm_CRS()")
+
     if (identical(projargs, "")) {
         projargs <- NULL
     }
