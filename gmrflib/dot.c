@@ -257,7 +257,7 @@ int GMRFLib_isum(int n, int *ix)
 		s3 += xx[7];
 	}
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0)
 	for (int i = m; i < n; i++) {
 		s0 += ix[i];
 	}
@@ -268,16 +268,9 @@ int GMRFLib_isum(int n, int *ix)
 int GMRFLib_isum2(int n, int *ix)
 {
 	int s = 0;
-	if (0) {
-#pragma GCC ivdep
-		for (int i = 0; i < n; i++) {
-			s += ix[i];
-		}
-	} else {
 #pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += ix[i];
-		}
+	for (int i = 0; i < n; i++) {
+		s += ix[i];
 	}
 
 	return (s);
@@ -305,7 +298,7 @@ double GMRFLib_dsum(int n, double *x)
 		s3 += xx[7];
 	}
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0)
 	for (int i = m; i < n; i++) {
 		s0 += x[i];
 	}

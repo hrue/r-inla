@@ -44234,7 +44234,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-#pragma GCC ivdep
+#pragma omp simd
 			for (int j = 0; j < n; j++) {
 				yy[j] = a * x[j] + b;
 			}
