@@ -198,8 +198,7 @@
  \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
  Hessian if needed. }
  \item{debug}{ If \code{TRUE}, print some debug output.  }
- \item{.parent.frame}{Internal use only}
- }
+ \item{.parent.frame}{Internal use only}}
  \value{%%
  \code{inla} returns an object of class \code{"inla"}. This is a list
  containing at least the following arguments:
