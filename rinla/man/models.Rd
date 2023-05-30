@@ -10492,7 +10492,7 @@ inla.models()
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{status = }{`experimental'}
-								\item{link = }{`default log neglog'}
+								\item{link = }{`default log neglog quantile'}
 								\item{pdf = }{`gammasurv'}
 							 }
 						 }

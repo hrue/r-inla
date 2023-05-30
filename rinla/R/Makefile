@@ -94,7 +94,7 @@ endef
 	} > ../NAMESPACE.ours
 	LC_ALL=C ls -1 *.R \
 	    | while read f; do \
-	        egrep "^## *Export *:" $$f \
+	         grep -E "^## *Export *:" $$f \
 		    | while read ff; do \
 	                echo $$ff \
 			    | awk -F: '{print $$2}' \

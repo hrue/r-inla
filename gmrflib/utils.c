@@ -417,7 +417,6 @@ int GMRFLib_iwhich_sorted(int key, int *__restrict ix, int len)
 	return -1;
 }
 
-
 int GMRFLib_find_nonzero(double *array, int len, int direction)
 {
 	/*
@@ -1971,3 +1970,4 @@ double GMRFLib_erfc_inv(double x)
 {
 	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
 }
+

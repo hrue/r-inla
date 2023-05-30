@@ -1074,3 +1074,21 @@ void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 		y[i] = a * x[i] + b;
 	}
 }
+
+void GMRFLib_daxpb2(int n, double a, double *x, double b, double *y)
+{
+	// y[i] = a * x[i] + b
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] = a * x[i] + b;
+	}
+}
+
+void GMRFLib_daddto(int n, double *x, double *y) 
+{
+	// y = y + x
+	int inc = 1;
+	double one = 1.0;
+	daxpy_(&n, &one, x, &inc, y, &inc);
+}
+

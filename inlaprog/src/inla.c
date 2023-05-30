@@ -156,8 +156,11 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 		_lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][thread_id][0]; \
 	}
 
+
 #define LINK_END				\
 	Free(_link_covariates)
+
+#define PREDICTOR_SCALE _lp_scale
 
 #define PREDICTOR_LINK_EQ(_fun) (ds->predictor_invlinkfunc == (_fun))
 
@@ -1940,7 +1943,7 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double *cov)
 {
 	Link_param_tp *lparam = (Link_param_tp *) param;
-	double s = lparam->scale[lparam->idx];
+	double s = (lparam->scale ? lparam->scale[lparam->idx] : 1.0);
 	double phi_param = map_exp(lparam->log_prec[thread_id][0], MAP_FORWARD, NULL);
 	double shape = phi_param * s;
 	double ret = 0.0;
@@ -1948,8 +1951,8 @@ double link_qgamma(int thread_id, double x, map_arg_tp typ, void *param, double 
 	switch (typ) {
 	case INVLINK:
 	{
-		// ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape, 1.0, 1, 0);
-		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile, 0);
+		// ret = exp(x) * shape / MATHLIB_FUN(qgamma) (lparam->quantile, shape/100, 1.0, 1, 0);
+		ret = exp(x) * shape / inla_qgamma_cache(shape, lparam->quantile);
 	}
 		break;
 
@@ -7210,17 +7213,32 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
 			double off = OFFSET(idx);
+			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
 			if (y > 0.0) {
+				if (fast) {
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+					for (int i = 0; i < m; i++) {
+						logll[i] = y * x[i] + ylEmn - E * exp(x[i]);
+					}
+				} else {
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
+					}
 				}
 			} else {
+				if (fast) {
 #pragma GCC ivdep
-				for (int i = 0; i < m; i++) {
-					double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-					logll[i] = ylEmn - E * exp(log_lambda);
+					for (int i = 0; i < m; i++) {
+						logll[i] = ylEmn - E * exp(x[i]);
+					}
+				} else {
+#pragma GCC ivdep
+					for (int i = 0; i < m; i++) {
+						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+						logll[i] = ylEmn - E * exp(log_lambda);
+					}
 				}
 			}
 		} else {
@@ -9874,9 +9892,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -21110,6 +21128,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_qpoisson;
 		}
 			break;
+
 		case L_BINOMIAL:
 		case L_XBINOMIAL:
 		{
@@ -21126,14 +21145,17 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_qweibull;
 		}
 			break;
+
 		case L_GAMMA:
+		case L_GAMMASURV:
 		{
 			ds->link_id = LINK_QGAMMA;
 			ds->link_ntheta = 0;
 			ds->predictor_invlinkfunc = link_qgamma;
-			inla_qgamma_cache(0.0, ds->data_observations.quantile, -1);
+			inla_qgamma_cache(0.0, ds->data_observations.quantile);
 		}
 			break;
+
 		case L_GP:
 		{
 			ds->link_id = LINK_LOG;
@@ -21141,6 +21163,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_log;
 		}
 			break;
+
 		case L_DGP:
 		{
 			ds->link_id = LINK_LOG;
@@ -21148,6 +21171,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			ds->predictor_invlinkfunc = link_log;
 		}
 			break;
+
 		default:
 			assert(0 == 1);
 		}
@@ -30723,7 +30747,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 		}
 
 		if (build) {
-#pragma omp critical
+#pragma omp critical (Name_a1fd55509a70889a1417fb08664e246f4517ee2a)
 			{
 				for (int k = 0; k < a->nbeta; k++) {
 					a->cache00[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
@@ -30762,7 +30786,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	}
 
 	if (build) {
-#pragma omp critical
+#pragma omp critical (Name_562559af23fb070f255b55089f79f0c69a8b73a2)
 		{
 			for (int k = 0; k < a->nbeta; k++) {
 				a->cache01[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
@@ -37457,7 +37481,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				if (time > 0) {
 					time_used_Qx[mett] += cpu[1];
 				}
-				// printf("%d %d %f %f\n", met, mett, cpu[0], cpu[1]);
+				// printf("%d %d %f %f\n", time, mett, cpu[0], cpu[1]);
 				Free(cpu);
 			}
 		}
@@ -41069,26 +41093,55 @@ int testit(int argc, char **argv)
 	case -1:
 	case 0:
 	{
-		double s, phi, mu, y, shape, rate, q, mmu, scale, alpha;
+		double s, phi, mu, yyy, shape, rate, q, mmu, scale, alpha;
 		s = 1.2;
 		phi = 2.3;
 		mu = 3.4;
-		y = 4.5;
+		yyy = 4.5;
 		shape = s * phi;
 		rate = s * phi / mu;
 		scale = 1.0 / rate;
 		alpha = 0.5;
-		alpha = MATHLIB_FUN(pgamma) (y, shape, scale, 1, 0);
+		alpha = MATHLIB_FUN(pgamma) (yyy, shape, scale, 1, 0);
 		q = MATHLIB_FUN(qgamma) (alpha, shape, 1.0, 1, 0);
-		mmu = y * s * phi / q;
+		mmu = yyy * s * phi / q;
 		printf("alpha %f q %f mu %f mmu %f diff %f\n", alpha, q, mu, mmu, mu - mmu);
 
-		P(MATHLIB_FUN(pgamma) (y, shape, scale, 1, 0));
+		P(MATHLIB_FUN(pgamma) (yyy, shape, scale, 1, 0));
 		P(MATHLIB_FUN(qgamma) (alpha, shape, 1.0, 1, 0));
-		P(gsl_cdf_gamma_P(y, shape, scale));
+		P(gsl_cdf_gamma_P(yyy, shape, scale));
 		P(gsl_cdf_gamma_Pinv(alpha, shape, 1.0));
 
-		exit(0);
+		if (nargs) {
+			int n = atoi(args[0]);
+			double *x = Calloc(n, double);
+			double *y = Calloc(n, double);
+			double *yy = Calloc(n, double);
+
+			for (int i = 0; i < n; i++) {
+				x[i] = GMRFLib_uniform();
+			}
+
+			double tref[] = { 0, 0 };
+			tref[0] -= GMRFLib_cpu();
+			for (int i = 0; i < n; i++) {
+				y[i] = MATHLIB_FUN(qgamma) (x[i], exp(x[i]), 1.0, 1, 0);
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			for (int i = 0; i < n; i++) {
+				yy[i] = gsl_cdf_gamma_Pinv(x[i], exp(x[i]), 1.0);
+			}
+			tref[1] += GMRFLib_cpu();
+
+			P(y[0] - yy[0]);
+			printf("MATHLIB %f GSL %f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+
+			Free(x);
+			Free(y);
+			Free(yy);
+		}
 	}
 		break;
 
@@ -43234,7 +43287,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-#pragma GCC ivdep
+#pragma omp simd reduction(+: rr)
 			for (int i = 0; i < n; i++) {
 				rr += x[i];
 			}
@@ -44181,7 +44234,7 @@ int testit(int argc, char **argv)
 			tref[0] += GMRFLib_cpu();
 
 			tref[1] -= GMRFLib_cpu();
-#pragma GCC ivdep
+#pragma omp simd
 			for (int j = 0; j < n; j++) {
 				yy[j] = a * x[j] + b;
 			}
@@ -44346,6 +44399,104 @@ int testit(int argc, char **argv)
 		}
 	}
 		break;
+
+	case 120:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		P(n);
+		P(m);
+		double *x = Calloc(3 * n, double);
+		double *y = x + n;
+		double *yy = x + 2 * n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+			yy[i] = y[i]; 
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+			GMRFLib_daddto(n, x, y);	       /* y += x */
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				yy[j] += x[j]; 
+			}
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 121:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		int inc = atoi(args[2]);
+		
+		P(n);
+		P(m);
+		P(inc);
+		
+		double *x = Calloc(3 * inc * n, double);
+		double *y = x + inc * n;
+		double *yy = x + 2 * inc * n;
+
+		for (int i = 0; i < inc * n; i++) {
+			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
+			yy[i] = y[i]; 
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+			if (inc == 1) {
+#pragma omp simd
+				for (int j = 0; j < n; j++) {
+					y[i] = x[i] - y[i];
+				}
+			} else {
+#pragma omp simd
+				for (int j = 0; j < n; j++) {
+					y[i] = x[i*inc] - y[i];
+				}
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			if (inc == 1) {
+				for (int j = 0; j < n; j++) {
+					yy[i] =  x[i] - yy[i];
+				}
+			} else {
+				for (int j = 0; j < n; j++) {
+					yy[i] =  x[i*inc] - yy[i];
+				}
+			}
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("mod:  %.4f  plain:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 
 	case 999:
 	{

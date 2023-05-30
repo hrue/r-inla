@@ -1943,10 +1943,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (preopt) {
 			GMRFLib_preopt_update(thread_id, preopt, bb, cc);
 			bb_use = preopt->total_b[thread_id];
-#pragma GCC ivdep
-			for (i = 0; i < n; i++) {
-				bb_use[i] += b[i];
-			}
+			GMRFLib_daddto(n, b, bb_use);
 			cc_use = c;			       /* that what is there from before */
 			if (0)
 				for (i = 0; i < n; i++) {
@@ -1955,11 +1952,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		} else {
 			assert(Npred == n);
 
-#pragma GCC ivdep
-			for (i = 0; i < n; i++) {
-				bb[i] += b[i];
-				cc[i] += c[i];
-			}
+			GMRFLib_daddto(n, b, bb);
+			GMRFLib_daddto(n, c, cc);
 			bb_use = bb;
 			cc_use = cc;
 			if (0)
@@ -2010,13 +2004,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		double err = 0.0;
-#pragma GCC ivdep
+#pragma omp simd reduction(+: err) private(i)
 		for (i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
 		}
 		err = sqrt(err / n);
 
-#pragma GCC ivdep
+#pragma omp simd private(i)
 		for (i = 0; i < n; i++) {
 			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 		}
@@ -5366,7 +5360,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 				while (GMRFLib_opt_estimate_hessian(hessian, theta_mode, &log_dens_mode, stupid_mode_iter) != GMRFLib_SUCCESS) {
 					if (!stupid_mode_iter) {
-#pragma omp critical
+#pragma omp critical (Name_4edc3808412cc155a1bc15b9d4cd319a85e133b9)
 						{
 							if (ai_par->fp_log) {
 								fprintf(ai_par->fp_log,
@@ -5482,7 +5476,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 
 			all_negative = (all_negative && (eigv <= 0.0 || ISZERO(eigv)));
 			if (eigv < 0.0) {
-#pragma omp critical
+#pragma omp critical (Name_5de6e658f0ecd07258a12caddb9702c5fdf878dc)
 				{
 					fprintf(stderr, "\n");
 					fprintf(stderr, "\t*** WARNING *** Eigenvalue %1d of the Hessian is %.6g < 0\n", i, eigv);
@@ -5667,7 +5661,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				double lim = 0.85;
 				if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
 				    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
-#pragma omp critical
+#pragma omp critical (Name_4267c78b945bb634ad14f44c9e0a55dc1213e726)
 					{
 						char *w1 = NULL;
 						char *w2 = NULL;
@@ -7069,7 +7063,7 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 
 	static double eps_sqrt = 0.0;
 	if (!eps_sqrt) {
-#pragma omp critical
+#pragma omp critical (Name_4bb766a56722a3752af90c7828e0fd60e85365fe)
 		if (!eps_sqrt) {
 			eps_sqrt = sqrt(eps);
 		}
@@ -7086,6 +7080,7 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 
 	return 0;
 }
+
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
@@ -7976,23 +7971,21 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 
 		GMRFLib_ghq(&xp, &wp, np);		       /* just give ptr to storage */
 
-#pragma GCC ivdep
-		for (int i = 0; i < np; i++) {
-			x_user[i] = m + s * xp[i];
-		}
+		GMRFLib_daxpb(np, s, xp, m, x_user);
 		GMRFLib_density_user2std_n(x_std, x_user, density, np);
 		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
+#pragma omp simd reduction(+: A, B, C)
 		for (int i = 0; i < np; i++) {
 			double tmp = wp[i] * loglik[i];
-			A -= tmp;
-			B -= tmp * xp[i];
-			C -= tmp * (SQR(xp[i]) - 1.0);
+			A += tmp;
+			B += tmp * xp[i];
+			C += tmp * (SQR(xp[i]) - 1.0);
 		}
-		coofs->coofs[0] = d * A;
-		coofs->coofs[1] = d * B * s_inv;
-		coofs->coofs[2] = d * C * s2_inv;
+		coofs->coofs[0] = - d * A;
+		coofs->coofs[1] = - d * B * s_inv;
+		coofs->coofs[2] = - d * C * s2_inv;
 
 		Calloc_free();
 		return GMRFLib_SUCCESS;
@@ -8090,10 +8083,7 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
 	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
 
-#pragma GCC ivdep
-	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-		x_user[i] = mean + sd * xp[i];
-	}
+	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	// I do not use 'A'
@@ -8107,12 +8097,12 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 	B = 0.0;
 	C = -tmp;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: C, B)
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
 		double tt2 = wp[i] * (loglik[i] - loglik[ii]);
-		// A += tt;
+		// A += tt; add reduction...
 		C += tt * xp2[i];
 		B += tt2 * xp[i];
 	}
@@ -8162,10 +8152,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
 	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
 
-#pragma GCC ivdep
-	for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
-		x_user[i] = mean + sd * xp[i];
-	}
+	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 	// I do not use 'A'
@@ -8179,11 +8166,11 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	B = -tmp;
 	C = 3.0 * tmp;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: B, C)
 	for (int i = 0; i < ni; i++) {
 		int ii = GMRFLib_INT_GHQ_POINTS - 1 - i;
 		double tt = wp[i] * (loglik[i] + loglik[ii]);
-		// A += tt;
+		// A += tt; add reduction
 		B += tt * xp2[i];
 		C += tt * xp3[i];
 	}

@@ -418,6 +418,14 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 		omp_set_nested(nested);
 	}
 
+	omp_sched_t kind;
+	int chunk_size;
+
+	omp_get_schedule(&kind, &chunk_size);
+	if (kind != omp_sched_static) {
+		omp_set_schedule(omp_sched_static, 0);
+	}
+	
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 	GMRFLib_set_blas_num_threads(GMRFLib_openmp->blas_num_threads);
 

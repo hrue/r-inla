@@ -8926,7 +8926,7 @@
                     survival = TRUE,
                     discrete = FALSE,
                     status = "experimental",
-                    link = c("default", "log", "neglog"),
+                    link = c("default", "log", "neglog", "quantile"),
                     pdf = "gammasurv"
                 ),
                 

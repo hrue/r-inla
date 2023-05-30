@@ -93,6 +93,9 @@ typedef enum {
 // 32bit ints -2147483648 to 2147483647
 #define GMRFLib_MAXINT (2147483647)
 
+#define GMRFLib_SIMD_LIM 4
+
+
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
 			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
@@ -464,6 +467,12 @@ typedef enum {
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+
+// this avoids a potential second call to omp_get_thread_num() as if this is known, it can be passed as the 'thread_num_' argument
+#define CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : thread_num_) * len_work__ * n_work__)
+#define CODE_BLOCK_WORK_ZERO_x(i_work_, thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_), 0, (size_t) len_work__ * sizeof(double))
+#define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) if (work__) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int l1_cacheline = 8;					\
