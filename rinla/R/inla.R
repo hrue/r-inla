@@ -365,7 +365,7 @@
 ## ! A list of two elements: \code{mode$theta} is the
 ## ! computed mode of the hyperparameters and \code{mode$x} is the
 ## ! mode of the latent field given the modal value of the
-## ! hyperparamters.
+## ! hyperparameters.
 ## ! }
 
 ## ! \item{call}{
@@ -383,7 +383,6 @@
 
 ## ! \author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
 ## ! \seealso{\code{\link{f}}}
-## ! }
 
 `inla` <- function(formula = NULL,
                    family = "gaussian",

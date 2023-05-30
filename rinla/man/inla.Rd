@@ -198,8 +198,7 @@
  \item{safe}{ If \code{TRUE}, then enable possible restarts to improve initial values and
  Hessian if needed. }
  \item{debug}{ If \code{TRUE}, print some debug output.  }
- \item{.parent.frame}{Internal use only}
- }
+ \item{.parent.frame}{Internal use only}}
  \value{%%
  \code{inla} returns an object of class \code{"inla"}. This is a list
  containing at least the following arguments:
@@ -307,7 +306,7 @@
  A list of two elements: \code{mode$theta} is the
  computed mode of the hyperparameters and \code{mode$x} is the
  mode of the latent field given the modal value of the
- hyperparamters.
+ hyperparameters.
  }
  \item{call}{
  The matched call.}
@@ -320,4 +319,3 @@
  }
  \author{Havard Rue \email{hrue@r-inla.org} and Sara Martino}
  \seealso{\code{\link{f}}}
- }

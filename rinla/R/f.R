@@ -1,329 +1,264 @@
-## Export: f
+#' @export
+#' @title Define general Gaussian models in the INLA formula
+#' @description
+#'
+#'   Function used for defining of smooth and spatial terms within \code{inla} model
+#'   formulae. The function does not evaluate anything - it
+#'   exists purely to help set up a model. The function specifies one
+#'   smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
+#'   \deqn{w\ f(x)}{weight*f(var)}
 
-## !\name{f}
-## !\alias{f}
-## !\title{Define general Gaussian models in the INLA formula }
-## !\description{
-## !
-## !  Function used for defining of smooth and spatial terms within \code{inla} model
-## !  formulae. The function does not evaluate anything - it
-## !  exists purely to help set up a model. The function specifies one
-## !  smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
-## !  \deqn{w\ f(x)}{weight*f(var)}
-## !
-## !}
-## !\usage{
-## !    f(...,
-## !         model = "iid",
-## !         copy=NULL,
-## !         scopy=NULL,
-## !         same.as = NULL,
-## !         n=NULL,
-## !         nrep = NULL,
-## !         replicate = NULL,
-## !         ngroup = NULL,
-## !         group = NULL,
-## !         control.group = inla.set.control.group.default(),
-## !         control.scopy = inla.set.control.scopy.default(),
-## !         hyper = NULL,
-## !         initial=NULL,
-## !         prior=NULL,
-## !         param = NULL,
-## !         fixed = NULL,
-## !         season.length=NULL,
-## !         constr = NULL,
-## !         extraconstr=list(A=NULL, e=NULL),
-## !         values=NULL,
-## !         cyclic = NULL,
-## !         diagonal = NULL,
-## !         graph=NULL,
-## !         graph.file=NULL,
-## !         cdf=NULL,
-## !         quantiles=NULL,
-## !         Cmatrix=NULL,
-## !         rankdef=NULL,
-## !         Z = NULL,
-## !         nrow = NULL,
-## !         ncol = NULL,
-## !         nu = NULL,
-## !         bvalue = NULL,
-## !         spde.prefix = NULL,
-## !         spde2.prefix = NULL,
-## !         spde2.transform = c("logit", "log", "identity"),
-## !         spde3.prefix = NULL,
-## !         spde3.transform = c("logit", "log", "identity"),
-## !         mean.linear = inla.set.control.fixed.default()$mean,
-## !         prec.linear = inla.set.control.fixed.default()$prec,
-## !         compute = TRUE,
-## !         of=NULL,
-## !         precision = exp(14),
-## !         range = NULL,
-## !         adjust.for.con.comp = TRUE,
-## !         order = NULL,
-## !         scale = NULL,
-## !         rgeneric = NULL,
-## !         cgeneric = NULL,
-## !         scale.model = NULL,
-## !         args.slm = list(rho.min = NULL, rho.max = NULL,
-## !                         X = NULL, W = NULL, Q.beta = NULL),
-## !         args.ar1c = list(Z = NULL, Q.beta = NULL),
-## !         args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
-## !         vb.correct = TRUE,
-## !         locations = NULL,
-## !         debug = FALSE)
-## !}
-## !\arguments{
 `f` <- function(
-                ## !\item{...}{ Name of the covariate and, possibly of the
-                ## !weights vector. NB: order counts!!!! The first specified
-                ## !term is the covariate and the second one is the vector of
-                ## !weights (which can be negative).}
+                #' @param ... Name of the covariate and, possibly of the
+                #' weights vector. NB: order counts!!!! The first specified
+                #' term is the covariate and the second one is the vector of
+                #' weights (which can be negative).
                 ...,
 
-                ## !\item{model}{ A string indicating the choosen model. The
-                ## ! default is \code{iid}. See
-                ## ! \code{names(inla.models()$latent)} for a list of possible
-                ## ! alternatives and \code{\link{inla.doc}} for detailed docs.}
+                #' @param model A string indicating the chosen model. The
+                #'  default is \code{iid}. See
+                #'  \code{names(inla.models()$latent)} for a list of possible
+                #'  alternatives and \code{\link{inla.doc}} for detailed docs.
                 model = "iid",
 
-                ## !\item{copy}{The name of the model-component to copy}
+                #' @param copy The name of the model-component to copy
                 copy = NULL,
 
-                ## !\item{scopy}{The name of the model-component to smooth-copy (where the
-                ## copy-function is a spline)}
+                #' @param scopy The name of the model-component to smooth-copy (where the
+                #' copy-function is a spline)
                 scopy = NULL,
 
-                ## !\item{same.as}{Can be used with \code{copy=".."}. \code{same.as="A"} says
-                ## !that this \code{copy} should use the same scaling parameter as another
-                ## !\code{copy} "A"}
+                #' @param same.as Can be used with \code{copy=".."}. \code{same.as="A"} says
+                #' that this \code{copy} should use the same scaling parameter as another
+                #' \code{copy} "A"
                 same.as = NULL,
 
-                ## !\item{n}{An optional argument which defines the dimension
-                ## !of the model if this is different from
-                ## !\code{length(sort(unique(covariate)))}}
+                #' @param n An optional argument which defines the dimension
+                #' of the model if this is different from
+                #' \code{length(sort(unique(covariate)))}
                 n = NULL,
 
-                ## !\item{nrep}{Number of replications, if not given,  then \code{nrep=max(replications)}}
+                #' @param nrep Number of replications, if not given,  then \code{nrep=max(replications)}
                 nrep = NULL,
 
-                ## !\item{replicate}{A vector of which replications to use.}
+                #' @param replicate A vector of which replications to use.
                 replicate = NULL,
 
-                ## !\item{ngroup}{Number of groups,  if not given,  then \code{ngroup=max(group)}}
+                #' @param ngroup Number of groups,  if not given,  then \code{ngroup=max(group)}
                 ngroup = NULL,
 
-                ## !\item{group}{A vector of which groups to use.}
+                #' @param group A vector of which groups to use.
                 group = NULL,
 
-                ## !\item{control.group}{Controls the use of \code{group}}
+                #' @param control.group Controls the use of \code{group}
                 control.group = inla.set.control.group.default(),
 
-                ## !\item{control.scopy}{Controls the use of \code{scopy}}
+                #' @param control.scopy Controls the use of \code{scopy}
                 control.scopy = inla.set.control.scopy.default(),
 
-                ## !\item{hyper}{Specification of the hyperparameter, fixed or
-                ## !random, initial values, priors and its parameters. See
-                ## !\code{?inla.models} for the list of hyparameters for each
-                ## !model and its default options or
-                ## !use \code{inla.doc()} for
-                ## !detailed info on the family and
-                ## !supported prior distributions.}
+                #' @param hyper Specification of the hyperparameter, fixed or
+                #' random, initial values, priors and its parameters. See
+                #' \code{?inla.models} for the list of hyparameters for each
+                #' model and its default options or
+                #' use \code{inla.doc()} for
+                #' detailed info on the family and
+                #' supported prior distributions.
                 hyper = NULL,
 
-                ## !\item{initial}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+                #' @param initial THIS OPTION IS OBSOLETE,  DO NOT USE
                 initial = NULL,
 
-                ## !\item{prior}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+                #' @param prior THIS OPTION IS OBSOLETE,  DO NOT USE
                 prior = NULL,
 
-                ## !\item{param}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+                #' @param param THIS OPTION IS OBSOLETE,  DO NOT USE
                 param = NULL,
 
-                ## !\item{fixed}{THIS OPTION IS OBSOLETE; DO NOT USE}
+                #' @param fixed THIS OPTION IS OBSOLETE; DO NOT USE
                 fixed = NULL,
 
-                ## !\item{season.length}{Length of the seasonal compoment for \code{model="seasonal"}) }
+                #' @param season.length Length of the seasonal component for \code{model="seasonal"}
                 season.length = NULL,
 
-                ## !\item{constr}{A boolean variable indicating whater to set
-                ## !a sum to 0 constraint on the term. By default the sum to 0
-                ## !constraint is imposed on all intrinsic models
-                ## !("iid","rw1","rw1","besag", etc..).}
+                #' @param constr  A boolean variable indicating whater to set
+                #' a sum to 0 constraint on the term. By default the sum to 0
+                #' constraint is imposed on all intrinsic models
+                #' ("iid","rw1","rw1","besag", etc..).
                 constr = NULL,
 
-                ## !\item{extraconstr}{This argument defines extra linear
-                ## !constraints. The argument is a list with two elements, a
-                ## !matrix \code{A} and a vector \code{e}, which defines the
-                ## !extra constraint \code{Ax = e}; for example
-                ## !\code{extraconstr = list(A = A, e=e)}. The number of
-                ## !columns of \code{A} must correspond to the length of this
-                ## !\code{f}-model.  Note that this constraint comes
-                ## !additional to the sum-to-zero constraint defined if
-                ## !\code{constr = TRUE}.}
+                #' @param extraconstr This argument defines extra linear
+                #' constraints. The argument is a list with two elements, a
+                #' matrix \code{A} and a vector \code{e}, which defines the
+                #' extra constraint \code{Ax = e}; for example
+                #' \code{extraconstr = list(A = A, e=e)}. The number of
+                #' columns of \code{A} must correspond to the length of this
+                #' \code{f}-model.  Note that this constraint comes
+                #' additional to the sum-to-zero constraint defined if
+                #' \code{constr = TRUE}.
                 extraconstr = list(A = NULL, e = NULL),
 
-                ## !\item{values}{An optional vector giving all values
-                ## !assumed by the covariate for which we want estimated the
-                ## !effect. It must be a numeric vector, a vector of factors
-                ## !or \code{NULL}.}
+                #' @param values An optional vector giving all values
+                #' assumed by the covariate for which we want estimated the
+                #' effect. It must be a numeric vector, a vector of factors
+                #' or \code{NULL}.
                 values = NULL,
 
-                ## !\item{cyclic}{A boolean specifying wheather the model is
-                ## !cyclical. Only valid for "rw1" and "rw2" models, is
-                ## !cyclic=T then the sum to 0 constraint is removed. For the
-                ## !correct form of the grah file see \cite{Martino and Rue
-                ## !(2008)}.}
+                #' @param cyclic A boolean specifying wheather the model is
+                #' cyclical. Only valid for "rw1" and "rw2" models, is
+                #' cyclic=T then the sum to 0 constraint is removed. For the
+                #' correct form of the grah file see \cite{Martino and Rue
+                #' (2008)}.
                 cyclic = NULL,
 
-                ## !\item{diagonal}{An extra constant added to the diagonal of
-                ## !the precision matrix to prevent numerical issues.}
+                #' @param diagonal An extra constant added to the diagonal of
+                #' the precision matrix to prevent numerical issues.
                 diagonal = NULL,
 
-                ## !\item{graph}{Defines the graph-object either as a file with
-                ## !a graph-description, an \code{inla.graph}-object, or as a
-                ## !(sparse) symmetric matrix.}
+                #' @param graph Defines the graph-object either as a file with
+                #' a graph-description, an \code{inla.graph}-object, or as a
+                #' (sparse) symmetric matrix .
                 graph = NULL,
 
-                ## !\item{graph.file}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+                #' @param graph.file THIS OPTION IS OBSOLETE,  DO NOT USE
                 graph.file = NULL,
 
-                ## !\item{cdf}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+                #' @param cdf THIS OPTION IS OBSOLETE,  DO NOT USE
                 cdf = NULL,
 
-                ## !\item{quantiles}{A vector of maximum 10 quantiles,
-                ## !\eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
-                ## !each posterior marginal. The function returns, for each
-                ## !posterior marginal, the values
-                ## !\eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
-                ## !\deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}}
+                #' @param quantiles A vector of maximum 10 quantiles,
+                #' \eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
+                #' each posterior marginal. The function returns, for each
+                #' posterior marginal, the values
+                #' \eqn{x(0), x(1),\dots}{x(0), x(1),\ldots} such that
+                #' \deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}
                 quantiles = NULL,
 
-                ## !\item{Cmatrix}{The specification of the precision matrix
-                ## !for the generic,  generic3 or z models (up to a scaling constant).
-                ## !\code{Cmatrix} is either a
-                ## !(dense) matrix, a matrix created using
-                ## !\code{Matrix::sparseMatrix()}, or a filename which stores the
-                ## !non-zero elements of \code{Cmatrix}, in three columns:
-                ## !\code{i}, \code{j} and \code{Qij}. In case of the generic3 model,
-                ## !it is a list of such specifications.}
+                #' @param Cmatrix The specification of the precision matrix
+                #' for the generic,  generic3 or z models (up to a scaling constant).
+                #' \code{Cmatrix} is either a
+                #' (dense) matrix, a matrix created using
+                #' \code{Matrix::sparseMatrix()}, or a filename which stores the
+                #' non-zero elements of \code{Cmatrix}, in three columns:
+                #' \code{i}, \code{j} and \code{Qij}. In case of the generic3 model,
+                #' it is a list of such specifications.
                 Cmatrix = NULL,
 
-                ## !\item{rankdef}{A number \bold{defining} the rank
-                ## !deficiency of the model, with sum-to-zero constraint and
-                ## !possible extra-constraints taken into account. See
-                ## !details.}
+                #' @param rankdef A number \bold{defining} the rank
+                #' deficiency of the model, with sum-to-zero constraint and
+                #' possible extra-constraints taken into account. See
+                #' details.
                 rankdef = NULL,
 
-                ## !\item{Z}{The matrix for the z-model}
+                #' @param Z The matrix for the z-model
                 Z = NULL,
 
-                ## !\item{nrow}{Number of rows for 2d-models}
+                #' @param nrow Number of rows for 2d-models
                 nrow = NULL,
 
-                ## !\item{ncol}{Number of columns for 2d-models}
+                #' @param ncol Number of columns for 2d-models
                 ncol = NULL,
 
-                ## !\item{nu}{Smoothing parameter for the Matern2d-model,
-                ## !possible values are \code{c(0, 1, 2, 3)}}
+                #' @param nu Smoothing parameter for the Matern2d-model,
+                #' possible values are \code{c(0, 1, 2, 3)}
                 nu = NULL,
 
-                ## !\item{bvalue}{The boundary conditions for model \code{rw2d},  0 means use
-                ## the correct subspace (default),  while 1 means condition on 0's outside}
+                #' @param bvalue The boundary conditions for model \code{rw2d},  0 means use
+                #' the correct subspace (default),  while 1 means condition on 0's outside
                 bvalue = NULL,
 
-                ## !\item{spde.prefix}{Internal use only}
+                #' @param spde.prefix Internal use only
                 spde.prefix = NULL,
 
-                ## !\item{spde2.prefix}{Internal use only}
+                #' @param spde2.prefix Internal use only
                 spde2.prefix = NULL,
 
-                ## !\item{spde2.transform}{Internal use only}
+                #' @param spde2.transform Internal use only
                 spde2.transform = c("logit", "log", "identity"),
 
-                ## !\item{spde3.prefix}{Internal use only}
+                #' @param spde3.prefix Internal use only
                 spde3.prefix = NULL,
 
-                ## !\item{spde3.transform}{Internal use only}
+                #' @param spde3.transform Internal use only
                 spde3.transform = c("logit", "log", "identity"),
 
-                ## !\item{mean.linear}{Prior mean for \code{model="linear"}}
+                #' @param mean.linear Prior mean for \code{model="linear"}
                 mean.linear = inla.set.control.fixed.default()$mean,
 
-                ## !\item{prec.linear}{Prior precision for \code{model="linear"}}
+                #' @param prec.linear Prior precision for \code{model="linear"}
                 prec.linear = inla.set.control.fixed.default()$prec,
 
-                ## !\item{compute}{ A boolean variable indicating wheather the
-                ## ! marginal posterior distribution for the nodes in the
-                ## ! \code{f()} model should be computed or not. This is
-                ## ! usefull for large models where we are only interested in
-                ## ! some posterior marginals.}
+                #' @param compute  A boolean variable indicating whether the
+                #'  marginal posterior distribution for the nodes in the
+                #'  \code{f()} model should be computed or not. This is
+                #'  usefull for large models where we are only interested in
+                #'  some posterior marginals.
                 compute = TRUE,
 
-                ## !\item{of}{Internal use only}
+                #' @param of Internal use only
                 of = NULL,
 
-                ## !\item{precision}{The precision for the artifical noise added when creating a copy of a model and others.}
+                #' @param precision The precision for the artificial noise added when creating a copy of a model and others.
                 precision = exp(13),
 
-                ## !\item{range}{A vector of size two giving the lower and
-                ## !upper range for the scaling parameter \code{beta} in the
-                ## !model \code{COPY}, \code{CLINEAR}, \code{MEC} and \code{MEB}.
-                ## !If \code{low = high} then the identity mapping
-                ## !is used.}
+                #' @param range A vector of size two giving the lower and
+                #' upper range for the scaling parameter \code{beta} in the
+                #' model \code{COPY}, \code{CLINEAR}, \code{MEC} and \code{MEB}.
+                #' If \code{low = high} then the identity mapping
+                #' is used.
                 range = NULL,
 
-                ## !\item{adjust.for.con.comp}{If TRUE (default), adjust some
-                ## !of the models (currently: besag, bym, bym2 and besag2) if the
-                ## !number of connected components in graph is larger than
-                ## !1. If FALSE, do nothing.}
+                #' @param adjust.for.con.comp If TRUE (default), adjust some
+                #' of the models (currently: besag, bym, bym2 and besag2) if the
+                #' number of connected components in graph is larger than 1.
+                #' If FALSE, do nothing.
                 adjust.for.con.comp = TRUE,
 
-                ## !\item{order}{Defines the \code{order} of the model: for
-                ## !model \code{ar} this defines the order p, in AR(p). Not
-                ## !used for other models at the time being.}
+                #' @param order Defines the \code{order} of the model: for
+                #' model \code{ar} this defines the order p, in AR(p). Not
+                #' used for other models at the time being.
                 order = NULL,
 
-                ## !\item{scale}{A scaling vector. Its meaning depends on the model.}
+                #' @param scale A scaling vector. Its meaning depends on the model.
                 scale = NULL,
 
-                ## !\item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
+                #' @param rgeneric A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)
                 rgeneric = NULL,
 
-                ## !\item{cgeneric}{A object of class \code{inla.cgeneric} which defines the model. (EXPERIMENTAL!)}
+                #' @param cgeneric A object of class \code{inla.cgeneric} which defines the model. (EXPERIMENTAL!)
                 cgeneric = NULL,
 
-                ## !\item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}
+                #' @param scale.model Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}
                 scale.model = NULL,
 
-                ## !\item{args.slm}{Required arguments to the model="slm"; see the documentation for further details.},
+                #' @param args.slm Required arguments to the model="slm"; see the documentation for further details.
                 args.slm = list(rho.min = NULL, rho.max = NULL, X = NULL, W = NULL, Q.beta = NULL),
 
-                ## !\item{args.ar1c}{Required arguments to the model="ar1c"; see the documentation for further details.},
+                #' @param args.ar1c Required arguments to the model="ar1c"; see the documentation for further details.
                 args.ar1c = list(Z = NULL, Q.beta = NULL),
 
-                ## !\item{args.intslope}{A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details.},
+                #' @param args.intslope A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details,
                 args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
 
-                ## !\item{vb.correct}{Add this model component to the list of nodes to be used for the (potential) vb correction?  If \code{TRUE} do,  and do not if \code{FALSE}. Can also be a vector of nodes to add in the correction-set.}, 
+                #' @param vb.correct Add this model component to the list of nodes to be used for the (potential) vb correction?  If \code{TRUE} do,  and do not if \code{FALSE}. Can also be a vector of nodes to add in the correction-set.
                 vb.correct = TRUE,
 
-                ## !\item{locations}{A matrix with locations for the model \code{dmatern}. This also defines \code{n}.}
+                #' @param locations A matrix with locations for the model \code{dmatern}. This also defines \code{n}.
                 locations = NULL,
 
-                ## !\item{debug}{Enable local debug output}
+                #' @param debug Enable local debug output
                 debug = FALSE) {
-    ## !}
-    ## !\value{TODO}
+    #'
+    #' @returns TODO
 
-    ## !\details{There is no default value for \code{rankdef}, if it
-    ## !is not defined by the user then it is computed by the rank
-    ## !deficiency of the prior model (for the generic model, the
-    ## !default is zero), plus 1 for the sum-to-zero constraint if the
-    ## !prior model is proper, plus the number of extra
-    ## !constraints. \bold{Oops:} This can be wrong, and then the user
-    ## !must define the \code{rankdef} explicitely.}
-    ## !\author{Havard Rue \email{hrue@r-inla.org}}
-    ## !\seealso{\code{\link{inla}}, \code{\link{hyperpar.inla}}}
+    #' @details There is no default value for \code{rankdef}, if it
+    #' is not defined by the user then it is computed by the rank
+    #' deficiency of the prior model (for the generic model, the
+    #' default is zero), plus 1 for the sum-to-zero constraint if the
+    #' prior model is proper, plus the number of extra
+    #' constraints. \bold{Oops:} This can be wrong, and then the user
+    #' must define the \code{rankdef} explicitly.
+    #' @author Havard Rue \email{hrue@r-inla.org}
+    #' @seealso \code{\link{inla}}, \code{\link{hyperpar.inla}}
 
     ## this is required. the hyper.defaults can only be changed in the
     ## model=model.object
