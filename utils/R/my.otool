@@ -96,6 +96,14 @@ replace () {
 
 {
     echo $A | awk '{for(i=1;i<=NF;i++) print $i}' | grep dylib | grep -v : 
+    
+    for lib in Rblas Rblas.vecLib Rlapack; do
+	name="/Library/Frameworks/R.framework/Versions/Current/Resources/lib/lib$lib.dylib"
+	if [ -f $name ]; then
+	    echo $name
+	fi
+    done
+
     if $(uname -a |grep -q ARM64); then 
 	echo $HOME/builds/arm64/local/lib/libpardiso720-MACOS-ARM64-RINLA.so
     else

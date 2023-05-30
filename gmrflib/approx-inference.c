@@ -7080,6 +7080,7 @@ int GMRFLib_equal_cor(double c1, double c2, double eps)
 
 	return 0;
 }
+
 GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt,
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
@@ -7975,16 +7976,16 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 
 		double A = 0.0, B = 0.0, C = 0.0, s_inv = 1.0 / s, s2_inv = 1.0 / SQR(s);
-#pragma omp simd reduction(-: A, B, C)
+#pragma omp simd reduction(+: A, B, C)
 		for (int i = 0; i < np; i++) {
 			double tmp = wp[i] * loglik[i];
-			A -= tmp;
-			B -= tmp * xp[i];
-			C -= tmp * (SQR(xp[i]) - 1.0);
+			A += tmp;
+			B += tmp * xp[i];
+			C += tmp * (SQR(xp[i]) - 1.0);
 		}
-		coofs->coofs[0] = d * A;
-		coofs->coofs[1] = d * B * s_inv;
-		coofs->coofs[2] = d * C * s2_inv;
+		coofs->coofs[0] = - d * A;
+		coofs->coofs[1] = - d * B * s_inv;
+		coofs->coofs[2] = - d * C * s2_inv;
 
 		Calloc_free();
 		return GMRFLib_SUCCESS;
