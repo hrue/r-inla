@@ -77,7 +77,7 @@ __BEGIN_DECLS
 	static double trace_cpu_ = 0.0;					\
 	_Pragma("omp threadprivate(trace_cpu_)")			\
 	trace_cpu_ = GMRFLib_cpu();					\
-	GMRFLib_DEBUG_d("Enter", trace_cpu_);
+	GMRFLib_TRACE_i("Enter, total", trace_count_);
 
 /*!
   \brief Macro to be placed at \em each exit point of each routine which CPU time is be monitored.

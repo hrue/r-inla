@@ -597,6 +597,7 @@ typedef struct {
 
 	int parallel_linesearch;
 	int fixed_mode;
+	int hessian_correct_skewness_only;
 } GMRFLib_ai_param_tp;
 
 /**
@@ -990,6 +991,7 @@ typedef struct {
 	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
 
 	int likelihood_info;
+	char **warnings;
 } GMRFLib_ai_misc_output_tp;
 
 typedef struct {
@@ -1235,6 +1237,7 @@ double GMRFLib_bfunc_eval(int thread_id, double *con, GMRFLib_bfunc_tp * bfunc);
 int GMRFLib_bnew(int thread_id, double **bnew, double *constant, int n, double *b, GMRFLib_bfunc_tp ** bfunc);
 int GMRFLib_transform_density(GMRFLib_density_tp ** tdensity, GMRFLib_density_tp * density, GMRFLib_transform_array_func_tp * func);
 int GMRFLib_vb_fit_gaussian(int n, double *x, double *ld, double *mean, double *sd);
+int GMRFLib_equal_cor(double c1, double c2, double eps);
 
 GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp * ai_store_id, double *lpred_mean, double *lpred_mode,
 				   double *lpred_variance, GMRFLib_preopt_tp * preopt,

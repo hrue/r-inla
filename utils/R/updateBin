@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 d="INLA/inst/bin"
+umask 0022
 
 fix-perm () {
     local d
     local f
     for d in "$@"; do
-	for f in {fmesher,inla}{,.run,.exe}; do
+	for f in {fmesher,inla,inla.mkl}{,.run,.exe}; do
 	    test -f "$d/$f" && chmod 755 "$d/$f"
 	done
 	for lib in "$d"/*.a "$d"/*.so "$d"/*.so.* "$d"/*.dylib "$d"/*.dll; do
@@ -19,7 +20,10 @@ for m in 64; do
     for p in inla inla.mkl fmesher; do 
 	for f in $(ssh -x $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync -auvL $INLA_MAC:$f $DIR/.
+	    for i in {1..10}; do
+		rsync -auvL $INLA_MAC:$f $DIR/. && break
+		sleep 2
+	    done
 	done
     done
     rsync -auvL $INLA_MAC:builds/build$m/external-packages/external $DIR/.
@@ -33,7 +37,10 @@ for m in Something; do
     for p in inla fmesher; do 
 	for f in $(ssh -x $INLA_MAC_ARM64 bin/my.otool builds/arm64/local/bin/$p) builds/arm64/local/bin/$p; do
 	    echo sync $f
-	    rsync -auvL $INLA_MAC_ARM64:$f $DIR/.
+	    for i in {1..10}; do
+		rsync -auvL $INLA_MAC_ARM64:$f $DIR/. && break
+		sleep 2
+	    done
 	done
     done
     rsync -auvL $INLA_MAC_ARM64:builds/arm64/external-packages/external $DIR/.
@@ -47,7 +54,10 @@ for m in 64; do
     for p in inla inla.mkl fmesher; do 
 	for f in $(ssh -x -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
-	    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/.
+	    for i in {1..10}; do
+		rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/. && break
+		sleep 2
+	    done
 	done
     done
     rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/build$m/external-packages/external $DIR/.
@@ -69,7 +79,9 @@ for m in 64; do
     for p in inla fmesher; do 
 	for f in $(ssh -x -p $INLA_LINUX_PORT $INLA_LINUX builds/windows$m/bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
 	    echo sync $f
-	    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/.
+	    for i in {1..10}; do
+		rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/. && break
+	    done
 	done
     done
     rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/windows$m/external-packages/external $DIR/.

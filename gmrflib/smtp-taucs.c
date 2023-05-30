@@ -142,7 +142,7 @@ taucs_ccs_matrix *my_taucs_dsupernodal_factor_to_ccs(void *vL)
 }
 
 
-supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix * L)
+supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matrix *L)
 {
 #define DUPLICATE(name,len,type) if (1) {				\
 		if (L->name && ((len) > 0)) {				\
@@ -196,7 +196,7 @@ supernodal_factor_matrix *GMRFLib_sm_fact_duplicate_TAUCS(supernodal_factor_matr
 	return LL;
 }
 
-void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNUSED(which))
+void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUSED(which))
 {
 	// this for metis version 5
 
@@ -315,7 +315,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix * m, int **perm, int **invperm, char *UNU
 	Free(adj);
 }
 
-size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
+size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix *L)
 {
 	/*
 	 * return the number of non-zeros in the matrix 
@@ -332,7 +332,7 @@ size_t GMRFLib_sm_fact_nnz_TAUCS(supernodal_factor_matrix * L)
 	return (nnz);
 }
 
-taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
+taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix *L, int flags)
 {
 	/*
 	 * copy a square matrix 
@@ -356,7 +356,7 @@ taucs_ccs_matrix *GMRFLib_L_duplicate_TAUCS(taucs_ccs_matrix * L, int flags)
 	return LL;
 }
 
-int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L)
+int GMRFLib_print_ccs_matrix(FILE *fp, taucs_ccs_matrix *L)
 {
 	if (!L) {
 		return GMRFLib_SUCCESS;
@@ -380,7 +380,7 @@ int GMRFLib_print_ccs_matrix(FILE * fp, taucs_ccs_matrix * L)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp * gn_ptr)
+int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp *graph, GMRFLib_reorder_tp reorder, GMRFLib_global_node_tp *gn_ptr)
 {
 	/*
 	 * new improved version which treats global nodes spesifically. 
@@ -636,7 +636,7 @@ int GMRFLib_compute_reordering_TAUCS(int **remap, GMRFLib_graph_tp * graph, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph,
+int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix **L, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_graph_tp *graph,
 				      int *remap)
 {
 	int n = 0, *iperm = NULL, nan_error = 0;
@@ -712,7 +712,7 @@ int GMRFLib_build_sparse_matrix_TAUCS(int thread_id, taucs_ccs_matrix ** L, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_factor_matrix ** symb_fact, GMRFLib_fact_info_tp * finfo,
+int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix **L, supernodal_factor_matrix **symb_fact, GMRFLib_fact_info_tp *finfo,
 					  double **L_inv_diag)
 {
 	int flags, k, retval;
@@ -767,7 +767,7 @@ int GMRFLib_factorise_sparse_matrix_TAUCS(taucs_ccs_matrix ** L, supernodal_fact
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_diag, supernodal_factor_matrix * symb_fact)
+int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix *L, double *L_inv_diag, supernodal_factor_matrix *symb_fact)
 {
 	if (L) {
 		taucs_ccs_free(L);
@@ -779,7 +779,7 @@ int GMRFLib_free_fact_sparse_matrix_TAUCS(taucs_ccs_matrix * L, double *L_inv_di
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	GMRFLib_my_taucs_dccs_solve_l(L, rhs);
@@ -787,7 +787,7 @@ int GMRFLib_solve_l_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFL
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
 	static double **wwork = NULL;
 	static int *wwork_len = NULL;
@@ -795,8 +795,8 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 #pragma omp critical (Name_4e65f9abac12404e1d9633582ec69bc86e375bd2)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -821,7 +821,7 @@ int GMRFLib_solve_lt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRF
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap)
+int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap)
 {
 	GMRFLib_convert_to_mapped(rhs, NULL, graph, remap);
 	GMRFLib_my_taucs_dccs_solve_llt(L, rhs);
@@ -830,7 +830,7 @@ int GMRFLib_solve_llt_sparse_matrix_TAUCS(double *rhs, taucs_ccs_matrix * L, GMR
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int nrhs)
+int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int nrhs)
 {
 	// same function but for many rnhs.
 
@@ -848,7 +848,7 @@ int GMRFLib_solve_llt_sparse_matrix2_TAUCS(double *rhs, taucs_ccs_matrix * L, GM
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
+int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int findx, int toindx,
 						 int remapped)
 {
 	/*
@@ -863,8 +863,8 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 #pragma omp critical (Name_9c6d559b5470558ef474f5640951d6b63990a46d)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -894,7 +894,7 @@ int GMRFLib_solve_lt_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph, int *remap, int findx, int toindx,
+int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph, int *remap, int findx, int toindx,
 						int remapped)
 {
 	/*
@@ -908,8 +908,8 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 #pragma omp critical (Name_a3dba7d9a29b2dbf1981362774e31bd1c94148ec)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -938,7 +938,7 @@ int GMRFLib_solve_l_sparse_matrix_special_TAUCS(double *rhs, taucs_ccs_matrix * 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * L, double *L_inv_diag, GMRFLib_graph_tp * UNUSED(graph),
+int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L, double *L_inv_diag, GMRFLib_graph_tp *UNUSED(graph),
 						  int *remap, int idx)
 {
 	/*
@@ -964,8 +964,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 #pragma omp critical (Name_ae25603ba826d85ac7ffa0b88a9f11d5c2246a83)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -1048,7 +1048,7 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix * 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix * L, GMRFLib_graph_tp * graph,
+int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double *x, int remapped, taucs_ccs_matrix *L, GMRFLib_graph_tp *graph,
 				   int *remap)
 {
 	/*
@@ -1068,7 +1068,7 @@ int GMRFLib_comp_cond_meansd_TAUCS(double *cmean, double *csd, int indx, double 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
+int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix *L)
 {
 	int i;
 
@@ -1081,7 +1081,7 @@ int GMRFLib_log_determinant_TAUCS(double *logdet, taucs_ccs_matrix * L)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
+int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp *problem)
 {
 	if (!problem) {
 		return GMRFLib_SUCCESS;
@@ -1106,7 +1106,7 @@ int GMRFLib_compute_Qinv_TAUCS(GMRFLib_problem_tp * problem)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
+int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
 {
 	double *ptr = NULL, value, diag, *Zj = NULL;
 	int i, j, k, jp, ii, kk, jj, iii, jjj, n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *rremove = NULL, nrremove, *inv_remap =
@@ -1298,7 +1298,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute_OLD(GMRFLib_problem_tp * problem, taucs_c
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp * problem, taucs_ccs_matrix * Lmatrix)
+int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_matrix *Lmatrix)
 {
 	int n, *nnbs = NULL, **nbs = NULL, *nnbsQ = NULL, *inv_remap = NULL;
 	taucs_ccs_matrix *L = NULL;
@@ -1518,8 +1518,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 #pragma omp critical (Name_d9197654023e1055f6344b57013d23d0644561ce)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -1605,8 +1605,8 @@ int GMRFLib_my_taucs_dccs_solve_llt2(void *vL, double *x, int nrhs)
 #pragma omp critical (Name_a6127e3869440eef186b3a8f5bcabf4a462809c9)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -1701,8 +1701,8 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 #pragma omp critical (Name_adb454feb2a421a0a2effd2a5298f308a1c3f192)
 		{
 			if (!wwork) {
-				wwork_len = Calloc(GMRFLib_CACHE_LEN, int);
-				wwork = Calloc(GMRFLib_CACHE_LEN, double *);
+				wwork_len = Calloc(GMRFLib_CACHE_LEN(), int);
+				wwork = Calloc(GMRFLib_CACHE_LEN(), double *);
 			}
 		}
 	}
@@ -1735,7 +1735,7 @@ int GMRFLib_my_taucs_dccs_solve_l(void *vL, double *x)
 	return 0;
 }
 
-int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix * L, double *x)
+int GMRFLib_my_taucs_cmsd(double *cmean, double *csd, int idx, taucs_ccs_matrix *L, double *x)
 {
 	int j, jp;
 	double Aij, Aii, b;
@@ -1772,7 +1772,7 @@ int GMRFLib_my_taucs_check_flags(int flags)
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char *filename)
+int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix *L, const char *filename)
 {
 #define ROUND(_i) ((int) ((_i) * reduce_factor))
 #define SET(_i, _j) bitmap[ROUND(_i) + ROUND(_j) * N] = 1
@@ -1804,7 +1804,7 @@ int GMRFLib_bitmap_factorisation_TAUCS__intern(taucs_ccs_matrix * L, const char 
 	return err;
 }
 
-int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix * L)
+int GMRFLib_bitmap_factorisation_TAUCS(const char *filename_body, taucs_ccs_matrix *L)
 {
 	/*
 	 * create a bitmap-file of the factorization 

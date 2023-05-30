@@ -169,7 +169,7 @@ static double interpolate(double a, double fa, double fpa, double b, double fb, 
 	return alpha;
 }
 
-static void moveto(double alpha, bfgs4_wrapper_t * w)
+static void moveto(double alpha, bfgs4_wrapper_t *w)
 {
 	if (alpha == w->x_cache_key) {			       /* using previously cached position */
 		return;
@@ -185,7 +185,7 @@ static void moveto(double alpha, bfgs4_wrapper_t * w)
 	w->x_cache_key = alpha;
 }
 
-static double slope(bfgs4_wrapper_t * w)
+static double slope(bfgs4_wrapper_t *w)
 {							       /* compute gradient . direction */
 	double df;
 	gsl_blas_ddot(w->g_alpha, w->p, &df);
@@ -260,8 +260,8 @@ static void wrap_fdf(double alpha, void *params, double *f, double *df)
 }
 
 static void
-prepare_wrapper(bfgs4_wrapper_t * w, gsl_multimin_function_fdf * fdf,
-		const gsl_vector * x, double f, const gsl_vector * g, const gsl_vector * p, gsl_vector * x_alpha, gsl_vector * g_alpha)
+prepare_wrapper(bfgs4_wrapper_t *w, gsl_multimin_function_fdf *fdf,
+		const gsl_vector *x, double f, const gsl_vector *g, const gsl_vector *p, gsl_vector *x_alpha, gsl_vector *g_alpha)
 {
 	w->fdf_linear.f = &wrap_f;
 	w->fdf_linear.df = &wrap_df;
@@ -290,7 +290,7 @@ prepare_wrapper(bfgs4_wrapper_t * w, gsl_multimin_function_fdf * fdf,
 	w->df_cache_key = 0.0;
 }
 
-static void update_position(bfgs4_wrapper_t * w, double alpha, gsl_vector * x, double *f, gsl_vector * g)
+static void update_position(bfgs4_wrapper_t *w, double alpha, gsl_vector *x, double *f, gsl_vector *g)
 {
 	/*
 	 * ensure that everything is fully cached 
@@ -305,7 +305,7 @@ static void update_position(bfgs4_wrapper_t * w, double alpha, gsl_vector * x, d
 	gsl_vector_memcpy(g, w->g_alpha);
 }
 
-static void change_direction(bfgs4_wrapper_t * w)
+static void change_direction(bfgs4_wrapper_t *w)
 {
 	/*
 	 * Convert the cache values from the end of the current minimisation to those needed for the start of the next minimisation, alpha=0 
@@ -405,7 +405,7 @@ static int vector_bfgs4_alloc(void *vstate, size_t n)
 	return GSL_SUCCESS;
 }
 
-static int vector_bfgs4_set(void *vstate, gsl_multimin_function_fdf * fdf, const gsl_vector * x, double *f, gsl_vector * gradient, double step_size,
+static int vector_bfgs4_set(void *vstate, gsl_multimin_function_fdf *fdf, const gsl_vector *x, double *f, gsl_vector *gradient, double step_size,
 			    double tol)
 {
 	vector_bfgs4_state_t *state = (vector_bfgs4_state_t *) vstate;
@@ -469,8 +469,8 @@ static int vector_bfgs4_restart(void *vstate)
 	return GSL_SUCCESS;
 }
 
-static int vector_bfgs4_iterate(void *vstate, gsl_multimin_function_fdf * UNUSED(fdf),
-				gsl_vector * x, double *f, gsl_vector * gradient, gsl_vector * dx)
+static int vector_bfgs4_iterate(void *vstate, gsl_multimin_function_fdf *UNUSED(fdf),
+				gsl_vector *x, double *f, gsl_vector *gradient, gsl_vector *dx)
 {
 	vector_bfgs4_state_t *state = (vector_bfgs4_state_t *) vstate;
 	double alpha = 0.0, alpha1;
@@ -604,7 +604,7 @@ static const gsl_multimin_fdfminimizer_type vector_bfgs4_type = {
 
 const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs4 = &vector_bfgs4_type;
 
-int bfgs4_dofit(const gsl_multifit_robust_type * T, const gsl_matrix * X, const gsl_vector * y, gsl_vector * c, gsl_matrix * cov)
+int bfgs4_dofit(const gsl_multifit_robust_type *T, const gsl_matrix *X, const gsl_vector *y, gsl_vector *c, gsl_matrix *cov)
 {
 	int s;
 	gsl_multifit_robust_workspace *work = gsl_multifit_robust_alloc(T, X->size1, X->size2);
@@ -808,7 +808,7 @@ int bfgs4_robust_minimize(double *xmin, double *ymin, int nn, double *x, double 
 	return GMRFLib_SUCCESS;
 }
 
-static int minimize(gsl_function_fdf * fn, vector_bfgs4_state_t * state, double rho, double sigma, double tau1, double alpha1, double *alpha_new)
+static int minimize(gsl_function_fdf *fn, vector_bfgs4_state_t *state, double rho, double sigma, double tau1, double alpha1, double *alpha_new)
 {
 	double f0, fp0, falpha, falpha_prev, fpalpha, fpalpha_prev, delta, alpha_next;
 	double alpha = alpha1, alpha_prev = 0.0;

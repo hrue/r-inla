@@ -182,7 +182,7 @@ double GMRFLib_matern2d(int thread_id, int node, int nnode, double *UNUSED(value
 	return val * prec * std_variance;
 }
 
-int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp ** graph, GMRFLib_matern2ddef_tp * def)
+int GMRFLib_make_matern2d_graph(GMRFLib_graph_tp **graph, GMRFLib_matern2ddef_tp *def)
 {
 	GMRFLib_graph_mk_lattice(graph, def->nrow, def->ncol, def->nu + 1, def->nu + 1, def->cyclic);
 	return GMRFLib_SUCCESS;

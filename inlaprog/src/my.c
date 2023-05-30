@@ -155,7 +155,7 @@ double my_gsl_sf_lngamma(double x)
 	return NAN;
 }
 
-int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result)
+int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result *result)
 {
 	// copy of gsl_sf_lnfact_e
 
@@ -164,7 +164,7 @@ int my_gsl_sf_lnfact_e(const unsigned int n, gsl_sf_result * result)
 	return GSL_SUCCESS;
 }
 
-int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result * result)
+int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 {
 	// copy of gsl_sf_lnchoose_e
 

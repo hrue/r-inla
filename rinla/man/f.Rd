@@ -18,6 +18,7 @@
     f(...,
          model = "iid",
          copy=NULL,
+         scopy=NULL,
          same.as = NULL,
          n=NULL,
          nrep = NULL,
@@ -25,6 +26,7 @@
          ngroup = NULL,
          group = NULL,
          control.group = inla.set.control.group.default(),
+         control.scopy = inla.set.control.scopy.default(),
          hyper = NULL,
          initial=NULL,
          prior=NULL,
@@ -61,7 +63,6 @@
          adjust.for.con.comp = TRUE,
          order = NULL,
          scale = NULL,
-         strata = NULL,
          rgeneric = NULL,
          cgeneric = NULL,
          scale.model = NULL,
@@ -82,16 +83,20 @@ weights (which can be negative).}
  default is \code{iid}. See
  \code{names(inla.models()$latent)} for a list of possible
  alternatives and \code{\link{inla.doc}} for detailed docs.}
-\item{copy}{TODO}
-\item{same.as}{TODO}
+\item{copy}{The name of the model-component to copy}
+\item{scopy}{The name of the model-component to smooth-copy (where the
+\item{same.as}{Can be used with \code{copy=".."}. \code{same.as="A"} says
+that this \code{copy} should use the same scaling parameter as another
+\code{copy} "A"}
 \item{n}{An optional argument which defines the dimension
 of the model if this is different from
 \code{length(sort(unique(covariate)))}}
-\item{nrep}{TODO}
-\item{replicate}{We need to write documentation here}
-\item{ngroup}{TODO}
-\item{group}{TODO}
-\item{control.group}{TODO}
+\item{nrep}{Number of replications, if not given,  then \code{nrep=max(replications)}}
+\item{replicate}{A vector of which replications to use.}
+\item{ngroup}{Number of groups,  if not given,  then \code{ngroup=max(group)}}
+\item{group}{A vector of which groups to use.}
+\item{control.group}{Controls the use of \code{group}}
+\item{control.scopy}{Controls the use of \code{scopy}}
 \item{hyper}{Specification of the hyperparameter, fixed or
 random, initial values, priors and its parameters. See
 \code{?inla.models} for the list of hyparameters for each
@@ -99,35 +104,11 @@ model and its default options or
 use \code{inla.doc()} for
 detailed info on the family and
 supported prior distributions.}
-\item{initial}{THIS OPTION IS OBSOLETE; use
-\code{hyper}!!! Vector indicating the starting values for
-the optimization algorithm. The length of the vector
-depends on the number of hyperparamters in the choosen
-\code{model}. If \code{fixed=T} the value at which the
-parameters are fixed is determines through \code{initial}.
-See \code{inla.models()$latent$'model name'} to have info
-about the choosen model.}
-\item{prior}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-Prior distribution(s) for the hyperparameters of the
-!random model. The default value depends on the type of
-model, see !\url{www.r-inla.org} for a detailed
-description of the models. See
-\code{names(inla.models()$priors)} for possible prior
-choices}
-\item{param}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-Vector indicating the parameters \eqn{a}{a} and \eqn{b}{b}
-of the prior distribution for the hyperparameters. The
-length of the vector depends on the choosen \code{model}.
-See \code{inla.models()$latent$'model name'} to have info
-about the choosen model.}
-\item{fixed}{THIS OPTION IS OBSOLETE; use \code{hyper}!!!
-Vector of boolean variables indicating wheater the
-hyperparameters of the model are fixed or random. The
-length of the vector depends on the choosen \code{model}
-See \code{inla.models()$latent$'model name'} to have info
-about the choosen model.}
-\item{season.length}{Lenght of the seasonal compoment
-(ONLY if \code{model="seasonal"}) }
+\item{initial}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+\item{prior}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+\item{param}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+\item{fixed}{THIS OPTION IS OBSOLETE; DO NOT USE}
+\item{season.length}{Length of the seasonal compoment for \code{model="seasonal"}) }
 \item{constr}{A boolean variable indicating whater to set
 a sum to 0 constraint on the term. By default the sum to 0
 constraint is imposed on all intrinsic models
@@ -151,20 +132,12 @@ cyclic=T then the sum to 0 constraint is removed. For the
 correct form of the grah file see \cite{Martino and Rue
 (2008)}.}
 \item{diagonal}{An extra constant added to the diagonal of
-the precision matrix.}
+the precision matrix to prevent numerical issues.}
 \item{graph}{Defines the graph-object either as a file with
 a graph-description, an \code{inla.graph}-object, or as a
 (sparse) symmetric matrix.}
-\item{graph.file}{THIS OPTION IS OBSOLETE AND REPLACED BY
-THE MORE GENERAL ARGUMENT \code{graph}. PLEASE CHANGE YOUR
-CODE.
-Name of the file containing the graph
-of the model; see
-\url{www.r-inla.org/faq}.}
-\item{cdf}{A vector of maximum 10 values between 0 and 1
-\eqn{x(0), x(1),\ldots}{x(0), x(1),\ldots}. The function
-returns, for each posterior marginal the probabilities
-\deqn{\mbox{Prob}(X<x(p))}{Prob(X<x(p))} }
+\item{graph.file}{THIS OPTION IS OBSOLETE,  DO NOT USE}
+\item{cdf}{THIS OPTION IS OBSOLETE,  DO NOT USE}
 \item{quantiles}{A vector of maximum 10 quantiles,
 \eqn{p(0), p(1),\dots}{p(0), p(1),\ldots} to compute for
 each posterior marginal. The function returns, for each
@@ -188,22 +161,20 @@ details.}
 \item{ncol}{Number of columns for 2d-models}
 \item{nu}{Smoothing parameter for the Matern2d-model,
 possible values are \code{c(0, 1, 2, 3)}}
-\item{bvalue}{TODO}
-\item{spde.prefix}{TODO}
-\item{spde2.prefix}{TODO}
-\item{spde2.transform}{TODO}
-\item{spde3.prefix}{TODO}
-\item{spde3.transform}{TODO}
-\item{mean.linear}{Prior mean for the linear component,
-only used if \code{model="linear"}}
-\item{prec.linear}{Prior precision for the linear
-component, only used if \code{model="linear"}}
+\item{bvalue}{The boundary conditions for model \code{rw2d},  0 means use
+\item{spde.prefix}{Internal use only}
+\item{spde2.prefix}{Internal use only}
+\item{spde2.transform}{Internal use only}
+\item{spde3.prefix}{Internal use only}
+\item{spde3.transform}{Internal use only}
+\item{mean.linear}{Prior mean for \code{model="linear"}}
+\item{prec.linear}{Prior precision for \code{model="linear"}}
 \item{compute}{ A boolean variable indicating wheather the
  marginal posterior distribution for the nodes in the
  \code{f()} model should be computed or not. This is
  usefull for large models where we are only interested in
  some posterior marginals.}
-\item{of}{TODO}
+\item{of}{Internal use only}
 \item{precision}{The precision for the artifical noise added when creating a copy of a model and others.}
 \item{range}{A vector of size two giving the lower and
 upper range for the scaling parameter \code{beta} in the
@@ -218,7 +189,6 @@ number of connected components in graph is larger than
 model \code{ar} this defines the order p, in AR(p). Not
 used for other models at the time being.}
 \item{scale}{A scaling vector. Its meaning depends on the model.}
-\item{strata}{Currently not in use}
 \item{rgeneric}{A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{cgeneric}{A object of class \code{inla.cgeneric} which defines the model. (EXPERIMENTAL!)}
 \item{scale.model}{Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}}

@@ -53,7 +53,7 @@
         stop(paste("This is not a directory: ", results.dir, "\n"))
     }
 
-    filename <- paste(results.dir, "/.ok", sep = "")
+    filename <- paste0(results.dir, "/.ok")
     res.ok <- file.exists(filename)
     if (!res.ok) {
         ## try this one instead
@@ -75,6 +75,13 @@
             ## assume the inla-program has crashed
             return (if (silent != 2L) inla.inlaprogram.has.crashed() else NULL)
         }
+    }
+
+    filename <- paste0(results.dir, "/dryrun")
+    if (file.exists(filename)) {
+        res <- list(dryrun = readLines(filename))
+        class(res) <- "inla.dryrun"
+        return(res)
     }
 
     is.null.list <- function(alist) {
@@ -606,7 +613,8 @@
                 lpred.mean.variance <- matrix(0.0, nrow = 0, ncol = 2, dimnames = list(NULL, c("mean", "variance")))
                 have.lpred <- readBin(fp, numeric(), 1)
                 if (have.lpred > 0) {
-                    lpred.mean <- readBin(fp, double(), configs$mnpred)
+                    ## need to add offsets here as its not added when its stored
+                    lpred.mean <- readBin(fp, double(), configs$mnpred) + configs$offsets[1:configs$mnpred]
                     lpred.variance <- readBin(fp, double(), configs$mnpred)
                     lpred.mean[is.nan(lpred.mean)] <- NA
                     lpred.variance[is.nan(lpred.variance)] <- NA
@@ -695,6 +703,13 @@
         close(fp)
     }
 
+    fnm <- paste(d, "/warnings.txt", sep = "")
+    if (file.exists(fnm)) {
+        warn <- readLines(fnm)
+    } else {
+        warn <- NULL
+    }
+
     if (debug) {
         print(paste("collect misc from", d, "...done"))
     }
@@ -708,7 +723,7 @@
         lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
         lincomb.derived.covariance.matrix = lincomb.derived.covariance.matrix,
         opt.directions = opt.directions,
-        configs = configs, nfunc = nfunc
+        configs = configs, nfunc = nfunc, warnings = warn
     ))
 }
 

@@ -37,7 +37,7 @@
 #include "GMRFLib/GMRFLib.h"
 #include "GMRFLib/GMRFLibP.h"
 
-int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp ** blockupdate_par)
+int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp **blockupdate_par)
 {
 	GMRFLib_ASSERT(blockupdate_par, GMRFLib_EINVARG);
 
@@ -52,7 +52,7 @@ int GMRFLib_default_blockupdate_param(GMRFLib_blockupdate_param_tp ** blockupdat
 
 
 int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
+			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
@@ -93,7 +93,7 @@ int GMRFLib_2order_taylor(int thread_id, double *a, double *b, double *c, double
 }
 
 int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double *dd, double d, double x0, int indx,
-			  double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil, double *cmin)
+			  double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil, double *cmin)
 {
 	/*
 	 * compute a,b,c in the taylor expansion around x0 of d*loglFunc(x0,...)
@@ -191,7 +191,7 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 }
 
 int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int indx,
-			       double *x_vec, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
+			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
 
 #define ERR if (dd) {							\
@@ -237,7 +237,9 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			f0 = f[1];
 			df = 0.5 * (f[2] - f[0]) / step;
 			ddf = (f[2] - 2.0 * f[1] + f[0]) / SQR(step);
-			ERR;
+			if (dd) {
+				ERR;
+			}
 		}
 			break;
 

@@ -33,7 +33,7 @@
 
 #include "fgn.h"
 
-int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
+int inla_make_fgn_graph(GMRFLib_graph_tp **graph, inla_fgn_arg_tp *def)
 {
 	int i, j;
 	GMRFLib_graph_tp *g_ar1 = NULL, *g_I = 0;
@@ -63,7 +63,7 @@ int inla_make_fgn_graph(GMRFLib_graph_tp ** graph, inla_fgn_arg_tp * def)
 	return (GMRFLib_SUCCESS);
 }
 
-int inla_make_fgn2_graph(GMRFLib_graph_tp ** graph, inla_fgn2_arg_tp * def)
+int inla_make_fgn2_graph(GMRFLib_graph_tp **graph, inla_fgn2_arg_tp *def)
 {
 	int i;
 	GMRFLib_graph_tp *g_ar1 = NULL;
@@ -100,11 +100,11 @@ double Qfunc_fgn(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 #pragma omp critical (Name_6cee800e55124771d0e7fd552ae7e48a27e4f94e)
 		{
 			if (phi_cache == NULL) {
-				double **cache = Calloc(GMRFLib_CACHE_LEN, double *);
-				w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-				H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
+				double **cache = Calloc(GMRFLib_CACHE_LEN(), double *);
+				w_cache = Calloc(GMRFLib_CACHE_LEN(), double *);
+				H_intern_cache = Calloc(GMRFLib_CACHE_LEN(), double);
 
-				for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+				for (int jj = 0; jj < GMRFLib_CACHE_LEN(); jj++) {
 					cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 					w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 				}
@@ -202,11 +202,11 @@ double Qfunc_fgn2(int thread_id, int i, int j, double *UNUSED(values), void *arg
 	if (!phi_cache) {
 #pragma omp critical (Name_31036ca2cfd217477a399b276d2192bbc39a5fb7)
 		if (!phi_cache) {
-			double **cache = Calloc(GMRFLib_CACHE_LEN, double *);
-			w_cache = Calloc(GMRFLib_CACHE_LEN, double *);
-			H_intern_cache = Calloc(GMRFLib_CACHE_LEN, double);
+			double **cache = Calloc(GMRFLib_CACHE_LEN(), double *);
+			w_cache = Calloc(GMRFLib_CACHE_LEN(), double *);
+			H_intern_cache = Calloc(GMRFLib_CACHE_LEN(), double);
 
-			for (int jj = 0; jj < GMRFLib_CACHE_LEN; jj++) {
+			for (int jj = 0; jj < GMRFLib_CACHE_LEN(); jj++) {
 				cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 				w_cache[jj] = Calloc(2 * FGN_KMAX - 1, double);
 			}

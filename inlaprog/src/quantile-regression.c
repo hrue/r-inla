@@ -117,70 +117,69 @@ GMRFLib_spline_tp **inla_qcontpois_func(double alpha, int num)
 	return (spline);
 }
 
-double inla_qgamma_cache(double shape, double quantile, int id)
+double inla_qgamma_cache(double shape, double quantile)
 {
 	/*
-	 * this function cache spline-tables of qgamma()'s, with a unit scale and varying shape, for fixed quantiles. if 'id' is
-	 * negative, then initialize the caches for the given quantile, possible adding a new one if an other one exists.
+	 * this function cache spline-tables of qgamma()'s, with a unit scale and varying shape, for fixed quantiles. 
 	 */
 
 	static struct inla_qgamma_cache_tp **cache = NULL;
 	static int cache_len = 0;
-	double invalid_value = -1.0;
-	const int debug = 0;
 
-	if (id < 0) {
+	if (!cache) {
 #pragma omp critical (Name_df5bc0b4b7c0228087ccbab810a0d2b558ac8eb3)
+		if (!cache) {
+			cache_len = GMRFLib_CACHE_LEN();
+			struct inla_qgamma_cache_tp **ctmp = Calloc(cache_len, struct inla_qgamma_cache_tp *);
+			for (int i = 0; i < cache_len; i++) {
+				ctmp[i] = Calloc(1, struct inla_qgamma_cache_tp);
+				ctmp[i]->quantile = -1.0;
+				ctmp[i]->s = NULL;
+			}
+			cache = ctmp;
+		}
+	}
+
+	int id;
+	GMRFLib_CACHE_SET_ID(id);
+
+	if ((cache[id]->quantile == quantile) && cache[id]->s) {
+		return (exp(GMRFLib_spline_eval(log(shape), cache[id]->s)));
+	} else {
+		double log_shape_min = -7.0, log_shape_max = 10.0, by = 0.25;
+#pragma omp critical (Name_15e02d7de5104d84f3ca91b6ee3ecef7d22e60f6)
 		{
-			double log_shape_min = -7.0, log_shape_max = 10.0, by = 0.2, *xy, *x, *y;
-			int id_max = GMRFLib_MAX_THREADS(), i, n, nn;
+			int n = (int) ((log_shape_max - log_shape_min) / by + 0.5) + 1;
 
-			n = (int) ((log_shape_max - log_shape_min) / by + 0.5) + 1;
-			xy = Calloc(2 * n, double);
-			x = xy;
-			y = xy + n;
+			Calloc_init(2 * n, 2);
+			double *x = Calloc_get(n);
+			double *y = Calloc_get(n);
 
-			for (i = nn = 0; i < n; i++) {
+			int nn = 0;
+			for (int i = 0; i < n; i++) {
 				x[i] = log_shape_min + by * i;
 				y[i] = log(MATHLIB_FUN(qgamma) (quantile, exp(x[i]), 1.0, 1, 0));
 				nn++;
 			}
 
-			if (cache == NULL) {
-				cache_len = 1;
-				cache = Calloc(1, struct inla_qgamma_cache_tp *);
-			} else {
-				cache_len++;
-				cache = Realloc(cache, cache_len, struct inla_qgamma_cache_tp *);
+			// make sure we do not have weird limiting cases
+			n = nn;
+			nn = 0;
+			for (int i = 0; i < n; i++) {
+				if (!(ISINF(y[i]) || ISNAN(y[i]))) {
+					x[nn] = x[i];
+					y[nn] = y[i];
+					nn++;
+				}
 			}
-			cache[cache_len - 1] = Calloc(1, struct inla_qgamma_cache_tp);
-			cache[cache_len - 1]->quantile = quantile;
-			cache[cache_len - 1]->s = Calloc(id_max, GMRFLib_spline_tp *);
-			for (i = 0; i < id_max; i++) {
-				cache[cache_len - 1]->s[i] = GMRFLib_spline_create(x, y, nn);
+			if (cache[id]->s) {
+				GMRFLib_spline_free(cache[id]->s);
 			}
-			Free(xy);
-		}
-		if (debug) {
-			fprintf(stderr, "init cache for quantile = %g\n", quantile);
-		}
+			cache[id]->s = GMRFLib_spline_create(x, y, nn);
+			cache[id]->quantile = quantile;
 
-		return invalid_value;
-	} else {
-		int i, found, thread = omp_get_thread_num();
-
-		for (i = found = 0; i < cache_len; i++) {
-			if (cache[i]->quantile == quantile) {
-				found = 1;
-				break;
-			}
+			Calloc_free();
 		}
-		if (found) {
-			return (exp(GMRFLib_spline_eval(log(shape), cache[i]->s[thread])));
-		} else {
-			inla_qgamma_cache(shape, quantile, -1);	/* init a new one */
-			return (inla_qgamma_cache(shape, quantile, id));
-		}
+		return (exp(GMRFLib_spline_eval(log(shape), cache[id]->s)));
 	}
-	return invalid_value;
 }

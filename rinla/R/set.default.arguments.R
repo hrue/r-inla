@@ -1,40 +1,42 @@
-## Export: inla.set.control.lincomb.default
-## Export: inla.set.control.update.default
-## Export: inla.set.control.group.default
-## Export: inla.set.control.mix.default
-## Export: inla.set.control.pom.default
-## Export: inla.set.control.link.default
-## Export: inla.set.control.expert.default
+## Export: inla.set.control.bgev.default
 ## Export: inla.set.control.compute.default
+## Export: inla.set.control.expert.default
 ## Export: inla.set.control.family.default
 ## Export: inla.set.control.fixed.default
-## Export: inla.set.control.inla.default
-## Export: inla.set.control.predictor.default
-## Export: inla.set.control.mode.default
+## Export: inla.set.control.group.default
 ## Export: inla.set.control.hazard.default
-## Export: inla.set.control.bgev.default
+## Export: inla.set.control.inla.default
+## Export: inla.set.control.lincomb.default
+## Export: inla.set.control.link.default
 ## Export: inla.set.control.lp.scale.default
+## Export: inla.set.control.mix.default
+## Export: inla.set.control.mode.default
 ## Export: inla.set.control.pardiso.default
+## Export: inla.set.control.pom.default
+## Export: inla.set.control.predictor.default
+## Export: inla.set.control.scopy.default
+## Export: inla.set.control.update.default
 
-## Export: control.lincomb
-## Export: control.update
-## Export: control.group
-## Export: control.mix
-## Export: control.pom
-## Export: control.link
-## Export: control.expert
+## Export: control.bgev
 ## Export: control.compute
+## Export: control.expert
 ## Export: control.family
 ## Export: control.fixed
-## Export: control.inla
-## Export: control.vb
-## Export: control.predictor
-## Export: control.mode
-## Export: control.hazard
-## Export: control.bgev
-## Export: control.lp.scale
-## Export: control.pardiso
 ## Export: control.gcpo
+## Export: control.group
+## Export: control.hazard
+## Export: control.inla
+## Export: control.lincomb
+## Export: control.link
+## Export: control.lp.scale
+## Export: control.mix
+## Export: control.mode
+## Export: control.pardiso
+## Export: control.pom
+## Export: control.predictor
+## Export: control.scopy
+## Export: control.update
+## Export: control.vb
 
 
 ### Defines default arguments
@@ -57,7 +59,8 @@
         ## :NAME: control.lincomb
         list(
             ## :ARGUMENT+: verbose Use verbose mode for linear combinations if verbose model is
-            ## :ARGUMENT+: set globally. (Default TRUE)
+            ## :ARGUMENT+: set globally. (Default TRUE). This option is only available for
+            ## :ARGUMENT+: the default \code{inla.mode} (\code{inla.mode="compact"}).
             verbose = FALSE
         )
 
@@ -115,6 +118,33 @@
         ## :SEEALSO: inla
     }
 
+`inla.set.control.scopy.default` <-
+    function(...) {
+        ## :EXTRA:
+        ## :NAME: control.scopy
+        list(
+            
+            ## :ARGUMENT: covariate The covariate for the scopy function
+            covariate = NULL,
+
+            ## :ARGUMENT: n Number of betas
+            n = 5,
+
+            ## :ARGUMENT: model scopy model (one of 'rw1' and 'rw2')
+            model = "rw2",
+
+            ## :ARGUMENT: mean The prior mean for mean(betas)
+            mean = 1.0,
+
+            ## :ARGUMENT: prec.mean The prior precision for mean(betas)
+            prec.mean =  1.0, 
+
+            ## :ARGUMENT: prec.betas The prior precision prec(betas-mean(betas))
+            prec.betas =  10.0
+        )
+
+        ## :SEEALSO: inla
+    }
 
 `inla.set.control.mix.default` <-
     function(...) {
@@ -320,7 +350,7 @@
             likelihood.info = FALSE,
 
             ## :ARGUMENT+: smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or
-            ## :ARGUMENT+: 'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies
+            ## :ARGUMENT+: 'pardiso' (default \code{inla.getOption("smtp")}). \code{smtp='pardiso'} implies
             ## :ARGUMENT+: \code{openmp.strategy='pardiso'}.
             smtp = NULL,
 
@@ -331,6 +361,10 @@
             ## :ARGUMENT+: internal.opt A boolean variable, if to do internal online
             ## :ARGUMENT+: optimisations or not. (Default TRUE.)
             internal.opt = TRUE,
+
+            ## :ARGUMENT+: save.memory A boolean variable, make choices which
+            ## :ARGUMENT+: saves memory over accuracy. (Default 'inla.getOption("save.memory")')
+            save.memory = NULL, 
 
             ## :ARGUMENT+: control.gcpo (For experts only!) Set control variables for the gcpo.
             ## :ARGUMENT+: The intended use is to use \code{inla.group.cv}.
@@ -806,7 +840,12 @@
             
             ## :ARGUMENT+: compute.initial.values Compute initial values for the latent field or not.
             ## :ARGUMENT+: (experimental-mode only)
-            compute.initial.values = TRUE
+            compute.initial.values = TRUE,
+
+            ## :ARGUMENT+: hessian.correct.skewness.only If TRUE then correct only
+            ## :ARGUMENT+: skewness in the Hessian, for the hyperparameters. If FALSE (default),
+            ## :ARGUMENT+: correct also variance (experimental-mode only)
+            hessian.correct.skewness.only = FALSE
         )
 
         ## :SEEALSO: inla
@@ -1065,6 +1104,7 @@ if (TRUE) {
     control.bgev <- inla.make.completion.function(names(inla.set.control.bgev.default()))
     control.lp.scale <- inla.make.completion.function(names(inla.set.control.lp.scale.default()))
     control.pardiso <- inla.make.completion.function(names(inla.set.control.pardiso.default()))
+    control.scopy <- inla.make.completion.function(names(inla.set.control.scopy.default()))
 } else {
     control.update <- NULL
     control.lincomb <-NULL
@@ -1085,4 +1125,5 @@ if (TRUE) {
     control.bgev <- NULL
     control.lp.scale <- NULL
     control.pardiso <- NULL
+    control.scopy <- NULL
 }

@@ -148,7 +148,7 @@ int GMRFLib_handle_error(const char *file, const char *function, int line, int e
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_set_error_handler(GMRFLib_error_handler_tp * new_error_handler)
+int GMRFLib_set_error_handler(GMRFLib_error_handler_tp *new_error_handler)
 {
 	/*
 	 * set new error-handler. if the new error-handler is NULL, then the default error-handler is used. 

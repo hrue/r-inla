@@ -55,6 +55,7 @@ __BEGIN_DECLS
 #include "GMRFLib/hashP.h"
 #include "GMRFLib/graph.h"
 #include "GMRFLib/GMRFLibP.h"
+#define GMRFLib_printMem(fp_) GMRFLib_printMem_core(fp_, __FILE__, __LINE__)
     typedef struct {
 	int nrow;
 	map_ivp *vmat;
@@ -67,7 +68,14 @@ char *GMRFLib_strdup(const char *ptr);
 char *GMRFLib_strtok_r(char *s1, const char *s2, char **lasts);
 char *GMRFLib_vec2char(double *arr, int len);
 const char *GMRFLib_function_name_strip(const char *name);
+double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j);
+double GMRFLib_cdfnorm(double x);
+double GMRFLib_cdfnorm_inv(double p);
 double GMRFLib_eps(double power);
+double GMRFLib_erf(double x);
+double GMRFLib_erf_inv(double x);
+double GMRFLib_erfc(double x);
+double GMRFLib_erfc_inv(double x);
 double GMRFLib_inv_logit(double x);
 double GMRFLib_log_apbex(double a, double b);
 double GMRFLib_logit(double p);
@@ -92,10 +100,10 @@ int GMRFLib_imax_value(int *x, int n, int *idx);
 int GMRFLib_imin_value(int *x, int n, int *idx);
 int GMRFLib_is_int(char *str, int *value);
 int GMRFLib_iuniques(int *nuniques, int **uniques, int *ix, int nx);
-int GMRFLib_iwhich_sorted_g2(int val, int *ix, int len, int *guess);
-int GMRFLib_iwhich_sorted_g(int val, int *ix, int len, int *guess_guess);
-int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__restrict low_guess);
 int GMRFLib_iwhich_sorted(int val, int *__restrict ix, int len);
+int GMRFLib_iwhich_sorted_g(int val, int *ix, int len, int *guess_guess);
+int GMRFLib_iwhich_sorted_g2(int val, int *ix, int len, int *guess);
+int GMRFLib_iwhich_sorted_g_new(int key, int *__restrict ix, int len, int *__restrict low_guess);
 int GMRFLib_memcheck_error(const char *msg, void *p, const char *file, const char *funcname, int lineno);
 int GMRFLib_memcheck_printf(FILE * fp);
 int GMRFLib_memcheck_register(void *p, size_t size, const char *file, const char *funcname, int lineno);
@@ -104,8 +112,8 @@ int GMRFLib_normalize(int n, double *x);
 int GMRFLib_print_darray(FILE * fp, double *x, int n, const char *desc);
 int GMRFLib_print_iarray(FILE * fp, int *x, int n, const char *desc);
 int GMRFLib_printf_gsl_matrix(FILE * fp, gsl_matrix * matrix, const char *format);
-int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
 int GMRFLib_printf_gsl_matrix2(FILE * fp, gsl_matrix * matrix, const char *format, double cutoff);
+int GMRFLib_printf_gsl_vector(FILE * fp, gsl_vector * vector, const char *format);
 int GMRFLib_printf_matrix(FILE * fp, double *A, int m, int n);
 int GMRFLib_qsorts(void *x, size_t nmemb, size_t size_x, void *y, size_t size_y, void *z, size_t size_z, int (*compar)(const void *, const void *));
 int GMRFLib_scale_vector(double *x, int n);
@@ -115,7 +123,12 @@ int GMRFLib_unique_additive(int *n, double *x, double eps);
 int GMRFLib_unique_additive2(int *n, double *x, double *y, double eps);
 int GMRFLib_unique_relative(int *n, double *x, double eps);
 int GMRFLib_unique_relative2(int *n, double *x, double *y, double eps);
+int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content);
+int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_tp * graph);
+int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec);
 int GMRFLib_which(double val, double *array, int len);
+int my_sort2_dd_test_cutoff(int verbose);
+int my_sort2_id_test_cutoff(int verbose);
 map_id *GMRFLib_duplicate_map_id(map_id * hash);
 map_ii *GMRFLib_duplicate_map_ii(map_ii * hash);
 mapkit_size_t GMRFLib_nelm_map_id(map_id * hash);
@@ -127,17 +140,15 @@ void *GMRFLib_realloc(void *old_ptr, size_t size, const char *file, const char *
 void GMRFLib_delay(int msec);
 void GMRFLib_delay_random(int msec_low, int msec_high);
 void GMRFLib_free(void *ptr, const char *file, const char *funcname, int lineno);
-
-int GMRFLib_vmatrix_init(GMRFLib_vmatrix_tp ** vmatrix, int nrow, GMRFLib_graph_tp * graph);
-int GMRFLib_vmatrix_set(GMRFLib_vmatrix_tp * vmatrix, int i, int j, double *vec);
-double *GMRFLib_vmatrix_get(GMRFLib_vmatrix_tp * vmatrix, int i, int j);
-int GMRFLib_vmatrix_free(GMRFLib_vmatrix_tp * vmatrix, int free_content);
-
-int my_sort2_test_cutoff(int verbose);
+void GMRFLib_getMemory(int *currRealMem, int *peakRealMem, int *currVirtMem, int *peakVirtMem);
+void GMRFLib_printMem_core(FILE * fp, const char *file, int lineno);
+void gsl_sort2_dd(double *__restrict data1, double *__restrict data2, const int n);
 void gsl_sort2_id(int *__restrict data1, double *__restrict data2, const int n);
 void gsl_sort2_ii(int *__restrict data1, int *__restrict data2, const int n);
+void my_insertionSort_dd(double *__restrict iarr, double *__restrict darr, int n);
 void my_insertionSort_id(int *__restrict iarr, double *__restrict darr, int n);
 void my_insertionSort_ii(int *__restrict iarr, int *__restrict darr, int n);
+void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 

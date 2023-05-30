@@ -357,12 +357,12 @@
         cat("spde3.prefix =", fnm, "\n", sep = " ", file = file, append = TRUE)
         cat("spde3.transform =", random.spec$spde3.transform, "\n", sep = " ", file = file, append = TRUE)
     }
-    if (inla.one.of(random.spec$model, "copy")) {
+    if (inla.one.of(random.spec$model, c("copy", "scopy"))) {
         if (!is.null(random.spec$of)) {
             cat("of =", random.spec$of, "\n", sep = " ", file = file, append = TRUE)
         }
     }
-    if (inla.one.of(random.spec$model, c("copy", "sigm", "revsigm", "log1exp", "fgn", "intslope"))) {
+    if (inla.one.of(random.spec$model, c("copy", "scopy", "sigm", "revsigm", "log1exp", "fgn", "intslope"))) {
         if (!is.null(random.spec$precision)) {
             cat("precision =", random.spec$precision, "\n", sep = " ", file = file, append = TRUE)
         }
@@ -487,6 +487,25 @@
         }
     }
 
+    if (inla.one.of(random.spec$model, "scopy")) {
+        cat("scopy.model = ", random.spec$control.scopy$model, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.n = ", random.spec$control.scopy$n, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.mean = ", random.spec$control.scopy$mean, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.prec.mean = ", random.spec$control.scopy$prec.mean, "\n", sep = " ", file = file, append = TRUE)
+        cat("scopy.prec.betas = ", random.spec$control.scopy$prec.betas, "\n", sep = " ", file = file, append = TRUE)
+
+        file.scopy.z <- inla.tempfile(tmpdir = data.dir)
+        xx <- as.double(random.spec$control.scopy$covariate)
+        stopifnot(all(!is.na(xx)))
+        inla.write.fmesher.file(matrix(xx, ncol = 1), filename = file.scopy.z)
+        file.scopy.z <- gsub(data.dir, "$inladatadir", file.scopy.z, fixed = TRUE)
+        cat("scopy.covariate = ", file.scopy.z, "\n", append = TRUE, sep = " ", file = file)
+
+        random.spec$control.scopy$hyper <- (inla.write.hyper(random.spec$control.scopy$hyper,
+                                                             file = file, prefix = "scopy.",
+                                                             data.dir = data.dir))
+    }
+    
     if (!is.null(random.spec$cyclic)) {
         cat("cyclic = ", as.numeric(random.spec$cyclic), "\n", sep = " ", file = file, append = TRUE)
     }
@@ -1107,6 +1126,7 @@
     inla.write.boolean.field("improved.simplified.laplace", inla.spec$improved.simplified.laplace, file)
     inla.write.boolean.field("parallel.linesearch", inla.spec$parallel.linesearch, file)
     inla.write.boolean.field("compute.initial.values", inla.spec$compute.initial.values, file)
+    inla.write.boolean.field("hessian.correct.skewness.only", inla.spec$hessian.correct.skewness.only, file)
     
     cat("\n", sep = " ", file = file, append = TRUE)
 }
@@ -1202,7 +1222,7 @@
 
 `inla.problem.section` <- function(file, data.dir, result.dir, hyperpar, return.marginals, return.marginals.predictor, dic,
                                    cpo, gcpo, po, mlik, quantiles, smtp, q, openmp.strategy,
-                                   graph, config, likelihood.info, internal.opt) {
+                                   graph, config, likelihood.info, internal.opt,  save.memory) {
     cat("", sep = "", file = file, append = FALSE)
     cat("###  ", inla.version("version"), "\n", sep = "", file = file, append = TRUE)
     cat("###  ", inla.paste(Sys.info()), "\n", sep = "", file = file, append = TRUE)
@@ -1242,6 +1262,11 @@
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
     inla.write.boolean.field("internal.opt", internal.opt, file)
+
+    if (is.null(save.memory))
+        save.memory <- inla.getOption('save.memory')
+    inla.write.boolean.field("save.memory", save.memory, file)
+
     inla.write.boolean.field("config", config, file)
     inla.write.boolean.field("likelihood.info", likelihood.info, file)
 

@@ -39,7 +39,7 @@
 /*!
   \brief Compute the reordering
 */
-int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, GMRFLib_global_node_tp * gn)
+int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, GMRFLib_global_node_tp *gn)
 {
 	GMRFLib_ENTER_ROUTINE;
 	GMRFLib_global_node_tp lgn, *gn_ptr = NULL;
@@ -154,7 +154,7 @@ int GMRFLib_compute_reordering(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * 
 /*!
   \brief Free the reordering
 */
-int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact)
+int GMRFLib_free_reordering(GMRFLib_sm_fact_tp *sm_fact)
 {
 	if (sm_fact) {
 		Free(sm_fact->remap);
@@ -166,7 +166,7 @@ int GMRFLib_free_reordering(GMRFLib_sm_fact_tp * sm_fact)
 /*
   \brief Build a sparse matrix
 */
-int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_Qfunc_tp * Qfunc, void *Qfunc_arg, GMRFLib_graph_tp * graph)
+int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_ENTER_ROUTINE;
 	int ret;
@@ -215,7 +215,7 @@ int GMRFLib_build_sparse_matrix(int thread_id, GMRFLib_sm_fact_tp * sm_fact, GMR
 /*!
   \brief Factorise a sparse matrix
 */
-int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	int ret;
 	GMRFLib_ENTER_ROUTINE;
@@ -262,7 +262,7 @@ int GMRFLib_factorise_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_
 /*!
   \brief Free a factorisation of a sparse matrix
 */
-int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
+int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp *sm_fact)
 {
 	if (sm_fact) {
 		switch (sm_fact->smtp) {
@@ -303,7 +303,7 @@ int GMRFLib_free_fact_sparse_matrix(GMRFLib_sm_fact_tp * sm_fact)
 /*!
   \brief Solve \f$Lx=b\f$
 */
-int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * rhs in real world. solve L x=rhs, rhs is overwritten by the solution 
@@ -350,7 +350,7 @@ int GMRFLib_solve_l_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm
 /*!
   \brief Solve \f$L^Tx=b\f$
 */
-int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * rhs in real world. solve L^Tx=rhs, rhs is overwritten by the solution 
@@ -397,7 +397,7 @@ int GMRFLib_solve_lt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * s
 /*!
   \brief Solve \f$LL^Tx=b\f$  or \f$Qx=b\f$
 */
-int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T 
@@ -491,7 +491,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp * 
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int idx)
+int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, int idx)
 {
 	/*
 	 * rhs in real world. solve Q x=rhs, where Q=L L^T. BUT, here we know that rhs is 0 execpt for a 1 at index idx.
@@ -531,7 +531,7 @@ int GMRFLib_solve_llt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm
 /*!
   \brief Solve \f$L^Tx=b\f$ for indices in an interval
 */
-int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped)
+int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, int findx, int toindx, int remapped)
 {
 	/*
 	 * rhs in real world, bchol in mapped world. solve L^Tx=b backward only from rhs[findx] up to rhs[toindx]. note that
@@ -573,7 +573,7 @@ int GMRFLib_solve_lt_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_
   \brief Solve \f$Lx=b\f$ for indices in an interval
 */
 
-int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph, int findx, int toindx, int remapped)
+int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph, int findx, int toindx, int remapped)
 {
 	/*
 	 * rhs in real world, bchol in mapped world. solve Lx=b backward only from rhs[findx] up to rhs[toindx]. note that
@@ -615,7 +615,7 @@ int GMRFLib_solve_l_sparse_matrix_special(double *rhs, GMRFLib_sm_fact_tp * sm_f
 /*!
   \brief Compute the log determininant of \f$Q\f$
 */
-int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:
@@ -648,7 +648,7 @@ int GMRFLib_log_determinant(double *logdet, GMRFLib_sm_fact_tp * sm_fact, GMRFLi
   \brief Compute conditional mean and standard deviation of \f$x[i]\f$ conditioned on {\f$x[j]\f$}
     for \f$j>i\f$
 */
-int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, int remapped, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	GMRFLib_ENTER_ROUTINE;
 	switch (sm_fact->smtp) {
@@ -683,7 +683,7 @@ int GMRFLib_comp_cond_meansd(double *cmean, double *csd, int indx, double *x, in
 /*!
   \brief Produce a bitmap of the Cholesky triangle in the portable bitmap (pbm) format
 */
-int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp * sm_fact, GMRFLib_graph_tp * graph)
+int GMRFLib_bitmap_factorisation(const char *filename_body, GMRFLib_sm_fact_tp *sm_fact, GMRFLib_graph_tp *graph)
 {
 	switch (sm_fact->smtp) {
 	case GMRFLib_SMTP_BAND:

@@ -5,14 +5,14 @@
 \alias{inla.models}
 \title{Valid models in INLA}
 \description{
-This page describe the models implemented in \code{inla}, divided into sections: latent, group, mix, link, predictor, hazard, likelihood, prior, wrapper, lp.scale .
+This page describe the models implemented in \code{inla}, divided into sections: latent, group, scopy, mix, link, predictor, hazard, likelihood, prior, wrapper, lp.scale .
 }
 
 \usage{
 inla.models()
 }
 \value{
- 	 Valid sections are: latent, group, mix, link, predictor, hazard, likelihood, prior, wrapper, lp.scale 
+ 	 Valid sections are: latent, group, scopy, mix, link, predictor, hazard, likelihood, prior, wrapper, lp.scale 
 
  	 \describe{
 		\item{Section `latent'.}{
@@ -7871,7 +7871,223 @@ inla.models()
 								\item{n.div.by = }{`NULL'}
 								\item{n.required = }{`FALSE'}
 								\item{set.default.values = }{`FALSE'}
-								\item{pdf = }{`NA'}
+								\item{pdf = }{`copy'}
+							 }
+						 }
+					 }
+				 }
+				\item{Model `scopy'.}{Number of hyperparmeters are 15.
+					 \describe{
+						\item{Hyperparameter `theta1'}{
+							 \describe{
+							\item{hyperid = }{`36101'}
+							\item{name = }{`beta1'}
+							\item{short.name = }{`b1'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta2'}{
+							 \describe{
+							\item{hyperid = }{`36102'}
+							\item{name = }{`beta2'}
+							\item{short.name = }{`b2'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta3'}{
+							 \describe{
+							\item{hyperid = }{`36103'}
+							\item{name = }{`beta3'}
+							\item{short.name = }{`b3'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta4'}{
+							 \describe{
+							\item{hyperid = }{`36104'}
+							\item{name = }{`beta4'}
+							\item{short.name = }{`b4'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta5'}{
+							 \describe{
+							\item{hyperid = }{`36105'}
+							\item{name = }{`beta5'}
+							\item{short.name = }{`b5'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta6'}{
+							 \describe{
+							\item{hyperid = }{`36106'}
+							\item{name = }{`beta6'}
+							\item{short.name = }{`b6'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta7'}{
+							 \describe{
+							\item{hyperid = }{`36107'}
+							\item{name = }{`beta7'}
+							\item{short.name = }{`b7'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta8'}{
+							 \describe{
+							\item{hyperid = }{`36108'}
+							\item{name = }{`beta8'}
+							\item{short.name = }{`b8'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta9'}{
+							 \describe{
+							\item{hyperid = }{`36109'}
+							\item{name = }{`beta9'}
+							\item{short.name = }{`b9'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta10'}{
+							 \describe{
+							\item{hyperid = }{`36110'}
+							\item{name = }{`beta10'}
+							\item{short.name = }{`b10'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta11'}{
+							 \describe{
+							\item{hyperid = }{`36111'}
+							\item{name = }{`beta11'}
+							\item{short.name = }{`b11'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta12'}{
+							 \describe{
+							\item{hyperid = }{`36112'}
+							\item{name = }{`beta12'}
+							\item{short.name = }{`b12'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta13'}{
+							 \describe{
+							\item{hyperid = }{`36113'}
+							\item{name = }{`beta13'}
+							\item{short.name = }{`b13'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta14'}{
+							 \describe{
+							\item{hyperid = }{`36114'}
+							\item{name = }{`beta14'}
+							\item{short.name = }{`b14'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+						\item{Hyperparameter `theta15'}{
+							 \describe{
+							\item{hyperid = }{`36115'}
+							\item{name = }{`beta15'}
+							\item{short.name = }{`b15'}
+							\item{initial = }{`0.1'}
+							\item{fixed = }{`FALSE'}
+							\item{prior = }{`none'}
+							\item{param = }{`'}
+							\item{to.theta = }{`\code{function(x) x}'}
+							\item{from.theta = }{`\code{function(x) x}'}
+							}
+						}
+					 }
+					 \describe{
+						\item{Properties:}{
+							\describe{
+								\item{doc = }{`Create a scopy of a model component'}
+								\item{constr = }{`FALSE'}
+								\item{nrow.ncol = }{`FALSE'}
+								\item{augmented = }{`FALSE'}
+								\item{aug.factor = }{`1'}
+								\item{aug.constr = }{`NULL'}
+								\item{n.div.by = }{`NULL'}
+								\item{n.required = }{`FALSE'}
+								\item{set.default.values = }{`FALSE'}
+								\item{status = }{`experimental'}
+								\item{pdf = }{`scopy'}
 							 }
 						 }
 					 }
@@ -8475,6 +8691,15 @@ inla.models()
 							 }
 						 }
 					 }
+				 }
+			 }
+		 }
+		\item{Section `scopy'.}{
+			 Valid models in this section are:
+			 \describe{
+				\item{Model `rw1'.}{Number of hyperparmeters are 0.
+				 }
+				\item{Model `rw2'.}{Number of hyperparmeters are 0.
 				 }
 			 }
 		 }
@@ -10267,7 +10492,7 @@ inla.models()
 								\item{survival = }{`TRUE'}
 								\item{discrete = }{`FALSE'}
 								\item{status = }{`experimental'}
-								\item{link = }{`default log neglog'}
+								\item{link = }{`default log neglog quantile'}
 								\item{pdf = }{`gammasurv'}
 							 }
 						 }

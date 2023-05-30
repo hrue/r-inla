@@ -1,0 +1,100 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{listings}
+\usepackage{verbatim}
+\usepackage{block}
+
+\begin{document}
+
+\section*{Smooth-Copy of another model component: "scopy"}
+
+This model is a generalization of \texttt{copy}, please refer to
+\texttt{inla.doc("copy")} first.
+
+This describes the way to copy another model component with an
+optional smooth/spline scaling, like with
+\begin{displaymath}
+    \eta = u + v
+\end{displaymath}
+where $v$ is a smooth copy of $u$ (component-wise)
+\begin{displaymath}
+    v = \beta(z)\times\text{copy}(u)
+\end{displaymath}
+where $\beta(z)$, a smooth/spline function of the covariate $z$. The
+smooth scaling is done \textbf{component-wise} for $u$, so if $u$ are
+defined with domain $(1, 2, \ldots, m)$, i.e.\
+$u=(u_1, u_2, \ldots, u_m)$, then $z$ must be
+$z=(z_1, z_2, \ldots, z_m)$, so that
+\begin{displaymath}
+    v_i = \beta(z_i) u_i, \qquad i=1, 2, \ldots, m.
+\end{displaymath}
+
+\subsection*{Hyperparameters}
+
+The hyperparameters are the value of the spline at $n$ fixed
+locations, $(l_i, \beta_i)$, for $i=1, \ldots, n$. The function
+$\beta(z)$, is defined as (using $z$ as the covariate)
+\begin{verbatim}
+zr <- range(z)
+l <- seq(zr[1], zr[2], len=n)
+beta.z <- splinefun(l, beta, method = "natural")
+\end{verbatim}
+
+We can control $\beta$ and its prior distribution using argument
+\texttt{control.scopy} within \texttt{f()},
+\begin{quote}
+    \texttt{control.scopy = list(\\
+        covariate = ..., \\
+        n = 5, \\
+        model = "rw2",\\
+        mean = 1.0, \\
+        prec.mean =  1.0,  \\
+        prec.betas =  10.0})
+\end{quote}
+where
+\begin{description}
+\item[covariate] gives the covariate that is used
+\item[n] is the number of hyperparameters used in the spline
+    ($3 \leq n \leq 15$).
+\item[model] the prior model for $\{\beta_i\}$, either \texttt{rw1} or
+    \texttt{rw2}. This model is scaled (like with
+    \texttt{scale.model=TRUE}).
+\item[mean] The prior mean for the (weighted-)mean\footnote{The mean
+        of $\{\beta_i\}$ is defined to approximate the integral of the
+        RW, hence its
+        $\left(\frac{1}{2}(\beta_1 + \beta_n) +
+          \sum_{j=2}^{n-1}\beta_j\right)/(n-1)$.} of $\{\beta_i\}$
+\item[prec.mean] The prior precision for the (weighted-)mean of
+    $\{\beta_i\}$
+\item[prec.betas] The prior precision for the \texttt{rw1/rw2} model
+    for $\{\beta_i\}$
+\end{description}
+Note that the prior mean and both prior precisions, are \emph{fixed}
+and not \emph{random}.
+
+The \texttt{f()}-argument \texttt{precision}, defines how close the
+copy is, is similar as for model \texttt{copy}.
+
+\clearpage
+\section*{Spesification}
+\input{../hyper/latent/scopy.tex}
+
+\clearpage
+\subsection*{Example}
+Just simulate some data and estimate the parameters back. 
+{\small\verbatiminput{example-scopy.R}}
+
+\subsection*{Notes}
+
+This model is experimental.
+
+\end{document}
+
+
+
+% LocalWords: 
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

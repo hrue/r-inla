@@ -34,7 +34,7 @@
 
 #define SIMPLE_LOOP_LIMIT 8L
 
-double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// this uses g_idx and g_val
 
@@ -95,7 +95,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__
 	return (value_);
 }
 
-double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	// this uses n_idx and n_val
 
@@ -156,7 +156,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double
 	return (value_);
 }
 
-double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double value_ = 0.0;
 	double *__restrict vv_ = ELM_->val;
@@ -175,7 +175,7 @@ double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *_
 	return (value_);
 }
 
-double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	double value_ = 0.0;
 	double *__restrict vv_ = ELM_->val;
@@ -194,7 +194,7 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 	return (value_);
 }
 
-double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_)
+double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
 	if (ELM_->g_n == 0) {
 		// so it does not fail for not-prepared ones
@@ -258,7 +258,7 @@ int GMRFLib_isum(int n, int *ix)
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += ix[i];
 	}
 
@@ -306,7 +306,7 @@ double GMRFLib_dsum(int n, double *x)
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += x[i];
 	}
 
@@ -317,16 +317,9 @@ double GMRFLib_dsum2(int n, double *x)
 {
 	double s = 0.0;
 
-	if (0) {
-#pragma GCC ivdep
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
-	} else {
 #pragma omp simd reduction(+: s)
-		for (int i = 0; i < n; i++) {
-			s += x[i];
-		}
+	for (int i = 0; i < n; i++) {
+		s += x[i];
 	}
 
 	return (s);
@@ -343,9 +336,10 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	const int roll = 8L;
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	div_t d = div(n, roll);
+	int m = d.quot * roll;
 
 #pragma GCC ivdep
-	for (int i = 0; i < d.quot * roll; i += roll) {
+	for (int i = 0; i < m; i += roll) {
 		int *iidx = idx + i;
 
 		s0 += a[iidx[0]];
@@ -360,7 +354,7 @@ double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += a[idx[i]];
 	}
 
@@ -392,7 +386,7 @@ double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *
 	}
 
 #pragma GCC ivdep
-	for (int i = d.quot * roll; i < n; i++) {
+	for (int i = m; i < n; i++) {
 		s0 += v[i] * a[idx[i]];
 	}
 

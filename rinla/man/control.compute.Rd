@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.compute} for use in \code{inla}}
 \usage{
 inla.set.control.compute.default(...)
-control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, internal.opt, likelihood.info, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, smtp, waic)
+control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, internal.opt, likelihood.info, mlik, openmp.strategy, po, q, residuals, return.marginals, return.marginals.predictor, save.memory, smtp, waic)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -42,11 +42,13 @@ control.compute(config, control.gcpo, cpo, dic, graph, hyperpar, internal.opt, l
 
 \item{likelihood.info}{   A boolean variable to store likelihood-information or not.  This option requires \code{config=TRUE} (Default FALSE. EXPERIMENTAL)}
 
-\item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or  'pardiso' (default \code{inla.getoption("smtp")}). \code{smtp='pardiso'} implies  \code{openmp.strategy='pardiso'}.}
+\item{smtp}{   The sparse-matrix solver, one of 'default', 'taucs', 'band' or  'pardiso' (default \code{inla.getOption("smtp")}). \code{smtp='pardiso'} implies  \code{openmp.strategy='pardiso'}.}
 
 \item{graph}{   A boolean variable if the graph itself should be returned.  (Default FALSE.)}
 
 \item{internal.opt}{   A boolean variable, if to do internal online  optimisations or not. (Default TRUE.)}
+
+\item{save.memory}{   A boolean variable, make choices which  saves memory over accuracy. (Default 'inla.getOption("save.memory")')}
 
 \item{control.gcpo}{   (For experts only!) Set control variables for the gcpo.  The intended use is to use \code{inla.group.cv}.  Refer to \code{?inla.group.cv} and the vignette for details.}
 
@@ -57,6 +59,6 @@ The function \code{control.compute} is used to TAB-complete arguments and return
 The function \code{inla.set.control.compute.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.scopy}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

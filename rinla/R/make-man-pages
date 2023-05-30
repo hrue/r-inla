@@ -99,7 +99,8 @@ Rsort () {
 for f in $helppages; do
     ## need to replace REPLACEME with a sorted list of all arguments
     echo "Postprocess $f"
-    WITHTHIS=$(grep \\item $f | awk '$0 !~ /[.][.][.]/{print}' | awk -F'}' '{print $1}' | awk -F'{' 'NF > 1{print $2}'|Rsort|awk 'NR==1{a=$1;next;}{printf a ", "; a=$1;};END{printf a}')
+    WITHTHIS=$(grep '\\item' $f | awk '$0 !~ /[.][.][.]/{print}' | awk -F'}' '{print $1}' | awk -F'{' 'NF > 1{print $2}'|Rsort|awk 'NR==1{a=$1;next;}{printf a ", "; a=$1;};END{printf a}')
+    echo "f=[$f] WITHTHIS=[$WITHTHIS]"
     awk '/REPLACEME/{gsub(/REPLACEME/,WITHTHIS);print;next};{print}' WITHTHIS="$WITHTHIS" $f > tt && mv -f tt $f
 done
 

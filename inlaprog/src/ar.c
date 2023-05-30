@@ -397,10 +397,10 @@ int ar_test1()
 		/*
 		 * easier if the storage is setup here 
 		 */
-		def.hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN, double *);
-		def.hold_Q = Calloc(GMRFLib_CACHE_LEN, double *);
-		def.hold_Qmarg = Calloc(GMRFLib_CACHE_LEN, double *);
-		for (i = 0; i < GMRFLib_CACHE_LEN; i++) {
+		def.hold_pacf_intern = Calloc(GMRFLib_CACHE_LEN(), double *);
+		def.hold_Q = Calloc(GMRFLib_CACHE_LEN(), double *);
+		def.hold_Qmarg = Calloc(GMRFLib_CACHE_LEN(), double *);
+		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {
 			def.hold_pacf_intern[i] = Calloc(def.p, double);
 			for (j = 0; j < def.p; j++) {
 				def.hold_pacf_intern[i][j] = GMRFLib_uniform();

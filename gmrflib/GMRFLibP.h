@@ -93,6 +93,9 @@ typedef enum {
 // 32bit ints -2147483648 to 2147483647
 #define GMRFLib_MAXINT (2147483647)
 
+#define GMRFLib_SIMD_LIM 4
+
+
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
 			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
@@ -297,6 +300,11 @@ typedef enum {
 		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_, ddd_); \
 	}
 
+#define GMRFLib_TRACE_i(msg_, i_)					\
+	if (trace_ && !((trace_count_ - 1) % trace_)) {			\
+		printf("\t[%1d] %s (%s:%1d): %s %d\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_); \
+	}
+
 #define GMRFLib_TRACE_idd(msg_, i_, d_, dd_)				\
 	if (trace_ && !((trace_count_ - 1) % trace_)) {			\
 		printf("\t[%1d] %s (%s:%1d): %s %d %.4f %.4f\n", omp_get_thread_num(), GMRFLib_function_name_strip(__GMRFLib_FuncName), __FILE__, __LINE__, msg_, i_, d_, dd_); \
@@ -304,7 +312,7 @@ typedef enum {
 
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
-	size_t calloc_l1_cacheline_ = 8;				\
+	size_t calloc_l1_cacheline_ = 64L / sizeof(double);		\
 	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_l1_cacheline_); \
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
@@ -313,7 +321,7 @@ typedef enum {
 
 #define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
-	size_t icalloc_l1_cacheline_ = 16;				\
+	size_t icalloc_l1_cacheline_ = 64L / sizeof(int);		\
 	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_l1_cacheline_); \
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
@@ -405,13 +413,7 @@ typedef enum {
 #define SQR(x) gsl_pow_2(x)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
-
-#define GMRFLib_Phi(_x) gsl_cdf_ugaussian_P(_x)
-#define GMRFLib_Phi_inv(_x) gsl_cdf_ugaussian_Pinv(_x)
-#define GMRFLib_erf(_x) (2.0 * GMRFLib_Phi((_x)*M_SQRT2) - 1.0)
-#define GMRFLib_erf_inv(_x) (M_SQRT1_2 * GMRFLib_Phi_inv(((_x) + 1.0)/2.0))
-#define GMRFLib_erfc(_x) (2.0 * GMRFLib_Phi(- (_x) * M_SQRT2))
-#define GMRFLib_erfc_inv(_x) (- GMRFLib_Phi_inv((_x) / 2.0) * M_SQRT1_2)
+#define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
 
 #define GMRFLib_GLOBAL_NODE(n, gptr) ((int) IMIN((n-1)*(gptr ? (gptr)->factor :  GMRFLib_global_node.factor), \
 						 (gptr ? (gptr)->degree : GMRFLib_global_node.degree)))
@@ -439,9 +441,9 @@ typedef enum {
 
 #define GMRFLib_CACHE_DELAY() GMRFLib_delay_random(25, 50)
 // assume _level() <= 2
-#define GMRFLib_CACHE_LEN (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
+#define GMRFLib_CACHE_LEN() (GMRFLib_MAX_THREADS() * (GMRFLib_MAX_THREADS() + 1))
 #define GMRFLib_CACHE_SET_ID(__id)					\
-	if (1) {							\
+	{								\
 		int level_ = omp_get_level();				\
 		int tnum_ = omp_get_thread_num();			\
 		if (level_ <= 1) {					\
@@ -454,12 +456,23 @@ typedef enum {
 		}							\
 	}
 
+// this use level1 only. set __id to -1 if we're on level2
+#define GMRFLib_CACHE_LEN_LEVEL1_ONLY() (GMRFLib_MAX_THREADS())
+#define GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(__id)				\
+	__id = (omp_get_level() <= 1 ? omp_get_thread_num() : -1)
+
 // len_work_ * n_work_ >0 will create n_work_ workspaces for all threads, each of (len_work_ * n_work_) doubles. _PTR(i_) will return the ptr to
 // the thread spesific workspace index i_ and _ZERO will zero-set it, i_=0,,,n_work_-1. CODE_BLOCK_THREAD_ID must be used to set
 
 #define CODE_BLOCK_WORK_PTR(i_work_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : omp_get_thread_num()) * len_work__ * n_work__)
 #define CODE_BLOCK_WORK_ZERO(i_work_) Memset(CODE_BLOCK_WORK_PTR(i_work_), 0, (size_t) len_work__ * sizeof(double))
 #define CODE_BLOCK_ALL_WORK_ZERO() if (work__) Memset(CODE_BLOCK_WORK_PTR(0), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+
+// this avoids a potential second call to omp_get_thread_num() as if this is known, it can be passed as the 'thread_num_' argument
+#define CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_) (work__ + (size_t) (i_work_) * len_work__ + (size_t) (nt__ == 1 ? 0 : thread_num_) * len_work__ * n_work__)
+#define CODE_BLOCK_WORK_ZERO_x(i_work_, thread_num_) Memset(CODE_BLOCK_WORK_PTR_x(i_work_, thread_num_), 0, (size_t) len_work__ * sizeof(double))
+#define CODE_BLOCK_ALL_WORK_ZERO_x(thread_num_) if (work__) Memset(CODE_BLOCK_WORK_PTR_x(0, thread_num_), 0, (size_t) (len_work__ * n_work__ * sizeof(double)))
+
 #define RUN_CODE_BLOCK(thread_max_, n_work_, len_work_)			\
 	if (1) {							\
 		int l1_cacheline = 8;					\
@@ -498,8 +511,8 @@ typedef enum {
 		Free(work__);						\
         }
 
-#define GMRFLib_INT_NUM_POINTS   (60)			       /* number of points for integration,... */
-#define GMRFLib_INT_NUM_INTERPOL  (2)			       /* ...which are then interpolated: use 2 or 3 */
+#define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */
+#define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (15)			       /* MUST BE ODD!!!! for the quadrature */
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.
