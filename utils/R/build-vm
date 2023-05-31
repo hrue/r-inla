@@ -56,7 +56,7 @@ ssh -x -t $IP "
     . .bash_profile;
     export INLA_TAG=$INLA_TAG;
     B=builds/build64;
-    make -C\$B update;
+    make -j2 -C\$B update;
     test -d \$B/$D && rm -rf \$B/$D;
     rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
     export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:/usr/lib64/R/lib:\$PWD/local/lib:\$LD_LIBRARY_PATH;
