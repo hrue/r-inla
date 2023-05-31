@@ -1053,6 +1053,26 @@ int GMRFLib_dscale(int n, double a, double *x)
 	return (dscal_(&n, &a, x, &one));
 }
 
+void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
+{
+	// y = a * x + b * y
+#if defined(INLA_LINK_WITH_MKL)
+	int inc = 1;
+	daxpby_(&n, &a, x, &inc, &b, y, &inc);
+#else
+#pragma omp simd
+	for(int i = 0; i < n; i++) {
+		y[i] = a * x[i] + b * y[i];
+	}
+#endif	
+}
+void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y,  double *z)
+{
+	// z = a * x + b * y
+	Memcpy(z, y, n * sizeof(double));
+	GMRFLib_daxpby(n, a, x, b, z);
+}
+
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b

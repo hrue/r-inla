@@ -44465,12 +44465,12 @@ int testit(int argc, char **argv)
 			if (inc == 1) {
 #pragma omp simd
 				for (int j = 0; j < n; j++) {
-					y[i] = x[i] - y[i];
+					y[j] = x[j] - y[j];
 				}
 			} else {
 #pragma omp simd
 				for (int j = 0; j < n; j++) {
-					y[i] = x[i*inc] - y[i];
+					y[j] = x[j*inc] - y[j];
 				}
 			}
 			tref[0] += GMRFLib_cpu();
@@ -44478,11 +44478,11 @@ int testit(int argc, char **argv)
 			tref[1] -= GMRFLib_cpu();
 			if (inc == 1) {
 				for (int j = 0; j < n; j++) {
-					yy[i] =  x[i] - yy[i];
+					yy[j] =  x[j] - yy[j];
 				}
 			} else {
 				for (int j = 0; j < n; j++) {
-					yy[i] =  x[i*inc] - yy[i];
+					yy[j] =  x[j*inc] - yy[j];
 				}
 			}
 			tref[1] += GMRFLib_cpu();
@@ -44497,6 +44497,53 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 122:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+		
+		P(n);
+		P(m);
+		
+		double *x = Calloc(4 * n, double);
+		double *y = x + n;
+		double *yy = x + 2 * n;
+		double *z = x + 3 * n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				y[j] = x[j] + exp(x[j]);
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+#if defined(INLA_LINK_WITH_MKL)
+			vdExp(n, x, z);
+			GMRFLib_daxpbyz(n, 1.0, x, 1.0, z, yy);
+#else
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				y[j] = x[j] + GMRFLib_exp(x[j]);
+			}
+#endif
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON); 
+		}
+		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
 
 	case 999:
 	{
