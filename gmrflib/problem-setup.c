@@ -1864,7 +1864,7 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 		static int debug = 0;
 		size_t *nnzs = NULL, nnz_best;
 		int k, n = -1, nk, r, i, ne = 0, use_global_nodes;
-		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS, GMRFLib_REORDER_AMDC };
+		GMRFLib_reorder_tp rs[] = { GMRFLib_REORDER_METIS }; // , GMRFLib_REORDER_AMDBARC };
 		taucs_ccs_matrix *Q = NULL;
 		char *fixed = NULL;
 		double *cputime = NULL;
@@ -1877,6 +1877,8 @@ int GMRFLib_optimize_reorder(GMRFLib_graph_tp *graph, size_t *nnz_opt, int *use_
 		 */
 		int ic, kk, j, nnz;
 
+		//GMRFLib_printf_graph(stdout, graph);
+		
 		nnz = n + GMRFLib_isum(n, graph->nnbs);
 		Q = taucs_ccs_create(n, n, nnz, TAUCS_DOUBLE);
 		GMRFLib_ASSERT(Q, GMRFLib_EMEMORY);
