@@ -1,7 +1,7 @@
 CXXFLAGS = -framework Accelerate $(FLAGS) -O3 -mtune=generic -fopenmp -pipe -fpic -I.
 LDFLAGS = -framework Accelerate 
 TARGET = libfbesag.so
-OBJ = $(patsubst %.c,%.o,$(wildcard *.c))
+OBJ = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 $(TARGET) : $(OBJ)
 	$(CXX) $(LDFLAGS) -o $@ -dynamiclib $^ $(LIBBLAS) -lgfortran -lgomp -lm
