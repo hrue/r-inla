@@ -215,6 +215,13 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 #define gsl_sf_lngamma(_x) lgamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
+#if !defined(INLA_LINK_WITH_MKL)
+#pragma omp declare simd
+static double GMRFLib_exp(double x)
+{
+	return exp(x);
+}
+#endif
 
 #include "inla-sys.c"
 #include "inla-map-and-link.c"
@@ -229,7 +236,6 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 #include "inla-classic.c"
 #include "inla-read.c"
 #include "inla-parse.c"
-
 
 double inla_interpolate_mode(double *x, double *y)
 {
