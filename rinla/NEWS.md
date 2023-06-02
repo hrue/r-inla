@@ -1,3 +1,8 @@
+# INLA 23.05.30
+* First build with R-4.3 and MacOS 12.6
+* Code improvement and optimisation
+* Updated some documentation
+
 # INLA 23.05.21
 * Reduced memory usage for data-rich models
 * Added new option `control.compute=list(save.memory=FALSE|TRUE)` for

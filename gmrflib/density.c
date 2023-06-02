@@ -732,7 +732,7 @@ int GMRFLib_evaluate_logdensity(double *logdens, double x, GMRFLib_density_tp *d
 #pragma omp declare simd
 double GMRFLib_sqr(double x)
 {
-    return x * x;
+	return x * x;
 }
 
 int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_density_tp *density)

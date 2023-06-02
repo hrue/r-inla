@@ -1985,6 +1985,7 @@ int inla_mix_int_quadrature_mloggamma(int thread_id, double **x, double **w, int
 int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n, void *arg);
 int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n, void *arg);
 int inla_mix_int_simpson_mloggamma(int thread_id, double **x, double **w, int *n, void *arg);
+int inla_mkdir(const char *dirname);
 
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
@@ -2131,7 +2132,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
