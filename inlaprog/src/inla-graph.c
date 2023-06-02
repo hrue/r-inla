@@ -365,4 +365,3 @@ int inla_make_intslope_graph(GMRFLib_graph_tp **graph, inla_intslope_arg_tp *arg
 
 	return GMRFLib_SUCCESS;
 }
-

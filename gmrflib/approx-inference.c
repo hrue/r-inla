@@ -1935,7 +1935,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		gcpo_groups = GMRFLib_gcpo_build(thread_id, ai_store, preopt, gcpo_param);
 		GMRFLib_openmp_implement_strategy(place, NULL, NULL);
 	}
-
 	// if we have to many threads in outer we can move them to the inner level. Note that this will not increase the number of threads for
 	// PARDISO:chol/Qinv/reorder, but will do for PARDISO:solve. 
 	GMRFLib_openmp_place_tp place_save = GMRFLib_OPENMP_PLACES_DEFAULT;
@@ -1947,7 +1946,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		place_save = GMRFLib_openmp->place;
 		GMRFLib_openmp_implement_strategy_special(outer, inner);
 	}
-
 #pragma omp parallel for private(log_dens, dens_count, tref, tu, ierr) num_threads(nt)
 	for (int k = 0; k < design->nexperiments; k++) {
 		int thread_id = omp_get_thread_num();
@@ -2256,7 +2254,6 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 			}
 		}
 	}
-
 	// save (x, theta) adding the predictors
 	preopt->mode_theta = Calloc(nhyper, double);
 	Memcpy(preopt->mode_theta, theta_mode, nhyper * sizeof(double));

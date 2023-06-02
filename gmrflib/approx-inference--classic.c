@@ -3988,9 +3988,9 @@ int GMRFLib_ai_vb_prepare(int thread_id,
 			B += tmp * xp[i];
 			C += tmp * (SQR(xp[i]) - 1.0);
 		}
-		coofs->coofs[0] = - d * A;
-		coofs->coofs[1] = - d * B * s_inv;
-		coofs->coofs[2] = - d * C * s2_inv;
+		coofs->coofs[0] = -d * A;
+		coofs->coofs[1] = -d * B * s_inv;
+		coofs->coofs[2] = -d * C * s2_inv;
 
 		Calloc_free();
 		return GMRFLib_SUCCESS;

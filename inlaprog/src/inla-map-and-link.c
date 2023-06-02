@@ -467,7 +467,6 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 		table[id]->icdf = GMRFLib_spline_create(y, x, len);
 		Free(work);
 	}
-
 	// ...as the mapping using this reparameterisation
 	if (!ISNAN(intercept_intern)) {
 		intercept = GMRFLib_spline_eval(intercept_intern, table[id]->icdf);
@@ -1315,7 +1314,6 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 		if (debug) {
 			fprintf(stderr, "link_loga: build new table for a=%g [%1d]\n", a, id);
 		}
-
 		// count to find the length
 		for (xx = -range, len = 0; xx <= 2 * range; xx += (ABS(xx) < 3.0 ? dx / 5.0 : dx), len++);
 		work = x_ = Calloc(2 * len, double);

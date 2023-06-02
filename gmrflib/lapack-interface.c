@@ -1061,12 +1061,12 @@ void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
 	daxpby_(&n, &a, x, &inc, &b, y, &inc);
 #else
 #pragma omp simd
-	for(int i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		y[i] = a * x[i] + b * y[i];
 	}
-#endif	
+#endif
 }
-void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y,  double *z)
+void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 {
 	// z = a * x + b * y
 	Memcpy(z, y, n * sizeof(double));
@@ -1104,11 +1104,10 @@ void GMRFLib_daxpb2(int n, double a, double *x, double b, double *y)
 	}
 }
 
-void GMRFLib_daddto(int n, double *x, double *y) 
+void GMRFLib_daddto(int n, double *x, double *y)
 {
 	// y = y + x
 	int inc = 1;
 	double one = 1.0;
 	daxpy_(&n, &one, x, &inc, y, &inc);
 }
-

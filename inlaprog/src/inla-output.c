@@ -263,7 +263,6 @@ int inla_output(inla_tp *mb)
 				   NULL, NULL, mb->transform_funcs, newtag, NULL, local_verbose);
 		inla_output_size(mb->dir, sdir, mb->predictor_n + mb->predictor_m, -1, -1, -1, (mb->predictor_m == 0 ? 1 : 2));
 	}
-
 #pragma omp parallel for num_threads(IMIN(IMAX(1, mb->nf), GMRFLib_openmp->max_threads_outer))
 	for (int ii = 0; ii < mb->nf; ii++) {
 		int offset = offsets[ii + 1];
@@ -2139,4 +2138,3 @@ int inla_R(char **argv)
 
 	return GMRFLib_SUCCESS;
 }
-

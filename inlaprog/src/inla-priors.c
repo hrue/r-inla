@@ -253,7 +253,6 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		printf("\t\t%s->from_theta=[%s]\n", prior_tag, prior->from_theta);
 		printf("\t\t%s->to_theta = [%s]\n", prior_tag, prior->to_theta);
 	}
-
 	// this is special
 	if (!strcasecmp(prior->name, "WISHARTKD")) {
 		prior->name = GMRFLib_strdup(default_prior);
@@ -2552,4 +2551,3 @@ double priorfunc_wishartk_generic(int idim, double *x, double *parameters)
 
 	return val;
 }
-

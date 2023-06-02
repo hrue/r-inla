@@ -743,7 +743,6 @@ int inla_INLA_preopt_stage1(inla_tp *mb, GMRFLib_preopt_res_tp *rpreopt)
 		}
 		mb->ai_par->int_design = design;
 	}
-
 	// set back
 	nparam_eff = mb->ai_par->compute_nparam_eff = nparam_eff;
 

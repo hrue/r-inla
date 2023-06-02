@@ -3406,7 +3406,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 			y[i] = GMRFLib_uniform();
-			yy[i] = y[i]; 
+			yy[i] = y[i];
 		}
 
 		double tref[] = { 0, 0 };
@@ -3418,7 +3418,7 @@ int testit(int argc, char **argv)
 			tref[1] -= GMRFLib_cpu();
 #pragma omp simd
 			for (int j = 0; j < n; j++) {
-				yy[j] += x[j]; 
+				yy[j] += x[j];
 			}
 			tref[1] += GMRFLib_cpu();
 
@@ -3437,11 +3437,11 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
 		int inc = atoi(args[2]);
-		
+
 		P(n);
 		P(m);
 		P(inc);
-		
+
 		double *x = Calloc(3 * inc * n, double);
 		double *y = x + inc * n;
 		double *yy = x + 2 * inc * n;
@@ -3449,7 +3449,7 @@ int testit(int argc, char **argv)
 		for (int i = 0; i < inc * n; i++) {
 			x[i] = GMRFLib_uniform();
 			y[i] = GMRFLib_uniform();
-			yy[i] = y[i]; 
+			yy[i] = y[i];
 		}
 
 		double tref[] = { 0, 0 };
@@ -3463,7 +3463,7 @@ int testit(int argc, char **argv)
 			} else {
 #pragma omp simd
 				for (int j = 0; j < n; j++) {
-					y[j] = x[j*inc] - y[j];
+					y[j] = x[j * inc] - y[j];
 				}
 			}
 			tref[0] += GMRFLib_cpu();
@@ -3471,11 +3471,11 @@ int testit(int argc, char **argv)
 			tref[1] -= GMRFLib_cpu();
 			if (inc == 1) {
 				for (int j = 0; j < n; j++) {
-					yy[j] =  x[j] - yy[j];
+					yy[j] = x[j] - yy[j];
 				}
 			} else {
 				for (int j = 0; j < n; j++) {
-					yy[j] =  x[j*inc] - yy[j];
+					yy[j] = x[j * inc] - yy[j];
 				}
 			}
 			tref[1] += GMRFLib_cpu();
@@ -3494,10 +3494,10 @@ int testit(int argc, char **argv)
 	{
 		int n = atoi(args[0]);
 		int m = atoi(args[1]);
-		
+
 		P(n);
 		P(m);
-		
+
 		double *x = Calloc(4 * n, double);
 		double *y = x + n;
 		double *yy = x + 2 * n;
@@ -3532,7 +3532,7 @@ int testit(int argc, char **argv)
 			for (int j = 0; j < n; j++) {
 				err = DMAX(err, ABS(y[j] - yy[j]));
 			}
-			assert(err < FLT_EPSILON); 
+			assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 	}

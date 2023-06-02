@@ -425,7 +425,7 @@ int GMRFLib_openmp_implement_strategy(GMRFLib_openmp_place_tp place, void *arg, 
 	if (kind != omp_sched_static) {
 		omp_set_schedule(omp_sched_static, 0);
 	}
-	
+
 	omp_set_num_threads(GMRFLib_openmp->max_threads_outer);
 	GMRFLib_set_blas_num_threads(GMRFLib_openmp->blas_num_threads);
 

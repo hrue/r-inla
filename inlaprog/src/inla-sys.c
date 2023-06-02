@@ -150,4 +150,3 @@ int inla_tolower(char *string)
 	}
 	return GMRFLib_SUCCESS;
 }
-

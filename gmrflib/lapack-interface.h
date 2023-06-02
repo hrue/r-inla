@@ -113,7 +113,7 @@ void GMRFLib_daddto(int n, double *x, double *y);
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpb2(int n, double a, double *x, double b, double *y);
 void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
-void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y,  double *z);
+void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z);
 
 __END_DECLS
 #endif

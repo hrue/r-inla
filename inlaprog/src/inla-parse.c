@@ -1962,7 +1962,6 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->ntheta++;
 			ds->data_ntheta++;
 		}
-
 		// this one must be fixed.
 		tmp = iniparser_getdouble(ini, inla_string_join(secname, "INITIAL1"), 999999.9);
 		ds->data_fixed1 = iniparser_getboolean(ini, inla_string_join(secname, "FIXED1"), 1);
