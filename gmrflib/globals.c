@@ -173,3 +173,6 @@ int GMRFLib_sort2_id_cut_off = 50;
 int GMRFLib_sort2_dd_cut_off = 70;
 int GMRFLib_internal_opt = 1;
 int GMRFLib_save_memory = 0;
+
+GMRFLib_isum_tp *GMRFLib_isum = GMRFLib_isum1;
+GMRFLib_dsum_tp *GMRFLib_dsum = GMRFLib_dsum1;

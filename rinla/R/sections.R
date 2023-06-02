@@ -1574,8 +1574,8 @@
     if (is.null(args$disable.gaussian.check)) {
         args$disable.gaussian.check <- FALSE
     }
-    inla.write.boolean.field("DISABLE.GAUSSIAN.CHECK", args$disable.gaussian.check, file)
-    inla.write.boolean.field("DOT.PRODUCT.GAIN", args$dot.product.gain, file)
+    inla.write.boolean.field("disable.gaussian.check", args$disable.gaussian.check, file)
+    inla.write.boolean.field("dot.product.gain", args$dot.product.gain, file)
 
     gconstr <- args$globalconstr
     if (!is.null(gconstr) && !is.null(gconstr$A)) {

@@ -73,7 +73,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 			double *__restrict aa_ = &(ARR_[ii_[0]]);
 			if (ELM_->g_1[g_]) {
 				if (llen_ < SIMPLE_LOOP_LIMIT) {
-#pragma GCC ivdep
+#pragma omp simd reduction(+: value_)
 					for (int i_ = 0; i_ < llen_; i_++) {
 						value_ += aa_[i_];
 					}
@@ -82,7 +82,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 				}
 			} else {
 				if (llen_ < SIMPLE_LOOP_LIMIT) {
-#pragma GCC ivdep
+#pragma omp simd reduction(+: value_)
 					for (int i_ = 0; i_ < llen_; i_++) {
 						value_ += vv_[i_] * aa_[i_];
 					}
@@ -134,7 +134,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double 
 			double *__restrict aa_ = &(ARR_[ii_[0]]);
 			if (ELM_->g_1[g_]) {
 				if (llen_ < SIMPLE_LOOP_LIMIT) {
-#pragma GCC ivdep
+#pragma omp simd reduction(+: value_)
 					for (int i_ = 0; i_ < llen_; i_++) {
 						value_ += aa_[i_];
 					}
@@ -143,7 +143,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double 
 				}
 			} else {
 				if (llen_ < SIMPLE_LOOP_LIMIT) {
-#pragma GCC ivdep
+#pragma omp simd reduction(+: value_)
 					for (int i_ = 0; i_ < llen_; i_++) {
 						value_ += vv_[i_] * aa_[i_];
 					}
@@ -233,9 +233,7 @@ double GMRFLib_dot_product(GMRFLib_idxval_tp *__restrict ELM_, double *__restric
 
 
 
-
-
-int GMRFLib_isum(int n, int *ix)
+int GMRFLib_isum1(int n, int *ix)
 {
 	const int roll = 8L;
 	int s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
@@ -257,7 +255,7 @@ int GMRFLib_isum(int n, int *ix)
 		s3 += xx[7];
 	}
 
-#pragma omp simd reduction(+: s0)
+#pragma GCC ivdep
 	for (int i = m; i < n; i++) {
 		s0 += ix[i];
 	}
@@ -276,7 +274,7 @@ int GMRFLib_isum2(int n, int *ix)
 	return (s);
 }
 
-double GMRFLib_dsum(int n, double *x)
+double GMRFLib_dsum1(int n, double *x)
 {
 	double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
 	const int roll = 8L;
@@ -298,7 +296,7 @@ double GMRFLib_dsum(int n, double *x)
 		s3 += xx[7];
 	}
 
-#pragma omp simd reduction(+: s0)
+#pragma GCC ivdep
 	for (int i = m; i < n; i++) {
 		s0 += x[i];
 	}
@@ -316,6 +314,67 @@ double GMRFLib_dsum2(int n, double *x)
 	}
 
 	return (s);
+}
+
+void GMRFLib_isum_measure_time(double *tused) 
+{
+	int n = 512;
+	int ntimes = 32;
+	int *ix = Calloc(n, int);
+
+	for (int i = 0; i < n; i++) {
+		ix[i] = (int) (32 * GMRFLib_uniform() - 16);
+	}
+
+	double tref[2] = { 0.0, 0.0 };
+	double r = 0.0, rr = 0.0;
+
+	for (int time = 0; time < ntimes; time++) {
+		
+		tref[0] -= GMRFLib_cpu();
+		r += GMRFLib_isum1(n, ix);
+		r += GMRFLib_isum1(n, ix);
+		tref[0] += GMRFLib_cpu();
+		
+		tref[1] -= GMRFLib_cpu();
+		rr += GMRFLib_isum2(n, ix);
+		rr += GMRFLib_isum2(n, ix);
+		tref[1] += GMRFLib_cpu();
+	}
+	
+	tused[0] = tref[0] / (tref[0] + tref[1]);
+	tused[1] = tref[1] / (tref[0] + tref[1]);
+	GMRFLib_isum = (tused[0] < tused[1] ? GMRFLib_isum1 : GMRFLib_isum2);
+}
+
+void GMRFLib_dsum_measure_time(double *tused) 
+{
+	int n = 512;
+	int ntimes = 32;
+	double *x = Calloc(n, double);
+	for (int i = 0; i < n; i++) {
+		x[i] = GMRFLib_uniform();
+	}
+
+	double tref[2] = { 0.0, 0.0 };
+	double r = 0.0, rr = 0.0;
+
+	for (int time = 0; time < ntimes; time++) {
+		
+		tref[0] -= GMRFLib_cpu();
+		r += GMRFLib_dsum1(n, x);
+		r += GMRFLib_dsum1(n, x);
+		tref[0] += GMRFLib_cpu();
+		
+		tref[1] -= GMRFLib_cpu();
+		rr += GMRFLib_dsum2(n, x);
+		rr += GMRFLib_dsum2(n, x);
+		tref[1] += GMRFLib_cpu();
+	}
+	
+	tused[0] = tref[0] / (tref[0] + tref[1]);
+	tused[1] = tref[1] / (tref[0] + tref[1]);
+	GMRFLib_dsum = (tused[0] < tused[1] ? GMRFLib_dsum1 : GMRFLib_dsum2);
 }
 
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)

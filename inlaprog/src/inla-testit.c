@@ -2295,7 +2295,6 @@ int testit(int argc, char **argv)
 
 	case 83:
 	{
-		FIXME("????????????????? FREE in idxval.c needs to disabled for this to run");
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		double *xx = Calloc(n, double);
@@ -2306,7 +2305,7 @@ int testit(int argc, char **argv)
 
 		GMRFLib_idxval_tp *h = NULL;
 		for (int i = 0, j = 0; i < n; i++) {
-			j += 1 + (GMRFLib_uniform() < 0.9 ? 0.0 : 1 + (int) (GMRFLib_uniform() * 31));
+			j += 1 + (GMRFLib_uniform() < 1.0 - 1.0/16.0 ? 0 : 1 + (int) (GMRFLib_uniform() * 64));
 			if (j >= n)
 				break;
 			GMRFLib_idxval_add(&h, j, xx[j]);
@@ -2315,18 +2314,21 @@ int testit(int argc, char **argv)
 		assert(h);
 		P(n);
 		P(h->g_n);
-		P(h->n / h->g_n);
+		if (h->g_n) P(h->n / h->g_n);
 
+		if (h->g_n == 0) FIXME("NEED TO DISABLE FREE OF GROUP in idxval.c");
 		double sum1 = 0.0, sum2 = 0.0;
 		double tref1 = 0.0, tref2 = 0.0;
 		for (int k = 0; k < ntimes; k++) {
 			sum1 = sum2 = 0.0;
 			tref1 -= GMRFLib_cpu();
-			sum1 = GMRFLib_dot_product_serial(h, xx);
+			//sum1 = GMRFLib_dot_product_serial(h, xx);
+			sum1 = GMRFLib_dot_product_serial_mkl(h, xx);
 			tref1 += GMRFLib_cpu();
 
 			tref2 -= GMRFLib_cpu();
-			sum2 = GMRFLib_dot_product_group(h, xx);
+			//sum2 = GMRFLib_dot_product_group(h, xx);
+			sum2 = GMRFLib_dot_product_group_mkl(h, xx);
 			tref2 += GMRFLib_cpu();
 			if (ABS(sum1 - sum2) > 1e-8) {
 				P(sum1);
@@ -2447,8 +2449,10 @@ int testit(int argc, char **argv)
 		int n = atoi(args[0]);
 		int ntimes = atoi(args[1]);
 		double *x = Calloc(n, double);
+		int *ix = Calloc(n, int);
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
+			ix[i] = (int) (x[i] * 512 - 256);
 		}
 
 		P(n);
@@ -2469,6 +2473,24 @@ int testit(int argc, char **argv)
 		}
 
 		printf("dsum %.3f dsum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		P((r - rr) / r);
+
+		tref[0] = tref[1] = 0.0;
+		r = 0.0;
+		rr = 0.0;
+
+		for (int time = 0; time < ntimes; time++) {
+
+			tref[0] -= GMRFLib_cpu();
+			r += GMRFLib_isum(n, ix);
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+			rr += GMRFLib_isum2(n, ix);
+			tref[1] += GMRFLib_cpu();
+		}
+
+		printf("isum %.3f isum2 %.3f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 		P((r - rr) / r);
 
 		Free(x);

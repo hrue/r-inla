@@ -5505,7 +5505,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	// time the two versions of Qfunc_like
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
-
+	double time_isum[2] = {0.0, 0.0};
+	double time_dsum[2] = {0.0, 0.0};
+	
 	if (GMRFLib_internal_opt) {
 		// cannot run this in parallel as we're changing global variables
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
@@ -5554,6 +5556,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
+
+		GMRFLib_isum_measure_time(time_isum);
+		GMRFLib_dsum_measure_time(time_dsum);
+		
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
@@ -5600,6 +5606,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (GMRFLib_internal_opt) {
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
+			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1], (GMRFLib_isum == GMRFLib_isum1 ? "isum1" : "isum2"));
+			printf("\tOptimizing dsum............ dsum1[%.3f] dsum2[%.3f] choice[%s]\n", time_dsum[0], time_dsum[1], (GMRFLib_dsum == GMRFLib_dsum1 ? "dsum1" : "dsum2"));
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
 			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
 			       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));

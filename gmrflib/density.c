@@ -740,8 +740,6 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 	/*
 	 * evaluate the log-density-object. Note that x is in *standardised scale* . 
 	 */
-	int i;
-
 	assert(density);
 
 	switch (density->type) {
@@ -750,8 +748,8 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		double c1 = CONST_3 - log(density->stdev);
 		double c2 = -0.5 / SQR(density->stdev);
 		double m = density->mean;
-#pragma omp simd private(i)
-		for (i = 0; i < n; i++) {
+#pragma omp simd 
+		for (int i = 0; i < n; i++) {
 			// logdens[i] = log_norm_const_gaussian - log(density->stdev) - 0.5 * SQR(x[i] - density->mean) / SQR(density->stdev);
 			logdens[i] = c1 + c2 * GMRFLib_sqr(x[i] - m);
 		}
@@ -770,7 +768,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 		double b = -p->xi / p->omega;
 		double z, zz, val;
 
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			// inline the most important case of log(Phi(...)) and use a very good approximation
 			z = a * x[i] + b;
 			zz = p->alpha * z;
@@ -794,7 +792,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
 		}
 	}

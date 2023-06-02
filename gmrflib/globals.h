@@ -140,6 +140,9 @@ extern int GMRFLib_save_memory;
 extern int GMRFLib_sort2_id_cut_off;
 extern int GMRFLib_sort2_dd_cut_off;
 
+extern GMRFLib_isum_tp *GMRFLib_isum;
+extern GMRFLib_dsum_tp *GMRFLib_dsum;
+
 #endif
 __END_DECLS
 #endif
