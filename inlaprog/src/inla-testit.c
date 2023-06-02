@@ -1777,8 +1777,8 @@ int testit(int argc, char **argv)
 
 		GMRFLib_spline_tp *P, *Pinv;
 
-		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P, 0);
-		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv, 0);
+		P = GMRFLib_spline_create_x(x, pp, n, GMRFLib_INTPOL_TRANS_P, GMRFLib_INTPOL_CACHE_LEVEL12);
+		Pinv = GMRFLib_spline_create_x(pp, x, n, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL12);
 
 		for (xx = -(xmax + 2); xx <= (xmax + 2); xx += 0.5) {
 			double p1 = inla_Phi(xx);
