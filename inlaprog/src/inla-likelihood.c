@@ -3239,8 +3239,64 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 	double normc = cache[0];
 	double y_log_E = cache[1];
 
+	// there is a tradeoff in the computations, either we can use lgamma() functions or a sum of log()'s.
+	static int calibrate = 1;
+	static int ylim = 8L;
+	if (calibrate) {
+#pragma omp critical (Name_e618c7278d96ebc883f4ddb21a27897f1dbbed07)
+		if (calibrate) {
+			const int ntimes = 16L;
+			int verbose = 0;
+			double s[ntimes];
+			for(int yy = 4, dy = 1; yy < 100; yy += dy) {
+				double t[] = {0, 0}, tmp0 = 0.0, tmp1 = 0.0;
+
+				for(int time = 0; time < ntimes; time++) {
+					s[time] = exp(2.0 * (GMRFLib_uniform() - 0.5));
+				}
+
+				t[0] = -GMRFLib_cpu();
+				for(int time = 0; time < ntimes; time++) {
+					tmp0 += gsl_sf_lngamma(yy + s[time]) - gsl_sf_lngamma(s[time]);
+				}
+				t[0] += GMRFLib_cpu();
+
+				t[1] -= GMRFLib_cpu();
+				for(int time = 0; time < ntimes; time++) {
+#pragma omp simd reduction(+: tmp1)
+					for(int y1 = 0; y1 < yy; y1++) {
+						tmp1 += log(y1 + s[time]);
+					}
+				}
+				t[1] += GMRFLib_cpu();
+
+				assert(ABS(((tmp0 - tmp1))/(tmp0 + tmp1)) < FLT_EPSILON);
+				if (verbose) {
+					printf("Calibrate nbinomial: yy %d sf=%.3f prod=%.3f\n", yy, t[0]/(t[0]+t[1]), t[1]/(t[0]+t[1]));
+				}
+				if (t[1]> t[0]) {
+					ylim = yy - dy / 2L;
+					if (verbose) printf("Calibrate nbinomial: chose ylim = %1d\n", ylim);
+					break;
+				}
+			}
+			calibrate = 0;
+		}
+	}
+
+
 	if (m > 0) {
-		double lnorm = gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size) - normc;
+		// the expression lgamma(y+s)-lgamm(s) reduces using Gamma(1+z)=z*Gamma(z)
+		double lnorm = -normc;
+		if (y > ylim) {
+			lnorm += gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size); 
+		} else {
+#pragma omp simd reduction(+: lnorm)
+			for(int yy = 0; yy < (int)y; yy++) {
+				lnorm += log(yy + size);
+			}
+		}
+		
 		double off = OFFSET(idx);
 		if (PREDICTOR_LINK_EQ(link_log)) {
 

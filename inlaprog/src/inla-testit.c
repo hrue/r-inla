@@ -3546,7 +3546,7 @@ int testit(int argc, char **argv)
 #else
 #pragma omp simd
 			for (int j = 0; j < n; j++) {
-				y[j] = x[j] + GMRFLib_exp(x[j]);
+				y[j] = x[j] + exp(x[j]);
 			}
 #endif
 			tref[1] += GMRFLib_cpu();

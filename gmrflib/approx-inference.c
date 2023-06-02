@@ -43,12 +43,6 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-#pragma omp declare simd
-static double GMRFLib_exp(double x)
-{
-	return exp(x);
-}
-
 int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 {
 	/*
@@ -4455,12 +4449,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				dx[i] = max_correct * sd[i] * SIGN(dx[i]);
 			}
 		}
-
-#pragma GCC ivdep
-		for (int i = 0; i < graph->n; i++) {
-			x_mean[i] += dx[i];
-		}
-
+		GMRFLib_daddto(graph->n, dx, x_mean);
 		double max_correction = 0.0;
 #pragma GCC ivdep
 		for (int i = 0; i < graph->n; i++) {
@@ -5610,7 +5599,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 #else
 #pragma omp simd
 	for (int i = 0; i < np; i++) {
-		xpi[i] = GMRFLib_exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
+		xpi[i] = exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
 	}
 #endif
 	integral = GMRFLib_ddot(np, w, xp);
@@ -5697,7 +5686,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 #else
 #pragma omp simd
 			for(int i = 0; i < np; i++){
-				mask[i] = GMRFLib_exp(ll[i]);
+				mask[i] = exp(ll[i]);
 			}
 #endif
 			integral2 = GMRFLib_ddot(np, mask, wp);
@@ -5709,7 +5698,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 #pragma omp simd reduction(+: integral2, integral4)
 			for(int i = 0; i < np; i++) {
 				integral4 += ll[i] * ll[i] * wp[i];
-				integral2 += mask[i] * GMRFLib_exp(ll[i]) * wp[i];
+				integral2 += mask[i] * exp(ll[i]) * wp[i];
 			}
 		}
 		Calloc_free();

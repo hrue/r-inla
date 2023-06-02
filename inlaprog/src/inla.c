@@ -215,14 +215,6 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 #define gsl_sf_lngamma(_x) lgamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
-#if !defined(INLA_LINK_WITH_MKL)
-#pragma omp declare simd
-static double GMRFLib_exp(double x)
-{
-	return exp(x);
-}
-#endif
-
 #include "inla-sys.c"
 #include "inla-map-and-link.c"
 #include "inla-testit.c"
@@ -5783,10 +5775,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
-		if (mb->verbose) {
-			printf("\nCompute initial values...\n");
-		}
-
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < preopt->Npred; i++) {
 			if (mb->d[i]) {
@@ -5865,6 +5853,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				norm_initial = norm;
 			}
 			if (mb->verbose) {
+				if (iter == 0) printf("\nCompute initial values...\n");
 				printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 			}
 
@@ -6158,7 +6147,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #else
 #pragma omp simd
 		for (int i = 0; i < npm; i++) {
-			ldm[i] = GMRFLib_exp(ldm[i]);
+			ldm[i] = exp(ldm[i]);
 		}
 #endif
 
