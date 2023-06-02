@@ -4,32 +4,9 @@
 \alias{inla.identical.CRS}
 \title{Test CRS and inla.CRS for equality}
 \usage{
-inla.identical.CRS(crs0, crs1, crsonly = FALSE)
-}
-\arguments{
-\item{crs0}{A \code{CRS} or \code{inla.CRS} object.}
-
-\item{crs1}{A \code{CRS} or \code{inla.CRS} object.}
-
-\item{crsonly}{Logical. If \code{TRUE}, only the \code{CRS} part of a
-\code{inla.CRS} object is compared.}
+inla.identical.CRS(...)
 }
 \description{
 Wrapper for identical, optionally testing only the CRS part of two objects
-}
-\examples{
-
-crs0 <- inla.CRS("longlat")
-crs1 <- inla.CRS("longlat", oblique = c(0, 90))
-print(c(
-    inla.identical.CRS(crs0, crs0),
-    inla.identical.CRS(crs0, crs1),
-    inla.identical.CRS(crs0, crs1, crsonly = TRUE)
-))
-}
-\seealso{
-\code{\link[=inla.CRS]{inla.CRS()}}
-}
-\author{
-Finn Lindgren \href{mailto:finn.lindgren@gmail.com}{finn.lindgren@gmail.com}
+Deprecated in favour of \code{inlabru::fm_identical_CRS()}
 }

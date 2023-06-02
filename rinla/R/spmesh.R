@@ -1,8 +1,5 @@
 ## Internal: internal.update.crs
 ## Internal: inla.internal.sp2segment.join
-## Internal: inla.crs.transform.oblique
-## Internal: inla.rotmat3213
-## Internal: inla.rotmat3123
 ## Internal: inla.crs.graticule
 ## Internal: inla.crs.tissot
 ## Internal: internal.clip
@@ -665,49 +662,9 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 #' Create a coordinate reference system object
 #'
 #' Creates either a CRS object or an inla.CRS object, describing a coordinate
-#' reference system
+#' reference system. Deprecated in favour of `inlabru::fm_CRS()`.
 #'
-#' The first two elements of the `oblique` vector are the (longitude,
-#' latitude) coordinates for the oblique centre point. The third value
-#' (orientation) is a counterclockwise rotation angle for an observer looking
-#' at the centre point from outside the sphere. The fourth value is the
-#' quasi-longitude (orbit angle) for a rotation along the oblique observers
-#' equator.
-#'
-#' Simple oblique: `oblique=c(0, 45)`
-#'
-#' Polar: `oblique=c(0, 90)`
-#'
-#' Quasi-transversal: `oblique=c(0, 0, 90)`
-#'
-#' Satellite orbit viewpoint: `oblique=c(lon0-time*v1, 0, orbitangle,
-#' orbit0+time*v2)`, where `lon0` is the longitude at which a satellite
-#' orbit crosses the equator at `time=0`, when the satellite is at an
-#' angle `orbit0` further along in its orbit.  The orbital angle relative
-#' to the equatorial plane is `orbitangle`, and `v1` and `v2`
-#' are the angular velocities of the planet and the satellite, respectively.
-#' Note that "forward" from the satellite's point of view is "to the right" in
-#' the projection.
-#'
-#' When `oblique[2]` or `oblique[3]` are non-zero, the resulting
-#' projection is only correct for perfect spheres.
-#'
-#' @aliases inla.CRS inla.wkt_predef
-#' @param projargs Either 1) a projection argument string suitable as input to
-#' `sp::CRS`, or 2) an existing `CRS` object, or 3) a shortcut
-#' reference string to a predefined projection; run
-#' `names(inla.wkt_predef())` for valid predefined projections.
-#' @param doCheckCRSArgs ignored.
-#' @param args An optional list of name/value pairs to add to and/or override
-#' the PROJ4 arguments in `projargs`.  `name=value` is converted to
-#' `"+name=value"`, and `name=NA` is converted to `"+name"`.
-#' @param oblique Vector of length at most 4 of rotation angles (in degrees)
-#' for an oblique projection, all values defaulting to zero. The values
-#' indicate (longitude, latitude, orientation, orbit), as explained in the
-#' Details section below.
-#' @param SRS_string a WKT2 string defining the coordinate system; see
-#' `sp::CRS`. This takes precedence over `projargs`.
-#' @param \dots Additional parameters. Not currently in use.
+#' @param \dots Arguments passed on to `inlabru::fm_CRS(...)`.
 #' @return Either an `sp::CRS` object or an `inla.CRS` object,
 #' depending on if the coordinate reference system described by the parameters
 #' can be expressed with a pure `sp::CRS` object or not.
@@ -737,78 +694,12 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 #' }
 #'
 #' @export inla.CRS
-inla.CRS <- function(projargs = NULL, doCheckCRSArgs = FALSE,
-                     args = NULL, oblique = NULL,
-                     SRS_string = NULL,
-                     ...) {
+inla.CRS <- function(...) {
     lifecycle::deprecate_soft(when = "2023.04.19",
                               what = "inla.CRS()",
                               with = "inlabru::fm_CRS()")
-
-    if (identical(projargs, "")) {
-        projargs <- NULL
-    }
-    if (is.null(SRS_string) &&
-        !is.null(projargs) &&
-        !is.na(projargs) &&
-        is.character(projargs)) {
-        if (projargs %in% c("hammer", "lambert", "longlat", "mollweide")) {
-            warning(
-                paste0(
-                    "Use of old predefined projection '",
-                    projargs,
-                    "' is deprecated. Converting to '",
-                    projargs,
-                    "_norm'"
-                )
-            )
-            projargs <- paste0(projargs, "_norm")
-        }
-        predef <- inla.wkt_predef()
-        if (projargs %in% names(predef)) {
-            SRS_string <- predef[[projargs]]
-            projargs <- NULL
-        } else {
-            warning(
-                "'inla.CRS' should be given a SRS_string for PROJ6 or a known keyword for a predefined string given in projargs. Using fallback PROJ4 method."
-            )
-            if (!is.null(args)) {
-                x <- CRS(projargs)
-                if (typeof(args) != "list") {
-                    stop("'args' must be NULL or a list of name=value pairs.")
-                }
-                xargs <- inla.as.list.CRS(x)
-                for (name in names(args)) {
-                    xargs[[name]] <- args[[name]]
-                }
-                projargs <- inla.as.CRSargs.list(xargs)
-            }
-            SRS_string <- sf::st_crs(projargs)$wkt
-            projargs <- NULL
-        }
-    }
     
-    if (!is.null(SRS_string)) {
-        if (!is.null(projargs)) {
-            warning("SRS_string specified. Ignoring non-null projargs.")
-        }
-        x <-
-            CRS(SRS_string = SRS_string)
-    } else if (inherits(projargs, "CRS")) {
-        x <- projargs
-    } else {
-        x <- CRS(NA_character_)
-    }
-    
-    if (!is.null(oblique)) {
-        stopifnot(is.vector(oblique))
-        if (length(oblique) < 4) {
-            oblique <- c(oblique, rep(0, 4 - length(oblique)))
-        }
-        x <- list(crs = x, oblique = oblique)
-        class(x) <- "inla.CRS"
-    }
-    x
+    inlabru::fm_CRS(...)
 }
 
 #' @return `inla.wkt_predef` returns a WKT2 string defining a projection
@@ -1226,88 +1117,6 @@ inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
 }
 
 
-inla.rotmat3213 <- function(rot) {
-    cs <- cos(rot[1])
-    sn <- sin(rot[1])
-    R <- matrix(c(
-        cs, -sn, 0,
-        sn, cs, 0,
-        0, 0, 1
-    ), 3, 3)
-    cs <- cos(rot[2])
-    sn <- sin(rot[2])
-    R <- R %*% matrix(c(
-        cs, 0, sn,
-        0, 1, 0,
-        -sn, 0, cs
-    ), 3, 3)
-    cs <- cos(rot[3])
-    sn <- sin(rot[3])
-    R <- R %*% matrix(c(
-        1, 0, 0,
-        0, cs, -sn,
-        0, sn, cs
-    ), 3, 3)
-    cs <- cos(rot[4])
-    sn <- sin(rot[4])
-    R <- R %*% matrix(c(
-        cs, -sn, 0,
-        sn, cs, 0,
-        0, 0, 1
-    ), 3, 3)
-    R
-}
-
-inla.rotmat3123 <- function(rot) {
-    cs <- cos(rot[4])
-    sn <- sin(rot[4])
-    R <- matrix(c(
-        cs, -sn, 0,
-        sn, cs, 0,
-        0, 0, 1
-    ), 3, 3)
-    cs <- cos(rot[3])
-    sn <- sin(rot[3])
-    R <- R %*% matrix(c(
-        1, 0, 0,
-        0, cs, -sn,
-        0, sn, cs
-    ), 3, 3)
-    cs <- cos(rot[2])
-    sn <- sin(rot[2])
-    R <- R %*% matrix(c(
-        cs, 0, sn,
-        0, 1, 0,
-        -sn, 0, cs
-    ), 3, 3)
-    cs <- cos(rot[1])
-    sn <- sin(rot[1])
-    R <- R %*% matrix(c(
-        cs, -sn, 0,
-        sn, cs, 0,
-        0, 0, 1
-    ), 3, 3)
-    R
-}
-
-
-inla.crs.transform.oblique <- function(x, oblique, to.oblique = TRUE) {
-    if (to.oblique) {
-        ## Transform to oblique orientation
-        ## 1) Rotate -oblique[1] around (0,0,1)
-        ## 2) Rotate +oblique[2] around (0,1,0)
-        ## 3) Rotate -oblique[3] around (1,0,0)
-        ## 3) Rotate -oblique[4] around (0,0,1)
-        x %*% inla.rotmat3213(c(-1, 1, -1, -1) * oblique * pi / 180)
-    } else {
-        ## Transform back from oblique orientation
-        ## 1) Rotate +oblique[4] around (0,0,1)
-        ## 2) Rotate +oblique[3] around (1,0,0)
-        ## 3) Rotate -oblique[2] around (0,1,0)
-        ## 4) Rotate +oblique[1] around (0,0,1)
-        x %*% inla.rotmat3123(c(1, -1, 1, 1) * oblique * pi / 180)
-    }
-}
 
 
 
@@ -1472,36 +1281,11 @@ internal.update.crs <- function(crs, newcrs, mismatch.allowed) {
 #' Test CRS and inla.CRS for equality
 #'
 #' Wrapper for identical, optionally testing only the CRS part of two objects
+#' Deprecated in favour of `inlabru::fm_identical_CRS()`
 #'
-#'
-#' @param crs0 A `CRS` or `inla.CRS` object.
-#' @param crs1 A `CRS` or `inla.CRS` object.
-#' @param crsonly Logical. If `TRUE`, only the `CRS` part of a
-#' `inla.CRS` object is compared.
-#' @author Finn Lindgren <finn.lindgren@@gmail.com>
-#' @seealso [inla.CRS()]
-#' @examples
-#'
-#' crs0 <- inla.CRS("longlat")
-#' crs1 <- inla.CRS("longlat", oblique = c(0, 90))
-#' print(c(
-#'     inla.identical.CRS(crs0, crs0),
-#'     inla.identical.CRS(crs0, crs1),
-#'     inla.identical.CRS(crs0, crs1, crsonly = TRUE)
-#' ))
 #' @export inla.identical.CRS
-inla.identical.CRS <- function(crs0, crs1, crsonly = FALSE) {
-    if (!crsonly) {
-        identical(crs0, crs1)
-    } else {
-        if (inherits(crs0, "inla.CRS")) {
-            crs0 <- crs0$crs
-        }
-        if (inherits(crs1, "inla.CRS")) {
-            crs1 <- crs1$crs
-        }
-        identical(crs0, crs1)
-    }
+inla.identical.CRS <- function(...) {
+    inlabru::fm_identical_CRS(...)
 }
 
 
