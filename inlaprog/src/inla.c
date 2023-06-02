@@ -5960,7 +5960,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		int low_ = IMAX(0, i_max - m);				\
 		int high_ = IMIN(np-1, i_max + m);			\
 		int len = high_ - low_ + 1;				\
-		GMRFLib_spline_tp *lds = GMRFLib_spline_create(z + low_, ldz + low_, len); \
+		GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, 1); \
 		if (lds == NULL) {					\
 			*d_mode = zm_orig;				\
 		} else {						\
@@ -6014,10 +6014,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		return GMRFLib_SUCCESS;
 	}
 
-	int i;
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-	double low = 0.0, high = 0.0, xval, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
+	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
 	double w[2] = { 4.0, 2.0 };
 
 	GMRFLib_ENTER_ROUTINE;
@@ -6039,7 +6038,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		m2 = 0.0;
 
 		if (d_mode) {
-			for (i = 0; i < np; i++) {
+			for (int i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
 				double df = _MAP_DX(x);
@@ -6053,7 +6052,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 				}
 			}
 		} else {
-			for (i = 0; i < np; i++) {
+			for (int i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
 				m1 += wp[i] * f;
@@ -6074,9 +6073,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		xp = Calloc_get(np);
 		ld = Calloc_get(np);
 
-#pragma GCC ivdep
-		for (xval = low, i = 0; i < np; xval += dx, i++) {
-			xp[i] = xval;
+#pragma omp simd
+		for (int i = 0; i < np; i++) {
+			xp[i] = low + i * dx;
 		}
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 
@@ -6091,9 +6090,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			if (plain_case) {
 				Memcpy(ldz, ld, np * sizeof(double));
 			} else {
-				for (i = 0; i < np; i++) {
-					z[i] = _MAP_X(z[i]);
+				for (int i = 0; i < np; i++) {
 					ldz[i] = ld[i] - log(ABS(_MAP_DX(z[i])));
+					z[i] = _MAP_X(z[i]);
 				}
 			}
 			GMRFLib_max_value(ldz, np, &i_max);
@@ -6105,14 +6104,14 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
 			const double div3 = 1.0 / 3.0;
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				xpm[3 * i + 0] = xp[i];
 				xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) * div3;
 				xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) * div3;
 			}
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				ldm[3 * i + 0] = ld[i];
 				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) * div3;
 				ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) * div3;
@@ -6122,13 +6121,13 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
 			const double div2 = 0.5;
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				xpm[2 * i + 0] = xp[i];
 				xpm[2 * i + 1] = (xp[i] + xp[i + 1]) * div2;
 			}
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				ldm[2 * i + 0] = ld[i];
 				ldm[2 * i + 1] = (ld[i] + ld[i + 1]) * div2;
 			}
@@ -6142,9 +6141,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #if defined(INLA_LINK_WITH_MKL)
 		vdExp(npm, ldm, ldm);
 #else
-#pragma GCC ivdep
-		for (i = 0; i < npm; i++) {
-			ldm[i] = exp(ldm[i]);
+#pragma omp simd
+		for (int i = 0; i < npm; i++) {
+			ldm[i] = GMRFLib_exp(ldm[i]);
 		}
 #endif
 
@@ -6152,7 +6151,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
 		if (!plain_case) {
 #pragma GCC ivdep
-			for (i = 0; i < npm - 1; i++) {
+			for (int i = 0; i < npm - 1; i++) {
 				xx[i] = _MAP_X(xx[i]);
 			}
 		}
@@ -6166,8 +6165,8 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		m1 = x0 * d0 + x1 * d1;
 		m2 = SQR(x0) * d0 + SQR(x1) * d1;
 
-#pragma GCC ivdep
-		for (i = 1; i < npm - 1; i++) {
+#pragma omp simd
+		for (int i = 1; i < npm - 1; i++) {
 			double d = ldm[i] * w[(i - 1) % 2L];
 			double x = xx[i];
 			double x2 = x * x;
