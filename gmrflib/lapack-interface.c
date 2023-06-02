@@ -1049,6 +1049,7 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 int GMRFLib_dscale(int n, double a, double *x)
 {
+	// x[i] *= a
 	int one = 1;
 	return (dscal_(&n, &a, x, &one));
 }

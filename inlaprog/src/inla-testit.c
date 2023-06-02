@@ -3501,8 +3501,9 @@ int testit(int argc, char **argv)
 		double *x = Calloc(4 * n, double);
 		double *y = x + n;
 		double *yy = x + 2 * n;
+#if defined(INLA_LINK_WITH_MKL)
 		double *z = x + 3 * n;
-
+#endif
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
 		}

@@ -43,6 +43,12 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
+#pragma omp declare simd
+static double GMRFLib_exp(double x)
+{
+	return exp(x);
+}
+
 int GMRFLib_default_ai_param(GMRFLib_ai_param_tp **ai_par)
 {
 	/*
@@ -3987,10 +3993,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		GMRFLib_evaluate_nlogdensity(ld, xp, np, density);
 		GMRFLib_density_std2user_n(x_user, xp, np, density);
 		loglFunc(thread_id, logcor, x_user, np, idx, NULL, NULL, loglFunc_arg, NULL);
-#pragma GCC ivdep
-		for (i = 0; i < np; i++) {
-			logcor[i] *= d;
-		}
+		GMRFLib_dscale(np, d, logcor);
+
 		if (debug && np) {
 #pragma omp critical (Name_45542d32821a8fbfd2cec71e8219d7eeb4b423f2)
 			{
@@ -4032,7 +4036,6 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 	Calloc_free();
 	return GMRFLib_SUCCESS;
 }
-
 
 int GMRFLib_ai_vb_prepare_mean(int thread_id,
 			       GMRFLib_vb_coofs_tp *coofs, int idx, double d, GMRFLib_logl_tp *loglFunc,
@@ -5525,10 +5528,24 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	/*
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
-	int retval, compute_cpo = 1, i, k, np = GMRFLib_INT_NUM_POINTS;
+	int retval, compute_cpo = 1, np = GMRFLib_INT_NUM_POINTS;
 	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
-	    integral = 0.0, integral2 = 0.0, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
+	    integral = 0.0, integral2 = 0.0, integral_one, *loglik = NULL;
 	double fail = 0.0;
+
+	static double *w = NULL;
+	if (!w) {
+#pragma omp critical
+		if (!w) {
+			double www[] = {4.0, 2.0};
+			double *ww = Calloc(np, double);
+			ww[0] = ww[np - 1] = 1.0;
+			for (int i = 1, k = 0; i < np - 1; i++, k = (k + 1L) % 2L) {
+				ww[i] = www[k];
+			}
+			w = ww;
+		}
+	}
 
 	if (!cpo_density) {
 		if (cpo) {
@@ -5562,8 +5579,12 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 
 	xp[0] = low;
 	xpi[0] = cpo_density->x_min;
-	for (i = 1; i < np; i++) {
+#pragma omp simd
+	for (int i = 1; i < np; i++) {
 		xp[i] = xp[0] + i * dx;
+	}
+#pragma omp simd
+	for (int i = 1; i < np; i++) {
 		xpi[i] = xpi[0] + i * dxi;
 	}
 	GMRFLib_evaluate_ndensity(dens, xpi, np, cpo_density);
@@ -5574,25 +5595,28 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 		Memset(prob, 0, np * sizeof(double));
 	}
 	loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
-	for (i = 0; i < np; i++) {
-		loglik[i] *= d;
-	}
+	GMRFLib_dscale(np, d, loglik);
 
-#pragma GCC ivdep
-	for (i = 0; i < np; i++) {
+#pragma omp simd
+	for (int i = 0; i < np; i++) {
 		xp[i] = prob[i] * dens[i];		       /* reuse and redefine xp! */
-		xpi[i] = exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
 	}
-
-	integral = xp[0] + xp[np - 1];
-	integral2 = xpi[0] + xpi[np - 1];
-	integral_one = dens[0] + dens[np - 1];
-	for (i = 1, k = 0; i < np - 1; i++, k = (k + 1) % 2) {
-		integral += w[k] * xp[i];
-		integral2 += w[k] * xpi[i];
-		integral_one += w[k] * dens[i];
+#if defined(INLA_LINK_WITH_MKL)
+	vdExp(np, loglik, loglik);
+#pragma omp simd
+	for (int i = 0; i < np; i++) {
+		xpi[i] = loglik[i] * dens[i];
 	}
-
+#else
+#pragma omp simd
+	for (int i = 0; i < np; i++) {
+		xpi[i] = GMRFLib_exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
+	}
+#endif
+	integral = GMRFLib_ddot(np, w, xp);
+	integral2 = GMRFLib_ddot(np, w, xpi);
+	integral_one = GMRFLib_ddot(np, w, dens);
+	
 	if (ISZERO(integral_one)) {
 		fail = 1.0;
 		integral = integral2 = 0.0;
@@ -5636,7 +5660,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 	}
 
 	if (po_density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		int np = GMRFLib_INT_GHQ_POINTS;
+		int np = GMRFLib_INT_GHQ_POINTS, no_mask = 0;
 		double *xp = NULL, *wp = NULL;
 		double mean = po_density->user_mean;
 		double stdev = po_density->user_stdev;
@@ -5648,31 +5672,51 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double *ll = Calloc_get(np);
 		double *mask = Calloc_get(np);
 
-		for (int i = 0; i < np; i++) {
-			x[i] = mean + stdev * xp[i];
-		}
+		GMRFLib_daxpb(np, stdev, xp, mean, x);
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
+		double dmin = GMRFLib_max_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
-		for (int i = 0; i < np; i++) {
-			if (ll[i] - dmax < limit) {
-				mask[i] = 0.0;
-				ll[i] = 0.0;
-			} else {
-				mask[i] = 1.0;
+		if (dmin - dmax < limit) {
+			for (int i = 0; i < np; i++) {
+				if (ll[i] - dmax < limit) {
+					mask[i] = 0.0;
+					ll[i] = 0.0;
+				} else {
+					mask[i] = 1.0;
+				}
 			}
+		} else {
+			no_mask = 1;
 		}
 
-		integral2 = 0.0;
-		integral3 = 0.0;
-		integral4 = 0.0;
-		for (int i = 0; i < np; i++) {
-			integral2 += mask[i] * exp(ll[i]) * wp[i];
-			integral3 += ll[i] * wp[i];
-			integral4 += SQR(ll[i]) * wp[i];
+		integral3 = GMRFLib_ddot(np, ll, wp);
+		if (no_mask) {
+#if defined(INLA_LINK_WITH_MKL)
+			vdExp(np, ll, mask);
+#else
+#pragma omp simd
+			for(int i = 0; i < np; i++){
+				mask[i] = GMRFLib_exp(ll[i]);
+			}
+#endif
+			integral2 = GMRFLib_ddot(np, mask, wp);
+#pragma omp simd reduction(+: integral4)
+			for (int i = 0; i < np; i++) {
+				integral4 += ll[i] * ll[i] * wp[i];
+			}
+		} else {
+#pragma omp simd reduction(+: integral2, integral4)
+			for(int i = 0; i < np; i++) {
+				integral4 += ll[i] * ll[i] * wp[i];
+				integral2 += mask[i] * GMRFLib_exp(ll[i]) * wp[i];
+			}
 		}
 		Calloc_free();
 	} else {
+
+		// THIS PART NEEDS TO BE REWRITTEN
+		
 		int i, k;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
@@ -5795,30 +5839,28 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 		double *ll = Calloc_get(np);
 		double *ll_sat = Calloc_get(np);
 
-		for (int i = 0; i < np; i++) {
-			x[i] = mean + stdev * xp[i];
-		}
+		GMRFLib_daxpb(np, stdev, xp, mean, x);
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
-		for (int i = 0; i < np; i++) {
-			ll_sat[i] = ll[i] - sat_ll;
-		}
+		GMRFLib_daxpb(np, 1.0, ll, -sat_ll, ll_sat);
 
 		double dmax = GMRFLib_max_value(ll, np, NULL);
+		double dmin = GMRFLib_min_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
-		for (int i = 0; i < np; i++) {
-			if (ll[i] - dmax < limit) {
-				ll[i] = ll_sat[i] = 0.0;
+		if (dmin - dmax < limit) {
+			for (int i = 0; i < np; i++) {
+				if (ll[i] - dmax < limit) {
+					ll[i] = ll_sat[i] = 0.0;
+				}
 			}
 		}
-		integral = integral_sat = 0.0;
-		for (int i = 0; i < np; i++) {
-			integral += ll[i] * wp[i];
-			integral_sat += ll_sat[i] * wp[i];
-		}
-		integral = -2.0 * d * integral;
-		integral_sat = -2.0 * d * integral_sat;
+		
+		integral = -2.0 * d * GMRFLib_ddot(np, ll, wp);
+		integral_sat= -2.0 * d * GMRFLib_ddot(np, ll_sat, wp);
 		Calloc_free();
 	} else {
+
+		// THIS PART NEEDS TO BE REWRITTEN
+
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
 		int np = GMRFLib_INT_NUM_POINTS;
@@ -5859,7 +5901,6 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 				llik_sat[3 * i + 0] = llik[3 * i + 0] - sat_ll;
 				llik_sat[3 * i + 1] = llik[3 * i + 1] - sat_ll;
 				llik_sat[3 * i + 2] = llik[3 * i + 2] - sat_ll;
-
 			}
 #pragma GCC ivdep
 			for (int i = 0; i < np - 1; i++) {
