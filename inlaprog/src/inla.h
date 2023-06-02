@@ -1985,6 +1985,7 @@ int inla_mix_int_quadrature_mloggamma(int thread_id, double **x, double **w, int
 int inla_mix_int_simpson_gaussian(int thread_id, double **x, double **w, int *n, void *arg);
 int inla_mix_int_simpson_loggamma(int thread_id, double **x, double **w, int *n, void *arg);
 int inla_mix_int_simpson_mloggamma(int thread_id, double **x, double **w, int *n, void *arg);
+int inla_mkdir(const char *dirname);
 
 int inla_ncpu(void);
 int inla_output(inla_tp * mb);
