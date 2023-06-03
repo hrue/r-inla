@@ -161,15 +161,22 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 
 	return value;
 }
-double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
-{
-	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i.
 
-	// recall to enable init in 'build_model below' before enable this function, and remove this assert...
-	assert(0 == 1);
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
+{
+	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i. recall to
+	// enable init in 'build_model below' before enable this function.
 
 	if (jj < 0) {
-		return NAN;
+		int idx = -1;
+		GMRFLib_CACHE_SET_ID(idx);
+		double transfer_idx = idx;
+		inla_spde2_tp *model = (inla_spde2_tp *) arg;
+		values[0] = inla_spde2_Qfunction(thread_id, ii, ii, &transfer_idx, arg);
+		for(int k = 0; k < model->graph->lnnbs[ii]; k++){
+			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], &transfer_idx, arg);
+		}
+		return 0.0;
 	}
 
 	const int debug = 0;
@@ -184,8 +191,14 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		j = ii;
 	}
 
+
 	int idx = -1;
-	GMRFLib_CACHE_SET_ID(idx);
+	if (values) {
+		// this is a hack
+		idx = (int) values[0];
+	} else {
+		GMRFLib_CACHE_SET_ID(idx);
+	}
 
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
@@ -214,50 +227,48 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 
 	int need_transform = cache->need_transform;
 	double value;
-	double d_i[10] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-	double *d_j = d_i + 3;
-
+	double d_i0 = 0.0;
+	double d_i1 = 0.0;
+	double d_i2 = 0.0;
+	double d_j0 = 0.0;
+	double d_j1 = 0.0;
+	double d_j2 = 0.0;
+	
 	if (i == j) {
 		double *vals_i0 = vals;
 		double *vals_i1 = vals + nc;
 		double *vals_i2 = vals + 2 * nc;
 
-#pragma GCC ivdep
+#pragma omp simd
 		for (int k = 0; k < nc - 1; k++) {
 			cache->theta[k + 1] = model->theta[k][thread_id][0];
 		}
 		double *theta = cache->theta;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: d_i0, d_i1, d_i2)
 		for (int k = 0; k < nc; k++) {
 			double th = theta[k];
-			d_i[0] += vals_i0[k] * th;
-			d_i[1] += vals_i1[k] * th;
-			d_i[2] += vals_i2[k] * th;
+			d_i0 += vals_i0[k] * th;
+			d_i1 += vals_i1[k] * th;
+			d_i2 += vals_i2[k] * th;
 		}
-
-#pragma GCC ivdep
-		for (int k = 0; k < 2; k++) {
-			d_i[k] = exp(d_i[k]);
-		}
+		d_i0 = exp(d_i0);
+		d_i1 = exp(d_i1);
 
 		if (need_transform) {
 			switch (model->transform) {
 			case SPDE2_TRANSFORM_IDENTITY:
-			{
-				// d_i[2] = d_i[2];
-			}
 				break;
 
 			case SPDE2_TRANSFORM_LOG:
 			{
-				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				d_i2 = 2 * exp(d_i2) - 1.0;
 			}
 				break;
 
 			case SPDE2_TRANSFORM_LOGIT:
 			{
-				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_i2 = cos(M_PI * map_probability(d_i2, MAP_FORWARD, NULL));
 			}
 				break;
 
@@ -267,11 +278,13 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		}
 
 		double *v = vals + 3 * nc;
-		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+		value = SQR(d_i0) * (SQR(d_i1) * v[0] + d_i2 * d_i1 * (v[1] + v[2]) + v[3]);
 
 		// store in cache. 'theta' is done already
 		cache->i = i;
-		Memcpy(cache->vals, d_i, 3 * sizeof(double));
+		cache->vals[0] = d_i0;
+		cache->vals[1] = d_i1;
+		cache->vals[2] = d_i2;
 
 		if (debug) {
 #pragma omp critical (Name_81be0810e04979398ed477ac445e942f3056221b)
@@ -281,9 +294,9 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 					for (int k = 1; k < nc; k++) {
 						printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
 					}
-					printf("\td_i[0] = %.12f\n", d_i[0]);
-					printf("\td_i[1] = %.12f\n", d_i[1]);
-					printf("\td_i[2] = %.12f\n", d_i[2]);
+					printf("\td_i0 = %.12f\n", d_i0);
+					printf("\td_i1 = %.12f\n", d_i1);
+					printf("\td_i2 = %.12f\n", d_i2);
 				}
 			}
 		}
@@ -308,9 +321,9 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 						for (int k = 1; k < nc; k++) {
 							printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
 						}
-						printf("\td_i[0] = %.12f\n", cache->vals[0]);
-						printf("\td_i[1] = %.12f\n", cache->vals[1]);
-						printf("\td_i[2] = %.12f\n", cache->vals[2]);
+						printf("\td_i0 = %.12f\n", cache->vals[0]);
+						printf("\td_i1 = %.12f\n", cache->vals[1]);
+						printf("\td_i2 = %.12f\n", cache->vals[2]);
 					}
 				} else {
 					printf("spde2: not in cache for idx = %1d, i = %1d, j = %1d\n", idx, i, j);
@@ -338,20 +351,21 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		double *vals_j2 = vals + 5 * nc;
 
 		if (in_cache) {
-			Memcpy(d_i, cache->vals, 3 * sizeof(double));
+			d_i0 = cache->vals[0];
+			d_i1 = cache->vals[1];
+			d_i2 = cache->vals[2];
+
 			double *theta = cache->theta;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: d_j0, d_j1, d_j2)
 			for (int k = 0; k < nc; k++) {
 				double th = theta[k];
-				d_j[0] += vals_j0[k] * th;
-				d_j[1] += vals_j1[k] * th;
-				d_j[2] += vals_j2[k] * th;
+				d_j0 += vals_j0[k] * th;
+				d_j1 += vals_j1[k] * th;
+				d_j2 += vals_j2[k] * th;
 			}
-#pragma GCC ivdep
-			for (int k = 0; k < 2; k++) {
-				d_j[k] = exp(d_j[k]);
-			}
+			d_j0 = exp(d_j0);
+			d_j1 = exp(d_j1);
 
 			if (need_transform) {
 				switch (model->transform) {
@@ -360,13 +374,13 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 
 				case SPDE2_TRANSFORM_LOG:
 				{
-					d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+					d_j2 = 2.0 * exp(d_j2) - 1.0;
 				}
 					break;
 
 				case SPDE2_TRANSFORM_LOGIT:
 				{
-					d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+					d_j2 = cos(M_PI * map_probability(d_j2, MAP_FORWARD, NULL));
 				}
 					break;
 
@@ -386,21 +400,20 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 			}
 			double *theta = cache->theta;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: d_i0, d_i1, d_i2, d_j0, d_j1, d_j2)
 			for (int k = 0; k < nc; k++) {
 				double th = theta[k];
-				d_i[0] += vals_i0[k] * th;
-				d_i[1] += vals_i1[k] * th;
-				d_i[2] += vals_i2[k] * th;
-				d_j[0] += vals_j0[k] * th;
-				d_j[1] += vals_j1[k] * th;
-				d_j[2] += vals_j2[k] * th;
+				d_i0 += vals_i0[k] * th;
+				d_i1 += vals_i1[k] * th;
+				d_i2 += vals_i2[k] * th;
+				d_j0 += vals_j0[k] * th;
+				d_j1 += vals_j1[k] * th;
+				d_j2 += vals_j2[k] * th;
 			}
-#pragma GCC ivdep
-			for (int k = 0; k < 2; k++) {
-				d_i[k] = exp(d_i[k]);
-				d_j[k] = exp(d_j[k]);
-			}
+			d_i0 = exp(d_i0);
+			d_i1 = exp(d_i1);
+			d_j0 = exp(d_j0);
+			d_j1 = exp(d_j1);
 
 			if (need_transform) {
 				switch (model->transform) {
@@ -409,15 +422,15 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 
 				case SPDE2_TRANSFORM_LOG:
 				{
-					d_i[2] = 2.0 * exp(d_i[2]) - 1.0;
-					d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+					d_i2 = 2.0 * exp(d_i2) - 1.0;
+					d_j2 = 2.0 * exp(d_j2) - 1.0;
 				}
 					break;
 
 				case SPDE2_TRANSFORM_LOGIT:
 				{
-					d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
-					d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+					d_i2 = cos(M_PI * map_probability(d_i2, MAP_FORWARD, NULL));
+					d_j2 = cos(M_PI * map_probability(d_j2, MAP_FORWARD, NULL));
 				}
 					break;
 
@@ -428,12 +441,14 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 		}
 
 		double *v = vals + 6 * nc;
-		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+		value = d_i0 * d_j0 * (d_i1 * d_j1 * v[0] + d_i2 * d_i1 * v[1] + d_j1 * d_j2 * v[2] + v[3]);
 
 		if (!in_cache) {
 			// cache this value
 			cache->i = i;
-			Memcpy(cache->vals, d_i, 3 * sizeof(double));
+			cache->vals[0] = d_i0;
+			cache->vals[1] = d_i1;
+			cache->vals[2] = d_i2;
 
 			if (debug) {
 #pragma omp critical (Name_ad1bbe7257f1c3db0c64e992dc63fdd484fda64d)
@@ -443,9 +458,9 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 						for (int k = 1; k < nc; k++) {
 							printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
 						}
-						printf("\td_i[0] = %.12f\n", cache->vals[0]);
-						printf("\td_i[1] = %.12f\n", cache->vals[1]);
-						printf("\td_i[2] = %.12f\n", cache->vals[2]);
+						printf("\td_i0 = %.12f\n", cache->vals[0]);
+						printf("\td_i1 = %.12f\n", cache->vals[1]);
+						printf("\td_i2 = %.12f\n", cache->vals[2]);
 					}
 				}
 			}
@@ -455,7 +470,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *UNUSED(
 	return value;
 }
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_OLD(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	if (jj < 0) {
 		return NAN;
@@ -484,7 +499,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 
 	if (i == j) {
 
-#pragma GCC ivdep
+#pragma omp simd
 		for (int k = 0; k < 3; k++) {
 			d_i[k] = vals[k * nc];
 		}
@@ -492,14 +507,16 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		for (int k = 1; k < nc; k++) {
 			double th = model->theta[k - 1][thread_id][0];
 			double *v = vals + k;
-#pragma GCC ivdep
+#pragma omp simd
 			for (int kk = 0; kk < 3; kk++) {
 				d_i[kk] += v[kk * nc] * th;
 			}
 		}
 
-		d_i[0] = exp(d_i[0]);
-		d_i[1] = exp(d_i[1]);
+#pragma omp simd
+		for (int k= 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
 
 		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
 			switch (model->transform) {
@@ -527,7 +544,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 
 	} else {
-#pragma GCC ivdep
+#pragma omp simd
 		for (int k = 0; k < 6; k++) {
 			d_i[k] = vals[k * nc];
 		}
@@ -535,13 +552,13 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 		for (int k = 1; k < nc; k++) {
 			double th = model->theta[k - 1][thread_id][0];
 			double *v = vals + k;
-#pragma GCC ivdep
+#pragma omp simd
 			for (int kk = 0; kk < 6; kk++) {
 				d_i[kk] += v[kk * nc] * th;
 			}
 		}
 
-#pragma GCC ivdep
+#pragma omp simd
 		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 			d_j[k] = exp(d_j[k]);
@@ -722,7 +739,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 	}
 
 	// recall to enable this if using cache
-	// model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
+	model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 
 	return INLA_OK;
 }
