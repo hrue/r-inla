@@ -3224,7 +3224,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double big = 1.0 / GSL_DBL_EPSILON;
 
 			// default
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < nn; i++) {
 				mask[i] = 1.0;
 			}
@@ -3260,7 +3260,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			if (gcpo_param->keep) {
 				int *visited = Calloc(gcpo_param->keep->n, int);
 				// create a new default
-#pragma GCC ivdep
+#pragma omp simd
 				for (int i = 0; i < nn; i++) {
 					diag[i] = big;
 				}
@@ -3316,7 +3316,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 
 			GMRFLib_problem_tp *problem = NULL;
 			double *c = Calloc(nn, double);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < nn; i++) {
 				c[i] = gcpo_param->prior_diagonal;
 			}
@@ -3344,7 +3344,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL);
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < Npred; i++) {
 			isd[i] = 1.0 / sqrt(isd[i]);
 		}
@@ -3955,7 +3955,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 	}
 
 	const int debug = 0;
-	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, i, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
+	int itry, flag, np, np_orig = GMRFLib_INT_GHQ_POINTS + 4, npx = 8, itmp, np_new = np_orig + 2 * npx, one = 1;
 	double *xp = NULL, *xp_tmp = NULL, *ld = NULL, *logcor = NULL, *x_user = NULL, alpha = -1.0;
 	double cor_eps = (GSL_SQRT_DBL_EPSILON * GSL_ROOT4_DBL_EPSILON), cor_max, range;
 
@@ -3992,7 +3992,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		if (debug && np) {
 #pragma omp critical (Name_45542d32821a8fbfd2cec71e8219d7eeb4b423f2)
 			{
-				for (i = 0; i < np; i++)
+				for (int i = 0; i < np; i++)
 					printf("CPO: %d BEFORE x_user %g xp %g ld %g logcor %g ld-logcor %g\n", idx,
 					       x_user[i], xp[i], ld[i], logcor[i], ld[i] - logcor[i]);
 			}
@@ -4000,8 +4000,8 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		if (itry == 1 && cor_eps > 0.0) {
 			flag = 1;
 			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
-#pragma GCC ivdep
-			for (i = 0; i < np; i++) {
+#pragma omp simd
+			for (int i = 0; i < np; i++) {
 				ld[i] += logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 			}
 		} else {
@@ -4011,7 +4011,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		if (debug && np) {
 #pragma omp critical (Name_c6e59ebf504f17645e98f57731cc4de48bd2748a)
 			{
-				for (i = 0; i < np; i++)
+				for (int i = 0; i < np; i++)
 					printf("CPO AFTER: %d %g %g\n", idx, xp[i], ld[i]);
 			}
 		}
@@ -4600,7 +4600,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	double *pmean = Calloc_get(preopt->mnpred);
 	double *pvar = Calloc_get(preopt->mnpred);
 
-#pragma GCC ivdep
+#pragma omp simd
 	for (int i = 0; i < graph->n; i++) {
 		x_mean[i] = (density[i][dens_count] ? density[i][dens_count]->user_mean : ai_store->problem->mean_constr[i]);
 	}
@@ -5706,7 +5706,6 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		// THIS PART NEEDS TO BE REWRITTEN
 		
-		int i, k;
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
 		int np = GMRFLib_INT_NUM_POINTS;
@@ -5725,7 +5724,8 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 
 		xp[0] = low;
 		xpi[0] = po_density->x_min;
-		for (i = 1; i < np; i++) {
+#pragma omp simd
+		for (int i = 1; i < np; i++) {
 			xp[i] = xp[0] + i * dx;
 			xpi[i] = xpi[0] + i * dxi;
 		}
@@ -5736,14 +5736,14 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double *llik = Calloc_get(npm);
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
 			}
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
 				dens[3 * i + 2] = exp((ldens[i] + 2.0 * ldens[i + 1]) / 3.0);
@@ -5752,13 +5752,13 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			dens[3 * (np - 2) + 3] = exp(ldens[np - 1]);
 			assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
 			}
-#pragma GCC ivdep
-			for (i = 0; i < np - 1; i++) {
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);
 			}
@@ -5773,7 +5773,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		integral3 = llik[0] * dens[0] + llik[npm - 1] * dens[npm - 1];
 		integral4 = SQR(llik[0]) * dens[0] + SQR(llik[npm - 1]) * dens[npm - 1];
 		integral_one = dens[0] + dens[npm - 1];
-		for (i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
+		for (int i = 1, k = 0; i < npm - 1; i++, k = (k + 1) % 2) {
 			integral2 += w[k] * exp(llik[i]) * dens[i];
 			integral3 += w[k] * llik[i] * dens[i];
 			integral4 += w[k] * SQR(llik[i]) * dens[i];
@@ -5881,7 +5881,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 		double *llik_sat = Calloc_get(npm);
 
 		if (GMRFLib_INT_NUM_INTERPOL == 3) {
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < np - 1; i++) {
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
@@ -5891,7 +5891,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 				llik_sat[3 * i + 1] = llik[3 * i + 1] - sat_ll;
 				llik_sat[3 * i + 2] = llik[3 * i + 2] - sat_ll;
 			}
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < np - 1; i++) {
 				dens[3 * i + 0] = exp(ldens[i]);
 				dens[3 * i + 1] = exp((2.0 * ldens[i] + ldens[i + 1]) / 3.0);
@@ -5903,7 +5903,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 			dens[3 * (np - 2) + 3] = exp(ldens[np - 1]);
 			assert(3 * (np - 2) + 3 == npm - 1);
 		} else if (GMRFLib_INT_NUM_INTERPOL == 2) {
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
@@ -5911,7 +5911,7 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 				llik_sat[2 * i + 0] = llik[2 * i + 0] - sat_ll;
 				llik_sat[2 * i + 1] = llik[2 * i + 1] - sat_ll;
 			}
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < np - 1; i++) {
 				dens[2 * i + 0] = exp(ldens[i]);
 				dens[2 * i + 1] = exp((ldens[i] + ldens[i + 1]) / 2.0);

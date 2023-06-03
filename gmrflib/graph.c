@@ -1065,7 +1065,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 	if (!remove_flag) {
 		if (node_map) {
 			*node_map = Calloc(graph->n, int);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < graph->n; i++) {
 				(*node_map)[i] = i;
 			}
@@ -1111,7 +1111,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		GMRFLib_graph_mk_empty(subgraph);
 
 		nn = 0;
-#pragma GCC ivdep
+#pragma omp simd reduction(+: nn)
 		for (i = 0; i < graph->n; i++) {
 			nn += (!remove_flag[i]);
 		}
@@ -1156,7 +1156,7 @@ int GMRFLib_graph_comp_subgraph(GMRFLib_graph_tp **subgraph, GMRFLib_graph_tp *g
 		for (i = 0, k = 0, n_neig_tot = 0; i < graph->n; i++) {
 			if (!remove_flag[i]) {
 				nneig = 0;
-#pragma GCC ivdep
+#pragma omp simd reduction(+: nneig)
 				for (j = 0; j < graph->nnbs[i]; j++) {
 					nneig += (!remove_flag[graph->nbs[i][j]]);
 				}
@@ -1416,7 +1416,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				if (used[j]) {
 					int offset = j * (graph->n + off);
 					double *r = local_result + offset;
-#pragma GCC ivdep
+#pragma opm simd
 					for (int i = 0; i < graph->n; i++) {
 						result[i] += r[i];
 					}

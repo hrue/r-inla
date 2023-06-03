@@ -77,7 +77,7 @@ double inla_spde2_Qfunction_orig(int thread_id, int ii, int jj, double *UNUSED(v
 			d_i[1] += vals_i1[k] * theta;
 			d_i[2] += vals_i2[k] * theta;
 		}
-#pragma GCC ivdep
+#pragma omp simd
 		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 		}
@@ -127,7 +127,7 @@ double inla_spde2_Qfunction_orig(int thread_id, int ii, int jj, double *UNUSED(v
 			d_j[2] += vals_j2[k] * theta;
 		}
 
-#pragma GCC ivdep
+#pragma omp simd
 		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 			d_j[k] = exp(d_j[k]);
