@@ -665,13 +665,13 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
 			double off = OFFSET(idx);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
 			}
 		} else {
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
@@ -714,7 +714,7 @@ int loglikelihood_gaussianjw(int thread_id, double *logll, double *x, int m, int
 
 	LINK_INIT;
 	if (m > 0) {
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < m; i++) {
 			double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			double var = exp(beta_0 + beta_1 * log(p * (1.0 - p)) + beta_2 * log_n);
@@ -1963,32 +1963,47 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 		return GMRFLib_SUCCESS;
 	}
 
+	double off = OFFSET(idx);
 	if (m > 0) {
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
-			double off = OFFSET(idx);
-			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
-			if (y > 0.0) {
-				if (fast) {
-#pragma GCC ivdep
-					for (int i = 0; i < m; i++) {
-						logll[i] = y * x[i] + ylEmn - E * exp(x[i]);
+			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0); 
+			if (fast) {
+				int mkl_lim = 8;
+				if (m > mkl_lim){
+					double exp_x[m];
+					GMRFLib_exp(m, x, exp_x);
+					if (y > 0.0) {
+						GMRFLib_daxpbyz(m, y, x, -E, exp_x, logll);
+#pragma omp simd
+						for (int i = 0; i < m; i++){
+							logll[i] += ylEmn;
+						}
+					} else {
+						GMRFLib_daxpb(m, -E, exp_x, ylEmn, logll);
 					}
 				} else {
-#pragma GCC ivdep
+					if (y > 0.0) {
+#pragma omp simd
+						for (int i = 0; i < m; i++){
+							logll[i] = y * x[i] + ylEmn - E * exp(x[i]);
+						}
+					} else {
+#pragma omp simd
+						for (int i = 0; i < m; i++){
+							logll[i] = ylEmn - E * exp(x[i]);
+						}
+					}
+				}
+			} else {
+				if (y > 0.0) {
+#pragma omp simd
 					for (int i = 0; i < m; i++) {
 						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 						logll[i] = y * log_lambda + ylEmn - E * exp(log_lambda);
 					}
-				}
-			} else {
-				if (fast) {
-#pragma GCC ivdep
-					for (int i = 0; i < m; i++) {
-						logll[i] = ylEmn - E * exp(x[i]);
-					}
 				} else {
-#pragma GCC ivdep
+#pragma omp simd
 					for (int i = 0; i < m; i++) {
 						double log_lambda = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 						logll[i] = ylEmn - E * exp(log_lambda);
@@ -1997,16 +2012,16 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 			}
 		} else {
 			// general case
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
-				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				logll[i] = y * log(lambda) + ylEmn - E * lambda;
 			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (int i = 0; i < -m; i++) {
-			double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 			if (ISZERO(E * lambda)) {
 				if (ISZERO(y)) {
 					logll[i] = 1.0;
@@ -2053,18 +2068,18 @@ int loglikelihood_bell(int thread_id, double *logll, double *x, int m, int idx, 
 		double work[2 * m];
 		double *mean = work;
 		double *lambda = work + m;
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < m; i++) {
 			mean[i] = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 		}
 		my_lambert_W0s(m, mean, lambda);
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < m; i++) {
 			logll[i] = y * log(lambda[i]) - exp(lambda[i]) + normc;
 		}
 	} else {
 		int yy = (int) (y_cdf ? *y_cdf : y);
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < -m; i++) {
 			double mean = E * PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			double lambda = my_lambert_W0(mean);
@@ -2117,13 +2132,13 @@ int loglikelihood_0poisson(int thread_id, double *logll, double *x, int m, int i
 		double ylEmn = normc;
 		if (y > 0) {
 			double l1mp = log(1.0 - prob);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = l1mp + y * log(lambda) + ylEmn - E * lambda;
 			}
 		} else {
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(prob + (1.0 - prob) * exp(-lambda));
@@ -2170,14 +2185,14 @@ int loglikelihood_0poissonS(int thread_id, double *logll, double *x, int m, int 
 	if (m > 0) {
 		double lpois = y * log_lambda + normc - E * lambda;
 		if (y > 0) {
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(1.0 - prob) + lpois;
 			}
 		} else {
 			double pois = exp(lpois);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = log(prob + (1.0 - prob) * pois);
@@ -2237,7 +2252,7 @@ int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int 
 			double tmp = log(1.0 - prob) + res.val;
 			if (PREDICTOR_LINK_EQ(link_logit)) {
 				double off = OFFSET(idx);
-#pragma GCC ivdep
+#pragma omp simd
 				for (int i = 0; i < m; i++) {
 					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 					double ee = exp(eta);
@@ -2246,7 +2261,7 @@ int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int 
 					logll[i] = tmp + y * log_p + ny * log_1mp;
 				}
 			} else {
-#pragma GCC ivdep
+#pragma omp simd
 				for (int i = 0; i < m; i++) {
 					double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 					logll[i] = tmp + y * log(p) + ny * LOG_ONE_MINUS(p);
@@ -2255,7 +2270,7 @@ int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int 
 		} else {
 			double ltmp = log((1.0 - prob) / prob) + res.val;
 			double lprob = log(prob);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				double tt = exp(ltmp + n * LOG_ONE_MINUS(p));
@@ -2316,14 +2331,14 @@ int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int
 	if (m > 0) {
 		if (y > 0) {
 			double tmp = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				logll[i] = tmp + LOG_ONE_MINUS(prob);
 			}
 		} else {
 			double a = exp(res.val + n * LOG_ONE_MINUS(p));
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double prob = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				double tt = (1.0 - prob) / prob * a;
@@ -3312,14 +3327,14 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 			// optimised code
 			double t2 = lnorm + size * log(size) + y_log_E;
 			double t3 = -(size + y);
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
 				double t1 = log(size + E * exp(xx));
 				logll[i] = t2 + t3 * t1 + y * xx;
 			}
 		} else {
-#pragma GCC ivdep
+#pragma omp simd
 			for (int i = 0; i < m; i++) {
 				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 				double mu = E * lambda;
@@ -3330,7 +3345,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		double off = OFFSET(idx);
-#pragma GCC ivdep
+#pragma omp simd
 		for (int i = 0; i < -m; i++) {
 			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
 			double mu = E * lambda;
@@ -4046,37 +4061,39 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 			}
 		}
 	
-		int limiting_case = 0;
-		for (int i = 0; i < m; i++) {
-			if (ISINF(logll[i]) || ISNAN(logll[i])) {
-				limiting_case = 1;
-				break;
-			}
-		}
-
-		if (limiting_case) {
-			// doit again
+		if (0) {
+			int limiting_case = 0;
 			for (int i = 0; i < m; i++) {
-				double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
-				p = TRUNCATE(p, 0.0, 1.0);
-				if (ISEQUAL(p, 1.0)) {	       /* yes, this happens... */
-					if (PREDICTOR_LINK_EQ(link_probit)) {
-						logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
-					} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
-						// I need to do something with other links...
-						logll[i] = res.val + y * (-1.0 / exp(eta));
+				if (ISINF(logll[i]) || ISNAN(logll[i])) {
+					limiting_case = 1;
+					break;
+				}
+			}
+
+			if (limiting_case) {
+				// doit again
+				for (int i = 0; i < m; i++) {
+					double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
+					p = TRUNCATE(p, 0.0, 1.0);
+					if (ISEQUAL(p, 1.0)) {	       /* yes, this happens... */
+						if (PREDICTOR_LINK_EQ(link_probit)) {
+							logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
+						} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
+							// I need to do something with other links...
+							logll[i] = res.val + y * (-1.0 / exp(eta));
+						}
+					} else if (ISZERO(p)) {	       /* yes, this happens... */
+						eta = -eta;	       /* so we can just copy the code */
+						if (PREDICTOR_LINK_EQ(link_probit)) {
+							logll[i] = res.val + ny * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
+						} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
+							// I need to do something with other links...
+							logll[i] = res.val + ny * (-1.0 / exp(eta));
+						}
+					} else {
+						logll[i] = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
 					}
-				} else if (ISZERO(p)) {	       /* yes, this happens... */
-					eta = -eta;	       /* so we can just copy the code */
-					if (PREDICTOR_LINK_EQ(link_probit)) {
-						logll[i] = res.val + ny * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
-					} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
-						// I need to do something with other links...
-						logll[i] = res.val + ny * (-1.0 / exp(eta));
-					}
-				} else {
-					logll[i] = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
 				}
 			}
 		}
