@@ -1967,16 +1967,16 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	if (m > 0) {
 		double ylEmn = normc;
 		if (PREDICTOR_LINK_EQ(link_log)) {
-			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0); 
+			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
 			if (fast) {
 				int mkl_lim = 8;
-				if (m > mkl_lim){
+				if (m > mkl_lim) {
 					double exp_x[m];
 					GMRFLib_exp(m, x, exp_x);
 					if (y > 0.0) {
 						GMRFLib_daxpbyz(m, y, x, -E, exp_x, logll);
 #pragma omp simd
-						for (int i = 0; i < m; i++){
+						for (int i = 0; i < m; i++) {
 							logll[i] += ylEmn;
 						}
 					} else {
@@ -1985,12 +1985,12 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 				} else {
 					if (y > 0.0) {
 #pragma omp simd
-						for (int i = 0; i < m; i++){
+						for (int i = 0; i < m; i++) {
 							logll[i] = y * x[i] + ylEmn - E * exp(x[i]);
 						}
 					} else {
 #pragma omp simd
-						for (int i = 0; i < m; i++){
+						for (int i = 0; i < m; i++) {
 							logll[i] = ylEmn - E * exp(x[i]);
 						}
 					}
@@ -3263,35 +3263,36 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 			const int ntimes = 16L;
 			int verbose = 0;
 			double s[ntimes];
-			for(int yy = 4, dy = 1; yy < 100; yy += dy) {
-				double t[] = {0, 0}, tmp0 = 0.0, tmp1 = 0.0;
+			for (int yy = 4, dy = 1; yy < 100; yy += dy) {
+				double t[] = { 0, 0 }, tmp0 = 0.0, tmp1 = 0.0;
 
-				for(int time = 0; time < ntimes; time++) {
+				for (int time = 0; time < ntimes; time++) {
 					s[time] = exp(2.0 * (GMRFLib_uniform() - 0.5));
 				}
 
 				t[0] = -GMRFLib_cpu();
-				for(int time = 0; time < ntimes; time++) {
+				for (int time = 0; time < ntimes; time++) {
 					tmp0 += gsl_sf_lngamma(yy + s[time]) - gsl_sf_lngamma(s[time]);
 				}
 				t[0] += GMRFLib_cpu();
 
 				t[1] -= GMRFLib_cpu();
-				for(int time = 0; time < ntimes; time++) {
+				for (int time = 0; time < ntimes; time++) {
 #pragma omp simd reduction(+: tmp1)
-					for(int y1 = 0; y1 < yy; y1++) {
+					for (int y1 = 0; y1 < yy; y1++) {
 						tmp1 += log(y1 + s[time]);
 					}
 				}
 				t[1] += GMRFLib_cpu();
 
-				assert(ABS(((tmp0 - tmp1))/(tmp0 + tmp1)) < FLT_EPSILON);
+				assert(ABS(((tmp0 - tmp1)) / (tmp0 + tmp1)) < FLT_EPSILON);
 				if (verbose) {
-					printf("Calibrate nbinomial: yy %d sf=%.3f prod=%.3f\n", yy, t[0]/(t[0]+t[1]), t[1]/(t[0]+t[1]));
+					printf("Calibrate nbinomial: yy %d sf=%.3f prod=%.3f\n", yy, t[0] / (t[0] + t[1]), t[1] / (t[0] + t[1]));
 				}
-				if (t[1]> t[0]) {
+				if (t[1] > t[0]) {
 					ylim = yy - dy / 2L;
-					if (verbose) printf("Calibrate nbinomial: chose ylim = %1d\n", ylim);
+					if (verbose)
+						printf("Calibrate nbinomial: chose ylim = %1d\n", ylim);
 					break;
 				}
 			}
@@ -3304,14 +3305,14 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 		// the expression lgamma(y+s)-lgamm(s) reduces using Gamma(1+z)=z*Gamma(z)
 		double lnorm = -normc;
 		if (y > ylim) {
-			lnorm += gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size); 
+			lnorm += gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
 		} else {
 #pragma omp simd reduction(+: lnorm)
-			for(int yy = 0; yy < (int)y; yy++) {
+			for (int yy = 0; yy < (int) y; yy++) {
 				lnorm += log(yy + size);
 			}
 		}
-		
+
 		double off = OFFSET(idx);
 		if (PREDICTOR_LINK_EQ(link_log)) {
 
@@ -3949,7 +3950,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 		div_t d = div(m, align);
 		int len = (d.quot + 1 + (d.rem ? 1 : 0)) * align;
 		int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
-		
+
 		// special code for this case
 		if (PREDICTOR_LINK_EQ(link_logit)) {
 
@@ -3994,7 +3995,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 					if (fast) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
-							v_eta[i] = -x[i]; 
+							v_eta[i] = -x[i];
 						}
 					} else {
 #pragma omp simd
@@ -4060,7 +4061,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 				logll[i] = res.val + y * log(p) + ny * LOG_ONE_MINUS(p);
 			}
 		}
-	
+
 		if (0) {
 			int limiting_case = 0;
 			for (int i = 0; i < m; i++) {
@@ -4076,15 +4077,15 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 					double p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 					double eta = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + OFFSET(idx));
 					p = TRUNCATE(p, 0.0, 1.0);
-					if (ISEQUAL(p, 1.0)) {	       /* yes, this happens... */
+					if (ISEQUAL(p, 1.0)) { /* yes, this happens... */
 						if (PREDICTOR_LINK_EQ(link_probit)) {
 							logll[i] = res.val + y * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
 						} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
 							// I need to do something with other links...
 							logll[i] = res.val + y * (-1.0 / exp(eta));
 						}
-					} else if (ISZERO(p)) {	       /* yes, this happens... */
-						eta = -eta;	       /* so we can just copy the code */
+					} else if (ISZERO(p)) {	/* yes, this happens... */
+						eta = -eta;    /* so we can just copy the code */
 						if (PREDICTOR_LINK_EQ(link_probit)) {
 							logll[i] = res.val + ny * (-1.0 / sqrt(2.0 * M_PI) / eta) / exp(SQR(eta) / 2.0);
 						} else if (1 || PREDICTOR_LINK_EQ(link_logit)) {
@@ -4676,9 +4677,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

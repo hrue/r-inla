@@ -5518,15 +5518,14 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	 * cpo_density is the marginal for x_idx without y_idx, density: is the marginal for x_idx with y_idx.
 	 */
 	int retval, compute_cpo = 1, np = GMRFLib_INT_NUM_POINTS;
-	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL,
-	    integral = 0.0, integral2 = 0.0, integral_one, *loglik = NULL;
+	double low, dx, dxi, *xp = NULL, *xpi = NULL, *dens = NULL, *prob = NULL, integral = 0.0, integral2 = 0.0, integral_one, *loglik = NULL;
 	double fail = 0.0;
 
 	static double *w = NULL;
 	if (!w) {
 #pragma omp critical
 		if (!w) {
-			double www[] = {4.0, 2.0};
+			double www[] = { 4.0, 2.0 };
 			double *ww = Calloc(np, double);
 			ww[0] = ww[np - 1] = 1.0;
 			for (int i = 1, k = 0; i < np - 1; i++, k = (k + 1L) % 2L) {
@@ -5605,7 +5604,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	integral = GMRFLib_ddot(np, w, xp);
 	integral2 = GMRFLib_ddot(np, w, xpi);
 	integral_one = GMRFLib_ddot(np, w, dens);
-	
+
 	if (ISZERO(integral_one)) {
 		fail = 1.0;
 		integral = integral2 = 0.0;
@@ -5685,7 +5684,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			vdExp(np, ll, mask);
 #else
 #pragma omp simd
-			for(int i = 0; i < np; i++){
+			for (int i = 0; i < np; i++) {
 				mask[i] = exp(ll[i]);
 			}
 #endif
@@ -5696,7 +5695,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 			}
 		} else {
 #pragma omp simd reduction(+: integral2, integral4)
-			for(int i = 0; i < np; i++) {
+			for (int i = 0; i < np; i++) {
 				integral4 += ll[i] * ll[i] * wp[i];
 				integral2 += mask[i] * exp(ll[i]) * wp[i];
 			}
@@ -5705,7 +5704,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 	} else {
 
 		// THIS PART NEEDS TO BE REWRITTEN
-		
+
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
 		int np = GMRFLib_INT_NUM_POINTS;
@@ -5842,9 +5841,9 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 				}
 			}
 		}
-		
+
 		integral = -2.0 * d * GMRFLib_ddot(np, ll, wp);
-		integral_sat= -2.0 * d * GMRFLib_ddot(np, ll_sat, wp);
+		integral_sat = -2.0 * d * GMRFLib_ddot(np, ll_sat, wp);
 		Calloc_free();
 	} else {
 

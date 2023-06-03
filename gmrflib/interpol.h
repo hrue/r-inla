@@ -49,9 +49,9 @@ __BEGIN_DECLS
 	GMRFLib_INTPOL_TRANS_Pinv
 } GMRFLib_intpol_transform_tp;
 
-    typedef enum {
+typedef enum {
 	GMRFLib_INTPOL_CACHE_LEVEL12 = 0,		       /* one for both levels */
-	GMRFLib_INTPOL_CACHE_LEVEL1 = 1, 		       /* level 1 only */
+	GMRFLib_INTPOL_CACHE_LEVEL1 = 1,		       /* level 1 only */
 	GMRFLib_INTPOL_CACHE_SIMPLE = 2			       /* serial, not thread-safe */
 } GMRFLib_intpol_cache_tp;
 

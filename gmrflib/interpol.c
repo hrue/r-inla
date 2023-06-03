@@ -90,16 +90,16 @@ GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_
 	s->trans = trans;
 	s->xmin = xx[0];
 	s->xmax = xx[nn - 1];
-	switch(cache){
-	case GMRFLib_INTPOL_CACHE_LEVEL12: 
+	switch (cache) {
+	case GMRFLib_INTPOL_CACHE_LEVEL12:
 		s->cache = GMRFLib_INTPOL_CACHE_LEVEL12;
 		s->cache_len = GMRFLib_CACHE_LEN();
 		break;
-	case GMRFLib_INTPOL_CACHE_LEVEL1: 
+	case GMRFLib_INTPOL_CACHE_LEVEL1:
 		s->cache = GMRFLib_INTPOL_CACHE_LEVEL1;
-		s->cache_len = GMRFLib_CACHE_LEN_LEVEL1_ONLY(); 
+		s->cache_len = GMRFLib_CACHE_LEN_LEVEL1_ONLY();
 		break;
-	case GMRFLib_INTPOL_CACHE_SIMPLE: 
+	case GMRFLib_INTPOL_CACHE_SIMPLE:
 		s->cache = GMRFLib_INTPOL_CACHE_SIMPLE;
 		s->cache_len = 1;
 		break;
@@ -155,11 +155,11 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	xx = TRUNCATE(xx_raw, s->xmin, s->xmax);
 
 	int tnum = 0;
-	switch(s->cache){
-	case GMRFLib_INTPOL_CACHE_LEVEL12: 
+	switch (s->cache) {
+	case GMRFLib_INTPOL_CACHE_LEVEL12:
 		GMRFLib_CACHE_SET_ID(tnum);
 		break;
-	case GMRFLib_INTPOL_CACHE_LEVEL1: 
+	case GMRFLib_INTPOL_CACHE_LEVEL1:
 		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 		break;
 	case GMRFLib_INTPOL_CACHE_SIMPLE:
@@ -236,11 +236,11 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 		val = NAN;
 	} else {
 		int tnum = 0;
-		switch(s->cache){
-		case GMRFLib_INTPOL_CACHE_LEVEL12: 
+		switch (s->cache) {
+		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_ID(tnum);
 			break;
-		case GMRFLib_INTPOL_CACHE_LEVEL1: 
+		case GMRFLib_INTPOL_CACHE_LEVEL1:
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
@@ -278,11 +278,11 @@ double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp *s)
 		val = NAN;
 	} else {
 		int tnum = 0;
-		switch(s->cache){
-		case GMRFLib_INTPOL_CACHE_LEVEL12: 
+		switch (s->cache) {
+		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_ID(tnum);
 			break;
-		case GMRFLib_INTPOL_CACHE_LEVEL1: 
+		case GMRFLib_INTPOL_CACHE_LEVEL1:
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
@@ -315,11 +315,11 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp *s)
 		val = NAN;
 	} else {
 		int tnum = 0;
-		switch(s->cache){
-		case GMRFLib_INTPOL_CACHE_LEVEL12: 
+		switch (s->cache) {
+		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_ID(tnum);
 			break;
-		case GMRFLib_INTPOL_CACHE_LEVEL1: 
+		case GMRFLib_INTPOL_CACHE_LEVEL1:
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:
@@ -351,11 +351,11 @@ double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp *s)
 		val = NAN;
 	} else {
 		int tnum = 0;
-		switch(s->cache){
-		case GMRFLib_INTPOL_CACHE_LEVEL12: 
+		switch (s->cache) {
+		case GMRFLib_INTPOL_CACHE_LEVEL12:
 			GMRFLib_CACHE_SET_ID(tnum);
 			break;
-		case GMRFLib_INTPOL_CACHE_LEVEL1: 
+		case GMRFLib_INTPOL_CACHE_LEVEL1:
 			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
 			break;
 		case GMRFLib_INTPOL_CACHE_SIMPLE:

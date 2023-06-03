@@ -53,7 +53,6 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
-
 double GMRFLib_dsum1(int n, double *x);
 double GMRFLib_dsum2(int n, double *x);
 int GMRFLib_isum1(int n, int *ix);

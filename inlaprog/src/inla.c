@@ -5497,9 +5497,9 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	// time the two versions of Qfunc_like
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
-	double time_isum[2] = {0.0, 0.0};
-	double time_dsum[2] = {0.0, 0.0};
-	
+	double time_isum[2] = { 0.0, 0.0 };
+	double time_dsum[2] = { 0.0, 0.0 };
+
 	if (GMRFLib_internal_opt) {
 		// cannot run this in parallel as we're changing global variables
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
@@ -5551,7 +5551,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 		GMRFLib_isum_measure_time(time_isum);
 		GMRFLib_dsum_measure_time(time_dsum);
-		
+
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
@@ -5598,11 +5598,13 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		if (GMRFLib_internal_opt) {
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
-			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1], (GMRFLib_isum == GMRFLib_isum1 ? "isum1" : "isum2"));
-			printf("\tOptimizing dsum............ dsum1[%.3f] dsum2[%.3f] choice[%s]\n", time_dsum[0], time_dsum[1], (GMRFLib_dsum == GMRFLib_dsum1 ? "dsum1" : "dsum2"));
+			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
+			       (GMRFLib_isum == GMRFLib_isum1 ? "isum1" : "isum2"));
+			printf("\tOptimizing dsum............ dsum1[%.3f] dsum2[%.3f] choice[%s]\n", time_dsum[0], time_dsum[1],
+			       (GMRFLib_dsum == GMRFLib_dsum1 ? "dsum1" : "dsum2"));
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
-			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
-			       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
+			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]), time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
+			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 			printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
@@ -5853,7 +5855,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				norm_initial = norm;
 			}
 			if (mb->verbose) {
-				if (iter == 0) printf("\nCompute initial values...\n");
+				if (iter == 0)
+					printf("\nCompute initial values...\n");
 				printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 			}
 
@@ -6013,16 +6016,16 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0 = 0.0, m1 = 0.0, m2 = 0.0; 
+	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0 = 0.0, m1 = 0.0, m2 = 0.0;
 
 	static double *w = NULL;
 	if (!w) {
 #pragma omp critical
 		if (!w) {
-			double wref[] = {4.0, 2.0};
+			double wref[] = { 4.0, 2.0 };
 			double *ww = Calloc(npm, double);
-			ww[0] = ww[npm-1] = 1.0;
-			for(int i = 1, j = 0; i < npm - 1; i++, j = (j+1) % 2L) {
+			ww[0] = ww[npm - 1] = 1.0;
+			for (int i = 1, j = 0; i < npm - 1; i++, j = (j + 1) % 2L) {
 				ww[i] = wref[j];
 			}
 			w = ww;
@@ -6161,7 +6164,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		}
 
 #pragma omp simd
-		for(int i = 0; i < npm; i++){
+		for (int i = 0; i < npm; i++) {
 			ldm[i] *= w[i];
 		}
 

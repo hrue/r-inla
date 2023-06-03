@@ -182,8 +182,8 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
 		values[0] = inla_spde2_Qfunction(thread_id, ii, ii, (double *) fake_values, arg);
-		for(int k = 0; k < model->graph->lnnbs[ii]; k++){
-			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], (double *)fake_values, arg);
+		for (int k = 0; k < model->graph->lnnbs[ii]; k++) {
+			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], (double *) fake_values, arg);
 		}
 
 		return 0.0;
@@ -202,7 +202,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	}
 
 	int idx = -1;
-	int i_in_cache = 0; 
+	int i_in_cache = 0;
 
 	if (values) {
 		// this is a hack. these values are 'fake' and is part of the trick described above
@@ -247,7 +247,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	double d_j0 = 0.0;
 	double d_j1 = 0.0;
 	double d_j2 = 0.0;
-	
+
 	if (i == j) {
 		double *vals_i0 = vals;
 		double *vals_i1 = vals + nc;
@@ -325,7 +325,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 				}
 			}
 		}
-		
+
 		if (debug) {
 #pragma omp critical (Name_170ba04061977b3f6655c4b7b4bb6c086b3a7c68)
 			{
@@ -524,7 +524,7 @@ double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(va
 		}
 
 #pragma omp simd
-		for (int k= 0; k < 2; k++) {
+		for (int k = 0; k < 2; k++) {
 			d_i[k] = exp(d_i[k]);
 		}
 

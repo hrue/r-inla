@@ -316,7 +316,7 @@ double GMRFLib_dsum2(int n, double *x)
 	return (s);
 }
 
-void GMRFLib_isum_measure_time(double *tused) 
+void GMRFLib_isum_measure_time(double *tused)
 {
 	int n = 512;
 	int ntimes = 32;
@@ -330,24 +330,24 @@ void GMRFLib_isum_measure_time(double *tused)
 	double r = 0.0, rr = 0.0;
 
 	for (int time = 0; time < ntimes; time++) {
-		
+
 		tref[0] -= GMRFLib_cpu();
 		r += GMRFLib_isum1(n, ix);
 		r += GMRFLib_isum1(n, ix);
 		tref[0] += GMRFLib_cpu();
-		
+
 		tref[1] -= GMRFLib_cpu();
 		rr += GMRFLib_isum2(n, ix);
 		rr += GMRFLib_isum2(n, ix);
 		tref[1] += GMRFLib_cpu();
 	}
-	
+
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
 	GMRFLib_isum = (tused[0] < tused[1] ? GMRFLib_isum1 : GMRFLib_isum2);
 }
 
-void GMRFLib_dsum_measure_time(double *tused) 
+void GMRFLib_dsum_measure_time(double *tused)
 {
 	int n = 512;
 	int ntimes = 32;
@@ -360,18 +360,18 @@ void GMRFLib_dsum_measure_time(double *tused)
 	double r = 0.0, rr = 0.0;
 
 	for (int time = 0; time < ntimes; time++) {
-		
+
 		tref[0] -= GMRFLib_cpu();
 		r += GMRFLib_dsum1(n, x);
 		r += GMRFLib_dsum1(n, x);
 		tref[0] += GMRFLib_cpu();
-		
+
 		tref[1] -= GMRFLib_cpu();
 		rr += GMRFLib_dsum2(n, x);
 		rr += GMRFLib_dsum2(n, x);
 		tref[1] += GMRFLib_cpu();
 	}
-	
+
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
 	GMRFLib_dsum = (tused[0] < tused[1] ? GMRFLib_dsum1 : GMRFLib_dsum2);
