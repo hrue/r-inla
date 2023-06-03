@@ -176,14 +176,14 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		int idx = -1;
 		GMRFLib_CACHE_SET_ID(idx);
 
-		double fake_values[2];
+		int fake_values[2];
 		fake_values[0] = idx;			       /* transfer the cache-index */
 		fake_values[1] = 1;			       /* tell that we know that 'i' is in the cache */
 
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
-		values[0] = inla_spde2_Qfunction(thread_id, ii, ii, fake_values, arg);
+		values[0] = inla_spde2_Qfunction(thread_id, ii, ii, (double *) fake_values, arg);
 		for(int k = 0; k < model->graph->lnnbs[ii]; k++){
-			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], fake_values, arg);
+			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], (double *)fake_values, arg);
 		}
 
 		return 0.0;
@@ -206,8 +206,9 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 
 	if (values) {
 		// this is a hack. these values are 'fake' and is part of the trick described above
-		idx = (int) values[0];
-		i_in_cache = (int) values[1];
+		int *ivalues = (int *) values;
+		idx = ivalues[0];
+		i_in_cache = ivalues[1];
 	} else {
 		GMRFLib_CACHE_SET_ID(idx);
 	}
