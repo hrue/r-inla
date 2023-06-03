@@ -1970,3 +1970,65 @@ double GMRFLib_erfc_inv(double x)
 {
 	return (M_SQRT1_2 * GMRFLib_cdfnorm_inv(1.0 - x * 0.5));
 }
+
+
+/////////////////////////////////////////////////////////////////////////
+// 
+/////////////////////////////////////////////////////////////////////////
+
+void GMRFLib_exp(int n, double *x, double *y)
+{
+	if (n <= 4) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = exp(x[i]);
+		}
+	} else {
+#if defined(INLA_LINK_WITH_MKL)
+		vdExp(n, x, y);
+#else
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = exp(x[i]);
+		}
+#endif
+	}
+}
+
+void GMRFLib_log(int n, double *x, double *y)
+{
+	if (n <= 4) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = log(x[i]);
+		}
+	} else {
+#if defined(INLA_LINK_WITH_MKL)
+		vdLn(n, x, y);
+#else
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = log(x[i]);
+		}
+#endif
+	}
+}
+
+void GMRFLib_log1p(int n, double *x, double *y)
+{
+	if (n <= 2) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = log1p(x[i]);
+		}
+	} else {
+#if defined(INLA_LINK_WITH_MKL)
+		vdLog1p(n, x, y);
+#else
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = log1p(x[i]);
+		}
+#endif
+	}
+}

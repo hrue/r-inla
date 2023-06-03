@@ -152,5 +152,11 @@ void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 
+
+void GMRFLib_exp(int, double *, double *);
+void GMRFLib_log(int, double *, double *);
+void GMRFLib_log1p(int, double *, double *);
+
+
 __END_DECLS
 #endif
