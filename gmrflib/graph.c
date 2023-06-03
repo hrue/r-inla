@@ -1416,7 +1416,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				if (used[j]) {
 					int offset = j * (graph->n + off);
 					double *r = local_result + offset;
-#pragma opm simd
+#pragma omp simd
 					for (int i = 0; i < graph->n; i++) {
 						result[i] += r[i];
 					}
