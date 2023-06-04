@@ -143,6 +143,12 @@ extern int GMRFLib_sort2_dd_cut_off;
 extern GMRFLib_isum_tp *GMRFLib_isum;
 extern GMRFLib_dsum_tp *GMRFLib_dsum;
 
+extern int GMRFLib_threshold_exp;
+extern int GMRFLib_threshold_log;
+extern int GMRFLib_threshold_log1p;
+extern int GMRFLib_threshold_sqr;
+
+
 #endif
 __END_DECLS
 #endif

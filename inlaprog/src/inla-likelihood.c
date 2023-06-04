@@ -643,7 +643,8 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 
 	if (ds->data_observations.log_prec_gaussian_offset[thread_id][0] > log_prec_limit) {
 		lprec = ds->data_observations.log_prec_gaussian[thread_id][0] + log(w);
-		prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
+		prec = exp(lprec);
+		//prec = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL) * w;
 	} else {
 		double prec_offset = map_precision(ds->data_observations.log_prec_gaussian_offset[thread_id][0], MAP_FORWARD, NULL);
 		double prec_var = map_precision(ds->data_observations.log_prec_gaussian[thread_id][0], MAP_FORWARD, NULL);
@@ -665,16 +666,28 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
 			double off = OFFSET(idx);
+
+			if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0 && off == 0.0)) {
+				double a = -0.5 * prec;
+				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
+				if (0 && m >= 8L)  {
+					double tmp[m];
+					GMRFLib_daxpb(m, -1.0, x, y, tmp);
+					GMRFLib_sqr(m, tmp, tmp);
+					GMRFLib_daxpb(m, a, tmp, b, logll);
+				} else {
 #pragma omp simd
-			for (int i = 0; i < m; i++) {
-				double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
-			}
-		} else {
+					for (int i = 0; i < m; i++) {
+						double res = y - x[i];
+						logll[i] = b + a * SQR(res);
+					}
+				}
+			} else {
 #pragma omp simd
-			for (int i = 0; i < m; i++) {
-				double ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
-				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+				for (int i = 0; i < m; i++) {
+					double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+				}
 			}
 		}
 	} else {

@@ -1978,57 +1978,187 @@ double GMRFLib_erfc_inv(double x)
 
 void GMRFLib_exp(int n, double *x, double *y)
 {
-	if (n <= 4) {
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_exp) {
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			y[i] = exp(x[i]);
 		}
 	} else {
-#if defined(INLA_LINK_WITH_MKL)
 		vdExp(n, x, y);
+	}
 #else
 #pragma omp simd
-		for (int i = 0; i < n; i++) {
-			y[i] = exp(x[i]);
-		}
-#endif
+	for (int i = 0; i < n; i++) {
+		y[i] = exp(x[i]);
 	}
+#endif
 }
 
 void GMRFLib_log(int n, double *x, double *y)
 {
-	if (n <= 4) {
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_log) {
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			y[i] = log(x[i]);
 		}
 	} else {
-#if defined(INLA_LINK_WITH_MKL)
 		vdLn(n, x, y);
+	}
 #else
 #pragma omp simd
-		for (int i = 0; i < n; i++) {
-			y[i] = log(x[i]);
-		}
-#endif
+	for (int i = 0; i < n; i++) {
+		y[i] = log(x[i]);
 	}
+#endif
 }
 
 void GMRFLib_log1p(int n, double *x, double *y)
 {
-	if (n <= 2) {
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_log1p) {
 #pragma omp simd
 		for (int i = 0; i < n; i++) {
 			y[i] = log1p(x[i]);
 		}
 	} else {
-#if defined(INLA_LINK_WITH_MKL)
 		vdLog1p(n, x, y);
+	}
 #else
 #pragma omp simd
-		for (int i = 0; i < n; i++) {
-			y[i] = log1p(x[i]);
-		}
-#endif
+	for (int i = 0; i < n; i++) {
+		y[i] = log1p(x[i]);
 	}
+#endif
+}
+
+void GMRFLib_sqr(int n, double *x, double *y)
+{
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_sqr) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			y[i] = x[i] * x[i];
+		}
+	} else {
+		vdSqr(n, x, y);
+	}
+#else
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] = x[i] * x[i];
+	}
+#endif
+}
+
+
+void GMRFLib_MKL_chose_thresholds(int verbose)
+{
+#if defined(INLA_LINK_WITH_MKL)
+#pragma omp critical (Name_98ee839e85cd2a7722927d5ea8fc742a6f849ce3)
+	{
+		int n = 1024;
+		int ntimes = 512;
+		double *x = Calloc(2*n, double);
+		double *y = x + n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		for(int nn = 1; nn < 10; nn++) {
+			double tref[2] = { 0.0, 0.0 };
+			for (int time = 0; time < ntimes; time++) {
+				tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+				for(int i = 0; i < nn; i++){
+					y[i] = exp(x[i]);
+				}
+				tref[0] += GMRFLib_cpu();
+			
+				tref[1] -= GMRFLib_cpu();
+				vdExp(nn, x, y);
+				tref[1] += GMRFLib_cpu();
+			}
+			if (verbose) {
+				printf("EXP nn = %1d Plain %.3f MKL %.3f\n", nn, tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+			}
+			if (tref[0] > tref[1]) {
+				GMRFLib_threshold_exp = nn-1;
+				break;
+			}
+		}
+
+		for(int nn = 1; nn < 10; nn++) {
+			double tref[2] = { 0.0, 0.0 };
+			for (int time = 0; time < ntimes; time++) {
+				tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+				for(int i = 0; i < nn; i++){
+					y[i] = log(x[i]);
+				}
+				tref[0] += GMRFLib_cpu();
+			
+				tref[1] -= GMRFLib_cpu();
+				vdLn(nn, x, y);
+				tref[1] += GMRFLib_cpu();
+			}
+			if (verbose) {
+				printf("LOG nn = %1d Plain %.3f MKL %.3f\n", nn, tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+			}
+			if (tref[0] > tref[1]) {
+				GMRFLib_threshold_log = nn-1;
+				break;
+			}
+		}
+
+		for(int nn = 1; nn < 10; nn++) {
+			double tref[2] = { 0.0, 0.0 };
+			for (int time = 0; time < ntimes; time++) {
+				tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+				for(int i = 0; i < nn; i++){
+					y[i] = log1p(x[i]);
+				}
+				tref[0] += GMRFLib_cpu();
+			
+				tref[1] -= GMRFLib_cpu();
+				vdLog1p(nn, x, y);
+				tref[1] += GMRFLib_cpu();
+			}
+			if (verbose) {
+				printf("LOG1P nn = %1d Plain %.3f MKL %.3f\n", nn, tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+			}
+			if (tref[0] > tref[1]) {
+				GMRFLib_threshold_log1p = nn-1;
+				break;
+			}
+		}
+
+		GMRFLib_threshold_sqr = n - 1;
+		for(int nn = 32, dn = 16; nn < n; nn += dn) {
+			double tref[2] = { 0.0, 0.0 };
+			for (int time = 0; time < ntimes; time++) {
+				tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+				for(int i = 0; i < nn; i++){
+					y[i] = x[i] * x[i];
+				}
+				tref[0] += GMRFLib_cpu();
+			
+				tref[1] -= GMRFLib_cpu();
+				vdSqr(nn, x, y);
+				tref[1] += GMRFLib_cpu();
+			}
+			if (verbose) {
+				printf("SQR nn = %1d Plain %.3f MKL %.3f\n", nn, tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+			}
+			if (tref[0] > tref[1]) {
+				GMRFLib_threshold_sqr = nn - dn/2 -1;
+				break;
+			}
+		}
+	}
+#endif
 }

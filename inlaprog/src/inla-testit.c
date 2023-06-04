@@ -3563,6 +3563,98 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 123:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double *x = Calloc(3 * n, double);
+		double *y = x + n;
+		double *yy = x + 2 * n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				y[j] = x[j]*x[j];
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+#if defined(INLA_LINK_WITH_MKL)
+			vdSqr(n, x, yy);
+#else
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				yy[j] = x[j]*x[j];
+			}
+#endif
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 124:
+	{
+		int n = atoi(args[0]);
+		int m = atoi(args[1]);
+
+		P(n);
+		P(m);
+
+		double *x = Calloc(3 * n, double);
+		double *y = x + n;
+		double *yy = x + 2 * n;
+
+		for (int i = 0; i < n; i++) {
+			x[i] = GMRFLib_uniform();
+		}
+
+		double tref[] = { 0, 0 };
+		for (int i = 0; i < m; i++) {
+			tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				y[j] = log1p(x[j]);
+			}
+			tref[0] += GMRFLib_cpu();
+
+			tref[1] -= GMRFLib_cpu();
+#if defined(INLA_LINK_WITH_MKL)
+			vdLog1p(n, x, yy);
+#else
+#pragma omp simd
+			for (int j = 0; j < n; j++) {
+				yy[j] = log1p(x[i]);
+			}
+#endif
+			tref[1] += GMRFLib_cpu();
+
+			double err = 0.0;
+			for (int j = 0; j < n; j++) {
+				err = DMAX(err, ABS(y[j] - yy[j]));
+			}
+			assert(err < FLT_EPSILON);
+		}
+		printf("plain:  %.4f  MKL:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

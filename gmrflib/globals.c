@@ -176,3 +176,8 @@ int GMRFLib_save_memory = 0;
 
 GMRFLib_isum_tp *GMRFLib_isum = GMRFLib_isum1;
 GMRFLib_dsum_tp *GMRFLib_dsum = GMRFLib_dsum1;
+
+int GMRFLib_threshold_exp = 3;
+int GMRFLib_threshold_log = 3;
+int GMRFLib_threshold_log1p = 0;
+int GMRFLib_threshold_sqr = 127;
