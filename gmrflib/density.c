@@ -633,7 +633,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	vdExp(npm, ldm, ldm);
 #else
 #pragma GCC ivdep
-	for (i = 0; i < npm; i++) {
+	for (int i = 0; i < npm; i++) {
 		ldm[i] = exp(ldm[i]);
 	}
 #endif
