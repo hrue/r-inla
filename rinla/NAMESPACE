@@ -23,7 +23,6 @@ import(splines)
 # ## Export: func1 func2
 # ## Export: method1!class
 # etc...
-export(inla.agaussian)
 export(inla.binary.install)
 export(inla.cgeneric.define)
 export(inla.cgeneric.q)
@@ -312,6 +311,7 @@ export(extract.groups)
 export(f)
 export(inla.CRS)
 export(inla.CRSargs)
+export(inla.agaussian)
 export(inla.ar.pacf2acf)
 export(inla.ar.pacf2phi)
 export(inla.ar.phi2acf)
