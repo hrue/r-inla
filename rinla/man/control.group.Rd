@@ -53,7 +53,7 @@ correlation or precision in the internal scale}
 
 \item{param}{(OBSOLETE!) Prior parameters}
 
-\item{...}{Named arguments.}
+\item{...}{Named arguments passed on to the main function}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.
@@ -63,7 +63,24 @@ specific input arguments.
 }
 \seealso{
 Other control: 
+\code{\link{control.bgev}()},
+\code{\link{control.compute}()},
+\code{\link{control.expert}()},
+\code{\link{control.family}()},
+\code{\link{control.fixed}()},
+\code{\link{control.gcpo}()},
+\code{\link{control.hazard}()},
+\code{\link{control.inla}()},
 \code{\link{control.lincomb}()},
-\code{\link{control.update}()}
+\code{\link{control.link}()},
+\code{\link{control.lp.scale}()},
+\code{\link{control.mix}()},
+\code{\link{control.mode}()},
+\code{\link{control.pardiso}()},
+\code{\link{control.pom}()},
+\code{\link{control.predictor}()},
+\code{\link{control.scopy}()},
+\code{\link{control.update}()},
+\code{\link{control.vb}()}
 }
 \concept{control}

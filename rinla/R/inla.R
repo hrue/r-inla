@@ -908,7 +908,7 @@
     }
     
     ## control inla
-    cont.inla <- cont.inla.def <- inla.set.control.inla.default(family = family)
+    cont.inla <- cont.inla.def <- inla.set.control.inla.default()
     cont.inla[names(control.inla)] <- control.inla
     ## because we have 'control' within a 'control', we have to process them specifically
     cont.inla$control.vb <- cont.inla.def$control.vb
@@ -2569,7 +2569,7 @@
             stop("*** Fail to get good enough initial values. Maybe it is due to something else.")
         }
         output(paste0("inla.program has crashed: rerun to get better initial values. try=", ntry+1, "/", max.try))
-        cont.inla <- inla.set.control.inla.default(family)
+        cont.inla <- inla.set.control.inla.default()
         cont.inla[names(control.inla)] <- control.inla
 
         cont.inla$int.strategy <- "eb"

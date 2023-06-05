@@ -14,7 +14,7 @@ inla.set.control.lincomb.default(...)
 set globally. (Default FALSE). This option is only available for
 the default \code{inla.mode} (\code{inla.mode="compact"}).}
 
-\item{...}{Named arguments.}
+\item{...}{Named arguments passed on to the main function}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.
@@ -24,7 +24,24 @@ specific input arguments.
 }
 \seealso{
 Other control: 
+\code{\link{control.bgev}()},
+\code{\link{control.compute}()},
+\code{\link{control.expert}()},
+\code{\link{control.family}()},
+\code{\link{control.fixed}()},
+\code{\link{control.gcpo}()},
 \code{\link{control.group}()},
-\code{\link{control.update}()}
+\code{\link{control.hazard}()},
+\code{\link{control.inla}()},
+\code{\link{control.link}()},
+\code{\link{control.lp.scale}()},
+\code{\link{control.mix}()},
+\code{\link{control.mode}()},
+\code{\link{control.pardiso}()},
+\code{\link{control.pom}()},
+\code{\link{control.predictor}()},
+\code{\link{control.scopy}()},
+\code{\link{control.update}()},
+\code{\link{control.vb}()}
 }
 \concept{control}
