@@ -1,6 +1,3 @@
-
-
-
 #' Convert a Cox proportional hazard model into Poisson regression
 #' 
 #' Tools to convert a Cox proportional hazard model into Poisson regression

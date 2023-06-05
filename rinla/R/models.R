@@ -12177,7 +12177,7 @@
                     pdf = "pc.gevtail"
                 ),
 
-                ## this is the generic one, which is case-spesific and possibly adaptive
+                ## this is the generic one, which is case-specific and possibly adaptive
                 pc = list(
                     doc = "Generic PC prior",
                     nparameters = 2L,

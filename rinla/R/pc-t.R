@@ -1,41 +1,28 @@
-## Export: inla.pc.ddof
-
-## ! \name{pc.ddof}
-## ! \alias{pc.ddof}
-## ! \alias{inla.pc.ddof}
-## ! \alias{pc.t}
-## ! \alias{pc.dof}
-## ! \alias{inla.pc.t}
-## ! \alias{inla.pc.dof}
-## !
-## ! \title{PC-prior for dof in a standarized Student-t}
-## !
-## ! \description{A function to evaluate the PC-prior for the degrees of freedom
-## !              in a standarized Student-t distribution}
-## ! \usage{
-## !     inla.pc.ddof(dof, lambda, u, alpha, log=FALSE)
-## ! }
-## ! \arguments{
-## !   \item{dof}{Degrees of freedom}
-## !   \item{log}{Logical. Return the density or the log-density}
-## !   \item{lambda}{The optional value of \code{lambda},  instead of defining it implicitely
-## !                 through \code{u} and \code{alpha}}
-## !   \item{u}{The upper value of dof used to elicitate \code{lambda},  \code{Prob(dof < u) = alpha}}
-## !   \item{alpha}{The probability \code{alpha} used to elicitate \code{lambda}}
-## !}
-## ! \details{
-## !   These functions implements the PC-prior for the dof in a standarized Student-t
-## !   distribution (ie. with unit variance and \code{dof} > 2).
-## !   Either \code{lambda}, or \code{u} AND \code{alpha} must be given.
-## !   Due the internal tabulation, \code{dof} must be larger than 2.0025.
-## ! }
-## ! \value{%%
-## !     \code{inla.pc.ddof} returns the prior density for given \code{dof}.
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! }
-
+#' PC-prior for dof in a standarized Student-t
+#' 
+#' A function to evaluate the PC-prior for the degrees of freedom in a
+#' standarized Student-t distribution
+#' 
+#' These functions implements the PC-prior for the dof in a standarized
+#' Student-t distribution (ie. with unit variance and \code{dof} > 2).  Either
+#' \code{lambda}, or \code{u} AND \code{alpha} must be given.  Due the internal
+#' tabulation, \code{dof} must be larger than 2.0025.
+#' 
+#' @aliases pc.ddof inla.pc.ddof pc.t pc.dof inla.pc.t inla.pc.dof
+#' @param dof Degrees of freedom
+#' @param log Logical. Return the density or the log-density
+#' @param lambda The optional value of \code{lambda}, instead of defining it
+#' implicitely through \code{u} and \code{alpha}
+#' @param u The upper value of dof used to elicitate \code{lambda},
+#' \code{Prob(dof < u) = alpha}
+#' @param alpha The probability \code{alpha} used to elicitate \code{lambda}
+#' @returns \code{inla.pc.ddof} returns the prior density for given
+#' \code{dof}.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name pc.ddof
+#' @rdname pc-t
+#' @export
 
 `inla.pc.ddof` <- function(dof, lambda, u, alpha, log = FALSE) {
     func.name.in.env <- "inla.pc.t.dof.func"

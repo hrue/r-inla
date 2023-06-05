@@ -21,7 +21,10 @@
 #' Assess the finite element approximation errors in a mesh for interactive R
 #' sessions.  More detailed assessment tools are in [meshbuilder()].
 #'
-#'
+#' @param mesh An `inla.mesh`
+#' @param spatial.range numeric; the spatial range parameter to use for the assessment
+#' @param alpha numeric; A valid `inla.spde2.pcmatern` `alpha` parameter
+#' @param dims; 2-numeric; the grid size
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso inla.mesh.2d, inla.mesh.create, meshbuilder
 #' @examples
@@ -32,6 +35,8 @@
 #' ), bnd = TRUE)
 #' mesh <- inla.mesh.2d(boundary = bnd, max.edge = 1)
 #' out <- inla.mesh.assessment(mesh, spatial.range = 3, alpha = 2)
+#' 
+#' @rdname meshassessment
 #' @export inla.mesh.assessment
 inla.mesh.assessment <- function(mesh, spatial.range, alpha = 2,
                                  dims = c(500, 500)) {

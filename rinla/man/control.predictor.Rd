@@ -17,7 +17,7 @@ control.predictor(A, cdf, compute, cross, fixed, hyper, initial, link, param, pr
 \arguments{
 \item{...}{Possible arguments}
 \item{hyper}{   Definition of the hyperparameters.}
-\item{fixed}{   (OBSOLETE!) If the precision for the artificial noise is fixed  or not (defualt TRUE)}
+\item{fixed}{   (OBSOLETE!) If the precision for the artificial noise is fixed  or not (default TRUE)}
 
 \item{prior}{   (OBSOLETE!) The prior for the artificial noise}
 \item{param}{   (OBSOLETE!) Prior parameters for the artificial noise}

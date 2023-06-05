@@ -863,7 +863,7 @@
             hyper = NULL,
 
             ## :ARGUMENT+: fixed (OBSOLETE!) If the precision for the artificial noise is fixed
-            ## :ARGUMENT+: or not (defualt TRUE)
+            ## :ARGUMENT+: or not (default TRUE)
             fixed = NULL,
 
             ## :ARGUMENT: prior (OBSOLETE!) The prior for the artificial noise

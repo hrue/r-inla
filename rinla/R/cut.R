@@ -1,69 +1,57 @@
-## Export: inla.cut
-
-## ! \name{cut}
-## ! \alias{inla.cut}
-## ! \alias{cut}
-## !
-## ! \title{Group-wise model criticism using node-splitting}
-## !
-## ! \description{This function performs group-wise, cross-validatory
-## ! model assessment for an INLA model using so-called node-splitting
-## ! (Marshall and Spiegelhalter, 2007; Presanis et al, 2013).
-## ! The user inputs an object of class \code{inla} (i.e. a result
-## ! of a call to \code{inla()}) as well as  a variable name (\code{split.by}) specifying a grouping:
-## ! Data points that share the same value of \code{split.by} are in the same group.
-## ! The function then checks whether each group is an "outlier", or in conflict with
-## ! the remaining groups, using the methodology described in Ferkingstad et al (2017).
-## ! The result is a vector containing a p-value for each group, corresponding to a test
-## ! for each group \code{i}, where the null hypothesis is that group \code{i} is
-## ! consistent with the other groups except \code{i} (so a small p-value is evidence
-## ! that the group is an "outlier"). See Ferkingstad et al (2017) for further details.
-## ! }
-## !
-## ! \usage{
-## !     inla.cut(result, split.by, mc.cores = NULL, debug=FALSE)
-## ! }
-## !
-## ! \arguments{
-## !   \item{result}{An object of class \code{inla}, i.e. a result of a call to \code{inla()}}
-## !   \item{split.by}{The name of the variable to group by. Data points that have
-## !                   the same value of \code{split.by} are in the same group.}
-## !   \item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
-## !                   \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
-## !                   and \code{inla.getOption("num.threads")} in that order.}
-## !   \item{debug}{Print debugging information if \code{TRUE}, default is \code{FALSE}}
-## !  }
-## !
-## ! \value{
-## !  A numeric vector of p-values, corresponding to a test
-## ! for each group \code{i} where the null hypothesis is that group \code{i} is
-## ! consistent with the other groups except \code{i}. A small p-value for a group
-## ! indicates that the group is an "outlier" (in conflict with remaining groups).
-## !
-## !  This function is EXPERIMENTAL!!!
-## ! }
-## !
-## ! \author{Egil Ferkingstad \email{egil.ferkingstad@gmail.com} and Havard Rue \email{hrue@r-inla.org}}
-## !
-## ! \examples{
-## ! ## See http://www.r-inla.org/examples/case-studies/ferkingstad-2017 and Ferkingstad et al (2017).
-## ! }
-## !
-## ! \references{
-## ! Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate Bayesian
-## ! model criticism and conflict diagnostics using R-INLA. arXiv preprint
-## ! arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272.
-## ! Published in Stat, 6:331-344 (2017).
-## !
-## ! Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers
-## ! in Bayesian hierarchical models: a simulation-based approach.
-## ! Bayesian Analysis, 2(2):409-444.
-## !
-## ! Presanis, A. M., Ohlssen, D., Spiegelhalter,
-## ! D. J., De Angelis, D., et al. (2013). Conflict diagnostics
-## ! in directed acyclic graphs, with applications in Bayesian evidence synthesis.
-## ! Statistical Science, 28(3):376-397.
-## ! }
+#' Group-wise model criticism using node-splitting
+#' 
+#' This function performs group-wise, cross-validatory model assessment for an
+#' INLA model using so-called node-splitting (Marshall and Spiegelhalter, 2007;
+#' Presanis et al, 2013).  The user inputs an object of class \code{inla} (i.e.
+#' a result of a call to \code{inla()}) as well as a variable name
+#' (\code{split.by}) specifying a grouping: Data points that share the same
+#' value of \code{split.by} are in the same group.  The function then checks
+#' whether each group is an "outlier", or in conflict with the remaining
+#' groups, using the methodology described in Ferkingstad et al (2017).  The
+#' result is a vector containing a p-value for each group, corresponding to a
+#' test for each group \code{i}, where the null hypothesis is that group
+#' \code{i} is consistent with the other groups except \code{i} (so a small
+#' p-value is evidence that the group is an "outlier"). See Ferkingstad et al
+#' (2017) for further details.
+#' 
+#' 
+#' @aliases inla.cut cut
+#' @param result An object of class \code{inla}, i.e. a result of a call to
+#' \code{inla()}
+#' @param split.by The name of the variable to group by. Data points that have
+#' the same value of \code{split.by} are in the same group.
+#' @param mc.cores The number of cores to use in \code{parallel::mclapply}. If
+#' \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")} and
+#' \code{inla.getOption("num.threads")} in that order.
+#' @param debug Print debugging information if \code{TRUE}, default is
+#' \code{FALSE}
+#' @return A numeric vector of p-values, corresponding to a test for each group
+#' \code{i} where the null hypothesis is that group \code{i} is consistent with
+#' the other groups except \code{i}. A small p-value for a group indicates that
+#' the group is an "outlier" (in conflict with remaining groups).
+#' 
+#' This function is EXPERIMENTAL!!!
+#' @author Egil Ferkingstad \email{egil.ferkingstad@@gmail.com} and Havard Rue
+#' \email{hrue@@r-inla.org}
+#' @references Ferkingstad, E., Held, L. and Rue, H. (2017). Fast and accurate
+#' Bayesian model criticism and conflict diagnostics using R-INLA. arXiv
+#' preprint arXiv:1708.03272, available at http://arxiv.org/abs/1708.03272.
+#' Published in Stat, 6:331-344 (2017).
+#' 
+#' Marshall, E. C. and Spiegelhalter, D. J. (2007). Identifying outliers in
+#' Bayesian hierarchical models: a simulation-based approach.  Bayesian
+#' Analysis, 2(2):409-444.
+#' 
+#' Presanis, A. M., Ohlssen, D., Spiegelhalter, D. J., De Angelis, D., et al.
+#' (2013). Conflict diagnostics in directed acyclic graphs, with applications
+#' in Bayesian evidence synthesis.  Statistical Science, 28(3):376-397.
+#' @examples
+#' 
+#'  ## See http://www.r-inla.org/examples/case-studies/ferkingstad-2017 and Ferkingstad et al (2017).
+#'
+#' @name cut
+#' @rdname cut
+#' @export
 
 inla.cut <- function(result, split.by, mc.cores = NULL, debug = FALSE) {
     my.debug <- function(...) if (debug) cat("*** inla.cut: ", ..., "\n")

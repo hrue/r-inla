@@ -43,8 +43,8 @@ TAGS : $(wildcard *.R)
 #	  echo 'inla.models.generate.Rd("../man/models.Rd")';\
 #	} | $(RR)
 
-# Replacement for old models.Rd generator. This generates roxygen documentation
-# that models.Rd is then generated from.
+## Replacement for old models.Rd generator. This generates roxygen documentation
+## that models.Rd is then generated from.
 models_doc: ../R/models_documentation.R
 ../R/models_documentation.R: inlaEnv.R models.R models-generate.R utils.R version.R
 	{ \
