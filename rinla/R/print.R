@@ -1,32 +1,17 @@
-## Export: print!inla
-
-## !\name{print.inla}
-## !\alias{print.inla}
-## !\title{Print a INLA fit }
-## !\description{
-## !Print a INLA fit
-## !}
-## !\usage{
-## !\method{print}{inla}(x, digits = 3L, ...)
-## !}
-## !\arguments{
-## !  \item{x}{An inla-object (output from an \code{\link{inla}}-call).}
-## !  \item{digits}{Number of digits to print}
-## !  \item{...}{ other arguments.}
-## !}
-## !\details{
-## ! None
-## !}
-## !\value{
-## ! None
-## !}
-## !\author{Havard Rue}
-## !
-## !\seealso{ \code{\link{inla}} }
-## !\examples{
-## !## None
-## !}
-
+#' Print an INLA fit
+#' 
+#' Print an INLA fit
+#' 
+#' @param x An inla-object (output from an \code{\link{inla}}-call).
+#' @param digits Number of digits to print
+#' @param ...  other arguments.
+#' @return None
+#' @author Havard Rue
+#' @seealso \code{\link{inla}}
+#' 
+#' @rdname print
+#' @method print inla
+#' @export
 `print.inla` <- function(x, digits = 3L, ...) {
     nsmall <- 2L
     form <- strwrap(inla.formula2character(x$call))

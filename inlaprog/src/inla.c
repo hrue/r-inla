@@ -215,14 +215,6 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 #define gsl_sf_lngamma(_x) lgamma(_x)
 #define gsl_sf_lnchoose_e(_a, _b, _c) my_gsl_sf_lnchoose_e(_a, _b, _c)
 
-#if !defined(INLA_LINK_WITH_MKL)
-#pragma omp declare simd
-static double GMRFLib_exp(double x)
-{
-	return exp(x);
-}
-#endif
-
 #include "inla-sys.c"
 #include "inla-map-and-link.c"
 #include "inla-testit.c"
@@ -5505,6 +5497,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	// time the two versions of Qfunc_like
 	double time_used_Qx[2] = { 0.0, 0.0 };
 	double time_used_pred[2] = { 0.0, 0.0 };
+	double time_isum[2] = { 0.0, 0.0 };
+	double time_dsum[2] = { 0.0, 0.0 };
 
 	if (GMRFLib_internal_opt) {
 		// cannot run this in parallel as we're changing global variables
@@ -5554,6 +5548,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		}
 		// we have a slight preference for the simpler/serial ones
 		GMRFLib_preopt_predictor_strategy = (time_used_pred[0] / time_used_pred[1] < 1.1 ? 0 : 1);
+
+		GMRFLib_isum_measure_time(time_isum);
+		GMRFLib_dsum_measure_time(time_dsum);
+		GMRFLib_MKL_chose_thresholds(0);
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
@@ -5598,11 +5596,16 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
+			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d)]\n", GMRFLib_threshold_exp, GMRFLib_threshold_log, GMRFLib_threshold_log1p, GMRFLib_threshold_sqr);
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
+			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
+			       (GMRFLib_isum == GMRFLib_isum1 ? "isum1" : "isum2"));
+			printf("\tOptimizing dsum............ dsum1[%.3f] dsum2[%.3f] choice[%s]\n", time_dsum[0], time_dsum[1],
+			       (GMRFLib_dsum == GMRFLib_dsum1 ? "dsum1" : "dsum2"));
 			printf("\tOptimizing Qx-strategy..... serial[%.3f] parallel [%.3f] choose[%s]\n",
-			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]),
-			       time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]), (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
+			       time_used_Qx[0] / (time_used_Qx[0] + time_used_Qx[1]), time_used_Qx[1] / (time_used_Qx[0] + time_used_Qx[1]),
+			       (GMRFLib_Qx_strategy == 0 ? "serial" : "parallel"));
 			printf("\tOptimizing pred-strategy... plain [%.3f] data-rich[%.3f] choose[%s]\n",
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
@@ -5775,10 +5778,6 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		tref = -GMRFLib_cpu();
 		double *eta_pseudo = Calloc(preopt->Npred, double);
 
-		if (mb->verbose) {
-			printf("\nCompute initial values...\n");
-		}
-
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 		for (i = 0; i < preopt->Npred; i++) {
 			if (mb->d[i]) {
@@ -5857,6 +5856,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				norm_initial = norm;
 			}
 			if (mb->verbose) {
+				if (iter == 0)
+					printf("\nCompute initial values...\n");
 				printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 			}
 
@@ -5960,7 +5961,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		int low_ = IMAX(0, i_max - m);				\
 		int high_ = IMIN(np-1, i_max + m);			\
 		int len = high_ - low_ + 1;				\
-		GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, 1); \
+		GMRFLib_spline_tp *lds = GMRFLib_spline_create_x(z + low_, ldz + low_, len, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_LEVEL1); \
 		if (lds == NULL) {					\
 			*d_mode = zm_orig;				\
 		} else {						\
@@ -6016,8 +6017,21 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0, m1, m2, x0, x1, d0, d1;
-	double w[2] = { 4.0, 2.0 };
+	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *xp = NULL, *xx = NULL, dx = 0.0, m0 = 0.0, m1 = 0.0, m2 = 0.0;
+
+	static double *w = NULL;
+	if (!w) {
+#pragma omp critical
+		if (!w) {
+			double wref[] = { 4.0, 2.0 };
+			double *ww = Calloc(npm, double);
+			ww[0] = ww[npm - 1] = 1.0;
+			for (int i = 1, j = 0; i < npm - 1; i++, j = (j + 1) % 2L) {
+				ww[i] = wref[j];
+			}
+			w = ww;
+		}
+	}
 
 	GMRFLib_ENTER_ROUTINE;
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
@@ -6106,13 +6120,10 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			const double div3 = 1.0 / 3.0;
 #pragma omp simd
 			for (int i = 0; i < np - 1; i++) {
-				xpm[3 * i + 0] = xp[i];
+				xpm[3 * i] = xp[i];
 				xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) * div3;
 				xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) * div3;
-			}
-#pragma omp simd
-			for (int i = 0; i < np - 1; i++) {
-				ldm[3 * i + 0] = ld[i];
+				ldm[3 * i] = ld[i];
 				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) * div3;
 				ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) * div3;
 			}
@@ -6123,12 +6134,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			const double div2 = 0.5;
 #pragma omp simd
 			for (int i = 0; i < np - 1; i++) {
-				xpm[2 * i + 0] = xp[i];
+				xpm[2 * i] = xp[i];
 				xpm[2 * i + 1] = (xp[i] + xp[i + 1]) * div2;
-			}
-#pragma omp simd
-			for (int i = 0; i < np - 1; i++) {
-				ldm[2 * i + 0] = ld[i];
+				ldm[2 * i] = ld[i];
 				ldm[2 * i + 1] = (ld[i] + ld[i + 1]) * div2;
 			}
 			xpm[2 * (np - 2) + 2] = xp[np - 1];
@@ -6143,7 +6151,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 #else
 #pragma omp simd
 		for (int i = 0; i < npm; i++) {
-			ldm[i] = GMRFLib_exp(ldm[i]);
+			ldm[i] = exp(ldm[i]);
 		}
 #endif
 
@@ -6156,24 +6164,16 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			}
 		}
 
-		// compute moments
-		d0 = ldm[0];
-		d1 = ldm[npm - 1];
-		x0 = xx[0];
-		x1 = xx[npm - 1];
-		m0 = d0 + d1;
-		m1 = x0 * d0 + x1 * d1;
-		m2 = SQR(x0) * d0 + SQR(x1) * d1;
-
 #pragma omp simd
-		for (int i = 1; i < npm - 1; i++) {
-			double d = ldm[i] * w[(i - 1) % 2L];
-			double x = xx[i];
-			double x2 = x * x;
+		for (int i = 0; i < npm; i++) {
+			ldm[i] *= w[i];
+		}
 
-			m0 += d;
-			m1 += d * x;
-			m2 += d * x2;
+#pragma omp simd reduction(+: m0, m1, m2)
+		for (int i = 0; i < npm; i++) {
+			m0 += ldm[i];
+			m1 += ldm[i] * xx[i];
+			m2 += ldm[i] * xx[i] * xx[i];
 		}
 		m1 /= m0;
 		m2 /= m0;

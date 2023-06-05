@@ -53,22 +53,23 @@
 
 __BEGIN_DECLS
 #include "GMRFLib/GMRFLibP.h"
-double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-int GMRFLib_isum(int n, int *ix);
+double GMRFLib_dsum1(int n, double *x);
+double GMRFLib_dsum2(int n, double *x);
+int GMRFLib_isum1(int n, int *ix);
 int GMRFLib_isum2(int n, int *ix);
 double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y);
 double GMRFLib_ddot_idx(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
-double GMRFLib_dsum(int n, double *x);
-double GMRFLib_dsum2(int n, double *x);
-double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx);
-
+double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx);
+double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_serial(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
 double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
-double GMRFLib_dot_product(GMRFLib_idxval_tp * __restrict ELM_, double *__restrict ARR_);
+double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx);
+void GMRFLib_dsum_measure_time(double *tused);
+void GMRFLib_isum_measure_time(double *tused);
 
 __END_DECLS
 #endif

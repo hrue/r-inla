@@ -47,11 +47,16 @@ inla.over_sp_mesh(obj, mesh)
 
 ## Multiple transformations can lead to slightly different results due to edge cases
 ## 4 triangles found in the polygon
-inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")), ignore.CRS = FALSE)
+inla.over_sp_mesh(
+  obj,
+  inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
+  ignore.CRS = FALSE)
 
 ## Ignoring mismatching coordinate systems is rarely useful
 ## 20 triangles "found in" the polygon
-inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")), ignore.CRS = TRUE)
+inla.over_sp_mesh(obj,
+  inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
+  ignore.CRS = TRUE)
 }
 \author{
 Haakon Bakka, \email{bakka@r-inla.org}, and Finn Lindgren \email{finn.lindgren@gmail.com}

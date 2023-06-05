@@ -262,7 +262,7 @@ inla.set.hyper <- function(
                 }
             }
 
-            test.val <- (!is.null(h) && !is.null(h[[key]]) && any(!(is.na(h[[key]]))))
+            test.val <- (!is.null(h) && !is.null(h[[key]]) && (length(h[[key]]) == 0 || any(!(is.na(h[[key]])))))
 
             if (debug) {
                 cat(paste("*** test.val =", test.val), "\n")

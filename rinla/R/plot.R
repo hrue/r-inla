@@ -1,70 +1,52 @@
-## Export: plot!inla
-
-## ! \name{plot.inla}
-## ! \alias{plot.inla}
-## ! \alias{inla.plot}
-## ! \title{Default INLA plotting}
-## ! \description{
-## !   Takes am \code{inla} object produced by \code{inla} and plot the results
-## ! }
-## ! \usage{
-## ! \method{plot}{inla}(x,
-## !              plot.fixed.effects = TRUE,
-## !              plot.lincomb = TRUE,
-## !              plot.random.effects = TRUE,
-## !              plot.hyperparameters = TRUE,
-## !              plot.predictor = TRUE,
-## !              plot.q = TRUE,
-## !              plot.cpo = TRUE,
-## !              plot.prior = FALSE,
-## !              single = FALSE,
-## !              postscript = FALSE,
-## !              pdf = FALSE,
-## !              prefix = "inla.plots/figure-",
-## !              intern = FALSE,
-## !              debug = FALSE,
-## !              cex = 1.75,
-## !              ...)
-## ! }
-## ! \arguments{
-## !   \item{x}{A fitted  \code{inla} object produced by \code{inla} }
-## !   \item{plot.fixed.effects}{Boolean indicating if posterior marginals
-## !     for the fixed effects in the model should be plotted }
-## !   \item{plot.lincomb}{Boolean indicating if posterior marginals
-## !     for the linear combinations should be plotted }
-## !   \item{plot.random.effects}{Boolean indicating if posterior mean and quantiles
-## !     for the random effects in the model should be plotted  }
-## !   \item{plot.hyperparameters}{Boolean indicating if posterior marginals
-## !     for the hyperparameters in the model should be plotted }
-## !   \item{plot.predictor}{Boolean indicating if posterior mean and quantiles
-## !     for the linear predictor in the model should be plotted }
-## !   \item{plot.q}{Boolean indicating if precision matrix should be displayed}
-## !   \item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
-## !   \item{plot.prior}{Plot also the prior density for the hyperparameters}
-## !   \item{single}{Boolean indicating if there should be more than one plot per page
-## !                 (FALSE) or just one (TRUE)}
-## !   \item{postscript}{Boolean indicating if postscript files should be produced instead}
-## !   \item{pdf}{Boolean indicating if PDF files should be produced instead}
-## !   \item{prefix}{The prefix for the created files. Additional numbering and suffix is added.}
-## !   \item{intern}{Plot also the hyperparameters in its internal scale.}
-## !   \item{debug}{Write some debug information}
-## !   \item{cex}{The \code{cex} parameter in \code{par()}. If set to \code{NULL} or \code{0},
-## !              then default values will be used for graphics parameters}
-## !   \item{...}{Additional arguments to \code{postscript()}, \code{pdf()} or \code{dev.new()}.}
-## ! }
-## ! \value{The return value is a list of the files created (if any).}
-## ! \author{Havard Rue \email{hrue@r-inla.org} }
-## ! \seealso{\code{\link{inla}}}
-## ! \examples{
-## !\dontrun{
-## !result = inla(...)
-## !plot(result)
-## !plot(result, single = TRUE, plot.prior = TRUE)
-## !plot(result, single = TRUE, pdf = TRUE, paper = "a4")
-## !   }
-## ! }
-## ! \keyword{plot}
-
+#' Default INLA plotting
+#' 
+#' Takes an \code{inla} object produced by \code{inla} and plot the results
+#' 
+#' 
+#' @aliases plot.inla inla.plot
+#' @param x A fitted \code{inla} object produced by \code{inla}
+#' @param plot.fixed.effects Boolean indicating if posterior marginals for the
+#' fixed effects in the model should be plotted
+#' @param plot.lincomb Boolean indicating if posterior marginals for the linear
+#' combinations should be plotted
+#' @param plot.random.effects Boolean indicating if posterior mean and
+#' quantiles for the random effects in the model should be plotted
+#' @param plot.hyperparameters Boolean indicating if posterior marginals for
+#' the hyperparameters in the model should be plotted
+#' @param plot.predictor Boolean indicating if posterior mean and quantiles for
+#' the linear predictor in the model should be plotted
+#' @param plot.q Boolean indicating if precision matrix should be displayed
+#' @param plot.cpo Boolean indicating if CPO/PIT valuesshould be plotted
+#' @param plot.prior Plot also the prior density for the hyperparameters
+#' @param single Boolean indicating if there should be more than one plot per
+#' page (FALSE) or just one (TRUE)
+#' @param postscript Boolean indicating if postscript files should be produced
+#' instead
+#' @param pdf Boolean indicating if PDF files should be produced instead
+#' @param prefix The prefix for the created files. Additional numbering and
+#' suffix is added.
+#' @param intern Plot also the hyperparameters in its internal scale.
+#' @param debug Write some debug information
+#' @param cex The \code{cex} parameter in \code{par()}. If set to \code{NULL}
+#' or \code{0}, then default values will be used for graphics parameters
+#' @param ... Additional arguments to \code{postscript()}, \code{pdf()} or
+#' \code{dev.new()}.
+#' @return The return value is a list of the files created (if any).
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso \code{\link{inla}}
+#' @keywords plot
+#' @examples
+#' 
+#' \dontrun{
+#' result = inla(...)
+#' plot(result)
+#' plot(result, single = TRUE, plot.prior = TRUE)
+#' plot(result, single = TRUE, pdf = TRUE, paper = "a4")
+#'    }
+#'  
+#' @rdname plot
+#' @method plot inla
+#' @export
 `plot.inla` <-
     function(x,
              plot.fixed.effects = TRUE,

@@ -3,6 +3,7 @@
 ## These functions are all just internal functions for building the
 ## documentation,  and generates Rd and tex for the models
 
+# NOTE: This function is no longer used
 `inla.models.generate.Rd` <- function(file = NULL) {
     ## this function is used to generate the man-page for the models
 
@@ -124,7 +125,7 @@ inla.models()
     cat("\\examples{
 ## How to set hyperparameters to pass as the argument 'hyper'. This
 ## format is compatible with the old style (using 'initial', 'fixed',
-## 'prior', 'param'), but the new style using 'hyper' take preceedence
+## 'prior', 'param'), but the new style using 'hyper' takes precedence
 ## over the old style. The two styles can also be mixed. The old style
 ## might be removed from the code in the future...
 
@@ -142,6 +143,7 @@ inla.models()
       }
 }
 
+# NOTE: This function is no longer used
 `inla.models.generate.tex` <- function(a.list = inla.models(), file = NULL) {
     my.doit.recursively <- function(a.list, level = 0L) {
         if (level == 0L) {
@@ -198,7 +200,7 @@ inla.models()
 
 
 
-
+# NOTE: This function is used since 2023-06-05
 `inla.models.generate.roxygen` <- function(file = NULL) {
     ## this function is used to generate the man-page for the models
 
@@ -222,9 +224,10 @@ inla.models()
     cat("## DO NOT EDIT!\n",
         "## This file is generated automatically from models.R\n",
         "#' @title Valid models in INLA\n#'\n",
-        "#' @name inla.models_doc\n",
-        "#' @rdname inla.models_doc\n",
-        "#' @aliases inla.models_doc\n",
+        "#' @name inla.models\n",
+        "#' @rdname models\n",
+        "#' @aliases inla.models\n",
+        "#' @export inla.models\n",
         "#'\n",
         "#' @description\n",
         "#' This page describe the models implemented in \`inla`, divided into sections:\n",
@@ -326,7 +329,7 @@ inla.models()
     cat("#' @examples\n",
         "#' ## How to set hyperparameters to pass as the argument 'hyper'. This\n",
         "#' ## format is compatible with the old style (using 'initial', 'fixed',\n",
-        "#' ## 'prior', 'param'), but the new style using 'hyper' take precedence\n",
+        "#' ## 'prior', 'param'), but the new style using 'hyper' takes precedence\n",
         "#' ## over the old style. The two styles can also be mixed. The old style\n",
         "#' ## might be removed from the code in the future...\n",
         "#' \n",

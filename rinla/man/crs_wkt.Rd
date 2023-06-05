@@ -45,6 +45,8 @@ inla.crs_set_lengthunit(crs, unit, params = NULL)
 
 \item{crs}{A \code{sp::CRS} or \code{inla.CRS} object}
 
+\item{radius}{numeric}
+
 \item{unit}{character, name of a unit. Supported names are
 "metre", "kilometre", and the aliases "meter", "m", International metre",
 "kilometer", and "km", as defined by \code{inla.wkt_unit_params} or the

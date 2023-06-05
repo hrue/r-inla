@@ -2,7 +2,6 @@
 % Please edit documentation in R/mesh.R
 \name{inla.mesh.fem}
 \alias{inla.mesh.fem}
-\alias{inla.mesh.1d.fem}
 \title{Finite element matrices}
 \usage{
 inla.mesh.fem(mesh, order = 2)
@@ -20,6 +19,9 @@ A list of sparse matrices based on basis functions \code{psi_i}:
 \description{
 Constructs finite element matrices for \code{\link[=inla.mesh]{inla.mesh()}} and
 \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
+}
+\seealso{
+\code{\link[=inla.mesh.1d.fem]{inla.mesh.1d.fem()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

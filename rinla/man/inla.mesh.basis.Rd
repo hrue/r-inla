@@ -45,7 +45,7 @@ gives the rotationally invariant subset of basis functions.}
 boundary basis functions are clamped to 0/1 at the interval boundary by
 repeating the boundary knots.}
 
-\item{...}{}
+\item{...}{Unused}
 }
 \description{
 Calculate basis functions on a 1d or 2d \code{\link[=inla.mesh]{inla.mesh()}}

@@ -1,5 +1,3 @@
-## Export: inla.mesh.components
-
 #' Compute connected mesh subsets
 #'
 #' Compute subsets of vertices and triangles in an inla.mesh object that are
@@ -18,6 +16,7 @@
 #' each component from the lowest numbered triangle whenever a new component is
 #' initiated.}
 #'
+#' @param mesh An `inla.mesh` object
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.mesh.2d()], [inla.mesh.create()]
 #' @examples

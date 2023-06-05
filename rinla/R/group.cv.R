@@ -1,100 +1,78 @@
-## Export: inla.group.cv
-
-## !\name{inla.group.cv}
-## !\alias{inla.group.cv}
-## !
-## !\title{Compute group.cv-values}
-## !\description{
-## ! From a fitted model, compute and add the \code{group.cv}-values
-## !}
-## !\usage{
-## !inla.group.cv(result,
-## !          group.cv = NULL, 
-## !          num.level.sets = -1, 
-## !          size.max = 32, 
-## !          strategy = c("posterior", "prior"), 
-## !          groups = NULL, 
-## !          selection = NULL, 
-## !          friends = NULL, 
-## !          verbose = FALSE, 
-## !          epsilon = 0.0025, 
-## !          prior.diagonal = 1e-04, 
-## !          keep = NULL, 
-## !          remove = NULL, 
-## !          remove.fixed = TRUE)
-## !}
-## !\arguments{
+#' Compute group.cv-values
+#' 
+#' From a fitted model, compute and add the \code{group.cv}-values
+#' 
+#' 
+#' @return The object returned is list related to leave-group-out
+#' cross-validation. See the vignette for details.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso \code{\link{control.compute}}
+#' @rdname group.cv
+#' @export inla.group.cv
 `inla.group.cv` <-
     function(
-             ## !\item{result}{An object of class \code{inla}, ie a result
-             ## !of a call to \code{inla()}.}
+             #' @param result An object of class \code{inla}, ie a result of a call to
+             #' \code{inla()}.
              result,
              
-             ## !\item{group.cv}{If given, the groups are taken from
-             ## !this argument. \code{group.cv} must be the output
-             ## !of previous call to \code{inla.group.cv()}.}
+             #' @param group.cv If given, the groups are taken from this argument.
+             #' \code{group.cv} must be the output of previous call to
+             #' \code{inla.group.cv()}.
              group.cv = NULL,
              
-             ## !\item{num.level.sets}{Number of level.sets to use. The default value
-             ## !\code{-1} corresponds to leave-one-out cross-validation.}
+             #' @param num.level.sets Number of level.sets to use. The default value
+             #' \code{-1} corresponds to leave-one-out cross-validation.
              num.level.sets = -1, 
 
-             ## !\item{strategy}{One of \code{"posterior"} or \code{"prior"}.
-             ## !See the  vignette for details.}
+             #' @param strategy One of \code{"posterior"} or \code{"prior"}. See the
+             #' vignette for details.
              strategy = c("posterior", "prior"), 
              
-             ## !\item{size.max}{The maximum size of a group. If the computed
-             ## !group-size is larger, it will be truncated to \code{size.max}.}
+             #' @param size.max The maximum size of a group. If the computed group-size is
+             #' larger, it will be truncated to \code{size.max}.
              size.max = 32,
              
-             ## !\item{groups}{An (optional) predefined list of groups. 
-             ## !See the vignette for details.}
+             #' @param groups An (optional) predefined list of groups.  See the vignette for
+             #' details.
              groups = NULL, 
 
-             ## !\item{selection}{An optional list of data-indices to use.
-             ## !If not given, then all data are used.}
+             #' @param selection An optional list of data-indices to use. If not given, then
+             #' all data are used.
              selection = NULL, 
 
-             ## !\item{friends}{An optional list of lists of indices to use a friends}
+             #' @param friends An optional list of lists of indices to use a friends
              friends = NULL, 
 
-             ## !\item{verbose}{Run with \code{verbose} output of some of the internals
-             ## !in the  calculations. This option will also
-             ## !enable \code{inla(...,  verbose=TRUE)} if its not enabled already.}
+             #' @param verbose Run with \code{verbose} output of some of the internals in
+             #' the calculations. This option will also enable \code{inla(...,
+             #' verbose=TRUE)} if its not enabled already.
              verbose = FALSE, 
 
-             ## !\item{epsilon}{Two correlations with a difference less than
-             ## !\code{epsilon}, will be classified as identical.}
+             #' @param epsilon Two correlations with a difference less than \code{epsilon},
+             #' will be classified as identical.
              epsilon = 0.005, 
 
-             ## !\item{prior.diagonal}{When \code{strategy="prior"}, \code{prior.diagonal}
-             ## !is added to the diagonal of the prior precision matrix to avoid singularities}
+             #' @param prior.diagonal When \code{strategy="prior"}, \code{prior.diagonal} is
+             #' added to the diagonal of the prior precision matrix to avoid singularities
              prior.diagonal = 1e-4, 
 
-             ## !\item{keep}{For \code{strategy="prior"}, then this gives a vector of 
-             ## !the name of model-components TO USE when computing the groups.
-             ## !See the  vignette for details.
-             ## !Not both of \code{keep} and \code{remove} can be defined.}
+             #' @param keep For \code{strategy="prior"}, then this gives a vector of the
+             #' name of model-components TO USE when computing the groups. See the vignette
+             #' for details. Not both of \code{keep} and \code{remove} can be defined.
              keep = NULL,
 
-             ## !\item{remove}{For \code{strategy="prior"}, then this gives a vector of 
-             ## !the name of model-components NOT TO USE when computing the groups.
-             ## !See the  vignette for details.
-             ## !Not both of \code{keep} and \code{remove} can be defined.}
+             #' @param remove For \code{strategy="prior"}, then this gives a vector of the
+             #' name of model-components NOT TO USE when computing the groups. See the
+             #' vignette for details. Not both of \code{keep} and \code{remove} can be
+             #' defined.
              remove = NULL,
              
-             ## !\item{remove.fixed}{For \code{strategy="prior"}, this is the default
-             ## !option which is in effect if both \code{keep} and \code{remove} are 
-             ## !\code{NULL}. If \code{TRUE}, it will remove (or condition on) all fixed effects
-             ## !when computing the groups.
-             ## !See the  vignette for details.}
+             #' @param remove.fixed For \code{strategy="prior"}, this is the default option
+             #' which is in effect if both \code{keep} and \code{remove} are \code{NULL}. If
+             #' \code{TRUE}, it will remove (or condition on) all fixed effects when
+             #' computing the groups. See the vignette for details.
              remove.fixed = TRUE)
 {
-    ## !}
-    ## !\value{The object returned is list related to leave-group-out cross-validation. See the vignette for details.}
-    ## !\author{Havard Rue \email{hrue@r-inla.org}}
-    ## !\seealso{\code{\link{control.compute}}}
-
     stopifnot(!missing(result))
     stopifnot(inherits(result, "inla"))
     if (!is.null(group.cv)) {

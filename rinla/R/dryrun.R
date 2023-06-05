@@ -1,29 +1,18 @@
-## Export: inla.dryrun
-
-## ! \name{dryrun}
-## ! \alias{inla.dryrun}
-## ! \alias{dryrun}
-## !
-## ! \title{Do a dryrun to extract some internal information upfront}
-## !
-## ! \description{Do a dryrun to get information about the internal storage
-## ! and the list (and ordering) of the hyperparameters}
-## !
-## ! \usage{
-## !     inla.dryrun(...)
-## ! }
-## !
-## ! \arguments{
-## !   \item{...}{Same arguments as \code{inla}()}
-## !  }
-## ! \value{
-## ! A list of start-index and length for each latent component and a list of
-## ! the hyperparameters in the model
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## ! \examples{
-## ! }
+#' Do a dryrun to extract some internal information upfront
+#' 
+#' Do a dryrun to get information about the internal storage and the list (and
+#' ordering) of the hyperparameters
+#' 
+#' 
+#' @aliases inla.dryrun dryrun
+#' @param ... Same arguments as \code{inla}()
+#' @return A list of start-index and length for each latent component and a
+#' list of the hyperparameters in the model
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name dryrun
+#' @rdname dryrun
+#' @export
 
 `inla.dryrun` <- function(...) {
 

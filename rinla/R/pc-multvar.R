@@ -1,70 +1,48 @@
-## Export: inla.pc.multvar.h.default
-## Export: inla.pc.multvar.simplex.d
-## Export: inla.pc.multvar.simplex.r
-## Export: inla.pc.multvar.sphere.d
-## Export: inla.pc.multvar.sphere.r
+#' Multivariate PC priors
+#' 
+#' Functions to evaluate and simulate from multivariate PC priors: The simplex
+#' and sphere case
+#' 
+#' These functions implements multivariate PC-priors of the simplex and sphere
+#' type.
+#' 
+#' @aliases pc.multvar inla.pc.multvar inla.pc.multvar.simplex
+#' inla.pc.multvar.simplex.d inla.pc.multvar.simplex.r inla.pc.multvar.sphere
+#' inla.pc.multvar.sphere.d inla.pc.multvar.sphere.r inla.pc.multvar.h.default
+#' pc.multvar pc.multvar.simplex pc.multvar.simplex.d pc.multvar.simplex.r
+#' pc.multvar.sphere pc.multvar.sphere.d pc.multvar.sphere.r
+#' pc.multvar.h.default
+#' @param x Samples to evaluate. If input is a matrix then each row is a
+#' sample. If input is a vector then this is the sample.
+#' @param inverse Compute the inverse of the h()-function.
+#' @param derivative Compute the derivative of the h()-function. (derivative of
+#' the inverse function is not used).
+#' @param n Number of samples to generate.
+#' @param lambda The lambda-parameter in the PC-prior.
+#' @param log Evaluate the density in log-scale or ordinary scale.
+#' @param h The h()-function, defaults to \code{inla.pc.multvar.h.default}. See
+#' that code for an example of how to write a user-specific function.
+#' @param b The b-vector (gradient) in the expression for the simplex option,
+#' \code{d(xi) = h(b^T xi)}
+#' @param H The H(essian)-matrix in the expression for the sphere option,
+#' \code{d(xi) = h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is
+#' interpreted as the diagonal of a (sparse) diagonal matrix.
+#' @returns \code{inla.pc.multvar.simplex.r} generate samples from the
+#' simplex case, and \code{inla.pc.multvar.simplex.d} evaluate the density.
+#' \code{inla.pc.multvar.sphere.r} generate samples from the sphere case, and
+#' \code{inla.pc.multvar.sphere.d} evaluate the density.
+#' \code{inla.pc.multvar.h.default} implements the default h()-function and
+#' illustrate how to code your own specific one, if needed.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name pc.multvar
+#' @rdname pc-multvar
+NULL
 
-## ! \name{pc.multvar}
-## ! \alias{pc.multvar}
-## ! \alias{inla.pc.multvar}
-## ! \alias{inla.pc.multvar.simplex}
-## ! \alias{inla.pc.multvar.simplex.d}
-## ! \alias{inla.pc.multvar.simplex.r}
-## ! \alias{inla.pc.multvar.sphere}
-## ! \alias{inla.pc.multvar.sphere.d}
-## ! \alias{inla.pc.multvar.sphere.r}
-## ! \alias{inla.pc.multvar.h.default}
-## ! \alias{pc.multvar}
-## ! \alias{pc.multvar.simplex}
-## ! \alias{pc.multvar.simplex.d}
-## ! \alias{pc.multvar.simplex.r}
-## ! \alias{pc.multvar.sphere}
-## ! \alias{pc.multvar.sphere.d}
-## ! \alias{pc.multvar.sphere.r}
-## ! \alias{pc.multvar.h.default}
-## !
-## ! \title{Multivariate PC priors}
-## !
-## ! \description{Functions to evaluate and simulate from
-## !              multivariate PC priors: The simplex and sphere case}
-## ! \usage{
-## ! inla.pc.multvar.h.default(x, inverse = FALSE, derivative = FALSE)
-## ! inla.pc.multvar.simplex.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL)
-## ! inla.pc.multvar.simplex.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL)
-## ! inla.pc.multvar.sphere.r(n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL)
-## ! inla.pc.multvar.sphere.d(x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL)
-## ! }
-## ! \arguments{
-## !   \item{x}{Samples to evaluate. If input is a matrix then each row is a sample. If input is
-## !            a vector then this is the sample.}
-## !   \item{inverse}{Compute the inverse of the h()-function.}
-## !   \item{derivative}{Compute the derivative of the h()-function. (derivative of the inverse
-## !                     function is not used).}
-## !   \item{n}{Number of samples to generate.}
-## !   \item{lambda}{The lambda-parameter in the PC-prior.}
-## !   \item{log}{Evaluate the density in log-scale or ordinary scale.}
-## !   \item{h}{The h()-function,  defaults to \code{inla.pc.multvar.h.default}. See that code
-## !            for an example of how to write a user-spesific function.}
-## !   \item{b}{The b-vector (gradient) in the expression for the simplex option,  \code{d(xi) = h(b^T xi)}}
-## !   \item{H}{The H(essian)-matrix in the expression for the sphere option,  \code{d(xi) =
-## !            h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is interpreted as the
-## !            diagonal of a (sparse) diagonal matrix.}
-## !}
-## ! \details{
-## !   These functions implements multivariate PC-priors of the simplex and sphere type.
-## ! }
-## ! \value{%%
-## !     \code{inla.pc.multvar.simplex.r} generate samples from the simplex case, and
-## !     \code{inla.pc.multvar.simplex.d} evaluate the density.
-## !     \code{inla.pc.multvar.sphere.r} generate samples from the sphere case,  and
-## !     \code{inla.pc.multvar.sphere.d} evaluate the density.
-## !     \code{inla.pc.multvar.h.default} implements the default h()-function and illustrate how
-## !     to code your own spesific one, if needed.
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! }
 
+
+#' @rdname pc-multvar
+#' @export
 inla.pc.multvar.h.default <- function(x, inverse = FALSE, derivative = FALSE) {
     ## default: h(x) = sqrt(2*x)
     if (derivative) {
@@ -136,6 +114,8 @@ inla.pc.multvar.simplex.d.core <- function(x, lambda = 1, log = FALSE,
     return(if (log) ldens else exp(ldens))
 }
 
+#' @rdname pc-multvar
+#' @export
 inla.pc.multvar.simplex.r <- function(
                                       n = NULL, lambda = 1, h = inla.pc.multvar.h.default, b = NULL) {
     return(inla.pc.multvar.simplex.core(
@@ -143,6 +123,8 @@ inla.pc.multvar.simplex.r <- function(
     ))
 }
 
+#' @rdname pc-multvar
+#' @export
 inla.pc.multvar.simplex.d <- function(
                                       x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, b = NULL) {
     return(inla.pc.multvar.simplex.core(
@@ -248,6 +230,8 @@ inla.pc.multvar.sphere.d.core <- function(x, lambda = 1, log = FALSE,
     return(if (log) ldens else exp(ldens))
 }
 
+#' @rdname pc-multvar
+#' @export
 inla.pc.multvar.sphere.r <- function(
                                      n = NULL, lambda = 1, h = inla.pc.multvar.h.default, H = NULL) {
     return(inla.pc.multvar.sphere.core(
@@ -255,6 +239,8 @@ inla.pc.multvar.sphere.r <- function(
     ))
 }
 
+#' @rdname pc-multvar
+#' @export
 inla.pc.multvar.sphere.d <- function(
                                      x = NULL, lambda = 1, log = FALSE, h = inla.pc.multvar.h.default, H = NULL) {
     return(inla.pc.multvar.sphere.core(

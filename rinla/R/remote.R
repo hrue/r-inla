@@ -1,34 +1,21 @@
-## Export:  inla.ssh.copy.id  inla.remote
-
-## !\name{inla.ssh.copy.id}
-## !\alias{inla.ssh.copy.id}
-## !\alias{ssh.copy.id}
-## !\alias{inla.remote}
-## !
-## !\title{Setup remote computing}
-## !
-## !\description{Initialize the definition file and print the path to the internal script to transfer ssh-keys}
-## !
-## !\usage{
-## !inla.remote()
-## !inla.ssh.copy.id()
-## !}
-## !\arguments{
-## ! None
-## !}
-## !
-## !\value{%%
-## ! \code{inla.remote} is used once to setup the remote host information
-## ! file (definition file) in the users home directory; see the FAQ entry on this
-## ! issue for more information.
-## ! \code{inla.ssh.copy.id} will return the path to the internal script to transfer ssh-keys.
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\examples{
-## !##See the FAQ entry on this issue on r-inla.org.
-## !}
-
-
+#' Setup remote computing
+#' 
+#' Initialize the definition file and print the path to the internal script to
+#' transfer ssh-keys
+#' 
+#' 
+#' @aliases inla.ssh.copy.id ssh.copy.id inla.remote
+#' @returns \code{inla.remote} is used once to setup the remote host
+#' information file (definition file) in the users home directory; see the FAQ
+#' entry on this issue for more information.  \code{inla.ssh.copy.id} will
+#' return the path to the internal script to transfer ssh-keys.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#' ##See the FAQ entry on this issue on r-inla.org.
+#' 
+#' @rdname remote
+#' @export inla.ssh.copy.id
 `inla.ssh.copy.id` <- function() {
     ## print the path to the copy-id script
 
@@ -40,6 +27,8 @@
       }
 }
 
+#' @rdname remote
+#' @export
 `inla.remote` <- function() {
     if (inla.os("windows") && !inla.cygwin.check.path()) {
         cat("\n\n\tRemote computing in INLA from Windows require CYGWIN.\n")

@@ -1,38 +1,23 @@
-## Export: inla.version
-
-## !\name{inla.version}
-## !\alias{version}
-## !\alias{inla.version}
-## !
-## !\title{Show the version of the INLA-package}
-## !
-## !\description{Show the version of the INLA-package}
-## !
-## !\usage{
-## !inla.version(what = c("default", "version", "date"))
-## !}
-## !
-## !\arguments{
-## !  \item{what}{What to show version of}
-## !}
-## !
-## !\value{%%
-## !  \code{inla.version} display the current version information using \code{cat}
-## !  with
-## !  \code{default} or \code{info},  or return
-## !  other spesific requests through the call.
-## !}
-## !%%
-## !
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## !\examples{
-## !## Summary of all
-## !inla.version()
-## !## The building date
-## !inla.version("date")
-## !}
-
+#' Show the version of the INLA-package
+#' 
+#' Show the version of the INLA-package
+#' 
+#' 
+#' @aliases version inla.version
+#' @param what What to show version of
+#' @returns \code{inla.version} display the current version information using
+#' \code{cat} with \code{default} or \code{info}, or return other specific
+#' requests through the call.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#' ## Summary of all
+#' inla.version()
+#' ## The building date
+#' inla.version("date")
+#' 
+#' @rdname version
+#' @export inla.version
 `inla.version` <- function(what = c("default", "version", "date")) {
 
     `trim` <- function(string) {

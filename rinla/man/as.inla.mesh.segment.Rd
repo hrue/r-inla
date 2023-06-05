@@ -25,6 +25,8 @@ inla.sp2segment(sp, ...)
 backwards.}
 
 \item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
+
+\item{is.bnd}{logical}
 }
 \value{
 A \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object, or a list of

@@ -1,105 +1,101 @@
-## Export: inla.setOption inla.getOption
-
-## ! \name{inla.option}
-## ! \alias{inla.option}
-## ! \alias{inla.options}
-## ! \alias{inla.setOption}
-## ! \alias{inla.getOption}
-## !
-## ! \title{Set and get global options for INLA}
-## !
-## ! \description{Set and get global options for INLA}
-## ! \usage{
-## ! inla.setOption(...)
-## ! inla.getOption(option)
-## ! }
-## !
-## ! \arguments{
-## !
-## !   \item{...}{Option and value,  like \code{option=value} or \code{option, value}; see the Examples}
-## !   \item{option}{The option to get. If \code{option = NULL} then
-## !     \code{inla.getOption} then \code{inla.getOption} will return a named list of
-## !     current values, otherwise, \code{option} must be one of
-## !
-## !     inla.call: The path to the inla-program.
-## !
-## !     inla.arg: Additional arguments to \code{inla.call}
-## !
-## !     fmesher.call: The path to the fmesher-program
-## !
-## !     fmesher.arg: Additional arguments to \code{fmesher.call}
-## !
-## !     num.threads: Character string with the number of threads to use as \code{A:B},  see \code{?inla}
-## !
-## !     blas.num.threads: Number of threads to use for openblas and mklblas (see \code{inla} for details)
-## !
-## !     smtp: Sparse matrix library to use,  one of \code{band}, \code{taucs} (\code{default}) or \code{pardiso}
-## !
-## !     mkl: Use binaries buildt with Intel MKL?  (If possible)
-## !
-## !     safe: Run in safe-mode (ie try to automatically fix convergence errors) (default \code{TRUE})
-## !
-## !     vecLib: This option applies to Mac only. If TRUE and mkl=FALSE, link with vecLib BLAS and LAPACK libs (if available)
-## !
-## !     vecLibPath: This option applies to Mac only. Path to vecLib-libraries. If empty, use default.
-## !
-## !     pardiso.license: The full path to the PARDISO license file  or a newline-separated string with license key(s)
-## !
-## !     keep: Keep temporary files?
-## !
-## !     verbose: Verbose output?
-## !
-## !     save.memory: Save memory at the cost of (minor) accuracy and computing time? 
-## !
-## !     working.directory: The name of the working directory.
-## !
-## !     silent: Run the inla-program in a silent mode?
-## !
-## !     debug : Run the inla-program in a debug mode?
-## !
-## !     cygwin : The home of the Cygwin installation (default "C:/cygwin") [Remote computing for Windows only]
-## !
-## !     ssh.auth.sock: The ssh bind-adress (value of $SSH_AUTH_SOCK int the
-## !     Cygwin-shell). [Remote computing for Windows only]
-## !
-## !     show.warning.graph.file : Give a warning for using the obsolete argument
-## !                               \code{graph.file} instead of \code{graph}
-## !
-## !     scale.model.default : The default value of argument \code{scale.model} which
-## !                           optionally scale intrinisic models to have generalized
-## !                           unit average variance
-## !
-## !     short.summary : Use a less verbose output for \code{summary}. Useful for Markdown
-## !                     documents.
-## !
-## !     inla.timeout : The timeout limit, in whole seconds, for calls to the
-## !       inla binary. Default is 0, meaning no timeout limit.  Set to a
-## !       positive integer to terminate inla calls if they run to long.
-## !       Fractional seconds are
-## !       rounded up to the nearest integer. This feature is EXPERIMENTAL
-## !       and might change at a later stage. 
-## !
-## !     fmesher.timeout : The timeout limit, in whole seconds, for calls to the
-## !       fmesher binary. Default is 0, meaning no timeout limit.  Set to a
-## !       positive integer to terminate fmesher calls that may enter infinite
-## !       loops due to special geometry regularity. Fractional seconds are
-## !       rounded up to the nearest integer.
-## !
-## !     inla.mode : Which mode to use in INLA? Default is \code{"compact"}. Other options are
-## !     \code{"classic"} and \code{"twostage"}.
-## !   }
-## ! }
-## !
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## ! \examples{
-## ! ## set number of threads
-## ! inla.setOption("num.threads", "4:1")
-## ! ## alternative format
-## ! inla.setOption(num.threads="4:1")
-## ! ## check it
-## ! inla.getOption("num.threads")
-## !}
+#' Set and get global options for INLA
+#' 
+#' Set and get global options for INLA
+#' 
+#' 
+#' @aliases inla.option inla.options inla.setOption inla.getOption
+#' @param ... Option and value, like \code{option=value} or \code{option,
+#' value}; see the Examples
+#' @param option The option to get. If \code{option = NULL} then
+#' \code{inla.getOption} then \code{inla.getOption} will return a named list of
+#' current values, otherwise, \code{option} must be one of
+#' \describe{
+#' \item{inla.call}{The path to the inla-program.}
+#' 
+#' \item{inla.arg}{Additional arguments to \code{inla.call}}
+#' 
+#' \item{fmesher.call}{The path to the fmesher-program}
+#' 
+#' \item{fmesher.arg}{Additional arguments to \code{fmesher.call}}
+#' 
+#' \item{num.threads}{Character string with the number of threads to use as
+#' \code{A:B}, see \code{?inla}}
+#' 
+#' \item{blas.num.threads}{Number of threads to use for openblas and mklblas (see
+#' \code{inla} for details)}
+#' 
+#' \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}
+#' (\code{default}) or \code{pardiso}}
+#' 
+#' \item{mkl}{Use binaries buildt with Intel MKL?  (If possible)}
+#' 
+#' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
+#' (default \code{TRUE})}
+#' 
+#' \item{vecLib}{This option applies to Mac only. If TRUE and mkl=FALSE, link with
+#' vecLib BLAS and LAPACK libs (if available)}
+#' 
+#' \item{vecLibPath}{This option applies to Mac only. Path to vecLib-libraries. If
+#' empty, use default.}
+#' 
+#' \item{pardiso.license}{The full path to the PARDISO license file or a
+#' newline-separated string with license key(s)}
+#' 
+#' \item{keep}{Keep temporary files?}
+#' 
+#' \item{verbose}{Verbose output?}
+#' 
+#' \item{save.memory}{Save memory at the cost of (minor) accuracy and computing time?}
+#' 
+#' \item{working.directory}{The name of the working directory.}
+#' 
+#' \item{silent}{Run the inla-program in a silent mode?}
+#' 
+#' \item{debug}{Run the inla-program in a debug mode?}
+#' 
+#' \item{cygwin}{The home of the Cygwin installation (default "C:/cygwin") (Remote
+#' computing for Windows only)}
+#' 
+#' \item{ssh.auth.sock}{The ssh bind-adress (value of $SSH_AUTH_SOCK int the
+#' Cygwin-shell). (Remote computing for Windows only)}
+#' 
+#' \item{show.warning.graph.file}{Give a warning for using the obsolete argument
+#' \code{graph.file} instead of \code{graph}}
+#' 
+#' \item{scale.model.default}{The default value of argument \code{scale.model} which
+#' optionally scale intrinisic models to have generalized unit average variance}
+#' 
+#' \item{short.summary}{Use a less verbose output for \code{summary}. Useful for
+#' Markdown documents.}
+#' 
+#' \item{inla.timeout}{The timeout limit, in whole seconds, for calls to the inla
+#' binary. Default is 0, meaning no timeout limit.  Set to a positive integer
+#' to terminate inla calls if they run to long.  Fractional seconds are rounded
+#' up to the nearest integer. This feature is EXPERIMENTAL and might change at
+#' a later stage.}
+#' 
+#' \item{fmesher.timeout}{The timeout limit, in whole seconds, for calls to the
+#' fmesher binary. Default is 0, meaning no timeout limit.  Set to a positive
+#' integer to terminate fmesher calls that may enter infinite loops due to
+#' special geometry regularity. Fractional seconds are rounded up to the
+#' nearest integer.}
+#' 
+#' \item{inla.mode}{Which mode to use in INLA? Default is \code{"compact"}. Other
+#' options are \code{"classic"} and \code{"twostage"}.}
+#' }
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'  ## set number of threads
+#'  inla.setOption("num.threads", "4:1")
+#'  ## alternative format
+#'  inla.setOption(num.threads="4:1")
+#'  ## check it
+#'  inla.getOption("num.threads")
+#' 
+#' @name inla.option
+#' @rdname options
+NULL
 
 `inla.getOption.default` <- function() {
     ## this function is not exported. it need to be separate, to avoid infinite recursion
@@ -134,6 +130,8 @@
     )
 }
 
+#' @rdname options
+#' @export
 `inla.getOption` <- function(
                              option = c(
                                  "inla.call",
@@ -220,6 +218,8 @@
     return(res)
 }
 
+#' @rdname options
+#' @export
 `inla.setOption` <- function(...) {
     ## supports formats:
     ## inla.setOption("keep", TRUE)

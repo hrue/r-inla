@@ -85,6 +85,10 @@ replicates (\code{ncol(A)} should be \code{mesh$n * n.iid.group} for 2D
 meshes, \code{mesh$m * n.iid.group} for 1D).}
 
 \item{\dots}{Additional parameters for special uses.}
+
+\item{spde}{An spde model object}
+
+\item{theta}{Parameters in the model's internal scale}
 }
 \value{
 An \code{inla.spde2} object.

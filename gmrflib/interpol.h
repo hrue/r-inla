@@ -49,19 +49,26 @@ __BEGIN_DECLS
 	GMRFLib_INTPOL_TRANS_Pinv
 } GMRFLib_intpol_transform_tp;
 
+typedef enum {
+	GMRFLib_INTPOL_CACHE_LEVEL12 = 0,		       /* one for both levels */
+	GMRFLib_INTPOL_CACHE_LEVEL1 = 1,		       /* level 1 only */
+	GMRFLib_INTPOL_CACHE_SIMPLE = 2			       /* serial, not thread-safe */
+} GMRFLib_intpol_cache_tp;
+
 
 #define GMRFLib_SN_SKEWMAX (0.988)
 typedef struct {
 	GMRFLib_intpol_transform_tp trans;
+	GMRFLib_intpol_cache_tp cache;
+	int cache_len;
 	double xmin;
 	double xmax;
-	int cache;					       /* 0: both levels, 1: level1 only */
 	gsl_interp_accel **accel;
 	gsl_spline *spline;
 } GMRFLib_spline_tp;
 
 GMRFLib_spline_tp *GMRFLib_spline_create(double *x, double *y, int n);
-GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, int cache);
+GMRFLib_spline_tp *GMRFLib_spline_create_x(double *x, double *y, int n, GMRFLib_intpol_transform_tp trans, GMRFLib_intpol_cache_tp cache);
 GMRFLib_spline_tp *GMRFLib_spline_create_from_matrix(GMRFLib_matrix_tp * M);
 double GMRFLib_spline_eval(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp * s);

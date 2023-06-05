@@ -1,38 +1,31 @@
-## Export: inla.upgrade inla.update
-
-## !\name{inla.upgrade}
-## !\alias{inla.upgrade}
-## !\alias{inla.update}
-## !
-## !\title{Upgrade the INLA-package}
-## !
-## !\description{Functions to upgrade the \code{INLA}-package to the
-## !  current version.}
-## !
-## !\usage{
-## !inla.upgrade(lib = NULL, testing=FALSE, ask = TRUE)
-## !inla.update(lib = NULL, testing=FALSE, ask = TRUE)
-## !}
-## !
-## !\arguments{
-## !  \item{lib}{Location to install the library.}
-## !  \item{testing}{If \code{TRUE}, then look for a test-version if the
-## !    INLA-package.}
-## !  \item{ask}{same argument as in \code{update.packages}}
-## !}
-## !\value{\code{inla.upgrade} will update the INLA package to the current version,
-## ! and \code{inla.update} do the same
-## !  for backward compatibility. This function is simple wrapper for
-## !  \code{update.packages} using the INLA repository.}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\seealso{\code{update.packages}}
 
 ### The upgrade utility
 
+#' Upgrade the INLA-package
+#' 
+#' Functions to upgrade the \code{INLA}-package to the current version.
+#' 
+#' 
+#' @aliases inla.upgrade inla.update
+#' @param lib Location to install the library.
+#' @param testing If \code{TRUE}, then look for a test-version if the
+#' INLA-package.
+#' @param ask same argument as in \code{update.packages}
+#' @return \code{inla.upgrade} will update the INLA package to the current
+#' version, and \code{inla.update} do the same for backward compatibility. This
+#' function is simple wrapper for \code{update.packages} using the INLA
+#' repository.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso \code{update.packages}
+#' @rdname upgrade
+#' @export
 `inla.update` <- function(lib = NULL, testing = FALSE, ask = TRUE) {
     inla.upgrade(lib = lib, testing = testing, ask = ask)
 }
 
+
+#' @rdname upgrade
+#' @export inla.upgrade
 `inla.upgrade` <- function(lib = NULL, testing = FALSE, ask = TRUE) {
 
     repo <- c(CRAN = "https://cran.rstudio.com",

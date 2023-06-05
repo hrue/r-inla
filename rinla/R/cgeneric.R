@@ -1,31 +1,22 @@
-## Export: inla.cgeneric.define inla.cgeneric.q
-
-## !\name{cgeneric.define}
-## !\alias{cgeneric}
-## !\alias{cgeneric.define}
-## !\alias{cgeneric.q}
-## !\alias{inla.cgeneric.define}
-## !\alias{inla.cgeneric.q}
-## !
-## !\title{cgeneric models}
-## !
-## !\description{A framework for defining latent models in C}
-## !
-## !\usage{
-## !inla.cgeneric.define(model = NULL, shlib = NULL, n = 0L, debug = FALSE, ...)
-## !inla.cgeneric.q(cmodel = NULL)
-## !}
-## !
-## !\arguments{
-## !  \item{model}{The name of the model function}
-## !  \item{cmodel}{The name of a cgeneric model-object (output from \code{inla.cgeneric.define}}
-## !  \item{shlib}{Name of the compiled object-file with \code{model}}
-## !  \item{n}{The size of the model}
-## !  \item{debug}{Logical. Turn on/off debugging}
-## !}
-## !
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-
+#' cgeneric models
+#' 
+#' A framework for defining latent models in C
+#' 
+#' 
+#' @aliases cgeneric cgeneric.define cgeneric.q inla.cgeneric.define
+#' inla.cgeneric.q
+#' @param model The name of the model function
+#' @param cmodel The name of a cgeneric model-object (output from
+#' \code{inla.cgeneric.define}
+#' @param shlib Name of the compiled object-file with \code{model}
+#' @param n The size of the model
+#' @param debug Logical. Turn on/off debugging
+#' @param ... Additional arguments, required by `inla.cgeneric.define()` to be named arguments
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name cgeneric
+#' @rdname cgeneric
+#' @export
 `inla.cgeneric.define` <- function(model = NULL, shlib = NULL, n = 0L, debug = FALSE, ...) {
     stopifnot(!missing(n))
     stopifnot(as.integer(n) > 0)
@@ -95,6 +86,8 @@
     return (res)
 }
 
+#' @rdname cgeneric
+#' @export
 `inla.cgeneric.q` <- function(cmodel = NULL)
 {
     stopifnot(!is.null(cmodel))
