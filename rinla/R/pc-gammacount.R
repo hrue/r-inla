@@ -1,10 +1,10 @@
-#' Utility functions for the PC prior for the \code{gammacount} likelihood
+#' Utility functions for the PC prior for the `gammacount` likelihood
 #' 
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC
-#' prior for the \code{gammacount} likelihood
+#' prior for the `gammacount` likelihood
 #' 
-#' This gives the PC prior for the \code{gammacount} likelihood, which is the
-#' PC prior for \code{a} in \code{Gamma(a, 1)} where \code{Gamma(1, 1)} is the
+#' This gives the PC prior for the `gammacount` likelihood, which is the
+#' PC prior for `a` in `Gamma(a, 1)` where `Gamma(1, 1)` is the
 #' base model.
 #' 
 #' @aliases inla.pc.gammacount pc.gammacount pc.rgammacount inla.pc.rgammacount
@@ -16,10 +16,10 @@
 #' @param log Logical. Return the density in natural or log-scale.
 #' @param p Vector of probabilities
 #' @param q Vector of quantiles
-#' @returns \code{inla.pc.dgammacount} gives the density,
-#' \code{inla.pc.pgammacount} gives the distribution function,
-#' \code{inla.pc.qgammacount} gives the quantile function, and
-#' \code{inla.pc.rgammacount} generates random deviates.
+#' @returns `inla.pc.dgammacount` gives the density,
+#' `inla.pc.pgammacount` gives the distribution function,
+#' `inla.pc.qgammacount` gives the quantile function, and
+#' `inla.pc.rgammacount` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.gammacount")
 #' @examples

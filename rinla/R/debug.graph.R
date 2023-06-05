@@ -7,7 +7,7 @@
 #' @aliases debug.graph inla.debug.graph
 #' @param graph.file The filename of the graph (ascii-mode)
 #' @return If an error is found, then an error message is shows, otherwise the
-#' graph-object returned by \code{inla.read.graph()} is returned.
+#' graph-object returned by `inla.read.graph()` is returned.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.read.graph
 #' @examples

@@ -49,7 +49,7 @@ prior for the correlation in the Gaussian AR(1) model where the base-model
 is zero correlation.
 }
 \details{
-The statement \code{Prob(|cor| > u) = alpha} is used to determine
+The statement \verb{Prob(|cor| > u) = alpha} is used to determine
 \code{lambda} unless \code{lambda} is given.  Either \code{lambda} must be
 given, or \code{u} AND \code{alpha}. The density is symmetric around zero.
 }

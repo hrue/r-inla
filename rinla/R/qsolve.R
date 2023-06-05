@@ -9,18 +9,18 @@
 #' @param B The right hand side matrix, either as a (dense) matrix or
 #' sparse-matrix.
 #' @param reordering The type of reordering algorithm to be used for
-#' \code{TAUCS}; either one of the names listed in \code{inla.reorderings()} or
-#' the output from \code{inla.qreordering(Q)}.  The default is "auto" which try
+#' `TAUCS`; either one of the names listed in `inla.reorderings()` or
+#' the output from `inla.qreordering(Q)`.  The default is "auto" which try
 #' several reordering algorithm and use the best one for this particular matrix
 #' (using the TAUCS library).
-#' @param method The system to solve, one of \code{"solve"}, \code{"forward"}
-#' or \code{"backward"}. Let \code{Q = L L^T}, where \code{L} is lower
-#' triangular (the Cholesky triangle), then \code{method="solve"} solves
-#' \code{L L^T X = B} or equivalently \code{Q X = B}, \code{method="forward"}
-#' solves \code{L X = B}, and \code{method="backward"} solves \code{L^T X = B}.
-#' @return \code{inla.qsolve} returns a matrix \code{X}, which is the solution
-#' of \code{Q X = B}, \code{L X = B} or \code{L^T X = B} depending on the value
-#' of \code{method}.
+#' @param method The system to solve, one of `"solve"`, `"forward"`
+#' or `"backward"`. Let `Q = L L^T`, where `L` is lower
+#' triangular (the Cholesky triangle), then `method="solve"` solves
+#' `L L^T X = B` or equivalently `Q X = B`, `method="forward"`
+#' solves `L X = B`, and `method="backward"` solves `L^T X = B`.
+#' @return `inla.qsolve` returns a matrix `X`, which is the solution
+#' of `Q X = B`, `L X = B` or `L^T X = B` depending on the value
+#' of `method`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 

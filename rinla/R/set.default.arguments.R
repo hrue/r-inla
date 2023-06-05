@@ -31,7 +31,7 @@
     function(
         #' @param verbose Use verbose mode for linear combinations if verbose model is
         #' set globally. (Default FALSE). This option is only available for
-        #' the default \code{inla.mode} (\code{inla.mode="compact"}).
+        #' the default `inla.mode` (`inla.mode="compact"`).
         verbose = FALSE
     ) {
         as.list(environment())
@@ -48,7 +48,7 @@
         #' 'ar', 'rw1', 'rw2', 'besag', or 'iid')
         model = "exchangeable",
         
-        #' @param order Defines the \code{order} of the model: for model \code{ar} this
+        #' @param order Defines the `order` of the model: for model `ar` this
         #' defines the order p, in AR(p). Not used for other models at the time
         #' being.
         order = NULL,
@@ -61,11 +61,11 @@
         graph = NULL,
         
         #' @param scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the
-        #' generalized variance is 1. (Default \code{TRUE})
+        #' generalized variance is 1. (Default `TRUE`)
         scale.model = TRUE,
         
         #' @param adjust.for.con.comp Adjust for connected components when
-        #' \code{scale.model=TRUE}? (default \code{TRUE})
+        #' `scale.model=TRUE`? (default `TRUE`)
         adjust.for.con.comp = TRUE,
         
         #' @param hyper Definition of the hyperparameter(s)
@@ -119,13 +119,13 @@
 
 #' @title control.mix
 #' @inherit control.update params description seealso 
-#' @details The \code{control.mix} list is set within the corresponding \code{control.family}-list a the mixture of the likelihood is likelihood specific. (This option is EXPERIMENTAL.)
+#' @details The `control.mix` list is set within the corresponding `control.family`-list a the mixture of the likelihood is likelihood specific. (This option is EXPERIMENTAL.)
 #' @family control
 #' @export
 `control.mix` <-
     function(
             #' @param model The model for the random effect. Currently, only
-            #' \code{model='gaussian'} is implemented
+            #' `model='gaussian'` is implemented
             model = NULL,
 
             #' @param hyper Definition of the hyperparameter(s) for the random effect model
@@ -151,8 +151,8 @@
             #' 101)
             npoints = 101,
 
-            #' @param integrator The integration scheme to use (\code{default},
-            #' \code{quadrature}, \code{simpson})
+            #' @param integrator The integration scheme to use (`default`,
+            #' `quadrature`, `simpson`)
             integrator = "default"
     ) {
         as.list(environment())
@@ -169,7 +169,7 @@
             cdf  = "logit",
 
             #' @param fast Logical Use a faster but approximate form for the probit cdf
-            #' (default \code{FALSE})?
+            #' (default `FALSE`)?
             fast = FALSE
         ) {
             as.list(environment())
@@ -181,16 +181,16 @@
 #' @export
 `control.link` <-
     function(
-        #' @details The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-family specific.
+        #' @details The `control.link`-list is set within the corresponding `control.family`-list as the link is likelihood-family specific.
             #' @param model The name of the link function/model
             model = "default",
 
-            #' @param order The \code{order} of the link function, where the interpretation
-            #' of \code{order} is model-dependent.
+            #' @param order The `order` of the link function, where the interpretation
+            #' of `order` is model-dependent.
             order = NULL,
 
-            #' @param variant The \code{variant} of the link function, where the
-            #' interpretation of \code{variant} is model-dependent.
+            #' @param variant The `variant` of the link function, where the
+            #' interpretation of `variant` is model-dependent.
             variant = NULL,
 
             #' @param hyper Definition of the hyperparameter(s) for the link model chosen
@@ -199,7 +199,7 @@
             #' @param quantile The quantile for quantile link function
             quantile = NULL,
 
-            #' @param a The parameter \code{a} in the LOGa link
+            #' @param a The parameter `a` in the LOGa link
             a = 1.0,
 
             #' @param initial (OBSOLETE!) The initial value(s) for the hyperparameter(s)
@@ -240,18 +240,18 @@
             cpo.idx = -1,
 
             #' @param disable.gaussian.check Disable the check for fast computations with a
-            #' Gaussian likelihood and identity link (default \code{FALSE})
+            #' Gaussian likelihood and identity link (default `FALSE`)
             disable.gaussian.check = FALSE,
 
-            #' @param jp An object of class \code{inla.jp} defining a joint prior
+            #' @param jp An object of class `inla.jp` defining a joint prior
             jp = NULL, 
 
             #' @param dot.product.gain Output the gain in
-            #' optimizing dot-products? (Default \code{FALSE})
+            #' optimizing dot-products? (Default `FALSE`)
             dot.product.gain = FALSE,
 
-            #' @param globalconstr Add a global constraint (see \code{?f} and argument
-            #' \code{extraconstr}). Note that a global constraint does NOT
+            #' @param globalconstr Add a global constraint (see `?f` and argument
+            #' `extraconstr`). Note that a global constraint does NOT
             #' correct the normalisation constant. 
             globalconstr = list(A = NULL, e = NULL)
         ) {
@@ -264,8 +264,8 @@
 #' @family control
 #' @export
 #' @details (For experts only!) Set control variables for the gcpo in [control.compute].
-#' The intended use is to use \code{inla.group.cv}.
-#' Refer to \code{?inla.group.cv} and the vignette for details.
+#' The intended use is to use `inla.group.cv`.
+#' Refer to `?inla.group.cv` and the vignette for details.
 control.gcpo <-
     function(
         #' @param enable TODO
@@ -328,23 +328,23 @@ control.gcpo <-
             dic = FALSE,
 
             #' @param mlik A boolean variable if the marginal likelihood should be computed.
-            #' Default \code{TRUE}.
+            #' Default `TRUE`.
             mlik = TRUE,
 
             #' @param cpo A boolean variable if the cross-validated predictive measures
-            #' (cpo, pit) should be computed (default \code{FALSE})
+            #' (cpo, pit) should be computed (default `FALSE`)
             cpo = FALSE,
 
             #' @param po A boolean variable if the predictive ordinate should be computed
-            #' (default \code{FALSE})
+            #' (default `FALSE`)
             po = FALSE,
 
             #' @param waic A boolean variable if the Watanabe-Akaike information criteria
-            #' should be computed (default \code{FALSE})
+            #' should be computed (default `FALSE`)
             waic = FALSE,
 
             #' @param residuals Provide estimates of `residuals` (whatever we mean by that).
-            #' (default \code{FALSE})
+            #' (default `FALSE`)
             #' Currently only residuals base on expected (saturated) deviance are available.
             #' The sign of the residuals are only `very likely` correct.
             #' These residuals are not properly justified from a Bayesian point of
@@ -363,12 +363,12 @@ control.gcpo <-
             config = FALSE,
 
             #' @param likelihood.info A boolean variable to store likelihood-information or not.
-            #' This option requires \code{config=TRUE} (Default FALSE. EXPERIMENTAL)
+            #' This option requires `config=TRUE` (Default FALSE. EXPERIMENTAL)
             likelihood.info = FALSE,
 
             #' @param smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or
-            #' 'pardiso' (default \code{inla.getOption("smtp")}). \code{smtp='pardiso'} implies
-            #' \code{openmp.strategy='pardiso'}.
+            #' 'pardiso' (default `inla.getOption("smtp")`). `smtp='pardiso'` implies
+            #' `openmp.strategy='pardiso'`.
             smtp = NULL,
 
             #' @param graph A boolean variable if the graph itself should be returned.
@@ -384,8 +384,8 @@ control.gcpo <-
             save.memory = NULL, 
 
             #' @param control.gcpo (For experts only!) Set control variables for the gcpo.
-            #' The intended use is to use \code{inla.group.cv}.
-            #' Refer to [control.gcpo], \code{?inla.group.cv} and the vignette for details.
+            #' The intended use is to use `inla.group.cv`.
+            #' Refer to [control.gcpo], `?inla.group.cv` and the vignette for details.
             control.gcpo = INLA::control.gcpo()
             ## INLA:: needed to avoid name ambiguity with the parameter itself
             ## and to allow calling the function without INLA in the namespace.
@@ -424,7 +424,7 @@ control.gcpo <-
             #' @param parallel.reordering Do reordering in parallel (default TRUE)
             parallel.reordering = TRUE,
             
-            #' @param nrhs Number of right-hand sides to solve for in parallel (\code{-1}
+            #' @param nrhs Number of right-hand sides to solve for in parallel (`-1`
             #' will determine this adapative)
             nrhs = -1
     ) {
@@ -437,7 +437,7 @@ control.gcpo <-
 #' @export
 `control.bgev` <-
     function(
-        #' @details The \code{control.bgev}-list is set within the corresponding \code{control.family}-list as control parameters to the \code{family="bgev"}
+        #' @details The `control.bgev`-list is set within the corresponding `control.family`-list as control parameters to the `family="bgev"`
             #' @param q.location The quantile level for the location parameter
             q.location = 0.5,
 
@@ -480,7 +480,7 @@ control.gcpo <-
             #' is fixed or random.
             fixed = NULL,
 
-            #' @param link (OBSOLETE! Use \code{control.link=list(model=)} instead.) The
+            #' @param link (OBSOLETE! Use `control.link=list(model=)` instead.) The
             #' link function to use.
             link = "default",
 
@@ -493,14 +493,14 @@ control.gcpo <-
             #' (default 0.1)
             gev.scale.xi = 0.1,
 
-            #' @param control.bgev  See \code{?control.bgev}
+            #' @param control.bgev  See `?control.bgev`
             control.bgev = NULL,
 
             #' @param cenpoisson.I The censoring interval for the censored Poisson
             cenpoisson.I = c(-1L, -1L),
 
-            #' @param beta.censor.value The censor value for the Beta-likelihood \code{(0
-            #' <= beta.censor.value < 1/2)}
+            #' @param beta.censor.value The censor value for the Beta-likelihood `(0
+            #' <= beta.censor.value < 1/2)`
             beta.censor.value = 0.0,
 
             #' @param variant This variable is used to give options for various variants of
@@ -509,16 +509,16 @@ control.gcpo <-
             #' likelihoods).
             variant = 0L,
 
-            #' @param control.mix See \code{?control.mix}
+            #' @param control.mix See `?control.mix`
             control.mix = NULL,
 
-            #' @param control.pom See \code{?control.pom}
+            #' @param control.pom See `?control.pom`
             control.pom = NULL,
 
-            #' @param control.link See \code{?control.link}
+            #' @param control.link See `?control.link`
             control.link = NULL,
 
-            #' @param link.simple See \code{inla.doc("0inflated")}
+            #' @param link.simple See `inla.doc("0inflated")`
             link.simple = "default"
         ) {
             as.list(environment())
@@ -538,19 +538,19 @@ control.gcpo <-
 
             #' @param expand.factor.strategy The strategy used to expand factors into fixed
             #' effects based on their levels. The default strategy is us use the
-            #' \code{model.matrix}-function for which NA's are not allowed
-            #' (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed.
-            #' The alternative option (\code{expand.factor.strategy="inla"}) use an
-            #' \code{inla}-specific expansion which expand a factor into one fixed effects for
+            #' `model.matrix`-function for which NA's are not allowed
+            #' (`expand.factor.strategy="model.matrix"`) and levels are possible removed.
+            #' The alternative option (`expand.factor.strategy="inla"`) use an
+            #' `inla`-specific expansion which expand a factor into one fixed effects for
             #' each level, do allow for NA's and all levels are present in the model. In this
             #' case, factors MUST BE factors in the data.frame/list and NOT added as
-            #' \code{.+factor(x1)+.} in the formula only.
+            #' `.+factor(x1)+.` in the formula only.
             expand.factor.strategy = "model.matrix",
 
             #' @param mean Prior mean for all fixed effects except the intercept.
             #'  Alternatively, a named list with specific means where name=default applies to
-            #'  unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2,
-            #'  default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and
+            #'  unmatched names. For example `control.fixed=list(mean=list(a=1, b=2,
+            #'  default=0))` assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and
             #' 'mean=0' to all others. (default 0.0)
             mean = 0.0,
 
@@ -559,8 +559,8 @@ control.gcpo <-
 
             #' @param prec  Default precision for all fixed effects except the intercept.
             #' Alternatively, a named list with specific means where name=default applies to
-            #' unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2,
-            #' default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and
+            #' unmatched names.  For example `control.fixed=list(prec=list(a=1, b=2,
+            #' default=0.01))` assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and
             #' 'prec=0.01' to all others. (default 0.001)
             prec = 0.001,
 
@@ -574,7 +574,7 @@ control.gcpo <-
             #'  fixed effects? (default FALSE) OOPS: This option will set up appropriate linear
             #'  combinations and the results are shown as the posterior correlation matrix of the
             #'  linear combinations. This option will imply
-            #' \code{control.inla=list(lincomb.derived.correlation.matrix=TRUE)}.
+            #' `control.inla=list(lincomb.derived.correlation.matrix=TRUE)`.
             correlation.matrix = FALSE,
 
             #' @param remove.names A vector of names of expanded fixed effects to remove
@@ -592,7 +592,7 @@ control.gcpo <-
 #' @details control.vb List of arguments for various VB corrections.
 #' Used for [control.inla] `control.vb` specifications.
 control.vb <- function(
-        #' @param enable Logical/Character Use this feature? If \code{"auto"} this will be selected automatically. 
+        #' @param enable Logical/Character Use this feature? If `"auto"` this will be selected automatically. 
         enable = "auto",
         #' @param strategy Charactor What to correct, either "mean" or "variance".
         strategy = c("mean", "variance"),
@@ -603,16 +603,16 @@ control.vb <- function(
         #' @param emergency Numeric If the standarized correction for the mean is larger
         #'           than this value, then call the vb.correction off and issue a warning
         emergency = 25,
-        #' @param f.enable.limit Vector of length 2. The size limit to correct for a \code{f()}.
-        #'         First element is for \code{strategy="mean"}.
-        #'         Second element is for \code{strategy="mean"}.
+        #' @param f.enable.limit Vector of length 2. The size limit to correct for a `f()`.
+        #'         First element is for `strategy="mean"`.
+        #'         Second element is for `strategy="mean"`.
         f.enable.limit = c(30, 25),
         #' @param hessian.update How many times the Hessian is updated for each
-        #'         correction (\code{strategy="variance"} only).
+        #'         correction (`strategy="variance"` only).
         hessian.update = 2,
         #' @param hessian.strategy Select strategy for computing the Hessian
-        #'         matrix for \code{strategy="variance"}, one of \code{"full"}, 
-        #'         \code{"diagonal"}, \code{"partial"} and \code{"default"}.
+        #'         matrix for `strategy="variance"`, one of `"full"`, 
+        #'         `"diagonal"`, `"partial"` and `"default"`.
         hessian.strategy = c("default", "full", "partial", "diagonal")
 ) {
     as.list(environment())
@@ -671,11 +671,11 @@ control.vb <- function(
         print.joint.hyper = TRUE,
         
         #' @param force.diagonal Logical If TRUE, then force the Hessian to be
-        #' diagonal. (Default \code{FALSE})
+        #' diagonal. (Default `FALSE`)
         force.diagonal = FALSE,
         
         #' @param skip.configurations Logical Skip configurations if the values at the
-        #' main axis are to small. (Default \code{TRUE})
+        #' main axis are to small. (Default `TRUE`)
         skip.configurations = TRUE,
         
         #' @param mode.known Logical If TRUE then no optimisation is done. (Default
@@ -720,7 +720,7 @@ control.vb <- function(
         #' @param reordering Character Type of reordering to use. (EXPERT OPTION; one
         #' of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD",
         #' "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from
-        #' \code{inla.qreordering}. Default is 'auto'.)
+        #' `inla.qreordering`. Default is 'auto'.)
         reordering = "auto",
         
         #' @param cpo.diff Numerical Threshold to define when the cpo-calculations are
@@ -747,9 +747,9 @@ control.vb <- function(
         #' trial.
         adapt.hessian.scale = NULL,
         
-        #' @param adaptive.max Selecting \code{strategy="adaptive"} will chose the
+        #' @param adaptive.max Selecting `strategy="adaptive"` will chose the
         #' default strategy for all fixed effects and model components with length less or
-        #' equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.
+        #' equal to `adaptive.max`, for others, the gaussian strategy will be applied.
         adaptive.max = 25L,
         
         #' @param huge Logical If TRUE then try to do some of the internal
@@ -758,8 +758,8 @@ control.vb <- function(
         huge = FALSE,
         
         #' @param step.len Numerical The step-length used to compute numerical
-        #' derivaties of the log-likelihood (0 means \code{default} which
-        #' depends on \code{stencil})
+        #' derivaties of the log-likelihood (0 means `default` which
+        #' depends on `stencil`)
         step.len = 0.0, 
         
         #' @param stencil Numerical Number of points in the stencil used to compute the
@@ -791,10 +791,10 @@ control.vb <- function(
         #' introduce bias.  (Default -Inf)
         cmin = -Inf,
         
-        #' @param b.strategy Character If \code{cmin} is used, either keep the linear
-        #'     term (with \code{b.strategy="keep"}) or skip the contribution by
-        #'     setting the linear term to zero (\code{b.strategy="skip"}). The
-        #'     default value is \code{"skip"}
+        #' @param b.strategy Character If `cmin` is used, either keep the linear
+        #'     term (with `b.strategy="keep"`) or skip the contribution by
+        #'     setting the linear term to zero (`b.strategy="skip"`). The
+        #'     default value is `"skip"`
         b.strategy = "skip",
         
         #' @param step.factor Numerical The step factor in the Newton-Raphson algorithm
@@ -804,21 +804,21 @@ control.vb <- function(
         step.factor = -0.1,
         
         #' @param global.node.factor Numerical The factor which defines the degree
-        #'     required (how many neighbors), as a fraction of \code{n-1},
+        #'     required (how many neighbors), as a fraction of `n-1`,
         #'     that is required to be classified as a global node and numbered
-        #'     last (whatever the reordering routine says). Here, \code{n},
+        #'     last (whatever the reordering routine says). Here, `n`,
         #'     is the size of the graph. (Disabled if larger than 1,  default 2)
         global.node.factor = 2.0,
         
         #' @param global.node.degree Numerical The degree required (number of
         #'     neighbors) to be classified as a global node and numbered
         #'     last (whatever the reordering routine says).
-        #'     (default \code{.Machine$integer.max})
+        #'     (default `.Machine$integer.max`)
         global.node.degree = .Machine$integer.max,
         
         #' @param stupid.search Logical Enable or disable the stupid-search-algorithm,
         #' if the Hessian calculations reveals that the mode is not found.
-        #' (Default \code{TRUE}.)
+        #' (Default `TRUE`.)
         stupid.search = TRUE,
         
         #' @param stupid.search.max.iter Numerical Maximum number of iterations allowed
@@ -839,27 +839,27 @@ control.vb <- function(
         ## to test updated settings.
         
         #' @param num.gradient Character Set the numerical scheme to compute the
-        #' gradient,  one of \code{"forward"} or \code{"central"} (default).
+        #' gradient,  one of `"forward"` or `"central"` (default).
         num.gradient = "central",
         
         #' @param num.hessian Character Set the numerical scheme to compute the
-        #' Hessian,  one of \code{"forward"} or \code{"central"} (default).
+        #' Hessian,  one of `"forward"` or `"central"` (default).
         num.hessian = "central",
         
         #' @param optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the
-        #' optimiser strategy,  one of \code{"plain"} or \code{"smart"} (default)
+        #' optimiser strategy,  one of `"plain"` or `"smart"` (default)
         optimise.strategy = "smart",
         
-        #' @param use.directions THIS OPTION IS EXPERIMENTAL. Unless \code{FALSE} or
-        #' \code{NULL},  use directions for computing gradient and Hessian, initialised with
-        #' \code{use.directions} if a matrix.
+        #' @param use.directions THIS OPTION IS EXPERIMENTAL. Unless `FALSE` or
+        #' `NULL`,  use directions for computing gradient and Hessian, initialised with
+        #' `use.directions` if a matrix.
         use.directions = TRUE,
         
-        #' @param constr.marginal.diagonal Add stability to \code{AQ^-1A^T} by adding a
-        #' small diagonal term. (default \code{epsilon^0.5})
+        #' @param constr.marginal.diagonal Add stability to `AQ^-1A^T` by adding a
+        #' small diagonal term. (default `epsilon^0.5`)
         constr.marginal.diagonal = sqrt(.Machine$double.eps),
         
-        #' @param improved.simplified.laplace If \code{TRUE} use an experimental
+        #' @param improved.simplified.laplace If `TRUE` use an experimental
         #' improved variant, otherwise, use the standard one.
         improved.simplified.laplace = FALSE,
         
@@ -923,19 +923,19 @@ control.vb <- function(
             #' @param A The observation matrix (matrix or Matrix::sparseMatrix).
             A = NULL,
 
-            #' @param precision The precision for eta* - A*eta, (default \code{exp(15)})
+            #' @param precision The precision for eta* - A*eta, (default `exp(15)`)
             precision = exp(15),
 
             #' @param link Define the family-connection for unobserved observations
-            #' (\code{NA}). \code{link} is integer values which defines the family connection;
-            #' \code{family[link[idx]]} unless \code{is.na(link[idx])} for which the
-            #' identity-link is used. The \code{link}-argument only influence the
-            #' \code{fitted.values} in the \code{result}-object. If \code{is.null(link)}
+            #' (`NA`). `link` is integer values which defines the family connection;
+            #' `family[link[idx]]` unless `is.na(link[idx])` for which the
+            #' identity-link is used. The `link`-argument only influence the
+            #' `fitted.values` in the `result`-object. If `is.null(link)`
             #' (default) then the identity-link is used for all missing observations. If the
-            #' length of \code{link} is 1, then this value is replicated with the length of the
-            #' responce vector. If an element of the responce vector is \code{!NA} then the
-            #' corresponding entry in \code{link} is not used (but must still be a legal value).
-            #' Setting this variable implies \code{compute=TRUE}.
+            #' length of `link` is 1, then this value is replicated with the length of the
+            #' responce vector. If an element of the responce vector is `!NA` then the
+            #' corresponding entry in `link` is not used (but must still be a legal value).
+            #' Setting this variable implies `compute=TRUE`.
             link = NULL
         ) {
             as.list(environment())
@@ -1019,7 +1019,7 @@ control.vb <- function(
 
             #' @param scale.model Scale the baseline hazard model (RW1, RW2) so the
             #' generalized variance is 1. (Default
-            #' \code{inla.getOption("scale.model.default")}.)
+            #' `inla.getOption("scale.model.default")`.)
             scale.model = NULL
         ) {
             as.list(environment())

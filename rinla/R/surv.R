@@ -1,7 +1,7 @@
 #' Create a Survival Object for INLA
 #' 
 #' Create a survival object, to be used as a response variable in a model
-#' formula for the \code{\link{inla}} function for survival models.
+#' formula for the [inla()] function for survival models.
 #' 
 #' 
 #' @aliases inla.surv is.inla.surv as.inla.surv plot.inla.surv print.inla.surv
@@ -19,19 +19,19 @@
 #' @param subject Patient number in multiple event data, not needed otherwise.
 #' @param cure A matrix of covariates that can be used with a cure-model.
 #' @param .special An internal object, not for public use
-#' @param object Any \code{R}-object
+#' @param object Any `R`-object
 #' @param x Object to plot or print
 #' @param y Object to plot (not in use)
 #' @param ... Additional argument
-#' @return An object of class \code{inla.surv}.  There are methods for
-#' \code{print}, \code{plot} for \code{inla.surv} objects.
+#' @return An object of class `inla.surv`.  There are methods for
+#' `print`, `plot` for `inla.surv` objects.
 #' 
-#' \code{is.inla.surv} returns \code{TRUE} if \code{object} inherits from class
-#' \code{inla.surv}, otherwise \code{FALSE}.
+#' `is.inla.surv` returns `TRUE` if `object` inherits from class
+#' `inla.surv`, otherwise `FALSE`.
 #' 
-#' \code{as.inla.surv} returns an object of class \code{inla.surv}
+#' `as.inla.surv` returns an object of class `inla.surv`
 #' @author Sara Martino, Rupali Akerkar and Haavard Rue
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' @keywords Survival models
 #' @examples
 #' 

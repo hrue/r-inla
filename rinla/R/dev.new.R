@@ -1,11 +1,11 @@
 #' Opens a new device
 #' 
-#' Open a new device using \code{\link{dev.new}} unless using RStudio
+#' Open a new device using [dev.new()] unless using RStudio
 #' 
 #' 
-#' @param ... Optional arguments to \code{\link{dev.new}}
-#' @return The value of \code{\link{dev.new}} if not running RStudio, otherwise
-#' \code{NULL}
+#' @param ... Optional arguments to [dev.new()]
+#' @return The value of [dev.new()] if not running RStudio, otherwise
+#' `NULL`
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @rdname dev.new
 #' @export inla.dev.new

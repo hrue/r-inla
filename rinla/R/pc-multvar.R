@@ -20,18 +20,18 @@
 #' @param n Number of samples to generate.
 #' @param lambda The lambda-parameter in the PC-prior.
 #' @param log Evaluate the density in log-scale or ordinary scale.
-#' @param h The h()-function, defaults to \code{inla.pc.multvar.h.default}. See
+#' @param h The h()-function, defaults to `inla.pc.multvar.h.default`. See
 #' that code for an example of how to write a user-specific function.
 #' @param b The b-vector (gradient) in the expression for the simplex option,
-#' \code{d(xi) = h(b^T xi)}
+#' `d(xi) = h(b^T xi)`
 #' @param H The H(essian)-matrix in the expression for the sphere option,
-#' \code{d(xi) = h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is
+#' `d(xi) = h(1/2 *xi^T H xi)`. If `H` is a vector, then it is
 #' interpreted as the diagonal of a (sparse) diagonal matrix.
-#' @returns \code{inla.pc.multvar.simplex.r} generate samples from the
-#' simplex case, and \code{inla.pc.multvar.simplex.d} evaluate the density.
-#' \code{inla.pc.multvar.sphere.r} generate samples from the sphere case, and
-#' \code{inla.pc.multvar.sphere.d} evaluate the density.
-#' \code{inla.pc.multvar.h.default} implements the default h()-function and
+#' @returns `inla.pc.multvar.simplex.r` generate samples from the
+#' simplex case, and `inla.pc.multvar.simplex.d` evaluate the density.
+#' `inla.pc.multvar.sphere.r` generate samples from the sphere case, and
+#' `inla.pc.multvar.sphere.d` evaluate the density.
+#' `inla.pc.multvar.h.default` implements the default h()-function and
 #' illustrate how to code your own specific one, if needed.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 

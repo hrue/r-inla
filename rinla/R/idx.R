@@ -12,7 +12,7 @@
 #' @param replicate The index within replication. (Legal values from `1' to
 #' `nrep'.)
 #' @param nrep Number of replications.
-#' @returns \code{inla.idx} returns indexes in the range `1' to
+#' @returns `inla.idx` returns indexes in the range `1' to
 #' `n*ngroup*nrep' representing where the triplet `(idx,group,replicate)' is
 #' stored internally in the full grouped and replicated model.
 #' @author Havard Rue \email{hrue@@r-inla.org}

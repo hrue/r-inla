@@ -68,12 +68,12 @@ the inverse function is not used).}
 that code for an example of how to write a user-specific function.}
 
 \item{b}{The b-vector (gradient) in the expression for the simplex option,
-\code{d(xi) = h(b^T xi)}}
+\verb{d(xi) = h(b^T xi)}}
 
 \item{log}{Evaluate the density in log-scale or ordinary scale.}
 
 \item{H}{The H(essian)-matrix in the expression for the sphere option,
-\code{d(xi) = h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is
+\verb{d(xi) = h(1/2 *xi^T H xi)}. If \code{H} is a vector, then it is
 interpreted as the diagonal of a (sparse) diagonal matrix.}
 }
 \value{

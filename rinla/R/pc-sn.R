@@ -1,12 +1,12 @@
-#' Utility functions for the PC prior for \code{skewness} in the skew-normal
+#' Utility functions for the PC prior for `skewness` in the skew-normal
 #' linkfunction and likelihood
 #' 
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC
-#' prior for the \code{skewness} in the skew-normal link-function and
+#' prior for the `skewness` in the skew-normal link-function and
 #' likelihood
 #' 
-#' Defines the PC prior for the \code{skewness} for the skew-normal
-#' linkfunction and likelihood, where \code{skew=0} is the base model. The
+#' Defines the PC prior for the `skewness` for the skew-normal
+#' linkfunction and likelihood, where `skew=0` is the base model. The
 #' skewness range from -0.99527... to 0.99527....  ca.
 #' 
 #' @aliases inla.pc.sn pc.sn pc.rsn inla.pc.rsn pc.dsn inla.pc.dsn pc.psn
@@ -17,9 +17,9 @@
 #' @param log logical. return the density in natural or log-scale.
 #' @param p vector of probabilities
 #' @param q vector of quantiles
-#' @returns \code{inla.pc.dsn} gives the density, \code{inla.pc.psn} gives
-#' the distribution function, \code{inla.pc.qsn} gives the quantile function,
-#' and \code{inla.pc.rsn} generates random deviates.
+#' @returns `inla.pc.dsn` gives the density, `inla.pc.psn` gives
+#' the distribution function, `inla.pc.qsn` gives the quantile function,
+#' and `inla.pc.rsn` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.sn")
 #' @examples

@@ -1,19 +1,19 @@
 #' Group or cluster covariates
 #' 
-#' \code{inla.group} group or cluster covariates so to reduce the number of
+#' `inla.group` group or cluster covariates so to reduce the number of
 #' unique values
 #' 
 #' 
 #' @param x The vector of covariates to group.
 #' @param n Number of classes or bins to group into.
 #' @param method Group either using bins with equal length intervals
-#' (\code{method = "cut"}), or equal distance in the `probability' scale using
-#' the quantiles (\code{method = "quantile"}).
-#' @param idx.only Option to return the index only and not the \code{method}.
-#' @return \code{inla.group} return the new grouped covariates where the
+#' (`method = "cut"`), or equal distance in the `probability' scale using
+#' the quantiles (`method = "quantile"`).
+#' @param idx.only Option to return the index only and not the `method`.
+#' @return `inla.group` return the new grouped covariates where the
 #' classes are set to the median of all the covariates belonging to that group.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{f}}
+#' @seealso [f()]
 #' @examples
 #' 
 #' ## this gives groups 3 and 8

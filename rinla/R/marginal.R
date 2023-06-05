@@ -3,7 +3,7 @@
 #' @description
 #' Density, distribution function, quantile function, random generation,
 #' hpd-interval, interpolation, expectations, mode and transformations of
-#' marginals obtained by \code{inla} or \code{inla.hyperpar()}.  These
+#' marginals obtained by `inla` or `inla.hyperpar()`.  These
 #' functions computes the density (inla.dmarginal), the distribution function
 #' (inla.pmarginal), the quantile function (inla.qmarginal), random generation
 #' (inla.rmarginal), spline smoothing (inla.smarginal), computes expected
@@ -16,42 +16,42 @@
 #' inla.qmarginal dmarginal inla.dmarginal rmarginal inla.rmarginal
 #' inla.hpdmarginal hpdmarginal inla.emarginal emarginal inla.smarginal
 #' smarginal inla.tmarginal inla.mmarginal mmarginal inla.zmarginal zmarginal
-#' @param marginal A marginal object from either \code{inla} or
-#' \code{inla.hyperpar()}, which is either \code{list(x=c(), y=c())} with
-#' density values \code{y} at locations \code{x}, or a \code{matrix(,n,2)} for
+#' @param marginal A marginal object from either `inla` or
+#' `inla.hyperpar()`, which is either `list(x=c(), y=c())` with
+#' density values `y` at locations `x`, or a `matrix(,n,2)` for
 #' which the density values are the second column and the locations in the
-#' first column.  The\code{inla.hpdmarginal()}-function assumes a unimodal
+#' first column.  The`inla.hpdmarginal()`-function assumes a unimodal
 #' density.
-#' @param fun A (vectorised) function like \code{function(x) exp(x)} to compute
+#' @param fun A (vectorised) function like `function(x) exp(x)` to compute
 #' the expectation against, or which define the transformation new = fun(old)
 #' @param x Evaluation points
 #' @param q Quantiles
 #' @param p Probabilities
-#' @param n The number of observations. If \code{length(n) > 1}, the length is
+#' @param n The number of observations. If `length(n) > 1`, the length is
 #' taken to be the number required.
 #' @param h.diff The step-length for the numerical differeniation inside
-#' \code{inla.tmarginal}
+#' `inla.tmarginal`
 #' @param ... Further arguments to be passed to function which expectation is
 #' to be computed.
 #' @param log Return density or interpolated density in log-scale?
 #' @param normalize Renormalise the density after interpolation?
 #' @param len Number of locations used to interpolate the distribution
 #' function.
-#' @param keep.type If \code{FALSE} then return a \code{list(x=, y=)},
-#' otherwise if \code{TRUE}, then return a matrix if the input is a matrix
+#' @param keep.type If `FALSE` then return a `list(x=, y=)`,
+#' otherwise if `TRUE`, then return a matrix if the input is a matrix
 #' @param extrapolate How much to extrapolate on each side when computing the
 #' interpolation. In fraction of the range.
-#' @param factor The number of points after interpolation is \code{factor}
-#' times the original number of points; which is argument \code{n} in
-#' \code{spline}
+#' @param factor The number of points after interpolation is `factor`
+#' times the original number of points; which is argument `n` in
+#' `spline`
 #' @param method Which method should be used to layout points for where the
 #' transformation is computed.
 #' @param silent Output the result visually (TRUE) or just through the call.
-#' @returns \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
+#' @returns `inla.smarginal` returns `list=c(x=c(), y=c())` of
 #' interpolated values do extrapolation using the factor given, and the
 #' remaining function returns what they say they should do.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla}}, \code{\link{inla.hyperpar}}
+#' @seealso [inla()], [inla.hyperpar()]
 #' @examples
 #' 
 #'  ## a simple linear regression example

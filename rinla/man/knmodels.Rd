@@ -34,14 +34,14 @@ when it is the case.}
 \item{spacetime}{to be the index set for the spacetime
 interaction effect.}
 \item{graph}{to be the graph for the spatial neighbor
-structure to be used in a \code{\link{f}} term for the main spatial random
+structure to be used in a \code{\link[=f]{f()}} term for the main spatial random
 effect term or for building the spacetime interaction model.}
 \item{type}{to
 specify the spacetime interaction type.  \code{1} to \code{4} corresponds to
 the four interaction types in Knorr-Held, L. (2000) with all the needed
-sum-to-zero constraints.  \code{2c}, \code{3c} and \code{4c} are the
+sum-to-zero constraints.  \verb{2c}, \verb{3c} and \verb{4c} are the
 contrast version considering the first time or space constrained to be equal
-to zero.  \code{2d}, \code{3d} and \code{4d} are the corresponding versions
+to zero.  \verb{2d}, \verb{3d} and \verb{4d} are the corresponding versions
 when considering the diagonal add approach.}
 \item{diagonal}{to be the value
 to be added to the diagonal when using the diagonal add approach.}
@@ -50,14 +50,14 @@ contrast parametrization.}
 \item{spaceref}{to specify the area to be the
 reference for the contrast parametrization.}
 \item{...}{where additional
-arguments can be passed to \code{\link{f}} function.  Specification of the
+arguments can be passed to \code{\link[=f]{f()}} function.  Specification of the
 hyperparameter, fixed or random, initial value, prior and its parameters for
 the spacetime interaction. See \code{?inla.models} and look for
 \code{generic0}.  By default we scale it and use the PC-prior to set the
 prior using the \code{pc.prec} prior with \code{param = c(0.5, 0.5)}. See
 documentation with \code{?inla.doc("pc.prec")}.} }}
 
-\item{...}{Arguments to be passed to the \code{\link{inla}} function.}
+\item{...}{Arguments to be passed to the \code{\link[=inla]{inla()}} function.}
 }
 \value{
 \code{inla.knmodels} returns an object of class \code{"inla"}.  or a
@@ -106,7 +106,7 @@ sapply(res, function(x)
 
 }
 \seealso{
-\code{\link{inla.knmodels.sample}} to sample from
+\code{\link[=inla.knmodels.sample]{inla.knmodels.sample()}} to sample from
 }
 \author{
 Elias T. Krainski

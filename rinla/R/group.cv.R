@@ -1,35 +1,35 @@
 #' Compute group.cv-values
 #' 
-#' From a fitted model, compute and add the \code{group.cv}-values
+#' From a fitted model, compute and add the `group.cv`-values
 #' 
 #' 
 #' @return The object returned is list related to leave-group-out
 #' cross-validation. See the vignette for details.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{control.compute}}
+#' @seealso [control.compute()]
 #' @rdname group.cv
 #' @export inla.group.cv
 `inla.group.cv` <-
     function(
-             #' @param result An object of class \code{inla}, ie a result of a call to
-             #' \code{inla()}.
+             #' @param result An object of class `inla`, ie a result of a call to
+             #' `inla()`.
              result,
              
              #' @param group.cv If given, the groups are taken from this argument.
-             #' \code{group.cv} must be the output of previous call to
-             #' \code{inla.group.cv()}.
+             #' `group.cv` must be the output of previous call to
+             #' `inla.group.cv()`.
              group.cv = NULL,
              
              #' @param num.level.sets Number of level.sets to use. The default value
-             #' \code{-1} corresponds to leave-one-out cross-validation.
+             #' `-1` corresponds to leave-one-out cross-validation.
              num.level.sets = -1, 
 
-             #' @param strategy One of \code{"posterior"} or \code{"prior"}. See the
+             #' @param strategy One of `"posterior"` or `"prior"`. See the
              #' vignette for details.
              strategy = c("posterior", "prior"), 
              
              #' @param size.max The maximum size of a group. If the computed group-size is
-             #' larger, it will be truncated to \code{size.max}.
+             #' larger, it will be truncated to `size.max`.
              size.max = 32,
              
              #' @param groups An (optional) predefined list of groups.  See the vignette for
@@ -43,33 +43,33 @@
              #' @param friends An optional list of lists of indices to use a friends
              friends = NULL, 
 
-             #' @param verbose Run with \code{verbose} output of some of the internals in
-             #' the calculations. This option will also enable \code{inla(...,
-             #' verbose=TRUE)} if its not enabled already.
+             #' @param verbose Run with `verbose` output of some of the internals in
+             #' the calculations. This option will also enable `inla(...,
+             #' verbose=TRUE)` if its not enabled already.
              verbose = FALSE, 
 
-             #' @param epsilon Two correlations with a difference less than \code{epsilon},
+             #' @param epsilon Two correlations with a difference less than `epsilon`,
              #' will be classified as identical.
              epsilon = 0.005, 
 
-             #' @param prior.diagonal When \code{strategy="prior"}, \code{prior.diagonal} is
+             #' @param prior.diagonal When `strategy="prior"`, `prior.diagonal` is
              #' added to the diagonal of the prior precision matrix to avoid singularities
              prior.diagonal = 1e-4, 
 
-             #' @param keep For \code{strategy="prior"}, then this gives a vector of the
+             #' @param keep For `strategy="prior"`, then this gives a vector of the
              #' name of model-components TO USE when computing the groups. See the vignette
-             #' for details. Not both of \code{keep} and \code{remove} can be defined.
+             #' for details. Not both of `keep` and `remove` can be defined.
              keep = NULL,
 
-             #' @param remove For \code{strategy="prior"}, then this gives a vector of the
+             #' @param remove For `strategy="prior"`, then this gives a vector of the
              #' name of model-components NOT TO USE when computing the groups. See the
-             #' vignette for details. Not both of \code{keep} and \code{remove} can be
+             #' vignette for details. Not both of `keep` and `remove` can be
              #' defined.
              remove = NULL,
              
-             #' @param remove.fixed For \code{strategy="prior"}, this is the default option
-             #' which is in effect if both \code{keep} and \code{remove} are \code{NULL}. If
-             #' \code{TRUE}, it will remove (or condition on) all fixed effects when
+             #' @param remove.fixed For `strategy="prior"`, this is the default option
+             #' which is in effect if both `keep` and `remove` are `NULL`. If
+             #' `TRUE`, it will remove (or condition on) all fixed effects when
              #' computing the groups. See the vignette for details.
              remove.fixed = TRUE)
 {

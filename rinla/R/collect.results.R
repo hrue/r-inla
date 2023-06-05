@@ -1,14 +1,14 @@
 #' Collect results from a inla-call
 #' 
-#' \code{inla.collect.results} collect results from a inla-call
+#' `inla.collect.results` collect results from a inla-call
 #' 
-#' This function is mainly used inside \code{inla} to collect results after
+#' This function is mainly used inside `inla` to collect results after
 #' running the inla function. It can also be used to collect results into R
 #' after having run an inla section outside R.
 #' 
 #' @aliases inla.collect.results collect.results
-#' @return The function returns an object of class \code{"inla"}, see the help
-#' file for \code{inla} for details.
+#' @return The function returns an object of class `"inla"`, see the help
+#' file for `inla` for details.
 #' @rdname collect.results
 #' @export inla.collect.results
 `inla.collect.results` <-
@@ -17,7 +17,7 @@
         #' stored
              results.dir,
 
-             #' @param debug Logical. If \code{TRUE} some debugging information are printed
+             #' @param debug Logical. If `TRUE` some debugging information are printed
              debug = FALSE,
 
              #' @param only.hyperparam Binary variable indicating wheather only the results

@@ -7,7 +7,7 @@
 #' 
 #' The hyperparameters are sampled from the configurations used to do the
 #' numerical integration, hence if you want a higher resolution, you need to to
-#' change the \code{int.stratey} variable and friends. The latent field is
+#' change the `int.stratey` variable and friends. The latent field is
 #' sampled from the Gaussian approximation conditioned on the hyperparameters,
 #' but with a correction for the mean (default), and optional (and by default)
 #' corrected for the estimated skewness.
@@ -22,66 +22,66 @@
 #' @aliases inla.posterior.sample posterior.sample inla.posterior.sample.eval
 #' posterior.sample.eval
 #' @param n Number of samples.
-#' @param result The inla-object, ie the output from an \code{inla}-call.  The
-#' \code{inla}-object must be created with
-#' \code{control.compute=list(config=TRUE)}.
+#' @param result The inla-object, ie the output from an `inla`-call.  The
+#' `inla`-object must be created with
+#' `control.compute=list(config=TRUE)`.
 #' @param selection Select what part of the sample to return. By default, the
-#' whole sample is returned. \code{selection} is a named list with the name of
+#' whole sample is returned. `selection` is a named list with the name of
 #' the components of the sample, and what indices of them to return. Names
-#' include \code{APredictor}, \code{Predictor}, \code{(Intercept)}, and
+#' include `APredictor`, `Predictor`, `(Intercept)`, and
 #' otherwise names in the formula.  The values of the list, is interpreted as
 #' indices. If they are negative, they are interpreted as 'not', a zero is
 #' interpreted as 'all', and positive indices are interpreted as 'only'. The
 #' names of elements of each samples refer to the indices in the full sample.
-#' DO NOT USE this feature together with \code{inla.posterior.sample.eval}.
-#' @param intern Logical. If \code{TRUE} then produce samples in the internal
-#' scale for the hyperparmater, if \code{FALSE} then produce samples in the
+#' DO NOT USE this feature together with `inla.posterior.sample.eval`.
+#' @param intern Logical. If `TRUE` then produce samples in the internal
+#' scale for the hyperparmater, if `FALSE` then produce samples in the
 #' user-scale. (For example log-precision (intern) and precision (user-scale))
-#' @param use.improved.mean Logical. If \code{TRUE} then use the marginal mean
-#' values when constructing samples. If \code{FALSE} then use the mean in the
+#' @param use.improved.mean Logical. If `TRUE` then use the marginal mean
+#' values when constructing samples. If `FALSE` then use the mean in the
 #' Gaussian approximations.
-#' @param skew.corr Logical. If \code{TRUE} then correct samples for skewness,
-#' if \code{FALSE}, do not correct samples for skewness (ie use the Gaussian).
-#' @param add.names Logical. If \code{TRUE} then add name for each elements of
-#' each sample. If \code{FALSE}, only add name for the first sample.  (This
+#' @param skew.corr Logical. If `TRUE` then correct samples for skewness,
+#' if `FALSE`, do not correct samples for skewness (ie use the Gaussian).
+#' @param add.names Logical. If `TRUE` then add name for each elements of
+#' each sample. If `FALSE`, only add name for the first sample.  (This
 #' save space.)
-#' @param seed See the same argument in \code{?inla.qsample} for further
+#' @param seed See the same argument in `?inla.qsample` for further
 #' information. In order to produce reproducible results, you ALSO need to make
-#' sure the RNG in R is in the same state, see example below.  When \code{seed}
-#' is non-zero, \code{num.threads} is forced to "1:1" and parallel.configs is
-#' set to \code{FALSE}, since parallel sampling would not produce a
+#' sure the RNG in R is in the same state, see example below.  When `seed`
+#' is non-zero, `num.threads` is forced to "1:1" and parallel.configs is
+#' set to `FALSE`, since parallel sampling would not produce a
 #' reproducible sequence of pseudo-random numbers.
 #' @param num.threads The number of threads to use in the format 'A:B' defining
 #' the number threads in the outer (A) and inner (B) layer for nested
-#' parallelism. A '0' will be replaced intelligently.  \code{seed!=0} requires
+#' parallelism. A '0' will be replaced intelligently.  `seed!=0` requires
 #' serial comptuations.
-#' @param parallel.configs Logical. If \code{TRUE} and not on Windows, then try
-#' to run each configuration in parallel (not Windows) using \code{A} threads
-#' (see \code{num.threads}), where each of them is using \code{B:0} threads.
+#' @param parallel.configs Logical. If `TRUE` and not on Windows, then try
+#' to run each configuration in parallel (not Windows) using `A` threads
+#' (see `num.threads`), where each of them is using `B:0` threads.
 #' @param verbose Logical. Run in verbose mode or not.
 #' @param fun The function to evaluate for each sample. Upon entry, the
 #' variable names defined in the model are defined as the value of the sample.
-#' The list of names are defined in \code{result$misc$configs$contents} where
-#' \code{result} is an \code{inla}-object. This includes predefined names for
-#' for the linear predictor (\code{Predictor} and \code{APredictor}), and the
-#' intercept (\code{(Intercept)} or \code{Intercept}).  The hyperparameters are
-#' defined as \code{theta}, no matter if they are in the internal scale or not.
-#' The function \code{fun} can also return a vector.  To simplify usage,
-#' \code{fun} can also be a vector character's. In this case \code{fun} it is
+#' The list of names are defined in `result$misc$configs$contents` where
+#' `result` is an `inla`-object. This includes predefined names for
+#' for the linear predictor (`Predictor` and `APredictor`), and the
+#' intercept (`(Intercept)` or `Intercept`).  The hyperparameters are
+#' defined as `theta`, no matter if they are in the internal scale or not.
+#' The function `fun` can also return a vector.  To simplify usage,
+#' `fun` can also be a vector character's. In this case `fun` it is
 #' interpreted as (strict) variable names, and a function is created that
-#' return these variables: if argument \code{fun} equals \code{c("Intercept",
-#' "a[1:2]")}, then this is equivalent to pass \code{function()
-#' return(c(get('Intercept'), get('a[1:2]')))}.
-#' @param samples \code{samples} is the output from
-#' \code{inla.posterior.sample()}
-#' @param return.matrix Logical. If \code{TRUE}, then return the samples of
-#' \code{fun} as matrix, otherwise, as a list.
-#' @param ... Additional arguments to \code{fun}
-#' @return \code{inla.posterior.sample} returns a list of the samples, where
-#' each sample is a list with names \code{hyperpar} and \code{latent}, and with
-#' their marginal densities in \code{logdens$hyperpar} and
-#' \code{logdens$latent} and the joint density is in \code{logdens$joint}.
-#' \code{inla.posterior.sample.eval} return a list or a matrix of \code{fun}
+#' return these variables: if argument `fun` equals `c("Intercept",
+#' "a[1:2]")`, then this is equivalent to pass `function()
+#' return(c(get('Intercept'), get('a[1:2]')))`.
+#' @param samples `samples` is the output from
+#' `inla.posterior.sample()`
+#' @param return.matrix Logical. If `TRUE`, then return the samples of
+#' `fun` as matrix, otherwise, as a list.
+#' @param ... Additional arguments to `fun`
+#' @return `inla.posterior.sample` returns a list of the samples, where
+#' each sample is a list with names `hyperpar` and `latent`, and with
+#' their marginal densities in `logdens$hyperpar` and
+#' `logdens$latent` and the joint density is in `logdens$joint`.
+#' `inla.posterior.sample.eval` return a list or a matrix of `fun`
 #' applied to each sample.
 #' @author Havard Rue \email{hrue@@r-inla.org} and Cristian Chiuchiolo
 #' \email{cristian.chiuchiolo@@kaust.edu.sa}

@@ -5,9 +5,9 @@
 #' 
 #' 
 #' @aliases inla.ssh.copy.id ssh.copy.id inla.remote
-#' @returns \code{inla.remote} is used once to setup the remote host
+#' @returns `inla.remote` is used once to setup the remote host
 #' information file (definition file) in the users home directory; see the FAQ
-#' entry on this issue for more information.  \code{inla.ssh.copy.id} will
+#' entry on this issue for more information.  `inla.ssh.copy.id` will
 #' return the path to the internal script to transfer ssh-keys.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

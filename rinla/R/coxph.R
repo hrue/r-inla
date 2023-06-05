@@ -5,24 +5,24 @@
 #' 
 #' @aliases inla.coxph inla.rbind.data.frames coxph cbind.data.frames
 #' @param formula The formula for the coxph model where the response must be a
-#' \code{inla.surv}-object.
+#' `inla.surv`-object.
 #' @param data All the data used in the formula, as a list.
 #' @param control.hazard Control the model for the baseline-hazard; see
-#' \code{?control.hazard}.
+#' `?control.hazard`.
 #' @param tag An optional tag added to the names of the new variables created
-#' (to make them unique when combined with several calls of \code{inla.coxph}.
-#' Note that \code{E..coxph} is not included, as its usually merged into one
+#' (to make them unique when combined with several calls of `inla.coxph`.
+#' Note that `E..coxph` is not included, as its usually merged into one
 #' vector over different expansions.
 #' @param debug Print debug-information
-#' @param ... Data.frames to be \code{rbind}-ed, padding with \code{NA}.
-#' @return \code{inla.coxph} returns a list of new expanded variables to be
-#' used in the \code{inla}-call.  Note that element \code{data} and
-#' \code{data.list} needs to be merged into a \code{list} to be passed as the
-#' \code{data} argument. See the example for details.
+#' @param ... Data.frames to be `rbind`-ed, padding with `NA`.
+#' @return `inla.coxph` returns a list of new expanded variables to be
+#' used in the `inla`-call.  Note that element `data` and
+#' `data.list` needs to be merged into a `list` to be passed as the
+#' `data` argument. See the example for details.
 #' 
-#' \code{inla.rbind.data.frames} returns the rbinded data.frames padded with
-#' NAs.  There is a better implementation in \code{dplyr::bind_rows}, which is
-#' used if package \code{dplyr} is installed.
+#' `inla.rbind.data.frames` returns the rbinded data.frames padded with
+#' NAs.  There is a better implementation in `dplyr::bind_rows`, which is
+#' used if package `dplyr` is installed.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 

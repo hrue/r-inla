@@ -22,8 +22,7 @@ approximated one.}
 \value{
 \code{inla.fgn} returns a named matrix.  If \code{is.null(lag.max)},
 then first column is \code{H}, columns \code{1+1:K} are lag one correlations
-(or phi's), and columns \code{1+K+1:K} are the weights.  If \code{lag.max >
-0}, then return the ACFs in columns \code{2+(0:lag.max)}, for the H in
+(or phi's), and columns \code{1+K+1:K} are the weights.  If \code{lag.max > 0}, then return the ACFs in columns \code{2+(0:lag.max)}, for the H in
 column 1, either the approximated ones or the the true ones.
 
 This function is EXPERIMENTAL!!!

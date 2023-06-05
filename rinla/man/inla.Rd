@@ -48,11 +48,10 @@ inla(
 )
 }
 \arguments{
-\item{formula}{A \code{inla} formula like \code{y ~1 + z + f(ind,
-model="iid")} + f(ind2, weights, model="ar1") This is much like the formula
+\item{formula}{A \code{inla} formula like \code{y ~1 + z + f(ind, model="iid")} + f(ind2, weights, model="ar1") This is much like the formula
 for a \code{glm} except that smooth or spatial terms can be added to the
-right hand side of the formula.  See \code{\link{f}} for full details and
-the web site \url{www.r-inla.org} for several worked out examples. Each
+right hand side of the formula.  See \code{\link[=f]{f()}} for full details and
+the web site <www.r-inla.org> for several worked out examples. Each
 smooth or spatial term specified through \code{f} should correspond to
 separate column of the data frame \code{data}.  The response variable,
 \code{y} can be a univariate response variable, a list or the output of the
@@ -61,7 +60,7 @@ function \code{inla.surf} for survival analysis models.}
 \item{family}{A string indicating the likelihood family. The default is
 \code{gaussian} with identity link. See
 \code{names(inla.models()$likelihood)} for a list of possible alternatives
-and use \code{\link{inla.doc}} for detailed docs for individual families.}
+and use \code{\link[=inla.doc]{inla.doc()}} for detailed docs for individual families.}
 
 \item{contrasts}{Optional contrasts for the fixed effects; see \code{?lm} or
 \code{?glm} for details.}
@@ -85,8 +84,8 @@ the number of cases. One or more \code{offset()} terms can be included in
 the formula instead or as well, and if both are used, they are combined into
 a common offset.  If the \code{A}-matrix is used in the linear predictor
 statement \code{control.predictor}, then the \code{offset} given in this
-argument is added to \code{eta*}, the linear predictor related to the
-observations, as \code{eta* = A eta + offset}, whereas an offset in the
+argument is added to \verb{eta*}, the linear predictor related to the
+observations, as \verb{eta* = A eta + offset}, whereas an offset in the
 formula is added to \code{eta}, the linear predictor related to the formula,
 as \code{eta = ... + offset.formula}. So in this case, the offset defined
 here and in the formula has a different meaning and usage.}
@@ -122,8 +121,7 @@ verbose mode (default \code{inla.getOption("verbose")})}
 
 \item{lincomb}{Used to define linear combination of nodes in the latent
 field. The posterior distribution of such linear combination is computed by
-the \code{inla} function. See vignette \code{Short tutorials from old
-www-page} for information on how to define such linear combinations.}
+the \code{inla} function. See vignette \verb{Short tutorials from old www-page} for information on how to define such linear combinations.}
 
 \item{selection}{This is a similar argument to the one in
 \code{inla.posterior.sample} and follow the same format.  This argument
@@ -178,7 +176,7 @@ considered to be more efficient).  If \code{B > 1} then
 \item{blas.num.threads}{THIS OPTION IS CURRENTLY NOT IN USE.  (The absolute
 value of \code{blas.num.threads} is the maximum number of threads the the
 \code{openblas}/\code{mklblas} will use (if available). Value is ignored if
-\code{<=0} (then environment variables are used).)}
+\verb{<=0} (then environment variables are used).)}
 
 \item{keep}{A boolean variable indicating that the working files (ini file,
 data files and results files) should be kept. If TRUE and no
@@ -245,8 +243,7 @@ Note that if an observation is \code{NA} then the identity link is used. You
 can manually transform a marginal using \code{inla.marginal.transform()} or
 set the argument \code{link} in the \code{control.predictor}-list; see
 \code{?control.predictor} }
-\item{summary.lincomb}{ If \code{lincomb !=
-NULL} a list of matrices containing the mean and sd (plus, possibly
+\item{summary.lincomb}{ If \code{lincomb != NULL} a list of matrices containing the mean and sd (plus, possibly
 quantiles and cdf) of all linear combinations defined.  }
 \item{marginals.lincomb}{ If \code{lincomb != NULL} a list of posterior
 marginals of all linear combinations defined.  }

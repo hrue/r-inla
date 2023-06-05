@@ -7,18 +7,18 @@
 #' 
 #' @aliases inla.qinv qinv
 #' @param Q A SPD matrix, either as a (dense) matrix or sparseMatrix.
-#' @param constr Optional linear constraints; see \code{?INLA::f} and argument
-#' \code{extraconstr}
+#' @param constr Optional linear constraints; see `?INLA::f` and argument
+#' `extraconstr`
 #' @param reordering The type of reordering algorithm to be used for
-#' \code{TAUCS}; either one of the names listed in \code{inla.reorderings()} or
-#' the output from \code{inla.qreordering(Q)}.  The default is "auto" which try
+#' `TAUCS`; either one of the names listed in `inla.reorderings()` or
+#' the output from `inla.qreordering(Q)`.  The default is "auto" which try
 #' several reordering algorithm and use the best one for this particular
 #' matrix.
-#' @param num.threads Maximum number of threads the \code{inla}-program will
+#' @param num.threads Maximum number of threads the `inla`-program will
 #' use, or as 'A:B' defining the number threads in the outer (A) and inner (B)
 #' layer for nested parallelism.
-#' @return \code{inla.qinv} returns a \code{sparseMatrix} of type
-#' \code{dgTMatrix} with the diagonal and values for the neigbours in the
+#' @return `inla.qinv` returns a `sparseMatrix` of type
+#' `dgTMatrix` with the diagonal and values for the neigbours in the
 #' inverse. Note that the full inverse is NOT provided!
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

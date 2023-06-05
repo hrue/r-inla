@@ -4,12 +4,12 @@
 #' 
 #' 
 #' @aliases jp jp.define inla.jp.define
-#' @param jp The \code{jp}-function which returns the joint log-prior as a
-#' function of argument \code{theta}. There is an optional second argument that
-#' is a vector of \code{theta}-names. If second argument is not present,
-#' argument \code{.theta.desc} will be added.
-#' @param ... Named list of variables that defines the environment of \code{jp}
-#' @returns This allows joint priors to be defined in \code{R}.
+#' @param jp The `jp`-function which returns the joint log-prior as a
+#' function of argument `theta`. There is an optional second argument that
+#' is a vector of `theta`-names. If second argument is not present,
+#' argument `.theta.desc` will be added.
+#' @param ... Named list of variables that defines the environment of `jp`
+#' @returns This allows joint priors to be defined in `R`.
 #' 
 #' This function is for internal use only.
 #' @author Havard Rue \email{hrue@@r-inla.org}

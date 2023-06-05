@@ -1,22 +1,22 @@
-#' @title Merge a mixture of \code{inla}-objects
+#' @title Merge a mixture of `inla`-objects
 #' 
 #' @description 
-#' The function \code{merge.inla} implements method \code{merge} for
-#' \code{inla}-objects. \code{merge.inla} is a wrapper for the function
-#' \code{inla.merge}. The interface is slightly different, \code{merge.inla} is
-#' more tailored for interactive use, whereas \code{inla.merge} is better in
+#' The function `merge.inla` implements method `merge` for
+#' `inla`-objects. `merge.inla` is a wrapper for the function
+#' `inla.merge`. The interface is slightly different, `merge.inla` is
+#' more tailored for interactive use, whereas `inla.merge` is better in
 #' general code.
 #' 
-#' \code{inla.merge} is intented for merging a mixture of \code{inla}-objects,
+#' `inla.merge` is intented for merging a mixture of `inla`-objects,
 #' each run with the same formula and settings, except for a set of
 #' hyperparameters that are fixed to different values. Using this function, we
 #' can then integrate over these hyperparameters using (unnormalized)
-#' integration weights \code{prob}. The main objects to be merged, are the
+#' integration weights `prob`. The main objects to be merged, are the
 #' summary statistics and marginal densities (like for hyperparameters, fixed,
 #' random, etc).  Not all entries in the object can be merged, and by default
 #' these are inheritated from the first object in the list, while some are just
-#' set to \code{NULL}.  Those objectes that are merged, will be listed if run
-#' with option \code{verbose=TRUE}.
+#' set to `NULL`.  Those objectes that are merged, will be listed if run
+#' with option `verbose=TRUE`.
 #' 
 #' Note that merging hyperparameter in the user-scale is prone to
 #' discretization error in general, so it is more stable to convert the
@@ -24,16 +24,16 @@
 #' user-scale. (This is not done by this function.)
 #' 
 #' @aliases inla.merge merge.inla
-#' @param x An \code{inla}-object to be merged
-#' @param y An \code{inla}-object to be merged
-#' @param ... Additional \code{inla}-objects to be merged
-#' @param loo List of \code{inla}-objects to be merged
+#' @param x An `inla`-object to be merged
+#' @param y An `inla`-object to be merged
+#' @param ... Additional `inla`-objects to be merged
+#' @param loo List of `inla`-objects to be merged
 #' @param prob The mixture of (possibly unnormalized) probabilities
-#' @param mc.cores The number of cores to use in \code{parallel::mclapply}. If
-#' \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")} and
-#' \code{inla.getOption("num.threads")} in that order.
+#' @param mc.cores The number of cores to use in `parallel::mclapply`. If
+#' `is.null(mc.cores)`, then check `getOption("mc.cores")` and
+#' `inla.getOption("num.threads")` in that order.
 #' @param verbose Turn on verbose-output or not
-#' @return A merged \code{inla}-object.
+#' @return A merged `inla`-object.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 

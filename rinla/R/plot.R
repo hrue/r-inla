@@ -1,10 +1,10 @@
 #' Default INLA plotting
 #' 
-#' Takes an \code{inla} object produced by \code{inla} and plot the results
+#' Takes an `inla` object produced by `inla` and plot the results
 #' 
 #' 
 #' @aliases plot.inla inla.plot
-#' @param x A fitted \code{inla} object produced by \code{inla}
+#' @param x A fitted `inla` object produced by `inla`
 #' @param plot.fixed.effects Boolean indicating if posterior marginals for the
 #' fixed effects in the model should be plotted
 #' @param plot.lincomb Boolean indicating if posterior marginals for the linear
@@ -27,13 +27,13 @@
 #' suffix is added.
 #' @param intern Plot also the hyperparameters in its internal scale.
 #' @param debug Write some debug information
-#' @param cex The \code{cex} parameter in \code{par()}. If set to \code{NULL}
-#' or \code{0}, then default values will be used for graphics parameters
-#' @param ... Additional arguments to \code{postscript()}, \code{pdf()} or
-#' \code{dev.new()}.
+#' @param cex The `cex` parameter in `par()`. If set to `NULL`
+#' or `0`, then default values will be used for graphics parameters
+#' @param ... Additional arguments to `postscript()`, `pdf()` or
+#' `dev.new()`.
 #' @return The return value is a list of the files created (if any).
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' @keywords plot
 #' @examples
 #' 

@@ -17,7 +17,7 @@ inla.nmix.lambda.fitted(
 \item{result}{The output object from a call to \code{inla()}, where the
 family argument has been set to \code{'nmix'} or \code{'nmixnb'}. For the
 function to work, the call to \code{inla()} should also include the argument
-\code{control.compute=list(config = TRUE))}.}
+\verb{control.compute=list(config = TRUE))}.}
 
 \item{sample.size}{The size of the sample from the posteriors of the model
 hyperparameters.  This sample size ends up being the size of the estimated

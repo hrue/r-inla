@@ -8,14 +8,14 @@
 #' @aliases inla.hyperpar.sample inla.hyperpar.sampler hyperpar.sample
 #' hyperpar.sampler
 #' @param n Integer. Number of samples required.
-#' @param result An \code{inla}-object, f.ex the output from an
-#' \code{inla}-call.
-#' @param intern Logical. If \code{TRUE} then produce samples in the internal
-#' scale for the hyperparmater, if \code{FALSE} then produce samples in the
+#' @param result An `inla`-object, f.ex the output from an
+#' `inla`-call.
+#' @param intern Logical. If `TRUE` then produce samples in the internal
+#' scale for the hyperparmater, if `FALSE` then produce samples in the
 #' user-scale. (For example log-precision (intern) and precision (user-scale))
-#' @param improve.marginals Logical. If \code{TRUE}, then improve the samples
+#' @param improve.marginals Logical. If `TRUE`, then improve the samples
 #' taking into account possible better marginal estimates for the
-#' hyperparameters in \code{result}.
+#' hyperparameters in `result`.
 #' @returns A matrix where each sample is a row. The contents of the column
 #' is described in the rownames.
 #' @author Havard Rue \email{hrue@@r-inla.org}

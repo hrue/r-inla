@@ -5,20 +5,20 @@
 #' 
 #' @aliases mdata inla.mdata is.inla.mdata as.inla.mdata print.inla.mdata
 #' @param y The response vector/matrix
-#' @param ... Additional vectors/matrics of same length as \code{y}
-#' @param object Any \code{R}-object
+#' @param ... Additional vectors/matrics of same length as `y`
+#' @param object Any `R`-object
 #' @param x An mdata object
-#' @return An object of class \code{inla.mdata}.  There is method for
-#' \code{print}.
+#' @return An object of class `inla.mdata`.  There is method for
+#' `print`.
 #' 
-#' \code{is.inla.mdata} returns \code{TRUE} if \code{object} inherits from
-#' class \code{inla.mdata}, otherwise \code{FALSE}.
+#' `is.inla.mdata` returns `TRUE` if `object` inherits from
+#' class `inla.mdata`, otherwise `FALSE`.
 #' 
-#' \code{as.inla.mdata} returns an object of class \code{inla.mdata}
-#' @note It is often required to set \code{Y=inla.mdata(...)} and then define
-#' the formula as \code{Y~...}, especially when used with \code{inla.stack}.
+#' `as.inla.mdata` returns an object of class `inla.mdata`
+#' @note It is often required to set `Y=inla.mdata(...)` and then define
+#' the formula as `Y~...`, especially when used with `inla.stack`.
 #' @author Havard Rue
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' @rdname mdata
 #' @export inla.mdata
 `inla.mdata` <- function(y, ...) {

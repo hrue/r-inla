@@ -4,9 +4,9 @@
 #' prior for the correlation in the Gaussian AR(1) model where the base-model
 #' is zero correlation.
 #' 
-#' The statement \code{Prob(|cor| > u) = alpha} is used to determine
-#' \code{lambda} unless \code{lambda} is given.  Either \code{lambda} must be
-#' given, or \code{u} AND \code{alpha}. The density is symmetric around zero.
+#' The statement `Prob(|cor| > u) = alpha` is used to determine
+#' `lambda` unless `lambda` is given.  Either `lambda` must be
+#' given, or `u` AND `alpha`. The density is symmetric around zero.
 #' 
 #' @aliases inla.pc.cor0 pc.cor0 pc.rcor0 inla.pc.rcor0 pc.dcor0 inla.pc.dcor0
 #' pc.pcor0 inla.pc.pcor0 pc.qcor0 inla.pc.qcor0
@@ -18,9 +18,9 @@
 #' @param log Logical. Return the density in natural or log-scale.
 #' @param p Vector of probabilities
 #' @param q Vector of quantiles
-#' @returns \code{inla.pc.dcor0} gives the density, \code{inla.pc.pcor0}
-#' gives the distribution function, \code{inla.pc.qcor0} gives the quantile
-#' function, and \code{inla.pc.rcor0} generates random deviates.
+#' @returns `inla.pc.dcor0` gives the density, `inla.pc.pcor0`
+#' gives the distribution function, `inla.pc.qcor0` gives the quantile
+#' function, and `inla.pc.rcor0` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.rho0")
 #' @examples

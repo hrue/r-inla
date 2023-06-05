@@ -7,7 +7,7 @@
 \method{print}{inla}(x, digits = 3L, ...)
 }
 \arguments{
-\item{x}{An inla-object (output from an \code{\link{inla}}-call).}
+\item{x}{An inla-object (output from an \code{\link[=inla]{inla()}}-call).}
 
 \item{digits}{Number of digits to print}
 
@@ -20,7 +20,7 @@ None
 Print an INLA fit
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Havard Rue

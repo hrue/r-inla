@@ -1,24 +1,24 @@
-#' Utility functions for the PC prior for the \code{tail} parameter in the GEV
+#' Utility functions for the PC prior for the `tail` parameter in the GEV
 #' likelihood
 #' 
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC
-#' prior for the \code{tail} parameter in the GEV likelihood
+#' prior for the `tail` parameter in the GEV likelihood
 #' 
-#' This gives the PC prior for the \code{tail} parameter for the GEV
-#' likelihood, where \code{xi=0} is the base model.
+#' This gives the PC prior for the `tail` parameter for the GEV
+#' likelihood, where `xi=0` is the base model.
 #' 
 #' @aliases inla.pc.gevtail pc.gevtail pc.rgevtail inla.pc.rgevtail pc.dgevtail
 #' inla.pc.dgevtail pc.pgevtail inla.pc.pgevtail pc.qgevtail inla.pc.qgevtail
 #' @param n Number of observations
 #' @param lambda The rate parameter in the PC-prior
-#' @param xi Vector of evaluation points, where \code{1>xi>0}.
+#' @param xi Vector of evaluation points, where `1>xi>0`.
 #' @param log Logical. Return the density in natural or log-scale.
 #' @param p Vector of probabilities
 #' @param q Vector of quantiles
-#' @returns \code{inla.pc.dgevtail} gives the density,
-#' \code{inla.pc.pgevtail} gives the distribution function,
-#' \code{inla.pc.qgevtail} gives the quantile function, and
-#' \code{inla.pc.rgevtail} generates random deviates.
+#' @returns `inla.pc.dgevtail` gives the density,
+#' `inla.pc.pgevtail` gives the distribution function,
+#' `inla.pc.qgevtail` gives the quantile function, and
+#' `inla.pc.rgevtail` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.gevtail")
 #' @examples

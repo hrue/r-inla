@@ -9,10 +9,10 @@
 #' @param n Number of observations
 #' @param lambda The rate parameter in the prior
 #' @param log Logical. Return the density in natural or log-scale.
-#' @return \code{inla.pc.ar.rpac} generate samples from the prior, returning
-#' a matrix where each row is a sample of \code{theta}.  \code{inla.pc.ar.dpac}
-#' evaluates the density of \code{pac}.  Use \code{inla.ar.pacf2phi},
-#' \code{inla.ar.phi2pacf}, \code{inla.ar.pacf2acf} and \code{inla.ar.acf2pacf}
+#' @return `inla.pc.ar.rpac` generate samples from the prior, returning
+#' a matrix where each row is a sample of `theta`.  `inla.pc.ar.dpac`
+#' evaluates the density of `pac`.  Use `inla.ar.pacf2phi`,
+#' `inla.ar.phi2pacf`, `inla.ar.pacf2acf` and `inla.ar.acf2pacf`
 #' to convert between various parameterisations.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 

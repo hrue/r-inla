@@ -48,7 +48,7 @@ rr = inla.cpo(r, force=TRUE)
 
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

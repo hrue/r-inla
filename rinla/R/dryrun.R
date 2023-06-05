@@ -5,7 +5,7 @@
 #' 
 #' 
 #' @aliases inla.dryrun dryrun
-#' @param ... Same arguments as \code{inla}()
+#' @param ... Same arguments as `inla`()
 #' @return A list of start-index and length for each latent component and a
 #' list of the hyperparameters in the model
 #' @author Havard Rue \email{hrue@@r-inla.org}

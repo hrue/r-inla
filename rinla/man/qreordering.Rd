@@ -8,7 +8,7 @@
 inla.qreordering(graph, reordering = inla.reorderings())
 }
 \arguments{
-\item{graph}{A \code{(inla-)graph} object}
+\item{graph}{A \verb{(inla-)graph} object}
 
 \item{reordering}{The name of the reordering algorithm to be used; either
 one of the names listed in \code{inla.reorderings()}.  The default is "auto"

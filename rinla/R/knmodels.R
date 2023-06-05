@@ -7,8 +7,8 @@
 #' @aliases inla.knmodels knmodels
 #' @param formula The formula specifying the other model components, without
 #' the spacetime interaction term. The spacetime interaction term will be added
-#' accordly to the specification in the \code{control.st} argument. See
-#' \code{inla}
+#' accordly to the specification in the `control.st` argument. See
+#' `inla`
 #' @param progress If it is to be shown the model fitting progress. Useful if
 #' more than one interaction type is being fitted.
 #' @param control.st Named list of arguments to control the spacetime
@@ -23,14 +23,14 @@
 #'   \item{spacetime}{to be the index set for the spacetime
 #' interaction effect.}
 #'   \item{graph}{to be the graph for the spatial neighbor
-#' structure to be used in a \code{\link{f}} term for the main spatial random
+#' structure to be used in a [f()] term for the main spatial random
 #' effect term or for building the spacetime interaction model.}
 #'   \item{type}{to
-#' specify the spacetime interaction type.  \code{1} to \code{4} corresponds to
+#' specify the spacetime interaction type.  `1` to `4` corresponds to
 #' the four interaction types in Knorr-Held, L. (2000) with all the needed
-#' sum-to-zero constraints.  \code{2c}, \code{3c} and \code{4c} are the
+#' sum-to-zero constraints.  `2c`, `3c` and `4c` are the
 #' contrast version considering the first time or space constrained to be equal
-#' to zero.  \code{2d}, \code{3d} and \code{4d} are the corresponding versions
+#' to zero.  `2d`, `3d` and `4d` are the corresponding versions
 #' when considering the diagonal add approach.}
 #'   \item{diagonal}{to be the value
 #' to be added to the diagonal when using the diagonal add approach.}
@@ -39,19 +39,19 @@
 #'   \item{spaceref}{to specify the area to be the
 #' reference for the contrast parametrization.}
 #'   \item{...}{where additional
-#' arguments can be passed to \code{\link{f}} function.  Specification of the
+#' arguments can be passed to [f()] function.  Specification of the
 #' hyperparameter, fixed or random, initial value, prior and its parameters for
-#' the spacetime interaction. See \code{?inla.models} and look for
-#' \code{generic0}.  By default we scale it and use the PC-prior to set the
-#' prior using the \code{pc.prec} prior with \code{param = c(0.5, 0.5)}. See
-#' documentation with \code{?inla.doc("pc.prec")}.} }
-#' @param ... Arguments to be passed to the \code{\link{inla}} function.
-#' @return \code{inla.knmodels} returns an object of class \code{"inla"}.  or a
+#' the spacetime interaction. See `?inla.models` and look for
+#' `generic0`.  By default we scale it and use the PC-prior to set the
+#' prior using the `pc.prec` prior with `param = c(0.5, 0.5)`. See
+#' documentation with `?inla.doc("pc.prec")`.} }
+#' @param ... Arguments to be passed to the [inla()] function.
+#' @return `inla.knmodels` returns an object of class `"inla"`.  or a
 #' list of objects of this class if it is asked to compute more than one
 #' interaction type at once.  Note: when the model type is 2c, 3c, 4c, 2d, 3d
 #' or 4d, it also includes linear combinations summary.
 #' @author Elias T. Krainski
-#' @seealso \code{\link{inla.knmodels.sample}} to sample from
+#' @seealso [inla.knmodels.sample()] to sample from
 #' @examples
 #' 
 #' ### define space domain as a grid

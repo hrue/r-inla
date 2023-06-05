@@ -241,7 +241,7 @@ optimiser strategy,  one of \code{"plain"} or \code{"smart"} (default)}
 \code{NULL},  use directions for computing gradient and Hessian, initialised with
 \code{use.directions} if a matrix.}
 
-\item{constr.marginal.diagonal}{Add stability to \code{AQ^-1A^T} by adding a
+\item{constr.marginal.diagonal}{Add stability to \verb{AQ^-1A^T} by adding a
 small diagonal term. (default \code{epsilon^0.5})}
 
 \item{improved.simplified.laplace}{If \code{TRUE} use an experimental

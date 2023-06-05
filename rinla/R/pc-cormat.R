@@ -3,13 +3,13 @@
 #' @description
 #' Functions to evaluate and sample from the PC prior for a correlation matrix.
 #' 
-#' The parameterisation of a correlation matrix of dimension \code{p} has
-#' \code{dim} parameters: \code{theta} which are in the interval -pi to pi.
+#' The parameterisation of a correlation matrix of dimension `p` has
+#' `dim` parameters: `theta` which are in the interval -pi to pi.
 #' The alternative parameterisation is through the off-diagonal elements
-#' \code{r} of the correlation matrix \code{R}. The functions
-#' \code{inla.pc.cormat.<A>2<B>} convert between parameterisations \code{<A>}
-#' to parameterisations \code{<B>}, where both \code{<A>} and \code{<B>} are
-#' one of \code{theta}, \code{r} and \code{R}, and \code{p} and \code{dim}.
+#' `r` of the correlation matrix `R`. The functions
+#' `inla.pc.cormat.<A>2<B>` convert between parameterisations `<A>`
+#' to parameterisations `<B>`, where both `<A>` and `<B>` are
+#' one of `theta`, `r` and `R`, and `p` and `dim`.
 #' 
 #' @aliases inla.pc.cormat inla.pc.cormat.dim2p cormat.dim2p
 #' inla.pc.cormat.p2dim cormat.p2dim inla.pc.cormat.theta2R cormat.theta2R
@@ -17,7 +17,7 @@
 #' inla.pc.cormat.R2r cormat.R2r inla.pc.cormat.r2theta cormat.r2theta
 #' inla.pc.cormat.theta2r cormat.theta2r inla.pc.cormat.permute cormat.permute
 #' inla.pc.cormat.rtheta cormat.rtheta inla.pc.cormat.dtheta cormat.dtheta
-#' @param dim The dimension of \code{theta}, the parameterisatin of the
+#' @param dim The dimension of `theta`, the parameterisatin of the
 #' correlation matrix
 #' @param p The dimension the correlation matrix
 #' @param theta A vector of parameters for the correlation matrix
@@ -26,10 +26,10 @@
 #' @param n Number of observations
 #' @param lambda The rate parameter in the prior
 #' @param log Logical. Return the density in natural or log-scale.
-#' @returns \code{inla.pc.cormat.rtheta} generate samples from the prior,
-#' returning a matrix where each row is a sample of \code{theta}.
-#' \code{inla.pc.cormat.dtheta} evaluates the density of \code{theta}.
-#' \code{inla.pc.cormat.permute} randomly permutes a correlation matrix, which
+#' @returns `inla.pc.cormat.rtheta` generate samples from the prior,
+#' returning a matrix where each row is a sample of `theta`.
+#' `inla.pc.cormat.dtheta` evaluates the density of `theta`.
+#' `inla.pc.cormat.permute` randomly permutes a correlation matrix, which
 #' is useful if an exchangable sample of a correlation matrix is required.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

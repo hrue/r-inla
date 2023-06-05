@@ -4,20 +4,20 @@
 #' standarized Student-t distribution
 #' 
 #' These functions implements the PC-prior for the dof in a standarized
-#' Student-t distribution (ie. with unit variance and \code{dof} > 2).  Either
-#' \code{lambda}, or \code{u} AND \code{alpha} must be given.  Due the internal
-#' tabulation, \code{dof} must be larger than 2.0025.
+#' Student-t distribution (ie. with unit variance and `dof` > 2).  Either
+#' `lambda`, or `u` AND `alpha` must be given.  Due the internal
+#' tabulation, `dof` must be larger than 2.0025.
 #' 
 #' @aliases pc.ddof inla.pc.ddof pc.t pc.dof inla.pc.t inla.pc.dof
 #' @param dof Degrees of freedom
 #' @param log Logical. Return the density or the log-density
-#' @param lambda The optional value of \code{lambda}, instead of defining it
-#' implicitely through \code{u} and \code{alpha}
-#' @param u The upper value of dof used to elicitate \code{lambda},
-#' \code{Prob(dof < u) = alpha}
-#' @param alpha The probability \code{alpha} used to elicitate \code{lambda}
-#' @returns \code{inla.pc.ddof} returns the prior density for given
-#' \code{dof}.
+#' @param lambda The optional value of `lambda`, instead of defining it
+#' implicitely through `u` and `alpha`
+#' @param u The upper value of dof used to elicitate `lambda`,
+#' `Prob(dof < u) = alpha`
+#' @param alpha The probability `alpha` used to elicitate `lambda`
+#' @returns `inla.pc.ddof` returns the prior density for given
+#' `dof`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 
 #' @name pc.ddof

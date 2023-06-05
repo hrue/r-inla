@@ -122,7 +122,7 @@ returned using argument \code{selection} in \code{inla}.
 
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Cristian Chiuchiolo and Havard Rue \email{hrue@r-inla.org}

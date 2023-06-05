@@ -1,27 +1,27 @@
-#' Construct a neighbour-matrix from a \code{graph}
+#' Construct a neighbour-matrix from a `graph`
 #' 
-#' Construct a neighbour-matrix from a \code{graph} and disaply it
+#' Construct a neighbour-matrix from a `graph` and disaply it
 #' 
 #' 
 #' @aliases graph2matrix inla.graph2matrix spy inla.spy
-#' @param graph An \code{inla.graph}-object, a (sparse) symmetric matrix, a
+#' @param graph An `inla.graph`-object, a (sparse) symmetric matrix, a
 #' filename containing the graph, or a list or collection of characters and/or
 #' numbers defining the graph.
 #' @param reordering A possible reordering. Typical the one obtained from a
-#' \code{inla}-call, \code{result$misc$reordering}, or the result of
-#' \code{inla.qreordering}.
-#' @param factor A scaling of the \code{inla.graph}-object to reduce the size.
-#' @param max.dim Maximum dimension of the \code{inla.graph}-object plotted; if
-#' \code{missing(factor)} and \code{max.dim} is set, then \code{factor} is
-#' computed automatically to give the given \code{max.dim}.
-#' @param ... Additional arguments to \code{inla.read.graph()}
-#' @return \code{inla.graph2matrix} returns a sparse symmetric matrix where the
-#' non-zero pattern is defined by the \code{graph}.  The \code{inla.spy}
-#' function, plots a binary image of a \code{graph}. The \code{reordering}
-#' argument is typically the reordering used by \code{inla}, found in
-#' \code{result$misc$reordering}.
+#' `inla`-call, `result$misc$reordering`, or the result of
+#' `inla.qreordering`.
+#' @param factor A scaling of the `inla.graph`-object to reduce the size.
+#' @param max.dim Maximum dimension of the `inla.graph`-object plotted; if
+#' `missing(factor)` and `max.dim` is set, then `factor` is
+#' computed automatically to give the given `max.dim`.
+#' @param ... Additional arguments to `inla.read.graph()`
+#' @return `inla.graph2matrix` returns a sparse symmetric matrix where the
+#' non-zero pattern is defined by the `graph`.  The `inla.spy`
+#' function, plots a binary image of a `graph`. The `reordering`
+#' argument is typically the reordering used by `inla`, found in
+#' `result$misc$reordering`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla.read.graph}}, \code{inla.qreordering}
+#' @seealso [inla.read.graph()], `inla.qreordering`
 #' @examples
 #' 
 #' n = 50

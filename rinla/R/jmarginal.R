@@ -1,40 +1,40 @@
 #' Sample, transform and evaluate from a joint marginal approximation
 #' 
 #' Sample, transform and evalue from from a joint marginal approximation as
-#' returned using argument \code{selection} in \code{inla}.
+#' returned using argument `selection` in `inla`.
 #' 
 #' 
 #' @aliases inla.joint.marginal inla.joint.marginal.eval joint.marginal
 #' joint.marginal.eval rjmarginal rjmarginal.eval inla.rjmarginal
 #' inla.rjmarginal.eval inla.tjmarginal tjmarginal inla.1djmarginal 1djmarginal
 #' @param n The number of samples
-#' @param jmarginal A marginal object given either by a \code{inla} object or
-#' \code{result$selection}
-#' @param constr Optional linear constraints; see \code{?INLA::f} and argument
-#' \code{extraconstr}
+#' @param jmarginal A marginal object given either by a `inla` object or
+#' `result$selection`
+#' @param constr Optional linear constraints; see `?INLA::f` and argument
+#' `extraconstr`
 #' @param fun A function which is evaluated for each sample, similar to
-#' \code{inla.posterior.sample.eval}: please see the documentation for this
+#' `inla.posterior.sample.eval`: please see the documentation for this
 #' functions for details.
 #' @param samples The samples, as in the form of the output from
-#' \code{inla.rjmarginal}
+#' `inla.rjmarginal`
 #' @param A A matrix used for the linear combination
 #' @param ... Arguments passed on to other methods (printing and summarising)
 #' @returns THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
 #' 
-#' \code{inla.rjmarginal} returns a list with the samples in \code{samples}
-#' (matrix) and the corresponding log-densities in \code{log.density} (vector).
-#' Each column in \code{samples} contains one sample.
+#' `inla.rjmarginal` returns a list with the samples in `samples`
+#' (matrix) and the corresponding log-densities in `log.density` (vector).
+#' Each column in `samples` contains one sample.
 #' 
-#' \code{inla.rjmarginal.eval} returns a matrix, where each row is the (vector)
+#' `inla.rjmarginal.eval` returns a matrix, where each row is the (vector)
 #' function evaluated at each sample.
 #' 
-#' \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear
-#' combination defined by the matrix \code{A}.
+#' `inla.tjmarginal` returns a `inla.jmarginal`-object of the linear
+#' combination defined by the matrix `A`.
 #' 
-#' \code{inla.1djmarginal} return the marginal densities from a joint
+#' `inla.1djmarginal` return the marginal densities from a joint
 #' approximation.
 #' @author Cristian Chiuchiolo and Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' @examples
 #' 
 #'  n = 10

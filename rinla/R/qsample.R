@@ -4,56 +4,56 @@
 #' 
 #' 
 #' @aliases inla.qsample qsample
-#' @param n Number of samples. Only used if \code{missing(sample)}
+#' @param n Number of samples. Only used if `missing(sample)`
 #' @param Q The precision matrix or a filename containing it.
 #' @param b The linear term
 #' @param mu The mu term
 #' @param sample A matrix of optional samples where each column is a sample. If
 #' set, then evaluate the log-density for each sample only.
-#' @param constr Optional linear constraints; see \code{?INLA::f} and argument
-#' \code{extraconstr}
+#' @param constr Optional linear constraints; see `?INLA::f` and argument
+#' `extraconstr`
 #' @param reordering The type of reordering algorithm to be used for
-#' \code{TAUCS}; either one of the names listed in \code{inla.reorderings()} or
-#' the output from \code{inla.qreordering(Q)}.  The default is "auto" which try
+#' `TAUCS`; either one of the names listed in `inla.reorderings()` or
+#' the output from `inla.qreordering(Q)`.  The default is "auto" which try
 #' several reordering algorithm and use the best one for this particular
 #' matrix.
-#' @param seed Control the RNG. If \code{seed=0L} then GMRFLib will set the
+#' @param seed Control the RNG. If `seed=0L` then GMRFLib will set the
 #' seed intelligently/at 'random', and this is and should be the default
-#' behaviour.  If \code{seed < 0L} then the saved state of the RNG will be
+#' behaviour.  If `seed < 0L` then the saved state of the RNG will be
 #' reused if possible, otherwise, GMRFLib will set the seed intelligently/at
-#' 'random'.  If \code{seed > 0L} then this value is used as the seed for the
+#' 'random'.  If `seed > 0L` then this value is used as the seed for the
 #' RNG.
 #' 
-#' PLEASE NOTE1: If \code{seed!=0} then the computations will run in serial
-#' mode, over-riding whatever is set in \code{num.threads} (a warning might be
+#' PLEASE NOTE1: If `seed!=0` then the computations will run in serial
+#' mode, over-riding whatever is set in `num.threads` (a warning might be
 #' issued).
 #' 
 #' PLEASE NOTE2: If the PARDISO sparse matrix library is used, continuity of
 #' the samples with respect to small changes in the precision matrix, can be
 #' expected but is not guaranteed. If this feature is required, please use the
 #' TAUCS sparse matrix library.
-#' @param logdens If \code{TRUE}, compute also the log-density of each sample.
+#' @param logdens If `TRUE`, compute also the log-density of each sample.
 #' Note that the output format then change.
-#' @param compute.mean If \code{TRUE}, compute also the (constrained) mean.
+#' @param compute.mean If `TRUE`, compute also the (constrained) mean.
 #' Note that the output format then change.
-#' @param num.threads Maximum number of threads the \code{inla}-program will
+#' @param num.threads Maximum number of threads the `inla`-program will
 #' use, or as 'A:B' defining the number threads in the outer (A) and inner (B)
-#' layer for nested parallelism.  \code{seed!=0} requires serial comptuations.
-#' @param selection A vector of indices of each sample to return. \code{NULL}
+#' layer for nested parallelism.  `seed!=0` requires serial comptuations.
+#' @param selection A vector of indices of each sample to return. `NULL`
 #' means return the whole sample.  (Note that the log-density retured, is for
-#' the whole sample.)  The use of \code{selection} cannot be combined with the
-#' use of \code{sample}.
+#' the whole sample.)  The use of `selection` cannot be combined with the
+#' use of `sample`.
 #' @param verbose Logical. Run in verbose mode or not.
 #' @param .debug Logical. Internal debug-mode.
 #' @return The log-density has form -1/2(x-mu)^T Q (x-mu) + b^T x
 #' 
-#' If \code{logdens} is \code{FALSE}, then \code{inla.qsample} returns the
-#' samples in a matrix, where each column is a sample.  If \code{logdens} or
-#' \code{compute.mean} is \code{TRUE}, then a list with names \code{sample},
-#' \code{logdens} and \code{mean} is returned. The samples are stored in the
-#' matrix \code{sample} where each column is a sample, and the log densities of
-#' each sample are stored as the vector \code{logdens}.  The mean (include
-#' corrections for the constraints, if any) is store in the vector \code{mean}.
+#' If `logdens` is `FALSE`, then `inla.qsample` returns the
+#' samples in a matrix, where each column is a sample.  If `logdens` or
+#' `compute.mean` is `TRUE`, then a list with names `sample`,
+#' `logdens` and `mean` is returned. The samples are stored in the
+#' matrix `sample` where each column is a sample, and the log densities of
+#' each sample are stored as the vector `logdens`.  The mean (include
+#' corrections for the constraints, if any) is store in the vector `mean`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 

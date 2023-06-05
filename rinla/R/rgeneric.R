@@ -6,24 +6,24 @@
 #' @aliases rgeneric rgeneric.define inla.rgeneric.define rgeneric.ar1.model
 #' inla.rgeneric.ar1.model rgeneric.iid.model inla.rgeneric.iid.model
 #' rgeneric.wrapper inla.rgeneric.wrapper rgeneric.q inla.rgeneric.q
-#' @param model The definition of the model; see \code{inla.rgeneric.ar1.model}
+#' @param model The definition of the model; see `inla.rgeneric.ar1.model`
 #' @param rmodel The rgeneric model-object, the output of
-#' \code{inla.rgeneric.define}
+#' `inla.rgeneric.define`
 #' @param debug Logical. Turn on/off debugging
 #' @param compile Logical. Compile the definition of the model or not.
-#' @param optimize Logical. With this option \code{TRUE}, then \code{model} pass
-#' only the values of \code{Q} and not the whole matrix.  Please see the
-#' vignette for details and \code{inla.rgeneric.ar1.model.opt} for an example.
+#' @param optimize Logical. With this option `TRUE`, then `model` pass
+#' only the values of `Q` and not the whole matrix.  Please see the
+#' vignette for details and `inla.rgeneric.ar1.model.opt` for an example.
 #' @param cmd An allowed request
 #' @param theta Values of theta
 #' @param ... Named list of variables that defines the environment of
-#' \code{model}
+#' `model`
 #' @param debug Logical. Enable debug output
-#' @returns This allows a latent model to be defined in \code{R}.  See
-#' \code{inla.rgeneric.ar1.model} and \code{inla.rgeneric.iid.model} and the
+#' @returns This allows a latent model to be defined in `R`.  See
+#' `inla.rgeneric.ar1.model` and `inla.rgeneric.iid.model` and the
 #' documentation for worked out examples of how to define latent models in this
 #' way.  This will be somewhat slow and is intended for special cases and
-#' protyping. The function \code{inla.rgeneric.wrapper} is for internal use
+#' protyping. The function `inla.rgeneric.wrapper` is for internal use
 #' only.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 

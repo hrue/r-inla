@@ -3,20 +3,20 @@
 
 #' Upgrade the INLA-package
 #' 
-#' Functions to upgrade the \code{INLA}-package to the current version.
+#' Functions to upgrade the `INLA`-package to the current version.
 #' 
 #' 
 #' @aliases inla.upgrade inla.update
 #' @param lib Location to install the library.
-#' @param testing If \code{TRUE}, then look for a test-version if the
+#' @param testing If `TRUE`, then look for a test-version if the
 #' INLA-package.
-#' @param ask same argument as in \code{update.packages}
-#' @return \code{inla.upgrade} will update the INLA package to the current
-#' version, and \code{inla.update} do the same for backward compatibility. This
-#' function is simple wrapper for \code{update.packages} using the INLA
+#' @param ask same argument as in `update.packages`
+#' @return `inla.upgrade` will update the INLA package to the current
+#' version, and `inla.update` do the same for backward compatibility. This
+#' function is simple wrapper for `update.packages` using the INLA
 #' repository.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{update.packages}
+#' @seealso `update.packages`
 #' @rdname upgrade
 #' @export
 `inla.update` <- function(lib = NULL, testing = FALSE, ask = TRUE) {

@@ -6,18 +6,18 @@
 #' @aliases link inla.link
 #' @param x The argument. A numeric vector.
 #' @param df The degrees of freedom for the Student-t
-#' @param inverse Logical. Use the link (\code{inverse=FALSE}) or its inverse
-#' (\code{inverse=TRUE})
+#' @param inverse Logical. Use the link (`inverse=FALSE`) or its inverse
+#' (`inverse=TRUE`)
 #' @param intercept The quantile level for the intercept in the Skew-Normal
 #' link
-#' @param skew The skewness in the Skew-Normal.  Not both of \code{skew} and
-#' \code{a} can be given.
-#' @param a The \code{a}-paraeter in the Skew-Normal.  Not both of \code{skew}
-#' and \code{a} can be given.
+#' @param skew The skewness in the Skew-Normal.  Not both of `skew` and
+#' `a` can be given.
+#' @param a The `a`-paraeter in the Skew-Normal.  Not both of `skew`
+#' and `a` can be given.
 #' @param quantile The quantile level for quantile links
 #' @return Return the values of the link-function or its inverse.
-#' @note The \code{inv}-functions are redundant, as \code{inla.link.invlog(x) =
-#' inla.link.log(x, inverse=TRUE)} and so on, but they are simpler to use a
+#' @note The `inv`-functions are redundant, as `inla.link.invlog(x) =
+#' inla.link.log(x, inverse=TRUE)` and so on, but they are simpler to use a
 #' arguments to other functions.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 

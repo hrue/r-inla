@@ -14,8 +14,8 @@
 
 #' Estimate posterior distributions of fitted lambda values
 #' 
-#' For use with \code{'nmix'} and \code{'nmixnb'} models. This function takes
-#' the information contained in an object returned by \code{inla()} and uses
+#' For use with `'nmix'` and `'nmixnb'` models. This function takes
+#' the information contained in an object returned by `inla()` and uses
 #' the contents to create fitted lambda values using the linear predictor for
 #' log(lambda), the input covariate values, and samples from the posteriors of
 #' the model hyperparameters. Fitted values from the linear predictor are
@@ -23,38 +23,38 @@
 #' 
 #' 
 #' @aliases inla.nmix.lambda.fitted nmix.lambda.fitted inla.nmix.fitted
-#' @param result The output object from a call to \code{inla()}, where the
-#' family argument has been set to \code{'nmix'} or \code{'nmixnb'}. For the
-#' function to work, the call to \code{inla()} should also include the argument
-#' \code{control.compute=list(config = TRUE))}.
+#' @param result The output object from a call to `inla()`, where the
+#' family argument has been set to `'nmix'` or `'nmixnb'`. For the
+#' function to work, the call to `inla()` should also include the argument
+#' `control.compute=list(config = TRUE))`.
 #' @param sample.size The size of the sample from the posteriors of the model
 #' hyperparameters.  This sample size ends up being the size of the estimated
 #' posterior for a fitted lambda value.  Default is 1000. Larger values are
 #' recommended.
 #' @param return.posteriors A logical value for whether or not to return the
-#' full estimated posteriors for each fitted value (\code{TRUE}), or just a
-#' summary of the posteriors (\code{FALSE}). Default is \code{FALSE}.
-#' @param scale A character string, where the default string, \code{"exp"},
+#' full estimated posteriors for each fitted value (`TRUE`), or just a
+#' summary of the posteriors (`FALSE`). Default is `FALSE`.
+#' @param scale A character string, where the default string, `"exp"`,
 #' causes values from the linear predictor to be exponentiated before being
-#' returned. The string, \code{"log"}, causes values to be returned on the
-#' \code{log(lambda)} scale.
+#' returned. The string, `"log"`, causes values to be returned on the
+#' `log(lambda)` scale.
 #' @return \item{fitted.summary}{A data frame with summaries of estimated
 #' posteriors of fitted lambda values. The number of rows equals the number of
-#' rows in the data used to create the \code{'nmix'} or \code{'nmixnb'} model.
+#' rows in the data used to create the `'nmix'` or `'nmixnb'` model.
 #' There are six columns of summary statistics for each estimated posterior.
-#' Columns include an \code{index}, \code{mean.lambda}, \code{sd.lambda},
-#' \code{quant025.lambda}, \code{median.lambda}, \code{quant975.lambda}, and
-#' \code{mode.lambda}.}
+#' Columns include an `index`, `mean.lambda`, `sd.lambda`,
+#' `quant025.lambda`, `median.lambda`, `quant975.lambda`, and
+#' `mode.lambda`.}
 #' 
 #' \item{fitted.posteriors}{A data frame containing samples that comprise the
 #' full estimated posteriors of fitted values. The number of rows equals the
-#' number of rows in the data used to create the \code{'nmix'} or
-#' \code{'nmixnb'} model. The number of columns equals one plus the number of
-#' samples specified by the \code{sample.size} argument.}
+#' number of rows in the data used to create the `'nmix'` or
+#' `'nmixnb'` model. The number of columns equals one plus the number of
+#' samples specified by the `sample.size` argument.}
 #' @note This function is experimental.
 #' @author Tim Meehan <tmeehan@@audubon.org>
 #' @references See documentation for families "nmix" and "nmixmb":
-#' \code{inla.doc("nmix")}
+#' `inla.doc("nmix")`
 #' @examples
 #' 
 #' ## an example analysis of an N-mixture model using simulated data

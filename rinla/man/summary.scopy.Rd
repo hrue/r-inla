@@ -17,7 +17,7 @@ and argument \code{extraconstr}}
 \item{by}{The resolution of the results, in the scale where distance between
 two nearby locations is 1}
 
-\item{range}{The range of the locations, in \code{(from, to)}}
+\item{range}{The range of the locations, in \verb{(from, to)}}
 }
 \value{
 A \code{data.frame} with locations, mean and stdev.  if \code{name}

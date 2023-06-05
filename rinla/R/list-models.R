@@ -2,16 +2,16 @@
 #' 
 #' @description
 #' List available model components, likelihoods, priors, etc.  To read specific
-#' documentation for the individual elements, use \code{\link{inla.doc}}.
+#' documentation for the individual elements, use [inla.doc()].
 #' 
-#' The list is \code{cat}'ed with \code{...} arguments.
+#' The list is `cat`'ed with `...` arguments.
 #' 
 #' This function is EXPERIMENTAL.
 #' 
 #' @aliases inla.list.models list.models
-#' @param section The section(s) to list, missing \code{section} will list all
-#' sections.  \code{names(inla.models())} lists available sections.
-#' @param ... Additional argument to \code{cat}
+#' @param section The section(s) to list, missing `section` will list all
+#' sections.  `names(inla.models())` lists available sections.
+#' @param ... Additional argument to `cat`
 #' @return Nothing is returned
 #' @author Havard Rue
 #' @examples
