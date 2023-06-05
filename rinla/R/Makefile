@@ -17,7 +17,7 @@ all: TAGS make-man-pages.timestamp ../NAMESPACE
 roxygen: ../NAMESPACE.roxygen
 homebrew: ../NAMESPACE.ours
 
-make-man-pages.timestamp: $(wildcard *.R) ../man/models.Rd ../R/models_documentation.R
+make-man-pages.timestamp: $(wildcard *.R) ../R/models_documentation.R
 	./make-man-pages $(R)
 	touch $@
 
@@ -31,19 +31,20 @@ TAGS : $(wildcard *.R)
 	$(RR) -e 'library(utils); rtags(path=".", ofile="TAGS")'
 
 
-## need option keep.source otherwise there is no attribute 'source'!!!!
-../man/models.Rd: inlaEnv.R models.R models-generate.R utils.R version.R
-	{ \
-	  echo 'options(keep.source=TRUE)';\
-	  echo 'source("inlaEnv.R")';\
-	  echo 'source("models.R")';\
-	  echo 'source("models-generate.R")';\
-	  echo 'source("utils.R")';\
-	  echo 'source("version.R")';\
-	  echo 'inla.models.generate.Rd("../man/models.Rd")';\
-	} | $(RR)
+### need option keep.source otherwise there is no attribute 'source'!!!!
+#../man/models.Rd: inlaEnv.R models.R models-generate.R utils.R version.R
+#	{ \
+#	  echo 'options(keep.source=TRUE)';\
+#	  echo 'source("inlaEnv.R")';\
+#	  echo 'source("models.R")';\
+#	  echo 'source("models-generate.R")';\
+#	  echo 'source("utils.R")';\
+#	  echo 'source("version.R")';\
+#	  echo 'inla.models.generate.Rd("../man/models.Rd")';\
+#	} | $(RR)
 
-# Experimental method, not currently used
+# Replacement for old models.Rd generator. This generates roxygen documentation
+# that models.Rd is then generated from.
 models_doc: ../R/models_documentation.R
 ../R/models_documentation.R: inlaEnv.R models.R models-generate.R utils.R version.R
 	{ \
