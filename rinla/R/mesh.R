@@ -4154,7 +4154,7 @@ inla.diameter.inla.mesh.lattice <- function(x, ...) {
 #' [inla.mesh.1d()] objects.
 #'
 #'
-#' @aliases inla.mesh.fem inla.mesh.1d.fem
+#' @aliases inla.mesh.fem
 #' @param mesh An [inla.mesh()] or [inla.mesh.1d()] object.
 #' @param order The model order.
 #' @return A list of sparse matrices based on basis functions `psi_i`:
@@ -4163,6 +4163,7 @@ inla.diameter.inla.mesh.lattice <- function(x, ...) {
 #' \item{g2 }{`g2 = g1 * c0^-1 * g1`} \item{gk }{`gk = g1 * (c0^-1 *
 #' g1)^(k-1)`, up to and including `k=order`}
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
+#' @seealso [inla.mesh.fem.1d()]
 #' @export inla.mesh.fem
 inla.mesh.fem <- function(mesh, order = 2) {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")

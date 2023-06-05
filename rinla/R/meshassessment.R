@@ -15,31 +15,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Only one function is exported:
-## Export: inla.mesh.assessment
-
-## !\name{inla.mesh.assessment}
-## !\alias{inla.mesh.assessment}
-## !\title{Interactive mesh building and diagnostics}
-## !\description{Assess the finite element
-## !  approximation errors in a mesh for interactive R sessions.
-## !  More detailed assessment tools are in \code{\link{meshbuilder}}.
-## !}
-## !\usage{
-## !inla.mesh.assessment(mesh)
-## !}
-## !\author{Finn Lindgren \email{finn.lindgren@gmail.com}}
-## !\seealso{inla.mesh.2d, inla.mesh.create, meshbuilder}
-## !\examples{
-## !bnd <- inla.mesh.segment(cbind(c(0, 10, 10, 0, 0),
-## !                               c(0, 0, 10, 10, 0)), bnd = TRUE)
-## !mesh <- inla.mesh.2d(boundary = bnd, max.edge = 1)
-## !out <- inla.mesh.assessment(mesh, spatial.range = 3, alpha = 2)
-## !}
-
-
-
-
 
 #' Interactive mesh building and diagnostics
 #'

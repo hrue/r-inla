@@ -7,8 +7,7 @@ NULL
 #' `'spde2'` model.
 #' 
 #' 
-#' @aliases inla.spde2.generic inla.spde2 inla.spde2.theta2phi0
-#' inla.spde2.theta2phi1 inla.spde2.theta2phi2
+#' @aliases inla.spde2.generic inla.spde2
 #' @param M0 The symmetric `M0` matrix.
 #' @param M1 The square `M1` matrix.
 #' @param M2 The symmetric `M2` matrix.

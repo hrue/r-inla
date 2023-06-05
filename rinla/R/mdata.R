@@ -52,9 +52,9 @@
 #' @rdname mdata
 #' @method print inla.mdata
 #' @export
-`print.inla.mdata` <- function(object, ...) {
-    cat("inla.cols = ", attr(object, "inla.ncols", exact = TRUE), "\n")
-    print(as.data.frame(unclass(object)), ...)
+`print.inla.mdata` <- function(x, ...) {
+    cat("inla.cols = ", attr(x, "inla.ncols", exact = TRUE), "\n")
+    print(as.data.frame(unclass(x)), ...)
 }
 
 #' @rdname mdata

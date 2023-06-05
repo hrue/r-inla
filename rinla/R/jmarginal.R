@@ -225,13 +225,13 @@
     return(ret)
 }
 
-`print.inla.jmarginal` <- function(x) {
+`print.inla.jmarginal` <- function(x, ...) {
     x$.private <- NULL
     class(x) <- class(list())
     print(x)
 }
 
-`summary.inla.jmarginal` <- function(object) {
+`summary.inla.jmarginal` <- function(object, ...) {
     inla.require("sn", stop.on.error = TRUE)
     mode.sn <- function(xi, omega, alpha) {
         med <- sn::qsn(0.5, xi, omega, alpha)
@@ -265,7 +265,7 @@
     return(ret)
 }
 
-`print.summary.inla.jmarginal` <- function(x) {
+`print.summary.inla.jmarginal` <- function(x, ...) {
     print(x$msg)
     print(as.matrix(x$matrix))
     return(invisible())

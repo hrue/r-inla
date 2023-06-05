@@ -10,7 +10,7 @@
 \usage{
 inla.mdata(y, ...)
 
-\method{print}{inla.mdata}(object, ...)
+\method{print}{inla.mdata}(x, ...)
 
 as.inla.mdata(object)
 
@@ -21,9 +21,9 @@ is.inla.mdata(object)
 
 \item{...}{Additional vectors/matrics of same length as \code{y}}
 
-\item{object}{Any \code{R}-object}
-
 \item{x}{An mdata object}
+
+\item{object}{Any \code{R}-object}
 }
 \value{
 An object of class \code{inla.mdata}.  There is method for

@@ -3,9 +3,6 @@
 \name{inla.spde2.generic}
 \alias{inla.spde2.generic}
 \alias{inla.spde2}
-\alias{inla.spde2.theta2phi0}
-\alias{inla.spde2.theta2phi1}
-\alias{inla.spde2.theta2phi2}
 \title{Generic spde2 model creation.}
 \usage{
 inla.spde2.generic(
