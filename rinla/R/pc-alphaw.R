@@ -1,23 +1,23 @@
-#' Utility functions for the PC prior for the \code{alpha} parameter in the
+#' Utility functions for the PC prior for the `alpha` parameter in the
 #' Weibull likelihood
 #' 
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC
-#' prior for the \code{alpha} parameter in the Weibull likelihood
+#' prior for the `alpha` parameter in the Weibull likelihood
 #' 
-#' This gives the PC prior for the \code{alpha} parameter for the Weibull
-#' likelihood, where \code{alpha=1} is the base model.
+#' This gives the PC prior for the `alpha` parameter for the Weibull
+#' likelihood, where `alpha=1` is the base model.
 #' 
 #' @aliases inla.pc.alphaw pc.alphaw pc.ralphaw inla.pc.ralphaw pc.dalphaw
 #' inla.pc.dalphaw pc.palphaw inla.pc.palphaw pc.qalphaw inla.pc.qalphaw
 #' @param n Number of observations
 #' @param lambda The rate parameter in the PC-prior
-#' @param alpha Vector of evaluation points, where \code{alpha>0}.
+#' @param alpha Vector of evaluation points, where `alpha>0`.
 #' @param log Logical. Return the density in natural or log-scale.
 #' @param p Vector of probabilities
 #' @param q Vector of quantiles
-#' @returns \code{inla.pc.dalphaw} gives the density, \code{inla.pc.palphaw}
-#' gives the distribution function, \code{inla.pc.qalphaw} gives the quantile
-#' function, and \code{inla.pc.ralphaw} generates random deviates.
+#' @returns `inla.pc.dalphaw` gives the density, `inla.pc.palphaw`
+#' gives the distribution function, `inla.pc.qalphaw` gives the quantile
+#' function, and `inla.pc.ralphaw` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.alphaw")
 #' @examples

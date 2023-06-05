@@ -21,7 +21,7 @@ for the hyperparameters.  Otherwise, start from the same configuration as
 for \code{object}.  The returned value is an \code{inla}-object.
 }
 \description{
-Rerun \code{\link{inla}} on an inla-object (output from \code{link{inla}})
+Rerun \code{\link[=inla]{inla()}} on an inla-object (output from \code{link{inla}})
 }
 \examples{
 
@@ -30,5 +30,5 @@ r = inla.rerun(r)
 
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }

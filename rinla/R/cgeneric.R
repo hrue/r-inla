@@ -7,8 +7,8 @@
 #' inla.cgeneric.q
 #' @param model The name of the model function
 #' @param cmodel The name of a cgeneric model-object (output from
-#' \code{inla.cgeneric.define}
-#' @param shlib Name of the compiled object-file with \code{model}
+#' `inla.cgeneric.define`
+#' @param shlib Name of the compiled object-file with `model`
 #' @param n The size of the model
 #' @param debug Logical. Turn on/off debugging
 #' @param ... Additional arguments, required by `inla.cgeneric.define()` to be named arguments

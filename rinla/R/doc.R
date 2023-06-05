@@ -6,11 +6,11 @@
 #' @aliases inla.doc inla.doc inla.inla.doc
 #' @param what What to view documentation about; name of latent model, name of
 #' prior, etc. (A regular expression.)
-#' @param section An optional section, like \code{names(inla.models())}, to
+#' @param section An optional section, like `names(inla.models())`, to
 #' look for the documentation. If missing, all sections are used.
-#' @param verbose Logical If \code{TRUE} then run in verbose mode
+#' @param verbose Logical If `TRUE` then run in verbose mode
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{www.r-inla.org}
+#' @seealso `www.r-inla.org`
 #' @examples
 #' 
 #' \dontrun{inla.doc("rw2")}

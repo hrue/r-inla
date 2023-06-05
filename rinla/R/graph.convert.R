@@ -18,8 +18,8 @@
 #' @note These are all the same function, and the two different names are due
 #' to backward-compatibility
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla}}, \code{\link{inla.surv}},
-#' \code{\link{hyperpar.inla}}
+#' @seealso [inla()], [inla.surv()],
+#' [hyperpar.inla()]
 #' @keywords graph
 #' 
 #' @name graph.convert

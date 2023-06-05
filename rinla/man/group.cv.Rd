@@ -47,8 +47,7 @@ all data are used.}
 \item{friends}{An optional list of lists of indices to use a friends}
 
 \item{verbose}{Run with \code{verbose} output of some of the internals in
-the calculations. This option will also enable \code{inla(...,
-verbose=TRUE)} if its not enabled already.}
+the calculations. This option will also enable \code{inla(..., verbose=TRUE)} if its not enabled already.}
 
 \item{epsilon}{Two correlations with a difference less than \code{epsilon},
 will be classified as identical.}
@@ -78,7 +77,7 @@ cross-validation. See the vignette for details.
 From a fitted model, compute and add the \code{group.cv}-values
 }
 \seealso{
-\code{\link{control.compute}}
+\code{\link[=control.compute]{control.compute()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

@@ -59,8 +59,7 @@ lattice and the one-dimensional node representation used in \code{inla}.
 }
 \details{
 The mapping from node to lattice follows the default \code{R} behaviour
-(which is column based storage), and \code{as.vector(A)} and \code{matrix(a,
-nrow, ncol)} can be used instead of \code{inla.matrix2vector} and
+(which is column based storage), and \code{as.vector(A)} and \code{matrix(a, nrow, ncol)} can be used instead of \code{inla.matrix2vector} and
 \code{inla.vector2matrix}.
 }
 \examples{

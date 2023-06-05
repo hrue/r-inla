@@ -5,7 +5,7 @@
 #' 
 #' @param package the name of a package, given as a name or literal character
 #' string
-#' @return This function returns the complete path or \code{NULL} if file does
+#' @return This function returns the complete path or `NULL` if file does
 #' not exists
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @rdname external-package

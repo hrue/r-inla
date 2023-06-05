@@ -1,10 +1,10 @@
-#' Utility functions for the PC prior for \code{Gamma(1/a, 1/a)}
+#' Utility functions for the PC prior for `Gamma(1/a, 1/a)`
 #' 
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC
-#' prior for \code{Gamma(1/a, 1/a)}
+#' prior for `Gamma(1/a, 1/a)`
 #' 
-#' This gives the PC prior for the \code{Gamma(1/a, 1/a)} case, where
-#' \code{a=0} is the base model.
+#' This gives the PC prior for the `Gamma(1/a, 1/a)` case, where
+#' `a=0` is the base model.
 #' 
 #' @aliases inla.pc.gamma pc.gamma pc.rgamma inla.pc.rgamma pc.dgamma
 #' inla.pc.dgamma pc.pgamma inla.pc.pgamma pc.qgamma inla.pc.qgamma
@@ -14,9 +14,9 @@
 #' @param log Logical. Return the density in natural or log-scale.
 #' @param p Vector of probabilities
 #' @param q Vector of quantiles
-#' @returns \code{inla.pc.dgamma} gives the density, \code{inla.pc.pgamma}
-#' gives the distribution function, \code{inla.pc.qgamma} gives the quantile
-#' function, and \code{inla.pc.rgamma} generates random deviates.
+#' @returns `inla.pc.dgamma` gives the density, `inla.pc.pgamma`
+#' gives the distribution function, `inla.pc.qgamma` gives the quantile
+#' function, and `inla.pc.rgamma` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.gamma")
 #' @examples

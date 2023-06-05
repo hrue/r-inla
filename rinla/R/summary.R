@@ -1,29 +1,29 @@
 #' Summary for a INLA fit
 #' 
-#' Takes a fitted \code{inla} or \code{surv.inla} object produced by
-#' \code{inla} or \code{surv.inla} and produces a summary from it.
+#' Takes a fitted `inla` or `surv.inla` object produced by
+#' `inla` or `surv.inla` and produces a summary from it.
 #' 
 #' Posterior mean and standard deviation (together with quantiles or cdf) are
 #' printed for the fixed effects in the model.
 #' 
-#' For the random effects the function \code{summary()} prints the posterior
+#' For the random effects the function `summary()` prints the posterior
 #' mean and standard deviations for the hyperparameters
 #' 
-#' If the option \code{short.summary} is set to \code{TRUE} using
-#' \code{inla.setOption}, then a less verbose summary variant will be used,
+#' If the option `short.summary` is set to `TRUE` using
+#' `inla.setOption`, then a less verbose summary variant will be used,
 #' which might be more suitable for Markdown documents.
 #' 
 #' @aliases summary.inla summary.surv.inla print.summary.inla
-#' @param object a fitted \code{inla} object as produced by \code{inla}.
-#' @param x a \code{summary.inla} object produced by \code{summary.inla}
+#' @param object a fitted `inla` object as produced by `inla`.
+#' @param x a `summary.inla` object produced by `summary.inla`
 #' @param digits Integer Number of digits
 #' @param include.lincomb Logcial Include the summary for the the linear
 #' combinations or not
 #' @param ...  other arguments.
-#' @return \code{summary.inla} returns an object of class \code{summary.inla},
+#' @return `summary.inla` returns an object of class `summary.inla`,
 #' a list of components to print.
 #' @author Sara Martino and Havard Rue
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' 
 #' @method summary inla
 #' @rdname summary

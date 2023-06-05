@@ -87,7 +87,7 @@ plot(result, single = TRUE, pdf = TRUE, paper = "a4")
  
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

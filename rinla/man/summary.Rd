@@ -42,7 +42,7 @@ If the option \code{short.summary} is set to \code{TRUE} using
 which might be more suitable for Markdown documents.
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Sara Martino and Havard Rue

@@ -15,12 +15,12 @@ inla.make.lincombs(...)
 \item{...}{Arguments; see examples}
 }
 \value{
-A structure to be passed on to \code{\link{inla}} argument
+A structure to be passed on to \code{\link[=inla]{inla()}} argument
 \code{lincomb}
 }
 \description{
 Create a linear combination or several linear combinations, as input to
-\code{inla(..., lincomb = <lincomb>)}
+\verb{inla(..., lincomb = <lincomb>)}
 }
 \examples{
 

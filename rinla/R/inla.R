@@ -1,24 +1,24 @@
 #' Bayesian analysis of structured additive models
 #' 
-#' \code{inla} performs a full Bayesian analysis of additive models using
+#' `inla` performs a full Bayesian analysis of additive models using
 #' Integrated Nested Laplace approximation
 #' 
 #' 
-#' @param formula A \code{inla} formula like \code{y ~1 + z + f(ind,
-#' model="iid")} + f(ind2, weights, model="ar1") This is much like the formula
-#' for a \code{glm} except that smooth or spatial terms can be added to the
-#' right hand side of the formula.  See \code{\link{f}} for full details and
-#' the web site \url{www.r-inla.org} for several worked out examples. Each
-#' smooth or spatial term specified through \code{f} should correspond to
-#' separate column of the data frame \code{data}.  The response variable,
-#' \code{y} can be a univariate response variable, a list or the output of the
-#' function \code{inla.surf} for survival analysis models.
+#' @param formula A `inla` formula like `y ~1 + z + f(ind,
+#' model="iid")` + f(ind2, weights, model="ar1") This is much like the formula
+#' for a `glm` except that smooth or spatial terms can be added to the
+#' right hand side of the formula.  See [f()] for full details and
+#' the web site <www.r-inla.org> for several worked out examples. Each
+#' smooth or spatial term specified through `f` should correspond to
+#' separate column of the data frame `data`.  The response variable,
+#' `y` can be a univariate response variable, a list or the output of the
+#' function `inla.surf` for survival analysis models.
 #' @param family A string indicating the likelihood family. The default is
-#' \code{gaussian} with identity link. See
-#' \code{names(inla.models()$likelihood)} for a list of possible alternatives
-#' and use \code{\link{inla.doc}} for detailed docs for individual families.
-#' @param contrasts Optional contrasts for the fixed effects; see \code{?lm} or
-#' \code{?glm} for details.
+#' `gaussian` with identity link. See
+#' `names(inla.models()$likelihood)` for a list of possible alternatives
+#' and use [inla.doc()] for detailed docs for individual families.
+#' @param contrasts Optional contrasts for the fixed effects; see `?lm` or
+#' `?glm` for details.
 #' @param data A data frame or list containing the variables in the model.  The
 #' data frame MUST be provided
 #' @param quantiles A vector of quantiles, \eqn{p(0), p(1),\dots}{p(0),
@@ -27,18 +27,18 @@
 #' x(1),\ldots} such that \deqn{\mbox{Prob}(X<x(p))=p}{Prob(X<x)=p}
 #' @param E Known component in the mean for the Poisson likelihoods defined as
 #' \deqn{E_i\exp(\eta_i)}{E exp(eta)} where \deqn{\eta_i}{eta} is the linear
-#' predictor. If not provided it is set to \code{rep(1, n.data)}.
+#' predictor. If not provided it is set to `rep(1, n.data)`.
 #' @param offset This argument is used to specify an a-priori known and fixed
 #' component to be included in the linear predictor during fitting.  This
-#' should be \code{NULL} or a numeric vector of length either one or equal to
-#' the number of cases. One or more \code{offset()} terms can be included in
+#' should be `NULL` or a numeric vector of length either one or equal to
+#' the number of cases. One or more `offset()` terms can be included in
 #' the formula instead or as well, and if both are used, they are combined into
-#' a common offset.  If the \code{A}-matrix is used in the linear predictor
-#' statement \code{control.predictor}, then the \code{offset} given in this
-#' argument is added to \code{eta*}, the linear predictor related to the
-#' observations, as \code{eta* = A eta + offset}, whereas an offset in the
-#' formula is added to \code{eta}, the linear predictor related to the formula,
-#' as \code{eta = ... + offset.formula}. So in this case, the offset defined
+#' a common offset.  If the `A`-matrix is used in the linear predictor
+#' statement `control.predictor`, then the `offset` given in this
+#' argument is added to `eta*`, the linear predictor related to the
+#' observations, as `eta* = A eta + offset`, whereas an offset in the
+#' formula is added to `eta`, the linear predictor related to the formula,
+#' as `eta = ... + offset.formula`. So in this case, the offset defined
 #' here and in the formula has a different meaning and usage.
 #' @param scale Fixed (optional) scale parameters of the precision for Gaussian
 #' and Student-T response models. Default value is `rep(1, n.data)`.
@@ -48,80 +48,80 @@
 #' likelihood is NOT recomputed, so ALL marginals (and the marginal likelihood)
 #' must be interpreted with great care.
 #' @param Ntrials A vector containing the number of trials for the
-#' \code{binomial} likelihood and variantes, or the number of required
-#' successes for the \code{nbinomial2} likelihood. Default value is
-#' \code{rep(1, n.data)}.
+#' `binomial` likelihood and variantes, or the number of required
+#' successes for the `nbinomial2` likelihood. Default value is
+#' `rep(1, n.data)`.
 #' @param strata Fixed (optional) strata indicators for tstrata likelihood
 #' model and similar. The documentation for each likelihood will inform if this
 #' argument is required.
 #' @param lp.scale A vector with same length as the predictor going into the
-#' likelihood with either \code{NA}'s or indices indexing the scaling
-#' coefficients. \code{NA} or a index less or equal to 0 means no scaling. The
+#' likelihood with either `NA`'s or indices indexing the scaling
+#' coefficients. `NA` or a index less or equal to 0 means no scaling. The
 #' priors and properties of the scaling coefficients are set in
-#' \code{control.lp.scale}
+#' `control.lp.scale`
 #' @param link.covariates A vector or matrix with covariates for link functions
-#' @param verbose Boolean indicating if the \code{inla}-program should run in a
-#' verbose mode (default \code{inla.getOption("verbose")})
+#' @param verbose Boolean indicating if the `inla`-program should run in a
+#' verbose mode (default `inla.getOption("verbose")`)
 #' @param lincomb Used to define linear combination of nodes in the latent
 #' field. The posterior distribution of such linear combination is computed by
-#' the \code{inla} function. See vignette \code{Short tutorials from old
-#' www-page} for information on how to define such linear combinations.
+#' the `inla` function. See vignette `Short tutorials from old
+#' www-page` for information on how to define such linear combinations.
 #' @param selection This is a similar argument to the one in
-#' \code{inla.posterior.sample} and follow the same format.  This argument
+#' `inla.posterior.sample` and follow the same format.  This argument
 #' allows to define a subset of the latent field for which to compute an
-#' approximated joint distribution. It will appear in \code{result$selection}.
-#' See also \code{?inla.rjmarginal} and the approriate vignette.
-#' @param control.compute See \code{?control.compute}
-#' @param control.predictor See \code{?control.predictor}
-#' @param control.family See \code{?control.family}
-#' @param control.inla See \code{?control.inla}
-#' @param control.fixed See \code{?control.fixed}
-#' @param control.mode See \code{?control.mode}
-#' @param control.expert See \code{?control.expert}
-#' @param control.hazard See \code{?control.hazard}
-#' @param control.lincomb See \code{?control.lincomb}
-#' @param control.update See \code{?control.update}
-#' @param control.lp.scale See \code{?control.lp.scale}
-#' @param control.pardiso See \code{?control.pardiso}
-#' @param only.hyperparam If \code{TRUE}, then only the hyperparameters are
+#' approximated joint distribution. It will appear in `result$selection`.
+#' See also `?inla.rjmarginal` and the approriate vignette.
+#' @param control.compute See `?control.compute`
+#' @param control.predictor See `?control.predictor`
+#' @param control.family See `?control.family`
+#' @param control.inla See `?control.inla`
+#' @param control.fixed See `?control.fixed`
+#' @param control.mode See `?control.mode`
+#' @param control.expert See `?control.expert`
+#' @param control.hazard See `?control.hazard`
+#' @param control.lincomb See `?control.lincomb`
+#' @param control.update See `?control.update`
+#' @param control.lp.scale See `?control.lp.scale`
+#' @param control.pardiso See `?control.pardiso`
+#' @param only.hyperparam If `TRUE`, then only the hyperparameters are
 #' computed.
-#' @param inla.call The path to, or the name of, the \code{inla}-program. This
-#' is program is installed together with the \code{R}-package, but, for
+#' @param inla.call The path to, or the name of, the `inla`-program. This
+#' is program is installed together with the `R`-package, but, for
 #' example, a native compiled version can be used instead to improve the
 #' performance.
 #' @param inla.arg A string indicating ALL arguments to the 'inla' program and
 #' do not include default arguments. (This is an expert option and not intended
 #' for normal usage.)
-#' @param num.threads Maximum number of threads the \code{inla}-program will
+#' @param num.threads Maximum number of threads the `inla`-program will
 #' use, or as 'A:B' defining the number threads in the outer (A) and inner (B)
 #' layer for nested parallelism.  If B is set to -1, then one can force some
 #' single function evaluations to be perfored in parallel, so
-#' \code{num.threads=4:-1} will locally behave like \code{num.threads=4:1} (if
-#' considered to be more efficient).  If \code{B > 1} then
-#' \code{num.threads=A:B} and \code{num.threads=A:-B} are equivalent.
+#' `num.threads=4:-1` will locally behave like `num.threads=4:1` (if
+#' considered to be more efficient).  If `B > 1` then
+#' `num.threads=A:B` and `num.threads=A:-B` are equivalent.
 #' @param blas.num.threads THIS OPTION IS CURRENTLY NOT IN USE.  (The absolute
-#' value of \code{blas.num.threads} is the maximum number of threads the the
-#' \code{openblas}/\code{mklblas} will use (if available). Value is ignored if
-#' \code{<=0} (then environment variables are used).)
+#' value of `blas.num.threads` is the maximum number of threads the the
+#' `openblas`/`mklblas` will use (if available). Value is ignored if
+#' `<=0` (then environment variables are used).)
 #' @param keep A boolean variable indicating that the working files (ini file,
 #' data files and results files) should be kept. If TRUE and no
-#' \code{working.directory} is specified, the model-files are stored in the
+#' `working.directory` is specified, the model-files are stored in the
 #' current directory called "inla.model" or "inla.model-NUMBER".
 #' @param working.directory A string giving the name of an non-existing
 #' directory where to store the model-files. Sometimes this argument is
-#' required if the temporary directory returned with \code{tempdir()} not
+#' required if the temporary directory returned with `tempdir()` not
 #' writeable or has an encoding that is not supported.
-#' @param silent If equal to 1L or TRUE, then the \code{inla}-program would be
+#' @param silent If equal to 1L or TRUE, then the `inla`-program would be
 #' ``silent''. If equal to 2L, then supress also error messages from the
-#' \code{inla}-program.
-#' @param inla.mode Run \code{inla} in \code{compact}-mode, or the
-#' \code{classic}-mode.  Default is to use the mode set by
-#' \code{inla.getOption("inla.mode")} which is default \code{compact}-mode.
-#' @param safe If \code{TRUE}, then enable possible restarts to improve initial
+#' `inla`-program.
+#' @param inla.mode Run `inla` in `compact`-mode, or the
+#' `classic`-mode.  Default is to use the mode set by
+#' `inla.getOption("inla.mode")` which is default `compact`-mode.
+#' @param safe If `TRUE`, then enable possible restarts to improve initial
 #' values and Hessian if needed.
-#' @param debug If \code{TRUE}, print some debug output.
+#' @param debug If `TRUE`, print some debug output.
 #' @param .parent.frame Internal use only
-#' @returns \code{inla} returns an object of class \code{"inla"}. This is a
+#' @returns `inla` returns an object of class `"inla"`. This is a
 #' list containing at least the following arguments:
 
 #' \item{summary.fixed}{Matrix containing the mean and standard deviation
@@ -132,10 +132,10 @@
 
 #' \item{summary.random}{List of matrices
 #' containing the mean and standard deviation (plus, possibly quantiles and
-#' cdf) of the the smooth or spatial effects defined through \code{f()}.}
+#' cdf) of the the smooth or spatial effects defined through `f()`.}
 
 #' \item{marginals.random}{A list containing the posterior marginal densities
-#' of the random effects defined through \code{f}.}
+#' of the random effects defined through `f`.}
 
 #' \item{summary.hyperpar}{ A
 #' matrix containing the mean and sd (plus, possibly quantiles and cdf) of the
@@ -148,75 +148,75 @@
 #' possibly quantiles and cdf) of the linear predictors \eqn{\eta} in the model
 #' }
 
-#' \item{marginals.linear.predictor}{ If \code{compute=TRUE} in
-#' \code{control.predictor}, a list containing the posterior marginals of the
+#' \item{marginals.linear.predictor}{ If `compute=TRUE` in
+#' `control.predictor`, a list containing the posterior marginals of the
 #' linear predictors \eqn{\eta} in the model.  }
 
 #' \item{summary.fitted.values}{
 #' A matrix containing the mean and sd (plus, possibly quantiles and cdf) of
 #' the fitted values \eqn{g^{-1}(\eta)} obtained by transforming the linear
 #' predictors by the inverse of the link function. This quantity is only
-#' computed if \code{marginals.fitted.values} is computed. Note that if an
-#' observation is \code{NA} then the identity link is used. You can manually
-#' transform a marginal using \code{inla.marginal.transform()} or set the
-#' argument \code{link} in the \code{control.predictor}-list; see
-#' \code{?control.predictor} }
+#' computed if `marginals.fitted.values` is computed. Note that if an
+#' observation is `NA` then the identity link is used. You can manually
+#' transform a marginal using `inla.marginal.transform()` or set the
+#' argument `link` in the `control.predictor`-list; see
+#' `?control.predictor` }
 
 #' \item{marginals.fitted.values}{ If
-#' \code{compute=TRUE} in \code{control.predictor}, a list containing the
+#' `compute=TRUE` in `control.predictor`, a list containing the
 #' posterior marginals of the fitted values \eqn{g^{-1}(\eta)} obtained by
 #' transforming the linear predictors by the inverse of the link function.
-#' Note that if an observation is \code{NA} then the identity link is used. You
-#' can manually transform a marginal using \code{inla.marginal.transform()} or
-#' set the argument \code{link} in the \code{control.predictor}-list; see
-#' \code{?control.predictor} }
+#' Note that if an observation is `NA` then the identity link is used. You
+#' can manually transform a marginal using `inla.marginal.transform()` or
+#' set the argument `link` in the `control.predictor`-list; see
+#' `?control.predictor` }
 
-#' \item{summary.lincomb}{ If \code{lincomb !=
-#' NULL} a list of matrices containing the mean and sd (plus, possibly
+#' \item{summary.lincomb}{ If `lincomb !=
+#' NULL` a list of matrices containing the mean and sd (plus, possibly
 #' quantiles and cdf) of all linear combinations defined.  }
 
-#' \item{marginals.lincomb}{ If \code{lincomb != NULL} a list of posterior
+#' \item{marginals.lincomb}{ If `lincomb != NULL` a list of posterior
 #' marginals of all linear combinations defined.  }
 
 #' \item{selection}{Provide
-#' the approximated joint distribution for the \code{selection}}
+#' the approximated joint distribution for the `selection`}
 
 #' \item{dic}{ If
-#' \code{dic}=\code{TRUE} in \code{control.compute}, the deviance information
-#' criteria and effective number of parameters, otherwise \code{NULL} }
+#' `dic`=`TRUE` in `control.compute`, the deviance information
+#' criteria and effective number of parameters, otherwise `NULL` }
 
-#' \item{cpo}{ If \code{cpo}=\code{TRUE} in \code{control.compute}, a list of
-#' three elements: \code{cpo$cpo} are the values of the conditional predictive
-#' ordinate (CPO), \code{cpo$pit} are the values of the probability integral
-#' transform (PIT) and \code{cpo$failure} indicates whether some assumptions
+#' \item{cpo}{ If `cpo`=`TRUE` in `control.compute`, a list of
+#' three elements: `cpo$cpo` are the values of the conditional predictive
+#' ordinate (CPO), `cpo$pit` are the values of the probability integral
+#' transform (PIT) and `cpo$failure` indicates whether some assumptions
 #' are violated. In short, if `cpo$failure[i] > 0` then some assumption is
 #' violated, the higher the value (maximum 1) the more seriously.  }
 
 #' \item{po}{
-#' If \code{po}=\code{TRUE} in \code{control.compute}, a list of one elements:
-#' \code{po$po} are the values of the predictive ordinate (CPO)
-#' (\code{pi(yi|y)}) }
+#' If `po`=`TRUE` in `control.compute`, a list of one elements:
+#' `po$po` are the values of the predictive ordinate (CPO)
+#' (`pi(yi|y)`) }
 
-#' \item{residuals}{ If \code{residuals}=\code{TRUE} in
-#' \code{control.compute}, a list of standarized residuals are provided, see
-#' \code{?control.compute} for details }
+#' \item{residuals}{ If `residuals`=`TRUE` in
+#' `control.compute`, a list of standarized residuals are provided, see
+#' `?control.compute` for details }
 
 #' \item{waic}{ If
-#' \code{waic}=\code{TRUE} in \code{control.compute}, a list of two elements:
-#' \code{waic$waic} is the Watanabe-Akaike information criteria, and
-#' \code{waic$p.eff} is the estimated effective number of parameters }
+#' `waic`=`TRUE` in `control.compute`, a list of two elements:
+#' `waic$waic` is the Watanabe-Akaike information criteria, and
+#' `waic$p.eff` is the estimated effective number of parameters }
 
-#' \item{mlik}{ If \code{mlik}=\code{TRUE} in \code{control.compute}, the log
+#' \item{mlik}{ If `mlik`=`TRUE` in `control.compute`, the log
 #' marginal likelihood of the model (using two different estimates), otherwise
-#' \code{NULL} }
+#' `NULL` }
 
 #' \item{neffp}{ Expected effective number of parameters in the
 #' model. The standard deviation of the expected number of parameters and the
 #' number of replicas for parameter are also returned}
 
 #' \item{mode}{ A list of
-#' two elements: \code{mode$theta} is the computed mode of the hyperparameters
-#' and \code{mode$x} is the mode of the latent field given the modal value of
+#' two elements: `mode$theta` is the computed mode of the hyperparameters
+#' and `mode$x` is the mode of the latent field given the modal value of
 #' the hyperparameters.  }
 
 #' \item{call}{ The matched call.}
@@ -226,7 +226,7 @@
 
 #' \item{nhyper}{ The number of hyperparameters in the model}
 
-#' \item{cpu.used}{ The cpu time used by the \code{inla} function}
+#' \item{cpu.used}{ The cpu time used by the `inla` function}
 
 #' @author Havard Rue \email{hrue@@r-inla.org} and Sara Martino
 #' @seealso [f()]

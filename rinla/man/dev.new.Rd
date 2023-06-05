@@ -7,14 +7,14 @@
 inla.dev.new(...)
 }
 \arguments{
-\item{...}{Optional arguments to \code{\link{dev.new}}}
+\item{...}{Optional arguments to \code{\link[=dev.new]{dev.new()}}}
 }
 \value{
-The value of \code{\link{dev.new}} if not running RStudio, otherwise
+The value of \code{\link[=dev.new]{dev.new()}} if not running RStudio, otherwise
 \code{NULL}
 }
 \description{
-Open a new device using \code{\link{dev.new}} unless using RStudio
+Open a new device using \code{\link[=dev.new]{dev.new()}} unless using RStudio
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

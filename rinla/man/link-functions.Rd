@@ -118,8 +118,7 @@ Return the values of the link-function or its inverse.
 Define link-functions and its inverse
 }
 \note{
-The \code{inv}-functions are redundant, as \code{inla.link.invlog(x) =
-inla.link.log(x, inverse=TRUE)} and so on, but they are simpler to use a
+The \code{inv}-functions are redundant, as \code{inla.link.invlog(x) = inla.link.log(x, inverse=TRUE)} and so on, but they are simpler to use a
 arguments to other functions.
 }
 \author{

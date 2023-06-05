@@ -1,9 +1,9 @@
 #' @title Describe and check the PARDISO support in R-INLA
 #' 
 #' @description
-#' \code{inla.pardiso()} describes the \code{PARDISO} support in R-INLA, how to
-#' get the license key and enable it in the \code{R-INLA} package.
-#' \code{inla.pardiso.check()} check if the \code{PARDISO} support is working.
+#' `inla.pardiso()` describes the `PARDISO` support in R-INLA, how to
+#' get the license key and enable it in the `R-INLA` package.
+#' `inla.pardiso.check()` check if the `PARDISO` support is working.
 #' 
 #' @name pardiso
 #' @aliases pardiso inla.pardiso inla.pardiso.check

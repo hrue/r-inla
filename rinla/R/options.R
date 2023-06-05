@@ -4,33 +4,33 @@
 #' 
 #' 
 #' @aliases inla.option inla.options inla.setOption inla.getOption
-#' @param ... Option and value, like \code{option=value} or \code{option,
-#' value}; see the Examples
-#' @param option The option to get. If \code{option = NULL} then
-#' \code{inla.getOption} then \code{inla.getOption} will return a named list of
-#' current values, otherwise, \code{option} must be one of
+#' @param ... Option and value, like `option=value` or `option,
+#' value`; see the Examples
+#' @param option The option to get. If `option = NULL` then
+#' `inla.getOption` then `inla.getOption` will return a named list of
+#' current values, otherwise, `option` must be one of
 #' \describe{
 #' \item{inla.call}{The path to the inla-program.}
 #' 
-#' \item{inla.arg}{Additional arguments to \code{inla.call}}
+#' \item{inla.arg}{Additional arguments to `inla.call`}
 #' 
 #' \item{fmesher.call}{The path to the fmesher-program}
 #' 
-#' \item{fmesher.arg}{Additional arguments to \code{fmesher.call}}
+#' \item{fmesher.arg}{Additional arguments to `fmesher.call`}
 #' 
 #' \item{num.threads}{Character string with the number of threads to use as
-#' \code{A:B}, see \code{?inla}}
+#' `A:B`, see `?inla`}
 #' 
 #' \item{blas.num.threads}{Number of threads to use for openblas and mklblas (see
-#' \code{inla} for details)}
+#' `inla` for details)}
 #' 
-#' \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}
-#' (\code{default}) or \code{pardiso}}
+#' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`
+#' (`default`) or `pardiso`}
 #' 
 #' \item{mkl}{Use binaries buildt with Intel MKL?  (If possible)}
 #' 
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
-#' (default \code{TRUE})}
+#' (default `TRUE`)}
 #' 
 #' \item{vecLib}{This option applies to Mac only. If TRUE and mkl=FALSE, link with
 #' vecLib BLAS and LAPACK libs (if available)}
@@ -60,12 +60,12 @@
 #' Cygwin-shell). (Remote computing for Windows only)}
 #' 
 #' \item{show.warning.graph.file}{Give a warning for using the obsolete argument
-#' \code{graph.file} instead of \code{graph}}
+#' `graph.file` instead of `graph`}
 #' 
-#' \item{scale.model.default}{The default value of argument \code{scale.model} which
+#' \item{scale.model.default}{The default value of argument `scale.model` which
 #' optionally scale intrinisic models to have generalized unit average variance}
 #' 
-#' \item{short.summary}{Use a less verbose output for \code{summary}. Useful for
+#' \item{short.summary}{Use a less verbose output for `summary`. Useful for
 #' Markdown documents.}
 #' 
 #' \item{inla.timeout}{The timeout limit, in whole seconds, for calls to the inla
@@ -80,8 +80,8 @@
 #' special geometry regularity. Fractional seconds are rounded up to the
 #' nearest integer.}
 #' 
-#' \item{inla.mode}{Which mode to use in INLA? Default is \code{"compact"}. Other
-#' options are \code{"classic"} and \code{"twostage"}.}
+#' \item{inla.mode}{Which mode to use in INLA? Default is `"compact"`. Other
+#' options are `"classic"` and `"twostage"`.}
 #' }
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

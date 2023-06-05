@@ -70,7 +70,7 @@ inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
 
 }
 \seealso{
-\code{\link{inla.read.graph}}, \code{inla.qreordering}
+\code{\link[=inla.read.graph]{inla.read.graph()}}, \code{inla.qreordering}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

@@ -1,18 +1,18 @@
-#' Computes the mean and stdev for the spline from \code{scopy}
+#' Computes the mean and stdev for the spline from `scopy`
 #' 
 #' This function computes the mean and stdev for the spline function that is
-#' implicite from an \code{scopy} model component
+#' implicite from an `scopy` model component
 #' 
 #' 
 #' @aliases inla.summary.scopy summary.scopy
-#' @param result An \code{inla}-object, ie the output from an \code{inla()}
+#' @param result An `inla`-object, ie the output from an `inla()`
 #' call
-#' @param name The name of the \code{scopy} model component see \code{?inla::f}
-#' and argument \code{extraconstr}
+#' @param name The name of the `scopy` model component see `?inla::f`
+#' and argument `extraconstr`
 #' @param by The resolution of the results, in the scale where distance between
 #' two nearby locations is 1
-#' @param range The range of the locations, in \code{(from, to)}
-#' @return A \code{data.frame} with locations, mean and stdev.  if \code{name}
+#' @param range The range of the locations, in `(from, to)`
+#' @return A `data.frame` with locations, mean and stdev.  if `name`
 #' is not found, NULL is returned.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

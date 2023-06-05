@@ -5,21 +5,21 @@
 #' 
 #' 
 #' @aliases inla.hyperpar hyperpar.inla
-#' @return The object returned is the same as \code{object} but the estimates
+#' @return The object returned is the same as `object` but the estimates
 #' of the hyperparameters are replaced by improved estimates.
 #' @note This function might take a long time or if the number of
-#' hyperparameters in the model is large. If it complains and says \code{I
-#' cannot get enough memory}, try to increase the value of the argument
-#' \code{dz} or decrease \code{diff.logdens}.
+#' hyperparameters in the model is large. If it complains and says `I
+#' cannot get enough memory`, try to increase the value of the argument
+#' `dz` or decrease `diff.logdens`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla}}
-#' @references See the references in \code{inla}
+#' @seealso [inla()]
+#' @references See the references in `inla`
 #' @rdname hyperpar
 #' @export inla.hyperpar
 `inla.hyperpar` <-
     function(
-             #' @param result An object of class \code{inla}, ie a result of a call to
-             #' \code{inla()} in \code{classic} mode
+             #' @param result An object of class `inla`, ie a result of a call to
+             #' `inla()` in `classic` mode
              result,
 
              #' @param skip.configurations A boolean variable; skip configurations if the
@@ -43,7 +43,7 @@
              h = NULL,
 
              #' @param restart A boolean defining whether the optimizer should start again
-             #' to ind the mode or if it should use the mode contained in the \code{object}
+             #' to ind the mode or if it should use the mode contained in the `object`
              restart = FALSE,
 
              #' @param quantiles A vector of quantiles, to compute for each posterior

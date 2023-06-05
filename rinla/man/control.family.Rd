@@ -57,8 +57,7 @@ doing.) The internal scaling of the shape-parameter for the GEV distribution.
 
 \item{cenpoisson.I}{The censoring interval for the censored Poisson}
 
-\item{beta.censor.value}{The censor value for the Beta-likelihood \code{(0
-<= beta.censor.value < 1/2)}}
+\item{beta.censor.value}{The censor value for the Beta-likelihood \verb{(0 <= beta.censor.value < 1/2)}}
 
 \item{variant}{This variable is used to give options for various variants of
 the likelihood,  like chosing different parameterisations for example. See the

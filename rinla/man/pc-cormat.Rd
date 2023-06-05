@@ -81,8 +81,8 @@ The parameterisation of a correlation matrix of dimension \code{p} has
 \code{dim} parameters: \code{theta} which are in the interval -pi to pi.
 The alternative parameterisation is through the off-diagonal elements
 \code{r} of the correlation matrix \code{R}. The functions
-\code{inla.pc.cormat.<A>2<B>} convert between parameterisations \code{<A>}
-to parameterisations \code{<B>}, where both \code{<A>} and \code{<B>} are
+\verb{inla.pc.cormat.<A>2<B>} convert between parameterisations \verb{<A>}
+to parameterisations \verb{<B>}, where both \verb{<A>} and \verb{<B>} are
 one of \code{theta}, \code{r} and \code{R}, and \code{p} and \code{dim}.
 }
 \examples{

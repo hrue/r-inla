@@ -3,18 +3,18 @@
 #' Print the priors used for the hyperparameters
 #' 
 #' This function provides a more human-friendly output of
-#' \code{result$all.hyper} of all the priors used for the hyperparameters.
+#' `result$all.hyper` of all the priors used for the hyperparameters.
 #' Since not all information about the model is encoded in this object, more
 #' hyperparameters than actually used, may be printed. In particular,
-#' \code{group.theta1} is printed even though the argument \code{group} in
-#' \code{f()} is not used. Similarly for spde-models, but the user should know
+#' `group.theta1` is printed even though the argument `group` in
+#' `f()` is not used. Similarly for spde-models, but the user should know
 #' that, for example, only the two first ones are actually used. Hopefully,
 #' this issue will be fixed in the future.
 #' 
 #' @aliases inla.priors.used priors.used
-#' @param result An \code{inla}-object, typically the output from an
-#' \code{inla()}-call
-#' @param digits The \code{digits} argument to the function \code{format()}
+#' @param result An `inla`-object, typically the output from an
+#' `inla()`-call
+#' @param digits The `digits` argument to the function `format()`
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 

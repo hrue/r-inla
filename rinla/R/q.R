@@ -3,39 +3,39 @@
 #' @description
 #' Control and view a remote inla-queue of submitted jobs
 #' 
-#' \code{inla.qstat} show job(s) on the server, \code{inla.qget} fetch the
-#' results (and by default remove the files on the server), \code{inla.qdel}
-#' removes a job on the server and \code{inla.qnuke} remove all jobs on the
-#' server. \code{inla.qlog} fetches the logfile only.
+#' `inla.qstat` show job(s) on the server, `inla.qget` fetch the
+#' results (and by default remove the files on the server), `inla.qdel`
+#' removes a job on the server and `inla.qnuke` remove all jobs on the
+#' server. `inla.qlog` fetches the logfile only.
 #' 
-#' The recommended procedure is to use \code{r=inla(..., inla.call="submit")}
-#' and then do \code{r=inla.qget(r)} at a later stage.  If the job is not
-#' finished, then \code{r} will not be overwritten and this step can be
+#' The recommended procedure is to use `r=inla(..., inla.call="submit")`
+#' and then do `r=inla.qget(r)` at a later stage.  If the job is not
+#' finished, then `r` will not be overwritten and this step can be
 #' repeated.  The reason for this procedure, is that some information usually
 #' stored in the result object does not go through the remote server, hence
 #' have to be appended to the results that are retrieved from the server. Hence
-#' doing \code{r=inla(..., inla.call="submit")} and then later retrive it using
-#' \code{r=inla.qget(1)}, say, then \code{r} does not contain all the usual
+#' doing `r=inla(..., inla.call="submit")` and then later retrive it using
+#' `r=inla.qget(1)`, say, then `r` does not contain all the usual
 #' information.  All the main results are there, but administrative information
-#' which is required to call \code{inla.hyperpar} or \code{inla.rerun} are not
+#' which is required to call `inla.hyperpar` or `inla.rerun` are not
 #' there.
 #' 
 #' @name inla.qstat
 #' @aliases inla.qstat inla.q inla.qget inla.qdel inla.qnuke inla.qlog
 #' summary.inla.q print.inla.q
-#' @param id The job-id which is the output from \code{inla} when the job is
-#' submitted, the job-number or job-name. For \code{inla.qstat}, \code{id} is
+#' @param id The job-id which is the output from `inla` when the job is
+#' submitted, the job-number or job-name. For `inla.qstat`, `id` is
 #' optional and if omitted all the jobs will be listed.
 #' @param remove Logical If FALSE, leave the job on the server after retrival,
 #' otherwise remove it (default).
-#' @param x An \code{inla.q}-object which is the output from \code{inla.qstat}
-#' @param object An \code{inla.q}-object which is the output from
-#' \code{inla.qstat}
+#' @param x An `inla.q`-object which is the output from `inla.qstat`
+#' @param object An `inla.q`-object which is the output from
+#' `inla.qstat`
 #' @param ...  other arguments.
-#' @return \code{inla.qstat} returns an \code{inla.q}-object with information
+#' @return `inla.qstat` returns an `inla.q`-object with information
 #' about current jobs.
 #' @author Havard Rue
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' @examples
 #' 
 #' \dontrun{

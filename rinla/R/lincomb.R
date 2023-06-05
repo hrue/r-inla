@@ -1,13 +1,13 @@
 #' Create linear combinations
 #' 
 #' Create a linear combination or several linear combinations, as input to
-#' \code{inla(..., lincomb = <lincomb>)}
+#' `inla(..., lincomb = <lincomb>)`
 #' 
 #' 
 #' @aliases make.lincomb make.lincombs inla.make.lincomb inla.make.lincombs
 #' @param ... Arguments; see examples
-#' @return A structure to be passed on to \code{\link{inla}} argument
-#' \code{lincomb}
+#' @return A structure to be passed on to [inla()] argument
+#' `lincomb`
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso TODO
 #' @examples

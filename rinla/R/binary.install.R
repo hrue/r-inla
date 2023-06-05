@@ -1,20 +1,20 @@
 #' Install alternative binary builds.
 #' 
-#' Install a new binary for \code{os} unless \code{missing(os)}, for which the
-#' \code{os} is chosen interactively among the available builds.
+#' Install a new binary for `os` unless `missing(os)`, for which the
+#' `os` is chosen interactively among the available builds.
 #' 
 #' @aliases inla.binary.install binary.install
-#' @param os If \code{os} is given, install binary build for this \code{os}.
-#' If \code{os} is not given, chose \code{os} interactively among available
+#' @param os If `os` is given, install binary build for this `os`.
+#' If `os` is not given, chose `os` interactively among available
 #' builds.
-#' @param path character. The install path. If \code{NULL} the path is derived
-#' from \code{INLA} package
-#' @param verbose Logical. Verbose output if \code{TRUE}
-#' @param md5.check Logical. If \code{TRUE}, stop if md5-checksum-file is not
-#' present or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.
-#' @param secure.http Logical. Use secure http (ie \code{https://}) or
-#' \code{http://}
-#' @return Return \code{TRUE} if installation was sucessful and \code{FALSE} if
+#' @param path character. The install path. If `NULL` the path is derived
+#' from `INLA` package
+#' @param verbose Logical. Verbose output if `TRUE`
+#' @param md5.check Logical. If `TRUE`, stop if md5-checksum-file is not
+#' present or md5-checksum fail. If `FALSE`, ignore md5-checksum check.
+#' @param secure.http Logical. Use secure http (ie `https://`) or
+#' `http://`
+#' @return Return `TRUE` if installation was sucessful and `FALSE` if
 #' not.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

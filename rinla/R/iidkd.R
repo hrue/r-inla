@@ -1,20 +1,20 @@
-#' Provide samples from the \code{iidkd} component (experimental)
+#' Provide samples from the `iidkd` component (experimental)
 #' 
-#' This function provide samples of the \code{iidkd} component using more
+#' This function provide samples of the `iidkd` component using more
 #' interpretable parameters
 #' 
 #' 
 #' @aliases inla.iidkd.sample iidkd.sample
 #' @param n Integer Number of samples to use
-#' @param result inla-object An object of class \code{inla}, ie a result of a
-#' call to \code{inla()}
-#' @param name Character The name of the \code{iidkd} component
+#' @param result inla-object An object of class `inla`, ie a result of a
+#' call to `inla()`
+#' @param name Character The name of the `iidkd` component
 #' @param return.cov Logical Return samples of the covariance matrix instead of
 #' stdev/correlation matrix described below?
 #' @return A list of sampled matrices, with (default) correlations on the
 #' off-diagonal and standard-deviations on the diagonal
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{inla.doc("iidkd")}
+#' @seealso `inla.doc("iidkd")`
 #' @rdname iidkd
 #' @export inla.iidkd.sample
 `inla.iidkd.sample` <- function(n = 10^4, result, name, return.cov = FALSE) 

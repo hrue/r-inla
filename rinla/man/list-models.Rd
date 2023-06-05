@@ -18,7 +18,7 @@ Nothing is returned
 }
 \description{
 List available model components, likelihoods, priors, etc.  To read specific
-documentation for the individual elements, use \code{\link{inla.doc}}.
+documentation for the individual elements, use \code{\link[=inla.doc]{inla.doc()}}.
 
 The list is \code{cat}'ed with \code{...} arguments.
 

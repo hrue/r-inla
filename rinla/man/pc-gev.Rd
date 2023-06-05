@@ -27,7 +27,7 @@ inla.pc.pgevtail(q, lambda = 7)
 
 \item{lambda}{The rate parameter in the PC-prior}
 
-\item{xi}{Vector of evaluation points, where \code{1>xi>0}.}
+\item{xi}{Vector of evaluation points, where \verb{1>xi>0}.}
 
 \item{log}{Logical. Return the density in natural or log-scale.}
 

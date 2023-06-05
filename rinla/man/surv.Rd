@@ -67,7 +67,7 @@ An object of class \code{inla.surv}.  There are methods for
 }
 \description{
 Create a survival object, to be used as a response variable in a model
-formula for the \code{\link{inla}} function for survival models.
+formula for the \code{\link[=inla]{inla()}} function for survival models.
 }
 \examples{
 
@@ -95,7 +95,7 @@ formula for the \code{\link{inla}} function for survival models.
 
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Sara Martino, Rupali Akerkar and Haavard Rue

@@ -96,8 +96,7 @@ nearest integer.}
 options are \code{"classic"} and \code{"twostage"}.}
 }}
 
-\item{...}{Option and value, like \code{option=value} or \code{option,
-value}; see the Examples}
+\item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}
 }
 \description{
 Set and get global options for INLA

@@ -171,7 +171,7 @@ marginal (inla.tmarginal), and provide summary statistics (inla.zmarginal).
  
 }
 \seealso{
-\code{\link{inla}}, \code{\link{inla.hyperpar}}
+\code{\link[=inla]{inla()}}, \code{\link[=inla.hyperpar]{inla.hyperpar()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

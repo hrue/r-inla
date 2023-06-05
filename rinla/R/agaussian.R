@@ -4,18 +4,18 @@
 #' Aggregate Gaussians observed with the same mean and precision,
 #' into an equivalent triplet, for use with `family="agaussian"`
 #' 
-#' @param y Repeated observations. If \code{y} is a matrix,  then each row represents
-#'            repeated observations. if \code{y} is a list,  then each element of the list is
-#'            a vector of repeated observations. If \code{y} is a vector,  then the whole vector
-#'            represents repeated observations. The optional scaling \code{s},  must have 
-#'            the same format as \code{y},  ie \code{matrix} or \code{vector}.
-#'            \code{NA}'s in \code{y} (and \code{s}) are removed and not used or counted.
-#'            If \code{s} is given, then the \code{NA}-pattern in \code{y} and \code{s} must be the same.
-#' @param s Optional fixed scaling of the precisions. Must be in the same format as \code{y},  and
-#'             have the same \code{NA}-pattern. See the documentation for details.
+#' @param y Repeated observations. If `y` is a matrix,  then each row represents
+#'            repeated observations. if `y` is a list,  then each element of the list is
+#'            a vector of repeated observations. If `y` is a vector,  then the whole vector
+#'            represents repeated observations. The optional scaling `s`,  must have 
+#'            the same format as `y`,  ie `matrix` or `vector`.
+#'            `NA`'s in `y` (and `s`) are removed and not used or counted.
+#'            If `s` is given, then the `NA`-pattern in `y` and `s` must be the same.
+#' @param s Optional fixed scaling of the precisions. Must be in the same format as `y`,  and
+#'             have the same `NA`-pattern. See the documentation for details.
 #'
-#' @returns The output is a \code{inla.mdata}-object ready for use
-#'   with \code{family="agaussian"}. See the example in the documentation.
+#' @returns The output is a `inla.mdata`-object ready for use
+#'   with `family="agaussian"`. See the example in the documentation.
 #'
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @export

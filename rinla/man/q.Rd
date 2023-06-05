@@ -76,7 +76,7 @@ inla.qnuke()
 
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Havard Rue

@@ -2,8 +2,8 @@
 #' 
 #' Load or source a file: (internal use)
 #' 
-#' Try to \code{load} the file into the global environment, if that fail, try
-#' to \code{source} the file into the global environment.
+#' Try to `load` the file into the global environment, if that fail, try
+#' to `source` the file into the global environment.
 #' 
 #' @param filename The name of the file to be loaded, alternatively, sourced.
 #' @param debug Logical. Turn on/off debug information.

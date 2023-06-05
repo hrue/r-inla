@@ -37,16 +37,14 @@ case, factors MUST BE factors in the data.frame/list and NOT added as
 
 \item{mean}{Prior mean for all fixed effects except the intercept.
 Alternatively, a named list with specific means where name=default applies to
-unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2,
- default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and
+unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2, default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and
 'mean=0' to all others. (default 0.0)}
 
 \item{mean.intercept}{Prior mean for the intercept (default 0.0)}
 
 \item{prec}{Default precision for all fixed effects except the intercept.
 Alternatively, a named list with specific means where name=default applies to
-unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2,
-default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and
+unmatched names.  For example \code{control.fixed=list(prec=list(a=1, b=2, default=0.01))} assign 'prec=1' to fixed effect 'a' , 'prec=2' to effect 'b' and
 'prec=0.01' to all others. (default 0.001)}
 
 \item{prec.intercept}{Default precision the intercept (default 0.0)}

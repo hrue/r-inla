@@ -2,12 +2,12 @@
 #' 
 #' Print an INLA fit
 #' 
-#' @param x An inla-object (output from an \code{\link{inla}}-call).
+#' @param x An inla-object (output from an [inla()]-call).
 #' @param digits Number of digits to print
 #' @param ...  other arguments.
 #' @return None
 #' @author Havard Rue
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' 
 #' @rdname print
 #' @method print inla

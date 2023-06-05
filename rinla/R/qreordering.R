@@ -5,12 +5,12 @@
 #' 
 #' 
 #' @aliases inla.qreordering qreordering
-#' @param graph A \code{(inla-)graph} object
+#' @param graph A `(inla-)graph` object
 #' @param reordering The name of the reordering algorithm to be used; either
-#' one of the names listed in \code{inla.reorderings()}.  The default is "auto"
+#' one of the names listed in `inla.reorderings()`.  The default is "auto"
 #' which try several reordering algorithm and use the best one for this
 #' particular matrix.
-#' @return \code{inla.qreordering} returns a list with the name of the
+#' @return `inla.qreordering` returns a list with the name of the
 #' reordering algorithm used or found, the reordering code for the reordering
 #' algorithm, the actual reordering and its inverse.
 #' @author Havard Rue \email{hrue@@r-inla.org}

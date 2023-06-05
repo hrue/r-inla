@@ -6,34 +6,34 @@
 #' @aliases read.graph write.graph inla.read.graph inla.write.graph inla.graph
 #' summary.inla.graph plot.inla.graph print.inla.graph.summary
 #' @param filename The filename of the graph.
-#' @param graph An \code{inla.graph}-object, a (sparse) symmetric matrix, a
+#' @param graph An `inla.graph`-object, a (sparse) symmetric matrix, a
 #' filename containing the graph, a list or collection of characters and/or
-#' numbers defining the graph, or a neighbours list with class \code{nb} (see
-#' \code{spdep::card} and \code{spdep::poly2nb} for for details of \code{nb}
-#' and an example a function returning an \code{nb} object
+#' numbers defining the graph, or a neighbours list with class `nb` (see
+#' `spdep::card` and `spdep::poly2nb` for for details of `nb`
+#' and an example a function returning an `nb` object
 #' @param mode The mode of the file; ascii-file or a (gzip-compressed) binary.
-#' @param object An \code{inla.graph} -object
-#' @param x An \code{inla.graph} -object
+#' @param object An `inla.graph` -object
+#' @param x An `inla.graph` -object
 #' @param y Not used
 #' @param size.only Only read the size of the graph
-#' @param ... Additional arguments. In \code{inla.read.graph}, then it is the
+#' @param ... Additional arguments. In `inla.read.graph`, then it is the
 #' graph definition (object, matrix, character, filename), plus extra
-#' arguments.  In \code{inla.write.graph} it is extra arguments to
-#' \code{inla.read.graph}.
-#' @return The output of \code{inla.read.graph}, is an \code{inla.graph}
+#' arguments.  In `inla.write.graph` it is extra arguments to
+#' `inla.read.graph`.
+#' @return The output of `inla.read.graph`, is an `inla.graph`
 #' object, with elements \item{n}{is the size of the graph} \item{nnbs}{is a
 #' vector with the number of neigbours} \item{nbs}{is a list-list with the
 #' neigbours} \item{cc}{list with connected component information \itemize{
-#' \item\code{id}is a vector with the connected component id for each node
-#' (starting from 1) \item\code{n}is the number of connected components
-#' \item\code{nodes}is a list-list of nodes belonging to each connected
-#' component \item\code{mean}is a factor with one level for each connected
-#' component of size larger than one, otherwise \code{NA} } } Methods
-#' implemented for \code{inla.graph} are \code{summary} and \code{plot}.  The
-#' method \code{plot} require the libraries \code{Rgraphviz} and \code{graph}
-#' from the Bioconductor-project, see \url{https://www.bioconductor.org}.
+#' \item`id`is a vector with the connected component id for each node
+#' (starting from 1) \item`n`is the number of connected components
+#' \item`nodes`is a list-list of nodes belonging to each connected
+#' component \item`mean`is a factor with one level for each connected
+#' component of size larger than one, otherwise `NA` } } Methods
+#' implemented for `inla.graph` are `summary` and `plot`.  The
+#' method `plot` require the libraries `Rgraphviz` and `graph`
+#' from the Bioconductor-project, see <https://www.bioconductor.org>.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla.spy}}
+#' @seealso [inla.spy()]
 #' @examples
 #' 
 #' ## a graph from a file

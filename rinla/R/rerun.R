@@ -1,15 +1,15 @@
 #' Rerun an analysis
 #' 
-#' Rerun \code{\link{inla}} on an inla-object (output from \code{link{inla}})
+#' Rerun [inla()] on an inla-object (output from \code{link{inla}})
 #' 
 #' 
 #' @aliases inla.rerun rerun
-#' @return This function will take the result in \code{object}, and rerun
-#' \code{inla} again.  If \code{plain} is \code{FALSE}, start the optimization
-#' from the mode in \code{object} so that we can obtain an improvement the mode
+#' @return This function will take the result in `object`, and rerun
+#' `inla` again.  If `plain` is `FALSE`, start the optimization
+#' from the mode in `object` so that we can obtain an improvement the mode
 #' for the hyperparameters.  Otherwise, start from the same configuration as
-#' for \code{object}.  The returned value is an \code{inla}-object.
-#' @seealso \code{\link{inla}}
+#' for `object`.  The returned value is an `inla`-object.
+#' @seealso [inla()]
 #' @examples
 #' 
 #' r = inla(y ~ 1,  data = data.frame(y=1:10))
@@ -18,10 +18,10 @@
 #' @rdname rerun
 #' @export inla.rerun
 `inla.rerun` <- function(
-                         #' @param object An \code{inla}-object, ie the output from an \code{inla}-call
+                         #' @param object An `inla`-object, ie the output from an `inla`-call
                          object,
-                         #' @param plain Logical. If \code{FALSE} (default), then make changes in
-                         #' \code{object} to improve the performance
+                         #' @param plain Logical. If `FALSE` (default), then make changes in
+                         #' `object` to improve the performance
                          plain = FALSE)
 {
     stopifnot(any(inherits(object, "inla")))

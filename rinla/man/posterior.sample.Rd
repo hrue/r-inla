@@ -85,9 +85,7 @@ defined as \code{theta}, no matter if they are in the internal scale or not.
 The function \code{fun} can also return a vector.  To simplify usage,
 \code{fun} can also be a vector character's. In this case \code{fun} it is
 interpreted as (strict) variable names, and a function is created that
-return these variables: if argument \code{fun} equals \code{c("Intercept",
-"a[1:2]")}, then this is equivalent to pass \code{function()
-return(c(get('Intercept'), get('a[1:2]')))}.}
+return these variables: if argument \code{fun} equals \code{c("Intercept", "a[1:2]")}, then this is equivalent to pass \code{function() return(c(get('Intercept'), get('a[1:2]')))}.}
 
 \item{samples}{\code{samples} is the output from
 \code{inla.posterior.sample()}}

@@ -5,7 +5,7 @@
 #' 
 #' @aliases changelog inla.changelog inla.changes
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \code{\link{inla}}
+#' @seealso [inla()]
 #' @rdname changelog
 #' @export inla.changelog
 `inla.changelog` <- function() {

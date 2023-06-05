@@ -5,14 +5,14 @@
 #' 
 #' 
 #' @aliases inla.scale.model scale.model
-#' @param Q A SPD matrix, either as a (dense) matrix or \code{sparseMatrix}
-#' @param constr Linear constraints spanning the null-space of \code{Q}; see
-#' \code{?INLA::f} and argument \code{extraconstr}
-#' @param eps A small constant added to the diagonal of \code{Q} if
-#' \code{constr}
-#' @return \code{inla.scale.model} returns a \code{sparseMatrix} of type
-#' \code{dgTMatrix} scaled so the geometric mean of the marginal variances (of
-#' the possible non-singular part of \code{Q}) is one, for each connected
+#' @param Q A SPD matrix, either as a (dense) matrix or `sparseMatrix`
+#' @param constr Linear constraints spanning the null-space of `Q`; see
+#' `?INLA::f` and argument `extraconstr`
+#' @param eps A small constant added to the diagonal of `Q` if
+#' `constr`
+#' @return `inla.scale.model` returns a `sparseMatrix` of type
+#' `dgTMatrix` scaled so the geometric mean of the marginal variances (of
+#' the possible non-singular part of `Q`) is one, for each connected
 #' component of the matrix.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

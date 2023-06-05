@@ -74,7 +74,7 @@ It implements the sampling method for the models in Knorr-Held, L. (2000)
 considering the algorithm 3.1 in Rue & Held (2005) book.
 }
 \seealso{
-\code{\link{inla.knmodels}} for model fitting
+\code{\link[=inla.knmodels]{inla.knmodels()}} for model fitting
 }
 \author{
 Elias T. Krainski

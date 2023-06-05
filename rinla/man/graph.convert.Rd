@@ -30,8 +30,8 @@ These are all the same function, and the two different names are due
 to backward-compatibility
 }
 \seealso{
-\code{\link{inla}}, \code{\link{inla.surv}},
-\code{\link{hyperpar.inla}}
+\code{\link[=inla]{inla()}}, \code{\link[=inla.surv]{inla.surv()}},
+\code{\link[=hyperpar.inla]{hyperpar.inla()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

@@ -29,8 +29,8 @@ from \code{INLA} package}
 \item{md5.check}{Logical. If \code{TRUE}, stop if md5-checksum-file is not
 present or md5-checksum fail. If \code{FALSE}, ignore md5-checksum check.}
 
-\item{secure.http}{Logical. Use secure http (ie \code{https://}) or
-\code{http://}}
+\item{secure.http}{Logical. Use secure http (ie \verb{https://}) or
+\verb{http://}}
 }
 \value{
 Return \code{TRUE} if installation was sucessful and \code{FALSE} if

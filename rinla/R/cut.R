@@ -2,32 +2,32 @@
 #' 
 #' This function performs group-wise, cross-validatory model assessment for an
 #' INLA model using so-called node-splitting (Marshall and Spiegelhalter, 2007;
-#' Presanis et al, 2013).  The user inputs an object of class \code{inla} (i.e.
-#' a result of a call to \code{inla()}) as well as a variable name
-#' (\code{split.by}) specifying a grouping: Data points that share the same
-#' value of \code{split.by} are in the same group.  The function then checks
+#' Presanis et al, 2013).  The user inputs an object of class `inla` (i.e.
+#' a result of a call to `inla()`) as well as a variable name
+#' (`split.by`) specifying a grouping: Data points that share the same
+#' value of `split.by` are in the same group.  The function then checks
 #' whether each group is an "outlier", or in conflict with the remaining
 #' groups, using the methodology described in Ferkingstad et al (2017).  The
 #' result is a vector containing a p-value for each group, corresponding to a
-#' test for each group \code{i}, where the null hypothesis is that group
-#' \code{i} is consistent with the other groups except \code{i} (so a small
+#' test for each group `i`, where the null hypothesis is that group
+#' `i` is consistent with the other groups except `i` (so a small
 #' p-value is evidence that the group is an "outlier"). See Ferkingstad et al
 #' (2017) for further details.
 #' 
 #' 
 #' @aliases inla.cut cut
-#' @param result An object of class \code{inla}, i.e. a result of a call to
-#' \code{inla()}
+#' @param result An object of class `inla`, i.e. a result of a call to
+#' `inla()`
 #' @param split.by The name of the variable to group by. Data points that have
-#' the same value of \code{split.by} are in the same group.
-#' @param mc.cores The number of cores to use in \code{parallel::mclapply}. If
-#' \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")} and
-#' \code{inla.getOption("num.threads")} in that order.
-#' @param debug Print debugging information if \code{TRUE}, default is
-#' \code{FALSE}
+#' the same value of `split.by` are in the same group.
+#' @param mc.cores The number of cores to use in `parallel::mclapply`. If
+#' `is.null(mc.cores)`, then check `getOption("mc.cores")` and
+#' `inla.getOption("num.threads")` in that order.
+#' @param debug Print debugging information if `TRUE`, default is
+#' `FALSE`
 #' @return A numeric vector of p-values, corresponding to a test for each group
-#' \code{i} where the null hypothesis is that group \code{i} is consistent with
-#' the other groups except \code{i}. A small p-value for a group indicates that
+#' `i` where the null hypothesis is that group `i` is consistent with
+#' the other groups except `i`. A small p-value for a group indicates that
 #' the group is an "outlier" (in conflict with remaining groups).
 #' 
 #' This function is EXPERIMENTAL!!!

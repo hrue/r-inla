@@ -8,14 +8,14 @@
 #' @param ... The arguments. The matrix or sparse matrix, and the additonal
 #' arguments
 #' @param A The matrix
-#' @param unique Logical. If \code{TRUE}, then ensure that the internal
+#' @param unique Logical. If `TRUE`, then ensure that the internal
 #' representation is unique and there are no duplicated entries.  (Do not
 #' change this unless you know what you are doing.)
-#' @param na.rm Replace \code{NA}'s in the matrix with zeros.
+#' @param na.rm Replace `NA`'s in the matrix with zeros.
 #' @param zeros.rm Remove zeros in the matrix.
-#' @returns \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same
+#' @returns `inla.as.sparse` and `inla.as.dgTMatrix` is the same
 #' function.  The returned value is a sparse matrix in the
-#' \code{dgTMatrix}-format.
+#' `dgTMatrix`-format.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 

@@ -12,7 +12,7 @@ inla.changelog()
 List the recent changes in the inla-program and its R-interface
 }
 \seealso{
-\code{\link{inla}}
+\code{\link[=inla]{inla()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

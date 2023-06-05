@@ -25,14 +25,14 @@ several reordering algorithm and use the best one for this particular matrix
 (using the TAUCS library).}
 
 \item{method}{The system to solve, one of \code{"solve"}, \code{"forward"}
-or \code{"backward"}. Let \code{Q = L L^T}, where \code{L} is lower
+or \code{"backward"}. Let \verb{Q = L L^T}, where \code{L} is lower
 triangular (the Cholesky triangle), then \code{method="solve"} solves
-\code{L L^T X = B} or equivalently \code{Q X = B}, \code{method="forward"}
-solves \code{L X = B}, and \code{method="backward"} solves \code{L^T X = B}.}
+\verb{L L^T X = B} or equivalently \verb{Q X = B}, \code{method="forward"}
+solves \verb{L X = B}, and \code{method="backward"} solves \verb{L^T X = B}.}
 }
 \value{
 \code{inla.qsolve} returns a matrix \code{X}, which is the solution
-of \code{Q X = B}, \code{L X = B} or \code{L^T X = B} depending on the value
+of \verb{Q X = B}, \verb{L X = B} or \verb{L^T X = B} depending on the value
 of \code{method}.
 }
 \description{

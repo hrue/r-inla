@@ -12,8 +12,7 @@ inla.group(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
 \item{n}{Number of classes or bins to group into.}
 
 \item{method}{Group either using bins with equal length intervals
-(\code{method = "cut"}), or equal distance in the `probability' scale using
-the quantiles (\code{method = "quantile"}).}
+(\code{method = "cut"}), or equal distance in the \verb{probability' scale using the quantiles (}method = "quantile"`).}
 
 \item{idx.only}{Option to return the index only and not the \code{method}.}
 }
@@ -40,7 +39,7 @@ result = inla(y ~ f(inla.group(x, n = 20), model = "iid"), data=data.frame(y=y,x
 
 }
 \seealso{
-\code{\link{f}}
+\code{\link[=f]{f()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

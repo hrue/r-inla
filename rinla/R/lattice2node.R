@@ -1,12 +1,12 @@
 #' Functions to define mapping between a lattice and nodes
 #' 
 #' These functions define mapping in between two-dimensional indices on a
-#' lattice and the one-dimensional node representation used in \code{inla}.
+#' lattice and the one-dimensional node representation used in `inla`.
 #' 
-#' The mapping from node to lattice follows the default \code{R} behaviour
-#' (which is column based storage), and \code{as.vector(A)} and \code{matrix(a,
-#' nrow, ncol)} can be used instead of \code{inla.matrix2vector} and
-#' \code{inla.vector2matrix}.
+#' The mapping from node to lattice follows the default `R` behaviour
+#' (which is column based storage), and `as.vector(A)` and `matrix(a,
+#' nrow, ncol)` can be used instead of `inla.matrix2vector` and
+#' `inla.vector2matrix`.
 #' 
 #' 
 #' @aliases lattice2node inla.lattice2node node2lattice inla.node2lattice
@@ -15,22 +15,22 @@
 #' inla.vector2matrix
 #' @param nrow Number of rows in the lattice.
 #' @param ncol Number of columns in the lattice.
-#' @param irow Lattice row index, between \code{1} and \code{nrow}
-#' @param icol Lattice column index, between \code{1} and \code{ncol}
-#' @param node The node index, between \code{1} and \code{ncol*nrow}
+#' @param irow Lattice row index, between `1` and `nrow`
+#' @param icol Lattice column index, between `1` and `ncol`
+#' @param node The node index, between `1` and `ncol*nrow`
 #' @param a.matrix is a matrix to be mapped to a vector using internal
-#' representation defined by \code{inla.lattice2node}
+#' representation defined by `inla.lattice2node`
 #' @param a.vector is a vector to be mapped into a matrix using the internal
-#' representation defined by \code{inla.node2lattice}
-#' @return \code{inla.lattice2node.mapping} returns the hole mapping as a
-#' matrix, and \code{inla.node2lattice.mapping} returns the hole mapping as
-#' \code{list(irow=..., icol=...)}. \code{inla.lattice2node} and
-#' \code{inla.node2lattice} provide the mapping for a given set of lattice
-#' indices and nodes. \code{inla.matrix2vector} provide the mapped vector from
-#' a matrix, and \code{inla.vector2matrix} provide the inverse mapped matrix
+#' representation defined by `inla.node2lattice`
+#' @return `inla.lattice2node.mapping` returns the hole mapping as a
+#' matrix, and `inla.node2lattice.mapping` returns the hole mapping as
+#' `list(irow=..., icol=...)`. `inla.lattice2node` and
+#' `inla.node2lattice` provide the mapping for a given set of lattice
+#' indices and nodes. `inla.matrix2vector` provide the mapped vector from
+#' a matrix, and `inla.vector2matrix` provide the inverse mapped matrix
 #' from vector.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso \link{inla}
+#' @seealso [inla]
 #' @examples
 #' 
 #' ## write out the mapping using the two alternatives

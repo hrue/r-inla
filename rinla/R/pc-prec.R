@@ -3,9 +3,9 @@
 #' Functions to evaluate, sample, compute quantiles and percentiles of the PC
 #' prior for the precision in the Gaussian distribution.
 #' 
-#' The statement \code{Prob(1/sqrt(prec) > u) = alpha} is used to determine
-#' \code{lambda} unless \code{lambda} is given.  Either \code{lambda} must be
-#' given, or \code{u} AND \code{alpha}.
+#' The statement `Prob(1/sqrt(prec) > u) = alpha` is used to determine
+#' `lambda` unless `lambda` is given.  Either `lambda` must be
+#' given, or `u` AND `alpha`.
 #' 
 #' @aliases inla.pc.prec pc.prec pc.rprec inla.pc.rprec pc.dprec inla.pc.dprec
 #' pc.pprec inla.pc.pprec pc.qprec inla.pc.qprec
@@ -17,9 +17,9 @@
 #' @param log Logical. Return the density in natural or log-scale.
 #' @param p Vector of probabilities
 #' @param q Vector of quantiles
-#' @return \code{inla.pc.dprec} gives the density, \code{inla.pc.pprec}
-#' gives the distribution function, \code{inla.pc.qprec} gives the quantile
-#' function, and \code{inla.pc.rprec} generates random deviates.
+#' @return `inla.pc.dprec` gives the density, `inla.pc.pprec`
+#' gives the distribution function, `inla.pc.qprec` gives the quantile
+#' function, and `inla.pc.rprec` generates random deviates.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @seealso inla.doc("pc.prec")
 #' @examples

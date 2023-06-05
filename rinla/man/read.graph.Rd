@@ -101,7 +101,7 @@ summary(g)
 
 }
 \seealso{
-\code{\link{inla.spy}}
+\code{\link[=inla.spy]{inla.spy()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}
