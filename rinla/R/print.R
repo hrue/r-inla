@@ -10,6 +10,7 @@
 #' @seealso \code{\link{inla}}
 #' 
 #' @rdname print
+#' @method print inla
 #' @export
 `print.inla` <- function(x, digits = 3L, ...) {
     nsmall <- 2L

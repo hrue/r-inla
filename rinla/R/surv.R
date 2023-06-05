@@ -79,6 +79,7 @@
 }
 
 #' @rdname surv
+#' @method plot inla.surv
 #' @export
 `plot.inla.surv` <- function(x, y, ...)
 {
@@ -91,6 +92,7 @@
 }
 
 #' @rdname surv
+#' @method print inla.surv
 #' @export
 `print.inla.surv` <- function(x, ...)
 {

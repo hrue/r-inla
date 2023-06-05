@@ -50,12 +50,14 @@
 NULL
 
 #' @rdname q
+#' @method summary inla.q
 #' @export
 `summary.inla.q` <- function(object, ...) {
     print(object, ...)
 }
 
 #' @rdname q
+#' @method print inla.q
 #' @export
 `print.inla.q` <- function(x, ...) {
     for (k in seq_along(x)) {

@@ -50,6 +50,7 @@
 }
 
 #' @rdname mdata
+#' @method print inla.mdata
 #' @export
 `print.inla.mdata` <- function(object, ...) {
     cat("inla.cols = ", attr(object, "inla.ncols", exact = TRUE), "\n")

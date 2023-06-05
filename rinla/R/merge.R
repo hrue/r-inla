@@ -64,6 +64,7 @@
 #'  summary(r)
 #'  
 #' @rdname merge
+#' @method merge inla
 #' @export
 `merge.inla` <- function(x, y, ..., prob = rep(1, length(loo)), verbose = FALSE) {
     return(inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))

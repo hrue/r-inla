@@ -45,6 +45,7 @@
 #'    }
 #'  
 #' @rdname plot
+#' @method plot inla
 #' @export
 `plot.inla` <-
     function(x,

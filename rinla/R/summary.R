@@ -25,6 +25,7 @@
 #' @author Sara Martino and Havard Rue
 #' @seealso \code{\link{inla}}
 #' 
+#' @method summary inla
 #' @rdname summary
 #' @export
 `summary.inla` <- function(object, digits = 3L, include.lincomb = TRUE, ...) {
@@ -152,6 +153,7 @@
 
 
 #' @rdname summary
+#' @method print summary.inla
 #' @export
 `print.summary.inla` <- function(x, digits = 3L, ...) 
 {
