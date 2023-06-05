@@ -23,7 +23,7 @@ control.compute(
   graph = FALSE,
   internal.opt = TRUE,
   save.memory = NULL,
-  control.gcpo = inla.set.control.gcpo.default()
+  control.gcpo = INLA::control.gcpo()
 )
 
 inla.set.control.compute.default(...)

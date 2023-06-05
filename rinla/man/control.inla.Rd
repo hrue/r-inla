@@ -52,7 +52,7 @@ control.inla(
   stupid.search = TRUE,
   stupid.search.max.iter = 1000L,
   stupid.search.factor = 1.05,
-  control.vb = inla.set.control.vb.default(),
+  control.vb = INLA::control.vb(),
   num.gradient = "central",
   num.hessian = "central",
   optimise.strategy = "smart",

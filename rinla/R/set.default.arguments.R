@@ -386,10 +386,12 @@ control.gcpo <-
             #' @param control.gcpo (For experts only!) Set control variables for the gcpo.
             #' The intended use is to use \code{inla.group.cv}.
             #' Refer to [control.gcpo], \code{?inla.group.cv} and the vignette for details.
-            control.gcpo = inla.set.control.gcpo.default()
-            ## Alternative:
-            ## INLA::control.gcpo(), with INLA:: needed to avoid name
-            ## ambiguity with the parameter itself
+            control.gcpo = INLA::control.gcpo()
+            ## INLA:: needed to avoid name ambiguity with the parameter itself
+            ## and to allow calling the function without INLA in the namespace.
+            ## During development, use
+            ##   control.compute = list(control.gcpo = control.gcpo())
+            ## to test updated settings.
         ) {
             as.list(environment())
         }
@@ -829,9 +831,12 @@ control.vb <- function(
         
         #' @param control.vb list of arguments for various VB corrections.
         #' See [control.vb()] for details.
-        control.vb = inla.set.control.vb.default(), 
-        ## Alternative: INLA::control.vb(), with INLA:: needed to avoid name
-        ## ambiguity with the parameter itself
+        control.vb = INLA::control.vb(),
+        ## INLA:: needed to avoid name ambiguity with the parameter itself
+        ## and to allow calling the function without INLA in the namespace.
+        ## During development, use
+        ##   control.inla = list(control.vb = control.vb())
+        ## to test updated settings.
         
         #' @param num.gradient Character Set the numerical scheme to compute the
         #' gradient,  one of \code{"forward"} or \code{"central"} (default).
