@@ -197,7 +197,7 @@
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{'Generic latent model spesified using R'}
+#'               \item{doc = }{'Generic latent model specified using R'}
 #'               \item{constr = }{'FALSE'}
 #'               \item{nrow.ncol = }{'FALSE'}
 #'               \item{augmented = }{'FALSE'}
@@ -217,7 +217,7 @@
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{'Generic latent model spesified using C'}
+#'               \item{doc = }{'Generic latent model specified using C'}
 #'               \item{constr = }{'FALSE'}
 #'               \item{nrow.ncol = }{'FALSE'}
 #'               \item{augmented = }{'FALSE'}

@@ -748,7 +748,7 @@
                                  )
     call <- deparse(match.call())
 
-    ## issue a warning if the intercept is spesified while the
+    ## issue a warning if the intercept is specified while the
     ## control.predictor A matrix is used.
     if (length(grep("\\+ ?1($| )", gp$fixf)) && !is.null(control.predictor$A)) {
         warning("The A-matrix in the predictor (see ?control.predictor) is specified
@@ -1457,7 +1457,7 @@
                                ", ...)' have only NA values in '",
                                gp$random.spec[[r]]$term, "'. ",
                                "In this case, ",
-                               "either argument 'n' or 'values' must be spesified.",
+                               "either argument 'n' or 'values' must be specified.",
                                sep = ""
                                ))
                 }

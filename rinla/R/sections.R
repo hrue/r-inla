@@ -238,7 +238,7 @@
     if (inla.one.of(lmod, c("special1"))) {
         ## for these models, the argument order is required
         if (is.null(ord)) {
-            stop(paste("For link-model:", lmod, ", 'order' must be spesified."))
+            stop(paste("For link-model:", lmod, ", 'order' must be specified."))
         }
         cat("link.order = ", ord, "\n", file = file, append = TRUE)
         ## special

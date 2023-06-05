@@ -43,7 +43,7 @@ if (require(Rgraphviz)) {
     plot(go)
 }
 
-# standard BYM model. the graph is spesified as a filename
+# standard BYM model. the graph is specified as a filename
 formula1 = Y ~ f(region.struct,model="besag",graph=go) +
                f(region,model="iid")
 result1  =  inla(formula1,family="poisson",data=Germany,E=E)
@@ -68,7 +68,7 @@ inla.spy(gm)
 if (FALSE)
     gm = as.matrix(gm)
 
-# standard BYM model. the graph is spesified as a filename
+# standard BYM model. the graph is specified as a filename
 formula1 = Y ~ f(region.struct,model="besag",graph=gm) +
                f(region,model="iid")
 result1  =  inla(formula1,family="poisson",data=Germany,E=E)

@@ -149,7 +149,7 @@
                 ),
 
                 rgeneric = list(
-                    doc = "Generic latent model spesified using R",
+                    doc = "Generic latent model specified using R",
                     hyper = list(),
                     constr = FALSE,
                     nrow.ncol = FALSE,
@@ -164,7 +164,7 @@
                 ),
 
                 cgeneric = list(
-                    doc = "Generic latent model spesified using C",
+                    doc = "Generic latent model specified using C",
                     hyper = list(),
                     constr = FALSE,
                     nrow.ncol = FALSE,
