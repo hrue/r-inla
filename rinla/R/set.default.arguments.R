@@ -1084,26 +1084,26 @@ control.vb <- function(
 ## return (ret)
 ## }
 
-inla.make.completion.function <- function(...) {
-    my.eval <- function(command, envir = parent.frame(),
-                        enclos = if (is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) {
-        return(eval(parse(text = command), envir, enclos))
-    }
-    
-    xx <- sort(list(...)[[1L]])
-    my.eval(paste("function(", paste(xx, sep = "", collapse = ", "), ") {
-    aa = match.call()[-1L]
-    ret = list()
-    for(a in names(aa)) {
-        if (!missing(a)) {
-            xx = get(a)
-            names(xx) = a
-            ret = c(ret, xx)
-        }
-    }
-    return (ret)
-}"))
-}
+#inla.make.completion.function <- function(...) {
+#    my.eval <- function(command, envir = parent.frame(),
+#                        enclos = if (is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) {
+#        return(eval(parse(text = command), envir, enclos))
+#    }
+#    
+#    xx <- sort(list(...)[[1L]])
+#    my.eval(paste("function(", paste(xx, sep = "", collapse = ", "), ") {
+#    aa = match.call()[-1L]
+#    ret = list()
+#    for(a in names(aa)) {
+#        if (!missing(a)) {
+#            xx = get(a)
+#            names(xx) = a
+#            ret = c(ret, xx)
+#        }
+#    }
+#    return (ret)
+#}"))
+#}
 
 
 #' @rdname control.update
