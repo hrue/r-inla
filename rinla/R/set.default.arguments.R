@@ -3,10 +3,8 @@
 ## Export: inla.set.control.expert.default
 ## Export: inla.set.control.family.default
 ## Export: inla.set.control.fixed.default
-## Export: inla.set.control.group.default
 ## Export: inla.set.control.hazard.default
 ## Export: inla.set.control.inla.default
-## Export: inla.set.control.lincomb.default
 ## Export: inla.set.control.link.default
 ## Export: inla.set.control.lp.scale.default
 ## Export: inla.set.control.mix.default
@@ -15,7 +13,6 @@
 ## Export: inla.set.control.pom.default
 ## Export: inla.set.control.predictor.default
 ## Export: inla.set.control.scopy.default
-## Export: inla.set.control.update.default
 
 ## Export: control.bgev
 ## Export: control.compute
@@ -23,10 +20,8 @@
 ## Export: control.family
 ## Export: control.fixed
 ## Export: control.gcpo
-## Export: control.group
 ## Export: control.hazard
 ## Export: control.inla
-## Export: control.lincomb
 ## Export: control.link
 ## Export: control.lp.scale
 ## Export: control.mix
@@ -35,89 +30,117 @@
 ## Export: control.pom
 ## Export: control.predictor
 ## Export: control.scopy
-## Export: control.update
 ## Export: control.vb
 
 
 ### Defines default arguments
 
-`inla.set.control.update.default` <-
-    function(...) {
-        ## :EXTRA:
-        ## :NAME: control.update
-        list(
-            ## :ARGUMENT: result Update the joint posterior for the hyperparameters from result
-            result = NULL
-        )
+## The ... documentation, seealso, and description sections are inherited
+## by all other control.* method documentation.
 
-        ## :SEEALSO: inla
+#' @title control.update
+#' 
+#' @description
+#' Control variables in `control.*` for use with [inla()].
+#' The functions can be used to TAB-complete arguments, and
+#' returns a list of the default control arguments, unless overridden by
+#' specific input arguments.
+#' 
+#' @param ... Named arguments passed on to the main function
+#' @seealso [inla()]
+#' @family control
+#' @export
+`control.update` <-
+    function(
+        #' @param result Update the joint posterior for the hyperparameters from result
+        result = NULL
+    ) {
+        as.list(environment())
     }
 
-`inla.set.control.lincomb.default` <-
-    function(...) {
-        ## :EXTRA:
-        ## :NAME: control.lincomb
-        list(
-            ## :ARGUMENT+: verbose Use verbose mode for linear combinations if verbose model is
-            ## :ARGUMENT+: set globally. (Default TRUE). This option is only available for
-            ## :ARGUMENT+: the default \code{inla.mode} (\code{inla.mode="compact"}).
-            verbose = FALSE
-        )
+#' @rdname control.update
+#' @export
+inla.set.control.update.default <- function(...) {
+  control.update(...)  
+}
 
-        ## :SEEALSO: inla
+#' @title control.lincomb
+#' @inherit control.update params description seealso 
+#' @family control
+#' @export
+control.lincomb <-
+    function(
+        #' @param verbose Use verbose mode for linear combinations if verbose model is
+        #' set globally. (Default FALSE). This option is only available for
+        #' the default \code{inla.mode} (\code{inla.mode="compact"}).
+        verbose = FALSE
+    ) {
+        as.list(environment())
     }
 
-`inla.set.control.group.default` <-
-    function(...) {
-        ## :EXTRA:
-        ## :NAME: control.group
-        list(
-            ## :ARGUMENT+: model Group model (one of 'exchangable', 'exchangablepos', 'ar1',
-            ## :ARGUMENT+: 'ar', 'rw1', 'rw2', 'besag', or 'iid')
-            model = "exchangeable",
-
-            ## :ARGUMENT+: order Defines the \code{order} of the model: for model \code{ar} this
-            ## :ARGUMENT+: defines the order p, in AR(p). Not used for other models at the time
-            ## :ARGUMENT+: being.
-            order = NULL,
-
-            ## :ARGUMENT+: cyclic Make the group model cyclic? (Only applies to models 'ar1',
-            ## :ARGUMENT+: 'rw1' and 'rw2')
-            cyclic = FALSE,
-
-            ## :ARGUMENT: graph The graph spesification (Only applies to model 'besag')
-            graph = NULL,
-
-            ## :ARGUMENT+: scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the
-            ## :ARGUMENT+: generalized variance is 1. (Default \code{TRUE})
-            scale.model = TRUE,
-
-            ## :ARGUMENT+: adjust.for.con.comp Adjust for connected components when
-            ## :ARGUMENT+: \code{scale.model=TRUE}? (default \code{TRUE})
-            adjust.for.con.comp = TRUE,
-
-            ## :ARGUMENT: hyper Definition of the hyperparameter(s)
-            hyper = NULL,
-
-            ## :ARGUMENT+: initial (OBSOLETE!) The initial value for the group correlation or
-            ## :ARGUMENT+: precision in the internal scale.
-            initial = NULL,
-
-            ## :ARGUMENT+: fixed (OBSOLETE!) A boolean variable if the group correction or
-            ## :ARGUMENT+: precision is assumed to be fixed or random.
-            fixed = NULL,
-
-            ## :ARGUMENT+: prior (OBSOLETE!) The name of the prior distribution for the group
-            ## :ARGUMENT+: correlation or precision in the internal scale
-            prior = NULL,
-
-            ## :ARGUMENT: param (OBSOLETE!) Prior parameters
-            param = NULL
-        )
-
-        ## :SEEALSO: inla
+#' @rdname control.lincomb
+#' @export
+`inla.set.control.lincomb.default` <- function(...) {
+    control.lincomb(...)  
+}
+    
+#' @title control.group
+#' @inherit control.update params description seealso 
+#' @family control
+#' @export
+control.group <-
+    function(
+        #' @param model Group model (one of 'exchangable', 'exchangablepos', 'ar1',
+        #' 'ar', 'rw1', 'rw2', 'besag', or 'iid')
+        model = "exchangeable",
+        
+        #' @param order Defines the \code{order} of the model: for model \code{ar} this
+        #' defines the order p, in AR(p). Not used for other models at the time
+        #' being.
+        order = NULL,
+        
+        #' @param cyclic Make the group model cyclic? (Only applies to models 'ar1',
+        #' 'rw1' and 'rw2')
+        cyclic = FALSE,
+        
+        #' @param graph The graph specification (Only applies to model 'besag')
+        graph = NULL,
+        
+        #' @param scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the
+        #' generalized variance is 1. (Default \code{TRUE})
+        scale.model = TRUE,
+        
+        #' @param adjust.for.con.comp Adjust for connected components when
+        #' \code{scale.model=TRUE}? (default \code{TRUE})
+        adjust.for.con.comp = TRUE,
+        
+        #' @param hyper Definition of the hyperparameter(s)
+        hyper = NULL,
+        
+        #' @param initial (OBSOLETE!) The initial value for the group correlation or
+        #' precision in the internal scale.
+        initial = NULL,
+        
+        #' @param fixed (OBSOLETE!) A boolean variable if the group correction or
+        #' precision is assumed to be fixed or random.
+        fixed = NULL,
+        
+        #' @param prior (OBSOLETE!) The name of the prior distribution for the group
+        #' correlation or precision in the internal scale
+        prior = NULL,
+        
+        #' @param param (OBSOLETE!) Prior parameters
+        param = NULL
+    ) {
+        as.list(environment())
     }
 
+#' @rdname control.group
+#' @export
+`inla.set.control.group.default` <- function(...) {
+    control.group(...)  
+}
+    
 `inla.set.control.scopy.default` <-
     function(...) {
         ## :EXTRA:
@@ -148,7 +171,7 @@
 
 `inla.set.control.mix.default` <-
     function(...) {
-        ## :EXTRA: The \code{control.mix} -list is set within the corresponding \code{control.family}-list a the mixture of the likelihood is likelihood spesific. (This option is EXPERIMENTAL.)
+        ## :EXTRA: The \code{control.mix} -list is set within the corresponding \code{control.family}-list a the mixture of the likelihood is likelihood specific. (This option is EXPERIMENTAL.)
         ## :NAME: control.mix
         list(
             ## :ARGUMENT+: model The model for the random effect. Currently, only
@@ -204,7 +227,7 @@
 
 `inla.set.control.link.default` <-
     function(...) {
-        ## :EXTRA: The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy spesific.
+        ## :EXTRA: The \code{control.link}-list is set within the corresponding \code{control.family}-list as the link is likelihood-familiy specific.
         ## :NAME: control.link
         list(
             ## :ARGUMENT: model The name of the link function/model
@@ -275,7 +298,7 @@
             ## :ARGUMENT+: optimizing dot-products? (Default \code{FALSE})
             dot.product.gain = FALSE,
 
-            ## :ARGUMENT+: global.constr Add a global constraint (see \code{?f} and argument
+            ## :ARGUMENT+: globalconstr Add a global constraint (see \code{?f} and argument
             ## :ARGUMENT+: \code{extraconstr}). Note that a global constraint does NOT
             ## :ARGUMENT+: correct the normalisation constant. 
             globalconstr = list(A = NULL, e = NULL)
@@ -530,7 +553,7 @@
             ## :ARGUMENT+: \code{model.matrix}-function for which NA's are not allowed
             ## :ARGUMENT+: (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed.
             ## :ARGUMENT+: The alternative option (\code{expand.factor.strategy="inla"}) use an
-            ## :ARGUMENT+: \code{inla}-spesific expansion which expand a factor into one fixed effects for
+            ## :ARGUMENT+: \code{inla}-specific expansion which expand a factor into one fixed effects for
             ## :ARGUMENT+: each level, do allow for NA's and all levels are present in the model. In this
             ## :ARGUMENT+: case, factors MUST BE factors in the data.frame/list and NOT added as
             ## :ARGUMENT+: \code{.+factor(x1)+.} in the formula only.
@@ -1085,9 +1108,6 @@ inla.make.completion.function <- function(...) {
 }
 
 if (TRUE) {
-    control.update <- inla.make.completion.function(names(inla.set.control.update.default()))
-    control.lincomb <- inla.make.completion.function(names(inla.set.control.lincomb.default()))
-    control.group <- inla.make.completion.function(names(inla.set.control.group.default()))
     control.mix <- inla.make.completion.function(names(inla.set.control.mix.default()))
     control.pom <- inla.make.completion.function(names(inla.set.control.pom.default()))
     control.link <- inla.make.completion.function(names(inla.set.control.link.default()))
@@ -1106,9 +1126,6 @@ if (TRUE) {
     control.pardiso <- inla.make.completion.function(names(inla.set.control.pardiso.default()))
     control.scopy <- inla.make.completion.function(names(inla.set.control.scopy.default()))
 } else {
-    control.update <- NULL
-    control.lincomb <-NULL
-    control.group <- NULL
     control.mix <- NULL
     control.pom <- NULL
     control.link <- NULL

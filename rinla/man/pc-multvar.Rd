@@ -65,7 +65,7 @@ the inverse function is not used).}
 \item{lambda}{The lambda-parameter in the PC-prior.}
 
 \item{h}{The h()-function, defaults to \code{inla.pc.multvar.h.default}. See
-that code for an example of how to write a user-spesific function.}
+that code for an example of how to write a user-specific function.}
 
 \item{b}{The b-vector (gradient) in the expression for the simplex option,
 \code{d(xi) = h(b^T xi)}}
@@ -82,7 +82,7 @@ simplex case, and \code{inla.pc.multvar.simplex.d} evaluate the density.
 \code{inla.pc.multvar.sphere.r} generate samples from the sphere case, and
 \code{inla.pc.multvar.sphere.d} evaluate the density.
 \code{inla.pc.multvar.h.default} implements the default h()-function and
-illustrate how to code your own spesific one, if needed.
+illustrate how to code your own specific one, if needed.
 }
 \description{
 Functions to evaluate and simulate from multivariate PC priors: The simplex

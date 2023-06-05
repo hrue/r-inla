@@ -260,9 +260,9 @@ NULL
 #' @format A data frame with 2035 observations on the following 17 variables.
 #' \describe{
 #'
-#' \item{"rent}{Net rent per square meter.}
-#' \item{"floor.size}{Size of the flat in square meters.}
-#' \item{"year}{Year of construction of the building in which the flat
+#' \item{rent}{Net rent per square meter.}
+#' \item{floor.size}{Size of the flat in square meters.}
+#' \item{year}{Year of construction of the building in which the flat
 #' is located.} \item{location}{Location index (in terms of
 #' subquarters).} \item{Gute.Wohnlage}{Dummy variable for good
 #' locations / good neighborhoods.} \item{Beste.Wohnlage}{Dummy

@@ -909,7 +909,7 @@ summary(r.new.b)
 ## Latent models, likelihoods and priors.
 
 The list of latent models, likelihood and priors implemented, can be
-found by doing (or give a spesific section, see
+found by doing (or give a specific section, see
 \verb|?inla.list.models|)
 ```{r}
 inla.list.models()

@@ -257,7 +257,7 @@
         ## for these models, the argument 'variant' is required
         if ( ## general
             is.null(variant) ||
-                ## model-spesific
+                ## model-specific
                 (inla.one.of(lmod, c("logoffset")) && all(variant != c(0, 1)))) {
             stop(paste("For link-model:", lmod, ", the argument variant must be 0 or 1,  not", variant))
         }

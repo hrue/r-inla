@@ -18,7 +18,7 @@ control.fixed(cdf, compute, correlation.matrix, expand.factor.strategy, mean, me
 \item{...}{Possible arguments}
 \item{cdf}{   A list of values to compute the CDF for, for all fixed effects}
 \item{quantiles}{   A list of quantiles to compute for all fixed effects}
-\item{expand.factor.strategy}{   The strategy used to expand factors into fixed  effects based on their levels. The default strategy is us use the  \code{model.matrix}-function for which NA's are not allowed  (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed.  The alternative option (\code{expand.factor.strategy="inla"}) use an  \code{inla}-spesific expansion which expand a factor into one fixed effects for  each level, do allow for NA's and all levels are present in the model. In this  case, factors MUST BE factors in the data.frame/list and NOT added as  \code{.+factor(x1)+.} in the formula only.}
+\item{expand.factor.strategy}{   The strategy used to expand factors into fixed  effects based on their levels. The default strategy is us use the  \code{model.matrix}-function for which NA's are not allowed  (\code{expand.factor.strategy="model.matrix"}) and levels are possible removed.  The alternative option (\code{expand.factor.strategy="inla"}) use an  \code{inla}-specific expansion which expand a factor into one fixed effects for  each level, do allow for NA's and all levels are present in the model. In this  case, factors MUST BE factors in the data.frame/list and NOT added as  \code{.+factor(x1)+.} in the formula only.}
 
 \item{mean}{   Prior mean for all fixed effects except the intercept.  Alternatively, a named list with specific means where name=default applies to  unmatched names. For example \code{control.fixed=list(mean=list(a=1, b=2,  default=0))} assign 'mean=1' to fixed effect 'a' , 'mean=2' to effect 'b' and  'mean=0' to all others. (default 0.0)}
 
@@ -38,6 +38,6 @@ The function \code{control.fixed} is used to TAB-complete arguments and returns 
 The function \code{inla.set.control.fixed.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.scopy}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.scopy}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }

@@ -6,7 +6,7 @@
 #' @aliases version inla.version
 #' @param what What to show version of
 #' @returns \code{inla.version} display the current version information using
-#' \code{cat} with \code{default} or \code{info}, or return other spesific
+#' \code{cat} with \code{default} or \code{info}, or return other specific
 #' requests through the call.
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

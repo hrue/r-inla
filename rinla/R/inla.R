@@ -892,7 +892,7 @@
     if (cont.compute$residuals) {
         cont.compute$dic <- TRUE
     }
-    ## because we have 'control' within a 'control', we have to process them spesifically
+    ## because we have 'control' within a 'control', we have to process them specifically
     cont.compute$control.gcpo <- cont.compute.def$control.gcpo
     cont.compute$control.gcpo[names(control.compute$control.gcpo)] <- control.compute$control.gcpo
     if (only.hyperparam) {
@@ -910,7 +910,7 @@
     ## control inla
     cont.inla <- cont.inla.def <- inla.set.control.inla.default(family = family)
     cont.inla[names(control.inla)] <- control.inla
-    ## because we have 'control' within a 'control', we have to process them spesifically
+    ## because we have 'control' within a 'control', we have to process them specifically
     cont.inla$control.vb <- cont.inla.def$control.vb
     cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
     for (nm in names(control.inla$control.vb)) {
@@ -1635,7 +1635,7 @@
                         if (!is.element(1, g.used)) {
                             warning(paste(
                                 txt, ": ",
-                                "There is no indices where group[]=1, this is *usually* a misspesification"
+                                "There is no indices where group[]=1, this is *usually* a misspecification"
                             ),
                             immediate. = TRUE
                             )
@@ -1643,7 +1643,7 @@
                         if (ng.unused >= ng.used) {
                             warning(paste(txt, ": ",
                                           "Number of unused groups >= the number of groups used: ", ng.unused, " >= ", ng.used,
-                                          ", this is *usually* a misspesification",
+                                          ", this is *usually* a misspecification",
                                           sep = ""
                                           ),
                                     immediate. = TRUE

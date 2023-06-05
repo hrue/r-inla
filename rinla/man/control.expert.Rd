@@ -12,7 +12,7 @@
 \description{Control variables in \code{control.expert} for use in \code{inla}}
 \usage{
 inla.set.control.expert.default(...)
-control.expert(cpo.idx, cpo.manual, disable.gaussian.check, dot.product.gain, global.constr, jp)
+control.expert(cpo.idx, cpo.manual, disable.gaussian.check, dot.product.gain, globalconstr, jp)
 }
 \arguments{
 \item{...}{Possible arguments}
@@ -25,7 +25,7 @@ control.expert(cpo.idx, cpo.manual, disable.gaussian.check, dot.product.gain, gl
 \item{jp}{   An object of class \code{inla.jp} defining a joint prior}
 \item{dot.product.gain}{   Output the gain in  optimizing dot-products? (Default \code{FALSE})}
 
-\item{global.constr}{   Add a global constraint (see \code{?f} and argument  \code{extraconstr}). Note that a global constraint does NOT  correct the normalisation constant.}
+\item{globalconstr}{   Add a global constraint (see \code{?f} and argument  \code{extraconstr}). Note that a global constraint does NOT  correct the normalisation constant.}
 
 }
 \value{
@@ -34,6 +34,6 @@ The function \code{control.expert} is used to TAB-complete arguments and returns
 The function \code{inla.set.control.expert.default} returns a list with all the default values of all parameters within this control statement.
 }
 \seealso{
-\code{\link{control.update}}, \code{\link{control.lincomb}}, \code{\link{control.group}}, \code{\link{control.scopy}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
+\code{\link{control.scopy}}, \code{\link{control.mix}}, \code{\link{control.pom}}, \code{\link{control.link}}, \code{\link{control.expert}}, \code{\link{control.compute}}, \code{\link{control.lp.scale}}, \code{\link{control.pardiso.default}}, \code{\link{control.bgev.default}}, \code{\link{control.family}}, \code{\link{control.fixed}}, \code{\link{control.inla}}, \code{\link{control.predictor}}, \code{\link{control.mode}}, \code{\link{control.hazard}}, 
 \code{\link{inla}}
 }
