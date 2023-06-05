@@ -157,7 +157,7 @@ void GMRFLib_exp(int, double *, double *);
 void GMRFLib_log(int, double *, double *);
 void GMRFLib_log1p(int, double *, double *);
 void GMRFLib_sqr(int n, double *x, double *y);
-void GMRFLib_MKL_chose_thresholds(int verbose);
+void GMRFLib_MKL_chose_thresholds(void);
 
 
 __END_DECLS

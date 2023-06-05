@@ -2053,9 +2053,11 @@ void GMRFLib_sqr(int n, double *x, double *y)
 }
 
 
-void GMRFLib_MKL_chose_thresholds(int verbose)
+void GMRFLib_MKL_chose_thresholds(void)
 {
 #if defined(INLA_LINK_WITH_MKL)
+	const int verbose = 0;
+
 #pragma omp critical (Name_98ee839e85cd2a7722927d5ea8fc742a6f849ce3)
 	{
 		int n = 1024;

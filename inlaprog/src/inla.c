@@ -5551,7 +5551,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 		GMRFLib_isum_measure_time(time_isum);
 		GMRFLib_dsum_measure_time(time_dsum);
-		GMRFLib_MKL_chose_thresholds(0);
+		GMRFLib_MKL_chose_thresholds();
 	} else {
 		GMRFLib_Qx_strategy = 0;
 		GMRFLib_preopt_predictor_strategy = 0;
