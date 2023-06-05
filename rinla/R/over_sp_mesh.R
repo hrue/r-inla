@@ -37,11 +37,16 @@
 #'
 #' ## Multiple transformations can lead to slightly different results due to edge cases
 #' ## 4 triangles found in the polygon
-#' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")), ignore.CRS = FALSE)
+#' inla.over_sp_mesh(
+#'   obj,
+#'   inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
+#'   ignore.CRS = FALSE)
 #'
 #' ## Ignoring mismatching coordinate systems is rarely useful
 #' ## 20 triangles "found in" the polygon
-#' inla.over_sp_mesh(obj, inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")), ignore.CRS = TRUE)
+#' inla.over_sp_mesh(obj,
+#'   inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
+#'   ignore.CRS = TRUE)
 #' @export
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE) {
     if (!inherits(y, "inla.mesh")) {

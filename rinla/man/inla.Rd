@@ -259,7 +259,7 @@ criteria and effective number of parameters, otherwise \code{NULL} }
 three elements: \code{cpo$cpo} are the values of the conditional predictive
 ordinate (CPO), \code{cpo$pit} are the values of the probability integral
 transform (PIT) and \code{cpo$failure} indicates whether some assumptions
-are violated. In short, if cpo$failure\link{i} > 0 then some assumption is
+are violated. In short, if \code{cpo$failure[i] > 0} then some assumption is
 violated, the higher the value (maximum 1) the more seriously.  }
 \item{po}{
 If \code{po}=\code{TRUE} in \code{control.compute}, a list of one elements:

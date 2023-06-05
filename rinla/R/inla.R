@@ -189,7 +189,7 @@
 #' three elements: \code{cpo$cpo} are the values of the conditional predictive
 #' ordinate (CPO), \code{cpo$pit} are the values of the probability integral
 #' transform (PIT) and \code{cpo$failure} indicates whether some assumptions
-#' are violated. In short, if cpo$failure[i] > 0 then some assumption is
+#' are violated. In short, if `cpo$failure[i] > 0` then some assumption is
 #' violated, the higher the value (maximum 1) the more seriously.  }
 
 #' \item{po}{
