@@ -61,15 +61,15 @@ inla.rgeneric.q(
 
 \item{compile}{Logical. Compile the definition of the model or not.}
 
+\item{optimize}{Logical. With this option \code{TRUE}, then \code{model} pass
+only the values of \code{Q} and not the whole matrix.  Please see the
+vignette for details and \code{inla.rgeneric.ar1.model.opt} for an example.}
+
 \item{...}{Named list of variables that defines the environment of
 \code{model}}
 
 \item{rmodel}{The rgeneric model-object, the output of
 \code{inla.rgeneric.define}}
-
-\item{optimze}{Logical. With this option \code{TRUE}, then \code{model} pass
-only the values of \code{Q} and not the whole matrix.  Please see the
-vignette for details and \code{inla.rgeneric.ar1.model.opt} for an example.}
 }
 \value{
 This allows a latent model to be defined in \code{R}.  See

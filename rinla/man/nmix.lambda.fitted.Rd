@@ -24,14 +24,14 @@ hyperparameters.  This sample size ends up being the size of the estimated
 posterior for a fitted lambda value.  Default is 1000. Larger values are
 recommended.}
 
+\item{return.posteriors}{A logical value for whether or not to return the
+full estimated posteriors for each fitted value (\code{TRUE}), or just a
+summary of the posteriors (\code{FALSE}). Default is \code{FALSE}.}
+
 \item{scale}{A character string, where the default string, \code{"exp"},
 causes values from the linear predictor to be exponentiated before being
 returned. The string, \code{"log"}, causes values to be returned on the
 \code{log(lambda)} scale.}
-
-\item{return.posterior}{A logical value for whether or not to return the
-full estimated posteriors for each fitted value (\code{TRUE}), or just a
-summary of the posteriors (\code{FALSE}). Default is \code{FALSE}.}
 }
 \value{
 \item{fitted.summary}{A data frame with summaries of estimated

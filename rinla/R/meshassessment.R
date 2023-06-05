@@ -24,7 +24,7 @@
 #' @param mesh An `inla.mesh`
 #' @param spatial.range numeric; the spatial range parameter to use for the assessment
 #' @param alpha numeric; A valid `inla.spde2.pcmatern` `alpha` parameter
-#' @param dims; 2-numeric; the grid size
+#' @param dims 2-numeric; the grid size
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso inla.mesh.2d, inla.mesh.create, meshbuilder
 #' @examples

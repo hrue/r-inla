@@ -13,7 +13,7 @@ inla.mesh.assessment(mesh, spatial.range, alpha = 2, dims = c(500, 500))
 
 \item{alpha}{numeric; A valid \code{inla.spde2.pcmatern} \code{alpha} parameter}
 
-\item{dims;}{2-numeric; the grid size}
+\item{dims}{2-numeric; the grid size}
 }
 \description{
 Assess the finite element approximation errors in a mesh for interactive R

@@ -31,7 +31,7 @@
 #' hyperparameters.  This sample size ends up being the size of the estimated
 #' posterior for a fitted lambda value.  Default is 1000. Larger values are
 #' recommended.
-#' @param return.posterior A logical value for whether or not to return the
+#' @param return.posteriors A logical value for whether or not to return the
 #' full estimated posteriors for each fitted value (\code{TRUE}), or just a
 #' summary of the posteriors (\code{FALSE}). Default is \code{FALSE}.
 #' @param scale A character string, where the default string, \code{"exp"},

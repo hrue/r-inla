@@ -98,7 +98,6 @@ NULL
     return(inla.q(cmd = "nuke"))
 }
 
-#' @rdname q
 `inla.q` <- function(cmd = c("get", "del", "stat", "log", "nuke"), id, remove = TRUE) {
     cmd <- match.arg(cmd)
 

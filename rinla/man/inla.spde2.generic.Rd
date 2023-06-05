@@ -55,8 +55,6 @@ Default \verb{=theta.initial[fixed]}}
 
 \item{\dots}{Additional parameters, currently unused.}
 
-\item{spde}{An \code{inla.sdpe2} object.}
-
 \item{theta}{parameter values to be mapped.}
 }
 \value{

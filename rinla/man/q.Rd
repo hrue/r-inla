@@ -24,8 +24,6 @@ inla.qstat(id)
 inla.qlog(id)
 
 inla.qnuke()
-
-inla.q(cmd = c("get", "del", "stat", "log", "nuke"), id, remove = TRUE)
 }
 \arguments{
 \item{object}{An \code{inla.q}-object which is the output from

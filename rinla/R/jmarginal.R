@@ -18,6 +18,7 @@
 #' @param samples The samples, as in the form of the output from
 #' \code{inla.rjmarginal}
 #' @param A A matrix used for the linear combination
+#' @param ... Arguments passed on to other methods (printing and summarising)
 #' @returns THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
 #' 
 #' \code{inla.rjmarginal} returns a list with the samples in \code{samples}
@@ -212,6 +213,7 @@
 }
 
 #' @rdname jmarginal
+#' @param object Object to be summarised
 #' @method summary inla.jmarginal
 #' @export
 `summary.inla.jmarginal` <- function(object, ...) {
@@ -249,6 +251,7 @@
 }
 
 #' @rdname jmarginal
+#' @param x Object to be printed
 #' @method print summary.inla.jmarginal
 #' @export
 `print.summary.inla.jmarginal` <- function(x, ...) {

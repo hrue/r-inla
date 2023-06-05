@@ -2947,7 +2947,7 @@ inla.internal.make.spline.mesh <- function(interval, m, degree, boundary, free.c
 #' @param free.clamped If `TRUE` and `boundary` is `"free"`, the
 #' boundary basis functions are clamped to 0/1 at the interval boundary by
 #' repeating the boundary knots.
-#' @param ...
+#' @param ... Unused
 #'
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.mesh.1d()] [inla.mesh.2d()]
@@ -4163,7 +4163,7 @@ inla.diameter.inla.mesh.lattice <- function(x, ...) {
 #' \item{g2 }{`g2 = g1 * c0^-1 * g1`} \item{gk }{`gk = g1 * (c0^-1 *
 #' g1)^(k-1)`, up to and including `k=order`}
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
-#' @seealso [inla.mesh.fem.1d()]
+#' @seealso [inla.mesh.1d.fem()]
 #' @export inla.mesh.fem
 inla.mesh.fem <- function(mesh, order = 2) {
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")

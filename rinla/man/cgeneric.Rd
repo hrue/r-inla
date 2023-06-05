@@ -21,6 +21,8 @@ inla.cgeneric.q(cmodel = NULL)
 
 \item{debug}{Logical. Turn on/off debugging}
 
+\item{...}{Additional arguments, required by \code{inla.cgeneric.define()} to be named arguments}
+
 \item{cmodel}{The name of a cgeneric model-object (output from
 \code{inla.cgeneric.define}}
 }

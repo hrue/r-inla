@@ -498,9 +498,9 @@ NULL
 
 #' @rdname marginal
 #' @export
-`inla.is.marginal` <- function(m) {
-    return((is.matrix(m) && ncol(m) == 2L && nrow(m) > 2L) ||
-        (is.list(m) && all(names(m) == c("x", "y"))))
+`inla.is.marginal` <- function(marginal) {
+    return((is.matrix(marginal) && ncol(marginal) == 2L && nrow(marginal) > 2L) ||
+        (is.list(marginal) && all(names(marginal) == c("x", "y"))))
 }
 
 

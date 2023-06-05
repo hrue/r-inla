@@ -51,6 +51,8 @@ backwards.}
 \item{grp}{Group ID specification for each polygon, as used by
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}}, one ID per polygon.}
 
+\item{is.bnd}{logical}
+
 \item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
 
 \item{join}{If \code{TRUE}, join multiple polygons into a single segment

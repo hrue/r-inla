@@ -18,7 +18,7 @@
 #' \code{inla.rgeneric.define}
 #' @param debug Logical. Turn on/off debugging
 #' @param compile Logical. Compile the definition of the model or not.
-#' @param optimze Logical. With this option \code{TRUE}, then \code{model} pass
+#' @param optimize Logical. With this option \code{TRUE}, then \code{model} pass
 #' only the values of \code{Q} and not the whole matrix.  Please see the
 #' vignette for details and \code{inla.rgeneric.ar1.model.opt} for an example.
 #' @param cmd An allowed request

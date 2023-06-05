@@ -21,7 +21,7 @@ Constructs finite element matrices for \code{\link[=inla.mesh]{inla.mesh()}} and
 \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} objects.
 }
 \seealso{
-\code{\link[=inla.mesh.fem.1d]{inla.mesh.fem.1d()}}
+\code{\link[=inla.mesh.1d.fem]{inla.mesh.1d.fem()}}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

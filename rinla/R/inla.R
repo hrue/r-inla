@@ -41,10 +41,10 @@
 #' as \code{eta = ... + offset.formula}. So in this case, the offset defined
 #' here and in the formula has a different meaning and usage.
 #' @param scale Fixed (optional) scale parameters of the precision for Gaussian
-#' and Student-T response models. Default value is rep(1, n.data).
+#' and Student-T response models. Default value is `rep(1, n.data)`.
 #' @param weights Fixed (optional) weights parameters of the likelihood, so the
-#' log-likelihood[i] is changed into weights[i]*log-likelihood[i]. Default
-#' value is rep(1, n.data).  WARNING: The normalizing constant for the
+#' `log-likelihood[i]` is changed into `weights[i]*log-likelihood[i]`. Default
+#' value is `rep(1, n.data)`.  WARNING: The normalizing constant for the
 #' likelihood is NOT recomputed, so ALL marginals (and the marginal likelihood)
 #' must be interpreted with great care.
 #' @param Ntrials A vector containing the number of trials for the
@@ -52,7 +52,7 @@
 #' successes for the \code{nbinomial2} likelihood. Default value is
 #' \code{rep(1, n.data)}.
 #' @param strata Fixed (optional) strata indicators for tstrata likelihood
-#' model and similar. The documentaion for each likelihood will inform if this
+#' model and similar. The documentation for each likelihood will inform if this
 #' argument is required.
 #' @param lp.scale A vector with same length as the predictor going into the
 #' likelihood with either \code{NA}'s or indices indexing the scaling

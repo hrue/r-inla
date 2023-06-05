@@ -57,7 +57,7 @@ inla.mmarginal(marginal)
 
 inla.zmarginal(marginal, silent = FALSE)
 
-inla.is.marginal(m)
+inla.is.marginal(marginal)
 }
 \arguments{
 \item{marginal}{A marginal object from either \code{inla} or

@@ -8,7 +8,6 @@
 }
 
 `inla.models.section.latent` <- function() {
-    return
     list(
         latent =
             list(
@@ -7091,7 +7090,6 @@
     ## prevent a warning with R CMD check
     ngroup <- NULL
 
-    return
     list(
         group =
             list(
@@ -7347,7 +7345,6 @@
 `inla.models.section.scopy` <- function() {
     ## the priors for the overall mean and the precision is given elsewhere. this is just to
     ## give the allowed models. 
-    return
     list(
         scopy =
             list(
@@ -7365,7 +7362,6 @@
 }
 
 `inla.models.section.mix` <- function() {
-    return
     list(
         mix =
             list(
@@ -7430,7 +7426,6 @@
 }
 
 `inla.models.section.link` <- function() {
-    return
     list(
         link =
             list(
@@ -7807,7 +7802,6 @@
 }
 
 `inla.models.section.predictor` <- function() {
-    return
     list(
         predictor =
             list(
@@ -7833,7 +7827,6 @@
 }
 
 `inla.models.section.hazard` <- function() {
-    return
     list(
         hazard =
             list(
@@ -7890,7 +7883,6 @@
 }
 
 `inla.models.section.likelihood` <- function() {
-    return
     list(
         likelihood =
             list(
@@ -11970,7 +11962,6 @@
 }
 
 `inla.models.section.prior` <- function() {
-    return
     list(
         prior =
             list(
@@ -12224,7 +12215,6 @@
 }
 
 `inla.models.section.wrapper` <- function() {
-    return
     list(
         wrapper =
             list(
@@ -12258,7 +12248,6 @@
 }
 
 `inla.models.section.lp.scale` <- function() {
-    return
     list(
         lp.scale =
             list(

@@ -11,6 +11,7 @@
 #' @param shlib Name of the compiled object-file with \code{model}
 #' @param n The size of the model
 #' @param debug Logical. Turn on/off debugging
+#' @param ... Additional arguments, required by `inla.cgeneric.define()` to be named arguments
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' 
 #' @name cgeneric

@@ -48,6 +48,12 @@ functions for details.}
 \item{samples}{The samples, as in the form of the output from
 \code{inla.rjmarginal}}
 
+\item{...}{Arguments passed on to other methods (printing and summarising)}
+
+\item{x}{Object to be printed}
+
+\item{object}{Object to be summarised}
+
 \item{A}{A matrix used for the linear combination}
 }
 \value{
