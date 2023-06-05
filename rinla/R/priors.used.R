@@ -1,33 +1,28 @@
-## Export: inla.priors.used
-
-## !\name{inla.priors.used}
-## !\alias{inla.priors.used}
-## !\alias{priors.used}
-## !\title{Print priors used}
-## !\description{Print the priors used for the hyperparameters}
-## !\usage{
-## !    inla.priors.used(result, digits=6L)
-## !}
-## !\arguments{
-## !\item{result}{An \code{inla}-object, typically the output from an \code{inla()}-call}
-## !\item{digits}{The \code{digits} argument to the function \code{format()}}
-## !}
-## !\details{
-## !This function provides a more human-friendly output of \code{result$all.hyper}
-## !of all the priors used for the hyperparameters.
-## !Since not all information about the model is encoded in this object, more hyperparameters
-## !than actually used, may be printed. In particular, \code{group.theta1} is printed
-## !even though the argument \code{group} in \code{f()} is not used. Similarly for spde-models,
-## !but the user should know that, for example, only the two first ones
-## !are actually used.
-## !Hopefully, this issue will be fixed in the future.
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\examples{
-## !r = inla(y ~ 1 + x, data = data.frame(y = 1:10, x = rep(1:5, 2)))
-## !inla.priors.used(r)
-## !}
-
+#' Print priors used
+#' 
+#' Print the priors used for the hyperparameters
+#' 
+#' This function provides a more human-friendly output of
+#' \code{result$all.hyper} of all the priors used for the hyperparameters.
+#' Since not all information about the model is encoded in this object, more
+#' hyperparameters than actually used, may be printed. In particular,
+#' \code{group.theta1} is printed even though the argument \code{group} in
+#' \code{f()} is not used. Similarly for spde-models, but the user should know
+#' that, for example, only the two first ones are actually used. Hopefully,
+#' this issue will be fixed in the future.
+#' 
+#' @aliases inla.priors.used priors.used
+#' @param result An \code{inla}-object, typically the output from an
+#' \code{inla()}-call
+#' @param digits The \code{digits} argument to the function \code{format()}
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#' r = inla(y ~ 1 + x, data = data.frame(y = 1:10, x = rep(1:5, 2)))
+#' inla.priors.used(r)
+#' 
+#' @rdname priors.used
+#' @export inla.priors.used
 `inla.priors.used` <- function(result, digits = 6L) {
     p2char <- function(p) {
         return(paste(as.character(format(p, digits = digits)), sep = "", collapse = ", "))

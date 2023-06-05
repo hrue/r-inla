@@ -1,37 +1,28 @@
-## Export: inla.rerun
-
-## ! \name{inla.rerun}
-## ! \alias{inla.rerun}
-## ! \alias{rerun}
-## !
-## ! \title{Rerun an analysis}
-## ! \description{Rerun \code{\link{inla}} on an
-## !              inla-object (output from \code{link{inla}})}
-## ! \usage{
-## ! inla.rerun(object, plain=FALSE)
-## ! }
-## ! \arguments{
-## !
+#' Rerun an analysis
+#' 
+#' Rerun \code{\link{inla}} on an inla-object (output from \code{link{inla}})
+#' 
+#' 
+#' @aliases inla.rerun rerun
+#' @return This function will take the result in \code{object}, and rerun
+#' \code{inla} again.  If \code{plain} is \code{FALSE}, start the optimization
+#' from the mode in \code{object} so that we can obtain an improvement the mode
+#' for the hyperparameters.  Otherwise, start from the same configuration as
+#' for \code{object}.  The returned value is an \code{inla}-object.
+#' @seealso \code{\link{inla}}
+#' @examples
+#' 
+#' r = inla(y ~ 1,  data = data.frame(y=1:10))
+#' r = inla.rerun(r)
+#' 
+#' @rdname rerun
+#' @export inla.rerun
 `inla.rerun` <- function(
-                         ## !\item{object}{An \code{inla}-object, ie the output from an \code{inla}-call}
+                         #' @param object An \code{inla}-object, ie the output from an \code{inla}-call
                          object,
-                         ## !\item{plain}{Logical. If \code{FALSE} (default), then make
-                         ## !changes in \code{object} to improve the performance}
+                         #' @param plain Logical. If \code{FALSE} (default), then make changes in
+                         #' \code{object} to improve the performance
                          plain = FALSE)
-                         ## !}
-                         ## !\value{This function will take the result in \code{object},
-                         ## !       and rerun \code{inla} again.
-                         ## !       If \code{plain}  is \code{FALSE},  start  the optimization
-                         ## !       from the mode in \code{object} so that
-                         ## !       we can obtain an  improvement the mode for the hyperparameters.
-                         ## !       Otherwise,  start from the same configuration
-                         ## !       as for \code{object}.
-                         ## !       The returned value is an \code{inla}-object.}
-                         ## !\seealso{\code{\link{inla}}}
-                         ## !\examples{
-                         ## !r = inla(y ~ 1,  data = data.frame(y=1:10))
-                         ## !r = inla.rerun(r)
-## !}
 {
     stopifnot(any(inherits(object, "inla")))
 

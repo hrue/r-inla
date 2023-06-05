@@ -1,51 +1,26 @@
-## Export: inla.mdata is.inla.mdata as.inla.mdata
-## Export: print!inla.mdata
-
-## !\name{inla.mdata}
-## !\alias{inla.mdata}
-## !\alias{is.inla.mdata}
-## !\alias{as.inla.mdata}
-## !\alias{print.inla.mdata}
-## !
-## !\title{
-## !Create an mdata-object for INLA
-## !}
-## !
-## !\description{
-## !This defines an mdata-object for matrix valued response-families
-## !}
-## !\usage{
-## !inla.mdata(y, ...)
-## !is.inla.mdata(object)
-## !as.inla.mdata(object)
-## !}
-## !
-## !\arguments{
-## !  \item{y}{The response vector/matrix}
-## !  \item{...}{Additional vectors/matrics of same length as \code{y}}
-## !  \item{object}{Any \code{R}-object}
-## !  \item{x}{An mdata object}
-## !  }
-## !
-## !\value{
-## !     An object of class \code{inla.mdata}.  There is method for \code{print}.
-## !
-## !     \code{is.inla.mdata} returns \code{TRUE} if \code{object}
-## !     inherits from class \code{inla.mdata}, otherwise \code{FALSE}.
-## !
-## !     \code{as.inla.mdata} returns an object of class \code{inla.mdata}
-## !}
-## !\note{It is often required to set \code{Y=inla.mdata(...)} and then
-## !      define the formula as \code{Y~...},  especially when used with
-## !      \code{inla.stack}.}
-## !\author{
-## ! Havard Rue
-## !}
-## !
-## !\seealso{
-## !\code{\link{inla}}
-## !}
-
+#' Create an mdata-object for INLA
+#' 
+#' This defines an mdata-object for matrix valued response-families
+#' 
+#' 
+#' @aliases mdata inla.mdata is.inla.mdata as.inla.mdata print.inla.mdata
+#' @param y The response vector/matrix
+#' @param ... Additional vectors/matrics of same length as \code{y}
+#' @param object Any \code{R}-object
+#' @param x An mdata object
+#' @return An object of class \code{inla.mdata}.  There is method for
+#' \code{print}.
+#' 
+#' \code{is.inla.mdata} returns \code{TRUE} if \code{object} inherits from
+#' class \code{inla.mdata}, otherwise \code{FALSE}.
+#' 
+#' \code{as.inla.mdata} returns an object of class \code{inla.mdata}
+#' @note It is often required to set \code{Y=inla.mdata(...)} and then define
+#' the formula as \code{Y~...}, especially when used with \code{inla.stack}.
+#' @author Havard Rue
+#' @seealso \code{\link{inla}}
+#' @rdname mdata
+#' @export inla.mdata
 `inla.mdata` <- function(y, ...) {
     names.ori <- as.list(match.call())[-1]
     y.obj <- as.list(as.data.frame(list(y)))
@@ -74,11 +49,15 @@
     return(obj)
 }
 
+#' @rdname mdata
+#' @export
 `print.inla.mdata` <- function(object, ...) {
     cat("inla.cols = ", attr(object, "inla.ncols", exact = TRUE), "\n")
     print(as.data.frame(unclass(object)), ...)
 }
 
+#' @rdname mdata
+#' @export
 `as.inla.mdata` <- function(object) {
     if (is.inla.mdata(object)) {
         return(object)
@@ -97,6 +76,8 @@
     return(object)
 }
 
+#' @rdname mdata
+#' @export
 `is.inla.mdata` <- function(object) {
     return(!is.null(attr(object, "inla.ncols", exact = TRUE)) ||
         inherits(object, "inla.mdata"))

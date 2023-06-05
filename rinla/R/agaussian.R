@@ -19,9 +19,7 @@
 #'
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @export
-#' @aliases inla.agaussian
-#' @aliases aggregate.gaussian
-#' @aliases agaussian
+#' @aliases aggregate.gaussian agaussian
 #' @rdname agaussian
 #' 
 #' @examples

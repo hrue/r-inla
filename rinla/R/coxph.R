@@ -1,83 +1,78 @@
-## Export: inla.coxph
-## Export: inla.rbind.data.frames
 
-## !\name{inla.coxph}
-## !\alias{inla.coxph}
-## !\alias{inla.rbind.data.frames}
-## !\alias{coxph}
-## !\alias{cbind.data.frames}
-## !\title{Convert a Cox proportional hazard model into Poisson regression}
-## !\description{Tools to convert a Cox proportional hazard model into Poisson regression}
-## !\usage{
-## !    inla.coxph(formula, data, control.hazard = list(), tag="", debug=FALSE)
-## !    inla.rbind.data.frames(...)
-## !}
-## !\arguments{
-## !  \item{formula}{The formula for the coxph model where the reponse must be a \code{inla.surv}-object.}
-## !  \item{data}{All the data used in the formula,  as a list.}
-## !  \item{control.hazard}{Control the model for the baseline-hazard; see \code{?control.hazard}.}
-## !  \item{tag}{An optional tag added to the names of the new variables created (to make them
-## !             unique when combined with several calls of \code{inla.coxph}. Note that 
-## !             \code{E..coxph} is not included,  as its usually merged into one 
-## !             vector over different expansions.}
-## !  \item{debug}{Print debug-information}
-## !  \item{...}{Data.frames to be \code{rbind}-ed,  padding with \code{NA}.}
-## !}
-## !\value{
-## !      \code{inla.coxph} returns a list of new expanded variables to be used in the \code{inla}-call.
-## !      Note that element \code{data} and \code{data.list} needs to be merged into
-## !      a \code{list} to be passed as the \code{data} argument. See the example for details.
-## !
-## !      \code{inla.rbind.data.frames} returns the rbinded data.frames padded with NAs.
-## !      There is a better
-## !      implementation in \code{dplyr::bind_rows}, which is used if package \code{dplyr} is
-## !      installed.
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\examples{
-## !## How the cbind.data.frames works:
-## !df1 = data.frame(x=1:2, y=2:3, z=3:4)
-## !df2 = data.frame(x=3:4, yy=4:5, zz=5:6)
-## !inla.rbind.data.frames(df1, df2)
-## !
-## !## Standard example of how to convert a coxph into a Poisson regression
-## !n = 1000
-## !x = runif(n)
-## !lambda = exp(1+x)
-## !y = rexp(n, rate=lambda)
-## !event = rep(1,n)
-## !data = list(y=y, event=event, x=x)
-## !y.surv = inla.surv(y, event)
-## !intercept1 = rep(1, n)
-## !p = inla.coxph(y.surv ~ -1 + intercept1 + x,
-## !               list(y.surv = y.surv,  x=x, intercept1 = intercept1))
-## !
-## !r = inla(p$formula,
-## !        family = p$family,
-## !        data=c(as.list(p$data), p$data.list),
-## !        E = p$E)
-## !summary(r)
-## !
-## !## How to use this in a joint model
-## !intercept2 = rep(1, n)
-## !y = 1 + x + rnorm(n, sd=0.1)
-## !df = data.frame(intercept2, x, y)
-## !
-## !## new need to cbind the data.frames, and then add the list-part of
-## !## the data
-## !df.joint = c(as.list(inla.rbind.data.frames(p$data, df)), p$data.list)
-## !df.joint$Y = cbind(df.joint$y..coxph, df.joint$y)
-## !
-## !## merge the formulas, recall to add '-1' and to use the new joint
-## !## reponse 'Y'
-## !formula = update(p$formula, Y ~ intercept2 -1 + .)
-## !
-## !rr = inla(formula,
-## !        family = c(p$family, "gaussian"),
-## !        data = df.joint,
-## !        E = df.joint$E..coxph)
-## !}
 
+
+#' Convert a Cox proportional hazard model into Poisson regression
+#' 
+#' Tools to convert a Cox proportional hazard model into Poisson regression
+#' 
+#' 
+#' @aliases inla.coxph inla.rbind.data.frames coxph cbind.data.frames
+#' @param formula The formula for the coxph model where the response must be a
+#' \code{inla.surv}-object.
+#' @param data All the data used in the formula, as a list.
+#' @param control.hazard Control the model for the baseline-hazard; see
+#' \code{?control.hazard}.
+#' @param tag An optional tag added to the names of the new variables created
+#' (to make them unique when combined with several calls of \code{inla.coxph}.
+#' Note that \code{E..coxph} is not included, as its usually merged into one
+#' vector over different expansions.
+#' @param debug Print debug-information
+#' @param ... Data.frames to be \code{rbind}-ed, padding with \code{NA}.
+#' @return \code{inla.coxph} returns a list of new expanded variables to be
+#' used in the \code{inla}-call.  Note that element \code{data} and
+#' \code{data.list} needs to be merged into a \code{list} to be passed as the
+#' \code{data} argument. See the example for details.
+#' 
+#' \code{inla.rbind.data.frames} returns the rbinded data.frames padded with
+#' NAs.  There is a better implementation in \code{dplyr::bind_rows}, which is
+#' used if package \code{dplyr} is installed.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#' ## How the cbind.data.frames works:
+#' df1 = data.frame(x=1:2, y=2:3, z=3:4)
+#' df2 = data.frame(x=3:4, yy=4:5, zz=5:6)
+#' inla.rbind.data.frames(df1, df2)
+#' 
+#' ## Standard example of how to convert a coxph into a Poisson regression
+#' n = 1000
+#' x = runif(n)
+#' lambda = exp(1+x)
+#' y = rexp(n, rate=lambda)
+#' event = rep(1,n)
+#' data = list(y=y, event=event, x=x)
+#' y.surv = inla.surv(y, event)
+#' intercept1 = rep(1, n)
+#' p = inla.coxph(y.surv ~ -1 + intercept1 + x,
+#'                list(y.surv = y.surv,  x=x, intercept1 = intercept1))
+#' 
+#' r = inla(p$formula,
+#'         family = p$family,
+#'         data=c(as.list(p$data), p$data.list),
+#'         E = p$E)
+#' summary(r)
+#' 
+#' ## How to use this in a joint model
+#' intercept2 = rep(1, n)
+#' y = 1 + x + rnorm(n, sd=0.1)
+#' df = data.frame(intercept2, x, y)
+#' 
+#' ## new need to cbind the data.frames, and then add the list-part of
+#' ## the data
+#' df.joint = c(as.list(inla.rbind.data.frames(p$data, df)), p$data.list)
+#' df.joint$Y = cbind(df.joint$y..coxph, df.joint$y)
+#' 
+#' ## merge the formulas, recall to add '-1' and to use the new joint
+#' ## reponse 'Y'
+#' formula = update(p$formula, Y ~ intercept2 -1 + .)
+#' 
+#' rr = inla(formula,
+#'         family = c(p$family, "gaussian"),
+#'         data = df.joint,
+#'         E = df.joint$E..coxph)
+#' 
+#' @rdname coxph
+#' @export inla.coxph
 `inla.coxph` <- function(formula, data, control.hazard = list(), debug = FALSE, tag = "") 
 {
     ## convert a coxph-model into poisson-regression and return a new
@@ -121,6 +116,8 @@
                     paste0(class(y.surv), collapse = ", "),
                     "'"))
     }
+
+
     control.hazard <- inla.check.control(control.hazard, data.f)
     cont.hazard <- inla.set.control.hazard.default()
     cont.hazard[names(control.hazard)] <- control.hazard
@@ -259,6 +256,9 @@
     ))
 }
 
+
+#' @rdname coxph
+#' @export inla.rbind.data.frames
 `inla.rbind.data.frames` <- function(...)
 {
     ## rbind data.frames padding with NA
