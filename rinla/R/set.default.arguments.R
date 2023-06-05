@@ -272,7 +272,7 @@ control.gcpo <-
         enable = FALSE,
         #' @param num.level.sets TODO
         num.level.sets = -1,
-        #' @param sie.max TODO
+        #' @param size.max TODO
         size.max = 32,
         #' @param strategy TODO
         strategy = c("posterior", "prior"),
@@ -605,10 +605,10 @@ control.vb <- function(
         #'         First element is for \code{strategy="mean"}.
         #'         Second element is for \code{strategy="mean"}.
         f.enable.limit = c(30, 25),
-        #' @param hesssian.update How many times the Hessian is updated for each
+        #' @param hessian.update How many times the Hessian is updated for each
         #'         correction (\code{strategy="variance"} only).
         hessian.update = 2,
-        #' @param hesssian.strategy Select strategy for computing the Hessian
+        #' @param hessian.strategy Select strategy for computing the Hessian
         #'         matrix for \code{strategy="variance"}, one of \code{"full"}, 
         #'         \code{"diagonal"}, \code{"partial"} and \code{"default"}.
         hessian.strategy = c("default", "full", "partial", "diagonal")
@@ -751,8 +751,8 @@ control.vb <- function(
         adaptive.max = 25L,
         
         #' @param huge Logical If TRUE then try to do some of the internal
-        #' parallisations differently. Hopefully this will be of benefite for 'HUGE' models.
-        #' (Default FALSE.) [THIS OPTION IS OBSOLETE AND NOT USED!]
+        #' parallelisations differently. Hopefully this will be of benefit for 'HUGE' models.
+        #' (Default FALSE.) THIS OPTION IS OBSOLETE AND NOT USED!
         huge = FALSE,
         
         #' @param step.len Numerical The step-length used to compute numerical

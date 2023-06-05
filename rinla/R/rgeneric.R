@@ -1,10 +1,3 @@
-## Export: inla.rgeneric.ar1.model
-## Export: inla.rgeneric.ar1.model.opt
-## Export: inla.rgeneric.iid.model
-## Export: inla.rgeneric.define
-## Export: inla.rgeneric.wrapper
-## Export: inla.rgeneric.q
-
 #' rgeneric models
 #' 
 #' A framework for defining latent models in R

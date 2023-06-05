@@ -5,6 +5,7 @@
 #' @name inla.models
 #' @rdname models
 #' @aliases inla.models
+#' @export inla.models
 #'
 #' @description
 #' This page describe the models implemented in `inla`, divided into sections:

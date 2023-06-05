@@ -227,6 +227,7 @@ inla.models()
         "#' @name inla.models\n",
         "#' @rdname models\n",
         "#' @aliases inla.models\n",
+        "#' @export inla.models\n",
         "#'\n",
         "#' @description\n",
         "#' This page describe the models implemented in \`inla`, divided into sections:\n",

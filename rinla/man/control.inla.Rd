@@ -165,8 +165,8 @@ default strategy for all fixed effects and model components with length less or
 equal to \code{adaptive.max}, for others, the gaussian strategy will be applied.}
 
 \item{huge}{Logical If TRUE then try to do some of the internal
-parallisations differently. Hopefully this will be of benefite for 'HUGE' models.
-(Default FALSE.) \link{THIS OPTION IS OBSOLETE AND NOT USED!}}
+parallelisations differently. Hopefully this will be of benefit for 'HUGE' models.
+(Default FALSE.) THIS OPTION IS OBSOLETE AND NOT USED!}
 
 \item{step.len}{Numerical The step-length used to compute numerical
 derivaties of the log-likelihood (0 means \code{default} which

@@ -34,14 +34,14 @@ than this value, then call the vb.correction off and issue a warning}
 First element is for \code{strategy="mean"}.
 Second element is for \code{strategy="mean"}.}
 
-\item{...}{Named arguments passed on to the main function}
-
-\item{hesssian.update}{How many times the Hessian is updated for each
+\item{hessian.update}{How many times the Hessian is updated for each
 correction (\code{strategy="variance"} only).}
 
-\item{hesssian.strategy}{Select strategy for computing the Hessian
+\item{hessian.strategy}{Select strategy for computing the Hessian
 matrix for \code{strategy="variance"}, one of \code{"full"},
 \code{"diagonal"}, \code{"partial"} and \code{"default"}.}
+
+\item{...}{Named arguments passed on to the main function}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.

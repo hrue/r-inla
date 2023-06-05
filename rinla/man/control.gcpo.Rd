@@ -29,6 +29,8 @@ inla.set.control.gcpo.default(...)
 
 \item{num.level.sets}{TODO}
 
+\item{size.max}{TODO}
+
 \item{strategy}{TODO}
 
 \item{groups}{TODO}
@@ -52,8 +54,6 @@ inla.set.control.gcpo.default(...)
 \item{remove.fixed}{TODO}
 
 \item{...}{Named arguments passed on to the main function}
-
-\item{sie.max}{TODO}
 }
 \description{
 Control variables in \verb{control.*} for use with \code{\link[=inla]{inla()}}.

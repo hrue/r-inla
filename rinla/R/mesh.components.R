@@ -1,5 +1,3 @@
-## Export: inla.mesh.components
-
 #' Compute connected mesh subsets
 #'
 #' Compute subsets of vertices and triangles in an inla.mesh object that are
