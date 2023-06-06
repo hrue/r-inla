@@ -71,6 +71,7 @@ RoxygenNote: 7.2.3
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
+    '00000.R'
     'INLA-package.R'
     'agaussian.R'
     'ar.R'

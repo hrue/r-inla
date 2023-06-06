@@ -198,7 +198,7 @@
 #' (`pi(yi|y)`) }
 
 #' \item{residuals}{ If `residuals`=`TRUE` in
-#' `control.compute`, a list of standarized residuals are provided, see
+#' `control.compute`, a list of standardized residuals are provided, see
 #' `?control.compute` for details }
 
 #' \item{waic}{ If

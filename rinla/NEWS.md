@@ -1,3 +1,7 @@
+# INLA 99.99.99
+
+* Documentation and dependency updates
+
 # INLA 23.05.30
 * First build with R-4.3 and MacOS 12.6
 * Code improvement and optimisation
@@ -6,13 +10,13 @@
 # INLA 23.05.21
 * Reduced memory usage for data-rich models
 * Added new option `control.compute=list(save.memory=FALSE|TRUE)` for
-  more agressive savings
+  more aggressive savings
 * Change how equal correlations are defined in `gcpo`
 * Code optimization
 
 # INLA 23.05.13
-* Reduce memory consumtion
-* New diagostic: `result$misc$warnings`
+* Reduce memory consumption
+* New diagnostic: `result$misc$warnings`
 
 # INLA 23.05.10
 * Added documentation for `copy`
@@ -35,7 +39,7 @@
 * Added `inla.dryrun` (experimental)
 
 # INLA 23.04.11
-* Fixed an issue with cgeneric
+* Fixed an issue with `cgeneric`
 * Dot-product optimization for MKL
 * Improved Qinv for TAUCS
 * Added global-constraint(s) to the expert option
@@ -44,7 +48,7 @@
 * Fixed an issue with group-cv vigette
 
 # INLA 23.04.01
-* Fixed issue with model="slm" (thx to RB and VGB)
+* Fixed issue with `model="slm"` (thx to RB and VGB)
 * New vigette about CV and group-CV
 * New option to turn off online-optimisations
 * New option to measure gain in dot-product optimisations
