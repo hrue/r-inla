@@ -25,7 +25,7 @@ inla.set.control.vb.default(...)
 
 \item{verbose}{Logical Be verbose or not.}
 
-\item{iter.max}{Integer Maximum number of interations.}
+\item{iter.max}{Integer Maximum number of iterations.}
 
 \item{emergency}{Numeric If the standardized correction for the mean is larger
 than this value, then call the vb.correction off and issue a warning}
