@@ -2,9 +2,10 @@
 ## This file is generated automatically from models.R
 #' @title Valid models in INLA
 #'
-#' @name inla.models_doc
-#' @rdname inla.models_doc
-#' @aliases inla.models_doc
+#' @name inla.models
+#' @rdname models
+#' @aliases inla.models
+#' @export inla.models
 #'
 #' @description
 #' This page describe the models implemented in `inla`, divided into sections:
@@ -197,7 +198,7 @@
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{'Generic latent model spesified using R'}
+#'               \item{doc = }{'Generic latent model specified using R'}
 #'               \item{constr = }{'FALSE'}
 #'               \item{nrow.ncol = }{'FALSE'}
 #'               \item{augmented = }{'FALSE'}
@@ -217,7 +218,7 @@
 #'          \describe{
 #'           \item{Properties:}{
 #'             \describe{
-#'               \item{doc = }{'Generic latent model spesified using C'}
+#'               \item{doc = }{'Generic latent model specified using C'}
 #'               \item{constr = }{'FALSE'}
 #'               \item{nrow.ncol = }{'FALSE'}
 #'               \item{augmented = }{'FALSE'}
@@ -16187,7 +16188,7 @@
 #' @examples
 #' ## How to set hyperparameters to pass as the argument 'hyper'. This
 #' ## format is compatible with the old style (using 'initial', 'fixed',
-#' ## 'prior', 'param'), but the new style using 'hyper' take precedence
+#' ## 'prior', 'param'), but the new style using 'hyper' takes precedence
 #' ## over the old style. The two styles can also be mixed. The old style
 #' ## might be removed from the code in the future...
 #'

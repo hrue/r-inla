@@ -1,29 +1,23 @@
-## Export: inla.make.lincomb inla.make.lincombs
-
-## !\name{make.lincomb}
-## !\alias{make.lincomb}
-## !\alias{make.lincombs}
-## !\alias{inla.make.lincomb}
-## !\alias{inla.make.lincombs}
-## !\title{Create linear combinations}
-## !\description{Create a linear combination or several
-## !linear combinations, as input to \code{inla(...,  lincomb = <lincomb>)}}
-## !\usage{
-## !inla.make.lincomb(...)
-## !inla.make.lincombs(...)
-## !}
-## !\arguments{
-## !   \item{...}{Arguments; see examples}
-## !}
-## !\value{
-## ! A structure to be passed on to \code{\link{inla}} argument \code{lincomb}
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\seealso{TODO}
-## !\examples{
-## !##See the worked out examples and description in the FAQ
-## !##section on {www.r-inla.org}
-## !}
+#' Create linear combinations
+#' 
+#' Create a linear combination or several linear combinations, as input to
+#' `inla(..., lincomb = <lincomb>)`
+#' 
+#' 
+#' @aliases make.lincomb make.lincombs inla.make.lincomb inla.make.lincombs
+#' @param ... Arguments; see examples
+#' @return A structure to be passed on to [inla()] argument
+#' `lincomb`
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso TODO
+#' @examples
+#' 
+#' ##See the worked out examples and description in the FAQ
+#' ##section on {www.r-inla.org}
+#'
+#' @name make.lincomb
+#' @rdname lincomb
+#' @export
 
 `inla.make.lincomb` <- function(...) {
     arg <- match.call(expand.dots = TRUE)
@@ -61,6 +55,8 @@
     return(lc)
 }
 
+#' @rdname lincomb
+#' @export
 `inla.make.lincombs` <- function(...) {
     ## this is the more general version, which constructs one lincomb
     ## for each row

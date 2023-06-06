@@ -10,10 +10,10 @@
 #' type.
 #' @param intercept A constant to be added to the linear predictor
 #' @param tau.t Precision parameter for the main temporal effect.
-#' @param phi.t Mixing parameter in the \code{bym2} model assumed for the main
+#' @param phi.t Mixing parameter in the `bym2` model assumed for the main
 #' temporal effect.
 #' @param tau.s Precision parameter for the main spatial effect.
-#' @param phi.s Mixing parameter in the \code{bym2} model assumed for the main
+#' @param phi.s Mixing parameter in the `bym2` model assumed for the main
 #' spatial effect.
 #' @param tau.st Precision parameter for the spacetime effect.
 #' @param ev.t Eigenvalues and eigenvectors of the temporal precision matrix
@@ -42,7 +42,7 @@
 #' \item{st}{The spacetime interaction effect with length `m*n`.}
 #' \item{eta}{The linear predictor with length `n*m`.}
 #' @author Elias T. Krainski
-#' @seealso \code{\link{inla.knmodels}} for model fitting
+#' @seealso [inla.knmodels()] for model fitting
 #' @export
 
 `inla.knmodels.sample` <- function(graph,

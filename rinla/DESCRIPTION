@@ -16,9 +16,16 @@ Description: Full Bayesian analysis of latent Gaussian models using Integrated N
 Depends:
     R (>= 3.5),
     Matrix (>= 1.3-0),
-    foreach,
-    parallel,
     sp (>= 1.4-2)
+Imports:
+    graphics,
+    grDevices,
+    lifecycle,
+    methods,
+    parallel,
+    splines,
+    stats,
+    utils
 Suggests:
     Deriv,
     Ecdat,
@@ -54,14 +61,6 @@ Suggests:
     testthat,
     tools,
     INLAspacetime
-Imports:
-    graphics,
-    grDevices,
-    lifecycle,
-    methods,
-    splines,
-    stats,
-    utils
 VignetteBuilder: knitr
 BuildVignettes: true
 LazyData: true
@@ -72,6 +71,7 @@ RoxygenNote: 7.2.3
 Encoding: UTF-8
 StagedInstall: no
 Collate: 
+    '00000.R'
     'INLA-package.R'
     'agaussian.R'
     'ar.R'

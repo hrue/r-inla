@@ -1,37 +1,29 @@
-## Export: inla.qreordering
-
-## ! \name{qreordering}
-## ! \alias{inla.qreordering}
-## ! \alias{qreordering}
-## !
-## ! \title{Compute the reordering using the GMRFLib implementation}
-## !
-## ! \description{This function compute the reordering (or find the best reordering)
-## !              using the GMRFLib implementation}
-## ! \usage{
-## !     inla.qreordering(graph, reordering = inla.reorderings())
-## ! }
-## !
-## ! \arguments{
-## !   \item{graph}{A \code{(inla-)graph} object}
-## !   \item{reordering}{The name of the reordering algorithm to be used; either
-## !                     one of the names listed in \code{inla.reorderings()}.
-## !                     The default is "auto" which try several reordering algorithm
-## !                     and use the best one for this particular matrix.}
-## !}
-## !\value{
-## !  \code{inla.qreordering} returns a list with the name of the reordering algorithm used or
-## !  found, the reordering code for the reordering algorithm,
-## !  the actual reordering and its inverse.
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## !\examples{
-## ! g = system.file("demodata/germany.graph", package="INLA")
-## ! r = inla.qreordering(g)
-## ! m = inla.graph2matrix(g)
-## ! r = inla.qreordering(m)
-## !}
+#' Compute the reordering using the GMRFLib implementation
+#' 
+#' This function compute the reordering (or find the best reordering) using the
+#' GMRFLib implementation
+#' 
+#' 
+#' @aliases inla.qreordering qreordering
+#' @param graph A `(inla-)graph` object
+#' @param reordering The name of the reordering algorithm to be used; either
+#' one of the names listed in `inla.reorderings()`.  The default is "auto"
+#' which try several reordering algorithm and use the best one for this
+#' particular matrix.
+#' @return `inla.qreordering` returns a list with the name of the
+#' reordering algorithm used or found, the reordering code for the reordering
+#' algorithm, the actual reordering and its inverse.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'  g = system.file("demodata/germany.graph", package="INLA")
+#'  r = inla.qreordering(g)
+#'  m = inla.graph2matrix(g)
+#'  r = inla.qreordering(m)
+#' 
+#' @name qreordering
+#' @rdname qreordering
+#' @export
 
 `inla.qreordering` <- function(graph, reordering = inla.reorderings()) {
     reordering <- match.arg(reordering)

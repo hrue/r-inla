@@ -1,54 +1,35 @@
-## Export: inla.pc.ralphaw inla.pc.dalphaw inla.pc.qalphaw inla.pc.palphaw
-
-## ! \name{pc.alphaw}
-## ! \alias{inla.pc.alphaw}
-## ! \alias{pc.alphaw}
-## ! \alias{pc.ralphaw}
-## ! \alias{inla.pc.ralphaw}
-## ! \alias{pc.dalphaw}
-## ! \alias{inla.pc.dalphaw}
-## ! \alias{pc.palphaw}
-## ! \alias{inla.pc.palphaw}
-## ! \alias{pc.qalphaw}
-## ! \alias{inla.pc.qalphaw}
-## !
-## ! \title{Utility functions for the PC prior for the \code{alpha} parameter in the Weibull likelihood}
-## !
-## ! \description{Functions to evaluate, sample, compute quantiles and
-## !              percentiles of the PC prior for the \code{alpha} parameter
-## !              in the Weibull likelihood}
-## ! \usage{
-## ! inla.pc.ralphaw(n, lambda = 5)
-## ! inla.pc.dalphaw(alpha, lambda = 5, log = FALSE)
-## ! inla.pc.qalphaw(p, lambda = 5)
-## ! inla.pc.palphaw(q, lambda = 5)
-## ! }
-## ! \arguments{
-## !   \item{n}{Number of observations}
-## !   \item{lambda}{The rate parameter in the PC-prior}
-## !   \item{alpha}{Vector of evaluation points, where \code{alpha>0}.}
-## !   \item{log}{Logical. Return the density in natural or log-scale.}
-## !   \item{p}{Vector of probabilities}
-## !   \item{q}{Vector of quantiles}
-## ! }
-## ! \details{
-## ! This gives the PC prior for the \code{alpha} parameter for the Weibull likelihood,
-## ! where \code{alpha=1} is the base model.
-## ! }
-## !\value{%%
-## !  \code{inla.pc.dalphaw} gives the density,
-## !  \code{inla.pc.palphaw} gives the distribution function,
-## !  \code{inla.pc.qalphaw} gives the quantile function, and
-## !  \code{inla.pc.ralphaw} generates random deviates.
-## ! }
-## ! \seealso{inla.doc("pc.alphaw")}
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! x = inla.pc.ralphaw(100,  lambda = 5)
-## ! d = inla.pc.dalphaw(x, lambda = 5)
-## ! x = inla.pc.qalphaw(0.5, lambda = 5)
-## ! inla.pc.palphaw(x, lambda = 5)
-## ! }
+#' Utility functions for the PC prior for the `alpha` parameter in the
+#' Weibull likelihood
+#' 
+#' Functions to evaluate, sample, compute quantiles and percentiles of the PC
+#' prior for the `alpha` parameter in the Weibull likelihood
+#' 
+#' This gives the PC prior for the `alpha` parameter for the Weibull
+#' likelihood, where `alpha=1` is the base model.
+#' 
+#' @aliases inla.pc.alphaw pc.alphaw pc.ralphaw inla.pc.ralphaw pc.dalphaw
+#' inla.pc.dalphaw pc.palphaw inla.pc.palphaw pc.qalphaw inla.pc.qalphaw
+#' @param n Number of observations
+#' @param lambda The rate parameter in the PC-prior
+#' @param alpha Vector of evaluation points, where `alpha>0`.
+#' @param log Logical. Return the density in natural or log-scale.
+#' @param p Vector of probabilities
+#' @param q Vector of quantiles
+#' @returns `inla.pc.dalphaw` gives the density, `inla.pc.palphaw`
+#' gives the distribution function, `inla.pc.qalphaw` gives the quantile
+#' function, and `inla.pc.ralphaw` generates random deviates.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso inla.doc("pc.alphaw")
+#' @examples
+#' 
+#'  x = inla.pc.ralphaw(100,  lambda = 5)
+#'  d = inla.pc.dalphaw(x, lambda = 5)
+#'  x = inla.pc.qalphaw(0.5, lambda = 5)
+#'  inla.pc.palphaw(x, lambda = 5)
+#'  
+#' @name pc.alphaw
+#' @rdname pc-alphaw
+NULL
 
 inla.pc.alphaw.cache <- function() {
     ## return the cache for these functions
@@ -87,6 +68,9 @@ inla.pc.alphaw.cache <- function() {
     return(get(tag, envir = inla.get.inlaEnv()))
 }
 
+#' @rdname pc-alphaw
+#' @aliases pc.ralphaw
+#' @export
 inla.pc.ralphaw <- function(n, lambda = 5) {
     cache <- inla.pc.alphaw.cache()
     x <- numeric(n)
@@ -103,6 +87,9 @@ inla.pc.ralphaw <- function(n, lambda = 5) {
     return(exp(x))
 }
 
+#' @rdname pc-alphaw
+#' @aliases pc.dalphaw
+#' @export
 inla.pc.dalphaw <- function(alpha, lambda = 5, log = FALSE) {
     cache <- inla.pc.alphaw.cache()
     d <- numeric(length(alpha))
@@ -124,6 +111,9 @@ inla.pc.dalphaw <- function(alpha, lambda = 5, log = FALSE) {
     return(if (log) d else exp(d))
 }
 
+#' @rdname pc-alphaw
+#' @aliases pc.qalphaw
+#' @export
 inla.pc.qalphaw <- function(p, lambda = 5) {
     cache <- inla.pc.alphaw.cache()
     n <- length(p)
@@ -143,6 +133,9 @@ inla.pc.qalphaw <- function(p, lambda = 5) {
     return(exp(q))
 }
 
+#' @rdname pc-alphaw
+#' @aliases pc.palphaw
+#' @export
 inla.pc.palphaw <- function(q, lambda = 5) {
     cache <- inla.pc.alphaw.cache()
     n <- length(q)

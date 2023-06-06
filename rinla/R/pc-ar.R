@@ -1,40 +1,24 @@
-## Export: inla.pc.ar.rpacf inla.pc.ar.dpacf
-
-## ! \name{pc.ar}
-## ! \alias{inla.pc.ar}
-## ! \alias{inla.pc.ar.rpacf}
-## ! \alias{ar.rpacf}
-## ! \alias{inla.pc.ar.dpacf}
-## ! \alias{ar.dpacf}
-## !
-## ! \title{Utility functions for the PC prior for a an AR(p) model}
-## !
-## ! \description{Functions to evaluate and sample from the
-## !              PC prior for an AR(p) model}
-## ! \usage{
-## !    inla.pc.ar.rpacf(n=1, p, lambda = 1)
-## !    inla.pc.ar.dpacf(pac, lambda = 1, log = TRUE)
-## ! }
-## ! \arguments{
-## !   \item{p}{The order of the AR-model}
-## !   \item{pac}{A vector of partial autocorrelation coefficients}
-## !   \item{n}{Number of observations}
-## !   \item{lambda}{The rate parameter in the prior}
-## !   \item{log}{Logical. Return the density in natural or log-scale.}
-## ! }
-## ! \details{
-## ! }
-## ! \value{%%
-## !     \code{inla.pc.ar.rpac} generate samples from the prior, returning a matrix
-## !     where each row is a sample of \code{theta}.
-## !     \code{inla.pc.ar.dpac} evaluates the density of \code{pac}.
-## !     Use \code{inla.ar.pacf2phi}, \code{inla.ar.phi2pacf},
-## !     \code{inla.ar.pacf2acf} and \code{inla.ar.acf2pacf} to convert between various
-## !    parameterisations.
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! }
+#' Utility functions for the PC prior for a an AR(p) model
+#' 
+#' Functions to evaluate and sample from the PC prior for an AR(p) model
+#' 
+#' 
+#' @aliases inla.pc.ar inla.pc.ar.rpacf ar.rpacf inla.pc.ar.dpacf ar.dpacf
+#' @param p The order of the AR-model
+#' @param pac A vector of partial autocorrelation coefficients
+#' @param n Number of observations
+#' @param lambda The rate parameter in the prior
+#' @param log Logical. Return the density in natural or log-scale.
+#' @return `inla.pc.ar.rpac` generate samples from the prior, returning
+#' a matrix where each row is a sample of `theta`.  `inla.pc.ar.dpac`
+#' evaluates the density of `pac`.  Use `inla.ar.pacf2phi`,
+#' `inla.ar.phi2pacf`, `inla.ar.pacf2acf` and `inla.ar.acf2pacf`
+#' to convert between various parameterisations.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name pc.ar
+#' @rdname pc-ar
+#' @export
 
 inla.pc.ar.rpacf <- function(n = 1, p, lambda = 1) {
     stopifnot(!missing(p) && p >= 1)
@@ -52,6 +36,8 @@ inla.pc.ar.rpacf <- function(n = 1, p, lambda = 1) {
     return(x)
 }
 
+#' @rdname pc-ar
+#' @export
 inla.pc.ar.dpacf <- function(pac, lambda = 1, log = TRUE) {
     p <- length(pac)
     stopifnot(p >= 1)

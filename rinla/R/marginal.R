@@ -1,164 +1,107 @@
-## Export: inla.dmarginal inla.pmarginal inla.qmarginal inla.rmarginal inla.hpdmarginal
-## Export: inla.smarginal inla.emarginal inla.tmarginal inla.mmarginal inla.zmarginal
+#' @title Functions which operates on marginals
+#' 
+#' @description
+#' Density, distribution function, quantile function, random generation,
+#' hpd-interval, interpolation, expectations, mode and transformations of
+#' marginals obtained by `inla` or `inla.hyperpar()`.  These
+#' functions computes the density (inla.dmarginal), the distribution function
+#' (inla.pmarginal), the quantile function (inla.qmarginal), random generation
+#' (inla.rmarginal), spline smoothing (inla.smarginal), computes expected
+#' values (inla.emarginal), computes the mode (inla.mmarginal), transforms the
+#' marginal (inla.tmarginal), and provide summary statistics (inla.zmarginal).
+#' 
+#' @rdname marginal
+#' @name marginal
+#' @aliases inla.marginal marginal pmarginal inla.pmarginal qmarginal
+#' inla.qmarginal dmarginal inla.dmarginal rmarginal inla.rmarginal
+#' inla.hpdmarginal hpdmarginal inla.emarginal emarginal inla.smarginal
+#' smarginal inla.tmarginal inla.mmarginal mmarginal inla.zmarginal zmarginal
+#' @param marginal A marginal object from either `inla` or
+#' `inla.hyperpar()`, which is either `list(x=c(), y=c())` with
+#' density values `y` at locations `x`, or a `matrix(,n,2)` for
+#' which the density values are the second column and the locations in the
+#' first column.  The`inla.hpdmarginal()`-function assumes a unimodal
+#' density.
+#' @param fun A (vectorised) function like `function(x) exp(x)` to compute
+#' the expectation against, or which define the transformation new = fun(old)
+#' @param x Evaluation points
+#' @param q Quantiles
+#' @param p Probabilities
+#' @param n The number of observations. If `length(n) > 1`, the length is
+#' taken to be the number required.
+#' @param h.diff The step-length for the numerical differeniation inside
+#' `inla.tmarginal`
+#' @param ... Further arguments to be passed to function which expectation is
+#' to be computed.
+#' @param log Return density or interpolated density in log-scale?
+#' @param normalize Renormalise the density after interpolation?
+#' @param len Number of locations used to interpolate the distribution
+#' function.
+#' @param keep.type If `FALSE` then return a `list(x=, y=)`,
+#' otherwise if `TRUE`, then return a matrix if the input is a matrix
+#' @param extrapolate How much to extrapolate on each side when computing the
+#' interpolation. In fraction of the range.
+#' @param factor The number of points after interpolation is `factor`
+#' times the original number of points; which is argument `n` in
+#' `spline`
+#' @param method Which method should be used to layout points for where the
+#' transformation is computed.
+#' @param silent Output the result visually (TRUE) or just through the call.
+#' @returns `inla.smarginal` returns `list=c(x=c(), y=c())` of
+#' interpolated values do extrapolation using the factor given, and the
+#' remaining function returns what they say they should do.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso [inla()], [inla.hyperpar()]
+#' @examples
+#' 
+#'  ## a simple linear regression example
+#'  n = 10
+#'  x = rnorm(n)
+#'  sd = 0.1
+#'  y = 1+x + rnorm(n,sd=sd)
+#'  res = inla(y ~ 1 + x, data = data.frame(x,y),
+#'             control.family=list(initial = log(1/sd^2L),fixed=TRUE))
+#' 
+#'  ## chose a marginal and compare the with the results computed by the
+#'  ## inla-program
+#'  r = res$summary.fixed["x",]
+#'  m = res$marginals.fixed$x
+#' 
+#'  ## compute the 95% HPD interval
+#'  inla.hpdmarginal(0.95, m)
+#' 
+#'  x = seq(-6, 6, len = 1000)
+#'  y = dnorm(x)
+#'  inla.hpdmarginal(0.95, list(x=x, y=y))
+#' 
+#'  ## compute the the density for exp(r), version 1
+#'  r.exp = inla.tmarginal(exp, m)
+#'  ## or version 2
+#'  r.exp = inla.tmarginal(function(x) exp(x), m)
+#' 
+#'  ## to plot the marginal, we use the inla.smarginal, which interpolates (in
+#'  ## log-scale). Compare with some samples.
+#'  plot(inla.smarginal(m), type="l")
+#'  s = inla.rmarginal(1000, m)
+#'  hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
+#'  lines(density(s), lty=2)
+#' 
+#'  m1 = inla.emarginal(function(x) x, m)
+#'  m2 = inla.emarginal(function(x) x^2L, m)
+#'  stdev = sqrt(m2 - m1^2L)
+#'  q = inla.qmarginal(c(0.025,0.975), m)
+#' 
+#'  ## inla-program results
+#'  print(r)
+#' 
+#'  ## inla.marginal-results (they shouldn't be perfect!)
+#'  print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2L]))
+#'  ## using the buildt-in function
+#'  inla.zmarginal(m)
+#'  
+NULL
 
-## NOT-YET-IN-USE-Export: summary!inla.marginal plot!inla.marginal
 
-## ! \name{marginal}
-## ! \alias{inla.marginal}
-## ! \alias{marginal}
-## ! \alias{pmarginal}
-## ! \alias{inla.pmarginal}
-## ! \alias{qmarginal}
-## ! \alias{inla.qmarginal}
-## ! \alias{dmarginal}
-## ! \alias{inla.dmarginal}
-## ! \alias{rmarginal}
-## ! \alias{inla.rmarginal}
-## ! \alias{inla.hpdmarginal}
-## ! \alias{hpdmarginal}
-## ! \alias{inla.emarginal}
-## ! \alias{emarginal}
-## ! \alias{inla.smarginal}
-## ! \alias{smarginal}
-## ! \alias{inla.tmarginal}
-## ! \alias{inla.mmarginal}
-## ! \alias{mmarginal}
-## ! \alias{inla.zmarginal}
-## ! \alias{zmarginal}
-## !
-## ! \title{Functions which operates on marginals}
-## !
-## ! \description{Density, distribution function, quantile function, random
-## !      generation, hpd-interval, interpolation, expectations, mode and transformations of
-## !      marginals obtained by \code{inla} or \code{inla.hyperpar()}.
-## ! These functions computes the density (inla.dmarginal),
-## ! the distribution function (inla.pmarginal),
-## ! the quantile function (inla.qmarginal),
-## ! random generation (inla.rmarginal),
-## ! spline smoothing (inla.smarginal),
-## ! computes expected values (inla.emarginal),
-## ! computes the mode (inla.mmarginal),
-## ! transforms the marginal (inla.tmarginal), and provide summary statistics (inla.zmarginal).
-## ! }
-## !
-## ! \usage{
-## ! inla.dmarginal(x, marginal, log = FALSE)
-## ! inla.pmarginal(q, marginal, normalize = TRUE, len = 2048L)
-## ! inla.qmarginal(p, marginal, len = 2048L)
-## ! inla.rmarginal(n, marginal)
-## ! inla.hpdmarginal(p, marginal, len = 2048L)
-## ! inla.smarginal(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor=15L)
-## ! inla.emarginal(fun, marginal, ...)
-## ! inla.mmarginal(marginal)
-## ! inla.tmarginal(fun, marginal, n=2048L, h.diff = .Machine[["double.eps"]]^(1.0/3.0),
-## !                method = c("quantile", "linear"))
-## ! inla.zmarginal(marginal, silent = FALSE)
-## ! }
-## ! \arguments{
-## !
-## !   \item{marginal}{A marginal object from either \code{inla} or
-## !     \code{inla.hyperpar()}, which is either \code{list(x=c(), y=c())}
-## !     with density values \code{y} at locations \code{x}, or a
-## !     \code{matrix(,n,2)} for which the density values are the second
-## !     column and the locations in the first column.
-## !     The\code{inla.hpdmarginal()}-function
-## !     assumes a unimodal density.}
-## !
-## !   \item{fun}{A (vectorised) function like \code{function(x) exp(x)} to
-## !     compute the expectation against, or which define the transformation
-## !     new = fun(old)}
-## !
-## !   \item{x}{Evaluation points}
-## !
-## !   \item{q}{Quantiles}
-## !
-## !   \item{p}{Probabilities}
-## !
-## !   \item{n}{The number of observations. If \code{length(n) > 1}, the
-## !     length is taken to be the number required.}
-## !
-## !   \item{h.diff}{The step-length for the numerical differeniation inside \code{inla.tmarginal}}
-## !
-## !   \item{...}{Further arguments to be passed to function which
-## !     expectation is to be computed.}
-## !
-## !   \item{log}{Return density or interpolated density in log-scale?}
-## !
-## !   \item{normalize}{Renormalise the density after interpolation?}
-## !   \item{len}{Number of locations used to interpolate the distribution
-## !   function.}
-## !
-## !   \item{keep.type}{If \code{FALSE} then return a \code{list(x=, y=)},  otherwise if \code{TRUE},
-## !                   then return a matrix if the input is a matrix}
-## !
-## !   \item{extrapolate}{How much to extrapolate on each side when computing the
-## !   interpolation. In fraction of the range.}
-## !
-## !   \item{factor}{The number of points after interpolation is \code{factor} times the original number of points;
-## !                 which is argument \code{n} in \code{spline}}
-## !
-## !    \item{method}{Which method should be used to layout points for where the transformation is computed.}
-## !
-## !    \item{silent}{Output the result visually (TRUE) or just through the call.}
-## ! }
-## !
-## ! \value{%%
-## !   \code{inla.smarginal} returns \code{list=c(x=c(), y=c())} of
-## !   interpolated values do extrapolation using the factor given,
-## !   and the remaining function returns what they say they should do.  }
-## ! %%
-## !
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## ! \seealso{\code{\link{inla}}, \code{\link{inla.hyperpar}}}
-## !
-## ! \examples{
-## ! ## a simple linear regression example
-## ! n = 10
-## ! x = rnorm(n)
-## ! sd = 0.1
-## ! y = 1+x + rnorm(n,sd=sd)
-## ! res = inla(y ~ 1 + x, data = data.frame(x,y),
-## !            control.family=list(initial = log(1/sd^2L),fixed=TRUE))
-## !
-## ! ## chose a marginal and compare the with the results computed by the
-## ! ## inla-program
-## ! r = res$summary.fixed["x",]
-## ! m = res$marginals.fixed$x
-## !
-## ! ## compute the 95% HPD interval
-## ! inla.hpdmarginal(0.95, m)
-## !
-## ! x = seq(-6, 6, len = 1000)
-## ! y = dnorm(x)
-## ! inla.hpdmarginal(0.95, list(x=x, y=y))
-## !
-## ! ## compute the the density for exp(r), version 1
-## ! r.exp = inla.tmarginal(exp, m)
-## ! ## or version 2
-## ! r.exp = inla.tmarginal(function(x) exp(x), m)
-## !
-## ! ## to plot the marginal, we use the inla.smarginal, which interpolates (in
-## ! ## log-scale). Compare with some samples.
-## ! plot(inla.smarginal(m), type="l")
-## ! s = inla.rmarginal(1000, m)
-## ! hist(inla.rmarginal(1000, m), add=TRUE, prob=TRUE)
-## ! lines(density(s), lty=2)
-## !
-## ! m1 = inla.emarginal(function(x) x, m)
-## ! m2 = inla.emarginal(function(x) x^2L, m)
-## ! stdev = sqrt(m2 - m1^2L)
-## ! q = inla.qmarginal(c(0.025,0.975), m)
-## !
-## ! ## inla-program results
-## ! print(r)
-## !
-## ! ## inla.marginal-results (they shouldn't be perfect!)
-## ! print(c(mean=m1, sd=stdev, "0.025quant" = q[1], "0.975quant" = q[2L]))
-## ! ## using the buildt-in function
-## ! inla.zmarginal(m)
-## ! }
-## !
 
 ### functions to work with the marginal, either defined as a matrix
 ### x[2, n], or a list(x=, y=).  NOTE:: there are NO EXTRAPOLATION, so
@@ -174,6 +117,8 @@
     if (is.matrix(marginal)) {
         if (any(is.na(marginal[, 2L]))) {
             idx <- which(is.na(marginal[, 2L]))
+
+
             marginal <- marginal[-idx, ]
         }
         i <- (marginal[, 2L] > 0.0) & (abs(marginal[, 2L] / max(marginal[, 2L])) > eps)
@@ -207,6 +152,8 @@
     return(m)
 }
 
+#' @rdname marginal
+#' @export
 `inla.smarginal` <- function(marginal, log = FALSE, extrapolate = 0.0, keep.type = FALSE, factor = 15L) {
     ## for marginal in matrix MARGINAL, which is a marginal density,
     ## return the nice interpolated (x, y) where the interpolation is
@@ -252,6 +199,8 @@
     return(list(range = r, fun = splinefun(m[["x"]], log(m[["y"]]))))
 }
 
+#' @rdname marginal
+#' @export
 `inla.emarginal` <- function(fun, marginal, ...) {
     ## compute E(FUN(x)), where the marginal of x is given in
     ## `marginal'; see inla.smarginal(). Also work for FUN(x)
@@ -289,6 +238,8 @@
     return(e / e.1)
 }
 
+#' @rdname marginal
+#' @export
 `inla.dmarginal` <- function(x, marginal, log = FALSE) {
     ## return the density of the marginal. if LOG, in log-scale.  this
     ## density is not renormalized (but should be already normalized
@@ -318,6 +269,8 @@
     return(d)
 }
 
+#' @rdname marginal
+#' @export
 `inla.pmarginal` <- function(q, marginal, normalize = TRUE, len = 2048L) {
     f <- inla.sfmarginal(inla.smarginal(marginal))
     xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length = len)
@@ -334,6 +287,8 @@
     return(fq(xx))
 }
 
+#' @rdname marginal
+#' @export
 `inla.qmarginal` <- function(p, marginal, len = 2048L) {
     f <- inla.sfmarginal(inla.smarginal(marginal))
     xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length = len)
@@ -362,6 +317,8 @@
 
     return(fq(pp))
 }
+#' @rdname marginal
+#' @export
 `inla.hpdmarginal` <- function(p, marginal, len = 2048L) {
     sm <- inla.smarginal(marginal, keep.type = FALSE)
     f <- inla.sfmarginal(sm)
@@ -416,6 +373,8 @@
 
     return(result)
 }
+#' @rdname marginal
+#' @export
 `inla.rmarginal` <- function(n, marginal) {
     return(inla.qmarginal(runif(n), marginal))
 }
@@ -449,6 +408,8 @@
     return(fd)
 }
 
+#' @rdname marginal
+#' @export
 `inla.tmarginal` <- function(fun, marginal, n = 2048L,
                              h.diff = .Machine[["double.eps"]]^(1.0 / 3.0),
                              method = c("quantile", "linear")) {
@@ -491,6 +452,8 @@
     return(ret)
 }
 
+#' @rdname marginal
+#' @export
 `inla.mmarginal` <- function(marginal) {
     p <- seq(0.01, 0.99, by = 0.01)
     n <- length(p)
@@ -507,6 +470,8 @@
     return(res[["maximum"]])
 }
 
+#' @rdname marginal
+#' @export
 `inla.zmarginal` <- function(marginal, silent = FALSE) {
     stopifnot(inla.is.marginal(marginal))
 
@@ -531,12 +496,15 @@
     )))
 }
 
-`inla.is.marginal` <- function(m) {
-    return((is.matrix(m) && ncol(m) == 2L && nrow(m) > 2L) ||
-        (is.list(m) && all(names(m) == c("x", "y"))))
+#' @rdname marginal
+#' @export
+`inla.is.marginal` <- function(marginal) {
+    return((is.matrix(marginal) && ncol(marginal) == 2L && nrow(marginal) > 2L) ||
+        (is.list(marginal) && all(names(marginal) == c("x", "y"))))
 }
 
 
+## NOT-YET-IN-USE
 ## 'plot' and 'summary'-methods for marginals
 plot.inla.marginal <- function(x, y, ...) {
     m <- inla.emarginal(function(xx) c(xx, xx^2L), x)
@@ -548,6 +516,7 @@ plot.inla.marginal <- function(x, y, ...) {
 
     return(invisible())
 }
+## NOT-YET-IN-USE
 summary.inla.marginal <- function(object, ...) {
     ## option
     silent <- FALSE

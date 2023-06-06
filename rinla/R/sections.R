@@ -238,7 +238,7 @@
     if (inla.one.of(lmod, c("special1"))) {
         ## for these models, the argument order is required
         if (is.null(ord)) {
-            stop(paste("For link-model:", lmod, ", 'order' must be spesified."))
+            stop(paste("For link-model:", lmod, ", 'order' must be specified."))
         }
         cat("link.order = ", ord, "\n", file = file, append = TRUE)
         ## special
@@ -257,7 +257,7 @@
         ## for these models, the argument 'variant' is required
         if ( ## general
             is.null(variant) ||
-                ## model-spesific
+                ## model-specific
                 (inla.one.of(lmod, c("logoffset")) && all(variant != c(0, 1)))) {
             stop(paste("For link-model:", lmod, ", the argument variant must be 0 or 1,  not", variant))
         }

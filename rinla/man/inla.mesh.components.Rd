@@ -6,6 +6,9 @@
 \usage{
 inla.mesh.components(mesh)
 }
+\arguments{
+\item{mesh}{An \code{inla.mesh} object}
+}
 \value{
 A list with elements \code{vertex} and \code{triangle}, vectors of
 integer labels for which connected component they belong, and \code{info}, a

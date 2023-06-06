@@ -306,6 +306,7 @@ inla.crs_get_ellipsoid_radius <- function(crs) {
 
 
 #' @rdname crs_wkt
+#' @param radius numeric
 #' @export
 
 inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
@@ -975,6 +976,7 @@ inla.as.wkt_tree.wkt <- function(x, ...) {
 }
 
 #' @rdname wkt_tree
+#' @param pretty logical
 #' @export
 
 inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
@@ -1992,6 +1994,7 @@ inla.internal.sp2segment.join <- function(inp, grp = NULL, closed = TRUE) {
 #' backwards.
 #' @param crs An optional `CRS` or `inla.CRS` object
 #' @param \dots Additional arguments passed on to other methods.
+#' @param is.bnd logical
 #' @return A [inla.mesh.segment()] object, or a list of
 #' [inla.mesh.segment()] objects.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}

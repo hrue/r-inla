@@ -1,26 +1,15 @@
-## Export: inla.pardiso inla.pardiso.check
-
-## !\name{inla.pardiso}
-## !\alias{inla.pardiso}
-## !\alias{inla.pardiso.check}
-## !\title{PARDISO support in R-INLA}
-## !\description{
-## !Describe and check the PARDISO support in R-INLA
-## !}
-## !\usage{
-## !inla.pardiso()
-## !inla.pardiso.check()
-## !}
-## !\arguments{
-## !}
-## !\details{
-## !\code{inla.pardiso()} describes the \code{PARDISO} support in R-INLA, how to get the license
-## !key and enable it in the \code{R-INLA} package. \code{inla.pardiso.check()} check if the
-## !\code{PARDISO} support is working.
-## !}
-## !\value{
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
+#' @title Describe and check the PARDISO support in R-INLA
+#' 
+#' @description
+#' `inla.pardiso()` describes the `PARDISO` support in R-INLA, how to
+#' get the license key and enable it in the `R-INLA` package.
+#' `inla.pardiso.check()` check if the `PARDISO` support is working.
+#' 
+#' @name pardiso
+#' @aliases pardiso inla.pardiso inla.pardiso.check
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @rdname pardiso
+#' @export inla.pardiso
 
 ## `inla.pardiso` <- function() {
 ##     stop("The use of the PARDISO library in R-INLA is no longer maintained.\n       Old license keys can be used until they expire.")
@@ -95,6 +84,8 @@
     )
 }
 
+#' @rdname pardiso
+#' @export inla.pardiso.check
 `inla.pardiso.check` <- function() {
     t.dir <- inla.tempdir()
     inla.set.sparselib.env(inla.dir = t.dir)

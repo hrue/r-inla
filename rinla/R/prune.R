@@ -1,21 +1,3 @@
-## Export: inla.prune
-
-## !\name{inla.prune}
-## !\alias{inla.prune}
-## !\alias{prune}
-## !
-## !\title{Prune the INLA-package}
-## !\description{Prune the INLA-package by deleting binary files not supported by the running OS}
-## !\usage{
-## !inla.prune(ask = TRUE)
-## !}
-## !\arguments{
-## !\item{ask}{Logical. If TRUE, then ask for user confirmation before deleting.
-## !           If FALSE, then delete without user confirmation.}
-## !}
-## !\value{No value is returned.}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-
 `inla.dir.size` <- function(d) {
     ## return the disk usage of a directory, recursively, in Mb
     return(sum(file.info(list.files(d,
@@ -25,6 +7,21 @@
     ))$size, na.rm = TRUE) / 1024^2)
 }
 
+
+
+#' Prune the INLA-package
+#' 
+#' Prune the INLA-package by deleting binary files not supported by the running
+#' OS
+#' 
+#' 
+#' @aliases inla.prune prune
+#' @param ask Logical. If TRUE, then ask for user confirmation before deleting.
+#' If FALSE, then delete without user confirmation.
+#' @return No value is returned.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @rdname prune
+#' @export inla.prune
 `inla.prune` <- function(ask = TRUE) {
     pkg <- installed.packages()
     if ("INLA" %in% pkg) {

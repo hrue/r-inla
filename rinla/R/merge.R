@@ -1,88 +1,77 @@
-## Export: merge!inla
-## Export: inla.merge
-
-## ! \name{inla.merge}
-## ! \alias{inla.merge}
-## ! \alias{merge.inla}
-## ! \title{Merge a mixture of \code{inla}-objects}
-## ! \description{Merge a mixture of \code{inla}-objects}
-## ! \usage{
-## !     \method{merge}{inla}(x, y, ..., prob = rep(1,  length(loo)),
-## !                          mc.cores = NULL, verbose = FALSE)
-## !     inla.merge(loo, prob = rep(1,  length(loo)), verbose = FALSE)
-## ! }
-## ! \arguments{
-## !   \item{x}{An \code{inla}-object to be merged}
-## !   \item{y}{An \code{inla}-object to be merged}
-## !   \item{...}{Additional \code{inla}-objects to be merged}
-## !   \item{loo}{List of \code{inla}-objects to be merged}
-## !   \item{prob}{The mixture of (possibly unnormalized) probabilities}
-## !   \item{mc.cores}{The number of cores to use in \code{parallel::mclapply}. If
-## !                   \code{is.null(mc.cores)}, then check \code{getOption("mc.cores")}
-## !                   and \code{inla.getOption("num.threads")} in that order.}
-## !   \item{verbose}{Turn on verbose-output or not}
-## !  }
-## ! \value{
-## !   A merged \code{inla}-object.
-## ! }
-## ! \details{
-## !    The function \code{merge.inla} implements method \code{merge} for
-## !    \code{inla}-objects. \code{merge.inla} is a wrapper for the function
-## !    \code{inla.merge}. The interface is slightly different, \code{merge.inla}
-## !    is more tailored for interactive use, whereas \code{inla.merge} is better
-## !    in general code.
-## !
-## !    \code{inla.merge} is intented for merging a mixture of \code{inla}-objects,
-## !    each run with the same formula and settings, except for a set of
-## !    hyperparameters that are fixed to different values. Using this function,
-## !    we can then integrate over these hyperparameters using (unnormalized)
-## !    integration weights
-## !    \code{prob}. The main objects to be merged,  are the summary statistics
-## !    and marginal densities (like for hyperparameters, fixed,  random,  etc).
-## !    Not all entries in the object can be merged, and by default these
-## !    are inheritated from the first object in the list,
-## !    while some are just set to  \code{NULL}.
-## !    Those objectes that are merged,
-## !    will be listed if run with option \code{verbose=TRUE}.
-## !
-## !    Note that merging hyperparameter in the user-scale is prone to
-## !    discretization error in general, so it is more stable to convert
-## !    the marginal of the hyperparameter from the merged internal scale
-## !    to the user-scale. (This is not done by this function.)
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! set.seed(123)
-## ! n = 100
-## ! y = rnorm(n)
-## ! y[1:10] = NA
-## ! x = rnorm(n)
-## ! z1 = runif(n)
-## ! z2 = runif(n)*n
-## ! idx = 1:n
-## ! idx2 = 1:n
-## ! lc1 = inla.make.lincomb(idx = c(1, 2, 3))
-## ! names(lc1) = "lc1"
-## ! lc2 = inla.make.lincomb(idx = c(0, 1, 2, 3))
-## ! names(lc2) = "lc2"
-## ! lc3 = inla.make.lincomb(idx = c(0, 0, 1, 2, 3))
-## ! names(lc3) = "lc3"
-## ! lc = c(lc1, lc2, lc3)
-## ! rr = list()
-## ! for (logprec in c(0, 1, 2))
-## !     rr[[length(rr)+1]] = inla(y ~ 1 + x + f(idx, z1) + f(idx2, z2),
-## !              lincomb = lc,
-## !              control.family = list(hyper = list(prec = list(initial = logprec))),
-## !              control.predictor = list(compute = TRUE, link = 1),
-## !              data = data.frame(y, x, idx, idx2, z1, z2))
-## ! r = inla.merge(rr, prob = seq_along(rr), verbose=TRUE)
-## ! summary(r)
-## !}
-
+#' @title Merge a mixture of `inla`-objects
+#' 
+#' @description 
+#' The function `merge.inla` implements method `merge` for
+#' `inla`-objects. `merge.inla` is a wrapper for the function
+#' `inla.merge`. The interface is slightly different, `merge.inla` is
+#' more tailored for interactive use, whereas `inla.merge` is better in
+#' general code.
+#' 
+#' `inla.merge` is intented for merging a mixture of `inla`-objects,
+#' each run with the same formula and settings, except for a set of
+#' hyperparameters that are fixed to different values. Using this function, we
+#' can then integrate over these hyperparameters using (unnormalized)
+#' integration weights `prob`. The main objects to be merged, are the
+#' summary statistics and marginal densities (like for hyperparameters, fixed,
+#' random, etc).  Not all entries in the object can be merged, and by default
+#' these are inheritated from the first object in the list, while some are just
+#' set to `NULL`.  Those objectes that are merged, will be listed if run
+#' with option `verbose=TRUE`.
+#' 
+#' Note that merging hyperparameter in the user-scale is prone to
+#' discretization error in general, so it is more stable to convert the
+#' marginal of the hyperparameter from the merged internal scale to the
+#' user-scale. (This is not done by this function.)
+#' 
+#' @aliases inla.merge merge.inla
+#' @param x An `inla`-object to be merged
+#' @param y An `inla`-object to be merged
+#' @param ... Additional `inla`-objects to be merged
+#' @param loo List of `inla`-objects to be merged
+#' @param prob The mixture of (possibly unnormalized) probabilities
+#' @param mc.cores The number of cores to use in `parallel::mclapply`. If
+#' `is.null(mc.cores)`, then check `getOption("mc.cores")` and
+#' `inla.getOption("num.threads")` in that order.
+#' @param verbose Turn on verbose-output or not
+#' @return A merged `inla`-object.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'  set.seed(123)
+#'  n = 100
+#'  y = rnorm(n)
+#'  y[1:10] = NA
+#'  x = rnorm(n)
+#'  z1 = runif(n)
+#'  z2 = runif(n)*n
+#'  idx = 1:n
+#'  idx2 = 1:n
+#'  lc1 = inla.make.lincomb(idx = c(1, 2, 3))
+#'  names(lc1) = "lc1"
+#'  lc2 = inla.make.lincomb(idx = c(0, 1, 2, 3))
+#'  names(lc2) = "lc2"
+#'  lc3 = inla.make.lincomb(idx = c(0, 0, 1, 2, 3))
+#'  names(lc3) = "lc3"
+#'  lc = c(lc1, lc2, lc3)
+#'  rr = list()
+#'  for (logprec in c(0, 1, 2))
+#'      rr[[length(rr)+1]] = inla(y ~ 1 + x + f(idx, z1) + f(idx2, z2),
+#'               lincomb = lc,
+#'               control.family = list(hyper = list(prec = list(initial = logprec))),
+#'               control.predictor = list(compute = TRUE, link = 1),
+#'               data = data.frame(y, x, idx, idx2, z1, z2))
+#'  r = inla.merge(rr, prob = seq_along(rr), verbose=TRUE)
+#'  summary(r)
+#'  
+#' @rdname merge
+#' @method merge inla
+#' @export
 `merge.inla` <- function(x, y, ..., prob = rep(1, length(loo)), verbose = FALSE) {
     return(inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
 }
 
+#' @rdname merge
+#' @export inla.merge
 `inla.merge` <- function(loo, prob = rep(1, length(loo)), mc.cores = NULL, verbose = FALSE) {
     nm <- "disable.inla.merge.warning"
     if (!exists(nm, envir = inla.get.inlaEnv())) {

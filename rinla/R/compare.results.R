@@ -1,33 +1,21 @@
-## Export: inla.compare.results
-
-## !\name{inla.compare.results}
-## !\alias{inla.compare.results}
-## !\alias{compare.results}
-## !
-## !\title{Compare INLA and MCMC results}
-## !
-## !\description{A small utility to compare INLA and MCMC results (OBSOLETE)}
-## !\usage{
-## ! inla.compare.results(dir.inla = NULL, dir.mcmc = NULL)
-## !}
-## !
-## !\arguments{
-## !  \item{dir.inla}{The directory with the INLA results}
-## !  \item{dir.mcmc}{The directory with the MCMC results}
-## !}
-## !
-## !\value{%%
-## !  Return nothing. This is an interactive function.
-## !
-## !  This function is OBSOLETE
-## !}
-## !%%
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\examples{
-## !## See demo("Tokyo-compare")
-## !}
-
-
+#' Compare INLA and MCMC results
+#' 
+#' A small utility to compare INLA and MCMC results (OBSOLETE)
+#' 
+#' @keywords internal
+#' @aliases inla.compare.results compare.results
+#' @param dir.inla The directory with the INLA results
+#' @param dir.mcmc The directory with the MCMC results
+#' @return Return nothing. This is an interactive function.
+#' 
+#' This function is OBSOLETE
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#' ## See demo("Tokyo-compare")
+#' 
+#' @rdname compare.results
+#' @export inla.compare.results
 `inla.compare.results` <- function(dir.inla = NULL, dir.mcmc = NULL) {
     ## This function is useful for comparing the results of INLA with
     ## those obtained from a MCMC run (ie running `inla -m mcmc ...')

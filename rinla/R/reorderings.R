@@ -1,32 +1,3 @@
-## Export: inla.reorderings
-
-## !\name{inla.reorderings}
-## !\alias{inla.reorderings}
-## !\alias{reorderings}
-## !
-## !\title{Reorderings methods for sparse matrices}
-## !
-## !\description{Provide the names of all implemented reordering schemes}
-## !
-## !\usage{
-## ! inla.reorderings()
-## !}
-## !
-## !\arguments{
-## ! None
-## !}
-## !
-## !\value{The names of all available reorderings}
-## !%%
-## !
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## !\examples{
-## !inla.reorderings()
-## !}
-
-
-
 ## provide list of all reordering and map their names and code. OOPS:
 ## these mappings must be in sync with the ones in
 ## gmrflib/sparse-interface.h
@@ -50,6 +21,22 @@
     return(r)
 }
 
+
+
+#' Reorderings methods for sparse matrices
+#' 
+#' Provide the names of all implemented reordering schemes
+#' 
+#' 
+#' @aliases inla.reorderings reorderings
+#' @return The names of all available reorderings
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#' inla.reorderings()
+#' 
+#' @rdname reorderings
+#' @export inla.reorderings
 `inla.reorderings` <- function() {
     return(names(inla.reorderings.list()))
 }

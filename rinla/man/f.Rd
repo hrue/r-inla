@@ -73,7 +73,7 @@ weights (which can be negative).}
 \item{model}{A string indicating the chosen model. The
 default is \code{iid}. See
 \code{names(inla.models()$latent)} for a list of possible
-alternatives and \code{\link{inla.doc}} for detailed docs.}
+alternatives and \code{\link[=inla.doc]{inla.doc()}} for detailed docs.}
 
 \item{copy}{The name of the model-component to copy}
 
@@ -171,7 +171,7 @@ non-zero elements of \code{Cmatrix}, in three columns:
 \code{i}, \code{j} and \code{Qij}. In case of the generic3 model,
 it is a list of such specifications.}
 
-\item{rankdef}{A number \bold{defining} the rank
+\item{rankdef}{A number \strong{defining} the rank
 deficiency of the model, with sum-to-zero constraint and
 possible extra-constraints taken into account. See
 details.}
@@ -254,7 +254,7 @@ TODO
 Function used for defining of smooth and spatial terms within \code{inla} model
 formulae. The function does not evaluate anything - it
 exists purely to help set up a model. The function specifies one
-smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
+smooth function in the linear predictor (see \code{\link[=inla.list.models]{inla.list.models()}}) as
 \deqn{w\ f(x)}{weight*f(var)}
 }
 \details{
@@ -263,11 +263,11 @@ is not defined by the user then it is computed by the rank
 deficiency of the prior model (for the generic model, the
 default is zero), plus 1 for the sum-to-zero constraint if the
 prior model is proper, plus the number of extra
-constraints. \bold{Oops:} This can be wrong, and then the user
+constraints. \strong{Oops:} This can be wrong, and then the user
 must define the \code{rankdef} explicitly.
 }
 \seealso{
-\code{\link{inla}}, \code{\link{hyperpar.inla}}
+\code{\link[=inla]{inla()}}, \code{\link[=hyperpar.inla]{hyperpar.inla()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

@@ -1,59 +1,38 @@
-## Export: inla.pc.rcor1 inla.pc.dcor1 inla.pc.qcor1 inla.pc.pcor1
-
-## ! \name{pc.cor1}
-## ! \alias{inla.pc.cor1}
-## ! \alias{pc.cor1}
-## ! \alias{pc.rcor1}
-## ! \alias{inla.pc.rcor1}
-## ! \alias{pc.dcor1}
-## ! \alias{inla.pc.dcor1}
-## ! \alias{pc.pcor1}
-## ! \alias{inla.pc.pcor1}
-## ! \alias{pc.qcor1}
-## ! \alias{inla.pc.qcor1}
-## !
-## ! \title{Utility functions for the PC prior for correlation in AR(1)}
-## !
-## ! \description{Functions to evaluate, sample, compute quantiles and
-## !              percentiles of the PC prior for the correlation
-## !              in the Gaussian AR(1) model where the base-model
-## !              is correlation one.}
-## ! \usage{
-## ! inla.pc.rcor1(n, u, alpha, lambda)
-## ! inla.pc.dcor1(cor, u, alpha, lambda, log = FALSE)
-## ! inla.pc.qcor1(p, u, alpha, lambda)
-## ! inla.pc.pcor1(q, u, alpha, lambda)
-## ! }
-## ! \arguments{
-## !   \item{n}{Number of observations}
-## !   \item{u}{The upper limit (see Details)}
-## !   \item{alpha}{The probability going above the upper limit (see Details)}
-## !   \item{lambda}{The rate parameter (see Details)}
-## !   \item{cor}{Vector of correlations}
-## !   \item{log}{Logical. Return the density in natural or log-scale.}
-## !   \item{p}{Vector of probabilities}
-## !   \item{q}{Vector of quantiles}
-## ! }
-## ! \details{
-## !     The statement \code{Prob(cor > u) = alpha} is used to
-## !     determine \code{lambda} unless \code{lambda} is given.
-## !     Either \code{lambda}  must be given,  or
-## !     \code{u} AND \code{alpha}.
-## ! }
-## !\value{%%
-## !  \code{inla.pc.dcor1} gives the density,
-## !  \code{inla.pc.pcor1} gives the distribution function,
-## !  \code{inla.pc.qcor1} gives the quantile function, and
-## !  \code{inla.pc.rcor1} generates random deviates.
-## ! }
-## ! \seealso{inla.doc("pc.rho1")}
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! cor = inla.pc.rcor1(100,  lambda = 1)
-## ! d = inla.pc.dcor1(cor, lambda = 1)
-## ! cor = inla.pc.qcor1(c(0.3, 0.7), u = 0.5, alpha=0.75)
-## ! inla.pc.pcor1(cor, u = 0.5, alpha=0.75)
-## ! }
+#' Utility functions for the PC prior for correlation in AR(1)
+#' 
+#' Functions to evaluate, sample, compute quantiles and percentiles of the PC
+#' prior for the correlation in the Gaussian AR(1) model where the base-model
+#' is correlation one.
+#' 
+#' The statement `Prob(cor > u) = alpha` is used to determine
+#' `lambda` unless `lambda` is given.  Either `lambda` must be
+#' given, or `u` AND `alpha`.
+#' 
+#' @aliases inla.pc.cor1 pc.cor1 pc.rcor1 inla.pc.rcor1 pc.dcor1 inla.pc.dcor1
+#' pc.pcor1 inla.pc.pcor1 pc.qcor1 inla.pc.qcor1
+#' @param n Number of observations
+#' @param u The upper limit (see Details)
+#' @param alpha The probability going above the upper limit (see Details)
+#' @param lambda The rate parameter (see Details)
+#' @param cor Vector of correlations
+#' @param log Logical. Return the density in natural or log-scale.
+#' @param p Vector of probabilities
+#' @param q Vector of quantiles
+#' @returns `inla.pc.dcor1` gives the density, `inla.pc.pcor1`
+#' gives the distribution function, `inla.pc.qcor1` gives the quantile
+#' function, and `inla.pc.rcor1` generates random deviates.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso inla.doc("pc.rho1")
+#' @examples
+#' 
+#'  cor = inla.pc.rcor1(100,  lambda = 1)
+#'  d = inla.pc.dcor1(cor, lambda = 1)
+#'  cor = inla.pc.qcor1(c(0.3, 0.7), u = 0.5, alpha=0.75)
+#'  inla.pc.pcor1(cor, u = 0.5, alpha=0.75)
+#'  
+#' @name pc.cor1
+#' @rdname pc-cor1
+NULL
 
 inla.pc.cor1.lambda <- function(u, alpha, lambda) {
     if (missing(lambda)) {
@@ -78,6 +57,8 @@ inla.pc.cor1.lambda <- function(u, alpha, lambda) {
     return(lambda)
 }
 
+#' @rdname pc-cor1
+#' @export
 inla.pc.rcor1 <- function(n, u, alpha, lambda) {
     lambda <- inla.pc.cor1.lambda(u, alpha, lambda)
     u <- runif(n)
@@ -86,6 +67,8 @@ inla.pc.rcor1 <- function(n, u, alpha, lambda) {
     return(cor)
 }
 
+#' @rdname pc-cor1
+#' @export
 inla.pc.dcor1 <- function(cor, u, alpha, lambda, log = FALSE) {
     lambda <- inla.pc.cor1.lambda(u, alpha, lambda)
     log.dens <- log(lambda) - lambda * sqrt(1 - cor) -
@@ -93,6 +76,8 @@ inla.pc.dcor1 <- function(cor, u, alpha, lambda, log = FALSE) {
     return(inla.ifelse(log, log.dens, exp(log.dens)))
 }
 
+#' @rdname pc-cor1
+#' @export
 inla.pc.qcor1 <- function(p, u, alpha, lambda) {
     lambda <- inla.pc.cor1.lambda(u, alpha, lambda)
     pp <- -1 / lambda * log(1 - (1 - p) * (1 - exp(-lambda * sqrt(2))))
@@ -100,6 +85,8 @@ inla.pc.qcor1 <- function(p, u, alpha, lambda) {
     return(q)
 }
 
+#' @rdname pc-cor1
+#' @export
 inla.pc.pcor1 <- function(q, u, alpha, lambda) {
     lambda <- inla.pc.cor1.lambda(u, alpha, lambda)
     qq <- (1 - exp(-lambda * sqrt(1 - q))) / (1 - exp(-lambda * sqrt(2)))

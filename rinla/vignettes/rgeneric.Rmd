@@ -531,7 +531,7 @@ hyperparameters in the `rgeneric` model.
 
 The rgeneric-interface is not ment to be a replacement for
 implementing a model component in C, but rather a tool to experiment
-with new models and adding case spesific model components. Needless to
+with new models and adding case specific model components. Needless to
 say, it will be a somewhat slower than a model that is implemented in
 C. For smaller problems the overhead is relative larger than for
 larger problems, since more less time is used to factorize matrices
@@ -716,7 +716,7 @@ rgeneric.test.opt.2 = function(
 
     Q = function() {
         ## since R was created with 'inla.sparse.matrix' above, the indices are sorted in a
-        ## spesific order. This ordering is REQUIRED for R@x to be interpreted correctly.
+        ## specific order. This ordering is REQUIRED for R@x to be interpreted correctly.
         return(exp(theta[1]) * R@x)
     }
 
@@ -1234,7 +1234,7 @@ The macros
     CGENERIC_CACHE_LEN(data_) 
     CGENERIC_CACHE_ASSIGN_IDX(idx_, data_)
 ```
-can be used to define threads spesific cache, where
+can be used to define threads specific cache, where
 \texttt{CGENERIC\_CACHE\_LEN} gives the require length, and
 \texttt{CGENERIC\_CACHE\_ASSIGN\_IDX} will give the index (or assign an
 index variable to the index depending on the current and parent

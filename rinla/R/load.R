@@ -1,26 +1,17 @@
-## Export: inla.load
-
-## ! \name{inla.load}
-## ! \alias{inla.load}
-## ! \title{Load or source a file}
-## ! \description{Load or source a file: (internal use)}
-## ! \usage{
-## !     inla.load(filename, debug = TRUE)
-## ! }
-## ! \arguments{
-## !   \item{filename}{The name of the file to be loaded, alternatively, sourced. }
-## !   \item{debug}{Logical. Turn on/off debug information.}
-## !  }
-## ! \value{
-## !   None
-## ! }
-## ! \details{
-## !   Try to \code{load} the file into the global environment,
-## !   if that fail,  try to \code{source} the file into the
-## !   global environment.
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-
+#' Load or source a file
+#' 
+#' Load or source a file: (internal use)
+#' 
+#' Try to `load` the file into the global environment, if that fail, try
+#' to `source` the file into the global environment.
+#' 
+#' @param filename The name of the file to be loaded, alternatively, sourced.
+#' @param debug Logical. Turn on/off debug information.
+#' @return None
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @rdname load
+#' @export inla.load
+#' @keywords internal
 `inla.load` <- function(filename, debug = TRUE) {
     msg <- function(...) {
         if (debug) {

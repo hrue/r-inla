@@ -1,26 +1,25 @@
-## Export: inla.debug.graph
-
-## !\name{debug.graph}
-## !\alias{debug.graph}
-## !\alias{inla.debug.graph}
-## !\title{Debug a graph-file}
-## !\description{Debug a graph specification on file (ascii-mode only), by checking the specification along the way.}
-## !\usage{inla.debug.graph(graph.file)}
-## !\arguments{
-## !    \item{graph.file}{The filename of the graph (ascii-mode)}
-## !}
-## !\value{
-## ! If an error is found, then an error message is shows, otherwise the graph-object returned by
-## ! \code{inla.read.graph()} is returned.
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\seealso{inla.read.graph}
-## !\examples{
-## !## Not run:
-## !## cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
-## !## g = inla.debug.graph("g.dat")
-## !## End(Not run)
-## !}
+#' Debug a graph-file
+#' 
+#' Debug a graph specification on file (ascii-mode only), by checking the
+#' specification along the way.
+#' 
+#' 
+#' @aliases debug.graph inla.debug.graph
+#' @param graph.file The filename of the graph (ascii-mode)
+#' @return If an error is found, then an error message is shows, otherwise the
+#' graph-object returned by `inla.read.graph()` is returned.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso inla.read.graph
+#' @examples
+#' 
+#' ## Not run:
+#' ## cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
+#' ## g = inla.debug.graph("g.dat")
+#' ## End(Not run)
+#' 
+#' @name debug.graph
+#' @rdname debug.graph
+#' @export
 
 `inla.debug.graph` <- function(graph.file) {
     ## read a graph with verbose output and try to detect any errors

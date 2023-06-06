@@ -1,54 +1,36 @@
-## Export: inla.pc.rgevtail inla.pc.dgevtail inla.pc.qgevtail inla.pc.pgevtail
-
-## ! \name{pc.gevtail}
-## ! \alias{inla.pc.gevtail}
-## ! \alias{pc.gevtail}
-## ! \alias{pc.rgevtail}
-## ! \alias{inla.pc.rgevtail}
-## ! \alias{pc.dgevtail}
-## ! \alias{inla.pc.dgevtail}
-## ! \alias{pc.pgevtail}
-## ! \alias{inla.pc.pgevtail}
-## ! \alias{pc.qgevtail}
-## ! \alias{inla.pc.qgevtail}
-## !
-## ! \title{Utility functions for the PC prior for the \code{tail} parameter in the GEV likelihood}
-## !
-## ! \description{Functions to evaluate, sample, compute quantiles and
-## !              percentiles of the PC prior for the \code{tail} parameter
-## !              in the GEV likelihood}
-## ! \usage{
-## ! inla.pc.rgevtail(n, lambda = 7)
-## ! inla.pc.dgevtail(xi, lambda = 7, log = FALSE)
-## ! inla.pc.qgevtail(p, lambda = 7)
-## ! inla.pc.pgevtail(q, lambda = 7)
-## ! }
-## ! \arguments{
-## !   \item{n}{Number of observations}
-## !   \item{lambda}{The rate parameter in the PC-prior}
-## !   \item{xi}{Vector of evaluation points, where \code{1>xi>0}.}
-## !   \item{log}{Logical. Return the density in natural or log-scale.}
-## !   \item{p}{Vector of probabilities}
-## !   \item{q}{Vector of quantiles}
-## ! }
-## ! \details{
-## ! This gives the PC prior for the \code{tail} parameter for the GEV likelihood,
-## ! where \code{xi=0} is the base model.
-## ! }
-## !\value{%%
-## !  \code{inla.pc.dgevtail} gives the density,
-## !  \code{inla.pc.pgevtail} gives the distribution function,
-## !  \code{inla.pc.qgevtail} gives the quantile function, and
-## !  \code{inla.pc.rgevtail} generates random deviates.
-## ! }
-## ! \seealso{inla.doc("pc.gevtail")}
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## ! \examples{
-## ! xi = inla.pc.rgevtail(100,  lambda = 7)
-## ! d = inla.pc.dgevtail(xi, lambda = 7)
-## ! xi = inla.pc.qgevtail(0.5, lambda = 7)
-## ! inla.pc.pgevtail(xi, lambda = 7)
-## ! }
+#' Utility functions for the PC prior for the `tail` parameter in the GEV
+#' likelihood
+#' 
+#' Functions to evaluate, sample, compute quantiles and percentiles of the PC
+#' prior for the `tail` parameter in the GEV likelihood
+#' 
+#' This gives the PC prior for the `tail` parameter for the GEV
+#' likelihood, where `xi=0` is the base model.
+#' 
+#' @aliases inla.pc.gevtail pc.gevtail pc.rgevtail inla.pc.rgevtail pc.dgevtail
+#' inla.pc.dgevtail pc.pgevtail inla.pc.pgevtail pc.qgevtail inla.pc.qgevtail
+#' @param n Number of observations
+#' @param lambda The rate parameter in the PC-prior
+#' @param xi Vector of evaluation points, where `1>xi>0`.
+#' @param log Logical. Return the density in natural or log-scale.
+#' @param p Vector of probabilities
+#' @param q Vector of quantiles
+#' @returns `inla.pc.dgevtail` gives the density,
+#' `inla.pc.pgevtail` gives the distribution function,
+#' `inla.pc.qgevtail` gives the quantile function, and
+#' `inla.pc.rgevtail` generates random deviates.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso inla.doc("pc.gevtail")
+#' @examples
+#' 
+#'  xi = inla.pc.rgevtail(100,  lambda = 7)
+#'  d = inla.pc.dgevtail(xi, lambda = 7)
+#'  xi = inla.pc.qgevtail(0.5, lambda = 7)
+#'  inla.pc.pgevtail(xi, lambda = 7)
+#'  
+#' @name pc.gevtail
+#' @rdname pc-gev
+NULL
 
 inla.pc.gevtail.map <- function(x, inverse = FALSE, deriv = 0) {
     ## map from R to (0, 1)
@@ -95,6 +77,8 @@ inla.pc.gevtail.cache <- function() {
     return(get(tag, envir = inla.get.inlaEnv()))
 }
 
+#' @rdname pc-gev
+#' @export
 inla.pc.rgevtail <- function(n, lambda = 7) {
     cache <- inla.pc.gevtail.cache()
     x <- numeric(n)
@@ -103,6 +87,8 @@ inla.pc.rgevtail <- function(n, lambda = 7) {
     return(inla.pc.gevtail.map(x))
 }
 
+#' @rdname pc-gev
+#' @export
 inla.pc.dgevtail <- function(xi, lambda = 7, log = FALSE) {
     cache <- inla.pc.gevtail.cache()
     d <- numeric(length(xi))
@@ -113,6 +99,8 @@ inla.pc.dgevtail <- function(xi, lambda = 7, log = FALSE) {
     return(if (log) d else exp(d))
 }
 
+#' @rdname pc-gev
+#' @export
 inla.pc.qgevtail <- function(p, lambda = 7) {
     cache <- inla.pc.gevtail.cache()
     n <- length(p)
@@ -122,6 +110,8 @@ inla.pc.qgevtail <- function(p, lambda = 7) {
     return(inla.pc.gevtail.map(q))
 }
 
+#' @rdname pc-gev
+#' @export
 inla.pc.pgevtail <- function(q, lambda = 7) {
     cache <- inla.pc.gevtail.cache()
     n <- length(q)
