@@ -11,7 +11,8 @@ RR=$(R) --vanilla --no-echo
 all: TAGS ../NAMESPACE
 
 .PHONY : all clean models_doc \
-	check_Rd_pdf clean_Rd_pdf
+	check_Rd_pdf clean_Rd_pdf \
+	namespace
 
 namespace: ../NAMESPACE
 
@@ -43,7 +44,7 @@ models_doc: ../R/models_documentation.R
 
 ## creating roxygen documentation also updates the NAMESPACE file
 
-../NAMESPACE: $(wildcard *.R) models_documentation.R ../DESCRIPTION Makefile
+../NAMESPACE: $(wildcard *.R) ../R/models_documentation.R ../DESCRIPTION Makefile
 	-test -f ../NAMESPACE && cp ../NAMESPACE ../NAMESPACE.backup
 	echo 'testthat_print <- function(...) print(...) ; devtools::document()' | $(RR)
 
