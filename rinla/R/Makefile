@@ -43,7 +43,7 @@ models_doc: ../R/models_documentation.R
 
 ## creating roxygen documentation also updates the NAMESPACE file
 
-../NAMESPACE: $(wildcard *.R) models_documentation.R ../DESCRIPTION Makefile
+../NAMESPACE: $(wildcard *.R) ../R/models_documentation.R ../DESCRIPTION Makefile
 	-test -f ../NAMESPACE && cp ../NAMESPACE ../NAMESPACE.backup
 	echo 'testthat_print <- function(...) print(...) ; devtools::document()' | $(RR)
 
