@@ -1337,57 +1337,6 @@ inla.crs_detect_manifold <- function(crs) {
 
 
 
-## Input: list of segments, all closed polygons.
-inla.internal.sp2segment.join <- function(inp, grp = NULL, closed = TRUE) {
-    crs <- NULL
-    if (length(inp) > 0) {
-        out.loc <- matrix(0, 0, ncol(inp[[1]]$loc))
-        for (k in seq_along(inp)) {
-            crs <- internal.update.crs(crs, inp[[k]]$crs, mismatch.allowed = FALSE)
-        }
-    } else {
-        out.loc <- matrix(0, 0, 2)
-    }
-    out.idx <- matrix(0L, 0, 2)
-    if (is.null(grp)) {
-        out.grp <- NULL
-    } else {
-        out.grp <- integer(0)
-    }
-    for (k in seq_along(inp)) {
-        inp.loc <- inp[[k]]$loc
-        inp.idx <- inp[[k]]$idx
-        inp.grp <- inp[[k]]$grp
-        offset <- nrow(out.loc)
-        n <- nrow(as.matrix(inp.idx))
-        if (closed) {
-            if (!is.null(grp) && is.null(inp.grp)) {
-                inp.grp <- rep(grp[k], n)
-            }
-            if (ncol(as.matrix(inp.idx)) == 1) {
-                inp.idx <- cbind(inp.idx, inp.idx[c(2:n, 1)])
-            }
-        } else {
-            if (!is.null(grp) && is.null(inp.grp)) {
-                inp.grp <- rep(grp[k], n - 1)
-            }
-            if (ncol(as.matrix(inp.idx)) == 1) {
-                inp.idx <- cbind(inp.idx[-n], inp.idx[-1])
-            }
-        }
-        out.loc <- rbind(out.loc, inp.loc)
-        out.idx <- rbind(out.idx, inp.idx + offset)
-        if (!is.null(grp)) {
-            out.grp <- c(out.grp, inp.grp)
-        }
-    }
-    inla.mesh.segment(
-        loc = out.loc, idx = out.idx, grp = out.grp, is.bnd = FALSE,
-        crs = crs
-    )
-}
-
-
 
 
 #' @title Convert `sp` objects to `inla.mesh.segment` objects.
@@ -1413,12 +1362,12 @@ inla.internal.sp2segment.join <- function(inp, grp = NULL, closed = TRUE) {
 #' @importFrom inlabru fm_as_inla_mesh_segment
 as.inla.mesh.segment <-
     function(sp, ...) {
-        fm_as_inla_mesh_segment(sp, ...)
+        inlabru::fm_as_inla_mesh_segment(sp, ...)
     }
 
 #' @export
 #' @rdname as.inla.mesh.segment
 inla.sp2segment <-
     function(sp, ...) {
-        fm_as_inla_mesh_segment(sp, ...)
+        inlabru::fm_as_inla_mesh_segment(sp, ...)
     }
