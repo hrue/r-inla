@@ -3277,7 +3277,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 			const int verbose = 0;
 			const int yymax = 100;
 			double s[ntimes];
-y			for (int yy = 4, dy = 1; yy < yymax; yy += dy) {
+			for (int yy = 4, dy = 1; yy < yymax; yy += dy) {
 				double t[] = { 0, 0 }, tmp0 = 0.0, tmp1 = 0.0;
 
 				for (int time = 0; time < ntimes; time++) {
@@ -3302,12 +3302,13 @@ y			for (int yy = 4, dy = 1; yy < yymax; yy += dy) {
 
 				assert(ABS(((tmp0 - tmp1)) / (tmp0 + tmp1)) < FLT_EPSILON);
 				if (verbose) {
-					printf("Calibrate nbinomial: yy %d sf=%.3f prod=%.3f\n", yy, t[0] / (t[0] + t[1]), t[1] / (t[0] + t[1]));
+					printf("Optimize nbinomial: yy %d sf=%.3f prod=%.3f\n", yy, t[0] / (t[0] + t[1]), t[1] / (t[0] + t[1]));
 				}
 				if (t[1] > t[0]) {
 					ylim = yy - dy / 2L;
-					if (verbose)
-						printf("Calibrate nbinomial: chose ylim = %1d\n", ylim);
+					if (verbose) {
+						printf("Optimize nbinomial: chose ylim = %1d\n", ylim);
+					}
 					break;
 				}
 			}
@@ -3340,14 +3341,52 @@ y			for (int yy = 4, dy = 1; yy < yymax; yy += dy) {
 					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 				}
 			}
+
 			// optimised code
+			double lsize = log(size);
 			double t2 = lnorm + size * log(size) + y_log_E;
 			double t3 = -(size + y);
+			int fast = (PREDICTOR_SCALE == 1.0 && off == 0.0);
+
+			if (fast) {
+				double tt2 = t2 + t3 * lsize;
+				if (0) {
+					double b = E/size;
+					if (y > 0) {
 #pragma omp simd
-			for (int i = 0; i < m; i++) {
-				double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
-				double t1 = log(size + E * exp(xx));
-				logll[i] = t2 + t3 * t1 + y * xx;
+						for (int i = 0; i < m; i++) {
+							logll[i] = tt2 + t3 * log1p(b * exp(x[i])) + y * x[i];
+						}
+					} else {
+#pragma omp simd
+						for (int i = 0; i < m; i++) {
+							logll[i] = tt2 + t3 * log1p(b * exp(x[i]));
+						}
+					}
+				} else {
+					double work[2*m];
+					double *ex = work;
+					double *lx = work + m;
+
+					GMRFLib_exp(m, x, ex);
+					GMRFLib_dscale(m, E / size, ex);
+					GMRFLib_log1p(m, ex, lx);
+
+					if (y > 0) {
+						// logll[i] = tt2 + t3 * lx[i] + y * x[i]);
+						GMRFLib_daxpbypcz(m, t3, lx, y, x, tt2, logll);
+					} else {
+						// logll[i] = tt2 + t3 * lx[i];
+						GMRFLib_daxpb(m, t3, lx, tt2, logll);
+					}
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < m; i++) {
+					double xx = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					double t1 = log(size + E * exp(xx));
+					logll[i] = t2 + t3 * t1 + y * xx;
+				}
 			}
 		} else {
 #pragma omp simd
