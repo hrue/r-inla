@@ -377,7 +377,7 @@ void GMRFLib_dsum_measure_time(double *tused)
 	GMRFLib_dsum = (tused[0] < tused[1] ? GMRFLib_dsum1 : GMRFLib_dsum2);
 }
 
-double GMRFLib_ddot(int n, double *__restrict x, double *__restrict y)
+double GMRFLib_ddot(int n, double *x, double *y)
 {
 	int one = 1;
 	return ddot_(&n, x, &one, y, &one);

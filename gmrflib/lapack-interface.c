@@ -1112,3 +1112,10 @@ void GMRFLib_daddto(int n, double *x, double *y)
 	double one = 1.0;
 	daxpy_(&n, &one, x, &inc, y, &inc);
 }
+
+void GMRFLib_daxpy(int n, double a, double *x, double *y)
+{
+	// y = y + x
+	int inc = 1;
+	daxpy_(&n, &a, x, &inc, y, &inc);
+}

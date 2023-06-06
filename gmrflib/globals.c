@@ -181,3 +181,5 @@ int GMRFLib_threshold_exp = 3;
 int GMRFLib_threshold_log = 3;
 int GMRFLib_threshold_log1p = 0;
 int GMRFLib_threshold_sqr = 127;
+int GMRFLib_threshold_add = 4;
+int GMRFLib_threshold_mul = 4;

@@ -2052,6 +2052,43 @@ void GMRFLib_sqr(int n, double *x, double *y)
 #endif
 }
 
+void GMRFLib_add(int n, double *x, double *y, double *z)
+{
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_add) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			z[i] = x[i] + y[i];
+		}
+	} else {
+		vdAdd(n, x, y, z);
+	}
+#else
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		z[i] = x[i] + y[i];
+	}
+#endif
+}
+
+void GMRFLib_mul(int n, double *x, double *y, double *z)
+{
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_mul) {
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			z[i] = x[i] * y[i];
+		}
+	} else {
+		vdMul(n, x, y, z);
+	}
+#else
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		z[i] = x[i] * y[i];
+	}
+#endif
+}
 
 void GMRFLib_MKL_chose_thresholds(void)
 {
@@ -2062,14 +2099,16 @@ void GMRFLib_MKL_chose_thresholds(void)
 	{
 		int n = 1024;
 		int ntimes = 512;
-		double *x = Calloc(2*n, double);
+		double *x = Calloc(3*n, double);
 		double *y = x + n;
+		double *z = x + 2*n;
 
 		for (int i = 0; i < n; i++) {
 			x[i] = GMRFLib_uniform();
+			y[i] = GMRFLib_uniform();
 		}
 
-		for(int nn = 1; nn < 10; nn++) {
+		for(int nn = 1; nn < 20; nn++) {
 			double tref[2] = { 0.0, 0.0 };
 			for (int time = 0; time < ntimes; time++) {
 				tref[0] -= GMRFLib_cpu();
@@ -2092,7 +2131,7 @@ void GMRFLib_MKL_chose_thresholds(void)
 			}
 		}
 
-		for(int nn = 1; nn < 10; nn++) {
+		for(int nn = 1; nn < 20; nn++) {
 			double tref[2] = { 0.0, 0.0 };
 			for (int time = 0; time < ntimes; time++) {
 				tref[0] -= GMRFLib_cpu();
@@ -2115,7 +2154,7 @@ void GMRFLib_MKL_chose_thresholds(void)
 			}
 		}
 
-		for(int nn = 1; nn < 10; nn++) {
+		for(int nn = 1; nn < 20; nn++) {
 			double tref[2] = { 0.0, 0.0 };
 			for (int time = 0; time < ntimes; time++) {
 				tref[0] -= GMRFLib_cpu();
@@ -2158,6 +2197,54 @@ void GMRFLib_MKL_chose_thresholds(void)
 			}
 			if (tref[0] > tref[1]) {
 				GMRFLib_threshold_sqr = nn - dn/2 -1;
+				break;
+			}
+		}
+
+		GMRFLib_threshold_add = n - 1;
+		for(int nn = 32, dn = 16; nn < n; nn += dn) {
+			double tref[2] = { 0.0, 0.0 };
+			for (int time = 0; time < ntimes; time++) {
+				tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+				for(int i = 0; i < nn; i++){
+					z[i] = x[i] + y[i];
+				}
+				tref[0] += GMRFLib_cpu();
+			
+				tref[1] -= GMRFLib_cpu();
+				vdAdd(nn, x, y, z);
+				tref[1] += GMRFLib_cpu();
+			}
+			if (verbose) {
+				printf("Add nn = %1d Plain %.3f MKL %.3f\n", nn, tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+			}
+			if (tref[0] > tref[1]) {
+				GMRFLib_threshold_add = nn-dn/2-1;
+				break;
+			}
+		}
+		
+		GMRFLib_threshold_mul = n - 1;
+		for(int nn = 32, dn = 16; nn < n; nn += dn) {
+			double tref[2] = { 0.0, 0.0 };
+			for (int time = 0; time < ntimes; time++) {
+				tref[0] -= GMRFLib_cpu();
+#pragma omp simd
+				for(int i = 0; i < nn; i++){
+					z[i] = x[i] * y[i];
+				}
+				tref[0] += GMRFLib_cpu();
+			
+				tref[1] -= GMRFLib_cpu();
+				vdMul(nn, x, y, z);
+				tref[1] += GMRFLib_cpu();
+			}
+			if (verbose) {
+				printf("Mul nn = %1d Plain %.3f MKL %.3f\n", nn, tref[0]/(tref[0]+tref[1]), tref[1]/(tref[0]+tref[1]));
+			}
+			if (tref[0] > tref[1]) {
+				GMRFLib_threshold_mul = nn-dn/2-1;
 				break;
 			}
 		}

@@ -141,6 +141,8 @@ void vdLn(int, const double *, double *);
 void vdLog1p(int, const double *, double *);
 void vdLinearFrac(int n, double *a, double *b, double scalea, double shifta, double scaleb, double shiftb, double *y);
 void vdSqr(int, double *, double *);
+void vdMul(int, double *, double *, double *);
+void vdAdd(int, double *, double *, double *);
 
 void mkl_dcsrmv(const char *transa, const int *m, const int *k, const double *alpha,
 		const char *matdescra, const double *val, const int *indx,

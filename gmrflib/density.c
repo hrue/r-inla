@@ -511,14 +511,28 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 
 	int np = GMRFLib_INT_NUM_POINTS;
 	int npm = GMRFLib_INT_NUM_INTERPOL * np - (GMRFLib_INT_NUM_INTERPOL - 1);
-	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL, dx = 0.0, dxm = 0.0, d0, d1;
+	double low = 0.0, high = 0.0, *xpm = NULL, *ld = NULL, *ldm = NULL, *pm = NULL, *xp = NULL, dx = 0.0, dxm = 0.0;
 
 	if (!density) {
 		return GMRFLib_SUCCESS;
 	}
 
+	static double *w = NULL;
+	if (!w) {
+#pragma omp critical (Name_e8fc2632a5d825bbc19c1b5211a7db24330df38a)
+		if (!w) {
+			double www[] = { 4.0, 2.0 };
+			double *ww = Calloc(npm, double);
+			ww[0] = ww[npm - 1] = 1.0;
+			for (int i = 1, k = 0; i < npm - 1; i++, k = (k + 1L) % 2L) {
+				ww[i] = www[k];
+			}
+			w = ww;
+		}
+	}
+
 	// GMRFLib_ENTER_ROUTINE;
-	Calloc_init(4 * npm + 2 * np, 6);
+	Calloc_init(6 * npm + 2 * np, 8);
 
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		// density->mean = density->mean_gaussian;
@@ -572,7 +586,6 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 
 	double x_max;
 	double ldmax;
-	double w[2] = { 4.0, 2.0 };
 
 	xp = Calloc_get(np);
 	ld = Calloc_get(np);
@@ -627,16 +640,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	} else {
 		assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 	}
-
-	// convert scale
-#if defined(INLA_LINK_WITH_MKL)
-	vdExp(npm, ldm, ldm);
-#else
-#pragma GCC ivdep
-	for (int i = 0; i < npm; i++) {
-		ldm[i] = exp(ldm[i]);
-	}
-#endif
+	GMRFLib_exp(npm, ldm, ldm);
 
 	int idx_max = 0;
 	GMRFLib_max_value(ldm, npm, &idx_max);
@@ -654,38 +658,29 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	}
 
 	// compute moments
-	double mm[4] = { 0.0, 0.0, 0.0, 0.0 };
-	double xx[4] = { 0.0, 0.0, 0.0, 0.0 };
+	double mm0, mm1, mm2, mm3;
+	double *dens = Calloc_get(npm);
+	double *xx = Calloc_get(npm);
 
-	d0 = ldm[0];
-	d1 = ldm[npm - 1];
-	xx[0] = xpm[0];
-	xx[1] = xpm[npm - 1];
-	mm[0] = d0 + d1;
-	mm[1] = xx[0] * d0 + xx[1] * d1;
-	mm[2] = SQR(xx[0]) * d0 + SQR(xx[1]) * d1;
-	mm[3] = gsl_pow_3(xx[0]) * d0 + gsl_pow_3(xx[1]) * d1;
+	GMRFLib_mul(npm, ldm, w, dens);
+	GMRFLib_sqr(npm, xpm, xx);			       /* xx = x^2 */
 
-	for (int i = 1; i < npm - 1; i++) {
-		double d = ldm[i] * w[(i - 1) % 2];
-		xx[1] = xpm[i];
-		xx[2] = SQR(xx[1]);
-		xx[3] = xx[2] * xx[1];
+	mm0 = GMRFLib_dsum(npm, dens);
+	mm1 = GMRFLib_ddot(npm, dens, xpm);
+	mm2 = GMRFLib_ddot(npm, dens, xx);
 
-		mm[0] += d;
-		mm[1] += xx[1] * d;
-		mm[2] += xx[2] * d;
-		mm[3] += xx[3] * d;
-	}
-	mm[1] /= mm[0];
-	mm[2] /= mm[0];
-	mm[3] /= mm[0];
+	GMRFLib_mul(npm, xx, xpm, xx);			       /* xx = x^3 */
+	mm3 = GMRFLib_ddot(npm, dens, xx);
 
+	mm1 /= mm0;
+	mm2 /= mm0;
+	mm3 /= mm0;
+	
 	if (density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
-		density->log_norm_const = log(mm[0] * dxm / 3.0) + ldmax;
-		density->mean = mm[1];
-		density->stdev = sqrt(DMAX(0.0, mm[2] - SQR(mm[1])));
-		density->skewness = (mm[3] - 3.0 * mm[1] * SQR(density->stdev) - gsl_pow_3(mm[1])) / gsl_pow_3(density->stdev);
+		density->log_norm_const = log(mm0 * dxm / 3.0) + ldmax;
+		density->mean = mm1;
+		density->stdev = sqrt(DMAX(0.0, mm2 - SQR(mm1)));
+		density->skewness = (mm3 - 3.0 * mm1 * SQR(density->stdev) - gsl_pow_3(mm1)) / gsl_pow_3(density->stdev);
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->user_mean = density->std_stdev * density->mean + density->std_mean;
@@ -820,15 +815,8 @@ int GMRFLib_evaluate_ndensity(double *dens, double *x, int n, GMRFLib_density_tp
 	assert(dens);
 
 	GMRFLib_evaluate_nlogdensity(dens, x, n, density);
+	GMRFLib_exp(n, dens, dens);
 
-#if defined(INLA_LINK_WITH_MKL)
-	vdExp(n, dens, dens);
-#else
-#pragma GCC ivdep
-	for (int i = 0; i < n; i++) {
-		dens[i] = exp(dens[i]);
-	}
-#endif
 	return GMRFLib_SUCCESS;
 }
 
@@ -1152,14 +1140,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 	if (type != GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		GMRFLib_evaluate_ndensities(ddens, xx_real, nx, densities, probs);
 
-#if defined(INLA_LINK_WITH_MKL)
-		vdLn(nx, ddens, log_dens);
-#else
-#pragma GCC ivdep
-		for (int i = 0; i < nx; i++) {
-			log_dens[i] = log(ddens[i]);
-		}
-#endif
+		GMRFLib_log(nx, ddens, log_dens);
 
 		// if something is weird, the sum will be weird. only then we need to check
 		double check = GMRFLib_dsum(nx, log_dens);

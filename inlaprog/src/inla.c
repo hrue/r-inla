@@ -5596,7 +5596,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
-			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d)]\n", GMRFLib_threshold_exp, GMRFLib_threshold_log, GMRFLib_threshold_log1p, GMRFLib_threshold_sqr);
+			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d) add(%1d) mul(%1d) ]\n", GMRFLib_threshold_exp, GMRFLib_threshold_log,
+			       GMRFLib_threshold_log1p, GMRFLib_threshold_sqr, GMRFLib_threshold_add, GMRFLib_threshold_mul);
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
@@ -5818,38 +5819,16 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		double norm_initial = 0.0;
 		double *d = bb;				       /* use the same space for both */
 		for (int iter = 0; iter < iter_max; iter++) {
-			int one = 1;
-			double norm = 0.0;
-			double sum1 = 0.0, sum2 = 0.0, gamma;
+			double norm = 0.0, sum1 = 0.0, sum2 = 0.0, gamma;
 
 			GMRFLib_preopt_predictor(eta, x, preopt);
-#if defined(INLA_LINK_WITH_MKL)
-			{
-				double d_one = 1.0, d_mone = -1.0;
-				Memcpy(e, eta, preopt->Npred * sizeof(double));
-				daxpby_(&(preopt->Npred), &d_one, eta_pseudo, &one, &d_mone, e, &one);
-			}
-#else
-			{
-#pragma GCC ivdep
-				for (i = 0; i < preopt->Npred; i++) {
-					e[i] = eta_pseudo[i] - eta[i];
-				}
-			}
-#endif
-			norm = ddot_(&(preopt->Npred), e, &one, e, &one);
-			norm = sqrt(norm / preopt->Npred);
+			GMRFLib_daxpbyz(preopt->Npred, 1.0, eta_pseudo, -1.0,  eta,  e);
+			norm = sqrt(GMRFLib_ddot(preopt->Npred, e, e) / preopt->Npred);
 			GMRFLib_preopt_bnew_like(bb, e, preopt);
-
-#pragma GCC ivdep
-			for (i = 0; i < preopt->n; i++) {
-				// this computes 'd[i] = scale[i] * bb[i]' as d=bb as set above
-				d[i] *= scale[i];
-			}
-
+			GMRFLib_mul(preopt->n, d, scale, d);
 			GMRFLib_preopt_predictor(Ad, d, preopt);
 			sum1 = GMRFLib_ddot(preopt->Npred, Ad, e);
-			sum2 = ddot_(&(preopt->Npred), Ad, &one, Ad, &one);
+			sum2 = GMRFLib_ddot(preopt->Npred, Ad, Ad);
 			gamma = DMAX(0.0, DMIN(2.0, sum1 / (FLT_EPSILON + sum2)));
 
 			if (iter == 0) {
@@ -5861,7 +5840,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 				printf("\tIter[%1d] RMS(err) = %.3f, update with step-size = %.3f\n", iter, norm / norm_initial, gamma);
 			}
 
-			daxpy_(&(preopt->n), &gamma, d, &one, x, &one);
+			GMRFLib_daxpy(preopt->n, gamma, d, x);
 			if (norm / norm_initial < 0.25) {
 				break;
 			}
@@ -6052,6 +6031,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		m2 = 0.0;
 
 		if (d_mode) {
+#pragma GCC ivdep
 			for (int i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
@@ -6066,6 +6046,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 				}
 			}
 		} else {
+#pragma omp simd
 			for (int i = 0; i < np; i++) {
 				double x = xp[i] * stdev + mean;
 				double f = _MAP_X(x);
@@ -6123,6 +6104,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 				xpm[3 * i] = xp[i];
 				xpm[3 * i + 1] = (2.0 * xp[i] + xp[i + 1]) * div3;
 				xpm[3 * i + 2] = (xp[i] + 2.0 * xp[i + 1]) * div3;
+			}
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				ldm[3 * i] = ld[i];
 				ldm[3 * i + 1] = (2.0 * ld[i] + ld[i + 1]) * div3;
 				ldm[3 * i + 2] = (ld[i] + 2.0 * ld[i + 1]) * div3;
@@ -6136,6 +6120,9 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			for (int i = 0; i < np - 1; i++) {
 				xpm[2 * i] = xp[i];
 				xpm[2 * i + 1] = (xp[i] + xp[i + 1]) * div2;
+			}
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				ldm[2 * i] = ld[i];
 				ldm[2 * i + 1] = (ld[i] + ld[i + 1]) * div2;
 			}
@@ -6146,15 +6133,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			assert(GMRFLib_INT_NUM_INTERPOL == 2 || GMRFLib_INT_NUM_INTERPOL == 3);
 		}
 
-#if defined(INLA_LINK_WITH_MKL)
-		vdExp(npm, ldm, ldm);
-#else
-#pragma omp simd
-		for (int i = 0; i < npm; i++) {
-			ldm[i] = exp(ldm[i]);
-		}
-#endif
-
+		GMRFLib_exp(npm, ldm, ldm);
 		xx = Calloc_get(npm);
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
 		if (!plain_case) {
@@ -6164,17 +6143,12 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 			}
 		}
 
-#pragma omp simd
-		for (int i = 0; i < npm; i++) {
-			ldm[i] *= w[i];
-		}
+		GMRFLib_mul(npm, ldm, w, ldm);
+		m0 = GMRFLib_dsum(npm, ldm);
+		m1 = GMRFLib_ddot(npm, ldm, xx);
+		GMRFLib_sqr(npm, xx, xx);
+		m2 = GMRFLib_ddot(npm, ldm, xx);
 
-#pragma omp simd reduction(+: m0, m1, m2)
-		for (int i = 0; i < npm; i++) {
-			m0 += ldm[i];
-			m1 += ldm[i] * xx[i];
-			m2 += ldm[i] * xx[i] * xx[i];
-		}
 		m1 /= m0;
 		m2 /= m0;
 
