@@ -11,7 +11,8 @@ RR=$(R) --vanilla --no-echo
 all: TAGS ../NAMESPACE
 
 .PHONY : all clean models_doc \
-	check_Rd_pdf clean_Rd_pdf
+	check_Rd_pdf clean_Rd_pdf \
+	namespace
 
 namespace: ../NAMESPACE
 
