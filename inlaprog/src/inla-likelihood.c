@@ -3274,9 +3274,10 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 #pragma omp critical (Name_e618c7278d96ebc883f4ddb21a27897f1dbbed07)
 		if (calibrate) {
 			const int ntimes = 16L;
-			int verbose = 0;
+			const int verbose = 0;
+			const int yymax = 100;
 			double s[ntimes];
-			for (int yy = 4, dy = 1; yy < 100; yy += dy) {
+y			for (int yy = 4, dy = 1; yy < yymax; yy += dy) {
 				double t[] = { 0, 0 }, tmp0 = 0.0, tmp1 = 0.0;
 
 				for (int time = 0; time < ntimes; time++) {
@@ -3291,10 +3292,11 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 
 				t[1] -= GMRFLib_cpu();
 				for (int time = 0; time < ntimes; time++) {
+					double ss = s[time];
 #pragma omp simd reduction(+: tmp1)
-					for (int y1 = 0; y1 < yy; y1++) {
-						tmp1 += log(y1 + s[time]);
-					}
+						for (int y1 = 0; y1 < yy; y1++) {
+							tmp1 += log(y1 + ss);
+						}
 				}
 				t[1] += GMRFLib_cpu();
 
@@ -3317,7 +3319,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 	if (m > 0) {
 		// the expression lgamma(y+s)-lgamm(s) reduces using Gamma(1+z)=z*Gamma(z)
 		double lnorm = -normc;
-		if (y > ylim) {
+		if (y >= ylim) {
 			lnorm += gsl_sf_lngamma(y + size) - gsl_sf_lngamma(size);
 		} else {
 #pragma omp simd reduction(+: lnorm)
