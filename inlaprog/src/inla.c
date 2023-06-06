@@ -5596,8 +5596,8 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
-			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d) add(%1d) mul(%1d) ]\n", GMRFLib_threshold_exp, GMRFLib_threshold_log,
-			       GMRFLib_threshold_log1p, GMRFLib_threshold_sqr, GMRFLib_threshold_add, GMRFLib_threshold_mul);
+			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d) add(%1d) mul(%1d) ]\n", GMRFLib_threshold_exp,
+			       GMRFLib_threshold_log, GMRFLib_threshold_log1p, GMRFLib_threshold_sqr, GMRFLib_threshold_add, GMRFLib_threshold_mul);
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
@@ -5822,7 +5822,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			double norm = 0.0, sum1 = 0.0, sum2 = 0.0, gamma;
 
 			GMRFLib_preopt_predictor(eta, x, preopt);
-			GMRFLib_daxpbyz(preopt->Npred, 1.0, eta_pseudo, -1.0,  eta,  e);
+			GMRFLib_daxpbyz(preopt->Npred, 1.0, eta_pseudo, -1.0, eta, e);
 			norm = sqrt(GMRFLib_ddot(preopt->Npred, e, e) / preopt->Npred);
 			GMRFLib_preopt_bnew_like(bb, e, preopt);
 			GMRFLib_mul(preopt->n, d, scale, d);

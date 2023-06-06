@@ -3584,7 +3584,7 @@ int testit(int argc, char **argv)
 			tref[0] -= GMRFLib_cpu();
 #pragma omp simd
 			for (int j = 0; j < n; j++) {
-				y[j] = x[j]*x[j];
+				y[j] = x[j] * x[j];
 			}
 			tref[0] += GMRFLib_cpu();
 
@@ -3594,7 +3594,7 @@ int testit(int argc, char **argv)
 #else
 #pragma omp simd
 			for (int j = 0; j < n; j++) {
-				yy[j] = x[j]*x[j];
+				yy[j] = x[j] * x[j];
 			}
 #endif
 			tref[1] += GMRFLib_cpu();

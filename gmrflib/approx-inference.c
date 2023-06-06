@@ -5650,7 +5650,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double *ell = Calloc_get(np);
 
 #pragma omp simd
-		for (int i = 0; i < np; i++){
+		for (int i = 0; i < np; i++) {
 			mask[i] = 1.0;
 		}
 
@@ -5665,9 +5665,9 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 				if (ll[i] - dmax < limit) {
 					mask[i] = 0.0;
 					ll[i] = 0.0;
-				} 
+				}
 			}
-		} 
+		}
 
 		integral3 = GMRFLib_ddot(np, ll, wp);
 		GMRFLib_exp(np, ll, ell);

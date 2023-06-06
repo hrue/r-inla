@@ -675,7 +675,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 	mm1 /= mm0;
 	mm2 /= mm0;
 	mm3 /= mm0;
-	
+
 	if (density->type == GMRFLib_DENSITY_TYPE_SCGAUSSIAN) {
 		density->log_norm_const = log(mm0 * dxm / 3.0) + ldmax;
 		density->mean = mm1;
