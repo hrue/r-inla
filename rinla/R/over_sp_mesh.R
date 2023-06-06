@@ -1,7 +1,9 @@
 #' Check which mesh triangles are inside a polygon
 #'
 #' Wrapper for the [sp::over()] method to find triangle centroids
-#' or vertices inside `sp` polygon objects
+#' or vertices inside `sp` polygon objects.
+#' Deprecated since 23.06.06 in favour of `inlabru::fm_contains()` when `inlabru`
+#' version `>= 2.7.0.9011` is installed.
 #'
 #' @param x geometry (typically a [sp::SpatialPolygons()] object) for the queries
 #' @param y an [inla.mesh()] object
@@ -49,6 +51,20 @@
 #'   ignore.CRS = TRUE)
 #' @export
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE) {
+    if ((getNamespaceVersion("inlabru") >= "2.7.0.9011")) {
+        lifecycle::deprecate_soft("23.06.06",
+                                  what = "inla.over_sp_mesh()",
+                                  with = "inlabru::fm_contains()",
+                                  details = c("fm_contains() is available from inlabru version 2.7.0.9011",
+                                              "For equivalent output, use 'unlist(fm_contains(...))'"))
+        if (!missing(ignore.CRS) && isTRUE(ignore.CRS)) {
+            lifecycle::deprecate_soft("23.06.06",
+                                      what = "inla.over_sp_mesh(ignore.CRS)",
+                                      with = "ignore.CRS will be treated as FALSE")
+        }
+        return(unlist(inlabru::fm_contains(x = x, y = y, type = type)))
+    }
+
     if (!inherits(y, "inla.mesh")) {
         stop(paste0(
             "'y' must be an 'inla.mesh' object, not '",
