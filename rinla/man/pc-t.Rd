@@ -7,7 +7,7 @@
 \alias{pc.dof}
 \alias{inla.pc.t}
 \alias{inla.pc.dof}
-\title{PC-prior for dof in a standarized Student-t}
+\title{PC-prior for dof in a standardized Student-t}
 \usage{
 inla.pc.ddof(dof, lambda, u, alpha, log = FALSE)
 }
@@ -30,10 +30,10 @@ implicitely through \code{u} and \code{alpha}}
 }
 \description{
 A function to evaluate the PC-prior for the degrees of freedom in a
-standarized Student-t distribution
+standardized Student-t distribution
 }
 \details{
-These functions implements the PC-prior for the dof in a standarized
+These functions implements the PC-prior for the dof in a standardized
 Student-t distribution (ie. with unit variance and \code{dof} > 2).  Either
 \code{lambda}, or \code{u} AND \code{alpha} must be given.  Due the internal
 tabulation, \code{dof} must be larger than 2.0025.

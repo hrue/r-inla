@@ -263,7 +263,7 @@ If \code{po}=\code{TRUE} in \code{control.compute}, a list of one elements:
 \code{po$po} are the values of the predictive ordinate (CPO)
 (\code{pi(yi|y)}) }
 \item{residuals}{ If \code{residuals}=\code{TRUE} in
-\code{control.compute}, a list of standarized residuals are provided, see
+\code{control.compute}, a list of standardized residuals are provided, see
 \code{?control.compute} for details }
 \item{waic}{ If
 \code{waic}=\code{TRUE} in \code{control.compute}, a list of two elements:

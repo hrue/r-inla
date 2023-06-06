@@ -1,9 +1,9 @@
-#' PC-prior for dof in a standarized Student-t
+#' PC-prior for dof in a standardized Student-t
 #' 
 #' A function to evaluate the PC-prior for the degrees of freedom in a
-#' standarized Student-t distribution
+#' standardized Student-t distribution
 #' 
-#' These functions implements the PC-prior for the dof in a standarized
+#' These functions implements the PC-prior for the dof in a standardized
 #' Student-t distribution (ie. with unit variance and `dof` > 2).  Either
 #' `lambda`, or `u` AND `alpha` must be given.  Due the internal
 #' tabulation, `dof` must be larger than 2.0025.

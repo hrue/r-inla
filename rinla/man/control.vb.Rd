@@ -21,13 +21,13 @@ inla.set.control.vb.default(...)
 \arguments{
 \item{enable}{Logical/Character Use this feature? If \code{"auto"} this will be selected automatically.}
 
-\item{strategy}{Charactor What to correct, either "mean" or "variance".}
+\item{strategy}{Character What to correct, either "mean" or "variance".}
 
 \item{verbose}{Logical Be verbose or not.}
 
 \item{iter.max}{Integer Maximum number of interations.}
 
-\item{emergency}{Numeric If the standarized correction for the mean is larger
+\item{emergency}{Numeric If the standardized correction for the mean is larger
 than this value, then call the vb.correction off and issue a warning}
 
 \item{f.enable.limit}{Vector of length 2. The size limit to correct for a \code{f()}.

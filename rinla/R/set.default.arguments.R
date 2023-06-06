@@ -594,13 +594,13 @@ control.gcpo <-
 control.vb <- function(
         #' @param enable Logical/Character Use this feature? If `"auto"` this will be selected automatically. 
         enable = "auto",
-        #' @param strategy Charactor What to correct, either "mean" or "variance".
+        #' @param strategy Character What to correct, either "mean" or "variance".
         strategy = c("mean", "variance"),
         #' @param verbose Logical Be verbose or not. 
         verbose = TRUE,
         #' @param iter.max Integer Maximum number of interations. 
         iter.max = 25,
-        #' @param emergency Numeric If the standarized correction for the mean is larger
+        #' @param emergency Numeric If the standardized correction for the mean is larger
         #'           than this value, then call the vb.correction off and issue a warning
         emergency = 25,
         #' @param f.enable.limit Vector of length 2. The size limit to correct for a `f()`.
