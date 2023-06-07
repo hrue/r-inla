@@ -3387,7 +3387,7 @@ inla.mesh.1d <- function(loc,
             "  Use 'boundary=\"cyclic\"' instead.",
             sep = ""
         ))
-        if (cyclic) {
+        if (isTRUE(list(...)[["cyclic"]])) {
             if (!missing(boundary)) {
                 boundary <- match.arg.vector(boundary, boundary.options, length = 2)
                 warning(paste("'cyclic=TRUE' overrides 'boundary=c(\"",

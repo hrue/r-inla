@@ -1013,17 +1013,6 @@ inla.spde.make.A <-
                   stop("'loc' specified but 'mesh' is NULL.")
               }
 
-            ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-            if (inherits(loc, "SpatialPoints") ||
-                inherits(loc, "SpatialPointsDataFrame")) {
-                loc <- fm_transform(
-                    coordinates(loc),
-                    crs0 = inla.sp_get_crs(loc),
-                    crs = mesh$crs,
-                    passthrough = TRUE
-                )
-            }
-
             A.loc <- inlabru::fm_evaluator(mesh, loc = loc)$proj$A
         }
         if (is.null(index)) {
