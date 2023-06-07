@@ -23,7 +23,9 @@ vertex indices (when \code{type} is \code{'vertex'})
 }
 \description{
 Wrapper for the \code{\link[sp:over]{sp::over()}} method to find triangle centroids
-or vertices inside \code{sp} polygon objects
+or vertices inside \code{sp} polygon objects.
+Deprecated since 23.06.06 in favour of \code{inlabru::fm_contains()} when \code{inlabru}
+version \verb{>= 2.7.0.9011} is installed.
 }
 \examples{
 # Create a polygon and a mesh
