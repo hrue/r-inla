@@ -143,7 +143,7 @@ inla.models()
       }
 }
 
-# NOTE: This function is no longer used
+# NOTE: This function is used by r-inla.org/doc/
 `inla.models.generate.tex` <- function(a.list = inla.models(), file = NULL) {
     my.doit.recursively <- function(a.list, level = 0L) {
         if (level == 0L) {

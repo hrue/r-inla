@@ -598,7 +598,7 @@ control.vb <- function(
         strategy = c("mean", "variance"),
         #' @param verbose Logical Be verbose or not. 
         verbose = TRUE,
-        #' @param iter.max Integer Maximum number of interations. 
+        #' @param iter.max Integer Maximum number of iterations. 
         iter.max = 25,
         #' @param emergency Numeric If the standardized correction for the mean is larger
         #'           than this value, then call the vb.correction off and issue a warning

@@ -5523,7 +5523,7 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 
 	static double *w = NULL;
 	if (!w) {
-#pragma omp critical
+#pragma omp critical (Name_743b7d82abb3dc313f542012c3a2640ccca29d15)
 		if (!w) {
 			double www[] = { 4.0, 2.0 };
 			double *ww = Calloc(np, double);
@@ -5585,22 +5585,10 @@ double GMRFLib_ai_cpopit_integrate(int thread_id, double *cpo, double *pit, int 
 	loglFunc(thread_id, loglik, xp, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 	GMRFLib_dscale(np, d, loglik);
 
-#pragma omp simd
-	for (int i = 0; i < np; i++) {
-		xp[i] = prob[i] * dens[i];		       /* reuse and redefine xp! */
-	}
-#if defined(INLA_LINK_WITH_MKL)
-	vdExp(np, loglik, loglik);
-#pragma omp simd
-	for (int i = 0; i < np; i++) {
-		xpi[i] = loglik[i] * dens[i];
-	}
-#else
-#pragma omp simd
-	for (int i = 0; i < np; i++) {
-		xpi[i] = exp(loglik[i]) * dens[i];	       /* reuse and redefine xpi! */
-	}
-#endif
+	GMRFLib_mul(np, prob, dens, xp);
+	GMRFLib_exp(np, loglik, loglik);
+	GMRFLib_mul(np, loglik, dens, xpi);
+
 	integral = GMRFLib_ddot(np, w, xp);
 	integral2 = GMRFLib_ddot(np, w, xpi);
 	integral_one = GMRFLib_ddot(np, w, dens);
@@ -5648,17 +5636,23 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 	}
 
 	if (po_density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
-		int np = GMRFLib_INT_GHQ_POINTS, no_mask = 0;
+		int np = GMRFLib_INT_GHQ_POINTS;
 		double *xp = NULL, *wp = NULL;
 		double mean = po_density->user_mean;
 		double stdev = po_density->user_stdev;
 
 		GMRFLib_ghq(&xp, &wp, np);
 
-		Calloc_init(3 * np, 3);
+		Calloc_init(4 * np, 4);
 		double *x = Calloc_get(np);
 		double *ll = Calloc_get(np);
 		double *mask = Calloc_get(np);
+		double *ell = Calloc_get(np);
+
+#pragma omp simd
+		for (int i = 0; i < np; i++) {
+			mask[i] = 1.0;
+		}
 
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -5666,40 +5660,21 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double dmin = GMRFLib_max_value(ll, np, NULL);
 		double limit = -0.5 * SQR(xp[0]);	       // prevent extreme values
 		if (dmin - dmax < limit) {
+#pragma omp simd
 			for (int i = 0; i < np; i++) {
 				if (ll[i] - dmax < limit) {
 					mask[i] = 0.0;
 					ll[i] = 0.0;
-				} else {
-					mask[i] = 1.0;
 				}
 			}
-		} else {
-			no_mask = 1;
 		}
 
 		integral3 = GMRFLib_ddot(np, ll, wp);
-		if (no_mask) {
-#if defined(INLA_LINK_WITH_MKL)
-			vdExp(np, ll, mask);
-#else
-#pragma omp simd
-			for (int i = 0; i < np; i++) {
-				mask[i] = exp(ll[i]);
-			}
-#endif
-			integral2 = GMRFLib_ddot(np, mask, wp);
-#pragma omp simd reduction(+: integral4)
-			for (int i = 0; i < np; i++) {
-				integral4 += ll[i] * ll[i] * wp[i];
-			}
-		} else {
-#pragma omp simd reduction(+: integral2, integral4)
-			for (int i = 0; i < np; i++) {
-				integral4 += ll[i] * ll[i] * wp[i];
-				integral2 += mask[i] * exp(ll[i]) * wp[i];
-			}
-		}
+		GMRFLib_exp(np, ll, ell);
+		GMRFLib_mul(np, ell, mask, ell);	       /* so that ell[i]=exp(ll[i])=0 if ll[i]=0 */
+		integral2 = GMRFLib_ddot(np, ell, wp);
+		GMRFLib_sqr(np, ll, ll);
+		integral4 = GMRFLib_ddot(np, ll, wp);
 		Calloc_free();
 	} else {
 
@@ -5885,7 +5860,9 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 				llik[3 * i + 0] = loglik[i];
 				llik[3 * i + 1] = (2.0 * loglik[i] + loglik[i + 1]) / 3.0;
 				llik[3 * i + 2] = (loglik[i] + 2.0 * loglik[i + 1]) / 3.0;
-
+			}
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				llik_sat[3 * i + 0] = llik[3 * i + 0] - sat_ll;
 				llik_sat[3 * i + 1] = llik[3 * i + 1] - sat_ll;
 				llik_sat[3 * i + 2] = llik[3 * i + 2] - sat_ll;
@@ -5906,7 +5883,9 @@ double *GMRFLib_ai_dic_integrate(int thread_id, int idx, GMRFLib_density_tp *den
 			for (int i = 0; i < np - 1; i++) {
 				llik[2 * i + 0] = loglik[i];
 				llik[2 * i + 1] = (loglik[i] + loglik[i + 1]) / 2.0;
-
+			}
+#pragma omp simd
+			for (int i = 0; i < np - 1; i++) {
 				llik_sat[2 * i + 0] = llik[2 * i + 0] - sat_ll;
 				llik_sat[2 * i + 1] = llik[2 * i + 1] - sat_ll;
 			}

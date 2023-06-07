@@ -1074,34 +1074,43 @@ void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
 	GMRFLib_daxpby(n, a, x, b, z);
 }
 
+void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z)
+{
+	if (0){
+#pragma omp simd
+		for (int i = 0; i < n; i++){
+			z[i] = a * x[i] + b * y[i] + c;
+		}
+	} else {
+		GMRFLib_daxpb(n, b, y, c, z);
+		GMRFLib_daxpy(n, a, x, z);
+	}
+}
+
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
 
-	const int roll = 4L;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
+	if (1) {
+		GMRFLib_fill(n, b, y);
+		GMRFLib_daxpy(n, a, x, y);
+	} else {
+		const int roll = 4L;
+		div_t d = div(n, roll);
+		int m = d.quot * roll;
 
 #pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		y[i] = a * x[i] + b;
-		y[i + 1] = a * x[i + 1] + b;
-		y[i + 2] = a * x[i + 2] + b;
-		y[i + 3] = a * x[i + 3] + b;
-	}
+		for (int i = 0; i < m; i += roll) {
+			y[i] = a * x[i] + b;
+			y[i + 1] = a * x[i + 1] + b;
+			y[i + 2] = a * x[i + 2] + b;
+			y[i + 3] = a * x[i + 3] + b;
+		}
 
 #pragma GCC ivdep
-	for (int i = m; i < n; i++) {
-		y[i] = a * x[i] + b;
-	}
-}
-
-void GMRFLib_daxpb2(int n, double a, double *x, double b, double *y)
-{
-	// y[i] = a * x[i] + b
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = a * x[i] + b;
+		for (int i = m; i < n; i++) {
+			y[i] = a * x[i] + b;
+		}
 	}
 }
 
@@ -1111,4 +1120,45 @@ void GMRFLib_daddto(int n, double *x, double *y)
 	int inc = 1;
 	double one = 1.0;
 	daxpy_(&n, &one, x, &inc, y, &inc);
+}
+
+void GMRFLib_daxpy(int n, double a, double *x, double *y)
+{
+	// y += a*x
+	int inc = 1;
+	daxpy_(&n, &a, x, &inc, y, &inc);
+}
+
+void GMRFLib_fill(int n, double a, double *x) 
+{
+	if (ISZERO(a)) {
+		memset((void *) x, 0, (size_t) (n * sizeof(double)));
+	} else {
+		if (1) {
+#pragma omp simd
+			for(int i = 0; i < n; i++) {
+				x[i] = a;
+			}
+		} else {
+			const int roll = 8L;
+			div_t d = div(n, roll);
+			int m = d.quot * roll;
+
+			if (d.quot > 0) {
+#pragma omp simd
+				for(int i = 0; i < roll; i++) {
+					x[i] = a;
+				}
+				size_t len = roll * sizeof(double);
+#pragma GCC ivdep
+				for (int i = roll; i < m; i += roll) {
+					memcpy((void *) (x + i), (void *) x, len);
+				}
+			}
+#pragma omp simd
+			for (int i = m; i < n; i++) {
+				x[i] = a;
+			}
+		}
+	}
 }

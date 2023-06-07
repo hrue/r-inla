@@ -148,6 +148,8 @@ extern int GMRFLib_threshold_log;
 extern int GMRFLib_threshold_log1p;
 extern int GMRFLib_threshold_sqr;
 
+extern int GMRFLib_threshold_add;
+extern int GMRFLib_threshold_mul;
 
 #endif
 __END_DECLS
