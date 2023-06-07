@@ -12,7 +12,8 @@
 #' boundary and interior constraint edges in calls to [inla.mesh()].
 #'
 #'
-#' @param loc Matrix of point locations.
+#' @param loc Matrix of point locations, or `SpatialPoints`, or `sf`/`sfc` point
+#' object.
 #' @param idx Segment index sequence vector or index pair matrix.  The indices
 #' refer to the rows of `loc`.  If `loc==NULL`, the indices will be
 #' interpreted as indices into the point specification supplied to
@@ -76,13 +77,22 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
         ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
         if (inherits(loc, "SpatialPoints") ||
             inherits(loc, "SpatialPointsDataFrame")) {
-            loc <- inla.spTransform(coordinates(loc),
-                inla.sp_get_crs(loc),
+            loc <- inlabru::fm_transform(
+                sp::coordinates(loc),
+                inlabru:::fm_crs(loc),
+                crs,
+                passthrough = TRUE
+            )
+        } else if (inherits(loc, "sf") ||
+            inherits(loc, "sfc")) {
+            loc <- inlabru::fm_transform(
+                sf::st_coordinates(loc),
+                inlabru:::fm_crs(loc),
                 crs,
                 passthrough = TRUE
             )
         }
-
+        
         if (!is.matrix(loc)) {
             loc <- as.matrix(loc)
         }
@@ -2183,7 +2193,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
         }
     }
     if (nrow(segm.loc) > 0) {
-        proj <- inla.mesh.project(mesh3, loc = segm.loc)
+        proj <- inlabru::fm_evaluator(mesh3, loc = segm.loc)$proj
         mesh3$idx$segm <- rep(NA, nrow(segm.loc))
         if (any(proj$ok)) {
             t.idx <- proj$t[proj$ok]
@@ -2601,9 +2611,11 @@ print.summary.inla.mesh <- function(x, ...) {
 
 # Point/mesh connection methods ####
 
-#' Methods for projecting to/from an inla.mesh
+#' @title Methods for projecting to/from an inla.mesh
 #'
-#' Calculate a lattice projection to/from an [inla.mesh()]
+#' @description
+#' Calculate a lattice projection to/from an [inla.mesh()].
+#' Deprecated in favour of `inlabru::fm_evaluate()` and `inlabru::fm_evaluator()`.
 #'
 #' The call `inla.mesh.project(mesh, loc, field=..., ...)`, is a shortcut
 #' to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
@@ -2653,6 +2665,9 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @export inla.mesh.project
 inla.mesh.project <- function(...) {
+    lifecycle::deprecate_soft("23.06.07",
+                              "inla.mesh.project()",
+                              "inlabru::fm_evaluate()")
     UseMethod("inla.mesh.project")
 }
 
@@ -2787,6 +2802,9 @@ inla.mesh.project.inla.mesh.projector <-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
+    lifecycle::deprecate_soft("23.06.07",
+                              "inla.mesh.projector()",
+                              "inlabru::fm_evaluator()")
     UseMethod("inla.mesh.projector")
 }
 
@@ -4241,7 +4259,7 @@ inla.mesh.deriv <- function(mesh, loc) {
     }
     n.mesh <- mesh$n
 
-    info <- inla.mesh.project(mesh, loc = loc)
+    info <- inlabru::fm_evaluator(mesh, loc = loc)$proj
 
     ii <- which(info$ok)
     n.ok <- sum(info$ok)

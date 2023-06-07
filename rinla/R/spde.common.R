@@ -1024,7 +1024,7 @@ inla.spde.make.A <-
                 )
             }
 
-            A.loc <- inla.mesh.project(mesh, loc = loc)$A
+            A.loc <- inlabru::fm_evaluator(mesh, loc = loc)$proj$A
         }
         if (is.null(index)) {
             index <- seq_len(nrow(A.loc))
