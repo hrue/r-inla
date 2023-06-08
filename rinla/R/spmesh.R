@@ -818,8 +818,8 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #'
 #' Wrapper for `sp::CRS` and `inla.CRS` objects to extract the
 #' coordinate reference system argument string.
-#' Should no longer be used with PROJ6;
-#' see [inla.crs_get_wkt()]
+#' When `inlabru` version `>= 2.7.0.9012` is installed, use `fm_proj4string()` instead,
+#' or `fm_wkt()` for WKT2 representations.
 #'
 #' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
 #' inla.as.CRSargs.list
@@ -853,10 +853,14 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' @export
 #' @rdname CRSargs
 inla.CRSargs <- function(x, ...) {
-    if (inla.getOption("fmesher.evolution") >= 2L) {
-        lifecycle::deprecate_soft(when = "2023.06.06",
-                                  what = "inla.CRSargs()",
-                                  with = "inlabru::fm_proj4string()")
+    if ((getNamespaceVersion("inlabru") >= "2.7.0.9012")) {
+        if (inla.getOption("fmesher.evolution") >= 2L) {
+            lifecycle::deprecate_soft(when = "2023.06.06",
+                                      what = "inla.CRSargs()",
+                                      with = "inlabru::fm_proj4string()")
+        }
+        
+        return(inlabru::fm_proj4string(x))
     }
 
     if (inherits(x, "inla.CRS")) {

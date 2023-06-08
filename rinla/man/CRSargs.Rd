@@ -38,8 +38,8 @@ For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 \description{
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
-Should no longer be used with PROJ6;
-see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
+When \code{inlabru} version \verb{>= 2.7.0.9012} is installed, use \code{fm_proj4string()} instead,
+or \code{fm_wkt()} for WKT2 representations.
 }
 \details{
 \itemize{

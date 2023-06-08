@@ -85,6 +85,7 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
             )
         } else if (inherits(loc, "sf") ||
             inherits(loc, "sfc")) {
+            inla.require("sf", stop.on.error = TRUE)
             loc <- inlabru::fm_transform(
                 sf::st_coordinates(loc),
                 inlabru:::fm_crs(loc),
@@ -2498,6 +2499,7 @@ summary.inla.mesh <- function(object, verbose = FALSE, ...) {
     if (is.null(x$crs) || is.null(inla.crs_get_wkt(x$crs))) {
         ret <- c(ret, list(crs = "N/A", crs_proj4 = "N/A"))
     } else {
+        inla.require("sf", stop.on.error = TRUE)
         ret <- c(ret, list(crs = inla.crs_get_wkt(x$crs)))
         ret <- c(ret, list(crs_proj4 = sf::st_crs(ret$crs)$proj4string))
     }
