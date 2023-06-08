@@ -1243,6 +1243,11 @@ internal.update.crs <- function(crs, newcrs, mismatch.allowed) {
 #'
 #' @export inla.identical.CRS
 inla.identical.CRS <- function(...) {
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.identical.CRS()",
+                                  with = "inlabru::fm_identical_CRS()")
+    }
     inlabru::fm_identical_CRS(...)
 }
 
@@ -1281,6 +1286,11 @@ inla.identical.CRS <- function(...) {
 #' }
 #' @export inla.spTransform
 inla.spTransform <- function(x, CRSobj, ...) {
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.spTransform()",
+                                  with = "inlabru::fm_transform()")
+    }
     inlabru::fm_transform(x, crs = CRSobj, ...)
 }
 
@@ -1288,6 +1298,11 @@ inla.spTransform <- function(x, CRSobj, ...) {
 
 
 inla.crs_detect_manifold <- function(crs) {
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_detect_manifold()",
+                                  with = "inlabru::fm_crs_detect_manifold()")
+    }
     inlabru::fm_crs_detect_manifold(crs)
 }
 

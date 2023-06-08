@@ -2208,7 +2208,8 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
     }
 
     if (!is.null(crs) && isgeocentric && !issphere) {
-        mesh3$loc <- inla.spTransform(mesh3$loc, mesh3$crs, crs.target)
+        mesh3$loc <-
+            inlabru::fm_transform(mesh3$loc, crs0 = mesh3$crs, crs = crs.target)
         mesh3$crs <- crs.target
     }
 
@@ -4571,12 +4572,25 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
                                 crs = NULL) {
     if (!(missing(points) || is.null(points)) &&
         (inherits(points, "SpatialPoints") ||
-            inherits(points, "SpatialPointsDataFrame"))) {
-        points <- inla.spTransform(coordinates(points),
-            inla.sp_get_crs(points),
+            inherits(points, "SpatialPointsDataFrame")) &&
+        !is.null(crs)) {
+        points <- inlabru::fm_transform(
+            sp::coordinates(points),
+            crs0 = inlabru::fm_crs(points),
             crs,
             passthrough = TRUE
         )
+    }
+    if (!is.matrix(points)) {
+        if (inherits(points, c("sf", "sfc"))) {
+            points <- inlabru::fm_transform(
+                points,
+                crs,
+                passthrough = TRUE
+            )
+            
+            points <- sf::st_coordinates(points)
+        }
     }
 
     if (length(resolution) == 1) {

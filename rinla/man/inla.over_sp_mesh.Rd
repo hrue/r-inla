@@ -37,9 +37,9 @@ obj <- sp::SpatialPolygons(list(Polygons(list(Polygon(rbind(
 ))),
 ID = 1
 )),
-proj4string = inla.CRS("longlat_globe")
+proj4string = inlabru::fm_CRS("longlat_globe")
 )
-mesh <- inla.mesh.create(globe = 2, crs = inla.CRS("sphere"))
+mesh <- inla.mesh.create(globe = 2, crs = inlabru::fm_CRS("sphere"))
 
 ## 3 vertices found in the polygon
 inla.over_sp_mesh(obj, mesh, type = "vertex")
@@ -51,14 +51,8 @@ inla.over_sp_mesh(obj, mesh)
 ## 4 triangles found in the polygon
 inla.over_sp_mesh(
   obj,
-  inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
-  ignore.CRS = FALSE)
-
-## Ignoring mismatching coordinate systems is rarely useful
-## 20 triangles "found in" the polygon
-inla.over_sp_mesh(obj,
-  inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
-  ignore.CRS = TRUE)
+  inlabru::fm_transform(mesh, crs = inlabru::fm_crs("mollweide_norm"))
+)
 }
 \author{
 Haakon Bakka, \email{bakka@r-inla.org}, and Finn Lindgren \email{finn.lindgren@gmail.com}
