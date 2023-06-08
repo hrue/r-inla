@@ -131,15 +131,15 @@ inla.requires_PROJ6 <- function(fun) {
 #'
 #' @export inla.sp_get_crs
 inla.sp_get_crs <- function(x) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.sp_get_crs()",
-                              with = "inlabru::fm_CRS()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.sp_get_crs()",
+                                  with = "inlabru::fm_CRS()")
+    }
     if (is.null(x)) {
         return(NULL)
     }
     fm_CRS(x)
-    suppressWarnings(crs <- sp::CRS(SRS_string = sp::wkt(x)))
-    crs
 }
 
 
@@ -228,9 +228,11 @@ internal.clip <- function(bounds, coords, eps = 0.05) {
 #' @rdname crs_wkt
 #' @export inla.wkt_is_geocent
 inla.wkt_is_geocent <- function(wkt) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.wkt_is_geocent()",
-                              with = "inlabru::fm_wkt_is_geocent()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_is_geocent()",
+                                  with = "inlabru::fm_wkt_is_geocent()")
+    }
     inlabru::fm_wkt_is_geocent(wkt)
 }
 
@@ -238,9 +240,11 @@ inla.wkt_is_geocent <- function(wkt) {
 #' @rdname crs_wkt
 
 inla.crs_is_geocent <- function(crs) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.crs_is_geocent()",
-                              with = "inlabru::fm_crs_is_geocent()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_is_geocent()",
+                                  with = "inlabru::fm_crs_is_geocent()")
+    }
     inlabru::fm_crs_is_geocent(crs)
 }
 
@@ -249,9 +253,11 @@ inla.crs_is_geocent <- function(crs) {
 #' @export
 
 inla.wkt_get_ellipsoid_radius <- function(wkt) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.wkt_get_ellipsoid_radius()",
-                              with = "inlabru::fm_ellipsoid_radius()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_get_ellipsoid_radius()",
+                                  with = "inlabru::fm_ellipsoid_radius()")
+    }
     inlabru::fm_ellipsoid_radius(wkt)
 }
 
@@ -259,9 +265,11 @@ inla.wkt_get_ellipsoid_radius <- function(wkt) {
 #' @export
 
 inla.crs_get_ellipsoid_radius <- function(crs) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.crs_get_ellipsoid_radius()",
-                              with = "inlabru::fm_ellipsoid_radius()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_get_ellipsoid_radius()",
+                                  with = "inlabru::fm_ellipsoid_radius()")
+    }
     inlabru::fm_ellipsoid_radius(crs)
 }
 
@@ -271,20 +279,26 @@ inla.crs_get_ellipsoid_radius <- function(crs) {
 #' @export
 
 inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.wkt_set_ellipsoid_radius()",
-                              with = "inlabru::fm_ellipsoid_radius<-()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_set_ellipsoid_radius()",
+                                  with = "`inlabru::fm_ellipsoid_radius<-`()")
+    }
     inlabru::fm_wkt_get_ellisoid_radius(wkt) <- radius
+    wkt
 }
 
 #' @rdname crs_wkt
 #' @export
 
 inla.crs_set_ellipsoid_radius <- function(crs, radius) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
-                              what = "inla.crs_set_ellipsoid_radius()",
-                              with = "inlabru::fm_ellipsoid_radius<-()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_set_ellipsoid_radius()",
+                                  with = "`inlabru::fm_ellipsoid_radius<-`()")
+    }
     inlabru::fm_wkt_get_ellisoid_radius(crs) <- radius
+    crs
 }
 
 
@@ -696,10 +710,11 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 #'
 #' @export inla.CRS
 inla.CRS <- function(...) {
-    lifecycle::deprecate_soft(when = "2023.04.19",
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
                               what = "inla.CRS()",
                               with = "inlabru::fm_CRS()")
-    
+    }
     inlabru::fm_CRS(...)
 }
 
@@ -747,47 +762,12 @@ inla.wkt_predef <- function() {
 #' @export inla.as.wkt_tree.wkt
 #' @rdname wkt_tree
 inla.as.wkt_tree.wkt <- function(x, ...) {
-    # Basic parsing of WKT string
-    # ITEM[Param1, Param2, ...]
-    # Param can be a constant or an ITEM[...]
-    parse_item <- function(x) {
-        # Parse item label
-        n <- regexpr("\\[", x)
-        item_label <- substr(x, 1, n - 1)
-        x <- substr(x, n + 1, nchar(x))
-        params <- list()
-        # Parse parameters
-        done <- FALSE
-        while (!done) {
-            # If [ comes before , or ], it's an Item, otherwise a constant
-            n <- regexpr("[],[]", x)
-            if (n < 1) {
-                # Nothing found
-                done <- TRUE
-                break
-            }
-            if (substr(x, n, n) == "[") {
-                n <- regexpr("[^ ]", x)
-                x <- substr(x, n, nchar(x))
-                item_info <- parse_item(x)
-                params[[length(params) + 1]] <- item_info$item
-                x <- item_info$x
-            } else {
-                const <- substr(x, 1, n - 1)
-                params[[length(params) + 1]] <- const
-                x <- substr(x, n, nchar(x))
-            }
-            n <- regexpr("[],]", x)
-            done <- (substr(x, n, n) == "]")
-            x <- substr(x, n + 1, nchar(x))
-        }
-        list(item = list(label = item_label, params = params), x = x)
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.as.wkt_tree.wkt()",
+                                  with = "inlabru::fm_wkt_as_wkt_tree()")
     }
-
-    x <- gsub("\n", "", x)
-    item_info <- parse_item(x)
-    item <- item_info$item
-    item
+    inlabru::fm_wkt_as_wkt_tree(x, ...)
 }
 
 #' @rdname wkt_tree
@@ -795,41 +775,12 @@ inla.as.wkt_tree.wkt <- function(x, ...) {
 #' @export
 
 inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
-    construct_item <- function(x, level) {
-        paste0(
-            if (pretty) {
-                paste0(rep("    ", level), collapse = "")
-            } else {
-                ""
-            },
-            x[["label"]],
-            "[",
-            paste0(vapply(
-                x[["params"]],
-                function(param) {
-                    if (!is.list(param)) {
-                        paste0(param)
-                    } else {
-                        paste0(
-                            if (pretty) {
-                                "\n"
-                            } else {
-                                ""
-                            },
-                            construct_item(param,
-                                level = level + 1
-                            )
-                        )
-                    }
-                },
-                ""
-            ),
-            collapse = ","
-            ),
-            "]"
-        )
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.as.wkt.wkt_tree()",
+                                  with = "inlabru::fm_wkt_tree_as_wkt()")
     }
-    construct_item(x, 0)
+    inlabru::fm_wkt_tree_as_wkt(x, pretty = pretty, ...)
 }
 
 #' @param item character vector with item labels identifying a parameter item
@@ -840,17 +791,12 @@ inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
 #' @export
 
 inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
-    for (k in seq_along(x[["params"]])) {
-        if (is.list(x[["params"]][[k]]) &&
-            (!is.null(x[["params"]][[k]][["label"]])) &&
-            (x[["params"]][[k]][["label"]] %in% item)) {
-            if (duplicate == 1) {
-                return(x[["params"]][[k]])
-            }
-            duplicate <- duplicate - 1
-        }
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_tree_get_item()",
+                                  with = "inlabru::fm_wkt_tree_get_item()")
     }
-    NULL
+    inlabru::fm_wkt_tree_get_item(x, item = item, duplicate = duplicate)
 }
 
 #' @param item_tree An item tree identifying a parameter item entry
@@ -858,21 +804,12 @@ inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
 #' @export
 
 inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
-    success <- FALSE
-    for (k in seq_along(x[["params"]])) {
-        if (is.list(x[["params"]][[k]]) && (x[["params"]][[k]][["label"]] == item_tree[["label"]])) {
-            if (duplicate == 1) {
-                x[["params"]][[k]] <- item_tree
-            }
-            duplicate <- duplicate - 1
-            success <- TRUE
-            break
-        }
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_tree_set_item()",
+                                  with = "inlabru::fm_wkt_tree_set_item()")
     }
-    if (!success) {
-        x[["params"]] <- c(x[["params"]], list(item_tree))
-    }
-    x
+    inlabru::fm_wkt_tree_set_item(x, item_tree = item_tree, duplicate = duplicate)
 }
 
 
@@ -916,7 +853,11 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' @export
 #' @rdname CRSargs
 inla.CRSargs <- function(x, ...) {
-    inla.not_for_PROJ6("inla.CRSargs")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.CRSargs()",
+                                  with = "inlabru::fm_proj4string()")
+    }
 
     if (inherits(x, "inla.CRS")) {
         x <- x[["crs"]]
@@ -954,8 +895,6 @@ inla.as.CRSargs.list <- function(x, ...) {
 #' @export
 #' @rdname CRSargs
 inla.as.list.CRSargs <- function(x, ...) {
-    inla.not_for_PROJ6("inla.as.list.CRSargs")
-
     if (is.na(x)) {
         return(list())
     }
@@ -982,14 +921,12 @@ inla.as.list.CRSargs <- function(x, ...) {
 #' @export
 #' @rdname CRSargs
 inla.as.list.CRS <- function(x, ...) {
-    inla.not_for_PROJ6("inla.as.list.CRS")
     inla.as.list.CRSargs(inla.CRSargs(x))
 }
 
 #' @export
 #' @rdname CRSargs
 inla.as.CRS.list <- function(x, ...) {
-    inla.not_for_PROJ6("inla.as.CRS.list")
     inla.CRS(args = x)
 }
 
@@ -1059,7 +996,12 @@ inla.wkt_unit_params <- function() {
 #' @importFrom inlabru fm_length_unit
 
 inla.wkt_get_lengthunit <- function(wkt) {
-    fm_length_unit(wkt)
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_get_lengthunit()",
+                                  with = "inlabru::fm_length_unit()")
+    }
+    inlabru::fm_length_unit(wkt)
 }
 
 #' @export
@@ -1070,10 +1012,16 @@ inla.wkt_get_lengthunit <- function(wkt) {
 #' @importFrom inlabru `fm_length_unit<-`
 
 inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_set_lengthunit()",
+                                  with = "`inlabru::fm_length_unit<-`()")
+    }
+
     if (!is.null(params)) {
         warning("Non-NULL 'params' for inla.wkt_set_lengthunit ignored.")
     }
-    fm_length_unit(wkt) <- unit
+    inlabru::fm_length_unit(wkt) <- unit
     wkt
 }
 
@@ -1082,15 +1030,13 @@ inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
 #' @rdname crs_wkt
 
 inla.crs_get_wkt <- function(crs) {
-    if (inherits(crs, "inla.CRS")) {
-        crs <- crs[["crs"]]
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_get_wkt()",
+                                  with = "inlabru::fm_wkt()")
     }
-
-    if (is.null(crs)) {
-        return(NULL)
-    }
-
-    comment(crs)
+    
+    inlabru::fm_wkt(crs)
 }
 
 #' @return For `inla.crs_get_lengthunit`, a
@@ -1101,7 +1047,12 @@ inla.crs_get_wkt <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_get_lengthunit <- function(crs) {
-    fm_length_unit(crs)
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_get_lengthunit()",
+                                  with = "inlabru::fm_length_unit()")
+    }
+    inlabru::fm_length_unit(crs)
 }
 
 #' @return For `inla.crs_set_lengthunit`, a `sp::CRS` object with
@@ -1111,10 +1062,15 @@ inla.crs_get_lengthunit <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.crs_set_lengthunit()",
+                                  with = "`inlabru::fm_length_unit<-`()")
+    }
     if (!is.null(params)) {
         warning("Non-NULL 'params' for inla.crs_set_lengthunit ignored.")
     }
-    fm_length_unit(crs) <- unit
+    inlabru::fm_length_unit(crs) <- unit
     crs
 }
 
@@ -1149,12 +1105,12 @@ inla.wkt_tree_projection_type <- function(wt) {
 }
 
 inla.wkt_projection_type <- function(wkt) {
-    wt <- inla.as.wkt_tree.wkt(wkt)
+    wt <- inlabru::fm_wkt_as_wkt_tree(wkt)
     inla.wkt_tree_projection_type(wt)
 }
 
 inla.crs_projection_type <- function(crs) {
-    wkt <- inla.crs_get_wkt(crs)
+    wkt <- inlabru::fm_wkt(crs)
     inla.wkt_projection_type(wkt)
 }
 

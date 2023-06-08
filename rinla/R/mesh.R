@@ -2665,9 +2665,11 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @export inla.mesh.project
 inla.mesh.project <- function(...) {
-    lifecycle::deprecate_soft("23.06.07",
-                              "inla.mesh.project()",
-                              "inlabru::fm_evaluate()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft("23.06.07",
+                                  "inla.mesh.project()",
+                                  "inlabru::fm_evaluate()")
+    }
     UseMethod("inla.mesh.project")
 }
 
@@ -2802,9 +2804,11 @@ inla.mesh.project.inla.mesh.projector <-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
-    lifecycle::deprecate_soft("23.06.07",
-                              "inla.mesh.projector()",
-                              "inlabru::fm_evaluator()")
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft("23.06.07",
+                                  "inla.mesh.projector()",
+                                  "inlabru::fm_evaluator()")
+    }
     UseMethod("inla.mesh.projector")
 }
 

@@ -36,7 +36,8 @@ inla.contour.segment(
 \item{...}{Additional parameters.  When joining segments, a list of
 \code{inla.mesh.segment} objects.}
 
-\item{loc}{Matrix of point locations.}
+\item{loc}{Matrix of point locations, or \code{SpatialPoints}, or \code{sf}/\code{sfc} point
+object.}
 
 \item{idx}{Segment index sequence vector or index pair matrix.  The indices
 refer to the rows of \code{loc}.  If \code{loc==NULL}, the indices will be
