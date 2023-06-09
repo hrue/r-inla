@@ -534,7 +534,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	if (h->n <= limit || !prepare || !GMRFLib_internal_opt) {
-		h->preference = IDXVAL_SERIAL_MKL;
+		h->preference = IDXVAL_GROUP_MKL;
 		return GMRFLib_SUCCESS;
 	}
 	// an upper bound for the number of groups for memory allocation
@@ -849,8 +849,13 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int kmin = -1;
 	double tmin = GMRFLib_min_value(treff, 4, &kmin);
+	P(treff[0]);
+	P(treff[1]);
+	P(treff[2]);
+	P(treff[3]);
+	
 	if (debug) {
-		double s = 1.0 / (treff[0] + treff[1] + treff[2] + treff[3]);
+		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1] + treff[2] + treff[3]);
 		printf("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
 		       h->n, kmin, treff[0] * s, treff[1] * s, treff[2] * s, treff[3] * s);
 	}
