@@ -319,7 +319,7 @@ double GMRFLib_dsum2(int n, double *x)
 void GMRFLib_isum_measure_time(double *tused)
 {
 	int n = 512;
-	int ntimes = 32;
+	int ntimes = 64;
 	int *ix = Calloc(n, int);
 
 	for (int i = 0; i < n; i++) {
@@ -329,28 +329,31 @@ void GMRFLib_isum_measure_time(double *tused)
 	double tref[2] = { 0.0, 0.0 };
 	double r = 0.0, rr = 0.0;
 
+	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-
-		tref[0] -= GMRFLib_cpu();
 		r += GMRFLib_isum1(n, ix);
-		r += GMRFLib_isum1(n, ix);
-		tref[0] += GMRFLib_cpu();
-
-		tref[1] -= GMRFLib_cpu();
-		rr += GMRFLib_isum2(n, ix);
-		rr += GMRFLib_isum2(n, ix);
-		tref[1] += GMRFLib_cpu();
 	}
+	tref[0] += GMRFLib_cpu();
+
+	tref[1] -= GMRFLib_cpu();
+	for (int time = 0; time < ntimes; time++) {
+		rr += GMRFLib_isum2(n, ix);
+	}
+	tref[1] += GMRFLib_cpu();
+
+	assert(r == rr);
 
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
 	GMRFLib_isum = (tused[0] < tused[1] ? GMRFLib_isum1 : GMRFLib_isum2);
+
+	Free(ix);
 }
 
 void GMRFLib_dsum_measure_time(double *tused)
 {
 	int n = 512;
-	int ntimes = 32;
+	int ntimes = 64;
 	double *x = Calloc(n, double);
 	for (int i = 0; i < n; i++) {
 		x[i] = GMRFLib_uniform();
@@ -359,22 +362,25 @@ void GMRFLib_dsum_measure_time(double *tused)
 	double tref[2] = { 0.0, 0.0 };
 	double r = 0.0, rr = 0.0;
 
+	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-
-		tref[0] -= GMRFLib_cpu();
 		r += GMRFLib_dsum1(n, x);
-		r += GMRFLib_dsum1(n, x);
-		tref[0] += GMRFLib_cpu();
-
-		tref[1] -= GMRFLib_cpu();
-		rr += GMRFLib_dsum2(n, x);
-		rr += GMRFLib_dsum2(n, x);
-		tref[1] += GMRFLib_cpu();
 	}
+	tref[0] += GMRFLib_cpu();
+
+	tref[1] -= GMRFLib_cpu();
+	for (int time = 0; time < ntimes; time++) {
+		rr += GMRFLib_dsum2(n, x);
+	}
+	tref[1] += GMRFLib_cpu();
+
+	assert(ABS((r-rr)/(r+rr)) < FLT_EPSILON);
 
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
 	GMRFLib_dsum = (tused[0] < tused[1] ? GMRFLib_dsum1 : GMRFLib_dsum2);
+
+	Free(x);
 }
 
 double GMRFLib_ddot(int n, double *x, double *y)
@@ -473,6 +479,7 @@ double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, i
 }
 
 #else							       /* defined(INLA_LINK_WITH_MKL) */
+
 double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);

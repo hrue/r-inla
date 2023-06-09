@@ -849,11 +849,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int kmin = -1;
 	double tmin = GMRFLib_min_value(treff, 4, &kmin);
-	P(treff[0]);
-	P(treff[1]);
-	P(treff[2]);
-	P(treff[3]);
-	
+
 	if (debug) {
 		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1] + treff[2] + treff[3]);
 		printf("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
@@ -896,7 +892,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	if (GMRFLib_dot_product_optim_report) {
-		int idx;
+		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
 		for (k = 0; k < 4; k++) {
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];

@@ -140,7 +140,7 @@ double inla_qgamma_cache(double shape, double quantile)
 		}
 	}
 
-	int id;
+	int id = 0;
 	GMRFLib_CACHE_SET_ID(id);
 
 	if ((cache[id]->quantile == quantile) && cache[id]->s) {

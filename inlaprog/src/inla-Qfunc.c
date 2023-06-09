@@ -1556,7 +1556,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 
 	if (i == j) {
 
-		int cache_idx;
+		int cache_idx = 0;
 		GMRFLib_CACHE_SET_ID(cache_idx);
 
 		int build = 0;
@@ -1595,7 +1595,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 
 	inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) arg;
 
-	int cache_idx;
+	int cache_idx = 0;
 	GMRFLib_CACHE_SET_ID(cache_idx);
 
 	int build = 0;
