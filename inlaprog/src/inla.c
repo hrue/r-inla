@@ -5596,8 +5596,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		printf("\tSize of graph.............. [%d]\n", N);
 		printf("\tNumber of constraints...... [%d]\n", (preopt->latent_constr ? preopt->latent_constr->nc : 0));
 		if (GMRFLib_internal_opt) {
+#if defined(INLA_LINK_WITH_MKL)
 			printf("\tThresholds................. [exp(%1d) log(%1d) log1p(%1d) sqr(%1d) add(%1d) mul(%1d) ]\n", GMRFLib_threshold_exp,
 			       GMRFLib_threshold_log, GMRFLib_threshold_log1p, GMRFLib_threshold_sqr, GMRFLib_threshold_add, GMRFLib_threshold_mul);
+#endif
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
 			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
@@ -5611,11 +5613,17 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			       time_used_pred[0] / (time_used_pred[0] + time_used_pred[1]),
 			       time_used_pred[1] / (time_used_pred[0] + time_used_pred[1]),
 			       (GMRFLib_preopt_predictor_strategy == 0 ? "plain" : "data-rich"));
+#if defined(INLA_LINK_WITH_MKL)
 			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
 			printf("\t                            plain.mkl[%.3f] group.mkl[%.3f]\n", time_loop[1], time_loop[3]);
 			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
 			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
 			printf("\t                                plain.mkl[%4.1f%%] group.mkl[%4.1f%%]\n", 100 * time_loop[6], 100 * time_loop[8]);
+#else
+			printf("\tOptimizing dot-products.... plain....[%.3f] group....[%.3f]\n", time_loop[0], time_loop[2]);
+			printf("\t                            ==> optimal.mix.strategy  [%.3f]\n", time_loop[4]);
+			printf("\t                                plain....[%4.1f%%] group....[%4.1f%%]\n", 100 * time_loop[5], 100 * time_loop[7]);
+#endif
 		}
 	}
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_OPTIMIZE, NULL, NULL);

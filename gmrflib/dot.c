@@ -327,7 +327,7 @@ void GMRFLib_isum_measure_time(double *tused)
 	}
 
 	double tref[2] = { 0.0, 0.0 };
-	double r = 0.0, rr = 0.0;
+	int r = 0, rr = 0;
 
 	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
