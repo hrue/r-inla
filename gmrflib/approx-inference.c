@@ -894,13 +894,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		double err = 0.0;
-#pragma omp simd reduction(+: err) private(i)
+#pragma omp simd reduction(+: err)
 		for (i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
 		}
 		err = sqrt(err / n);
 
-#pragma omp simd private(i)
+#pragma omp simd
 		for (i = 0; i < n; i++) {
 			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 		}

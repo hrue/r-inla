@@ -360,7 +360,7 @@ int GMRFLib_sn_fit__intern(void *param, double *fval, double *x, double *log_den
 	log_density_scaled = Calloc(n, double);
 
 	double ld_max = log_density[imax];
-#pragma omp simd private(i)
+#pragma omp simd
 	for (i = 0; i < (int) n; i++) {
 		log_density_scaled[i] = log_density[i] - ld_max;
 	}
