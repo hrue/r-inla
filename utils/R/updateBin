@@ -17,7 +17,7 @@ fix-perm () {
 
 for m in 64; do
     DIR=$d/mac/${m}bit
-    for p in inla inla.mkl fmesher; do 
+    for p in inla.mkl fmesher; do 
 	for f in $(ssh -x $INLA_MAC bin/my.otool builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
@@ -51,7 +51,7 @@ done
 
 for m in 64; do
     DIR=$d/linux/${m}bit
-    for p in inla inla.mkl fmesher; do 
+    for p in inla.mkl fmesher; do 
 	for f in $(ssh -x -p $INLA_LINUX_PORT $INLA_LINUX bin/my.ldd builds/build$m/local/bin/$p) builds/build$m/local/bin/$p; do
 	    echo sync $f
 	    for i in {1..10}; do
@@ -77,14 +77,14 @@ done
 for m in 64; do
     DIR=$d/windows/${m}bit
     for p in inla fmesher; do 
-	for f in $(ssh -x -p $INLA_LINUX_PORT $INLA_LINUX builds/windows$m/bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
+	for f in $(ssh -x $INLA_WINDOWS bin/my.objdump builds/windows$m/local/bin/$p.exe) builds/windows$m/local/bin/$p.exe; do
 	    echo sync $f
 	    for i in {1..10}; do
-		rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:$f $DIR/. && break
+		rsync --rsh="ssh -x" -auvL $INLA_WINDOWS:$f $DIR/. && break
 	    done
 	done
     done
-    rsync --rsh="ssh -x -p $INLA_LINUX_PORT" -auvL $INLA_LINUX:builds/windows$m/external-packages/external $DIR/.
+    rsync --rsh="ssh -x" -auvL $INLA_WINDOWS:builds/windows$m/external-packages/external $DIR/.
     fix-perm $DIR
 done
 
