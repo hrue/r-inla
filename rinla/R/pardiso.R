@@ -11,11 +11,11 @@
 #' @rdname pardiso
 #' @export inla.pardiso
 
-## `inla.pardiso` <- function() {
-##     stop("The use of the PARDISO library in R-INLA is no longer maintained.\n       Old license keys can be used until they expire.")
-## }
-
 `inla.pardiso` <- function() {
+    stop("The use of the PARDISO library in R-INLA is currently paused.\n       Old license keys can be used until they expire.")
+}
+
+`inla.pardiso.INVALID.DESCRIPTION` <- function() {
     browseURL("https://pardiso-project.org/r-inla/")
     cat(
         "\n\n",
