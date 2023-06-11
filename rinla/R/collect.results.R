@@ -1,52 +1,41 @@
-## Export: inla.collect.results
-
-## ! \name{inla.collect.results}
-## ! \alias{inla.collect.results}
-## ! \alias{collect.results}
-## ! \title{Collect results from a inla-call}
-## ! \description{\code{inla.collect.results} collect results  from a inla-call}
-## ! \usage{
-## ! inla.collect.results(
-## !              results.dir,
-## !              debug=FALSE,
-## !              only.hyperparam=FALSE,
-## !              file.log = NULL,
-## !              file.log2 = NULL)
-## !}
-## ! \arguments{
-
+#' Collect results from a inla-call
+#' 
+#' `inla.collect.results` collect results from a inla-call
+#' 
+#' This function is mainly used inside `inla` to collect results after
+#' running the inla function. It can also be used to collect results into R
+#' after having run an inla section outside R.
+#' 
+#' @aliases inla.collect.results collect.results
+#' @return The function returns an object of class `"inla"`, see the help
+#' file for `inla` for details.
+#' @rdname collect.results
+#' @export inla.collect.results
 `inla.collect.results` <-
     function(
-             ## ! \item{results.dir}{The directory where the results of the inla run are stored}
+        #' @param results.dir The directory where the results of the inla run are
+        #' stored
              results.dir,
 
-             ## ! \item{debug}{Logical. If \code{TRUE} some debugging information are printed}
+             #' @param debug Logical. If `TRUE` some debugging information are printed
              debug = FALSE,
 
-             ## ! \item{only.hyperparam}{Binary variable indicating wheather only the
-             ## ! results for the hyperparameters should be collected}
+             #' @param only.hyperparam Binary variable indicating wheather only the results
+             #' for the hyperparameters should be collected
              only.hyperparam = FALSE,
 
-             ## ! \item{file.log}{Character. The filename, if any, of the logfile for
-             ## ! the internal calculations}
+             #' @param file.log Character. The filename, if any, of the logfile for the
+             #' internal calculations
              file.log = NULL,
 
-             ## ! \item{file.log2}{Character. The filename, if any, of the logfile2 for
-             ## ! the internal calculations}
+             #' @param file.log2 Character. The filename, if any, of the logfile2 for the
+             #' internal calculations
              file.log2 = NULL,
 
-             ## ! \item{silent}{Internal use only}
+             #' @param silent Internal use only
              silent = inla.getOption("silent")
              )
 {
-    ## ! }
-    ## ! \value{ The function returns an object of class \code{"inla"}, see the
-    ## ! help file for \code{inla} for details.}
-    ## !
-    ## ! \details{This function is mainly used inside \code{inla}
-    ## !  to collect results after running the inla
-    ## !  function. It can also be used to collect results into R after having
-    ## !  runned a inla section outside R.  }
 
     if (is.na(file.info(results.dir)$isdir) ||
         !file.info(results.dir)$isdir) {

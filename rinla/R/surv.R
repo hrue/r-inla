@@ -1,91 +1,64 @@
-## Export: inla.surv is.inla.surv as.inla.surv
-## Export: plot!inla.surv print!inla.surv
-
-## !\name{inla.surv}
-## !\alias{inla.surv}
-## !\alias{is.inla.surv}
-## !\alias{as.inla.surv}
-## !\alias{plot.inla.surv}
-## !\alias{print.inla.surv}
-## !
-## !\title{
-## !Create a Survival Object for INLA
-## !}
-## !
-## !\description{
-## !Create a survival object, to be used as a response variable in a
-## !model  formula for the \code{\link{inla}} function for survival models.
-## !}
-## !\usage{
-## !inla.surv(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL)
-## !\method{plot}{inla.surv}(x, y, ...)
-## !\method{print}{inla.surv}(x, ...)
-## !is.inla.surv(object)
-## !as.inla.surv(object, ...)
-## !}
-## !
-## !\arguments{
-## !  \item{time}{For right censored data, this is the follow up time.  For
-## !    interval data, this is the starting time for the interval. For in-interval event, this is
-## !    the observed time (in the interval) for the event. For left censored data, this the
-## !    censoring time. }
-## !  \item{event}{The status indicator, 1=observed event, 0=right censored
-## !    event, 2=left censored event, 3=interval censored event,
-## !    and 4=observed event in an interval (left, right).}
-## !  \item{time2}{Ending time for the interval censored data or an in-interval event.}
-## !  \item{truncation}{Left truncation. If missing it is assumed to be 0. The lower limit for event=4.}
-## !  \item{subject}{Patient number in multiple event data, not needed otherwise. }
-## !  \item{cure}{A matrix of covariates that can be used with a cure-model. }
-## !  \item{.special}{An internal object, not for public use}
-## !  \item{object}{Any \code{R}-object}
-## !  \item{x}{Object to plot or print}
-## !  \item{y}{Object to plot (not in use)}
-## !  \item{...}{Additional argument}
-## !  }
-## !
-## !\value{An object of class \code{inla.surv}.  There are methods for \code{print},
-## !  \code{plot} for \code{inla.surv} objects.
-## !
-## !     \code{is.inla.surv} returns \code{TRUE} if \code{object}
-## !     inherits from class \code{inla.surv}, otherwise \code{FALSE}.
-## !
-## !     \code{as.inla.surv} returns an object of class \code{inla.surv}
-## !}
-## !
-## !\author{
-## !Sara Martino, Rupali Akerkar and Haavard Rue
-## !}
-## !
-## !\seealso{
-## !\code{\link{inla}}
-## !}
-## !
-## !\examples{
-## !  ## First example
-## !  trt = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-## !          0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-## !          1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
-## !  time = c(17,42,44,48,60,72,74,95,103, 108, 122, 144, 167, 170, 183, 185,
-## !           193, 195, 197, 208, 234, 235, 254, 307, 315, 401, 445, 464, 484,  528, 542, 567,
-## !           577, 580, 795, 855, 1174, 1214, 1232, 1366, 1455, 1585, 1622, 1626, 1736, 1,63,
-## !           105, 125, 182, 216, 250, 262, 301, 301, 342, 354, 356, 358, 380, 383, 383, 388,
-## !           394, 408, 460, 489, 499, 523, 524, 535, 562, 569, 675, 676, 748, 778, 786, 797,
-## !           955, 968, 977, 1245, 1271, 1420, 1460, 1516, 1551, 1690, 1694)
-## !  event = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-## !            1,1,1,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-## !            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,1)
-## !  y = inla.surv(time, event)
-## !
-## !  ## Second example
-## !  time = c(182,182,63,68,182,152,182,130,134,145,152,182,98,152,182,88,95,105,130,137,167,182,
-## !           152,182,81,182,71,84,126,134,152,182)
-## !  event = c(1,0,1,1,0,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,0)
-## !  subject = c(1,2,3,3,3,4,4,5,5,5,5,5,6,6,6,7,7,7,7,7,7,7,8,8,9,9,10,10,10,10,10,10)
-## !  y = inla.surv(time, event, subject=subject)
-## !}
-## !
-## !\keyword{Survival models}
-
+#' Create a Survival Object for INLA
+#' 
+#' Create a survival object, to be used as a response variable in a model
+#' formula for the [inla()] function for survival models.
+#' 
+#' 
+#' @aliases inla.surv is.inla.surv as.inla.surv plot.inla.surv print.inla.surv
+#' @param time For right censored data, this is the follow up time.  For
+#' interval data, this is the starting time for the interval. For in-interval
+#' event, this is the observed time (in the interval) for the event. For left
+#' censored data, this the censoring time.
+#' @param event The status indicator, 1=observed event, 0=right censored event,
+#' 2=left censored event, 3=interval censored event, and 4=observed event in an
+#' interval (left, right).
+#' @param time2 Ending time for the interval censored data or an in-interval
+#' event.
+#' @param truncation Left truncation. If missing it is assumed to be 0. The
+#' lower limit for event=4.
+#' @param subject Patient number in multiple event data, not needed otherwise.
+#' @param cure A matrix of covariates that can be used with a cure-model.
+#' @param .special An internal object, not for public use
+#' @param object Any `R`-object
+#' @param x Object to plot or print
+#' @param y Object to plot (not in use)
+#' @param ... Additional argument
+#' @return An object of class `inla.surv`.  There are methods for
+#' `print`, `plot` for `inla.surv` objects.
+#' 
+#' `is.inla.surv` returns `TRUE` if `object` inherits from class
+#' `inla.surv`, otherwise `FALSE`.
+#' 
+#' `as.inla.surv` returns an object of class `inla.surv`
+#' @author Sara Martino, Rupali Akerkar and Haavard Rue
+#' @seealso [inla()]
+#' @keywords Survival models
+#' @examples
+#' 
+#'   ## First example
+#'   trt = c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+#'           0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+#'           1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+#'   time = c(17,42,44,48,60,72,74,95,103, 108, 122, 144, 167, 170, 183, 185,
+#'            193, 195, 197, 208, 234, 235, 254, 307, 315, 401, 445, 464, 484,  528, 542, 567,
+#'            577, 580, 795, 855, 1174, 1214, 1232, 1366, 1455, 1585, 1622, 1626, 1736, 1,63,
+#'            105, 125, 182, 216, 250, 262, 301, 301, 342, 354, 356, 358, 380, 383, 383, 388,
+#'            394, 408, 460, 489, 499, 523, 524, 535, 562, 569, 675, 676, 748, 778, 786, 797,
+#'            955, 968, 977, 1245, 1271, 1420, 1460, 1516, 1551, 1690, 1694)
+#'   event = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+#'             1,1,1,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+#'             1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,0,1)
+#'   y = inla.surv(time, event)
+#' 
+#'   ## Second example
+#'   time = c(182,182,63,68,182,152,182,130,134,145,152,182,98,152,182,88,95,105,130,137,167,182,
+#'            152,182,81,182,71,84,126,134,152,182)
+#'   event = c(1,0,1,1,0,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,0)
+#'   subject = c(1,2,3,3,3,4,4,5,5,5,5,5,6,6,6,7,7,7,7,7,7,7,8,8,9,9,10,10,10,10,10,10)
+#'   y = inla.surv(time, event, subject=subject)
+#' 
+#' @rdname surv
+#' @export inla.surv
 `inla.surv` <- function(time, event, time2, truncation, subject = NULL, cure = NULL, .special = NULL) 
 {
     names.ori <- as.list(match.call())[-1]
@@ -105,6 +78,9 @@
     return(ret)
 }
 
+#' @rdname surv
+#' @method plot inla.surv
+#' @export
 `plot.inla.surv` <- function(x, y, ...)
 {
     ## argument y is not used
@@ -115,6 +91,9 @@
     }
 }
 
+#' @rdname surv
+#' @method print inla.surv
+#' @export
 `print.inla.surv` <- function(x, ...)
 {
     if (is.null(x$subject)) {
@@ -124,6 +103,8 @@
     }
 }
 
+#' @rdname surv
+#' @export
 `as.inla.surv` <- function(object, ...)
 {
     ## the '...' are not used.
@@ -331,6 +312,8 @@
     return(out)
 }
 
+#' @rdname surv
+#' @export
 `is.inla.surv` <- function(object) {
     return (inherits(object, "inla.surv"))
 }

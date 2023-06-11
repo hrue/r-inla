@@ -1,22 +1,14 @@
-## Export: inla.dev.new
-
-## ! \name{inla.dev.new}
-## ! \alias{inla.dev.new}
-## !
-## ! \title{Opens a new device}
-## !
-## ! \description{Open a new device using \code{\link{dev.new}} unless using RStudio}
-## ! \usage{
-## !     inla.dev.new(...)
-## ! }
-## ! \arguments{
-## !   \item{...}{Optional arguments to \code{\link{dev.new}}}
-## !}
-## ! \value{
-## !   The value of \code{\link{dev.new}} if not running RStudio, otherwise \code{NULL}
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-
+#' Opens a new device
+#' 
+#' Open a new device using [dev.new()] unless using RStudio
+#' 
+#' 
+#' @param ... Optional arguments to [dev.new()]
+#' @return The value of [dev.new()] if not running RStudio, otherwise
+#' `NULL`
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @rdname dev.new
+#' @export inla.dev.new
 `inla.dev.new` <- function(...) {
     ## If running in RStudio then don't open a new device,  otherwise,  do.
     dev <- getOption("device")

@@ -109,9 +109,13 @@ int GMRFLib_gsl_safe_spd_solve(gsl_matrix * A, gsl_vector * b, gsl_vector * x, d
 int GMRFLib_gsl_spd_inv(gsl_matrix * A, double tol);
 int GMRFLib_gsl_spd_inverse(gsl_matrix * A);
 
-void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
-void GMRFLib_daxpb2(int n, double a, double *x, double b, double *y);
 void GMRFLib_daddto(int n, double *x, double *y);
+void GMRFLib_daxpb(int n, double a, double *x, double b, double *y);
+void GMRFLib_daxpby(int n, double a, double *x, double b, double *y);
+void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z);
+void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z);
+void GMRFLib_daxpy(int n, double a, double *x, double *y);
+void GMRFLib_fill(int n, double a, double *x);
 
 __END_DECLS
 #endif

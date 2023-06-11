@@ -1049,42 +1049,72 @@ double GMRFLib_gsl_kld(gsl_vector *m_base, gsl_matrix *Q_base, gsl_vector *m, gs
 
 int GMRFLib_dscale(int n, double a, double *x)
 {
+	// x[i] *= a
 	int one = 1;
 	return (dscal_(&n, &a, x, &one));
+}
+
+void GMRFLib_daxpby(int n, double a, double *x, double b, double *y)
+{
+	// y = a * x + b * y
+#if defined(INLA_LINK_WITH_MKL)
+	int inc = 1;
+	daxpby_(&n, &a, x, &inc, &b, y, &inc);
+#else
+#pragma omp simd
+	for (int i = 0; i < n; i++) {
+		y[i] = a * x[i] + b * y[i];
+	}
+#endif
+}
+void GMRFLib_daxpbyz(int n, double a, double *x, double b, double *y, double *z)
+{
+	// z = a * x + b * y
+	Memcpy(z, y, n * sizeof(double));
+	GMRFLib_daxpby(n, a, x, b, z);
+}
+
+void GMRFLib_daxpbypcz(int n, double a, double *x, double b, double *y, double c, double *z)
+{
+	if (0){
+#pragma omp simd
+		for (int i = 0; i < n; i++){
+			z[i] = a * x[i] + b * y[i] + c;
+		}
+	} else {
+		GMRFLib_daxpb(n, b, y, c, z);
+		GMRFLib_daxpy(n, a, x, z);
+	}
 }
 
 void GMRFLib_daxpb(int n, double a, double *x, double b, double *y)
 {
 	// y[i] = a * x[i] + b
 
-	const int roll = 4L;
-	div_t d = div(n, roll);
-	int m = d.quot * roll;
+	if (1) {
+		GMRFLib_fill(n, b, y);
+		GMRFLib_daxpy(n, a, x, y);
+	} else {
+		const int roll = 4L;
+		div_t d = div(n, roll);
+		int m = d.quot * roll;
 
 #pragma GCC ivdep
-	for (int i = 0; i < m; i += roll) {
-		y[i] = a * x[i] + b;
-		y[i + 1] = a * x[i + 1] + b;
-		y[i + 2] = a * x[i + 2] + b;
-		y[i + 3] = a * x[i + 3] + b;
-	}
+		for (int i = 0; i < m; i += roll) {
+			y[i] = a * x[i] + b;
+			y[i + 1] = a * x[i + 1] + b;
+			y[i + 2] = a * x[i + 2] + b;
+			y[i + 3] = a * x[i + 3] + b;
+		}
 
 #pragma GCC ivdep
-	for (int i = m; i < n; i++) {
-		y[i] = a * x[i] + b;
+		for (int i = m; i < n; i++) {
+			y[i] = a * x[i] + b;
+		}
 	}
 }
 
-void GMRFLib_daxpb2(int n, double a, double *x, double b, double *y)
-{
-	// y[i] = a * x[i] + b
-#pragma omp simd
-	for (int i = 0; i < n; i++) {
-		y[i] = a * x[i] + b;
-	}
-}
-
-void GMRFLib_daddto(int n, double *x, double *y) 
+void GMRFLib_daddto(int n, double *x, double *y)
 {
 	// y = y + x
 	int inc = 1;
@@ -1092,3 +1122,36 @@ void GMRFLib_daddto(int n, double *x, double *y)
 	daxpy_(&n, &one, x, &inc, y, &inc);
 }
 
+void GMRFLib_daxpy(int n, double a, double *x, double *y)
+{
+	// y += a*x
+	int inc = 1;
+	daxpy_(&n, &a, x, &inc, y, &inc);
+}
+
+void GMRFLib_fill(int n, double a, double *x) 
+{
+	if (ISZERO(a)) {
+		memset((void *) x, 0, (size_t) (n * sizeof(double)));
+	} else {
+		int len0 = 32L;
+		if (n < 2L * len0 || n > 4096L) {
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				x[i] = a;
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < len0; i++) {
+				x[i] = a;
+			}
+
+			int start = len0;
+			while (start < n) {
+				int len = IMIN(start, n - start);
+				memcpy((void *) (x + start), (void *) x, (size_t) (len * sizeof(double)));
+				start += len;
+			}
+		}
+	}
+}

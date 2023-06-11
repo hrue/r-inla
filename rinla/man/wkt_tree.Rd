@@ -20,6 +20,8 @@ inla.wkt_tree_set_item(x, item_tree, duplicate = 1)
 
 \item{\dots}{Unused}
 
+\item{pretty}{logical}
+
 \item{item}{character vector with item labels identifying a parameter item
 entry.}
 

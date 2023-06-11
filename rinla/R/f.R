@@ -2,10 +2,10 @@
 #' @title Define general Gaussian models in the INLA formula
 #' @description
 #'
-#'   Function used for defining of smooth and spatial terms within \code{inla} model
+#'   Function used for defining of smooth and spatial terms within `inla` model
 #'   formulae. The function does not evaluate anything - it
 #'   exists purely to help set up a model. The function specifies one
-#'   smooth function in the linear predictor (see \code{\link{inla.list.models}}) as
+#'   smooth function in the linear predictor (see [inla.list.models()]) as
 #'   \deqn{w\ f(x)}{weight*f(var)}
 
 `f` <- function(
@@ -16,9 +16,9 @@
                 ...,
 
                 #' @param model A string indicating the chosen model. The
-                #'  default is \code{iid}. See
-                #'  \code{names(inla.models()$latent)} for a list of possible
-                #'  alternatives and \code{\link{inla.doc}} for detailed docs.
+                #'  default is `iid`. See
+                #'  `names(inla.models()$latent)` for a list of possible
+                #'  alternatives and [inla.doc()] for detailed docs.
                 model = "iid",
 
                 #' @param copy The name of the model-component to copy
@@ -28,39 +28,39 @@
                 #' copy-function is a spline)
                 scopy = NULL,
 
-                #' @param same.as Can be used with \code{copy=".."}. \code{same.as="A"} says
-                #' that this \code{copy} should use the same scaling parameter as another
-                #' \code{copy} "A"
+                #' @param same.as Can be used with `copy=".."`. `same.as="A"` says
+                #' that this `copy` should use the same scaling parameter as another
+                #' `copy` "A"
                 same.as = NULL,
 
                 #' @param n An optional argument which defines the dimension
                 #' of the model if this is different from
-                #' \code{length(sort(unique(covariate)))}
+                #' `length(sort(unique(covariate)))`
                 n = NULL,
 
-                #' @param nrep Number of replications, if not given,  then \code{nrep=max(replications)}
+                #' @param nrep Number of replications, if not given,  then `nrep=max(replications)`
                 nrep = NULL,
 
                 #' @param replicate A vector of which replications to use.
                 replicate = NULL,
 
-                #' @param ngroup Number of groups,  if not given,  then \code{ngroup=max(group)}
+                #' @param ngroup Number of groups,  if not given,  then `ngroup=max(group)`
                 ngroup = NULL,
 
                 #' @param group A vector of which groups to use.
                 group = NULL,
 
-                #' @param control.group Controls the use of \code{group}
+                #' @param control.group Controls the use of `group`
                 control.group = inla.set.control.group.default(),
 
-                #' @param control.scopy Controls the use of \code{scopy}
+                #' @param control.scopy Controls the use of `scopy`
                 control.scopy = inla.set.control.scopy.default(),
 
                 #' @param hyper Specification of the hyperparameter, fixed or
                 #' random, initial values, priors and its parameters. See
-                #' \code{?inla.models} for the list of hyparameters for each
+                #' `?inla.models` for the list of hyparameters for each
                 #' model and its default options or
-                #' use \code{inla.doc()} for
+                #' use `inla.doc()` for
                 #' detailed info on the family and
                 #' supported prior distributions.
                 hyper = NULL,
@@ -77,7 +77,7 @@
                 #' @param fixed THIS OPTION IS OBSOLETE; DO NOT USE
                 fixed = NULL,
 
-                #' @param season.length Length of the seasonal component for \code{model="seasonal"}
+                #' @param season.length Length of the seasonal component for `model="seasonal"`
                 season.length = NULL,
 
                 #' @param constr  A boolean variable indicating whater to set
@@ -88,19 +88,19 @@
 
                 #' @param extraconstr This argument defines extra linear
                 #' constraints. The argument is a list with two elements, a
-                #' matrix \code{A} and a vector \code{e}, which defines the
-                #' extra constraint \code{Ax = e}; for example
-                #' \code{extraconstr = list(A = A, e=e)}. The number of
-                #' columns of \code{A} must correspond to the length of this
-                #' \code{f}-model.  Note that this constraint comes
+                #' matrix `A` and a vector `e`, which defines the
+                #' extra constraint `Ax = e`; for example
+                #' `extraconstr = list(A = A, e=e)`. The number of
+                #' columns of `A` must correspond to the length of this
+                #' `f`-model.  Note that this constraint comes
                 #' additional to the sum-to-zero constraint defined if
-                #' \code{constr = TRUE}.
+                #' `constr = TRUE`.
                 extraconstr = list(A = NULL, e = NULL),
 
                 #' @param values An optional vector giving all values
                 #' assumed by the covariate for which we want estimated the
                 #' effect. It must be a numeric vector, a vector of factors
-                #' or \code{NULL}.
+                #' or `NULL`.
                 values = NULL,
 
                 #' @param cyclic A boolean specifying wheather the model is
@@ -115,7 +115,7 @@
                 diagonal = NULL,
 
                 #' @param graph Defines the graph-object either as a file with
-                #' a graph-description, an \code{inla.graph}-object, or as a
+                #' a graph-description, an `inla.graph`-object, or as a
                 #' (sparse) symmetric matrix .
                 graph = NULL,
 
@@ -135,15 +135,15 @@
 
                 #' @param Cmatrix The specification of the precision matrix
                 #' for the generic,  generic3 or z models (up to a scaling constant).
-                #' \code{Cmatrix} is either a
+                #' `Cmatrix` is either a
                 #' (dense) matrix, a matrix created using
-                #' \code{Matrix::sparseMatrix()}, or a filename which stores the
-                #' non-zero elements of \code{Cmatrix}, in three columns:
-                #' \code{i}, \code{j} and \code{Qij}. In case of the generic3 model,
+                #' `Matrix::sparseMatrix()`, or a filename which stores the
+                #' non-zero elements of `Cmatrix`, in three columns:
+                #' `i`, `j` and `Qij`. In case of the generic3 model,
                 #' it is a list of such specifications.
                 Cmatrix = NULL,
 
-                #' @param rankdef A number \bold{defining} the rank
+                #' @param rankdef A number **defining** the rank
                 #' deficiency of the model, with sum-to-zero constraint and
                 #' possible extra-constraints taken into account. See
                 #' details.
@@ -159,10 +159,10 @@
                 ncol = NULL,
 
                 #' @param nu Smoothing parameter for the Matern2d-model,
-                #' possible values are \code{c(0, 1, 2, 3)}
+                #' possible values are `c(0, 1, 2, 3)`
                 nu = NULL,
 
-                #' @param bvalue The boundary conditions for model \code{rw2d},  0 means use
+                #' @param bvalue The boundary conditions for model `rw2d`,  0 means use
                 #' the correct subspace (default),  while 1 means condition on 0's outside
                 bvalue = NULL,
 
@@ -181,15 +181,15 @@
                 #' @param spde3.transform Internal use only
                 spde3.transform = c("logit", "log", "identity"),
 
-                #' @param mean.linear Prior mean for \code{model="linear"}
+                #' @param mean.linear Prior mean for `model="linear"`
                 mean.linear = inla.set.control.fixed.default()$mean,
 
-                #' @param prec.linear Prior precision for \code{model="linear"}
+                #' @param prec.linear Prior precision for `model="linear"`
                 prec.linear = inla.set.control.fixed.default()$prec,
 
                 #' @param compute  A boolean variable indicating whether the
                 #'  marginal posterior distribution for the nodes in the
-                #'  \code{f()} model should be computed or not. This is
+                #'  `f()` model should be computed or not. This is
                 #'  usefull for large models where we are only interested in
                 #'  some posterior marginals.
                 compute = TRUE,
@@ -201,9 +201,9 @@
                 precision = exp(13),
 
                 #' @param range A vector of size two giving the lower and
-                #' upper range for the scaling parameter \code{beta} in the
-                #' model \code{COPY}, \code{CLINEAR}, \code{MEC} and \code{MEB}.
-                #' If \code{low = high} then the identity mapping
+                #' upper range for the scaling parameter `beta` in the
+                #' model `COPY`, `CLINEAR`, `MEC` and `MEB`.
+                #' If `low = high` then the identity mapping
                 #' is used.
                 range = NULL,
 
@@ -213,21 +213,21 @@
                 #' If FALSE, do nothing.
                 adjust.for.con.comp = TRUE,
 
-                #' @param order Defines the \code{order} of the model: for
-                #' model \code{ar} this defines the order p, in AR(p). Not
+                #' @param order Defines the `order` of the model: for
+                #' model `ar` this defines the order p, in AR(p). Not
                 #' used for other models at the time being.
                 order = NULL,
 
                 #' @param scale A scaling vector. Its meaning depends on the model.
                 scale = NULL,
 
-                #' @param rgeneric A object of class \code{inla.rgeneric} which defines the model. (EXPERIMENTAL!)
+                #' @param rgeneric A object of class `inla.rgeneric` which defines the model. (EXPERIMENTAL!)
                 rgeneric = NULL,
 
-                #' @param cgeneric A object of class \code{inla.cgeneric} which defines the model. (EXPERIMENTAL!)
+                #' @param cgeneric A object of class `inla.cgeneric` which defines the model. (EXPERIMENTAL!)
                 cgeneric = NULL,
 
-                #' @param scale.model Logical. If \code{TRUE} then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is \code{inla.getOption("scale.model.default")}
+                #' @param scale.model Logical. If `TRUE` then scale the RW1 and RW2 and BESAG and BYM and BESAG2 and RW2D models so the their (generlized) variance is 1. Default value is `inla.getOption("scale.model.default")`
                 scale.model = NULL,
 
                 #' @param args.slm Required arguments to the model="slm"; see the documentation for further details.
@@ -236,13 +236,13 @@
                 #' @param args.ar1c Required arguments to the model="ar1c"; see the documentation for further details.
                 args.ar1c = list(Z = NULL, Q.beta = NULL),
 
-                #' @param args.intslope A list with the \code{subject} (factor),  \code{strata} (factor) and \code{covariates} (numeric) for the \code{intslope} model; see the documentation for further details,
+                #' @param args.intslope A list with the `subject` (factor),  `strata` (factor) and `covariates` (numeric) for the `intslope` model; see the documentation for further details,
                 args.intslope = list(subject = NULL, strata = NULL, covariates = NULL),
 
-                #' @param vb.correct Add this model component to the list of nodes to be used for the (potential) vb correction?  If \code{TRUE} do,  and do not if \code{FALSE}. Can also be a vector of nodes to add in the correction-set.
+                #' @param vb.correct Add this model component to the list of nodes to be used for the (potential) vb correction?  If `TRUE` do,  and do not if `FALSE`. Can also be a vector of nodes to add in the correction-set.
                 vb.correct = TRUE,
 
-                #' @param locations A matrix with locations for the model \code{dmatern}. This also defines \code{n}.
+                #' @param locations A matrix with locations for the model `dmatern`. This also defines `n`.
                 locations = NULL,
 
                 #' @param debug Enable local debug output
@@ -250,15 +250,15 @@
     #'
     #' @returns TODO
 
-    #' @details There is no default value for \code{rankdef}, if it
+    #' @details There is no default value for `rankdef`, if it
     #' is not defined by the user then it is computed by the rank
     #' deficiency of the prior model (for the generic model, the
     #' default is zero), plus 1 for the sum-to-zero constraint if the
     #' prior model is proper, plus the number of extra
-    #' constraints. \bold{Oops:} This can be wrong, and then the user
-    #' must define the \code{rankdef} explicitly.
-    #' @author Havard Rue \email{hrue@r-inla.org}
-    #' @seealso \code{\link{inla}}, \code{\link{hyperpar.inla}}
+    #' constraints. **Oops:** This can be wrong, and then the user
+    #' must define the `rankdef` explicitly.
+    #' @author Havard Rue \email{hrue@@r-inla.org}
+    #' @seealso [inla()], [hyperpar.inla()]
 
     ## this is required. the hyper.defaults can only be changed in the
     ## model=model.object

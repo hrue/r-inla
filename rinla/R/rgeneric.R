@@ -1,74 +1,39 @@
-## Export: inla.rgeneric.ar1.model
-## Export: inla.rgeneric.ar1.model.opt
-## Export: inla.rgeneric.iid.model
-## Export: inla.rgeneric.define
-## Export: inla.rgeneric.wrapper
-## Export: inla.rgeneric.q
-
-## !\name{rgeneric.define}
-## !\alias{rgeneric}
-## !\alias{rgeneric.define}
-## !\alias{inla.rgeneric.define}
-## !\alias{rgeneric.ar1.model}
-## !\alias{inla.rgeneric.ar1.model}
-## !\alias{rgeneric.iid.model}
-## !\alias{inla.rgeneric.iid.model}
-## !\alias{rgeneric.wrapper}
-## !\alias{inla.rgeneric.wrapper}
-## !\alias{rgeneric.q}
-## !\alias{inla.rgeneric.q}
-## !
-## !\title{rgeneric models}
-## !
-## !\description{A framework for defining latent models in R}
-## !
-## !\usage{
-## !inla.rgeneric.define(model = NULL, debug = FALSE, compile = TRUE, optimize = FALSE, ...)
-## !inla.rgeneric.iid.model(
-## !        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-## !        theta = NULL)
-## !inla.rgeneric.ar1.model(
-## !        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-## !        theta = NULL)
-## !inla.rgeneric.ar1.model.opt(
-## !        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-## !        theta = NULL)
-## !inla.rgeneric.wrapper(
-## !        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-## !        model, theta = NULL)
-## !inla.rgeneric.q(
-## !        rmodel,
-## !        cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
-## !        theta = NULL)
-## !}
-## !
-## !\arguments{
-## !  \item{model}{The definition of the model; see \code{inla.rgeneric.ar1.model}}
-## !  \item{rmodel}{The rgeneric model-object, the output of \code{inla.rgeneric.define}}
-## !  \item{debug}{Logical. Turn on/off debugging}
-## !  \item{compile}{Logical. Compile the definition of the model or not.}
-## !  \item{optimze}{Logical. With this option \code{TRUE}, then \code{model}
-## !                 pass only the values of \code{Q} and not the whole matrix.
-## !                 Please see the vignette for details and
-## !                 \code{inla.rgeneric.ar1.model.opt} for an example.}
-## !  \item{cmd}{An allowed request}
-## !  \item{theta}{Values of theta}
-## !  \item{...}{Named list of variables that defines the environment of \code{model}}
-## !  \item{debug}{Logical. Enable debug output}
-## !}
-## !
-## !\value{%%
-## !  This allows a latent model to be
-## !  defined in \code{R}.
-## !  See \code{inla.rgeneric.ar1.model} and
-## !  \code{inla.rgeneric.iid.model} and the documentation for
-## !  worked out examples of how to define latent models in  this way.
-## !  This will be somewhat slow and is intended for special cases and
-## !  protyping. The function \code{inla.rgeneric.wrapper} is for
-## !  internal use only.}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
+#' rgeneric models
+#' 
+#' A framework for defining latent models in R
+#' 
+#' 
+#' @aliases rgeneric rgeneric.define inla.rgeneric.define rgeneric.ar1.model
+#' inla.rgeneric.ar1.model rgeneric.iid.model inla.rgeneric.iid.model
+#' rgeneric.wrapper inla.rgeneric.wrapper rgeneric.q inla.rgeneric.q
+#' @param model The definition of the model; see `inla.rgeneric.ar1.model`
+#' @param rmodel The rgeneric model-object, the output of
+#' `inla.rgeneric.define`
+#' @param debug Logical. Turn on/off debugging
+#' @param compile Logical. Compile the definition of the model or not.
+#' @param optimize Logical. With this option `TRUE`, then `model` pass
+#' only the values of `Q` and not the whole matrix.  Please see the
+#' vignette for details and `inla.rgeneric.ar1.model.opt` for an example.
+#' @param cmd An allowed request
+#' @param theta Values of theta
+#' @param ... Named list of variables that defines the environment of
+#' `model`
+#' @param debug Logical. Enable debug output
+#' @returns This allows a latent model to be defined in `R`.  See
+#' `inla.rgeneric.ar1.model` and `inla.rgeneric.iid.model` and the
+#' documentation for worked out examples of how to define latent models in this
+#' way.  This will be somewhat slow and is intended for special cases and
+#' protyping. The function `inla.rgeneric.wrapper` is for internal use
+#' only.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name rgeneric.define
+#' @rdname rgeneric
+NULL
 
 
+#' @rdname rgeneric
+#' @export
 `inla.rgeneric.ar1.model` <- function(
                                       cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
                                       theta = NULL) {
@@ -198,6 +163,8 @@
     return(val)
 }
 
+#' @rdname rgeneric
+#' @export
 `inla.rgeneric.ar1.model.opt` <- function(
                                           cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
                                           theta = NULL) {
@@ -283,6 +250,8 @@
     return(val)
 }
 
+#' @rdname rgeneric
+#' @export
 `inla.rgeneric.iid.model` <- function(
                                       cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
                                       theta = NULL) {
@@ -342,6 +311,8 @@
     return(val)
 }
 
+#' @rdname rgeneric
+#' @export
 `inla.rgeneric.define` <- function(model = NULL, debug = FALSE, compile = TRUE, optimize = FALSE, ...) {
     stopifnot(!missing(model))
     args <- list(...)
@@ -368,6 +339,8 @@
     return(rmodel)
 }
 
+#' @rdname rgeneric
+#' @export
 `inla.rgeneric.wrapper` <- function(
                                     cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
                                     model, theta = NULL) {
@@ -449,6 +422,8 @@
     return(as.numeric(result))
 }
 
+#' @rdname rgeneric
+#' @export
 `inla.rgeneric.q` <- function(rmodel,
                               cmd = c(
                                   "graph", "Q", "mu", "initial", "log.norm.const",

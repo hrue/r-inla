@@ -1,111 +1,87 @@
-## Export: summary!inla.jmarginal
-## Export: print!summary.inla.jmarginal
-## Export: print!inla.jmarginal
-
-## Export: inla.rjmarginal inla.rjmarginal.eval inla.tjmarginal inla.1djmarginal
-
-## ! \name{joint.marginal}
-## ! \alias{inla.joint.marginal}
-## ! \alias{inla.joint.marginal.eval}
-## ! \alias{joint.marginal}
-## ! \alias{joint.marginal.eval}
-## ! \alias{rjmarginal}
-## ! \alias{rjmarginal.eval}
-## ! \alias{inla.rjmarginal}
-## ! \alias{inla.rjmarginal.eval}
-## ! \alias{inla.tjmarginal}
-## ! \alias{tjmarginal}
-## ! \alias{inla.1djmarginal}
-## ! \alias{1djmarginal}
-## !
-## ! \title{Sample, transform and evaluate from a joint marginal approximation}
-## !
-## ! \description{Sample, transform and evalue from from a joint marginal approximation
-## ! as returned using argument \code{selection} in \code{inla}.
-## ! }
-## !
-## ! \usage{
-## ! inla.rjmarginal(n, jmarginal, constr)
-## ! inla.rjmarginal.eval(fun, samples, ...)
-## ! inla.tjmarginal(jmarginal, A)
-## ! inla.1djmarginal(jmarginal)
-## ! }
-## ! \arguments{
-## !   \item{n}{The number of samples}
-## !   \item{jmarginal}{A marginal object given  either by a \code{inla} object
-## !     or \code{result$selection}}
-## !   \item{constr}{Optional linear constraints;
-## !                 see \code{?INLA::f} and argument \code{extraconstr}}
-## !   \item{fun}{A function which is evaluated for each sample, similar to
-## !              \code{inla.posterior.sample.eval}: please see the documentation
-## !              for this functions for details. }
-## !   \item{samples}{The samples, as in the form of the output from \code{inla.rjmarginal}}
-## !   \item{A}{A matrix used for the linear combination}
-## ! }
-## !
-## ! \value{%%
-## ! THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
-## !
-## !
-## ! \code{inla.rjmarginal} returns a list with the samples in \code{samples}
-## ! (matrix) and the corresponding log-densities
-## ! in \code{log.density} (vector). Each column in \code{samples} contains one sample.
-## !
-## ! \code{inla.rjmarginal.eval} returns a matrix, where each row is the (vector) function
-## ! evaluated at each sample.
-## !
-## ! \code{inla.tjmarginal} returns a \code{inla.jmarginal}-object of the linear combination
-## ! defined by the matrix \code{A}.
-## !
-## ! \code{inla.1djmarginal} return the marginal densities from a joint approximation.
-## ! }
-## !
-## ! \author{Cristian Chiuchiolo and Havard Rue \email{hrue@r-inla.org}}
-## ! \seealso{\code{\link{inla}}}
-## !
-## ! \examples{
-## ! n = 10
-## ! x = 1+rnorm(n)
-## ! xx = 3 + rnorm(n)
-## ! y = 1 + x + xx + rnorm(n)
-## ! selection = list(xx=1, Predictor = 3:4, x=1)
-## ! r = inla(y ~ 1 + x + xx,
-## !          data = data.frame(y, x, xx),
-## !          selection = selection)
-## ! ns = 100
-## ! xx = inla.rjmarginal(ns, r)
-## !
-## ! print(cbind(mean = r$selection$mean, sample.mean = rowMeans(xx$samples)))
-## ! print("cov matrix")
-## ! print(round(r$selection$cov.matrix, dig=3))
-## ! print("sample cov matrix")
-## ! print(round(cov(t(xx$samples)), dig=3))
-## !
-## ! skew = function(z) mean((z-mean(z))^3)/var(z)^1.5
-## ! print(round(cbind(skew = r$selection$skewness,
-## !                   sample.skew = apply(xx$sample, 1, skew)), dig=3))
-## !
-## ! ## illustrating the eval function
-## ! n = 10
-## ! x = rnorm(n)
-## ! eta = 1 + x
-## ! y = eta + rnorm(n, sd=0.1)
-## ! selection = list(x = 1, Predictor = c(1, 2, 4, 5),  '(Intercept)' = 1)
-## ! r = inla(y ~ 1 + x,
-## !          data = data.frame(y, x),
-## !          selection = selection)
-## ! xx = inla.rjmarginal(100,  r)
-## ! xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
-## ! print(cbind(xx$samples[, 1]))
-## ! print(cbind(xx.eval[, 1]))
-## !
-## ! constr <- list(A = matrix(1, ncol = n, nrow = 1), e = 1)
-## ! x <- inla.rjmarginal(10, r, constr = constr)
-## !
-## ! A <- matrix(rnorm(n^2), n, n)
-## ! b <- inla.tjmarginal(r, A)
-## ! b.marg <- inla.1djmarginal(b)
-## !}
+#' Sample, transform and evaluate from a joint marginal approximation
+#' 
+#' Sample, transform and evalue from from a joint marginal approximation as
+#' returned using argument `selection` in `inla`.
+#' 
+#' 
+#' @aliases inla.joint.marginal inla.joint.marginal.eval joint.marginal
+#' joint.marginal.eval rjmarginal rjmarginal.eval inla.rjmarginal
+#' inla.rjmarginal.eval inla.tjmarginal tjmarginal inla.1djmarginal 1djmarginal
+#' @param n The number of samples
+#' @param jmarginal A marginal object given either by a `inla` object or
+#' `result$selection`
+#' @param constr Optional linear constraints; see `?INLA::f` and argument
+#' `extraconstr`
+#' @param fun A function which is evaluated for each sample, similar to
+#' `inla.posterior.sample.eval`: please see the documentation for this
+#' functions for details.
+#' @param samples The samples, as in the form of the output from
+#' `inla.rjmarginal`
+#' @param A A matrix used for the linear combination
+#' @param ... Arguments passed on to other methods (printing and summarising)
+#' @returns THESE FUNCTIONS ARE EXPERIMENTAL FOR THE MOMENT (JULY 2020)
+#' 
+#' `inla.rjmarginal` returns a list with the samples in `samples`
+#' (matrix) and the corresponding log-densities in `log.density` (vector).
+#' Each column in `samples` contains one sample.
+#' 
+#' `inla.rjmarginal.eval` returns a matrix, where each row is the (vector)
+#' function evaluated at each sample.
+#' 
+#' `inla.tjmarginal` returns a `inla.jmarginal`-object of the linear
+#' combination defined by the matrix `A`.
+#' 
+#' `inla.1djmarginal` return the marginal densities from a joint
+#' approximation.
+#' @author Cristian Chiuchiolo and Havard Rue \email{hrue@@r-inla.org}
+#' @seealso [inla()]
+#' @examples
+#' 
+#'  n = 10
+#'  x = 1+rnorm(n)
+#'  xx = 3 + rnorm(n)
+#'  y = 1 + x + xx + rnorm(n)
+#'  selection = list(xx=1, Predictor = 3:4, x=1)
+#'  r = inla(y ~ 1 + x + xx,
+#'           data = data.frame(y, x, xx),
+#'           selection = selection)
+#'  ns = 100
+#'  xx = inla.rjmarginal(ns, r)
+#' 
+#'  print(cbind(mean = r$selection$mean, sample.mean = rowMeans(xx$samples)))
+#'  print("cov matrix")
+#'  print(round(r$selection$cov.matrix, dig=3))
+#'  print("sample cov matrix")
+#'  print(round(cov(t(xx$samples)), dig=3))
+#' 
+#'  skew = function(z) mean((z-mean(z))^3)/var(z)^1.5
+#'  print(round(cbind(skew = r$selection$skewness,
+#'                    sample.skew = apply(xx$sample, 1, skew)), dig=3))
+#' 
+#'  ## illustrating the eval function
+#'  n = 10
+#'  x = rnorm(n)
+#'  eta = 1 + x
+#'  y = eta + rnorm(n, sd=0.1)
+#'  selection = list(x = 1, Predictor = c(1, 2, 4, 5),  '(Intercept)' = 1)
+#'  r = inla(y ~ 1 + x,
+#'           data = data.frame(y, x),
+#'           selection = selection)
+#'  xx = inla.rjmarginal(100,  r)
+#'  xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
+#'  print(cbind(xx$samples[, 1]))
+#'  print(cbind(xx.eval[, 1]))
+#' 
+#'  constr <- list(A = matrix(1, ncol = n, nrow = 1), e = 1)
+#'  x <- inla.rjmarginal(10, r, constr = constr)
+#' 
+#'  A <- matrix(rnorm(n^2), n, n)
+#'  b <- inla.tjmarginal(r, A)
+#'  b.marg <- inla.1djmarginal(b)
+#' 
+#' @name joint.marginal
+#' @rdname jmarginal
+#' @export
 
 `inla.rjmarginal` <- function(n, jmarginal, constr) {
     if (missing(jmarginal) || missing(n) || n <= 0) {
@@ -181,6 +157,8 @@
     return(list(samples = xx, log.density = log.dens))
 }
 
+#' @rdname jmarginal
+#' @export
 `inla.rjmarginal.eval` <- function(fun, samples, ...) {
     stopifnot(all(names(samples) == c("samples", "log.density")))
 
@@ -225,13 +203,20 @@
     return(ret)
 }
 
-`print.inla.jmarginal` <- function(x) {
+#' @rdname jmarginal
+#' @method print inla.jmarginal
+#' @export
+`print.inla.jmarginal` <- function(x, ...) {
     x$.private <- NULL
     class(x) <- class(list())
     print(x)
 }
 
-`summary.inla.jmarginal` <- function(object) {
+#' @rdname jmarginal
+#' @param object Object to be summarised
+#' @method summary inla.jmarginal
+#' @export
+`summary.inla.jmarginal` <- function(object, ...) {
     inla.require("sn", stop.on.error = TRUE)
     mode.sn <- function(xi, omega, alpha) {
         med <- sn::qsn(0.5, xi, omega, alpha)
@@ -265,12 +250,18 @@
     return(ret)
 }
 
-`print.summary.inla.jmarginal` <- function(x) {
+#' @rdname jmarginal
+#' @param x Object to be printed
+#' @method print summary.inla.jmarginal
+#' @export
+`print.summary.inla.jmarginal` <- function(x, ...) {
     print(x$msg)
     print(as.matrix(x$matrix))
     return(invisible())
 }
 
+#' @rdname jmarginal
+#' @export
 `inla.tjmarginal` <- function(jmarginal, A) {
     if (inherits(jmarginal, "inla")) {
         jmarginal <- jmarginal$selection
@@ -341,6 +332,8 @@
     return(output)
 }
 
+#' @rdname jmarginal
+#' @export
 `inla.1djmarginal` <- function(jmarginal) {
     inla.require("sn", stop.on.error = TRUE)
     if (inherits(jmarginal, "inla")) {

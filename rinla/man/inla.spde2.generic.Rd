@@ -3,9 +3,6 @@
 \name{inla.spde2.generic}
 \alias{inla.spde2.generic}
 \alias{inla.spde2}
-\alias{inla.spde2.theta2phi0}
-\alias{inla.spde2.theta2phi1}
-\alias{inla.spde2.theta2phi2}
 \title{Generic spde2 model creation.}
 \usage{
 inla.spde2.generic(
@@ -57,8 +54,6 @@ Default \verb{=theta.initial[fixed]}}
 \item{BLC}{Basis definition matrix for linear combinations of \code{theta}.}
 
 \item{\dots}{Additional parameters, currently unused.}
-
-\item{spde}{An \code{inla.sdpe2} object.}
 
 \item{theta}{parameter values to be mapped.}
 }

@@ -1,43 +1,33 @@
-## Export: inla.fgn
-
-## ! \name{fgn}
-## ! \alias{inla.fgn}
-## ! \alias{fgn}
-## !
-## ! \title{Return the coefficients in the 3-component AR(1) mixture representing FGN(H)}
-## !
-## ! \description{This function will return the coefficients in the 3-component AR(1)
-## !              mixture representing FGN(H)}
-## !
-## ! \usage{
-## !     inla.fgn(H, K=4L, lag.max = NULL, approx = TRUE)
-## ! }
-## !
-## ! \arguments{
-## !   \item{H}{The Hurst coeffcient (0<H<1),  or a vector of those}
-## !   \item{K}{The number of components in representation,  must be 3L or 4L}
-## !   \item{lag.max}{Integer. If positive integer, return the coeffcients implicitely as the ACF
-## !                  from 0 to \code{lag.max}}
-## !   \item{approx}{Logical. If \code{lag.max} is an positive integer and \code{approx} is \code{FALSE},
-## !                   then return the true ACF instead of the approximated one.}
-## !  }
-## ! \value{
-## !  \code{inla.fgn} returns a named matrix.
-## !  If \code{is.null(lag.max)},  then
-## !  first column is \code{H},
-## !  columns \code{1+1:K} are lag one correlations (or phi's),
-## !  and columns \code{1+K+1:K} are the weights.
-## !  If \code{lag.max > 0},  then return the ACFs in columns \code{2+(0:lag.max)},
-## !  for the H in column 1,  either the approximated ones or the the true ones.
-## !
-## !  This function is EXPERIMENTAL!!!
-## ! }
-## ! \author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## ! \examples{
-## !     r = c(inla.fgn(0.7))
-## !     r_m = inla.fgn(seq(0.6, 0.8, by=0.01))
-## ! }
+#' Return the coefficients in the 3-component AR(1) mixture representing FGN(H)
+#' 
+#' This function will return the coefficients in the 3-component AR(1) mixture
+#' representing FGN(H)
+#' 
+#' 
+#' @aliases inla.fgn fgn
+#' @param H The Hurst coeffcient (0<H<1), or a vector of those
+#' @param K The number of components in representation, must be 3L or 4L
+#' @param lag.max Integer. If positive integer, return the coeffcients
+#' implicitely as the ACF from 0 to `lag.max`
+#' @param approx Logical. If `lag.max` is an positive integer and
+#' `approx` is `FALSE`, then return the true ACF instead of the
+#' approximated one.
+#' @return `inla.fgn` returns a named matrix.  If `is.null(lag.max)`,
+#' then first column is `H`, columns `1+1:K` are lag one correlations
+#' (or phi's), and columns `1+K+1:K` are the weights.  If `lag.max >
+#' 0`, then return the ACFs in columns `2+(0:lag.max)`, for the H in
+#' column 1, either the approximated ones or the the true ones.
+#' 
+#' This function is EXPERIMENTAL!!!
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'      r = c(inla.fgn(0.7))
+#'      r_m = inla.fgn(seq(0.6, 0.8, by=0.01))
+#'  
+#' @name fgn
+#' @rdname fgn
+#' @export
 
 `inla.fgn` <- function(H, K = 4L, lag.max = NULL, approx = TRUE) {
     if (!any(K == c(3L, 4L))) {

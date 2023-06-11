@@ -1,4 +1,4 @@
-context("test 'prior spesification (table, expression)'")
+context("test 'prior specification (table, expression)'")
 
 test_that("Case 1", {
     set.seed(123)

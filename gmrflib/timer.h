@@ -90,5 +90,6 @@ __BEGIN_DECLS
 
 double GMRFLib_cpu_default(void);
 
+
 __END_DECLS
 #endif

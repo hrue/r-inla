@@ -1,46 +1,34 @@
-## Export: inla.group
-
-## !\name{inla.group}
-## !\alias{inla.group}
-## !
-## !\title{Group or cluster covariates}
-## !
-## !\description{\code{inla.group} group or cluster covariates so to reduce
-## !  the number of unique values}
-## !\usage{
-## !inla.group(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE)
-## !}
-## !\arguments{
-## !
-## !  \item{x}{The vector of covariates to group.}
-## !  \item{n}{Number of classes or bins to group into.}
-## !  \item{method}{Group either using bins with equal length intervals
-## !    (\code{method = "cut"}), or equal distance in the `probability'
-## !    scale using the quantiles (\code{method = "quantile"}).}
-## !  \item{idx.only}{Option to return the index only and not the
-## !    \code{method}.}
-## !}
-## !
-## !
-## !\value{
-## !  \code{inla.group} return the new grouped covariates where the classes
-## !  are set to the median of all the covariates belonging to that group.
-## !}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !\seealso{\code{\link{f}}}
-## !\examples{
-## !## this gives groups 3 and 8
-## !x = 1:10
-## !x.group = inla.group(x, n = 2)
-## !
-## !## this is the intended use, to reduce the number of unique values in
-## !## the of first argument of f()
-## !n = 100
-## !x = rnorm(n)
-## !y = x + rnorm(n)
-## !result = inla(y ~ f(inla.group(x, n = 20), model = "iid"), data=data.frame(y=y,x=x))
-## !}
-
+#' Group or cluster covariates
+#' 
+#' `inla.group` group or cluster covariates so to reduce the number of
+#' unique values
+#' 
+#' 
+#' @param x The vector of covariates to group.
+#' @param n Number of classes or bins to group into.
+#' @param method Group either using bins with equal length intervals
+#' (`method = "cut"`), or equal distance in the `probability' scale using
+#' the quantiles (`method = "quantile"`).
+#' @param idx.only Option to return the index only and not the `method`.
+#' @return `inla.group` return the new grouped covariates where the
+#' classes are set to the median of all the covariates belonging to that group.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @seealso [f()]
+#' @examples
+#' 
+#' ## this gives groups 3 and 8
+#' x = 1:10
+#' x.group = inla.group(x, n = 2)
+#' 
+#' ## this is the intended use, to reduce the number of unique values in
+#' ## the of first argument of f()
+#' n = 100
+#' x = rnorm(n)
+#' y = x + rnorm(n)
+#' result = inla(y ~ f(inla.group(x, n = 20), model = "iid"), data=data.frame(y=y,x=x))
+#' 
+#' @rdname group
+#' @export inla.group
 `inla.group` <- function(x, n = 25, method = c("cut", "quantile"), idx.only = FALSE) {
     `inla.group.core` <- function(x, n = 25, method = c("cut", "quantile"), idx.only) {
         ## group covariates into N groups using method "quantile" or

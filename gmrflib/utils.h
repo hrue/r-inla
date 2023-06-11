@@ -152,5 +152,15 @@ void my_sort2_dd(double *__restrict ix, double *__restrict x, int n);
 void my_sort2_id(int *__restrict ix, double *__restrict x, int n);
 void my_sort2_ii(int *__restrict ix, int *__restrict x, int n);
 
+
+void GMRFLib_exp(int, double *, double *);
+void GMRFLib_log(int, double *, double *);
+void GMRFLib_log1p(int, double *, double *);
+void GMRFLib_sqr(int n, double *x, double *y);
+void GMRFLib_add(int n, double *x, double *y, double *z);
+void GMRFLib_mul(int n, double *x, double *y, double *z);
+void GMRFLib_MKL_chose_thresholds(void);
+
+
 __END_DECLS
 #endif

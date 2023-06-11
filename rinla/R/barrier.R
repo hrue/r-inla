@@ -53,7 +53,7 @@
     stopifnot(inherits(mesh, "inla.mesh"))
     stopifnot(range.fraction > 0.000001)
 
-    if(require(INLAspacetime)) {
+    if(requireNamespace(INLAspacetime)) {
 	warning("Using implementation from the `INLAspacetime` package")
 	return(INLAspacetime::barrierModel.define(
 	    mesh = mesh,
@@ -465,7 +465,7 @@
 
     xi <- length(Omega)
     
-    if(require(INLAspacetime)) {
+    if(requireNamespace(INLAspacetime)) {
         warning("Using implementation from the `INLAspacetime` package")
         fem <- INLAspacetime::mesh2fem.barrier(
 	    mesh = mesh, 

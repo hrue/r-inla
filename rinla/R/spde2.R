@@ -7,8 +7,7 @@ NULL
 #' `'spde2'` model.
 #' 
 #' 
-#' @aliases inla.spde2.generic inla.spde2 inla.spde2.theta2phi0
-#' inla.spde2.theta2phi1 inla.spde2.theta2phi2
+#' @aliases inla.spde2.generic inla.spde2
 #' @param M0 The symmetric `M0` matrix.
 #' @param M1 The square `M1` matrix.
 #' @param M2 The symmetric `M2` matrix.
@@ -27,7 +26,6 @@ NULL
 #' Default `=theta.initial[fixed]`
 #' @param BLC Basis definition matrix for linear combinations of `theta`.
 #' @param \dots Additional parameters, currently unused.
-#' @param spde An `inla.sdpe2` object.
 #' @param theta parameter values to be mapped.
 #' @return For `inla.spde2.generic`, an [inla.spde2()] object.
 #' 
@@ -1325,6 +1323,8 @@ inla.spde2.iheat =
 
 
 #' @export
+#' @param spde An spde model object
+#' @param theta Parameters in the model's internal scale
 #' @describeIn inla.spde2.matern Convert from theta vector to phi0 values in
 #' the internal spde2 model representation
 inla.spde2.theta2phi0 = function(spde, theta)

@@ -91,11 +91,7 @@ GMRFLib_reorder_tp GMRFLib_reorder = GMRFLib_REORDER_DEFAULT;
 int GMRFLib_blas_level = BLAS_LEVEL3;
 int GMRFLib_verify_graph_read_from_disc = GMRFLib_FALSE;
 
-#if defined(_OPENMP)
-GMRFLib_cpu_tp *GMRFLib_cpu = omp_get_wtime;
-#else
 GMRFLib_cpu_tp *GMRFLib_cpu = GMRFLib_cpu_default;
-#endif
 
 gsl_rng *GMRFLib_rng_ptr = NULL;			       /* this holds the RNG and its state and is avail globally */
 #pragma omp threadprivate(GMRFLib_rng_ptr)
@@ -173,3 +169,13 @@ int GMRFLib_sort2_id_cut_off = 50;
 int GMRFLib_sort2_dd_cut_off = 70;
 int GMRFLib_internal_opt = 1;
 int GMRFLib_save_memory = 0;
+
+GMRFLib_isum_tp *GMRFLib_isum = GMRFLib_isum1;
+GMRFLib_dsum_tp *GMRFLib_dsum = GMRFLib_dsum1;
+
+int GMRFLib_threshold_exp = 3;
+int GMRFLib_threshold_log = 3;
+int GMRFLib_threshold_log1p = 0;
+int GMRFLib_threshold_sqr = 255;
+int GMRFLib_threshold_add = 255;
+int GMRFLib_threshold_mul = 255;

@@ -1,50 +1,33 @@
-## Export: summary!inla print!summary.inla
-
-## !\name{summary.inla}
-## !\alias{summary.inla}
-## !\alias{summary.surv.inla}
-## !\alias{print.summary.inla}
-## !\title{ Summary for a INLA fit }
-## !\description{
-## !Takes a fitted \code{inla} or \code{surv.inla} object produced by
-## !\code{inla} or  \code{surv.inla} and produces
-## !a summary from it.
-## !
-## !}
-## !\usage{
-## !\method{summary}{inla}(object, digits = 3L, include.lincomb = TRUE, ...)
-## !\method{print}{summary.inla}(x, digits = 3L, ...)
-## !}
-## !%- maybe also 'usage' for other objects documented here.
-## !\arguments{
-## !  \item{object}{  a fitted \code{inla} object as produced by
-## !    \code{inla}.}
-## !  \item{x}{a \code{summary.inla} object produced by \code{summary.inla}}
-## !  \item{digits}{Integer Number of digits}
-## !  \item{include.lincomb}{Logcial Include the summary for the the linear combinations or not}
-## !  \item{...}{ other arguments.}
-## !
-## !}
-## !\details{
-## !Posterior mean and standard deviation (together with quantiles or
-## !cdf) are printed for the fixed effects in the model.
-## !
-## !For the random effects the function \code{summary()} prints the
-## !posterior mean and standard deviations for the hyperparameters
-## !
-## !If the option \code{short.summary} is set to \code{TRUE} using
-## !\code{inla.setOption},
-## !then  a less verbose summary
-## !variant will be used,  which might be
-## !more suitable for Markdown documents.
-## !}
-## !\value{
-## !  \code{summary.inla} returns an object of class \code{summary.inla}, a
-## !  list of components to print.
-## !}
-## !\author{Sara Martino and Havard Rue}
-## !\seealso{ \code{\link{inla}} }
-
+#' Summary for a INLA fit
+#' 
+#' Takes a fitted `inla` or `surv.inla` object produced by
+#' `inla` or `surv.inla` and produces a summary from it.
+#' 
+#' Posterior mean and standard deviation (together with quantiles or cdf) are
+#' printed for the fixed effects in the model.
+#' 
+#' For the random effects the function `summary()` prints the posterior
+#' mean and standard deviations for the hyperparameters
+#' 
+#' If the option `short.summary` is set to `TRUE` using
+#' `inla.setOption`, then a less verbose summary variant will be used,
+#' which might be more suitable for Markdown documents.
+#' 
+#' @aliases summary.inla summary.surv.inla print.summary.inla
+#' @param object a fitted `inla` object as produced by `inla`.
+#' @param x a `summary.inla` object produced by `summary.inla`
+#' @param digits Integer Number of digits
+#' @param include.lincomb Logcial Include the summary for the the linear
+#' combinations or not
+#' @param ...  other arguments.
+#' @return `summary.inla` returns an object of class `summary.inla`,
+#' a list of components to print.
+#' @author Sara Martino and Havard Rue
+#' @seealso [inla()]
+#' 
+#' @method summary inla
+#' @rdname summary
+#' @export
 `summary.inla` <- function(object, digits = 3L, include.lincomb = TRUE, ...) {
     `internal.summary.inla` <- function(object, digits = 3L, include.lincomb = TRUE, ...) {
         inla.eval.dots(...)
@@ -169,6 +152,9 @@
 }
 
 
+#' @rdname summary
+#' @method print summary.inla
+#' @export
 `print.summary.inla` <- function(x, digits = 3L, ...) 
 {
     form <- strwrap(inla.formula2character(x$call))

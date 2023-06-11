@@ -40,65 +40,35 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/hashP.h"
 
-#if defined(_OPENMP)
+
+#if defined(WINDOWS)
+
+// define the function in the high-prec-timer.cpp
+
+#else // if defined(WINDOWS)
+
+#if defined(_OPENMP) 
+
 #include <sys/time.h>
 #include <omp.h>
 double GMRFLib_cpu_default(void)
 {
-	static double ref = 0.0;
-	if (!ref) {
-		ref = omp_get_wtime();
-	}
-	return (omp_get_wtime() - ref);
+	return (omp_get_wtime());
 }
-#else
 
-/* 
-   else, choose default timer according to arch
-*/
-#if defined(__linux__) || defined(__linux) || defined(__sun__) || defined(__sun) || defined(__FreeBSD__) || defined(__FreeBSD) || defined(__APPLE__)
+#else // if defined(_OPENMP)
+
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <unistd.h>
-
 double GMRFLib_cpu_default(void)
 {
-	if (1) {
-		struct timeval time1;
-		double time;
-		static double ref = 0.0;
-
-		gettimeofday(&time1, NULL);
-		time = time1.tv_sec + time1.tv_usec * 1.0e-6;
-		if (!ref) {
-			ref = time;
-		}
-		return (time - ref);
-	} else {
-		struct rusage a;
-		double time;
-		static double ref = 0.0;
-
-		getrusage(RUSAGE_SELF, &a);
-		time = (double) ((a.ru_utime).tv_sec + (a.ru_stime).tv_sec) + (double) ((a.ru_utime).tv_usec + (a.ru_stime).tv_usec) * 1.0e-6;
-		if (!ref) {
-			ref = time;
-		}
-		return (time - ref);
-	}
+	struct timeval time1;
+	double time;
+	gettimeofday(&time1, NULL);
+	time = time1.tv_sec + time1.tv_usec * 1.0e-6;
+	return (time);
 }
 
-#else
-#include <time.h>
-
-double GMRFLib_cpu_default(void)
-{
-	static clock_t ref = 0;
-	if (!ref) {
-		ref = clock();
-	}
-	return (double) (clock() - ref) / (double) CLOCKS_PER_SEC;
-}
-
-#endif							       /* if defined(__linux__)... */
-#endif							       /* if defined(_OPENMP)... */
+#endif // if defined(_OPENMP)
+#endif // if defined(WINDOWS)

@@ -1,45 +1,35 @@
-## Export: inla.as.sparse inla.as.dgTMatrix
-
-## !\name{inla.as.sparse}
-## !\alias{inla.as.sparse}
-## !\alias{inla.as.dgTMatrix}
-## !
-## !\title{Convert a matrix or sparse matrix into the sparse formate used by INLA}
-## !
-## !\description{Convert a matrix or sparse matrix into the sparse format used by INLA (dgTMatrix)}
-## !
-## !\usage{
-## ! inla.as.sparse(...)
-## ! inla.as.dgTMatrix(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE)
-## !}
-## !
-## !\arguments{
-## !  \item{...}{The arguments. The matrix or sparse matrix,  and the additonal arguments}
-## !  \item{A}{The matrix}
-## !  \item{unique}{Logical. If \code{TRUE}, then ensure that the internal representation is unique and
-## !                there are no duplicated entries.
-## !                (Do not change this unless you know what you are doing.)}
-## !  \item{na.rm}{Replace \code{NA}'s in the matrix with zeros.}
-## !  \item{zeros.rm}{Remove zeros in the matrix.}
-## !}
-## !
-## !\value{%%
-## !  \code{inla.as.sparse} and \code{inla.as.dgTMatrix} is the same function.
-## !  The returned value is a sparse matrix in the \code{dgTMatrix}-format.
-## !}
-## !%%
-## !
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-## !
-## !\examples{
-## ! A = matrix(1:9, 3, 3)
-## ! inla.as.sparse(A)
-## !}
-
+#' Convert a matrix or sparse matrix into the sparse formate used by INLA
+#' 
+#' Convert a matrix or sparse matrix into the sparse format used by INLA
+#' (dgTMatrix)
+#' 
+#' 
+#' @aliases inla.as.sparse inla.as.dgTMatrix
+#' @param ... The arguments. The matrix or sparse matrix, and the additonal
+#' arguments
+#' @param A The matrix
+#' @param unique Logical. If `TRUE`, then ensure that the internal
+#' representation is unique and there are no duplicated entries.  (Do not
+#' change this unless you know what you are doing.)
+#' @param na.rm Replace `NA`'s in the matrix with zeros.
+#' @param zeros.rm Remove zeros in the matrix.
+#' @returns `inla.as.sparse` and `inla.as.dgTMatrix` is the same
+#' function.  The returned value is a sparse matrix in the
+#' `dgTMatrix`-format.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' @examples
+#' 
+#'  A = matrix(1:9, 3, 3)
+#'  inla.as.sparse(A)
+#' 
+#' @rdname sm
+#' @export inla.as.sparse
 `inla.as.sparse` <- function(...) {
     return(inla.as.dgTMatrix(...))
 }
 
+#' @rdname sm
+#' @export
 `inla.as.dgTMatrix` <- function(A, unique = TRUE, na.rm = FALSE, zeros.rm = FALSE) {
     ## convert into dgTMatrix format of Matrix. Argument A is any
     ## matrix.  make sure the representation is unique if the UNIQUE

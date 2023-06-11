@@ -1,31 +1,22 @@
-## Export: inla.jp.define
-
-## !\name{jp.define}
-## !\alias{jp}
-## !\alias{jp.define}
-## !\alias{inla.jp.define}
-## !\title{Joint-prior models}
-## !\description{A framework for defining joint priors in R}
-## !
-## !\usage{
-## !    inla.jp.define(jp = NULL, ...)
-## !}
-## !
-## !\arguments{
-## !  \item{jp}{The \code{jp}-function which returns the joint log-prior as a function of
-## !            argument \code{theta}. There is an optional second argument that is a
-## !            vector of \code{theta}-names. If
-## !            second argument is not present, argument \code{.theta.desc}
-## !            will be added.}
-## !  \item{...}{Named list of variables that defines the environment of \code{jp}}
-## !}
-## !
-## !\value{%%
-## !  This allows joint priors to be defined in \code{R}.
-## !
-## !  This function is for internal use only.}
-## !\author{Havard Rue \email{hrue@r-inla.org}}
-
+#' Joint-prior models
+#' 
+#' A framework for defining joint priors in R
+#' 
+#' 
+#' @aliases jp jp.define inla.jp.define
+#' @param jp The `jp`-function which returns the joint log-prior as a
+#' function of argument `theta`. There is an optional second argument that
+#' is a vector of `theta`-names. If second argument is not present,
+#' argument `.theta.desc` will be added.
+#' @param ... Named list of variables that defines the environment of `jp`
+#' @returns This allows joint priors to be defined in `R`.
+#' 
+#' This function is for internal use only.
+#' @author Havard Rue \email{hrue@@r-inla.org}
+#' 
+#' @name jp
+#' @rdname jp
+#' @export
 
 `inla.jp.define` <- function(jp = NULL, ...) {
     stopifnot(!missing(jp))
