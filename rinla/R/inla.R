@@ -2128,7 +2128,7 @@
             R.Version()$major, ".",
             strsplit(R.Version()$minor, "[.]")[[1]][1]
         ),
-        INLA_RHOME = Sys.getenv("R_HOME"),
+        INLA_RHOME = Sys.getenv("R_HOME")
     )
     do.call("Sys.setenv", vars)
     inla.set.sparselib.env(inla.dir)
