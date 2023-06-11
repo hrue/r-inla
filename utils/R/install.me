@@ -27,7 +27,7 @@ rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/
 tt=$(mktemp)
 desc="INLA/DESCRIPTION"
 {
-    egrep -v '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
+    grep -v -E '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
     echo "Version: $INLA_VERSION"
     echo "Date: $(date) ($INLA_TAG)"
 } > $tt && mv -f $tt $desc
