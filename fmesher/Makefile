@@ -32,26 +32,26 @@ all: $(FMESHER)
 
 
 $(FMESHER) : src/$(FMESHER)
-	cp src/$(FMESHER) .
+	$(CP) src/$(FMESHER) .
 
 src/$(FMESHER) :
-	make -C src CC=$(CC) CXX=$(CXX) FLAGS="$(FLAGS)" $(FMESHER)
+	$(MAKE) -C src LD="$(LD)" CC="$(CC)" CXX="$(CXX)" FLAGS="$(FLAGS)" $(FMESHER)
 
 debug :
-##	make clean
-	CXX="\"$(CXX) -DDEBUG\"" make $(FMESHER)
+	$(MAKE) clean
+	$(MAKE) FLAGS="\"$(FLAGS) -DDEBUG\"" $(FMESHER)
 
 $(FMESHER_TEST) : src/$(FMESHER_TEST)
-	cp src/$(FMESHER_TEST) .
+	$(CP) src/$(FMESHER_TEST) .
 
 src/$(FMESHER_TEST) :
-	make -C src CC=$(CC) CXX=$(CXX) FLAGS="$(FLAGS)" $(FMESHER_TEST)
+	$(MAKE) -C src CC="$(CC)" CXX="$(CXX)" LD="$(LD)" FLAGS="$(FLAGS)" $(FMESHER_TEST)
 
 doc:
 	$(SED) 's/^\(PROJECT_NUMBER[^=]*=\)\(.*\)/\1 $(shell date)/' \
 	  < Doxyfile \
 	  | doxygen -
-	-make -C doc/latex pdf
+	-$(MAKE) -C doc/latex pdf
 	$(MV) doc/latex/refman.pdf doc/fmesher-refman.pdf
 	$(RMR) doc/latex/
 
@@ -68,16 +68,16 @@ install: $(FMESHER)
 	 $(RSYNC) -auv --no-p --no-o --no-g --chmod=ugo=rwX --delete examples/ $(PREFIX)/doc/fmesher/examples/; 
 
 clean:
-	make -C src clean
+	$(MAKE) -C src clean
 	-$(RM) $(FMESHER) $(FMESHER_TEST)
 	-$(RM) examples/koala.out.*
 clean-doc:
 	-$(RMR) doc/
 	-$(RM) example-doxygen-*.txt
 clean-deps:
-	make -C src clean-deps
+	$(MAKE) -C src clean-deps
 depend:
-	make -C src depend
+	$(MAKE) -C src depend
 
 gitstamp: dummytarget
 	[ -f $@ ] || touch $@

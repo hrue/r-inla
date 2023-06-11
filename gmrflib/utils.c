@@ -1326,8 +1326,9 @@ int GMRFLib_debug_functions(const char *name)
 					val = 1;
 				} else {
 					int len = s2 - s + 1;
-					ss = Calloc(len + 1, char);
-					ss[len] = '\0';
+					int len1 = len + 1;
+					ss = Calloc(len1, char);
+					ss[len1 - 1] = '\0';
 					strncpy(ss, s, len - 1);
 					val = atoi(s2 + 1);
 					val = IMAX(val, 1);
