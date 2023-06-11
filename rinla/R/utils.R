@@ -201,10 +201,7 @@
     cat("Source files in ", dir, ". Loaded ", length(files), " files and replaced ", nfuncs, " functions.\n", sep = "")
 
     if (binaries) {
-        inla.setOption("inla.call", path.expand(paste(bin.path, "/",
-            if (inla.getOption("mkl")) "inla.mkl.run" else "inla.run",
-            sep = ""
-        )))
+        inla.setOption("inla.call", path.expand(paste(bin.path, "/", "inla.mkl.run", sep = "" )))
         inla.setOption("fmesher.call", path.expand(paste(bin.path, "/", "fmesher.run", sep = "")))
         cat("Define new values for 'inla.call' and 'fmesher.call'\n", sep = "")
     }
