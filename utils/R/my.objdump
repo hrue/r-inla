@@ -11,17 +11,19 @@ DIR=${DIR%fmesher.exe}
 ## echo $DIR
 
 
-objdump=$(echo ~/p/inla/builds/windows64/bin/objdump)
-for f in "$@"; do
-    if false; then
-	$objdump -p "$f" 2>/dev/null | grep dll | \
-	    awk  '/^[ \t]*DLL Name:/ {print $3}' | \
-	    egrep -v '(KERNEL32.dll|msvcrt.dll|USER32.dll)' | \
-	    egrep -v '(KERNEL64.dll|msvcrt.dll|USER64.dll)' 
-    fi
-    for f in $DIR/*dll; do 
-	test -f "$f" && echo $f
+objdump=x86_64-w64-mingw32-objdump
+{
+    for f in "$@"; do
+	if true; then
+	    $objdump -p "$f" 2>/dev/null | grep dll | \
+		awk  '/^[ \t]*DLL Name:/ {print $3}' | \
+		egrep -v '(KERNEL32.dll|msvcrt.dll|USER32.dll)' | \
+		egrep -v '(KERNEL64.dll|msvcrt.dll|USER64.dll)' 
+	fi
+	for f in $DIR/*dll; do 
+	    test -f "$f" && echo $f
+	done
     done
-done
+} | sort | uniq
 
 
