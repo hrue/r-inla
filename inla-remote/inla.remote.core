@@ -1,6 +1,3 @@
-## This version works both for Linux/Mac and Windows under CYGWIN. We
-## just have to add the environment
-
 maketemp () {
     mktemp -t inla.remote.XXXXXXXX
 }
@@ -14,22 +11,13 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "INLA_HOME $INLA_HOME"
     echo "INLA_SSH_AUTH_SOCK $INLA_SSH_AUTH_SOCK"
     echo "INLA_OS $INLA_OS"
-    echo "INLA_CYGWIN_HOME $INLA_CYGWIN_HOME"
     echo "INLA_HGVERSION $INLA_HGVERSION"
 fi
 
-if [ "$INLA_OS" == "windows" ]; then
-    INIFILE=$INLA_HOME/.inlarc
+INIFILE=~/.inlarc
+if [ "$SSH_AUTH_SOCK"XX == "XX" ]; then
+    ## this is not set, weird, but it might be that a manual setup is used
     export SSH_AUTH_SOCK="$INLA_SSH_AUTH_SOCK"
-    if [ "$INLA_CYGWIN_HOME"XX != "XX" ]; then
-	export HOME=$INLA_CYGWIN_HOME
-    fi
-else
-    INIFILE=~/.inlarc
-    if [ "$SSH_AUTH_SOCK"XX == "XX" ]; then
-	## this is not set, weird, but it might be that a manual setup is used
-	export SSH_AUTH_SOCK="$INLA_SSH_AUTH_SOCK"
-    fi   
 fi
 
 ## these are the variables to be set by the user
@@ -42,14 +30,7 @@ COMPRESS="zstd -T0 -z -18"
 UNCOMPRESS="zstd -T0 -d"
 
 if [ -r "$INIFILE" ]; then
-    if [ "$INLA_OS" == "windows" ]; then
-	TMP=$(maketemp)
-	tr -d \\015 < "$INIFILE" > $TMP
-	source $TMP
-	rm -r $TMP
-    else
-	source "$INIFILE"
-    fi
+    source "$INIFILE"
 else
     echo -e "\n\n\n$0: No such file $INIFILE"
     echo    " *** Run command in R: inla.remote()"
@@ -81,10 +62,6 @@ mv -f $TMP $model
 ## if this script is interupted, then cleanup on the remote host
 function kill_inla_remote
 {
-    ## only need for CYGWIN
-    if [ $CYGWIN == 1 -a -f "$tarfile_to" ]; then
-	rm -f "$tarfile_to"
-    fi
     prog=${RemoteINLA##*/}
 	ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
 	    rm -rf $rdir; \
@@ -125,20 +102,5 @@ if [ $verbose == 1 ]; then
    } 1>&2
 fi
 
-## Problems has been reported using the natural first approach for
-## Cygwin/Windows, so we divide the code here... Note that if Port !=
-## $SSHDefaultPort we need to use the second approach
+ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cfm - results.files 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
 
-if [ $CYGWIN == 0 -a $Port == $SSHDefaultPort ]; then
-    ## Linux and Mac
-    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
-    cd $rdir; tar cfm - results.files 2>/dev/null | $COMPRESS ; cd; rm -rf $rdir" | $UNCOMPRESS | tar xfm - 2>/dev/null 
-else
-    ## Cygwin/Windows or Port != $SSHDefaultPort
-    tarfile=results$RANDOM$RANDOM.tar
-    ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "cd $rdir; tar cf $tarfile results.files 2>/dev/null "
-    tarfile_to=$(maketemp).tar
-    scp -P$Port -B -C -p -q $RemoteUser@$RemoteHost:$rdir/$tarfile "$tarfile_to"
-    tar xfm "$tarfile_to" 2>/dev/null 
-    rm -f "$tarfile_to"
-fi

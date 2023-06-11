@@ -9,10 +9,10 @@
 \usage{
 inla.getOption(
   option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads",
-    "blas.num.threads", "smtp", "mkl", "safe", "vecLib", "vecLibPath", "pardiso.license",
-    "keep", "verbose", "save.memory", "working.directory", "silent", "debug", "cygwin",
-    "ssh.auth.sock", "cygwin.home", "show.warning.graph.file", "scale.model.default",
-    "short.summary", "inla.timeout", "fmesher.timeout", "inla.mode")
+    "smtp", "safe", "pardiso.license", "keep", "verbose", "save.memory",
+    "working.directory", "silent", "debug", "show.warning.graph.file",
+    "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
+    "inla.mode")
 )
 
 inla.setOption(...)
@@ -33,22 +33,11 @@ current values, otherwise, \code{option} must be one of
 \item{num.threads}{Character string with the number of threads to use as
 \code{A:B}, see \code{?inla}}
 
-\item{blas.num.threads}{Number of threads to use for openblas and mklblas (see
-\code{inla} for details)}
-
 \item{smtp}{Sparse matrix library to use, one of \code{band}, \code{taucs}
 (\code{default}) or \code{pardiso}}
 
-\item{mkl}{Use binaries buildt with Intel MKL?  (If possible)}
-
 \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 (default \code{TRUE})}
-
-\item{vecLib}{This option applies to Mac only. If TRUE and mkl=FALSE, link with
-vecLib BLAS and LAPACK libs (if available)}
-
-\item{vecLibPath}{This option applies to Mac only. Path to vecLib-libraries. If
-empty, use default.}
 
 \item{pardiso.license}{The full path to the PARDISO license file or a
 newline-separated string with license key(s)}

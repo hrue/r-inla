@@ -86,7 +86,6 @@ Collate:
     'cpo.R'
     'create.data.file.R'
     'cut.R'
-    'cygwin.R'
     'debug.graph.R'
     'dev.new.R'
     'display.matrix.R'

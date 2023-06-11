@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 
-CYGWIN=0
-
 ## This script submit a job
-
-## This version works both for Linux/Mac and Windows under CYGWIN. We
-## just have to add the environment
 
 maketemp () {
     mktemp -t inla.remote.XXXXXXXX
@@ -22,23 +17,14 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     echo "INLA_HOME $INLA_HOME"
     echo "INLA_SSH_AUTH_SOCK $INLA_SSH_AUTH_SOCK"
     echo "INLA_OS $INLA_OS"
-    echo "INLA_CYGWIN_HOME $INLA_CYGWIN_HOME"
     echo "INLA_HGVERSION $INLA_HGVERSION"
     echo "INLA_SUBMIT_ID"
 fi
 
-if [ "$INLA_OS" == "windows" ]; then
-    INIFILE=$INLA_HOME/.inlarc
+INIFILE=~/.inlarc
+if [ "$SSH_AUTH_SOCK"XX == "XX" ]; then
+    ## this is not set, weird, but it might be that a manual setup is used
     export SSH_AUTH_SOCK="$INLA_SSH_AUTH_SOCK"
-    if [ "$INLA_CYGWIN_HOME"XX != "XX" ]; then
-	export HOME=$INLA_CYGWIN_HOME
-    fi
-else
-    INIFILE=~/.inlarc
-    if [ "$SSH_AUTH_SOCK"XX == "XX" ]; then
-	## this is not set, weird, but it might be that a manual setup is used
-	export SSH_AUTH_SOCK="$INLA_SSH_AUTH_SOCK"
-    fi   
 fi
 
 ## these are the variables to be set by the user
@@ -49,14 +35,7 @@ Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
 
 if [ -r "$INIFILE" ]; then
-    if [ "$INLA_OS" == "windows" ]; then
-	TMP=$(maketemp)
-	tr -d \\015 < "$INIFILE" > $TMP
-	source $TMP
-	rm -r $TMP
-    else
-	source "$INIFILE"
-    fi
+    source "$INIFILE"
 else
     echo -e "\n\n\n$0: No such file $INIFILE"
     echo -e "Run command in R: inla.remote()"

@@ -4,21 +4,17 @@
     opt.default <- inla.getOption.default()
     if (exists("inla.options", env = inla.get.inlaEnv())) {
         opt <- get("inla.options", env = inla.get.inlaEnv())
-        mkl <- if (!is.null(opt$mkl)) opt$mkl else opt.default$mkl
         lic <- (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0L)
     } else {
-        mkl <- opt.default$mkl
         lic <- FALSE
     }
-    mkl <- if (mkl) "mkl." else ""
 
     if (inla.os("mac")) {
-        if (nchar(mkl) > 0L && !lic) mkl <- ""
-        fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep = ""), package = "INLA")
+        fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.mkl.run", sep = ""), package = "INLA")
     } else if (inla.os("mac.arm64")) {
         fnm <- system.file("bin/mac.arm64/inla.run", package = "INLA")
     } else if (inla.os("linux")) {
-        fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.", mkl, "run", sep = ""), package = "INLA")
+        fnm <- system.file(paste("bin/linux/", inla.os.32or64bit(), "bit/inla.mkl.run", sep = ""), package = "INLA")
     } else if (inla.os("windows")) {
         fnm <- system.file(paste("bin/windows/", inla.os.32or64bit(), "bit/inla.exe", sep = ""), package = "INLA")
     } else {

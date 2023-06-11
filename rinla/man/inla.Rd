@@ -37,7 +37,6 @@ inla(
   inla.call = inla.getOption("inla.call"),
   inla.arg = inla.getOption("inla.arg"),
   num.threads = inla.getOption("num.threads"),
-  blas.num.threads = inla.getOption("blas.num.threads"),
   keep = inla.getOption("keep"),
   working.directory = inla.getOption("working.directory"),
   silent = inla.getOption("silent"),
@@ -172,11 +171,6 @@ single function evaluations to be perfored in parallel, so
 \code{num.threads=4:-1} will locally behave like \code{num.threads=4:1} (if
 considered to be more efficient).  If \code{B > 1} then
 \code{num.threads=A:B} and \code{num.threads=A:-B} are equivalent.}
-
-\item{blas.num.threads}{THIS OPTION IS CURRENTLY NOT IN USE.  (The absolute
-value of \code{blas.num.threads} is the maximum number of threads the the
-\code{openblas}/\code{mklblas} will use (if available). Value is ignored if
-\verb{<=0} (then environment variables are used).)}
 
 \item{keep}{A boolean variable indicating that the working files (ini file,
 data files and results files) should be kept. If TRUE and no
