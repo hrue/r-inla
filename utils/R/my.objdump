@@ -17,13 +17,16 @@ objdump=x86_64-w64-mingw32-objdump
 	if true; then
 	    $objdump -p "$f" 2>/dev/null | grep dll | \
 		awk  '/^[ \t]*DLL Name:/ {print $3}' | \
-		egrep -v '(KERNEL32.dll|msvcrt.dll|USER32.dll)' | \
-		egrep -v '(KERNEL64.dll|msvcrt.dll|USER64.dll)' 
+		grep -v -E '(KERNEL(32|64).dll|msvcrt.dll|USER(32|64).dll|ADVAPI(32|64).dll)' 
 	fi
 	for f in $DIR/*dll; do 
 	    test -f "$f" && echo $f
 	done
     done
-} | sort | uniq
+} | sort | uniq | \
+    while read f; do
+	if [ -f $DIR/$f ]; then echo $DIR/$f; else echo $f; fi
+    done | sort | uniq
 
 
+							  
