@@ -1,23 +1,25 @@
 #!/bin/bash
 
-myreadlink () {
-    (
-	TARGET_FILE=$1
-	cd `dirname $TARGET_FILE`
-	TARGET_FILE=`basename $TARGET_FILE`
-	while [ -L "$TARGET_FILE" ]
-	do
-	    TARGET_FILE=`readlink $TARGET_FILE`
-	    cd `dirname $TARGET_FILE`
-	    TARGET_FILE=`basename $TARGET_FILE`
-	done
-	PHYS_DIR=`pwd -P`
-	RESULT=$PHYS_DIR/$TARGET_FILE
-	echo $RESULT
-    )
-}
+if [ "$(type --path readlink)"X == "X" ]; then
+    readlink () {
+	(
+	    shift 1
+	    tfile=$1
+	    cd $(dirname "$tfile")
+	    tfile=$(basename "$tfile")
+	    while [ -L "$tfile" ]
+	    do
+		tfile=$(readlink -f "$tfile")
+		cd $(dirname "$tfile")
+		tfile=$(basename "$tfile")
+	    done
+	    pdir=$(pwd -P)
+	    echo "$pdir/$tfile"
+	)
+    }
+fi
 
-cmd=$(myreadlink "$0")
+cmd=$(readlink -f "$0")
 DIR=$(dirname "$cmd")
 tmp=$(basename "$cmd")
 prog=${tmp%%.run}
