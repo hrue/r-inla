@@ -1,3 +1,7 @@
+# INLA 23.06.14
+* Improved version of `inla.rerun`
+* Issues reported in `23.06.12` fixed
+
 # INLA 23.06.12
 * Documentation and dependency updates (roxygen transition is now complete)
 * Removed AMDC from default reordering (TAUCS only)

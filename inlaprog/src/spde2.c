@@ -164,23 +164,26 @@ double inla_spde2_Qfunction_orig(int thread_id, int ii, int jj, double *UNUSED(v
 	return value;
 }
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
+double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values, void *arg)
 {
+	// this one fails. do not know why. see ~/p/inla/problems/finn.lindgren@gmail.com/12/inla.model
+	assert(0 == 1);
+	
 	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i. recall to
 	// enable init in 'build_model below' before enable this function.
 
 	if (jj < 0) {
-		// it is benefitial do so a such approach, as we then ensure that 'i' is cached and we can bypass the computation of the
+		// it is beneficial do so a such approach, as we then ensure that 'i' is cached and we can bypass the computation of the
 		// cache-index
 
 		int idx = -1;
 		GMRFLib_CACHE_SET_ID(idx);
-
+		assert(idx >= 0);
+		
 		int fake_values[2];
 		fake_values[0] = idx;			       /* transfer the cache-index */
-		fake_values[1] = 1;			       /* tell that we know that 'i' is in the cache */
-
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
+
 		values[0] = inla_spde2_Qfunction(thread_id, ii, ii, (double *) fake_values, arg);
 		for (int k = 0; k < model->graph->lnnbs[ii]; k++) {
 			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], (double *) fake_values, arg);
@@ -203,12 +206,14 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 
 	int idx = -1;
 	int i_in_cache = 0;
+	int cache_id = 0;				       // this is for individual (i,j)-calls
 
 	if (values) {
 		// this is a hack. these values are 'fake' and is part of the trick described above
 		int *ivalues = (int *) values;
 		idx = ivalues[0];
-		i_in_cache = ivalues[1];
+		i_in_cache = 1;				       // ok as element Q(i,i) is always computed and then cache'd
+		cache_id = 1;				       // this is for Q(i,-1) call
 	} else {
 		GMRFLib_CACHE_SET_ID(idx);
 	}
@@ -217,27 +222,29 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	int nc = model->B[0]->ncol;
 	double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
 
-	if (!(model->cache[idx])) {
+	if (!(model->cache[cache_id][idx])) {
 #pragma omp critical (Name_096287ed3ed383c234e780a2ee2897e5fede0116)
 		{
-			if (!(model->cache[idx])) {
-				if (debug) {
-					printf("spde2: init cache for idx = %1d\n", idx);
-				}
-				model->cache[idx] = Calloc(1, spde2_cache_tp);
-				model->cache[idx]->i = -1;
-				model->cache[idx]->need_transform = (model->transform != SPDE2_TRANSFORM_IDENTITY);
+			if (!(model->cache[cache_id][idx])) {
+				spde2_cache_tp *tmp = Calloc(1, spde2_cache_tp);
+				tmp->i = -1;
+				tmp->need_transform = (model->transform != SPDE2_TRANSFORM_IDENTITY);
 
 				double *work = Calloc(3 + nc, double);
-				model->cache[idx]->theta = work;
-				model->cache[idx]->vals = work + nc;
+				tmp->theta = work;
+				tmp->vals = work + nc;
+				
+				if (debug) {
+					printf("spde2: init cache[%1d] for idx = %1d\n", cache_id, idx);
+				}
 				// add theta[0] = 1.0 here, and append other 'thetas' after, so we can make cleaner loops
-				model->cache[idx]->theta[0] = 1.0;
+				tmp->theta[0] = 1.0;
+				model->cache[cache_id][idx] = tmp;
 			}
 		}
 	}
 
-	spde2_cache_tp *cache = model->cache[idx];
+	spde2_cache_tp *cache = model->cache[cache_id][idx];
 	int need_transform = cache->need_transform;
 
 	double value;
@@ -454,24 +461,27 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		double *v = vals + 6 * nc;
 		value = d_i0 * d_j0 * (d_i1 * d_j1 * v[0] + d_i2 * d_i1 * v[1] + d_j1 * d_j2 * v[2] + v[3]);
 
-		if (!in_cache) {
-			// cache this value
-			cache->i = i;
-			cache->vals[0] = d_i0;
-			cache->vals[1] = d_i1;
-			cache->vals[2] = d_i2;
+		if (0) {
+			// this is not needed using values
+			if (!in_cache) {
+				// cache this value
+				cache->i = i;
+				cache->vals[0] = d_i0;
+				cache->vals[1] = d_i1;
+				cache->vals[2] = d_i2;
 
-			if (debug) {
+				if (debug) {
 #pragma omp critical (Name_ad1bbe7257f1c3db0c64e992dc63fdd484fda64d)
-				{
-					printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
-					if (debug_details) {
-						for (int k = 1; k < nc; k++) {
-							printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+					{
+						printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
+						if (debug_details) {
+							for (int k = 1; k < nc; k++) {
+								printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+							}
+							printf("\td_i0 = %.12f\n", cache->vals[0]);
+							printf("\td_i1 = %.12f\n", cache->vals[1]);
+							printf("\td_i2 = %.12f\n", cache->vals[2]);
 						}
-						printf("\td_i0 = %.12f\n", cache->vals[0]);
-						printf("\td_i1 = %.12f\n", cache->vals[1]);
-						printf("\td_i2 = %.12f\n", cache->vals[2]);
 					}
 				}
 			}
@@ -481,7 +491,7 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 	return value;
 }
 
-double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	if (jj < 0) {
 		return NAN;
@@ -748,9 +758,15 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		}
 	}
 
-	// recall to enable this if using cache
-	model->cache = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
-
+	if (0) {
+		// recall to enable this if using the cache-version
+		int n_cache = 2;
+		model->cache = Calloc(n_cache, spde2_cache_tp **);
+		for (int jj = 0; jj < n_cache; jj++) {
+			model->cache[jj] = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
+		}
+	}
+	
 	return INLA_OK;
 }
 

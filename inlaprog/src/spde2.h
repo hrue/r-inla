@@ -85,7 +85,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_vmatrix_tp *vmatrix;
-	spde2_cache_tp **cache;
+	spde2_cache_tp ***cache;
 } inla_spde2_tp;
 
 double inla_spde2_Qfunction_orig(int thread_id, int node, int nnode, double *values, void *arg);
