@@ -182,11 +182,11 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 
 		int fake_values[2];
 		fake_values[0] = idx;			       /* transfer the cache-index */
-		fake_values[1] = 0;			       /* tell if we know that 'i' is in the cache */
+		fake_values[1] = 0;			       /* 'i' IS NOT in cache */
 
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
 		values[0] = inla_spde2_Qfunction(thread_id, ii, ii, (double *) fake_values, arg);
-		fake_values[1] = 1;
+		fake_values[1] = 1;			       /* 'i' IS in cache */
 		for (int k = 0; k < model->graph->lnnbs[ii]; k++) {
 			values[1 + k] = inla_spde2_Qfunction(thread_id, ii, model->graph->lnbs[ii][k], (double *) fake_values, arg);
 		}
