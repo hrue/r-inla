@@ -1,24 +1,5 @@
 #!/bin/bash
 
-if [ "$(type --path readlink)"X == "X" ]; then
-    readlink () {
-	(
-	    shift 1
-	    tfile=$1
-	    cd $(dirname "$tfile")
-	    tfile=$(basename "$tfile")
-	    while [ -L "$tfile" ]
-	    do
-		tfile=$(readlink -f "$tfile")
-		cd $(dirname "$tfile")
-		tfile=$(basename "$tfile")
-	    done
-	    pdir=$(pwd -P)
-	    echo "$pdir/$tfile"
-	)
-    }
-fi
-
 cmd=$(readlink -f "$0")
 DIR=$(dirname "$cmd")
 tmp=$(basename "$cmd")

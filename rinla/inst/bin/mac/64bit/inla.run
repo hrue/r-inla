@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$(type --path readlink)"X == "X" ]; then
+readlink -f / 2>/dev/null >/dev/null || \
     readlink () {
 	(
 	    shift 1
@@ -17,7 +17,6 @@ if [ "$(type --path readlink)"X == "X" ]; then
 	    echo "$pdir/$tfile"
 	)
     }
-fi
 
 cmd=$(readlink -f "$0")
 DIR=$(dirname "$cmd")
