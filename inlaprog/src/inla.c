@@ -6008,7 +6008,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 
 	static double *w = NULL;
 	if (!w) {
-#pragma omp critical
+#pragma omp critical (Name_1eca1953ff3f841bda5736d32498e385b608fa2c)
 		if (!w) {
 			double wref[] = { 4.0, 2.0 };
 			double *ww = Calloc(npm, double);
