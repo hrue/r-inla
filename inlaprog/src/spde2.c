@@ -454,24 +454,27 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		double *v = vals + 6 * nc;
 		value = d_i0 * d_j0 * (d_i1 * d_j1 * v[0] + d_i2 * d_i1 * v[1] + d_j1 * d_j2 * v[2] + v[3]);
 
-		if (!in_cache) {
-			// cache this value
-			cache->i = i;
-			cache->vals[0] = d_i0;
-			cache->vals[1] = d_i1;
-			cache->vals[2] = d_i2;
+		if (0) {
+			// this is not needed using values
+			if (!in_cache) {
+				// cache this value
+				cache->i = i;
+				cache->vals[0] = d_i0;
+				cache->vals[1] = d_i1;
+				cache->vals[2] = d_i2;
 
-			if (debug) {
+				if (debug) {
 #pragma omp critical (Name_ad1bbe7257f1c3db0c64e992dc63fdd484fda64d)
-				{
-					printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
-					if (debug_details) {
-						for (int k = 1; k < nc; k++) {
-							printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+					{
+						printf("spde2: store cache for idx=%1d i=%1d\n", idx, i);
+						if (debug_details) {
+							for (int k = 1; k < nc; k++) {
+								printf("\ttheta[%1d] = %.12f\n", k, cache->theta[k]);
+							}
+							printf("\td_i0 = %.12f\n", cache->vals[0]);
+							printf("\td_i1 = %.12f\n", cache->vals[1]);
+							printf("\td_i2 = %.12f\n", cache->vals[2]);
 						}
-						printf("\td_i0 = %.12f\n", cache->vals[0]);
-						printf("\td_i1 = %.12f\n", cache->vals[1]);
-						printf("\td_i2 = %.12f\n", cache->vals[2]);
 					}
 				}
 			}
