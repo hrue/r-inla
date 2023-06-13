@@ -38,7 +38,7 @@
     p <- exp(ld - max(ld))
     p <- p / sum(p)
 
-    k <- 1:length(inla.models()$latent$scopy$hyper)
+    k <- 0:length(inla.models()$latent$scopy$hyper)
     nms <- paste0("Beta", k, " for ", name, " (scopy)")
 
     idx <- c()
