@@ -34,9 +34,28 @@
         object$.args$control.mode$restart <- TRUE
         object$.args$control.mode$theta <- object$mode$theta
         object$.args$control.mode$x <- object$mode$x
-        ## to do a proper restart, we should keep the direction is any. if they are not used,
-        ## they will be NULL, which is the same as FALSE.
         object$.args$control.inla$use.directions <- object$misc$opt.directions
+        object$.args$control.inla$optimise.strategy <- "plain"
+        object$.args$control.inla$step.factor <- 1
+        object$.args$control.inla$tolerance.step <- 1e-10
+
+        if (object$.args$control.inla$stencil == inla.set.control.inla.default()$stencil) {
+            object$.args$control.inla$stencil <- 9
+        }
+
+        h.def <- inla.set.control.inla.default()$h
+        if (object$.args$control.inla$h == h.def) {
+            object$.args$control.inla$h <- 0.2 * object$.args$control.inla$h
+        } else {
+            object$.args$control.inla$h <- max(0.1 * h.def, 0.75 * object$.args$control.inla$h)
+        }
+
+        tol.def <- inla.set.control.inla.default()$tolerance
+        if (object$.args$control.inla$tolerance == tol.def) {
+            object$.args$control.inla$tolerance <- object$.args$control.inla$tolerance * 0.01
+        } else {
+            object$.args$control.inla$tolerance <- max(tol.def^2, object$.args$control.inla$tolerance * 0.1)
+        }
     }
 
     new.obj <- do.call("inla", args = object$.args)
