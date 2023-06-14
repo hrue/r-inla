@@ -491,7 +491,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 	return value;
 }
 
-double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	if (jj < 0) {
 		return NAN;
@@ -615,11 +615,16 @@ double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *UNUSED(va
 	return value;
 }
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
+double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *values, void *arg)
 {
+	// does not seems to help. not a success
+	
 	if (jj < 0) {
+		return NAN;
+		
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
 		int nc = model->B[0]->ncol;
+
 		double *v = NULL;
 		double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), ii);
 		double d_i[6];
@@ -670,39 +675,34 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 		}
 		
 		int m = 6 * nc + 4;
-		double VALS[nb][m];
-		double D_J[nb][3];
+		double VALS[m][nb];
+		double D_J[3][nb];
 		
 		for (int j = 0; j < model->graph->lnnbs[ii]; j++) {
 			jj = model->graph->lnbs[ii][j];
 			vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), jj);
-			Memcpy(VALS[j], vals, m * sizeof(double));
+			for (int k = 0; k < m; k++){
+				VALS[k][j] = vals[k];
+			}
 		}
 		
 		for (int k = 3; k < 6; k++) {
-#pragma omp simd
-			for(int j = 0; j < nb; j++) {
-				D_J[j][k-3] = VALS[j][k * nc];
-			}
+			double *dd = D_J[k-3];
+			double *vv = VALS[k * nc];
+			Memcpy(dd, vv, nb * sizeof(double));
 		}
 
 		for (int k = 1; k < nc; k++) {
 			double th = model->theta[k - 1][thread_id][0];
-
 			for (int kk = 3; kk < 6; kk++) {
-#pragma omp simd
-				for(int j = 0; j < nb; j++) {
-					v = VALS[j] + k;
-					D_J[j][kk-3] += v[kk * nc] * th;
-				}
+				double *dd = D_J[kk-3];
+				double *vv = VALS[kk * nc + k];
+				GMRFLib_daxpy(nb, th, vv, dd);
 			}
 		}
 
 		for (int k = 0; k < 2; k++) {
-#pragma omp simd
-			for(int j = 0; j < nb; j++) {
-				D_J[j][k] = exp(D_J[j][k]);
-			}
+			GMRFLib_exp(nb, D_J[k], D_J[k]);
 		}
 
 		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
@@ -713,14 +713,14 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 			case SPDE2_TRANSFORM_LOG:
 #pragma omp simd
 				for(int j = 0; j < nb; j++) {
-					D_J[j][2] = 2.0 * exp(D_J[j][2]) - 1.0;
+					D_J[2][j] = 2.0 * exp(D_J[2][j]) - 1.0;
 				}
 				break;
 
 			case SPDE2_TRANSFORM_LOGIT:
 #pragma omp simd
-				for(int j = 0; j < nb; j++) {
-					D_J[j][2] = cos(M_PI * map_probability(D_J[j][2], MAP_FORWARD, NULL));
+				for (int j = 0; j < nb; j++) {
+					D_J[2][j] = cos(M_PI / (1.0 + exp(-D_J[2][j])));
 				}
 				break;
 
@@ -729,9 +729,14 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void 
 			}
 		}
 
+		int ioff = 6 * nc;
 		for(int j = 0; j < nb; j++) {
-			v = VALS[j] + 6 * nc;
-			values[1 + j] = d_i[0] * D_J[j][0] * (d_i[1] * D_J[j][1] * v[0] + d_i[2] * d_i[1] * v[1] + D_J[j][1] * D_J[j][2] * v[2] + v[3]);
+			double vv[4];
+			vv[0] = VALS[ioff + 0][j];
+			vv[1] = VALS[ioff + 1][j];
+			vv[2] = VALS[ioff + 2][j];
+			vv[3] = VALS[ioff + 3][j];
+			values[1 + j] = d_i[0] * D_J[0][j] * (d_i[1] * D_J[1][j] * vv[0] + d_i[2] * d_i[1] * vv[1] + D_J[1][j] * D_J[2][j] * vv[2] + vv[3]);
 		}
 		
 		return 0.0;
