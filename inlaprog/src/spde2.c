@@ -491,7 +491,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 	return value;
 }
 
-double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
+double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *UNUSED(values), void *arg)
 {
 	if (jj < 0) {
 		return NAN;
@@ -601,6 +601,214 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
 				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
 			}
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	}
+
+	return value;
+}
+
+double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
+{
+	if (jj < 0) {
+
+		inla_spde2_tp *model = (inla_spde2_tp *) arg;
+		int nc = model->B[0]->ncol;
+		double *v = NULL;
+		double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), ii);
+		double d_i[6];
+		double *d_j = d_i + 3;
+
+#pragma omp simd
+		for (int k = 0; k < 3; k++) {
+			d_i[k] = vals[k * nc];
+		}
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			v = vals + k;
+#pragma omp simd
+			for (int kk = 0; kk < 3; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
+		}
+
+#pragma omp simd
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		v = vals + 3 * nc;
+		values[0] = Sqr(d_i[0]) * (Sqr(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
+		for (int j = 0; j < model->graph->lnnbs[ii]; j++) {
+		
+			jj = model->graph->lnbs[ii][j];
+			vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), jj);
+
+#pragma omp simd
+			for (int k = 3; k < 6; k++) {
+				d_i[k] = vals[k * nc];
+			}
+
+			for (int k = 1; k < nc; k++) {
+				double th = model->theta[k - 1][thread_id][0];
+				v = vals + k;
+#pragma omp simd
+				for (int kk = 3; kk < 6; kk++) {
+					d_i[kk] += v[kk * nc] * th;
+				}
+			}
+
+#pragma omp simd
+			for (int k = 0; k < 2; k++) {
+				d_j[k] = exp(d_j[k]);
+			}
+
+			if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+				switch (model->transform) {
+				case SPDE2_TRANSFORM_IDENTITY:
+					break;
+
+				case SPDE2_TRANSFORM_LOG:
+					d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+					break;
+
+				case SPDE2_TRANSFORM_LOGIT:
+					d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+					break;
+
+				default:
+					assert(0 == 1);
+				}
+			}
+
+			v = vals + 6 * nc;
+			values[1 + j] = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+		}
+
+		return 0.0;
+	}
+
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+
+	// manual inline
+	// double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[i]), j);
+
+	double value;
+	double d_i[6];
+	double *d_j = d_i + 3;
+
+	if (i == j) {
+
+#pragma omp simd
+		for (int k = 0; k < 3; k++) {
+			d_i[k] = vals[k * nc];
+		}
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma omp simd
+			for (int kk = 0; kk < 3; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
+		}
+
+#pragma omp simd
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 3 * nc;
+		value = Sqr(d_i[0]) * (Sqr(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
+	} else {
+#pragma omp simd
+		for (int k = 0; k < 6; k++) {
+			d_i[k] = vals[k * nc];
+		}
+
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma omp simd
+			for (int kk = 0; kk < 6; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
+		}
+
+#pragma omp simd
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+			d_j[k] = exp(d_j[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2.0 * exp(d_i[2]) - 1.0;
+				d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
 				break;
 
 			default:
