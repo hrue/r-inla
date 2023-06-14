@@ -1292,6 +1292,7 @@
             ee <- e.dev.sat
             idx <- which(is.na(ee))
             ee[idx] <- 0
+            ee <- pmax(0, ee)
             sig[idx] <- 0
             deviance.residuals <- sqrt(ee) * sig
             deviance.residuals[idx] <- NA
