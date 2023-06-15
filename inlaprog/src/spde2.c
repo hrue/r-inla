@@ -168,7 +168,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 {
 	// this one fails. do not know why. see ~/p/inla/problems/finn.lindgren@gmail.com/12/inla.model
 	assert(0 == 1);
-	
+
 	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i. recall to
 	// enable init in 'build_model below' before enable this function.
 
@@ -179,7 +179,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 		int idx = -1;
 		GMRFLib_CACHE_SET_ID(idx);
 		assert(idx >= 0);
-		
+
 		int fake_values[2];
 		fake_values[0] = idx;			       /* transfer the cache-index */
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
@@ -233,7 +233,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 				double *work = Calloc(3 + nc, double);
 				tmp->theta = work;
 				tmp->vals = work + nc;
-				
+
 				if (debug) {
 					printf("spde2: init cache[%1d] for idx = %1d\n", cache_id, idx);
 				}
@@ -618,10 +618,10 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *values, void *arg)
 {
 	// does not seems to help. not a success
-	
+
 	if (jj < 0) {
 		return NAN;
-		
+
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
 		int nc = model->B[0]->ncol;
 
@@ -673,21 +673,21 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 		if (!nb) {
 			return 0.0;
 		}
-		
+
 		int m = 6 * nc + 4;
 		double VALS[m][nb];
 		double D_J[3][nb];
-		
+
 		for (int j = 0; j < model->graph->lnnbs[ii]; j++) {
 			jj = model->graph->lnbs[ii][j];
 			vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), jj);
-			for (int k = 0; k < m; k++){
+			for (int k = 0; k < m; k++) {
 				VALS[k][j] = vals[k];
 			}
 		}
-		
+
 		for (int k = 3; k < 6; k++) {
-			double *dd = D_J[k-3];
+			double *dd = D_J[k - 3];
 			double *vv = VALS[k * nc];
 			Memcpy(dd, vv, nb * sizeof(double));
 		}
@@ -695,7 +695,7 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 		for (int k = 1; k < nc; k++) {
 			double th = model->theta[k - 1][thread_id][0];
 			for (int kk = 3; kk < 6; kk++) {
-				double *dd = D_J[kk-3];
+				double *dd = D_J[kk - 3];
 				double *vv = VALS[kk * nc + k];
 				GMRFLib_daxpy(nb, th, vv, dd);
 			}
@@ -712,7 +712,7 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 
 			case SPDE2_TRANSFORM_LOG:
 #pragma omp simd
-				for(int j = 0; j < nb; j++) {
+				for (int j = 0; j < nb; j++) {
 					D_J[2][j] = 2.0 * exp(D_J[2][j]) - 1.0;
 				}
 				break;
@@ -730,15 +730,16 @@ double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *v
 		}
 
 		int ioff = 6 * nc;
-		for(int j = 0; j < nb; j++) {
+		for (int j = 0; j < nb; j++) {
 			double vv[4];
 			vv[0] = VALS[ioff + 0][j];
 			vv[1] = VALS[ioff + 1][j];
 			vv[2] = VALS[ioff + 2][j];
 			vv[3] = VALS[ioff + 3][j];
-			values[1 + j] = d_i[0] * D_J[0][j] * (d_i[1] * D_J[1][j] * vv[0] + d_i[2] * d_i[1] * vv[1] + D_J[1][j] * D_J[2][j] * vv[2] + vv[3]);
+			values[1 + j] =
+			    d_i[0] * D_J[0][j] * (d_i[1] * D_J[1][j] * vv[0] + d_i[2] * d_i[1] * vv[1] + D_J[1][j] * D_J[2][j] * vv[2] + vv[3]);
 		}
-		
+
 		return 0.0;
 	}
 
@@ -1002,7 +1003,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 			model->cache[jj] = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 		}
 	}
-	
+
 	return INLA_OK;
 }
 

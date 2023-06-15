@@ -40,8 +40,8 @@ int GMRFLib_set_blas_num_threads(int threads)
 		void MKL_Set_Num_Threads(int);
 		MKL_Set_Num_Threads(threads);
 #endif
-		//void openblas_set_num_threads(int);
-		//openblas_set_num_threads(threads);
+		// void openblas_set_num_threads(int);
+		// openblas_set_num_threads(threads);
 	}
 	return 0;
 }
