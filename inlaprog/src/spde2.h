@@ -91,6 +91,7 @@ typedef struct {
 double inla_spde2_Qfunction_orig(int thread_id, int node, int nnode, double *values, void *arg);
 double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values, void *arg);
 double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *values, void *arg);
+double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *values, void *arg);
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg);
 double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg);
 int inla_spde2_build_model(int thread_id, inla_spde2_tp ** smodel, const char *prefix, const char *transform);

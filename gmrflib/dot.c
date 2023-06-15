@@ -374,7 +374,7 @@ void GMRFLib_dsum_measure_time(double *tused)
 	}
 	tref[1] += GMRFLib_cpu();
 
-	assert(ABS((r-rr)/(r+rr)) < FLT_EPSILON);
+	assert(ABS((r - rr) / (r + rr)) < FLT_EPSILON);
 
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);

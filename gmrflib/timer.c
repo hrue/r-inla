@@ -45,9 +45,9 @@
 
 // define the function in the high-prec-timer.cpp
 
-#else // if defined(WINDOWS)
+#else							       // if defined(WINDOWS)
 
-#if defined(_OPENMP) 
+#if defined(_OPENMP)
 
 #include <sys/time.h>
 #include <omp.h>
@@ -56,7 +56,7 @@ double GMRFLib_cpu_default(void)
 	return (omp_get_wtime());
 }
 
-#else // if defined(_OPENMP)
+#else							       // if defined(_OPENMP)
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -70,5 +70,5 @@ double GMRFLib_cpu_default(void)
 	return (time);
 }
 
-#endif // if defined(_OPENMP)
-#endif // if defined(WINDOWS)
+#endif							       // if defined(_OPENMP)
+#endif							       // if defined(WINDOWS)

@@ -191,7 +191,7 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 
 double my_gsl_sf_lnchoose(unsigned int n, unsigned int m)
 {
-	gsl_sf_result r = {0, 0};
+	gsl_sf_result r = { 0, 0 };
 	my_gsl_sf_lnchoose_e(n, m, &r);
 	return (r.val);
 }

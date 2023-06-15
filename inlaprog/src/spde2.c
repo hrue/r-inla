@@ -168,7 +168,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 {
 	// this one fails. do not know why. see ~/p/inla/problems/finn.lindgren@gmail.com/12/inla.model
 	assert(0 == 1);
-	
+
 	// use simple caching for this function. only cache calculations for one 'i', that can be used for all (i,j) with the same i. recall to
 	// enable init in 'build_model below' before enable this function.
 
@@ -179,7 +179,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 		int idx = -1;
 		GMRFLib_CACHE_SET_ID(idx);
 		assert(idx >= 0);
-		
+
 		int fake_values[2];
 		fake_values[0] = idx;			       /* transfer the cache-index */
 		inla_spde2_tp *model = (inla_spde2_tp *) arg;
@@ -233,7 +233,7 @@ double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values,
 				double *work = Calloc(3 + nc, double);
 				tmp->theta = work;
 				tmp->vals = work + nc;
-				
+
 				if (debug) {
 					printf("spde2: init cache[%1d] for idx = %1d\n", cache_id, idx);
 				}
@@ -615,6 +615,243 @@ double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *UNUSED(values
 	return value;
 }
 
+double inla_spde2_Qfunction_another_try(int thread_id, int ii, int jj, double *values, void *arg)
+{
+	// does not seems to help. not a success
+
+	if (jj < 0) {
+		return NAN;
+
+		inla_spde2_tp *model = (inla_spde2_tp *) arg;
+		int nc = model->B[0]->ncol;
+
+		double *v = NULL;
+		double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), ii);
+		double d_i[6];
+
+#pragma omp simd
+		for (int k = 0; k < 3; k++) {
+			d_i[k] = vals[k * nc];
+		}
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			v = vals + k;
+#pragma omp simd
+			for (int kk = 0; kk < 3; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
+		}
+
+#pragma omp simd
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		v = vals + 3 * nc;
+		values[0] = Sqr(d_i[0]) * (Sqr(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
+		int nb = model->graph->lnnbs[ii];
+
+		if (!nb) {
+			return 0.0;
+		}
+
+		int m = 6 * nc + 4;
+		double VALS[m][nb];
+		double D_J[3][nb];
+
+		for (int j = 0; j < model->graph->lnnbs[ii]; j++) {
+			jj = model->graph->lnbs[ii][j];
+			vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), jj);
+			for (int k = 0; k < m; k++) {
+				VALS[k][j] = vals[k];
+			}
+		}
+
+		for (int k = 3; k < 6; k++) {
+			double *dd = D_J[k - 3];
+			double *vv = VALS[k * nc];
+			Memcpy(dd, vv, nb * sizeof(double));
+		}
+
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			for (int kk = 3; kk < 6; kk++) {
+				double *dd = D_J[kk - 3];
+				double *vv = VALS[kk * nc + k];
+				GMRFLib_daxpy(nb, th, vv, dd);
+			}
+		}
+
+		for (int k = 0; k < 2; k++) {
+			GMRFLib_exp(nb, D_J[k], D_J[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+#pragma omp simd
+				for (int j = 0; j < nb; j++) {
+					D_J[2][j] = 2.0 * exp(D_J[2][j]) - 1.0;
+				}
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+#pragma omp simd
+				for (int j = 0; j < nb; j++) {
+					D_J[2][j] = cos(M_PI / (1.0 + exp(-D_J[2][j])));
+				}
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		int ioff = 6 * nc;
+		for (int j = 0; j < nb; j++) {
+			double vv[4];
+			vv[0] = VALS[ioff + 0][j];
+			vv[1] = VALS[ioff + 1][j];
+			vv[2] = VALS[ioff + 2][j];
+			vv[3] = VALS[ioff + 3][j];
+			values[1 + j] =
+			    d_i[0] * D_J[0][j] * (d_i[1] * D_J[1][j] * vv[0] + d_i[2] * d_i[1] * vv[1] + D_J[1][j] * D_J[2][j] * vv[2] + vv[3]);
+		}
+
+		return 0.0;
+	}
+
+	int i, j;
+	if (ii <= jj) {
+		i = ii;
+		j = jj;
+	} else {
+		i = jj;
+		j = ii;
+	}
+
+	inla_spde2_tp *model = (inla_spde2_tp *) arg;
+	int nc = model->B[0]->ncol;
+
+	// manual inline
+	// double *vals = GMRFLib_vmatrix_get(model->vmatrix, i, j);
+	double *vals = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[i]), j);
+
+	double value;
+	double d_i[6];
+	double *d_j = d_i + 3;
+
+	if (i == j) {
+
+#pragma omp simd
+		for (int k = 0; k < 3; k++) {
+			d_i[k] = vals[k * nc];
+		}
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma omp simd
+			for (int kk = 0; kk < 3; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
+		}
+
+#pragma omp simd
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2 * exp(d_i[2]) - 1.0;
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 3 * nc;
+		value = Sqr(d_i[0]) * (Sqr(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+
+	} else {
+#pragma omp simd
+		for (int k = 0; k < 6; k++) {
+			d_i[k] = vals[k * nc];
+		}
+
+		for (int k = 1; k < nc; k++) {
+			double th = model->theta[k - 1][thread_id][0];
+			double *v = vals + k;
+#pragma omp simd
+			for (int kk = 0; kk < 6; kk++) {
+				d_i[kk] += v[kk * nc] * th;
+			}
+		}
+
+#pragma omp simd
+		for (int k = 0; k < 2; k++) {
+			d_i[k] = exp(d_i[k]);
+			d_j[k] = exp(d_j[k]);
+		}
+
+		if (model->transform != SPDE2_TRANSFORM_IDENTITY) {
+			switch (model->transform) {
+			case SPDE2_TRANSFORM_IDENTITY:
+				break;
+
+			case SPDE2_TRANSFORM_LOG:
+				d_i[2] = 2.0 * exp(d_i[2]) - 1.0;
+				d_j[2] = 2.0 * exp(d_j[2]) - 1.0;
+				break;
+
+			case SPDE2_TRANSFORM_LOGIT:
+				d_i[2] = cos(M_PI * map_probability(d_i[2], MAP_FORWARD, NULL));
+				d_j[2] = cos(M_PI * map_probability(d_j[2], MAP_FORWARD, NULL));
+				break;
+
+			default:
+				assert(0 == 1);
+			}
+		}
+
+		double *v = vals + 6 * nc;
+		value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
+	}
+
+	return value;
+}
+
 int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const char *prefix, const char *transform)
 {
 	int i;
@@ -766,7 +1003,7 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 			model->cache[jj] = Calloc(GMRFLib_MAX_THREADS(), spde2_cache_tp *);
 		}
 	}
-	
+
 	return INLA_OK;
 }
 

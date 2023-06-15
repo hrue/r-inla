@@ -937,7 +937,7 @@
     }
 
     if (is.null(inla.spec$tolerance.f) || is.na(inla.spec$tolerance.f)) {
-        inla.spec$tolerance.f <- inla.spec$tolerance * 0.2
+        inla.spec$tolerance.f <- inla.spec$tolerance * 0.4
     }
     cat("tolerance.f = ", inla.spec$tolerance.f, "\n", sep = " ", file = file, append = TRUE)
 
@@ -947,7 +947,7 @@
     cat("tolerance.g = ", inla.spec$tolerance.g, "\n", sep = " ", file = file, append = TRUE)
 
     if (is.null(inla.spec$tolerance.x) || is.na(inla.spec$tolerance.x)) {
-        inla.spec$tolerance.x <- inla.spec$tolerance * 0.1
+        inla.spec$tolerance.x <- inla.spec$tolerance * 0.2
     }
     cat("tolerance.x = ", inla.spec$tolerance.x, "\n", sep = " ", file = file, append = TRUE)
 
