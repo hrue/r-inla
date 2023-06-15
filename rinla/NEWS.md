@@ -1,3 +1,7 @@
+# INLA 23.06.15
+* Tolerance was set to low
+* Robustify deviance residuals
+
 # INLA 23.06.14
 * Improved version of `inla.rerun`
 * Issues reported in `23.06.12` fixed

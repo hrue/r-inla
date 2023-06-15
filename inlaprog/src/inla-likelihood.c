@@ -2245,7 +2245,7 @@ int loglikelihood_0binomial(int thread_id, double *logll, double *x, int m, int 
 		return GMRFLib_SUCCESS;
 	}
 
-	gsl_sf_result res = {0, 0};
+	gsl_sf_result res = { 0, 0 };
 	if (G_norm_const_compute[idx]) {
 		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 		G_norm_const[idx] = res.val;
@@ -2323,7 +2323,7 @@ int loglikelihood_0binomialS(int thread_id, double *logll, double *x, int m, int
 		return GMRFLib_SUCCESS;
 	}
 
-	gsl_sf_result res = {0, 0};
+	gsl_sf_result res = { 0, 0 };
 	if (G_norm_const_compute[idx]) {
 		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 		G_norm_const[idx] = res.val;
@@ -3294,9 +3294,9 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 				for (int time = 0; time < ntimes; time++) {
 					double ss = s[time];
 #pragma omp simd reduction(+: tmp1)
-						for (int y1 = 0; y1 < yy; y1++) {
-							tmp1 += log(y1 + ss);
-						}
+					for (int y1 = 0; y1 < yy; y1++) {
+						tmp1 += log(y1 + ss);
+					}
 				}
 				t[1] += GMRFLib_cpu();
 
@@ -3341,7 +3341,6 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 					logll[i] = lnorm + size * log(p) + y * LOG_ONE_MINUS(p);
 				}
 			}
-
 			// optimised code
 			double lsize = log(size);
 			double t2 = lnorm + size * log(size) + y_log_E;
@@ -3351,7 +3350,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 			if (fast) {
 				double tt2 = t2 + t3 * lsize;
 				if (0) {
-					double b = E/size;
+					double b = E / size;
 					if (y > 0) {
 #pragma omp simd
 						for (int i = 0; i < m; i++) {
@@ -3364,7 +3363,7 @@ int loglikelihood_negative_binomial(int thread_id, double *logll, double *x, int
 						}
 					}
 				} else {
-					double work[2*m];
+					double work[2 * m];
 					double *ex = work;
 					double *lx = work + m;
 
@@ -3984,7 +3983,7 @@ int loglikelihood_binomial(int thread_id, double *logll, double *x, int m, int i
 	LINK_INIT;
 	double off = OFFSET(idx);
 	if (m > 0) {
-		gsl_sf_result res = {0, 0};
+		gsl_sf_result res = { 0, 0 };
 		if (G_norm_const_compute[idx]) {
 			if (ds->variant == 0) {
 				// binomial
@@ -4199,7 +4198,7 @@ int loglikelihood_xbinomial(int thread_id, double *logll, double *x, int m, int 
 
 	LINK_INIT;
 	if (m > 0) {
-		gsl_sf_result res = {0, 0};
+		gsl_sf_result res = { 0, 0 };
 		if (G_norm_const_compute[idx]) {
 			if (ds->variant == 0) {
 				// binomial
@@ -4257,7 +4256,7 @@ int loglikelihood_nbinomial2(int thread_id, double *logll, double *x, int m, int
 	 */
 	LINK_INIT;
 	if (m > 0) {
-		gsl_sf_result res = {0, 0};
+		gsl_sf_result res = { 0, 0 };
 		if (G_norm_const_compute[idx]) {
 			status = gsl_sf_lnchoose_e((unsigned int) (y + n - 1.0), (unsigned int) (n - 1.0), &res);
 			assert(status == GSL_SUCCESS);
@@ -4350,7 +4349,7 @@ int loglikelihood_nmix(int thread_id, double *logll, double *x, int m, int idx, 
 		}
 
 		for (i = 0; i < m; i++) {
-			gsl_sf_result res = {0, 0};
+			gsl_sf_result res = { 0, 0 };
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = TRUNCATE(p, 0.0, 1.0);
 			logll[i] = n * log_lambda - lambda - normc_poisson;
@@ -4444,7 +4443,7 @@ int loglikelihood_nmixnb(int thread_id, double *logll, double *x, int m, int idx
 		}
 
 		for (i = 0; i < m; i++) {
-			gsl_sf_result res = {0, 0};
+			gsl_sf_result res = { 0, 0 };
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			p = TRUNCATE(p, 0.0, 1.0);
 			q = size / (size + lambda);
@@ -4729,9 +4728,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds =(Data_section_tp *) arg;
+	Data_section_tp *ds = (Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));
@@ -4844,7 +4843,7 @@ int loglikelihood_cbinomial(int thread_id, double *logll, double *x, int m, int 
 
 	LINK_INIT;
 	if (m > 0) {
-		gsl_sf_result res = {0, 0};
+		gsl_sf_result res = { 0, 0 };
 		status = gsl_sf_lnchoose_e((unsigned int) k, (unsigned int) y, &res);	/* Yes, its 'k' */
 		assert(status == GSL_SUCCESS);
 		for (i = 0; i < m; i++) {
@@ -4919,7 +4918,7 @@ int loglikelihood_zeroinflated_binomial0(int thread_id, double *logll, double *x
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 
-		gsl_sf_result res = {0, 0};
+		gsl_sf_result res = { 0, 0 };
 		gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 		double p0;
 		if (m > 0) {
@@ -4956,7 +4955,7 @@ int loglikelihood_zeroinflated_binomial1(int thread_id, double *logll, double *x
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx],
 	    p = map_probability(ds->data_observations.prob_intern[thread_id][0], MAP_FORWARD, NULL), prob = 0.0, logA, logB;
 
-	gsl_sf_result res = {0, 0};
+	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
 	LINK_INIT;
@@ -5013,7 +5012,7 @@ int loglikelihood_zeroinflated_binomial2(int thread_id, double *logll, double *x
 	double y = ds->data_observations.y[idx], n = ds->data_observations.nb[idx], pzero, p,
 	    alpha = map_exp(ds->data_observations.zeroinflated_alpha_intern[thread_id][0], MAP_FORWARD, NULL), logA, logB;
 
-	gsl_sf_result res = {0, 0};
+	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
 	LINK_INIT;
@@ -5115,7 +5114,7 @@ int loglikelihood_zero_n_inflated_binomial2(int thread_id, double *logll, double
 	    alpha1 = map_exp(ds->data_observations.zero_n_inflated_alpha1_intern[thread_id][0], MAP_FORWARD, NULL),
 	    alpha2 = map_exp(ds->data_observations.zero_n_inflated_alpha2_intern[thread_id][0], MAP_FORWARD, NULL), p, p1, p2, logA, logB;
 
-	gsl_sf_result res = {0, 0};
+	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
 	LINK_INIT;
@@ -5207,7 +5206,7 @@ int loglikelihood_zero_n_inflated_binomial3(int thread_id, double *logll, double
 	    alpha0 = map_exp(ds->data_observations.zero_n_inflated_alpha0_intern[thread_id][0], MAP_FORWARD, NULL),
 	    alphaN = map_exp(ds->data_observations.zero_n_inflated_alphaN_intern[thread_id][0], MAP_FORWARD, NULL), p, p0, pN, logA, logB;
 
-	gsl_sf_result res = {0, 0};
+	gsl_sf_result res = { 0, 0 };
 	gsl_sf_lnchoose_e((unsigned int) n, (unsigned int) y, &res);
 
 	LINK_INIT;
