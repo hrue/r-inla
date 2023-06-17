@@ -385,8 +385,17 @@ void GMRFLib_dsum_measure_time(double *tused)
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
-	int one = 1;
-	return ddot_(&n, x, &one, y, &one);
+	if (n <= SIMPLE_LOOP_LIMIT) {
+		double dot = 0.0;
+#pragma omp simd reduction(+: dot)
+		for (int i = 0; i < n; i++) {
+			dot += x[i] * y[i];
+		}
+		return dot;
+	} else {
+		int one = 1;
+		return ddot_(&n, x, &one, y, &one);
+	}
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
