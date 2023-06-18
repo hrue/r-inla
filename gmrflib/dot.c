@@ -226,7 +226,6 @@ int GMRFLib_isum1(int n, int *ix)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		int *xx = ix + i;
 
@@ -267,7 +266,6 @@ double GMRFLib_dsum1(int n, double *x)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		double *xx = x + i;
 
@@ -305,7 +303,7 @@ double GMRFLib_dsum2(int n, double *x)
 void GMRFLib_isum_measure_time(double *tused)
 {
 	int n = 128;
-	int ntimes = 128;
+	int ntimes = 512;
 	int *ix = Calloc(n, int);
 
 	for (int i = 0; i < n; i++) {
@@ -313,21 +311,21 @@ void GMRFLib_isum_measure_time(double *tused)
 	}
 
 	double tref[2] = { 0.0, 0.0 };
-	int r = 0, rr = 0;
+	double r = 0, rr = 0;
 
 	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		r += GMRFLib_isum1(n, ix);
+		r += GMRFLib_isum1(n, ix)/ (1.0 + time);
 	}
 	tref[0] += GMRFLib_cpu();
 
 	tref[1] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		rr += GMRFLib_isum2(n, ix);
+		rr += GMRFLib_isum2(n, ix) / (1.0 + time);
 	}
 	tref[1] += GMRFLib_cpu();
 
-	assert(r == rr);
+	assert(ABS(r-rr)/(FLT_EPSILON + ABS(r)+ABS(rr)) <  FLT_EPSILON);
 
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
@@ -350,13 +348,13 @@ void GMRFLib_dsum_measure_time(double *tused)
 
 	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		r += GMRFLib_dsum1(n, x);
+		r += GMRFLib_dsum1(n, x) / (1.0 + time);
 	}
 	tref[0] += GMRFLib_cpu();
 
 	tref[1] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		rr += GMRFLib_dsum2(n, x);
+		rr += GMRFLib_dsum2(n, x) / (1.0 + time);
 	}
 	tref[1] += GMRFLib_cpu();
 
