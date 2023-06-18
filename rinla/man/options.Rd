@@ -55,7 +55,7 @@ newline-separated string with license key(s)}
 \item{debug}{Run the inla-program in a debug mode?}
 
 \item{cygwin}{The home of the Cygwin installation (default "C:/cygwin") (Remote
-computing for Windows only)}
+computing for Windows only) (No longer in use!)}
 
 \item{ssh.auth.sock}{The ssh bind-adress (value of $SSH_AUTH_SOCK int the
 Cygwin-shell). (Remote computing for Windows only)}

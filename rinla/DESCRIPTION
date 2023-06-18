@@ -45,6 +45,7 @@ Suggests:
     gridExtra,
     knitr,
     markdown,
+    MASS,
     matrixStats,
     mlogit,
     mvtnorm,

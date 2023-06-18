@@ -466,7 +466,7 @@ meshbuilder.app <- function() {
         })
 
         random.loc.usage <- shiny::reactiveValues(boundary = TRUE, mesh = FALSE)
-        observe({
+        shiny::observe({
             if (shiny::isolate(debug$trace)) {
                 message(paste(
                     "  input$boundary.loc.name = (",
@@ -482,7 +482,7 @@ meshbuilder.app <- function() {
                 ))
             }
         })
-        observe({
+        shiny::observe({
             if (shiny::isolate(debug$trace)) {
                 message(paste(
                     "  input$mesh.loc.name = (",
@@ -498,7 +498,7 @@ meshbuilder.app <- function() {
                 ))
             }
         })
-        observe({
+        shiny::observe({
             random.loc.usage$boundary <- length(intersect(current$boundary.loc.name, "RANDOM")) > 0
             if (shiny::isolate(debug$trace)) {
                 message(paste(
@@ -507,7 +507,7 @@ meshbuilder.app <- function() {
                 ))
             }
         })
-        observe({
+        shiny::observe({
             random.loc.usage$mesh <- length(intersect(current$mesh.loc.name, "RANDOM")) > 0
             if (shiny::isolate(debug$trace)) {
                 message(paste(
@@ -528,14 +528,14 @@ meshbuilder.app <- function() {
                 ("RANDOM" %in% tmp) &&
                 (length(input.boundary.loc.name) > 0)) {
                 current$boundary.loc.name <- input.boundary.loc.name
-                updateSelectInput(
+                shiny::updateSelectInput(
                     session, "boundary.loc.name",
                     selected = current$boundary.loc.name
                 )
             } else if (!("RANDOM" %in% current$boundary.loc.name) &&
                 ("RANDOM" %in% tmp)) {
                 current$boundary.loc.name <- "RANDOM"
-                updateSelectInput(
+                shiny::updateSelectInput(
                     session, "boundary.loc.name",
                     selected = current$boundary.loc.name
                 )
@@ -550,14 +550,14 @@ meshbuilder.app <- function() {
                 ("RANDOM" %in% input$mesh.loc.name) &&
                 (length(input.mesh.loc.name) > 0)) {
                 current$mesh.loc.name <- input.mesh.loc.name
-                updateSelectInput(
+                shiny::updateSelectInput(
                     session, "mesh.loc.name",
                     selected = current$mesh.loc.name
                 )
             } else if (!("RANDOM" %in% mesh.loc.name.previous) &&
                 ("RANDOM" %in% input$mesh.loc.name)) {
                 current$mesh.loc.name <- "RANDOM"
-                updateSelectInput(
+                shiny::updateSelectInput(
                     session, "mesh.loc.name",
                     selected = current$mesh.loc.name
                 )
@@ -1271,7 +1271,7 @@ meshbuilder.app <- function() {
             priority = 10
         )
 
-        output$assess.quantity.ui <- renderUI({
+        output$assess.quantity.ui <- shiny::renderUI({
             sel <- shiny::isolate(input$assess.quantity)
             default <- 1
             choices <- list(
@@ -1287,13 +1287,13 @@ meshbuilder.app <- function() {
             if (is.null(sel) || !(sel %in% choices)) {
                 sel <- choices[[default]]
             }
-            radioButtons(
+            shiny::radioButtons(
                 "assess.quantity",
                 label = "Quantity",
                 choices = choices, selected = sel
             )
         })
-        output$overlay.ui <- renderUI({
+        output$overlay.ui <- shiny::renderUI({
             if (is.null(input$assess.advanced)) {
                 return(NULL)
             }
@@ -1314,13 +1314,13 @@ meshbuilder.app <- function() {
             if (is.null(sel) || !(sel %in% choices)) {
                 sel <- choices[[default]]
             }
-            radioButtons(
+            shiny::radioButtons(
                 "overlay",
                 label = "Overlay",
                 choices = choices, selected = sel
             )
         })
-        output$assess.resolution.ui <- renderUI({
+        output$assess.resolution.ui <- shiny::renderUI({
             if (is.null(input$assess.quantity)) {
                 return(NULL)
             }
@@ -1346,7 +1346,7 @@ meshbuilder.app <- function() {
             if (is.null(sel) || !(sel %in% choices)) {
                 sel <- choices[[default]]
             }
-            radioButtons(
+            shiny::radioButtons(
                 "assess.resolution",
                 label = "Resolution",
                 choices = choices, selected = sel
@@ -1490,7 +1490,7 @@ meshbuilder.app <- function() {
         })
 
         output$meshplot <-
-            renderPlot(meshplot.expr, quoted = TRUE, height = 1000, units = "px")
+            shiny::renderPlot(meshplot.expr, quoted = TRUE, height = 1000, units = "px")
 
         userinput.xlim <- shiny::reactive({
             lim1 <- if (is.null(boundary.loc.input())) {
@@ -1605,7 +1605,7 @@ meshbuilder.app <- function() {
             inputplot.xlim = c(0, 1),
             inputplot.ylim = c(0, 1)
         )
-        observe({
+        shiny::observe({
             lim1 <- userinput.xlim()
             lim2 <- if (random.loc.usage$boundary || random.loc.usage$mesh) {
                 if (is.null(loc())) NA else range(coordinates(loc())[, 1], na.rm = TRUE)
@@ -1634,7 +1634,7 @@ meshbuilder.app <- function() {
             }
             limits$input.ylim <- r
         })
-        observe({
+        shiny::observe({
             limits$inputplot.xlim <- limits$input.xlim + c(-1, 1) * input$offset[2]
             limits$inputplot.ylim <- limits$input.ylim + c(-1, 1) * input$offset[2]
         })
@@ -1681,9 +1681,9 @@ meshbuilder.app <- function() {
         })
 
         output$inputplot <-
-            renderPlot(inputplot.expr, quoted = TRUE, height = 800, units = "px")
+            shiny::renderPlot(inputplot.expr, quoted = TRUE, height = 800, units = "px")
 
-        output$meshmeta <- renderTable(
+        output$meshmeta <- shiny::renderTable(
             {
                 meshmeta()
             },
@@ -1881,7 +1881,7 @@ meshbuilder.app <- function() {
             }
         })
 
-        output$click.information <- renderTable(
+        output$click.information <- shiny::renderTable(
             {
                 if (input$assess) {
                     click.information()
@@ -1890,7 +1890,7 @@ meshbuilder.app <- function() {
             digits = 3,
             rownames = TRUE
         )
-        output$field.information <- renderTable(
+        output$field.information <- shiny::renderTable(
             {
                 if (input$assess.quantity == "corr") {
                     corr.information()
@@ -2009,14 +2009,14 @@ meshbuilder.app <- function() {
 
 
         debug <- shiny::reactiveValues(trace = FALSE, plot.delay = NULL)
-        observe({
+        shiny::observe({
             if (input$debug.use.trace) {
                 debug$trace <- TRUE
             } else {
                 debug$trace <- FALSE
             }
         })
-        observe({
+        shiny::observe({
             if (input$debug.use.plot.delay) {
                 debug$plot.delay <- 0
             } else {
