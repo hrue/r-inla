@@ -150,6 +150,7 @@ extern int GMRFLib_threshold_sqr;
 
 extern int GMRFLib_threshold_add;
 extern int GMRFLib_threshold_mul;
+extern int GMRFLib_threshold_ddot;
 
 #endif
 __END_DECLS

@@ -70,6 +70,7 @@ double GMRFLib_dot_product_serial_mkl(GMRFLib_idxval_tp * __restrict ELM_, doubl
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx);
 void GMRFLib_dsum_measure_time(double *tused);
 void GMRFLib_isum_measure_time(double *tused);
+void GMRFLib_chose_threshold_ddot(void);
 
 __END_DECLS
 #endif

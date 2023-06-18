@@ -5551,6 +5551,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 
 		GMRFLib_isum_measure_time(time_isum);
 		GMRFLib_dsum_measure_time(time_dsum);
+		GMRFLib_chose_threshold_ddot();
 		GMRFLib_MKL_chose_thresholds();
 	} else {
 		GMRFLib_Qx_strategy = 0;
@@ -5602,6 +5603,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 #endif
 			printf("\tOptimizing sort2_id........ [%1d]\n", GMRFLib_sort2_id_cut_off);
 			printf("\tOptimizing sort2_dd........ [%1d]\n", GMRFLib_sort2_dd_cut_off);
+			printf("\tOptimizing ddot............ [%1d]\n", GMRFLib_threshold_ddot);
 			printf("\tOptimizing isum............ isum1[%.3f] isum2[%.3f] choice[%s]\n", time_isum[0], time_isum[1],
 			       (GMRFLib_isum == GMRFLib_isum1 ? "isum1" : "isum2"));
 			printf("\tOptimizing dsum............ dsum1[%.3f] dsum2[%.3f] choice[%s]\n", time_dsum[0], time_dsum[1],
