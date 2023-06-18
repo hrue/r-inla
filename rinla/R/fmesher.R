@@ -10,30 +10,16 @@
         )
     }
     else if (inla.os("windows")) {
-        if (TRUE) {
-            echoc <- try(system(paste(
-                shQuote(fmesher.call),
-                all.args,
-                shQuote(prefix)
-            ),
-            timeout = ceiling(timeout)
-            ),
-            silent = TRUE
-            )
-            echoc <- 0
-        } else {
-            ## we might need it if we want one day to make the fmesher program run remotely
-            stop("This code is not in use.")
-            ##
-            echoc <- try(inla.cygwin.run.command(
-                paste(
-                    inla.cygwin.map.filename(fmesher.call),
-                    all.args,
-                    inla.cygwin.map.filename(prefix)
-                )
-            ), silent = TRUE)
-            echoc <- 0
-        }
+        echoc <- try(system(paste(
+            shQuote(fmesher.call),
+            all.args,
+            shQuote(prefix)
+        ),
+        timeout = ceiling(timeout)
+        ),
+        silent = TRUE
+        )
+        echoc <- 0
     }
     else {
           stop("\n\tNot supported architecture.")
