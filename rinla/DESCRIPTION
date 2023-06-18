@@ -25,7 +25,8 @@ Imports:
     parallel,
     splines,
     stats,
-    utils
+    utils,
+    withr
 Suggests:
     Deriv,
     Ecdat,
