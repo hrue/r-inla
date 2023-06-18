@@ -2009,7 +2009,7 @@ void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
 #else
 #pragma omp simd
 	for (int i = 0; i < n * inc; i += inc) {
-		y[j] = exp(x[j]);
+		y[i] = exp(x[i]);
 	}
 #endif
 }
