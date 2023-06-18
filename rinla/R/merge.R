@@ -66,7 +66,7 @@
 #' @rdname merge
 #' @method merge inla
 #' @export
-`merge.inla` <- function(x, y, ..., prob = rep(1, length(loo)), verbose = FALSE) {
+`merge.inla` <- function(x, y, ..., prob = rep(1, length(list(x, y, ...))), verbose = FALSE) {
     return(inla.merge(loo = list(x, y, ...), prob = prob, verbose = verbose))
 }
 
@@ -188,7 +188,7 @@
     m <- length(loo)
     res <- loo[[1]]
 
-    verboze("Enter with prob = [", round(prob, dig = 3), "], and", m, "models", sep = " ")
+    verboze("Enter with prob = [", round(prob, digits = 3), "], and", m, "models", sep = " ")
 
     ## list
     marginals <- c(
@@ -334,7 +334,7 @@
         res$logfile <- c(
             res$logfile,
             "###",
-            paste0("### CONFIGURATION number ", k, ", prob = ", round(prob[k], dig = 5)),
+            paste0("### CONFIGURATION number ", k, ", prob = ", round(prob[k], digits = 5)),
             "###",
             loo[[k]]$logfile
         )

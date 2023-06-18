@@ -17,7 +17,7 @@
     } else {
         ret <- dev.new(...)
     }
-    if (exists("inla.dev.new.hook") && is.function(inla.dev.new.hook)) {
+    if (exists("inla.dev.new.hook", mode = "function")) {
         do.call("inla.dev.new.hook")
     }
     return(invisible(ret))

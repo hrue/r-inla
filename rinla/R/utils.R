@@ -750,8 +750,8 @@
 
 `inla.inlaprogram.timeout` <- function(timeused, timeout) {
     if (timeout > 0 && timeused > timeout) {
-        stop(paste0(" *** Interupted after ", round(dig = 1, timeused),
-                    " seconds due to timeout = ", round(dig = 1, timeout), " seconds"))
+        stop(paste0(" *** Interupted after ", round(digits = 1, timeused),
+                    " seconds due to timeout = ", round(digits = 1, timeout), " seconds"))
     }
 }
 
