@@ -111,12 +111,12 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 {
 	// do not use directly. need ``if (jj < 0)'' code
 
-	int use_ddot_lim = 7;
+	int use_ddot_lim = 8;
 	inla_spde2_tp *model = (inla_spde2_tp *) arg;
 	int nc = model->B[0]->ncol;
 	double d_i[6] = { 0, 0, 0, 0, 0, 0 };
 	double *d_j = d_i + 3;
-	double *vals_i = (double *) *map_ivp_ptr(&(model->Vmatrix->vmat[ii]), ii);
+	double *vals_i = model->row_V[ii];
 
 	double theta[nc];
 	theta[0] = 1.0;
@@ -164,7 +164,9 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 		return value;
 	}
 
-	double *vals_j = (double *) *map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
+	spde2_vV_tp *vals_j_p = (spde2_vV_tp *) *map_ivp_ptr(&(model->Vmatrix->vmat[ii]), jj);
+	double *vals_j = vals_j_p->V;
+	
 	if (nc < use_ddot_lim) {
 		d_j[0] = exp(GMRFLib_ddot(nc, vals_j, theta));
 		d_j[1] = exp(GMRFLib_ddot(nc, vals_j + nc, theta));
@@ -199,7 +201,7 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 		}
 	}
 
-	double *v = (double *) *map_ivp_ptr(&(model->vmatrix->vmat[ii]), jj);
+	double *v = vals_j_p->v;
 	double value = d_i[0] * d_j[0] * (d_i[1] * d_j[1] * v[0] + d_i[2] * d_i[1] * v[1] + d_j[1] * d_j[2] * v[2] + v[3]);
 
 	return value;
@@ -307,7 +309,6 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 	model->row_V = Calloc(model->n, double *);
 	model->row_v = Calloc(model->n, double *);
 	GMRFLib_vmatrix_init(&(model->Vmatrix), model->n, model->graph);
-	GMRFLib_vmatrix_init(&(model->vmatrix), model->n, model->graph);
 	int nc = model->B[0]->ncol;
 
 	for (i = 0; i < model->n; i++) {
@@ -331,8 +332,10 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 		v[2] = GMRFLib_matrix_get(j, i, model->M[1]);
 		v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
 
-		map_ivp_set(&(model->Vmatrix->vmat[i]), i, (void *) V);
-		map_ivp_set(&(model->vmatrix->vmat[i]), i, (void *) v);
+		spde2_vV_tp *vV = Calloc(1, spde2_vV_tp);
+		vV->v = v;
+		vV->V = V;
+		map_ivp_set(&(model->Vmatrix->vmat[i]), i, (void *) vV);
 
 		for (int jj = 0; jj < model->graph->lnnbs[i]; jj++) {
 			j = model->graph->lnbs[i][jj];
@@ -348,8 +351,10 @@ int inla_spde2_build_model(int UNUSED(thread_id), inla_spde2_tp **smodel, const 
 			v[2] = GMRFLib_matrix_get(j, i, model->M[1]);
 			v[3] = GMRFLib_matrix_get(i, j, model->M[2]);
 
-			map_ivp_set(&(model->Vmatrix->vmat[i]), j, (void *) V);
-			map_ivp_set(&(model->vmatrix->vmat[i]), j, (void *) v);
+			vV = Calloc(1, spde2_vV_tp);
+			vV->v = v;
+			vV->V = V;
+			map_ivp_set(&(model->Vmatrix->vmat[i]), j, (void *) vV);
 		}
 	}
 

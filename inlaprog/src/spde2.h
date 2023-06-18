@@ -62,6 +62,13 @@ typedef struct {
 	double l1_cachline[4L];
 } spde2_cache_tp;
 
+typedef struct 
+{
+	double *V;
+	double *v;
+}
+	spde2_vV_tp;
+
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
@@ -85,7 +92,6 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 
 	GMRFLib_vmatrix_tp *Vmatrix;
-	GMRFLib_vmatrix_tp *vmatrix;
 	double **row_V;
 	double **row_v;
 } inla_spde2_tp;
