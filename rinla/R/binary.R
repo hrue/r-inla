@@ -35,8 +35,8 @@
         stopifnot(len == ii - 3L)
     } else {
         ## this loops over rows,  better
-        idx <- seq.int(from = 3L, by = np2, len = res.ncol2)
-        idx2 <- seq.int(1L, by = 2L, len = res.ncol2)
+        idx <- seq.int(from = 3L, by = np2, length.out = res.ncol2)
+        idx2 <- seq.int(1L, by = 2L, length.out = res.ncol2)
         for(i in 1L:np) {
             res[i, idx2] <- xx[idx]
             res[i, idx2 + 1L] <- xx[idx + 1L]

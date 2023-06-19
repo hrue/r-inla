@@ -191,7 +191,7 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 
 double my_gsl_sf_lnchoose(unsigned int n, unsigned int m)
 {
-	gsl_sf_result r;
+	gsl_sf_result r = { 0, 0 };
 	my_gsl_sf_lnchoose_e(n, m, &r);
 	return (r.val);
 }
@@ -290,7 +290,7 @@ double my_betabinomial2(int y, int n, double a, double b)
 
 double my_lambert_W0(double y)
 {
-	double val;
+	double val = 0.0;
 	my_lambert_W0s(1, &y, &val);
 
 	return val;

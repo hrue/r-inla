@@ -21,22 +21,11 @@
 #' \item{num.threads}{Character string with the number of threads to use as
 #' `A:B`, see `?inla`}
 #' 
-#' \item{blas.num.threads}{Number of threads to use for openblas and mklblas (see
-#' `inla` for details)}
-#' 
 #' \item{smtp}{Sparse matrix library to use, one of `band`, `taucs`
 #' (`default`) or `pardiso`}
 #' 
-#' \item{mkl}{Use binaries buildt with Intel MKL?  (If possible)}
-#' 
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 #' (default `TRUE`)}
-#' 
-#' \item{vecLib}{This option applies to Mac only. If TRUE and mkl=FALSE, link with
-#' vecLib BLAS and LAPACK libs (if available)}
-#' 
-#' \item{vecLibPath}{This option applies to Mac only. Path to vecLib-libraries. If
-#' empty, use default.}
 #' 
 #' \item{pardiso.license}{The full path to the PARDISO license file or a
 #' newline-separated string with license key(s)}
@@ -54,7 +43,7 @@
 #' \item{debug}{Run the inla-program in a debug mode?}
 #' 
 #' \item{cygwin}{The home of the Cygwin installation (default "C:/cygwin") (Remote
-#' computing for Windows only)}
+#' computing for Windows only) (No longer in use!)}
 #' 
 #' \item{ssh.auth.sock}{The ssh bind-adress (value of $SSH_AUTH_SOCK int the
 #' Cygwin-shell). (Remote computing for Windows only)}
@@ -110,12 +99,8 @@ NULL
             inla.arg = NULL,
             fmesher.arg = "",
             num.threads = paste0(parallel::detectCores(all.tests = TRUE, logical = FALSE), ":1"),
-            blas.num.threads = 0L,
             smtp = "default",
-            mkl = if (inla.os("linux") || inla.os("mac")) TRUE else FALSE,
             safe = TRUE, 
-            vecLib = FALSE, 
-            vecLibPath = "", 
             pardiso.license = NULL,
             keep = FALSE,
             verbose = FALSE,
@@ -123,9 +108,6 @@ NULL
             working.directory = NULL,
             silent = TRUE,
             debug = FALSE,
-            cygwin = "C:/cygwin",
-            cygwin.home = paste("/home/", inla.get.USER(), sep = ""),
-            ssh.auth.sock = paste("/tmp/ssh-auth-sock-", inla.get.USER(), sep = ""),
             show.warning.graph.file = TRUE,
             scale.model.default = FALSE,
             short.summary = FALSE,
@@ -146,12 +128,8 @@ NULL
                                  "fmesher.call",
                                  "fmesher.arg",
                                  "num.threads",
-                                 "blas.num.threads",
                                  "smtp",
-                                 "mkl",
                                  "safe", 
-                                 "vecLib",
-                                 "vecLibPath",
                                  "pardiso.license",
                                  "keep",
                                  "verbose",
@@ -159,9 +137,6 @@ NULL
                                  "working.directory",
                                  "silent",
                                  "debug",
-                                 "cygwin",
-                                 "ssh.auth.sock",
-                                 "cygwin.home",
                                  "show.warning.graph.file",
                                  "scale.model.default",
                                  "short.summary",
@@ -243,12 +218,8 @@ NULL
                                           "fmesher.call",
                                           "fmesher.arg",
                                           "num.threads",
-                                          "blas.num.threads",
                                           "smtp",
-                                          "mkl",
                                           "safe", 
-                                          "vecLib",
-                                          "vecLibPath",
                                           "pardiso.license",
                                           "keep",
                                           "verbose",
@@ -256,9 +227,6 @@ NULL
                                           "working.directory",
                                           "silent",
                                           "debug",
-                                          "cygwin",
-                                          "ssh.auth.sock",
-                                          "cygwin.home",
                                           "show.warning.graph.file",
                                           "scale.model.default",
                                           "short.summary",
@@ -268,7 +236,6 @@ NULL
                                           "fmesher.evolution"
                                       ), value) {
         envir <- inla.get.inlaEnv()
-
         option <- match.arg(option, several.ok = FALSE)
         if (!exists("inla.options", envir = envir)) {
             assign("inla.options", list(), envir = envir)

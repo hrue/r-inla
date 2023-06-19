@@ -62,13 +62,6 @@ typedef struct {
 	double l1_cachline[4L];
 } spde2_cache_tp;
 
-typedef struct 
-{
-	double *V;
-	double *v;
-}
-	spde2_vV_tp;
-
 typedef struct {
 	int n;
 	int ntheta;					       /* that is `p' in Finn's notes */
@@ -91,13 +84,17 @@ typedef struct {
 	void *Qfunc_arg;
 	GMRFLib_graph_tp *graph;
 
-	GMRFLib_vmatrix_tp *Vmatrix;
+	GMRFLib_vmatrix_tp *vmatrix;
+	spde2_cache_tp ***cache;
+
 	double **row_V;
-	double **row_v;
 } inla_spde2_tp;
 
+double inla_spde2_Qfunction_orig(int thread_id, int node, int nnode, double *values, void *arg);
+double inla_spde2_Qfunction_cache(int thread_id, int ii, int jj, double *values, void *arg);
+double inla_spde2_Qfunction_old(int thread_id, int ii, int jj, double *values, void *arg);
+double inla_spde2_Qfunction_ref(int thread_id, int ii, int jj, double *values, void *arg);
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg);
-double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *values, void *arg);
 double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covmat, void *arg);
 int inla_spde2_build_model(int thread_id, inla_spde2_tp ** smodel, const char *prefix, const char *transform);
 

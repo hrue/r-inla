@@ -1995,6 +1995,25 @@ void GMRFLib_exp(int n, double *x, double *y)
 #endif
 }
 
+void GMRFLib_exp_inc(int n, double *x, int inc, double *y)
+{
+#if defined(INLA_LINK_WITH_MKL)
+	if (n <= GMRFLib_threshold_exp) {
+#pragma omp simd
+		for (int i = 0; i < n * inc; i += inc) {
+			y[i] = exp(x[i]);
+		}
+	} else {
+		vdExpI(n, x, inc, y, inc);
+	}
+#else
+#pragma omp simd
+	for (int i = 0; i < n * inc; i += inc) {
+		y[i] = exp(x[i]);
+	}
+#endif
+}
+
 void GMRFLib_log(int n, double *x, double *y)
 {
 #if defined(INLA_LINK_WITH_MKL)

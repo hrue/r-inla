@@ -339,7 +339,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 					double m_min = GMRFLib_min_value(ais->mode, G.graph->n, NULL);
 					double m_max = GMRFLib_max_value(ais->mode, G.graph->n, NULL);
 
-					fprintf(G.ai_par->fp_log, " [%.1f, %.2f]\n", DMAX(ABS(m_min), ABS(m_max)),
+					fprintf(G.ai_par->fp_log, " [%.2f, %.3f]\n", DMAX(ABS(m_min), ABS(m_max)),
 						fncall_timing.time_used / fncall_timing.num_fncall);
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */

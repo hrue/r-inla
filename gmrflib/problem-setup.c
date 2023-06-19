@@ -962,7 +962,7 @@ int GMRFLib_evaluate__intern(GMRFLib_problem_tp *problem, int compute_const)
 	 */
 
 	Memcpy(problem->sub_sample, problem->sample, n * sizeof(double));
-#pragma omp simd private(i)
+#pragma omp simd
 	for (i = 0; i < n; i++) {
 		xx[i] = problem->sub_sample[i] - problem->sub_mean[i];
 	}

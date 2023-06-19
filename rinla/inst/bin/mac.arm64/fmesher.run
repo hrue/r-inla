@@ -1,23 +1,6 @@
 #!/bin/bash
 
-myreadlink () {
-    (
-	TARGET_FILE=$1
-	cd `dirname $TARGET_FILE`
-	TARGET_FILE=`basename $TARGET_FILE`
-	while [ -L "$TARGET_FILE" ]
-	do
-	    TARGET_FILE=`readlink $TARGET_FILE`
-	    cd `dirname $TARGET_FILE`
-	    TARGET_FILE=`basename $TARGET_FILE`
-	done
-	PHYS_DIR=`pwd -P`
-	RESULT=$PHYS_DIR/$TARGET_FILE
-	echo $RESULT
-    )
-}
-
-cmd=$(myreadlink "$0")
+cmd=$(readlink -f "$0")
 DIR=$(dirname "$cmd")
 tmp=$(basename "$cmd")
 prog=${tmp%%.run}

@@ -304,7 +304,7 @@ NULL
                 a = a[i], intercept = intercept[i], inverse = FALSE
             ) - x[i]
         )
-        print(round(dig = 3, ans))
+        print(round(digits = 3, ans))
     }
 
     cat("\n\n")
@@ -324,6 +324,6 @@ NULL
                 skew = s[i], intercept = intercept[i], inverse = FALSE
             ) - x[i]
         )
-        print(round(dig = 3, ans))
+        print(round(digits = 3, ans))
     }
 }

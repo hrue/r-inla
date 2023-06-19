@@ -73,9 +73,13 @@ unsigned long long getTotalSystemMemory()
 }
 #endif
 
+#if defined(WINDOWS)
+void inla_signal(int UNUSED(sig))
+{
+}
+#else
 void inla_signal(int sig)
 {
-#if !defined(WINDOWS)
 	fflush(stdout);
 	switch (sig) {
 	case SIGUSR1:
@@ -85,9 +89,9 @@ void inla_signal(int sig)
 		_exit(sig);
 		break;
 	}
-#endif
 	return;
 }
+#endif
 
 int inla_endian(void)
 {

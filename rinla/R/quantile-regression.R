@@ -4,7 +4,7 @@
 
 inla.incGamma <- function(x, lambda = 0, log = FALSE) {
     ## library(gsl); return (gamma_inc(x, lambda))
-    lres <- lgamma(x) + pgamma(lambda, x, lower = FALSE, log.p = TRUE)
+    lres <- lgamma(x) + pgamma(lambda, x, lower.tail = FALSE, log.p = TRUE)
     return(if (log) lres else exp(lres))
 }
 

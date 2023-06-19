@@ -1,23 +1,25 @@
 #!/bin/bash
 
-myreadlink () {
-    (
-	tfile=$1
-	cd $(dirname "$tfile")
-	tfile=$(basename "$tfile")
-	while [ -L "$tfile" ]
-	do
-	    tfile=$(readlink "$tfile")
+readlink -f / 2>/dev/null >/dev/null || \
+    readlink () {
+	(
+	    shift 1
+	    tfile=$1
 	    cd $(dirname "$tfile")
 	    tfile=$(basename "$tfile")
-	done
-	pdir=$(pwd -P)
-	echo "$pdir/$tfile"
-    )
-}
+	    while [ -L "$tfile" ]
+	    do
+		tfile=$(readlink -f "$tfile")
+		cd $(dirname "$tfile")
+		tfile=$(basename "$tfile")
+	    done
+	    pdir=$(pwd -P)
+	    echo "$pdir/$tfile"
+	)
+    }
 
-cmd=$(myreadlink "$0")
-DIR=$(myreadlink $(dirname "$cmd"))
+cmd=$(readlink -f "$0")
+DIR=$(dirname "$cmd")
 tmp=$(basename "$cmd")
 prog=${tmp%%.run}
 

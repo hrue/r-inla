@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cmd=$(readlink -e "$0")
-DIR=$(readlink -e $(dirname "$cmd"))
+DIR=$(dirname "$cmd")
 tmp=$(basename "$0")
 prog=${tmp%%.run}
 

@@ -1,6 +1,23 @@
-# INLA 99.99.99
+# INLA 23.06.15
+* Tolerance was set to low
+* Robustify deviance residuals
 
-* Documentation and dependency updates
+# INLA 23.06.14
+* Improved version of `inla.rerun`
+* Issues reported in `23.06.12` fixed
+
+# INLA 23.06.12
+* Documentation and dependency updates (roxygen transition is now complete)
+* Removed AMDC from default reordering (TAUCS only)
+* Internal code reorganisation 
+* Optimisation of cpo/pit/po/dic
+* Optimisation of spde2-models
+* Optimisation of poisson/binomial/nbinomial (with default link and no offset)
+* Various optimisation work
+* New toolchain for building on Windows (MinGW)
+* Removed openblas-related code (and spesific builds)
+* Removed `inla.setOption`-options: `mkl, blas.num.threads, vecLib, vecLibPath` and `CYGWIN`
+* Added new external package: `fbesag`
 
 # INLA 23.05.30
 * First build with R-4.3 and MacOS 12.6

@@ -99,10 +99,6 @@
 #' `num.threads=4:-1` will locally behave like `num.threads=4:1` (if
 #' considered to be more efficient).  If `B > 1` then
 #' `num.threads=A:B` and `num.threads=A:-B` are equivalent.
-#' @param blas.num.threads THIS OPTION IS CURRENTLY NOT IN USE.  (The absolute
-#' value of `blas.num.threads` is the maximum number of threads the the
-#' `openblas`/`mklblas` will use (if available). Value is ignored if
-#' `<=0` (then environment variables are used).)
 #' @param keep A boolean variable indicating that the working files (ini file,
 #' data files and results files) should be kept. If TRUE and no
 #' `working.directory` is specified, the model-files are stored in the
@@ -263,7 +259,6 @@
                    inla.call = inla.getOption("inla.call"),
                    inla.arg = inla.getOption("inla.arg"),
                    num.threads = inla.getOption("num.threads"),
-                   blas.num.threads = inla.getOption("blas.num.threads"),
                    keep = inla.getOption("keep"),
                    working.directory = inla.getOption("working.directory"),
                    silent = inla.getOption("silent"),
@@ -373,7 +368,6 @@
             inla.call = inla.call, 
             inla.arg = inla.arg, 
             num.threads = num.threads, 
-            blas.num.threads = blas.num.threads, 
             keep = keep, 
             working.directory = working.directory, 
             silent = silent, 
@@ -415,7 +409,6 @@
             inla.call = inla.call, 
             inla.arg = inla.arg, 
             num.threads = num.threads, 
-            blas.num.threads = blas.num.threads, 
             keep = keep, 
             working.directory = working.directory, 
             silent = silent, 
@@ -540,13 +533,9 @@
         ownfun <- TRUE
     } else if (inla.strcasecmp(inla.call, "remote") ||
                inla.strcasecmp(inla.call, "inla.remote") ||
-               length(grep("/inla.remote$", inla.call)) > 0 ||
-               length(grep("/inla.remote.cygwin$", inla.call)) > 0) {
+               length(grep("/inla.remote$", inla.call)) > 0) {
         remote <- TRUE
         inla.call <- system.file("bin/remote/inla.remote", package = "INLA")
-        if (inla.os("windows")) {
-            inla.call <- paste(inla.call, ".cygwin", sep = "")
-        }
     } else if (inla.strcasecmp(inla.call, "submit") ||
                inla.strcasecmp(inla.call, "inla.submit") ||
                length(grep("/inla.submit$", inla.call)) > 0) {
@@ -554,9 +543,6 @@
         submit <- TRUE
         submit.id <- paste(gsub("[ :]", "-", date()), "---", as.integer(runif(1, min = 1E8, max = 1E9 - 1)), sep = "")
         inla.call <- system.file("bin/remote/inla.submit", package = "INLA")
-        if (inla.os("windows")) {
-            inla.call <- paste(inla.call, ".cygwin", sep = "")
-        }
     }
 
     ## Need to do this here.
@@ -610,7 +596,6 @@
             inla.call = inla.call,
             inla.arg = inla.arg,
             num.threads = num.threads,
-            blas.num.threads = blas.num.threads,
             keep = keep,
             working.directory = working.directory,
             silent = silent,
@@ -1152,7 +1137,6 @@
     mf$control.expert <- NULL
     mf$inla.call <- NULL
     mf$num.threads <- NULL
-    mf$blas.num.threads <- NULL
     mf$keep <- NULL
     mf$safe <- NULL
     mf$working.directory <- NULL
@@ -2105,7 +2089,7 @@
         arg.arg <- ""
 
         num.threads <- inla.parse.num.threads(num.threads)
-        arg.nt <- paste0(" -t", num.threads, " -B", blas.num.threads, " ")
+        arg.nt <- paste0(" -t", num.threads, " ")
 
         ## due to the weird behaviour,  we will do the verbose-mode differently now
         if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
@@ -2122,12 +2106,6 @@
         arg.s <- ""
     }
 
-    if ((inla.os("mac") || inla.os("mac.arm64")) && inla.getOption("vecLib") && !inla.getOption("mkl")) {
-        arg.vecLib <- "-L"
-    } else {
-        arg.vecLib <- ""
-    }
-
     if (inla.mode %in% "classic") {
         arg.P <- "-P classic"
     } else if (inla.mode %in% "twostage") {
@@ -2139,7 +2117,7 @@
     }
 
     ## collect all. we might add '-p' later if inla.call="submit"
-    all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.vecLib, arg.P, sep = " ")
+    all.args <- paste(arg.arg, arg.s, arg.v, arg.nt, arg.P, sep = " ")
 
     ## define some environment variables for remote computing
     vars <- list(
@@ -2150,11 +2128,10 @@
             R.Version()$major, ".",
             strsplit(R.Version()$minor, "[.]")[[1]][1]
         ),
-        INLA_RHOME = Sys.getenv("R_HOME"),
-        INLA_VECLIB_PATH = inla.getOption("vecLibPath")
+        INLA_RHOME = Sys.getenv("R_HOME")
     )
     do.call("Sys.setenv", vars)
-    inla.set.sparselib.env(inla.dir, blas.num.threads = blas.num.threads)
+    inla.set.sparselib.env(inla.dir)
 
     if (debug) {
         print(paste("all.args: ", all.args))
@@ -2172,11 +2149,7 @@
                       )
         }
         if (inla.os("windows")) {
-            vars <- c(vars,
-                      INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock"),
-                      INLA_CYGWIN_HOME = inla.getOption("cygwin.home"),
-                      INLA_HOME = inla.cygwin.map.filename(gsub("\\\\", "/", inla.get.HOME()))
-                      )
+            ## nothing
         } else {
             vars <- c(vars,
                       INLA_HOME = inla.get.HOME()
@@ -2260,16 +2233,7 @@
                     }
                 }
             } else {
-                ## remote || submit
-                echoc <- try(inla.cygwin.run.command(
-                    paste(
-                        inla.cygwin.map.filename(inla.call),
-                        all.args,
-                        inla.cygwin.map.filename(file.ini)
-                    ),
-                    file.log = inla.ifelse(verbose, NULL, inla.cygwin.map.filename(file.log))
-                ), silent = TRUE)
-                ## echoc = 0L
+                stop("'remote/submit' is not supported for Windows")
             }
         } else {
             stop("\n\tNot supported architecture.")
@@ -2543,7 +2507,6 @@
             inla.call = inla.call, 
             inla.arg = inla.arg, 
             num.threads = num.threads, 
-            blas.num.threads = blas.num.threads, 
             keep = keep, 
             working.directory = working.directory, 
             silent = silent, 
@@ -2711,7 +2674,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
     return(data)
 }
 
-`inla.set.sparselib.env` <- function(inla.dir = NULL, blas.num.threads = 1L)
+`inla.set.sparselib.env` <- function(inla.dir = NULL)
 {
     ## environment variables for sparse libraries
     if (is.null(inla.dir)) {

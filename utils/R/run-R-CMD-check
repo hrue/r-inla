@@ -15,7 +15,7 @@ find INLA -type l | xargs rm
 ## extract the Export: functions 
 {
     find INLA/R -name \*.R | while read f; do
-        egrep "^## *Export *:" $f | while read ff; do
+        grep -E "^## *Export *:" $f | while read ff; do
             echo "$ff" | awk -F: '{print $2}' | awk '{for(i=1;i<=NF;i++) print "export(" $i ")"}'
         done
     done

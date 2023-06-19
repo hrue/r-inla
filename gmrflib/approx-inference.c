@@ -894,13 +894,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		}
 
 		double err = 0.0;
-#pragma omp simd reduction(+: err) private(i)
+#pragma omp simd reduction(+: err)
 		for (i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
 		}
 		err = sqrt(err / n);
 
-#pragma omp simd private(i)
+#pragma omp simd
 		for (i = 0; i < n; i++) {
 			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 		}
@@ -1761,7 +1761,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				stdev_corr_neg[k] = (f0 > 0.0 ? sqrt(SQR(step) / (2.0 * f0)) : 1.0);
 
 				double gmean = sqrt(stdev_corr_pos[k] * stdev_corr_neg[k]);
-				double lim = 0.85;
+				double lim = 0.3;
 				if ((stdev_corr_neg[k] < lim && stdev_corr_pos[k] < lim) ||
 				    (stdev_corr_neg[k] > 1.0 / lim && stdev_corr_pos[k] > 1.0 / lim)) {
 #pragma omp critical (Name_4267c78b945bb634ad14f44c9e0a55dc1213e726)

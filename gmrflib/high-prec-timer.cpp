@@ -1,7 +1,7 @@
 
-/* timer.c
+/* high-prec-timer.cpp
  *
- * Copyright (C) 2001-2023 Havard Rue
+ * Copyright (C) 2023-2023 Havard Rue
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,47 +28,26 @@
  *
  */
 
-#include <stddef.h>
-#include <math.h>
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
-
-#include "GMRFLib/GMRFLib.h"
-#include "GMRFLib/GMRFLibP.h"
-#include "GMRFLib/hashP.h"
-
-
 #if defined(WINDOWS)
 
-// define the function in the high-prec-timer.cpp
+#include <bits/stdc++.h>
+#include <chrono>
+using namespace std;
+ 
+extern "C" double GMRFLib_cpu_default(void);
 
-#else							       // if defined(WINDOWS)
-
-#if defined(_OPENMP)
-
-#include <sys/time.h>
-#include <omp.h>
-double GMRFLib_cpu_default(void)
+double GMRFLib_cpu_default()
 {
-	return (omp_get_wtime());
+	static auto start = chrono::high_resolution_clock::now();
+	static int first = 1;
+	if (first) {
+		start = chrono::high_resolution_clock::now();
+		first = 0;
+	}
+
+	auto now = chrono::high_resolution_clock::now();
+	double time_taken = (chrono::duration_cast<chrono::nanoseconds>(now - start).count()) * 1.0e-9;
+	return time_taken;
 }
 
-#else							       // if defined(_OPENMP)
-
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <unistd.h>
-double GMRFLib_cpu_default(void)
-{
-	struct timeval time1;
-	double time;
-	gettimeofday(&time1, NULL);
-	time = time1.tv_sec + time1.tv_usec * 1.0e-6;
-	return (time);
-}
-
-#endif							       // if defined(_OPENMP)
-#endif							       // if defined(WINDOWS)
+#endif

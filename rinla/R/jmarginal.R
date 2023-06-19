@@ -221,7 +221,7 @@
     mode.sn <- function(xi, omega, alpha) {
         med <- sn::qsn(0.5, xi, omega, alpha)
         res <- optimize(
-            f = dsn, interval = c(med - omega, med + omega), maximum = TRUE,
+            f = sn::dsn, interval = c(med - omega, med + omega), maximum = TRUE,
             ## arguments to 'dsn'
             log = TRUE, xi = xi, omega = omega, alpha = alpha
         )

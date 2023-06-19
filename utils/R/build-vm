@@ -60,11 +60,13 @@ ssh -x -t $IP "
     test -d \$B/$D && rm -rf \$B/$D;
     rsync -auv \$B/r-inla/rinla/inst/bin/linux/$D \$B;
     export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib64:/usr/lib64/R/lib:\$PWD/local/lib:\$LD_LIBRARY_PATH;
-    cp -v \$B/local/bin/inla \$B/$D;
     cp -v \$B/local/bin/fmesher \$B/$D;
     rsync -auv \$B/external-packages/external \$B/$D;
-    bin/my.ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$D; done;
     bin/my.ldd \$B/local/bin/fmesher | while read f; do cp -v \$f \$B/$D; done
+    if test -f \$B/local/bin/inla; then 
+        cp -v \$B/local/bin/inla \$B/$D;
+        bin/my.ldd \$B/local/bin/inla | while read f; do cp -v \$f \$B/$D; done;
+    fi	
     if test -f \$B/local/bin/inla.mkl; then 
         cp -v \$B/local/bin/inla.mkl \$B/$D;
         bin/my.ldd \$B/local/bin/inla.mkl | while read f; do cp -v \$f \$B/$D; done;

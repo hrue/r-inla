@@ -201,10 +201,7 @@
     cat("Source files in ", dir, ". Loaded ", length(files), " files and replaced ", nfuncs, " functions.\n", sep = "")
 
     if (binaries) {
-        inla.setOption("inla.call", path.expand(paste(bin.path, "/",
-            if (inla.getOption("mkl")) "inla.mkl.run" else "inla.run",
-            sep = ""
-        )))
+        inla.setOption("inla.call", path.expand(paste(bin.path, "/", "inla.mkl.run", sep = "" )))
         inla.setOption("fmesher.call", path.expand(paste(bin.path, "/", "fmesher.run", sep = "")))
         cat("Define new values for 'inla.call' and 'fmesher.call'\n", sep = "")
     }
@@ -753,8 +750,8 @@
 
 `inla.inlaprogram.timeout` <- function(timeused, timeout) {
     if (timeout > 0 && timeused > timeout) {
-        stop(paste0(" *** Interupted after ", round(dig = 1, timeused),
-                    " seconds due to timeout = ", round(dig = 1, timeout), " seconds"))
+        stop(paste0(" *** Interupted after ", round(digits = 1, timeused),
+                    " seconds due to timeout = ", round(digits = 1, timeout), " seconds"))
     }
 }
 

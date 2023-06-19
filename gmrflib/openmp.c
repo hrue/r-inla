@@ -32,16 +32,6 @@
 
 #include "GMRFLib/GMRFLib.h"
 
-#if defined(INLA_LINK_WITH_MKL) || defined(INLA_LINK_WITH_OPENBLAS)
-// this is a workaround for the new OPENMP5 standard, where set/get_nested
-// is depreciated and we get this annoying warning message using MKL.
-// OMP_NESTED=TRUE must be defined...
-//
-//int omp_get_max_active_levels(void);
-//void omp_set_max_active_levels(int);
-//#define omp_get_nested() (omp_get_max_active_levels() > 0 ? 1 : 0)
-//#define omp_set_nested(_val) omp_set_max_active_levels(((_val) ? GMRFLib_MAX_THREADS() : 0))
-#endif
 
 int GMRFLib_set_blas_num_threads(int threads)
 {
@@ -50,10 +40,8 @@ int GMRFLib_set_blas_num_threads(int threads)
 		void MKL_Set_Num_Threads(int);
 		MKL_Set_Num_Threads(threads);
 #endif
-#if defined(INLA_LINK_WITH_OPENBLAS)
-		void openblas_set_num_threads(int);
-		openblas_set_num_threads(threads);
-#endif
+		// void openblas_set_num_threads(int);
+		// openblas_set_num_threads(threads);
 	}
 	return 0;
 }

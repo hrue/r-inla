@@ -534,7 +534,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	if (h->n <= limit || !prepare || !GMRFLib_internal_opt) {
-		h->preference = IDXVAL_SERIAL_MKL;
+		h->preference = IDXVAL_GROUP_MKL;
 		return GMRFLib_SUCCESS;
 	}
 	// an upper bound for the number of groups for memory allocation
@@ -849,8 +849,9 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 
 	int kmin = -1;
 	double tmin = GMRFLib_min_value(treff, 4, &kmin);
+
 	if (debug) {
-		double s = 1.0 / (treff[0] + treff[1] + treff[2] + treff[3]);
+		double s = 1.0 / (DBL_EPSILON + treff[0] + treff[1] + treff[2] + treff[3]);
 		printf("for h with n= %1d chose kmin=%1d [serial= %.3f serial.mkl= %.3f group= %.3f group.mkl= %.3f]\n",
 		       h->n, kmin, treff[0] * s, treff[1] * s, treff[2] * s, treff[3] * s);
 	}
@@ -891,7 +892,7 @@ int GMRFLib_idxval_nsort_x_core(GMRFLib_idxval_tp *h, double *x, int prepare, in
 	}
 
 	if (GMRFLib_dot_product_optim_report) {
-		int idx;
+		int idx = 0;
 		GMRFLib_CACHE_SET_ID(idx);
 		for (k = 0; k < 4; k++) {
 			GMRFLib_dot_product_optim_report[idx][k] += treff[k];
@@ -1066,7 +1067,7 @@ int GMRFLib_str_is_member(GMRFLib_str_tp *hold, char *s, int case_sensitive, int
 		return 0;
 	}
 
-	int (*cmp)(const char *, const char *) =(case_sensitive ? strcmp : strcasecmp);
+	int (*cmp)(const char *, const char *) = (case_sensitive ? strcmp : strcasecmp);
 	for (int i = 0; i < hold->n; i++) {
 		if (cmp(s, hold->str[i]) == 0) {
 			if (idx_match) {
