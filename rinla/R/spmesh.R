@@ -185,7 +185,7 @@ internal.clip <- function(bounds, coords, eps = 0.05) {
 #' @title Handling CRS/WKT
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` in favour of [inlabru::fm_crs()] and related
+#' `r lifecycle::badge("deprecated")` in favour of [inlabru::fm_wkt()] and related
 #' methods.
 #' 
 #' Get and set CRS object or WKT string properties.
@@ -235,6 +235,11 @@ internal.clip <- function(bounds, coords, eps = 0.05) {
 #' }
 #'
 #' @rdname crs_wkt
+#' @name crs_wkt
+NULL
+
+#' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_wkt_is_geocent()]
 #' @export inla.wkt_is_geocent
 inla.wkt_is_geocent <- function(wkt) {
     if (inla.getOption("fmesher.evolution") >= 2L) {
@@ -246,7 +251,8 @@ inla.wkt_is_geocent <- function(wkt) {
 }
 
 #' @export
-#' @rdname crs_wkt
+#' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_crs_is_geocent()]
 
 inla.crs_is_geocent <- function(crs) {
     if (inla.getOption("fmesher.evolution") >= 2L) {
@@ -258,7 +264,8 @@ inla.crs_is_geocent <- function(crs) {
 }
 
 
-#' @rdname crs_wkt
+#' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_ellipsoid_radius()]
 #' @export
 
 inla.wkt_get_ellipsoid_radius <- function(wkt) {
@@ -270,7 +277,8 @@ inla.wkt_get_ellipsoid_radius <- function(wkt) {
     inlabru::fm_ellipsoid_radius(wkt)
 }
 
-#' @rdname crs_wkt
+#' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_ellipsoid_radius()]
 #' @export
 
 inla.crs_get_ellipsoid_radius <- function(crs) {
@@ -283,7 +291,8 @@ inla.crs_get_ellipsoid_radius <- function(crs) {
 }
 
 
-#' @rdname crs_wkt
+#' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_wkt_set_ellipsoid_radius()]
 #' @param radius numeric
 #' @export
 
@@ -293,11 +302,12 @@ inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
                                   what = "inla.wkt_set_ellipsoid_radius()",
                                   with = "`inlabru::fm_ellipsoid_radius<-`()")
     }
-    inlabru::fm_wkt_get_ellisoid_radius(wkt) <- radius
+    inlabru::fm_ellisoid_radius(wkt) <- radius
     wkt
 }
 
-#' @rdname crs_wkt
+#' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_ellipsoid_radius<-()]
 #' @export
 
 inla.crs_set_ellipsoid_radius <- function(crs, radius) {
@@ -306,7 +316,7 @@ inla.crs_set_ellipsoid_radius <- function(crs, radius) {
                                   what = "inla.crs_set_ellipsoid_radius()",
                                   with = "`inlabru::fm_ellipsoid_radius<-`()")
     }
-    inlabru::fm_wkt_get_ellisoid_radius(crs) <- radius
+    inlabru::fm_ellisoid_radius(crs) <- radius
     crs
 }
 
@@ -685,6 +695,9 @@ plot.CRS <- function(x, xlim = NULL, ylim = NULL,
 
 #' Create a coordinate reference system object
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_CRS()]
 #' Creates either a CRS object or an inla.CRS object, describing a coordinate
 #' reference system. Deprecated in favour of `inlabru::fm_CRS()`.
 #'
@@ -733,21 +746,16 @@ inla.CRS <- function(...) {
 #' names(inla.wkt_predef())
 #' }
 #' @export
-#' @rdname inla.CRS
+#' @describeIn inla.CRS `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_wkt_predef()]
 
 inla.wkt_predef <- function() {
-    list(
-        hammer_norm = 'PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["unknown",ELLIPSOID["unknown",0.707106781186548,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Reference meridian",0,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]]],CONVERSION["unknown",METHOD["PROJ hammer"]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]]]',
-        lambert_norm = 'PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["unknown",ELLIPSOID["unknown",1,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Reference meridian",0,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]]],CONVERSION["unknown",METHOD["Lambert Cylindrical Equal Area (Spherical)",ID["EPSG",9834]],PARAMETER["Latitude of 1st standard parallel",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8823]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]]]',
-        longlat_norm = 'GEOGCRS["unknown",DATUM["unknown",ELLIPSOID["unknown",1,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Reference meridian",0,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]],CS[ellipsoidal,2],AXIS["longitude",east,ORDER[1],ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]],AXIS["latitude",north,ORDER[2],ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]]]',
-        mollweide_norm = 'PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["unknown",ELLIPSOID["unknown",0.707106781186548,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Reference meridian",0,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]]],CONVERSION["unknown",METHOD["Mollweide"],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]]]',
-        hammer_globe = 'PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["Unknown based on Normal Sphere (r=6370997) ellipsoid",ELLIPSOID["Normal Sphere (r=6370997)",6370997,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8901]]],CONVERSION["unknown",METHOD["PROJ hammer"]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]]]',
-        lambert_globe = 'PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["Unknown based on Normal Sphere (r=6370997) ellipsoid",ELLIPSOID["Normal Sphere (r=6370997)",6370997,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8901]]],CONVERSION["unknown",METHOD["Lambert Cylindrical Equal Area (Spherical)",ID["EPSG",9834]],PARAMETER["Latitude of 1st standard parallel",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8823]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["kilometre",1000],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["kilometre",1000],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]]]',
-        longlat_globe = 'GEOGCRS["unknown",DATUM["Unknown based on Normal Sphere (r=6370997) ellipsoid",ELLIPSOID["Normal Sphere (r=6370997)",6370997,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8901]],CS[ellipsoidal,2],AXIS["longitude",east,ORDER[1],ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]],AXIS["latitude",north,ORDER[2],ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]]]',
-        mollweide_globe = 'PROJCRS["unknown",BASEGEOGCRS["unknown",DATUM["Unknown based on Normal Sphere (r=6370997) ellipsoid",ELLIPSOID["Normal Sphere (r=6370997)",6370997,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8901]]],CONVERSION["unknown",METHOD["Mollweide"],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["kilometre",1000],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["kilometre",1000],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]]]',
-        sphere = 'GEODCRS["unknown",DATUM["unknown",ELLIPSOID["unknown",1,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Reference meridian",0,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9122]]],CS[Cartesian,3],AXIS["(X)",geocentricX,ORDER[1],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["(Y)",geocentricY,ORDER[2],LENGTHUNIT["metre",1,ID["EPSG",9001]]],AXIS["(Z)",geocentricZ,ORDER[3],LENGTHUNIT["metre",1,ID["EPSG",9001]]]]',
-        globe = 'GEODCRS["unknown",DATUM["Unknown based on Normal Sphere (r=6370997) ellipsoid",ELLIPSOID["Normal Sphere (r=6370997)",6370997,0,LENGTHUNIT["metre",1,ID["EPSG",9001]]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8901]],CS[Cartesian,3],AXIS["(X)",geocentricX,ORDER[1],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]],AXIS["(Y)",geocentricY,ORDER[2],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]],AXIS["(Z)",geocentricZ,ORDER[3],LENGTHUNIT["kilometre",1000,ID["EPSG",9036]]]]'
-    )
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.wkt_predef()",
+                                  with = "inlabru::fm_wkt_predef()")
+    }
+    inlabru::fm_wkt_predef()
 }
 
 
@@ -756,6 +764,8 @@ inla.wkt_predef <- function() {
 
 #' Internal WKT handling
 #'
+#' `r lifecycle::badge("deprecated")` in favour of
+#' [inlabru::fm_wkt_as_wkt_tree()].
 #' Conversion between WKT and a tree representation
 #'
 #'
@@ -827,7 +837,7 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #'
 #' Wrapper for `sp::CRS` and `inla.CRS` objects to extract the
 #' coordinate reference system argument string.
-#' When `inlabru` version `>= 2.7.0.9012` is installed, use `fm_proj4string()` instead,
+#' 'r lifecycle::badge("deprecated")` in favour of `fm_proj4string()`,
 #' or `fm_wkt()` for WKT2 representations.
 #'
 #' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
@@ -862,25 +872,13 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' @export
 #' @rdname CRSargs
 inla.CRSargs <- function(x, ...) {
-    if ((getNamespaceVersion("inlabru") >= "2.7.0.9012")) {
-        if (inla.getOption("fmesher.evolution") >= 2L) {
-            lifecycle::deprecate_soft(when = "2023.06.06",
-                                      what = "inla.CRSargs()",
-                                      with = "inlabru::fm_proj4string()")
-        }
-        
-        return(inlabru::fm_proj4string(x))
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        lifecycle::deprecate_soft(when = "2023.06.06",
+                                  what = "inla.CRSargs()",
+                                  with = "inlabru::fm_proj4string()")
     }
-
-    if (inherits(x, "inla.CRS")) {
-        x <- x[["crs"]]
-    }
-    if (is.null(x)) {
-        as.character(NA)
-    } else {
-        inla.require("sf", stop.on.error = TRUE)
-        sf::st_crs(x)$proj4string
-    }
+    
+    return(inlabru::fm_proj4string(x))
 }
 
 

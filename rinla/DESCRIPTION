@@ -20,6 +20,7 @@ Depends:
 Imports:
     graphics,
     grDevices,
+    inlabru (>= 2.8.0),
     lifecycle,
     methods,
     parallel,

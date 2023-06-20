@@ -26,9 +26,17 @@ object}
 \code{inla.wkt_predef} returns a WKT2 string defining a projection
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[inlabru:fm_CRS_sp]{inlabru::fm_CRS()}}
 Creates either a CRS object or an inla.CRS object, describing a coordinate
 reference system. Deprecated in favour of \code{inlabru::fm_CRS()}.
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.wkt_predef()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[inlabru:fm_crs]{inlabru::fm_wkt_predef()}}
+
+}}
 \examples{
 
 
