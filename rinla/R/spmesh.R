@@ -1269,17 +1269,15 @@ inla.identical.CRS <- function(...) {
 
 #' Wrapper method for `inlabru::fm_transform`
 #'
-#' Handles transformation of various inla objects accorting to coordinate
+#' `r lifecycle::badge("deprecated")` in favour of [inlabru::fm_transform()].
+#' Handles transformation of various inla objects according to coordinate
 #' reference systems of `sf::crs`, `sp::CRS` or `inla.CRS` class.
 #'
 #'
 #' @param x The object that should be transformed from it's current CRS to a
 #' new CRS
-#' @param crs0 The source crs object, only needed for raw coordinate inputs
-#' @param CRSobj The target crs object
-#' @param passthrough default FALSE. Setting to TRUE allows objects with no CRS
-#' information to be passed through without transformation.
-#' @param \dots Potential additional arguments
+#' @param CRSobj passed on as the `crs` argument to [inlabru::fm_transform()].
+#' @param \dots Potential other arguments for [inlabru::fm_transform()].
 #' @return The object is returned with its coordinates transformed
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
 #' @seealso [inla.CRS()]
@@ -1292,8 +1290,8 @@ inla.identical.CRS <- function(...) {
 #'         crs = fm_CRS("longlat_norm")
 #'     )
 #'     mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
-#'     summary(mesh1)
-#'     summary(mesh2)
+#'     print(summary(mesh1))
+#'     print(summary(mesh2))
 #' }
 #' @export inla.spTransform
 inla.spTransform <- function(x, CRSobj, ...) {

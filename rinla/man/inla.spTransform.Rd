@@ -10,20 +10,16 @@ inla.spTransform(x, CRSobj, ...)
 \item{x}{The object that should be transformed from it's current CRS to a
 new CRS}
 
-\item{CRSobj}{The target crs object}
+\item{CRSobj}{passed on as the \code{crs} argument to \code{\link[inlabru:fm_transform]{inlabru::fm_transform()}}.}
 
-\item{\dots}{Potential additional arguments}
-
-\item{crs0}{The source crs object, only needed for raw coordinate inputs}
-
-\item{passthrough}{default FALSE. Setting to TRUE allows objects with no CRS
-information to be passed through without transformation.}
+\item{\dots}{Potential other arguments for \code{\link[inlabru:fm_transform]{inlabru::fm_transform()}}.}
 }
 \value{
 The object is returned with its coordinates transformed
 }
 \description{
-Handles transformation of various inla objects accorting to coordinate
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[inlabru:fm_transform]{inlabru::fm_transform()}}.
+Handles transformation of various inla objects according to coordinate
 reference systems of \code{sf::crs}, \code{sp::CRS} or \code{inla.CRS} class.
 }
 \examples{
@@ -35,8 +31,8 @@ if (require("sf") && require("sp") && require("inlabru")) {
         crs = fm_CRS("longlat_norm")
     )
     mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
-    summary(mesh1)
-    summary(mesh2)
+    print(summary(mesh1))
+    print(summary(mesh2))
 }
 }
 \seealso{

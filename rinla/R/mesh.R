@@ -2494,15 +2494,10 @@ summary.inla.mesh <- function(object, verbose = FALSE, ...) {
         nT = nrow(x$graph$tv),
         xlim = range(x$loc[, 1]),
         ylim = range(x$loc[, 2]),
-        zlim = range(x$loc[, 3])
+        zlim = if (ncol(x$loc) >= 3) range(x$loc[, 3]) else c(NA_real_, NA_real_)
     )))
-    if (is.null(x$crs) || is.null(inla.crs_get_wkt(x$crs))) {
-        ret <- c(ret, list(crs = "N/A", crs_proj4 = "N/A"))
-    } else {
-        inla.require("sf", stop.on.error = TRUE)
-        ret <- c(ret, list(crs = inla.crs_get_wkt(x$crs)))
-        ret <- c(ret, list(crs_proj4 = sf::st_crs(ret$crs)$proj4string))
-    }
+    ret <- c(ret, list(crs = as.character(inlabru::fm_wkt(x$crs))))
+    ret <- c(ret, list(crs_proj4 = as.character(inlabru::fm_crs(x$crs)$proj4string)))
 
     my.segm <- function(x) {
         if (is.null(x)) {
