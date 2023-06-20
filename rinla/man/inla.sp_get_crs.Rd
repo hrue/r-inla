@@ -13,6 +13,7 @@ inla.sp_get_crs(x)
 A \code{CRS} object, or NULL if no valid CRS identified
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{inlabru::fm_CRS()}.
 Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for \code{sp::Spatial}
 objects.
 

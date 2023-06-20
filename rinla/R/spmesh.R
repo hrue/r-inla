@@ -22,7 +22,7 @@
 #'
 #' inla.has_PROJ6()
 #' @export inla.has_PROJ6
-#' @rdname inla.has_PROJ6
+#' @describeIn inla.has_PROJ6 `r lifecycle::badge("deprecated")`
 inla.has_PROJ6 <- function() {
     lifecycle::deprecate_warn(
         "23.01.01",
@@ -32,7 +32,8 @@ inla.has_PROJ6 <- function() {
     TRUE
 }
 
-#' @describeIn inla.has_PROJ6 Called to warn about using old PROJ4
+#' @describeIn inla.has_PROJ6 `r lifecycle::badge("deprecated")`
+#' Called to warn about using old PROJ4
 #' features even though PROJ6 is available
 #' @param fun The name of the calling function
 
@@ -55,7 +56,8 @@ inla.not_for_PROJ6 <- function(fun) {
     }
 }
 
-#' @describeIn inla.has_PROJ6 Called to give an error when
+#' @describeIn inla.has_PROJ6 `r lifecycle::badge("deprecated")`
+#' Called to give an error when
 #' calling methods that are only available for PROJ6
 
 inla.not_for_PROJ4 <- function(fun) {
@@ -71,7 +73,8 @@ inla.not_for_PROJ4 <- function(fun) {
     }
 }
 
-#' @describeIn inla.has_PROJ6 Called to warn about falling back
+#' @describeIn inla.has_PROJ6 `r lifecycle::badge("deprecated")`
+#' Called to warn about falling back
 #' to using old PROJ4 methods when a RPOJ6 method hasn't been implemented
 
 inla.fallback_PROJ6 <- function(fun) {
@@ -87,7 +90,8 @@ inla.fallback_PROJ6 <- function(fun) {
     }
 }
 
-#' @describeIn inla.has_PROJ6 Called to give an error when PROJ6
+#' @describeIn inla.has_PROJ6 `r lifecycle::badge("deprecated")`
+#' Called to give an error when PROJ6
 #' is required but not available
 
 inla.requires_PROJ6 <- function(fun) {
@@ -111,6 +115,7 @@ inla.requires_PROJ6 <- function(fun) {
 #' @title Extract CRS information
 #'
 #' @description
+#' `r lifecycle::badge("deprecated")` in favour of `inlabru::fm_CRS()`.
 #' Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for `sp::Spatial`
 #' objects.
 #'
@@ -177,8 +182,12 @@ internal.clip <- function(bounds, coords, eps = 0.05) {
 
 
 
-#' Handling CRS/WKT
+#' @title Handling CRS/WKT
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")` in favour of [inlabru::fm_crs()] and related
+#' methods.
+#' 
 #' Get and set CRS object or WKT string properties.
 #'
 #'

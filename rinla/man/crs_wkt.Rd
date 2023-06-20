@@ -99,6 +99,9 @@ altered length units.
 Note that the length unit for the ellipsoid radius is unchanged.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[inlabru:fm_crs]{inlabru::fm_crs()}} and related
+methods.
+
 Get and set CRS object or WKT string properties.
 }
 \examples{
