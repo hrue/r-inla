@@ -1098,17 +1098,13 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			for (int j = 0; j < 2; j++) {			\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->npred; i++) { \
-						if (preopt->A_idxval[i]) { \
-							GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-							pred_offset[i] = GMRFLib_dot_product(elm, latent); \
-						}			\
+						GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
+						pred_offset[i] = GMRFLib_dot_product(elm, latent); \
 					}				\
 				} else {				\
 					for (int i = 0; i < preopt->mpred; i++) { \
-						if (preopt->pAA_idxval[i]) { \
-							GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-							pred[i] = GMRFLib_dot_product(elm, latent); \
-						}			\
+						GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
+						pred[i] = GMRFLib_dot_product(elm, latent); \
 					}				\
 				}					\
 			}
