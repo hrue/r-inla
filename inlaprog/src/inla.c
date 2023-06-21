@@ -6148,7 +6148,7 @@ int inla_integrate_func(double *d_mean, double *d_stdev, double *d_mode, GMRFLib
 		GMRFLib_density_std2user_n(xx, xpm, npm, density);
 		if (!plain_case) {
 #pragma GCC ivdep
-			for (int i = 0; i < npm - 1; i++) {
+			for (int i = 0; i < npm; i++) {
 				xx[i] = _MAP_X(xx[i]);
 			}
 		}
