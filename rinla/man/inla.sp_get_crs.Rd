@@ -21,11 +21,10 @@ This function is a convenience method to workaround PROJ4/PROJ6 differences,
 and the lack of a crs extraction method for Spatial objects.
 }
 \examples{
-
 \dontrun{
 if (interactive()) {
-    s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inla.CRS("sphere"))
-    inla.sp_get_crs(s)
+  s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inlabru::fm_CRS("sphere"))
+  inla.sp_get_crs(s)
 }
 }
 

@@ -13,8 +13,10 @@
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @keywords internal
 #' @examples
-#'
-#' inla.dBind(Matrix(1, 2, 1), Matrix(2, 1, 2))
+#' \dontrun{
+#'   inla.dBind(Matrix(1, 2, 1), Matrix(2, 1, 2))
+#' }
+#' bdiag(Matrix(1, 2, 1), Matrix(2, 1, 2))
 #' @export inla.dBind
 inla.dBind <- function(...) {
     .Deprecated("Matrix::bdiag")

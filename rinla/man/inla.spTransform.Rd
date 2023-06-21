@@ -25,14 +25,14 @@ reference systems of \code{sf::crs}, \code{sp::CRS} or \code{inla.CRS} class.
 \examples{
 
 if (require("sf") && require("sp") && require("inlabru")) {
-    latt <- inla.mesh.lattice(-10:10, 40:60)
-    mesh1 <- inla.mesh.create(
-        lattice = latt, extend = FALSE, refine = FALSE,
-        crs = fm_CRS("longlat_norm")
-    )
-    mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
-    print(summary(mesh1))
-    print(summary(mesh2))
+  latt <- inla.mesh.lattice(-10:10, 40:60)
+  mesh1 <- inla.mesh.create(
+    lattice = latt, extend = FALSE, refine = FALSE,
+    crs = fm_CRS("longlat_norm")
+  )
+  mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
+  print(summary(mesh1))
+  print(summary(mesh2))
 }
 }
 \seealso{

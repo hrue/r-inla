@@ -1906,6 +1906,7 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
 #' mesh <- inla.mesh.2d(loc, boundary = boundary, offset = offset, max.edge = c(0.05, 0.1))
 #'
 #' plot(mesh)
+#' @importFrom inlabru fm_identical_CRS fm_crs_is_geocent
 #' @export inla.mesh.2d
 inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
                          loc.domain = NULL, ## Points that determine the automatic domain
@@ -1961,8 +1962,8 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
     }
 
     if (!is.null(crs)) {
-        issphere <- inla.identical.CRS(crs, inla.CRS("sphere"))
-        isgeocentric <- inla.crs_is_geocent(crs)
+        issphere <- fm_identical_CRS(crs, fm_CRS("sphere"))
+        isgeocentric <- fm_crs_is_geocent(crs)
         if (isgeocentric) {
             crs.target <- crs
             crs <- fm_CRS("sphere")
@@ -2959,7 +2960,7 @@ inla.internal.make.spline.mesh <- function(interval, m, degree, boundary, free.c
             }
         }
     }
-    return(inla.mesh.1d(seq(interval[1], interval[2], length = n),
+    return(inla.mesh.1d(seq(interval[1], interval[2], length.out = n),
         degree = degree,
         boundary = boundary,
         free.clamped = free.clamped
@@ -4318,7 +4319,7 @@ inla.mesh.deriv <- function(mesh, loc) {
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
 #'
-#' theta <- seq(0, 2 * pi, length = 1000)
+#' theta <- seq(0, 2 * pi, length.out = 1000)
 #' loc <- cbind(cos(theta), sin(theta))
 #' idx <- inla.simplify.curve(loc = loc, idx = 1:nrow(loc), eps = 0.01)
 #' print(c(nrow(loc), length(idx)))
@@ -4626,8 +4627,8 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
     }
     ax <-
         list(
-            seq(lim[1, 1] - ex, lim[1, 2] + ex, length = resolution[1]),
-            seq(lim[2, 1] - ex, lim[2, 2] + ex, length = resolution[2])
+            seq(lim[1, 1] - ex, lim[1, 2] + ex, length.out = resolution[1]),
+            seq(lim[2, 1] - ex, lim[2, 2] + ex, length.out = resolution[2])
         )
     xy <- as.matrix(expand.grid(ax[[1]], ax[[2]]))
 
@@ -4725,8 +4726,8 @@ inla.nonconvex.hull.basic <- function(points, convex = -0.15, resolution = 40, e
     }
 
     ax <- list(
-        seq(lim[1, 1] - ex[1], lim[1, 2] + ex[1], length = resolution[1]),
-        seq(lim[2, 1] - ex[2], lim[2, 2] + ex[2], length = resolution[2])
+        seq(lim[1, 1] - ex[1], lim[1, 2] + ex[1], length.out = resolution[1]),
+        seq(lim[2, 1] - ex[2], lim[2, 2] + ex[2], length.out = resolution[2])
     )
     xy <- as.matrix(expand.grid(ax[[1]], ax[[2]]))
     tr <- diag(c(1 / ex[1], 1 / ex[2]))

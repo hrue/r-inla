@@ -13,28 +13,20 @@ inla.sp2segment(sp, ...)
 \item{sp}{An \code{sp} polygon object of class \code{Polygon},
 \code{Polygons}, \code{SpatialPolygons}, or \code{SpatialPolygonsDataFrame}.}
 
-\item{\dots}{Additional arguments passed on to other methods.}
-
-\item{join}{If \code{TRUE}, join multiple polygons into a single segment
-(possibly non-simply connected).}
-
-\item{grp}{Group ID specification for each polygon, as used by
-\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}, one ID per polygon.}
-
-\item{reverse}{Logical, indicating if the line sequence should be traversed
-backwards.}
-
-\item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
-
-\item{is.bnd}{logical}
+\item{\dots}{Additional arguments passed on to \code{inlabru::fm_as_inla_mesh_segment()}.}
 }
 \value{
 A \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object, or a list of
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} objects.
 }
 \description{
-Wrapper for \code{inlabru::fm_as_inla_mesh_segment}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as]{inlabru::fm_as_inla_mesh_segment()}}
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.sp2segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as]{inlabru::fm_as_inla_mesh_segment()}}
+
+}}
 \seealso{
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}}
 }

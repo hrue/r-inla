@@ -5,12 +5,14 @@
 \alias{inla.wkt_predef}
 \title{Create a coordinate reference system object}
 \usage{
-inla.CRS(...)
+inla.CRS(..., args = NULL)
 
 inla.wkt_predef()
 }
 \arguments{
 \item{\dots}{Arguments passed on to \code{inlabru::fm_CRS(...)}.}
+
+\item{args}{list of named proj4 arguments.}
 }
 \value{
 Either an \code{sp::CRS} object or an \code{inla.CRS} object,
@@ -41,12 +43,12 @@ reference system. Deprecated in favour of \code{inlabru::fm_CRS()}.
 
 
 if (require("sf") && require("sp")) {
-    crs1 <- inla.CRS("longlat_globe")
-    crs2 <- inla.CRS("lambert_globe")
-    crs3 <- inla.CRS("mollweide_norm")
-    crs4 <- inla.CRS("hammer_globe")
-    crs5 <- inla.CRS("sphere")
-    crs6 <- inla.CRS("globe")
+  crs1 <- inlabru::fm_CRS("longlat_globe")
+  crs2 <- inlabru::fm_CRS("lambert_globe")
+  crs3 <- inlabru::fm_CRS("mollweide_norm")
+  crs4 <- inlabru::fm_CRS("hammer_globe")
+  crs5 <- inlabru::fm_CRS("sphere")
+  crs6 <- inlabru::fm_CRS("globe")
 }
 \dontrun{
 names(inla.wkt_predef())

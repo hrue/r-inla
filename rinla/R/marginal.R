@@ -273,7 +273,7 @@ NULL
 #' @export
 `inla.pmarginal` <- function(q, marginal, normalize = TRUE, len = 2048L) {
     f <- inla.sfmarginal(inla.smarginal(marginal))
-    xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length = len)
+    xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length.out = len)
     d <- cumsum(exp(f[["fun"]](xx)))
     d <- d / d[length(d)]
 
@@ -291,7 +291,7 @@ NULL
 #' @export
 `inla.qmarginal` <- function(p, marginal, len = 2048L) {
     f <- inla.sfmarginal(inla.smarginal(marginal))
-    xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length = len)
+    xx <- seq(f[["range"]][[1L]], f[["range"]][[2L]], length.out = len)
     d <- cumsum(exp(f[["fun"]](xx)))
     d <- d / d[length(d)]
 
@@ -323,7 +323,7 @@ NULL
     sm <- inla.smarginal(marginal, keep.type = FALSE)
     f <- inla.sfmarginal(sm)
     x.range <- f[["range"]]
-    xx <- seq(x.range[[1L]], x.range[[2L]], length = len)
+    xx <- seq(x.range[[1L]], x.range[[2L]], length.out = len)
     ## simply add 0 density outside the range.
     dx <- diff(xx)[[1L]]
     ef <- exp(f[["fun"]](xx))
@@ -423,7 +423,7 @@ NULL
     if (inla.strcasecmp(method, "quantile")) {
         x <- inla.qmarginal((1L:n) / (n + 1.0), marginal)
     } else if (inla.strcasecmp(method, "linear")) {
-        x <- seq(r[[1L]], r[[2L]], length = n)
+        x <- seq(r[[1L]], r[[2L]], length.out = n)
     } else {
         stop("unknown method")
     }

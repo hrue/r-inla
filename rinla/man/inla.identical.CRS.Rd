@@ -6,7 +6,10 @@
 \usage{
 inla.identical.CRS(...)
 }
+\arguments{
+\item{Arguments}{passed on to \code{\link[inlabru:fm_identical_CRS]{inlabru::fm_identical_CRS()}}}
+}
 \description{
 Wrapper for identical, optionally testing only the CRS part of two objects
-Deprecated in favour of \code{inlabru::fm_identical_CRS()}
+Deprecated in favour of \code{\link[inlabru:fm_identical_CRS]{inlabru::fm_identical_CRS()}}
 }

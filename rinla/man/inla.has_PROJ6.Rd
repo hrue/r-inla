@@ -45,7 +45,7 @@ calling methods that are only available for PROJ6
 
 \item \code{inla.fallback_PROJ6()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 Called to warn about falling back
-to using old PROJ4 methods when a RPOJ6 method hasn't been implemented
+to using old PROJ4 methods when a PROJ6 method hasn't been implemented
 
 \item \code{inla.requires_PROJ6()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 Called to give an error when PROJ6
@@ -53,6 +53,7 @@ is required but not available
 
 }}
 \examples{
-
-inla.has_PROJ6()
+\dontrun{
+  inla.has_PROJ6()
+}
 }

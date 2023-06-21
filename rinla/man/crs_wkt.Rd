@@ -126,19 +126,18 @@ Get and set CRS object or WKT string properties.
 
 }}
 \examples{
-
 \dontrun{
-  c1 <- inla.CRS("globe")
-  inla.crs_get_lengthunit(c1)
-  c2 <- inla.crs_set_lengthunit(c1, "km")
-  inla.crs_get_lengthunit(c2)
+c1 <- inlabru::fm_CRS("globe")
+inla.crs_get_lengthunit(c1)
+c2 <- inla.crs_set_lengthunit(c1, "km")
+inla.crs_get_lengthunit(c2)
 }
 
 \dontrun{
-  c1 <- inla.CRS("globe")
-  inla.crs_get_lengthunit(c1)
-  c2 <- inla.crs_set_lengthunit(c1, "km")
-  inla.crs_get_lengthunit(c2)
+c1 <- inla.CRS("globe")
+inla.crs_get_lengthunit(c1)
+c2 <- inla.crs_set_lengthunit(c1, "km")
+inla.crs_get_lengthunit(c2)
 }
 }
 \seealso{
