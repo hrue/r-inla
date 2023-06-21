@@ -371,24 +371,25 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
 #' @return List of available SPDE model type name lists.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
-#'
+#' \dontrun{
 #' ## Display help for each supported inla.spde2 model:
 #' for (model in inla.spde2.models()) {
-#'       print(help(paste("inla.spde2.", model, sep = "")))
-#'   }
+#'     print(help(paste("inla.spde2.", model, sep = "")))
+#' }
 #'
 #' ## Display help for each supported inla.spde* model:
 #' models <- inla.spde.models()
 #' for (type in names(models)) {
-#'       for (model in models[[type]]) {
-#'             print(help(paste("inla.", type, ".", model, sep = "")))
-#'         }
-#'   }
+#'    for (model in models[[type]]) {
+#'        print(help(paste("inla.", type, ".", model, sep = "")))
+#'    }
+#' }
 #'
 #' ## Display help for each supported inla.spde* model (equivalent to above):
 #' for (model in inla.spde.models(function.names = TRUE)) {
-#'       print(help(model))
-#'   }
+#'     print(help(model))
+#' }
+#' }
 #' @export inla.spde.models
 inla.spde.models <- function(function.names = FALSE) {
     types <- c("spde1", "spde2")
