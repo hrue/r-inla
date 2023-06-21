@@ -83,7 +83,7 @@
 #'      f(space, model='bym2', graph=graph),
 #'      data=dat, family='poisson', E=dat$E, progress=TRUE,
 #'      control.st=list(time=time, space=space,
-#'         spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')),
+#'         spacetime=spacetime, graph=graph, type=c(4, '4c')), # Note '4d' may take some time
 #'      control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 #' sapply(res, function(x)
 #'        c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
