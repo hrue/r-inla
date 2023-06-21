@@ -8,7 +8,7 @@ test_that("Case 1", {
     y.pred = inla.link.invtan(eta)
     
     kappa = 10
-    x = seq(-pi, pi, len = 10000)
+    x = seq(-pi, pi, length.out = 10000)
     d = exp(kappa*cos(x))
     dd = cumsum(d)
     dd = dd /max(dd)

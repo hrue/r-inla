@@ -46,6 +46,7 @@
 #' prior using the `pc.prec` prior with `param = c(0.5, 0.5)`. See
 #' documentation with `?inla.doc("pc.prec")`.} }
 #' @param ... Arguments to be passed to the [inla()] function.
+#' @param envir Environment in which to evaluate the ... arguments.
 #' @return `inla.knmodels` returns an object of class `"inla"`.  or a
 #' list of objects of this class if it is asked to compute more than one
 #' interaction type at once.  Note: when the model type is 2c, 3c, 4c, 2d, 3d
@@ -98,18 +99,18 @@
                                 type = c(paste(1:4), paste0(2:4, "c"), paste0(2:4, "d")),
                                 diagonal = 1e-5,
                                 timeref = 1,
-                                spaceref = 1,
-                                ...
+                                spaceref = 1
                             ),
-                            ...) {
+                            ...,
+                            envir = parent.frame()) {
     mcall <- match.call(expand.dots = TRUE)
     ft <- paste("~", mcall$control.st$time)
     if (ft == "~ ") {
         time <- tname <- NULL
     } else {
         tname <- substring(ft, 3)
-        time <- model.frame(as.formula(ft), data = eval(mcall$data))[, 1]
-        timeref <- unique(eval(mcall$control.st$timeref))
+        time <- model.frame(as.formula(ft), data = eval(mcall$data, envir = envir))[, 1]
+        timeref <- unique(eval(mcall$control.st$timeref, envir = envir))
         if (length(timeref) > 1) {
             stop("length(timeref)>1")
         }
@@ -120,9 +121,9 @@
         space <- sname <- NULL
     } else {
         sname <- substring(fs, 3)
-        space <- model.frame(as.formula(fs), data = eval(mcall$data))[, 1]
+        space <- model.frame(as.formula(fs), data = eval(mcall$data, envir = envir))[, 1]
         spaceref <- 1
-        spaceref <- unique(eval(mcall$control.st$spaceref))
+        spaceref <- unique(eval(mcall$control.st$spaceref, envir = envir))
         if (length(spaceref) > 1) {
             stop("length(spaceref)>1")
         }
@@ -137,10 +138,10 @@
         spacetime <- NULL
     } else {
         stname <- substring(fst, 3)
-        spacetime <- model.frame(as.formula(fst), data = eval(mcall$data))[, 1]
+        spacetime <- model.frame(as.formula(fst), data = eval(mcall$data, envir = envir))[, 1]
     }
     ## cat('tname =', tname, ', sname =', sname, ', stname =', stname, '\n')
-    type <- as.character(unique(eval(mcall$control.st$type)))
+    type <- as.character(unique(eval(mcall$control.st$type, envir = envir)))
     types <- c(1:4, paste0(2:4, "c"), paste0(2:4, "d"))
     type <- if (length(type) == 0) types else types[match(type, types)]
     ## cat('type =', type, '\n')
@@ -154,7 +155,7 @@
     .no.of.t <- .no.of.s <- NULL
     nst <- length(unique(spacetime))
     if (!is.null(mcall$control.st$graph)) {
-        graph <- eval(mcall$control.st$graph)
+        graph <- eval(mcall$control.st$graph, envir = envir)
         .no.of.s <- nrow(graph <- inla.graph2matrix(graph))
         R.s <- inla.scale.model(Diagonal(.no.of.s, colSums(graph)) - graph,
             constr = list(A = matrix(1, 1, .no.of.s), e = 0)
@@ -239,7 +240,7 @@
         res$"1" <- inla(update(formula, paste(".~.+", add1)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "1") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "2")) {
         add2 <- paste0(
@@ -250,7 +251,7 @@
         res$"2" <- inla(update(formula, paste(".~.+", add2)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "2") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "3")) {
         add3 <- paste0(
@@ -261,7 +262,7 @@
         res$"3" <- inla(update(formula, paste(".~.+", add3)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "3") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "4")) {
         add4 <- paste0(
@@ -272,7 +273,7 @@
         res$"4" <- inla(update(formula, paste(".~.+", add4)), ...)
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "4") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "2c")) {
         add2c <- paste0(
@@ -302,7 +303,7 @@
         )
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "2c") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "3c")) {
         add3c <- paste0(
@@ -332,7 +333,7 @@
         )
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "3c") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "4c")) {
         add4c <- paste0(
@@ -383,7 +384,7 @@
         )
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "4c") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% c("2d", "3d", "4d"))) {
         lcd2 <- lcd3 <- NULL
@@ -414,7 +415,7 @@
         )
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "2d") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "3d")) {
         lcd3args <- list(Diagonal(.no.of.s * .no.of.t) - M3[time, ])
@@ -431,7 +432,7 @@
         )
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "3d") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (any(type %in% "4d")) {
         lcd3args <- lcd2args <- NULL
@@ -461,7 +462,7 @@
         )
     }
     if (progress && (length(res) > 0) && tail(names(res), 1) == "4d") {
-        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu[4], "\n", sep = "")
+        cat("type = ", tail(names(res), 1), ", cpu = ", res[[length(res)]]$cpu.used[4], "\n", sep = "")
     }
     if (length(res) == 1) {
         return(res[[1]])
