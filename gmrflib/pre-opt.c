@@ -1098,17 +1098,13 @@ int GMRFLib_preopt_predictor_core(double *predictor, double *latent, GMRFLib_pre
 			for (int j = 0; j < 2; j++) {			\
 				if (j == 0) {				\
 					for (int i = 0; i < preopt->npred; i++) { \
-						if (preopt->A_idxval[i]) { \
-							GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-							pred_offset[i] = GMRFLib_dot_product(elm, latent); \
-						}			\
+						GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
+						pred_offset[i] = GMRFLib_dot_product(elm, latent); \
 					}				\
 				} else {				\
 					for (int i = 0; i < preopt->mpred; i++) { \
-						if (preopt->pAA_idxval[i]) { \
-							GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
-							pred[i] = GMRFLib_dot_product(elm, latent); \
-						}			\
+						GMRFLib_idxval_tp *elm = preopt->pAA_idxval[i]; \
+						pred[i] = GMRFLib_dot_product(elm, latent); \
 					}				\
 				}					\
 			}
@@ -1242,11 +1238,7 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 #define CODE_BLOCK							\
 			for (int i = 0; i < npred; i++) {		\
 				GMRFLib_idxval_tp *elm = preopt->A_idxval[i]; \
-				double mean_tmp = 0.0;			\
-				for (int k = 0; k < preopt->A_idxval[i]->n; k++){ \
-					mean_tmp += elm->val[k] * mm[elm->idx[k]]; \
-				}					\
-				mean_offset[i] += mean_tmp;		\
+				mean_offset[i] += GMRFLib_dot_product(elm, mm);	\
 			}
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
