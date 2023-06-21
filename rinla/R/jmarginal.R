@@ -1,6 +1,6 @@
 #' Sample, transform and evaluate from a joint marginal approximation
 #' 
-#' Sample, transform and evalue from from a joint marginal approximation as
+#' Sample, transform and evaluate from from a joint marginal approximation as
 #' returned using argument `selection` in `inla`.
 #' 
 #' 
@@ -41,7 +41,7 @@
 #'  x = 1+rnorm(n)
 #'  xx = 3 + rnorm(n)
 #'  y = 1 + x + xx + rnorm(n)
-#'  selection = list(xx=1, Predictor = 3:4, x=1)
+#'  selection = list(xx=1, x=1)
 #'  r = inla(y ~ 1 + x + xx,
 #'           data = data.frame(y, x, xx),
 #'           selection = selection)
@@ -56,26 +56,26 @@
 #' 
 #'  skew = function(z) mean((z-mean(z))^3)/var(z)^1.5
 #'  print(round(cbind(skew = r$selection$skewness,
-#'                    sample.skew = apply(xx$sample, 1, skew)), dig=3))
+#'                    sample.skew = apply(xx$samples, 1, skew)), digits = 3))
 #' 
 #'  ## illustrating the eval function
 #'  n = 10
 #'  x = rnorm(n)
 #'  eta = 1 + x
 #'  y = eta + rnorm(n, sd=0.1)
-#'  selection = list(x = 1, Predictor = c(1, 2, 4, 5),  '(Intercept)' = 1)
+#'  selection = list(x = 1, '(Intercept)' = 1)
 #'  r = inla(y ~ 1 + x,
 #'           data = data.frame(y, x),
 #'           selection = selection)
 #'  xx = inla.rjmarginal(100,  r)
-#'  xx.eval = inla.rjmarginal.eval(function() c(x, Predictor, Intercept),  xx)
+#'  xx.eval = inla.rjmarginal.eval(function() c(x, Intercept),  xx)
 #'  print(cbind(xx$samples[, 1]))
 #'  print(cbind(xx.eval[, 1]))
 #' 
-#'  constr <- list(A = matrix(1, ncol = n, nrow = 1), e = 1)
+#'  constr <- list(A = matrix(1, ncol = nrow(xx$samples), nrow = 1), e = 1)
 #'  x <- inla.rjmarginal(10, r, constr = constr)
 #' 
-#'  A <- matrix(rnorm(n^2), n, n)
+#'  A <- matrix(rnorm(nrow(xx$samples)^2), nrow(xx$samples), nrow(xx$samples))
 #'  b <- inla.tjmarginal(r, A)
 #'  b.marg <- inla.1djmarginal(b)
 #' 

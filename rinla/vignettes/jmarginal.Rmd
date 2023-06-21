@@ -70,7 +70,7 @@ then linear predictors can also be used. With the default
 ```{r eval=F}
 inla.setOption(inla.mode="compact")
 ```
-then the linear predictor can not be used as it is not explicitely
+then the linear predictor can not be used as it is not explicitly
 part of the latent model. 
 
 
