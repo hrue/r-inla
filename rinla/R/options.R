@@ -114,7 +114,7 @@ NULL
             inla.timeout = 0, 
             fmesher.timeout = 0,
             inla.mode = "compact",
-            fmesher.evolution = 2L
+            fmesher.evolution = 1L
         )
     )
 }
