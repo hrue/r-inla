@@ -276,7 +276,7 @@ inla.create.sn.cache <- function() {
     step <- 0.01 # step for the skewness sequence to be computed
     s <- seq(slb, sub, by = step) # overall skewness to compute
     s.pos <- seq(0, sub, by = step) # partial skewness to compute
-    points <- seq(-4, 4, len = 50) # 50 points is a good deal for speed/accuracy
+    points <- seq(-4, 4, length.out = 50) # 50 points is a good deal for speed/accuracy
 
     ## Needed functions to store the tabulated values for 'qsn','psn' and 'dsn' functions
     ## Skewness Mapping (function)

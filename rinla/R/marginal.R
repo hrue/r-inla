@@ -70,7 +70,7 @@
 #'  ## compute the 95% HPD interval
 #'  inla.hpdmarginal(0.95, m)
 #' 
-#'  x = seq(-6, 6, len = 1000)
+#'  x = seq(-6, 6, length.out = 1000)
 #'  y = dnorm(x)
 #'  inla.hpdmarginal(0.95, list(x=x, y=y))
 #' 
@@ -165,7 +165,7 @@ NULL
     xmin <- min(m[["x"]]) - extrapolate * r
     xmax <- max(m[["x"]]) + extrapolate * r
     n <- factor * length(m[["x"]])
-    xx <- seq(xmin, xmax, len = n)
+    xx <- seq(xmin, xmax, length.out = n)
     if (extrapolate) {
         xx <- c(xmin, m[["x"]], xmax)
     } else {

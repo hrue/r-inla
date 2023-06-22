@@ -96,7 +96,7 @@ inla.pc.sn.cache <- function(force = FALSE, write.files = FALSE) {
     tag <- "cache.pc.sn"
     if (force || !exists(tag, envir = inla.get.inlaEnv())) {
         ran <- 25
-        alphas <- seq(0, ran, len = 500)[-1]
+        alphas <- seq(0, ran, length.out = 500)[-1]
         alphas <- c(-rev(alphas), 0, alphas)
         alphas.pos <- alphas[which(alphas >= 0)]
         alphas.neg <- alphas[which(alphas <= 0)]

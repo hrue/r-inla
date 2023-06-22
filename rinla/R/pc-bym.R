@@ -160,7 +160,7 @@ inla.pc.bym.phi <- function(graph,
     if (use.eigenvalues) {
         ## this is fast for low dimension where we can compute the
         ## eigenvalues
-        phi.s <- 1 / (1 + exp(-seq(-15, 12, len = 1000)))
+        phi.s <- 1 / (1 + exp(-seq(-15, 12, length.out = 1000)))
         d <- numeric(length(phi.s))
         k <- 1
         for (phi in phi.s) {

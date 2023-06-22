@@ -24,7 +24,7 @@
 
     ## create cutpoints if not provided
     if (is.null(cutpoints)) {
-        cutpoints <- seq(0L, max(time), len = n.intervals + 1L)
+        cutpoints <- seq(0L, max(time), length.out = n.intervals + 1L)
     }
 
     new.data <- inla.get.poisson.data.1(time = time, truncation = truncation, event = event, cutpoints = cutpoints)
@@ -208,7 +208,7 @@
     }
     dataframe.copy <- dataframe[subject.first.line, -c(aa1, aa2, aa3), drop = FALSE]
     if (is.null(cutpoints)) {
-          cutpoints <- seq(0.0, max(time), len = n.intervals + 1L)
+          cutpoints <- seq(0.0, max(time), length.out = n.intervals + 1L)
       }
 
     new.data <- inla.get.poisson.data.2(time = time, subject = subject, event = event, cutpoints = cutpoints)

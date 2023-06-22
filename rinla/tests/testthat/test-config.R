@@ -16,7 +16,7 @@ test_that("Case 1", {
             control.inla = list(int.strategy = "grid", diff.logdens = 5, dz=.75))
     cs = r$misc$configs
     for (i in 1:length(cs$contents$tag)) {
-        idx = seq(cs$contents$start[i],  len = cs$contents$len[i])
+        idx = seq(cs$contents$start[i],  length.out = cs$contents$len[i])
         mean = 0
         psum = 0
         for(k in 1:cs$nconfig) {

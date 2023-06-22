@@ -45,7 +45,8 @@ inla.pc.cor1.lambda <- function(u, alpha, lambda) {
             F <- (1 - exp(-lam * sqrt(1 - u))) / (1 - exp(-lam * sqrt(2)))
             return((F - alpha)^2)
         }
-        lambdas <- unique(c(seq(0.0000001, 10, len = 100), seq(10, 100, len = 10)))
+        lambdas <- unique(c(seq(0.0000001, 10, length.out = 100),
+                            seq(10, 100, length.out = 10)))
         idx <- which.min(fun(lambdas, u, alpha))
         stopifnot(idx > 1 && idx < length(lambdas))
         lambda <- optimize(fun,
