@@ -789,13 +789,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 									\
 			/* ok also in parallel */			\
 			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
-			if (ccoof[idx] == cmin) {			\
-				if (b_strategy == INLA_B_STRATEGY_SKIP) { \
-					bcoof[idx] = 0.0;		\
-				}					\
-				bb[idx] += bcoof[idx];			\
-				cc[idx] += ccoof[idx];			\
+			if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
+				bcoof[idx] = 0.0;			\
 			}						\
+			bb[idx] += bcoof[idx];				\
+			cc[idx] += ccoof[idx];				\
 		}
 		
 		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
