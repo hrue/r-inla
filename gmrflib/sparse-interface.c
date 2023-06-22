@@ -420,10 +420,14 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 		int numt_save = omp_get_max_threads(); 
 		if (nrhs <= ntt * 4) {
-			omp_set_num_threads(IMIN(nrhs, ntt)); 
-#pragma omp parallel for
-			for (int i = 0; i < nrhs; i++) {
-				GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
+			if (nrhs > 1) {
+				omp_set_num_threads(IMIN(nrhs, ntt));
+#pragma omp parallel for 
+				for (int i = 0; i < nrhs; i++) {
+					GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
+				}
+			} else {
+				GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap);
 			}
 		} else {
 			// much of the same code as in the smtp-pardiso.c and solve_core function
