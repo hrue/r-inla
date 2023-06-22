@@ -70,9 +70,9 @@ information.  For \code{inla.mesh.projector(mesh, ...)}, an
 the projector object.
 }
 \description{
-Calculate a lattice projection to/from an \code{\link[=inla.mesh]{inla.mesh()}}
-}
-\details{
+Calculate a lattice projection to/from an \code{\link[=inla.mesh]{inla.mesh()}}.
+Deprecated in favour of \code{inlabru::fm_evaluate()} and \code{inlabru::fm_evaluator()}.
+
 The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a shortcut
 to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
 }

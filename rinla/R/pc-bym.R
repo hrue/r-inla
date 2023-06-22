@@ -160,7 +160,7 @@ inla.pc.bym.phi <- function(graph,
     if (use.eigenvalues) {
         ## this is fast for low dimension where we can compute the
         ## eigenvalues
-        phi.s <- 1 / (1 + exp(-seq(-15, 12, len = 1000)))
+        phi.s <- 1 / (1 + exp(-seq(-15, 12, length.out = 1000)))
         d <- numeric(length(phi.s))
         k <- 1
         for (phi in phi.s) {
@@ -175,7 +175,7 @@ inla.pc.bym.phi <- function(graph,
         }
     } else {
         ## alternative strategy for larger matrices
-        phi.s <- 1 / (1 + exp(-c(seq(-15, 0, len = 40), 1:12)))
+        phi.s <- 1 / (1 + exp(-c(seq(-15, 0, length.out = 40), 1:12)))
         d <- numeric(length(phi.s))
         log.q1.det <- inla.sparse.det.bym(Q,
             adjust.for.con.comp = adjust.for.con.comp,
@@ -210,7 +210,7 @@ inla.pc.bym.phi <- function(graph,
     phi.s <- phi.s[-remove]
     phi.intern <- log(phi.s / (1 - phi.s))
     ff.d <- splinefun(phi.intern, log(d))
-    phi.intern <- seq(min(phi.intern) - 0, max(phi.intern), len = 10000)
+    phi.intern <- seq(min(phi.intern) - 0, max(phi.intern), length.out = 10000)
     phi.s <- 1 / (1 + exp(-phi.intern))
     d <- exp(ff.d(phi.intern))
 

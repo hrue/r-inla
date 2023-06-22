@@ -40,7 +40,7 @@ NULL
 inla.pc.gammacount.intern <- function(lambda = 1) {
     ## return a marginal-object in the log(x)-scale
     f <- if (lambda >= 1.0) 1.0 else 0.25
-    log.x <- (seq(-10, 10, len = 4096)) / lambda^f
+    log.x <- (seq(-10, 10, length.out = 4096)) / lambda^f
     idx <- which(log.x == 0.0)
     if (length(idx) > 0) {
         log.x <- log.x[-idx]

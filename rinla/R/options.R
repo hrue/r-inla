@@ -71,6 +71,12 @@
 #' 
 #' \item{inla.mode}{Which mode to use in INLA? Default is `"compact"`. Other
 #' options are `"classic"` and `"twostage"`.}
+#' 
+#' \item{fmesher.evolution}{Control information and warning messages for the
+#' transition of fmesher code into a separate package. `fmesher.evolution=1L` (default)
+#' uses the intermediate `fm_*` methods in `inlabru` without warnings. `fmesher.evolution=2L`
+#' shows deprecation messages for many CRS and mesh related methods, pointing to their
+#' `fm_*` replacements. Further levels will be added as the package development progresses.}
 #' }
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
@@ -107,7 +113,8 @@ NULL
             short.summary = FALSE,
             inla.timeout = 0, 
             fmesher.timeout = 0,
-            inla.mode = "compact"
+            inla.mode = "compact",
+            fmesher.evolution = 2L
         )
     )
 }
@@ -135,7 +142,8 @@ NULL
                                  "short.summary",
                                  "inla.timeout", 
                                  "fmesher.timeout",
-                                 "inla.mode"
+                                 "inla.mode",
+                                 "fmesher.evolution"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
@@ -224,7 +232,8 @@ NULL
                                           "short.summary",
                                           "inla.timeout", 
                                           "fmesher.timeout",
-                                          "inla.mode"
+                                          "inla.mode",
+                                          "fmesher.evolution"
                                       ), value) {
         envir <- inla.get.inlaEnv()
         option <- match.arg(option, several.ok = FALSE)
@@ -254,7 +263,9 @@ NULL
     }
 
     ## add checks that nothing very wrong is set
-    dummy <- match.arg(inla.getOption("inla.mode"), c("compact", "classic", "twostage", "experimental"), several.ok = FALSE)
+    dummy <- match.arg(inla.getOption("inla.mode"),
+                       c("compact", "classic", "twostage", "experimental"),
+                       several.ok = FALSE)
     if (dummy == "experimental") {
         inla.setOption(inla.mode = "compact")
     }

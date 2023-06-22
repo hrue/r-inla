@@ -21,7 +21,7 @@
 #' argument is typically the reordering used by `inla`, found in
 #' `result$misc$reordering`.
 #' @author Havard Rue \email{hrue@@r-inla.org}
-#' @seealso [inla.read.graph()], `inla.qreordering`
+#' @seealso [inla.read.graph()], [inla.qreordering()]
 #' @examples
 #' 
 #' n = 50
@@ -34,7 +34,7 @@
 #' inla.spy(QQ)
 #' print(all.equal(as.matrix(Q), as.matrix(QQ)))
 #' 
-#' g.file = inla.write.graph(g)
+#' g.file = inla.write.graph(g, filename = tempfile())
 #' inla.dev.new()
 #' inla.spy(g.file)
 #' inla.spy(g.file,  reordering = inla.qreordering(g))

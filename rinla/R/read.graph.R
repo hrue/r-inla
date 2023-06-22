@@ -37,15 +37,17 @@
 #' @examples
 #' 
 #' ## a graph from a file
-#' cat("3 1 1 2 2 1 1 3 0\n", file="g.dat")
-#' g = inla.read.graph("g.dat")
+#' g.file1 <- tempfile() # E.g. "g.dat"
+#' cat("3 1 1 2 2 1 1 3 0\n", file = g.file1)
+#' g = inla.read.graph(g.file1)
 #' ## writing an inla.graph-object to file
-#' g.file = inla.write.graph(g, mode="binary")
+#' g.file2 = inla.write.graph(g, mode="binary", filename = tempfile())
 #' ## re-reading it from that file
-#' gg = inla.read.graph(g.file)
+#' gg = inla.read.graph(g.file2)
 #' summary(g)
-#' ##
-#' ## Not run:
+#' summary(gg)
+#' 
+#' \dontrun{
 #' plot(g)
 #' inla.spy(g)
 #' ## when defining the graph directly in the call,
@@ -64,7 +66,7 @@
 #' g = inla.read.graph(adjacent)
 #' plot(g)
 #' summary(g)
-#' ## End(Not run)
+#' }
 #' 
 #' @name read.graph
 #' @rdname read.graph

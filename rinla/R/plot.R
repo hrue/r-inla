@@ -1250,7 +1250,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
     output("prior: ", str.trunc(prior$prior), " param: ", str.trunc(prior$param))
     if (intern) {
         ## use a linear scale. 'x' is in the linear scale
-        x <- seq(range[1], range[2], len = len)
+        x <- seq(range[1], range[2], length.out = len)
         y <- do.call(myp, list(theta = x, param = prior$param))
     } else {
         ## 'x' is in the user-scale.
@@ -1260,11 +1260,11 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         if (prior$prior == "pc.gevtail") {
             interval <- prior$param[c(2, 3)]
             range.theta <- prior$to.theta(range, interval = interval)
-            theta <- seq(range.theta[1], range.theta[2], len = len)
+            theta <- seq(range.theta[1], range.theta[2], length.out = len)
             x <- prior$from.theta(theta, interval = interval)
         } else {
             range.theta <- prior$to.theta(range)
-            theta <- seq(range.theta[1], range.theta[2], len = len)
+            theta <- seq(range.theta[1], range.theta[2], length.out = len)
             x <- prior$from.theta(theta)
         }
         ld <- do.call(myp, args = list(theta = theta, param = prior$param, log = TRUE))

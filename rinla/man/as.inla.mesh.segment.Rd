@@ -2,69 +2,31 @@
 % Please edit documentation in R/spmesh.R
 \name{as.inla.mesh.segment}
 \alias{as.inla.mesh.segment}
-\alias{as.inla.mesh.segment.Line}
-\alias{as.inla.mesh.segment.Lines}
-\alias{as.inla.mesh.segment.SpatialLines}
-\alias{as.inla.mesh.segment.SpatialLinesDataFrame}
-\alias{as.inla.mesh.segment.Polygon}
-\alias{as.inla.mesh.segment.Polygons}
-\alias{as.inla.mesh.segment.SpatialPolygons}
-\alias{as.inla.mesh.segment.SpatialPolygonsDataFrame}
 \alias{inla.sp2segment}
-\alias{as.inla.mesh.segment.SpatialPoints}
-\alias{as.inla.mesh.segment.SpatialPointsDataFrame}
-\title{Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.}
+\title{Convert \code{sp} objects to \code{inla.mesh.segment} objects.}
 \usage{
 as.inla.mesh.segment(sp, ...)
 
 inla.sp2segment(sp, ...)
-
-\method{as.inla.mesh.segment}{SpatialPoints}(sp, reverse = FALSE, grp = NULL, is.bnd = TRUE, ...)
-
-\method{as.inla.mesh.segment}{SpatialPointsDataFrame}(sp, ...)
-
-\method{as.inla.mesh.segment}{Line}(sp, reverse = FALSE, crs = NULL, ...)
-
-\method{as.inla.mesh.segment}{Lines}(sp, join = TRUE, crs = NULL, ...)
-
-\method{as.inla.mesh.segment}{SpatialLines}(sp, join = TRUE, grp = NULL, ...)
-
-\method{as.inla.mesh.segment}{SpatialLinesDataFrame}(sp, ...)
-
-\method{as.inla.mesh.segment}{SpatialPolygons}(sp, join = TRUE, grp = NULL, ...)
-
-\method{as.inla.mesh.segment}{SpatialPolygonsDataFrame}(sp, ...)
-
-\method{as.inla.mesh.segment}{Polygons}(sp, join = TRUE, crs = NULL, ...)
-
-\method{as.inla.mesh.segment}{Polygon}(sp, crs = NULL, ...)
 }
 \arguments{
 \item{sp}{An \code{sp} polygon object of class \code{Polygon},
 \code{Polygons}, \code{SpatialPolygons}, or \code{SpatialPolygonsDataFrame}.}
 
-\item{\dots}{Additional arguments passed on to other methods.}
-
-\item{reverse}{Logical, indicating if the line sequence should be traversed
-backwards.}
-
-\item{grp}{Group ID specification for each polygon, as used by
-\code{\link[=inla.mesh.segment]{inla.mesh.segment()}}, one ID per polygon.}
-
-\item{is.bnd}{logical}
-
-\item{crs}{An optional \code{CRS} or \code{inla.CRS} object}
-
-\item{join}{If \code{TRUE}, join multiple polygons into a single segment
-(possibly non-simply connected).}
+\item{\dots}{Additional arguments passed on to \code{inlabru::fm_as_inla_mesh_segment()}.}
 }
 \value{
 A \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object, or a list of
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} objects.
 }
 \description{
-Convert \code{sp} curve objects to \code{inla.mesh.segment} objects.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as]{inlabru::fm_as_inla_mesh_segment()}}
 }
+\section{Functions}{
+\itemize{
+\item \code{inla.sp2segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as]{inlabru::fm_as_inla_mesh_segment()}}
+
+}}
 \seealso{
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}}
 }
