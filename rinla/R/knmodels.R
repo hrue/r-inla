@@ -76,7 +76,7 @@
 #' dat$e <- runif(nd, 0.9, 1.1)*rgamma(n, 40, 2)
 #' dat$y <- rpois(nd, dat$e*exp(dat$x$eta-3))
 #' summary(dat$y)
-#' 
+#'
 #' ### fit the type 4 considering three different approaches
 #' tgraph <- sparseMatrix(i=c(2:10, 1:9), j=c(1:9, 2:10), x=1)
 #' res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
@@ -169,7 +169,7 @@
     }
     if (!is.null(space)) {
         if (!is.null(mcall$control.st$graph)) {
-            if (n != length(unique(space))) {
+            if (nrow(graph) != length(unique(space))) {
                 stop("Size of 'space' is not equal to the size of 'graph'!")
             }
         }
