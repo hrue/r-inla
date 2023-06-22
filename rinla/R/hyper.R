@@ -284,7 +284,7 @@ inla.set.hyper <- function(
                         if (len < length(hyper.new[[idx.new]][[key]]) && len > 0L) {
                             hyper.new[[idx.new]][[key]] <- hyper.new[[idx.new]][[key]][1L:len]
                         } else if (len < length(hyper.new[[idx.new]][[key]]) && len == 0L) {
-                            hyper.new[[idx.new]][[key]] <- NULL
+                            hyper.new[[idx.new]][[key]] <- numeric(0)
                         } else if (len > length(hyper.new[[idx.new]][[key]])) {
                             hyper.new[[idx.new]][[key]] <- c(
                                 hyper.new[[idx.new]][[key]],
