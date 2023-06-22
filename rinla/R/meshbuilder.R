@@ -15,7 +15,9 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+#' @importFrom inlabru fm_CRS fm_wkt fm_crs
+#'
+NULL
 
 
 meshbuilder.app <- function() {
@@ -67,7 +69,7 @@ meshbuilder.app <- function() {
             c("SpatialPoints", "SpatialPointsDataFrame")
         )) > 0) {
             coord <- coordinates(sp)
-            crs <- inla.sp_get_crs(sp)
+            crs <- fm_CRS(sp)
             if (inherits(sp, "SpatialPointsDataFrame")) {
                 code <- 'as(%%%, "SpatialPoints")'
             }
@@ -75,9 +77,9 @@ meshbuilder.app <- function() {
             class(sp),
             c("SpatialLines", "SpatialLinesDataFrame")
         )) > 0) {
-            tmp <- as.inla.mesh.segment(sp)
+            tmp <- inlabru::fm_as_inla_mesh_segment(sp)
             coord <- tmp$loc
-            crs <- inla.sp_get_crs(sp)
+            crs <- fm_CRS(sp)
             if (inherits(sp, "SpatialLinesDataFrame")) {
                 code <- 'as(%%%, "SpatialLines")'
             }
@@ -86,9 +88,9 @@ meshbuilder.app <- function() {
             class(sp),
             c("SpatialPolygons", "SpatialPolygonsDataFrame")
         )) > 0) {
-            tmp <- as.inla.mesh.segment(sp)
+            tmp <- inlabru::fm_as_inla_mesh_segment(sp)
             coord <- tmp$loc
-            crs <- inla.sp_get_crs(sp)
+            crs <- fm_CRS(sp)
             if (inherits(sp, "SpatialPolygonsDataFrame")) {
                 code <- 'as(%%%, "SpatialPolygons")'
             }
@@ -99,7 +101,7 @@ meshbuilder.app <- function() {
                 crs <- sp::CRS()
                 crs.code <- ""
             } else {
-                crs <- inla.CRS(sp$crs)
+                crs <- fm_CRS(sp$crs)
                 crs.code <- ", %%%$crs"
             }
             code <- paste0("SpatialPoints(%%%$loc", crs.code, ")")
@@ -122,8 +124,8 @@ meshbuilder.app <- function() {
                 "SpatialPolygons", "SpatialPolygonsDataFrame"
             )
         )) > 0) {
-            out <- as.inla.mesh.segment(sp)
-            code <- "as.inla.mesh.segment(%%%)"
+            out <- inlabru::fm_as_inla_mesh_segment(sp)
+            code <- "inlabru::fm_as_inla_mesh_segment(%%%)"
         } else if (inherits(sp, "inla.mesh")) {
             out <- do.call(inla.mesh.segment, inla.mesh.boundary(sp))
             code <- "do.call(inla.mesh.segment, inla.mesh.boundary(%%%))"
@@ -381,8 +383,8 @@ meshbuilder.app <- function() {
         input.loc.crs <- shiny::reactive({
             sp <- c(boundary.loc.input(), mesh.loc.input())
             if (!is.null(sp) && (length(sp) > 0)) {
-                stopifnot(sp::identicalCRS(sp))
-                inla.sp_get_crs(sp[[1]])
+                stopifnot(inlabru::fm_identical_CRS(sp))
+                fm_CRS(sp[[1]])
             } else {
                 sp::CRS()
             }
@@ -419,7 +421,7 @@ meshbuilder.app <- function() {
                                     NULL
                                 } else {
                                     n <- ceiling(sum((loc2 - loc1)^2)^0.5 / delta) + 1
-                                    s <- seq(0, 1, length = n)
+                                    s <- seq(0, 1, length.out = n)
                                     cbind(
                                         (loc1[1] * (1 - s) + s * loc2[1]) * scale[1] + offset[1],
                                         (loc1[2] * (1 - s) + s * loc2[2]) * scale[2] + offset[2]
@@ -766,19 +768,19 @@ meshbuilder.app <- function() {
                 if (shiny::isolate(debug$trace)) {
                     try(message(paste(
                         "crs.mesh               =",
-                        inla.crs_get_wkt(inla.CRS(input$crs.mesh))
+                        fm_wkt(input$crs.mesh)
                     )))
                     try(message(paste(
                         "CRS(mesh.loc)          =",
-                        inla.crs_get_wkt(inla.sp_get_crs(loc1))
+                        fm_wkt(fm_crs(loc1))
                     )))
                     try(message(paste(
                         "CRS(boundary[[1]]$crs) =",
-                        inla.crs_get_wkt(bnd1[[1]]$crs)
+                        fm_wkt(bnd1[[1]]$crs)
                     )))
                     try(message(paste(
                         "CRS(boundary[[2]]$crs) =",
-                        inla.crs_get_wkt(bnd2[[2]]$crs)
+                        fm_wkt(bnd2[[2]]$crs)
                     )))
                 }
                 out <- INLA::inla.mesh.2d(
@@ -790,7 +792,7 @@ meshbuilder.app <- function() {
                     max.n.strict = c(128000, 128000),
                     cutoff = input$cutoff,
                     offset = input$offset,
-                    crs = inla.CRS(input$crs.mesh),
+                    crs = fm_CRS(input$crs.mesh),
                     plot.delay = shiny::isolate(debug$plot.delay)
                 )
                 attr(out, "code") <- paste0(
@@ -881,14 +883,20 @@ meshbuilder.app <- function() {
             if (is.null(mesh())) {
                 NULL
             } else {
-                INLA::inla.mesh.projector(mesh(), dims = c(500, 500))
+                inlabru::fm_evaluator(
+                    mesh(),
+                    lattice = inlabru::fm_evaluator_lattice(
+                        mesh(),
+                        dims = c(500, 500)
+                    )
+                )
             }
         })
         fine.proj <- shiny::reactive({
             if (is.null(fine())) {
                 NULL
             } else {
-                INLA::inla.mesh.projector(fine(), lattice = mesh.proj()$lattice)
+                inlabru::fm_evaluator(fine(), lattice = mesh.proj()$lattice)
             }
         })
         mesh.spde <- shiny::reactive({
@@ -1026,7 +1034,7 @@ meshbuilder.app <- function() {
             } else {
                 if (shiny::isolate(debug$trace)) message("mesh.sd.bound!")
                 proj <- mesh.proj()
-                INLA::inla.mesh.project(proj, field = diag(mesh.S())^0.5)
+                inlabru::fm_evaluate(proj, field = diag(mesh.S())^0.5)
             }
         })
         fine.sd.bound <- shiny::reactive({
@@ -1036,7 +1044,7 @@ meshbuilder.app <- function() {
             } else {
                 if (shiny::isolate(debug$trace)) message("fine.sd.bound!")
                 proj <- fine.proj()
-                INLA::inla.mesh.project(proj, field = diag(fine.S())^0.5)
+                inlabru::fm_evaluate(proj, field = diag(fine.S())^0.5)
             }
         })
         mesh.corr <- shiny::reactive({
@@ -1719,7 +1727,7 @@ meshbuilder.app <- function() {
                         )
                     ))
                 }
-                A <- INLA::inla.spde.make.A(mesh(), clicks$meshplot.loc)
+                A <- inlabru::fm_evaluator(mesh(), clicks$meshplot.loc)$proj$A
                 if (!(sum(A) > 0)) {
                     A <- NULL
                 }
@@ -1739,7 +1747,7 @@ meshbuilder.app <- function() {
                         )
                     ))
                 }
-                A <- INLA::inla.spde.make.A(fine(), clicks$meshplot.loc)
+                A <- inlabru::fm_evaluator(fine(), clicks$meshplot.loc)$proj$A
                 if (!(sum(A) > 0)) {
                     A <- NULL
                 }
@@ -1961,8 +1969,8 @@ meshbuilder.app <- function() {
 
         output$crs.strings <- shiny::renderText({
             add_wkt <- function(crs_list, x) {
-                crs <- inla.sp_get_crs(x)
-                wkt <- inla.crs_get_wkt(crs)
+                crs <- fm_CRS(x)
+                wkt <- fm_wkt(crs)
                 if (!is.null(wkt)) {
                     c(crs_list, wkt)
                 } else {
@@ -1970,7 +1978,7 @@ meshbuilder.app <- function() {
                 }
             }
             crs <- c()
-            crs <- add_wkt(crs, inla.CRS(input$crs.mesh))
+            crs <- add_wkt(crs, fm_CRS(input$crs.mesh))
             crs <- add_wkt(crs, mesh.loc())
             crs <- add_wkt(crs, boundary.loc())
             for (sp in seq_along(boundary1.input())) {

@@ -140,7 +140,7 @@ marginal (inla.tmarginal), and provide summary statistics (inla.zmarginal).
  ## compute the 95\% HPD interval
  inla.hpdmarginal(0.95, m)
 
- x = seq(-6, 6, len = 1000)
+ x = seq(-6, 6, length.out = 1000)
  y = dnorm(x)
  inla.hpdmarginal(0.95, list(x=x, y=y))
 

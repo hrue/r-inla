@@ -5,38 +5,14 @@
 \alias{inla.wkt_predef}
 \title{Create a coordinate reference system object}
 \usage{
-inla.CRS(
-  projargs = NULL,
-  doCheckCRSArgs = FALSE,
-  args = NULL,
-  oblique = NULL,
-  SRS_string = NULL,
-  ...
-)
+inla.CRS(..., args = NULL)
 
 inla.wkt_predef()
 }
 \arguments{
-\item{projargs}{Either 1) a projection argument string suitable as input to
-\code{sp::CRS}, or 2) an existing \code{CRS} object, or 3) a shortcut
-reference string to a predefined projection; run
-\code{names(inla.wkt_predef())} for valid predefined projections.}
+\item{\dots}{Arguments passed on to \code{inlabru::fm_CRS(...)}.}
 
-\item{doCheckCRSArgs}{ignored.}
-
-\item{args}{An optional list of name/value pairs to add to and/or override
-the PROJ4 arguments in \code{projargs}.  \code{name=value} is converted to
-\code{"+name=value"}, and \code{name=NA} is converted to \code{"+name"}.}
-
-\item{oblique}{Vector of length at most 4 of rotation angles (in degrees)
-for an oblique projection, all values defaulting to zero. The values
-indicate (longitude, latitude, orientation, orbit), as explained in the
-Details section below.}
-
-\item{SRS_string}{a WKT2 string defining the coordinate system; see
-\code{sp::CRS}. This takes precedence over \code{projargs}.}
-
-\item{\dots}{Additional parameters. Not currently in use.}
+\item{args}{list of named proj4 arguments.}
 }
 \value{
 Either an \code{sp::CRS} object or an \code{inla.CRS} object,
@@ -52,44 +28,27 @@ object}
 \code{inla.wkt_predef} returns a WKT2 string defining a projection
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[inlabru:fm_CRS_sp]{inlabru::fm_CRS()}}
 Creates either a CRS object or an inla.CRS object, describing a coordinate
-reference system
+reference system. Deprecated in favour of \code{inlabru::fm_CRS()}.
 }
-\details{
-The first two elements of the \code{oblique} vector are the (longitude,
-latitude) coordinates for the oblique centre point. The third value
-(orientation) is a counterclockwise rotation angle for an observer looking
-at the centre point from outside the sphere. The fourth value is the
-quasi-longitude (orbit angle) for a rotation along the oblique observers
-equator.
+\section{Functions}{
+\itemize{
+\item \code{inla.wkt_predef()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[inlabru:fm_crs]{inlabru::fm_wkt_predef()}}
 
-Simple oblique: \code{oblique=c(0, 45)}
-
-Polar: \code{oblique=c(0, 90)}
-
-Quasi-transversal: \code{oblique=c(0, 0, 90)}
-
-Satellite orbit viewpoint: \code{oblique=c(lon0-time*v1, 0, orbitangle, orbit0+time*v2)}, where \code{lon0} is the longitude at which a satellite
-orbit crosses the equator at \code{time=0}, when the satellite is at an
-angle \code{orbit0} further along in its orbit.  The orbital angle relative
-to the equatorial plane is \code{orbitangle}, and \code{v1} and \code{v2}
-are the angular velocities of the planet and the satellite, respectively.
-Note that "forward" from the satellite's point of view is "to the right" in
-the projection.
-
-When \code{oblique[2]} or \code{oblique[3]} are non-zero, the resulting
-projection is only correct for perfect spheres.
-}
+}}
 \examples{
 
 
 if (require("sf") && require("sp")) {
-    crs1 <- inla.CRS("longlat_globe")
-    crs2 <- inla.CRS("lambert_globe")
-    crs3 <- inla.CRS("mollweide_norm")
-    crs4 <- inla.CRS("hammer_globe")
-    crs5 <- inla.CRS("sphere")
-    crs6 <- inla.CRS("globe")
+  crs1 <- inlabru::fm_CRS("longlat_globe")
+  crs2 <- inlabru::fm_CRS("lambert_globe")
+  crs3 <- inlabru::fm_CRS("mollweide_norm")
+  crs4 <- inlabru::fm_CRS("hammer_globe")
+  crs5 <- inlabru::fm_CRS("sphere")
+  crs6 <- inlabru::fm_CRS("globe")
 }
 \dontrun{
 names(inla.wkt_predef())

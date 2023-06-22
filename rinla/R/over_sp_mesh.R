@@ -1,7 +1,9 @@
 #' Check which mesh triangles are inside a polygon
 #'
 #' Wrapper for the [sp::over()] method to find triangle centroids
-#' or vertices inside `sp` polygon objects
+#' or vertices inside `sp` polygon objects.
+#' Deprecated since 23.06.06 in favour of `inlabru::fm_contains()` when `inlabru`
+#' version `>= 2.7.0.9011` is installed.
 #'
 #' @param x geometry (typically a [sp::SpatialPolygons()] object) for the queries
 #' @param y an [inla.mesh()] object
@@ -25,9 +27,9 @@
 #' ))),
 #' ID = 1
 #' )),
-#' proj4string = inla.CRS("longlat_globe")
+#' proj4string = inlabru::fm_CRS("longlat_globe")
 #' )
-#' mesh <- inla.mesh.create(globe = 2, crs = inla.CRS("sphere"))
+#' mesh <- inla.mesh.create(globe = 2, crs = inlabru::fm_CRS("sphere"))
 #'
 #' ## 3 vertices found in the polygon
 #' inla.over_sp_mesh(obj, mesh, type = "vertex")
@@ -39,16 +41,26 @@
 #' ## 4 triangles found in the polygon
 #' inla.over_sp_mesh(
 #'   obj,
-#'   inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
-#'   ignore.CRS = FALSE)
-#'
-#' ## Ignoring mismatching coordinate systems is rarely useful
-#' ## 20 triangles "found in" the polygon
-#' inla.over_sp_mesh(obj,
-#'   inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
-#'   ignore.CRS = TRUE)
+#'   inlabru::fm_transform(mesh, crs = inlabru::fm_crs("mollweide_norm"))
+#' )
 #' @export
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE) {
+    if ((getNamespaceVersion("inlabru") >= "2.7.0.9011")) {
+        if (inla.getOption("fmesher.evolution") >= 2L) {
+            lifecycle::deprecate_soft("23.06.06",
+                                      what = "inla.over_sp_mesh()",
+                                      with = "inlabru::fm_contains()",
+                                      details = c("fm_contains() is available from inlabru version 2.7.0.9011",
+                                                  "For equivalent output, use 'unlist(fm_contains(...))'"))
+            if (!missing(ignore.CRS) && isTRUE(ignore.CRS)) {
+                lifecycle::deprecate_soft("23.06.06",
+                                          what = "inla.over_sp_mesh(ignore.CRS)",
+                                          with = "ignore.CRS will be treated as FALSE")
+            }
+        }
+        return(unlist(inlabru::fm_contains(x = x, y = y, type = type)))
+    }
+
     if (!inherits(y, "inla.mesh")) {
         stop(paste0(
             "'y' must be an 'inla.mesh' object, not '",
@@ -89,7 +101,7 @@ inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS =
         if (!is.null(inla.crs_get_wkt(crs)) &&
             !is.null(inla.crs_get_wkt(crs_x))) {
             ## Convert to the target object CRS
-            points <- inla.spTransform(points, CRSobj = crs_x)
+            points <- inlabru::fm_transform(points, crs = crs_x)
         }
     }
     ## Find indices:

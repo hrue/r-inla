@@ -118,7 +118,7 @@
             ## use a linear mapping
             m1 <- m1i <- function(x) x
         }
-        xx <- m1(seq(m1i(x.min), m1i(x.max), len = nx))
+        xx <- m1(seq(m1i(x.min), m1i(x.max), length.out = nx))
         yy <- rep(0, nx)
         for (i in seq_along(lom)) {
             yy <- yy + prob[i] * inla.dmarginal(xx, lom[[i]])

@@ -34,7 +34,7 @@
                   return(n)
               }
         }
-        stop(paste0("This should not happen: Fail to find 'n' from len=", len))
+        stop(paste0("This should not happen: Failed to find 'n' from len=", len))
     }
 
     mvnorm.prior.print <- function(param) {

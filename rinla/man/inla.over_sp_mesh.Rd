@@ -23,7 +23,9 @@ vertex indices (when \code{type} is \code{'vertex'})
 }
 \description{
 Wrapper for the \code{\link[sp:over]{sp::over()}} method to find triangle centroids
-or vertices inside \code{sp} polygon objects
+or vertices inside \code{sp} polygon objects.
+Deprecated since 23.06.06 in favour of \code{inlabru::fm_contains()} when \code{inlabru}
+version \verb{>= 2.7.0.9011} is installed.
 }
 \examples{
 # Create a polygon and a mesh
@@ -35,9 +37,9 @@ obj <- sp::SpatialPolygons(list(Polygons(list(Polygon(rbind(
 ))),
 ID = 1
 )),
-proj4string = inla.CRS("longlat_globe")
+proj4string = inlabru::fm_CRS("longlat_globe")
 )
-mesh <- inla.mesh.create(globe = 2, crs = inla.CRS("sphere"))
+mesh <- inla.mesh.create(globe = 2, crs = inlabru::fm_CRS("sphere"))
 
 ## 3 vertices found in the polygon
 inla.over_sp_mesh(obj, mesh, type = "vertex")
@@ -49,14 +51,8 @@ inla.over_sp_mesh(obj, mesh)
 ## 4 triangles found in the polygon
 inla.over_sp_mesh(
   obj,
-  inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
-  ignore.CRS = FALSE)
-
-## Ignoring mismatching coordinate systems is rarely useful
-## 20 triangles "found in" the polygon
-inla.over_sp_mesh(obj,
-  inla.spTransform(mesh, CRSobj = inla.CRS("mollweide_norm")),
-  ignore.CRS = TRUE)
+  inlabru::fm_transform(mesh, crs = inlabru::fm_crs("mollweide_norm"))
+)
 }
 \author{
 Haakon Bakka, \email{bakka@r-inla.org}, and Finn Lindgren \email{finn.lindgren@gmail.com}

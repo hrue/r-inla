@@ -105,7 +105,7 @@
         (sqrt(phi.t) * dat$x$t.str + sqrt(1 - phi.t) * dat$x$t.iid) / sqrt(tau.t),
         dat$x$t.str
     )
-    dat$x$s.iid <- rnorm(length(ev.s$value), 0, 1)
+    dat$x$s.iid <- rnorm(length(ev.s$values), 0, 1)
     dat$x$s.str <- qsample(ev = ev.s)
     dat$x$space <- c(
         (sqrt(phi.s) * dat$x$s.str + sqrt(1 - phi.s) * dat$x$s.iid) / sqrt(tau.s),

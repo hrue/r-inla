@@ -31,5 +31,7 @@ indicates the index number of the desired version. Default: 1}
 \item{item_tree}{An item tree identifying a parameter item entry}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[inlabru:wkt_tree]{inlabru::fm_wkt_as_wkt_tree()}}.
 Conversion between WKT and a tree representation
 }

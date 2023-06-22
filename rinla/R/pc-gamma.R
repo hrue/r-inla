@@ -36,7 +36,7 @@ NULL
 
 inla.pc.gamma.intern <- function(lambda = 1) {
     ## return a marginal-object in the log(x)-scale. the important variable is x*lambda,
-    log.x <- seq(-20, 10, len = 4096) - log(lambda)
+    log.x <- seq(-20, 10, length.out = 4096) - log(lambda)
     x <- exp(log.x)
     marg <- list(x = log.x, y = inla.pc.dgamma(x, lambda = lambda, log = FALSE) * x)
     return(marg)

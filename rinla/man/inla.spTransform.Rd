@@ -2,64 +2,37 @@
 % Please edit documentation in R/spmesh.R
 \name{inla.spTransform}
 \alias{inla.spTransform}
-\alias{inla.spTransform.default}
-\alias{inla.spTransform.SpatialPoints}
-\alias{inla.spTransform.inla.mesh.lattice}
-\alias{inla.spTransform.inla.mesh.segment}
-\alias{inla.spTransform.inla.mesh}
-\alias{inla.spTransform.SpatialPointsDataFrame}
-\title{Wrapper method for \code{sp::spTransform}}
+\title{Wrapper method for \code{inlabru::fm_transform}}
 \usage{
-inla.spTransform(x, ...)
-
-\method{inla.spTransform}{default}(x, crs0, crs1, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{SpatialPoints}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{SpatialPointsDataFrame}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{inla.mesh.lattice}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{inla.mesh.segment}(x, CRSobj, passthrough = FALSE, ...)
-
-\method{inla.spTransform}{inla.mesh}(x, CRSobj, passthrough = FALSE, ...)
+inla.spTransform(x, CRSobj, ...)
 }
 \arguments{
 \item{x}{The object that should be transformed from it's current CRS to a
 new CRS}
 
-\item{\dots}{Potential additional arguments}
+\item{CRSobj}{passed on as the \code{crs} argument to \code{\link[inlabru:fm_transform]{inlabru::fm_transform()}}.}
 
-\item{crs0}{The source \code{sp::CRS} or \code{inla.CRS} object}
-
-\item{crs1}{The target \code{sp::CRS} or \code{inla.CRS} object}
-
-\item{passthrough}{default FALSE. Setting to TRUE allows objects with no CRS
-information to be passed through without transformation.}
-
-\item{CRSobj}{The target \code{sp::CRS} or \code{inla.CRS} object}
+\item{\dots}{Potential other arguments for \code{\link[inlabru:fm_transform]{inlabru::fm_transform()}}.}
 }
 \value{
 The object is returned with its coordinates transformed
 }
 \description{
-Handles transformation of various inla objects accorting to coordinate
-reference systems of \code{sp::CRS} or \code{inla.CRS} class.
-}
-\details{
-\code{inla.spTransform.default} Low level transformation of raw coordinates.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[inlabru:fm_transform]{inlabru::fm_transform()}}.
+Handles transformation of various inla objects according to coordinate
+reference systems of \code{sf::crs}, \code{sp::CRS} or \code{inla.CRS} class.
 }
 \examples{
 
-if (require("sf") && require("sp")) {
-    latt <- inla.mesh.lattice(-10:10, 40:60)
-    mesh1 <- inla.mesh.create(
-        lattice = latt, extend = FALSE, refine = FALSE,
-        crs = inla.CRS("longlat")
-    )
-    mesh2 <- inla.spTransform(mesh1, inla.CRS("lambert"))
-    summary(mesh1)
-    summary(mesh2)
+if (require("sf") && require("sp") && require("inlabru")) {
+  latt <- inla.mesh.lattice(-10:10, 40:60)
+  mesh1 <- inla.mesh.create(
+    lattice = latt, extend = FALSE, refine = FALSE,
+    crs = fm_CRS("longlat_norm")
+  )
+  mesh2 <- fm_transform(mesh1, fm_crs("lambert_globe"))
+  print(summary(mesh1))
+  print(summary(mesh2))
 }
 }
 \seealso{

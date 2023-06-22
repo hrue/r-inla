@@ -260,6 +260,7 @@
                 immediate. = TRUE
             )
         }
+        inla.require("sf", stop.on.error = TRUE)
         mesh.polys <- sf::st_as_sfc(mesh.polys)
         Omega.SP.list[[j]] <- sf::as_Spatial(sf::st_union(mesh.polys))
     }

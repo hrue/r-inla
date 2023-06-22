@@ -39,22 +39,22 @@
         object$.args$control.inla$step.factor <- 1
         object$.args$control.inla$tolerance.step <- 1e-10
 
-        if (object$.args$control.inla$stencil == inla.set.control.inla.default()$stencil) {
+        if (identical(object$.args$control.inla$stencil, inla.set.control.inla.default()$stencil)) {
             object$.args$control.inla$stencil <- 9
         }
 
         h.def <- inla.set.control.inla.default()$h
-        if (object$.args$control.inla$h == h.def) {
-            object$.args$control.inla$h <- 0.2 * object$.args$control.inla$h
+        if (identical(object$.args$control.inla[["h"]], h.def)) {
+            object$.args$control.inla$h <- 0.2 * object$.args$control.inla[["h"]]
         } else {
-            object$.args$control.inla$h <- max(0.1 * h.def, 0.75 * object$.args$control.inla$h)
+            object$.args$control.inla$h <- max(0.1 * h.def, 0.75 * object$.args$control.inla[["h"]])
         }
 
         tol.def <- inla.set.control.inla.default()$tolerance
-        if (object$.args$control.inla$tolerance == tol.def) {
-            object$.args$control.inla$tolerance <- object$.args$control.inla$tolerance * 0.01
+        if (identical(object$.args$control.inla[["tolerance"]], tol.def)) {
+            object$.args$control.inla$tolerance <- object$.args$control.inla[["tolerance"]] * 0.01
         } else {
-            object$.args$control.inla$tolerance <- max(tol.def^2, object$.args$control.inla$tolerance * 0.1)
+            object$.args$control.inla$tolerance <- max(tol.def^2, object$.args$control.inla[["tolerance"]] * 0.1)
         }
     }
 
