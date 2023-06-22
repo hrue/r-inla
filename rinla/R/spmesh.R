@@ -944,7 +944,7 @@ inla.crs.bounds.check <- function(x, bounds) {
 #' Wrapper for identical, optionally testing only the CRS part of two objects
 #' Deprecated in favour of [inlabru::fm_identical_CRS()]
 #' 
-#' @param Arguments passed on to [inlabru::fm_identical_CRS()]
+#' @param ... Arguments passed on to [inlabru::fm_identical_CRS()]
 #'
 #' @export inla.identical.CRS
 inla.identical.CRS <- function(...) {
