@@ -81,6 +81,8 @@ inla.scale.model.internal <- function(Q, constr = NULL, eps = sqrt(.Machine$doub
     return(list(Q = Q, var = marg.var))
 }
 
+#' @rdname scale.model
+#' @export
 inla.scale.model <- function(Q, constr = NULL, eps = sqrt(.Machine$double.eps)) {
     res <- inla.scale.model.internal(Q = Q, constr = constr, eps = eps)
     return(res$Q)
