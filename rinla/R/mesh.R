@@ -79,7 +79,7 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
             inherits(loc, "SpatialPointsDataFrame")) {
             loc <- inlabru::fm_transform(
                 sp::coordinates(loc),
-                inlabru:::fm_crs(loc),
+                inlabru::fm_crs(loc),
                 crs,
                 passthrough = TRUE
             )
@@ -88,7 +88,7 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
             inla.require("sf", stop.on.error = TRUE)
             loc <- inlabru::fm_transform(
                 sf::st_coordinates(loc),
-                inlabru:::fm_crs(loc),
+                inlabru::fm_crs(loc),
                 crs,
                 passthrough = TRUE
             )
