@@ -44,7 +44,8 @@
 *.pdb
 
 # Kernel Module Compile Results
-*.mod*
+## Disable *.mod* exclude, since it also matches files like scale.models.Rd
+## *.mod*
 *.cmd
 .tmp_versions/
 modules.order
