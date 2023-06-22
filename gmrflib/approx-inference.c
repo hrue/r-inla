@@ -779,66 +779,34 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		cc_is_negative = 0;
 		Memset(bcoof, 0, Npred * sizeof(double));
 		Memset(ccoof, 0, Npred * sizeof(double));
-
+		
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < nidx; i_++) {			\
 			int idx = idxs[i_];				\
 			GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 					      &(optpar->step_len), &(optpar->stencil), &cmin); \
+									\
+			/* ok also in parallel */			\
+			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
+			if (ccoof[idx] == cmin) {			\
+				if (b_strategy == INLA_B_STRATEGY_SKIP) { \
+					bcoof[idx] = 0.0;		\
+				}					\
+				bb[idx] += bcoof[idx];			\
+				cc[idx] += ccoof[idx];			\
+			}						\
 		}
-
+		
 		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
 #undef CODE_BLOCK
 
-		for (i = 0; i < nidx; i++) {
-			int idx;
-			idx = idxs[i];
-			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0);	/* this line IS OK! also for multithread.. */
-			if (cc_positive) {
-				if (ccoof[idx] == cmin) {
-					// then cmin is in effect
-					if (b_strategy == INLA_B_STRATEGY_SKIP) {
-						bcoof[idx] = 0.0;
-					} else if (b_strategy == INLA_B_STRATEGY_KEEP) {
-						// do nothing
-					} else {
-						assert(0 == 1);
-					}
-				}
-				bb[idx] += bcoof[idx];
-				cc[idx] += ccoof[idx];
-			} else {
-				// 
-				// this is not in use...
-				// 
-				if (ccoof[idx] > 0.0) {
-					bb[idx] += bcoof[idx];
-					cc[idx] += ccoof[idx];
-				} else {
-					bb[idx] += bcoof[idx];
-					// bb[idx] += cc_factor*bcoof[idx]; /* what to use?? if any...*/
-					cc[idx] += cc_factor * ccoof[idx];
-				}
-			}
-		}
-
 		double *bb_use = NULL, *cc_use = NULL;
-
-		if (0)
-			for (i = 0; i < Npred; i++) {
-				printf("i bb cc %d %f %f\n", i, bb[i], cc[i]);
-			}
-
 		if (preopt) {
 			GMRFLib_preopt_update(thread_id, preopt, bb, cc);
 			bb_use = preopt->total_b[thread_id];
 			GMRFLib_daddto(n, b, bb_use);
 			cc_use = c;			       /* that what is there from before */
-			if (0)
-				for (i = 0; i < n; i++) {
-					printf("i bb_preopt cc_preopt %d %f\n", i, preopt->total_b[thread_id][i]);
-				}
 		} else {
 			assert(Npred == n);
 
@@ -846,10 +814,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			GMRFLib_daddto(n, c, cc);
 			bb_use = bb;
 			cc_use = cc;
-			if (0)
-				for (i = 0; i < n; i++) {
-					printf("i bb_use cc_use %d %f %f\n", i, bb_use[i], cc_use[i]);
-				}
 		}
 
 		if (!cc_positive) {
@@ -874,11 +838,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		} else {
 			GMRFLib_init_problem_store(thread_id, &lproblem, x, bb_use, cc_use, mean, graph, Qfunc, Qfunc_arg, constr, store);
 		}
-
-		if (0)
-			for (i = 0; i < n; i++) {
-				printf("AAA iter i mean %d %d %f\n", iter, i, lproblem->mean_constr[i]);
-			}
 
 		if (catch_error) {
 			lproblem = NULL;
