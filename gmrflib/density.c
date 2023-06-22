@@ -1370,9 +1370,9 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
 			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
-#pragma omp simd 
+#pragma omp simd
 			for (int ii = 0; ii < n; ii++) {
-				ldens[ii] += 0.5 * Sqr(xx[ii]);  /* ldens is now the correction */
+				ldens[ii] += 0.5 * Sqr(xx[ii]);	/* ldens is now the correction */
 			}
 			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
 			GMRFLib_init_density(*density, lookup_tables);

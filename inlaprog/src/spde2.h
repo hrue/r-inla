@@ -62,12 +62,10 @@ typedef struct {
 	double l1_cachline[4L];
 } spde2_cache_tp;
 
-typedef struct 
-{
+typedef struct {
 	double *V;
 	double *v;
-}
-	spde2_vV_tp;
+} spde2_vV_tp;
 
 typedef struct {
 	int n;

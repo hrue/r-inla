@@ -315,7 +315,7 @@ void GMRFLib_isum_measure_time(double *tused)
 
 	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		r += GMRFLib_isum1(n, ix)/ (1.0 + time);
+		r += GMRFLib_isum1(n, ix) / (1.0 + time);
 	}
 	tref[0] += GMRFLib_cpu();
 
@@ -325,7 +325,7 @@ void GMRFLib_isum_measure_time(double *tused)
 	}
 	tref[1] += GMRFLib_cpu();
 
-	assert(ABS(r-rr)/(FLT_EPSILON + ABS(r)+ABS(rr)) <  FLT_EPSILON);
+	assert(ABS(r - rr) / (FLT_EPSILON + ABS(r) + ABS(rr)) < FLT_EPSILON);
 
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
@@ -382,7 +382,7 @@ double GMRFLib_ddot(int n, double *x, double *y)
 	}
 }
 
-void GMRFLib_chose_threshold_ddot(void) 
+void GMRFLib_chose_threshold_ddot(void)
 {
 	const int nmax = 512, ntimes = 512, verbose = 0;
 	double *x, *y;
@@ -392,12 +392,12 @@ void GMRFLib_chose_threshold_ddot(void)
 	GMRFLib_threshold_ddot = nmax;
 	for (int m = 1; m < nmax; m++) {
 
-		double tref[] = {0, 0};
-		double dd[] = {0, 0};
+		double tref[] = { 0, 0 };
+		double dd[] = { 0, 0 };
 		double dot = 0.0;
-		
+
 		tref[0] -= GMRFLib_cpu();
-		for(int k = 0; k < ntimes; k++) {
+		for (int k = 0; k < ntimes; k++) {
 #pragma omp simd reduction(+: dot)
 			for (int i = 0; i < m; i++) {
 				dot += x[i] * y[i];
@@ -409,13 +409,13 @@ void GMRFLib_chose_threshold_ddot(void)
 		dot = 0.0;
 		int one = 1;
 		tref[1] -= GMRFLib_cpu();
-		for(int k = 0; k < ntimes; k++) {
+		for (int k = 0; k < ntimes; k++) {
 			dot += ddot_(&m, x, &one, y, &one);
 		}
 		dd[1] = dot;
 		tref[1] += GMRFLib_cpu();
 
-		assert(ABS(dd[0]-dd[1])/(FLT_EPSILON + ABS(dd[0]) + ABS(dd[1])) < FLT_EPSILON);
+		assert(ABS(dd[0] - dd[1]) / (FLT_EPSILON + ABS(dd[0]) + ABS(dd[1])) < FLT_EPSILON);
 		if (verbose) {
 			printf("m %1d time simd %.3f   time ddot_ %.3f\n", m, tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
 		}

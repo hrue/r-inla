@@ -411,21 +411,21 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
-		int ntt = -1; 
+		int ntt = -1;
 		if (omp_get_level() == 0) {
 			ntt = GMRFLib_PARDISO_MAX_NUM_THREADS();
 		} else {
 			ntt = GMRFLib_openmp->max_threads_inner;
 		}
 
-		int numt_save = omp_get_max_threads(); 
-		int reset_num_threads = 0; 
+		int numt_save = omp_get_max_threads();
+		int reset_num_threads = 0;
 
 		if (nrhs <= ntt * 4) {
 			if (nrhs > 1) {
 				omp_set_num_threads(IMIN(nrhs, ntt));
-				reset_num_threads = 1; 
-#pragma omp parallel for 
+				reset_num_threads = 1;
+#pragma omp parallel for
 				for (int i = 0; i < nrhs; i++) {
 					GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
 				}
@@ -478,7 +478,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 			if (nt > 1) {
 				omp_set_num_threads(nt);
-				reset_num_threads = 1; 
+				reset_num_threads = 1;
 			}
 
 			d = div(nrhs, block_nrhs);

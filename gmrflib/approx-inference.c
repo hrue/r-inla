@@ -779,7 +779,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		cc_is_negative = 0;
 		Memset(bcoof, 0, Npred * sizeof(double));
 		Memset(ccoof, 0, Npred * sizeof(double));
-		
+
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < nidx; i_++) {			\
 			int idx = idxs[i_];				\
@@ -795,7 +795,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			bb[idx] += bcoof[idx];				\
 			cc[idx] += ccoof[idx];				\
 		}
-		
+
 		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
 #undef CODE_BLOCK
 
