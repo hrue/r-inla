@@ -47,6 +47,8 @@
 // if |skewness| is larger than this, use scgaussian
 #define SKEW_LIMIT 0.6
 
+#define Sqr(x_) ((x_) * (x_))
+
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
 	/*
@@ -1038,6 +1040,7 @@ int GMRFLib_density_combine(GMRFLib_density_tp **density, GMRFLib_density_tp **d
 {
 	return GMRFLib_density_combine_x(density, densities, probs, GMRFLib_DENSITY_TYPE_AUTO);
 }
+
 int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp **densities, GMRFLib_idxval_tp *probs, GMRFLib_density_type_tp type)
 {
 	/*
@@ -1099,7 +1102,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		return GMRFLib_SUCCESS;
 	}
 
-	double mean, stdev, *ddens = NULL, *log_dens = NULL, *xx_real = NULL, m1, m2, sum_w, p;
+	double mean, stdev, *ddens = NULL, *log_dens = NULL, *xx_real = NULL, m1, m2, sum_w;
 	double xx[] = { -5.0, -4.0, -3.5, -3.0, -2.5, -2.0, -1.5, -1.25, -1.0, -0.75, -0.5, -0.25, -0.125, 0.0,
 		0.125, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0
 	};
@@ -1113,15 +1116,16 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 	 * compute the mean and variance in the user-scale 
 	 */
 	m1 = m2 = sum_w = 0.0;
+#pragma omp simd reduction(+: m1, m2, sum_w)
 	for (int ii = 0; ii < probs->n; ii++) {
 		int i = probs->idx[ii];
+		double pp = probs->val[ii];
 		double um = densities[i]->user_mean;
 		double us = densities[i]->user_stdev;
 
-		p = probs->val[ii];
-		m1 += p * um;
-		m2 += p * (SQR(us) + SQR(um));
-		sum_w += p;
+		m1 += pp * um;
+		m2 += pp * (Sqr(us) + Sqr(um));
+		sum_w += pp;
 	}
 	mean = m1 / sum_w;
 	stdev = sqrt(DMAX(0.0, m2 / sum_w - SQR(mean)));
@@ -1176,26 +1180,26 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		};
 		assert(sizeof(xx) == sizeof(ww));
 
-		double mom[4] = { 0.0, 0.0, 0.0, 0.0 };
-#pragma GCC ivdep
+		double mom0 = 0.0, mom1 = 0.0, mom2 = 0.0, mom3 = 0.0;
+#pragma omp simd reduction(+: mom0, mom1, mom2, mom3)
 		for (int i = 0; i < nx; i++) {
 			double d = ww[i] * ddens[i];
 			double x = xx[i];
 			double dx = d * x;
 			double x2 = x * x;
-			mom[0] += d;
-			mom[1] += dx;
-			mom[2] += dx * x;
-			mom[3] += dx * x2;
+			mom0 += d;
+			mom1 += dx;
+			mom2 += dx * x;
+			mom3 += dx * x2;
 		}
-		mom[1] /= mom[0];
-		mom[2] /= mom[0];
-		mom[3] /= mom[0];
+		mom1 /= mom0;
+		mom2 /= mom0;
+		mom3 /= mom0;
 
-		double sn_mean = mom[1];
-		double sn_var = DMAX(0.0, mom[2] - SQR(mom[1]));
+		double sn_mean = mom1;
+		double sn_var = DMAX(0.0, mom2 - SQR(mom1));
 		double sn_stdev = sqrt(sn_var);
-		double sn_skew = (mom[3] - 3.0 * sn_mean * sn_var + gsl_pow_3(sn_mean)) / gsl_pow_3(sn_stdev);
+		double sn_skew = (mom3 - 3.0 * sn_mean * sn_var + gsl_pow_3(sn_mean)) / gsl_pow_3(sn_stdev);
 
 		// if skewness is extreme, we're better off switching...
 		if (ABS(sn_skew) > SKEW_LIMIT) {
@@ -1366,10 +1370,9 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 			(*density)->x_min = GMRFLib_min_value(xx, n, NULL);
 			(*density)->x_max = GMRFLib_max_value(xx, n, NULL);
 
-
-#pragma GCC ivdep
-			for (i = 0; i < n; i++) {
-				ldens[i] += 0.5 * SQR(xx[i]);  /* ldens is now the correction */
+#pragma omp simd 
+			for (int ii = 0; ii < n; ii++) {
+				ldens[ii] += 0.5 * Sqr(xx[ii]);  /* ldens is now the correction */
 			}
 			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
 			GMRFLib_init_density(*density, lookup_tables);

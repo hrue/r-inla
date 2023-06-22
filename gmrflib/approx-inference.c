@@ -5649,11 +5649,7 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		double *mask = Calloc_get(np);
 		double *ell = Calloc_get(np);
 
-#pragma omp simd
-		for (int i = 0; i < np; i++) {
-			mask[i] = 1.0;
-		}
-
+		GMRFLib_fill(np, 1.0, mask);
 		GMRFLib_daxpb(np, stdev, xp, mean, x);
 		loglFunc(thread_id, ll, x, np, idx, x_vec, NULL, loglFunc_arg, NULL);
 		double dmax = GMRFLib_max_value(ll, np, NULL);
@@ -5677,9 +5673,6 @@ double GMRFLib_ai_po_integrate(int thread_id, double *po, double *po2, double *p
 		integral4 = GMRFLib_ddot(np, ll, wp);
 		Calloc_free();
 	} else {
-
-		// THIS PART NEEDS TO BE REWRITTEN
-
 		double low, dx, dxi, *xp = NULL, *xpi = NULL, *ldens = NULL, w[2] = { 4.0, 2.0 }, integral_one, *loglik = NULL;
 
 		int np = GMRFLib_INT_NUM_POINTS;
