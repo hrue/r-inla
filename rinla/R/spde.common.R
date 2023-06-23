@@ -1279,7 +1279,7 @@ inla.stack.remove.unused <- function(stack) {
         which(colSums(abs(stack$A[, , drop = FALSE])) == 0)
     remove[remove.unused.indices] <- TRUE
 
-    index.new <- rep(as.integer(NA), stack$effect$nrow)
+    index.new <- rep(as.integer(NA), stack$effects$nrow)
 
     ncol.A <- sum(!remove)
     if (ncol.A > 0) {
@@ -1336,7 +1336,7 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
     ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
 
     remove <- rep(FALSE, stack$effects$nrow)
-    index.new <- rep(as.integer(NA), stack$effect$nrow)
+    index.new <- rep(as.integer(NA), stack$effects$nrow)
 
     if (length(jj.dupl) > 0) {
         for (k in 1:length(jj.dupl)) {
