@@ -1,3 +1,15 @@
+# INLA 23.06.24
+* Some improvement in TAUCS linear solve(s)
+* Fixed an issue with Gaussian likelihood and non-identity link
+* Fixed issue with priors with no parameters and `inla.rerun`
+* Fixed an issue with computing moments from a marginal
+* Update deprecation information (sp/rgdal)
+* Remove CYGWIN code
+* Various namespace and inla/inlabru connection updates
+* Documentation updates to protect the user's filespace
+* Various code-cleanup work
+
+
 # INLA 23.06.15
 * Tolerance was set too low
 * Robustify deviance residuals
