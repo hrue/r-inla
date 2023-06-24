@@ -947,8 +947,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	 * feature off, just modify the GMRFLib_solve_llt_sparse_matrix_special() routine in sparse-interface.c 
 	 */
 
-	int n, i, j, ip, jp, idxnew;
-	double Aij, Ajj, Aii, *y = NULL, sum;
+	int n, i, j, ip, idxnew;
+	double Aij, *y = NULL, sum;
 
 	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
 
