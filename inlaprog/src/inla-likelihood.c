@@ -663,9 +663,10 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 		return GMRFLib_SUCCESS;
 	}
 
+	double off = OFFSET(idx);
+
 	if (m > 0) {
 		if (PREDICTOR_LINK_EQ(link_identity)) {
-			double off = OFFSET(idx);
 
 			if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0 && off == 0.0)) {
 				double a = -0.5 * prec;
@@ -689,11 +690,17 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 					logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
 				}
 			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+			}
 		}
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 		for (int i = 0; i < -m; i++) {
-			double ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
 			logll[i] = inla_Phi_fast((y - ypred) * sqrt(prec));
 		}
 	}
@@ -4728,9 +4735,9 @@ int loglikelihood_mix_gaussian(int thread_id, double *logll, double *x, int m, i
 
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
 			   int (*func_quadrature)(int, double **, double **, int *, void *arg),
-			   int (*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
+			   int(*func_simpson)(int, double **, double **, int *, void *arg), char **arg_str)
 {
-	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_section_tp *ds =(Data_section_tp *) arg;
 	if (m == 0) {
 		if (arg) {
 			return (ds->mix_loglikelihood(thread_id, NULL, NULL, 0, 0, NULL, NULL, arg, arg_str));

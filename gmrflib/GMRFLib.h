@@ -135,6 +135,7 @@ void daxpby_(int *n, double *a, double *x, int *incx, double *b, double *y, int 
 
 #if defined(INLA_LINK_WITH_MKL)
 void vdExp(int, const double *, double *);
+void vdExpI(int, const double *, int, double *, int);
 void vdLog1p(int, const double *, double *);
 void vsAdd(int n, const double *a, const double *b, double *y);
 void vdLn(int, const double *, double *);

@@ -947,8 +947,8 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	 * feature off, just modify the GMRFLib_solve_llt_sparse_matrix_special() routine in sparse-interface.c 
 	 */
 
-	int n, i, j, ip, jp, idxnew, use_new_code = 1;
-	double Aij, Ajj, Aii, *y = NULL, sum;
+	int n, i, j, ip, idxnew;
+	double Aij, *y = NULL, sum;
 
 	GMRFLib_ASSERT(x[idx] == 1.0, GMRFLib_ESNH);
 
@@ -982,59 +982,23 @@ int GMRFLib_solve_llt_sparse_matrix_special_TAUCS(double *x, taucs_ccs_matrix *L
 	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 	y = work;
 
-	if (use_new_code) {
-		GMRFLib_ASSERT(L_inv_diag, GMRFLib_ESNH);
-	}
+	GMRFLib_ASSERT(L_inv_diag, GMRFLib_ESNH);
 
 	/*
 	 * need only to start at 'idxnew' not 0!; this is the main speedup!!! 
 	 */
-	if (use_new_code) {
-		/*
-		 * this version use the L_inv_diag which is 1/diag(L), to simplify some of comptuations, and makes the last expression more compact. 
-		 */
-
-		for (j = idxnew; j < n; j++) {
-			y[j] = x[j] * L_inv_diag[j];
-			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-				i = L->rowind[ip];
-				Aij = L->values.d[ip];
-				x[i] -= y[j] * Aij;
-			}
+	for (j = idxnew; j < n; j++) {
+		y[j] = x[j] * L_inv_diag[j];
+		for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
+			i = L->rowind[ip];
+			Aij = L->values.d[ip];
+			x[i] -= y[j] * Aij;
 		}
-		for (i = n - 1; i >= 0; i--) {
-			sum = 0.0;
-			for (jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-				j = L->rowind[jp];
-				Aij = L->values.d[jp];
-				sum += x[j] * Aij;
-			}
-			x[i] = (y[i] - sum) * L_inv_diag[i];
-		}
-	} else {
-		for (j = idxnew; j < n; j++) {
-			ip = L->colptr[j];
-			Ajj = L->values.d[ip];
-			y[j] = x[j] / Ajj;
-
-			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-				i = L->rowind[ip];
-				Aij = L->values.d[ip];
-				x[i] -= y[j] * Aij;
-			}
-		}
-		for (i = n - 1; i >= 0; i--) {
-			sum = 0.0;
-			for (jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-				j = L->rowind[jp];
-				Aij = L->values.d[jp];
-				sum += x[j] * Aij;
-			}
-			y[i] -= sum;
-			jp = L->colptr[i];
-			Aii = L->values.d[jp];
-			x[i] = y[i] / Aii;
-		}
+	}
+	for (i = n - 1; i >= 0; i--) {
+		int jp1 = L->colptr[i] + 1;
+		sum = GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
+		x[i] = (y[i] - sum) * L_inv_diag[i];
 	}
 
 	/*
@@ -1458,12 +1422,10 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 int GMRFLib_my_taucs_dccs_solve_lt(void *vL, double *x, double *b)
 {
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
+
 	for (int i = L->n - 1; i >= 0; i--) {
-		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			int j = L->rowind[jp];
-			double Aij = L->values.d[jp];
-			b[i] -= x[j] * Aij;
-		}
+		int jp1 = L->colptr[i] + 1;
+		b[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
 
 		int jp = L->colptr[i];
 		double Aii = L->values.d[jp];
@@ -1478,11 +1440,9 @@ int GMRFLib_my_taucs_dccs_solve_lt_special(void *vL, double *x, double *b, int f
 	taucs_ccs_matrix *L = (taucs_ccs_matrix *) vL;
 
 	for (int i = from_idx; i >= to_idx; i--) {
-		for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-			int j = L->rowind[jp];
-			double Aij = L->values.d[jp];
-			b[i] -= x[j] * Aij;
-		}
+		int jp1 = L->colptr[i] + 1;
+		b[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
+
 		int jp = L->colptr[i];
 		double Aii = L->values.d[jp];
 		x[i] = b[i] / Aii;
@@ -1550,13 +1510,8 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		}
 
 		for (int i = n - 1; i >= 0; i--) {
-			double sum = 0.0;
-			for (int jp = L->colptr[i] + 1; jp < L->colptr[i + 1]; jp++) {
-				int j = L->rowind[jp];
-				double Aij = L->values.d[jp];
-				sum += x[j] * Aij;
-			}
-			y[i] -= sum;
+			int jp1 = L->colptr[i] + 1;
+			y[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
 
 			int jp = L->colptr[i];
 			double Aii = L->values.d[jp];

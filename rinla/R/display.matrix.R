@@ -1,6 +1,7 @@
 ## Nothing to Export.
 
-`inla.display.matrix` <- function(x, wrap = TRUE, xaxt = FALSE, yaxt = FALSE, col = gray(seq(0, 1, len = 256)), ...) {
+`inla.display.matrix` <- function(x, wrap = TRUE, xaxt = FALSE, yaxt = FALSE,
+                                  col = gray(seq(0, 1, length.out = 256)), ...) {
     ## display a matrix as an image with correct layout and autoscaling
 
     x <- as.matrix(x)

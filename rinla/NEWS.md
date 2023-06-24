@@ -1,5 +1,17 @@
+# INLA 23.06.24
+* Some improvement in TAUCS linear solve(s)
+* Fixed an issue with Gaussian likelihood and non-identity link
+* Fixed issue with priors with no parameters and `inla.rerun`
+* Fixed an issue with computing moments from a marginal
+* Update deprecation information (sp/rgdal)
+* Remove CYGWIN code
+* Various namespace and inla/inlabru connection updates
+* Documentation updates to protect the user's filespace
+* Various code-cleanup work
+
+
 # INLA 23.06.15
-* Tolerance was set to low
+* Tolerance was set too low
 * Robustify deviance residuals
 
 # INLA 23.06.14
@@ -15,7 +27,7 @@
 * Optimisation of poisson/binomial/nbinomial (with default link and no offset)
 * Various optimisation work
 * New toolchain for building on Windows (MinGW)
-* Removed openblas-related code (and spesific builds)
+* Removed openblas-related code (and specific builds)
 * Removed `inla.setOption`-options: `mkl, blas.num.threads, vecLib, vecLibPath` and `CYGWIN`
 * Added new external package: `fbesag`
 

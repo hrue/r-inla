@@ -13,8 +13,10 @@
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @keywords internal
 #' @examples
-#'
-#' inla.dBind(Matrix(1, 2, 1), Matrix(2, 1, 2))
+#' \dontrun{
+#'   inla.dBind(Matrix(1, 2, 1), Matrix(2, 1, 2))
+#' }
+#' bdiag(Matrix(1, 2, 1), Matrix(2, 1, 2))
 #' @export inla.dBind
 inla.dBind <- function(...) {
     .Deprecated("Matrix::bdiag")
@@ -369,24 +371,25 @@ inla.matern.cov.s2 <- function(nu, kappa, x, norm.corr = FALSE, theta = 0,
 #' @return List of available SPDE model type name lists.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @examples
-#'
+#' \dontrun{
 #' ## Display help for each supported inla.spde2 model:
 #' for (model in inla.spde2.models()) {
-#'       print(help(paste("inla.spde2.", model, sep = "")))
-#'   }
+#'     print(help(paste("inla.spde2.", model, sep = "")))
+#' }
 #'
 #' ## Display help for each supported inla.spde* model:
 #' models <- inla.spde.models()
 #' for (type in names(models)) {
-#'       for (model in models[[type]]) {
-#'             print(help(paste("inla.", type, ".", model, sep = "")))
-#'         }
-#'   }
+#'    for (model in models[[type]]) {
+#'        print(help(paste("inla.", type, ".", model, sep = "")))
+#'    }
+#' }
 #'
 #' ## Display help for each supported inla.spde* model (equivalent to above):
 #' for (model in inla.spde.models(function.names = TRUE)) {
-#'       print(help(model))
-#'   }
+#'     print(help(model))
+#' }
+#' }
 #' @export inla.spde.models
 inla.spde.models <- function(function.names = FALSE) {
     types <- c("spde1", "spde2")
@@ -1013,17 +1016,7 @@ inla.spde.make.A <-
                   stop("'loc' specified but 'mesh' is NULL.")
               }
 
-            ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
-            if (inherits(loc, "SpatialPoints") ||
-                inherits(loc, "SpatialPointsDataFrame")) {
-                loc <- inla.spTransform(coordinates(loc),
-                    inla.sp_get_crs(loc),
-                    mesh$crs,
-                    passthrough = TRUE
-                )
-            }
-
-            A.loc <- inla.mesh.project(mesh, loc = loc)$A
+            A.loc <- inlabru::fm_evaluator(mesh, loc = loc)$proj$A
         }
         if (is.null(index)) {
             index <- seq_len(nrow(A.loc))
@@ -1286,7 +1279,7 @@ inla.stack.remove.unused <- function(stack) {
         which(colSums(abs(stack$A[, , drop = FALSE])) == 0)
     remove[remove.unused.indices] <- TRUE
 
-    index.new <- rep(as.integer(NA), stack$effect$nrow)
+    index.new <- rep(as.integer(NA), stack$effects$nrow)
 
     ncol.A <- sum(!remove)
     if (ncol.A > 0) {
@@ -1343,7 +1336,7 @@ inla.stack.compress <- function(stack, remove.unused = TRUE) {
     ## ii[(jj.dupl[k]+1):kk.dupl[k]] are the duplicate rows for each k
 
     remove <- rep(FALSE, stack$effects$nrow)
-    index.new <- rep(as.integer(NA), stack$effect$nrow)
+    index.new <- rep(as.integer(NA), stack$effects$nrow)
 
     if (length(jj.dupl) > 0) {
         for (k in 1:length(jj.dupl)) {

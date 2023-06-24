@@ -2,8 +2,8 @@
     ## cannot call inla.getOption() here as it leads to an infinite recursive call. do this
     ## manually instead.
     opt.default <- inla.getOption.default()
-    if (exists("inla.options", env = inla.get.inlaEnv())) {
-        opt <- get("inla.options", env = inla.get.inlaEnv())
+    if (exists("inla.options", envir = inla.get.inlaEnv())) {
+        opt <- get("inla.options", envir = inla.get.inlaEnv())
         lic <- (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0L)
     } else {
         lic <- FALSE

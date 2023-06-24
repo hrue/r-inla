@@ -179,3 +179,4 @@ int GMRFLib_threshold_log1p = 0;
 int GMRFLib_threshold_sqr = 255;
 int GMRFLib_threshold_add = 255;
 int GMRFLib_threshold_mul = 255;
+int GMRFLib_threshold_ddot = 4;

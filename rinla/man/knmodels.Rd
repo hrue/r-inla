@@ -9,8 +9,9 @@ inla.knmodels(
   formula,
   progress = FALSE,
   control.st = list(time, space, spacetime, graph, type = c(paste(1:4), paste0(2:4, "c"),
-    paste0(2:4, "d")), diagonal = 1e-05, timeref = 1, spaceref = 1, ...),
-  ...
+    paste0(2:4, "d")), diagonal = 1e-05, timeref = 1, spaceref = 1),
+  ...,
+  envir = parent.frame()
 )
 }
 \arguments{
@@ -58,6 +59,8 @@ prior using the \code{pc.prec} prior with \code{param = c(0.5, 0.5)}. See
 documentation with \code{?inla.doc("pc.prec")}.} }}
 
 \item{...}{Arguments to be passed to the \code{\link[=inla]{inla()}} function.}
+
+\item{envir}{Environment in which to evaluate the ... arguments.}
 }
 \value{
 \code{inla.knmodels} returns an object of class \code{"inla"}.  or a
@@ -99,7 +102,7 @@ res <- inla.knmodels(y ~ f(time, model='bym2', graph=tgraph) +
      f(space, model='bym2', graph=graph),
      data=dat, family='poisson', E=dat$E, progress=TRUE,
      control.st=list(time=time, space=space,
-        spacetime=spacetime, graph=graph, type=c(4, '4c', '4d')),
+        spacetime=spacetime, graph=graph, type=c(4, '4c')), # Note '4d' may take some time
      control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 sapply(res, function(x)
        c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))

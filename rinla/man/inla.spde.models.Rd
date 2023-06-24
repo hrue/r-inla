@@ -28,24 +28,25 @@ inla.spde model class (currently \code{\link[=inla.spde1]{inla.spde1()}} and
 \code{\link[=inla.spde2]{inla.spde2()}}).
 }
 \examples{
-
+\dontrun{
 ## Display help for each supported inla.spde2 model:
 for (model in inla.spde2.models()) {
-      print(help(paste("inla.spde2.", model, sep = "")))
-  }
+    print(help(paste("inla.spde2.", model, sep = "")))
+}
 
 ## Display help for each supported inla.spde* model:
 models <- inla.spde.models()
 for (type in names(models)) {
-      for (model in models[[type]]) {
-            print(help(paste("inla.", type, ".", model, sep = "")))
-        }
-  }
+   for (model in models[[type]]) {
+       print(help(paste("inla.", type, ".", model, sep = "")))
+   }
+}
 
 ## Display help for each supported inla.spde* model (equivalent to above):
 for (model in inla.spde.models(function.names = TRUE)) {
-      print(help(model))
-  }
+    print(help(model))
+}
+}
 }
 \author{
 Finn Lindgren \email{finn.lindgren@gmail.com}

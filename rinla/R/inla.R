@@ -2529,7 +2529,7 @@
     while (inherits(r, "try-error")) {
         ##
         if (ntry == max.try) {
-            stop("*** Fail to get good enough initial values. Maybe it is due to something else.")
+            stop("*** Failed to get good enough initial values. Maybe it is due to something else.")
         }
         output(paste0("inla.program has crashed: rerun to get better initial values. try=", ntry+1, "/", max.try))
         cont.inla <- inla.set.control.inla.default()
@@ -2619,7 +2619,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
 
 `inla.fix.data` <- function(data, n, revert = FALSE)
 {
-    ## extract all entries in 'data' with length='n'. if 'revert',  do the oposite
+    ## extract all entries in 'data' with length='n'. if 'revert',  do the opposite
     if (is.data.frame(data)) {
         if (dim(data)[1L] == n) {
             return(inla.ifelse(revert, data.frame(), data))
@@ -2707,7 +2707,7 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
             r <- try(write(as.character(inla.getOption("pardiso.license")),
                            file = lic.filename.dir, append = FALSE))
             if ((inherits(r, "try-error"))) {
-                stop(paste0("Fail to write licent to file: ", lic.filename.dir))
+                stop(paste0("Failed to write license to file: ", lic.filename.dir))
             }
             lic.path <- inla.dir
         }

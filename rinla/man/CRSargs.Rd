@@ -38,8 +38,7 @@ For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 \description{
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
-Should no longer be used with PROJ6;
-see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
+'r lifecycle::badge("deprecated")\verb{in favour of}fm_proj4string()\verb{, or }fm_wkt()` for WKT2 representations.
 }
 \details{
 \itemize{
@@ -52,16 +51,16 @@ see \code{\link[=inla.crs_get_wkt]{inla.crs_get_wkt()}}
 }
 \examples{
 
-if (require("sf") && require("sp")) {
-    crs0 <- inla.CRS("longlat")
-    p4s <- inla.CRSargs(crs0)
-    lst <- inla.as.list.CRSargs(p4s)
-    crs1 <- inla.as.CRS.list(lst)
-    lst$a <- 2
-    crs2 <- inla.CRS(p4s, args = lst)
-    print(inla.CRSargs(crs0))
-    print(inla.CRSargs(crs1))
-    print(inla.CRSargs(crs2))
+if (require("sf") && require("sp") && require("inlabru")) {
+  crs0 <- fm_CRS("longlat_norm")
+  p4s <- fm_proj4string(crs0)
+  lst <- inla.as.list.CRSargs(p4s)
+  crs1 <- inla.as.CRS.list(lst)
+  lst$a <- 2
+  crs2 <- fm_CRS(p4s, args = lst)
+  print(fm_proj4string(crs0))
+  print(fm_proj4string(crs1))
+  print(fm_proj4string(crs2))
 }
 }
 \seealso{

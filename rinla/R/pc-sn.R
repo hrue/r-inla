@@ -96,7 +96,7 @@ inla.pc.sn.cache <- function(force = FALSE, write.files = FALSE) {
     tag <- "cache.pc.sn"
     if (force || !exists(tag, envir = inla.get.inlaEnv())) {
         ran <- 25
-        alphas <- seq(0, ran, len = 500)[-1]
+        alphas <- seq(0, ran, length.out = 500)[-1]
         alphas <- c(-rev(alphas), 0, alphas)
         alphas.pos <- alphas[which(alphas >= 0)]
         alphas.neg <- alphas[which(alphas <= 0)]
@@ -109,9 +109,9 @@ inla.pc.sn.cache <- function(force = FALSE, write.files = FALSE) {
 
         if (write.files) {
             print("write file [s-sn-pc-prior.dat]")
-            write(skews.pos, ncol = 1, file = "s-sn-pc-prior.dat")
+            write(skews.pos, ncolumns = 1, file = "s-sn-pc-prior.dat")
             print("write file [d-sn-pc-prior.dat]")
-            write(dist.pos, ncol = 1, file = "d-sn-pc-prior.dat")
+            write(dist.pos, ncolumns = 1, file = "d-sn-pc-prior.dat")
         }
 
         ## we could improve here, as d'(s) = d*'(s*) d(s) / s, where d* = log(d), and s* =
@@ -252,7 +252,7 @@ inla.pc.sn.test2 <- function() {
         omega <- 1 / sqrt(1 - 2 * delta^2 / pi)
         xi <- -omega * delta * sqrt(2 / pi)
         print(c(skew = skew, xi = xi, omega = omega, alpha = alpha))
-        return(qsn(intern.intercept, xi = xi, omega = omega, alpha = alpha))
+        return(sn::qsn(intern.intercept, xi = xi, omega = omega, alpha = alpha))
     }
 
     print(fun(0.43, 0.123))

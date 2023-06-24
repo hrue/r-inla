@@ -5,7 +5,7 @@
 \alias{inla.merge}
 \title{Merge a mixture of \code{inla}-objects}
 \usage{
-\method{merge}{inla}(x, y, ..., prob = rep(1, length(loo)), verbose = FALSE)
+\method{merge}{inla}(x, y, ..., prob = rep(1, length(list(x, y, ...))), verbose = FALSE)
 
 inla.merge(loo, prob = rep(1, length(loo)), mc.cores = NULL, verbose = FALSE)
 }

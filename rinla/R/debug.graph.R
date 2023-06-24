@@ -12,10 +12,10 @@
 #' @seealso inla.read.graph
 #' @examples
 #' 
-#' ## Not run:
-#' ## cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
-#' ## g = inla.debug.graph("g.dat")
-#' ## End(Not run)
+#' \dontrun{
+#' cat("3\n 1 1 2n\ 2 1 1\n 3 4\n", file="g.dat")
+#' g = inla.debug.graph("g.dat")
+#' }
 #' 
 #' @name debug.graph
 #' @rdname debug.graph
@@ -23,7 +23,7 @@
 
 `inla.debug.graph` <- function(graph.file) {
     ## read a graph with verbose output and try to detect any errors
-    ## in the specification along the way. This is ment as a tool to
+    ## in the specification along the way. This is meant as a tool to
     ## detect errors in the graph specification only.
 
     stopifnot(file.exists(graph.file))

@@ -37,8 +37,8 @@
         g.remove <- FALSE
     } else {
         g <- inla.read.graph(graph)
-        g.file <- inla.write.graph(g)
-        g.remove <- FALSE
+        g.file <- inla.write.graph(g, filename = tempfile())
+        g.remove <- TRUE
     }
 
     ## smtp must be taucs
@@ -61,7 +61,7 @@
     }
 
     for (i in 1:length(s)) {
-        ## the output containts this code, as there may be some other output before this
+        ## the output contains this code, as there may be some other output before this
         if (as.character(s[i]) == "QREORDERING") {
               break
           }

@@ -411,11 +411,26 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 			GMRFLib_solve_llt_sparse_matrix_BAND(&rhs[i * graph->n], sm_fact->bchol, graph, sm_fact->remap, sm_fact->bandwidth);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_TAUCS) {
-		if (nrhs == 1) {
-			// omp_set_num_threads(GMRFLib_openmp->max_threads_inner);
-			// #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
-			for (int i = 0; i < nrhs; i++) {
-				GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
+		int ntt = -1;
+		if (omp_get_level() == 0) {
+			ntt = GMRFLib_PARDISO_MAX_NUM_THREADS();
+		} else {
+			ntt = GMRFLib_openmp->max_threads_inner;
+		}
+
+		int numt_save = omp_get_max_threads();
+		int reset_num_threads = 0;
+
+		if (nrhs <= ntt * 4) {
+			if (nrhs > 1) {
+				omp_set_num_threads(IMIN(nrhs, ntt));
+				reset_num_threads = 1;
+#pragma omp parallel for
+				for (int i = 0; i < nrhs; i++) {
+					GMRFLib_solve_llt_sparse_matrix_TAUCS(&rhs[i * graph->n], sm_fact->TAUCS_L, graph, sm_fact->remap);
+				}
+			} else {
+				GMRFLib_solve_llt_sparse_matrix_TAUCS(rhs, sm_fact->TAUCS_L, graph, sm_fact->remap);
 			}
 		} else {
 			// much of the same code as in the smtp-pardiso.c and solve_core function
@@ -463,6 +478,7 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 
 			if (nt > 1) {
 				omp_set_num_threads(nt);
+				reset_num_threads = 1;
 			}
 
 			d = div(nrhs, block_nrhs);
@@ -479,6 +495,10 @@ int GMRFLib_solve_llt_sparse_matrix(double *rhs, int nrhs, GMRFLib_sm_fact_tp *s
 				int local_nrhs = (k < nblock ? block_nrhs : (int) d.rem);
 				GMRFLib_solve_llt_sparse_matrix2_TAUCS(rhs + offset, sm_fact->TAUCS_L, graph, sm_fact->remap, local_nrhs);
 			}
+		}
+
+		if (reset_num_threads) {
+			omp_set_num_threads(numt_save);
 		}
 	} else if (sm_fact->smtp == GMRFLib_SMTP_PARDISO) {
 		GMRFLib_EWRAP1(GMRFLib_pardiso_solve_LLT(sm_fact->PARDISO_fact, rhs, rhs, nrhs));

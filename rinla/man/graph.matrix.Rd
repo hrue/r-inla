@@ -54,7 +54,7 @@ QQ = inla.graph2matrix(g)
 inla.spy(QQ)
 print(all.equal(as.matrix(Q), as.matrix(QQ)))
 
-g.file = inla.write.graph(g)
+g.file = inla.write.graph(g, filename = tempfile())
 inla.dev.new()
 inla.spy(g.file)
 inla.spy(g.file,  reordering = inla.qreordering(g))
@@ -70,7 +70,7 @@ inla.spy(3, 1, "1 2 2 1 1 3 0", reordering = 3:1)
 
 }
 \seealso{
-\code{\link[=inla.read.graph]{inla.read.graph()}}, \code{inla.qreordering}
+\code{\link[=inla.read.graph]{inla.read.graph()}}, \code{\link[=inla.qreordering]{inla.qreordering()}}
 }
 \author{
 Havard Rue \email{hrue@r-inla.org}

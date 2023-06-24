@@ -32,7 +32,7 @@
 #include "GMRFLib/GMRFLibP.h"
 #include "GMRFLib/dot.h"
 
-#define SIMPLE_LOOP_LIMIT 8L
+#define SIMPLE_LOOP_LIMIT 4L
 
 double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__restrict ARR_)
 {
@@ -81,14 +81,7 @@ double GMRFLib_dot_product_group(GMRFLib_idxval_tp *__restrict ELM_, double *__r
 					value_ += GMRFLib_dsum(llen_, aa_);
 				}
 			} else {
-				if (llen_ < SIMPLE_LOOP_LIMIT) {
-#pragma omp simd reduction(+: value_)
-					for (int i_ = 0; i_ < llen_; i_++) {
-						value_ += vv_[i_] * aa_[i_];
-					}
-				} else {
-					value_ += GMRFLib_ddot(llen_, vv_, aa_);
-				}
+				value_ += GMRFLib_ddot(llen_, vv_, aa_);
 			}
 		}
 	}
@@ -142,14 +135,7 @@ double GMRFLib_dot_product_group_mkl(GMRFLib_idxval_tp *__restrict ELM_, double 
 					value_ += GMRFLib_dsum(llen_, aa_);
 				}
 			} else {
-				if (llen_ < SIMPLE_LOOP_LIMIT) {
-#pragma omp simd reduction(+: value_)
-					for (int i_ = 0; i_ < llen_; i_++) {
-						value_ += vv_[i_] * aa_[i_];
-					}
-				} else {
-					value_ += GMRFLib_ddot(llen_, vv_, aa_);
-				}
+				value_ += GMRFLib_ddot(llen_, vv_, aa_);
 			}
 		}
 	}
@@ -240,7 +226,6 @@ int GMRFLib_isum1(int n, int *ix)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		int *xx = ix + i;
 
@@ -255,7 +240,7 @@ int GMRFLib_isum1(int n, int *ix)
 		s3 += xx[7];
 	}
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0)
 	for (int i = m; i < n; i++) {
 		s0 += ix[i];
 	}
@@ -281,7 +266,6 @@ double GMRFLib_dsum1(int n, double *x)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-#pragma GCC ivdep
 	for (int i = 0; i < m; i += roll) {
 		double *xx = x + i;
 
@@ -296,7 +280,7 @@ double GMRFLib_dsum1(int n, double *x)
 		s3 += xx[7];
 	}
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0)
 	for (int i = m; i < n; i++) {
 		s0 += x[i];
 	}
@@ -318,8 +302,8 @@ double GMRFLib_dsum2(int n, double *x)
 
 void GMRFLib_isum_measure_time(double *tused)
 {
-	int n = 512;
-	int ntimes = 64;
+	int n = 128;
+	int ntimes = 512;
 	int *ix = Calloc(n, int);
 
 	for (int i = 0; i < n; i++) {
@@ -327,21 +311,21 @@ void GMRFLib_isum_measure_time(double *tused)
 	}
 
 	double tref[2] = { 0.0, 0.0 };
-	int r = 0, rr = 0;
+	double r = 0, rr = 0;
 
 	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		r += GMRFLib_isum1(n, ix);
+		r += GMRFLib_isum1(n, ix) / (1.0 + time);
 	}
 	tref[0] += GMRFLib_cpu();
 
 	tref[1] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		rr += GMRFLib_isum2(n, ix);
+		rr += GMRFLib_isum2(n, ix) / (1.0 + time);
 	}
 	tref[1] += GMRFLib_cpu();
 
-	assert(r == rr);
+	assert(ABS(r - rr) / (FLT_EPSILON + ABS(r) + ABS(rr)) < FLT_EPSILON);
 
 	tused[0] = tref[0] / (tref[0] + tref[1]);
 	tused[1] = tref[1] / (tref[0] + tref[1]);
@@ -352,8 +336,8 @@ void GMRFLib_isum_measure_time(double *tused)
 
 void GMRFLib_dsum_measure_time(double *tused)
 {
-	int n = 512;
-	int ntimes = 64;
+	int n = 128;
+	int ntimes = 128;
 	double *x = Calloc(n, double);
 	for (int i = 0; i < n; i++) {
 		x[i] = GMRFLib_uniform();
@@ -364,13 +348,13 @@ void GMRFLib_dsum_measure_time(double *tused)
 
 	tref[0] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		r += GMRFLib_dsum1(n, x);
+		r += GMRFLib_dsum1(n, x) / (1.0 + time);
 	}
 	tref[0] += GMRFLib_cpu();
 
 	tref[1] -= GMRFLib_cpu();
 	for (int time = 0; time < ntimes; time++) {
-		rr += GMRFLib_dsum2(n, x);
+		rr += GMRFLib_dsum2(n, x) / (1.0 + time);
 	}
 	tref[1] += GMRFLib_cpu();
 
@@ -385,8 +369,62 @@ void GMRFLib_dsum_measure_time(double *tused)
 
 double GMRFLib_ddot(int n, double *x, double *y)
 {
-	int one = 1;
-	return ddot_(&n, x, &one, y, &one);
+	if (n < GMRFLib_threshold_ddot) {
+		double dot = 0.0;
+#pragma omp simd reduction(+: dot)
+		for (int i = 0; i < n; i++) {
+			dot += x[i] * y[i];
+		}
+		return dot;
+	} else {
+		int one = 1;
+		return ddot_(&n, x, &one, y, &one);
+	}
+}
+
+void GMRFLib_chose_threshold_ddot(void)
+{
+	const int nmax = 512, ntimes = 512, verbose = 0;
+	double *x, *y;
+	x = Calloc(2 * nmax, double);
+	y = x + nmax;
+
+	GMRFLib_threshold_ddot = nmax;
+	for (int m = 1; m < nmax; m++) {
+
+		double tref[] = { 0, 0 };
+		double dd[] = { 0, 0 };
+		double dot = 0.0;
+
+		tref[0] -= GMRFLib_cpu();
+		for (int k = 0; k < ntimes; k++) {
+#pragma omp simd reduction(+: dot)
+			for (int i = 0; i < m; i++) {
+				dot += x[i] * y[i];
+			}
+		}
+		dd[0] = dot;
+		tref[0] += GMRFLib_cpu();
+
+		dot = 0.0;
+		int one = 1;
+		tref[1] -= GMRFLib_cpu();
+		for (int k = 0; k < ntimes; k++) {
+			dot += ddot_(&m, x, &one, y, &one);
+		}
+		dd[1] = dot;
+		tref[1] += GMRFLib_cpu();
+
+		assert(ABS(dd[0] - dd[1]) / (FLT_EPSILON + ABS(dd[0]) + ABS(dd[1])) < FLT_EPSILON);
+		if (verbose) {
+			printf("m %1d time simd %.3f   time ddot_ %.3f\n", m, tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+		}
+
+		if (tref[1] < tref[0]) {
+			GMRFLib_threshold_ddot = m;
+			break;
+		}
+	}
 }
 
 double GMRFLib_dsum_idx(int n, double *__restrict a, int *__restrict idx)
