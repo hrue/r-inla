@@ -37,6 +37,7 @@
                                          "Fedora Linux-35", 
                                          "Fedora Linux-36", 
                                          "Fedora Linux-37", 
+                                         "Fedora Linux-38", 
                                          "Manjaro Linux", 
                                          "Ubuntu-16.04", 
                                          "Ubuntu-18.04", 
@@ -45,7 +46,8 @@
                                   path = NULL, 
                                   verbose = TRUE,
                                   md5.check = TRUE,
-                                  secure.http = TRUE) {
+                                  secure.http = TRUE)
+{
     show <- function(...) {
         if (verbose) {
             msg <- paste(unlist(list(...)), sep = "", collapse = "")
@@ -190,9 +192,8 @@
     if (external.path) {
         cat("* Examples of usage:\n")
         cat("* \tinla.setOption(inla.call = \"", paste0(from.dir, "/inla.mkl.run"), "\")\n")
-        cat("* \tinla.setOption(inla.call = \"", paste0(from.dir, "/inla.run"), "\")\n")
         cat("* \tinla.setOption(fmesher.call = \"", paste0(from.dir, "/fmesher.run"), "\")\n")
     }
 
-   return(invisible(TRUE))
+    return(invisible(TRUE))
 }
