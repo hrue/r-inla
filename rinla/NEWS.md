@@ -1,3 +1,6 @@
+# INLA 23.06.25
+* Fix vignettes
+
 # INLA 23.06.24
 * Some improvement in TAUCS linear solve(s)
 * Fixed an issue with Gaussian likelihood and non-identity link
