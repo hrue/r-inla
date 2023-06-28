@@ -704,6 +704,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 
 		// shrink before creating the spline
 		int k = 0;
+#pragma omp simd linear(k: 1)
 		for (int i = 0; i < npm; i += GMRFLib_INT_NUM_INTERPOL) {
 			xpm[k] = xpm[i];
 			pm[k] = pm[i];
