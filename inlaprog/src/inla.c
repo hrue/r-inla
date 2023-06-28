@@ -1537,14 +1537,13 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					}
 				}
 				jp_vec_sexp = inla_R_vector_of_strings(mb->ntheta, vec_str);
-				jp_first_time = 0;
-
 				if (vec_str) {
 					for (i = 0; i < mb->ntheta; i++) {
 						Free(vec_str[i]);
 					}
 					Free(vec_str);
 				}
+				jp_first_time = 0;
 			}
 			assert(!(mb->update));		       /* only one at the time... */
 			evaluate_hyper_prior = 0;
