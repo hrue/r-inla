@@ -17066,7 +17066,7 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 		mb->jp = Calloc(1, inla_jp_tp);
 		mb->jp->file = GMRFLib_strdup(file);
 		mb->jp->model = GMRFLib_strdup(model);
-
+		inla_R_library("INLA");			       /* initialize here */
 	} else {
 		mb->jp = NULL;
 	}

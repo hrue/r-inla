@@ -1527,8 +1527,6 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		{
 			if (jp_first_time) {
 				char **vec_str = NULL;
-
-				inla_R_library("INLA");
 				inla_R_load(mb->jp->file);
 				if (mb->ntheta > 0) {
 					vec_str = Calloc(mb->ntheta, char *);
