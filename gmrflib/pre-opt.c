@@ -1268,8 +1268,10 @@ int GMRFLib_preopt_predictor_moments(double *mean, double *variance, GMRFLib_pre
 					jj = elm->idx[kk];		\
 					cov = GMRFLib_Qinv_get(problem, j, jj);	\
 					if (!cov) {			\
-						_Pragma("omp atomic")	\
-						err_count++;	        \
+						{			\
+							_Pragma("omp atomic") \
+								err_count++; \
+						}			\
 						cov = &zero;		\
 					}				\
 					tvar += elm->val[kk] * *cov;	\
