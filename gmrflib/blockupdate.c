@@ -140,7 +140,7 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 						   step_len, stencil);
 		}
 
-		if (INVALID(x0) || INVALID(ddf) || INVALID(df) || INVALID(f0)) {
+		if (INVALID(x0) || INVALID(f0) || INVALID(df) || INVALID(ddf)) {
 			fprintf(stderr, "GMRFLib_2order_approx: rescue NAN/INF values in logl for idx=%1d\n", indx);
 			f0 = df = 0.0;
 			ddf = -1.0;			       /* we try with this */
@@ -193,14 +193,7 @@ int GMRFLib_2order_approx(int thread_id, double *a, double *b, double *c, double
 int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, double *dd, double x0, int indx,
 			       double *x_vec, GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *step_len, int *stencil)
 {
-
-#define ERR if (dd) {							\
-		fprintf(stderr, "2order_approx_core: 3rd derivative requested but there are to few points in the stencil\n"); \
-		assert(dd == NULL);					\
-		exit(1);						\
-	}
-
-	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0;
+	double step, df = 0.0, ddf = 0.0, dddf = 0.0, xx[9], f[9], f0 = 0.0, x00;
 
 	if (step_len && *step_len < 0.0) {
 		/*
@@ -222,148 +215,99 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		dddf = (-1.0 / 2.0 * f[4] + 1.0 * f[3] + 0.0 * f[2] - 1.0 * f[1] + 1.0 / 2.0 * f[0]) / gsl_pow_3(step);
 	} else {
 		int num_points = (stencil ? *stencil : 5);
-		step = (step_len && *step_len > 0.0 ? *step_len : GSL_ROOT4_DBL_EPSILON);
+
+		if (!step_len || ISZERO(*step_len)) {
+			step = (GSL_DBL_EPSILON / 2.220446049e-16) * (*stencil == 5 ? 1.0e-4 : (*stencil == 7 ? 5.0e-4 : 1.0e-3));
+		} else {
+			step = *step_len;
+		}
 
 		// see https://en.wikipedia.org/wiki/Finite_difference_coefficients
+		int n, nn;
+		static double wf5[] = {
+			// 
+			0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333,
+			// 
+			-0.08333333333333333, 1.333333333333333, -2.5, 1.333333333333333, -0.08333333333333333,
+			// 
+			-0.5, 1.0, 0.0, -1.0, 0.5
+		};
+
+		static double wf7[] = {
+			// 
+			-0.01666666666666667, 0.15, -0.75, 0.0, 0.75, -0.15, 0.01666666666666667,
+			// 
+			0.01111111111111111, -0.15, 1.5, -2.722222222222222, 1.5, -0.15, 0.01111111111111111,
+			// 
+			0.125, -1.0, 1.625, 0.0, -1.625, 1.0, -0.125
+		};
+
+		static double wf9[] = {
+			// 
+			0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571,
+			// 
+			-0.001785714285714286, 0.0253968253968254, -0.2, 1.6, -2.847222222222222, 1.6, -0.2, 0.0253968253968254,
+			-0.001785714285714286,
+			// 
+			-0.02916666666666667, 0.3, -1.408333333333333, 2.033333333333333, 0.0, -2.033333333333333, 1.408333333333333, -0.3,
+			0.02916666666666667
+		};
+
+		double *wf = NULL;
+
 		switch (num_points) {
-		case 3:
-		{
-			xx[0] = x0 - step;
-			xx[1] = x0;
-			xx[2] = x0 + step;
-
-			loglFunc(thread_id, f, xx, 3, indx, x_vec, NULL, loglFunc_arg, NULL);
-
-			f0 = f[1];
-			df = 0.5 * (f[2] - f[0]) / step;
-			ddf = (f[2] - 2.0 * f[1] + f[0]) / SQR(step);
-			if (dd) {
-				ERR;
-			}
-		}
-			break;
-
 		case 5:
-		{
-			// double wf[] = { 1.0 / 12.0, -2.0 / 3.0, 0.0, 2.0 / 3.0, -1.0 / 12.0 };
-			// double wff[] = { -1.0 / 12.0, 4.0 / 3.0, -5.0 / 2.0, 4.0 / 3.0, -1.0 / 12.0 };
-			// double wfff[] = { -1.0 / 2.0, 1.0, 0.0, -1.0, 1.0 / 2.0 };
-
-			static double wf[] = {
-				// 
-				0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333,
-				// 
-				-0.08333333333333333, 1.333333333333333, -2.5, 1.333333333333333, -0.08333333333333333,
-				// 
-				-0.5, 1.0, 0.0, -1.0, 0.5
-			};
-			double *wff = wf + 5;
-			double *wfff = wf + 10;
-
-			xx[0] = x0 - 2 * step;
-			xx[1] = x0 - step;
-			xx[2] = x0;
-			xx[3] = x0 + step;
-			xx[4] = x0 + 2 * step;
-
-			loglFunc(thread_id, f, xx, 5, indx, x_vec, NULL, loglFunc_arg, NULL);
-
-			f0 = f[2];
-			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4]) / step;
-			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4]) / SQR(step);
-			if (dd) {
-				dddf = (wfff[0] * f[0] + wfff[1] * f[1] + wfff[2] * f[2] + wfff[3] * f[3] + wfff[4] * f[4]) / gsl_pow_3(step);
-			}
-		}
+			n = 5;
+			nn = 2;
+			wf = wf5;
 			break;
-
 		case 7:
-		{
-			// double wf[] = { -1.0 / 60.0, 3.0 / 20.0, -3.0 / 4.0, 0.0, 3.0 / 4.0, -3.0 / 20.0, 1.0 / 60.0 };
-			// double wff[] = { 1.0 / 90.0, -3.0 / 20.0, 3.0 / 2.0, -49.0 / 18.0, 3.0 / 2.0, -3.0 / 20.0, 1.0 / 90.0 };
-			// double wfff[] = { 1.0 / 8.0, -1.0, 13.0 / 8.0, 0.0, -13.0 / 8.0, 1.0, -1.0 / 8.0 };
-
-			static double wf[] = {
-				// 
-				-0.01666666666666667, 0.15, -0.75, 0.0, 0.75, -0.15, 0.01666666666666667,
-				// 
-				0.01111111111111111, -0.15, 1.5, -2.722222222222222, 1.5, -0.15, 0.01111111111111111,
-				// 
-				0.125, -1.0, 1.625, 0.0, -1.625, 1.0, -0.125
-			};
-			double *wff = wf + 7;
-			double *wfff = wf + 14;
-
-			xx[0] = x0 - 3 * step;
-			xx[1] = x0 - 2 * step;
-			xx[2] = x0 - step;
-			xx[3] = x0;
-			xx[4] = x0 + step;
-			xx[5] = x0 + 2 * step;
-			xx[6] = x0 + 3 * step;
-
-			loglFunc(thread_id, f, xx, 7, indx, x_vec, NULL, loglFunc_arg, NULL);
-
-			f0 = f[3];
-			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6]) / step;
-			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] +
-			       wff[6] * f[6]) / SQR(step);
-			if (dd) {
-				dddf = (wfff[0] * f[0] + wfff[1] * f[1] + wfff[2] * f[2] + wfff[3] * f[3] + wfff[4] * f[4] + wfff[5] * f[5] +
-					wfff[6] * f[6]) / gsl_pow_3(step);
-			}
-		}
+			n = 7;
+			nn = 3;
+			wf = wf7;
 			break;
-
 		case 9:
-		{
-			// double wf[] = { 1.0 / 280.0, -4.0 / 105.0, 1.0 / 5.0, -4.0 / 5.0, 0.0, 4.0 / 5.0, -1.0 / 5.0, 4.0 / 105.0, -1.0 / 280.0
-			// };
-			// double wff[] = { -1.0 / 560.0, 8.0 / 315.0, -1.0 / 5.0, 8.0 / 5.0, -205.0 / 72.0, 8.0 / 5.0, -1.0 / 5.0, 8.0 / 315.0,
-			// -1.0 / 560.0 };
-			// double wfff[] = { -7.0 / 240.0, 3.0 / 10.0, -169.0 / 120.0, 61.0 / 30.0, 0.0, -61.0 / 30.0, 169.0 / 120.0, -3.0 / 10.0,
-			// 7.0 / 240.0 };
+			n = 9;
+			nn = 4;
+			wf = wf9;
+			break;
+		default:
+			GMRFLib_ASSERT(num_points == 5 || num_points == 7 || num_points == 9, GMRFLib_EINVARG);
+			abort();
+		}
 
-			static double wf[] = {
-				// 
-				0.003571428571428571, -0.0380952380952381, 0.2, -0.8, 0.0, 0.8, -0.2, 0.0380952380952381, -0.003571428571428571,
-				// 
-				-0.001785714285714286, 0.0253968253968254, -0.2, 1.6, -2.847222222222222, 1.6, -0.2, 0.0253968253968254,
-				-0.001785714285714286,
-				// 
-				-0.02916666666666667, 0.3, -1.408333333333333, 2.033333333333333, 0.0, -2.033333333333333, 1.408333333333333, -0.3,
-				0.02916666666666667
-			};
-			double *wff = wf + 9;
-			double *wfff = wf + 18;
+		double *wff = wf + n;
 
-			xx[0] = x0 - 4 * step;
-			xx[1] = x0 - 3 * step;
-			xx[2] = x0 - 2 * step;
-			xx[3] = x0 - step;
-			xx[4] = x0;
-			xx[5] = x0 + step;
-			xx[6] = x0 + 2 * step;
-			xx[7] = x0 + 3 * step;
-			xx[8] = x0 + 4 * step;
+		x00 = x0 - nn * step;
+#pragma omp simd
+		for (int i = 0; i < n; i++) {
+			xx[i] = x00 + i * step;
+		}
 
-			loglFunc(thread_id, f, xx, 9, indx, x_vec, NULL, loglFunc_arg, NULL);
+		loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+		f0 = f[nn];
 
-			f0 = f[4];
-			df = (wf[0] * f[0] + wf[1] * f[1] + wf[2] * f[2] + wf[3] * f[3] + wf[4] * f[4] + wf[5] * f[5] + wf[6] * f[6] +
-			      wf[7] * f[7] + wf[8] * f[8]) / step;
-			ddf = (wff[0] * f[0] + wff[1] * f[1] + wff[2] * f[2] + wff[3] * f[3] + wff[4] * f[4] + wff[5] * f[5] + wff[6] * f[6] +
-			       wff[7] * f[7] + wff[8] * f[8]) / SQR(step);
-			if (dd) {
-				dddf = (wfff[0] * f[0] + wfff[1] * f[1] + wfff[2] * f[2] + wfff[3] * f[3] + wfff[4] * f[4] + wfff[5] * f[5] +
-					wfff[6] * f[6] + wfff[7] * f[7] + wfff[8] * f[8]) / gsl_pow_3(step);
+		if (dd) {
+			double *wfff = wf + 2 * n;
+#pragma omp simd reduction(+: df, ddf, dddf)
+			for (int i = 0; i < n; i++) {
+				double ff = f[i];
+				df += wf[i] * ff;
+				ddf += wff[i] * ff;
+				dddf += wfff[i] * ff;
+			}
+		} else {
+#pragma omp simd reduction(+: df, ddf)
+			for (int i = 0; i < n; i++) {
+				double ff = f[i];
+				df += wf[i] * ff;
+				ddf += wff[i] * ff;
 			}
 		}
-			break;
-
-		default:
-			GMRFLib_ASSERT(num_points == 3 || num_points == 5 || num_points == 7 || num_points == 9, GMRFLib_EINVARG);
-			abort();
+		df /= step;
+		ddf /= SQR(step);
+		if (dd) {
+			dddf /= gsl_pow_3(step);
 		}
 	}
 
