@@ -3774,6 +3774,23 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 128: 
+	{
+		Calloc_init(2000, 11);
+		for(int i = 0; i <= 10; i++){
+			double *d = Calloc_get(i+1);
+			printf("i = %d offset %d check %f\n", i, calloc_offset_,  (double) (sizeof(double) * calloc_offset_) / 64.0);
+		}
+
+		printf("\n");
+		iCalloc_init(2000, 11);
+		for(int i = 0; i <= 10; i++){
+			int *d = iCalloc_get(i+1);
+			printf("i = %d offset %d check %f\n", i, icalloc_offset_,  (double) (sizeof(int) * icalloc_offset_) / 64.0);
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

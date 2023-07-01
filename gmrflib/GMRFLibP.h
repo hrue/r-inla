@@ -337,30 +337,36 @@ typedef enum {
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
 	size_t calloc_l1_cacheline_ = 64L / sizeof(double);		\
-	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_l1_cacheline_); \
+	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * (calloc_l1_cacheline_ - 1) * calloc_l1_cacheline_); \
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
+	div_t dt_;							\
 	double *calloc_work_ = Calloc(IMAX(1, calloc_len_), double);	\
 	assert(calloc_work_)
 
 #define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
 	size_t icalloc_l1_cacheline_ = 64L / sizeof(int);		\
-	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_l1_cacheline_); \
+	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * (icalloc_l1_cacheline_ - 1) * icalloc_l1_cacheline_); \
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
-	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int);	\
+	div_t it_;							\
+	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int); \
 	assert(icalloc_work_)
 
 #define Calloc_get(_n)							\
 	calloc_work_ + calloc_offset_;					\
 	calloc_offset_ += (size_t)((_n) + calloc_l1_cacheline_);	\
+	dt_ = div(calloc_offset_, calloc_l1_cacheline_);		\
+	if (dt_.rem > 0) calloc_offset_ += (calloc_l1_cacheline_ - dt_.rem); \
 	calloc_m_count_++;						\
 	Calloc_check()
 
 #define iCalloc_get(_n)							\
 	icalloc_work_ + icalloc_offset_;				\
 	icalloc_offset_ += (size_t)((_n) + icalloc_l1_cacheline_);	\
+	it_ = div(icalloc_offset_, icalloc_l1_cacheline_);		\
+	if (it_.rem > 0) icalloc_offset_ += (icalloc_l1_cacheline_ - it_.rem); \
 	icalloc_m_count_++;						\
 	iCalloc_check()
 
