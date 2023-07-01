@@ -1506,7 +1506,7 @@ double priorfunc_pc_gamma(double *x, double *parameters)
 	// asympt(log(Psi(1, n)-1/n), n,4);
 	// see also testing no 48 and 49
 #define SPECIAL(x) ((x > 1.0E4 ?					\
-		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) - 22.0/(405.0 * gsl_pow_3(x)) : \
+		     -2.0 * log(x) - log(2.0) + 1.0/(3.0*(x)) - 1.0/(18.0*SQR(x)) - 22.0/(405.0 * POW3(x)) : \
 		     log(gsl_sf_psi_1(x) - 1.0/(x))))
 
 	// the inla.pc.dgamma prior, which is the prior for 'a' in Gamma(1/a, 1/a) where a=0 is the base model. Here we have the

@@ -42,7 +42,7 @@ int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m,
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			double xx = x[i] - x0;
-			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * gsl_pow_3(xx);
+			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * POW3(xx);
 		}
 	} else {
 		abort();

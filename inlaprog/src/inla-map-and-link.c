@@ -407,7 +407,7 @@ double map_invsn_core(double arg, map_arg_tp typ, void *param, inla_sn_arg_tp *o
 				mom[0] += y[i];
 				mom[1] += y[i] * x[i];
 				mom[2] += y[i] * SQR(x[i]);
-				mom[3] += y[i] * gsl_pow_3(x[i]);
+				mom[3] += y[i] * POW3(x[i]);
 				negative += y[i] * (x[i] < 0);
 			}
 			mom[1] /= mom[0];

@@ -72,15 +72,40 @@ typedef int fortran_charlen_t;
 #else
 #define UNUSED(x) UNUSED_ ## x
 #endif
-#ifdef __GNUC__
-#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
-#else
-#define UNUSED_FUNCTION(x) UNUSED_ ## x
-#endif
 
 #if defined(NDEBUG)
 #error The code assume that NDEBUG is *NOT* defined
 #endif
+
+#ifdef __GNUC__
+#define POSSIBLY_UNUSED_FUNCTION(x) __attribute__((__unused__)) x
+#else
+#define POSSIBLY_UNUSED_FUNCTION(x) x
+#endif
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(SQR)(double x) 
+{
+	return (x * x);
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(ISQR)(int ix) 
+{
+	return (ix * ix);
+}
+
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(POW3)(double x) 
+{
+	return (x * x * x);
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IPOW3)(int ix) 
+{
+	return (ix * ix * ix);
+}
 
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
@@ -94,7 +119,6 @@ typedef enum {
 #define GMRFLib_MAXINT (2147483647)
 
 #define GMRFLib_SIMD_LIM 4
-
 
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
@@ -393,7 +417,7 @@ typedef enum {
 #define ISEQUAL_x(x, y, eps) (gsl_fcmp(x, y, eps) == 0)
 #define ISINF(x) isinf(x)
 #define ISNAN(x) (isnan(x) != 0)
-#define ISQR(x) ((x)*(x))
+//#define ISQR(x) ((x)*(x))
 #define ISSMALL(x) (gsl_fcmp(1.0 + (x), 1.0, DBL_EPSILON) == 0)
 #define ISSMALL_x(x, eps) (gsl_fcmp(1.0 + (x), 1.0, eps) == 0)
 #define ISZERO(x) (((__typeof (x)) (x)) == 0)
@@ -410,7 +434,7 @@ typedef enum {
 #define PPstderrg(msg,pt) if (1) { fprintf(stderr, "[%s:%1d] %s value " #pt " = %g\n", __FILE__, __LINE__, msg, pt); }
 #define Pstderr(x)  if (1) { fprintf(stderr, "[%s:%1d] " #x " = [ %.12f ]\n",__FILE__, __LINE__,(double)(x)); }
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
-#define SQR(x) gsl_pow_2(x)
+//#define SQR(x) gsl_pow_2(x)
 #define SWAP(x_, y_) if (1) { typeof(x_) tmp___ = x_; x_ = y_; y_ = tmp___; }
 #define TRUNCATE(x, low, high)  DMIN( DMAX(x, low), high)      /* ensure that x is in the inteval [low,high] */
 #define MAKE_ODD(n_) if (GSL_IS_EVEN(n_)) (n_)++
@@ -581,6 +605,7 @@ typedef enum {
 #endif
 #endif
 #endif
+
 
 __END_DECLS
 #endif

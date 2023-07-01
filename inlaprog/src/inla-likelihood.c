@@ -1414,10 +1414,10 @@ int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, 
 		       char **UNUSED(arg_str))
 {
 #define f3_BETA_STD(_x) (30.0 * SQR(_x) * SQR(1.0-(_x)))
-#define F3_BETA_STD(_x) (gsl_pow_3(_x) * (10.0 + (-15.0 + 6.0 * (_x)) * (_x)))
+#define F3_BETA_STD(_x) (POW3(_x) * (10.0 + (-15.0 + 6.0 * (_x)) * (_x)))
 #define f3_BETA(_x, _a, _b) (f3_BETA_STD((((_x) - (_a)) / ((_b) - (_a)))) / ((_b) - (_a)))
 #define F3_BETA(_x, _a, _b) F3_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))
-#define f4_BETA_STD(_x) (140.0 * gsl_pow_3(_x) * gsl_pow_3(1.0 - (_x)))
+#define f4_BETA_STD(_x) (140.0 * POW3(_x) * POW3(1.0 - (_x)))
 #define F4_BETA_STD(_x) (gsl_pow_4(_x) * (35.0 + (-84.0 + (70.0 - 20.0 * (_x)) * (_x)) * (_x)))
 #define f4_BETA(_x, _a, _b) (f4_BETA_STD(((_x) - (_a)) / ((_b) - (_a))) / ((_b) - (_a)))
 #define F4_BETA(_x, _a, _b) F4_BETA_STD((((_x) - (_a)) / ((_b) - (_a))))

@@ -37,9 +37,6 @@
 
 extern G_tp G;						       /* import some global parametes from inla */
 
-#define Sqr(x_) ((x_)*(x_))
-
-
 double inla_spde2_Qfunction(int thread_id, int ii, int jj, double *values, void *arg)
 {
 	if (jj < 0) {
@@ -174,7 +171,7 @@ double inla_spde2_Qfunction_ij(int thread_id, int ii, int jj, double *UNUSED(val
 
 	if (ii == jj) {
 		double *v = model->row_v[ii];
-		double value = Sqr(d_i[0]) * (Sqr(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
+		double value = SQR(d_i[0]) * (SQR(d_i[1]) * v[0] + d_i[2] * d_i[1] * (v[1] + v[2]) + v[3]);
 		return value;
 	}
 
@@ -645,5 +642,3 @@ double *inla_spde2_userfunc2(int number, double *theta, int nhyper, double *covm
 #undef ThetaNew
 	return NULL;
 }
-
-#undef Sqr
