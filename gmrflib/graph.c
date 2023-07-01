@@ -1355,14 +1355,14 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			}
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				double qij;				\
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				int *j_a = graph->nbs[i];		\
+				double sum = 0.0;			\
 				for (int jj = 0; jj < graph->nnbs[i]; jj++) { \
 					int j = j_a[jj];		\
-					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
-					result[i] += qij * x[j];	\
+					sum += Qfunc(thread_id, i, j, NULL, Qfunc_arg) * x[j]; \
 				}					\
+				result[i] += sum;			\
 			}
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -1372,15 +1372,18 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				FIXME("Qx2: run serial");
 			}
 			for (int i = 0; i < graph->n; i++) {
-				double qij;
-				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
+				double sum = 0.0, xi = x[i];
 				int *j_a = graph->lnbs[i];
+
+				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * xi;
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = j_a[jj];
-					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
-					result[i] += qij * x[j];
-					result[j] += qij * x[i];
+					double qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+
+					sum += qij * x[j];
+					result[j] += qij * xi;
 				}
+				result[i] += sum;
 			}
 		}
 	} else {
@@ -1393,20 +1396,25 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			char *used = Calloc(max_t, char);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				double *r, *local_values;		\
+				double *r, *local_values, xi = x[i], sum = 0.0;	\
+				int *j_a = graph->lnbs[i];		\
 				/* may run in serial */			\
 				int tnum = (nt__ > 1 ? omp_get_thread_num() : 0); \
+									\
 				used[tnum] = 1;				\
 				r = local_result + tnum * (graph->n + off); \
 				local_values = CODE_BLOCK_WORK_PTR_x(0, tnum);	\
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
-				r[i] += (local_values[0] + diag[i]) * x[i]; \
-				int *j_a = graph->lnbs[i];		\
-				for (int k = 1, jj = 0; jj < graph->lnnbs[i]; jj++, k++) { \
+				r[i] += (local_values[0] + diag[i]) * xi; \
+									\
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) { \
 					int j = j_a[jj];		\
-					r[i] += local_values[k] * x[j];	\
-					r[j] += local_values[k] * x[i];	\
+					double lval = local_values[jj+1]; \
+									\
+					sum += lval * x[j];		\
+					r[j] += lval * xi;		\
 				}					\
+				r[i] += sum;				\
 			}
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m + 1);
@@ -1416,10 +1424,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				if (used[j]) {
 					int offset = j * (graph->n + off);
 					double *r = local_result + offset;
-#pragma omp simd
-					for (int i = 0; i < graph->n; i++) {
-						result[i] += r[i];
-					}
+					GMRFLib_daddto(graph->n, r, result);
 				}
 			}
 
@@ -1430,14 +1435,19 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				FIXME("Qx2: run block serial");
 			}
 			for (int i = 0; i < graph->n; i++) {
-				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
-				result[i] += (values[0] + diag[i]) * x[i];
+				double sum = 0.0, xi = x[i];
 				int *j_a = graph->lnbs[i];
-				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++, k++) {
-					j = j_a[jj];
-					result[i] += values[k] * x[j];
-					result[j] += values[k] * x[i];
+
+				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
+				result[i] += (values[0] + diag[i]) * xi;
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					double val = values[jj+1];
+					int j = j_a[jj];
+
+					sum += val * x[j];
+					result[j] += val * xi;
 				}
+				result[i] += sum;
 			}
 		}
 	}
