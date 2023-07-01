@@ -1493,13 +1493,12 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			}
 		} else {
 			double *p1, *p2, *p3, *p4, qij;
-			int one = 1;
 			for (int i = 0; i < graph->n; i++) {
 				qij = Qfunc(thread_id, i, i, NULL, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
 				p3 = gsl_matrix_ptr(x, i, 0);
 				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * qij;
-				daxpy_(&ncol, &qij, p3, &one, p1, &one);
+				GMRFLib_daxpy(ncol, qij, p3, p1);
 				int *j_a = graph->lnbs[i];
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = j_a[jj];
@@ -1509,8 +1508,8 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 					// for (int k = 0; k < ncol; k++) {
 					// p1[k] += qij * p4[k];
 					// p2[k] += qij * p3[k];
-					daxpy_(&ncol, &qij, p4, &one, p1, &one);
-					daxpy_(&ncol, &qij, p3, &one, p2, &one);
+					GMRFLib_daxpy(ncol, qij, p4, p1);
+					GMRFLib_daxpy(ncol, qij, p3, p2);
 				}
 			}
 		}
@@ -1538,12 +1537,11 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			// better one, as the 'k' loop is sequential with inc=1
 			double *p1, *p2, *p3, *p4;
 			for (int i = 0; i < graph->n; i++) {
-				int one = 1;
 				Qfunc(thread_id, i, -1, values, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
 				p3 = gsl_matrix_ptr(x, i, 0);
 				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * values[0];
-				daxpy_(&ncol, &(values[0]), p3, &one, p1, &one);
+				GMRFLib_daxpy(ncol, values[0], p3, p1);
 				int *j_a = graph->lnbs[i];
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = j_a[jj];
@@ -1553,8 +1551,8 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 					// for (int k = 0; k < ncol; k++) {
 					// p1[k] += qij * p4[k];
 					// p2[k] += qij * p3[k];
-					daxpy_(&ncol, &qij, p4, &one, p1, &one);
-					daxpy_(&ncol, &qij, p3, &one, p2, &one);
+					GMRFLib_daxpy(ncol, qij, p4, p1);
+					GMRFLib_daxpy(ncol, qij, p3, p2);
 				}
 			}
 
