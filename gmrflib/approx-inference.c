@@ -4026,8 +4026,8 @@ int GMRFLib_ai_vb_prepare_mean(int thread_id,
 		}
 	}
 
-	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
-	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
+	double x_user[2 * GMRFLib_INT_GHQ_ALLOC_LEN];
+	double *loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
@@ -4083,8 +4083,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 			if (!wp) {
 				double *wtmp = NULL;
 				GMRFLib_ghq(&xp, &wtmp, GMRFLib_INT_GHQ_POINTS);	/* just give ptr to storage */
-				xp2 = Calloc(2 * GMRFLib_INT_GHQ_POINTS, double);
-				xp3 = xp2 + GMRFLib_INT_GHQ_POINTS;
+				xp2 = Calloc(2 * GMRFLib_INT_GHQ_ALLOC_LEN, double);
+				xp3 = xp2 + GMRFLib_INT_GHQ_ALLOC_LEN;
 				for (int i = 0; i < GMRFLib_INT_GHQ_POINTS; i++) {
 					double z2 = SQR(xp[i]);
 					xp2[i] = z2 - 1.0;
@@ -4095,8 +4095,8 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 		}
 	}
 
-	double x_user[2 * GMRFLib_INT_GHQ_POINTS];
-	double *loglik = x_user + GMRFLib_INT_GHQ_POINTS;
+	double x_user[2 * GMRFLib_INT_GHQ_ALLOC_LEN];
+	double *loglik = x_user + GMRFLib_INT_GHQ_ALLOC_LEN;
 
 	GMRFLib_daxpb(GMRFLib_INT_GHQ_POINTS, sd, xp, mean, x_user);
 	loglFunc(thread_id, loglik, x_user, GMRFLib_INT_GHQ_POINTS, idx, x_vec, NULL, loglFunc_arg, NULL);
