@@ -1441,7 +1441,7 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
 				result[i] += (values[0] + diag[i]) * xi;
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
-					double val = values[jj+1];
+					double val = values[jj + 1];
 					int j = j_a[jj];
 
 					sum += val * x[j];

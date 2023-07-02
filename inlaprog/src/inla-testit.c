@@ -3774,24 +3774,36 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 128: 
+	case 128:
 	{
 		Calloc_init(2000, 18);
-		for(int i = 0; i <= 17; i++){
-			double *d = Calloc_get(i+1);
-			printf("i = %d offset %zu check %f\n", i, calloc_offset_,  (double) (sizeof(double) * calloc_offset_) / 64.0);
+		for (int i = 0; i <= 17; i++) {
+			double *d = Calloc_get(i + 1);
+			printf("i = %d offset %zu check %f\n", i, calloc_offset_, (double) (sizeof(double) * calloc_offset_) / 32.0);
 			assert(d);
 		}
 
 		printf("\n");
 		iCalloc_init(2000, 18);
-		for(int i = 0; i <= 17; i++){
-			int *d = iCalloc_get(i+1);
-			printf("i = %d offset %zu check %f\n", i, icalloc_offset_,  (double) (sizeof(int) * icalloc_offset_) / 64.0);
+		for (int i = 0; i <= 17; i++) {
+			int *d = iCalloc_get(i + 1);
+			printf("i = %d offset %zu check %f\n", i, icalloc_offset_, (double) (sizeof(int) * icalloc_offset_) / 32.0);
 			assert(d);
 		}
+
+		printf("\n");
+		for (size_t i = 0; i <= 17; i++) {
+			size_t N = GMRFLib_align((size_t) i, sizeof(int));
+			printf("INT n %zu N %zu CHECK %f\n", i, N, (N * sizeof(double)) / 32.0);
+		}
+
+		printf("\n");
+		for (size_t i = 0; i <= 17; i++) {
+			size_t N = GMRFLib_align(i, sizeof(double));
+			printf("DOUBLE n %zu N %zu CHECK %f\n", i, N, (N * sizeof(double)) / 32.0);
+		}
 	}
-	break;
+		break;
 
 	case 999:
 	{

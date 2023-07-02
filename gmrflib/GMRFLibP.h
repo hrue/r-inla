@@ -84,28 +84,28 @@ typedef int fortran_charlen_t;
 #endif
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(SQR)(double x) 
-{
+static double POSSIBLY_UNUSED_FUNCTION(SQR) (double x) {
 	return (x * x);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(ISQR)(int ix) 
-{
+static int POSSIBLY_UNUSED_FUNCTION(ISQR) (int ix) {
 	return (ix * ix);
 }
 
 #pragma omp declare simd
-static double POSSIBLY_UNUSED_FUNCTION(POW3)(double x) 
-{
+static double POSSIBLY_UNUSED_FUNCTION(POW3) (double x) {
 	return (x * x * x);
 }
 
 #pragma omp declare simd
-static int POSSIBLY_UNUSED_FUNCTION(IPOW3)(int ix) 
-{
+static int POSSIBLY_UNUSED_FUNCTION(IPOW3) (int ix) {
 	return (ix * ix * ix);
 }
+
+#define GMRFLib_L1_CACHELINE (64L)
+#define GMRFLib_MEM_ALIGN (32L)
+
 
 typedef enum {
 	GMRFLib_MODE_CLASSIC = 1,
@@ -337,36 +337,32 @@ typedef enum {
 #define Calloc_init(n_, m_)						\
 	size_t calloc_m_ = (m_);					\
 	size_t calloc_l1_cacheline_ = 64L / sizeof(double);		\
-	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * (calloc_l1_cacheline_ - 1) * calloc_l1_cacheline_); \
+	size_t calloc_mem_align_ = 32L / sizeof(double);		\
+	size_t calloc_len_ = (size_t)((n_) + calloc_m_ * calloc_mem_align_ * calloc_l1_cacheline_); \
 	size_t calloc_offset_ = 0;					\
 	size_t calloc_m_count_ = 0;					\
-	div_t dt_;							\
 	double *calloc_work_ = Calloc(IMAX(1, calloc_len_), double);	\
 	assert(calloc_work_)
 
 #define iCalloc_init(n_, m_)						\
 	size_t icalloc_m_ = (m_);					\
 	size_t icalloc_l1_cacheline_ = 64L / sizeof(int);		\
-	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * (icalloc_l1_cacheline_ - 1) * icalloc_l1_cacheline_); \
+	size_t icalloc_mem_align_ = 32L / sizeof(int);			\
+	size_t icalloc_len_ = (size_t)((n_) + icalloc_m_ * icalloc_mem_align_ * icalloc_l1_cacheline_); \
 	size_t icalloc_offset_ = 0;					\
 	size_t icalloc_m_count_ = 0;					\
-	div_t it_;							\
 	int *icalloc_work_ = Calloc(IMAX(1, icalloc_len_), int); \
 	assert(icalloc_work_)
 
 #define Calloc_get(_n)							\
 	calloc_work_ + calloc_offset_;					\
-	calloc_offset_ += (size_t)((_n) + calloc_l1_cacheline_);	\
-	dt_ = div(calloc_offset_, calloc_l1_cacheline_);		\
-	if (dt_.rem > 0) calloc_offset_ += (calloc_l1_cacheline_ - dt_.rem); \
+	calloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(double));	\
 	calloc_m_count_++;						\
 	Calloc_check()
 
 #define iCalloc_get(_n)							\
 	icalloc_work_ + icalloc_offset_;				\
-	icalloc_offset_ += (size_t)((_n) + icalloc_l1_cacheline_);	\
-	it_ = div(icalloc_offset_, icalloc_l1_cacheline_);		\
-	if (it_.rem > 0) icalloc_offset_ += (icalloc_l1_cacheline_ - it_.rem); \
+	icalloc_offset_ += GMRFLib_align((size_t)(_n), sizeof(int));	\
 	icalloc_m_count_++;						\
 	iCalloc_check()
 
@@ -544,7 +540,7 @@ typedef enum {
 #define GMRFLib_INT_NUM_POINTS   (45)			       /* number of points for integration,... */
 #define GMRFLib_INT_NUM_INTERPOL  (3)			       /* ...which are then interpolated: use 2 or 3 */
 #define GMRFLib_INT_GHQ_POINTS   (15)			       /* MUST BE ODD!!!! for the quadrature */
-#define GMRFLib_INT_GHQ_POINTS_PAD (1)			       /* So the _ALLOC_LEN is aligned well*/
+#define GMRFLib_INT_GHQ_POINTS_PAD (1)			       /* So the _ALLOC_LEN is aligned well */
 #define GMRFLib_INT_GHQ_ALLOC_LEN (GMRFLib_INT_GHQ_POINTS + GMRFLib_INT_GHQ_POINTS_PAD)
 
 /* from /usr/include/assert.h. use __GMRFLib_FuncName to define name of current function.

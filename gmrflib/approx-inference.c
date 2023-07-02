@@ -3964,7 +3964,7 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		} else {
 			FIXME("THIS CASE IS NOT VERIFIED.");
 			abort();
-			GMRFLib_daxpy(np, 1.0, logcor, ld);	/* ld = ld + logcor */
+			GMRFLib_daxpy(np, 1.0, logcor, ld);    /* ld = ld + logcor */
 		}
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
 		if (debug && np) {
