@@ -187,21 +187,22 @@ int GMRFLib_csr_duplicate(GMRFLib_csr_tp **csr_to, GMRFLib_csr_tp *csr_from, int
 	} else {
 		int n = csr_from->s->n;
 		int na = csr_from->s->na;
-		int len = n + 1 + na;
-
+		int n1 = GMRFLib_align(n+1, sizeof(int));
+		int len = n1 + na;
+		int llen = GMRFLib_align(len, sizeof(int));
+		
 		(*csr_to)->copy_only = csr_from->copy_only;
-
 		(*csr_to)->s = Calloc(1, GMRFLib_csr_skeleton_tp);
 		(*csr_to)->s->sha = NULL;
 		(*csr_to)->s = Calloc(1, GMRFLib_csr_skeleton_tp);
 		(*csr_to)->s->n = n;
 		(*csr_to)->s->na = na;
-		(*csr_to)->s->iwork = Calloc(2 * len, int);
+		(*csr_to)->s->iwork = Calloc(2 * llen, int);
 		(*csr_to)->s->ia = (*csr_to)->s->iwork;
-		(*csr_to)->s->ja = (*csr_to)->s->iwork + n + 1;
-		(*csr_to)->s->ia1 = (*csr_to)->s->iwork + len;
-		(*csr_to)->s->ja1 = (*csr_to)->s->iwork + len + n + 1;
-		Memcpy((void *) ((*csr_to)->s->iwork), (void *) (csr_from->s->iwork), (size_t) (2 * len) * sizeof(int));
+		(*csr_to)->s->ja = (*csr_to)->s->iwork + n1;
+		(*csr_to)->s->ia1 = (*csr_to)->s->iwork + llen;
+		(*csr_to)->s->ja1 = (*csr_to)->s->iwork + llen + n1;
+		Memcpy((void *) ((*csr_to)->s->iwork), (void *) (csr_from->s->iwork), (size_t) (2 * llen) * sizeof(int));
 	}
 
 	if (csr_from->a) {
@@ -240,7 +241,7 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 {
 	GMRFLib_csr_skeleton_tp *Ms = NULL;
 
-	int n, na, len;
+	int n, na, len, n1, llen;
 
 	if (csr_store_use && graph->sha) {
 		void **p = NULL;
@@ -269,14 +270,16 @@ GMRFLib_csr_skeleton_tp *GMRFLib_csr_skeleton(GMRFLib_graph_tp *graph)
 	}
 	n = graph->n;
 	na = graph->nnz / 2 + n;			       // only upper triangular. yes, integer division
-	len = n + 1 + na;
+	n1 = GMRFLib_align(n+1, sizeof(int));
+	len = n1 + na;
+	llen = GMRFLib_align(len, sizeof(int));
 	Ms->na = na;
 	Ms->n = n;
-	Ms->iwork = Calloc(2 * len, int);
+	Ms->iwork = Calloc(2 * llen, int);
 	Ms->ia = Ms->iwork;
-	Ms->ja = Ms->iwork + n + 1;
-	Ms->ia1 = Ms->iwork + len;
-	Ms->ja1 = Ms->iwork + len + n + 1;
+	Ms->ja = Ms->iwork + n1;
+	Ms->ia1 = Ms->iwork + llen;
+	Ms->ja1 = Ms->iwork + llen + n1;
 
 	// new code. by doing it in two steps we can do the second one in parallel, and this is the one that take time.
 	int *k_arr = Calloc(n, int);
