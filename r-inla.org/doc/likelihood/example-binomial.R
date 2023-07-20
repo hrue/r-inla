@@ -20,5 +20,5 @@ r = inla(formula,
          family = "binomial",
          control.family = list(variant = 1), 
          Ntrials = Ntrials, 
-         data = data.frame(y, x, Ntrials))
+         data = data.frame(y, z, Ntrials))
 summary(r)
