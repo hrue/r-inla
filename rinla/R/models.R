@@ -6338,7 +6338,6 @@
                     n.div.by = -1,
                     n.required = TRUE,
                     set.default.values = TRUE,
-                    status = "experimental", 
                     pdf = "iidkd"
                 ),
 
