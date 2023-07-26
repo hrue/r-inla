@@ -20,11 +20,11 @@ A \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object, or a list of
 \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} objects.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as]{inlabru::fm_as_inla_mesh_segment()}}
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as_inla_mesh_segment]{inlabru::fm_as_inla_mesh_segment()}}
 }
 \section{Functions}{
 \itemize{
-\item \code{inla.sp2segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as]{inlabru::fm_as_inla_mesh_segment()}}
+\item \code{inla.sp2segment()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#superseded}{\figure{lifecycle-superseded.svg}{options: alt='[Superseded]'}}}{\strong{[Superseded]}} by \code{\link[inlabru:fm_as_inla_mesh_segment]{inlabru::fm_as_inla_mesh_segment()}}
 
 }}
 \seealso{
