@@ -200,8 +200,11 @@
         id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights)))
         if (length(id.r) > 0) {
             r.rankdef <- which(sapply(etemp$random.spec[id.r], function(x) is.null(x$rankdef)))
-            if (length(r.rankdef) > 0) {
-                r.size <- sapply(etemp$random.spec[id.r[r.rankdef]], function(x) x$n)
+            n.rdef <- length(r.rankdef)
+            if (n.rdef > 0) {
+                r.size <- integer(n.rdef)
+                for(i in 1:n.rdef)
+                    r.size[i] <- etemp$random.spec[[id.r[r.rankdef[i]]]]$n
                 j.s <- which(r.size == .no.of.s)
                 j.t <- which(r.size == .no.of.t)
                 if (length(j.s) > 1) {
