@@ -709,6 +709,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 			k++;
 		}
 		npm = k;
+
 		// level1 only cache
 		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL1);
 		// density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P, GMRFLib_INTPOL_CACHE_LEVEL1);
@@ -956,7 +957,49 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp *density)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		result = GMRFLib_cdfnorm((x - density->mean) / density->stdev);
 	} else {
-		result = GMRFLib_spline_eval(x, density->P);
+		if (density->P) {
+			result = GMRFLib_spline_eval(x, density->P);
+		} else {
+#define PROB2INTERN(p_) log((p_)/(1.0-(p_)))
+#define INTERN2PROB(x_) (1.0/(1.0 + exp(-(x_))))
+
+			assert(density->Pinv);
+			double uu = (x - density->mean) / density->stdev;
+			double pp = GMRFLib_cdfnorm(uu), p = pp;
+			const int verbose = 0;
+			if (verbose) {
+				printf("INIT uu %f p %f\n", uu, p);
+			}
+
+			if (pp > 0.0 && pp < 1.0) {
+				double p_int = PROB2INTERN(pp);
+				double p_int_new;
+				double p_new;
+				double eps = 1.0E-4;
+				int iter_max = 5;
+				int done = 0;
+
+				for (int iter = 0; iter < iter_max && !done; iter++) {
+					double u = 0.0;
+					GMRFLib_density_Pinv(&u, p, density);
+					double deriv = GMRFLib_spline_eval_deriv(p, density->Pinv);
+					double expmu = exp(-u);
+					p_int_new = p_int - (u - uu) / deriv / (expmu + 2.0 + 1.0 / expmu);
+
+					done = (ABS(p_int_new - p_int) < eps);
+					p_new = INTERN2PROB(p_int_new);
+					if (verbose) {
+						printf("iter %d uu %.12f u %.12f p %.12f p_new %.12f ERR %.12f\n", iter, uu, u, p, p_new,
+						       ABS(p_int_new - p_int));
+					}
+					p_int = p_int_new;
+					p = p_new;
+				}
+			}
+			result = p;
+#undef PROB2INTERN
+#undef INTERN2PROB
+		}
 	}
 
 	*px = result;

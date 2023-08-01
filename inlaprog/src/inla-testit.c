@@ -3794,7 +3794,7 @@ int testit(int argc, char **argv)
 		printf("\n");
 		for (size_t i = 0; i <= 17; i++) {
 			size_t N = GMRFLib_align((size_t) i, sizeof(int));
-			printf("INT n %zu N %zu CHECK %f\n", i, N, (double)(N * sizeof(double)) / GMRFLib_MEM_ALIGN);
+			printf("INT n %zu N %zu CHECK %f\n", i, N, (double) (N * sizeof(double)) / GMRFLib_MEM_ALIGN);
 		}
 
 		printf("\n");

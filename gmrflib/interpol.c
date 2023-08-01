@@ -230,38 +230,44 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 	 */
 
 	// not yet implemented, I'm not sure I need this for P and Pinv
-	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE);
+	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE || s->trans == GMRFLib_INTPOL_TRANS_Pinv);
 	double val;
-	if (x < s->xmin || x > s->xmax) {
-		val = NAN;
-	} else {
-		int tnum = 0;
-		switch (s->cache) {
-		case GMRFLib_INTPOL_CACHE_LEVEL12:
-			GMRFLib_CACHE_SET_ID(tnum);
-			break;
-		case GMRFLib_INTPOL_CACHE_LEVEL1:
-			GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
-			break;
-		case GMRFLib_INTPOL_CACHE_SIMPLE:
-			break;
-		default:
-			assert(0 == 1);
-		}
 
-		gsl_interp_accel *acc = NULL;
-		if (tnum >= 0 && tnum < s->cache_len) {
-			if (!(s->accel[tnum])) {
-#pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
-				if (!(s->accel[tnum])) {
-					s->accel[tnum] = gsl_interp_accel_alloc();
-				}
-			}
-			acc = s->accel[tnum];
-		}
-		val = gsl_spline_eval_deriv(s->spline, x, acc);
+	int tnum = 0;
+	switch (s->cache) {
+	case GMRFLib_INTPOL_CACHE_LEVEL12:
+		GMRFLib_CACHE_SET_ID(tnum);
+		break;
+	case GMRFLib_INTPOL_CACHE_LEVEL1:
+		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		break;
+	case GMRFLib_INTPOL_CACHE_SIMPLE:
+		break;
+	default:
+		assert(0 == 1);
 	}
 
+	gsl_interp_accel *acc = NULL;
+	if (tnum >= 0 && tnum < s->cache_len) {
+		if (!(s->accel[tnum])) {
+#pragma omp critical (Name_bcc8a7f7a416bde91e4459c229fc294985c3674c)
+			if (!(s->accel[tnum])) {
+				s->accel[tnum] = gsl_interp_accel_alloc();
+			}
+		}
+		acc = s->accel[tnum];
+	}
+	if (s->trans == GMRFLib_INTPOL_TRANS_NONE) {
+		val = gsl_spline_eval_deriv(s->spline, TRUNCATE(x, s->xmin, s->xmax), acc);
+	} else if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
+		double xx = GMRFLib_logit(x);
+		val = gsl_spline_eval_deriv(s->spline, TRUNCATE(xx, s->xmin, s->xmax), acc);
+
+		double em = exp(-xx);
+		val *= (em + 2.0 + 1.0 / em);
+	} else {
+		assert(0 == 1);
+	}
 	return val;
 }
 

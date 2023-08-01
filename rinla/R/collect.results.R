@@ -46,8 +46,8 @@
     res.ok <- file.exists(filename)
     if (!res.ok) {
         ## try this one instead
-        results.dir.new <- paste(results.dir, "/results.files", sep = "")
-        filename <- paste(results.dir.new, "/.ok", sep = "")
+        results.dir.new <- paste0(results.dir, "/results.files")
+        filename <- paste0(results.dir.new, "/.ok")
         res.ok <- file.exists(filename)
         if (res.ok) {
             if (debug) {
@@ -117,14 +117,14 @@
     res.offset <- inla.collect.offset.linear.predictor(results.dir, debug)
 
     ## get the hyperparameters
-    theta.mode <- inla.read.binary.file(paste(results.dir, .Platform$file.sep, ".theta_mode", sep = ""))[-1]
-    x.mode <- inla.read.binary.file(paste(results.dir, .Platform$file.sep, ".x_mode", sep = ""))[-1]
-    gitid <- readLines(paste(results.dir, .Platform$file.sep, ".gitid", sep = ""))
+    theta.mode <- inla.read.binary.file(paste0(results.dir, .Platform$file.sep, ".theta_mode"))[-1]
+    x.mode <- inla.read.binary.file(paste0(results.dir, .Platform$file.sep, ".x_mode"))[-1]
+    gitid <- readLines(paste0(results.dir, .Platform$file.sep, ".gitid"))
 
-    lfn.fnm <- paste(results.dir, .Platform$file.sep, "linkfunctions.names", sep = "")
+    lfn.fnm <- paste0(results.dir, .Platform$file.sep, "linkfunctions.names")
     if (file.exists(lfn.fnm)) {
         linkfunctions.names <- readLines(lfn.fnm)
-        fp <- file(paste(results.dir, .Platform$file.sep, "linkfunctions.link", sep = ""), "rb")
+        fp <- file(paste0(results.dir, .Platform$file.sep, "linkfunctions.link"), "rb")
         n <- readBin(fp, integer(), 1)
         idx <- readBin(fp, double(), n)
         ok <- which(!is.nan(idx))
@@ -144,7 +144,7 @@
             if (debug) {
                 print("inla.collect.joint hyperpar")
             }
-            fnm <- paste(results.dir, "/joint.dat", sep = "")
+            fnm <- paste0(results.dir, "/joint.dat")
             if (file.info(fnm)$size > 0) {
                 joint.hyper <- read.table(fnm)
             } else {
@@ -239,7 +239,7 @@
 
 `inla.collect.misc` <- function(dir, debug = FALSE) 
 {
-    d <- paste(dir, "/misc", sep = "")
+    d <- paste0(dir, "/misc")
     d.info <- file.info(d)$isdir
 
     if (debug) {
@@ -250,14 +250,14 @@
         return(NULL)
     }
 
-    fnm <- paste(d, "/theta-tags", sep = "")
+    fnm <- paste0(d, "/theta-tags")
     if (file.exists(fnm)) {
         tags <- readLines(fnm)
     } else {
         tags <- NULL
     }
 
-    fnm <- paste(d, "/theta-from", sep = "")
+    fnm <- paste0(d, "/theta-from")
     if (file.exists(fnm)) {
         theta.from <- readLines(fnm)
         ## evaluate these as functions
@@ -269,7 +269,7 @@
         theta.from <- NULL
     }
 
-    fnm <- paste(d, "/theta-to", sep = "")
+    fnm <- paste0(d, "/theta-to")
     if (file.exists(fnm)) {
         theta.to <- readLines(fnm)
         ## evaluate these as functions
@@ -281,7 +281,7 @@
         theta.to <- NULL
     }
 
-    fnm <- paste(d, "/covmat-hyper-internal.dat", sep = "")
+    fnm <- paste0(d, "/covmat-hyper-internal.dat")
     if (file.exists(fnm)) {
         siz <- inla.read.binary.file(fnm)
         n <- siz[1L]
@@ -298,7 +298,7 @@
         cor.intern <- NULL
     }
 
-    fnm <- paste(d, "/covmat-eigenvectors.dat", sep = "")
+    fnm <- paste0(d, "/covmat-eigenvectors.dat")
     if (file.exists(fnm)) {
         siz <- inla.read.binary.file(fnm)
         n <- siz[1L]
@@ -308,7 +308,7 @@
         cov.intern.eigenvectors <- NULL
     }
 
-    fnm <- paste(d, "/covmat-eigenvalues.dat", sep = "")
+    fnm <- paste0(d, "/covmat-eigenvalues.dat")
     if (file.exists(fnm)) {
         siz <- inla.read.binary.file(fnm)
         n <- siz[1L]
@@ -318,42 +318,42 @@
         cov.intern.eigenvalues <- NULL
     }
 
-    fnm <- paste(d, "/reordering.dat", sep = "")
+    fnm <- paste0(d, "/reordering.dat")
     if (file.exists(fnm)) {
         r <- as.integer(inla.read.binary.file(fnm))
     } else {
         r <- NULL
     }
 
-    fnm <- paste(d, "/stdev_corr_pos.dat", sep = "")
+    fnm <- paste0(d, "/stdev_corr_pos.dat")
     if (file.exists(fnm)) {
         stdev.corr.positive <- as.numeric(inla.read.fmesher.file(fnm))
     } else {
         stdev.corr.positive <- NULL
     }
 
-    fnm <- paste(d, "/stdev_corr_neg.dat", sep = "")
+    fnm <- paste0(d, "/stdev_corr_neg.dat")
     if (file.exists(fnm)) {
         stdev.corr.negative <- as.numeric(inla.read.fmesher.file(fnm))
     } else {
         stdev.corr.negative <- NULL
     }
 
-    fnm <- paste(d, "/lincomb_derived_correlation_matrix.dat", sep = "")
+    fnm <- paste0(d, "/lincomb_derived_correlation_matrix.dat")
     if (file.exists(fnm)) {
         lincomb.derived.correlation.matrix <- inla.read.fmesher.file(fnm)
     } else {
         lincomb.derived.correlation.matrix <- NULL
     }
 
-    fnm <- paste(d, "/lincomb_derived_covariance_matrix.dat", sep = "")
+    fnm <- paste0(d, "/lincomb_derived_covariance_matrix.dat")
     if (file.exists(fnm)) {
         lincomb.derived.covariance.matrix <- inla.read.fmesher.file(fnm)
     } else {
         lincomb.derived.covariance.matrix <- NULL
     }
 
-    fnm <- paste(d, "/opt_directions.dat", sep = "")
+    fnm <- paste0(d, "/opt_directions.dat")
     if (file.exists(fnm)) {
         opt.directions <- inla.read.fmesher.file(fnm)
         n <- dim(opt.directions)[1]
@@ -363,28 +363,28 @@
         opt.directions <- NULL
     }
 
-    fnm <- paste(d, "/mode-status.dat", sep = "")
+    fnm <- paste0(d, "/mode-status.dat")
     if (file.exists(fnm)) {
         mode.status <- scan(fnm, quiet = TRUE)
     } else {
         mode.status <- NA
     }
 
-    fnm <- paste(d, "/nfunc.dat", sep = "")
+    fnm <- paste0(d, "/nfunc.dat")
     if (file.exists(fnm)) {
         nfunc <- as.numeric(scan(fnm, quiet = TRUE))
     } else {
         nfunc <- NA
     }
 
-    fnm <- paste(d, "/log-posterior-mode.dat", sep = "")
+    fnm <- paste0(d, "/log-posterior-mode.dat")
     if (file.exists(fnm)) {
         lpm <- scan(fnm, quiet = TRUE)
     } else {
         lpm <- NA
     }
 
-    fnm <- paste(d, "/config/configs.dat", sep = "")
+    fnm <- paste0(d, "/config/configs.dat")
     if (file.exists(fnm)) {
         fp <- file(fnm, "rb")
         iarr <- readBin(fp, integer(), 3)
@@ -411,11 +411,11 @@
             configs$constr <- NULL
         }
 
-        theta.tag <- readLines(paste(d, "/config/theta-tag.dat", sep = ""))
+        theta.tag <- readLines(paste0(d, "/config/theta-tag.dat"))
         configs$contents <- list(
-            tag = readLines(paste(d, "/config/tag.dat", sep = "")),
-            start = as.integer(readLines(paste(d, "/config/start.dat", sep = ""))) + 1L,
-            length = as.integer(readLines(paste(d, "/config/n.dat", sep = "")))
+            tag = readLines(paste0(d, "/config/tag.dat")),
+            start = as.integer(readLines(paste0(d, "/config/start.dat"))) + 1L,
+            length = as.integer(readLines(paste0(d, "/config/n.dat")))
         )
 
         if (configs$nconfig > 0L) {
@@ -498,7 +498,7 @@
     }
 
 
-    fnm <- paste(d, "/config_preopt/configs.dat", sep = "")
+    fnm <- paste0(d, "/config_preopt/configs.dat")
     if (file.exists(fnm)) {
         fp <- file(fnm, "rb")
         iarr <- readBin(fp, integer(), 8)
@@ -532,11 +532,11 @@
         }
         configs$offsets <- readBin(fp, numeric(), configs$mnpred)
 
-        theta.tag <- readLines(paste(d, "/config_preopt/theta-tag.dat", sep = ""))
+        theta.tag <- readLines(paste0(d, "/config_preopt/theta-tag.dat"))
         configs$contents <- list(
-            tag = readLines(paste(d, "/config_preopt/tag.dat", sep = "")),
-            start = as.integer(readLines(paste(d, "/config_preopt/start.dat", sep = ""))) + 1L,
-            length = as.integer(readLines(paste(d, "/config_preopt/n.dat", sep = "")))
+            tag = readLines(paste0(d, "/config_preopt/tag.dat")),
+            start = as.integer(readLines(paste0(d, "/config_preopt/start.dat"))) + 1L,
+            length = as.integer(readLines(paste0(d, "/config_preopt/n.dat")))
         )
 
         configs$A <- inla.read.fmesher.file(paste0(d, "/config_preopt/A.dat"))
@@ -692,7 +692,7 @@
         close(fp)
     }
 
-    fnm <- paste(d, "/warnings.txt", sep = "")
+    fnm <- paste0(d, "/warnings.txt")
     if (file.exists(fnm)) {
         warn <- readLines(fnm)
     } else {
@@ -736,7 +736,7 @@
 
 `inla.collect.size` <- function(dir, debug = FALSE)
 {
-    fnm <- paste(dir, "/size.dat", sep = "")
+    fnm <- paste0(dir, "/size.dat")
     siz <- inla.read.binary.file(fnm)
     if (length(siz) != 5L) {
         return(rep(0L, 5))
@@ -753,7 +753,7 @@
 
 `inla.collect.hyperid` <- function(dir, debug = FALSE)
 {
-    fnm <- paste(dir, "/hyperid.dat", sep = "")
+    fnm <- paste0(dir, "/hyperid.dat")
     id <- readLines(fnm)
     return(id)
 }
@@ -774,7 +774,7 @@
     if (n.fix > 0L) {
         names.fixed <- inla.trim(character(n.fix))
         for (i in 1L:n.fix) {
-            tag <- paste(results.dir, .Platform$file.sep, fix[i], .Platform$file.sep, "TAG", sep = "")
+            tag <- paste0(results.dir, .Platform$file.sep, fix[i], .Platform$file.sep, "TAG")
             if (!file.exists(tag)) {
                 names.fixed[i] <- "NameMissing"
             } else {
@@ -792,28 +792,28 @@
 
         for (i in 1L:n.fix) {
             first.time <- (i == 1L)
-            file <- paste(results.dir, .Platform$file.sep, fix[i], sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, fix[i])
             dir.fix <- dir(file)
             if (length(dir.fix) > 3L) {
-                summ <- inla.read.binary.file(paste(file, .Platform$file.sep, "summary.dat", sep = ""))[-1L]
+                summ <- inla.read.binary.file(paste0(file, .Platform$file.sep, "summary.dat"))[-1L]
                 if (first.time) {
                     col.nam <- c("mean", "sd")
                 }
 
                 ## read quantiles if existing
                 if (length(grep("^quantiles.dat$", dir.fix)) > 0L) {
-                    qq <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep = "")),
+                    qq <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "quantiles.dat")),
                                                 debug = debug
                                                 )
                     summ <- c(summ, qq[, 2L])
                     if (first.time) {
-                        col.nam <- c(col.nam, paste(as.character(qq[, 1L]), "quant", sep = ""))
+                        col.nam <- c(col.nam, paste0(as.character(qq[, 1L]), "quant"))
                     }
                 }
 
                 ## read mode if existing
                 if (length(grep("^mode.dat$", dir.fix)) > 0L) {
-                    mm <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep = "")),
+                    mm <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "mode.dat")),
                                                 debug = debug
                                                 )
                     summ <- c(summ, mm[, 2L])
@@ -823,17 +823,17 @@
                 }
 
                 if (length(grep("^cdf.dat$", dir.fix)) > 0L) {
-                    qq <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep = "")),
+                    qq <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "cdf.dat")),
                                                 debug = debug
                                                 )
                     summ <- c(summ, qq[, 2L])
                     if (first.time) {
-                        col.nam <- c(col.nam, paste(as.character(qq[, 1L]), "cdf", sep = ""))
+                        col.nam <- c(col.nam, paste0(as.character(qq[, 1L]), "cdf"))
                     }
                 }
 
                 ## read also kld distance
-                kld.fixed <- inla.read.binary.file(paste(file, .Platform$file.sep, "symmetric-kld.dat", sep = ""))[-1L]
+                kld.fixed <- inla.read.binary.file(paste0(file, .Platform$file.sep, "symmetric-kld.dat"))[-1L]
                 summ <- c(summ, kld.fixed)
                 if (first.time) {
                     col.nam <- c(col.nam, "kld")
@@ -841,7 +841,7 @@
                 summary.fixed <- rbind(summary.fixed, summ)
 
                 ## read the marginals
-                xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = "")),
+                xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "marginal-densities.dat")),
                                             debug = debug
                                             )
                 if (is.null(xx)) {
@@ -918,7 +918,7 @@
             }
 
             ## read the summary
-            file <- paste(results.dir, .Platform$file.sep, lincomb[i], sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, lincomb[i])
             dir.lincomb <- dir(file)
 
             if (debug) {
@@ -926,7 +926,7 @@
             }
 
             if (length(dir.lincomb) > 4L) {
-                dd <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "summary.dat", sep = "")),
+                dd <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "summary.dat")),
                              ncol = 3L, byrow = TRUE
                              )
                 col.nam <- c("ID", "mean", "sd")
@@ -942,13 +942,13 @@
                                                                             )), debug = debug)
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), "quant", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "quant"))
                     dd <- cbind(dd, t(qq))
                 }
 
                 ## read mode if existing
                 if (length(grep("^mode.dat$", dir.lincomb)) > 0L) {
-                    mm <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep = "")),
+                    mm <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "mode.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(mm)[2L]
@@ -962,12 +962,12 @@
                     cat("...cdf.dat if any\n")
                 }
                 if (length(grep("^cdf.dat$", dir.lincomb)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "cdf.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), " cdf", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "cdf"))
                     dd <- cbind(dd, t(qq))
                 }
 
@@ -975,7 +975,7 @@
                     cat("...NAMES if any\n")
                 }
                 if (length(grep("^NAMES$", dir.lincomb)) == 1L) {
-                    row.names <- readLines(paste(file, .Platform$file.sep, "NAMES", sep = ""))
+                    row.names <- readLines(paste0(file, .Platform$file.sep, "NAMES"))
                     ## remove the prefix 'lincomb.' as we do not need it in the names.
                     row.names <- sapply(row.names, function(x) gsub("^lincomb[.]", "", x))
                     names(row.names) <- NULL
@@ -987,7 +987,7 @@
                 if (debug) {
                     cat("...kld\n")
                 }
-                kld1 <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "symmetric-kld.dat", sep = "")),
+                kld1 <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "symmetric-kld.dat")),
                                ncol = 2L, byrow = TRUE
                                )
                 qq <- kld1[, 2L, drop = FALSE]
@@ -1003,12 +1003,12 @@
                     rownames(summary.lincomb[[i]]) <- row.names
                 }
 
-                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                xx <- inla.read.binary.file(paste0(file, .Platform$file.sep, "marginal-densities.dat"))
                 rr <- inla.interpret.vector.list(xx, debug = debug)
                 rm(xx)
                 if (!is.null(rr)) {
                     nd <- length(rr)
-                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names(rr) <- paste0("index.", as.character(1L:nd))
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
                     }
@@ -1019,7 +1019,7 @@
                     names(marginals.lincomb[[i]]) <- row.names
                 }
             } else {
-                N.file <- paste(file, .Platform$file.sep, "N", sep = "")
+                N.file <- paste0(file, .Platform$file.sep, "N")
                 if (!file.exists(N.file)) {
                     N <- 0L
                 } else {
@@ -1072,10 +1072,10 @@
     alldir <- dir(results.dir)
     if (length(grep("^gcpo$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect gcpo\n", sep = ""))
+            cat(paste0("collect gcpo\n"))
         }
 
-        xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "gcpo", .Platform$file.sep, "gcpo.dat", sep = ""))
+        xx <- inla.read.binary.file(file = paste0(results.dir, .Platform$file.sep, "gcpo", .Platform$file.sep, "gcpo.dat"))
         n <- xx[1L]
         xx <- xx[-1L]
 
@@ -1114,10 +1114,10 @@
     alldir <- dir(results.dir)
     if (length(grep("^cpo$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect cpo\n", sep = ""))
+            cat(paste0("collect cpo\n"))
         }
 
-        xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "cpo", .Platform$file.sep, "cpo.dat", sep = ""))
+        xx <- inla.read.binary.file(file = paste0(results.dir, .Platform$file.sep, "cpo", .Platform$file.sep, "cpo.dat"))
         n <- xx[1L]
         xx <- xx[-1L]
         len <- length(xx)
@@ -1125,7 +1125,7 @@
         cpo.res[1L:n] <- NA
         cpo.res[xx[seq(1L, len, by = 2L)] + 1L] <- xx[seq(2L, len, by = 2L)]
 
-        xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "cpo", .Platform$file.sep, "pit.dat", sep = ""))
+        xx <- inla.read.binary.file(file = paste0(results.dir, .Platform$file.sep, "cpo", .Platform$file.sep, "pit.dat"))
         n <- xx[1L]
         xx <- xx[-1L]
         len <- length(xx)
@@ -1133,7 +1133,7 @@
         pit.res[1L:n] <- NA
         pit.res[xx[seq(1L, len, by = 2L)] + 1L] <- xx[seq(2L, len, by = 2L)]
 
-        fnm <- paste(results.dir, .Platform$file.sep, "cpo", .Platform$file.sep, "failure.dat", sep = "")
+        fnm <- paste0(results.dir, .Platform$file.sep, "cpo", .Platform$file.sep, "failure.dat")
         if (file.exists(fnm)) {
             xx <- inla.read.binary.file(fnm)
             n <- xx[1L]
@@ -1166,9 +1166,9 @@
     alldir <- dir(results.dir)
     if (length(grep("^po$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect po\n", sep = ""))
+            cat(paste0("collect po\n"))
         }
-        xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "po", .Platform$file.sep, "po.dat", sep = ""))
+        xx <- inla.read.binary.file(file = paste0(results.dir, .Platform$file.sep, "po", .Platform$file.sep, "po.dat"))
         n <- xx[1L]
         xx <- xx[-1L]
         xx <- xx[-seq(3, length(xx), by = 3L)] 
@@ -1193,10 +1193,10 @@
     alldir <- dir(results.dir)
     if (length(grep("^po$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect waic from po-results\n", sep = ""))
+            cat(paste0("collect waic from po-results\n"))
         }
 
-        xx <- inla.read.binary.file(file = paste(results.dir, .Platform$file.sep, "po", .Platform$file.sep, "po.dat", sep = ""))
+        xx <- inla.read.binary.file(file = paste0(results.dir, .Platform$file.sep, "po", .Platform$file.sep, "po.dat"))
         n <- xx[1L]
         xx <- xx[-1L]
         len <- length(xx)
@@ -1229,12 +1229,12 @@
     ## get dic (if exists)
     if (length(grep("^dic$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect dic\n", sep = ""))
+            cat(paste0("collect dic\n"))
         }
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "dic.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "dic.dat")
         dic.values <- inla.read.binary.file(file)
 
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "deviance_e.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "deviance_e.dat")
         if (inla.is.fmesher.file(file)) {
             dev.e <- c(inla.read.fmesher.file(file))
             dev.e[is.nan(dev.e)] <- NA
@@ -1242,7 +1242,7 @@
             dev.e <- NULL
         }
 
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "deviance_e_sat.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "deviance_e_sat.dat")
         if (inla.is.fmesher.file(file)) {
             dev.e.sat <- c(inla.read.fmesher.file(file))
             dev.e.sat[is.nan(dev.e.sat)] <- NA
@@ -1250,7 +1250,7 @@
             dev.e.sat <- NULL
         }
 
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "e_deviance.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "e_deviance.dat")
         if (inla.is.fmesher.file(file)) {
             e.dev <- c(inla.read.fmesher.file(file))
             e.dev[is.nan(e.dev)] <- NA
@@ -1258,7 +1258,7 @@
             e.dev <- NULL
         }
 
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "sign.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "sign.dat")
         if (inla.is.fmesher.file(file)) {
             sig <- c(inla.read.fmesher.file(file))
             sig[is.nan(sig)] <- NA
@@ -1266,7 +1266,7 @@
             sig <- NULL
         }
 
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "e_deviance_sat.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "e_deviance_sat.dat")
         if (inla.is.fmesher.file(file)) {
             e.dev.sat <- c(inla.read.fmesher.file(file))
             e.dev.sat[is.nan(e.dev.sat)] <- NA
@@ -1275,7 +1275,7 @@
         }
 
         f.idx <- NULL
-        file <- paste(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "family_idx.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "dic", .Platform$file.sep, "family_idx.dat")
         if (inla.is.fmesher.file(file)) {
             f.idx <- c(inla.read.fmesher.file(file)) + 1L ## convert to R-indexing
             f.idx[is.nan(f.idx)] <- NA
@@ -1365,16 +1365,16 @@
     alldir <- dir(results.dir)
     if (length(grep("^Q$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect q\n", sep = ""))
+            cat(paste0("collect q\n"))
         }
 
-        file <- paste(results.dir, .Platform$file.sep, "Q/precision-matrix.pbm", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "Q/precision-matrix.pbm")
         Q.matrix <- my.read.pnm(file)
 
-        file <- paste(results.dir, .Platform$file.sep, "Q/precision-matrix-reordered.pbm", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "Q/precision-matrix-reordered.pbm")
         Q.matrix.reorder <- my.read.pnm(file)
 
-        file <- paste(results.dir, .Platform$file.sep, "Q/precision-matrix_L.pbm", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "Q/precision-matrix_L.pbm")
         L <- my.read.pnm(file)
 
         if (is.null(Q.matrix) && is.null(Q.matrix.reorder) && is.null(L)) {
@@ -1394,9 +1394,9 @@
     alldir <- dir(results.dir)
     if (length(grep("^graph.dat$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect graph\n", sep = ""))
+            cat(paste0("collect graph\n"))
         }
-        file <- paste(results.dir, .Platform$file.sep, "graph.dat", sep = "")
+        file <- paste0(results.dir, .Platform$file.sep, "graph.dat")
         g <- inla.read.graph(file)
     } else {
         g <- NULL
@@ -1415,7 +1415,7 @@
         ## get names for hyperpar
         names.hyper <- character(n.hyper)
         for (i in 1L:n.hyper) {
-            tag <- paste(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "TAG", sep = "")
+            tag <- paste0(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "TAG")
             if (!file.exists(tag)) {
                 names.hyper[i] <- "missing NAME"
             } else {
@@ -1430,8 +1430,8 @@
 
         for (i in 1L:n.hyper) {
             first.time <- (i == 1L)
-            dir.hyper <- paste(results.dir, .Platform$file.sep, hyper[i], sep = "")
-            file <- paste(dir.hyper, .Platform$file.sep, "summary.dat", sep = "")
+            dir.hyper <- paste0(results.dir, .Platform$file.sep, hyper[i])
+            file <- paste0(dir.hyper, .Platform$file.sep, "summary.dat")
             hyperid <- inla.collect.hyperid(dir.hyper)
             dd <- inla.read.binary.file(file)[-1L]
             summ <- dd
@@ -1439,16 +1439,16 @@
                 col.nam <- c("mean", "sd")
             }
             if (length(grep("^quantiles.dat$", dir(dir.hyper))) > 0L) {
-                qq <- inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "quantiles.dat", sep = "")),
+                qq <- inla.interpret.vector(inla.read.binary.file(paste0(dir.hyper, .Platform$file.sep, "quantiles.dat")),
                                             debug = debug
                                             )
                 summ <- c(summ, qq[, 2L])
                 if (first.time) {
-                    col.nam <- c(col.nam, paste(as.character(qq[, 1L]), "quant", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(qq[, 1L]), "quant"))
                 }
             }
             if (length(grep("^mode.dat$", dir(dir.hyper))) > 0L) {
-                qq <- inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "mode.dat", sep = "")),
+                qq <- inla.interpret.vector(inla.read.binary.file(paste0(dir.hyper, .Platform$file.sep, "mode.dat")),
                                             debug = debug
                                             )
                 summ <- c(summ, qq[, 2L])
@@ -1458,16 +1458,16 @@
             }
 
             if (length(grep("^cdf.dat$", dir(dir.hyper))) > 0L) {
-                qq <- inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep = "")),
+                qq <- inla.interpret.vector(inla.read.binary.file(paste0(dir.hyper, .Platform$file.sep, "cdf.dat")),
                                             debug = debug
                                             )
                 summ <- c(summ, qq[, 2L])
                 if (first.time) {
-                    col.nam <- c(col.nam, paste(as.character(qq[, 1L]), "cdf", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(qq[, 1L]), "cdf"))
                 }
             }
             summary.hyper <- rbind(summary.hyper, summ)
-            file <- paste(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "marginal-densities.dat", sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "marginal-densities.dat")
             xx <- inla.read.binary.file(file)
             marg1 <- inla.interpret.vector(xx, debug = debug)
             attr(marg1, "hyperid") <- hyperid
@@ -1493,7 +1493,7 @@
         ## get names for hyperpar
         names.hyper <- character(n.hyper)
         for (i in 1L:n.hyper) {
-            tag <- paste(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "TAG", sep = "")
+            tag <- paste0(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "TAG")
             if (!file.exists(tag)) {
                 names.hyper[i] <- "missing NAME"
             } else {
@@ -1507,8 +1507,8 @@
         internal.marginal.hyper[[n.hyper]] <- NA
         for (i in 1L:n.hyper) {
             first.time <- (i == 1L)
-            dir.hyper <- paste(results.dir, .Platform$file.sep, hyper[i], sep = "")
-            file <- paste(dir.hyper, .Platform$file.sep, "summary.dat", sep = "")
+            dir.hyper <- paste0(results.dir, .Platform$file.sep, hyper[i])
+            file <- paste0(dir.hyper, .Platform$file.sep, "summary.dat")
             hyperid <- inla.collect.hyperid(dir.hyper)
             dd <- inla.read.binary.file(file)[-1L]
             summ <- dd
@@ -1516,16 +1516,16 @@
                 col.nam <- c("mean", "sd")
             }
             if (length(grep("^quantiles.dat$", dir(dir.hyper))) > 0L) {
-                qq <- inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "quantiles.dat", sep = "")),
+                qq <- inla.interpret.vector(inla.read.binary.file(paste0(dir.hyper, .Platform$file.sep, "quantiles.dat")),
                                             debug = debug
                                             )
                 summ <- c(summ, qq[, 2L])
                 if (first.time) {
-                    col.nam <- c(col.nam, paste(as.character(qq[, 1L]), "quant", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(qq[, 1L]), "quant"))
                 }
             }
             if (length(grep("^mode.dat$", dir(dir.hyper))) > 0L) {
-                qq <- inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "mode.dat", sep = "")),
+                qq <- inla.interpret.vector(inla.read.binary.file(paste0(dir.hyper, .Platform$file.sep, "mode.dat")),
                                             debug = debug
                                             )
                 summ <- c(summ, qq[, 2L])
@@ -1534,19 +1534,19 @@
                 }
             }
             if (length(grep("^cdf.dat$", dir(dir.hyper))) > 0L) {
-                qq <- inla.interpret.vector(inla.read.binary.file(paste(dir.hyper, .Platform$file.sep, "cdf.dat", sep = "")),
+                qq <- inla.interpret.vector(inla.read.binary.file(paste0(dir.hyper, .Platform$file.sep, "cdf.dat")),
                                             debug = debug
                                             )
                 summ <- c(summ, qq[, 2L])
                 if (first.time) {
-                    col.nam <- c(col.nam, paste(as.character(qq[, 1L]), "cdf", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(qq[, 1L]), "cdf"))
                 }
             }
             if (first.time) {
                 internal.summary.hyper <- matrix(NA, n.hyper, length(summ))
             }
             internal.summary.hyper[i, ] <- summ
-            file <- paste(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "marginal-densities.dat", sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, hyper[i], .Platform$file.sep, "marginal-densities.dat")
             xx <- inla.read.binary.file(file)
             marg1 <- inla.interpret.vector(xx, debug = debug)
             attr(marg1, "hyperid") <- hyperid
@@ -1579,7 +1579,7 @@
     alldir <- dir(results.dir)
     if (length(grep("^marginal-likelihood$", alldir)) == 1L) {
         if (debug) {
-            cat(paste("collect mlik\n", sep = ""))
+            cat(paste0("collect mlik\n"))
         }
         file <- paste(results.dir, .Platform$file.sep, "marginal-likelihood",
                       .Platform$file.sep, "marginal-likelihood.dat",
@@ -1603,17 +1603,17 @@
     alldir <- dir(results.dir)
 
     ## FIRST: get the linear predictor
-    subdir <- paste(results.dir, .Platform$file.sep, "predictor", sep = "")
+    subdir <- paste0(results.dir, .Platform$file.sep, "predictor")
 
     if (length(dir(subdir)) > 3L) {
         if (debug) {
-            cat(paste("collect linear predictor\n", sep = ""))
+            cat(paste0("collect linear predictor\n"))
         }
 
         if (debug) {
             cat("...read summary.dat\n")
         }
-        file <- paste(subdir, .Platform$file.sep, "summary.dat", sep = "")
+        file <- paste0(subdir, .Platform$file.sep, "summary.dat")
         dd <- matrix(inla.read.binary.file(file = file), ncol = 3L, byrow = TRUE)[, -1L, drop = FALSE]
         col.nam <- c("mean", "sd")
 
@@ -1633,11 +1633,11 @@
             if (debug) {
                 cat("...read quantiles.dat\n")
             }
-            file <- paste(subdir, .Platform$file.sep, "quantiles.dat", sep = "")
+            file <- paste0(subdir, .Platform$file.sep, "quantiles.dat")
             xx <- inla.interpret.vector(inla.read.binary.file(file), debug = debug)
             len <- dim(xx)[2L]
             qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-            col.nam <- c(col.nam, paste(as.character(xx[, 1L]), "quant", sep = ""))
+            col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "quant"))
             dd <- cbind(dd, t(qq))
             rm(xx)
         }
@@ -1646,7 +1646,7 @@
             if (debug) {
                 cat("...read mode.dat\n")
             }
-            file <- paste(subdir, .Platform$file.sep, "mode.dat", sep = "")
+            file <- paste0(subdir, .Platform$file.sep, "mode.dat")
             xx <- inla.interpret.vector(inla.read.binary.file(file), debug = debug)
             len <- dim(xx)[2L]
             qq <- xx[, seq(2L, len, by = 2L)]
@@ -1660,11 +1660,11 @@
             if (debug) {
                 cat("...read cdf.dat\n")
             }
-            file <- paste(subdir, .Platform$file.sep, "cdf.dat", sep = "")
+            file <- paste0(subdir, .Platform$file.sep, "cdf.dat")
             xx <- inla.interpret.vector(inla.read.binary.file(file), debug = debug)
             len <- dim(xx)[2L]
             qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-            col.nam <- c(col.nam, paste(as.character(xx[, 1L]), " cdf", sep = ""))
+            col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "cdf"))
             dd <- cbind(dd, t(qq))
             rm(xx)
         } else {
@@ -1677,7 +1677,7 @@
         if (debug) {
             cat("...read kld\n")
         }
-        kld <- matrix(inla.read.binary.file(file = paste(subdir, .Platform$file.sep, "symmetric-kld.dat", sep = "")),
+        kld <- matrix(inla.read.binary.file(file = paste0(subdir, .Platform$file.sep, "symmetric-kld.dat")),
                       ncol = 2L, byrow = TRUE
                       )
         dd <- cbind(dd, kld[, 2L, drop = FALSE])
@@ -1687,28 +1687,28 @@
 
         if (A) {
             rownames(summary.linear.predictor) <- c(
-                paste("APredictor.", inla.num(1L:nA), sep = ""),
-                paste("Predictor.", inla.num(1:n), sep = "")
+                paste0("APredictor.", inla.num(1L:nA)),
+                paste0("Predictor.", inla.num(1:n))
             )
         } else {
-            rownames(summary.linear.predictor) <- paste("Predictor.", inla.num(1L:size.info$Ntotal), sep = "")
+            rownames(summary.linear.predictor) <- paste0("Predictor.", inla.num(1L:size.info$Ntotal))
         }
 
         if (debug) {
             cat("...read marginal-densities.dat\n")
         }
-        file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
+        file <- paste0(subdir, .Platform$file.sep, "marginal-densities.dat")
         xx <- inla.read.binary.file(file)
         rr <- inla.interpret.vector.list(xx, debug = debug)
         rm(xx)
         if (!is.null(rr)) {
             if (A) {
                 names(rr) <- c(
-                    paste("APredictor.", inla.num(1L:nA), sep = ""),
-                    paste("Predictor.", inla.num(1L:n), sep = "")
+                    paste0("APredictor.", inla.num(1L:nA)),
+                    paste0("Predictor.", inla.num(1L:n))
                 )
             } else {
-                names(rr) <- paste("Predictor.", as.character(1L:length(rr)), sep = "")
+                names(rr) <- paste0("Predictor.", as.character(1L:length(rr)))
             }
             names.rr <- names(rr)
             for (i in 1L:length(rr)) {
@@ -1726,28 +1726,28 @@
     marginals.fitted.values <- NULL
     ## SECOND: get the inverse linear predictor(if computed)
     if (length(grep("^predictor-user-scale$", alldir)) == 1L) {
-        subdir <- paste(results.dir, .Platform$file.sep, "predictor-user-scale", sep = "")
+        subdir <- paste0(results.dir, .Platform$file.sep, "predictor-user-scale")
         if (length(dir(subdir)) > 3L) {
             if (debug) {
-                cat(paste("collect fitted values\n", sep = ""))
+                cat(paste0("collect fitted values\n"))
             }
 
-            file <- paste(subdir, .Platform$file.sep, "summary.dat", sep = "")
+            file <- paste0(subdir, .Platform$file.sep, "summary.dat")
             dd <- matrix(inla.read.binary.file(file = file), ncol = 3L, byrow = TRUE)[, -1L, drop = FALSE]
             col.nam <- c("mean", "sd")
 
             ## get quantiles if computed
             if (length(grep("^quantiles.dat$", dir(subdir))) == 1L) {
-                file <- paste(subdir, .Platform$file.sep, "quantiles.dat", sep = "")
+                file <- paste0(subdir, .Platform$file.sep, "quantiles.dat")
                 xx <- inla.interpret.vector(inla.read.binary.file(file), debug = debug)
                 len <- dim(xx)[2L]
                 qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                col.nam <- c(col.nam, paste(as.character(xx[, 1L]), "quant", sep = ""))
+                col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "quant"))
                 dd <- cbind(dd, t(qq))
                 rm(xx)
             }
             if (length(grep("^mode.dat$", dir(subdir))) == 1L) {
-                file <- paste(subdir, .Platform$file.sep, "mode.dat", sep = "")
+                file <- paste0(subdir, .Platform$file.sep, "mode.dat")
                 xx <- inla.interpret.vector(inla.read.binary.file(file), debug = debug)
                 len <- dim(xx)[2L]
                 qq <- xx[, seq(2L, len, by = 2L)]
@@ -1758,11 +1758,11 @@
 
             ## get cdf if computed
             if (length(grep("^cdf.dat$", dir(subdir))) == 1L) {
-                file <- paste(subdir, .Platform$file.sep, "cdf.dat", sep = "")
+                file <- paste0(subdir, .Platform$file.sep, "cdf.dat")
                 xx <- inla.interpret.vector(inla.read.binary.file(file), debug = debug)
                 len <- dim(xx)[2L]
                 qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                col.nam <- c(col.nam, paste(as.character(xx[, 1L]), " cdf", sep = ""))
+                col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "cdf"))
                 dd <- cbind(dd, t(qq))
                 rm(xx)
             }
@@ -1770,26 +1770,26 @@
             colnames(dd) <- col.nam
             if (A) {
                 rownames(dd) <- c(
-                    paste("fitted.APredictor.", inla.num(1L:nA), sep = ""),
-                    paste("fitted.Predictor.", inla.num(1L:n), sep = "")
+                    paste0("fitted.APredictor.", inla.num(1L:nA)),
+                    paste0("fitted.Predictor.", inla.num(1L:n))
                 )
             } else {
-                rownames(dd) <- paste("fitted.Predictor.", inla.num(1L:n), sep = "")
+                rownames(dd) <- paste0("fitted.Predictor.", inla.num(1L:n))
             }
             summary.fitted.values <- as.data.frame(dd)
 
-            file <- paste(subdir, .Platform$file.sep, "marginal-densities.dat", sep = "")
+            file <- paste0(subdir, .Platform$file.sep, "marginal-densities.dat")
             xx <- inla.read.binary.file(file)
             rr <- inla.interpret.vector.list(xx, debug = debug)
             rm(xx)
             if (!is.null(rr)) {
                 if (A) {
                     names(rr) <- c(
-                        paste("fitted.APredictor.", inla.num(1L:nA), sep = ""),
-                        paste("fitted.Predictor.", inla.num(1:n), sep = "")
+                        paste0("fitted.APredictor.", inla.num(1L:nA)),
+                        paste0("fitted.Predictor.", inla.num(1:n))
                         )
                 } else {
-                    names(rr) <- paste("fitted.Predictor.", inla.num(1L:length(rr)), sep = "")
+                    names(rr) <- paste0("fitted.Predictor.", inla.num(1L:length(rr)))
                 }
                 names.rr <- names(rr)
                 for (i in 1L:length(rr)) {
@@ -1825,13 +1825,13 @@
         names.random <- character(n.random)
         model.random <- inla.trim(character(n.random))
         for (i in 1L:n.random) {
-            tag <- paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "TAG", sep = "")
+            tag <- paste0(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "TAG")
             if (!file.exists(tag)) {
                 names.random[i] <- "missing NAME"
             } else {
                 names.random[i] <- readLines(tag, n = 1L)
             }
-            modelname <- inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "MODEL", sep = ""))
+            modelname <- inla.trim(paste0(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "MODEL"))
             if (!file.exists(modelname)) {
                 model.random[i] <- "NoModelName"
             } else {
@@ -1852,27 +1852,27 @@
                 print(paste("read random ", i, " of ", n.random))
             }
             ## read the summary
-            file <- paste(results.dir, .Platform$file.sep, random[i], sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, random[i])
             dir.random <- dir(file)
 
             if (length(dir.random) > 5L) {
-                dd <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "summary.dat", sep = "")), ncol = 3L, byrow = TRUE)
+                dd <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "summary.dat")), ncol = 3L, byrow = TRUE)
                 col.nam <- c("ID", "mean", "sd")
                 ## read quantiles if existing
                 if (debug) {
                     cat("...quantiles.dat if any\n")
                 }
                 if (length(grep("^quantiles.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "quantiles.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), "quant", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "quant"))
                     dd <- cbind(dd, t(qq))
                 }
                 if (length(grep("^mode.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "mode.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
@@ -1886,12 +1886,12 @@
                     cat("...cdf.dat if any\n")
                 }
                 if (length(grep("^cdf.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "cdf.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), " cdf", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "cdf"))
                     dd <- cbind(dd, t(qq))
                 }
 
@@ -1899,7 +1899,7 @@
                 if (debug) {
                     cat("...kld\n")
                 }
-                kld1 <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "symmetric-kld.dat", sep = "")),
+                kld1 <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "symmetric-kld.dat")),
                                ncol = 2L, byrow = TRUE
                                )
                 qq <- kld1[, 2L, drop = FALSE]
@@ -1913,12 +1913,12 @@
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                xx <- inla.read.binary.file(paste0(file, .Platform$file.sep, "marginal-densities.dat"))
                 rr <- inla.interpret.vector.list(xx, debug = debug)
                 rm(xx)
                 if (!is.null(rr)) {
                     nd <- length(rr)
-                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names(rr) <- paste0("index.", as.character(1L:nd))
                     names.rr <- names(rr)
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
@@ -1927,7 +1927,7 @@
                 marginals.random[[i]] <- if (is.null(rr)) NA_real_ else rr
 
                 ## if id.names are present,  override the default names
-                id.names <- inla.readLines(paste(file, .Platform$file.sep, "id-names.dat", sep = ""))
+                id.names <- inla.readLines(paste0(file, .Platform$file.sep, "id-names.dat"))
                 if (!is.null(id.names)) {
                     len.id.names <- length(id.names)
                     summary.random[[i]]$ID[1L:len.id.names] <- id.names
@@ -1939,7 +1939,7 @@
                     }
                 }
             } else {
-                N.file <- paste(file, .Platform$file.sep, "N", sep = "")
+                N.file <- paste0(file, .Platform$file.sep, "N")
                 if (!file.exists(N.file)) {
                     N <- 0L
                 } else {
@@ -2003,13 +2003,13 @@
         names.random <- character(n.random)
         model.random <- inla.trim(character(n.random))
         for (i in 1L:n.random) {
-            tag <- paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "TAG", sep = "")
+            tag <- paste0(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "TAG")
             if (!file.exists(tag)) {
                 names.random[i] <- "missing NAME"
             } else {
                 names.random[i] <- readLines(tag, n = 1L)
             }
-            modelname <- inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "MODEL", sep = ""))
+            modelname <- inla.trim(paste0(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "MODEL"))
             if (!file.exists(modelname)) {
                 model.random[i] <- "NoModelName"
             } else {
@@ -2031,27 +2031,27 @@
                 print(paste("read random ", i, " of ", n.random))
             }
             ## read the summary
-            file <- paste(results.dir, .Platform$file.sep, random[i], sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, random[i])
             dir.random <- dir(file)
 
             if (length(dir.random) > 4L) {
-                dd <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "summary.dat", sep = "")), ncol = 3L, byrow = TRUE)
+                dd <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "summary.dat")), ncol = 3L, byrow = TRUE)
                 col.nam <- c("ID", "mean", "sd")
                 ## read quantiles if existing
                 if (debug) {
                     cat("...quantiles.dat if any\n")
                 }
                 if (length(grep("^quantiles.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "quantiles.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), "quant", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "quant"))
                     dd <- cbind(dd, t(qq))
                 }
                 if (length(grep("^mode.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "mode.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
@@ -2065,12 +2065,12 @@
                     cat("...cdf.dat if any\n")
                 }
                 if (length(grep("^cdf.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "cdf.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), " cdf", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "cdf"))
                     dd <- cbind(dd, t(qq))
                 }
 
@@ -2078,7 +2078,7 @@
                 if (debug) {
                     cat("...kld\n")
                 }
-                kld1 <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "symmetric-kld.dat", sep = "")),
+                kld1 <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "symmetric-kld.dat")),
                                ncol = 2L, byrow = TRUE
                                )
                 qq <- kld1[, 2L, drop = FALSE]
@@ -2092,12 +2092,12 @@
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                xx <- inla.read.binary.file(paste0(file, .Platform$file.sep, "marginal-densities.dat"))
                 rr <- inla.interpret.vector.list(xx, debug = debug)
                 rm(xx)
                 if (!is.null(rr)) {
                     nd <- length(rr)
-                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names(rr) <- paste0("index.", as.character(1L:nd))
                     names.rr <- names(rr)
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
@@ -2105,7 +2105,7 @@
                 }
                 marginals.random[[i]] <- rr
             } else {
-                N.file <- paste(file, .Platform$file.sep, "N", sep = "")
+                N.file <- paste0(file, .Platform$file.sep, "N")
                 if (!file.exists(N.file)) {
                     N <- 0L
                 } else {
@@ -2167,13 +2167,13 @@
         names.random <- character(n.random)
         model.random <- inla.trim(character(n.random))
         for (i in 1L:n.random) {
-            tag <- paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "TAG", sep = "")
+            tag <- paste0(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "TAG")
             if (!file.exists(tag)) {
                 names.random[i] <- "missing NAME"
             } else {
                 names.random[i] <- readLines(tag, n = 1L)
             }
-            modelname <- inla.trim(paste(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "MODEL", sep = ""))
+            modelname <- inla.trim(paste0(results.dir, .Platform$file.sep, random[i], .Platform$file.sep, "MODEL"))
             if (!file.exists(modelname)) {
                 model.random[i] <- "NoModelName"
             } else {
@@ -2195,27 +2195,27 @@
                 print(paste("read random ", i, " of ", n.random))
             }
             ## read the summary
-            file <- paste(results.dir, .Platform$file.sep, random[i], sep = "")
+            file <- paste0(results.dir, .Platform$file.sep, random[i])
             dir.random <- dir(file)
 
             if (length(dir.random) > 4L) {
-                dd <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "summary.dat", sep = "")), ncol = 3L, byrow = TRUE)
+                dd <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "summary.dat")), ncol = 3L, byrow = TRUE)
                 col.nam <- c("ID", "mean", "sd")
                 ## read quantiles if existing
                 if (debug) {
                     cat("...quantiles.dat if any\n")
                 }
                 if (length(grep("^quantiles.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "quantiles.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "quantiles.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), "quant", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "quant"))
                     dd <- cbind(dd, t(qq))
                 }
                 if (length(grep("^mode.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "mode.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "mode.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
@@ -2229,12 +2229,12 @@
                     cat("...cdf.dat if any\n")
                 }
                 if (length(grep("^cdf.dat$", dir.random)) == 1L) {
-                    xx <- inla.interpret.vector(inla.read.binary.file(paste(file, .Platform$file.sep, "cdf.dat", sep = "")),
+                    xx <- inla.interpret.vector(inla.read.binary.file(paste0(file, .Platform$file.sep, "cdf.dat")),
                                                 debug = debug
                                                 )
                     len <- dim(xx)[2L]
                     qq <- xx[, seq(2L, len, by = 2L), drop = FALSE]
-                    col.nam <- c(col.nam, paste(as.character(xx[, 1L]), " cdf", sep = ""))
+                    col.nam <- c(col.nam, paste0(as.character(xx[, 1L]), "cdf"))
                     dd <- cbind(dd, t(qq))
                 }
 
@@ -2242,7 +2242,7 @@
                 if (debug) {
                     cat("...kld\n")
                 }
-                kld1 <- matrix(inla.read.binary.file(file = paste(file, .Platform$file.sep, "symmetric-kld.dat", sep = "")),
+                kld1 <- matrix(inla.read.binary.file(file = paste0(file, .Platform$file.sep, "symmetric-kld.dat")),
                                ncol = 2L, byrow = TRUE
                                )
                 qq <- kld1[, 2L, drop = FALSE]
@@ -2255,12 +2255,12 @@
                 colnames(dd) <- col.nam
                 summary.random[[i]] <- as.data.frame(dd)
 
-                xx <- inla.read.binary.file(paste(file, .Platform$file.sep, "marginal-densities.dat", sep = ""))
+                xx <- inla.read.binary.file(paste0(file, .Platform$file.sep, "marginal-densities.dat"))
                 rr <- inla.interpret.vector.list(xx, debug = debug)
                 rm(xx)
                 if (!is.null(rr)) {
                     nd <- length(rr)
-                    names(rr) <- paste("index.", as.character(1L:nd), sep = "")
+                    names(rr) <- paste0("index.", as.character(1L:nd))
                     names.rr <- names(rr)
                     for (j in 1L:nd) {
                         colnames(rr[[j]]) <- c("x", "y")
@@ -2268,7 +2268,7 @@
                 }
                 marginals.random[[i]] <- rr
             } else {
-                N.file <- paste(file, .Platform$file.sep, "N", sep = "")
+                N.file <- paste0(file, .Platform$file.sep, "N")
                 if (!file.exists(N.file)) {
                     N <- 0L
                 } else {
@@ -2354,7 +2354,7 @@
 
 `inla.collect.offset.linear.predictor` <- function(results.dir, debug = FALSE)
 {
-    filename <- paste(results.dir, "/totaloffset/totaloffset.dat", sep = "")
+    filename <- paste0(results.dir, "/totaloffset/totaloffset.dat")
     stopifnot(file.exists(filename))
 
     xx <- inla.read.binary.file(filename)
