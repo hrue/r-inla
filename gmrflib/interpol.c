@@ -231,7 +231,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 
 	// not yet implemented, I'm not sure I need this for P and Pinv
 	assert(s->trans == GMRFLib_INTPOL_TRANS_NONE || s->trans == GMRFLib_INTPOL_TRANS_Pinv);
-	double val;
+	double val = 0.0;
 
 	int tnum = 0;
 	switch (s->cache) {
@@ -257,6 +257,7 @@ double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 		}
 		acc = s->accel[tnum];
 	}
+
 	if (s->trans == GMRFLib_INTPOL_TRANS_NONE) {
 		val = gsl_spline_eval_deriv(s->spline, TRUNCATE(x, s->xmin, s->xmax), acc);
 	} else if (s->trans == GMRFLib_INTPOL_TRANS_Pinv) {
