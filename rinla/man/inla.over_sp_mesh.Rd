@@ -25,7 +25,8 @@ vertex indices (when \code{type} is \code{'vertex'})
 Wrapper for the \code{\link[sp:over]{sp::over()}} method to find triangle centroids
 or vertices inside \code{sp} polygon objects.
 Deprecated since 23.06.06 in favour of \code{inlabru::fm_contains()} when \code{inlabru}
-version \verb{>= 2.7.0.9011} is installed.
+version \verb{>= 2.7.0.9011} is installed, and since 23.08.02 in favour of
+\code{fmesher::fm_contains()} when \code{fmesher}.
 }
 \examples{
 # Create a polygon and a mesh
@@ -37,9 +38,9 @@ obj <- sp::SpatialPolygons(list(Polygons(list(Polygon(rbind(
 ))),
 ID = 1
 )),
-proj4string = inlabru::fm_CRS("longlat_globe")
+proj4string = fmesher::fm_CRS("longlat_globe")
 )
-mesh <- inla.mesh.create(globe = 2, crs = inlabru::fm_CRS("sphere"))
+mesh <- inla.mesh.create(globe = 2, crs = fmesher::fm_CRS("sphere"))
 
 ## 3 vertices found in the polygon
 inla.over_sp_mesh(obj, mesh, type = "vertex")
@@ -51,7 +52,7 @@ inla.over_sp_mesh(obj, mesh)
 ## 4 triangles found in the polygon
 inla.over_sp_mesh(
   obj,
-  inlabru::fm_transform(mesh, crs = inlabru::fm_crs("mollweide_norm"))
+  fmesher::fm_transform(mesh, crs = fmesher::fm_crs("mollweide_norm"))
 )
 }
 \author{

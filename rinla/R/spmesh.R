@@ -123,7 +123,7 @@ inla.requires_PROJ6 <- function(fun) {
 #' @title Extract CRS information
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` in favour of `inlabru::fm_CRS()`.
+#' `r lifecycle::badge("deprecated")` in favour of `fmesher::fm_CRS()`.
 #' Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for `sp::Spatial`
 #' objects.
 #'
@@ -136,18 +136,18 @@ inla.requires_PROJ6 <- function(fun) {
 #' @examples
 #' \dontrun{
 #' if (interactive()) {
-#'   s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inlabru::fm_CRS("sphere"))
+#'   s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = fmesher::fm_CRS("sphere"))
 #'   inla.sp_get_crs(s)
 #' }
 #' }
 #'
 #' @export inla.sp_get_crs
 inla.sp_get_crs <- function(x) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.sp_get_crs()",
-      with = "inlabru::fm_CRS()"
+      with = "fmesher::fm_CRS()"
     )
   }
   if (is.null(x)) {
@@ -166,7 +166,7 @@ inla.sp_get_crs <- function(x) {
 #' @title Handling CRS/WKT
 #'
 #' @description
-#' `r lifecycle::badge("deprecated")` in favour of [inlabru::fm_wkt()] and related
+#' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_wkt()] and related
 #' methods.
 #'
 #' Get and set CRS object or WKT string properties.
@@ -208,7 +208,7 @@ inla.sp_get_crs <- function(x) {
 #' @seealso [inla.sp_get_crs()]
 #' @examples
 #' \dontrun{
-#' c1 <- inlabru::fm_CRS("globe")
+#' c1 <- fmesher::fm_CRS("globe")
 #' inla.crs_get_lengthunit(c1)
 #' c2 <- inla.crs_set_lengthunit(c1, "km")
 #' inla.crs_get_lengthunit(c2)
@@ -219,96 +219,96 @@ inla.sp_get_crs <- function(x) {
 NULL
 
 #' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_wkt_is_geocent()]
+#' [fmesher::fm_wkt_is_geocent()]
 #' @export inla.wkt_is_geocent
 inla.wkt_is_geocent <- function(wkt) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_is_geocent()",
-      with = "inlabru::fm_wkt_is_geocent()"
+      with = "fmesher::fm_wkt_is_geocent()"
     )
   }
-  inlabru::fm_wkt_is_geocent(wkt)
+  fmesher::fm_wkt_is_geocent(wkt)
 }
 
 #' @export
 #' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_crs_is_geocent()]
+#' [fmesher::fm_crs_is_geocent()]
 
 inla.crs_is_geocent <- function(crs) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_is_geocent()",
-      with = "inlabru::fm_crs_is_geocent()"
+      with = "fmesher::fm_crs_is_geocent()"
     )
   }
-  inlabru::fm_crs_is_geocent(crs)
+  fmesher::fm_crs_is_geocent(crs)
 }
 
 
 #' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_ellipsoid_radius()]
+#' [fmesher::fm_ellipsoid_radius()]
 #' @export
 
 inla.wkt_get_ellipsoid_radius <- function(wkt) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_get_ellipsoid_radius()",
-      with = "inlabru::fm_ellipsoid_radius()"
+      with = "fmesher::fm_ellipsoid_radius()"
     )
   }
-  inlabru::fm_ellipsoid_radius(wkt)
+  fmesher::fm_ellipsoid_radius(wkt)
 }
 
 #' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_ellipsoid_radius()]
+#' [fmesher::fm_ellipsoid_radius()]
 #' @export
 
 inla.crs_get_ellipsoid_radius <- function(crs) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_get_ellipsoid_radius()",
-      with = "inlabru::fm_ellipsoid_radius()"
+      with = "fmesher::fm_ellipsoid_radius()"
     )
   }
-  inlabru::fm_ellipsoid_radius(crs)
+  fmesher::fm_ellipsoid_radius(crs)
 }
 
 
 #' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_wkt_set_ellipsoid_radius()]
+#' [fmesher::fm_wkt_set_ellipsoid_radius()]
 #' @param radius numeric
 #' @export
 
 inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_set_ellipsoid_radius()",
-      with = "`inlabru::fm_ellipsoid_radius<-`()"
+      with = "`fmesher::fm_ellipsoid_radius<-`()"
     )
   }
-  inlabru::fm_ellipsoid_radius(wkt) <- radius
+  fmesher::fm_ellipsoid_radius(wkt) <- radius
   wkt
 }
 
 #' @describeIn crs_wkt `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_ellipsoid_radius<-()]
+#' [fmesher::fm_ellipsoid_radius<-()]
 #' @export
 
 inla.crs_set_ellipsoid_radius <- function(crs, radius) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_set_ellipsoid_radius()",
-      with = "`inlabru::fm_ellipsoid_radius<-`()"
+      with = "`fmesher::fm_ellipsoid_radius<-`()"
     )
   }
-  inlabru::fm_ellipsoid_radius(crs) <- radius
+  fmesher::fm_ellipsoid_radius(crs) <- radius
   crs
 }
 
@@ -321,11 +321,11 @@ inla.crs_set_ellipsoid_radius <- function(crs, radius) {
 #'
 #' @description
 #' `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_CRS()]
+#' [fmesher::fm_CRS()]
 #' Creates either a CRS object or an inla.CRS object, describing a coordinate
-#' reference system. Deprecated in favour of `inlabru::fm_CRS()`.
+#' reference system.
 #'
-#' @param \dots Arguments passed on to `inlabru::fm_CRS(...)`.
+#' @param \dots Arguments passed on to `fmesher::fm_CRS(...)`.
 #' @param args list of named proj4 arguments.
 #' @return Either an `sp::CRS` object or an `inla.CRS` object,
 #' depending on if the coordinate reference system described by the parameters
@@ -344,12 +344,12 @@ inla.crs_set_ellipsoid_radius <- function(crs, radius) {
 #'
 #'
 #' if (require("sf") && require("sp")) {
-#'   crs1 <- inlabru::fm_CRS("longlat_globe")
-#'   crs2 <- inlabru::fm_CRS("lambert_globe")
-#'   crs3 <- inlabru::fm_CRS("mollweide_norm")
-#'   crs4 <- inlabru::fm_CRS("hammer_globe")
-#'   crs5 <- inlabru::fm_CRS("sphere")
-#'   crs6 <- inlabru::fm_CRS("globe")
+#'   crs1 <- fmesher::fm_CRS("longlat_globe")
+#'   crs2 <- fmesher::fm_CRS("lambert_globe")
+#'   crs3 <- fmesher::fm_CRS("mollweide_norm")
+#'   crs4 <- fmesher::fm_CRS("hammer_globe")
+#'   crs5 <- fmesher::fm_CRS("sphere")
+#'   crs6 <- fmesher::fm_CRS("globe")
 #' }
 #' \dontrun{
 #' names(inla.wkt_predef())
@@ -357,24 +357,24 @@ inla.crs_set_ellipsoid_radius <- function(crs, radius) {
 #'
 #' @export inla.CRS
 inla.CRS <- function(..., args = NULL) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.CRS()",
-      with = "inlabru::fm_CRS()"
+      with = "fmesher::fm_CRS()"
     )
   }
 
   crs <- fm_CRS(...)
-  if (!is.null(args) && (inherits(crs, "CRS") || inlabru::fm_crs_is_null(crs))) {
-    if (inlabru::fm_crs_is_null(crs)) {
+  if (!is.null(args) && (inherits(crs, "CRS") || fmesher::fm_crs_is_null(crs))) {
+    if (fmesher::fm_crs_is_null(crs)) {
       crs <- fm_CRS(
         inla.as.CRSargs.list(args)
       )
     } else {
       crs <- fm_CRS(
         paste0(
-          inlabru::fm_proj4string(crs),
+          fmesher::fm_proj4string(crs),
           " ",
           inla.as.CRSargs.list(args)
         )
@@ -391,17 +391,17 @@ inla.CRS <- function(..., args = NULL) {
 #' }
 #' @export
 #' @describeIn inla.CRS `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_wkt_predef()]
+#' [fmesher::fm_wkt_predef()]
 
 inla.wkt_predef <- function() {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_predef()",
-      with = "inlabru::fm_wkt_predef()"
+      with = "fmesher::fm_wkt_predef()"
     )
   }
-  inlabru::fm_wkt_predef()
+  fmesher::fm_wkt_predef()
 }
 
 
@@ -411,7 +411,7 @@ inla.wkt_predef <- function() {
 #' Internal WKT handling
 #'
 #' `r lifecycle::badge("deprecated")` in favour of
-#' [inlabru::fm_wkt_as_wkt_tree()].
+#' [fmesher::fm_wkt_as_wkt_tree()].
 #' Conversion between WKT and a tree representation
 #'
 #'
@@ -427,14 +427,14 @@ inla.wkt_predef <- function() {
 #' @export inla.as.wkt_tree.wkt
 #' @rdname wkt_tree
 inla.as.wkt_tree.wkt <- function(x, ...) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.as.wkt_tree.wkt()",
-      with = "inlabru::fm_wkt_as_wkt_tree()"
+      with = "fmesher::fm_wkt_as_wkt_tree()"
     )
   }
-  inlabru::fm_wkt_as_wkt_tree(x, ...)
+  fmesher::fm_wkt_as_wkt_tree(x, ...)
 }
 
 #' @rdname wkt_tree
@@ -442,14 +442,14 @@ inla.as.wkt_tree.wkt <- function(x, ...) {
 #' @export
 
 inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.as.wkt.wkt_tree()",
-      with = "inlabru::fm_wkt_tree_as_wkt()"
+      with = "fmesher::fm_wkt_tree_as_wkt()"
     )
   }
-  inlabru::fm_wkt_tree_as_wkt(x, pretty = pretty, ...)
+  fmesher::fm_wkt_tree_as_wkt(x, pretty = pretty, ...)
 }
 
 #' @param item character vector with item labels identifying a parameter item
@@ -460,14 +460,14 @@ inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
 #' @export
 
 inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_tree_get_item()",
-      with = "inlabru::fm_wkt_tree_get_item()"
+      with = "fmesher::fm_wkt_tree_get_item()"
     )
   }
-  inlabru::fm_wkt_tree_get_item(x, item = item, duplicate = duplicate)
+  fmesher::fm_wkt_tree_get_item(x, item = item, duplicate = duplicate)
 }
 
 #' @param item_tree An item tree identifying a parameter item entry
@@ -475,14 +475,14 @@ inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
 #' @export
 
 inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_tree_set_item()",
-      with = "inlabru::fm_wkt_tree_set_item()"
+      with = "fmesher::fm_wkt_tree_set_item()"
     )
   }
-  inlabru::fm_wkt_tree_set_item(x, item_tree = item_tree, duplicate = duplicate)
+  fmesher::fm_wkt_tree_set_item(x, item_tree = item_tree, duplicate = duplicate)
 }
 
 
@@ -491,8 +491,8 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #'
 #' Wrapper for `sp::CRS` and `inla.CRS` objects to extract the
 #' coordinate reference system argument string.
-#' 'r lifecycle::badge("deprecated")` in favour of `fm_proj4string()`,
-#' or `fm_wkt()` for WKT2 representations.
+#' 'r lifecycle::badge("deprecated")` in favour of [fmesher::fm_proj4string()],
+#' or [fmesher::fm_wkt()] for WKT2 representations.
 #'
 #' @aliases inla.CRSargs inla.as.list.CRS inla.as.list.CRSargs inla.as.CRS.list
 #' inla.as.CRSargs.list
@@ -512,7 +512,7 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' @seealso [inla.CRS()]
 #' @examples
 #'
-#' if (require("sf") && require("sp") && require("inlabru")) {
+#' if (require("sf") && require("sp") && require("fmesher")) {
 #'   crs0 <- fm_CRS("longlat_norm")
 #'   p4s <- fm_proj4string(crs0)
 #'   lst <- inla.as.list.CRSargs(p4s)
@@ -526,15 +526,15 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' @export
 #' @rdname CRSargs
 inla.CRSargs <- function(x, ...) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.CRSargs()",
-      with = "inlabru::fm_proj4string()"
+      with = "fmesher::fm_proj4string()"
     )
   }
 
-  return(inlabru::fm_proj4string(x))
+  return(fmesher::fm_proj4string(x))
 }
 
 
@@ -589,7 +589,7 @@ inla.as.list.CRSargs <- function(x, ...) {
 #' @export
 #' @rdname CRSargs
 inla.as.list.CRS <- function(x, ...) {
-  inla.as.list.CRSargs(inlabru::fm_proj4string(x))
+  inla.as.list.CRSargs(fmesher::fm_proj4string(x))
 }
 
 #' @export
@@ -661,17 +661,17 @@ inla.wkt_unit_params <- function() {
 #' @return For `inla.wkt_get_lengthunit`, a
 #' list of length units used in the wkt string, excluding the ellipsoid radius
 #' unit.
-#' @importFrom inlabru fm_length_unit
+#' @importFrom fmesher fm_length_unit
 
 inla.wkt_get_lengthunit <- function(wkt) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_get_lengthunit()",
-      with = "inlabru::fm_length_unit()"
+      with = "fmesher::fm_length_unit()"
     )
   }
-  inlabru::fm_length_unit(wkt)
+  fmesher::fm_length_unit(wkt)
 }
 
 #' @export
@@ -679,21 +679,21 @@ inla.wkt_get_lengthunit <- function(wkt) {
 #' @return For `inla.wkt_set_lengthunit`, a
 #' WKT2 string with altered length units.
 #' Note that the length unit for the ellipsoid radius is unchanged.
-#' @importFrom inlabru `fm_length_unit<-`
+#' @importFrom fmesher `fm_length_unit<-`
 
 inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.wkt_set_lengthunit()",
-      with = "`inlabru::fm_length_unit<-`()"
+      with = "`fmesher::fm_length_unit<-`()"
     )
   }
 
   if (!is.null(params)) {
     warning("Non-NULL 'params' for inla.wkt_set_lengthunit ignored.")
   }
-  inlabru::fm_length_unit(wkt) <- unit
+  fmesher::fm_length_unit(wkt) <- unit
   wkt
 }
 
@@ -702,15 +702,15 @@ inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
 #' @rdname crs_wkt
 
 inla.crs_get_wkt <- function(crs) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_get_wkt()",
-      with = "inlabru::fm_wkt()"
+      with = "fmesher::fm_wkt()"
     )
   }
 
-  inlabru::fm_wkt(crs)
+  fmesher::fm_wkt(crs)
 }
 
 #' @return For `inla.crs_get_lengthunit`, a
@@ -721,14 +721,14 @@ inla.crs_get_wkt <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_get_lengthunit <- function(crs) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_get_lengthunit()",
-      with = "inlabru::fm_length_unit()"
+      with = "fmesher::fm_length_unit()"
     )
   }
-  inlabru::fm_length_unit(crs)
+  fmesher::fm_length_unit(crs)
 }
 
 #' @return For `inla.crs_set_lengthunit`, a `sp::CRS` object with
@@ -738,17 +738,17 @@ inla.crs_get_lengthunit <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_set_lengthunit()",
-      with = "`inlabru::fm_length_unit<-`()"
+      with = "`fmesher::fm_length_unit<-`()"
     )
   }
   if (!is.null(params)) {
     warning("Non-NULL 'params' for inla.crs_set_lengthunit ignored.")
   }
-  inlabru::fm_length_unit(crs) <- unit
+  fmesher::fm_length_unit(crs) <- unit
   crs
 }
 
@@ -757,86 +757,57 @@ inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
 
 
 inla.wkt_tree_projection_type <- function(wt) {
-    if (utils::packageVersion("inlabru") >= "2.8.0.9002") {
-        if (inla.getOption("fmesher.evolution") >= 2L) {
-            lifecycle::deprecate_soft(
-                when = "23.06.06",
-                what = "inla.wkt_tree_projection_type()",
-                with = "inlabru::fm_wkt_tree_projection_type()",
-                details = "From inlabru version >= 2.8.0.9002"
-            )
-        }
-        return(inlabru::fm_wkt_tree_projection_type(wt))
-    }
-    
-    axis1 <- inla.wkt_tree_get_item(wt, "AXIS", 1)
-    axis2 <- inla.wkt_tree_get_item(wt, "AXIS", 2)
-    if (identical(axis1[["params"]][[1]], '"longitude"') &&
-        identical(axis2[["params"]][[1]], '"latitude"')) {
-        return("longlat")
-    }
-    conversion <- inla.wkt_tree_get_item(wt, "CONVERSION")
-    if (!is.null(conversion)) {
-        method <- inla.wkt_tree_get_item(conversion, "METHOD")
-        if (identical(method[["params"]][[1]], '"Lambert Cylindrical Equal Area (Spherical)"')) {
-            return("lambert")
-        }
-        if (identical(method[["params"]][[1]], '"Mollweide"')) {
-            return("mollweide")
-        }
-        if (identical(method[["params"]][[1]], '"PROJ hammer"')) {
-            return("hammer")
-        }
-        if (identical(method[["params"]][[1]], '"tmerc"')) {
-            return("tmerc")
-        }
-    }
-    NULL
+  if (inla.getOption("fmesher.evolution.warn")) {
+    lifecycle::deprecate_soft(
+      when = "23.06.06",
+      what = "inla.wkt_tree_projection_type()",
+      with = "fmesher::fm_wkt_tree_projection_type()"
+    )
+  }
+  return(fmesher::fm_wkt_tree_projection_type(wt))
 }
 
 inla.wkt_projection_type <- function(wkt) {
-    wt <- inlabru::fm_wkt_as_wkt_tree(wkt)
-    
-    if (utils::packageVersion("inlabru") >= "2.8.0.9002") {
-        if (inla.getOption("fmesher.evolution") >= 2L) {
-            lifecycle::deprecate_soft(
-                when = "23.06.06",
-                what = "inla.wkt_projection_type()",
-                with = "inlabru::fm_wkt_projection_type()",
-                details = "From inlabru version >= 2.8.0.9002"
-            )
-        }
-        return(inlabru::fm_wkt_tree_projection_type(wt))
+    if (inla.getOption("fmesher.evolution.warn")) {
+        lifecycle::deprecate_soft(
+            when = "23.06.06",
+            what = "inla.wkt_projection_type()",
+            with = "fmesher::fm_wkt_projection_type()"
+        )
     }
-    
-    inla.wkt_tree_projection_type(wt)
+    return(fmesher::fm_wkt_projection_type(wkt))
 }
 
 inla.crs_projection_type <- function(crs) {
-    if (utils::packageVersion("inlabru") >= "2.8.0.9002") {
-        if (inla.getOption("fmesher.evolution") >= 2L) {
-            lifecycle::deprecate_soft(
-                when = "23.06.06",
-                what = "inla.crs_projection_type()",
-                with = "inlabru::fm_crs_projection_type()",
-                details = "From inlabru version >= 2.8.0.9002"
-            )
-        }
-        return(inlabru::fm_crs_projection_type(crs))
+    if (inla.getOption("fmesher.evolution.warn")) {
+        lifecycle::deprecate_soft(
+            when = "23.06.06",
+            what = "inla.crs_projection_type()",
+            with = "fmesher::fm_crs_projection_type()"
+        )
     }
-    
-    wkt <- inlabru::fm_wkt(crs)
-    inla.wkt_projection_type(wkt)
+    return(fmesher::fm_crs_projection_type(crs))
 }
 
 ## +proj=longlat in (-180,180)x(-90,90)
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
 ## +proj=lambert in (-pi,pi)x(-1,1) scaled by +a and +b, and +units
 inla.crs.bounds <- function(crs, warn.unknown = FALSE) {
+    if (inla.getOption("fmesher.evolution") >= 2L) {
+        if (inla.getOption("fmesher.evolution.warn")) {
+            lifecycle::deprecate_soft(
+                when = "23.08.02",
+                what = "inla.crs.bounds()",
+                with = "fmesher::fm_crs_bounds()"
+            )
+        }
+        return(fmesher::fm_crs_bounds(crs, warn.unknown = warn.unknown))
+    }
+    
   wkt <- inla.crs_get_wkt(crs)
   wt <- inla.as.wkt_tree.wkt(wkt)
   type <- inla.wkt_tree_projection_type(wt)
-
+    
   if (is.null(type)) {
     if (inla.wkt_is_geocent(wkt)) {
       bounds <-
@@ -942,20 +913,20 @@ inla.crs.bounds.check <- function(x, bounds) {
 #' Test CRS and inla.CRS for equality
 #'
 #' Wrapper for identical, optionally testing only the CRS part of two objects
-#' Deprecated in favour of [inlabru::fm_identical_CRS()]
+#' Deprecated in favour of [fmesher::fm_crs_is_identical()]
 #' 
-#' @param ... Arguments passed on to [inlabru::fm_identical_CRS()]
+#' @param ... Arguments passed on to [fmesher::fm_crs_is_identical()]
 #'
 #' @export inla.identical.CRS
 inla.identical.CRS <- function(...) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.identical.CRS()",
-      with = "inlabru::fm_identical_CRS()"
+      with = "fmesher::fm_crs_is_identical()"
     )
   }
-  inlabru::fm_identical_CRS(...)
+  fmesher::fm_crs_is_identical(...)
 }
 
 
@@ -963,23 +934,23 @@ inla.identical.CRS <- function(...) {
 
 
 
-#' Wrapper method for `inlabru::fm_transform`
+#' Wrapper method for `fmesher::fm_transform`
 #'
-#' `r lifecycle::badge("deprecated")` in favour of [inlabru::fm_transform()].
+#' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_transform()].
 #' Handles transformation of various inla objects according to coordinate
 #' reference systems of `sf::crs`, `sp::CRS` or `inla.CRS` class.
 #'
 #'
 #' @param x The object that should be transformed from it's current CRS to a
 #' new CRS
-#' @param CRSobj passed on as the `crs` argument to [inlabru::fm_transform()].
-#' @param \dots Potential other arguments for [inlabru::fm_transform()].
+#' @param CRSobj passed on as the `crs` argument to [fmesher::fm_transform()].
+#' @param \dots Potential other arguments for [fmesher::fm_transform()].
 #' @return The object is returned with its coordinates transformed
 #' @author Finn Lindgren <finn.lindgren@@gmail.com>
 #' @seealso [inla.CRS()]
 #' @examples
 #'
-#' if (require("sf") && require("sp") && require("inlabru")) {
+#' if (require("sf") && require("sp") && require("fmesher")) {
 #'   latt <- inla.mesh.lattice(-10:10, 40:60)
 #'   mesh1 <- inla.mesh.create(
 #'     lattice = latt, extend = FALSE, refine = FALSE,
@@ -991,28 +962,28 @@ inla.identical.CRS <- function(...) {
 #' }
 #' @export inla.spTransform
 inla.spTransform <- function(x, CRSobj, ...) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.spTransform()",
-      with = "inlabru::fm_transform()"
+      with = "fmesher::fm_transform()"
     )
   }
-  inlabru::fm_transform(x, crs = CRSobj, ...)
+  fmesher::fm_transform(x, crs = CRSobj, ...)
 }
 
 
 
 
 inla.crs_detect_manifold <- function(crs) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
+  if (inla.getOption("fmesher.evolution.warn")) {
     lifecycle::deprecate_soft(
       when = "2023.06.06",
       what = "inla.crs_detect_manifold()",
-      with = "inlabru::fm_crs_detect_manifold()"
+      with = "fmesher::fm_crs_detect_manifold()"
     )
   }
-  inlabru:::fm_crs_detect_manifold(crs)
+  fmesher::fm_crs_detect_manifold(crs)
 }
 
 
@@ -1021,27 +992,28 @@ inla.crs_detect_manifold <- function(crs) {
 
 #' @title Convert `sp` objects to `inla.mesh.segment` objects.
 #'
-#' @description `r lifecycle::badge("superseded")` by [inlabru::fm_as_inla_mesh_segment()]
+#' @description `r lifecycle::badge("superseded")` by [fmesher::fm_as_segm()]
 #'
 #' @param sp An `sp` polygon object of class `Polygon`,
 #' `Polygons`, `SpatialPolygons`, or `SpatialPolygonsDataFrame`.
-#' @param \dots Additional arguments passed on to `inlabru::fm_as_inla_mesh_segment()`.
+#' @param \dots Additional arguments passed on to `fmesher::fm_as_segm()`.
 #' @return A [inla.mesh.segment()] object, or a list of
 #' [inla.mesh.segment()] objects.
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.mesh.segment()]
 #' @export as.inla.mesh.segment
-#' @importFrom inlabru fm_as_inla_mesh_segment
+#' @importFrom fmesher fm_as_segm
 as.inla.mesh.segment <-
   function(sp, ...) {
-    inlabru::fm_as_inla_mesh_segment(sp, ...)
+    fmesher::fm_as_segm(sp, ...)
   }
 
 #' @export
-#' @describeIn as.inla.mesh.segment `r lifecycle::badge("superseded")` by [inlabru::fm_as_inla_mesh_segment()]
+#' @describeIn as.inla.mesh.segment `r lifecycle::badge("superseded")`
+#' by [fmesher::fm_as_segm()]
 inla.sp2segment <-
   function(sp, ...) {
-    inlabru::fm_as_inla_mesh_segment(sp, ...)
+    fmesher::fm_as_segm(sp, ...)
   }
 
 
@@ -1103,7 +1075,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
       lat <- seq(-90 + 1e-6, 90 - 1e-6, length.out = 91)
     }
     meridians <- as.matrix(expand.grid(lat, lon)[, 2:1])
-    proj.mer.coords <- fm_transform(meridians, crs0 = inlabru::fm_CRS("longlat_norm"), crs = x)
+    proj.mer.coords <- fm_transform(meridians, crs0 = fmesher::fm_CRS("longlat_norm"), crs = x)
     proj.mer.coords1 <- matrix(
       proj.mer.coords[, 1], length(lat),
       length(lon)
@@ -1134,7 +1106,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
         lon <- ((1 - n[3]):n[3]) * by[3]
         lat <- seq(-90 + 1e-6, -n[2] * by[2], length.out = ceiling((90 - n[2] * by[2]) / 2) + 1)
         meridians <- as.matrix(expand.grid(lat, lon)[, 2:1])
-        proj.mer.coords <- fm_transform(meridians, crs0 = inlabru::fm_CRS("longlat_norm"), crs = x)
+        proj.mer.coords <- fm_transform(meridians, crs0 = fmesher::fm_CRS("longlat_norm"), crs = x)
         proj.mer.coords1 <- matrix(
           proj.mer.coords[, 1], length(lat),
           length(lon)
@@ -1164,7 +1136,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
 
         lat <- seq(n[2] * by[2], 90 - 1e-6, length.out = ceiling((90 - n[2] * by[2]) / 2) + 1)
         meridians <- as.matrix(expand.grid(lat, lon)[, 2:1])
-        proj.mer.coords <- fm_transform(meridians, crs0 = inlabru::fm_CRS("longlat_norm"), crs = x)
+        proj.mer.coords <- fm_transform(meridians, crs0 = fmesher::fm_CRS("longlat_norm"), crs = x)
         proj.mer.coords1 <- matrix(
           proj.mer.coords[, 1], length(lat),
           length(lon)
@@ -1197,7 +1169,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
     proj.mer <-
         sp::SpatialLines(
             list(sp::Lines(mer.coords, ID = "meridians")),
-            proj4string = inlabru::fm_CRS(x)
+            proj4string = fmesher::fm_CRS(x)
       )
     if (do.plot) {
       args <- list(x = proj.mer, ...)
@@ -1225,7 +1197,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
     lon <- seq(-180 + 1e-6, 180 - 1e-6, length.out = 181)
     lat <- ((-n[2]):n[2]) * by[2]
     parallels <- as.matrix(expand.grid(lon, lat))
-    proj.par.coords <- fm_transform(parallels, crs0 = inlabru::fm_CRS("longlat_norm"), crs = x)
+    proj.par.coords <- fm_transform(parallels, crs0 = fmesher::fm_CRS("longlat_norm"), crs = x)
     proj.par.coords1 <- matrix(
       proj.par.coords[, 1], length(lon),
       length(lat)
@@ -1251,7 +1223,7 @@ inla.crs.graticule <- function(x, by = c(15, 15, 45), add = FALSE, do.plot = TRU
           ),
           ID = "parallels"
         )),
-        proj4string = inlabru::fm_CRS(x)
+        proj4string = fmesher::fm_CRS(x)
       )
     if (do.plot) {
       args <- list(x = proj.par, ...)
@@ -1297,7 +1269,7 @@ inla.crs.tissot <- function(x, by = c(30, 30, 30), add = FALSE, do.plot = TRUE,
     cbind(as.matrix(expand.grid(lat, lon)[, 2:1]), 0)
   loc0.lon[, 1] <- loc0.lon[, 1] + diff.eps / cos(loc0.lat[, 2] * pi / 180)
   loc0.lat[, 2] <- loc0.lat[, 2] + diff.eps
-  crs.longlat <- inlabru::fm_CRS("longlat_norm")
+  crs.longlat <- fmesher::fm_CRS("longlat_norm")
 
   loc1 <- fm_transform(loc0, crs0 = crs.longlat, crs = x)
   loc1.lon <- fm_transform(loc0.lon, crs0 = crs.longlat, crs = x)
@@ -1336,7 +1308,7 @@ inla.crs.tissot <- function(x, by = c(30, 30, 30), add = FALSE, do.plot = TRUE,
         ),
         ID = "parallels"
       )),
-      proj4string = inlabru::fm_CRS(x)
+      proj4string = fmesher::fm_CRS(x)
     )
   if (do.plot) {
     args <- list(x = collection, ...)
@@ -1394,18 +1366,14 @@ inla.crs.tissot <- function(x, by = c(30, 30, 30), add = FALSE, do.plot = TRUE,
 #'
 #' if (require("sf") && require("sp")) {
 #'   for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
-#'     plot(inlabru::fm_CRS(projtype), main = projtype)
+#'     plot(fmesher::fm_CRS(projtype), main = projtype)
 #'   }
 #' }
 #'
-#' # Note: inlabru 2.8.0 has bugs preventing the use of
-#' # oblique `inla.CRS` objects.
-#' if (utils::packageVersion("inlabru") >= "2.8.0.9003") {
-#'   if (require("sf") && require("sp")) {
-#'     oblique <- c(0, 45, 45, 0)
-#'     for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
-#'       plot(inlabru::fm_CRS(projtype, oblique = oblique), main = paste("oblique", projtype))
-#'     }
+#' if (require("sf") && require("sp")) {
+#'   oblique <- c(0, 45, 45, 0)
+#'   for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
+#'     INLA:::plot.inla.CRS(fmesher::fm_CRS(projtype, oblique = oblique), main = paste("oblique", projtype))
 #'   }
 #' }
 #' @method plot inla.CRS

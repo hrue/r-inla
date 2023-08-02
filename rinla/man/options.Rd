@@ -12,7 +12,7 @@ inla.getOption(
     "smtp", "safe", "pardiso.license", "keep", "verbose", "save.memory",
     "working.directory", "silent", "debug", "show.warning.graph.file",
     "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
-    "inla.mode", "fmesher.evolution")
+    "inla.mode", "fmesher.evolution", "fmesher.evolution.warn")
 )
 
 inla.setOption(...)
@@ -84,11 +84,22 @@ nearest integer.}
 \item{inla.mode}{Which mode to use in INLA? Default is \code{"compact"}. Other
 options are \code{"classic"} and \code{"twostage"}.}
 
-\item{fmesher.evolution}{Control information and warning messages for the
-transition of fmesher code into a separate package. \code{fmesher.evolution=1L} (default)
-uses the intermediate \verb{fm_*} methods in \code{inlabru} without warnings. \code{fmesher.evolution=2L}
-shows deprecation messages for many CRS and mesh related methods, pointing to their
-\verb{fm_*} replacements. Further levels will be added as the package development progresses.}
+\item{fmesher.evolution}{Control use of fmesher methods during the transition
+to a separate fmesher package. Levels of
+\code{fmesher.evolution}:
+\describe{
+\item{\code{1L}}{
+(current default) uses the intermediate \verb{fm_*} methods in \code{fmesher} that were already
+available via \code{inlabru} from 2.8.0.}
+\item{\code{2L}}{
+uses the full range of \code{fmesher} package methods.}
+}
+Further levels may be added as the package development progresses.}
+
+\item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
+use of legacy INLA methods with fmesher package replacements. When \code{TRUE},
+shows deprecation messages for many CRS and mesh
+related methods, pointing to their \verb{fm_*} replacements. Default is currently \code{FALSE}.}
 }}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}

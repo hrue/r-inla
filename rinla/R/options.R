@@ -72,11 +72,22 @@
 #' \item{inla.mode}{Which mode to use in INLA? Default is `"compact"`. Other
 #' options are `"classic"` and `"twostage"`.}
 #' 
-#' \item{fmesher.evolution}{Control information and warning messages for the
-#' transition of fmesher code into a separate package. `fmesher.evolution=1L` (default)
-#' uses the intermediate `fm_*` methods in `inlabru` without warnings. `fmesher.evolution=2L`
-#' shows deprecation messages for many CRS and mesh related methods, pointing to their
-#' `fm_*` replacements. Further levels will be added as the package development progresses.}
+#' \item{fmesher.evolution}{Control use of fmesher methods during the transition
+#' to a separate fmesher package. Levels of
+#' `fmesher.evolution`:
+#' \describe{
+#' \item{`1L`}{
+#' (current default) uses the intermediate `fm_*` methods in `fmesher` that were already
+#' available via `inlabru` from 2.8.0.}
+#' \item{`2L`}{
+#' uses the full range of `fmesher` package methods.}
+#' }
+#' Further levels may be added as the package development progresses.}
+#' 
+#' \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
+#' use of legacy INLA methods with fmesher package replacements. When `TRUE`,
+#' shows deprecation messages for many CRS and mesh
+#' related methods, pointing to their `fm_*` replacements. Default is currently `FALSE`.}
 #' }
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
@@ -114,7 +125,8 @@ NULL
             inla.timeout = 0, 
             fmesher.timeout = 0,
             inla.mode = "compact",
-            fmesher.evolution = 1L
+            fmesher.evolution = 2L,
+            fmesher.evolution.warn = TRUE
         )
     )
 }
@@ -143,7 +155,8 @@ NULL
                                  "inla.timeout", 
                                  "fmesher.timeout",
                                  "inla.mode",
-                                 "fmesher.evolution"
+                                 "fmesher.evolution",
+                                 "fmesher.evolution.warn"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
@@ -233,7 +246,8 @@ NULL
                                           "inla.timeout", 
                                           "fmesher.timeout",
                                           "inla.mode",
-                                          "fmesher.evolution"
+                                          "fmesher.evolution",
+                                          "fmesher.evolution.warn"
                                       ), value) {
         envir <- inla.get.inlaEnv()
         option <- match.arg(option, several.ok = FALSE)

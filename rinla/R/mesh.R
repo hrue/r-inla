@@ -2,7 +2,7 @@
 ## Internal: inla.mesh.parse.segm.input inla.mesh.extract.segments
 
 
-#' @importFrom inlabru fm_transform
+#' @importFrom fmesher fm_transform
 
 
 #' @title Constraint segments for inla.mesh
@@ -62,7 +62,15 @@
 #'
 #' @export inla.mesh.segment
 inla.mesh.segment <- function(...) {
-    UseMethod("inla.mesh.segment")
+  if (inla.getOption("fmesher.evolution") >= 2L) {
+    if (inla.getOption("fmesher.evolution.warn")) {
+      lifecycle::deprecate_soft("23.08.02",
+                              "inla.mesh.segment()",
+                              "fmesher::fm_segm()")
+    }
+    return(fmesher::fm_segm(...))
+  }
+  UseMethod("inla.mesh.segment")
 }
 
 #' @export
@@ -77,18 +85,18 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
         ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
         if (inherits(loc, "SpatialPoints") ||
             inherits(loc, "SpatialPointsDataFrame")) {
-            loc <- inlabru::fm_transform(
+            loc <- fmesher::fm_transform(
                 sp::coordinates(loc),
-                inlabru::fm_crs(loc),
+                fmesher::fm_crs(loc),
                 crs,
                 passthrough = TRUE
             )
         } else if (inherits(loc, "sf") ||
             inherits(loc, "sfc")) {
             inla.require("sf", stop.on.error = TRUE)
-            loc <- inlabru::fm_transform(
+            loc <- fmesher::fm_transform(
                 sf::st_coordinates(loc),
-                inlabru::fm_crs(loc),
+                fmesher::fm_crs(loc),
                 crs,
                 passthrough = TRUE
             )
@@ -1318,7 +1326,7 @@ inla.mesh <- function(...) {
 #' )
 #' plot(mesh2)
 #' @export inla.mesh.create
-#' @importFrom inlabru fm_CRS fm_crs
+#' @importFrom fmesher fm_CRS fm_crs
 inla.mesh.create <- function(loc = NULL, tv = NULL,
                              boundary = NULL, interior = NULL,
                              extend = (missing(tv) || is.null(tv)),
@@ -1355,7 +1363,7 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
                 inherits(loc, "SpatialPointsDataFrame")) {
                 loc <- fm_transform(
                     coordinates(loc),
-                    crs0 = inlabru::fm_CRS(loc),
+                    crs0 = fmesher::fm_CRS(loc),
                     crs = crs,
                     passthrough = TRUE
                 )
@@ -1906,7 +1914,7 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
 #' mesh <- inla.mesh.2d(loc, boundary = boundary, offset = offset, max.edge = c(0.05, 0.1))
 #'
 #' plot(mesh)
-#' @importFrom inlabru fm_identical_CRS fm_crs_is_geocent
+#' @importFrom fmesher fm_identical_CRS fm_crs_is_geocent
 #' @export inla.mesh.2d
 inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
                          loc.domain = NULL, ## Points that determine the automatic domain
@@ -1962,7 +1970,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
     }
 
     if (!is.null(crs)) {
-        issphere <- fm_identical_CRS(crs, fm_CRS("sphere"))
+        issphere <- fm_crs_is_identical(crs, fm_CRS("sphere"))
         isgeocentric <- fm_crs_is_geocent(crs)
         if (isgeocentric) {
             crs.target <- crs
@@ -2195,7 +2203,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
         }
     }
     if (nrow(segm.loc) > 0) {
-        proj <- inlabru::fm_evaluator(mesh3, loc = segm.loc)$proj
+        proj <- fmesher::fm_evaluator(mesh3, loc = segm.loc)$proj
         mesh3$idx$segm <- rep(NA, nrow(segm.loc))
         if (any(proj$ok)) {
             t.idx <- proj$t[proj$ok]
@@ -2211,7 +2219,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
 
     if (!is.null(crs) && isgeocentric && !issphere) {
         mesh3$loc <-
-            inlabru::fm_transform(mesh3$loc, crs0 = mesh3$crs, crs = crs.target)
+            fmesher::fm_transform(mesh3$loc, crs0 = mesh3$crs, crs = crs.target)
         mesh3$crs <- crs.target
     }
 
@@ -2497,8 +2505,8 @@ summary.inla.mesh <- function(object, verbose = FALSE, ...) {
         ylim = range(x$loc[, 2]),
         zlim = if (ncol(x$loc) >= 3) range(x$loc[, 3]) else c(NA_real_, NA_real_)
     )))
-    ret <- c(ret, list(crs = as.character(inlabru::fm_wkt(x$crs))))
-    ret <- c(ret, list(crs_proj4 = as.character(inlabru::fm_crs(x$crs)$proj4string)))
+    ret <- c(ret, list(crs = as.character(fmesher::fm_wkt(x$crs))))
+    ret <- c(ret, list(crs_proj4 = as.character(fmesher::fm_crs(x$crs)$proj4string)))
 
     my.segm <- function(x) {
         if (is.null(x)) {
@@ -2614,7 +2622,7 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @description
 #' Calculate a lattice projection to/from an [inla.mesh()].
-#' Deprecated in favour of `inlabru::fm_evaluate()` and `inlabru::fm_evaluator()`.
+#' Deprecated in favour of `fmesher::fm_evaluate()` and `fmesher::fm_evaluator()`.
 #'
 #' The call `inla.mesh.project(mesh, loc, field=..., ...)`, is a shortcut
 #' to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
@@ -2664,10 +2672,10 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @export inla.mesh.project
 inla.mesh.project <- function(...) {
-    if (inla.getOption("fmesher.evolution") >= 2L) {
+    if (inla.getOption("fmesher.evolution.warn")) {
         lifecycle::deprecate_soft("23.06.07",
                                   "inla.mesh.project()",
-                                  "inlabru::fm_evaluate()")
+                                  "fmesher::fm_evaluate()")
     }
     UseMethod("inla.mesh.project")
 }
@@ -2803,10 +2811,10 @@ inla.mesh.project.inla.mesh.projector <-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
-    if (inla.getOption("fmesher.evolution") >= 2L) {
+    if (inla.getOption("fmesher.evolution.warn")) {
         lifecycle::deprecate_soft("23.06.07",
                                   "inla.mesh.projector()",
-                                  "inlabru::fm_evaluator()")
+                                  "fmesher::fm_evaluator()")
     }
     UseMethod("inla.mesh.projector")
 }
@@ -4262,7 +4270,7 @@ inla.mesh.deriv <- function(mesh, loc) {
     }
     n.mesh <- mesh$n
 
-    info <- inlabru::fm_evaluator(mesh, loc = loc)$proj
+    info <- fmesher::fm_evaluator(mesh, loc = loc)$proj
 
     ii <- which(info$ok)
     n.ok <- sum(info$ok)
@@ -4572,16 +4580,16 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
         (inherits(points, "SpatialPoints") ||
             inherits(points, "SpatialPointsDataFrame")) &&
         !is.null(crs)) {
-        points <- inlabru::fm_transform(
+        points <- fmesher::fm_transform(
             sp::coordinates(points),
-            crs0 = inlabru::fm_crs(points),
+            crs0 = fmesher::fm_crs(points),
             crs,
             passthrough = TRUE
         )
     }
     if (!is.matrix(points)) {
         if (inherits(points, c("sf", "sfc"))) {
-            points <- inlabru::fm_transform(
+            points <- fmesher::fm_transform(
                 points,
                 crs,
                 passthrough = TRUE

@@ -20,7 +20,7 @@ Depends:
 Imports:
     graphics,
     grDevices,
-    inlabru (>= 2.8.0),
+    fmesher (>= 0.0.9),
     lifecycle,
     methods,
     parallel,
@@ -190,3 +190,5 @@ Collate:
     'utils.R'
     'version.R'
 Roxygen: list(markdown = TRUE)
+Remotes:
+    inlabru-org/fmesher

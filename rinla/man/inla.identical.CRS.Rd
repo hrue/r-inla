@@ -7,9 +7,9 @@
 inla.identical.CRS(...)
 }
 \arguments{
-\item{...}{Arguments passed on to \code{\link[inlabru:fm_identical_CRS]{inlabru::fm_identical_CRS()}}}
+\item{...}{Arguments passed on to \code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}}
 }
 \description{
 Wrapper for identical, optionally testing only the CRS part of two objects
-Deprecated in favour of \code{\link[inlabru:fm_identical_CRS]{inlabru::fm_identical_CRS()}}
+Deprecated in favour of \code{\link[fmesher:fm_crs_is_identical]{fmesher::fm_crs_is_identical()}}
 }

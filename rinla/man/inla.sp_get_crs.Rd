@@ -13,7 +13,7 @@ inla.sp_get_crs(x)
 A \code{CRS} object, or NULL if no valid CRS identified
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{inlabru::fm_CRS()}.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{fmesher::fm_CRS()}.
 Wrapper for CRS(projargs) (PROJ4) and CRS(wkt) for \code{sp::Spatial}
 objects.
 
@@ -23,7 +23,7 @@ and the lack of a crs extraction method for Spatial objects.
 \examples{
 \dontrun{
 if (interactive()) {
-  s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = inlabru::fm_CRS("sphere"))
+  s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = fmesher::fm_CRS("sphere"))
   inla.sp_get_crs(s)
 }
 }

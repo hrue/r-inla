@@ -10,7 +10,7 @@ inla.CRS(..., args = NULL)
 inla.wkt_predef()
 }
 \arguments{
-\item{\dots}{Arguments passed on to \code{inlabru::fm_CRS(...)}.}
+\item{\dots}{Arguments passed on to \code{fmesher::fm_CRS(...)}.}
 
 \item{args}{list of named proj4 arguments.}
 }
@@ -29,26 +29,26 @@ object}
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[inlabru:fm_CRS_sp]{inlabru::fm_CRS()}}
+\code{\link[fmesher:fm_CRS_sp]{fmesher::fm_CRS()}}
 Creates either a CRS object or an inla.CRS object, describing a coordinate
-reference system. Deprecated in favour of \code{inlabru::fm_CRS()}.
+reference system.
 }
 \section{Functions}{
 \itemize{
 \item \code{inla.wkt_predef()}: \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
-\code{\link[inlabru:fm_crs]{inlabru::fm_wkt_predef()}}
+\code{\link[fmesher:fm_crs]{fmesher::fm_wkt_predef()}}
 
 }}
 \examples{
 
 
 if (require("sf") && require("sp")) {
-  crs1 <- inlabru::fm_CRS("longlat_globe")
-  crs2 <- inlabru::fm_CRS("lambert_globe")
-  crs3 <- inlabru::fm_CRS("mollweide_norm")
-  crs4 <- inlabru::fm_CRS("hammer_globe")
-  crs5 <- inlabru::fm_CRS("sphere")
-  crs6 <- inlabru::fm_CRS("globe")
+  crs1 <- fmesher::fm_CRS("longlat_globe")
+  crs2 <- fmesher::fm_CRS("lambert_globe")
+  crs3 <- fmesher::fm_CRS("mollweide_norm")
+  crs4 <- fmesher::fm_CRS("hammer_globe")
+  crs5 <- fmesher::fm_CRS("sphere")
+  crs6 <- fmesher::fm_CRS("globe")
 }
 \dontrun{
 names(inla.wkt_predef())

@@ -15,7 +15,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#' @importFrom inlabru fm_CRS fm_wkt fm_crs
+#' @importFrom fmesher fm_CRS fm_wkt fm_crs
 #'
 NULL
 
@@ -77,7 +77,7 @@ meshbuilder.app <- function() {
             class(sp),
             c("SpatialLines", "SpatialLinesDataFrame")
         )) > 0) {
-            tmp <- inlabru::fm_as_inla_mesh_segment(sp)
+            tmp <- fmesher::fm_as_segm(sp)
             coord <- tmp$loc
             crs <- fm_CRS(sp)
             if (inherits(sp, "SpatialLinesDataFrame")) {
@@ -88,7 +88,7 @@ meshbuilder.app <- function() {
             class(sp),
             c("SpatialPolygons", "SpatialPolygonsDataFrame")
         )) > 0) {
-            tmp <- inlabru::fm_as_inla_mesh_segment(sp)
+            tmp <- fmesher::fm_as_segm(sp)
             coord <- tmp$loc
             crs <- fm_CRS(sp)
             if (inherits(sp, "SpatialPolygonsDataFrame")) {
@@ -124,8 +124,8 @@ meshbuilder.app <- function() {
                 "SpatialPolygons", "SpatialPolygonsDataFrame"
             )
         )) > 0) {
-            out <- inlabru::fm_as_inla_mesh_segment(sp)
-            code <- "inlabru::fm_as_inla_mesh_segment(%%%)"
+            out <- fmesher::fm_as_segm(sp)
+            code <- "fmesher::fm_as_segm(%%%)"
         } else if (inherits(sp, "inla.mesh")) {
             out <- do.call(inla.mesh.segment, inla.mesh.boundary(sp))
             code <- "do.call(inla.mesh.segment, inla.mesh.boundary(%%%))"
@@ -383,7 +383,7 @@ meshbuilder.app <- function() {
         input.loc.crs <- shiny::reactive({
             sp <- c(boundary.loc.input(), mesh.loc.input())
             if (!is.null(sp) && (length(sp) > 0)) {
-                stopifnot(inlabru::fm_identical_CRS(sp))
+                stopifnot(fmesher::fm_crs_is_identical(sp))
                 fm_CRS(sp[[1]])
             } else {
                 sp::CRS()
@@ -883,9 +883,9 @@ meshbuilder.app <- function() {
             if (is.null(mesh())) {
                 NULL
             } else {
-                inlabru::fm_evaluator(
+                fmesher::fm_evaluator(
                     mesh(),
-                    lattice = inlabru::fm_evaluator_lattice(
+                    lattice = fmesher::fm_evaluator_lattice(
                         mesh(),
                         dims = c(500, 500)
                     )
@@ -896,7 +896,7 @@ meshbuilder.app <- function() {
             if (is.null(fine())) {
                 NULL
             } else {
-                inlabru::fm_evaluator(fine(), lattice = mesh.proj()$lattice)
+                fmesher::fm_evaluator(fine(), lattice = mesh.proj()$lattice)
             }
         })
         mesh.spde <- shiny::reactive({
@@ -1034,7 +1034,7 @@ meshbuilder.app <- function() {
             } else {
                 if (shiny::isolate(debug$trace)) message("mesh.sd.bound!")
                 proj <- mesh.proj()
-                inlabru::fm_evaluate(proj, field = diag(mesh.S())^0.5)
+                fmesher::fm_evaluate(proj, field = diag(mesh.S())^0.5)
             }
         })
         fine.sd.bound <- shiny::reactive({
@@ -1044,7 +1044,7 @@ meshbuilder.app <- function() {
             } else {
                 if (shiny::isolate(debug$trace)) message("fine.sd.bound!")
                 proj <- fine.proj()
-                inlabru::fm_evaluate(proj, field = diag(fine.S())^0.5)
+                fmesher::fm_evaluate(proj, field = diag(fine.S())^0.5)
             }
         })
         mesh.corr <- shiny::reactive({
@@ -1727,7 +1727,7 @@ meshbuilder.app <- function() {
                         )
                     ))
                 }
-                A <- inlabru::fm_evaluator(mesh(), clicks$meshplot.loc)$proj$A
+                A <- fmesher::fm_evaluator(mesh(), clicks$meshplot.loc)$proj$A
                 if (!(sum(A) > 0)) {
                     A <- NULL
                 }
@@ -1747,7 +1747,7 @@ meshbuilder.app <- function() {
                         )
                     ))
                 }
-                A <- inlabru::fm_evaluator(fine(), clicks$meshplot.loc)$proj$A
+                A <- fmesher::fm_evaluator(fine(), clicks$meshplot.loc)$proj$A
                 if (!(sum(A) > 0)) {
                     A <- NULL
                 }
