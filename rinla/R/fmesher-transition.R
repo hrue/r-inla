@@ -57,14 +57,11 @@ fmesher_deprecate_stop <- function(evo = NULL,
     if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
         return(FALSE)
     }
-    if (inla.getOption("fmesher.evolution.warn")) {
-        lifecycle::deprecate_stop(
-            when = when,
-            what = what,
-            with = with,
-            details = details,
-            env = env
-        )
-    }
-    return(TRUE)
+    lifecycle::deprecate_stop(
+        when = when,
+        what = what,
+        with = with,
+        details = details,
+        env = env
+    )
 }

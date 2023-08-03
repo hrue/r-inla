@@ -4,6 +4,14 @@
                                 fmesher.call = inla.getOption("fmesher.call"),
                                 all.args, prefix,
                                 timeout = inla.getOption("fmesher.timeout")) {
+    # Change to _stop once evolution status 2L has eliminated
+    # all standalone fmesher binary calls
+    fmesher_deprecate_warn(2L,
+                           "23.08.03",
+                           "inla.fmesher.call()",
+                           details = "With `fmesher.evolution = 2L`, no standalone fmesher binary calls should be made.",
+                           always = TRUE)
+    
     if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
         echoc <- system(paste(shQuote(fmesher.call), all.args, shQuote(prefix)),
             timeout = ceiling(timeout)

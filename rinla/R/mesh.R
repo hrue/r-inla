@@ -8,9 +8,10 @@
 #' @title Constraint segments for inla.mesh
 #'
 #' @description
+#' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_segm()]
+#' 
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].
-#'
 #'
 #' @param loc Matrix of point locations, or `SpatialPoints`, or `sf`/`sfc` point
 #' object.
@@ -66,7 +67,8 @@ inla.mesh.segment <- function(...) {
         2L,
         "23.08.02",
         "inla.mesh.segment()",
-        "fmesher::fm_segm()"
+        "fmesher::fm_segm()",
+        id = "inla.mesh.segment"
     )) {
         return(fmesher::fm_segm(...))
     }
@@ -75,8 +77,29 @@ inla.mesh.segment <- function(...) {
 
 #' @export
 #' @rdname inla.mesh.segment
-inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd = TRUE,
-                                      crs = NULL, ...) {
+inla.mesh.segment.default <- function(loc = NULL,
+                                      idx = NULL,
+                                      grp = NULL,
+                                      is.bnd = TRUE,
+                                      crs = NULL,
+                                      ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.02",
+        "inla.mesh.segment()",
+        "fmesher::fm_segm()",
+        id = "inla.mesh.segment"
+    )) {
+        return(fmesher::fm_segm(
+            loc = loc,
+            idx = idx,
+            grp = grp,
+            is.bnd = is.bnd,
+            crs = crs,
+            ...
+        ))
+    }
+
     if ((missing(loc) || is.null(loc)) &&
         (missing(idx) || is.null(idx))) {
         stop("At most one of 'loc' and 'idx' may be missing or null.")
@@ -206,6 +229,19 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
 #' @export
 #' @rdname inla.mesh.segment
 inla.mesh.segment.inla.mesh.segment <- function(..., grp.default = 0) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.02",
+        "inla.mesh.segment()",
+        "fmesher::fm_segm()",
+        id = "inla.mesh.segment"
+    )) {
+        return(fmesher::fm_segm(
+            ...,
+            grp.default = grp.default
+        ))
+    }
+
     segm <- list(...)
     if (!all(unlist(lapply(
         segm,
@@ -292,6 +328,37 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
                                     colors = c("black", "blue", "red", "green"),
                                     add = TRUE, xlim = NULL, ylim = NULL,
                                     rgl = FALSE, ...) {
+    if (rgl && fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "lines.inla.mesh.segment()",
+        "fmesher::lines_rgl()")) {
+        return(fmesher::lines_rgl(
+            x = fmesher::fm_as_fm(x),
+            add = add,
+            loc = loc,
+            col = col,
+            colors = colors,
+            ...
+        ))
+    }
+    if (!rgl && fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "lines.inla.mesh.segment()",
+        "fmesher::lines()")) {
+        return(fmesher::lines(
+            x = x,
+            add = add,
+            loc = loc,
+            col = col,
+            colors = colors,
+            xlim = xlim,
+            ylim = ylim,
+            ...
+        ))
+    }
+    
     segm <- x
     if (!is.null(segm$loc)) {
         loc <- segm$loc
@@ -362,6 +429,12 @@ inla.generate.colors <- function(color,
                                  color.palette = cm.colors,
                                  color.truncate = FALSE,
                                  alpha = NULL) {
+    fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.generate.colors()",
+        "fmesher:::generate_colors()")
+
     if (is.character(color)) {
         colors <- color
     } else if (is.vector(color) || (is.matrix(color) && (ncol(color) == 1))) {
@@ -465,6 +538,28 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
                               lwd = 1, specular = "black",
                               draw.vertices = TRUE, draw.edges = TRUE,
                               edge.color = rgb(0.3, 0.3, 0.3), ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "plot.inla.trimesh()",
+        "fmesher::plot_rgl()")) {
+        return(fmesher::plot_rgl(
+            x = fmesher::fm_as_fm(x),
+            col = col,
+            color.axis = color.axis,
+            color.n = color.n,
+            color.palette = color.palette,
+            alpha = alpha,
+            lwd = lwd,
+            specular = specular,
+            draw.vertices = TRUE,
+            draw.edges = TRUE,
+            draw.faces = TRUE,
+            edge.color = edge.color,
+            ...
+        ))
+    }
+    
     TV <- x
     inla.require("rgl", stop.on.error = TRUE)
 
@@ -588,6 +683,64 @@ plot.inla.mesh <- function(x,
                            edge.color = rgb(0.3, 0.3, 0.3),
                            draw.segments = draw.edges,
                            ...) {
+    if (rgl && fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "plot.inla.mesh()",
+        "fmesher::plot_rgl()")) {
+        return(fmesher::plot_rgl(
+            x = fmesher::fm_as_fm(x),
+            col = col,
+            color.axis = color.axis,
+            color.n = color.n,
+            color.palette = color.palette,
+            alpha = alpha,
+            lwd = lwd,
+            size = size,
+            specular = specular,
+            draw.vertices = TRUE,
+            draw.edges = TRUE,
+            draw.faces = TRUE,
+            draw.segments = draw.segments,
+            edge.color = edge.color,
+            ...
+        ))
+    }
+    if (!rgl && fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "plot.inla.mesh()",
+        "fmesher::plot()")) {
+        fmesher::plot(
+            x = fmesher::fm_as_fm(x),
+            col = col,
+            t.sub = t.sub,
+            add = add,
+            pwd = lwd,
+            xlim = xlim,
+            ylim = ylim,
+            size = size,
+            draw.vertices = draw.vertices,
+            vertex.color = vertex.color,
+            draw.edges = draw.edges,
+            edge.color = edge.color,
+            draw.segments = draw.segments,
+            ...
+        )
+        if (!add) {
+            if (missing(main)) {
+                if (mesh$meta$is.refined) {
+                    title("Constrained refined Delaunay triangulation")
+                } else {
+                    title("Constrained Delaunay triangulation")
+                }
+            } else if (!is.null(main)) {
+                title(main)
+            }
+        }
+        return()
+    }
+    
     inla.require.inherits(x, "inla.mesh", "'mesh'")
     mesh <- x
 
@@ -678,6 +831,14 @@ plot.inla.mesh <- function(x,
 inla.mesh.map.lim <- function(loc = NULL,
                               projection =
                                   c("default", "longlat", "longsinlat", "mollweide")) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.map.lim()",
+        "fmesher::fm_mesh_2d_map_lim()")) {
+        return(fmesher::fm_mesh_2d_map_lim(loc = loc, projection = projection))
+    }
+    
     projection <- match.arg(projection)
     if (identical(projection, "default")) {
         if (is.null(loc)) {
@@ -724,6 +885,19 @@ inla.mesh.map <- function(loc,
                           projection =
                               c("default", "longlat", "longsinlat", "mollweide"),
                           inverse = TRUE) {
+    
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.map()",
+        "fmesher::fm_mesh_2d_map()")) {
+        return(fmesher::fm_mesh_2d_map(
+            loc = loc,
+            projection = projection,
+            inverse = inverse
+        ))
+    }
+    
     projection <- match.arg(projection)
     if (identical(projection, "default")) {
         return(loc)
@@ -853,6 +1027,21 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
                                   },
                               units = NULL,
                               crs = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.lattice()",
+        "fmesher::fm_lattice_2d()")) {
+        return(fmesher::fm_lattice_2d(
+            x = x,
+            y = y,
+            z = z,
+            dims = dims,
+            units = units,
+            crs = fm_crs(crs)
+        ))
+    }
+    
     if (is.null(crs)) {
         units <- match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
 
@@ -948,7 +1137,16 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @seealso [inla.mesh.segment()]
 #' @export extract.groups
-extract.groups <- function(...) {
+extract.groups <- function(segm, groups, groups.new = groups, ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        I("`extract.groups(segm, groups)`"),
+        I("`fmesher::fm_segm(segm, grp = groups)`"),
+        "Note that the `groups.new` argument may not be supported.")) {
+        return(fmesher::fm_segm(fmesher::fm_as_fm(segm), grp = groups))
+    }
+    
     UseMethod("extract.groups")
 }
 
@@ -958,6 +1156,15 @@ extract.groups.inla.mesh.segment <- function(segm,
                                              groups,
                                              groups.new = groups,
                                              ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        I("`extract.groups(segm, groups)`"),
+        I("`fmesher::fm_segm(segm, grp = groups)`"),
+        "Note that the `groups.new` argument may not be supported.")) {
+        return(fmesher::fm_segm(fmesher::fm_as_fm(segm), grp = groups))
+    }
+    
     inla.require.inherits(segm, "inla.mesh.segment", "'segm'")
 
     if (length(groups.new) == 1L) {
@@ -1162,57 +1369,6 @@ inla.mesh.parse.segm.input <- function(boundary = NULL,
 }
 
 
-##
-## Old code.  Filtering is now done in fmesher itself.
-## Retained for now so that we can check if the results are the same.
-##
-inla.mesh.filter.locations <- function(loc, cutoff) {
-    ## Map locations to nodes, avoiding near-duplicates.
-    loc.n <- nrow(loc)
-    loc.dim <- ncol(loc)
-
-    loc.is.na <- (rowSums(is.na(loc)) > 0)
-    if (sum(loc.is.na) > 0) {
-        stop("NAs in locations not yet supported.")
-    }
-
-    node.coord <- matrix(nrow = loc.n, ncol = loc.dim)
-    map.loc.to.node <- rep(0L, nrow = loc.n)
-    excluded <- c()
-    loc.i <- 1L
-    node.i.max <- 1L
-    node.coord[node.i.max, ] <- loc[loc.i, ]
-    map.loc.to.node[[loc.i]] <- node.i.max
-    for (loc.i in 2:loc.n) {
-        loc.to.node.dist <-
-            sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*%
-                loc[loc.i, , drop = FALSE] -
-                node.coord[1:node.i.max, , drop = FALSE])^2))
-        if (min(loc.to.node.dist) > cutoff) {
-            node.i.max <- node.i.max + 1L
-            node.coord[node.i.max, ] <- loc[loc.i, , drop = FALSE]
-            map.loc.to.node[[loc.i]] <- node.i.max
-        } else {
-            excluded <- c(excluded, loc.i)
-        }
-    }
-    ## Remove excess nodes.
-    node.coord <- node.coord[1:node.i.max, ]
-
-    ## Identify nearest nodes for excluded locations.
-    for (loc.i in excluded) {
-        loc.to.node.dist <-
-            sqrt(rowSums((as.matrix(rep(1, node.i.max)) %*%
-                loc[loc.i, , drop = FALSE] -
-                node.coord)^2))
-        node.i <- which.min(loc.to.node.dist)
-        map.loc.to.node[[loc.i]] <- node.i
-    }
-
-    return(list(loc = node.coord, node.idx = map.loc.to.node))
-}
-
-
 
 
 
@@ -1226,15 +1382,18 @@ inla.mesh <- function(...) {
             return(inla.mesh.query(...))
         }
     }
-    warning("'inla.mesh(...)' is deprecated.  Use 'inla.mesh.create(...)' instead.")
+    stop("'inla.mesh(...)' is deprecated.  Use 'fmesher::fm_mesh_2d_inla(...)' instead.")
     return(inla.mesh.create(...))
 }
 
 
 
 
-#' Low level function for high-quality triangulations
+#' @title Low level function for high-quality triangulations
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_rcdt_2d_inla()].
+#' 
 #' Create a constrained refined Delaunay triangulation (CRDT) for a set of
 #' spatial locations.
 #'
@@ -1335,11 +1494,31 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
                              globe = NULL,
                              cutoff = 1e-12,
                              plot.delay = NULL,
-                             data.dir,
+                             data.dir = NULL,
                              keep = (!missing(data.dir) && !is.null(data.dir)),
                              timings = FALSE,
                              quality.spec = NULL,
                              crs = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.create()",
+        "fmesher::fm_rcdt_2d_inla()")) {
+        return(fmesher::fm_rcdt_2d_inla(
+            loc = loc,
+            tv = tv,
+            boundary = boundary,
+            interior = interior,
+            extend = extend,
+            refine = refine,
+            lattice = lattice,
+            globe = globe,
+            cutoff = cutoff,
+            quality.spec = quality.spec,
+            crs = crs
+        ))
+    }
+
     if (!timings) {
         system.time <- function(expr) {
             expr
@@ -1476,13 +1655,13 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
 
         ## Where to put the files?
         if (keep) {
-            if (missing(data.dir)) {
+            if (missing(data.dir) || is.null(data.dir)) {
                 data.dir <- inla.fmesher.make.dir("inla.mesh.data")
             }
             prefix <- paste(data.dir, "/mesh.", sep = "")
             keep.dir <- TRUE
         } else {
-            if (missing(data.dir)) {
+            if (missing(data.dir) || is.null(data.dir)) {
                 prefix <- inla.tempfile(pattern = "fmesher", tmpdir = tempdir())
                 prefix <- paste(prefix, ".", sep = "")
                 keep.dir <- TRUE
@@ -1812,6 +1991,16 @@ inla.mesh.extract.segments <- function(mesh.loc,
 #' @export
 #' @rdname inla.mesh.boundary
 inla.mesh.boundary <- function(mesh, grp = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.boundary()",
+        I("`fmesher::fm_segm(mesh, boundary = TRUE)`"))) {
+        return(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
+                                boundary = TRUE,
+                                grp = grp))
+    }
+    
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     return(inla.mesh.extract.segments(
@@ -1827,6 +2016,16 @@ inla.mesh.boundary <- function(mesh, grp = NULL) {
 #' @export
 #' @rdname inla.mesh.boundary
 inla.mesh.interior <- function(mesh, grp = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.interior()",
+        I("`fmesher::fm_segm(mesh, boundary = FALSE)`"))) {
+        return(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
+                                boundary = FALSE,
+                                grp = grp))
+    }
+
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     return(inla.mesh.extract.segments(
@@ -1929,6 +2128,27 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
                          max.n = NULL,
                          plot.delay = NULL,
                          crs = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.2d()",
+        "fmesher::fm_mesh_2d_inla()")) {
+        return(fmesher::fm_mesh_2d_inla(
+            loc = loc,
+            loc.domain = loc.domain,
+            offset = offset,
+            n = n,
+            boundary = boundary,
+            interior = interior,
+            max.edge = max.edge,
+            min.angle = min.angle,
+            cutoff = cutoff,
+            max.n.strict = max.n.strict,
+            max.n = max.n,
+            crs = crs
+        ))
+    }
+
     ## plot.delay: Do plotting.
     ## NULL --> No plotting
     ## <0  --> Intermediate meshes displayed at the end
@@ -2252,6 +2472,10 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
 #' @keywords internal
 #' @export inla.mesh.create.helper
 inla.mesh.create.helper <- function(points = NULL, points.domain = NULL, ...) {
+    lifecycle::deprecate_warn(
+        "a very long time ago",
+        "inla.mesh.create.helper()",
+        "fmesher::fm_mesh_2d_inla()")
     return(invisible(inla.mesh.2d(loc = points, loc.domain = points.domain, ...)))
 }
 
@@ -2272,6 +2496,14 @@ inla.mesh.create.helper <- function(points = NULL, points.domain = NULL, ...) {
 #' @export
 #' @rdname inla.mesh.create
 inla.delaunay <- function(loc, ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.delaunay()",
+        "fmesher::fm_delaunay_2d()")) {
+        return(fmesher::fm_delaunay_2d(loc, ...))
+    }
+
     ## Handle loc given as SpatialPoints or SpatialPointsDataFrame object
     if (!(missing(loc) || is.null(loc)) &&
         (inherits(loc, "SpatialPoints") ||
@@ -2672,6 +2904,14 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @export inla.mesh.project
 inla.mesh.project <- function(...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.06.07",
+        "inla.mesh.project()",
+        "fmesher::fm_evaluate()"
+    )) {
+        return(fmesher::fm_evaluate(...))
+    }
     fmesher_deprecate_soft(
         1L,
         "23.06.07",
@@ -2812,6 +3052,14 @@ inla.mesh.project.inla.mesh.projector <-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.06.07",
+        "inla.mesh.projector()",
+        "fmesher::fm_evaluator()"
+    )) {
+        return(fmesher::fm_evaluator(...))
+    }
     fmesher_deprecate_soft(
         1L,
         "23.06.07",
@@ -3391,6 +3639,26 @@ inla.mesh.1d <- function(loc,
                          degree = 1,
                          free.clamped = FALSE,
                          ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.1d()",
+        "fmesher::fm_mesh_1d()"
+    )) {
+        return(
+            fmesher::fm_mesh_1d(
+                loc = loc,
+                interval = interval,
+                boundary = boundary,
+                degree = degree,
+                free.clamped = free.clamped,
+                ...
+            )
+        )
+    }
+    
+    
+    
     ## Note: do not change the order of these options without also
     ## changing 'basis.reduction' below.
     boundary.options <- c("neumann", "dirichlet", "free", "cyclic")
@@ -4135,6 +4403,15 @@ inla.mesh.1d.fem <- function(mesh) {
 #' inla.diameter(matrix(c(0, 1, 1, 0, 0, 0, 1, 1), 4, 2))
 #' @export inla.diameter
 inla.diameter <- function(x, ...) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.diameter()",
+        "fmesher::fm_diameter()"
+    )) {
+        return(fmesher::fm_diameter(x, ...))
+    }
+
     UseMethod("inla.diameter")
 }
 
@@ -4224,6 +4501,15 @@ inla.diameter.inla.mesh.lattice <- function(x, ...) {
 #' @seealso [inla.mesh.1d.fem()]
 #' @export inla.mesh.fem
 inla.mesh.fem <- function(mesh, order = 2) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.fem()",
+        "fmesher::fm_fem()"
+    )) {
+        return(fmesher::fm_fem(mesh, order = 2))
+    }
+
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     if (inherits(mesh, "inla.mesh.1d")) {
         if (order > 2) {
@@ -4266,6 +4552,15 @@ inla.mesh.fem <- function(mesh, order = 2) {
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @export inla.mesh.deriv
 inla.mesh.deriv <- function(mesh, loc) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.deriv()",
+        I("`fmesher::fm_basis(..., derivatives = TRUE)`")
+    )) {
+        return(fmesher::fm_basis(mesh, loc, derivatives = TRUE))
+    }
+
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
     if (inherits(mesh, "inla.mesh.1d")) {
         stop("1d derivatives are not implemented.")
@@ -4337,6 +4632,15 @@ inla.mesh.deriv <- function(mesh, loc) {
 #' lines(loc[idx, ], col = "red")
 #' @export inla.simplify.curve
 inla.simplify.curve <- function(loc, idx, eps) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.simplify.curve()",
+        "fmesher::fm_simplify_helper()"
+    )) {
+        return(fmesher::fm_simplify_helper(loc = loc, idx = idx, eps = eps))
+    }
+    
     ## Variation of Ramer-Douglas-Peucker
     ## Uses width epsilon ellipse instead of rectangle,
     ## motivated by prediction ellipse for Brownian bridge
@@ -4394,6 +4698,25 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
                                  positive = TRUE,
                                  eps = NULL,
                                  crs = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.contour.segment()",
+        "fmesher::fm_segm_contour_helper()"
+    )) {
+        return(fmesher::fm_segm_contour_helper(
+            x = x,
+            y = y,
+            z = z,
+            nlevels = nlevels,
+            levels = levels,
+            groups = groups,
+            positive = positive,
+            eps = eps,
+            crs = crs
+        ))
+    }
+    
     ## Input checking from contourLines:
     if (missing(z)) {
         if (!missing(x)) {
@@ -4575,6 +4898,22 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
 #' @export inla.nonconvex.hull
 inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolution = 40, eps = NULL,
                                 crs = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.nonconvex.hull()",
+        I("`fmesher::fm_nonconvex_hull()` or `fmesher::fm_nonconvex_hull_inla()`")
+    )) {
+        return(fmesher::fm_nonconvex_hull_inla(
+            x = points,
+            convex = convex,
+            concave = concave,
+            resolution = resolution,
+            eps = eps,
+            crs = crs
+        ))
+    }
+
     if (!(missing(points) || is.null(points)) &&
         (inherits(points, "SpatialPoints") ||
             inherits(points, "SpatialPointsDataFrame")) &&
@@ -4689,6 +5028,21 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
 ## Based on an idea from Elias Teixeira Krainski
 ## Requires  splancs::nndistF
 inla.nonconvex.hull.basic <- function(points, convex = -0.15, resolution = 40, eps = NULL, crs = NULL) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.nonconvex.hull.basic()",
+        I("`fmesher::fm_nonconvex_hull()` or `fmesher::fm_nonconvex_hull_inla_basic()`")
+    )) {
+        return(fmesher::fm_nonconvex_hull_inla_basic(
+            x = points,
+            convex = convex,
+            resolution = resolution,
+            eps = eps,
+            crs = crs
+        ))
+    }
+
     if (!(missing(points) || is.null(points)) &&
         (inherits(points, "SpatialPoints") ||
             inherits(points, "SpatialPointsDataFrame"))) {

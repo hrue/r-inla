@@ -72,6 +72,8 @@ excursions in a counter clockwise direction.}
 An \code{inla.mesh.segment} object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_segm]{fmesher::fm_segm()}}
+
 Constructs \code{inla.mesh.segment} objects that can be used to specify
 boundary and interior constraint edges in calls to \code{\link[=inla.mesh]{inla.mesh()}}.
 }
