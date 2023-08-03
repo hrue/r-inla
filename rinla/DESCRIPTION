@@ -25,6 +25,7 @@ Imports:
     lifecycle,
     methods,
     parallel,
+    rlang,
     splines,
     stats,
     utils,

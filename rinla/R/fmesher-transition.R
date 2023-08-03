@@ -1,3 +1,11 @@
+fmesher_deprecate_allow <- function(evo = NULL,
+                                    env = rlang::caller_env(),
+                                    user_env = rlang::caller_env(2)) {
+    if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
+        return(FALSE)
+    }
+    return(TRUE)
+}
 fmesher_deprecate_soft <- function(evo = NULL,
                                    when,
                                    what,

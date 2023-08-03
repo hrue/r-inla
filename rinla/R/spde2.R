@@ -699,15 +699,23 @@ inla.spde2.matern =
     n.theta = ncol(B.kappa)-1L
 
     if (d==2) {
-        fem =
-            inla.fmesher.smorg(mesh$loc,
-                               mesh$graph$tv,
-                               fem=2,
-                               output=list("c0", "c1", "g1", "g2"))
+        if (fmesher_deprecate_allow(2L)) {
+            fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
+        } else {
+            fem <-
+                inla.fmesher.smorg(mesh$loc,
+                                   mesh$graph$tv,
+                                   fem=2,
+                                   output=list("c0", "c1", "g1", "g2"))
+        }
     } else {
-        fem = inla.mesh.1d.fem(mesh)
+        if (fmesher_deprecate_allow(2L)) {
+            fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
+        } else {
+            fem <- inla.mesh.1d.fem(mesh)
+        }
         if (mesh$degree==2) {
-            fem$c0 = fem$c1 ## Use higher order matrix.
+            fem$c0 <- fem$c1 ## Use higher order matrix.
         }
     }
 

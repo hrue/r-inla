@@ -2573,6 +2573,13 @@ inla.delaunay <- function(loc, ...) {
 #' )
 #' @export
 inla.mesh.query <- function(mesh, ...) {
+    fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.query()",
+        details = "Does not yet have an `fmesher` alternative."
+    )
+
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     not.known <- function(mesh, queryname) {
@@ -3282,6 +3289,13 @@ inla.mesh.basis <- function(mesh,
                             boundary = "free",
                             free.clamped = TRUE,
                             ...) {
+    fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.basis()",
+        details = "Does not yet have an `fmesher` alternative."
+    )
+    
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
 
     type <- match.arg(type, c("b.spline", "sph.harm"))
@@ -3499,6 +3513,13 @@ inla.parse.queries <- function(...) {
                                  splitlines = NULL,
                                  output = NULL,
                                  keep = FALSE) {
+    fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.fmesher.smorg()",
+        details = "Most queries have `fmesher` alternatives."
+    )
+    
     prefix <- inla.fmesher.make.prefix(NULL, NULL)
 
     n <- nrow(loc)
@@ -3812,6 +3833,19 @@ inla.mesh.1d <- function(loc,
 #' @export inla.mesh.1d.bary
 #' @rdname inla.mesh.1d.A
 inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.1d.bary()",
+        "fmesher::fm_bary()"
+    )) {
+        return(fmesher::fm_bary(
+            fmeher::fm_as_mesh_1d(mesh),
+            loc,
+            method = method
+        ))
+    }
+
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     method <- match.arg(method)
 
@@ -3910,7 +3944,22 @@ inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
 inla.mesh.1d.A <- function(mesh, loc,
                            weights = NULL,
                            derivatives = NULL,
-                           method = c("linear", "nearest", "quadratic")) {
+                           method = c("default", "linear", "nearest", "quadratic")) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.1d.A()",
+        "fmesher::fm_basis()"
+    )) {
+        return(fmesher::fm_basis(
+            fmesher::fm_as_mesh_1d(mesh),
+            loc,
+            weights = weights,
+            derivatives = derivatives,
+            method = method
+        ))
+    }
+    
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     if (missing(method)) {
         ## Compute basis based on mesh$degree and mesh$boundary
@@ -4222,6 +4271,15 @@ inla.mesh.1d.A <- function(mesh, loc,
 #' @export
 #' @rdname inla.mesh.1d
 inla.mesh.1d.fem <- function(mesh) {
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.03",
+        "inla.mesh.fem()",
+        "fmesher::fm_fem()"
+    )) {
+        return(fmesher::fm_fem(fmesher::fm_as_mesh_1d(mesh), order = 2))
+    }
+    
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
     ## Use the same matrices for degree 0 as for degree 1

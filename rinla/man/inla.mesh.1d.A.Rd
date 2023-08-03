@@ -12,7 +12,7 @@ inla.mesh.1d.A(
   loc,
   weights = NULL,
   derivatives = NULL,
-  method = c("linear", "nearest", "quadratic")
+  method = c("default", "linear", "nearest", "quadratic")
 )
 }
 \arguments{
