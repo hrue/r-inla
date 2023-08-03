@@ -690,7 +690,7 @@ inla.spde2.matern =
         }
     }
 
-    d = inla.ifelse(inherits(mesh, "inla.mesh"), 2, 1)
+    d <- fmesher::fm_manifold_dim(fmesher::fm_as_fm(mesh))
     nu = alpha-d/2
     nu.nominal = max(0.5, nu)
     alpha.nominal = max(nu.nominal+d/2, alpha)
@@ -698,27 +698,26 @@ inla.spde2.matern =
     n.spde = inla.ifelse(d==2, mesh$n, mesh$m)
     n.theta = ncol(B.kappa)-1L
 
-    if (d==2) {
-        if (fmesher_deprecate_allow(2L)) {
-            fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
-        } else {
+    if (fmesher_deprecate_allow(2L)) {
+        fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
+        if ((d == 1) && (mesh$degree == 2)) {
+            fem$c0 <- fem$c1 ## Use higher order matrix.
+        }
+    } else {
+        if (d == 2) {
             fem <-
                 inla.fmesher.smorg(mesh$loc,
                                    mesh$graph$tv,
                                    fem=2,
                                    output=list("c0", "c1", "g1", "g2"))
-        }
-    } else {
-        if (fmesher_deprecate_allow(2L)) {
-            fem <- fmesher::fm_fem(fmesher::fm_as_fm(mesh), order = 2)
         } else {
             fem <- inla.mesh.1d.fem(mesh)
-        }
-        if (mesh$degree==2) {
-            fem$c0 <- fem$c1 ## Use higher order matrix.
+            if (mesh$degree == 2) {
+                fem$c0 <- fem$c1 ## Use higher order matrix.
+            }
         }
     }
-
+    
     if (alpha==2) {
         B.phi0 = param$B.tau
         B.phi1 = 2*param$B.kappa
