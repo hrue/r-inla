@@ -21,7 +21,7 @@ Depends:
 Imports:
     graphics,
     grDevices,
-    fmesher (>= 0.0.9),
+    fmesher (>= 0.0.9.9013),
     lifecycle,
     methods,
     parallel,
