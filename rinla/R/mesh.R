@@ -9,7 +9,7 @@
 #'
 #' @description
 #' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_segm()]
-#' 
+#'
 #' Constructs `inla.mesh.segment` objects that can be used to specify
 #' boundary and interior constraint edges in calls to [inla.mesh()].
 #'
@@ -332,7 +332,8 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
         2L,
         "23.08.03",
         "lines.inla.mesh.segment()",
-        "fmesher::lines_rgl()")) {
+        "fmesher::lines_rgl()"
+    )) {
         return(fmesher::lines_rgl(
             x = fmesher::fm_as_fm(x),
             add = add,
@@ -346,7 +347,8 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
         2L,
         "23.08.03",
         "lines.inla.mesh.segment()",
-        "fmesher::lines()")) {
+        "fmesher::lines()"
+    )) {
         return(fmesher::lines(
             x = x,
             add = add,
@@ -358,7 +360,7 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
             ...
         ))
     }
-    
+
     segm <- x
     if (!is.null(segm$loc)) {
         loc <- segm$loc
@@ -433,7 +435,8 @@ inla.generate.colors <- function(color,
         2L,
         "23.08.03",
         "inla.generate.colors()",
-        "fmesher:::generate_colors()")
+        "fmesher:::generate_colors()"
+    )
 
     if (is.character(color)) {
         colors <- color
@@ -542,7 +545,8 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
         2L,
         "23.08.03",
         "plot.inla.trimesh()",
-        "fmesher::plot_rgl()")) {
+        "fmesher::plot_rgl()"
+    )) {
         return(fmesher::plot_rgl(
             x = fmesher::fm_as_fm(x),
             col = col,
@@ -559,7 +563,7 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
             ...
         ))
     }
-    
+
     TV <- x
     inla.require("rgl", stop.on.error = TRUE)
 
@@ -687,7 +691,8 @@ plot.inla.mesh <- function(x,
         2L,
         "23.08.03",
         "plot.inla.mesh()",
-        "fmesher::plot_rgl()")) {
+        "fmesher::plot_rgl()"
+    )) {
         return(fmesher::plot_rgl(
             x = fmesher::fm_as_fm(x),
             col = col,
@@ -710,7 +715,8 @@ plot.inla.mesh <- function(x,
         2L,
         "23.08.03",
         "plot.inla.mesh()",
-        "fmesher::plot()")) {
+        "fmesher::plot()"
+    )) {
         fmesher::plot(
             x = fmesher::fm_as_fm(x),
             col = col,
@@ -740,7 +746,7 @@ plot.inla.mesh <- function(x,
         }
         return()
     }
-    
+
     inla.require.inherits(x, "inla.mesh", "'mesh'")
     mesh <- x
 
@@ -835,10 +841,11 @@ inla.mesh.map.lim <- function(loc = NULL,
         2L,
         "23.08.03",
         "inla.mesh.map.lim()",
-        "fmesher::fm_mesh_2d_map_lim()")) {
+        "fmesher::fm_mesh_2d_map_lim()"
+    )) {
         return(fmesher::fm_mesh_2d_map_lim(loc = loc, projection = projection))
     }
-    
+
     projection <- match.arg(projection)
     if (identical(projection, "default")) {
         if (is.null(loc)) {
@@ -885,19 +892,19 @@ inla.mesh.map <- function(loc,
                           projection =
                               c("default", "longlat", "longsinlat", "mollweide"),
                           inverse = TRUE) {
-    
     if (fmesher_deprecate_soft(
         2L,
         "23.08.03",
         "inla.mesh.map()",
-        "fmesher::fm_mesh_2d_map()")) {
+        "fmesher::fm_mesh_2d_map()"
+    )) {
         return(fmesher::fm_mesh_2d_map(
             loc = loc,
             projection = projection,
             inverse = inverse
         ))
     }
-    
+
     projection <- match.arg(projection)
     if (identical(projection, "default")) {
         return(loc)
@@ -1031,7 +1038,8 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
         2L,
         "23.08.03",
         "inla.mesh.lattice()",
-        "fmesher::fm_lattice_2d()")) {
+        "fmesher::fm_lattice_2d()"
+    )) {
         return(fmesher::fm_lattice_2d(
             x = x,
             y = y,
@@ -1041,7 +1049,7 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
             crs = fm_crs(crs)
         ))
     }
-    
+
     if (is.null(crs)) {
         units <- match.arg(units, c("default", "longlat", "longsinlat", "mollweide"))
 
@@ -1143,10 +1151,11 @@ extract.groups <- function(segm, groups, groups.new = groups, ...) {
         "23.08.03",
         I("`extract.groups(segm, groups)`"),
         I("`fmesher::fm_segm(segm, grp = groups)`"),
-        "Note that the `groups.new` argument may not be supported.")) {
+        "Note that the `groups.new` argument may not be supported."
+    )) {
         return(fmesher::fm_segm(fmesher::fm_as_fm(segm), grp = groups))
     }
-    
+
     UseMethod("extract.groups")
 }
 
@@ -1161,10 +1170,11 @@ extract.groups.inla.mesh.segment <- function(segm,
         "23.08.03",
         I("`extract.groups(segm, groups)`"),
         I("`fmesher::fm_segm(segm, grp = groups)`"),
-        "Note that the `groups.new` argument may not be supported.")) {
+        "Note that the `groups.new` argument may not be supported."
+    )) {
         return(fmesher::fm_segm(fmesher::fm_as_fm(segm), grp = groups))
     }
-    
+
     inla.require.inherits(segm, "inla.mesh.segment", "'segm'")
 
     if (length(groups.new) == 1L) {
@@ -1393,7 +1403,7 @@ inla.mesh <- function(...) {
 #'
 #' @description
 #' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_rcdt_2d_inla()].
-#' 
+#'
 #' Create a constrained refined Delaunay triangulation (CRDT) for a set of
 #' spatial locations.
 #'
@@ -1503,7 +1513,8 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
         2L,
         "23.08.03",
         "inla.mesh.create()",
-        "fmesher::fm_rcdt_2d_inla()")) {
+        "fmesher::fm_rcdt_2d_inla()"
+    )) {
         return(fmesher::fm_rcdt_2d_inla(
             loc = loc,
             tv = tv,
@@ -1995,12 +2006,14 @@ inla.mesh.boundary <- function(mesh, grp = NULL) {
         2L,
         "23.08.03",
         "inla.mesh.boundary()",
-        I("`fmesher::fm_segm(mesh, boundary = TRUE)`"))) {
+        I("`fmesher::fm_segm(mesh, boundary = TRUE)`")
+    )) {
         return(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
-                                boundary = TRUE,
-                                grp = grp))
+            boundary = TRUE,
+            grp = grp
+        ))
     }
-    
+
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
 
     return(inla.mesh.extract.segments(
@@ -2020,10 +2033,12 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
         2L,
         "23.08.03",
         "inla.mesh.interior()",
-        I("`fmesher::fm_segm(mesh, boundary = FALSE)`"))) {
+        I("`fmesher::fm_segm(mesh, boundary = FALSE)`")
+    )) {
         return(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
-                                boundary = FALSE,
-                                grp = grp))
+            boundary = FALSE,
+            grp = grp
+        ))
     }
 
     inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -2132,7 +2147,8 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
         2L,
         "23.08.03",
         "inla.mesh.2d()",
-        "fmesher::fm_mesh_2d_inla()")) {
+        "fmesher::fm_mesh_2d_inla()"
+    )) {
         return(fmesher::fm_mesh_2d_inla(
             loc = loc,
             loc.domain = loc.domain,
@@ -2475,7 +2491,8 @@ inla.mesh.create.helper <- function(points = NULL, points.domain = NULL, ...) {
     lifecycle::deprecate_warn(
         "a very long time ago",
         "inla.mesh.create.helper()",
-        "fmesher::fm_mesh_2d_inla()")
+        "fmesher::fm_mesh_2d_inla()"
+    )
     return(invisible(inla.mesh.2d(loc = points, loc.domain = points.domain, ...)))
 }
 
@@ -2500,7 +2517,8 @@ inla.delaunay <- function(loc, ...) {
         2L,
         "23.08.03",
         "inla.delaunay()",
-        "fmesher::fm_delaunay_2d()")) {
+        "fmesher::fm_delaunay_2d()"
+    )) {
         return(fmesher::fm_delaunay_2d(loc, ...))
     }
 
@@ -3295,7 +3313,7 @@ inla.mesh.basis <- function(mesh,
         "inla.mesh.basis()",
         details = "Does not yet have an `fmesher` alternative."
     )
-    
+
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
 
     type <- match.arg(type, c("b.spline", "sph.harm"))
@@ -3519,7 +3537,7 @@ inla.parse.queries <- function(...) {
         "inla.fmesher.smorg()",
         details = "Most queries have `fmesher` alternatives."
     )
-    
+
     prefix <- inla.fmesher.make.prefix(NULL, NULL)
 
     n <- nrow(loc)
@@ -3677,9 +3695,9 @@ inla.mesh.1d <- function(loc,
             )
         )
     }
-    
-    
-    
+
+
+
     ## Note: do not change the order of these options without also
     ## changing 'basis.reduction' below.
     boundary.options <- c("neumann", "dirichlet", "free", "cyclic")
@@ -3959,7 +3977,7 @@ inla.mesh.1d.A <- function(mesh, loc,
             method = method
         ))
     }
-    
+
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
     if (missing(method)) {
         ## Compute basis based on mesh$degree and mesh$boundary
@@ -4279,7 +4297,7 @@ inla.mesh.1d.fem <- function(mesh) {
     )) {
         return(fmesher::fm_fem(fmesher::fm_as_mesh_1d(mesh), order = 2))
     }
-    
+
     inla.require.inherits(mesh, "inla.mesh.1d", "'mesh'")
 
     ## Use the same matrices for degree 0 as for degree 1
@@ -4698,7 +4716,7 @@ inla.simplify.curve <- function(loc, idx, eps) {
     )) {
         return(fmesher::fm_simplify_helper(loc = loc, idx = idx, eps = eps))
     }
-    
+
     ## Variation of Ramer-Douglas-Peucker
     ## Uses width epsilon ellipse instead of rectangle,
     ## motivated by prediction ellipse for Brownian bridge
@@ -4774,7 +4792,7 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
             crs = crs
         ))
     }
-    
+
     ## Input checking from contourLines:
     if (missing(z)) {
         if (!missing(x)) {
