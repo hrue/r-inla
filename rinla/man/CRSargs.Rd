@@ -53,15 +53,15 @@ or \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt()}} for WKT2 representations.
 \examples{
 
 if (require("sf") && require("sp") && require("fmesher")) {
-  crs0 <- fm_CRS("longlat_norm")
-  p4s <- fm_proj4string(crs0)
-  lst <- inla.as.list.CRSargs(p4s)
-  crs1 <- inla.as.CRS.list(lst)
-  lst$a <- 2
-  crs2 <- fm_CRS(p4s, args = lst)
-  print(fm_proj4string(crs0))
-  print(fm_proj4string(crs1))
-  print(fm_proj4string(crs2))
+    crs0 <- fm_CRS("longlat_norm")
+    p4s <- fm_proj4string(crs0)
+    lst <- inla.as.list.CRSargs(p4s)
+    crs1 <- inla.as.CRS.list(lst)
+    lst$a <- 2
+    crs2 <- fm_CRS(p4s, args = lst)
+    print(fm_proj4string(crs0))
+    print(fm_proj4string(crs1))
+    print(fm_proj4string(crs2))
 }
 }
 \seealso{

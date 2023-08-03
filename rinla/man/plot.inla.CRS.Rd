@@ -68,16 +68,16 @@ Plot the outline of a CRS or inla.CRS projection, with optional graticules
 \examples{
 
 if (require("sf") && require("sp")) {
-  for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
-    plot(fmesher::fm_CRS(projtype), main = projtype)
-  }
+    for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
+        plot(fmesher::fm_CRS(projtype), main = projtype)
+    }
 }
 
 if (require("sf") && require("sp")) {
-  oblique <- c(0, 45, 45, 0)
-  for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
-    INLA:::plot.inla.CRS(fmesher::fm_CRS(projtype, oblique = oblique), main = paste("oblique", projtype))
-  }
+    oblique <- c(0, 45, 45, 0)
+    for (projtype in c("longlat_norm", "lambert_norm", "mollweide_norm", "hammer_norm")) {
+        INLA:::plot.inla.CRS(fmesher::fm_CRS(projtype, oblique = oblique), main = paste("oblique", projtype))
+    }
 }
 }
 \seealso{

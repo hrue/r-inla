@@ -62,15 +62,15 @@
 #'
 #' @export inla.mesh.segment
 inla.mesh.segment <- function(...) {
-  if (inla.getOption("fmesher.evolution") >= 2L) {
-    if (inla.getOption("fmesher.evolution.warn")) {
-      lifecycle::deprecate_soft("23.08.02",
-                              "inla.mesh.segment()",
-                              "fmesher::fm_segm()")
+    if (fmesher_deprecate_soft(
+        2L,
+        "23.08.02",
+        "inla.mesh.segment()",
+        "fmesher::fm_segm()"
+    )) {
+        return(fmesher::fm_segm(...))
     }
-    return(fmesher::fm_segm(...))
-  }
-  UseMethod("inla.mesh.segment")
+    UseMethod("inla.mesh.segment")
 }
 
 #' @export
@@ -101,7 +101,7 @@ inla.mesh.segment.default <- function(loc = NULL, idx = NULL, grp = NULL, is.bnd
                 passthrough = TRUE
             )
         }
-        
+
         if (!is.matrix(loc)) {
             loc <- as.matrix(loc)
         }
@@ -294,8 +294,8 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
                                     rgl = FALSE, ...) {
     segm <- x
     if (!is.null(segm$loc)) {
-          loc <- segm$loc
-      }
+        loc <- segm$loc
+    }
     stopifnot(!is.null(loc), ncol(loc) >= 2)
     if (ncol(loc) < 3) {
         loc <- cbind(loc, 0.0)
@@ -312,11 +312,11 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
     } else if (!add) {
         idx <- unique(as.vector(segm$idx))
         if (is.null(xlim)) {
-              xlim <- range(loc[idx, 1])
-          }
+            xlim <- range(loc[idx, 1])
+        }
         if (is.null(ylim)) {
-              ylim <- range(loc[idx, 2])
-          }
+            ylim <- range(loc[idx, 2])
+        }
         plot.new()
         plot.window(xlim = xlim, ylim = ylim, ...)
     }
@@ -366,8 +366,8 @@ inla.generate.colors <- function(color,
         colors <- color
     } else if (is.vector(color) || (is.matrix(color) && (ncol(color) == 1))) {
         if (is.null(color.axis)) {
-              color.axis <- c(min(color, na.rm = TRUE), max(color, na.rm = TRUE))
-          }
+            color.axis <- c(min(color, na.rm = TRUE), max(color, na.rm = TRUE))
+        }
         if (color.truncate) {
             not.ok <- ((color < color.axis[1]) |
                 (color > color.axis[2]))
@@ -395,8 +395,8 @@ inla.generate.colors <- function(color,
         ## Todo: handle alpha, combining "input alpha" with "not.ok-alpha"
     } else if (is.matrix(color) && (ncol(color) == 3)) {
         if (is.null(color.axis)) {
-              color.axis <- c(min(color, na.rm = TRUE), max(color, na.rm = TRUE))
-          }
+            color.axis <- c(min(color, na.rm = TRUE), max(color, na.rm = TRUE))
+        }
         if (color.truncate) {
             not.ok <- ((color[, 1] < color.axis[1]) |
                 (color[, 2] < color.axis[1]) |
@@ -608,17 +608,17 @@ plot.inla.mesh <- function(x,
         }
         if (draw.segments) {
             if (!is.null(mesh$segm$bnd)) {
-                  lines(mesh$segm$bnd, mesh$loc,
-                      lwd = lwd + 1,
-                      rgl = TRUE, add = TRUE, ...
-                  )
-              }
+                lines(mesh$segm$bnd, mesh$loc,
+                    lwd = lwd + 1,
+                    rgl = TRUE, add = TRUE, ...
+                )
+            }
             if (!is.null(mesh$segm$int)) {
-                  lines(mesh$segm$int, mesh$loc,
-                      lwd = lwd + 1,
-                      rgl = TRUE, add = TRUE, ...
-                  )
-              }
+                lines(mesh$segm$int, mesh$loc,
+                    lwd = lwd + 1,
+                    rgl = TRUE, add = TRUE, ...
+                )
+            }
         }
         plot.inla.trimesh(tv, mesh$loc,
             color = col,
@@ -655,11 +655,11 @@ plot.inla.mesh <- function(x,
         }
         if (draw.segments) {
             if (!is.null(mesh$segm$bnd)) {
-                  lines(mesh$segm$bnd, mesh$loc, lwd = lwd + 1, ...)
-              }
+                lines(mesh$segm$bnd, mesh$loc, lwd = lwd + 1, ...)
+            }
             if (!is.null(mesh$segm$int)) {
-                  lines(mesh$segm$int, mesh$loc, lwd = lwd + 1, ...)
-              }
+                lines(mesh$segm$int, mesh$loc, lwd = lwd + 1, ...)
+            }
         }
         if (!add && missing(main)) {
             if (mesh$meta$is.refined) {
@@ -880,28 +880,28 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
         if (!identical(dims, dim(x)) ||
             !identical(dims, dim(y)) ||
             (is.matrix(z) && !identical(dims, dim(z)))) {
-              stop("The size of matrices 'x', 'y', and 'z' must match 'dims'.")
-          }
+            stop("The size of matrices 'x', 'y', and 'z' must match 'dims'.")
+        }
         loc <- cbind(as.vector(x), as.vector(y), as.vector(z))
         x <- NULL
         y <- NULL
     } else {
         if (!identical(dims[1], length(x)) ||
             !identical(dims[2], length(y))) {
-              stop(paste("The lengths of vectors 'x' and 'y' (",
-                  length(x), ",", length(y),
-                  ") must match 'dims' (", dims[1], ",", dims[2], ").",
-                  sep = ""
-              ))
-          }
+            stop(paste("The lengths of vectors 'x' and 'y' (",
+                length(x), ",", length(y),
+                ") must match 'dims' (", dims[1], ",", dims[2], ").",
+                sep = ""
+            ))
+        }
         loc <- (cbind(
             rep(x, times = dims[2]),
             rep(y, each = dims[1])
         ))
     }
     if (!is.double(loc)) {
-          storage.mode(loc) <- "double"
-      }
+        storage.mode(loc) <- "double"
+    }
 
     if (is.null(crs)) {
         loc <- inla.mesh.map(loc = loc, projection = units, inverse = TRUE)
@@ -1101,11 +1101,11 @@ inla.mesh.parse.segm.input <- function(boundary = NULL,
             }
         }
         if (nrow(bnd$idx) == 0) {
-              bnd <- NULL
-          }
+            bnd <- NULL
+        }
         if (nrow(int$idx) == 0) {
-              int <- NULL
-          }
+            int <- NULL
+        }
         return(list(
             loc = loc,
             bnd = (inla.ifelse(
@@ -1173,8 +1173,8 @@ inla.mesh.filter.locations <- function(loc, cutoff) {
 
     loc.is.na <- (rowSums(is.na(loc)) > 0)
     if (sum(loc.is.na) > 0) {
-          stop("NAs in locations not yet supported.")
-      }
+        stop("NAs in locations not yet supported.")
+    }
 
     node.coord <- matrix(nrow = loc.n, ncol = loc.dim)
     map.loc.to.node <- rep(0L, nrow = loc.n)
@@ -1706,8 +1706,8 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
 
 
         if (!keep) {
-              unlink(paste(prefix, "*", sep = ""), recursive = FALSE)
-          }
+            unlink(paste(prefix, "*", sep = ""), recursive = FALSE)
+        }
         if (!keep.dir) {
             unlink(dirname(prefix), recursive = TRUE)
         }
@@ -1781,10 +1781,10 @@ inla.mesh.extract.segments <- function(mesh.loc,
         }
     }
     if (length(segments) > 0) {
-          return(segments)
-      } else {
-          return(NULL)
-      }
+        return(segments)
+    } else {
+        return(NULL)
+    }
 }
 
 
@@ -2362,8 +2362,8 @@ inla.mesh.query <- function(mesh, ...) {
     result <- list()
     queries <- inla.parse.queries(...)
     if (length(queries) == 0L) {
-          return(result)
-      }
+        return(result)
+    }
 
     for (query.idx in 1:length(queries)) {
         query <- names(queries)[query.idx]
@@ -2375,11 +2375,11 @@ inla.mesh.query <- function(mesh, ...) {
         )))
         if (identical(query, "tt.neighbours")) {
             if (is.null(param)) {
-                  param <- list(c(1))
-              }
+                param <- list(c(1))
+            }
             if (length(param) < 2) {
-                  param <- c(as.list(param), list(c(1)))
-              }
+                param <- c(as.list(param), list(c(1)))
+            }
             nT <- nrow(mesh$graph$tv)
             i <- rep(1:nT, 3)
             j <- as.vector(mesh$graph$tt)
@@ -2409,11 +2409,11 @@ inla.mesh.query <- function(mesh, ...) {
             ## not.implemented(mesh,query)
         } else if (identical(query, "vt.neighbours")) {
             if (is.null(param)) {
-                  param <- list(1)
-              }
+                param <- list(1)
+            }
             if (length(param) < 2) {
-                  param <- c(as.list(param), list(c(1)))
-              }
+                param <- c(as.list(param), list(c(1)))
+            }
             nV <- nrow(mesh$loc)
             nT <- nrow(mesh$graph$tv)
             i <- rep(1:nT, 3)
@@ -2458,8 +2458,8 @@ inla.mesh.query <- function(mesh, ...) {
         names(result)[query.idx] <- query
         ## Set the answer:
         if (!is.null(answer)) {
-              result[[query.idx]] <- answer
-          }
+            result[[query.idx]] <- answer
+        }
     }
 
     return(result)
@@ -2510,8 +2510,8 @@ summary.inla.mesh <- function(object, verbose = FALSE, ...) {
 
     my.segm <- function(x) {
         if (is.null(x)) {
-              return(list(n = 0, grps = NULL))
-          }
+            return(list(n = 0, grps = NULL))
+        }
         n <- max(0, nrow(x$idx))
         if (max(0, length(unique(x$grp))) > 0) {
             grps <- unique(x$grp)
@@ -2548,11 +2548,11 @@ print.summary.inla.mesh <- function(x, ...) {
         }
         for (k in 1:nrow(x)) {
             if (!is.na(y[k, 4L])) {
-                  y[k, 1L] <- y[k, 1L] + y[k, 4L]
-              }
+                y[k, 1L] <- y[k, 1L] + y[k, 4L]
+            }
             if (!is.na(y[k, 5L])) {
-                  y[k, 2L] <- y[k, 2L] + y[k, 5L]
-              }
+                y[k, 2L] <- y[k, 2L] + y[k, 5L]
+            }
         }
         y <- y[, 1L:3L]
         colnames(y) <- c(gettext("user"), gettext("system"), gettext("elapsed"))
@@ -2672,11 +2672,12 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @export inla.mesh.project
 inla.mesh.project <- function(...) {
-    if (inla.getOption("fmesher.evolution.warn")) {
-        lifecycle::deprecate_soft("23.06.07",
-                                  "inla.mesh.project()",
-                                  "fmesher::fm_evaluate()")
-    }
+    fmesher_deprecate_soft(
+        1L,
+        "23.06.07",
+        "inla.mesh.project()",
+        "fmesher::fm_evaluate()"
+    )
     UseMethod("inla.mesh.project")
 }
 
@@ -2691,7 +2692,7 @@ inla.mesh.project.inla.mesh <- function(mesh, loc = NULL, field = NULL,
         crs.sphere <- fm_CRS("sphere")
         if (!inla.identical.CRS(mesh$crs, crs.sphere)) {
             ## Convert the mesh to a perfect sphere.
-            mesh$loc <- fm_transform(mesh$loc, crs0 = mesh$crs, crs  = crs.sphere)
+            mesh$loc <- fm_transform(mesh$loc, crs0 = mesh$crs, crs = crs.sphere)
             mesh$manifold <- "S2"
             mesh$crs <- crs.sphere
         }
@@ -2811,11 +2812,12 @@ inla.mesh.project.inla.mesh.projector <-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
-    if (inla.getOption("fmesher.evolution.warn")) {
-        lifecycle::deprecate_soft("23.06.07",
-                                  "inla.mesh.projector()",
-                                  "fmesher::fm_evaluator()")
-    }
+    fmesher_deprecate_soft(
+        1L,
+        "23.06.07",
+        "inla.mesh.projector()",
+        "fmesher::fm_evaluator()"
+    )
     UseMethod("inla.mesh.projector")
 }
 
@@ -3129,7 +3131,7 @@ inla.mesh.basis <- function(mesh,
         #                sph = n
         #            )$sph)
         #        }
-        
+
         if (!requireNamespace("gsl", quietly = TRUE)) {
             stop(
                 paste0(
@@ -3153,13 +3155,13 @@ inla.mesh.basis <- function(mesh,
             for (l in seq(0, n)) {
                 basis[, 1 + l * (l + 1)] <-
                     sqrt(2 * l + 1) *
-                    gsl::legendre_Pl(l = l, x = loc[, 3])
+                        gsl::legendre_Pl(l = l, x = loc[, 3])
                 for (m in seq_len(l)) {
                     scaling <- sqrt(2 * (2 * l + 1) * exp(lgamma(l - m + 1) - lgamma(l + m + 1)))
                     poly <- gsl::legendre_Plm(l = l, m = m, x = loc[, 3])
-                    basis[, 1 + l * (l + 1) - m] <- 
+                    basis[, 1 + l * (l + 1) - m] <-
                         scaling * sin(-m * angle) * poly
-                    basis[, 1 + l * (l + 1) + m] <- 
+                    basis[, 1 + l * (l + 1) + m] <-
                         scaling * cos(m * angle) * poly
                 }
             }
@@ -3173,8 +3175,8 @@ inla.mesh.basis <- function(mesh,
 inla.parse.queries <- function(...) {
     queries <- list(...)
     if (length(queries) == 0) {
-          return(queries)
-      }
+        return(queries)
+    }
 
     ## Make sure that we have a list of names, empty or not:
     if (is.null(names(queries))) {
@@ -3255,8 +3257,8 @@ inla.parse.queries <- function(...) {
     s.dim <- ncol(loc)
 
     if (s.dim == 1) {
-          stop("1-D models not implemented yet.")
-      }
+        stop("1-D models not implemented yet.")
+    }
     stopifnot(s.dim >= 2, s.dim <= 3)
 
     if (missing(output) || is.null(output)) {
@@ -3337,27 +3339,27 @@ inla.parse.queries <- function(...) {
     result <- list()
     for (name in output) {
         if (identical(name, "p2m.t")) {
-              if (!file.exists(paste(prefix, name, sep = ""))) {
-                    result[[name]] <- fmesher.read(prefix, "points2mesh.t") + 1L
-                } else {
-                    result[[name]] <- fmesher.read(prefix, name) + 1L
-                }
-          } else if (identical(name, "p2m.b")) {
-              if (!file.exists(paste(prefix, name, sep = ""))) {
-                    result[[name]] <- fmesher.read(prefix, "points2mesh.b")
-                } else {
-                    result[[name]] <- fmesher.read(prefix, name)
-                }
-          } else if (name %in% indexoutput) {
-              result[[name]] <- fmesher.read(prefix, name) + 1L
-          } else {
-              result[[name]] <- fmesher.read(prefix, name)
-          }
+            if (!file.exists(paste(prefix, name, sep = ""))) {
+                result[[name]] <- fmesher.read(prefix, "points2mesh.t") + 1L
+            } else {
+                result[[name]] <- fmesher.read(prefix, name) + 1L
+            }
+        } else if (identical(name, "p2m.b")) {
+            if (!file.exists(paste(prefix, name, sep = ""))) {
+                result[[name]] <- fmesher.read(prefix, "points2mesh.b")
+            } else {
+                result[[name]] <- fmesher.read(prefix, name)
+            }
+        } else if (name %in% indexoutput) {
+            result[[name]] <- fmesher.read(prefix, name) + 1L
+        } else {
+            result[[name]] <- fmesher.read(prefix, name)
+        }
     }
 
     if (!keep) {
-          unlink(paste(prefix, "*", sep = ""), recursive = FALSE)
-      }
+        unlink(paste(prefix, "*", sep = ""), recursive = FALSE)
+    }
 
     return(result)
 }
@@ -3420,25 +3422,25 @@ inla.mesh.1d <- function(loc,
 
     loc.orig <- loc
     if (cyclic) {
-          loc <-
-              (sort(unique(c(0, loc - interval[1]) %% diff(interval))) +
-                  interval[1])
-      } else {
-          loc <-
-              (sort(unique(c(
-                  interval,
-                  pmax(interval[1], pmin(interval[2], loc))
-              ))))
-      }
+        loc <-
+            (sort(unique(c(0, loc - interval[1]) %% diff(interval))) +
+                interval[1])
+    } else {
+        loc <-
+            (sort(unique(c(
+                interval,
+                pmax(interval[1], pmin(interval[2], loc))
+            ))))
+    }
 
     n <- length(loc)
 
     if (loc[1] < interval[1]) {
-          stop("All 'loc' must be >= interval[1].")
-      }
+        stop("All 'loc' must be >= interval[1].")
+    }
     if (loc[n] > interval[2]) {
-          stop("All 'loc' must be <= interval[2].")
-      }
+        stop("All 'loc' must be <= interval[2].")
+    }
 
     if ((degree < 0) || (degree > 2)) {
         stop(paste("'degree' must be 0, 1, or 2.  'degree=",
@@ -3657,20 +3659,20 @@ inla.mesh.1d.A <- function(mesh, loc,
             if (mesh$boundary[1] == "dirichlet") {
                 info$A <- info$A[, -1, drop = FALSE]
                 if (!is.null(derivatives) && derivatives) {
-                      info$dA <- info$dA[, -1, drop = FALSE]
-                  }
+                    info$dA <- info$dA[, -1, drop = FALSE]
+                }
             }
             if (mesh$boundary[2] == "dirichlet") {
                 info$A <- info$A[, -(mesh$m + 1), drop = FALSE]
                 if (!is.null(derivatives) && derivatives) {
-                      info$dA <- info$dA[, -(mesh$m + 1), drop = FALSE]
-                  }
+                    info$dA <- info$dA[, -(mesh$m + 1), drop = FALSE]
+                }
             }
             if (!is.null(derivatives) && derivatives) {
-                  return(info)
-              } else {
-                  return(info$A)
-              }
+                return(info)
+            } else {
+                return(info$A)
+            }
         } else if (mesh$degree == 1) {
             info <- (inla.mesh.1d.A(mesh, loc,
                 method = "linear",
@@ -3684,20 +3686,20 @@ inla.mesh.1d.A <- function(mesh, loc,
             if (mesh$boundary[1] == "dirichlet") {
                 info$A <- info$A[, -1, drop = FALSE]
                 if (!is.null(derivatives) && derivatives) {
-                      info$dA <- info$dA[, -1, drop = FALSE]
-                  }
+                    info$dA <- info$dA[, -1, drop = FALSE]
+                }
             }
             if (mesh$boundary[2] == "dirichlet") {
                 info$A <- info$A[, -(mesh$m + 1), drop = FALSE]
                 if (!is.null(derivatives) && derivatives) {
-                      info$dA <- info$dA[, -(mesh$m + 1), drop = FALSE]
-                  }
+                    info$dA <- info$dA[, -(mesh$m + 1), drop = FALSE]
+                }
             }
             if (!is.null(derivatives) && derivatives) {
-                  return(info)
-              } else {
-                  return(info$A)
-              }
+                return(info)
+            } else {
+                return(info$A)
+            }
         } else if (mesh$degree == 2) {
             info <-
                 inla.mesh.1d.A(mesh, loc,
@@ -4399,17 +4401,14 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
                 z <- x$z
                 y <- x$y
                 x <- x$x
-            }
-            else {
+            } else {
                 z <- x
                 x <- seq.int(0, 1, length.out = nrow(z))
             }
-        }
-        else {
+        } else {
             stop("no 'z' matrix specified")
         }
-    }
-    else if (is.list(x)) {
+    } else if (is.list(x)) {
         y <- x$y
         x <- x$x
     }
@@ -4594,7 +4593,7 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
                 crs,
                 passthrough = TRUE
             )
-            
+
             points <- sf::st_coordinates(points)
         }
     }

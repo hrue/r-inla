@@ -43,12 +43,12 @@ reference system.
 
 
 if (require("sf") && require("sp")) {
-  crs1 <- fmesher::fm_CRS("longlat_globe")
-  crs2 <- fmesher::fm_CRS("lambert_globe")
-  crs3 <- fmesher::fm_CRS("mollweide_norm")
-  crs4 <- fmesher::fm_CRS("hammer_globe")
-  crs5 <- fmesher::fm_CRS("sphere")
-  crs6 <- fmesher::fm_CRS("globe")
+    crs1 <- fmesher::fm_CRS("longlat_globe")
+    crs2 <- fmesher::fm_CRS("lambert_globe")
+    crs3 <- fmesher::fm_CRS("mollweide_norm")
+    crs4 <- fmesher::fm_CRS("hammer_globe")
+    crs5 <- fmesher::fm_CRS("sphere")
+    crs6 <- fmesher::fm_CRS("globe")
 }
 \dontrun{
 names(inla.wkt_predef())

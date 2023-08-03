@@ -101,6 +101,7 @@ Collate:
     'fgn.R'
     'finn.R'
     'fmesher-io.R'
+    'fmesher-transition.R'
     'fmesher.R'
     'graph.convert.R'
     'graph.matrix.R'

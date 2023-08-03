@@ -23,8 +23,8 @@ and the lack of a crs extraction method for Spatial objects.
 \examples{
 \dontrun{
 if (interactive()) {
-  s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = fmesher::fm_CRS("sphere"))
-  inla.sp_get_crs(s)
+    s <- sp::SpatialPoints(matrix(1:6, 3, 2), proj4string = fmesher::fm_CRS("sphere"))
+    inla.sp_get_crs(s)
 }
 }
 

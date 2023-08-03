@@ -30,15 +30,17 @@ version \verb{>= 2.7.0.9011} is installed, and since 23.08.02 in favour of
 }
 \examples{
 # Create a polygon and a mesh
-obj <- sp::SpatialPolygons(list(Polygons(list(Polygon(rbind(
-    c(0, 0),
-    c(50, 0),
-    c(50, 50),
-    c(0, 50)
-))),
-ID = 1
-)),
-proj4string = fmesher::fm_CRS("longlat_globe")
+obj <- sp::SpatialPolygons(
+    list(Polygons(
+        list(Polygon(rbind(
+            c(0, 0),
+            c(50, 0),
+            c(50, 50),
+            c(0, 50)
+        ))),
+        ID = 1
+    )),
+    proj4string = fmesher::fm_CRS("longlat_globe")
 )
 mesh <- inla.mesh.create(globe = 2, crs = fmesher::fm_CRS("sphere"))
 
@@ -51,8 +53,8 @@ inla.over_sp_mesh(obj, mesh)
 ## Multiple transformations can lead to slightly different results due to edge cases
 ## 4 triangles found in the polygon
 inla.over_sp_mesh(
-  obj,
-  fmesher::fm_transform(mesh, crs = fmesher::fm_crs("mollweide_norm"))
+    obj,
+    fmesher::fm_transform(mesh, crs = fmesher::fm_crs("mollweide_norm"))
 )
 }
 \author{
