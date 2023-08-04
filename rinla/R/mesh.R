@@ -3984,7 +3984,7 @@ inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
 inla.mesh.1d.A <- function(mesh, loc,
                            weights = NULL,
                            derivatives = NULL,
-                           method = c("default", "linear", "nearest", "quadratic")) {
+                           method = NULL) {
     if (fmesher_deprecate(
         "soft",
         2L,
