@@ -12,7 +12,8 @@ inla.getOption(
     "smtp", "safe", "pardiso.license", "keep", "verbose", "save.memory",
     "working.directory", "silent", "debug", "show.warning.graph.file",
     "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
-    "inla.mode", "fmesher.evolution", "fmesher.evolution.warn")
+    "inla.mode", "fmesher.evolution", "fmesher.evolution.warn",
+    "fmesher.evolution.verbosity")
 )
 
 inla.setOption(...)
@@ -95,11 +96,16 @@ available via \code{inlabru} from 2.8.0.
 
 Further levels may be added as the package development progresses.}
 
-\item{fmesher.evolution.warn}{logical or character; whether to show warnings about deprecated
+\item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
 use of legacy INLA methods with fmesher package replacements. When \code{TRUE},
 shows deprecation messages for many CRS and mesh
-related methods, pointing to their \verb{fm_*} replacements. Default is currently \code{FALSE}.
-If set to "none", "soft", "warn", or "stop", indicates the minimum warning level.}
+related methods, pointing to their \verb{fm_*} replacements. Default is currently \code{FALSE}.}
+
+\item{fmesher.evolution.verbosity}{logical or character; at what minimum
+severity to show warnings about deprecated
+use of legacy INLA methods with fmesher package replacements.
+When set to "default" (default), "soft", "warn", or "stop", indicates the
+minimum warning level used when \code{fmesher.evolution.warn} is \code{TRUE}.}
 }}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}

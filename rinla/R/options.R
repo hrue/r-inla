@@ -83,11 +83,16 @@
 #' 
 #' Further levels may be added as the package development progresses.}
 #' 
-#' \item{fmesher.evolution.warn}{logical or character; whether to show warnings about deprecated
+#' \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
 #' use of legacy INLA methods with fmesher package replacements. When `TRUE`,
 #' shows deprecation messages for many CRS and mesh
-#' related methods, pointing to their `fm_*` replacements. Default is currently `FALSE`.
-#' If set to "none", "soft", "warn", or "stop", indicates the minimum warning level.}
+#' related methods, pointing to their `fm_*` replacements. Default is currently `FALSE`.}
+#' 
+#' \item{fmesher.evolution.verbosity}{logical or character; at what minimum
+#' severity to show warnings about deprecated
+#' use of legacy INLA methods with fmesher package replacements.
+#' When set to "default" (default), "soft", "warn", or "stop", indicates the
+#' minimum warning level used when `fmesher.evolution.warn` is `TRUE`.}
 #' }
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
@@ -126,7 +131,8 @@ NULL
             fmesher.timeout = 0,
             inla.mode = "compact",
             fmesher.evolution = 2L,
-            fmesher.evolution.warn = FALSE
+            fmesher.evolution.warn = FALSE,
+            fmesher.evolution.verbosity = "default"
         )
     )
 }
@@ -156,7 +162,8 @@ NULL
                                  "fmesher.timeout",
                                  "inla.mode",
                                  "fmesher.evolution",
-                                 "fmesher.evolution.warn"
+                                 "fmesher.evolution.warn",
+                                 "fmesher.evolution.verbosity"
                              )) {
     ## we 'inla.call' and 'fmesher.call' separately to avoid infinite recursion
     default.opt <- inla.getOption.default()
@@ -247,7 +254,8 @@ NULL
                                           "fmesher.timeout",
                                           "inla.mode",
                                           "fmesher.evolution",
-                                          "fmesher.evolution.warn"
+                                          "fmesher.evolution.warn",
+                                          "fmesher.evolution.verbosity"
                                       ), value) {
         envir <- inla.get.inlaEnv()
         option <- match.arg(option, several.ok = FALSE)

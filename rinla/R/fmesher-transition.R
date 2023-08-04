@@ -17,23 +17,17 @@ fmesher_deprecate <- function(level = NULL,
                               always = FALSE,
                               env = rlang::caller_env(),
                               user_env = rlang::caller_env(2)) {
-    w <- inla.getOption("fmesher.evolution.warn")
-    if (is.logical(w)) {
-        if (w) {
-            w <- "soft"
-        } else {
-            w <- "none"
-        }
-    }
-    w <- match.arg(w, c("none", "soft", "warn", "stop"))
-    level <- match.arg(level, c("none", "soft", "warn", "stop"))
-    levels <- c(level, w)
-
     if (!is.null(evo) && (inla.getOption("fmesher.evolution") < evo)) {
         return(FALSE)
     }
+    
+    w <- isTRUE(inla.getOption("fmesher.evolution.warn"))
+    verb <- inla.getOption("fmesher.evolution.verbosity")
+    
+    verb <- match.arg(verb, c("default", "soft", "warn", "stop"))
+    level <- match.arg(level, c("default", "soft", "warn", "stop"))
 
-    if ("stop" %in% levels) {
+    if (identical(level, "stop") || (w && identical(verb, "stop"))) {
         lifecycle::deprecate_stop(
             when = when,
             what = what,
@@ -41,7 +35,7 @@ fmesher_deprecate <- function(level = NULL,
             details = details,
             env = env
         )
-    } else if ("warn" %in% levels) {
+    } else if (w && (identical(level, "warn") || identical(verb, "soft"))) {
         lifecycle::deprecate_warn(
             when = when,
             what = what,
@@ -52,7 +46,7 @@ fmesher_deprecate <- function(level = NULL,
             env = env,
             user_env = user_env
         )
-    } else if ("soft" %in% levels) {
+    } else if (w && (identical(level, "soft") || identical(verb, "soft"))) {
         lifecycle::deprecate_soft(
             when = when,
             what = what,
