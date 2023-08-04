@@ -75,13 +75,12 @@
 #' \item{fmesher.evolution}{Control use of fmesher methods during the transition
 #' to a separate fmesher package. Levels of
 #' `fmesher.evolution`:
-#' \describe{
-#' \item{`1L`}{
-#' (current default) uses the intermediate `fm_*` methods in `fmesher` that were already
-#' available via `inlabru` from 2.8.0.}
-#' \item{`2L`}{
-#' uses the full range of `fmesher` package methods.}
-#' }
+#' 
+#' `1L` uses the intermediate `fm_*` methods in `fmesher` that were already
+#' available via `inlabru` from 2.8.0.
+#' 
+#' `2L` (current default) uses the full range of `fmesher` package methods.
+#' 
 #' Further levels may be added as the package development progresses.}
 #' 
 #' \item{fmesher.evolution.warn}{logical or character; whether to show warnings about deprecated
@@ -127,7 +126,7 @@ NULL
             fmesher.timeout = 0,
             inla.mode = "compact",
             fmesher.evolution = 2L,
-            fmesher.evolution.warn = TRUE
+            fmesher.evolution.warn = FALSE
         )
     )
 }

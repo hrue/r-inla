@@ -87,13 +87,12 @@ options are \code{"classic"} and \code{"twostage"}.}
 \item{fmesher.evolution}{Control use of fmesher methods during the transition
 to a separate fmesher package. Levels of
 \code{fmesher.evolution}:
-\describe{
-\item{\code{1L}}{
-(current default) uses the intermediate \verb{fm_*} methods in \code{fmesher} that were already
-available via \code{inlabru} from 2.8.0.}
-\item{\code{2L}}{
-uses the full range of \code{fmesher} package methods.}
-}
+
+\code{1L} uses the intermediate \verb{fm_*} methods in \code{fmesher} that were already
+available via \code{inlabru} from 2.8.0.
+
+\code{2L} (current default) uses the full range of \code{fmesher} package methods.
+
 Further levels may be added as the package development progresses.}
 
 \item{fmesher.evolution.warn}{logical or character; whether to show warnings about deprecated
