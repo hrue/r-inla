@@ -3954,19 +3954,14 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 					       x_user[i], xp[i], ld[i], logcor[i], ld[i] - logcor[i]);
 			}
 		}
-		if (itry == 1 && cor_eps > 0.0) {
-			flag = 1;
-			cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
+		cor_max = exp(log(cor_eps) + GMRFLib_max_value(logcor, np, NULL));
 #pragma omp simd
-			for (int i = 0; i < np; i++) {
-				ld[i] += logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
-			}
-		} else {
-			FIXME("THIS CASE IS NOT VERIFIED.");
-			abort();
-			GMRFLib_daxpy(np, 1.0, logcor, ld);    /* ld = ld + logcor */
+		for (int i = 0; i < np; i++) {
+			ld[i] += logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 		}
+		int np_orig = np;
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
+		flag = (np_orig > np);
 		if (debug && np) {
 #pragma omp critical (Name_c6e59ebf504f17645e98f57731cc4de48bd2748a)
 			{
@@ -5451,7 +5446,7 @@ int GMRFLib_ai_correct_cpodens(double *logdens, double *x, int *n, GMRFLib_ai_pa
 			idx++;
 		}
 	}
-	*n = idx;
+	*n = idx + 1;
 	Free(code);
 
 	if (*n) {
