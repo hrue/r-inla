@@ -84,10 +84,11 @@
 #' }
 #' Further levels may be added as the package development progresses.}
 #' 
-#' \item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
+#' \item{fmesher.evolution.warn}{logical or character; whether to show warnings about deprecated
 #' use of legacy INLA methods with fmesher package replacements. When `TRUE`,
 #' shows deprecation messages for many CRS and mesh
-#' related methods, pointing to their `fm_*` replacements. Default is currently `FALSE`.}
+#' related methods, pointing to their `fm_*` replacements. Default is currently `FALSE`.
+#' If set to "none", "soft", "warn", or "stop", indicates the minimum warning level.}
 #' }
 #' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples

@@ -63,7 +63,7 @@
 #'
 #' @export inla.mesh.segment
 inla.mesh.segment <- function(...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate("soft",
         2L,
         "23.08.02",
         "inla.mesh.segment()",
@@ -83,7 +83,7 @@ inla.mesh.segment.default <- function(loc = NULL,
                                       is.bnd = TRUE,
                                       crs = NULL,
                                       ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate("soft",
         2L,
         "23.08.02",
         "inla.mesh.segment()",
@@ -229,7 +229,7 @@ inla.mesh.segment.default <- function(loc = NULL,
 #' @export
 #' @rdname inla.mesh.segment
 inla.mesh.segment.inla.mesh.segment <- function(..., grp.default = 0) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate("soft",
         2L,
         "23.08.02",
         "inla.mesh.segment()",
@@ -328,7 +328,8 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
                                     colors = c("black", "blue", "red", "green"),
                                     add = TRUE, xlim = NULL, ylim = NULL,
                                     rgl = FALSE, ...) {
-    if (rgl && fmesher_deprecate_soft(
+    if (rgl && fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "lines.inla.mesh.segment()",
@@ -343,7 +344,8 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
             ...
         ))
     }
-    if (!rgl && fmesher_deprecate_soft(
+    if (!rgl && fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "lines.inla.mesh.segment()",
@@ -431,7 +433,8 @@ inla.generate.colors <- function(color,
                                  color.palette = cm.colors,
                                  color.truncate = FALSE,
                                  alpha = NULL) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.generate.colors()",
@@ -541,7 +544,8 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
                               lwd = 1, specular = "black",
                               draw.vertices = TRUE, draw.edges = TRUE,
                               edge.color = rgb(0.3, 0.3, 0.3), ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "plot.inla.trimesh()",
@@ -687,7 +691,8 @@ plot.inla.mesh <- function(x,
                            edge.color = rgb(0.3, 0.3, 0.3),
                            draw.segments = draw.edges,
                            ...) {
-    if (rgl && fmesher_deprecate_soft(
+    if (rgl && fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "plot.inla.mesh()",
@@ -711,7 +716,8 @@ plot.inla.mesh <- function(x,
             ...
         ))
     }
-    if (!rgl && fmesher_deprecate_soft(
+    if (!rgl && fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "plot.inla.mesh()",
@@ -837,7 +843,8 @@ plot.inla.mesh <- function(x,
 inla.mesh.map.lim <- function(loc = NULL,
                               projection =
                                   c("default", "longlat", "longsinlat", "mollweide")) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.map.lim()",
@@ -892,7 +899,8 @@ inla.mesh.map <- function(loc,
                           projection =
                               c("default", "longlat", "longsinlat", "mollweide"),
                           inverse = TRUE) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.map()",
@@ -1034,7 +1042,8 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
                                   },
                               units = NULL,
                               crs = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.lattice()",
@@ -1146,7 +1155,8 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
 #' @seealso [inla.mesh.segment()]
 #' @export extract.groups
 extract.groups <- function(segm, groups, groups.new = groups, ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         I("`extract.groups(segm, groups)`"),
@@ -1165,7 +1175,8 @@ extract.groups.inla.mesh.segment <- function(segm,
                                              groups,
                                              groups.new = groups,
                                              ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         I("`extract.groups(segm, groups)`"),
@@ -1509,7 +1520,8 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
                              timings = FALSE,
                              quality.spec = NULL,
                              crs = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.create()",
@@ -2002,7 +2014,8 @@ inla.mesh.extract.segments <- function(mesh.loc,
 #' @export
 #' @rdname inla.mesh.boundary
 inla.mesh.boundary <- function(mesh, grp = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.boundary()",
@@ -2029,7 +2042,8 @@ inla.mesh.boundary <- function(mesh, grp = NULL) {
 #' @export
 #' @rdname inla.mesh.boundary
 inla.mesh.interior <- function(mesh, grp = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.interior()",
@@ -2143,7 +2157,8 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
                          max.n = NULL,
                          plot.delay = NULL,
                          crs = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.2d()",
@@ -2513,7 +2528,8 @@ inla.mesh.create.helper <- function(points = NULL, points.domain = NULL, ...) {
 #' @export
 #' @rdname inla.mesh.create
 inla.delaunay <- function(loc, ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.delaunay()",
@@ -2591,7 +2607,7 @@ inla.delaunay <- function(loc, ...) {
 #' )
 #' @export
 inla.mesh.query <- function(mesh, ...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate("soft",
         2L,
         "23.08.03",
         "inla.mesh.query()",
@@ -2929,7 +2945,8 @@ print.summary.inla.mesh <- function(x, ...) {
 #'
 #' @export inla.mesh.project
 inla.mesh.project <- function(...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.06.07",
         "inla.mesh.project()",
@@ -2937,7 +2954,8 @@ inla.mesh.project <- function(...) {
     )) {
         return(fmesher::fm_evaluate(...))
     }
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         "23.06.07",
         "inla.mesh.project()",
@@ -3077,7 +3095,8 @@ inla.mesh.project.inla.mesh.projector <-
 #' @export
 #' @rdname inla.mesh.project
 inla.mesh.projector <- function(...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.06.07",
         "inla.mesh.projector()",
@@ -3085,7 +3104,8 @@ inla.mesh.projector <- function(...) {
     )) {
         return(fmesher::fm_evaluator(...))
     }
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         "23.06.07",
         "inla.mesh.projector()",
@@ -3307,7 +3327,7 @@ inla.mesh.basis <- function(mesh,
                             boundary = "free",
                             free.clamped = TRUE,
                             ...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate("soft",
         2L,
         "23.08.03",
         "inla.mesh.basis()",
@@ -3531,7 +3551,7 @@ inla.parse.queries <- function(...) {
                                  splitlines = NULL,
                                  output = NULL,
                                  keep = FALSE) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate("soft",
         2L,
         "23.08.03",
         "inla.fmesher.smorg()",
@@ -3678,7 +3698,8 @@ inla.mesh.1d <- function(loc,
                          degree = 1,
                          free.clamped = FALSE,
                          ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.1d()",
@@ -3851,7 +3872,8 @@ inla.mesh.1d <- function(loc,
 #' @export inla.mesh.1d.bary
 #' @rdname inla.mesh.1d.A
 inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.1d.bary()",
@@ -3963,7 +3985,8 @@ inla.mesh.1d.A <- function(mesh, loc,
                            weights = NULL,
                            derivatives = NULL,
                            method = c("default", "linear", "nearest", "quadratic")) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.1d.A()",
@@ -4289,7 +4312,8 @@ inla.mesh.1d.A <- function(mesh, loc,
 #' @export
 #' @rdname inla.mesh.1d
 inla.mesh.1d.fem <- function(mesh) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.fem()",
@@ -4479,7 +4503,8 @@ inla.mesh.1d.fem <- function(mesh) {
 #' inla.diameter(matrix(c(0, 1, 1, 0, 0, 0, 1, 1), 4, 2))
 #' @export inla.diameter
 inla.diameter <- function(x, ...) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.diameter()",
@@ -4577,7 +4602,8 @@ inla.diameter.inla.mesh.lattice <- function(x, ...) {
 #' @seealso [inla.mesh.1d.fem()]
 #' @export inla.mesh.fem
 inla.mesh.fem <- function(mesh, order = 2) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.fem()",
@@ -4628,7 +4654,8 @@ inla.mesh.fem <- function(mesh, order = 2) {
 #' @author Finn Lindgren \email{finn.lindgren@@gmail.com}
 #' @export inla.mesh.deriv
 inla.mesh.deriv <- function(mesh, loc) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.deriv()",
@@ -4708,7 +4735,8 @@ inla.mesh.deriv <- function(mesh, loc) {
 #' lines(loc[idx, ], col = "red")
 #' @export inla.simplify.curve
 inla.simplify.curve <- function(loc, idx, eps) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.simplify.curve()",
@@ -4774,7 +4802,8 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
                                  positive = TRUE,
                                  eps = NULL,
                                  crs = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.contour.segment()",
@@ -4974,7 +5003,8 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
 #' @export inla.nonconvex.hull
 inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolution = 40, eps = NULL,
                                 crs = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.nonconvex.hull()",
@@ -5104,7 +5134,8 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
 ## Based on an idea from Elias Teixeira Krainski
 ## Requires  splancs::nndistF
 inla.nonconvex.hull.basic <- function(points, convex = -0.15, resolution = 40, eps = NULL, crs = NULL) {
-    if (fmesher_deprecate_soft(
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.nonconvex.hull.basic()",

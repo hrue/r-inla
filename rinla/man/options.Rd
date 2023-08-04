@@ -96,10 +96,11 @@ uses the full range of \code{fmesher} package methods.}
 }
 Further levels may be added as the package development progresses.}
 
-\item{fmesher.evolution.warn}{logical; whether to show warnings about deprecated
+\item{fmesher.evolution.warn}{logical or character; whether to show warnings about deprecated
 use of legacy INLA methods with fmesher package replacements. When \code{TRUE},
 shows deprecation messages for many CRS and mesh
-related methods, pointing to their \verb{fm_*} replacements. Default is currently \code{FALSE}.}
+related methods, pointing to their \verb{fm_*} replacements. Default is currently \code{FALSE}.
+If set to "none", "soft", "warn", or "stop", indicates the minimum warning level.}
 }}
 
 \item{...}{Option and value, like \code{option=value} or \verb{option, value}; see the Examples}

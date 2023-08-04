@@ -48,7 +48,7 @@
 #' )
 #' @export
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE) {
-    fmesher_deprecate_soft(1L,
+    fmesher_deprecate("soft", 1L,
         "23.06.06",
         what = "inla.over_sp_mesh()",
         with = "fmesher::fm_contains()",
@@ -58,7 +58,8 @@ inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS =
         )
     )
     if (!missing(ignore.CRS) && isTRUE(ignore.CRS)) {
-        fmesher_deprecate_soft(1L,
+        fmesher_deprecate(
+            "soft", 1L,
             "23.06.06",
             what = "inla.over_sp_mesh(ignore.CRS)",
             with = "ignore.CRS will be treated as FALSE"

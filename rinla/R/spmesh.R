@@ -143,7 +143,8 @@ inla.requires_PROJ6 <- function(fun) {
 #'
 #' @export inla.sp_get_crs
 inla.sp_get_crs <- function(x) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.sp_get_crs()",
@@ -221,7 +222,8 @@ NULL
 #' [fmesher::fm_wkt_is_geocent()]
 #' @export inla.wkt_is_geocent
 inla.wkt_is_geocent <- function(wkt) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         when = "2023.06.06",
         what = "inla.wkt_is_geocent()",
         with = "fmesher::fm_wkt_is_geocent()"
@@ -234,7 +236,8 @@ inla.wkt_is_geocent <- function(wkt) {
 #' [fmesher::fm_crs_is_geocent()]
 
 inla.crs_is_geocent <- function(crs) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_is_geocent()",
@@ -249,7 +252,8 @@ inla.crs_is_geocent <- function(crs) {
 #' @export
 
 inla.wkt_get_ellipsoid_radius <- function(wkt) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_get_ellipsoid_radius()",
@@ -263,7 +267,8 @@ inla.wkt_get_ellipsoid_radius <- function(wkt) {
 #' @export
 
 inla.crs_get_ellipsoid_radius <- function(crs) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_get_ellipsoid_radius()",
@@ -279,7 +284,8 @@ inla.crs_get_ellipsoid_radius <- function(crs) {
 #' @export
 
 inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_set_ellipsoid_radius()",
@@ -294,7 +300,8 @@ inla.wkt_set_ellipsoid_radius <- function(wkt, radius) {
 #' @export
 
 inla.crs_set_ellipsoid_radius <- function(crs, radius) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_set_ellipsoid_radius()",
@@ -349,7 +356,8 @@ inla.crs_set_ellipsoid_radius <- function(crs, radius) {
 #'
 #' @export inla.CRS
 inla.CRS <- function(..., args = NULL) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         when = "2023.06.06",
         what = "inla.CRS()",
         with = "fmesher::fm_CRS()"
@@ -384,7 +392,8 @@ inla.CRS <- function(..., args = NULL) {
 #' [fmesher::fm_wkt_predef()]
 
 inla.wkt_predef <- function() {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_predef()",
@@ -416,7 +425,8 @@ inla.wkt_predef <- function() {
 #' @export inla.as.wkt_tree.wkt
 #' @rdname wkt_tree
 inla.as.wkt_tree.wkt <- function(x, ...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.as.wkt_tree.wkt()",
@@ -430,7 +440,8 @@ inla.as.wkt_tree.wkt <- function(x, ...) {
 #' @export
 
 inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.as.wkt.wkt_tree()",
@@ -447,7 +458,8 @@ inla.as.wkt.wkt_tree <- function(x, pretty = FALSE, ...) {
 #' @export
 
 inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_tree_get_item()",
@@ -461,7 +473,8 @@ inla.wkt_tree_get_item <- function(x, item, duplicate = 1) {
 #' @export
 
 inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_tree_set_item()",
@@ -511,7 +524,8 @@ inla.wkt_tree_set_item <- function(x, item_tree, duplicate = 1) {
 #' @export
 #' @rdname CRSargs
 inla.CRSargs <- function(x, ...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.CRSargs()",
@@ -648,7 +662,8 @@ inla.wkt_unit_params <- function() {
 #' @importFrom fmesher fm_length_unit
 
 inla.wkt_get_lengthunit <- function(wkt) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_get_lengthunit()",
@@ -666,7 +681,8 @@ inla.wkt_get_lengthunit <- function(wkt) {
 #' @importFrom fmesher `fm_length_unit<-`
 
 inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.wkt_set_lengthunit()",
@@ -685,7 +701,8 @@ inla.wkt_set_lengthunit <- function(wkt, unit, params = NULL) {
 #' @rdname crs_wkt
 
 inla.crs_get_wkt <- function(crs) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_get_wkt()",
@@ -703,7 +720,8 @@ inla.crs_get_wkt <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_get_lengthunit <- function(crs) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_get_lengthunit()",
@@ -720,7 +738,8 @@ inla.crs_get_lengthunit <- function(crs) {
 #' @rdname crs_wkt
 
 inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_set_lengthunit()",
@@ -739,7 +758,8 @@ inla.crs_set_lengthunit <- function(crs, unit, params = NULL) {
 
 
 inla.wkt_tree_projection_type <- function(wt) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "23.06.06",
         what = "inla.wkt_tree_projection_type()",
@@ -750,7 +770,8 @@ inla.wkt_tree_projection_type <- function(wt) {
 }
 
 inla.wkt_projection_type <- function(wkt) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "23.06.06",
         what = "inla.wkt_projection_type()",
@@ -761,7 +782,8 @@ inla.wkt_projection_type <- function(wkt) {
 }
 
 inla.crs_projection_type <- function(crs) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "23.06.06",
         what = "inla.crs_projection_type()",
@@ -775,7 +797,9 @@ inla.crs_projection_type <- function(crs) {
 ## +proj=moll in (-2,2)x(-1,1) scaled by +a and +b, and +units
 ## +proj=lambert in (-pi,pi)x(-1,1) scaled by +a and +b, and +units
 inla.crs.bounds <- function(crs, warn.unknown = FALSE) {
-    if (fmesher_deprecate_soft(2L,
+    if (fmesher_deprecate(
+        "soft",
+        2L,
         when = "23.08.02",
         what = "inla.crs.bounds()",
         with = "fmesher::fm_crs_bounds()"
@@ -898,7 +922,8 @@ inla.crs.bounds.check <- function(x, bounds) {
 #'
 #' @export inla.identical.CRS
 inla.identical.CRS <- function(...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.identical.CRS()",
@@ -941,7 +966,8 @@ inla.identical.CRS <- function(...) {
 #' }
 #' @export inla.spTransform
 inla.spTransform <- function(x, CRSobj, ...) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.spTransform()",
@@ -955,7 +981,8 @@ inla.spTransform <- function(x, CRSobj, ...) {
 
 
 inla.crs_detect_manifold <- function(crs) {
-    fmesher_deprecate_soft(
+    fmesher_deprecate(
+        "soft",
         1L,
         when = "2023.06.06",
         what = "inla.crs_detect_manifold()",
@@ -984,7 +1011,8 @@ inla.crs_detect_manifold <- function(crs) {
 #' @importFrom fmesher fm_as_segm
 as.inla.mesh.segment <-
     function(sp, ...) {
-        fmesher_deprecate_soft(
+        fmesher_deprecate(
+            "soft",
             1L,
             when = "2023.06.06",
             what = "as.inla.mesh.segment()",
@@ -999,7 +1027,8 @@ as.inla.mesh.segment <-
 #' by [fmesher::fm_as_segm()]
 inla.sp2segment <-
     function(sp, ...) {
-        fmesher_deprecate_soft(
+        fmesher_deprecate(
+            "soft",
             1L,
             when = "2023.06.06",
             what = "inla.sp2segment()",
