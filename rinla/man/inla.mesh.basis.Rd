@@ -20,7 +20,7 @@ inla.mesh.basis(
 \item{mesh}{An \code{inla.mesh.1d} or \code{inla.mesh} object.}
 
 \item{type}{\code{b.spline} (default) for B-spline basis functions,
-\code{sph.harm} for spherical harmonics (available opnly for meshes on the
+\code{sph.harm} for spherical harmonics (available only for meshes on the
 sphere)}
 
 \item{n}{For B-splines, the number of basis functions in each direction (for
@@ -32,7 +32,7 @@ For spherical harmonics, \code{n} is the maximal harmonic order.}
 
 \item{knot.placement}{For B-splines on the sphere, controls the latitudinal
 placements of knots. \code{"uniform.area"} (default) gives uniform spacing
-in sin(latitude), \code{"uniform.latitude"} gives uniform spacing in
+in \code{sin(latitude)}, \code{"uniform.latitude"} gives uniform spacing in
 latitudes.}
 
 \item{rot.inv}{For spherical harmonics on a sphere, \code{rot.inv=TRUE}

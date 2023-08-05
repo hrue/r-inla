@@ -3273,14 +3273,16 @@ inla.internal.make.spline.mesh <- function(interval, m, degree, boundary, free.c
 
 
 
-#' Basis functions for inla.mesh
+#' @title Basis functions for inla.mesh
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")` Use the [fmesher::fm_raw_basis()] instead.
+#' 
 #' Calculate basis functions on a 1d or 2d [inla.mesh()]
-#'
 #'
 #' @param mesh An `inla.mesh.1d` or `inla.mesh` object.
 #' @param type `b.spline` (default) for B-spline basis functions,
-#' `sph.harm` for spherical harmonics (available opnly for meshes on the
+#' `sph.harm` for spherical harmonics (available only for meshes on the
 #' sphere)
 #' @param n For B-splines, the number of basis functions in each direction (for
 #' 1d meshes `n` must be a scalar, and for planar 2d meshes a 2-vector).
@@ -3289,7 +3291,7 @@ inla.internal.make.spline.mesh <- function(interval, m, degree, boundary, free.c
 #' [inla.mesh.1d()].
 #' @param knot.placement For B-splines on the sphere, controls the latitudinal
 #' placements of knots. `"uniform.area"` (default) gives uniform spacing
-#' in sin(latitude), `"uniform.latitude"` gives uniform spacing in
+#' in `sin(latitude)`, `"uniform.latitude"` gives uniform spacing in
 #' latitudes.
 #' @param rot.inv For spherical harmonics on a sphere, `rot.inv=TRUE`
 #' gives the rotationally invariant subset of basis functions.
@@ -3327,12 +3329,27 @@ inla.mesh.basis <- function(mesh,
                             boundary = "free",
                             free.clamped = TRUE,
                             ...) {
-    fmesher_deprecate("soft",
+    if (fmesher_deprecate(
+        "soft",
         2L,
         "23.08.03",
         "inla.mesh.basis()",
-        details = "Does not yet have an `fmesher` alternative."
-    )
+        "fmesher::fm_raw_basis()"
+    )) {
+        return(
+            fmesher::fm_raw_basis(
+                mesh,
+                type = type,
+                n = n,
+                degree = degree,
+                knot.placement = knot.placement,
+                rot.inv = rot.inv,
+                boundary = boundary,
+                free.clamped = free.clamped,
+                ...
+            )
+        )
+    }
 
     inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
 
@@ -3380,33 +3397,26 @@ inla.mesh.basis <- function(mesh,
                     )
             } else {
                 warning("Old style call for an R2 mesh detected.\n  Please supply a 2-element n-vector instead.")
-                long <- ((mesh$loc[, 1] - min(mesh$loc[, 1])) /
-                    diff(range(mesh$loc[, 1]))) * 90 * pi / 180
                 sinlat <- (((mesh$loc[, 2] - min(mesh$loc[, 2])) /
                     diff(range(mesh$loc[, 2]))) * 2 - 1)
-                coslat <- sapply(sinlat, function(x) sqrt(max(0.0, 1.0 - x^2)))
-                loc <- (matrix(c(
-                    cos(long) * coslat,
-                    sin(long) * coslat,
-                    sinlat
-                ), mesh$n, 3))
                 knots <- 0
                 degree <- max(0L, min(n - 1L, degree))
-                basis <- (inla.fmesher.smorg(loc,
-                    mesh$graph$tv,
-                    bspline = c(n, degree, knots),
-                    fem = -1
-                )$bspline)
+                basis <- fmesher::fmesher_spherical_bsplines1(
+                    sinlat,
+                    n = n,
+                    degree = degree,
+                    uniform = FALSE
+                )
             }
         } else if (identical(mesh$manifold, "S2")) {
             loc <- mesh$loc
-            knots <- identical(knot.placement, "uniform.latitude")
+            uniform.lat <- identical(knot.placement, "uniform.latitude")
             degree <- max(0L, min(n - 1L, degree))
-            basis <- (inla.fmesher.smorg(loc,
-                mesh$graph$tv,
-                bspline = c(n, degree, knots),
-                fem = -1
-            )$bspline)
+            basis <- fmesher::fmesher_spherical_bsplines(loc,
+                n = n,
+                degree = degree,
+                uniform = uniform.lat
+            )
             if (!rot.inv) {
                 warning("Currently only 'rot.inv=TRUE' is supported for B-splines.")
             }
@@ -3506,31 +3516,39 @@ inla.parse.queries <- function(...) {
 }
 
 
-#' Compute various mesh related quantities.
+#' @title Compute various mesh related quantities.
+#'
+#' @description
+#' `r lifecycle::badge("deprecated")` Use the methods in the `fmesher` package
+#' instead; see details below.
 #'
 #' Low level function for computing finite element matrices, spherical
 #' harmonics, B-splines, and point mappings with barycentric triangle
 #' coordinates.
 #'
-#'
 #' @param loc 3-column triangle vertex coordinate matrix.
 #' @param tv 3-column triangle vertex index matrix.
-#' @param fem Maximum finite element matrix order to be computed.
-#' @param aniso A two-element list with \eqn{\gamma}{gamma} and \eqn{v}{v} for
+#' @param fem `r lifecycle::badge("deprecated")` Use [fmesher::fm_fem()] instead.
+#' Maximum finite element matrix order to be computed.
+#' @param aniso `r lifecycle::badge("deprecated")` Use [fmesher::fm_fem()] instead.
+#' A two-element list with \eqn{\gamma}{gamma} and \eqn{v}{v} for
 #' an anisotropic operator \eqn{\nabla\cdot H \nabla}{div H grad}, where
 #' \eqn{H=\gamma I + v v^\top}{H = gamma I + v v'}
-#' @param gradients When `TRUE`, calculate derivative operator matrices
+#' @param gradients `r lifecycle::badge("deprecated")` Use [fmesher::fm_fem()] instead.
+#' When `TRUE`, calculate derivative operator matrices
 #' `dx`, dy, and dz.
-#' @param sph0 Maximal order of rotationally invariant spherical harmonics.
-#' Deprecated. Use [inla.mesh.basis()] instead.
-#' @param sph Maximal order of general spherical harmonics.
-#' Deprecated. Use [inla.mesh.basis()] instead.
-#' @param bspline Rotationally invariant B-splines on a sphere.  3-vector with
+#' @param sph0 `r lifecycle::badge("deprecated")` Use [fmesher::fm_raw_basis()] instead.
+#' @param sph `r lifecycle::badge("deprecated")` Use [fmesher::fm_raw_basis()] instead.
+#' @param bspline `r lifecycle::badge("deprecated")` Use [fmesher::fm_raw_basis()] instead.
+#' Rotationally invariant B-splines on a sphere.  3-vector with
 #' number of basis functions `n`, basis degree `degree`, and a
 #' logical; `TRUE` uniform knot angles, `FALSE` for uniform spacing
 #' in \eqn{\sin(latitude)}{sin(latitude)}.
-#' @param points2mesh 3-column matrix with points to be located in the mesh.
-#' @param splitlines A list with elements `loc` (3-column coordinate
+#' @param points2mesh `r lifecycle::badge("deprecated")` Use [fmesher::fm_bary()] instead.
+#' 3-column matrix with points to be located in the mesh.
+#' @param splitlines `r lifecycle::badge("deprecated")` Use [fmesher::fm_split_lines()] or
+#' [fmesher::fmesher_split_lines()] instead.
+#' A list with elements `loc` (3-column coordinate
 #' matrix) and `idx` (2-column index matrix) describing line segments that
 #' are to be split into sub-segments at triangle boundaries.
 #' @param output Names of objects to be included in the output, if different
@@ -3544,21 +3562,125 @@ inla.parse.queries <- function(...) {
                                  fem = NULL,
                                  aniso = NULL,
                                  gradients = FALSE,
-                                 sph0 = NULL,
-                                 sph = NULL,
+                                 sph0 = deprecated(),
+                                 sph = deprecated(),
                                  bspline = NULL,
                                  points2mesh = NULL,
                                  splitlines = NULL,
                                  output = NULL,
                                  keep = FALSE) {
-    fmesher_deprecate("soft",
+    msg <-
+        c(
+            fem = "`fmesher::fm_fem(..., order = ...)`",
+            aniso = "`fmesher::fm_fem(..., aniso = ...)`",
+            gradients = "`fmesher::fm_basis(..., derivatives = TRUE)`",
+            bspline = "fmesher::fmesher_spherical_bsplines()",
+            points2mesh = "`fmesher::fm_bary()`",
+            splitlines = "`fmesher::fm_split_lines()` for a high-level interface, or `fmesher::fmesher_split_lines()` if you need the low-level outputs."
+        )
+    given <- !c(
+        fem = is.null(fem),
+        aniso = is.null(aniso),
+        gradients = isTRUE(gradients),
+        bspline = is.null(bspline),
+        points2mesh = is.null(points2mesh),
+        splitlines = is.null(splitlines)
+    )
+    msg <- paste("Use ",
+        msg[names(given)[given]],
+        " instead of `inla.fmesher.smorg(..., ",
+        names(given)[given],
+        " = ...)`.",
+        sep = ""
+    )
+    names(msg) <- NULL
+    if (fmesher_deprecate("warn",
         2L,
         "23.08.03",
         "inla.fmesher.smorg()",
-        details = "Most queries have `fmesher` alternatives."
-    )
+        details = msg
+    )) {
+        output <- list()
+        if (!is.null(fem)) {
+            output <- c(
+                output,
+                fmesher::fm_fem(
+                    fmesher::fm_rcdt_2d_inla(loc = loc, tv = tv),
+                    order = fem,
+                    aniso = aniso
+                )
+            )
+        }
+        if (!is.null(gradients)) {
+            res <- fmesher::fm_basis(
+                fmesher::fm_rcdt_2d_inla(loc = loc, tv = tv),
+                derivatives = TRUE
+            )
+            output[["dx"]] <- res[["dx"]]
+            output[["dy"]] <- res[["dy"]]
+            output[["dz"]] <- res[["dz"]]
+        }
+        if (!is.null(bspline)) {
+            output[["bspline"]] <-
+                fmesher::fmesher_spherical_bsplines(
+                    loc,
+                    n = bspline[1],
+                    degree = bspline[2],
+                    uniform = bspline[3] > 0
+                )
+        }
+        if (!is.null(points2mesh)) {
+            res <- fmesher::fm_bary(
+                fmesher::fm_rcdt_2d_inla(loc = loc, tv = tv),
+                loc = points2mesh
+            )
+            output[["p2m.t"]] <- res[["t"]]
+            output[["p2m.b"]] <- res[["bary"]]
+        }
+        if (!is.null(splitlines)) {
+            splt <- fmesher::fmesher_split_lines(
+                mesh_loc = mesh$loc,
+                mesh_tv = mesh$graph$tv - 1L,
+                loc = splitlines$loc,
+                idx = splitlines$idx - 1L,
+                options = list()
+            )
+            indexoutput <- list("split.idx", "split.t", "split.origin")
+            for (name in intersect(indexoutput, names(splt))) {
+                splt[[name]] <- splt[[name]] + 1L
+            }
+            output <- c(output, splt)
+        }
+        return(output)
+    }
+
+    if (lifecycle::is_present(sph0)) {
+        lifecycle::deprecate_stop(
+            "a long time ago",
+            "inla.mesh.smorg(sph0)",
+            "inla.mesh.basis()",
+            "GSL support removed from fmesher smorg."
+        )
+    }
+    if (lifecycle::is_present(sph)) {
+        lifecycle::deprecate_stop(
+            "a long time ago",
+            "inla.mesh.smorg(sph)",
+            "inla.mesh.basis()",
+            "GSL support removed from fmesher smorg."
+        )
+    }
+
 
     prefix <- inla.fmesher.make.prefix(NULL, NULL)
+    if (!keep) {
+        # Make sure the files are removed in case of an error
+        on.exit(
+            expr = unlink(paste(prefix, "*", sep = ""), recursive = FALSE),
+            add = TRUE,
+            after = FALSE
+        )
+    }
 
     n <- nrow(loc)
     s.dim <- ncol(loc)
@@ -3577,8 +3699,6 @@ inla.parse.queries <- function(...) {
     output.fem <- list("c0", "g1", "g2")
     output.aniso <- list("g1aniso", "g2aniso")
     output.gradients <- list("dx", "dy", "dz")
-    output.sph0 <- list("sph0")
-    output.sph <- list("sph")
     output.bspline <- list("bspline")
     output.p2m <- list("p2m.t", "p2m.b")
     output.splitlines <- list(
@@ -3608,16 +3728,6 @@ inla.parse.queries <- function(...) {
     if (!is.null(gradients) && gradients) {
         all.args <- paste(all.args, " --grad", sep = "")
         if (!output.given) output <- c(output, output.gradients)
-    }
-    if (!is.null(sph0)) {
-        stop("GSL support removed from fmesher smorg; use inla.mesh.basis() instead.")
-        all.args <- paste(all.args, " --sph0=", sph0, sep = "")
-        if (!output.given) output <- c(output, output.sph0)
-    }
-    if (!is.null(sph)) {
-        stop("GSL support removed from fmesher smorg; use inla.mesh.basis() instead.")
-        all.args <- paste(all.args, " --sph=", sph, sep = "")
-        if (!output.given) output <- c(output, output.sph)
     }
     if (!is.null(bspline)) {
         all.args <- (paste(all.args, " --bspline=",
@@ -3662,10 +3772,6 @@ inla.parse.queries <- function(...) {
         } else {
             result[[name]] <- fmesher.read(prefix, name)
         }
-    }
-
-    if (!keep) {
-        unlink(paste(prefix, "*", sep = ""), recursive = FALSE)
     }
 
     return(result)
