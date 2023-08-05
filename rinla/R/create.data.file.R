@@ -14,7 +14,15 @@
                                     family = NULL,
                                     data.dir = NULL,
                                     file = NULL,
-                                    debug = FALSE) {
+                                    debug = FALSE)
+{
+    my.stop <- function(msg) {
+        for (f in c(file, data.dir))
+            if (file.exists(f))
+                file.remove(f)
+        stop(msg)
+    }
+
     y.attr <- attr(y.orig, "inla.ncols", exact = TRUE)
     if (is.null(y.attr)) {
         y.attr <- 0
@@ -49,9 +57,7 @@
             weights <- rep(weights, n.data)
         }
         if (length(weights) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of 'weights' has to be the same as the length of the response:", length(weights), n.data))
+            my.stop(paste("Length of 'weights' has to be the same as the length of the response:", length(weights), n.data))
         }
     }
 
@@ -60,9 +66,7 @@
             lp.scale <- rep(lp.scale, n.data)
         }
         if (length(lp.scale) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of 'lp.scale' has to be the same as the length of the response:", length(lp.scale), n.data))
+            my.stop(paste("Length of 'lp.scale' has to be the same as the length of the response:", length(lp.scale), n.data))
         }
         lp.scale <- as.numeric(lp.scale)
         lp.scale[is.na(lp.scale)] <- 0
@@ -71,21 +75,21 @@
     }
 
     if (inla.one.of(family, c(
-        "gaussian",
-        "normal",
-        "lognormal",
-        "t",
-        "sn",
-        "gev",
-        "logistic",
-        "circularnormal",
-        "wrappedcauchy",
-        "iidgamma",
-        "simplex",
-        "gamma",
-        "beta",
-        "tweedie",
-        "fmri"))) {
+                                "gaussian",
+                                "normal",
+                                "lognormal",
+                                "t",
+                                "sn",
+                                "gev",
+                                "logistic",
+                                "circularnormal",
+                                "wrappedcauchy",
+                                "iidgamma",
+                                "simplex",
+                                "gamma",
+                                "beta",
+                                "tweedie",
+                                "fmri"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
         }
@@ -94,14 +98,17 @@
         }
 
         if (length(scale) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
+            my.stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
         }
 
         response <- cbind(ind, scale, y.orig)
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
+        
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'scale', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("tstrata"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
@@ -121,9 +128,7 @@
         stopifnot(all(as.integer(strata) == strata))
         stopifnot(all(strata > 0L))
         if (length(scale) != n.data || length(strata) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste(
+            my.stop(paste(
                 "Length of scale and strata has to be the same as the length of the response:",
                 length(scale), length(strata), n.data
             ))
@@ -133,22 +138,27 @@
         response <- cbind(ind, scale, as.integer(strata) - 1L, y.orig)
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'scale' or 'strata', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c(
-        "poisson",
-        "cenpoisson",
-        "gammacount",
-        "gpoisson",
-        "xpoisson",
-        "zeroinflatedcenpoisson0",
-        "zeroinflatedcenpoisson1",
-        "zeroinflatednbinomial0",
-        "zeroinflatednbinomial1",
-        "zeroinflatednbinomial2",
-        "zeroinflatedpoisson0",
-        "zeroinflatedpoisson1",
-        "zeroinflatedpoisson2",
-        "poisson.special1",
-        "bell"))) {
+                                       "poisson",
+                                       "cenpoisson",
+                                       "gammacount",
+                                       "gpoisson",
+                                       "xpoisson",
+                                       "zeroinflatedcenpoisson0",
+                                       "zeroinflatedcenpoisson1",
+                                       "zeroinflatednbinomial0",
+                                       "zeroinflatednbinomial1",
+                                       "zeroinflatednbinomial2",
+                                       "zeroinflatedpoisson0",
+                                       "zeroinflatedpoisson1",
+                                       "zeroinflatedpoisson2",
+                                       "poisson.special1",
+                                       "bell"))) {
         if (is.null(E)) {
             E <- rep(1.0, n.data)
         }
@@ -159,13 +169,16 @@
         response <- cbind(ind, E, y.orig)
 
         if (length(E) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of E has to be the same as the length of the response:", length(E), n.data))
+            my.stop(paste("Length of E has to be the same as the length of the response:", length(E), n.data))
         }
 
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'E' are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("nbinomial"))) {
         if (is.null(E)) {
             E <- rep(1.0, n.data)
@@ -184,12 +197,15 @@
         response <- cbind(ind, E, scale, y.orig)
 
         if (length(E) != n.data || length(scale) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of E and scale has to be the same as the length of the response: E scale data ", length(E), length(scale), n.data))
+            my.stop(paste("Length of E and scale has to be the same as the length of the response: E scale data ", length(E), length(scale), n.data))
         }
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'E' or 'scale', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("exponential", "weibull", "loglogistic", "gammajw", "gompertz"))) {
         response <- cbind(ind, y.orig)
         null.dat <- is.na(response[, 2L])
@@ -215,25 +231,20 @@
         response <- cbind(ind, E, strata - 1L, y.orig)
 
         if (length(E) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste(
-                "Length of E has to be the same as the length of the response:",
-                length(E), n.data
-            ))
+            my.stop(paste("Length of E has to be the same as the length of the response:", length(E), n.data))
         }
 
         if (length(strata) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste(
-                "Length of strata has to be the same as the length of the response:",
-                length(strata), n.data
-            ))
+            my.stop(paste("Length of strata has to be the same as the length of the response:", length(strata), n.data))
         }
 
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'scale' or 'strata', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("xbinomial"))) {
         if (is.null(scale)) {
             scale <- rep(1.0, n.data)
@@ -252,23 +263,23 @@
         response <- cbind(ind, Ntrials, scale, y.orig)
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
-    } else if (inla.one.of(
-        family,
-        c(
-            "binomial",
-            "binomialtest",
-            "betabinomial",
-            "nbinomial2",
-            "zeroinflatedbinomial0",
-            "zeroinflatedbinomial1",
-            "zeroinflatedbinomial2",
-            "zeroninflatedbinomial2",
-            "zeroninflatedbinomial3",
-            "zeroinflatedbetabinomial0",
-            "zeroinflatedbetabinomial1",
-            "zeroinflatedbetabinomial2"
-        )
-    )) {
+
+        if (any(is.na(response))) {
+            my.stop("NA's in argument 'Ntrials' or 'scale',  are not allowed")
+        }
+
+    } else if (inla.one.of(family, c("binomial",
+                                     "binomialtest",
+                                     "betabinomial",
+                                     "nbinomial2",
+                                     "zeroinflatedbinomial0",
+                                     "zeroinflatedbinomial1",
+                                     "zeroinflatedbinomial2",
+                                     "zeroninflatedbinomial2",
+                                     "zeroninflatedbinomial3",
+                                     "zeroinflatedbetabinomial0",
+                                     "zeroinflatedbetabinomial1",
+                                     "zeroinflatedbetabinomial2"))) {
         if (is.null(Ntrials)) {
             Ntrials <- rep(1L, n.data)
         }
@@ -279,6 +290,11 @@
         response <- cbind(ind, Ntrials, y.orig)
         null.dat <- is.na(response[, 3L])
         response <- response[!null.dat, ]
+
+        if (any(is.na(response))) {
+            my.stop("NA's in argument 'Ntrials' are not allowed")
+        }
+
     } else if (inla.one.of(family, c("betabinomialna"))) {
         if (is.null(Ntrials)) {
             Ntrials <- rep(1L, n.data)
@@ -295,37 +311,37 @@
         }
 
         if (length(scale) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
+            my.stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
         }
 
         response <- cbind(ind, Ntrials, scale, y.orig)
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'Ntrials' or 'scale', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("cbinomial"))) {
         if (!(is.matrix(Ntrials) && all(dim(Ntrials) == c(n.data, 2)))) {
-            stop(paste(
-                "Argument 'Ntrials' for family='cbinomial' must be a", n.data,
-                "x", 2, "-matrix; see the documentation."
-            ))
+            my.stop(paste("Argument 'Ntrials' for family='cbinomial' must be a", n.data, "x", 2, "-matrix; see the documentation."))
         }
         response <- cbind(ind, Ntrials, y.orig)
         null.dat <- is.na(response[, 4L])
         response <- response[!null.dat, ]
-    } else if (inla.one.of(family, c(
-        "exponentialsurv", "weibullsurv", 
-        "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
-        "gammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'Ntrials' are not allowed"))
+        }
+
+    } else if (inla.one.of(family, c("exponentialsurv", "weibullsurv", 
+                                     "loglogisticsurv", "qloglogisticsurv", "lognormalsurv",
+                                     "gammasurv", "gammajwsurv", "fmrisurv", "gompertzsurv"))) {
         if (!inla.model.properties(family, "likelihood")$survival) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop("This should not happen.")
+            my.stop("This should not happen.")
         }
         if (is.null(y.orig$time)) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop("Responce does not contain variable `time'.")
+            my.stop("Responce does not contain variable `time'.")
         }
         len <- length(y.orig$time)
 
@@ -363,14 +379,12 @@
         )
 
         if (any(is.na(response))) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop("NA in truncation/event/lower/upper/time is not allowed")
+            my.stop(paste0("family:", family, ". NA's in truncation/event/lower/upper/time is not allowed"))
         }
-    } else if (inla.one.of(family, c(
-        "stochvol", "stochvolt", "stochvolnig", "stochvolsn", "loggammafrailty",
-        "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom",
-        "logperiodogram"))) {
+
+    } else if (inla.one.of(family, c("stochvol", "stochvolt", "stochvolnig", "stochvolsn", "loggammafrailty",
+                                     "iidlogitbeta", "qkumar", "qloglogistic", "gp", "dgp", "pom",
+                                     "logperiodogram"))) {
         response <- cbind(ind, y.orig)
         null.dat <- is.na(response[, 2L])
         response <- response[!null.dat, ]
@@ -381,7 +395,7 @@
             ## remove the overdispersion parameter
             mmax <- length(inla.model.properties(model = family, section = "likelihood")$hyper) - 1
         } else {
-            stop("This should not happen.")
+            my.stop("This should not happen.")
         }
 
         response <- cbind(IDX = ind, y.orig)
@@ -423,14 +437,12 @@
         idx <- response[, col.idx, drop = FALSE]
         response <- cbind(idx, Y)
     } else if (inla.one.of(family, c("cenpoisson2"))) {
-
         if (is.null(E)) {
             E <- rep(1, n.data)
         }
         if (length(E) == 1L) {
             E <- rep(E, n.data)
         }
-
         response <- cbind(ind, E, y.orig)
         stopifnot(ncol(response) == 5)
         null.dat <- is.na(response[, 3L])
@@ -449,6 +461,11 @@
         response <- response[!na.y, , drop = FALSE]
         ## format: IDX, E, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in arguments 'E', 'LOW', 'HIGH', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("cennbinomial2"))) {
 
         if (is.null(scale)) {
@@ -484,6 +501,10 @@
         ## format: IDX, E, S, LOW, HIGH, Y
         response <- cbind(IDX = response$IDX, E = response$E, S = response$S, LOW = response$Y2, HIGH = response$Y3, Y = response$Y1)
 
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in arguments 'E', 'S', 'LOW', 'HIGH', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("gaussianjw"))) {
 
         response <- cbind(ind, y.orig)
@@ -500,6 +521,10 @@
         ## format: IDX, N, DF, VAR, Y
         response <- cbind(IDX = response$IDX, N = response$Y3, DF = response$Y4, VAR = response$Y2, Y = response$Y1)
 
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in arguments 'N', 'DF', 'VAR', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS"))) {
 
         response <- cbind(ind, y.orig)
@@ -509,6 +534,7 @@
         stopifnot(ncovariates >= 0)
         if (ncovariates > 0) {
             X <- response[, 4:(4 + ncovariates - 1), drop = FALSE]
+            X[is.na(X)] <- 0
             cov.names <- paste0("X", 1:ncovariates)
             colnames(X) <- cov.names
         } else {
@@ -520,6 +546,10 @@
         ## format: IDX, E/Ntrials, X1, ...XN, Y
         response <- cbind(IDX = response$IDX, EorNtrials = response$EorNtrials, X, Y = response$Y)
 
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in arguments 'E/Ntrials', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("bgev"))) {
 
         if (is.null(scale)) {
@@ -530,9 +560,7 @@
         }
 
         if (length(scale) != n.data) {
-            file.remove(file)
-            file.remove(data.dir)
-            stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
+            my.stop(paste("Length of scale has to be the same as the length of the response:", length(scale), n.data))
         }
 
         mmax <- length(inla.model.properties(model = family, section = "likelihood")$hyper) - 2L
@@ -556,6 +584,10 @@
         X[is.na(X)] <- 0
 
         response <- cbind(idx, scale, X, Y)
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in arguments 'scale', are not allowed"))
+        }
+
         ## fix attr, so the order corresponds to (X, Y) and not (Y, X) as in the inla.mdata() input.
         ## y.attr[1] is number of attributes
         stopifnot(y.attr[1] > 0)
@@ -566,13 +598,11 @@
         } else if (y.attr[1] == 3) {
             y.attr <- c(3, y.attr[2], y.attr[3], y.attr[4])
         } else {
-            stop("FIX THIS with y.attr")
+            my.stop("FIX THIS with y.attr")
         }
         y.attr <- c(y.attr[1], y.attr[-c(1, 2)], y.attr[2])
     } else {
-        file.remove(file)
-        file.remove(data.dir)
-        stop(paste("Family", family, ", not recognised in 'create.data.file.R'"))
+        my.stop(paste("Family", family, ", not recognised in 'create.data.file.R'"))
     }
 
     file.data <- inla.tempfile(tmpdir = data.dir)
