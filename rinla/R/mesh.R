@@ -3611,7 +3611,7 @@ inla.parse.queries <- function(...) {
                 )
             )
         }
-        if (!is.null(gradients)) {
+        if (isTRUE(gradients)) {
             res <- fmesher::fm_basis(
                 fmesher::fm_rcdt_2d_inla(loc = loc, tv = tv),
                 loc = loc,
@@ -3635,6 +3635,8 @@ inla.parse.queries <- function(...) {
                 fmesher::fm_rcdt_2d_inla(loc = loc, tv = tv),
                 loc = points2mesh
             )
+            res[["t"]][is.na(res[["t"]])] <- 0L
+            res[["bary"]][is.na(res[["bary"]])] <- 0
             output[["p2m.t"]] <- res[["t"]]
             output[["p2m.b"]] <- res[["bary"]]
         }
