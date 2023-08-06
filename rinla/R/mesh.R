@@ -3614,6 +3614,7 @@ inla.parse.queries <- function(...) {
         if (!is.null(gradients)) {
             res <- fmesher::fm_basis(
                 fmesher::fm_rcdt_2d_inla(loc = loc, tv = tv),
+                loc = loc,
                 derivatives = TRUE
             )
             output[["dx"]] <- res[["dx"]]
@@ -3639,8 +3640,8 @@ inla.parse.queries <- function(...) {
         }
         if (!is.null(splitlines)) {
             splt <- fmesher::fmesher_split_lines(
-                mesh_loc = mesh$loc,
-                mesh_tv = mesh$graph$tv - 1L,
+                mesh_loc = loc,
+                mesh_tv = tv - 1L,
                 loc = splitlines$loc,
                 idx = splitlines$idx - 1L,
                 options = list()
