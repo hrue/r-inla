@@ -3959,9 +3959,9 @@ int GMRFLib_compute_cpodens(int thread_id, GMRFLib_density_tp **cpo_density, GMR
 		for (int i = 0; i < np; i++) {
 			ld[i] += logcor[i] - 2.0 * GMRFLib_log_apbex(cor_max, logcor[i]);
 		}
-		int np_orig = np;
+		int npp = np;
 		GMRFLib_ai_correct_cpodens(ld, xp, &np, ai_par);
-		flag = (np_orig > np);
+		flag = (npp > np);
 		if (debug && np) {
 #pragma omp critical (Name_c6e59ebf504f17645e98f57731cc4de48bd2748a)
 			{
@@ -4445,7 +4445,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 				if (do_break) {
 					for (int jj = 0; jj < vb_idx->n; jj++) {
 						int j = vb_idx->idx[jj];
-						fprintf(fp, "\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] |x-mode|/sd[%.3f]\n", j,
+						fprintf(fp, "\t\tNode[%1d] delta[%.3f] dx/sd[%.3f] (x-mode)/sd[%.3f]\n", j,
 							gsl_vector_get(delta_mu, j), dx[j] / sd[j],
 							(x_mean[j] - ai_store->problem->mean_constr[j]) / sd[j]);
 					}
