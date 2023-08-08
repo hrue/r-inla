@@ -1,3 +1,7 @@
+# INLA 23.08.08
+* Fixed regression with argument `cdf=`. 
+* Various code improvement and minor fixes.
+
 # INLA 23.06.29
 * Some code rewrite
 * Fixed an issue if joint-priors (`control.expert`) for R-4.3.
