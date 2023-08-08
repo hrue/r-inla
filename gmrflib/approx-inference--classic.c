@@ -711,9 +711,9 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 		third_order_derivative = 0.0;
 		for (jjj = 0; jjj < ai_store->nidx; jjj++) {
 			iii = ai_store->correction_idx[jjj];
-			third_order_derivative += ai_store->derivative3[iii] * gsl_pow_3(derivative[iii]);
+			third_order_derivative += ai_store->derivative3[iii] * POW3(derivative[iii]);
 		}
-		third_order_derivative *= gsl_pow_3(x_sd);
+		third_order_derivative *= POW3(x_sd);
 
 #if defined(INLA_RESEARCH1)
 		double fourth_order_derivative = 0.0;
@@ -790,9 +790,7 @@ int GMRFLib_ai_marginal_hidden(int thread_id, GMRFLib_density_tp **density, GMRF
 			xp = &ld[np];
 			for (k = 0; k < np; k++) {
 				xp[k] = xx = low + k * (high - low) / (np - 1.0);
-				ld[k] =
-				    -0.5 * SQR(xx) - deriv_log_dens_cond * xx + (third_order_derivative / 6.0) * gsl_pow_3(xx +
-															   deriv_log_dens_cond);
+				ld[k] = -0.5 * SQR(xx) - deriv_log_dens_cond * xx + (third_order_derivative / 6.0) * POW3(xx + deriv_log_dens_cond);
 			}
 			GMRFLib_EWRAP1(GMRFLib_sn_fit(&snp, NULL, xp, ld, np));
 			Free(ld);

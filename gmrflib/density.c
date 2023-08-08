@@ -47,8 +47,6 @@
 // if |skewness| is larger than this, use scgaussian
 #define SKEW_LIMIT 0.6
 
-#define Sqr(x_) ((x_) * (x_))
-
 int GMRFLib_sn_par2moments(double *mean, double *stdev, double *skewness, GMRFLib_sn_param_tp *p)
 {
 	/*
@@ -682,7 +680,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 		density->log_norm_const = log(mm0 * dxm / 3.0) + ldmax;
 		density->mean = mm1;
 		density->stdev = sqrt(DMAX(0.0, mm2 - SQR(mm1)));
-		density->skewness = (mm3 - 3.0 * mm1 * SQR(density->stdev) - gsl_pow_3(mm1)) / gsl_pow_3(density->stdev);
+		density->skewness = (mm3 - 3.0 * mm1 * SQR(density->stdev) - POW3(mm1)) / POW3(density->stdev);
 		density->x_min = -GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->x_max = GMRFLib_DENSITY_INTEGRATION_LIMIT * density->stdev + density->mean;
 		density->user_mean = density->std_stdev * density->mean + density->std_mean;
@@ -711,6 +709,7 @@ int GMRFLib_init_density(GMRFLib_density_tp *density, int lookup_tables)
 			k++;
 		}
 		npm = k;
+
 		// level1 only cache
 		density->Pinv = GMRFLib_spline_create_x(pm, xpm, npm, GMRFLib_INTPOL_TRANS_Pinv, GMRFLib_INTPOL_CACHE_LEVEL1);
 		// density->P = GMRFLib_spline_create_x(xpm, pm, npm, GMRFLib_INTPOL_TRANS_P, GMRFLib_INTPOL_CACHE_LEVEL1);
@@ -958,7 +957,49 @@ int GMRFLib_density_P(double *px, double x, GMRFLib_density_tp *density)
 	if (density->type == GMRFLib_DENSITY_TYPE_GAUSSIAN) {
 		result = GMRFLib_cdfnorm((x - density->mean) / density->stdev);
 	} else {
-		result = GMRFLib_spline_eval(x, density->P);
+		if (density->P) {
+			result = GMRFLib_spline_eval(x, density->P);
+		} else {
+#define PROB2INTERN(p_) log((p_)/(1.0-(p_)))
+#define INTERN2PROB(x_) (1.0/(1.0 + exp(-(x_))))
+
+			assert(density->Pinv);
+			double uu = (x - density->mean) / density->stdev;
+			double pp = GMRFLib_cdfnorm(uu), p = pp;
+			const int verbose = 0;
+			if (verbose) {
+				printf("INIT uu %f p %f\n", uu, p);
+			}
+
+			if (pp > 0.0 && pp < 1.0) {
+				double p_int = PROB2INTERN(pp);
+				double p_int_new;
+				double p_new;
+				double eps = 1.0E-4;
+				int iter_max = 5;
+				int done = 0;
+
+				for (int iter = 0; iter < iter_max && !done; iter++) {
+					double u = 0.0;
+					GMRFLib_density_Pinv(&u, p, density);
+					double deriv = GMRFLib_spline_eval_deriv(p, density->Pinv);
+					double expmu = exp(-u);
+					p_int_new = p_int - (u - uu) / deriv / (expmu + 2.0 + 1.0 / expmu);
+
+					done = (ABS(p_int_new - p_int) < eps);
+					p_new = INTERN2PROB(p_int_new);
+					if (verbose) {
+						printf("iter %d uu %.12f u %.12f p %.12f p_new %.12f ERR %.12f\n", iter, uu, u, p, p_new,
+						       ABS(p_int_new - p_int));
+					}
+					p_int = p_int_new;
+					p = p_new;
+				}
+			}
+			result = p;
+#undef PROB2INTERN
+#undef INTERN2PROB
+		}
 	}
 
 	*px = result;
@@ -1125,7 +1166,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		double us = densities[i]->user_stdev;
 
 		m1 += pp * um;
-		m2 += pp * (Sqr(us) + Sqr(um));
+		m2 += pp * (SQR(us) + SQR(um));
 		sum_w += pp;
 	}
 	mean = m1 / sum_w;
@@ -1200,7 +1241,7 @@ int GMRFLib_density_combine_x(GMRFLib_density_tp **density, GMRFLib_density_tp *
 		double sn_mean = mom1;
 		double sn_var = DMAX(0.0, mom2 - SQR(mom1));
 		double sn_stdev = sqrt(sn_var);
-		double sn_skew = (mom3 - 3.0 * sn_mean * sn_var + gsl_pow_3(sn_mean)) / gsl_pow_3(sn_stdev);
+		double sn_skew = (mom3 - 3.0 * sn_mean * sn_var + POW3(sn_mean)) / POW3(sn_stdev);
 
 		// if skewness is extreme, we're better off switching...
 		if (ABS(sn_skew) > SKEW_LIMIT) {
@@ -1373,7 +1414,7 @@ int GMRFLib_density_create(GMRFLib_density_tp **density, int type, int n, double
 
 #pragma omp simd
 			for (int ii = 0; ii < n; ii++) {
-				ldens[ii] += 0.5 * Sqr(xx[ii]);	/* ldens is now the correction */
+				ldens[ii] += 0.5 * SQR(xx[ii]);	/* ldens is now the correction */
 			}
 			(*density)->log_correction = GMRFLib_spline_create(xx, ldens, n);
 			GMRFLib_init_density(*density, lookup_tables);
@@ -2214,7 +2255,7 @@ double GMRFLib_sn_d3_to_skew(double d3)
 	}
 
 #define POWER13(x_) ((x_) <  0.0 ? - pow(ABS(x_), 1.0/3.0) : pow(ABS(x_), 1.0/3.0))
-#define iPOWER13(x_) gsl_pow_3(x_)
+#define iPOWER13(x_) POW3(x_)
 
 	double skew;
 

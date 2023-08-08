@@ -42,7 +42,7 @@ int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m,
 	if (m > 0) {
 		for (i = 0; i < m; i++) {
 			double xx = x[i] - x0;
-			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * gsl_pow_3(xx);
+			logll[i] = a + b * xx - c / 2.0 * SQR(xx) + d / 6.0 * POW3(xx);
 		}
 	} else {
 		abort();
@@ -3771,6 +3771,37 @@ int testit(int argc, char **argv)
 			assert(err < FLT_EPSILON);
 		}
 		printf("plain:  %.4f  Fill:  %.4f\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1]));
+	}
+		break;
+
+	case 128:
+	{
+		Calloc_init(2000, 18);
+		for (int i = 0; i <= 17; i++) {
+			double *d = Calloc_get(i + 1);
+			printf("i = %d offset %zu check %f\n", i, calloc_offset_, (double) (sizeof(double) * calloc_offset_) / GMRFLib_MEM_ALIGN);
+			assert(d);
+		}
+
+		printf("\n");
+		iCalloc_init(2000, 18);
+		for (int i = 0; i <= 17; i++) {
+			int *d = iCalloc_get(i + 1);
+			printf("i = %d offset %zu check %f\n", i, icalloc_offset_, (double) (sizeof(int) * icalloc_offset_) / GMRFLib_MEM_ALIGN);
+			assert(d);
+		}
+
+		printf("\n");
+		for (size_t i = 0; i <= 17; i++) {
+			size_t N = GMRFLib_align((size_t) i, sizeof(int));
+			printf("INT n %zu N %zu CHECK %f\n", i, N, (double) (N * sizeof(double)) / GMRFLib_MEM_ALIGN);
+		}
+
+		printf("\n");
+		for (size_t i = 0; i <= 17; i++) {
+			size_t N = GMRFLib_align(i, sizeof(double));
+			printf("DOUBLE n %zu N %zu CHECK %f\n", i, N, (double) (N * sizeof(double)) / GMRFLib_MEM_ALIGN);
+		}
 	}
 		break;
 

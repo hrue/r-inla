@@ -1331,17 +1331,17 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 	GMRFLib_ENTER_ROUTINE;
 
 	const int debug = 0;
-	int m, run_parallel = (GMRFLib_Qx_strategy != 0);
+	int run_parallel = (GMRFLib_Qx_strategy != 0);
 	int max_t;
 	double *values = NULL, res;
 
 	max_t = IMAX(GMRFLib_openmp->max_threads_inner, GMRFLib_openmp->max_threads_outer);
 	assert(result);
 	Memset(result, 0, graph->n * sizeof(double));
-	m = GMRFLib_graph_max_nnbs(graph);
 
-	Calloc_init(m + 1 + (!diag ? graph->n : 0), 2);
-	values = Calloc_get(m + 1);
+	int m = GMRFLib_align(1 + GMRFLib_graph_max_nnbs(graph), sizeof(double));
+	Calloc_init(m + (!diag ? graph->n : 0), 2);
+	values = Calloc_get(m);
 	assert(values);
 	if (!diag) {
 		diag = Calloc_get(graph->n);
@@ -1355,14 +1355,14 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			}
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				double qij;				\
 				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i]; \
 				int *j_a = graph->nbs[i];		\
+				double sum = 0.0;			\
 				for (int jj = 0; jj < graph->nnbs[i]; jj++) { \
 					int j = j_a[jj];		\
-					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg); \
-					result[i] += qij * x[j];	\
+					sum += Qfunc(thread_id, i, j, NULL, Qfunc_arg) * x[j]; \
 				}					\
+				result[i] += sum;			\
 			}
 
 			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 0, 0);
@@ -1372,15 +1372,18 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				FIXME("Qx2: run serial");
 			}
 			for (int i = 0; i < graph->n; i++) {
-				double qij;
-				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * x[i];
+				double sum = 0.0, xi = x[i];
 				int *j_a = graph->lnbs[i];
+
+				result[i] += (Qfunc(thread_id, i, i, NULL, Qfunc_arg) + diag[i]) * xi;
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = j_a[jj];
-					qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
-					result[i] += qij * x[j];
-					result[j] += qij * x[i];
+					double qij = Qfunc(thread_id, i, j, NULL, Qfunc_arg);
+
+					sum += qij * x[j];
+					result[j] += qij * xi;
 				}
+				result[i] += sum;
 			}
 		}
 	} else {
@@ -1388,38 +1391,40 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 			if (debug) {
 				FIXME("Qx2: run block parallel");
 			}
-			int off = 8;
-			double *local_result = Calloc(max_t * (graph->n + off), double);
+			int n1 = GMRFLib_align(graph->n, sizeof(int));
+			double *local_result = Calloc(max_t * n1, double);
 			char *used = Calloc(max_t, char);
 #define CODE_BLOCK							\
 			for (int i = 0; i < graph->n; i++) {		\
-				double *r, *local_values;		\
+				double *r, *local_values, xi = x[i], sum = 0.0;	\
+				int *j_a = graph->lnbs[i];		\
 				/* may run in serial */			\
 				int tnum = (nt__ > 1 ? omp_get_thread_num() : 0); \
+									\
 				used[tnum] = 1;				\
-				r = local_result + tnum * (graph->n + off); \
+				r = local_result + tnum * n1;		\
 				local_values = CODE_BLOCK_WORK_PTR_x(0, tnum);	\
 				Qfunc(thread_id, i, -1, local_values, Qfunc_arg); \
-				r[i] += (local_values[0] + diag[i]) * x[i]; \
-				int *j_a = graph->lnbs[i];		\
-				for (int k = 1, jj = 0; jj < graph->lnnbs[i]; jj++, k++) { \
+				r[i] += (local_values[0] + diag[i]) * xi; \
+									\
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) { \
 					int j = j_a[jj];		\
-					r[i] += local_values[k] * x[j];	\
-					r[j] += local_values[k] * x[i];	\
+					double lval = local_values[jj+1]; \
+									\
+					sum += lval * x[j];		\
+					r[j] += lval * xi;		\
 				}					\
+				r[i] += sum;				\
 			}
 
-			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m + 1);
+			RUN_CODE_BLOCK(GMRFLib_MAX_THREADS(), 1, m);
 #undef CODE_BLOCK
 
 			for (int j = 0; j < max_t; j++) {
 				if (used[j]) {
-					int offset = j * (graph->n + off);
+					int offset = j * n1;
 					double *r = local_result + offset;
-#pragma omp simd
-					for (int i = 0; i < graph->n; i++) {
-						result[i] += r[i];
-					}
+					GMRFLib_daddto(graph->n, r, result);
 				}
 			}
 
@@ -1430,14 +1435,19 @@ int GMRFLib_Qx2(int thread_id, double *result, double *x, GMRFLib_graph_tp *grap
 				FIXME("Qx2: run block serial");
 			}
 			for (int i = 0; i < graph->n; i++) {
-				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
-				result[i] += (values[0] + diag[i]) * x[i];
+				double sum = 0.0, xi = x[i];
 				int *j_a = graph->lnbs[i];
-				for (int k = 1, jj = 0, j; jj < graph->lnnbs[i]; jj++, k++) {
-					j = j_a[jj];
-					result[i] += values[k] * x[j];
-					result[j] += values[k] * x[i];
+
+				res = Qfunc(thread_id, i, -1, values, Qfunc_arg);
+				result[i] += (values[0] + diag[i]) * xi;
+				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
+					double val = values[jj + 1];
+					int j = j_a[jj];
+
+					sum += val * x[j];
+					result[j] += val * xi;
 				}
+				result[i] += sum;
 			}
 		}
 	}
@@ -1456,10 +1466,11 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 	int ncol = result->size2;
 	double res, *values = NULL;
 
+	int len_values = GMRFLib_align(1 + GMRFLib_graph_max_nnbs(graph), sizeof(double));
 	if (GMRFLib_OPENMP_IN_PARALLEL() && GMRFLib_openmp->max_threads_inner > 1) {
-		values = Calloc(graph->n * GMRFLib_openmp->max_threads_inner, double);
+		values = Calloc(len_values * GMRFLib_openmp->max_threads_inner, double);
 	} else {
-		values = Calloc(graph->n, double);
+		values = Calloc(len_values, double);
 	}
 
 	gsl_matrix_set_zero(result);
@@ -1483,13 +1494,12 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			}
 		} else {
 			double *p1, *p2, *p3, *p4, qij;
-			int one = 1;
 			for (int i = 0; i < graph->n; i++) {
 				qij = Qfunc(thread_id, i, i, NULL, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
 				p3 = gsl_matrix_ptr(x, i, 0);
 				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * qij;
-				daxpy_(&ncol, &qij, p3, &one, p1, &one);
+				GMRFLib_daxpy(ncol, qij, p3, p1);
 				int *j_a = graph->lnbs[i];
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = j_a[jj];
@@ -1499,8 +1509,8 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 					// for (int k = 0; k < ncol; k++) {
 					// p1[k] += qij * p4[k];
 					// p2[k] += qij * p3[k];
-					daxpy_(&ncol, &qij, p4, &one, p1, &one);
-					daxpy_(&ncol, &qij, p3, &one, p2, &one);
+					GMRFLib_daxpy(ncol, qij, p4, p1);
+					GMRFLib_daxpy(ncol, qij, p3, p2);
 				}
 			}
 		}
@@ -1510,7 +1520,7 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			// I think is less good as it index the matrices in the wrong direction
 #pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_inner)
 			for (int k = 0; k < ncol; k++) {
-				double *val = values + omp_get_thread_num() * graph->n;
+				double *val = values + omp_get_thread_num() * len_values;
 				assert(omp_get_thread_num() < GMRFLib_openmp->max_threads_inner);
 				for (int i = 0; i < graph->n; i++) {
 					Qfunc(thread_id, i, -1, val, Qfunc_arg);
@@ -1528,12 +1538,11 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 			// better one, as the 'k' loop is sequential with inc=1
 			double *p1, *p2, *p3, *p4;
 			for (int i = 0; i < graph->n; i++) {
-				int one = 1;
 				Qfunc(thread_id, i, -1, values, Qfunc_arg);
 				p1 = gsl_matrix_ptr(result, i, 0);
 				p3 = gsl_matrix_ptr(x, i, 0);
 				// for (int k = 0; k < ncol; k++) p1[k] += p3[k] * values[0];
-				daxpy_(&ncol, &(values[0]), p3, &one, p1, &one);
+				GMRFLib_daxpy(ncol, values[0], p3, p1);
 				int *j_a = graph->lnbs[i];
 				for (int jj = 0; jj < graph->lnnbs[i]; jj++) {
 					int j = j_a[jj];
@@ -1543,8 +1552,8 @@ int GMRFLib_QM(int thread_id, gsl_matrix *result, gsl_matrix *x, GMRFLib_graph_t
 					// for (int k = 0; k < ncol; k++) {
 					// p1[k] += qij * p4[k];
 					// p2[k] += qij * p3[k];
-					daxpy_(&ncol, &qij, p4, &one, p1, &one);
-					daxpy_(&ncol, &qij, p3, &one, p2, &one);
+					GMRFLib_daxpy(ncol, qij, p4, p1);
+					GMRFLib_daxpy(ncol, qij, p3, p2);
 				}
 			}
 

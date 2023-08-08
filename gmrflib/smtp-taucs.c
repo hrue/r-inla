@@ -1275,8 +1275,9 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	 * construct a row-list of L_ij's including the diagonal 
 	 */
 
-	nnbs = Calloc(2 * n, int);
-	nnbsQ = nnbs + n;
+	iCalloc_init(2 * n, 2);
+	nnbs = iCalloc_get(n);
+	nnbsQ = iCalloc_get(n);
 
 	for (int i = 0; i < n; i++) {
 		for (int jp = L->colptr[i]; jp < L->colptr[i + 1]; jp++) {
@@ -1414,7 +1415,7 @@ int GMRFLib_compute_Qinv_TAUCS_compute(GMRFLib_problem_tp *problem, taucs_ccs_ma
 	Free(Zj);
 	Free(work_nnbs);
 	Free(nbs);
-	Free(nnbs);
+	iCalloc_free();
 
 	return GMRFLib_SUCCESS;
 }

@@ -83,7 +83,7 @@
 #'      f(space, model='bym2', graph=graph),
 #'      data=dat, family='poisson', E=dat$E, progress=TRUE,
 #'      control.st=list(time=time, space=space,
-#'         spacetime=spacetime, graph=graph, type=c(4, '4c')), # Note '4d' may take some time
+#'         spacetime=spacetime, graph=graph, type=c(4, '4c')), 
 #'      control.compute=list(dic=TRUE, waic=TRUE, cpo=TRUE))
 #' sapply(res, function(x)
 #'        c(dic=x$dic$dic, waic=x$waic$waic, cpo=-sum(log(x$cpo$cpo))))
@@ -193,23 +193,26 @@
     assign('.no.of.t', .no.of.t,
            envir=environment(formula))
 
-    ## cat('.no.of.t = ', .no.of.t, ', .no.of.s = ', .no.of.s, ', nst = ', nst, '\n', sep='')
+##     cat('.no.of.t = ', .no.of.t, ', .no.of.s = ', .no.of.s, ', nst = ', nst, '\n', sep='')
     if (TRUE) { ## working in progress: identify need of constraints from the formula
         etemp <- INLA:::inla.interpret.formula(formula, data, debug = FALSE)
+##        print(str(etemp))
         rterms <- attr(terms(etemp[[1]]), "term.labels")
-        id.r <- which(sapply(etemp$random.spec, function(x) is.null(x$weights)))
-        if (length(id.r) > 0) {
-            r.rankdef <- which(sapply(etemp$random.spec[id.r], function(x) is.null(x$rankdef)))
-            if (length(r.rankdef) > 0) {
-                r.size <- sapply(etemp$random.spec[id.r[r.rankdef]], function(x) x$n)
-                j.s <- which(r.size == .no.of.s)
-                j.t <- which(r.size == .no.of.t)
-                if (length(j.s) > 1) {
-                    stop("Too many spatial effects with rank deficiency.")
-                }
-                if (length(j.t) > 1) {
-                    stop("Too many temporal effects with rank deficiency.")
-                }
+        if(length(rterms)>0) {
+            r.size <- sapply(rterms, function(x)
+                length(unique(eval(mcall$data, envir = envir)[[x]])))
+  ##          print(r.size)
+            r.size.r <- sapply(etemp$random.spec, function(x)
+            (!is.null(x$rankdef)) |
+            (x$model %in% c("rw1", "rw2", "besag"))) * r.size
+    ##          print(r.size.r)
+            j.s <- which(r.size.r == .no.of.s)
+            j.t <- which(r.size.r == .no.of.t)
+            if (length(j.s) > 1) {
+                stop("Too many spatial effects with rank deficiency.")
+            }
+            if (length(j.t) > 1) {
+                stop("Too many temporal effects with rank deficiency.")
             }
         }
         lc2.on <- any(rterms == sname)

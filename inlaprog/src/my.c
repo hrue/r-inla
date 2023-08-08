@@ -168,9 +168,8 @@ int my_gsl_sf_lnchoose_e(unsigned int n, unsigned int m, gsl_sf_result *result)
 {
 	// copy of gsl_sf_lnchoose_e
 
-	if (m > n) {
-		assert(0 == 1);
-	} else if (m == n || m == 0) {
+	assert(m <= n);
+	if (m == n || m == 0) {
 		result->val = 0.0;
 		result->err = 0.0;
 	} else {

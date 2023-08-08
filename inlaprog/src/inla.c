@@ -6410,7 +6410,7 @@ double inla_sn_intercept(double intern_quantile, double skew)
 {
 	// testing only
 	double a3[2] = { 0.0, 0.0 }, val;
-	a3[0] = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	a3[0] = POW3(inla_pc_sn_skew2alpha(skew));
 	val = map_invsn(intern_quantile, MAP_BACKWARD, (void *) a3);
 	P(intern_quantile);
 	P(skew);
@@ -6420,7 +6420,7 @@ double inla_sn_intercept(double intern_quantile, double skew)
 
 	return (0);
 
-	a3[0] = gsl_pow_3(inla_pc_sn_skew2alpha(skew));
+	a3[0] = POW3(inla_pc_sn_skew2alpha(skew));
 	return (map_invsn(intern_quantile, MAP_FORWARD, (void *) a3));
 }
 

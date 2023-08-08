@@ -4866,7 +4866,6 @@ Number of hyperparmeters is 15.
 \item{n.div.by = }{'-1'}
 \item{n.required = }{'TRUE'}
 \item{set.default.values = }{'TRUE'}
-\item{status = }{'experimental'}
 \item{pdf = }{'iidkd'}
 }
 }

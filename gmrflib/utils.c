@@ -2270,3 +2270,15 @@ void GMRFLib_MKL_chose_thresholds(void)
 	}
 #endif
 }
+
+size_t GMRFLib_align(size_t n, size_t size)
+{
+	// return 'N >= n' so that the endpoint is aligned at GMRFLib_MEM_ALIGN bits boundary with an added buffer of GMRFLib_L1_CACHELINE bits.
+	// GMRFLib_L1_CACHELINE/size must be an integer
+
+	int m = GMRFLib_L1_CACHELINE / size;
+	int mm = GMRFLib_MEM_ALIGN / size;
+	div_t d = div(n, mm);
+
+	return n + m + (d.rem == 0 ? 0 : mm - d.rem);
+}
