@@ -1297,7 +1297,9 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 				int retval;
 				int fd_save = ai_par->gradient_forward_finite_difference;
 				if (ai_par->optimise_smart) {
-					if (GMRFLib_openmp->max_threads_outer < nhyper * 2) {
+					// I'm not sure this is a good idea, as its f()'s are slower with more threads unless for huge models.
+					// So I turn this off (and revert back to old behavious) until I know more.
+					if (0 && GMRFLib_openmp->max_threads_outer < nhyper * 2) {
 						ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
 						if (ai_par->fp_log) {
 							fprintf(ai_par->fp_log, "Smart optimise part I: estimate gradient using forward differences\n");
