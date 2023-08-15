@@ -50,8 +50,7 @@ typedef struct {
 static Best_tp B = {
 	0.0,
 	NULL,
-	NULL,
-	0
+	NULL
 };
 
 static opt_dir_params_tp Opt_dir_params = {
