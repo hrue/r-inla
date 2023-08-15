@@ -33,7 +33,6 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 	char *fnm = NULL, *newdir = NULL;
 	FILE *fp = NULL;
 	int thread_id = 0;
-	assert(omp_get_thread_num() == 0);
 
 	GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
 	GMRFLib_sprintf(&newdir, "%s/Q", dir);
@@ -425,7 +424,11 @@ int inla_output(inla_tp *mb)
 				if (local_verbose == 0) {
 					int save = mb->verbose;
 					mb->verbose = 0;
-					inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
+					if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+						inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
+					} else if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+						inla_output_Q(mb, mb->dir, mb->preopt->preopt_graph);
+					} 
 					mb->verbose = save;
 				}
 			}

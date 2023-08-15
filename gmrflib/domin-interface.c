@@ -45,12 +45,14 @@ typedef struct {
 	double f_best;
 	double *f_best_x;
 	double *f_best_latent;
+	int new_f_best;
 } Best_tp;
 
 static Best_tp B = {
 	0.0,
 	NULL,
-	NULL
+	NULL,
+	0
 };
 
 static opt_dir_params_tp Opt_dir_params = {
@@ -316,6 +318,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 				}
 
 				B.f_best = fx_local;
+				B.new_f_best = 1;
 
 				if (!B.f_best_x) {
 					B.f_best_x = Calloc(G.nhyper, double);
@@ -1302,6 +1305,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	do {
 		iter++;
+		B.new_f_best = 0;
 		status = gsl_multimin_fdfminimizer_iterate(s);
 
 		status_g = gsl_multimin_test_gradient(s->gradient, ai_par->gsl_epsg);
@@ -1385,9 +1389,12 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 				fprintf(ai_par->fp_log, "no-success error!");
 			}
 			fprintf(ai_par->fp_log, "\n");
+			if (iter > 1 && B.new_f_best == 0) {
+				fprintf(ai_par->fp_log, "No improvement made; stop optimizing!\n");
+			}
 		}
 	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) &&
-		 (iter < iter_max));
+		 (iter < iter_max) && (iter == 1 || (iter > 1 && B.new_f_best == 1)));
 
 	xx = gsl_multimin_fdfminimizer_x(s);
 	G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);

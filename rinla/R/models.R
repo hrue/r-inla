@@ -13484,7 +13484,10 @@
                                     stop.on.error = TRUE,
                                     ignore.case = FALSE) {
     if (is.null(section)) {
-        stop("No section given; please fix...")
+        stop("No 'section' given; please fix...")
+    }
+    if (is.null(model)) {
+        stop("No 'model' given; please fix...")
     }
     mm <- inla.models()
     section <- match.arg(section, names(mm))
