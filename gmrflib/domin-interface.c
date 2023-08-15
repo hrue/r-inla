@@ -45,7 +45,6 @@ typedef struct {
 	double f_best;
 	double *f_best_x;
 	double *f_best_latent;
-	int new_f_best;
 } Best_tp;
 
 static Best_tp B = {
@@ -158,10 +157,16 @@ int GMRFLib_opt_get_hyper(double *x)
 	Memcpy(x, B.f_best_x, G.nhyper * sizeof(double));
 	return GMRFLib_SUCCESS;
 }
+
 int GMRFLib_opt_set_hyper(double *x)
 {
 	Memcpy(B.f_best_x, x, G.nhyper * sizeof(double));
 	return GMRFLib_SUCCESS;
+}
+
+double GMRFLib_opt_get_f(void)
+{
+	return (B.f_best);
 }
 
 int GMRFLib_opt_exit(void)
@@ -318,8 +323,6 @@ int GMRFLib_opt_f_intern(int thread_id,
 				}
 
 				B.f_best = fx_local;
-				B.new_f_best = 1;
-
 				if (!B.f_best_x) {
 					B.f_best_x = Calloc(G.nhyper, double);
 				}
@@ -1221,7 +1224,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
 	size_t i, j;
-	int status, iter = 0, iter_max = 1000;
+	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
 	const gsl_multimin_fdfminimizer_type *T;
 	gsl_multimin_fdfminimizer *s;
@@ -1302,16 +1305,38 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	int status_g = GSL_CONTINUE;
 	int status_f = GSL_CONTINUE;
 	int status_x = GSL_CONTINUE;
+	int status_best_f = GSL_CONTINUE;
+	int status_best_x = GSL_CONTINUE;
+
+	double best_f_prev = GMRFLib_opt_get_f(), best_f = GMRFLib_opt_get_f();
+	double best_hyper_prev[G.nhyper], best_hyper[G.nhyper];
+	double best_dx, best_df;
+	GMRFLib_opt_get_hyper(best_hyper_prev);
+	GMRFLib_opt_get_hyper(best_hyper);
 
 	do {
 		iter++;
-		B.new_f_best = 0;
 		status = gsl_multimin_fdfminimizer_iterate(s);
 
 		status_g = gsl_multimin_test_gradient(s->gradient, ai_par->gsl_epsg);
 		double gnrm2 = gsl_blas_dnrm2(s->gradient);
 
 		xx = gsl_multimin_fdfminimizer_x(s);
+
+		best_f = GMRFLib_opt_get_f();
+		GMRFLib_opt_get_hyper(best_hyper);
+		best_dx = 0.0;
+		for (size_t ii = 0; ii < (size_t) G.nhyper; ii++) {
+			best_dx += SQR(best_hyper_prev[ii] - best_hyper[ii]);
+		}
+		best_dx = sqrt(best_dx / G.nhyper);
+		Memcpy(best_hyper_prev, best_hyper, G.nhyper * sizeof(double));
+		best_df = ABS(best_f_prev - best_f);
+		best_f_prev = best_f;
+
+		status_best_f = (best_df < ai_par->gsl_epsf ? !GSL_CONTINUE : GSL_CONTINUE);
+		status_best_x = (best_dx < ai_par->gsl_epsx ? !GSL_CONTINUE : GSL_CONTINUE);
+
 		if (x_prev) {
 			size_t i_s;
 
@@ -1357,10 +1382,6 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		} else {
 			status_x = GSL_CONTINUE;
 		}
-		if (!x_prev) {
-			x_prev = gsl_vector_alloc(xx->size);
-		}
-		gsl_vector_memcpy(x_prev, xx);
 
 		double df = ABS(f_prev - gsl_multimin_fdfminimizer_minimum(s));
 		status_f = gsl_multimin_test_size(df, ai_par->gsl_epsf);
@@ -1368,40 +1389,75 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Iter=%1d ", iter);
+
 			if (status_g != GSL_CONTINUE) {
 				fprintf(ai_par->fp_log, "|grad| = %.3g(pass) ", gnrm2);
 			} else {
 				fprintf(ai_par->fp_log, "|grad|=%.3g ", gnrm2);
 			}
+
 			if (status_x != GSL_CONTINUE) {
-				fprintf(ai_par->fp_log, "|x-x.old|=%.3g(pass) ", dx);
+				fprintf(ai_par->fp_log, "|dx|=%.3g(pass) ", dx);
 			} else {
-				fprintf(ai_par->fp_log, "|x-x.old|=%.3g ", dx);
+				fprintf(ai_par->fp_log, "|dx|=%.3g ", dx);
 			}
+
+			if (status_best_x != GSL_CONTINUE) {
+				fprintf(ai_par->fp_log, "|best.dx|=%.3g(pass) ", best_dx);
+			} else {
+				fprintf(ai_par->fp_log, "|best.dx|=%.3g ", best_dx);
+			}
+
 			if (status_f != GSL_CONTINUE) {
-				fprintf(ai_par->fp_log, "|f-f.old|=%.3g(pass) ", df);
+				fprintf(ai_par->fp_log, "|df|=%.3g(pass) ", df);
 			} else {
-				fprintf(ai_par->fp_log, "|f-f.old|=%.3g ", df);
+				fprintf(ai_par->fp_log, "|df|=%.3g ", df);
 			}
+
+			if (status_best_f != GSL_CONTINUE) {
+				fprintf(ai_par->fp_log, "|best.df|=%.3g(pass) ", best_df);
+			} else {
+				fprintf(ai_par->fp_log, "|best.df|=%.3g ", best_df);
+			}
+
 			if (status == GSL_ENOPROG) {
 				fprintf(ai_par->fp_log, "Reached numerical limit!");
 			} else if (status != GSL_SUCCESS) {
 				fprintf(ai_par->fp_log, "no-success error!");
 			}
 			fprintf(ai_par->fp_log, "\n");
-			if (iter > 1 && B.new_f_best == 0) {
-				fprintf(ai_par->fp_log, "No improvement made; stop optimizing!\n");
-			}
 		}
-	} while ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) &&
-		 (iter < iter_max) && (iter == 1 || (iter > 1 && B.new_f_best == 1)));
+		// restart every iteration from the best f() found so far
+		for (size_t ii = 0; ii < (size_t) G.nhyper; ii++) {
+			gsl_vector_set(s->x, ii, best_hyper[ii]);
+		}
+		s->f = best_f;
+		gsl_multimin_fdfminimizer_restart(s);
+		if (!x_prev) {
+			x_prev = gsl_vector_alloc(xx->size);
+		}
+		gsl_vector_memcpy(x_prev, xx);
 
-	xx = gsl_multimin_fdfminimizer_x(s);
-	G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
+	} while (iter <= iter_min ||
+		 // normal criteria
+		 ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) &&
+			       (status_best_x == GSL_CONTINUE) && (status_best_f == GSL_CONTINUE) && (iter < iter_max)));
 
-	for (i = 0; i < (size_t) G.nhyper; i++) {
-		G.solution[i] = gsl_vector_get(xx, i);
+	if (0) {
+		// take the solution from the minimizer. this we do not do anymore
+		assert(0 == 1);
+		xx = gsl_multimin_fdfminimizer_x(s);
+		G.fvalue = -gsl_multimin_fdfminimizer_minimum(s);
+
+		for (i = 0; i < (size_t) G.nhyper; i++) {
+			G.solution[i] = gsl_vector_get(xx, i);
+		}
 	}
+	// take the solution as the best f() found so far
+	Memcpy(G.solution, best_hyper, G.nhyper * sizeof(double));
+	G.fvalue = -GMRFLib_opt_get_f();
+
+	// this takes the latent from the best found so far
 	GMRFLib_opt_get_latent(G.ai_store->mode);
 
 	gsl_multimin_fdfminimizer_free(s);

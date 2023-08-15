@@ -110,6 +110,7 @@ int GMRFLib_opt_set_hyper(double *x);
 int GMRFLib_opt_set_latent(double *latent);
 
 GMRFLib_matrix_tp *GMRFLib_opt_get_directions(void);
+double GMRFLib_opt_get_f(void);
 double GMRFLib_gsl_f(const gsl_vector * v, void *params);
 int GMRFLib_gsl_get_results(double *theta_mode, double *log_dens_mode);
 int GMRFLib_opt_get_latent(double *latent);
