@@ -63,7 +63,7 @@ proj <- inla.mesh.projector(mesh)
 image(proj$x, proj$y, inla.mesh.project(proj, basis[, 7]))
 \donttest{
 if (require(rgl)) {
-    plot(mesh, rgl = TRUE, col = basis[, 7], draw.edges = FALSE, draw.vertices = FALSE)
+  plot(mesh, rgl = TRUE, col = basis[, 7], draw.edges = FALSE, draw.vertices = FALSE)
 }
 }
 

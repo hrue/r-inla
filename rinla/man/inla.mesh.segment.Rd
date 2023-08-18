@@ -88,9 +88,9 @@ segm.int <- inla.mesh.segment(loc.int, is.bnd = FALSE)
 ## Points to be meshed
 loc <- matrix(runif(10 * 2), 10, 2) * 0.9 + 0.05
 mesh <- inla.mesh.create(loc,
-    boundary = segm.bnd,
-    interior = segm.int,
-    refine = list()
+  boundary = segm.bnd,
+  interior = segm.int,
+  refine = list()
 )
 plot(mesh)
 \dontrun{

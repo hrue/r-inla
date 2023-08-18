@@ -86,7 +86,7 @@ field <- cos(mesh$loc[, 1] * 2 * pi * 3) * sin(mesh$loc[, 2] * 2 * pi * 7)
 image(proj$x, proj$y, inla.mesh.project(proj, field))
 \donttest{
 if (require(rgl)) {
-    plot(mesh, rgl = TRUE, col = field, draw.edges = FALSE, draw.vertices = FALSE)
+  plot(mesh, rgl = TRUE, col = field, draw.edges = FALSE, draw.vertices = FALSE)
 }
 }
 
