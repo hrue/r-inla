@@ -35,6 +35,9 @@ basis functions to the interval endpoints.}
 \item{mesh}{An inla.mesh.1d object}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[fmesher:fm_mesh_1d]{fmesher::fm_mesh_1d()}}
+
 Create a 1D mesh specification \code{inla.mesh.1d} object, that defines a
 function space for 1D SPDE models.
 }

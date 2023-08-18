@@ -2076,7 +2076,10 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
 ## For more complicated multi-step meshings, study the code and write your own.
 
 
-#' High-quality triangulations
+#' @title High-quality triangulations
+#'
+#'@description
+#' `r lifecycle::badge("deprecated")` in favour of [fmesher::fm_mesh_2d_inla()].
 #'
 #' Create a triangle mesh based on initial point locations, specified or
 #' automatic boundaries, and mesh quality parameters.
@@ -3784,8 +3787,12 @@ inla.parse.queries <- function(...) {
 # 1D mesh creation ----
 
 
-#' Function space definition objects for 1D SPDE models.
+#' @title Function space definition objects for 1D SPDE models.
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")` in favour of
+#' [fmesher::fm_mesh_1d()]
+#' 
 #' Create a 1D mesh specification `inla.mesh.1d` object, that defines a
 #' function space for 1D SPDE models.
 #'
@@ -5072,11 +5079,16 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
 ## where all operations are with respect to disks with the specified radii.
 
 
-#' Nonconvex set extensions.
+#' @title Nonconvex set extensions.
 #'
+#' @description
+#' `r lifecycle::badge("deprecated")` in favour of
+#' [fmesher::fm_nonconvex_hull_inla()] and [fmesher::fm_nonconvex_hull()].
+#' 
 #' Constructs a nonconvex boundary for a point set using morphological
 #' operations.
 #'
+#' @details
 #' Morphological dilation by `convex`, followed by closing by
 #' `concave`, with minimum concave curvature radius `concave`.  If
 #' the dilated set has no gaps of width between \deqn{2 convex (\sqrt{1+2
