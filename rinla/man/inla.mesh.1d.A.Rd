@@ -7,13 +7,7 @@
 \usage{
 inla.mesh.1d.bary(mesh, loc, method = c("linear", "nearest"))
 
-inla.mesh.1d.A(
-  mesh,
-  loc,
-  weights = NULL,
-  derivatives = NULL,
-  method = c("linear", "nearest", "quadratic")
-)
+inla.mesh.1d.A(mesh, loc, weights = NULL, derivatives = NULL, method = NULL)
 }
 \arguments{
 \item{mesh}{An \code{\link[=inla.mesh.1d]{inla.mesh.1d()}} object.}

@@ -5,19 +5,19 @@
 \alias{extract.groups.inla.mesh.segment}
 \title{Extract tagged boundary/internal segments.}
 \usage{
-extract.groups(...)
+extract.groups(segm, groups, groups.new = groups, ...)
 
 \method{extract.groups}{inla.mesh.segment}(segm, groups, groups.new = groups, ...)
 }
 \arguments{
-\item{\dots}{Additional arguments, passed on to other methods.}
-
 \item{segm}{An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.}
 
 \item{groups}{The segment groups id:s to extract.}
 
 \item{groups.new}{Optional vector of group id remapping; \code{groups[k]} in
 the input will be replaced by \code{groups.new[k]} in the output.}
+
+\item{\dots}{Additional arguments, passed on to other methods.}
 }
 \description{
 Extract boundary or internal segments tagged by group id:s.

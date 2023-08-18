@@ -379,14 +379,8 @@ param2.matern.orig =
 
     if (is.null(theta.prior.mean)) {
         if (is.null(prior.range.nominal)) {
-            mesh.range =
-                inla.ifelse(d==2,
-                (max(c(diff(range(mesh$loc[,1])),
-                       diff(range(mesh$loc[,2])),
-                       diff(range(mesh$loc[,3]))
-                       ))),
-                diff(mesh$interval))
-            prior.range.nominal = mesh.range*0.2
+            mesh.range <- fmesher::fm_diameter(mesh)
+            prior.range.nominal <- mesh.range*0.2
         }
 
         if (is.null(prior.kappa)) {

@@ -60,7 +60,7 @@ TMP=$(maketemp)
 {
     echo "inladatadir=data.files"
     echo "inlaresdir=results.files"
-    egrep -v '^(inladatadir|inlaresdir)' $model 
+    grep -v -E '^(inladatadir|inlaresdir)' $model 
 } > $TMP
 mv -f $TMP $model
 

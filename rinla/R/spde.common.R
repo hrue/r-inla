@@ -1016,7 +1016,7 @@ inla.spde.make.A <-
                   stop("'loc' specified but 'mesh' is NULL.")
               }
 
-            A.loc <- inlabru::fm_evaluator(mesh, loc = loc)$proj$A
+            A.loc <- fmesher::fm_evaluator(mesh, loc = loc)$proj$A
         }
         if (is.null(index)) {
             index <- seq_len(nrow(A.loc))

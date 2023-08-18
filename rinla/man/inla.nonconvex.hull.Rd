@@ -47,6 +47,9 @@ details.}
 An \code{\link[=inla.mesh.segment]{inla.mesh.segment()}} object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of
+\code{\link[fmesher:fm_nonconvex_hull_inla]{fmesher::fm_nonconvex_hull_inla()}} and \code{\link[fmesher:fm_nonconvex_hull]{fmesher::fm_nonconvex_hull()}}.
+
 Constructs a nonconvex boundary for a point set using morphological
 operations.
 }
@@ -70,10 +73,10 @@ Requires \code{nndistF} from the \code{splancs} package.
 \examples{
 
 if (require(splancs)) {
-    loc <- matrix(runif(20), 10, 2)
-    boundary <- inla.nonconvex.hull(loc, convex = 0.2)
-    lines(boundary, add = FALSE)
-    points(loc)
+  loc <- matrix(runif(20), 10, 2)
+  boundary <- inla.nonconvex.hull(loc, convex = 0.2)
+  lines(boundary, add = FALSE)
+  points(loc)
 }
 }
 \author{

@@ -1,3 +1,14 @@
+# INLA 23.08.18
+* Some improvement in the optimiser
+* Fix option `control.compute=list(q=TRUE)` for the default mode
+* Depend on the new `fmesher` package. By default, the new methods are used
+  silently instead of the old fmesher standalone binary, and are meant to produce
+  the same meshes etc as before. During a transition period, one can switch between
+  the two code bases, as well as turn on informative deprecation warnings
+  that point to which fmesher R function replaces the existing ones.
+  See https://inlabru-org.github.io/fmesher/articles/inla_conversion.html
+  for more details.
+
 # INLA 23.08.08
 * Fixed regression with argument `cdf=`. 
 * Various code improvement and minor fixes.

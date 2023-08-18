@@ -71,7 +71,7 @@ the projector object.
 }
 \description{
 Calculate a lattice projection to/from an \code{\link[=inla.mesh]{inla.mesh()}}.
-Deprecated in favour of \code{inlabru::fm_evaluate()} and \code{inlabru::fm_evaluator()}.
+Deprecated in favour of \code{fmesher::fm_evaluate()} and \code{fmesher::fm_evaluator()}.
 
 The call \code{inla.mesh.project(mesh, loc, field=..., ...)}, is a shortcut
 to inla.mesh.project(inla.mesh.projector(mesh, loc), field).
@@ -86,7 +86,7 @@ field <- cos(mesh$loc[, 1] * 2 * pi * 3) * sin(mesh$loc[, 2] * 2 * pi * 7)
 image(proj$x, proj$y, inla.mesh.project(proj, field))
 \donttest{
 if (require(rgl)) {
-    plot(mesh, rgl = TRUE, col = field, draw.edges = FALSE, draw.vertices = FALSE)
+  plot(mesh, rgl = TRUE, col = field, draw.edges = FALSE, draw.vertices = FALSE)
 }
 }
 

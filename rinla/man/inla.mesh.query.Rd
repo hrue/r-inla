@@ -31,15 +31,15 @@ lattice <- inla.mesh.lattice(dims = c(10, 10))
 mesh <- inla.mesh.create(loc = loc, lattice = lattice, extend = FALSE)
 
 vt <- which(inla.mesh.query(mesh,
-    vt.neighbours = list(
-        mesh$idx$loc,
-        4:6
-    )
+  vt.neighbours = list(
+    mesh$idx$loc,
+    4:6
+  )
 )$vt.neighbours)
 
 mesh2 <- inla.mesh.create(mesh$loc,
-    tv = mesh$graph$tv[vt, , drop = FALSE],
-    refine = FALSE, extend = FALSE
+  tv = mesh$graph$tv[vt, , drop = FALSE],
+  refine = FALSE, extend = FALSE
 )
 }
 \seealso{

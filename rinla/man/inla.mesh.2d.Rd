@@ -77,6 +77,8 @@ result after each step of the multi-step domain extension algorithm.}
 An \code{inla.mesh} object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_mesh_2d]{fmesher::fm_mesh_2d_inla()}}.
+
 Create a triangle mesh based on initial point locations, specified or
 automatic boundaries, and mesh quality parameters.
 }
@@ -85,14 +87,14 @@ automatic boundaries, and mesh quality parameters.
 loc <- matrix(runif(10 * 2), 10, 2)
 
 if (require("splancs")) {
-    boundary <- list(
-        inla.nonconvex.hull(loc, 0.1, 0.15),
-        inla.nonconvex.hull(loc, 0.2, 0.2)
-    )
-    offset <- NULL
+  boundary <- list(
+    inla.nonconvex.hull(loc, 0.1, 0.15),
+    inla.nonconvex.hull(loc, 0.2, 0.2)
+  )
+  offset <- NULL
 } else {
-    boundary <- NULL
-    offset <- c(0.1, 0.2)
+  boundary <- NULL
+  offset <- c(0.1, 0.2)
 }
 mesh <- inla.mesh.2d(loc, boundary = boundary, offset = offset, max.edge = c(0.05, 0.1))
 

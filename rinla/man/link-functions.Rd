@@ -105,10 +105,10 @@ inla.link.invinvalid(x, inverse = FALSE)
 \item{intercept}{The quantile level for the intercept in the Skew-Normal
 link}
 
-\item{skew}{The skewness in the Skew-Normal.  Not both of \code{skew} and
+\item{skew}{The skewness in the Skew-Normal.  Only one of \code{skew} and
 \code{a} can be given.}
 
-\item{a}{The \code{a}-paraeter in the Skew-Normal.  Not both of \code{skew}
+\item{a}{The \code{a}-parameter in the Skew-Normal.  Only one of \code{skew}
 and \code{a} can be given.}
 }
 \value{

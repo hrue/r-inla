@@ -26,7 +26,7 @@ RemoteHost=inla.kaust.edu.sa
 RemoteUser=$USER
 Port=$SSHDefaultPort
 sshArguments="-x -o BatchMode=yes -o TCPKeepAlive=yes -e none"
-COMPRESS="zstd -T0 -z -18"
+COMPRESS="zstd -T0 -z"
 UNCOMPRESS="zstd -T0 -d"
 
 if [ -r "$INIFILE" ]; then
@@ -55,7 +55,7 @@ TMP=$(maketemp)
 {
     echo "inladatadir=data.files"
     echo "inlaresdir=results.files"
-    egrep -v '^(inladatadir|inlaresdir)' $model 
+    grep -v -E '^(inladatadir|inlaresdir)' $model 
 } > $TMP
 mv -f $TMP $model
 
