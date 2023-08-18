@@ -1,5 +1,6 @@
-# INLA 23.08.??
-
+# INLA 23.08.18
+* Some improvement in the optimiser
+* Fix option `control.compute=list(q=TRUE)` for the default mode
 * Depend on the new `fmesher` package. By default, the new methods are used
   silently instead of the old fmesher standalone binary, and are meant to produce
   the same meshes etc as before. During a transition period, one can switch between
