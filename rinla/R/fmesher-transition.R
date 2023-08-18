@@ -26,6 +26,9 @@ fmesher_deprecate <- function(level = NULL,
     
     verb <- match.arg(verb, c("default", "soft", "warn", "stop"))
     level <- match.arg(level, c("default", "soft", "warn", "stop"))
+    
+    details <- c(details,
+                 "For more information, see https://inlabru-org.github.io/fmesher/articles/inla_conversion.html")
 
     if (identical(level, "stop") || (w && identical(verb, "stop"))) {
         lifecycle::deprecate_stop(

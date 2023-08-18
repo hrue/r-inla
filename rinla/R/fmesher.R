@@ -7,7 +7,7 @@
     # have been eliminated.
     fmesher_deprecate("stop",
         2L,
-        "23.08.03",
+        "23.08.18",
         "inla.fmesher.call()",
         details = "With `fmesher.evolution >= 2L`, no standalone fmesher binary calls should be made."
     )

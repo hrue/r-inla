@@ -800,7 +800,7 @@ inla.crs.bounds <- function(crs, warn.unknown = FALSE) {
     if (fmesher_deprecate(
         "soft",
         2L,
-        when = "23.08.02",
+        when = "23.08.18",
         what = "inla.crs.bounds()",
         with = "fmesher::fm_crs_bounds()"
     )) {

@@ -193,5 +193,3 @@ Collate:
     'utils.R'
     'version.R'
 Roxygen: list(markdown = TRUE)
-Remotes:
-    inlabru-org/fmesher

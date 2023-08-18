@@ -65,7 +65,7 @@
 inla.mesh.segment <- function(...) {
   if (fmesher_deprecate("soft",
     2L,
-    "23.08.02",
+    "23.08.18",
     "inla.mesh.segment()",
     "fmesher::fm_segm()",
     id = "inla.mesh.segment"
@@ -85,7 +85,7 @@ inla.mesh.segment.default <- function(loc = NULL,
                                       ...) {
   if (fmesher_deprecate("soft",
     2L,
-    "23.08.02",
+    "23.08.18",
     "inla.mesh.segment()",
     "fmesher::fm_segm()",
     id = "inla.mesh.segment"
@@ -231,7 +231,7 @@ inla.mesh.segment.default <- function(loc = NULL,
 inla.mesh.segment.inla.mesh.segment <- function(..., grp.default = 0) {
   if (fmesher_deprecate("soft",
     2L,
-    "23.08.02",
+    "23.08.18",
     "inla.mesh.segment()",
     "fmesher::fm_segm()",
     id = "inla.mesh.segment"
@@ -331,7 +331,7 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
   if (rgl && fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "lines.inla.mesh.segment()",
     "fmesher::lines_rgl()"
   )) {
@@ -347,7 +347,7 @@ lines.inla.mesh.segment <- function(x, loc = NULL, col = NULL,
   if (!rgl && fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "lines.inla.mesh.segment()",
     "fmesher::lines()"
   )) {
@@ -436,7 +436,7 @@ inla.generate.colors <- function(color,
   fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.generate.colors()",
     "fmesher:::generate_colors()"
   )
@@ -547,7 +547,7 @@ plot.inla.trimesh <- function(x, S, color = NULL, color.axis = NULL,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "plot.inla.trimesh()",
     "fmesher::plot_rgl()"
   )) {
@@ -694,7 +694,7 @@ plot.inla.mesh <- function(x,
   if (rgl && fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "plot.inla.mesh()",
     "fmesher::plot_rgl()"
   )) {
@@ -719,7 +719,7 @@ plot.inla.mesh <- function(x,
   if (!rgl && fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "plot.inla.mesh()",
     "fmesher::plot()"
   )) {
@@ -846,7 +846,7 @@ inla.mesh.map.lim <- function(loc = NULL,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.map.lim()",
     "fmesher::fm_mesh_2d_map_lim()"
   )) {
@@ -902,7 +902,7 @@ inla.mesh.map <- function(loc,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.map()",
     "fmesher::fm_mesh_2d_map()"
   )) {
@@ -1045,7 +1045,7 @@ inla.mesh.lattice <- function(x = seq(0, 1, length.out = 2),
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.lattice()",
     "fmesher::fm_lattice_2d()"
   )) {
@@ -1158,7 +1158,7 @@ extract.groups <- function(segm, groups, groups.new = groups, ...) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     I("`extract.groups(segm, groups)`"),
     I("`fmesher::fm_segm(segm, grp = groups)`"),
     "Note that the `groups.new` argument may not be supported."
@@ -1178,7 +1178,7 @@ extract.groups.inla.mesh.segment <- function(segm,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     I("`extract.groups(segm, groups)`"),
     I("`fmesher::fm_segm(segm, grp = groups)`"),
     "Note that the `groups.new` argument may not be supported."
@@ -1523,7 +1523,7 @@ inla.mesh.create <- function(loc = NULL, tv = NULL,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.create()",
     "fmesher::fm_rcdt_2d_inla()"
   )) {
@@ -2017,7 +2017,7 @@ inla.mesh.boundary <- function(mesh, grp = NULL) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.boundary()",
     I("`fmesher::fm_segm(mesh, boundary = TRUE)`")
   )) {
@@ -2045,7 +2045,7 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.interior()",
     I("`fmesher::fm_segm(mesh, boundary = FALSE)`")
   )) {
@@ -2160,7 +2160,7 @@ inla.mesh.2d <- function(loc = NULL, ## Points to include in final triangulation
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.2d()",
     "fmesher::fm_mesh_2d_inla()"
   )) {
@@ -2531,7 +2531,7 @@ inla.delaunay <- function(loc, ...) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.delaunay()",
     "fmesher::fm_delaunay_2d()"
   )) {
@@ -2609,7 +2609,7 @@ inla.delaunay <- function(loc, ...) {
 inla.mesh.query <- function(mesh, ...) {
   fmesher_deprecate("soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.query()",
     details = "Does not yet have an `fmesher` alternative."
   )
@@ -3332,7 +3332,7 @@ inla.mesh.basis <- function(mesh,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.basis()",
     "fmesher::fm_raw_basis()"
   )) {
@@ -3596,7 +3596,7 @@ inla.parse.queries <- function(...) {
   names(msg) <- NULL
   if (fmesher_deprecate("warn",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.fmesher.smorg()",
     details = msg
   )) {
@@ -3810,7 +3810,7 @@ inla.mesh.1d <- function(loc,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.1d()",
     "fmesher::fm_mesh_1d()"
   )) {
@@ -3984,7 +3984,7 @@ inla.mesh.1d.bary <- function(mesh, loc, method = c("linear", "nearest")) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.1d.bary()",
     "fmesher::fm_bary()",
     details =
@@ -4104,7 +4104,7 @@ inla.mesh.1d.A <- function(mesh, loc,
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.1d.A()",
     "fmesher::fm_basis()"
   )) {
@@ -4431,7 +4431,7 @@ inla.mesh.1d.fem <- function(mesh) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.fem()",
     "fmesher::fm_fem()"
   )) {
@@ -4622,7 +4622,7 @@ inla.diameter <- function(x, ...) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.diameter()",
     "fmesher::fm_diameter()"
   )) {
@@ -4721,7 +4721,7 @@ inla.mesh.fem <- function(mesh, order = 2) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.fem()",
     "fmesher::fm_fem()"
   )) {
@@ -4773,7 +4773,7 @@ inla.mesh.deriv <- function(mesh, loc) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.mesh.deriv()",
     I("`fmesher::fm_basis(..., derivatives = TRUE)`")
   )) {
@@ -4854,7 +4854,7 @@ inla.simplify.curve <- function(loc, idx, eps) {
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.simplify.curve()",
     "fmesher::fm_simplify_helper()"
   )) {
@@ -4921,7 +4921,7 @@ inla.contour.segment <- function(x = seq(0, 1, length.out = nrow(z)),
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.contour.segment()",
     "fmesher::fm_segm_contour_helper()"
   )) {
@@ -5122,7 +5122,7 @@ inla.nonconvex.hull <- function(points, convex = -0.15, concave = convex, resolu
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.nonconvex.hull()",
     I("`fmesher::fm_nonconvex_hull()` or `fmesher::fm_nonconvex_hull_inla()`")
   )) {
@@ -5253,7 +5253,7 @@ inla.nonconvex.hull.basic <- function(points, convex = -0.15, resolution = 40, e
   if (fmesher_deprecate(
     "soft",
     2L,
-    "23.08.03",
+    "23.08.18",
     "inla.nonconvex.hull.basic()",
     I("`fmesher::fm_nonconvex_hull()` or `fmesher::fm_nonconvex_hull_inla_basic()`")
   )) {
