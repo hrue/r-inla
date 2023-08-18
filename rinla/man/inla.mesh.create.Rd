@@ -17,7 +17,7 @@ inla.mesh.create(
   globe = NULL,
   cutoff = 1e-12,
   plot.delay = NULL,
-  data.dir,
+  data.dir = NULL,
   keep = (!missing(data.dir) && !is.null(data.dir)),
   timings = FALSE,
   quality.spec = NULL,
@@ -96,10 +96,11 @@ specification for each location in \code{loc}, \code{boundary/interior}
 An \code{inla.mesh} object.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} in favour of \code{\link[fmesher:fm_rcdt_2d]{fmesher::fm_rcdt_2d_inla()}}.
+
 Create a constrained refined Delaunay triangulation (CRDT) for a set of
 spatial locations.
-}
-\details{
+
 \code{inla.mesh.create} generates triangular meshes on subsets of
 \eqn{R^2}{R^2} and \eqn{S^2}{S^2}.  Use the higher level wrapper function
 \code{\link[=inla.mesh.2d]{inla.mesh.2d()}} for greater control over mesh resolution and
@@ -117,19 +118,19 @@ mesh <- inla.delaunay(loc)
 plot(mesh)
 
 mesh <- inla.mesh.create(loc,
-    interior = inla.mesh.segment(idx = 1:2),
-    extend = TRUE,
-    refine = list(max.edge = 0.1)
+  interior = inla.mesh.segment(idx = 1:2),
+  extend = TRUE,
+  refine = list(max.edge = 0.1)
 )
 plot(mesh)
 
 loc2 <- matrix(c(0, 1, 1, 0, 0, 0, 1, 1), 4, 2)
 mesh2 <- inla.mesh.create(
-    loc = loc,
-    boundary = inla.mesh.segment(loc2),
-    interior = inla.mesh.segment(idx = 1:2),
-    quality.spec = list(segm = 0.2, loc = 0.05),
-    refine = list(min.angle = 26)
+  loc = loc,
+  boundary = inla.mesh.segment(loc2),
+  interior = inla.mesh.segment(idx = 1:2),
+  quality.spec = list(segm = 0.2, loc = 0.05),
+  refine = list(min.angle = 26)
 )
 plot(mesh2)
 }

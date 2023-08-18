@@ -20,7 +20,7 @@ inla.mesh.basis(
 \item{mesh}{An \code{inla.mesh.1d} or \code{inla.mesh} object.}
 
 \item{type}{\code{b.spline} (default) for B-spline basis functions,
-\code{sph.harm} for spherical harmonics (available opnly for meshes on the
+\code{sph.harm} for spherical harmonics (available only for meshes on the
 sphere)}
 
 \item{n}{For B-splines, the number of basis functions in each direction (for
@@ -32,7 +32,7 @@ For spherical harmonics, \code{n} is the maximal harmonic order.}
 
 \item{knot.placement}{For B-splines on the sphere, controls the latitudinal
 placements of knots. \code{"uniform.area"} (default) gives uniform spacing
-in sin(latitude), \code{"uniform.latitude"} gives uniform spacing in
+in \code{sin(latitude)}, \code{"uniform.latitude"} gives uniform spacing in
 latitudes.}
 
 \item{rot.inv}{For spherical harmonics on a sphere, \code{rot.inv=TRUE}
@@ -48,6 +48,8 @@ repeating the boundary knots.}
 \item{...}{Unused}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use the \code{\link[fmesher:fm_raw_basis]{fmesher::fm_raw_basis()}} instead.
+
 Calculate basis functions on a 1d or 2d \code{\link[=inla.mesh]{inla.mesh()}}
 }
 \examples{
@@ -61,7 +63,7 @@ proj <- inla.mesh.projector(mesh)
 image(proj$x, proj$y, inla.mesh.project(proj, basis[, 7]))
 \donttest{
 if (require(rgl)) {
-    plot(mesh, rgl = TRUE, col = basis[, 7], draw.edges = FALSE, draw.vertices = FALSE)
+  plot(mesh, rgl = TRUE, col = basis[, 7], draw.edges = FALSE, draw.vertices = FALSE)
 }
 }
 

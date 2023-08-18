@@ -73,7 +73,7 @@ mesh <- inla.mesh.create(globe = 10)
 plot(mesh)
 \donttest{
 if (require(rgl)) {
-    plot(mesh, rgl = TRUE, col = mesh$loc[, 1])
+  plot(mesh, rgl = TRUE, col = mesh$loc[, 1])
 }
 }
 

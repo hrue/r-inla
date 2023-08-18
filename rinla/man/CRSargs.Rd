@@ -38,7 +38,8 @@ For \code{inla.as.CRS.list}, a \code{CRS} or \code{inla.CRS} object.
 \description{
 Wrapper for \code{sp::CRS} and \code{inla.CRS} objects to extract the
 coordinate reference system argument string.
-'r lifecycle::badge("deprecated")\verb{in favour of}fm_proj4string()\verb{, or }fm_wkt()` for WKT2 representations.
+'r lifecycle::badge("deprecated")` in favour of \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_proj4string()}},
+or \code{\link[fmesher:fm_crs_wkt]{fmesher::fm_wkt()}} for WKT2 representations.
 }
 \details{
 \itemize{
@@ -51,16 +52,16 @@ coordinate reference system argument string.
 }
 \examples{
 
-if (require("sf") && require("sp") && require("inlabru")) {
-  crs0 <- fm_CRS("longlat_norm")
-  p4s <- fm_proj4string(crs0)
-  lst <- inla.as.list.CRSargs(p4s)
-  crs1 <- inla.as.CRS.list(lst)
-  lst$a <- 2
-  crs2 <- fm_CRS(p4s, args = lst)
-  print(fm_proj4string(crs0))
-  print(fm_proj4string(crs1))
-  print(fm_proj4string(crs2))
+if (require("sf") && require("sp") && require("fmesher")) {
+    crs0 <- fm_CRS("longlat_norm")
+    p4s <- fm_proj4string(crs0)
+    lst <- inla.as.list.CRSargs(p4s)
+    crs1 <- inla.as.CRS.list(lst)
+    lst$a <- 2
+    crs2 <- fm_CRS(p4s, args = lst)
+    print(fm_proj4string(crs0))
+    print(fm_proj4string(crs1))
+    print(fm_proj4string(crs2))
 }
 }
 \seealso{

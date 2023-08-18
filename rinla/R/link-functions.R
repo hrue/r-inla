@@ -10,9 +10,9 @@
 #' (`inverse=TRUE`)
 #' @param intercept The quantile level for the intercept in the Skew-Normal
 #' link
-#' @param skew The skewness in the Skew-Normal.  Not both of `skew` and
+#' @param skew The skewness in the Skew-Normal.  Only one of `skew` and
 #' `a` can be given.
-#' @param a The `a`-paraeter in the Skew-Normal.  Not both of `skew`
+#' @param a The `a`-parameter in the Skew-Normal.  Only one of `skew`
 #' and `a` can be given.
 #' @param quantile The quantile level for quantile links
 #' @return Return the values of the link-function or its inverse.

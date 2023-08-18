@@ -13,6 +13,7 @@ Authors@R: c(
     person("Martin", "Modrak", email = "modrak.m@email.cz", role = "ctb"),
     person("Cristian", "Chiuchiolo", email = "cristian.chiuchiolo@kaust.edu.sa", role = "ctb"))
 Description: Full Bayesian analysis of latent Gaussian models using Integrated Nested Laplace Approximaxion. It is a front-end to the inla-program.
+Additional_repositories: http:://inlabru-org.r-universe.dev/
 Depends:
     R (>= 3.5),
     Matrix (>= 1.3-0),
@@ -20,10 +21,11 @@ Depends:
 Imports:
     graphics,
     grDevices,
-    inlabru (>= 2.8.0),
+    fmesher (>= 0.0.9.9026),
     lifecycle,
     methods,
     parallel,
+    rlang,
     splines,
     stats,
     utils,
@@ -101,6 +103,7 @@ Collate:
     'fgn.R'
     'finn.R'
     'fmesher-io.R'
+    'fmesher-transition.R'
     'fmesher.R'
     'graph.convert.R'
     'graph.matrix.R'
@@ -190,3 +193,5 @@ Collate:
     'utils.R'
     'version.R'
 Roxygen: list(markdown = TRUE)
+Remotes:
+    inlabru-org/fmesher

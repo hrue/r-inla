@@ -3,7 +3,8 @@
 #' Wrapper for the [sp::over()] method to find triangle centroids
 #' or vertices inside `sp` polygon objects.
 #' Deprecated since 23.06.06 in favour of `inlabru::fm_contains()` when `inlabru`
-#' version `>= 2.7.0.9011` is installed.
+#' version `>= 2.7.0.9011` is installed, and since 23.08.02 in favour of
+#' `fmesher::fm_contains()` when `fmesher`.
 #'
 #' @param x geometry (typically a [sp::SpatialPolygons()] object) for the queries
 #' @param y an [inla.mesh()] object
@@ -19,17 +20,19 @@
 #'
 #' @examples
 #' # Create a polygon and a mesh
-#' obj <- sp::SpatialPolygons(list(Polygons(list(Polygon(rbind(
-#'     c(0, 0),
-#'     c(50, 0),
-#'     c(50, 50),
-#'     c(0, 50)
-#' ))),
-#' ID = 1
-#' )),
-#' proj4string = inlabru::fm_CRS("longlat_globe")
+#' obj <- sp::SpatialPolygons(
+#'     list(Polygons(
+#'         list(Polygon(rbind(
+#'             c(0, 0),
+#'             c(50, 0),
+#'             c(50, 50),
+#'             c(0, 50)
+#'         ))),
+#'         ID = 1
+#'     )),
+#'     proj4string = fmesher::fm_CRS("longlat_globe")
 #' )
-#' mesh <- inla.mesh.create(globe = 2, crs = inlabru::fm_CRS("sphere"))
+#' mesh <- inla.mesh.create(globe = 2, crs = fmesher::fm_CRS("sphere"))
 #'
 #' ## 3 vertices found in the polygon
 #' inla.over_sp_mesh(obj, mesh, type = "vertex")
@@ -40,72 +43,28 @@
 #' ## Multiple transformations can lead to slightly different results due to edge cases
 #' ## 4 triangles found in the polygon
 #' inla.over_sp_mesh(
-#'   obj,
-#'   inlabru::fm_transform(mesh, crs = inlabru::fm_crs("mollweide_norm"))
+#'     obj,
+#'     fmesher::fm_transform(mesh, crs = fmesher::fm_crs("mollweide_norm"))
 #' )
 #' @export
 inla.over_sp_mesh <- function(x, y, type = c("centroid", "vertex"), ignore.CRS = FALSE) {
-    if ((getNamespaceVersion("inlabru") >= "2.7.0.9011")) {
-        if (inla.getOption("fmesher.evolution") >= 2L) {
-            lifecycle::deprecate_soft("23.06.06",
-                                      what = "inla.over_sp_mesh()",
-                                      with = "inlabru::fm_contains()",
-                                      details = c("fm_contains() is available from inlabru version 2.7.0.9011",
-                                                  "For equivalent output, use 'unlist(fm_contains(...))'"))
-            if (!missing(ignore.CRS) && isTRUE(ignore.CRS)) {
-                lifecycle::deprecate_soft("23.06.06",
-                                          what = "inla.over_sp_mesh(ignore.CRS)",
-                                          with = "ignore.CRS will be treated as FALSE")
-            }
-        }
-        return(unlist(inlabru::fm_contains(x = x, y = y, type = type)))
+    fmesher_deprecate("soft", 1L,
+        "23.06.06",
+        what = "inla.over_sp_mesh()",
+        with = "fmesher::fm_contains()",
+        details = c(
+            "fm_contains() is available from fmesher version 0.0.9",
+            "For equivalent output, use 'unlist(fm_contains(...))'"
+        )
+    )
+    if (!missing(ignore.CRS) && isTRUE(ignore.CRS)) {
+        fmesher_deprecate(
+            "soft", 1L,
+            "23.06.06",
+            what = "inla.over_sp_mesh(ignore.CRS)",
+            with = "ignore.CRS will be treated as FALSE"
+        )
     }
 
-    if (!inherits(y, "inla.mesh")) {
-        stop(paste0(
-            "'y' must be an 'inla.mesh' object, not '",
-            paste0(class(y), collapse = ", "),
-            "'."
-        ))
-    }
-    type <- match.arg(type)
-    if (identical(type, "centroid")) {
-        ## Extract triangle centroids
-        points <- (y$loc[y$graph$tv[, 1], , drop = FALSE] +
-            y$loc[y$graph$tv[, 2], , drop = FALSE] +
-            y$loc[y$graph$tv[, 3], , drop = FALSE]) / 3
-        if (identical(y$manifold, "S2")) {
-            points <- points / rowSums(points^2)^0.5
-        }
-    } else if (identical(type, "vertex")) {
-        ## Extract vertices
-        points <- y$loc
-    }
-    ## Convert to SpatialPoints
-    if (ignore.CRS) {
-        if (identical(y$manifold, "S2")) {
-            stop("sp::over cannot operate on geocentric coordinates.")
-        }
-        ## Ignore any actual CRS information, and copy the one from x
-        points <- sp::SpatialPoints(points, proj4string = inla.sp_get_crs(x))
-    } else {
-        ## Extract coordinate system information
-        if (identical(y$manifold, "S2")) {
-            crs <- inla.CRS("sphere")
-        } else {
-            crs <- y$crs
-        }
-        crs_x <- inla.sp_get_crs(x)
-        ## Create SpatialPoints object and transform the coordinates.
-        points <- sp::SpatialPoints(points, proj4string = crs)
-        if (!is.null(inla.crs_get_wkt(crs)) &&
-            !is.null(inla.crs_get_wkt(crs_x))) {
-            ## Convert to the target object CRS
-            points <- inlabru::fm_transform(points, crs = crs_x)
-        }
-    }
-    ## Find indices:
-    ids <- unlist(sp::over(x, points, returnList = TRUE))
-
-    ids
+    return(unlist(fmesher::fm_contains(x = x, y = y, type = type)))
 }

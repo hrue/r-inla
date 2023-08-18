@@ -142,35 +142,39 @@ the internal spde2 model representation
 }}
 \examples{
 
-n = 100
-field.fcn = function(loc) (10*cos(2*pi*2*(loc[,1]+loc[,2])))
-loc = matrix(runif(n*2),n,2)
+n <- 100
+field.fcn <- function(loc) (10 * cos(2 * pi * 2 * (loc[, 1] + loc[, 2])))
+loc <- matrix(runif(n * 2), n, 2)
 ## One field, 2 observations per location
-idx.y = rep(1:n,2)
-y = field.fcn(loc[idx.y,]) + rnorm(length(idx.y))
+idx.y <- rep(1:n, 2)
+y <- field.fcn(loc[idx.y, ]) + rnorm(length(idx.y))
 
-mesh = inla.mesh.create(loc, refine=list(max.edge=0.05))
-spde = inla.spde2.matern(mesh)
-data = list(y=y, field=mesh$idx$loc[idx.y])
-formula = y ~ -1 + f(field, model=spde)
-result = inla(formula, data=data, family="normal")
+mesh <- inla.mesh.create(loc, refine = list(max.edge = 0.05))
+spde <- inla.spde2.matern(mesh)
+data <- list(y = y, field = mesh$idx$loc[idx.y])
+formula <- y ~ -1 + f(field, model = spde)
+result <- inla(formula, data = data, family = "normal")
 
 ## Plot the mesh structure:
 plot(mesh)
 \donttest{
 if (require(rgl)) {
-  col.pal = colorRampPalette(c("blue","cyan","green","yellow","red"))
-  ## Plot the posterior mean:
-  plot(mesh, rgl=TRUE,
-       result$summary.random$field[,"mean"],
-       color.palette = col.pal)
-  ## Plot residual field:
-  plot(mesh, rgl=TRUE,
-       result$summary.random$field[,"mean"]-field.fcn(mesh$loc),
-       color.palette = col.pal)
+    col.pal <- colorRampPalette(c("blue", "cyan", "green", "yellow", "red"))
+    ## Plot the posterior mean:
+    plot(mesh,
+        rgl = TRUE,
+        result$summary.random$field[, "mean"],
+        color.palette = col.pal
+    )
+    ## Plot residual field:
+    plot(mesh,
+        rgl = TRUE,
+        result$summary.random$field[, "mean"] - field.fcn(mesh$loc),
+        color.palette = col.pal
+    )
 }
 }
-result.field = inla.spde.result(result, "field", spde)
+result.field <- inla.spde.result(result, "field", spde)
 plot(result.field$marginals.range.nominal[[1]])
 
 }

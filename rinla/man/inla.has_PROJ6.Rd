@@ -54,6 +54,6 @@ is required but not available
 }}
 \examples{
 \dontrun{
-  inla.has_PROJ6()
+inla.has_PROJ6()
 }
 }

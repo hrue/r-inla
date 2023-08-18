@@ -10,8 +10,8 @@ inla.fmesher.smorg(
   fem = NULL,
   aniso = NULL,
   gradients = FALSE,
-  sph0 = NULL,
-  sph = NULL,
+  sph0 = deprecated(),
+  sph = deprecated(),
   bspline = NULL,
   points2mesh = NULL,
   splitlines = NULL,
@@ -24,29 +24,34 @@ inla.fmesher.smorg(
 
 \item{tv}{3-column triangle vertex index matrix.}
 
-\item{fem}{Maximum finite element matrix order to be computed.}
+\item{fem}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_fem]{fmesher::fm_fem()}} instead.
+Maximum finite element matrix order to be computed.}
 
-\item{aniso}{A two-element list with \eqn{\gamma}{gamma} and \eqn{v}{v} for
+\item{aniso}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_fem]{fmesher::fm_fem()}} instead.
+A two-element list with \eqn{\gamma}{gamma} and \eqn{v}{v} for
 an anisotropic operator \eqn{\nabla\cdot H \nabla}{div H grad}, where
 \eqn{H=\gamma I + v v^\top}{H = gamma I + v v'}}
 
-\item{gradients}{When \code{TRUE}, calculate derivative operator matrices
+\item{gradients}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_fem]{fmesher::fm_fem()}} instead.
+When \code{TRUE}, calculate derivative operator matrices
 \code{dx}, dy, and dz.}
 
-\item{sph0}{Maximal order of rotationally invariant spherical harmonics.
-Deprecated. Use \code{\link[=inla.mesh.basis]{inla.mesh.basis()}} instead.}
+\item{sph0}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_raw_basis]{fmesher::fm_raw_basis()}} instead.}
 
-\item{sph}{Maximal order of general spherical harmonics.
-Deprecated. Use \code{\link[=inla.mesh.basis]{inla.mesh.basis()}} instead.}
+\item{sph}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_raw_basis]{fmesher::fm_raw_basis()}} instead.}
 
-\item{bspline}{Rotationally invariant B-splines on a sphere.  3-vector with
+\item{bspline}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_raw_basis]{fmesher::fm_raw_basis()}} instead.
+Rotationally invariant B-splines on a sphere.  3-vector with
 number of basis functions \code{n}, basis degree \code{degree}, and a
 logical; \code{TRUE} uniform knot angles, \code{FALSE} for uniform spacing
 in \eqn{\sin(latitude)}{sin(latitude)}.}
 
-\item{points2mesh}{3-column matrix with points to be located in the mesh.}
+\item{points2mesh}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_bary]{fmesher::fm_bary()}} instead.
+3-column matrix with points to be located in the mesh.}
 
-\item{splitlines}{A list with elements \code{loc} (3-column coordinate
+\item{splitlines}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{\link[fmesher:fm_split_lines]{fmesher::fm_split_lines()}} or
+\code{\link[fmesher:fmesher_split_lines]{fmesher::fmesher_split_lines()}} instead.
+A list with elements \code{loc} (3-column coordinate
 matrix) and \code{idx} (2-column index matrix) describing line segments that
 are to be split into sub-segments at triangle boundaries.}
 
@@ -60,6 +65,9 @@ I/O files on disk.}
 A list of generated named quantities.
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use the methods in the \code{fmesher} package
+instead; see details below.
+
 Low level function for computing finite element matrices, spherical
 harmonics, B-splines, and point mappings with barycentric triangle
 coordinates.

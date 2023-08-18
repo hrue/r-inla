@@ -47,17 +47,17 @@ plot(mesh)
 
 ## Refine the triangulation, with limits on triangle angles and edges:
 mesh <- inla.mesh.create(
-    lattice = lattice,
-    refine = list(max.edge = 0.08),
-    extend = FALSE
+  lattice = lattice,
+  refine = list(max.edge = 0.08),
+  extend = FALSE
 )
 plot(mesh)
 
 ## Add an extension around the lattice, but maintain the lattice edges:
 mesh <- inla.mesh.create(
-    lattice = lattice,
-    refine = list(max.edge = 0.08),
-    interior = lattice$segm
+  lattice = lattice,
+  refine = list(max.edge = 0.08),
+  interior = lattice$segm
 )
 plot(mesh)
 

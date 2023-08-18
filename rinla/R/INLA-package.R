@@ -25,6 +25,11 @@ NULL
 #' @importFrom withr defer
 NULL
 
+# Special imports:
+## usethis namespace: start
+#' @importFrom lifecycle deprecated
+## usethis namespace: end
+NULL
 
 
 
