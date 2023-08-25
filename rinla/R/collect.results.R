@@ -1955,17 +1955,10 @@
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random,
-                           function(x) (
-                               is.null(x) ||
-                               (is.numeric(x) &&
-                                (length(x) == 1) &&
-                                is.na(x))
-                               )))) {
+            if (all(sapply(marginals.random, function(x) is.null(x) || all(is.na(unlist(x)))))) {
                 marginals.random <- NULL
             }
         }
-
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
             names(marginals.random) <- names.random
         }
@@ -2121,15 +2114,10 @@
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random,
-                           function(x) (is.null(x) ||
-                                        (is.numeric(x) &&
-                                         (length(x) == 1) &&
-                                         is.na(x)))))) {
+            if (all(sapply(marginals.random, function(x) is.null(x) || all(is.na(unlist(x)))))) {
                 marginals.random <- NULL
             }
         }
-
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
             names(marginals.random) <- names.random
         }
@@ -2284,15 +2272,10 @@
 
         ## could be that marginals.random is a list of lists of NULL or NA
         if (!is.null(marginals.random)) {
-            if (all(sapply(marginals.random,
-                           function(x) (is.null(x) ||
-                                        (is.numeric(x) &&
-                                         (length(x) == 1) &&
-                                         is.na(x)))))) {
+            if (all(sapply(marginals.random, function(x) is.null(x) || all(is.na(unlist(x)))))) {
                 marginals.random <- NULL
             }
         }
-
         if (!is.null(marginals.random) && (length(marginals.random) > 0L)) {
             names(marginals.random) <- names.random
         }
