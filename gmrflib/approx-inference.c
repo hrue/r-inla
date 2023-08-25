@@ -4127,7 +4127,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	// coofs->coofs[0] = -d * A;
 	coofs->coofs[0] = NAN;
 	coofs->coofs[1] = -d * B * 0.5 * s2_inv;
-	coofs->coofs[2] = -d * C * 0.25 * s2_inv;
+	coofs->coofs[2] = -d * C * 0.25 * SQR(s2_inv);
 
 	return GMRFLib_SUCCESS;
 }
