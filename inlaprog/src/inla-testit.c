@@ -50,6 +50,26 @@ int loglikelihood_testit(int UNUSED(thread_id), double *logll, double *x, int m,
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_testit1(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
+			  void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	double y = *((double *) arg);
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			logll[i] = y * x[i] - exp(x[i]);
+		}
+	} else {
+		abort();
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -3805,6 +3825,61 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 129: 
+	{
+		int NP = 21;
+		double x_user[NP], loglik[NP], y = 8;
+
+		double pprec = 1.1, pmean = 1.2;
+		double *xp = NULL, *wtmp = NULL;
+		GMRFLib_ghq(&xp, &wtmp, NP);
+
+		double post_prec = pprec + y;
+		double post_mean = (pprec * pmean + y * log(y)) / post_prec;
+		double s = sqrt(1.0 / post_prec);
+		double s2 = SQR(s);
+
+		for(int i = 0; i < NP; i++) {
+			x_user[i] = xp[i] * s + post_mean;
+		}
+		loglikelihood_testit1(0, loglik, x_user, NP, 0, NULL, NULL, (void *) &y, NULL);
+
+		double tmp[5] =  {0, 0, 0, 0, 0};
+
+		for(int i = 0; i < NP; i++) {
+			tmp[0] += - wtmp[i] * loglik[i] * xp[i] / s; // d mu
+			tmp[1] += - wtmp[i] * loglik[i] * (SQR(xp[i]) - 1.0) / s2; // d mu d mu
+			tmp[2] += - wtmp[i] * loglik[i] * (SQR(xp[i]) - 1.0) * 0.5 / s2; // d sigma^2
+			tmp[3] += - wtmp[i] * loglik[i] * (3.0 - 6.0 * SQR(xp[i]) + POW4(xp[i])) * 0.25 / SQR(s2); // d sigma^2 d sigma^2
+			tmp[4] += - wtmp[i] * loglik[i] * (-3.0 * xp[i] + POW3(xp[i])) * 0.5 / POW3(s); // d sigma^2 d mu
+		}
+
+		printf("post mean %.12f prec %.12f\n", post_mean, post_prec);
+
+		GMRFLib_vb_coofs_tp mm;
+		GMRFLib_ai_vb_prepare_mean(0, &mm, 0, 1.0, loglikelihood_testit1, 
+					   (void *) &y, NULL, post_mean, 1.0/sqrt(post_prec));
+
+		double ee = exp(post_mean + 0.5 * s2);
+		printf("d mu      : numeric1 %.16f  true %.16f  err %.16f\n", tmp[0], -(y - ee), -(y - ee) - tmp[0]);
+		printf("d mu      : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[1], -(y - ee), -(y - ee) - mm.coofs[1]);
+
+		printf("d mu mu   : numeric1 %.16f  true %.16f  err %.16f\n", tmp[1], ee, ee - tmp[1]);
+		printf("d mu mu   : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], ee, ee - mm.coofs[2]);
+
+		GMRFLib_ai_vb_prepare_variance(0, &mm, 0, 1.0, loglikelihood_testit1, 
+					       (void *) &y, NULL, post_mean, 1.0/sqrt(post_prec));
+
+		printf("d var     : numeric1 %.16f  true %.16f  err %.16f\n", tmp[2], 0.5 * ee, 0.5 * ee - tmp[2]);
+		printf("d var     : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[1], 0.5 * ee, 0.5 * ee - mm.coofs[1]);
+
+		printf("d var var : numeric1 %.16f  true %.16f  err %.16f\n", tmp[3], 0.25 * ee, 0.25 * ee - tmp[3]);
+		printf("d var var : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], 0.25 * ee, 0.25 * ee - mm.coofs[2]);
+
+		printf("d var mu  : numericx %.16f  true %.16f  err %.16f\n", tmp[4], 0.5 * ee, 0.5 * ee - tmp[4]);
+	}
+	break;
+	
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);
