@@ -4732,7 +4732,7 @@ inla.mesh.fem <- function(mesh, order = 2) {
     "inla.mesh.fem()",
     "fmesher::fm_fem()"
   )) {
-    return(fmesher::fm_fem(mesh, order = 2))
+    return(fmesher::fm_fem(mesh, order = order))
   }
 
   inla.require.inherits(mesh, c("inla.mesh", "inla.mesh.1d"), "'mesh'")
