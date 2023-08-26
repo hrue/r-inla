@@ -103,6 +103,18 @@ static int POSSIBLY_UNUSED_FUNCTION(IPOW3) (int ix) {
 	return (ix * ix * ix);
 }
 
+#pragma omp declare simd
+static double POSSIBLY_UNUSED_FUNCTION(POW4) (double x) {
+	double xx = x * x;
+	return (xx * xx);
+}
+
+#pragma omp declare simd
+static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
+	int  ixx = ix * ix;
+	return (ixx * ixx);
+}
+
 #define GMRFLib_L1_CACHELINE (64L)
 #define GMRFLib_MEM_ALIGN (32L)
 

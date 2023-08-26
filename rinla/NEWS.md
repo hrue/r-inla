@@ -1,3 +1,7 @@
+# INLA 23.08.26
+* Bug-fix release (see commit log)
+* New vignette added
+
 # INLA 23.08.18
 * Some improvement in the optimiser
 * Fix option `control.compute=list(q=TRUE)` for the default mode
