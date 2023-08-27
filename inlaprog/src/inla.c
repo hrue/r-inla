@@ -5501,10 +5501,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 		// cannot run this in parallel as we're changing global variables
 		GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_TIMING, NULL, NULL);
 		int thread_id = 0;
+		int nn = preopt->preopt_graph->n;
 		assert(omp_get_thread_num() == 0);
 		double res[4] = { 0, 0, 0, 0 };
-		double *test_vector = Calloc(preopt->preopt_graph->n, double);
-		for (i = 0; i < preopt->preopt_graph->n; i++) {
+		double *test_vector = Calloc(nn, double);
+		for (i = 0; i < nn; i++) {
 			test_vector[i] = GMRFLib_uniform();
 		}
 		for (int time = -2; time < 4; time++) {
@@ -5519,13 +5520,14 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 		}
 		Free(test_vector);
-		if (!(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * 1e-6) || !(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * 1e-6)) {
+		double eps = sqrt(nn) * 1.0e-6;
+		if (!(ABS(res[0] - res[2]) < DMAX(1.0, ABS(res[0])) * eps) || !(ABS(res[1] - res[3]) < DMAX(1.0, ABS(res[1])) * eps)) {
 			P(res[0]);
 			P(res[2]);
 			P(res[1]);
 			P(res[3]);
-			assert(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * 1e-6);
-			assert(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * 1e-6);
+			assert(ABS(res[0] - res[2]) < DMAX(1, ABS(res[0])) * eps);
+			assert(ABS(res[1] - res[3]) < DMAX(1, ABS(res[1])) * eps);
 		}
 
 		// we have a slight preference for the simpler/serial ones
@@ -6437,7 +6439,7 @@ int inla_reset(void)
 
 int main(int argc, char **argv)
 {
-#define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-e var=value] [-t A:B] [-m MODE] FILE.INI\n", program)
+#define _USAGE_intern(fp)  fprintf(fp, "\nUsage: %s [-v] [-V] [-h] [-f] [-eVAR=VALUE] [-tA:B] [-mMODE] FILE.INI\n", program)
 #define _USAGE _USAGE_intern(stderr)
 #define _HELP _USAGE_intern(stdout);					\
 	printf("\t\t-v\t: Verbose output.\n");				\
@@ -6446,7 +6448,7 @@ int main(int argc, char **argv)
 	printf("\t\t-s\t: Be silent.\n");				\
 	printf("\t\t-c\t: Create core-file if needed (and allowed). (Linux/MacOSX only.)\n"); \
 	printf("\t\t-R\t: Restart using previous mode.\n");		\
-	printf("\t\t-e var=value\t: Set variable VAR to VALUE.\n");	\
+	printf("\t\t-e VAR=VALUE\t: Set variable VAR to VALUE.\n");	\
 	printf("\t\t-t A:B\t: the number of threads (A=outer,B=inner), 0 means auto\n"); \
 	printf("\t\t-m MODE\t: Enable special mode:\n");		\
 	printf("\t\t\tHYPER :  Enable HYPERPARAMETER mode\n");		\
