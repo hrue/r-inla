@@ -10,6 +10,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 header-includes:
   - \usepackage{xcolor}
+bibliography: coda_bib.bib  
+biblio-style: apa 
 ---
 
 ```{r setup, include=FALSE}
@@ -34,7 +36,7 @@ library(ggtern)
 
 
 # An introduction to the Logistic Normal Dirichlet Regression
-As defined in @martinez-minaya2023, $\boldsymbol{y} \in \mathbb{S}^D$
+As defined in @martinezminaya2023, $\boldsymbol{y} \in \mathbb{S}^D$
 follows a logistic-normal distribution with Dirichlet covariance
 $\mathcal{LND}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$ if and only if
 $alr(\boldsymbol{y}) \sim \mathcal{N}(\boldsymbol{\mu},
@@ -69,7 +71,7 @@ the following structure:
 \end{eqnarray}
 
 Note that this is the second structure presented in
-@martinez-minaya2023, where we are working under the assumption that
+@martinezminaya2023, where we are working under the assumption that
 covariates have different effect in each linear predictor. In
 particular, we consider $D = 3$, and the reference category is the
 third one. So, we are dealing with two $alr$-coordinates. Also, we
@@ -515,3 +517,6 @@ colnames(pred_simplex_summary)[1:2] <- c("mean", "sd")
 
 pred_simplex_summary
 ```
+
+
+# References
