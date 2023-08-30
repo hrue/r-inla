@@ -749,14 +749,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	bcoof = Calloc(Npred, double);
 	ccoof = Calloc(Npred, double);
 
-	int vb = (getenv("INLA_VB_FIT") ? 1 : 0);
-	FIXME("RUN WITH VB");
-	
-	double *lpred_var = NULL;
-	if (vb) {
-		lpred_var = Calloc(Npred, double);
-	}
-	
 	for (iter = 0; iter < itmax; iter++) {
 
 		if (0)
@@ -788,46 +780,25 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		Memset(bcoof, 0, Npred * sizeof(double));
 		Memset(ccoof, 0, Npred * sizeof(double));
 
-		if (!vb || iter <= 1) {
-			if (vb) FIXME("RUN WITH TAYLOR");
 #define CODE_BLOCK							\
-			for (int i_ = 0; i_ < nidx; i_++) {		\
-				int idx = idxs[i_];			\
-				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-						      &(optpar->step_len), &(optpar->stencil), &cmin); \
+		for (int i_ = 0; i_ < nidx; i_++) {			\
+			int idx = idxs[i_];				\
+			GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+					      &(optpar->step_len), &(optpar->stencil), &cmin); \
 									\
-				/* ok also in parallel */		\
-				cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
-				if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
-					bcoof[idx] = 0.0;		\
-				}					\
-				bb[idx] += bcoof[idx];			\
-				cc[idx] += ccoof[idx];			\
-			}
-
-			RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
-#undef CODE_BLOCK
-		} else {
-			if (vb) FIXME("RUN WITH VB");
-			FIXME1("CHECK lpred_var");
-#define CODE_BLOCK							\
-			for (int i_ = 0; i_ < nidx; i_++) {		\
-				int idx = idxs[i_];			\
-				GMRFLib_ai_vb_fit_gaussian(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, idx, d[idx], \
-							   loglFunc, loglFunc_arg, mode, linear_predictor[idx], sqrt(lpred_var[idx])); \
-				cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
-				if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
-					bcoof[idx] = 0.0;		\
-				}					\
-				bb[idx] += bcoof[idx];			\
-				cc[idx] += ccoof[idx];			\
-			}
-
-			RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
-#undef CODE_BLOCK
+			/* ok also in parallel */			\
+			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
+			if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
+				bcoof[idx] = 0.0;			\
+			}						\
+			bb[idx] += bcoof[idx];				\
+			cc[idx] += ccoof[idx];				\
 		}
-		
+
+		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
+#undef CODE_BLOCK
+
 		double *bb_use = NULL, *cc_use = NULL;
 		if (preopt) {
 			GMRFLib_preopt_update(thread_id, preopt, bb, cc);
@@ -952,15 +923,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		if (gsl_isnan(err))
 			break;
 
-		if (vb) {
-			if (1 || iter <= 1) {
-				GMRFLib_Qinv(lproblem);
-				GMRFLib_preopt_predictor_moments(NULL, lpred_var, preopt, lproblem, NULL);
-			}
-			for(int i = 0; i < Npred; i++) {
-				printf("compute SD(lpred)[%1d] =  %g\n", i, sqrt(lpred_var[i]));
-			}
-		}
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
 
@@ -5032,132 +4994,6 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	Calloc_free();
 
 	GMRFLib_LEAVE_ROUTINE;
-	return GMRFLib_SUCCESS;
-}
-
-int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb,  double *cc, double *dd, int idx, double d,
-			       GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
-{
-	/*
-	 * fit a Gaussian to the log-likelihood using prior (mean,sd)
-	 */
-
-	if (ISZERO(d)) {
-		return GMRFLib_SUCCESS;
-	}
-
-	static double *wp = NULL;
-	static double *xp = NULL;
-	static double *xp1 = NULL;
-	static double *xp2 = NULL;
-	static double *xp3 = NULL;
-	static double *xp4 = NULL;
-	static double *xp5 = NULL;
-
-	const int np = GMRFLib_INT_GHQ_POINTS, nnp = np / 2L, nnp1 = nnp + 1;
-
-	if (!wp) {
-#pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
-		{
-			if (!wp) {
-				double *wtmp = NULL;
-				GMRFLib_ghq(&xp, &wtmp, np);	/* just give ptr to storage */
-				int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
-				xp1 = Calloc(5 * nn, double);
-				xp2 = xp1 + 1 * nn;
-				xp3 = xp1 + 2 * nn;
-				xp4 = xp1 + 3 * nn;
-				xp5 = xp1 + 4 * nn;
-
-				for (int i = 0; i < nnp1; i++) {
-					double x = xp[nnp + i];
-					double z2 = SQR(x);
-					xp1[i] = x; // d mu
-					xp2[i] = 0.5 * (z2 - 1.0); // d var
-					xp3[i] = z2 - 1.0; // d mu mu
-					xp4[i] = 0.25 * (3.0 - 6.0 * z2 + SQR(z2)); // d var var
-					xp5[i] = 0.5 * x * (z2 - 3.0); // d var mu
-				}
-				wp = wtmp;
-			}
-		}
-	}
-
-	int nn = GMRFLib_align((size_t) np, sizeof(double));
-	double x_user[5 * nn]; 
-	double *loglik = x_user + nn;
-	double *wloglik = x_user + 2 * nn;
-	double *wloglik_sym = x_user + 3 * nn;
-	double *wloglik_asym = x_user + 4 * nn;
-	//GMRFLib_spline_tp *spline = NULL;
-
-	double var_inv = 1.0 / SQR(sd);
-	double fit_mean = mean, fit_log_var = log(SQR(sd));
-	double step = DBL_MAX;
-	int max_iter = 100;
-	
-	for (int iter = 0; iter < max_iter; iter++) {
-		double s = exp(0.5 * fit_log_var), s2 = SQR(s);
-		GMRFLib_daxpb(np, s, xp, fit_mean, x_user);
-		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
-
-		// don't know if I should interpolate and use that one
-		// spline = GMRFLib_spline_create_x(x_user, loglik, np, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_SIMPLE);
-		// GMRFLib_spline_eval_x(np, x_user, spline, loglik);
-
-		GMRFLib_mul(np, loglik, wp, wloglik);
-		wloglik_sym[0] = wloglik[nnp];
-		wloglik_asym[0] = wloglik[nnp];
-		for (int i = 1; i < nnp1; i++) {
-			double a = wloglik[nnp + i];
-			double b = wloglik[nnp - i];
-			wloglik_sym[i] = a + b;
-			wloglik_asym[i] = a - b;
-		}
-
-		double G1, G2, H11, H12, H22, s_inv = 1.0 / s, s2_inv = SQR(s_inv);
-		G1 = - d * s_inv * GMRFLib_ddot(nnp1, wloglik_asym, xp1);
-		G2 = - d * s2_inv * GMRFLib_ddot(nnp1, wloglik_sym, xp2);
-		H11 = - d * s2_inv * GMRFLib_ddot(nnp1, wloglik_sym, xp3);
-		H22 = - d * SQR(s2_inv) * GMRFLib_ddot(nnp1, wloglik_sym, xp4);
-		H12 = - d * s2_inv * s_inv * GMRFLib_ddot(nnp1, wloglik_asym, xp5);
-
-                // convert G2, H22, H12 to gradients/hessians wrt log(var) instead of var
-                // diff(f(exp(y)),y);
-                // diff(f(exp(y)),y,y);
-		G2 *= s2;
-		H22 = H22 * SQR(s2) + G2;
-		H12 *= s2;
-
-		double prior_sd = 4 * s, prior_mean = fit_mean, prior_var_inv = 1.0 / SQR(prior_sd);
-
-		// add contribtion from KLD (now we are in (mu, var=exp(theta)) parameterisation)
-		G1 += (fit_mean - prior_mean) * prior_var_inv;
-		G2 += 0.5 * (s2 * prior_var_inv - 1.0);
-		H11 += prior_var_inv;
-		H22 += 0.5 * s2 * prior_var_inv;
-		// H12 += 0.0;
-
-		double step_len = DMIN(1.0, (1.0 + iter) / 2.0);
-		double idet = 1.0 / (H11 * H22 - SQR(H12));
-
-		// spell out explictely the inverse of the 2x2 Hessian times gradient
-		double d_fit_mean = - idet * (H22 * G1 - H12 * G2);
-		double d_fit_log_var = - idet * (-H12 * G1 + H11 * G2);
-		fit_mean += step_len * d_fit_mean;
-		fit_log_var += step_len * d_fit_log_var;
-
-		step = sqrt((SQR(d_fit_mean) + SQR(d_fit_log_var)) / 2.0);
-		printf("idx=%1d iter %d diff (%.12g, %.12g) fit(%.12g,  %.12g) step %.12g\n", idx, iter,  d_fit_mean, d_fit_log_var, fit_mean, fit_log_var, step);
-		if (step < 1.0E-5) break;
-	}
-	//GMRFLib_spline_free(spline);
-
-	if (aa) *aa = 0.0;
-	if (bb) *bb = fit_mean / exp(fit_log_var);
-	if (cc) *cc = 1.0 / exp(fit_log_var);
-	if (dd) *dd = 0.0;
-
 	return GMRFLib_SUCCESS;
 }
 
