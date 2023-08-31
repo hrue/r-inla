@@ -1439,8 +1439,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	} while (iter <= iter_min ||
 		 // normal criteria
-		 ((status_g == GSL_CONTINUE) && (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) && (status == GSL_SUCCESS) &&
-			       (status_best_x == GSL_CONTINUE) && (status_best_f == GSL_CONTINUE) && (iter < iter_max)));
+		 ((status_g == GSL_CONTINUE) && // (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) &&
+		  (status == GSL_SUCCESS) && (status_best_x == GSL_CONTINUE) && (status_best_f == GSL_CONTINUE) && (iter < iter_max)));
 
 	if (0) {
 		// take the solution from the minimizer. this we do not do anymore
