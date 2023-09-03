@@ -163,6 +163,26 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	return INLA_OK;
 }
 
+int inla_sread_str_int(char **tag, int *i, const char *str) 
+{
+        char *strtok_ptr = NULL, *token;
+        const char *delim = ":";
+        int ok = 1;
+        char * p = GMRFLib_strdup(str);
+
+        token = GMRFLib_strtok_r(p, delim, &strtok_ptr);
+        if (token) {
+                p = NULL;
+                *tag = GMRFLib_strdup(token);
+                token = GMRFLib_strtok_r(p, delim, &strtok_ptr);
+                if (sscanf(token, "%d", i) != 1)
+                        ok = 0;
+        } else {
+                ok = 0;
+        }
+        return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
+}
+
 int inla_sread_colon_ints(int *i, int *j, const char *str)
 {
 	/*

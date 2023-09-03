@@ -2071,6 +2071,7 @@ int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prio
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
+int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread(void *x, int nx, const char *str, int code);
 int inla_sread_colon_ints(int *i, int *j, const char *str);
 int inla_sread_doubles(double *x, int nx, const char *str);
