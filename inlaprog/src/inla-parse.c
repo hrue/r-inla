@@ -17122,55 +17122,6 @@ int inla_theta_map(inla_tp *mb)
 	int f_from = inla_theta_map_find_f(tag_from, mb);
 	int f_to = inla_theta_map_find_f(tag_to, mb);
 
-	assert(f_from >= 0);
-	assert(f_to >= 0);
-	
-	--ifrom;
-	--ito;
-	
-	P(f_from);
-	P(f_to);
-	
-	double **ptr_from = mb->f_ltheta[f_from][ifrom];
-	// first we need to find the entry in the global list
-	int irem = -1;
-	for (int i = 0; i < mb->ntheta; i++) {
-		if (mb->theta[i] == ptr_from) {
-			irem = i;
-			break;
-		}
-	}
-	P(irem);
-
-	// remove from list
-	for(int i = irem; i < mb->ntheta-1; i++) {
-		mb->theta[i] = mb->theta[i+1];
-		mb->theta_hyperid[i] = mb->theta_hyperid[i+1];
-		mb->theta_tag[i] = mb->theta_tag[i+1];
-		mb->theta_tag_userscale[i] = mb->theta_tag_userscale[i+1];
-		mb->theta_dir[i] = mb->theta_dir[i+1];
-		mb->theta_from[i] = mb->theta_from[i+1];
-		mb->theta_to[i] = mb->theta_to[i+1];
-		mb->theta_map[i] = mb->theta_map[i+1];
-		mb->theta_map_arg[i] = mb->theta_map_arg[i+1];
-	}
-	mb->ntheta--;
-
-	// now we need to rest the f_pointers
-	mb->f_theta[f_from][ifrom] = mb->f_theta[f_to][ito];
-
-	// and mark it at fixed
-	mb->f_fixed[f_from][ifrom] = 1; 
-
-	/*
-
-	mb->data_ntheta_all = 0;
-	for (j = 0; j < mb->nds; j++) {
-		mb->data_ntheta_all += mb->data_sections[j].data_ntheta + mb->data_sections[j].mix_ntheta + mb->data_sections[j].link_ntheta;
-
-			GMRFLib_sprintf(&msg, "Log precision for %s", (secname ? secname : mb->f_tag[mb->nf]));
-	*/
-
 	return GMRFLib_SUCCESS;
 }
 
