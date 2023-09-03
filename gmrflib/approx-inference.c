@@ -4081,7 +4081,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	static double *xp3 = NULL;
 
 	if (!wp) {
-#pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
+#pragma omp critical (Name_0713ff01bf46f0328663d7242f8e788872085a66)
 		{
 			if (!wp) {
 				double *wtmp = NULL;
