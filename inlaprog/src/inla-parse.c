@@ -17119,8 +17119,8 @@ int inla_theta_map(inla_tp *mb)
 	inla_sread_str_int(&tag_to, &ito, tag_t);
 	printf("To %s %d\n", tag_to, ito);
 
-	int f_from = inla_theta_map_find_f(tag_from, mb);
-	int f_to = inla_theta_map_find_f(tag_to, mb);
+	//int f_from = inla_theta_map_find_f(tag_from, mb);
+	//int f_to = inla_theta_map_find_f(tag_to, mb);
 
 	return GMRFLib_SUCCESS;
 }
