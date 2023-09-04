@@ -783,11 +783,33 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < nidx; i_++) {			\
 			int idx = idxs[i_];				\
-			GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-					      &(optpar->step_len), &(optpar->stencil), &cmin); \
-									\
-			/* ok also in parallel */			\
+			double ccmin = cmin;				\
+			if (ISINF(ccmin) < 1) {				\
+				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+						      &(optpar->step_len), &(optpar->stencil), &cmin); \
+			} else {					\
+				/* Enter adaptive mode. Try with increasing step_len */ \
+				/* If not successful then fall back to default step_len with cmin=0 */ \
+				double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
+				while(1) {				\
+					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+							      &step_len, &(optpar->stencil), NULL); \
+					/* if ok, we are done */	\
+					if (ccoof[idx] > 0.0) break;	\
+					/* otherwise, increas the step_len and retry */ \
+					step_len *= (step_len <= 1 ? 10.0 : 2.0); \
+					/* unless we have gone to far... */ \
+					if (step_len > 5.0) {		\
+						ccmin = DBL_EPSILON;	\
+						GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+								      &(optpar->step_len), &(optpar->stencil), &ccmin); \
+						break;			\
+					}				\
+				}					\
+			}						\
 			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
 			if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
 				bcoof[idx] = 0.0;			\

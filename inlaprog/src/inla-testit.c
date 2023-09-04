@@ -3919,6 +3919,18 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 130: 
+	{
+		double inf = INFINITY;
+		double ninf = -INFINITY;
+		
+		P(ISINF(inf));
+		P(ISINF(-inf));
+		P(ISINF(ninf));
+		P(ISINF(-ninf));
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

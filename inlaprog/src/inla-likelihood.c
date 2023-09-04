@@ -1567,9 +1567,9 @@ int loglikelihood_bgev(int thread_id, double *logll, double *x, int m, int idx, 
 					    log(value_p_deriv * value_log_G + value_p * value_g / exp(value_log_G)
 						- value_p_deriv * value_log_H + (1.0 - value_p) * value_h / exp(value_log_H));
 				}
-				if (ISNAN(ld) || ISINF(ld))
-					printf("bgev: idx x ld y %d %g %g %g\n", idx, x[i], logll[i], y);
-
+				if (ISNAN(ld) || ISINF(ld)) {
+					printf("bgev: idx x ld y %d %g %g %g\n", idx, x[i], ld, y);
+				}
 				logll[i] = ld;
 			}
 

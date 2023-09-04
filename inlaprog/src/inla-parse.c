@@ -17107,6 +17107,7 @@ int inla_theta_map(inla_tp *mb)
 
 	// map theta[1] from "A" (in R format) to theta[1]  in "B"
 
+	assert(mb);
 	char *tag_f = GMRFLib_strdup("idx.v:1");
 	char *tag_t = GMRFLib_strdup("idx.u:1");
 
