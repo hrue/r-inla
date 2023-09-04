@@ -5431,7 +5431,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_tstrata;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_dof5;
+			mb->theta_map[mb->ntheta] = map_dof;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -17111,8 +17111,8 @@ int inla_theta_map(inla_tp *mb)
 	char *tag_f = GMRFLib_strdup("idx.v:1");
 	char *tag_t = GMRFLib_strdup("idx.u:1");
 
-	char *tag_from, *tag_to;
-	int ifrom, ito;
+	char *tag_from = NULL, *tag_to = NULL;
+	int ifrom = 0, ito = 0;
 
 	inla_sread_str_int(&tag_from, &ifrom, tag_f);
 	printf("From %s %d\n", tag_from, ifrom);

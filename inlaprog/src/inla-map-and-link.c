@@ -863,39 +863,6 @@ double map_dof(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
-double map_dof5(double arg, map_arg_tp typ, void *UNUSED(param))
-{
-	/*
-	 * the map-function for the degrees of freedom for the student-t 
-	 */
-	switch (typ) {
-	case MAP_FORWARD:
-		/*
-		 * extern = func(local) 
-		 */
-		return 5.0 + exp(arg);
-	case MAP_BACKWARD:
-		/*
-		 * local = func(extern) 
-		 */
-		return log(arg - 5.0);
-	case MAP_DFORWARD:
-		/*
-		 * d_extern / d_local 
-		 */
-		return exp(arg);
-	case MAP_INCREASING:
-		/*
-		 * return 1.0 if montone increasing and 0.0 otherwise 
-		 */
-		return 1.0;
-	default:
-		abort();
-	}
-	abort();
-	return 0.0;
-}
-
 double map_phi(double arg, map_arg_tp typ, void *param)
 {
 	/*
