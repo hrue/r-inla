@@ -3405,7 +3405,7 @@ int testit(int argc, char **argv)
 
 		typedef struct {
 			fun_tp *fun[2];
-			char *name;
+			const char *name;
 		} cmp_tp;
 
 		cmp_tp cmp[] = {

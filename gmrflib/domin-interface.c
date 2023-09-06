@@ -1234,6 +1234,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	static gsl_matrix *Adir = NULL;
 	static gsl_matrix *tAinv = NULL;
 
+	int gsl_continue = (int) GSL_CONTINUE;		       /* so we can use it as in 'int' */
+
 	if (G.use_directions) {
 		if (Opt_dir_params.reset_directions || !Opt_dir_params.A || (Opt_dir_params.A && Opt_dir_params.A->size1 != (size_t) G.nhyper)) {
 
@@ -1301,11 +1303,11 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	x_prev = gsl_vector_alloc(xx->size);
 	gsl_vector_memcpy(x_prev, xx);
 
-	int status_g = GSL_CONTINUE;
-	int status_f = GSL_CONTINUE;
-	int status_x = GSL_CONTINUE;
-	int status_best_f = GSL_CONTINUE;
-	int status_best_x = GSL_CONTINUE;
+	int status_g = gsl_continue;
+	int status_f = gsl_continue;
+	int status_x = gsl_continue;
+	int status_best_f = gsl_continue;
+	int status_best_x = gsl_continue;
 
 	double best_f_prev = GMRFLib_opt_get_f(), best_f = GMRFLib_opt_get_f();
 	double best_hyper_prev[G.nhyper], best_hyper[G.nhyper];
@@ -1333,8 +1335,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		best_df = ABS(best_f_prev - best_f);
 		best_f_prev = best_f;
 
-		status_best_f = (best_df < ai_par->gsl_epsf ? !GSL_CONTINUE : GSL_CONTINUE);
-		status_best_x = (best_dx < ai_par->gsl_epsx ? !GSL_CONTINUE : GSL_CONTINUE);
+		status_best_f = (best_df < ai_par->gsl_epsf ? !gsl_continue : gsl_continue);
+		status_best_x = (best_dx < ai_par->gsl_epsx ? !gsl_continue : gsl_continue);
 
 		if (x_prev) {
 			size_t i_s;
@@ -1379,7 +1381,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 			dx = sqrt(dx / xx->size);
 			status_x = gsl_multimin_test_size(dx, ai_par->gsl_epsx);
 		} else {
-			status_x = GSL_CONTINUE;
+			status_x = gsl_continue;
 		}
 
 		double df = ABS(f_prev - gsl_multimin_fdfminimizer_minimum(s));
@@ -1389,31 +1391,31 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		if (ai_par->fp_log) {
 			fprintf(ai_par->fp_log, "Iter=%1d ", iter);
 
-			if (status_g != GSL_CONTINUE) {
+			if (status_g != gsl_continue) {
 				fprintf(ai_par->fp_log, "|grad| = %.3g(pass) ", gnrm2);
 			} else {
 				fprintf(ai_par->fp_log, "|grad|=%.3g ", gnrm2);
 			}
 
-			if (status_x != GSL_CONTINUE) {
+			if (status_x != gsl_continue) {
 				fprintf(ai_par->fp_log, "|dx|=%.3g(pass) ", dx);
 			} else {
 				fprintf(ai_par->fp_log, "|dx|=%.3g ", dx);
 			}
 
-			if (status_best_x != GSL_CONTINUE) {
+			if (status_best_x != gsl_continue) {
 				fprintf(ai_par->fp_log, "|best.dx|=%.3g(pass) ", best_dx);
 			} else {
 				fprintf(ai_par->fp_log, "|best.dx|=%.3g ", best_dx);
 			}
 
-			if (status_f != GSL_CONTINUE) {
+			if (status_f != gsl_continue) {
 				fprintf(ai_par->fp_log, "|df|=%.3g(pass) ", df);
 			} else {
 				fprintf(ai_par->fp_log, "|df|=%.3g ", df);
 			}
 
-			if (status_best_f != GSL_CONTINUE) {
+			if (status_best_f != gsl_continue) {
 				fprintf(ai_par->fp_log, "|best.df|=%.3g(pass) ", best_df);
 			} else {
 				fprintf(ai_par->fp_log, "|best.df|=%.3g ", best_df);
@@ -1439,8 +1441,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	} while (iter <= iter_min ||
 		 // normal criteria
-		 ((status_g == GSL_CONTINUE) && // (status_f == GSL_CONTINUE) && (status_x == GSL_CONTINUE) &&
-		  (status == GSL_SUCCESS) && (status_best_x == GSL_CONTINUE) && (status_best_f == GSL_CONTINUE) && (iter < iter_max)));
+		 ((status_g == gsl_continue) && // (status_f == gsl_continue) && (status_x == gsl_continue) &&
+		  (status == GSL_SUCCESS) && (status_best_x == gsl_continue) && (status_best_f == gsl_continue) && (iter < iter_max)));
 
 	if (0) {
 		// take the solution from the minimizer. this we do not do anymore
