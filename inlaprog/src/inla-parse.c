@@ -17092,7 +17092,7 @@ int inla_theta_map_find_f(char *tag, inla_tp *mb)
 {
 	// return the index in f[]'s if found, and -1 if not
 	int found = -1;
-	for(int i = 0; i < mb->nf; i++) {
+	for (int i = 0; i < mb->nf; i++) {
 		if (strcmp(mb->f_tag[i], tag) == 0) {
 			found = i;
 			break;
@@ -17105,7 +17105,7 @@ int inla_theta_map(inla_tp *mb)
 {
 	// work in progress
 
-	// map theta[1] from "A" (in R format) to theta[1]  in "B"
+	// map theta[1] from "A" (in R format) to theta[1] in "B"
 
 	assert(mb);
 	char *tag_f = GMRFLib_strdup("idx.v:1");
@@ -17120,9 +17120,8 @@ int inla_theta_map(inla_tp *mb)
 	inla_sread_str_int(&tag_to, &ito, tag_t);
 	printf("To %s %d\n", tag_to, ito);
 
-	//int f_from = inla_theta_map_find_f(tag_from, mb);
-	//int f_to = inla_theta_map_find_f(tag_to, mb);
+	// int f_from = inla_theta_map_find_f(tag_from, mb);
+	// int f_to = inla_theta_map_find_f(tag_to, mb);
 
 	return GMRFLib_SUCCESS;
 }
-

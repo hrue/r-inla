@@ -428,7 +428,7 @@ int inla_output(inla_tp *mb)
 						inla_output_Q(mb, mb->dir, mb->hgmrfm->graph);
 					} else if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
 						inla_output_Q(mb, mb->dir, mb->preopt->preopt_graph);
-					} 
+					}
 					mb->verbose = save;
 				}
 			}

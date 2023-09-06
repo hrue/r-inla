@@ -1441,7 +1441,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	} while (iter <= iter_min ||
 		 // normal criteria
-		 ((status_g == gsl_continue) && // (status_f == gsl_continue) && (status_x == gsl_continue) &&
+		 ((status_g == gsl_continue) &&		       // (status_f == gsl_continue) && (status_x == gsl_continue) &&
 		  (status == GSL_SUCCESS) && (status_best_x == gsl_continue) && (status_best_f == gsl_continue) && (iter < iter_max)));
 
 	if (0) {

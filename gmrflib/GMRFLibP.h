@@ -111,7 +111,7 @@ static double POSSIBLY_UNUSED_FUNCTION(POW4) (double x) {
 
 #pragma omp declare simd
 static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
-	int  ixx = ix * ix;
+	int ixx = ix * ix;
 	return (ixx * ixx);
 }
 

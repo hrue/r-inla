@@ -3882,7 +3882,7 @@ int testit(int argc, char **argv)
 		double ee = exp(post_mean + 0.5 * s2);
 		printf("d mu      : numeric1 %.16f  true %.16f  err %.16f\n", tmp[0], -(y - ee), -(y - ee) - tmp[0]);
 		printf("d mu      : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[1], -(y - ee), -(y - ee) - mm.coofs[1]);
-							
+
 		printf("d mu mu   : numeric1 %.16f  true %.16f  err %.16f\n", tmp[1], ee, ee - tmp[1]);
 		printf("d mu mu   : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], ee, ee - mm.coofs[2]);
 
@@ -3898,12 +3898,13 @@ int testit(int argc, char **argv)
 
 		printf("\n");
 		double xx = log(y);
-		for(int i = 0; i < 100; i++) {
+		for (int i = 0; i < 100; i++) {
 			double g = pprec * (pmean - xx) + y - exp(xx);
 			double h = pprec + exp(xx);
-			xx += g/h;
+			xx += g / h;
 			printf("iter %d g %.12f h %.12f xx %.12f -log(h) %.12f\n", i, g, h, xx, -log(h));
-			if (ABS(g) < 1e-8) break;
+			if (ABS(g) < 1e-8)
+				break;
 		}
 		printf("\n");
 
@@ -3915,21 +3916,21 @@ int testit(int argc, char **argv)
 		P(y);
 		P(-log(pprec + 1.0));
 		P((pmean * pprec + y * 1.0) / (pprec + 1.0));
-		GMRFLib_ai_vb_fit_gaussian(0,  NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit2, (void *) &y, NULL, pmean, 1.0 / sqrt(pprec));
+		GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit2, (void *) &y, NULL, pmean, 1.0 / sqrt(pprec));
 	}
 		break;
 
-	case 130: 
+	case 130:
 	{
 		double inf = INFINITY;
 		double ninf = -INFINITY;
-		
+
 		P(ISINF(inf));
 		P(ISINF(-inf));
 		P(ISINF(ninf));
 		P(ISINF(-ninf));
 	}
-	break;
+		break;
 
 	case 999:
 	{

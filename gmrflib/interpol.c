@@ -229,9 +229,9 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	 * Evaluate a spline 's' in point 'x' n times, for increasing 'x'. simple case only.
 	 */
 
-	if (x[0] <  s->xmin || x[n - 1] > s->xmax || s->trans != GMRFLib_INTPOL_TRANS_NONE) {
+	if (x[0] < s->xmin || x[n - 1] > s->xmax || s->trans != GMRFLib_INTPOL_TRANS_NONE) {
 		// do this the slow-way
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			values[i] = GMRFLib_spline_eval(x[i], s);
 		}
 		return GMRFLib_SUCCESS;
@@ -265,7 +265,7 @@ int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values
 	for (int i = 0; i < n; i++) {
 		values[i] = gsl_spline_eval(s->spline, x[i], acc);
 	}
-	
+
 	return GMRFLib_SUCCESS;
 }
 
