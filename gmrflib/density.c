@@ -785,8 +785,12 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
+		// for (int i = 0; i < n; i++) logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
+		GMRFLib_spline_eval_x(n, x, density->log_correction, logdens);
+		double c = density->log_norm_const;
+#pragma omp simd
 		for (int i = 0; i < n; i++) {
-			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
+			logdens[i] +=  (- 0.5 * SQR(x[i]) - c);
 		}
 	}
 		break;
