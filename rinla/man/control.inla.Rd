@@ -45,7 +45,7 @@ control.inla(
   numint.relerr = 1e-05,
   numint.abserr = 1e-06,
   cmin = -Inf,
-  b.strategy = "skip",
+  b.strategy = "keep",
   step.factor = -0.1,
   global.node.factor = 2,
   global.node.degree = .Machine$integer.max,
@@ -61,7 +61,7 @@ control.inla(
   improved.simplified.laplace = FALSE,
   parallel.linesearch = FALSE,
   compute.initial.values = TRUE,
-  hessian.correct.skewness.only = FALSE
+  hessian.correct.skewness.only = TRUE
 )
 
 inla.set.control.inla.default(...)
@@ -197,7 +197,7 @@ introduce bias.  (Default -Inf)}
 \item{b.strategy}{Character If \code{cmin} is used, either keep the linear
 term (with \code{b.strategy="keep"}) or skip the contribution by
 setting the linear term to zero (\code{b.strategy="skip"}). The
-default value is \code{"skip"}}
+default value is \code{"keep"}}
 
 \item{step.factor}{Numerical The step factor in the Newton-Raphson algorithm
 saying how large step to take (Default 1.0) YES! setting this to a
@@ -253,9 +253,9 @@ improved variant, otherwise, use the standard one.}
 \item{compute.initial.values}{Compute initial values for the latent field or not.
 (experimental-mode only)}
 
-\item{hessian.correct.skewness.only}{If TRUE then correct only
-skewness in the Hessian, for the hyperparameters. If FALSE (default),
-correct also variance (experimental-mode only)}
+\item{hessian.correct.skewness.only}{If TRUE (default) correct only
+skewness in the Hessian, for the hyperparameters. If FALSE,
+correct also variance. (This option is for experimental-mode only)}
 
 \item{...}{Named arguments passed on to the main function}
 }

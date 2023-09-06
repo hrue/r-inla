@@ -794,8 +794,8 @@ control.vb <- function(
         #' @param b.strategy Character If `cmin` is used, either keep the linear
         #'     term (with `b.strategy="keep"`) or skip the contribution by
         #'     setting the linear term to zero (`b.strategy="skip"`). The
-        #'     default value is `"skip"`
-        b.strategy = "skip",
+        #'     default value is `"keep"`
+        b.strategy = "keep",
         
         #' @param step.factor Numerical The step factor in the Newton-Raphson algorithm
         #' saying how large step to take (Default 1.0) YES! setting this to a
@@ -871,10 +871,10 @@ control.vb <- function(
         #' (experimental-mode only)
         compute.initial.values = TRUE,
         
-        #' @param hessian.correct.skewness.only If TRUE then correct only
-        #' skewness in the Hessian, for the hyperparameters. If FALSE (default),
-        #' correct also variance (experimental-mode only)
-        hessian.correct.skewness.only = FALSE
+        #' @param hessian.correct.skewness.only If TRUE (default) correct only
+        #' skewness in the Hessian, for the hyperparameters. If FALSE,
+        #' correct also variance. (This option is for experimental-mode only)
+        hessian.correct.skewness.only = TRUE
     ) {
         as.list(environment())
     }
