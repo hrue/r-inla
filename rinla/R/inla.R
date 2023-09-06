@@ -2517,9 +2517,9 @@
     }
 
     stopifnot(!safe)
-    cmin <- 0
+    cmin <- Inf
     ntry <- 0
-    max.try <- 2
+    max.try <- 1
 
     r <- run.inla()
     if (err.due.to.timeout(r)) {
@@ -2588,7 +2588,7 @@
         }
 
         ## this allow us to try with cmin=0 first
-        if (cmin == 0.0) {
+        if (is.infinite(cmin) || cmin == 0.0) {
             cmin <- 1
         } else {
             cmin <- cmin * 10^4
