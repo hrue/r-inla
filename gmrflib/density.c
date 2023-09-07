@@ -802,7 +802,7 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 			double c = density->log_norm_const;
 #pragma omp simd
 			for (int i = 0; i < n; i++) {
-				logdens[i] +=  (- 0.5 * SQR(x[i]) - c);
+				logdens[i] += (-0.5 * SQR(x[i]) - c);
 			}
 		} else {
 			for (int i = 0; i < n; i++) {
