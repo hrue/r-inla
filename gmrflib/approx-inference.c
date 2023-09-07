@@ -789,7 +789,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 						      &(optpar->step_len), &(optpar->stencil), &cmin); \
 			} else {					\
-				/* Enter adaptive mode. Try with increasing step_len */ \
+				/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
 				/* If not successful then fall back to default step_len with cmin=0 */ \
 				double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
 				while(1) {				\
@@ -798,10 +798,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 							      &step_len, &(optpar->stencil), NULL); \
 					/* if ok, we are done */	\
 					if (ccoof[idx] > 0.0) break;	\
-					/* otherwise, increas the step_len and retry */ \
-					step_len *= (step_len <= 1 ? 10.0 : 2.0); \
+					/* otherwise, increase the step_len and retry */ \
+					step_len *= 10.0;		\
 					/* unless we have gone to far... */ \
-					if (step_len > 5.0) {		\
+					if (step_len > 1.0) {		\
 						ccmin = DBL_EPSILON;	\
 						GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
