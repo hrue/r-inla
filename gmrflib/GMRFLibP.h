@@ -130,8 +130,6 @@ typedef enum {
 // 32bit ints -2147483648 to 2147483647
 #define GMRFLib_MAXINT (2147483647)
 
-#define GMRFLib_SIMD_LIM 4
-
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
 			      (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 ? "TwoStage Part1" : \
