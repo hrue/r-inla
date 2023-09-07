@@ -24,8 +24,8 @@ Create a linear combination or several linear combinations, as input to
 }
 \examples{
 
-##See the worked out examples and description in the FAQ
-##section on {www.r-inla.org}
+##See the worked out examples and description in the OLD-FAQ
+##vignette {vignette("old-faq", package="INLA")}
 
 }
 \seealso{

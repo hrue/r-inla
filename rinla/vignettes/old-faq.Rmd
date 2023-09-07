@@ -662,7 +662,7 @@ lc1.1 = 2 * r$summary.fixed["a", "mean"] + 3 * r$summary.fixed["b",
 lc1.2= r$summary.lincomb.derived$mean
 print(round(c(lc1.1 = lc1.1, lc1.2 = lc1.2), dig=3))
 ```
-The marginals are available as \verb|r$marginals.lincomb$...|
+The marginals are available as \verb|r$marginals.lincomb.derived$...|
 
 There is an another function which is handy for specifying many linear
 combinations at once, that is \verb|inla.make.lincombs()| (note the
@@ -686,7 +686,7 @@ print(round(r$summary.lincomb.derived, dig=3))
 ```
 
 Terms like 'idx' above, can be added as \verb|idx = IDX| into
-\verb|inla.make.lincombs()|, where IDX is a matrix. Again, each column
+\verb|inla.make.lincombs()|, where IDX is a matrix. Again, each row
 of the arguments define one linear combination.
 
 There is a further option available for the derived linear
