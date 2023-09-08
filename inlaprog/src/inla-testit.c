@@ -3932,6 +3932,29 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 131: 
+	{
+		const int n = 5;
+		double y[] = {1, 2, 3, 4, 5};
+		double a[] = {0, 1, 0, 0, 2, 3, 0, 0, 4, 0, 5, 0};
+		int ia[] = {1, 4, 5, 8, 10};
+
+		const int m = sizeof(a)/sizeof(double);
+		double yy[n], aa[m];
+
+		GMRFLib_pack(n, a, ia, yy);
+		for(int i = 0; i < n; i++) {
+			printf("pack: i %d y %g yy %g\n", i, y[i], yy[i]);
+		}
+		printf("\n");
+		GMRFLib_unpack(n, y, aa, ia);
+		for(int i = 0; i < n; i++) {
+			int j = ia[i];
+			printf("unpack: i %d j %d a %g aa %g\n", i, j, a[j], aa[j]);
+		}
+	}
+	break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

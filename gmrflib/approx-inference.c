@@ -3333,7 +3333,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL);
-		double max_sd = sqrt(GMRFLib_max_value(isd, Npred, NULL));
+		double min_sd = sqrt(GMRFLib_min_value(isd, Npred, NULL));
 #pragma omp simd
 		for (int i = 0; i < Npred; i++) {
 			isd[i] = 1.0 / sqrt(isd[i]);
@@ -3376,51 +3376,34 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double *cor_abs = CODE_BLOCK_WORK_PTR(3);	\
 			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(4); \
 									\
-			for (int k = 0; k < v->n; k++) {		\
-				a[v->idx[k]] = v->val[k];		\
-			}						\
+			static double tref = 0.0;			\
+			static double tref_n = 0;			\
+			if (0) tref -= GMRFLib_cpu();			\
+									\
+			GMRFLib_unpack(v->n, v->val, a, v->idx);	\
 			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
-			cor[node] = 1.0;				\
-			double eps = 1.0E-4 * max_sd / isd[node];	\
-			for (int iii = 0; iii < build_ai_store->problem->sub_graph->n; iii++) { \
-				if (ABS(Sa[iii]) < eps) Sa[iii] = 0.0;	\
-			}						\
+									\
+			double eps = 1.0E-4 * min_sd / isd[node];	\
+			_Pragma("omp simd")				\
+				for (int iii = 0; iii < build_ai_store->problem->sub_graph->n; iii++) { \
+					if (ABS(Sa[iii]) < eps) Sa[iii] = 0.0; \
+				}					\
+									\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				GMRFLib_idxval_tp *vv = A_idx(nnode);	\
 				double sum = 0.0;			\
-				if (vv->n > 4) {			\
-					sum = GMRFLib_dot_product(vv, Sa); \
-				} else {				\
-					switch(vv->n) {			\
-					case 0:				\
-						sum = 0.0;		\
-						break;			\
-					case 1:				\
-						sum = vv->val[0] * Sa[vv->idx[0]]; \
-						break;			\
-					case 2:				\
-						sum = vv->val[0] * Sa[vv->idx[0]] + \
-							vv->val[1] * Sa[vv->idx[1]]; \
-						break;			\
-					case 3:				\
-						sum = vv->val[0] * Sa[vv->idx[0]] + \
-							vv->val[1] * Sa[vv->idx[1]] + \
-							vv->val[2] * Sa[vv->idx[2]]; \
-						break;			\
-					case 4:				\
-						sum = vv->val[0] * Sa[vv->idx[0]] + \
-							vv->val[1] * Sa[vv->idx[1]] + \
-							vv->val[2] * Sa[vv->idx[2]] + \
-							vv->val[3] * Sa[vv->idx[3]]; \
-					}				\
-				}					\
+				GMRFLib_dot_product_INLINE(sum, vv, Sa); \
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
 			}						\
+			if (0) tref += GMRFLib_cpu();			\
+			if (0) P(tref/++tref_n * 1.0e6);		\
+									\
+			cor[node] = cor_abs[node] = 1.0;		\
 			int levels_ok = 0;				\
 			int levels_magnify = 1;				\
-			cor[node] = cor_abs[node] = 1.0;		\
+									\
 			while (!levels_ok) {				\
 				groups[node]->n = 0;			\
 				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)); \
@@ -3670,40 +3653,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				if (need_Sa) {				\
 					assert(!skip[node]);		\
 					GMRFLib_idxval_tp *v = A_idx(node); \
-					for (int kk = 0; kk < v->n; kk++) { \
-						a[v->idx[kk]] = v->val[kk]; \
-					}				\
+					GMRFLib_unpack(v->n, v->val, a, v->idx); \
 					GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
 					need_Sa = 0;			\
 				}					\
 				GMRFLib_idxval_tp *v = A_idx(nnode);	\
 				double sum = 0.0;			\
-				if (v->n > 4) {				\
-					sum = GMRFLib_dot_product(v, Sa); \
-				} else {				\
-					switch(v->n) {			\
-					case 0:				\
-						sum = 0.0;		\
-						break;			\
-					case 1:				\
-						sum = v->val[0] * Sa[v->idx[0]]; \
-						break;			\
-					case 2:				\
-						sum = v->val[0] * Sa[v->idx[0]] + \
-							v->val[1] * Sa[v->idx[1]]; \
-						break;			\
-					case 3:				\
-						sum = v->val[0] * Sa[v->idx[0]] + \
-							v->val[1] * Sa[v->idx[1]] + \
-							v->val[2] * Sa[v->idx[2]]; \
-						break;			\
-					case 4:				\
-						sum = v->val[0] * Sa[v->idx[0]] + \
-							v->val[1] * Sa[v->idx[1]] + \
-							v->val[2] * Sa[v->idx[2]] + \
-							v->val[3] * Sa[v->idx[3]]; \
-					}				\
-				}					\
+				GMRFLib_dot_product_INLINE(sum, v, Sa); \
 				double f = sd[node] * sd[nnode];	\
 				sum /= f;				\
 				double cov = TRUNCATE(sum, -1.0, 1.0) * f; \
