@@ -1155,6 +1155,7 @@ void GMRFLib_fill(int n, double a, double *x)
 		}
 	}
 }
+
 void GMRFLib_pack(int n, double *a, int *ia, double *y) 
 {
 	// y[] = a[ia[]]
@@ -1174,6 +1175,7 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	}
 #endif
 }
+
 void GMRFLib_unpack(int n, double *a, double *y, int *iy) 
 {
 	// y[iy[]] = a[]

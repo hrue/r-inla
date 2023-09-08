@@ -503,10 +503,12 @@ double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict 
 	mkl_dcsrmv(matdescra + 4, iarr, iarr + 3, darr, matdescra, v, idx, iarr + 1, iarr + 2, a, darr + 1, darr + 2);
 	return (darr[2]);
 }
+
 double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return (cblas_ddoti(n, v, idx, a));
 }
+
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	if (n > 512L) {
@@ -522,10 +524,12 @@ double GMRFLib_ddot_idx_mkl_OLD(int n, double *__restrict v, double *__restrict 
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
+
 double GMRFLib_ddot_idx_mkl_NEW(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
 }
+
 double GMRFLib_ddot_idx_mkl(int n, double *__restrict v, double *__restrict a, int *__restrict idx)
 {
 	return GMRFLib_ddot_idx(n, v, a, idx);
