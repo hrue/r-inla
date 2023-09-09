@@ -70,6 +70,26 @@ int loglikelihood_testit1(int UNUSED(thread_id), double *logll, double *x, int m
 	return GMRFLib_SUCCESS;
 }
 
+int loglikelihood_testit2(int UNUSED(thread_id), double *logll, double *x, int m, int UNUSED(idx), double *UNUSED(x_vec), double *UNUSED(y_cdf),
+			  void *arg, char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	int i;
+	double y = *((double *) arg);
+
+	if (m > 0) {
+		for (i = 0; i < m; i++) {
+			logll[i] = -0.5 * SQR(y - x[i]);
+		}
+	} else {
+		abort();
+	}
+	return GMRFLib_SUCCESS;
+}
+
 int inla_testit_timer(void)
 {
 	GMRFLib_ENTER_ROUTINE;
@@ -3385,7 +3405,7 @@ int testit(int argc, char **argv)
 
 		typedef struct {
 			fun_tp *fun[2];
-			char *name;
+			const char *name;
 		} cmp_tp;
 
 		cmp_tp cmp[] = {
@@ -3825,40 +3845,39 @@ int testit(int argc, char **argv)
 	}
 		break;
 
-	case 129: 
+	case 129:
 	{
 		int NP = 21;
-		double x_user[NP], loglik[NP], y = 8;
+		double x_user[NP], loglik[NP], y = atof(args[0]);
 
-		double pprec = 1.1, pmean = 1.2;
+		double pprec = .1, pmean = 0;
 		double *xp = NULL, *wtmp = NULL;
 		GMRFLib_ghq(&xp, &wtmp, NP);
 
-		double post_prec = pprec + y;
-		double post_mean = (pprec * pmean + y * log(y)) / post_prec;
+		double post_prec = pprec + 1.0 / y;
+		double post_mean = (pprec * pmean + (1.0 / y) * log(y)) / post_prec;
 		double s = sqrt(1.0 / post_prec);
 		double s2 = SQR(s);
 
-		for(int i = 0; i < NP; i++) {
+		for (int i = 0; i < NP; i++) {
 			x_user[i] = xp[i] * s + post_mean;
 		}
 		loglikelihood_testit1(0, loglik, x_user, NP, 0, NULL, NULL, (void *) &y, NULL);
 
-		double tmp[5] =  {0, 0, 0, 0, 0};
+		double tmp[5] = { 0, 0, 0, 0, 0 };
 
-		for(int i = 0; i < NP; i++) {
-			tmp[0] += - wtmp[i] * loglik[i] * xp[i] / s; // d mu
-			tmp[1] += - wtmp[i] * loglik[i] * (SQR(xp[i]) - 1.0) / s2; // d mu d mu
-			tmp[2] += - wtmp[i] * loglik[i] * (SQR(xp[i]) - 1.0) * 0.5 / s2; // d sigma^2
-			tmp[3] += - wtmp[i] * loglik[i] * (3.0 - 6.0 * SQR(xp[i]) + POW4(xp[i])) * 0.25 / SQR(s2); // d sigma^2 d sigma^2
-			tmp[4] += - wtmp[i] * loglik[i] * (-3.0 * xp[i] + POW3(xp[i])) * 0.5 / POW3(s); // d sigma^2 d mu
+		for (int i = 0; i < NP; i++) {
+			tmp[0] += -wtmp[i] * loglik[i] * xp[i] / s;	// d mu
+			tmp[1] += -wtmp[i] * loglik[i] * (SQR(xp[i]) - 1.0) / s2;	// d mu d mu
+			tmp[2] += -wtmp[i] * loglik[i] * (SQR(xp[i]) - 1.0) * 0.5 / s2;	// d sigma^2
+			tmp[3] += -wtmp[i] * loglik[i] * (3.0 - 6.0 * SQR(xp[i]) + POW4(xp[i])) * 0.25 / SQR(s2);	// d sigma^2 d sigma^2
+			tmp[4] += -wtmp[i] * loglik[i] * (-3.0 * xp[i] + POW3(xp[i])) * 0.5 / POW3(s);	// d sigma^2 d mu
 		}
 
 		printf("post mean %.12f prec %.12f\n", post_mean, post_prec);
 
 		GMRFLib_vb_coofs_tp mm;
-		GMRFLib_ai_vb_prepare_mean(0, &mm, 0, 1.0, loglikelihood_testit1, 
-					   (void *) &y, NULL, post_mean, 1.0/sqrt(post_prec));
+		GMRFLib_ai_vb_prepare_mean(0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec));
 
 		double ee = exp(post_mean + 0.5 * s2);
 		printf("d mu      : numeric1 %.16f  true %.16f  err %.16f\n", tmp[0], -(y - ee), -(y - ee) - tmp[0]);
@@ -3867,8 +3886,7 @@ int testit(int argc, char **argv)
 		printf("d mu mu   : numeric1 %.16f  true %.16f  err %.16f\n", tmp[1], ee, ee - tmp[1]);
 		printf("d mu mu   : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], ee, ee - mm.coofs[2]);
 
-		GMRFLib_ai_vb_prepare_variance(0, &mm, 0, 1.0, loglikelihood_testit1, 
-					       (void *) &y, NULL, post_mean, 1.0/sqrt(post_prec));
+		GMRFLib_ai_vb_prepare_variance(0, &mm, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, post_mean, 1.0 / sqrt(post_prec));
 
 		printf("d var     : numeric1 %.16f  true %.16f  err %.16f\n", tmp[2], 0.5 * ee, 0.5 * ee - tmp[2]);
 		printf("d var     : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[1], 0.5 * ee, 0.5 * ee - mm.coofs[1]);
@@ -3877,9 +3895,66 @@ int testit(int argc, char **argv)
 		printf("d var var : numeric2 %.16f  true %.16f  err %.16f\n", mm.coofs[2], 0.25 * ee, 0.25 * ee - mm.coofs[2]);
 
 		printf("d var mu  : numericx %.16f  true %.16f  err %.16f\n", tmp[4], 0.5 * ee, 0.5 * ee - tmp[4]);
+
+		printf("\n");
+		double xx = log(y);
+		for (int i = 0; i < 100; i++) {
+			double g = pprec * (pmean - xx) + y - exp(xx);
+			double h = pprec + exp(xx);
+			xx += g / h;
+			printf("iter %d g %.12f h %.12f xx %.12f -log(h) %.12f\n", i, g, h, xx, -log(h));
+			if (ABS(g) < 1e-8)
+				break;
+		}
+		printf("\n");
+
+		GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, pmean, 1.0 / sqrt(pprec));
+		printf("\n");
+
+		P(pmean);
+		P(pprec);
+		P(y);
+		P(-log(pprec + 1.0));
+		P((pmean * pprec + y * 1.0) / (pprec + 1.0));
+		GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit2, (void *) &y, NULL, pmean, 1.0 / sqrt(pprec));
+	}
+		break;
+
+	case 130:
+	{
+		double inf = INFINITY;
+		double ninf = -INFINITY;
+
+		P(ISINF(inf));
+		P(ISINF(-inf));
+		P(ISINF(ninf));
+		P(ISINF(-ninf));
+	}
+		break;
+
+	case 131: 
+	{
+		const int n = 5;
+		double y[] = {1, 2, 3, 4, 5};
+		double a[] = {0, 1, 0, 0, 2, 3, 0, 0, 4, 0, 5, 0};
+		int ia[] = {1, 4, 5, 8, 10};
+
+		const int m = sizeof(a)/sizeof(double);
+		double yy[n], aa[m];
+
+		GMRFLib_pack(n, a, ia, yy);
+		for(int i = 0; i < n; i++) {
+			printf("pack: i %d y %g yy %g\n", i, y[i], yy[i]);
+		}
+		printf("\n");
+		GMRFLib_unpack(n, y, aa, ia);
+		for(int i = 0; i < n; i++) {
+			int j = ia[i];
+			printf("unpack: i %d j %d a %g aa %g\n", i, j, a[j], aa[j]);
+		}
 	}
 	break;
-	
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

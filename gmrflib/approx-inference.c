@@ -783,11 +783,33 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 #define CODE_BLOCK							\
 		for (int i_ = 0; i_ < nidx; i_++) {			\
 			int idx = idxs[i_];				\
-			GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-					      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-					      &(optpar->step_len), &(optpar->stencil), &cmin); \
-									\
-			/* ok also in parallel */			\
+			double ccmin = cmin;				\
+			if (ISINF(ccmin) < 1) {				\
+				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+						      &(optpar->step_len), &(optpar->stencil), &cmin); \
+			} else {					\
+				/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
+				/* If not successful then fall back to default step_len with cmin=0 */ \
+				double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
+				while(1) {				\
+					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+							      &step_len, &(optpar->stencil), NULL); \
+					/* if ok, we are done */	\
+					if (ccoof[idx] > 0.0) break;	\
+					/* otherwise, increase the step_len and retry */ \
+					step_len *= 10.0;		\
+					/* unless we have gone to far... */ \
+					if (step_len > 1.0) {		\
+						ccmin = DBL_EPSILON;	\
+						GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+								      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+								      &(optpar->step_len), &(optpar->stencil), &ccmin); \
+						break;			\
+					}				\
+				}					\
+			}						\
 			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
 			if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
 				bcoof[idx] = 0.0;			\
@@ -1302,11 +1324,13 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 					if (1 || GMRFLib_openmp->max_threads_outer < nhyper * 2) {
 						ai_par->gradient_forward_finite_difference = GMRFLib_TRUE;
 						if (ai_par->fp_log) {
-							fprintf(ai_par->fp_log, "Smart optimise part I: estimate gradient using forward differences\n");
+							fprintf(ai_par->fp_log,
+								"Smart optimise part I: estimate gradient using forward differences\n");
 						}
 					} else {
 						if (ai_par->fp_log) {
-							fprintf(ai_par->fp_log, "Smart optimise part I: estimate gradient using central differences\n");
+							fprintf(ai_par->fp_log,
+								"Smart optimise part I: estimate gradient using central differences\n");
 						}
 					}
 				}
@@ -3309,6 +3333,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		GMRFLib_ai_add_Qinv_to_ai_store(build_ai_store);
 
 		GMRFLib_preopt_predictor_moments(NULL, isd, preopt, build_ai_store->problem, NULL);
+		double min_sd = sqrt(GMRFLib_min_value(isd, Npred, NULL));
 #pragma omp simd
 		for (int i = 0; i < Npred; i++) {
 			isd[i] = 1.0 / sqrt(isd[i]);
@@ -3351,27 +3376,36 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double *cor_abs = CODE_BLOCK_WORK_PTR(3);	\
 			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(4); \
 									\
-			for (int k = 0; k < v->n; k++) {		\
-				a[v->idx[k]] = v->val[k];		\
-			}						\
+			static double tref = 0.0;			\
+			static double tref_n = 0;			\
+			if (0) tref -= GMRFLib_cpu();			\
+									\
+			GMRFLib_unpack(v->n, v->val, a, v->idx);	\
 			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
-			cor[node] = 1.0;				\
+									\
+			double eps = 1.0E-4 * min_sd / isd[node];	\
+			_Pragma("omp simd")				\
+				for (int iii = 0; iii < build_ai_store->problem->sub_graph->n; iii++) { \
+					if (ABS(Sa[iii]) < eps) Sa[iii] = 0.0; \
+				}					\
 									\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
-				if (nnode == node) continue;		\
 				GMRFLib_idxval_tp *vv = A_idx(nnode);	\
-				double sum = GMRFLib_dot_product(vv, Sa); \
+				double sum = 0.0;			\
+				GMRFLib_dot_product_INLINE(sum, vv, Sa); \
 				sum *= isd[node] * isd[nnode];		\
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
 			}						\
+			if (0) tref += GMRFLib_cpu();			\
+			if (0) P(tref/++tref_n * 1.0e6);		\
 									\
+			cor[node] = cor_abs[node] = 1.0;		\
 			int levels_ok = 0;				\
 			int levels_magnify = 1;				\
-			cor[node] = cor_abs[node] = 1.0;		\
+									\
 			while (!levels_ok) {				\
-				GMRFLib_idxval_free(groups[node]);	\
-				groups[node] = NULL;			\
+				groups[node]->n = 0;			\
 				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)); \
 				levels_magnify *= 10;			\
 				GMRFLib_DEBUG_i_v("node siz_g Npred num_level_sets levels_magnify", node, siz_g, Npred, gcpo_param->num_level_sets, levels_magnify); \
@@ -3596,6 +3630,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 		gcpo[node]->idx_node = GMRFLib_iwhich_sorted(node, (int *) (gcpo[node]->idxs->idx), gcpo[node]->idxs->n); \
 									\
 		if (gcpo[node]->idxs->n > 0) {				\
+			if (gcpo[node]->idx_node < 0) {			\
+				P(inode);				\
+				P(node);				\
+				P(gcpo[node]->idxs->n);			\
+				P(gcpo[node]->idx_node);		\
+				GMRFLib_idxval_printf(stdout, gcpo[node]->idxs, "gcpo[node]->idxs"); \
+			}						\
 			assert(gcpo[node]->idx_node >= 0);		\
 		}							\
 									\
@@ -3612,15 +3653,13 @@ GMRFLib_gcpo_elm_tp **GMRFLib_gcpo(int thread_id, GMRFLib_ai_store_tp *ai_store_
 				if (need_Sa) {				\
 					assert(!skip[node]);		\
 					GMRFLib_idxval_tp *v = A_idx(node); \
-					for (int kk = 0; kk < v->n; kk++) { \
-						a[v->idx[kk]] = v->val[kk]; \
-					}				\
+					GMRFLib_unpack(v->n, v->val, a, v->idx); \
 					GMRFLib_Qsolve(Sa, a, ai_store_id->problem, -1); \
 					need_Sa = 0;			\
 				}					\
-									\
 				GMRFLib_idxval_tp *v = A_idx(nnode);	\
-				double sum = GMRFLib_dot_product(v, Sa); \
+				double sum = 0.0;			\
+				GMRFLib_dot_product_INLINE(sum, v, Sa); \
 				double f = sd[node] * sd[nnode];	\
 				sum /= f;				\
 				double cov = TRUNCATE(sum, -1.0, 1.0) * f; \
@@ -4081,7 +4120,7 @@ int GMRFLib_ai_vb_prepare_variance(int thread_id, GMRFLib_vb_coofs_tp *coofs, in
 	static double *xp3 = NULL;
 
 	if (!wp) {
-#pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
+#pragma omp critical (Name_0713ff01bf46f0328663d7242f8e788872085a66)
 		{
 			if (!wp) {
 				double *wtmp = NULL;
@@ -4206,6 +4245,7 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		return GMRFLib_SUCCESS;
 	}
 
+	GMRFLib_idx_create(&d_idx);
 	for (int i = 0; i < preopt->Npred; i++) {
 		if (d[i]) {
 			GMRFLib_idx_add(&d_idx, i);
@@ -4994,6 +5034,137 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	Calloc_free();
 
 	GMRFLib_LEAVE_ROUTINE;
+	return GMRFLib_SUCCESS;
+}
+
+int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc, double *dd, int idx, double d,
+			       GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
+{
+	/*
+	 * fit a Gaussian to the log-likelihood using prior (mean,sd)
+	 */
+
+	if (ISZERO(d)) {
+		return GMRFLib_SUCCESS;
+	}
+
+	static double *wp = NULL;
+	static double *xp = NULL;
+	static double *xp1 = NULL;
+	static double *xp2 = NULL;
+	static double *xp3 = NULL;
+	static double *xp4 = NULL;
+	static double *xp5 = NULL;
+
+	const int np = GMRFLib_INT_GHQ_POINTS, nnp = np / 2L, nnp1 = nnp + 1;
+
+	if (!wp) {
+#pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
+		{
+			if (!wp) {
+				double *wtmp = NULL;
+				GMRFLib_ghq(&xp, &wtmp, np);   /* just give ptr to storage */
+				int nn = GMRFLib_align((size_t) nnp1, sizeof(double));
+				xp1 = Calloc(5 * nn, double);
+				xp2 = xp1 + 1 * nn;
+				xp3 = xp1 + 2 * nn;
+				xp4 = xp1 + 3 * nn;
+				xp5 = xp1 + 4 * nn;
+
+				for (int i = 0; i < nnp1; i++) {
+					double x = xp[nnp + i];
+					double z2 = SQR(x);
+					xp1[i] = x;	       // d mu
+					xp2[i] = 0.5 * (z2 - 1.0);	// d var
+					xp3[i] = z2 - 1.0;     // d mu mu
+					xp4[i] = 0.25 * (3.0 - 6.0 * z2 + SQR(z2));	// d var var
+					xp5[i] = 0.5 * x * (z2 - 3.0);	// d var mu
+				}
+				wp = wtmp;
+			}
+		}
+	}
+
+	int nn = GMRFLib_align((size_t) np, sizeof(double));
+	double x_user[5 * nn];
+	double *loglik = x_user + nn;
+	double *wloglik = x_user + 2 * nn;
+	double *wloglik_sym = x_user + 3 * nn;
+	double *wloglik_asym = x_user + 4 * nn;
+	// GMRFLib_spline_tp *spline = NULL;
+
+	double fit_mean = mean, fit_log_var = log(SQR(sd));
+	double step = DBL_MAX;
+	int max_iter = 100;
+
+	for (int iter = 0; iter < max_iter; iter++) {
+		double s = exp(0.5 * fit_log_var), s2 = SQR(s);
+		GMRFLib_daxpb(np, s, xp, fit_mean, x_user);
+		loglFunc(thread_id, loglik, x_user, np, idx, x_vec, NULL, loglFunc_arg, NULL);
+
+		// don't know if I should interpolate and use that one
+		// spline = GMRFLib_spline_create_x(x_user, loglik, np, GMRFLib_INTPOL_TRANS_NONE, GMRFLib_INTPOL_CACHE_SIMPLE);
+		// GMRFLib_spline_eval_x(np, x_user, spline, loglik);
+
+		GMRFLib_mul(np, loglik, wp, wloglik);
+		wloglik_sym[0] = wloglik[nnp];
+		wloglik_asym[0] = wloglik[nnp];
+		for (int i = 1; i < nnp1; i++) {
+			double a = wloglik[nnp + i];
+			double b = wloglik[nnp - i];
+			wloglik_sym[i] = a + b;
+			wloglik_asym[i] = a - b;
+		}
+
+		double G1, G2, H11, H12, H22, s_inv = 1.0 / s, s2_inv = SQR(s_inv);
+		G1 = -d * s_inv * GMRFLib_ddot(nnp1, wloglik_asym, xp1);
+		G2 = -d * s2_inv * GMRFLib_ddot(nnp1, wloglik_sym, xp2);
+		H11 = -d * s2_inv * GMRFLib_ddot(nnp1, wloglik_sym, xp3);
+		H22 = -d * SQR(s2_inv) * GMRFLib_ddot(nnp1, wloglik_sym, xp4);
+		H12 = -d * s2_inv * s_inv * GMRFLib_ddot(nnp1, wloglik_asym, xp5);
+
+		// convert G2, H22, H12 to gradients/hessians wrt log(var) instead of var
+		// diff(f(exp(y)),y);
+		// diff(f(exp(y)),y,y);
+		G2 *= s2;
+		H22 = H22 * SQR(s2) + G2;
+		H12 *= s2;
+
+		double prior_sd = 2 * s, prior_mean = mean, prior_var_inv = 1.0 / SQR(prior_sd);
+
+		// add contribtion from KLD (now we are in (mu, var=exp(theta)) parameterisation)
+		G1 += (fit_mean - prior_mean) * prior_var_inv;
+		G2 += 0.5 * (s2 * prior_var_inv - 1.0);
+		H11 += prior_var_inv;
+		H22 += 0.5 * s2 * prior_var_inv;
+		// H12 += 0.0;
+
+		double step_len = DMIN(1.0, (1.0 + iter) / 100.0);
+		double idet = 1.0 / (H11 * H22 - SQR(H12));
+
+		// spell out explictely the inverse of the 2x2 Hessian times gradient
+		double d_fit_mean = -idet * (H22 * G1 - H12 * G2);
+		double d_fit_log_var = -idet * (-H12 * G1 + H11 * G2);
+		fit_mean += step_len * d_fit_mean;
+		fit_log_var += step_len * d_fit_log_var;
+
+		step = sqrt((SQR(d_fit_mean) + SQR(d_fit_log_var)) / 2.0);
+		printf("idx=%1d iter %d diff (%.12g, %.12g) fit(%.12g,  %.12g) step %.12g\n", idx, iter, d_fit_mean, d_fit_log_var, fit_mean,
+		       fit_log_var, step);
+		if (step < 1.0E-5)
+			break;
+	}
+	// GMRFLib_spline_free(spline);
+
+	if (aa)
+		*aa = 0.0;
+	if (bb)
+		*bb = fit_mean / exp(fit_log_var);
+	if (cc)
+		*cc = 1.0 / exp(fit_log_var);
+	if (dd)
+		*dd = 0.0;
+
 	return GMRFLib_SUCCESS;
 }
 

@@ -76,6 +76,8 @@ double GMRFLib_spline_eval_deriv_x(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv2(double x, GMRFLib_spline_tp * s);
 double GMRFLib_spline_eval_deriv2_x(double x, GMRFLib_spline_tp * s);
 int GMRFLib_spline_free(GMRFLib_spline_tp * s);
+int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp * s, double *values);
+
 
 __END_DECLS
 #endif

@@ -223,6 +223,52 @@ double GMRFLib_spline_eval(double x, GMRFLib_spline_tp *s)
 	return val;
 }
 
+int GMRFLib_spline_eval_x(int n, double *x, GMRFLib_spline_tp *s, double *values)
+{
+	/*
+	 * Evaluate a spline 's' in point 'x' n times, for increasing 'x'. simple case only.
+	 */
+
+	if (x[0] < s->xmin || x[n - 1] > s->xmax || s->trans != GMRFLib_INTPOL_TRANS_NONE) {
+		// do this the slow-way
+		for (int i = 0; i < n; i++) {
+			values[i] = GMRFLib_spline_eval(x[i], s);
+		}
+		return GMRFLib_SUCCESS;
+	}
+
+	int tnum = 0;
+	switch (s->cache) {
+	case GMRFLib_INTPOL_CACHE_LEVEL12:
+		GMRFLib_CACHE_SET_ID(tnum);
+		break;
+	case GMRFLib_INTPOL_CACHE_LEVEL1:
+		GMRFLib_CACHE_SET_ID_LEVEL1_ONLY(tnum);
+		break;
+	case GMRFLib_INTPOL_CACHE_SIMPLE:
+		break;
+	default:
+		assert(0 == 1);
+	}
+
+	gsl_interp_accel *acc = NULL;
+	if (tnum >= 0 && tnum < s->cache_len) {
+		if (!(s->accel[tnum])) {
+#pragma omp critical (Name_ab9a02f89e7e7b03314b34ac0715d9a6a335e0e2)
+			if (!(s->accel[tnum])) {
+				s->accel[tnum] = gsl_interp_accel_alloc();
+			}
+		}
+		acc = s->accel[tnum];
+	}
+
+	for (int i = 0; i < n; i++) {
+		values[i] = gsl_spline_eval(s->spline, x[i], acc);
+	}
+
+	return GMRFLib_SUCCESS;
+}
+
 double GMRFLib_spline_eval_deriv(double x, GMRFLib_spline_tp *s)
 {
 	/*

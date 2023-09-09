@@ -5431,7 +5431,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 			mb->theta[mb->ntheta] = ds->data_observations.dof_intern_tstrata;
 			mb->theta_map = Realloc(mb->theta_map, mb->ntheta + 1, map_func_tp *);
-			mb->theta_map[mb->ntheta] = map_dof5;
+			mb->theta_map[mb->ntheta] = map_dof;
 			mb->theta_map_arg = Realloc(mb->theta_map_arg, mb->ntheta + 1, void *);
 			mb->theta_map_arg[mb->ntheta] = NULL;
 			mb->ntheta++;
@@ -17086,4 +17086,42 @@ int inla_parse_expert(inla_tp *mb, dictionary *ini, int sec)
 	}
 
 	return INLA_OK;
+}
+
+int inla_theta_map_find_f(char *tag, inla_tp *mb)
+{
+	// return the index in f[]'s if found, and -1 if not
+	int found = -1;
+	for (int i = 0; i < mb->nf; i++) {
+		if (strcmp(mb->f_tag[i], tag) == 0) {
+			found = i;
+			break;
+		}
+	}
+	return found;
+}
+
+int inla_theta_map(inla_tp *mb)
+{
+	// work in progress
+
+	// map theta[1] from "A" (in R format) to theta[1] in "B"
+
+	assert(mb);
+	char *tag_f = GMRFLib_strdup("idx.v:1");
+	char *tag_t = GMRFLib_strdup("idx.u:1");
+
+	char *tag_from = NULL, *tag_to = NULL;
+	int ifrom = 0, ito = 0;
+
+	inla_sread_str_int(&tag_from, &ifrom, tag_f);
+	printf("From %s %d\n", tag_from, ifrom);
+
+	inla_sread_str_int(&tag_to, &ito, tag_t);
+	printf("To %s %d\n", tag_to, ito);
+
+	// int f_from = inla_theta_map_find_f(tag_from, mb);
+	// int f_to = inla_theta_map_find_f(tag_to, mb);
+
+	return GMRFLib_SUCCESS;
 }

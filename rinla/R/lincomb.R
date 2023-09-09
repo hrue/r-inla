@@ -12,8 +12,8 @@
 #' @seealso TODO
 #' @examples
 #' 
-#' ##See the worked out examples and description in the FAQ
-#' ##section on {www.r-inla.org}
+#' ##See the worked out examples and description in the OLD-FAQ
+#' ##vignette {vignette("old-faq", package="INLA")}
 #'
 #' @name make.lincomb
 #' @rdname lincomb

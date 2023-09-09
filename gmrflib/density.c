@@ -785,8 +785,29 @@ int GMRFLib_evaluate_nlogdensity(double *logdens, double *x, int n, GMRFLib_dens
 
 	case GMRFLib_DENSITY_TYPE_SCGAUSSIAN:
 	{
+		double xmin = density->log_correction->xmin;
+		double xmax = density->log_correction->xmax;
+		int all_good = 1;
+
 		for (int i = 0; i < n; i++) {
-			logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
+			if (x[i] < xmin || x[i] > xmax) {
+				all_good = 0;
+				break;
+			}
+		}
+
+		// the faster '_x' version do not extrapolate...
+		if (all_good) {
+			GMRFLib_spline_eval_x(n, x, density->log_correction, logdens);
+			double c = density->log_norm_const;
+#pragma omp simd
+			for (int i = 0; i < n; i++) {
+				logdens[i] += (-0.5 * SQR(x[i]) - c);
+			}
+		} else {
+			for (int i = 0; i < n; i++) {
+				logdens[i] = GMRFLib_spline_eval(x[i], density->log_correction) - 0.5 * SQR(x[i]) - density->log_norm_const;
+			}
 		}
 	}
 		break;

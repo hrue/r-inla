@@ -111,7 +111,7 @@ static double POSSIBLY_UNUSED_FUNCTION(POW4) (double x) {
 
 #pragma omp declare simd
 static int POSSIBLY_UNUSED_FUNCTION(IPOW4) (int ix) {
-	int  ixx = ix * ix;
+	int ixx = ix * ix;
 	return (ixx * ixx);
 }
 
@@ -129,8 +129,6 @@ typedef enum {
 
 // 32bit ints -2147483648 to 2147483647
 #define GMRFLib_MAXINT (2147483647)
-
-#define GMRFLib_SIMD_LIM 4
 
 #define GMRFLib_MODE_NAME() (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC ? "Classic" : \
 			     (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE ? "TwoStage" : \
