@@ -1,3 +1,8 @@
+# INLA 23.09.09
+* A new approach to recover from failure (option `safe=TRUE`)
+* Option `control.inla=list(b.strategy="keep")` is a new default.
+* Various code improvement
+
 # INLA 23.08.26
 * Bug-fix release (see commit log)
 * New vignette added
