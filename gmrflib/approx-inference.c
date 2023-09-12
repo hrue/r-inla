@@ -5087,7 +5087,9 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 		}
 	}
 
+
 	int nn = GMRFLib_align((size_t) np, sizeof(double));
+	double prior_var_inv = 1.0 / SQR(sd);
 	double x_user[5 * nn];
 	double *loglik = x_user + nn;
 	double *wloglik = x_user + 2 * nn;
