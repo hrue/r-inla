@@ -2,19 +2,20 @@
 ############################################################################################
 #                                 Low Birth Weigth in Georgia (US)                         #                                  #
 ############################################################################################
+## Edited 2023-09-14 to remove dependence on obsolete 'maptools' package                  ##
+############################################################################################
+
 #Import the data
-data <- read.csv("data.final.csv")
+data <- read.csv("../Data/data.final.csv")
 
 #-- Prepare the map --#
-library(maptools)
 library(sp)
 library(spdep)
-georgia <- readShapePoly("co13_d00.shp")
+georgia <- sf::st_read("../Data/co13_d00.shp")
 ## Need to drop extra polygons 98 (Macon county polygon), 100, 105 (Taylor county polygons) + 137 (Lee county polygon)
 ## These are very small and always adjacent to "main" polygon, so we can base neighborhood structure on "main" polygon:
 rmIdx <- c(98, 100, 105, 137)
 georgia <- georgia[-rmIdx,]
-data.georgia = attr(georgia, "data")
 #################################################
 #Create the graph for adjacencies in INLA
 #Need the non thinned sph file to do the adjacency matrix!!!
@@ -24,14 +25,14 @@ nb2INLA("Georgia.graph", zzz)
 Georgia.adj <- paste(getwd(),"/Georgia.graph",sep="")
 
 #Order based on the map
-order <- match(data.georgia$NAME,data[,1])
+order <- match(georgia$NAME,data[,1])
 data<- data[order,]
 
 #--Transform the data to be in the right format for INLA--#
 low.vector <- as.vector(as.matrix(data[,2:12]))#by column
 E.vector <- as.vector(as.matrix(data[,13:23]))#by column
 year <- numeric(0)
-for(i in 1:11){ 
+for(i in 1:11){
   year<- append(year,rep(i,dim(data)[1]))
 }
 county<- as.factor(rep(data[,1],11))
@@ -62,16 +63,16 @@ model.inla.ST2 <- inla(formula.ST2,family="poisson",data=data,E=E, control.predi
 formula.ST3<- y ~ 1 + f(ID.area,model="bym",graph=Georgia.adj) +
   f(ID.year,model="rw1") + f(ID.year1,model="iid") + f(ID.area.year,model="iid")
 
-#To obtain the marginal of phij + gammaj we need to create the corresponding linear combinations and include these in the model 
+#To obtain the marginal of phij + gammaj we need to create the corresponding linear combinations and include these in the model
 lcs = inla.make.lincombs(ID.year = diag(11),  ID.year1 = diag(11))
 
-model.inla.ST3 <- inla(formula.ST3,family="poisson",data=data,E=E, 
+model.inla.ST3 <- inla(formula.ST3,family="poisson",data=data,E=E,
                        control.predictor=list(compute=TRUE), control.compute=list(dic=TRUE,cpo=TRUE),
-                       lincomb=lcs,control.inla = list(lincomb.derived.only=TRUE))
+                       lincomb=lcs)
 
 #Put the temporal effect  (gammaj+phij) on the natural scale
 temporal<-lapply(model.inla.ST3$marginals.lincomb.derived, function(X){
-  marg <- inla.marginal.transform(function(x) exp(x), X)
+  marg <- inla.tmarginal(function(x) exp(x), X)
   inla.emarginal(mean, marg)
 })
 
@@ -91,17 +92,17 @@ model.inla.ST2$dic$mean.deviance
 model.inla.ST3$dic$mean.deviance
 ######################################################
 #The last model (with interaction) shows the best fit. Look at the results
-#Obtain zetai exponentiating csii 
-m <- model.inla.ST3$marginals.random[[1]][1:163]
+#Obtain zetai exponentiating csii
+m <- model.inla.ST3$marginals.random[[1]][seq_len(nrow(georgia))]
 zeta <- unlist(lapply(m,function(x)inla.emarginal(exp,x)))
 
 #Probability that theta>1
 a=0
-inlaprob<-lapply(model.inla.ST3$marginals.random[[1]][1:163], function(X){
+inlaprob<-lapply(model.inla.ST3$marginals.random[[1]][seq_len(nrow(georgia))], function(X){
   1-inla.pmarginal(a, X)
 })
 
-Spatial.results<- data.frame(NAME=data.georgia$NAME,zeta=unlist(zeta), pp=unlist(inlaprob))
+Spatial.results<- data.frame(NAME=georgia$NAME,zeta=unlist(zeta), pp=unlist(inlaprob))
 
 #Maps
 #Create classes of SMRs
@@ -110,14 +111,15 @@ pp.cutoff <- c(0,0.2,0.8,1)
 zeta=cut(Spatial.results$zeta,breaks=zeta.cutoff,include.lowest=TRUE)
 pp=cut(Spatial.results$pp,breaks=pp.cutoff,include.lowest=TRUE)
 
-maps.factors <- data.frame(NAME=data.georgia$NAME, zeta=zeta,pp=pp)
-attr(georgia, "data")=data.frame(data.georgia, maps.factors)
+maps.factors <- data.frame(NAME=georgia$NAME, zeta=zeta,pp=pp)
+georgia <- cbind(georgia, maps.factors)
+
+georgia_sp <- sf::as_Spatial(georgia)
+trellis.par.set(axis.line=list(col=NA))
+spplot(obj=georgia_sp, zcol= "zeta", col.regions=gray(3.5:0.5/4),main="",par.settings=list(fontsize=list(text=17)))
 
 trellis.par.set(axis.line=list(col=NA))
-spplot(obj=georgia, zcol= "zeta", col.regions=gray(3.5:0.5/4),main="",par.settings=list(fontsize=list(text=17)))
-
-trellis.par.set(axis.line=list(col=NA))
-spplot(obj=georgia, zcol= "pp", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
+spplot(obj=georgia_sp, zcol= "pp", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
 
 #Plot the National temporal trend
 plot(seq(1,11),seq(0.8,1.2,length=11),type="n",xlab="year",ylab=expression(exp(gamma[t]+phi[t])))
@@ -126,8 +128,8 @@ abline(h=1,lty=2)
 #######################
 #Space-Time Interaction
 delta <- data.frame(delta=model.inla.ST3$summary.random$ID.area.year[,2],year=data$ID.year,ID.area=data$ID.area)
-delta.matrix <- matrix(delta[,1], 163,11,byrow=FALSE)
-rownames(delta.matrix)<- delta[1:163,3]
+delta.matrix <- matrix(delta[,1], nrow(georgia),11,byrow=FALSE)
+rownames(delta.matrix)<- delta[seq_len(nrow(georgia)),3]
 
 #Space time probability>1
 a=0
@@ -137,24 +139,25 @@ inlaprob.delta<-lapply(model.inla.ST3$marginals.random[[4]], function(X){
 pp.delta<-unlist(inlaprob.delta)
 
 pp.cutoff.interaction <- c(0,0.2,0.8,1)
-pp.delta.matrix <- matrix(pp.delta, 163,11,byrow=FALSE)
-pp.delta.factor <- data.frame(NAME=data.georgia$NAME)
+pp.delta.matrix <- matrix(pp.delta, nrow(georgia),11,byrow=FALSE)
+pp.delta.factor <- data.frame(NAME=georgia$NAME)
 for(i in 1:11){
-  pp.delta.factor.temp <- cut(pp.delta.matrix[,i],breaks=pp.cutoff.interaction,include.lowest=TRUE) 
+  pp.delta.factor.temp <- cut(pp.delta.matrix[,i],breaks=pp.cutoff.interaction,include.lowest=TRUE)
   pp.delta.factor <- cbind(pp.delta.factor,pp.delta.factor.temp)
 }
 colnames(pp.delta.factor)<- c("NAME",seq(2000,2010))
 
 #Maps
-attr(georgia, "data")=data.frame(data.georgia, pp.delta.factor)
+georgia <- cbind(georgia, pp.delta.factor)
+georgia_sp <- sf::as_Spatial(georgia)
 
 trellis.par.set(axis.line=list(col=NA))
-spplot(obj=georgia, zcol="X2001", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
+spplot(obj=georgia_sp, zcol="X2001", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
 trellis.par.set(axis.line=list(col=NA))
-spplot(obj=georgia, zcol="X2004", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
+spplot(obj=georgia_sp, zcol="X2004", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
 trellis.par.set(axis.line=list(col=NA))
-spplot(obj=georgia, zcol="X2007", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
+spplot(obj=georgia_sp, zcol="X2007", col.regions=gray(2.5:0.5/3),main="",par.settings=list(fontsize=list(text=17)))
 trellis.par.set(axis.line=list(col=NA))
-spplot(obj=georgia, zcol="X2010", col.regions=gray(2:0/2),main="",par.settings=list(fontsize=list(text=17)))
+spplot(obj=georgia_sp, zcol="X2010", col.regions=gray(2:0/2),main="",par.settings=list(fontsize=list(text=17)))
 #############################################################
-
+

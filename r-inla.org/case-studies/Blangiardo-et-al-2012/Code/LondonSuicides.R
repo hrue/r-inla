@@ -1,11 +1,12 @@
 ############################################################################################                                  #
 #                             London borough suicides                                      #
 ############################################################################################
+## Edited 2023-09-14 to remove dependence on obsolete 'maptools' package                  ##
+############################################################################################
 
 #Load the package for building the map and import the shapefile
-library(maptools)
 library(spdep)
-london.gen = readShapePoly("LDNSuicides")
+london.gen = sf::st_read("../Data/LDNSuicides.shp")
 
 #--- The data ---#
 y=c(75,145,99,168,152,173,152,169,130,117,124,119,134,90,
@@ -36,8 +37,7 @@ LDN.adj <- paste(getwd(),"/LDN.graph",sep="")
 
 #The order of the areas needs to be the same between the data and the spatial polygon object obtained importing the shapefile, so we re-order the data.
 boroughs=london.gen
-data.boroughs=attr(boroughs, "data")
-order <- match(data.boroughs$NAME,data$NAME)
+order <- match(boroughs$NAME,data$NAME)
 data <- data[order,]
 ID<-seq(1,32)
 data <- cbind(ID,data)
@@ -51,19 +51,19 @@ mod <- inla(formula,family="poisson",data=data,E=E)
 m <- mod$marginals.random$ID[1:Nareas]
 zeta <- lapply(m,function(x)inla.emarginal(exp,x))
 
-#We now calculate the probability that the spatial effects zeta are above 1, 
-#identifying areas with excess risk of suicides. This is equivalent to 
+#We now calculate the probability that the spatial effects zeta are above 1,
+#identifying areas with excess risk of suicides. This is equivalent to
 #calculate the probability that csi is above 0, which is easier to obtain
 a=0
 inlaprob<-lapply(mod$marginals.random$ID[1:Nareas], function(X){
   1-inla.pmarginal(a, X)
 })
 
-#Finally we obtain the proportion of variance explained by the spatially structured component 
-#upsilon, taking the structured effect upsilon and calculating the empirical variance. 
-#First we create a matrix with rows equal to the number of areas and 1000 columns. 
-#Then for each area we extract 1000 values from the corresponding marginal distribution of upsilon 
-#and finally we calculate the empirical variance. We also extract the expected value of the variance 
+#Finally we obtain the proportion of variance explained by the spatially structured component
+#upsilon, taking the structured effect upsilon and calculating the empirical variance.
+#First we create a matrix with rows equal to the number of areas and 1000 columns.
+#Then for each area we extract 1000 values from the corresponding marginal distribution of upsilon
+#and finally we calculate the empirical variance. We also extract the expected value of the variance
 #for the unstructured component and build the spatial fractional variance.
 mat.marg<-matrix(NA, nrow=Nareas, ncol=1000)
 m<-mod$marginals.random$ID
@@ -98,9 +98,9 @@ var.RRhet<-inla.emarginal(function(x) 1/x,
                           mod.cov$marginals.hyper$"Precision for ID (iid component)")
 var.RRspatial/(var.RRspatial+var.RRhet)
 
-#Finally we build the maps. First we create a dataset with all the relevant quantities 
-#and classes of SMR and posterior probabilities. Then transform the continuous SMR and 
-#posterior probabilities in factors, Merge the spatial polygon of London boroughs with the 
+#Finally we build the maps. First we create a dataset with all the relevant quantities
+#and classes of SMR and posterior probabilities. Then transform the continuous SMR and
+#posterior probabilities in factors, Merge the spatial polygon of London boroughs with the
 #data and map the quantities.
 Spatial.results<- data.frame(NAME=data$NAME,SMR=unlist(zeta),
                              pp=unlist(inlaprob), SMR.cov = unlist(zeta.cov), pp.cov = unlist(inlaprob.cov))
@@ -113,7 +113,10 @@ SMR.COV=cut(Spatial.results$SMR.cov,breaks=SMR.cutoff,include.lowest=TRUE)
 pp.COV=cut(Spatial.results$pp.cov,breaks=pp.cutoff,include.lowest=TRUE)
 maps.SMR.factors <- data.frame(NAME=data$NAME,
                                SMR.DM=SMR.DM,pp.DM=pp.DM,SMR.COV=SMR.COV,pp.COV=pp.COV)
-attr(boroughs, "data")=merge(data.boroughs,maps.SMR.factors,by="NAME")
+boroughs <- merge(boroughs,maps.SMR.factors,by="NAME")
+
+library(lattice)
+boroughs <- sf::as_Spatial(boroughs)
 trellis.par.set(axis.line=list(col=NA))
 spplot(obj=boroughs, zcol= "SMR.DM", col.regions=gray(3.5:0.5/4),main="")
 trellis.par.set(axis.line=list(col=NA))
@@ -124,4 +127,3 @@ trellis.par.set(axis.line=list(col=NA))
 spplot(obj=boroughs, zcol= "pp.COV", col.regions=gray(2.5:0.5/3))
 ###########################################################################################
 ###########################################################################################
-  
