@@ -664,8 +664,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	 * This is copy of the original routine but with optional arguments 
 	 */
 
-	int i, free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
-	    0, n, *idxs = NULL, nidx = 0;
+	int free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
+		0, n, *idxs = NULL, nidx = 0;
 	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
@@ -721,7 +721,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		fprintf(optpar->fp, "\n[%1d] Computing GMRF approximation\n------------------------------\n", omp_get_thread_num());
 	nidx = 0;
 	idxs = Calloc(Npred, int);
-	for (i = 0; i < Npred; i++) {
+	for (int i = 0; i < Npred; i++) {
 		if (d[i]) {
 			idxs[nidx++] = i;
 		}
@@ -748,11 +748,15 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	bcoof = Calloc(Npred, double);
 	ccoof = Calloc(Npred, double);
-
+	
+	double *bcoof_prev = (ISINF(cmin) == -1 ? Calloc(Npred, double) : NULL);
+	double *ccoof_prev = (ISINF(cmin) == -1 ? Calloc(Npred, double) : NULL);
+	double *lvar = (ISINF(cmin) == -1 ? Calloc(Npred, double) : NULL);
+	
 	for (iter = 0; iter < itmax; iter++) {
 
 		if (0)
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				printf("i mode %d %f \n", i, mode[i]);
 			}
 
@@ -768,7 +772,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 
 			if (0)
-				for (i = 0; i < preopt->Npred; i++) {
+				for (int i = 0; i < preopt->Npred; i++) {
 					printf("i predictor %d %f\n", i, linear_predictor[i]);
 				}
 
@@ -784,11 +788,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		for (int i_ = 0; i_ < nidx; i_++) {			\
 			int idx = idxs[i_];				\
 			double ccmin = cmin;				\
-			if (ISINF(ccmin) < 1) {				\
-				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-						      &(optpar->step_len), &(optpar->stencil), &cmin); \
-			} else {					\
+			if (ISINF(ccmin) == 1) {			\
 				/* Enter adaptive mode. Try with increasing step_len until ccoof >0 */ \
 				/* If not successful then fall back to default step_len with cmin=0 */ \
 				double step_len = DMAX(FLT_EPSILON, optpar->step_len); \
@@ -809,6 +809,50 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						break;			\
 					}				\
 				}					\
+			} else if (ISINF(ccmin) == -1) {		\
+				assert(optpar);				\
+				assert(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT); \
+				if (iter < 1) {			\
+					ccmin = 0.0 + FLT_EPSILON;		\
+					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+							      &(optpar->step_len), &(optpar->stencil), &ccmin); \
+					ccoof[idx] *= 0.1;		\
+					FIXME1("FIX");			\
+					if (idx == 0) {			\
+						P(iter);		\
+						P(idx);			\
+						P(sqrt(lvar[idx]));	\
+						P(bcoof[idx]);		\
+						P(ccoof[idx]);		\
+					}				\
+				} else {				\
+					double prior_prec = DMAX(0.0 + DBL_EPSILON, 1.0 / lvar[idx] - ccoof_prev[idx]); \
+					double prior_sd = sqrt(1.0 / prior_prec); \
+					double prior_mean = (linear_predictor[idx] / lvar[idx] - bcoof[idx]) / prior_prec; \
+					if (idx == 0)			\
+					{				\
+						printf("\n");		\
+						P(prior_sd);		\
+						P(prior_mean);		\
+						P(sqrt(lvar[idx]));	\
+						P(bcoof_prev[idx]);	\
+						P(ccoof_prev[idx]);	\
+					}				\
+					GMRFLib_ai_vb_fit_gaussian(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, idx, d[idx], \
+								   loglFunc, loglFunc_arg, mode, prior_mean, prior_sd);	\
+					ccoof[idx] = DMAX(DBL_EPSILON, ccoof[idx] - prior_prec); \
+					bcoof[idx] = bcoof[idx] - prior_mean * prior_prec; \
+					if (idx == 0) {			\
+						P(bcoof[idx]);		\
+						P(ccoof[idx]);		\
+						printf("\n");		\
+					}				\
+				}					\
+			} else {					\
+				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+						      &(optpar->step_len), &(optpar->stencil), &cmin); \
 			}						\
 			cc_is_negative = (cc_is_negative || ccoof[idx] < 0.0); \
 			if (ccoof[idx] == cmin && b_strategy == INLA_B_STRATEGY_SKIP) { \
@@ -816,6 +860,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}						\
 			bb[idx] += bcoof[idx];				\
 			cc[idx] += ccoof[idx];				\
+									\
+			bcoof_prev[idx] = bcoof[idx];			\
+			ccoof_prev[idx] = ccoof[idx];			\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
@@ -874,13 +921,13 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 		double err = 0.0;
 #pragma omp simd reduction(+: err)
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			err += SQR((lproblem)->mean_constr[i] - mode[i]);
 		}
 		err = sqrt(err / n);
 
 #pragma omp simd
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			mode[i] += f * ((lproblem)->mean_constr[i] - mode[i]);
 		}
 
@@ -911,7 +958,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			} else {
 				linear_predictor = mode;
 			}
-			for (i = 0; i < nidx; i++) {
+			for (int i = 0; i < nidx; i++) {
 				int idx = idxs[i];
 				GMRFLib_2order_approx(thread_id,
 						      &(aa[idx]), NULL, NULL, NULL, d[idx], linear_predictor[idx], idx, mode, loglFunc,
@@ -924,27 +971,33 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
 				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
-		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
-			/*
-			 * we're done!  unless we have negative elements on the diagonal...
-			 */
-			break;
-
-			// NOT IN USE
-			if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
+		if ((ISINF(cmin) == -1 && iter > 5) || ISINF(cmin) != -1) {
+			if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
 				/*
-				 * do nothing 
+				 * we're done!  unless we have negative elements on the diagonal...
 				 */
-			} else if (cc_is_negative && cc_positive) {
-				cc_positive = 0;
-			} else {
 				break;
+
+				// NOT IN USE
+				if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
+					/*
+					 * do nothing 
+					 */
+				} else if (cc_is_negative && cc_positive) {
+					cc_positive = 0;
+				} else {
+					break;
+				}
 			}
 		}
-
+		
 		if (gsl_isnan(err))
 			break;
 
+		if (ISINF(cmin) == -1) {
+			GMRFLib_Qinv(lproblem);
+			GMRFLib_preopt_predictor_moments(NULL, lvar, preopt, lproblem, NULL);
+		}
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
 
@@ -953,6 +1006,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	Free(ccoof);
 	Free(bcoof);
+	Free(bcoof_prev);
+	Free(ccoof_prev);
+	Free(lvar);
+
 	if (free_linear_predictor)
 		Free(linear_predictor);
 
@@ -966,7 +1023,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	if (0) {
 		if (*problem) {
 			FIXME("Leave with x=");
-			for (i = 0; i < graph->n; i++)
+			for (int i = 0; i < graph->n; i++)
 				printf(" %.4f", (*problem)->sub_mean_constr[i]);
 			printf("\n");
 		}
@@ -1000,15 +1057,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 				/*
 				 * add trust region; try to find the smallest 'lambda' that work fine. well, approximatly only...
 				 */
-				int retval, kk, ntimes = 1000, stop = 0;
+				int retval, ntimes = 1000, stop = 0;
 				double lambda = 10000.0,       /* first value for lambda */
-				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
-				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
+					lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
+					lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
 				double *c_new = Calloc(graph->n, double);
 
-				for (kk = 0; kk < ntimes; kk++) {
-
-					for (i = 0; i < graph->n; i++) {
+				for (int kk = 0; kk < ntimes; kk++) {
+					for (int i = 0; i < graph->n; i++) {
 						c_new[i] = lambda * Qfunc(thread_id, i, i, NULL, Qfunc_arg) + lambda * c[i] + lambda;
 						if (x && (ISNAN(x[i]) || ISINF(x[i]))) {
 							x[i] = mode[i];
@@ -5140,7 +5196,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 		H22 += 0.5 * s2 * prior_var_inv;
 		// H12 += 0.0;
 
-		double step_len = DMIN(1.0, (1.0 + iter) / 100.0);
+		double step_len = DMIN(1.0, (1.0 + iter) / 1.0);
 		double idet = 1.0 / (H11 * H22 - SQR(H12));
 
 		// spell out explictely the inverse of the 2x2 Hessian times gradient
@@ -5150,8 +5206,8 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 		fit_log_var += step_len * d_fit_log_var;
 
 		step = sqrt((SQR(d_fit_mean) + SQR(d_fit_log_var)) / 2.0);
-		printf("idx=%1d iter %d diff (%.12g, %.12g) fit(%.12g,  %.12g) step %.12g\n", idx, iter, d_fit_mean, d_fit_log_var, fit_mean,
-		       fit_log_var, step);
+		if (idx == 0) printf("idx=%1d iter %d diff (%.12g, %.12g) fit(mean=%.12g, sd=%.12g) step %.12g\n",
+				     idx, iter, d_fit_mean, d_fit_log_var, fit_mean, exp(0.5*fit_log_var), step);
 		if (step < 1.0E-5)
 			break;
 	}
