@@ -1,8 +1,9 @@
-##########################################################################################################
 ############################################################################################
-#                                 Low Birth Weigth in Georgia (US)                         #                                  #
+############################################################################################
+##                                 Low Birth Weigth in Georgia (US)                       ##
 ############################################################################################
 ## Edited 2023-09-14 to remove dependence on obsolete 'maptools' package                  ##
+## Edited 2023-09-16 added 'lattice' and pc-priors                                        ##
 ############################################################################################
 
 #Import the data
@@ -11,6 +12,11 @@ data <- read.csv("../Data/data.final.csv")
 #-- Prepare the map --#
 library(sp)
 library(spdep)
+library(lattice)
+
+## default pc-priors
+hyper <- list(prec = list(prior = "pc.prec", param = c(0.5, 0.01)))
+
 georgia <- sf::st_read("../Data/co13_d00.shp")
 ## Need to drop extra polygons 98 (Macon county polygon), 100, 105 (Taylor county polygons) + 137 (Lee county polygon)
 ## These are very small and always adjacent to "main" polygon, so we can base neighborhood structure on "main" polygon:
@@ -43,25 +49,25 @@ data<- data.frame(y= low.vector, E= E.vector, ID.area=as.numeric(county), ID.are
 #--Prepare the model and run inla--#
 library(INLA)
 #Parametric model alpha + csii + (deltai + beta)*year
-formula.ST1<- y ~ 1 + f(ID.area,model="bym",graph=Georgia.adj) +
-  f(ID.area1,year,model="rw1") + (year-mean(year))
+formula.ST1<- y ~ 1 + f(ID.area,model="bym2",graph=Georgia.adj) +
+  f(ID.area1,year,model="rw1", hyper = hyper, scale.model = TRUE) + (year-mean(year))
 model.inla.ST1 <- inla(formula.ST1,family="poisson",data=data,E=E, control.predictor=list(compute=TRUE), control.compute=list(dic=TRUE,cpo=TRUE))
 
 #Non Parametric model alpha + csii + gammaj + phij #No space time interaction yet!
-#csii and are modelled through BYM
+#csii and are modelled through BYM2
 #gammaj are modelled as RW1
 #phij are modelled as exchangeable
-formula.ST2<- y ~ 1 + f(ID.area,model="bym",graph=Georgia.adj) +
-  f(ID.year,model="rw1") + f(ID.year1,model="iid")
+formula.ST2<- y ~ 1 + f(ID.area,model="bym2",graph=Georgia.adj) +
+  f(ID.year,model="rw1", hyper = hyper, scale.model = TRUE) + f(ID.year1,model="iid", hyper = hyper)
 model.inla.ST2 <- inla(formula.ST2,family="poisson",data=data,E=E, control.predictor=list(compute=TRUE), control.compute=list(dic=TRUE,cpo=TRUE))
 
 #Non Parametric model alpha + csii + gammaj + phij + deltaij
-#csii are modelled through BYM
+#csii are modelled through BYM2
 #gammaj are modelled as RW1
 #phij are modelled as exchangeable
 #Interaction (deltaij) is modelled as exchangeable
-formula.ST3<- y ~ 1 + f(ID.area,model="bym",graph=Georgia.adj) +
-  f(ID.year,model="rw1") + f(ID.year1,model="iid") + f(ID.area.year,model="iid")
+formula.ST3<- y ~ 1 + f(ID.area,model="bym2",graph=Georgia.adj) +
+  f(ID.year,model="rw1", hyper = hyper, scale.model = TRUE) + f(ID.year1,model="iid", hyper = hyper) + f(ID.area.year,model="iid", hyper = hyper)
 
 #To obtain the marginal of phij + gammaj we need to create the corresponding linear combinations and include these in the model
 lcs = inla.make.lincombs(ID.year = diag(11),  ID.year1 = diag(11))
