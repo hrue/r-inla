@@ -87,6 +87,7 @@ Collate:
     'changelog.R'
     'collect.results.R'
     'compare.results.R'
+    'control.R'
     'coxph.R'
     'cpo.R'
     'create.data.file.R'

@@ -546,8 +546,7 @@
     }
 
     ## Need to do this here.
-    cont.fixed <- inla.set.control.fixed.default()
-    cont.fixed[names(control.fixed)] <- control.fixed
+    cont.fixed <- ctrl_update(ctrl_object(control.fixed, "fixed"))
 
     ##
     ## check for survival model with a baseline-hazard. if so, then
@@ -870,49 +869,18 @@
     }
 
     ## control what should be computed
-    cont.compute <- cont.compute.def <- inla.set.control.compute.default()
-    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- cont.compute$residuals <- FALSE
-    cont.compute$control.gcpo$enable <- FALSE
-    cont.compute[names(control.compute)] <- control.compute
-    if (cont.compute$residuals) {
-        cont.compute$dic <- TRUE
-    }
-    ## because we have 'control' within a 'control', we have to process them specifically
-    cont.compute$control.gcpo <- cont.compute.def$control.gcpo
-    cont.compute$control.gcpo[names(control.compute$control.gcpo)] <- control.compute$control.gcpo
+    cont.compute <- ctrl_update(ctrl_object(control.compute, "compute"))
     if (only.hyperparam) {
         cont.compute$hyperpar <- TRUE
         cont.compute$control.gcpo$enable <- FALSE
         cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
     }
-    for (nm in names(control.compute$control.gcpo)) {
-        if (!(nm %in% names(inla.set.control.compute.default()$control.gcpo))) {
-            stop(paste0("'control.compute$control.gcpo': Unknown argument '", nm, "' is void. Valid ones are: ",
-                        paste0(names(inla.set.control.compute.default()$control.gcpo), collapse=", ")))
-        }
-    }
-    
+
     ## control inla
-    cont.inla <- cont.inla.def <- inla.set.control.inla.default()
-    cont.inla[names(control.inla)] <- control.inla
-    ## because we have 'control' within a 'control', we have to process them specifically
-    cont.inla$control.vb <- cont.inla.def$control.vb
-    cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
-    for (nm in names(control.inla$control.vb)) {
-        if (!(nm %in% names(inla.set.control.inla.default()$control.vb))) {
-            stop(paste0("'control.inla$control.vb': Unknown argument '", nm, "' is void. Valid ones are: ",
-                        paste0(names(inla.set.control.inla.default()$control.vb), collapse=", ")))
-        }
-    }
+    cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
 
     ## control predictor section
-    cont.predictor <- inla.set.control.predictor.default()
-    cont.predictor[names(control.predictor)] <- control.predictor
-    cont.predictor$hyper <- inla.set.hyper(
-        "predictor", "predictor",
-        cont.predictor$hyper, cont.predictor$initial,
-        cont.predictor$fixed, cont.predictor$prior, cont.predictor$param
-    )
+    cont.predictor <- ctrl_update(ctrl_object(control.predictor, "predictor"))
     all.hyper$predictor$hyper <- cont.predictor$hyper
     if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
         cont.compute$control.gcpo$enable || !is.null(cont.predictor$link) ||
@@ -972,64 +940,20 @@
     control.family <- control.family.save
     cont.family <- list(list())
     for (i.family in 1:n.family) {
-        cont.family[[i.family]] <- inla.set.control.family.default()
-        cont.family[[i.family]]$control.mix <- inla.set.control.mix.default()
-        cont.family[[i.family]]$control.pom <- inla.set.control.pom.default()
-        cont.family[[i.family]]$control.link <- inla.set.control.link.default()
-        cont.family[[i.family]]$control.bgev <- inla.set.control.bgev.default()
+        cont.family[[i.family]] <-
+          ctrl_update(ctrl_object(control.family[[i.family]], "family"),
+                      model = family[i.family])
 
-        ## need to take option 'control.mix' and 'control.link' out and process it seperately
-        c.mix <- control.family[[i.family]]$control.mix
-        c.pom <- control.family[[i.family]]$control.pom
-        c.link <- control.family[[i.family]]$control.link
-        c.bgev <- control.family[[i.family]]$control.bgev
-        control.family[[i.family]]$control.mix <- NULL
-        control.family[[i.family]]$control.pom <- NULL
-        control.family[[i.family]]$control.link <- NULL
-        control.family[[i.family]]$control.bgev <- NULL
-
-        cont.family[[i.family]][names(control.family[[i.family]])] <- control.family[[i.family]]
-        cont.family[[i.family]]$hyper <- inla.set.hyper(
-            family[i.family],
-            "likelihood",
-            cont.family[[i.family]]$hyper,
-            cont.family[[i.family]]$initial,
-            cont.family[[i.family]]$fixed,
-            cont.family[[i.family]]$prior,
-            cont.family[[i.family]]$param
-        )
         all.hyper$family[[i.family]] <- list(
             hyperid = paste("INLA.Data", i.family, sep = ""),
             label = family[i.family],
             hyper = cont.family[[i.family]]$hyper
         )
 
-        cont.family[[i.family]]$control.mix[names(c.mix)] <- c.mix
-        cont.family[[i.family]]$control.pom[names(c.pom)] <- c.pom
-        cont.family[[i.family]]$control.link[names(c.link)] <- c.link
-        cont.family[[i.family]]$control.bgev[names(c.bgev)] <- c.bgev
-
         if (!is.null(cont.family[[i.family]]$control.mix$model)) {
-            cont.family[[i.family]]$control.mix$hyper <- inla.set.hyper(
-                cont.family[[i.family]]$control.mix$model,
-                "mix",
-                cont.family[[i.family]]$control.mix$hyper,
-                cont.family[[i.family]]$control.mix$initial,
-                cont.family[[i.family]]$control.mix$fixed,
-                cont.family[[i.family]]$control.mix$prior,
-                cont.family[[i.family]]$control.mix$param
-            )
             all.hyper$family[[i.family]]$mix$hyper <- cont.family[[i.family]]$control.mix$hyper
         }
-        cont.family[[i.family]]$control.link$hyper <- inla.set.hyper(
-            cont.family[[i.family]]$control.link$model,
-            "link",
-            cont.family[[i.family]]$control.link$hyper,
-            cont.family[[i.family]]$control.link$initial,
-            cont.family[[i.family]]$control.link$fixed,
-            cont.family[[i.family]]$control.link$prior,
-            cont.family[[i.family]]$control.link$param
-        )
+
         all.hyper$family[[i.family]]$link$hyper <- cont.family[[i.family]]$control.link$hyper
     }
 
