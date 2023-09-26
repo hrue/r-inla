@@ -116,18 +116,8 @@
 
 
     control.hazard <- inla.check.control(control.hazard, data.f)
-    cont.hazard <- inla.set.control.hazard.default()
-    cont.hazard[names(control.hazard)] <- control.hazard
-    cont.hazard$hyper <- inla.set.hyper(
-        model = cont.hazard$model,
-        section = "hazard",
-        hyper = cont.hazard$hyper,
-        initial = cont.hazard$initial,
-        fixed = cont.hazard$fixed,
-        prior = cont.hazard$prior,
-        param = cont.hazard$param,
-        debug = FALSE
-    )
+    cont.hazard <- ctrl_update(ctrl_object(control.hazard, "hazard"))
+
     if (is.null(y.surv$subject)) {
         res <- inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)
     } else {

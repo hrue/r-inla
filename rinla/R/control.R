@@ -52,11 +52,11 @@ ctrl_object <- function(x, the_type) {
 
 #' @rdname inla-control
 #' @export
-ctrl_defaults <- function(x) {
-  UseMethod("ctrl_defaults")
+ctrl_default <- function(x) {
+  UseMethod("ctrl_default")
 }
 
-ctrl_defaults_call <- function(x) {
+ctrl_default_call <- function(x) {
   the_call <- sub(pattern = "^ctrl_", replacement = "control.", x = x)
   the_call <- gsub(pattern = "_", replacement = ".", x = the_call)
   the_call
@@ -64,14 +64,14 @@ ctrl_defaults_call <- function(x) {
 
 #' @rdname inla-control
 #' @export
-ctrl_defaults.character <- function(x) {
-  do.call(ctrl_defaults_call(x), list())
+ctrl_default.character <- function(x) {
+  do.call(ctrl_default_call(x), list())
 }
 
 #' @rdname inla-control
 #' @export
-ctrl_defaults.default <- function(x) {
-  do.call(ctrl_defaults_call(ctrl_class(x)), list())
+ctrl_default.default <- function(x) {
+  do.call(ctrl_default_call(ctrl_class(x)), list())
 }
 
 #' @rdname inla-control
@@ -83,10 +83,14 @@ ctrl_update <- function(x, ...) {
 #' @describeIn inla-control Merges the `x` object with the defaults for control
 #' type `ctrl_type(x)`. Recursively handles `control.*` elements, with `NULL`
 #' defaults also being replaced by their corresponding defaults before merging.
+#' @param default A default object of matching `ctrl_*` class.
+#' If `NULL`, uses `ctrl_default(x)` instead.
 #' @export
-ctrl_update.default <- function(x, ...) {
-  def <- ctrl_defaults(x)
-  def_names <- names(def)
+ctrl_update.default <- function(x, ..., default = NULL) {
+  if (is.null(default)) {
+    default <- ctrl_default(x)
+  }
+  def_names <- names(default)
   x_names <- names(x)
   if (any(!(x_names %in% def_names))) {
     warning(paste0("Control name ", paste0(
@@ -102,17 +106,17 @@ ctrl_update.default <- function(x, ...) {
   sub.controls <- def_names[grep(pattern = "^control\\.", x = def_names)]
   for (nm in sub.controls) {
     the_type <- ctrl_type(nm)
-    # If NULL in def, remove if present but NULL in x
+    # If NULL in default, remove if present but NULL in x
     if (nm %in% x_names) {
-      def[[nm]] <- x[[nm]]
+      default[[nm]] <- x[[nm]]
     }
-    if (!is.null(def[[nm]])) {
-      def[[nm]] <- ctrl_update(ctrl_object(def[[nm]], the_type))
+    if (!is.null(default[[nm]])) {
+      default[[nm]] <- ctrl_update(ctrl_object(default[[nm]], the_type))
     }
   }
   # Copy over everything else
   copy_names <- setdiff(x_names, sub.controls)
-  def[copy_names] <- x[copy_names]
+  default[copy_names] <- x[copy_names]
 
   def
 }
@@ -219,5 +223,22 @@ ctrl_update.ctrl_scopy <- function(x, ...) {
 ctrl_update.ctrl_hazard <- function(x, ...) {
   y <- NextMethod()
   y <- ctrl_handle_hyper(y, y[["model"]], "hazard")
+  y
+}
+
+#' @rdname inla-control
+#' @export
+ctrl_update.ctrl_mode <- function(x, ...) {
+  y <- NextMethod()
+  if (!is.null(y[["result"]])) {
+    ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
+    ## can/will require lots of storage. We do this by creating a stripped object with only
+    ## what is needed and pass that one along, with the expected classical contents.
+    ## Assign the "inla" class, in case there are checks on the class.
+    y[["result"]] <-
+      structure(list(mode = list(x = y[["result"]][["mode"]][["x"]],
+                                 theta = y[["result"]][["mode"]][["theta"]])),
+                class = "inla")
+  }
   y
 }

@@ -1942,42 +1942,24 @@
     ## the inla section
     inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, inla.mode)
 
-    ## create mode section
-    cont.mode <- inla.set.control.mode.default()
-    cont.mode[names(control.mode)] <- control.mode
-    if (!is.null(cont.mode$result)) {
-        ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
-        ## can/will require lots of storage. We do this by creating a stripped object with only
-        ## what is needed and pass that one along, with the expected classical
-        cont.mode$result <- list(mode = list(x = cont.mode$result$mode$x,
-                                             theta = cont.mode$result$mode$theta))
-        class(cont.mode$result) <- "inla" ## in case there are checks on
-    }
+    ## create mode section, with stripped down version of control.mode$result
+    cont.mode <- ctrl_update(ctrl_object(control.mode, "mode"))
     inla.mode.section(file = file.ini, cont.mode, data.dir)
 
     ## create expert section. the 'preopt' option is processed here and not in the expert.section
-    cont.expert <- inla.set.control.expert.default()
-    cont.expert[names(control.expert)] <- control.expert
+    cont.expert <- ctrl_update(ctrl_object(control.expert, "expert"))
     inla.expert.section(file = file.ini, cont.expert, data.dir = data.dir)
 
     ## create lincomb section
-    cont.lincomb <- inla.set.control.lincomb.default()
-    cont.lincomb[names(control.lincomb)] <- control.lincomb
+    cont.lincomb <- ctrl_update(ctrl_object(control.lincomb, "lincomb"))
     inla.lincomb.section(file = file.ini, data.dir = data.dir, contr = cont.lincomb, lincomb = lincomb)
 
     ## create update section
-    cont.update <- inla.set.control.update.default()
-    cont.update[names(control.update)] <- control.update
+    cont.update <- ctrl_update(ctrl_object(control.update, "update"))
     inla.update.section(file = file.ini, data.dir = data.dir, contr = cont.update)
 
     ## create lp.scale section
-    cont.lp.scale <- inla.set.control.lp.scale.default()
-    cont.lp.scale[names(control.lp.scale)] <- control.lp.scale
-    cont.lp.scale$hyper <- inla.set.hyper(
-        "lp.scale", "lp.scale",
-        cont.lp.scale$hyper, cont.lp.scale$initial,
-        cont.lp.scale$fixed, cont.lp.scale$prior, cont.lp.scale$param
-    )
+    cont.lp.scale <- ctrl_update(ctrl_object(control.lp.scale, "lp_scale"))
     if (!is.null(lp.scale)) {
         all.hyper$lp.scale <- cont.lp.scale$hyper
         lps <- as.numeric(lp.scale)
@@ -1996,8 +1978,7 @@
                           write.hyper = !is.null(lp.scale))
 
     ## create pardiso section
-    cont.pardiso <- inla.set.control.pardiso.default()
-    cont.pardiso[names(control.pardiso)] <- control.pardiso
+    cont.pardiso <- ctrl_update(ctrl_object(control.pardiso, "pardiso"))
     inla.pardiso.section(file = file.ini, data.dir = data.dir, contr = cont.pardiso)
 
     ## now, do the job
@@ -2453,37 +2434,48 @@
             stop("*** Failed to get good enough initial values. Maybe it is due to something else.")
         }
         output(paste0("inla.program has crashed: rerun to get better initial values. try=", ntry+1, "/", max.try))
-        cont.inla <- inla.set.control.inla.default()
-        cont.inla[names(control.inla)] <- control.inla
 
-        cont.inla$int.strategy <- "eb"
-        cont.inla$strategy <- "gaussian"
-        cont.inla$control.vb <- list(enable = FALSE)
-        cont.inla$cmin <- cmin
-        cont.inla$force.diagonal = TRUE
-        cont.inla$optimise.strategy = "plain"
-        cont.inla$tolerance = 0.01
+        cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
+        cont.inla <-
+          ctrl_update(
+            ctrl_object(
+              list(
+                int.strategy = "eb",
+                strategy = "gaussian",
+                control.vb = ctrl_object(list(enable = FALSE), "vb"),
+                cmin = cmin,
+                force.diagonal = TRUE,
+                optimise.strategy = "plain",
+                tolerance = 0.01),
+              "inla"),
+            default = cont.inla)
         control.inla.save <- control.inla
         control.inla <- cont.inla
 
-        cont.compute <- inla.set.control.compute.default()
-        cont.compute[names(control.compute)] <- control.compute
-        cont.compute$return.marginals <- FALSE
-        cont.compute$return.marginals.predictor <- FALSE
-        cont.compute$dic <- FALSE
-        cont.compute$control.gcpo <- inla.set.control.compute.default()$control.gcpo
-        cont.compute$cpo <- FALSE
-        cont.compute$po <- FALSE
-        cont.compute$waic <- FALSE
-        cont.compute$residuals <- FALSE
-        cont.compute$config <- FALSE
-        cont.compute$q <- FALSE
-        cont.compute$graph <- FALSE
+        cont.compute <- ctrl_update(ctrl_object(control.compute, "compute"))
+        cont.compute <-
+          ctrl_update(
+            ctrl_object(
+              list(
+                return.marginals = FALSE,
+                return.marginals.predictor = FALSE,
+                dic = FALSE,
+                control.gcpo = inla.set.control.gcpo.default(),
+                cpo = FALSE,
+                po = FALSE,
+                waic = FALSE,
+                residuals = FALSE,
+                config = FALSE,
+                q = FALSE,
+                graph = FALSE),
+              "compute"),
+            default = cont.compute)
         control.compute.save <- control.compute
         control.compute <- cont.compute
 
-        cont.predictor <- inla.set.control.predictor.default()
-        cont.predictor[names(control.predictor)] <- control.predictor
+        cont.predictor <- ctrl_update(ctrl_object(control.predictor, "predictor"),
+                                      control.compute = list(),
+                                      control.inla = list())
         cont.predictor$compute <- FALSE
         control.predictor.save <- control.predictor
         control.predictor <- cont.predictor

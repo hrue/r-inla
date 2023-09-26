@@ -7,9 +7,9 @@
 \alias{ctrl_type.default}
 \alias{ctrl_type.character}
 \alias{ctrl_object}
-\alias{ctrl_defaults}
-\alias{ctrl_defaults.character}
-\alias{ctrl_defaults.default}
+\alias{ctrl_default}
+\alias{ctrl_default.character}
+\alias{ctrl_default.default}
 \alias{ctrl_update}
 \alias{ctrl_update.default}
 \alias{ctrl_update.ctrl_family}
@@ -21,6 +21,7 @@
 \alias{ctrl_update.ctrl_group}
 \alias{ctrl_update.ctrl_scopy}
 \alias{ctrl_update.ctrl_hazard}
+\alias{ctrl_update.ctrl_mode}
 \title{inla control argument handlers}
 \usage{
 ctrl_class(x)
@@ -33,15 +34,15 @@ ctrl_type(x)
 
 ctrl_object(x, the_type)
 
-ctrl_defaults(x)
+ctrl_default(x)
 
-\method{ctrl_defaults}{character}(x)
+\method{ctrl_default}{character}(x)
 
-\method{ctrl_defaults}{default}(x)
+\method{ctrl_default}{default}(x)
 
 ctrl_update(x, ...)
 
-\method{ctrl_update}{default}(x, ...)
+\method{ctrl_update}{default}(x, ..., default = NULL)
 
 \method{ctrl_update}{ctrl_family}(x, ..., model)
 
@@ -60,8 +61,13 @@ ctrl_update(x, ...)
 \method{ctrl_update}{ctrl_scopy}(x, ...)
 
 \method{ctrl_update}{ctrl_hazard}(x, ...)
+
+\method{ctrl_update}{ctrl_mode}(x, ...)
 }
 \arguments{
+\item{default}{A default object of matching \verb{ctrl_*} class.
+If \code{NULL}, uses \code{ctrl_default(x)} instead.}
+
 \item{model}{character; a model specifier}
 
 \item{control.compute}{A \code{ctrl_compute} object.}
