@@ -922,7 +922,7 @@
     ## finally, do the check. Note that the name of the argument is
     ## also used in this function, so we need to borrow the name.
     control.family.save <- control.family
-    for (ii in 1:n.family) {
+    for (ii in seq_len(n.family)) {
         control.family <- control.family.save[[ii]]
         ## need to be able to say when n.family =  1
         ## control.family = list(
@@ -935,12 +935,13 @@
         control.family.save[[ii]] <- inla.check.control(control.family, data)
     }
     control.family <- control.family.save
-    cont.family <- list(list())
-    for (i.family in 1:n.family) {
-        cont.family[[i.family]] <-
-          ctrl_update(ctrl_object(control.family[[i.family]], "family"),
-                      model = family[i.family])
-
+    cont.family <-
+        lapply(seq_len(n.family),
+               function(i.family) {
+                 ctrl_update(ctrl_object(control.family[[i.family]], "family"),
+                             model = family[i.family])
+               })
+    for (i.family in seq_len(n.family)) {
         all.hyper$family[[i.family]] <- list(
             hyperid = paste("INLA.Data", i.family, sep = ""),
             label = family[i.family],
