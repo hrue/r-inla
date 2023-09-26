@@ -20,19 +20,11 @@
 #' @export inla.version
 `inla.version` <- function(what = c("default", "version", "date")) {
 
-    `trim` <- function(string) {
-        string <- gsub("^[^:]*:", "", string)
-        string <- gsub("^[ \t]+", "", string)
-        string <- gsub("[ \t]+$", "", string)
-        return(string)
-    }
-
-    desc <- readLines(system.file("DESCRIPTION", package="INLA"))
-    version <- trim(desc[grep("^Version:", desc)])
-    date <- trim(desc[grep("^Date:", desc)])
     what <- match.arg(what)
 
     if (what %in% "default") {
+        version <- getNamespaceVersion("INLA")
+        date <- utils::packageDate("INLA")
         cat(paste("\tR-INLA version ..........: ", version, "\n", sep = ""))
         cat(paste("\tDate ....................: ", date, "\n", sep = ""))
         cat("\tMaintainers .............: Havard Rue <hrue@r-inla.org>\n")
@@ -45,9 +37,9 @@
         cat("\t                         : r-inla-discussion-group@googlegroups.com\n")
         return(invisible())
     } else if (what %in% "date") {
-        return(date)
+        return(utils::packageDate("INLA"))
     } else if (what %in% "version") {
-        return(version)
+        return(getNamespaceVersion("INLA"))
     }
 
     stop("This should not happen.")
