@@ -57,7 +57,13 @@ ctrl_default <- function(x) {
 }
 
 ctrl_default_call <- function(x) {
-  the_call <- sub(pattern = "^ctrl_", replacement = "control.", x = x)
+  if (grepl("^ctrl_", x = x)) {
+    # When x is a ctrl_ class name
+    the_call <- sub(pattern = "^ctrl_", replacement = "control.", x = x)
+  } else {
+    # When x is a ctrl_ type
+    the_call <- paste0("control.", x)
+  }
   the_call <- gsub(pattern = "_", replacement = ".", x = the_call)
   the_call
 }
