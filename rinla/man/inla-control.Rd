@@ -43,7 +43,7 @@ ctrl_update(x, ...)
 
 \method{ctrl_update}{default}(x, ...)
 
-\method{ctrl_update}{ctrl_family}(x, model, ...)
+\method{ctrl_update}{ctrl_family}(x, ..., model)
 
 \method{ctrl_update}{ctrl_mix}(x, ...)
 
@@ -51,7 +51,7 @@ ctrl_update(x, ...)
 
 \method{ctrl_update}{ctrl_lp_scale}(x, ...)
 
-\method{ctrl_update}{ctrl_predictor}(x, ...)
+\method{ctrl_update}{ctrl_predictor}(x, ..., control.compute, control.inla)
 
 \method{ctrl_update}{ctrl_compute}(x, ...)
 
@@ -60,6 +60,13 @@ ctrl_update(x, ...)
 \method{ctrl_update}{ctrl_scopy}(x, ...)
 
 \method{ctrl_update}{ctrl_hazard}(x, ...)
+}
+\arguments{
+\item{model}{character; a model specifier}
+
+\item{control.compute}{A \code{ctrl_compute} object.}
+
+\item{control.inla}{A \code{ctrl_inla} object.}
 }
 \description{
 Methods for controlling \code{\link[=inla]{inla()}} and \code{\link[=f]{f()}} \code{control} arguments
@@ -73,7 +80,11 @@ without the "ctrl_" prefix.
 type \code{ctrl_type(x)}. Recursively handles \verb{control.*} elements, with \code{NULL}
 defaults also being replaced by their corresponding defaults before merging.
 
-\item \code{ctrl_update(ctrl_compute)}: If \verb{residuals is }TRUE\verb{, also sets }dic = TRUE`.
+\item \code{ctrl_update(ctrl_predictor)}: Requires \code{control.compute} and \code{control.inla} to be provided,
+in order to determine if \code{compute} needs to be forced to \code{TRUE}. To ignore,
+use \code{ctrl_update(x, control.compute = list(), control.inla = list())}.
+
+\item \code{ctrl_update(ctrl_compute)}: If \code{residuals} is \code{TRUE}, also sets \code{dic = TRUE}.
 
 }}
 \keyword{internal}

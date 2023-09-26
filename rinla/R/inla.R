@@ -880,13 +880,10 @@
     cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
 
     ## control predictor section
-    cont.predictor <- ctrl_update(ctrl_object(control.predictor, "predictor"))
+    cont.predictor <- ctrl_update(ctrl_object(control.predictor, "predictor"),
+                                  control.compute = cont.compute,
+                                  control.inla = cont.inla)
     all.hyper$predictor$hyper <- cont.predictor$hyper
-    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
-        cont.compute$control.gcpo$enable || !is.null(cont.predictor$link) ||
-        (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb$enable)) {
-        cont.predictor$compute <- TRUE
-    }
     if (only.hyperparam) {
         cont.predictor$compute <- FALSE
         cont.predictor$cdf <- cont.predictor$quantiles <- NULL

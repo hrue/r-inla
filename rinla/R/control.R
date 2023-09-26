@@ -8,7 +8,11 @@
 #' @export
 ctrl_class <- function(x) {
   cl <- class(x)
-  cl[min(grep("^ctrl_", cl))]
+  i <- grep("^ctrl_", cl)
+  if (length(i) == 0) {
+    return(NA_character_)
+  }
+  cl[min(i)]
 }
 
 #' @describeIn inla-control Returns the type-part of the control class name, i.e.
@@ -31,6 +35,18 @@ ctrl_type.character <- function(x) {
 #' @rdname inla-control
 #' @export
 ctrl_object <- function(x, the_type) {
+  x_type <- ctrl_type(x)
+  if (!is.na(x_type) && !identical(x_type, the_type)) {
+    stop(
+      paste0(
+        "Control object type mismatch. Expected a plain list() or a `ctrl_",
+        the_type,
+        "` object, but received a `",
+        ctrl_class(x),
+        "`."
+      )
+    )
+  }
   structure(if (is.null(x)) list() else x, class = paste0("ctrl_", the_type))
 }
 
@@ -116,8 +132,9 @@ ctrl_handle_hyper <- function(x, model, section) {
 }
 
 #' @rdname inla-control
+#' @param model character; a model specifier
 #' @export
-ctrl_update.ctrl_family <- function(x, model, ...) {
+ctrl_update.ctrl_family <- function(x, ..., model) {
   y <- NextMethod()
   y <- ctrl_handle_hyper(y, model = model, section = "likelihood")
   y
@@ -147,15 +164,29 @@ ctrl_update.ctrl_lp_scale <- function(x, ...) {
   y
 }
 
-#' @rdname inla-control
+#' @describeIn inla-control Requires `control.compute` and `control.inla` to be provided,
+#' in order to determine if `compute` needs to be forced to `TRUE`. To ignore,
+#' use `ctrl_update(x, control.compute = list(), control.inla = list())`.
+#' @param control.compute A `ctrl_compute` object.
+#' @param control.inla A `ctrl_inla` object.
 #' @export
-ctrl_update.ctrl_predictor <- function(x, ...) {
+ctrl_update.ctrl_predictor <- function(x, ..., control.compute, control.inla) {
   y <- NextMethod()
   y <- ctrl_handle_hyper(y, "predictor", "predictor")
+  if (isTRUE(control.compute[["cpo"]]) ||
+      isTRUE(control.compute[["dic"]]) ||
+      isTRUE(control.compute[["po"]]) ||
+      isTRUE(control.compute[["waic"]]) ||
+      isTRUE(control.compute[["control.gcpo"]][["enable"]]) ||
+      !is.null(y[["link"]]) ||
+      (is.character(control.inla[["control.vb"]][["enable"]]) ||
+       isTRUE(control.inla[["control.vb"]][["enable"]]))) {
+    y$compute <- TRUE
+  }
   y
 }
 
-#' @describeIn inla-control If `residuals is `TRUE`, also sets `dic = TRUE`.
+#' @describeIn inla-control If `residuals` is `TRUE`, also sets `dic = TRUE`.
 #' @export
 ctrl_update.ctrl_compute <- function(x, ...) {
   y <- NextMethod()
