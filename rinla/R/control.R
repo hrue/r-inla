@@ -124,7 +124,7 @@ ctrl_update.default <- function(x, ..., default = NULL) {
   copy_names <- setdiff(x_names, sub.controls)
   default[copy_names] <- x[copy_names]
 
-  def
+  default
 }
 
 
