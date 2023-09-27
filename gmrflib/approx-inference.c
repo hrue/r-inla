@@ -664,8 +664,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	 * This is copy of the original routine but with optional arguments 
 	 */
 
-	int free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc =
-		0, n, *idxs = NULL, nidx = 0;
+	int free_b = 0, free_c = 0, free_mean = 0, free_d = 0, free_blockpar = 0, free_aa = 0, free_bb = 0, free_cc = 0, n, *idxs = NULL, nidx = 0;
 	int Npred = (GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT ? preopt->Npred : graph->n);
 	double *mode = NULL;
 
@@ -748,17 +747,31 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	bcoof = Calloc(Npred, double);
 	ccoof = Calloc(Npred, double);
-	
-	double *bcoof_prev = (ISINF(cmin) == -1 ? Calloc(Npred, double) : NULL);
-	double *ccoof_prev = (ISINF(cmin) == -1 ? Calloc(Npred, double) : NULL);
-	double *lvar = (ISINF(cmin) == -1 ? Calloc(Npred, double) : NULL);
-	
+
+	static int new_test = -1;
+	if (new_test < 0) {
+#pragma omp critical (Name_5461950ab2559851daec5c02bdc43ec0cdb29a7e)
+		if (new_test < 0) {
+			if (getenv("INLA_NEW_TEST")) {
+				new_test = 1;
+				P(new_test);
+			} else {
+				new_test = 0;
+			}
+		}
+	}
+
+	double *bcoof_prev = (new_test ? Calloc(Npred, double) : NULL);
+	double *ccoof_prev = (new_test ? Calloc(Npred, double) : NULL);
+	double *lvar = (new_test ? Calloc(Npred, double) : NULL);
+
 	for (iter = 0; iter < itmax; iter++) {
 
-		if (0)
+		if (0) {
 			for (int i = 0; i < n; i++) {
 				printf("i mode %d %f \n", i, mode[i]);
 			}
+		}
 
 		Memset(aa, 0, Npred * sizeof(double));
 		Memset(bb, 0, Npred * sizeof(double));
@@ -771,10 +784,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}
 			GMRFLib_preopt_predictor(linear_predictor, mode, preopt);
 
-			if (0)
+			if (0) {
 				for (int i = 0; i < preopt->Npred; i++) {
 					printf("i predictor %d %f\n", i, linear_predictor[i]);
 				}
+			}
 
 		} else {
 			linear_predictor = mode;
@@ -809,15 +823,14 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						break;			\
 					}				\
 				}					\
-			} else if (ISINF(ccmin) == -1) {		\
+			} else if (new_test) {				\
 				assert(optpar);				\
 				assert(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT); \
-				if (iter < 1) {			\
-					ccmin = 0.0 + FLT_EPSILON;		\
+				if (iter < 2) {				\
+					ccmin = 0.0 + FLT_EPSILON;	\
 					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
 							      &(optpar->step_len), &(optpar->stencil), &ccmin); \
-					ccoof[idx] *= 0.1;		\
 					FIXME1("FIX");			\
 					if (idx == 0) {			\
 						P(iter);		\
@@ -830,23 +843,49 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					double prior_prec = DMAX(0.0 + DBL_EPSILON, 1.0 / lvar[idx] - ccoof_prev[idx]); \
 					double prior_sd = sqrt(1.0 / prior_prec); \
 					double prior_mean = (linear_predictor[idx] / lvar[idx] - bcoof[idx]) / prior_prec; \
-					if (idx == 0)			\
-					{				\
+					if (idx == 0) {			\
 						printf("\n");		\
+						P(idx);			\
 						P(prior_sd);		\
 						P(prior_mean);		\
 						P(sqrt(lvar[idx]));	\
 						P(bcoof_prev[idx]);	\
 						P(ccoof_prev[idx]);	\
 					}				\
-					GMRFLib_ai_vb_fit_gaussian(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, idx, d[idx], \
-								   loglFunc, loglFunc_arg, mode, prior_mean, prior_sd);	\
-					ccoof[idx] = DMAX(DBL_EPSILON, ccoof[idx] - prior_prec); \
-					bcoof[idx] = bcoof[idx] - prior_mean * prior_prec; \
+					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
+							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
+							      &(optpar->step_len), &(optpar->stencil), &ccmin); \
+					double bprev = bcoof[idx], cprev = ccoof[idx]; \
 					if (idx == 0) {			\
+						FIXME("2order");	\
+						P(aa[idx]);		\
 						P(bcoof[idx]);		\
 						P(ccoof[idx]);		\
-						printf("\n");		\
+					}				\
+					double ell;			\
+					double fit_mean;		\
+					double fit_prec;		\
+					GMRFLib_ai_vb_fit_gaussian(thread_id, &ell, &fit_mean, &fit_prec, idx, d[idx], \
+								   loglFunc, loglFunc_arg, mode, prior_mean, prior_sd);	\
+					ccoof[idx] = DMAX(DBL_EPSILON, fit_prec - prior_prec); \
+					bcoof[idx] = fit_mean * fit_prec - prior_mean * prior_prec; \
+					if (idx == 0) {			\
+						FIXME("vb");		\
+						P(bcoof[idx]);		\
+						P(ccoof[idx]);		\
+					}				\
+					double m = bcoof[idx] / ccoof[idx]; \
+					double tau = ccoof[idx];	\
+					double x0 = linear_predictor[idx]; \
+					x0 = fit_mean;			\
+					loglFunc(thread_id, &(aa[idx]), &x0, 1, idx, mode, NULL, loglFunc_arg, NULL); \
+					aa[idx] += 0.5 * (SQR(x0-m) - SQR(m)) * tau; \
+					bcoof[idx] = bprev;		\
+					ccoof[idx] = cprev;		\
+					if (idx == 0) {			\
+						P(aa[idx]);		\
+						P(bprev-bcoof[idx]);	\
+						P(cprev/ccoof[idx]);	\
 					}				\
 				}					\
 			} else {					\
@@ -861,8 +900,10 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			bb[idx] += bcoof[idx];				\
 			cc[idx] += ccoof[idx];				\
 									\
-			bcoof_prev[idx] = bcoof[idx];			\
-			ccoof_prev[idx] = ccoof[idx];			\
+			if (new_test) {					\
+				bcoof_prev[idx] = bcoof[idx];		\
+				ccoof_prev[idx] = ccoof[idx];		\
+			}						\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
@@ -893,8 +934,9 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		 */
 
 		if (!lproblem) {
-			if (preopt)
+			if (preopt) {
 				assert((void *) preopt == (void *) Qfunc_arg);
+			}
 			// GMRFLib_printf_Qfunc2(stdout, graph, Qfunc, Qfunc_arg);
 
 			int ret;
@@ -971,7 +1013,7 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
 				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
-		if ((ISINF(cmin) == -1 && iter > 5) || ISINF(cmin) != -1) {
+		if (!new_test) {
 			if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
 				/*
 				 * we're done!  unless we have negative elements on the diagonal...
@@ -989,14 +1031,20 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 					break;
 				}
 			}
+		} else {
+			if (iter == 2) break;
 		}
-		
+
 		if (gsl_isnan(err))
 			break;
 
-		if (ISINF(cmin) == -1) {
+		if (new_test) {
 			GMRFLib_Qinv(lproblem);
 			GMRFLib_preopt_predictor_moments(NULL, lvar, preopt, lproblem, NULL);
+			P(iter);
+			for(int i = 0; i < 1 + 0*Npred; i++) {
+				printf("sqrt(lvar[%1d]) =  %f\n", i, sqrt(lvar[i]));
+			}
 		}
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
@@ -1006,9 +1054,11 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	Free(ccoof);
 	Free(bcoof);
-	Free(bcoof_prev);
-	Free(ccoof_prev);
-	Free(lvar);
+	if (new_test) {
+		Free(bcoof_prev);
+		Free(ccoof_prev);
+		Free(lvar);
+	}
 
 	if (free_linear_predictor)
 		Free(linear_predictor);
@@ -1131,6 +1181,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	FREE_ALL;
 	GMRFLib_LEAVE_ROUTINE;
 
+	//system("sleep 1");
+	
 	return GMRFLib_SUCCESS;
 
 #undef FREE_ALL
@@ -3232,6 +3284,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
+#define At_idx(node_) (preopt->pAAt_idxval ? preopt->pAAt_idxval[node_] : preopt->At_idxval[node_])
 
 	GMRFLib_ENTER_ROUTINE;
 
@@ -3417,6 +3470,9 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 		}
 		assert(selection);
 
+		static double tref[] = { 0.0, 0.0 };
+		const int show = 0;
+
 #define CODE_BLOCK							\
 		for(int ii = 0;	ii < selection->n; ii++) {		\
 			CODE_BLOCK_ALL_WORK_ZERO();			\
@@ -3434,18 +3490,20 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			double *cor_abs = CODE_BLOCK_WORK_PTR(3);	\
 			size_t *largest = (size_t *) CODE_BLOCK_WORK_PTR(4); \
 									\
-			static double tref = 0.0;			\
-			static double tref_n = 0;			\
-			if (0) tref -= GMRFLib_cpu();			\
+			if (show) tref[0] -= GMRFLib_cpu();		\
 									\
 			GMRFLib_unpack(v->n, v->val, a, v->idx);	\
 			GMRFLib_Qsolve(Sa, a, build_ai_store->problem, -1); \
+									\
+			if (show) tref[0] += GMRFLib_cpu();		\
 									\
 			double eps = 1.0E-4 * min_sd / isd[node];	\
 			_Pragma("omp simd")				\
 				for (int iii = 0; iii < build_ai_store->problem->sub_graph->n; iii++) { \
 					if (ABS(Sa[iii]) < eps) Sa[iii] = 0.0; \
 				}					\
+									\
+			if (show) tref[1] -= GMRFLib_cpu();		\
 									\
 			for (int nnode = 0; nnode < Npred; nnode++) {	\
 				GMRFLib_idxval_tp *vv = A_idx(nnode);	\
@@ -3455,8 +3513,12 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 				cor[nnode] = TRUNCATE(sum, -1.0, 1.0);	\
 				cor_abs[nnode] = ABS(cor[nnode]);	\
 			}						\
-			if (0) tref += GMRFLib_cpu();			\
-			if (0) P(tref/++tref_n * 1.0e6);		\
+									\
+			if (show) {					\
+				tref[1] += GMRFLib_cpu();		\
+				printf("gcpo_build: rel.time solve %g dot %g\n", tref[0] / (tref[0] + tref[1]), tref[1] / (tref[0] + tref[1])); \
+				printf("gcpo_build: abs.time solve %g dot %g\n", tref[0], tref[1]); \
+			}						\
 									\
 			cor[node] = cor_abs[node] = 1.0;		\
 			int levels_ok = 0;				\
@@ -3465,7 +3527,7 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 			while (!levels_ok) {				\
 				groups[node]->n = 0;			\
 				int siz_g = IMIN(Npred, levels_magnify * (IABS(gcpo_param->num_level_sets) + 4L)); \
-				levels_magnify *= 10;			\
+				levels_magnify *= 4;			\
 				GMRFLib_DEBUG_i_v("node siz_g Npred num_level_sets levels_magnify", node, siz_g, Npred, gcpo_param->num_level_sets, levels_magnify); \
 				gsl_sort_largest_index(largest, (size_t) siz_g, cor_abs, (size_t) 1, (size_t) Npred); \
 				int nlevels = 1;			\
@@ -5095,7 +5157,7 @@ int GMRFLib_ai_vb_correct_variance_preopt(int thread_id,
 	return GMRFLib_SUCCESS;
 }
 
-int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc, double *dd, int idx, double d,
+int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, double *fitted_prec, int idx, double d,
 			       GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd)
 {
 	/*
@@ -5114,7 +5176,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 	static double *xp4 = NULL;
 	static double *xp5 = NULL;
 
-	const int np = GMRFLib_INT_GHQ_POINTS, nnp = np / 2L, nnp1 = nnp + 1;
+	const int np = 1 + 2 * GMRFLib_INT_GHQ_POINTS, nnp = np / 2L, nnp1 = nnp + 1;
 
 	if (!wp) {
 #pragma omp critical (Name_0ddd01862f572e8e2021d8c931021738790dccc7)
@@ -5145,7 +5207,6 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 
 
 	int nn = GMRFLib_align((size_t) np, sizeof(double));
-	double prior_var_inv = 1.0 / SQR(sd);
 	double x_user[5 * nn];
 	double *loglik = x_user + nn;
 	double *wloglik = x_user + 2 * nn;
@@ -5206,21 +5267,16 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 		fit_log_var += step_len * d_fit_log_var;
 
 		step = sqrt((SQR(d_fit_mean) + SQR(d_fit_log_var)) / 2.0);
-		if (idx == 0) printf("idx=%1d iter %d diff (%.12g, %.12g) fit(mean=%.12g, sd=%.12g) step %.12g\n",
-				     idx, iter, d_fit_mean, d_fit_log_var, fit_mean, exp(0.5*fit_log_var), step);
+		if (idx == 0)
+			printf("idx=%1d iter %d diff (%.12g, %.12g) fit(mean=%.12g, sd=%.12g) step %.12g\n",
+			       idx, iter, d_fit_mean, d_fit_log_var, fit_mean, exp(0.5 * fit_log_var), step);
 		if (step < 1.0E-5)
 			break;
 	}
-	// GMRFLib_spline_free(spline);
 
-	if (aa)
-		*aa = 0.0;
-	if (bb)
-		*bb = fit_mean / exp(fit_log_var);
-	if (cc)
-		*cc = 1.0 / exp(fit_log_var);
-	if (dd)
-		*dd = 0.0;
+	*fitted_prec = 1.0 / exp(fit_log_var);
+	*fitted_mean = fit_mean; 
+	*ell = GMRFLib_dsum(np, wloglik);
 
 	return GMRFLib_SUCCESS;
 }
