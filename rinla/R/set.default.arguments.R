@@ -20,7 +20,7 @@
         #' @param result Update the joint posterior for the hyperparameters from result
         result = NULL
     ) {
-        ctrl_object(as.list(environment()), "update")
+        ctrl_object(as.list(environment()), "update", check = FALSE)
     }
 
 #' @title control.lincomb
@@ -34,7 +34,7 @@
         #' the default `inla.mode` (`inla.mode="compact"`).
         verbose = FALSE
     ) {
-        ctrl_object(as.list(environment()), "lincomb")
+        ctrl_object(as.list(environment()), "lincomb", check = FALSE)
     }
 
 
@@ -86,7 +86,7 @@
         #' @param param (OBSOLETE!) Prior parameters
         param = NULL
     ) {
-        ctrl_object(as.list(environment()), "group")
+        ctrl_object(as.list(environment()), "group", check = FALSE)
     }
 
 
@@ -114,7 +114,7 @@
             #' @param prec.betas The prior precision prec(betas-mean(betas))
             prec.betas =  10.0
     ) {
-        ctrl_object(as.list(environment()), "scopy")
+        ctrl_object(as.list(environment()), "scopy", check = FALSE)
     }
 
 #' @title control.mix
@@ -155,7 +155,7 @@
             #' `quadrature`, `simpson`)
             integrator = "default"
     ) {
-        ctrl_object(as.list(environment()), "mix")
+        ctrl_object(as.list(environment()), "mix", check = FALSE)
     }
 
 #' @title control.pom
@@ -172,7 +172,7 @@
             #' (default `FALSE`)?
             fast = FALSE
         ) {
-            ctrl_object(as.list(environment()), "pom")
+            ctrl_object(as.list(environment()), "pom", check = FALSE)
         }
 
 #' @title control.link
@@ -217,7 +217,7 @@
             #' the hyperparmater(s)
             param = NULL
     ) {
-        ctrl_object(as.list(environment()), "link")
+        ctrl_object(as.list(environment()), "link", check = FALSE)
     }
 
 `inla.set.f.default` <-
@@ -255,7 +255,7 @@
             #' correct the normalisation constant.
             globalconstr = list(A = NULL, e = NULL)
         ) {
-            ctrl_object(as.list(environment()), "expert")
+            ctrl_object(as.list(environment()), "expert", check = FALSE)
         }
 
 
@@ -297,7 +297,7 @@ control.gcpo <-
         #' @param remove.fixed TODO
         remove.fixed = TRUE
     ) {
-        ctrl_object(as.list(environment()), "gcpo")
+        ctrl_object(as.list(environment()), "gcpo", check = FALSE)
     }
 
 #' @title control.compute
@@ -393,7 +393,7 @@ control.gcpo <-
             ##   control.compute = list(control.gcpo = control.gcpo())
             ## to test updated settings.
         ) {
-            ctrl_object(as.list(environment()), "compute")
+            ctrl_object(as.list(environment()), "compute", check = FALSE)
         }
 
 #' @title control.lp.scale
@@ -405,7 +405,7 @@ control.gcpo <-
             #' @param hyper Definition of the hyperparameter(s)
             hyper = NULL
     ) {
-        ctrl_object(as.list(environment()), "lp_scale")
+        ctrl_object(as.list(environment()), "lp_scale", check = FALSE)
     }
 
 #' @title control.pardiso
@@ -428,7 +428,7 @@ control.gcpo <-
             #' will determine this adapative)
             nrhs = -1
     ) {
-        ctrl_object(as.list(environment()), "pardiso")
+        ctrl_object(as.list(environment()), "pardiso", check = FALSE)
     }
 
 #' @title control.bgev
@@ -450,7 +450,7 @@ control.gcpo <-
             #' @param beta.ab The parameters a and b in the Beta mixing function
             beta.ab = 5L
         ) {
-            ctrl_object(as.list(environment()), "bgev")
+            ctrl_object(as.list(environment()), "bgev", check = FALSE)
         }
 
 #' @title control.family
@@ -521,7 +521,7 @@ control.gcpo <-
             #' @param link.simple See `inla.doc("0inflated")`
             link.simple = "default"
         ) {
-            ctrl_object(as.list(environment()), "family")
+            ctrl_object(as.list(environment()), "family", check = FALSE)
         }
 
 #' @title control.fixed
@@ -582,7 +582,7 @@ control.gcpo <-
             #' know what you are doing.
             remove.names = NULL
         ) {
-            ctrl_object(as.list(environment()), "fixed")
+            ctrl_object(as.list(environment()), "fixed", check = FALSE)
         }
 
 #' @title control.fixed
@@ -615,7 +615,7 @@ control.vb <- function(
         #'         `"diagonal"`, `"partial"` and `"default"`.
         hessian.strategy = c("default", "full", "partial", "diagonal")
 ) {
-    ctrl_object(as.list(environment()), "vb")
+    ctrl_object(as.list(environment()), "vb", check = FALSE)
 }
 
 
@@ -876,7 +876,7 @@ control.vb <- function(
         #' correct also variance. (This option is for experimental-mode only)
         hessian.correct.skewness.only = TRUE
     ) {
-        ctrl_object(as.list(environment()), "inla")
+        ctrl_object(as.list(environment()), "inla", check = FALSE)
     }
 
 
@@ -938,7 +938,7 @@ control.vb <- function(
             #' Setting this variable implies `compute=TRUE`.
             link = NULL
         ) {
-            ctrl_object(as.list(environment()), "predictor")
+            ctrl_object(as.list(environment()), "predictor", check = FALSE)
         }
 
 #' @title control.mode
@@ -968,7 +968,7 @@ control.vb <- function(
             #' fixed, and if FALSE then treat all thetas as unknown and random (default).
             fixed = FALSE
         ) {
-            ctrl_object(as.list(environment()), "mode")
+            ctrl_object(as.list(environment()), "mode", check = FALSE)
         }
 
 #' @title control.hazard
@@ -1022,7 +1022,7 @@ control.vb <- function(
             #' `inla.getOption("scale.model.default")`.)
             scale.model = NULL
         ) {
-            ctrl_object(as.list(environment()), "hazard")
+            ctrl_object(as.list(environment()), "hazard", check = FALSE)
         }
 
 ## check control-arguments

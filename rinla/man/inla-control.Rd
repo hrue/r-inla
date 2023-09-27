@@ -6,6 +6,7 @@
 \alias{ctrl_type}
 \alias{ctrl_type.default}
 \alias{ctrl_type.character}
+\alias{ctrl_check}
 \alias{ctrl_object}
 \alias{ctrl_default}
 \alias{ctrl_default.character}
@@ -32,7 +33,9 @@ ctrl_type(x)
 
 \method{ctrl_type}{character}(x)
 
-ctrl_object(x, the_type)
+ctrl_check(x, the_type, default = NULL)
+
+ctrl_object(x, the_type, data = NULL, check = TRUE)
 
 ctrl_default(x)
 
@@ -68,11 +71,16 @@ ctrl_update(x, ...)
 \item{default}{A default object of matching \verb{ctrl_*} class.
 If \code{NULL}, uses \code{ctrl_default(x)} instead.}
 
+\item{data}{An optional data object (\code{data.frame}, \code{list}, or \code{environment},
+see the \code{what} argument of \code{\link[=base:attach]{base:attach()}}).}
+
 \item{model}{character; a model specifier}
 
 \item{control.compute}{A \code{ctrl_compute} object.}
 
 \item{control.inla}{A \code{ctrl_inla} object.}
+
+\item{.envir}{The enclosing parent frame for resolving variables in \code{x}}
 }
 \description{
 Methods for controlling \code{\link[=inla]{inla()}} and \code{\link[=f]{f()}} \code{control} arguments
@@ -81,6 +89,12 @@ Methods for controlling \code{\link[=inla]{inla()}} and \code{\link[=f]{f()}} \c
 \itemize{
 \item \code{ctrl_type()}: Returns the type-part of the control class name, i.e.
 without the "ctrl_" prefix.
+
+\item \code{ctrl_check()}: Checks that the elements are named and match
+the available ones in the corresponding default control object.
+
+\item \code{ctrl_object()}: Construct a control object and check that it's compatible
+with the corresponding defaults.
 
 \item \code{ctrl_update(default)}: Merges the \code{x} object with the defaults for control
 type \code{ctrl_type(x)}. Recursively handles \verb{control.*} elements, with \code{NULL}
