@@ -105,6 +105,9 @@ ctrl_check <- function(x, the_type, default = NULL) {
 
 #' @describeIn inla-control Construct a control object and check that it's compatible
 #' with the corresponding defaults.
+#' @param check logical; If `TRUE` (default), calls `ctrl_check()` to verify
+#' compliance with the default object of the target control type. Must be set
+#' to `FALSE` by code calling `ctrl_object()` to construct default objects.
 #' @export
 ctrl_object <- function(x, the_type, data = NULL, check = TRUE) {
   x <- local({
@@ -166,27 +169,20 @@ ctrl_update.default <- function(x, ..., default = NULL) {
   if (is.null(default)) {
     default <- ctrl_default(x)
   }
+  x <- ctrl_check(x, the_type = ctrl_type(x), default = default)
   def_names <- names(default)
   x_names <- names(x)
-  if (any(!(x_names %in% def_names))) {
-    warning(paste0("Control name ", paste0(
-      "'",
-      x_names[!(x_names %in% def_names)],
-      "'",
-      collapse = ", "
-    ), " appears to be invalid for ", ctrl_class(x), "."),
-    immediate. = TRUE)
-  }
   x_names <- intersect(x_names, def_names)
+
   # Handle sub-controls
   sub.controls <- def_names[grep(pattern = "^control\\.", x = def_names)]
   for (nm in sub.controls) {
-    the_type <- ctrl_type(nm)
+    nm_type <- ctrl_type(nm)
     if (nm %in% x_names) {
       default[nm] <- x[nm]
     }
     if (!is.null(default[[nm]])) {
-      default[[nm]] <- ctrl_update(ctrl_object(default[[nm]], the_type))
+      default[[nm]] <- ctrl_update(default[[nm]])
     }
   }
   # Copy over everything else

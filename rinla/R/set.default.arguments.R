@@ -1026,51 +1026,9 @@ control.vb <- function(
         }
 
 ## check control-arguments
-
-`inla.check.control` <- function(contr, data = NULL) {
-    ## This function will signal an error if the arguments in CONTR
-    ## does not match the ones in the corresponding
-    ## `inla.set.XX.default()' routine.  EXAMPLE: contr is
-    ## `control.inla' and default arguments is found in
-    ## `inla.set.control.inla.default()'
-
-    ## Will expand unexpanded names from the names in 'data' first
-    contr <- local({
-        name <- paste("inla.tmp.env", as.character(runif(1)), sep = "")
-        attach(data, name = name, warn.conflicts = FALSE)
-        ccontr <- contr
-        detach(name, character.only = TRUE)
-        ccontr
-    })
-
-    stopifnot(!missing(contr))
-    if (length(contr) == 0) {
-        return(contr)
-    }
-
-    nm <- paste(sys.call()[2])
-    f <- paste("inla.set.", nm, ".default()", sep = "")
-    elms <- names(inla.eval(f))
-
-    if (is.null(names(contr))) {
-        stop(inla.paste(c(
-            "Named elements in in control-argument `", nm, "', is required: ", contr,
-            "\n\n  Valid ones are:\n\t",
-            inla.paste(sort(elms), sep = "\n\t")
-        ), sep = ""))
-    }
-
-    for (elm in names(contr)) {
-        if (!is.element(elm, elms)) {
-            stop(inla.paste(c(
-                "Name `", elm, "' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",
-                inla.paste(sort(elms), sep = "\n\t")
-            ), sep = ""))
-        }
-    }
-
-    return(contr)
-}
+## The old inla.check.control has been replaced by ctrl_object() and ctrl_check().
+## ctrl_objects() first does possible data handling, followed by calling ctrl_check()
+## except for creation of default objects, that requires check=FALSE.
 
 
 

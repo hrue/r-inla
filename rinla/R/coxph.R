@@ -115,8 +115,8 @@
     }
 
 
-    control.hazard <- inla.check.control(control.hazard, data.f)
-    cont.hazard <- ctrl_update(ctrl_object(control.hazard, "hazard"))
+    control.hazard <- ctrl_object(control.hazard, "hazard", data.f)
+    cont.hazard <- ctrl_update(control.hazard)
 
     if (is.null(y.surv$subject)) {
         res <- inla.expand.dataframe.1(y.surv, data.f, control.hazard = cont.hazard)

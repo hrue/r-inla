@@ -493,24 +493,24 @@
     inla.mode <- match.arg(inla.mode, c("compact", "classic", "twostage", "experimental"))
     if (inla.mode == "experimental") inla.mode <- "compact"
 
-    ## check all control.xx arguments here. do the assign as variable
-    ## expansion might occur.
-    control.compute <- inla.check.control(control.compute, data)
-    control.predictor <- inla.check.control(control.predictor, data)
+    ## Check all control.* arguments here by formally converting to ctrl_* objects.
+    ## Variable expansion might occur.
+    control.compute <- ctrl_object(control.compute, "compute", data)
+    control.predictor <- ctrl_object(control.predictor, "predictor", data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
         control.predictor$A <- inla.as.sparse(control.predictor$A, na.rm = TRUE, zeros.rm = TRUE)
     }
     ## do not check control.family here, as we need to know n.family
-    control.inla <- inla.check.control(control.inla, data)
-    control.fixed <- inla.check.control(control.fixed, data)
-    control.mode <- inla.check.control(control.mode, data)
-    control.expert <- inla.check.control(control.expert, data)
-    control.hazard <- inla.check.control(control.hazard, data)
-    control.lincomb <- inla.check.control(control.lincomb, data)
-    control.update <- inla.check.control(control.update, data)
-    control.lp.scale <- inla.check.control(control.lp.scale, data)
-    control.pardiso <- inla.check.control(control.pardiso, data)
+    control.inla <- ctrl_object(control.inla, "inla", data)
+    control.fixed <- ctrl_object(control.fixed, "fixed", data)
+    control.mode <- ctrl_object(control.mode, "mode", data)
+    control.expert <- ctrl_object(control.expert, "expert", data)
+    control.hazard <- ctrl_object(control.hazard, "hazard", data)
+    control.lincomb <- ctrl_object(control.lincomb, "lincomb", data)
+    control.update <- ctrl_object(control.update, "update", data)
+    control.lp.scale <- ctrl_object(control.lp.scale, "lp_scale", data)
+    control.pardiso <- ctrl_object(control.pardiso, "pardiso", data)
 
     n.family <- length(family)
     for (i in 1:n.family) {
@@ -545,8 +545,8 @@
         inla.call <- system.file("bin/remote/inla.submit", package = "INLA")
     }
 
-    ## Need to do this here.
-    cont.fixed <- ctrl_update(ctrl_object(control.fixed, "fixed"))
+    ## Need to merge with the defaults here.
+    cont.fixed <- ctrl_update(control.fixed)
 
     ##
     ## check for survival model with a baseline-hazard. if so, then
@@ -869,7 +869,7 @@
     }
 
     ## control what should be computed
-    cont.compute <- ctrl_update(ctrl_object(control.compute, "compute"))
+    cont.compute <- ctrl_update(control.compute)
     if (only.hyperparam) {
         cont.compute$hyperpar <- TRUE
         cont.compute$control.gcpo$enable <- FALSE
@@ -877,10 +877,10 @@
     }
 
     ## control inla
-    cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
+    cont.inla <- ctrl_update(control.inla)
 
     ## control predictor section
-    cont.predictor <- ctrl_update(ctrl_object(control.predictor, "predictor"),
+    cont.predictor <- ctrl_update(control.predictor,
                                   control.compute = cont.compute,
                                   control.inla = cont.inla)
     all.hyper$predictor$hyper <- cont.predictor$hyper
@@ -932,13 +932,13 @@
                is.null(names(control.family))) {
                    control.family <- control.family[[1]]
                }
-        control.family.save[[ii]] <- inla.check.control(control.family, data)
+        control.family.save[[ii]] <- ctrl_object(control.family, "family", data)
     }
     control.family <- control.family.save
     cont.family <-
         lapply(seq_len(n.family),
                function(i.family) {
-                 ctrl_update(ctrl_object(control.family[[i.family]], "family"),
+                 ctrl_update(control.family[[i.family]],
                              model = family[i.family])
                })
     for (i.family in seq_len(n.family)) {
@@ -1944,23 +1944,23 @@
     inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, inla.mode)
 
     ## create mode section, with stripped down version of control.mode$result
-    cont.mode <- ctrl_update(ctrl_object(control.mode, "mode"))
+    cont.mode <- ctrl_update(control.mode)
     inla.mode.section(file = file.ini, cont.mode, data.dir)
 
     ## create expert section. the 'preopt' option is processed here and not in the expert.section
-    cont.expert <- ctrl_update(ctrl_object(control.expert, "expert"))
+    cont.expert <- ctrl_update(control.expert)
     inla.expert.section(file = file.ini, cont.expert, data.dir = data.dir)
 
     ## create lincomb section
-    cont.lincomb <- ctrl_update(ctrl_object(control.lincomb, "lincomb"))
+    cont.lincomb <- ctrl_update(control.lincomb)
     inla.lincomb.section(file = file.ini, data.dir = data.dir, contr = cont.lincomb, lincomb = lincomb)
 
     ## create update section
-    cont.update <- ctrl_update(ctrl_object(control.update, "update"))
+    cont.update <- ctrl_update(control.update)
     inla.update.section(file = file.ini, data.dir = data.dir, contr = cont.update)
 
     ## create lp.scale section
-    cont.lp.scale <- ctrl_update(ctrl_object(control.lp.scale, "lp_scale"))
+    cont.lp.scale <- ctrl_update(control.lp.scale)
     if (!is.null(lp.scale)) {
         all.hyper$lp.scale <- cont.lp.scale$hyper
         lps <- as.numeric(lp.scale)
@@ -1979,7 +1979,7 @@
                           write.hyper = !is.null(lp.scale))
 
     ## create pardiso section
-    cont.pardiso <- ctrl_update(ctrl_object(control.pardiso, "pardiso"))
+    cont.pardiso <- ctrl_update(control.pardiso)
     inla.pardiso.section(file = file.ini, data.dir = data.dir, contr = cont.pardiso)
 
     ## now, do the job

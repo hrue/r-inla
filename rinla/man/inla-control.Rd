@@ -74,6 +74,10 @@ If \code{NULL}, uses \code{ctrl_default(x)} instead.}
 \item{data}{An optional data object (\code{data.frame}, \code{list}, or \code{environment},
 see the \code{what} argument of \code{\link[=base:attach]{base:attach()}}).}
 
+\item{check}{logical; If \code{TRUE} (default), calls \code{ctrl_check()} to verify
+compliance with the default object of the target control type. Must be set
+to \code{FALSE} by code calling \code{ctrl_object()} to construct default objects.}
+
 \item{model}{character; a model specifier}
 
 \item{control.compute}{A \code{ctrl_compute} object.}
