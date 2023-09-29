@@ -120,7 +120,12 @@ ctrl_object <- function(x, the_type, data = NULL, check = TRUE) {
   if (check) {
     x <- ctrl_check(x = x, the_type = the_type)
   }
-  structure(if (is.null(x)) list() else x, class = paste0("ctrl_", the_type))
+  structure(
+    if (is.null(x)) list() else x,
+            class = c(paste0("ctrl_", the_type),
+                      "inla_ctrl_object"
+                      )
+  )
 }
 
 #' @rdname inla-control
@@ -149,7 +154,7 @@ ctrl_default.character <- function(x) {
 
 #' @rdname inla-control
 #' @export
-ctrl_default.default <- function(x) {
+ctrl_default.inla_ctrl_object <- function(x) {
   do.call(ctrl_default_call(ctrl_class(x)), list())
 }
 
@@ -165,7 +170,7 @@ ctrl_update <- function(x, ...) {
 #' @param default A default object of matching `ctrl_*` class.
 #' If `NULL`, uses `ctrl_default(x)` instead.
 #' @export
-ctrl_update.default <- function(x, ..., default = NULL) {
+ctrl_update.inla_ctrl_object <- function(x, ..., default = NULL) {
   if (is.null(default)) {
     default <- ctrl_default(x)
   }

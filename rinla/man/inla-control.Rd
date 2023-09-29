@@ -10,9 +10,9 @@
 \alias{ctrl_object}
 \alias{ctrl_default}
 \alias{ctrl_default.character}
-\alias{ctrl_default.default}
+\alias{ctrl_default.inla_ctrl_object}
 \alias{ctrl_update}
-\alias{ctrl_update.default}
+\alias{ctrl_update.inla_ctrl_object}
 \alias{ctrl_update.ctrl_family}
 \alias{ctrl_update.ctrl_mix}
 \alias{ctrl_update.ctrl_link}
@@ -41,11 +41,11 @@ ctrl_default(x)
 
 \method{ctrl_default}{character}(x)
 
-\method{ctrl_default}{default}(x)
+\method{ctrl_default}{inla_ctrl_object}(x)
 
 ctrl_update(x, ...)
 
-\method{ctrl_update}{default}(x, ..., default = NULL)
+\method{ctrl_update}{inla_ctrl_object}(x, ..., default = NULL)
 
 \method{ctrl_update}{ctrl_family}(x, ..., model)
 
@@ -100,7 +100,7 @@ the available ones in the corresponding default control object.
 \item \code{ctrl_object()}: Construct a control object and check that it's compatible
 with the corresponding defaults.
 
-\item \code{ctrl_update(default)}: Merges the \code{x} object with the defaults for control
+\item \code{ctrl_update(inla_ctrl_object)}: Merges the \code{x} object with the defaults for control
 type \code{ctrl_type(x)}. Recursively handles \verb{control.*} elements, with \code{NULL}
 defaults also being replaced by their corresponding defaults before merging.
 
