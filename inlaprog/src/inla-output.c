@@ -29,34 +29,43 @@
 
 int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 {
-	GMRFLib_problem_tp *p = NULL;
-	char *fnm = NULL, *newdir = NULL;
-	FILE *fp = NULL;
-	int thread_id = 0;
+	if (!(mb->output->q)) {
+		return GMRFLib_SUCCESS;
+	}
 
-	GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
+	char *fnm = NULL, *newdir = NULL;
+	
 	GMRFLib_sprintf(&newdir, "%s/Q", dir);
+	GMRFLib_sprintf(&fnm, "%s/%s", newdir, "precision-matrix");
+
+	if (inla_mkdir(newdir) != INLA_OK) {
+		return !GMRFLib_SUCCESS;
+	}
+
 	if (mb->verbose) {
 		printf("\t\tstore factorisation results in[%s]\n", newdir);
+		printf("\t\tstore info precision and related matrices in[%s]\n", newdir);
 	}
-	if (inla_mkdir(newdir) == INLA_OK) {
-		if (mb->output->q) {
-			if (mb->verbose) {
-				printf("\t\tstore info precision and related matrices in[%s]\n", newdir);
-			}
-			GMRFLib_sprintf(&fnm, "%s/%s", newdir, "precision-matrix");
-			GMRFLib_bitmap_problem((const char *) fnm, p);
-			Free(fnm);
-		}
+
+	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+		GMRFLib_bitmap_graph(fnm, NULL, graph);
+	} else {
+		GMRFLib_problem_tp *p = NULL;
+		FILE *fp = NULL;
+		int thread_id = 0;
+		
+		GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
+		GMRFLib_bitmap_problem((const char *) fnm, p);
+		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/%s", newdir, "factorisation-information.txt");
-		fp = fopen(fnm, "w");
-		if (fp) {
+		if ((fp = fopen(fnm, "w"))) {
 			GMRFLib_fact_info_report(fp, &(p->sub_sm_fact));
 			fclose(fp);
 		}
 		GMRFLib_free_problem(p);
-		Free(fnm);
 	}
+	
+	Free(fnm);
 	Free(newdir);
 
 	return INLA_OK;
