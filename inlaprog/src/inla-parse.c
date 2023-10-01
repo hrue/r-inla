@@ -17115,9 +17115,11 @@ int inla_theta_map(inla_tp *mb)
 	int ifrom = 0, ito = 0;
 
 	inla_sread_str_int(&tag_from, &ifrom, tag_f);
+	assert(tag_from);
 	printf("From %s %d\n", tag_from, ifrom);
 
 	inla_sread_str_int(&tag_to, &ito, tag_t);
+	assert(tag_to);
 	printf("To %s %d\n", tag_to, ito);
 
 	// int f_from = inla_theta_map_find_f(tag_from, mb);
