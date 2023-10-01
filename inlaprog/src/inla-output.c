@@ -433,7 +433,11 @@ int inla_output(inla_tp *mb)
 				}
 			}
 			if (mb->output->graph) {
-				inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
+				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+					inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
+				} else if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+					inla_output_graph(mb, mb->dir, mb->preopt->preopt_graph);
+				}
 			}
 		}
 	}
