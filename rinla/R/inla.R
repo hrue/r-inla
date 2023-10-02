@@ -2086,13 +2086,15 @@
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
-        if (ownfun) {
+      try_catch_result <- tryCatch(
+        {
+          if (ownfun) {
             ## undocumented feature for PB
             echoc <- inla.call(
-                file.ini = file.ini,
-                file.log = if (verbose) NULL else file.log,
-                results.dir = results.dir,
-                inla.call.args = all.args
+              file.ini = file.ini,
+              file.log = if (verbose) NULL else file.log,
+              results.dir = results.dir,
+              inla.call.args = all.args
             )
         } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
@@ -2145,15 +2147,30 @@
         if (debug) {
             cat("..done\n")
         }
-
+          
+        NULL  
+        },
+        error = function(e) {
+          errorCondition("The inla program call crashed.",
+                         class = "inlaCrashError")
+        }
+      )
+      if (inherits(try_catch_result, "error")) {
+        stop(try_catch_result)
+      }
+      
         my.time.used[3] <- Sys.time()
         if (echoc == 0L) {
             if (!submit) {
-                ret <- try(inla.collect.results(results.dir,
+                ret <- tryCatch(inla.collect.results(results.dir,
                                                 only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
-                                                silent = silent), silent = FALSE)
-                if (inherits(ret, "try-error")) {
-                    return (ret)
+                                                silent = silent),
+                                error = function(e) {
+                                  errorCondition("The inla result collection failed.",
+                                                 class = "inlaCollectError")
+                                })
+                if (inherits(ret, "error")) {
+                    stop(ret)
                 }
                 if (!is.list(ret)) {
                     ret <- list()
@@ -2377,7 +2394,7 @@
     }
 
     run.inla <- function() {
-        return (try(inla.core(
+        return (tryCatch(inla.core(
             formula = formula, 
             family = family, 
             contrasts = contrasts, 
@@ -2416,7 +2433,11 @@
             inla.mode = inla.mode, 
             safe = FALSE, 
             debug = debug, 
-            .parent.frame = .parent.frame)))
+            .parent.frame = .parent.frame),
+            error = function(e) {
+              e
+            }
+        ))
     }
 
     stopifnot(!safe)
@@ -2429,14 +2450,22 @@
         return (r)
     }
     
-    while (inherits(r, "try-error")) {
-        ##
+    while (inherits(r, "error")) {
+      ##
+      if (inherits(r, "inlaCrashError")) {
         if (ntry == max.try) {
-            stop("*** Failed to get good enough initial values. Maybe it is due to something else.")
+          message(r$message)
+          stop(paste("inla program has crashed and the maximum number of tries has been reached."))
         }
-        output(paste0("inla.program has crashed: rerun to get better initial values. try=", ntry+1, "/", max.try))
-
-        cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
+        output(paste0("inla has crashed, but will rerun in case better initial values may help. try=", ntry+1, "/", max.try))
+      } else if (inherits(r, "inlaCollectError")) {
+        message(r$message)
+        stop(paste("inla result collection failed."))
+      } else {
+        stop(r)
+      }
+      
+      cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
         cont.inla <-
           ctrl_update(
             ctrl_object(
