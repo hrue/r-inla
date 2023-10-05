@@ -2454,13 +2454,12 @@
       ##
       if (inherits(r, "inlaCrashError")) {
         if (ntry == max.try) {
-          message(r$message)
-          stop(paste("inla program has crashed and the maximum number of tries has been reached."))
+          stop(paste0(r$message, "\n",
+                      "The inla program failed and the maximum number of tries has been reached."))
         }
-        output(paste0("inla has crashed, but will rerun in case better initial values may help. try=", ntry+1, "/", max.try))
+        output(paste0("The inla program failed, but will rerun in case better initial values may help. try=", ntry+1, "/", max.try))
       } else if (inherits(r, "inlaCollectError")) {
-        message(r$message)
-        stop(paste("inla result collection failed."))
+        stop(paste0(r$message, "\n", "The inla result collection failed."))
       } else {
         stop(r)
       }
@@ -2523,7 +2522,7 @@
         control.predictor <- control.predictor.save
         lincomb <- lincomb.save
 
-        if (!inherits(r, "try-error")) {
+        if (!inherits(r, c("try-error", "error"))) {
             r$.args$control.inla <- control.inla.save
             r$.args$control.compute <- control.compute.save
             r$.args$control.predictor <- control.predictor.save
