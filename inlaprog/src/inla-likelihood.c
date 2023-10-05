@@ -151,6 +151,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	case L_GAMMACOUNT:
 	case L_GPOISSON:
 	case L_POISSON:
+	case L_NZPOISSON:
 	case L_QCONTPOISSON:
 	case L_XPOISSON:
 	case L_ZEROINFLATEDCENPOISSON0:
@@ -1901,6 +1902,68 @@ int loglikelihood_poisson(int thread_id, double *logll, double *x, int m, int id
 	LINK_END;
 #undef _logE
 
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_nzpoisson(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
+{
+	/*
+	 * y ~ nzPoisson(E*exp(x))
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y = ds->data_observations.y[idx], E = ds->data_observations.E[idx];
+	double normc;
+
+	if (G_norm_const_compute[idx]) {
+		G_norm_const[idx] = y * log(E) - my_gsl_sf_lnfact((int) y);
+		G_norm_const_compute[idx] = 0;
+	}
+	normc = G_norm_const[idx];
+
+	LINK_INIT;
+	if (arg_str) {
+		char *a = NULL;
+		GMRFLib_sprintf(&a,
+				"list(y = %.8g, family = \"nzpoisson\", E = %.8g, link.model = \"%1s\", linear.predictor = %.8g)",
+				y, E, ds->link_model, x[0]);
+		*arg_str = a;
+		return GMRFLib_SUCCESS;
+	}
+
+	double off = OFFSET(idx);
+	if (m > 0) {
+		double ylEmn = normc;
+		if (PREDICTOR_LINK_EQ(link_log) && (PREDICTOR_SCALE == 1.0) && (off == 0.0)) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double lambda = exp(x[i]);
+				double mu = E * lambda;
+				double p0 = exp(-mu);
+				logll[i] = y * x[i] + ylEmn - mu - LOG_ONE_MINUS(p0);
+			}
+		} else {
+			for (int i = 0; i < m; i++) {
+				double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
+				double mu = E * lambda;
+				double p0 = exp(-mu);
+				logll[i] = y * log(lambda) + ylEmn - mu - LOG_ONE_MINUS(p0);
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double lambda = PREDICTOR_INVERSE_LINK(x[i] + off);
+			double mu = E * lambda;
+			double p0 = exp(-mu);
+			logll[i] = gsl_cdf_poisson_P((unsigned int) y, mu) / (1.0 - p0);
+		}
+	}
+
+	LINK_END;
 	return GMRFLib_SUCCESS;
 }
 

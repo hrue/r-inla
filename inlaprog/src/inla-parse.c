@@ -721,6 +721,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
 		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "NZPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nzpoisson;
+		ds->data_id = L_NZPOISSON;
+		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "XPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_XPOISSON;
@@ -1312,6 +1316,20 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+		break;
+
+	case L_NZPOISSON:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 1.0) {
+					GMRFLib_sprintf(&msg, "%s: nzPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}

@@ -9617,6 +9617,20 @@ Valid models in this section are:
 }
 Number of hyperparmeters is 0.
 }
+\item{Model 'nzpoisson'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{'The nzPoisson likelihood'}
+\item{survival = }{'FALSE'}
+\item{discrete = }{'TRUE'}
+\item{link = }{'default log logoffset'}
+\item{pdf = }{'nzpoisson'}
+}
+}
+}
+Number of hyperparmeters is 0.
+}
 \item{Model 'xpoisson'.}{
 \describe{
 \item{Properties:}{

@@ -1,0 +1,47 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{nzPoisson}
+
+\subsection*{Parametrisation}
+
+The non-zero Poisson distribution is
+\begin{displaymath}
+    \text{Prob}(y) = \frac{1}{1-\exp(-\lambda)} \frac{\lambda^{y}}{y!}\exp(-\lambda)
+\end{displaymath}
+for responses $y=1, 2, \ldots$, where
+\begin{description}
+\item[$\lambda$:] the expected value parameter (as if $0$'s were allowed).
+\end{description}
+
+\subsection*{Link-function}
+
+The mean-parameter is
+is linked to the linear predictor by
+\begin{displaymath}
+    \lambda(\eta) = E \exp(\eta)
+\end{displaymath}
+where $E>0$ is a known constant (or $\log(E)$ is the offset of $\eta$).
+
+\subsection*{Hyperparameters}
+
+None.
+
+\subsection*{Specification}
+
+\begin{itemize}
+\item \texttt{family="nzpoisson"}
+\item Required arguments: (integer-valued) $y$ and $E$
+\end{itemize}
+
+\subsection*{Example}
+
+In the following example we estimate the parameters in a simulated
+example with Poisson responses.
+\verbatiminput{example-nzpoisson.R}
+
+\end{document}
