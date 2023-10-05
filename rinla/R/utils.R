@@ -215,26 +215,61 @@
     return(invisible())
 }
 
+
+## Speed check of inla.remove methods. The "old new code", M2, was ca ~2 times faster
+## than the original, but using %in% and logical indexing sped it up by another factor
+## of 5, for data.frame().  For list(), the total factor was ~75!
+# > inla.remove <- function(name, from, method) { ...}
+# > A<-data.frame(name_1=rnorm(10000));for (k in 2:100) {A[[paste0("name_", k)]]<-rnorm(10000)}
+# > rem<-sample(names(A), 10, replace = FALSE)
+# > bench::mark(M1=inla.remove(rem,A,1),M2=inla.remove(rem,A,2),M3=inla.remove(rem,A,3),M4=inla.remove(rem,A,4))
+# # A tibble: 4 × 13
+# expression      min   median `itr/sec` mem_alloc `gc/sec` n_itr  n_gc total_time result memory time               gc      
+# <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl> <int> <dbl>   <bch:tm> <list> <list> <list>             <list>  
+#   1 M1          528.4µs  569.1µs     1686.        NA     0      844     0      501ms <df>   <NULL> <bench_tm [844]>   <tibble>
+#   2 M2            301µs  318.1µs     2883.        NA     2.08  1387     1      481ms <df>   <NULL> <bench_tm [1,388]> <tibble>
+#   3 M3           55.1µs   58.9µs    15840.        NA     4.30  7364     2      465ms <df>   <NULL> <bench_tm [7,366]> <tibble>
+#   4 M4           50.8µs   53.5µs    17469.        NA     4.31  8114     2      464ms <df>   <NULL> <bench_tm [8,116]> <tibble>
+# > A<-list(name_1=rnorm(10000));for (k in 2:100) {A[[paste0("name_", k)]]<-rnorm(10000)}
+# > bench::mark(M1=inla.remove(rem,A,1),M2=inla.remove(rem,A,2),M3=inla.remove(rem,A,3),M4=inla.remove(rem,A,4))
+# # A tibble: 4 × 13
+# expression      min   median `itr/sec` mem_alloc `gc/sec` n_itr  n_gc total_time result       memory time       gc      
+# <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl> <int> <dbl>   <bch:tm> <list>       <list> <list>     <list>  
+#   1 M1          485.1µs 516.04µs     1832.        NA     2.05   892     1      487ms <named list> <NULL> <bench_tm> <tibble>
+#   2 M2          47.34µs  51.97µs    17377.        NA     6.79  7679     3    441.9ms <named list> <NULL> <bench_tm> <tibble>
+#   3 M3           8.63µs   9.27µs   102414.        NA    10.2   9999     1     97.6ms <named list> <NULL> <bench_tm> <tibble>
+#   4 M4           5.73µs   6.35µs   138999.        NA    13.9   9999     1     71.9ms <named list> <NULL> <bench_tm> <tibble>
+  
 `inla.remove` <- function(name, from) {
     ## remove NAME FROM. Works for both lists and data.frames
 
-    if (FALSE) {
-        ## OLD CODE
-        if (is.list(from) || is.data.frame(from)) {
-              for (nm in name) {
-                    if (length(grep(nm, names(from))) > 0L) {
-                          inla.eval(paste("from$", nm, "=NULL", sep = ""))
-                      }
-                }
-          }
-    } else {
-        ## NEW CODE
-        if (is.list(from) || is.data.frame(from)) {
-              for (nm in name) {
-                    from[which(nm == names(from))] <- NULL
-                }
-          }
+    # if (method == 1) {
+    #     ## OLD CODE
+    #     if (is.list(from) || is.data.frame(from)) {
+    #           for (nm in name) {
+    #                 if (length(grep(nm, names(from))) > 0L) {
+    #                       inla.eval(paste("from$", nm, "=NULL", sep = ""))
+    #                   }
+    #             }
+    #       }
+    # } else if (method == 2) {
+    #   ## NEW CODE
+    #   if (is.list(from) || is.data.frame(from)) {
+    #     for (nm in name) {
+    #       from[which(nm == names(from))] <- NULL
+    #     }
+    #   }
+    # } else if (method == 3) {
+    #   ## NEWER CODE
+    #   if (is.list(from) || is.data.frame(from)) {
+    #     from[which(names(from) %in% name)] <- NULL
+    #   }
+    # } else {
+    ## EVEN NEWER CODE
+    if (is.list(from) || is.data.frame(from)) {
+        from[names(from) %in% name] <- NULL
     }
+    # }
 
     return(from)
 }

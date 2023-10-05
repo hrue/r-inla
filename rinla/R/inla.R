@@ -481,10 +481,7 @@
             }
         }
         names.remove <- names(data)[i.remove]
-        for (nm in names.remove) {
-            idx <- which(names(data) == nm)
-            data[[idx]] <- NULL
-        }
+        data <- inla.remove(names.remove, data)
     }
 
     if (is.null(inla.mode)) {
@@ -2386,7 +2383,8 @@
 `inla.core.safe` <- function(...)
 {
     err.due.to.timeout <- function(r) {
-        return (inherits(r, "try-error") && length(grep("seconds due to timeout", r[1])) > 0)
+        return (inherits(r, c("try-error", "error")) &&
+                  length(grep("seconds due to timeout", r[1])) > 0)
     }
 
     output <- function(msg) {
