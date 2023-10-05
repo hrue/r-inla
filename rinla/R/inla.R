@@ -617,7 +617,7 @@
         ny <- max(sapply(y...orig,
                          function(xx) {
             if (is.list(xx))
-                max(sapply(xx, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
+                max(vapply(xx, NROW, 1L))
             else
                 length(xx)
         }))
@@ -638,7 +638,7 @@
             ## this one is not passed along
             y...orig$.special <- NULL
             ## we have to skip a possible matrix in ...$cure
-            ny <- max(sapply(y...orig, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
+            ny <- max(vapply(y...orig, NROW, 1L))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
             ny <- max(sapply(y...orig, length))
