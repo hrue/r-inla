@@ -19,7 +19,7 @@ done
 make -C $D/../.. -B
 
 ## sync with 'L' and then fix those dirs we need to fix afterwards
-rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/. 
+rsync -auvL --delete --exclude '/*~' --exclude TAGS $D/.. INLA/.
 rsync -auv $D/../inst/bin/linux/64bit/first/. $DD/../inst/bin/linux/64bit/first/.
 ./updateBin
 
@@ -29,9 +29,8 @@ desc="INLA/DESCRIPTION"
 {
     grep -v -E '^(Version:|Date:)' r-inla/rinla/DESCRIPTION
     echo "Version: $INLA_VERSION"
-    echo "Date: $(date) ($INLA_TAG)"
 } > $tt && mv -f $tt $desc
- 
+
 ~hrue/bin/fix-permissions INLA
 
 mf="INLA.pdf"
@@ -59,8 +58,8 @@ gzINLA=$(echo INLA_*.tar.gz)
 tgzINLA=${gzINLA%%.tar.gz}.tgz
 tgzINLAarm64=${gzINLA%%.tar.gz}arm64.tgz
 zipINLA=${tgzINLA%%.tgz}.zip
-cp -v $gzINLA $tgzINLA 
-cp -v $gzINLA $tgzINLAarm64 
+cp -v $gzINLA $tgzINLA
+cp -v $gzINLA $tgzINLAarm64
 
 DD=$(echo ~/R/x86_64-redhat-linux-gnu-library/default)
 test -d $DD || mkdir -p $DD
@@ -89,26 +88,26 @@ TDIR=INLA-TMP
 test -d $TDIR && rm -rf $TDIR
 mkdir $TDIR
 
-(  
+(
     echo " *** Make Mac binary"
     cd $TDIR
     tar xfz ../$tgzINLA
-    for d in INLA/{,inst/}bin/{linux,windows}/{32,64}bit  INLA/{,inst/}bin/mac.arm64; do 
+    for d in INLA/{,inst/}bin/{linux,windows}/{32,64}bit  INLA/{,inst/}bin/mac.arm64; do
 	echo "    -> $d"
-	test -d $d && rm -rf $d; 
+	test -d $d && rm -rf $d;
     done
     rm -f ../$tgzINLA
     tar cfz ../$tgzINLA INLA
     rm -rf INLA
 )
 
-(  
+(
     echo " *** Make Mac binary ARM64"
     cd $TDIR
     tar xfz ../$tgzINLAarm64
-    for d in INLA/{,inst/}bin/{mac,linux,windows}/{32,64}bit; do 
+    for d in INLA/{,inst/}bin/{mac,linux,windows}/{32,64}bit; do
 	echo "    -> $d"
-	test -d $d && rm -rf $d; 
+	test -d $d && rm -rf $d;
     done
     rm -f ../$tgzINLAarm64
     tar cfz ../$tgzINLAarm64 INLA
@@ -119,9 +118,9 @@ mkdir $TDIR
     echo " *** Make Linux binary"
     cd $TDIR
     tar xfz ../$gzINLA
-    for d in INLA/{,inst/}bin/{mac,windows}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do 
+    for d in INLA/{,inst/}bin/{mac,windows}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do
 	echo "    -> $d"
-	test -d $d && rm -rf $d; 
+	test -d $d && rm -rf $d;
     done
     rm -f ../$gzINLA
     tar cfz ../$gzINLA INLA
@@ -132,9 +131,9 @@ mkdir $TDIR
     echo " *** Make Windows binary"
     cd $TDIR
     unzip -q ../$zipINLA
-    for d in INLA/{,inst/}bin/{linux,mac}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do 
+    for d in INLA/{,inst/}bin/{linux,mac}/{32,64}bit INLA/{,inst/}bin/mac.arm64; do
 	echo "    -> $d"
-	test -d $d && rm -rf $d; 
+	test -d $d && rm -rf $d;
     done
     rm -f ../$zipINLA
     zip -r -q ../$zipINLA INLA
@@ -172,14 +171,14 @@ updateBinaryPackages () {
 	)
     done
 }
-    
+
 
 if [ $# -ge 1 -a "$1" == "1" ]; then
     for prefix in stable testing; do
 	d=$wwwR/$prefix/src/contrib
 	cp -v $gzINLA $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
-	
+
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
 	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
 	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
@@ -201,7 +200,7 @@ if [ $# -ge 1 -a "$1" == "2" ]; then
 	d=$wwwR/$prefix/src/contrib
 	cp -v $gzINLA $d/INLA_$INLA_VERSION.tar.gz
 	updateBinaryPackages $d
-	
+
 	d=$wwwR/$prefix/bin/macosx/contrib/$RVersion
 	cp -v $tgzINLA $d/INLA_$INLA_VERSION.tgz
 	convert_to_mac_binary $d/INLA_$INLA_VERSION.tgz
@@ -238,8 +237,8 @@ fi
     echo 'cat("\n\n\nYou can later upgrade INLA using: inla.upgrade(testing=TRUE)\n")'
 } | sed 's/inla.os/inla.installer.os/g' >  $www/givemeINLA-testing.R
 
-rm -f $tgzINLA 
+rm -f $tgzINLA
 rm -f $tgzINLAarm64
-rm -f $gzINLA 
-rm -f $zipINLA 
+rm -f $gzINLA
+rm -f $zipINLA
 rm -f $SRC
