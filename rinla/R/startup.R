@@ -20,6 +20,7 @@ inla.print.version <- function() {
             "This is INLA_", version,
             " built ", built, ".", "\n",
             " - See www.r-inla.org/contact-us for how to get help."
+            " - See ?inla.doc for howto access documentation"
         )
 
         if (FALSE) {
