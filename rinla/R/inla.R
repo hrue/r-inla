@@ -2151,14 +2151,7 @@
         if (inla.os("windows")) {
             ## nothing
         } else {
-            vars <- c(vars,
-                      INLA_HOME = inla.get.HOME()
-                      )
-            if (Sys.getenv("SSH_AUTH_SOCK") == "") {
-                vars <- c(vars,
-                          INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock")
-                          )
-            }
+            vars <- c(vars, INLA_HOME = inla.get.HOME())
         }
     }
     if (!is.null(vars)) {
