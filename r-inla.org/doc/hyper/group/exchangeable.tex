@@ -1,18 +1,18 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Exchangeable correlations
+	\item[doc] \verb!Exchangeable correlations!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 40001
-	 	 	\item[name] logit correlation
-	 	 	\item[short.name] rho
-	 	 	\item[initial] 1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 0.2
+	 	 	\item[hyperid] \verb!40001!
+	 	 	\item[name] \verb!logit correlation!
+	 	 	\item[short.name] \verb!rho!
+	 	 	\item[initial] \verb!1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 0.2!
 	 	 	\item[to.theta] \verb!function(x, REPLACE.ME.ngroup) log((1 + x * (ngroup - 1)) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x, REPLACE.ME.ngroup) (exp(x) - 1) / (exp(x) + ngroup - 1)!
 	 	 \end{description}

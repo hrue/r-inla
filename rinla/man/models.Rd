@@ -8855,6 +8855,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{47001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for the Gaussian observations}
+\item{output.name.intern = }{Log precision for the Gaussian observations}
 \item{prior = }{pc.prec}
 \item{param = }{1 0.01}
 \item{initial = }{0}
@@ -9693,6 +9695,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{56001}
 \item{name = }{overdispersion}
 \item{short.name = }{phi}
+\item{output.name = }{Overdispersion for gpoisson}
+\item{output.name.intern = }{Log overdispersion for gpoisson}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -9706,6 +9710,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{56002}
 \item{name = }{p}
 \item{short.name = }{p}
+\item{output.name = }{Parameter p for gpoisson}
+\item{output.name.intern = }{Parameter p_intern for gpoisson}
 \item{initial = }{1}
 \item{fixed = }{TRUE}
 \item{prior = }{normal}
@@ -9735,6 +9741,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{56100}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{one-probability parameter for poisson.special1}
+\item{output.name.intern = }{intern one-probability parameter for poisson.special1}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -9766,6 +9774,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56201}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for 0poisson observations}
+\item{output.name.intern = }{beta1 for 0poisson observations}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9779,6 +9789,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56202}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for 0poisson observations}
+\item{output.name.intern = }{beta2 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9792,6 +9804,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56203}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for 0poisson observations}
+\item{output.name.intern = }{beta3 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9805,6 +9819,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56204}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for 0poisson observations}
+\item{output.name.intern = }{beta4 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9818,6 +9834,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56205}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for 0poisson observations}
+\item{output.name.intern = }{beta5 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9831,6 +9849,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56206}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for 0poisson observations}
+\item{output.name.intern = }{beta6 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9844,6 +9864,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56207}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for 0poisson observations}
+\item{output.name.intern = }{beta7 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9857,6 +9879,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56208}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for 0poisson observations}
+\item{output.name.intern = }{beta8 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9870,6 +9894,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56209}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for 0poisson observations}
+\item{output.name.intern = }{beta9 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9883,6 +9909,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56210}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for 0poisson observations}
+\item{output.name.intern = }{beta10 for 0poisson observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9914,6 +9942,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56301}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for 0poissonS observations}
+\item{output.name.intern = }{beta1 for 0poissonS observations}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9927,6 +9957,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56302}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for 0poissonS observations}
+\item{output.name.intern = }{beta2 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9940,6 +9972,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56303}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for 0poissonS observations}
+\item{output.name.intern = }{beta3 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9953,6 +9987,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56304}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for 0poissonS observations}
+\item{output.name.intern = }{beta4 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9966,6 +10002,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56305}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for 0poissonS observations}
+\item{output.name.intern = }{beta5 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9979,6 +10017,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56306}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for 0poissonS observations}
+\item{output.name.intern = }{beta6 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -9992,6 +10032,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56307}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for 0poissonS observations}
+\item{output.name.intern = }{beta7 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10005,6 +10047,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56308}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for 0poissonS observations}
+\item{output.name.intern = }{beta8 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10018,6 +10062,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56309}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for 0poissonS observations}
+\item{output.name.intern = }{beta9 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10031,6 +10077,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56310}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for 0poissonS observations}
+\item{output.name.intern = }{beta10 for 0poissonS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10077,6 +10125,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56401}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for 0binomial observations}
+\item{output.name.intern = }{beta1 for 0binomial observations}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10090,6 +10140,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56402}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for 0binomial observations}
+\item{output.name.intern = }{beta2 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10103,6 +10155,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56403}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for 0binomial observations}
+\item{output.name.intern = }{beta3 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10116,6 +10170,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56404}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for 0binomial observations}
+\item{output.name.intern = }{beta4 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10129,6 +10185,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56405}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for 0binomial observations}
+\item{output.name.intern = }{beta5 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10142,6 +10200,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56406}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for 0binomial observations}
+\item{output.name.intern = }{beta6 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10155,6 +10215,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56407}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for 0binomial observations}
+\item{output.name.intern = }{beta7 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10168,6 +10230,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56408}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for 0binomial observations}
+\item{output.name.intern = }{beta8 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10181,6 +10245,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56409}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for 0binomial observations}
+\item{output.name.intern = }{beta9 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10194,6 +10260,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56410}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for 0binomial observations}
+\item{output.name.intern = }{beta10 for 0binomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10225,6 +10293,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56501}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for 0binomialS observations}
+\item{output.name.intern = }{beta1 for 0binomialS observations}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10238,6 +10308,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56502}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for 0binomialS observations}
+\item{output.name.intern = }{beta2 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10251,6 +10323,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56503}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for 0binomialS observations}
+\item{output.name.intern = }{beta3 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10264,6 +10338,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56504}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for 0binomialS observations}
+\item{output.name.intern = }{beta4 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10277,6 +10353,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56505}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for 0binomialS observations}
+\item{output.name.intern = }{beta5 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10290,6 +10368,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56506}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for 0binomialS observations}
+\item{output.name.intern = }{beta6 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10303,6 +10383,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56507}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for 0binomialS observations}
+\item{output.name.intern = }{beta7 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10316,6 +10398,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56508}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for 0binomialS observations}
+\item{output.name.intern = }{beta8 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10329,6 +10413,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56509}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for 0binomialS observations}
+\item{output.name.intern = }{beta9 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10342,6 +10428,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{56510}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for 0binomialS observations}
+\item{output.name.intern = }{beta10 for 0binomialS observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10401,6 +10489,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57101}
 \item{name = }{theta1}
 \item{short.name = }{theta1}
+\item{output.name = }{theta1 for POM}
+\item{output.name.intern = }{theta1 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{dirichlet}
@@ -10414,6 +10504,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57102}
 \item{name = }{theta2}
 \item{short.name = }{theta2}
+\item{output.name = }{theta2 for POM}
+\item{output.name.intern = }{theta2 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10427,6 +10519,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57103}
 \item{name = }{theta3}
 \item{short.name = }{theta3}
+\item{output.name = }{theta3 for POM}
+\item{output.name.intern = }{theta3 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10440,6 +10534,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57104}
 \item{name = }{theta4}
 \item{short.name = }{theta4}
+\item{output.name = }{theta4 for POM}
+\item{output.name.intern = }{theta4 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10453,6 +10549,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57105}
 \item{name = }{theta5}
 \item{short.name = }{theta5}
+\item{output.name = }{theta5 for POM}
+\item{output.name.intern = }{theta5 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10466,6 +10564,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57106}
 \item{name = }{theta6}
 \item{short.name = }{theta6}
+\item{output.name = }{theta6 for POM}
+\item{output.name.intern = }{theta6 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10479,6 +10579,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57107}
 \item{name = }{theta7}
 \item{short.name = }{theta7}
+\item{output.name = }{theta7 for POM}
+\item{output.name.intern = }{theta7 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10492,6 +10594,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57108}
 \item{name = }{theta8}
 \item{short.name = }{theta8}
+\item{output.name = }{theta8 for POM}
+\item{output.name.intern = }{theta8 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10505,6 +10609,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57109}
 \item{name = }{theta9}
 \item{short.name = }{theta9}
+\item{output.name = }{theta9 for POM}
+\item{output.name.intern = }{theta9 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10518,6 +10624,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{57110}
 \item{name = }{theta10}
 \item{short.name = }{theta10}
+\item{output.name = }{theta10 for POM}
+\item{output.name.intern = }{theta10 for POM}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{none}
@@ -10548,6 +10656,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57201}
 \item{name = }{spread}
 \item{short.name = }{sd}
+\item{output.name = }{spread for BGEV observations}
+\item{output.name.intern = }{log spread for BGEV observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -10561,6 +10671,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57202}
 \item{name = }{tail}
 \item{short.name = }{xi}
+\item{output.name = }{tail for BGEV observations}
+\item{output.name.intern = }{intern tail for BGEV observations}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.gevtail}
@@ -10574,6 +10686,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57203}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10587,6 +10701,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57204}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10600,6 +10716,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57205}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10613,6 +10731,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57206}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10626,6 +10746,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57207}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10639,6 +10761,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57208}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10652,6 +10776,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57209}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10665,6 +10791,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57210}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10678,6 +10806,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57211}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10691,6 +10821,8 @@ Number of hyperparmeters is 12.
 \item{hyperid = }{57212}
 \item{name = }{beta10}
 \item{short.name = }{beta}
+\item{output.name = }{MUST BE FIXED}
+\item{output.name.intern = }{MUST BE FIXED}
 \item{initial = }{NA}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10720,6 +10852,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{58001}
 \item{name = }{precision parameter}
 \item{short.name = }{prec}
+\item{output.name = }{Precision-parameter for the Gamma observations}
+\item{output.name.intern = }{Intern precision-parameter for the Gamma observations}
 \item{initial = }{4.60517018598809}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -10750,6 +10884,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58101}
 \item{name = }{precision parameter}
 \item{short.name = }{prec}
+\item{output.name = }{Precision-parameter for the Gamma surv observations}
+\item{output.name.intern = }{Intern precision-parameter for the Gamma surv observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -10763,6 +10899,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58102}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for Gamma-Cure}
+\item{output.name.intern = }{beta1 for Gamma-Cure}
 \item{initial = }{-7}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10776,6 +10914,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58103}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for Gamma-Cure}
+\item{output.name.intern = }{beta2 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10789,6 +10929,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58104}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for Gamma-Cure}
+\item{output.name.intern = }{beta3 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10802,6 +10944,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58105}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for Ga mma-Cure}
+\item{output.name.intern = }{beta4 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10815,6 +10959,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58106}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for Gamma-Cure}
+\item{output.name.intern = }{beta5 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10828,6 +10974,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58107}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for Gamma-Cure}
+\item{output.name.intern = }{beta6 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10841,6 +10989,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58108}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for Gamma-Cure}
+\item{output.name.intern = }{beta7 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10854,6 +11004,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58109}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for Gamma-Cure}
+\item{output.name.intern = }{beta8 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10867,6 +11019,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58110}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for Gamma-Cure}
+\item{output.name.intern = }{beta9 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10880,6 +11034,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{58111}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for Gamma-Cure}
+\item{output.name.intern = }{beta10 for Gamma-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10923,6 +11079,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58200}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for GammaJW-Cure}
+\item{output.name.intern = }{beta1 for GammaJW-Cure}
 \item{initial = }{-7}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10936,6 +11094,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58201}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta1 for GammaJW-Cure}
+\item{output.name.intern = }{beta1 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10949,6 +11109,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58202}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for GammaJW-Cure}
+\item{output.name.intern = }{beta3 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10962,6 +11124,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58203}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for GammaJW-Cure}
+\item{output.name.intern = }{beta4 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10975,6 +11139,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58204}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for GammaJW-Cure}
+\item{output.name.intern = }{beta5 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -10988,6 +11154,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58205}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for GammaJW-Cure}
+\item{output.name.intern = }{beta6 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11001,6 +11169,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58206}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for GammaJW-Cure}
+\item{output.name.intern = }{beta7 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11014,6 +11184,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58207}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for GammaJW-Cure}
+\item{output.name.intern = }{beta8 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11027,6 +11199,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58208}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for GammaJW-Cure}
+\item{output.name.intern = }{beta9 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11040,6 +11214,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{58209}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for GammaJW-Cure}
+\item{output.name.intern = }{beta10 for GammaJW-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11070,6 +11246,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{59001}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{Log-alpha parameter for Gammacount observations}
+\item{output.name.intern = }{Alpha parameter for Gammacount observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.gammacount}
@@ -11099,6 +11277,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{60001}
 \item{name = }{precision parameter}
 \item{short.name = }{prec}
+\item{output.name = }{precision for qkumar observations}
+\item{output.name.intern = }{log precision for qkumar observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11128,6 +11308,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{60011}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{alpha for qloglogistic observations}
+\item{output.name.intern = }{log alpha for qloglogistic observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11157,6 +11339,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60021}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{alpha for qloglogisticsurv observations}
+\item{output.name.intern = }{log alpha for qloglogisticsurv observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11170,6 +11354,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60022}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta1 for logLogistic-Cure}
 \item{initial = }{-5}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11183,6 +11369,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60023}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta2 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11196,6 +11384,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60024}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta3 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11209,6 +11399,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60025}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta4 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11222,6 +11414,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60026}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta5 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11235,6 +11429,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60027}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta6 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11248,6 +11444,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60028}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta7 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11261,6 +11459,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60029}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta8 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11274,6 +11474,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60030}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta9 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11287,6 +11489,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{60031}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for qlogLogistic-Cure}
+\item{output.name.intern = }{beta10 for qlogLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11316,6 +11520,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{61001}
 \item{name = }{precision parameter}
 \item{short.name = }{phi}
+\item{output.name = }{precision parameter for the beta observations}
+\item{output.name.intern = }{intern precision-parameter for the beta observations}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11345,6 +11551,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{62001}
 \item{name = }{overdispersion}
 \item{short.name = }{rho}
+\item{output.name = }{overdispersion for the betabinomial observations}
+\item{output.name.intern = }{intern overdispersion for the betabinomial observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -11374,6 +11582,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{62101}
 \item{name = }{overdispersion}
 \item{short.name = }{rho}
+\item{output.name = }{overdispersion for the betabinomialna observations}
+\item{output.name.intern = }{intern overdispersion for the betabinomialna observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -11418,6 +11628,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{63001}
 \item{name = }{size}
 \item{short.name = }{size}
+\item{output.name = }{size for the nbinomial observations (1/overdispersion)}
+\item{output.name.intern = }{log size for the nbinomial observations (1/overdispersion)}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -11462,6 +11674,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{63101}
 \item{name = }{size}
 \item{short.name = }{size}
+\item{output.name = }{size for the cennbinomial2 observations (1/overdispersion)}
+\item{output.name.intern = }{log size for the cennbinomial2 observations (1/overdispersion)}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -11491,6 +11705,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{64001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for the Simplex observations}
+\item{output.name.intern = }{Log precision for the Simplex observations}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11520,6 +11736,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{65001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for the Gaussian observations}
+\item{output.name.intern = }{Log precision for the Gaussian observations}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11533,6 +11751,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{65002}
 \item{name = }{log precision offset}
 \item{short.name = }{precoffset}
+\item{output.name = }{NOT IN USE}
+\item{output.name.intern = }{NOT IN USE}
 \item{initial = }{72.0873067782343}
 \item{fixed = }{TRUE}
 \item{prior = }{none}
@@ -11542,6 +11762,20 @@ Number of hyperparmeters is 2.
 }
 }
 }
+}
+\item{Model 'stdgaussian'.}{
+\describe{
+\item{Properties:}{
+\describe{
+\item{doc = }{'The Gaussian likelihoood'}
+\item{survival = }{'FALSE'}
+\item{discrete = }{'FALSE'}
+\item{link = }{'default identity logit loga cauchit log logoffset'}
+\item{pdf = }{'gaussian'}
+}
+}
+}
+Number of hyperparmeters is 0.
 }
 \item{Model 'gaussianjw'.}{
 \describe{
@@ -11563,6 +11797,8 @@ Number of hyperparmeters is 3.
 \item{hyperid = }{65101}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for GaussianJW observations}
+\item{output.name.intern = }{beta1 for GaussianJW observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11576,6 +11812,8 @@ Number of hyperparmeters is 3.
 \item{hyperid = }{65102}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for GaussianJW observations}
+\item{output.name.intern = }{beta2 for GaussianJW observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11589,6 +11827,8 @@ Number of hyperparmeters is 3.
 \item{hyperid = }{65103}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for GaussianJW observations}
+\item{output.name.intern = }{beta3 for GaussianJW observations}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11619,6 +11859,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{66001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for the AggGaussian observations}
+\item{output.name.intern = }{Log precision for the AggGaussian observations}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11649,6 +11891,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{67001}
 \item{name = }{log precision parameter}
 \item{short.name = }{prec}
+\item{output.name = }{Precision parameter for the Circular Normal observations}
+\item{output.name.intern = }{Log precision parameter for the Circular Normal observations}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11679,6 +11923,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{68001}
 \item{name = }{log precision parameter}
 \item{short.name = }{prec}
+\item{output.name = }{Precision parameter for the Wrapped Cauchy observations}
+\item{output.name.intern = }{Log precision parameter for the Wrapped Cauchy observations}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11709,6 +11955,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{69001}
 \item{name = }{logshape}
 \item{short.name = }{shape}
+\item{output.name = }{Shape parameter for iid-gamma}
+\item{output.name.intern = }{Log shape parameter for iid-gamma}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11722,6 +11970,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{69002}
 \item{name = }{lograte}
 \item{short.name = }{rate}
+\item{output.name = }{Rate parameter for iid-gamma}
+\item{output.name.intern = }{Log rate parameter for iid-gamma}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11752,6 +12002,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{70001}
 \item{name = }{log.a}
 \item{short.name = }{a}
+\item{output.name = }{a parameter for iid-beta}
+\item{output.name.intern = }{Log a parameter for iid-beta}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11765,6 +12017,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{70002}
 \item{name = }{log.b}
 \item{short.name = }{b}
+\item{output.name = }{Rate parameter for iid-gamma}
+\item{output.name.intern = }{Log rate parameter for iid-gamma}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11795,6 +12049,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{71001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{precision for the gamma frailty}
+\item{output.name.intern = }{log precision for the gamma frailty}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11824,6 +12080,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{72001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{precision for the logistic observations}
+\item{output.name.intern = }{log precision for the logistic observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11854,6 +12112,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{74001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{precision for skew-normal observations}
+\item{output.name.intern = }{log precision for skew-normal observations}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11867,6 +12127,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{74002}
 \item{name = }{logit skew}
 \item{short.name = }{skew}
+\item{output.name = }{Skewness for skew-normal observations}
+\item{output.name.intern = }{Intern skewness for skew-normal observations}
 \item{initial = }{0.00123456789}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.sn}
@@ -11897,6 +12159,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{76001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{precision for GEV observations}
+\item{output.name.intern = }{log precision for GEV observations}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11910,6 +12174,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{76002}
 \item{name = }{tail parameter}
 \item{short.name = }{tail}
+\item{output.name = }{tail parameter for GEV observations}
+\item{output.name.intern = }{tail parameter for GEV observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -11939,6 +12205,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{77101}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for the lognormal observations}
+\item{output.name.intern = }{Log precision for the lognormal observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11963,11 +12231,13 @@ Number of hyperparmeters is 1.
 }
 Number of hyperparmeters is 11.
 \describe{
-\item{Hyperparameter 'theta'}{
+\item{Hyperparameter 'theta1'}{
 \describe{
 \item{hyperid = }{78001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for the lognormalsurv observations}
+\item{output.name.intern = }{Log precision for the lognormalsurv observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -11981,6 +12251,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78002}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for logNormal-Cure}
+\item{output.name.intern = }{beta1 for logNormal-Cure}
 \item{initial = }{-7}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -11994,6 +12266,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78003}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for logNormal-Cure}
+\item{output.name.intern = }{beta2 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12007,6 +12281,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78004}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for logNormal-Cure}
+\item{output.name.intern = }{beta3 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12020,6 +12296,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78005}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for logNormal-Cure}
+\item{output.name.intern = }{beta4 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12033,6 +12311,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78006}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for logNormal-Cure}
+\item{output.name.intern = }{beta5 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12046,6 +12326,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78007}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for logNormal-Cure}
+\item{output.name.intern = }{beta6 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12059,6 +12341,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78008}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for logNormal-Cure}
+\item{output.name.intern = }{beta7 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12072,6 +12356,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78009}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for logNormal-Cure}
+\item{output.name.intern = }{beta8 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12085,6 +12371,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78010}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for logNormal-Cure}
+\item{output.name.intern = }{beta9 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12098,6 +12386,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{78011}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for logNormal-Cure}
+\item{output.name.intern = }{beta10 for logNormal-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12141,6 +12431,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78020}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for Exp-Cure}
+\item{output.name.intern = }{beta1 for Exp-Cure}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12154,6 +12446,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78021}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for Exp-Cure}
+\item{output.name.intern = }{beta2 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12167,6 +12461,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78022}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for Exp-Cure}
+\item{output.name.intern = }{beta3 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12180,6 +12476,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78023}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for Exp-Cure}
+\item{output.name.intern = }{beta4 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12193,6 +12491,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78024}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for Exp-Cure}
+\item{output.name.intern = }{beta5 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12206,6 +12506,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78025}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for Exp-Cure}
+\item{output.name.intern = }{beta6 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12219,6 +12521,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78026}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for Exp-Cure}
+\item{output.name.intern = }{beta7 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12232,6 +12536,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78027}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for Exp-Cure}
+\item{output.name.intern = }{beta8 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12245,6 +12551,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78028}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for Exp-Cure}
+\item{output.name.intern = }{beta9 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12258,6 +12566,8 @@ Number of hyperparmeters is 10.
 \item{hyperid = }{78029}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for Exp-Cure}
+\item{output.name.intern = }{beta10 for Exp-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12301,6 +12611,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{79001}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{alpha parameter for weibull}
+\item{output.name.intern = }{alpha_intern for weibull}
 \item{initial = }{-2}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.alphaw}
@@ -12330,6 +12642,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79101}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{alpha parameter for weibullsurv}
+\item{output.name.intern = }{alpha_intern for weibullsurv}
 \item{initial = }{-2}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.alphaw}
@@ -12343,6 +12657,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79102}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for Weibull-Cure}
+\item{output.name.intern = }{beta1 for Weibull-Cure}
 \item{initial = }{-7}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12356,6 +12672,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79103}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for Weibull-Cure}
+\item{output.name.intern = }{beta2 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12369,6 +12687,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79104}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for Weibull-Cure}
+\item{output.name.intern = }{beta3 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12382,6 +12702,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79105}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for Weibull-Cure}
+\item{output.name.intern = }{beta4 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12395,6 +12717,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79106}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for Weibull-Cure}
+\item{output.name.intern = }{beta5 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12408,6 +12732,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79107}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for Weibull-Cure}
+\item{output.name.intern = }{beta6 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12421,6 +12747,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79108}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for Weibull-Cure}
+\item{output.name.intern = }{beta7 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12434,6 +12762,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79109}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for Weibull-Cure}
+\item{output.name.intern = }{beta8 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12447,6 +12777,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79110}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for Weibull-Cure}
+\item{output.name.intern = }{beta9 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12460,6 +12792,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{79111}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for Weibull-Cure}
+\item{output.name.intern = }{beta10 for Weibull-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12489,6 +12823,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{80001}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{alpha for loglogistic observations}
+\item{output.name.intern = }{log alpha for loglogistic observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -12518,6 +12854,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80011}
 \item{name = }{log alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{alpha for loglogisticsurv observations}
+\item{output.name.intern = }{log alpha for loglogisticsurv observations}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -12531,6 +12869,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80012}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for logLogistic-Cure}
+\item{output.name.intern = }{beta1 for logLogistic-Cure}
 \item{initial = }{-5}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12544,6 +12884,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80013}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for logLogistic-Cure}
+\item{output.name.intern = }{beta2 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12557,6 +12899,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80014}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for logLogistic-Cure}
+\item{output.name.intern = }{beta3 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12570,6 +12914,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80015}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for logLogistic-Cure}
+\item{output.name.intern = }{beta4 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12583,6 +12929,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80016}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for logLogistic-Cure}
+\item{output.name.intern = }{beta5 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12596,6 +12944,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80017}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for logLogistic-Cure}
+\item{output.name.intern = }{beta6 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12609,6 +12959,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80018}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for logLogistic-Cure}
+\item{output.name.intern = }{beta7 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12622,6 +12974,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80019}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for logLogistic-Cure}
+\item{output.name.intern = }{beta8 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12635,6 +12989,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80020}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for logLogistic-Cure}
+\item{output.name.intern = }{beta9 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12648,6 +13004,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{80021}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for logLogistic-Cure}
+\item{output.name.intern = }{beta10 for logLogistic-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -12677,6 +13035,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{82001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Offset precision for stochvol}
+\item{output.name.intern = }{Log offset precision for stochvol}
 \item{initial = }{500}
 \item{fixed = }{TRUE}
 \item{prior = }{loggamma}
@@ -12707,6 +13067,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{82101}
 \item{name = }{logit skew}
 \item{short.name = }{skew}
+\item{output.name = }{Skewness for stochvol_sn observations}
+\item{output.name.intern = }{Intern skewness for stochvol_sn observations}
 \item{initial = }{0.00123456789}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.sn}
@@ -12720,6 +13082,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{82102}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{Offset precision for stochvol_sn}
+\item{output.name.intern = }{Log offset precision for stochvol_sn}
 \item{initial = }{500}
 \item{fixed = }{TRUE}
 \item{prior = }{loggamma}
@@ -12749,6 +13113,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{83001}
 \item{name = }{log degrees of freedom}
 \item{short.name = }{dof}
+\item{output.name = }{degrees of freedom for stochvol student-t}
+\item{output.name.intern = }{dof_intern for stochvol student-t}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.dof}
@@ -12778,6 +13144,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{84001}
 \item{name = }{skewness}
 \item{short.name = }{skew}
+\item{output.name.intern = }{skewness_param_intern for stochvol-nig}
+\item{output.name = }{skewness parameter for stochvol-nig}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12791,6 +13159,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{84002}
 \item{name = }{shape}
 \item{short.name = }{shape}
+\item{output.name = }{shape parameter for stochvol-nig}
+\item{output.name.intern = }{shape_param_intern for stochvol-nig}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -12820,6 +13190,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{85001}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated poisson_0}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated poisson_0}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12849,6 +13221,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{86001}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated poisson_1}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated poisson_1}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12878,6 +13252,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{87001}
 \item{name = }{log alpha}
 \item{short.name = }{a}
+\item{output.name = }{zero-probability parameter for zero-inflated poisson_2}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated poisson_2}
 \item{initial = }{0.693147180559945}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12908,6 +13284,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{87101}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated poisson_0}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated poisson_0}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12938,6 +13316,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{87201}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated poisson_1}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated poisson_1}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12967,6 +13347,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{88001}
 \item{name = }{overdispersion}
 \item{short.name = }{rho}
+\item{output.name = }{rho for zero-inflated betabinomial_0}
+\item{output.name.intern = }{rho_intern for zero-inflated betabinomial_0}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -12980,6 +13362,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{88002}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated betabinomial_0}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated betabinomial_0}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13009,6 +13393,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{89001}
 \item{name = }{overdispersion}
 \item{short.name = }{rho}
+\item{output.name = }{rho for zero-inflated betabinomial_1}
+\item{output.name.intern = }{rho_intern for zero-inflated betabinomial_1}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13022,6 +13408,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{89002}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated betabinomial_1}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated betabinomial_1}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13051,6 +13439,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{90001}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated binomial_0}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated binomial_0}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13080,6 +13470,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{91001}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated binomial_1}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated binomial_1}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13109,6 +13501,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{92001}
 \item{name = }{alpha}
 \item{short.name = }{alpha}
+\item{output.name = }{zero-probability parameter for zero-inflated binomial_2}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated binomial_2}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13138,6 +13532,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{93001}
 \item{name = }{alpha1}
 \item{short.name = }{alpha1}
+\item{output.name = }{alpha1 parameter for zero-n-inflated binomial_2}
+\item{output.name.intern = }{intern alpha1 parameter for zero-n-inflated binomial_2}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13151,6 +13547,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{93002}
 \item{name = }{alpha2}
 \item{short.name = }{alpha2}
+\item{output.name = }{alpha2 parameter for zero-n-inflated binomial_2}
+\item{output.name.intern = }{intern alpha2 parameter for zero-n-inflated binomial_2}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13181,6 +13579,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{93101}
 \item{name = }{alpha0}
 \item{short.name = }{alpha0}
+\item{output.name = }{alpha0 parameter for zero-n-inflated binomial_3}
+\item{output.name.intern = }{intern alpha0 parameter for zero-n-inflated binomial_3}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13194,6 +13594,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{93102}
 \item{name = }{alphaN}
 \item{short.name = }{alphaN}
+\item{output.name.intern = }{intern alphaN parameter for zero-n-inflated binomial_3}
+\item{output.name = }{alphaN parameter for zero-n-inflated binomial_3}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13223,6 +13625,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{94001}
 \item{name = }{log alpha}
 \item{short.name = }{a}
+\item{output.name = }{zero-probability parameter for zero-inflated betabinomial_2}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated betabinomial_2}
 \item{initial = }{0.693147180559945}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13236,6 +13640,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{94002}
 \item{name = }{beta}
 \item{short.name = }{b}
+\item{output.name = }{overdispersion parameter for zero-inflated betabinomial_2}
+\item{output.name.intern = }{intern overdispersion parameter for zero-inflated betabinomial_2}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13265,6 +13671,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{95001}
 \item{name = }{log size}
 \item{short.name = }{size}
+\item{output.name = }{size for nbinomial_0 zero-inflated observations}
+\item{output.name.intern = }{log size for nbinomial_0 zero-inflated observations}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -13278,6 +13686,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{95002}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated nbinomial_0}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated nbinomial_0}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13307,6 +13717,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{96001}
 \item{name = }{log size}
 \item{short.name = }{size}
+\item{output.name = }{size for nbinomial_1 zero-inflated observations}
+\item{output.name.intern = }{log size for nbinomial_1 zero-inflated observations}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -13320,6 +13732,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{96002}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability parameter for zero-inflated nbinomial_1}
+\item{output.name.intern = }{intern zero-probability parameter for zero-inflated nbinomial_1}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13350,6 +13764,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97001}
 \item{name = }{log size}
 \item{short.name = }{size}
+\item{output.name = }{size for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{log size for zero-inflated nbinomial_1_strata2}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -13363,6 +13779,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97002}
 \item{name = }{logit probability 1}
 \item{short.name = }{prob1}
+\item{output.name = }{zero-probability1 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability1 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13376,6 +13794,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97003}
 \item{name = }{logit probability 2}
 \item{short.name = }{prob2}
+\item{output.name = }{zero-probability2 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability2 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13389,6 +13809,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97004}
 \item{name = }{logit probability 3}
 \item{short.name = }{prob3}
+\item{output.name = }{zero-probability3 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability3 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13402,6 +13824,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97005}
 \item{name = }{logit probability 4}
 \item{short.name = }{prob4}
+\item{output.name = }{zero-probability4 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability4 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13415,6 +13839,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97006}
 \item{name = }{logit probability 5}
 \item{short.name = }{prob5}
+\item{output.name = }{zero-probability5 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability5 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13428,6 +13854,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97007}
 \item{name = }{logit probability 6}
 \item{short.name = }{prob6}
+\item{output.name = }{zero-probability6 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability6 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13441,6 +13869,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97008}
 \item{name = }{logit probability 7}
 \item{short.name = }{prob7}
+\item{output.name = }{zero-probability7 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability7 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13454,6 +13884,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97009}
 \item{name = }{logit probability 8}
 \item{short.name = }{prob8}
+\item{output.name = }{zero-probability8 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability8 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13467,6 +13899,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97010}
 \item{name = }{logit probability 9}
 \item{short.name = }{prob9}
+\item{output.name = }{zero-probability9 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability9 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13480,6 +13914,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{97011}
 \item{name = }{logit probability 10}
 \item{short.name = }{prob10}
+\item{output.name = }{zero-probability10 for zero-inflated nbinomial_1_strata2}
+\item{output.name.intern = }{intern zero-probability10 for zero-inflated nbinomial_1_strata2}
 \item{initial = }{-1}
 \item{fixed = }{TRUE}
 \item{prior = }{gaussian}
@@ -13510,6 +13946,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98001}
 \item{name = }{logit probability}
 \item{short.name = }{prob}
+\item{output.name = }{zero-probability for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{intern zero-probability for zero-inflated nbinomial_1_strata3}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13523,6 +13961,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98002}
 \item{name = }{log size 1}
 \item{short.name = }{size1}
+\item{output.name = }{size1 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size1 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -13536,6 +13976,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98003}
 \item{name = }{log size 2}
 \item{short.name = }{size2}
+\item{output.name = }{size2 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size2 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -13549,6 +13991,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98004}
 \item{name = }{log size 3}
 \item{short.name = }{size3}
+\item{output.name = }{size3 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size3 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13562,6 +14006,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98005}
 \item{name = }{log size 4}
 \item{short.name = }{size4}
+\item{output.name = }{size4 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size4 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13575,6 +14021,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98006}
 \item{name = }{log size 5}
 \item{short.name = }{size5}
+\item{output.name = }{size5 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size5 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13588,6 +14036,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98007}
 \item{name = }{log size 6}
 \item{short.name = }{size6}
+\item{output.name = }{size6 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size6 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13601,6 +14051,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98008}
 \item{name = }{log size 7}
 \item{short.name = }{size7}
+\item{output.name = }{size7 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size7 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13614,6 +14066,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98009}
 \item{name = }{log size 8}
 \item{short.name = }{size8}
+\item{output.name = }{size8 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size8 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13627,6 +14081,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98010}
 \item{name = }{log size 9}
 \item{short.name = }{size9}
+\item{output.name = }{size9 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size9 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13640,6 +14096,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{98011}
 \item{name = }{log size 10}
 \item{short.name = }{size10}
+\item{output.name = }{size10 for zero-inflated nbinomial_1_strata3}
+\item{output.name.intern = }{log_size10 for zero-inflated nbinomial_1_strata3}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{TRUE}
 \item{prior = }{pc.mgamma}
@@ -13669,6 +14127,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{99001}
 \item{name = }{log size}
 \item{short.name = }{size}
+\item{output.name = }{size for nbinomial zero-inflated observations}
+\item{output.name.inter = }{log size for nbinomial zero-inflated observations}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.mgamma}
@@ -13682,6 +14142,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{99002}
 \item{name = }{log alpha}
 \item{short.name = }{a}
+\item{output.name = }{parameter alpha for zero-inflated nbinomial2}
+\item{output.name.intern = }{parameter alpha.intern for zero-inflated nbinomial2}
 \item{initial = }{0.693147180559945}
 \item{fixed = }{FALSE}
 \item{prior = }{gaussian}
@@ -13711,6 +14173,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{100001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{precision for the student-t observations}
+\item{output.name.intern = }{log precision for the student-t observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13724,6 +14188,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{100002}
 \item{name = }{log degrees of freedom}
 \item{short.name = }{dof}
+\item{output.name = }{degrees of freedom for student-t}
+\item{output.name.intern = }{dof_intern for student-t}
 \item{initial = }{5}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.dof}
@@ -13753,6 +14219,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101001}
 \item{name = }{log degrees of freedom}
 \item{short.name = }{dof}
+\item{output.name.intern = }{dof_intern for tstrata}
+\item{output.name = }{degrees of freedom for tstrata}
 \item{initial = }{4}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.dof}
@@ -13766,6 +14234,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101002}
 \item{name = }{log precision1}
 \item{short.name = }{prec1}
+\item{output.name = }{Prec for tstrata strata}
+\item{output.name.intern = }{Log prec for tstrata strata}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13779,6 +14249,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101003}
 \item{name = }{log precision2}
 \item{short.name = }{prec2}
+\item{output.name = }{Prec for tstrata strata\link{2}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{2}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13792,6 +14264,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101004}
 \item{name = }{log precision3}
 \item{short.name = }{prec3}
+\item{output.name = }{Prec for tstrata strata\link{3}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{3}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13805,6 +14279,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101005}
 \item{name = }{log precision4}
 \item{short.name = }{prec4}
+\item{output.name = }{Prec for tstrata strata\link{4}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{4}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13818,6 +14294,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101006}
 \item{name = }{log precision5}
 \item{short.name = }{prec5}
+\item{output.name = }{Prec for tstrata strata\link{5}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{5}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13831,6 +14309,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101007}
 \item{name = }{log precision6}
 \item{short.name = }{prec6}
+\item{output.name = }{Prec for tstrata strata\link{6}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{6}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13844,6 +14324,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101008}
 \item{name = }{log precision7}
 \item{short.name = }{prec7}
+\item{output.name = }{Prec for tstrata strata\link{7}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{7}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13857,6 +14339,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101009}
 \item{name = }{log precision8}
 \item{short.name = }{prec8}
+\item{output.name = }{Prec for tstrata strata\link{8}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{8}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13870,6 +14354,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101010}
 \item{name = }{log precision9}
 \item{short.name = }{prec9}
+\item{output.name = }{Prec for tstrata strata\link{9}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{9}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13883,6 +14369,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{101011}
 \item{name = }{log precision10}
 \item{short.name = }{prec10}
+\item{output.name = }{Prec for tstrata strata\link{10}}
+\item{output.name.intern = }{Log prec for tstrata strata\link{10}}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -13913,6 +14401,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101101}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta\link{1} for NMix observations}
+\item{output.name.intern = }{beta\link{1} for NMix observations}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -13926,6 +14416,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101102}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta\link{2} for NMix observations}
+\item{output.name.intern = }{beta\link{2} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -13939,6 +14431,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101103}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta\link{3} for NMix observations}
+\item{output.name.intern = }{beta\link{3} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -13952,6 +14446,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101104}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta\link{4} for NMix observations}
+\item{output.name.intern = }{beta\link{4} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -13965,6 +14461,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101105}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta\link{5} for NMix observations}
+\item{output.name.intern = }{beta\link{5} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -13978,6 +14476,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101106}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta\link{6} for NMix observations}
+\item{output.name.intern = }{beta\link{6} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -13991,6 +14491,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101107}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta\link{7} for NMix observations}
+\item{output.name.intern = }{beta\link{7} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14004,6 +14506,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101108}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta\link{8} for NMix observations}
+\item{output.name.intern = }{beta\link{8} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14017,6 +14521,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101109}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta\link{9} for NMix observations}
+\item{output.name.intern = }{beta\link{9} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14030,6 +14536,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101110}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta\link{10} for NMix observations}
+\item{output.name.intern = }{beta\link{10} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14043,6 +14551,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101111}
 \item{name = }{beta11}
 \item{short.name = }{beta11}
+\item{output.name = }{beta\link{11} for NMix observations}
+\item{output.name.intern = }{beta\link{11} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14056,6 +14566,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101112}
 \item{name = }{beta12}
 \item{short.name = }{beta12}
+\item{output.name = }{beta\link{12} for NMix observations}
+\item{output.name.intern = }{beta\link{12} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14069,6 +14581,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101113}
 \item{name = }{beta13}
 \item{short.name = }{beta13}
+\item{output.name = }{beta\link{13} for NMix observations}
+\item{output.name.intern = }{beta\link{13} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14082,6 +14596,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101114}
 \item{name = }{beta14}
 \item{short.name = }{beta14}
+\item{output.name = }{beta\link{14} for NMix observations}
+\item{output.name.intern = }{beta\link{14} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14095,6 +14611,8 @@ Number of hyperparmeters is 15.
 \item{hyperid = }{101115}
 \item{name = }{beta15}
 \item{short.name = }{beta15}
+\item{output.name = }{beta\link{15} for NMix observations}
+\item{output.name.intern = }{beta\link{15} for NMix observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14125,6 +14643,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101121}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta\link{1} for NMixNB observations}
+\item{output.name.intern = }{beta\link{1} for NMixNB observations}
 \item{initial = }{2.30258509299405}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14138,6 +14658,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101122}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta\link{2} for NMixNB observations}
+\item{output.name.intern = }{beta\link{2} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14151,6 +14673,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101123}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta\link{3} for NMixNB observations}
+\item{output.name.intern = }{beta\link{3} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14164,6 +14688,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101124}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta\link{4} for NMixNB observations}
+\item{output.name.intern = }{beta\link{4} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14177,6 +14703,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101125}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta\link{5} for NMixNB observations}
+\item{output.name.intern = }{beta\link{5} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14190,6 +14718,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101126}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta\link{6} for NMixNB observations}
+\item{output.name.intern = }{beta\link{6} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14203,6 +14733,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101127}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta\link{7} for NMixNB observations}
+\item{output.name.intern = }{beta\link{7} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14216,6 +14748,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101128}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta\link{8} for NMixNB observations}
+\item{output.name.intern = }{beta\link{8} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14229,6 +14763,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101129}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta\link{9} for NMixNB observations}
+\item{output.name.intern = }{beta\link{9} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14242,6 +14778,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101130}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta\link{10} for NMixNB observations}
+\item{output.name.intern = }{beta\link{10} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14255,6 +14793,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101131}
 \item{name = }{beta11}
 \item{short.name = }{beta11}
+\item{output.name = }{beta\link{11} for NMixNB observations}
+\item{output.name.intern = }{beta\link{11} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14268,6 +14808,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101132}
 \item{name = }{beta12}
 \item{short.name = }{beta12}
+\item{output.name = }{beta\link{12} for NMixNB observations}
+\item{output.name.intern = }{beta\link{12} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14281,6 +14823,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101133}
 \item{name = }{beta13}
 \item{short.name = }{beta13}
+\item{output.name = }{beta\link{13} for NMixNB observations}
+\item{output.name.intern = }{beta\link{13} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14294,6 +14838,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101134}
 \item{name = }{beta14}
 \item{short.name = }{beta14}
+\item{output.name = }{beta\link{14} for NMixNB observations}
+\item{output.name.intern = }{beta\link{14} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14307,6 +14853,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101135}
 \item{name = }{beta15}
 \item{short.name = }{beta15}
+\item{output.name = }{beta\link{15} for NMixNB observations}
+\item{output.name.intern = }{beta\link{15} for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14320,6 +14868,8 @@ Number of hyperparmeters is 16.
 \item{hyperid = }{101136}
 \item{name = }{overdispersion}
 \item{short.name = }{overdispersion}
+\item{output.name = }{overdispersion for NMixNB observations}
+\item{output.name.intern = }{log_overdispersion for NMixNB observations}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.gamma}
@@ -14350,6 +14900,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{101201}
 \item{name = }{tail}
 \item{short.name = }{xi}
+\item{output.name = }{Tail parameter for the gp observations}
+\item{output.name.intern = }{Intern tail parameter for the gp observations}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.gevtail}
@@ -14380,6 +14932,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{101301}
 \item{name = }{tail}
 \item{short.name = }{xi}
+\item{output.name = }{Tail parameter for the dgp observations}
+\item{output.name.intern = }{Intern tail parameter for the dgp observations}
 \item{initial = }{2}
 \item{fixed = }{FALSE}
 \item{prior = }{pc.gevtail}
@@ -14409,7 +14963,6 @@ Number of hyperparmeters is 0.
 \item{Properties:}{
 \describe{
 \item{doc = }{'Tweedie distribution'}
-\item{status = }{'experimental'}
 \item{survival = }{'FALSE'}
 \item{discrete = }{'FALSE'}
 \item{link = }{'default log'}
@@ -14424,6 +14977,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{102101}
 \item{name = }{p}
 \item{short.name = }{p}
+\item{output.name = }{p parameter for Tweedie}
+\item{output.name.intern = }{p_intern parameter for Tweedie}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14437,6 +14992,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{102201}
 \item{name = }{dispersion}
 \item{short.name = }{phi}
+\item{output.name = }{Dispersion parameter for Tweedie}
+\item{output.name.intern = }{Log dispersion parameter for Tweedie}
 \item{initial = }{-4}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -14467,6 +15024,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{103101}
 \item{name = }{precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for fmri}
+\item{output.name.intern = }{Log precision for fmri}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -14480,6 +15039,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{103202}
 \item{name = }{dof}
 \item{short.name = }{df}
+\item{output.name = }{NOT IN USE}
+\item{output.name.intern = }{NOT IN USE}
 \item{initial = }{4}
 \item{fixed = }{TRUE}
 \item{prior = }{normal}
@@ -14510,6 +15071,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{104101}
 \item{name = }{precision}
 \item{short.name = }{prec}
+\item{output.name = }{Precision for fmrisurv}
+\item{output.name.intern = }{Log precision for fmrisurv}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{loggamma}
@@ -14523,6 +15086,8 @@ Number of hyperparmeters is 2.
 \item{hyperid = }{104201}
 \item{name = }{dof}
 \item{short.name = }{df}
+\item{output.name = }{NOT IN USE}
+\item{output.name.intern = }{NOT IN USE}
 \item{initial = }{4}
 \item{fixed = }{TRUE}
 \item{prior = }{normal}
@@ -14553,6 +15118,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{105101}
 \item{name = }{shape}
 \item{short.name = }{alpha}
+\item{output.name.intern = }{alpha_intern for Gompertz}
+\item{output.name = }{alpha parameter for Gompertz}
 \item{initial = }{-1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14583,6 +15150,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106101}
 \item{name = }{shape}
 \item{short.name = }{alpha}
+\item{output.name.intern = }{alpha_intern for Gompertz-surv}
+\item{output.name = }{alpha parameter for Gompertz-surv}
 \item{initial = }{-10}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14596,6 +15165,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106102}
 \item{name = }{beta1}
 \item{short.name = }{beta1}
+\item{output.name = }{beta1 for Gompertz-Cure}
+\item{output.name.intern = }{beta1 for Gompertz-Cure}
 \item{initial = }{-5}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14609,6 +15180,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106103}
 \item{name = }{beta2}
 \item{short.name = }{beta2}
+\item{output.name = }{beta2 for Gompertz-Cure}
+\item{output.name.intern = }{beta2 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14622,6 +15195,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106104}
 \item{name = }{beta3}
 \item{short.name = }{beta3}
+\item{output.name = }{beta3 for Gompertz-Cure}
+\item{output.name.intern = }{beta3 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14635,6 +15210,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106105}
 \item{name = }{beta4}
 \item{short.name = }{beta4}
+\item{output.name = }{beta4 for Gompertz-Cure}
+\item{output.name.intern = }{beta4 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14648,6 +15225,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106106}
 \item{name = }{beta5}
 \item{short.name = }{beta5}
+\item{output.name = }{beta5 for Gompertz-Cure}
+\item{output.name.intern = }{beta5 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14661,6 +15240,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106107}
 \item{name = }{beta6}
 \item{short.name = }{beta6}
+\item{output.name = }{beta6 for Gompertz-Cure}
+\item{output.name.intern = }{beta6 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14674,6 +15255,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106108}
 \item{name = }{beta7}
 \item{short.name = }{beta7}
+\item{output.name = }{beta7 for Gompertz-Cure}
+\item{output.name.intern = }{beta7 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14687,6 +15270,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106109}
 \item{name = }{beta8}
 \item{short.name = }{beta8}
+\item{output.name = }{beta8 for Gompertz-Cure}
+\item{output.name.intern = }{beta8 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14700,6 +15285,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106110}
 \item{name = }{beta9}
 \item{short.name = }{beta9}
+\item{output.name = }{beta9 for Gompertz-Cure}
+\item{output.name.intern = }{beta9 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14713,6 +15300,8 @@ Number of hyperparmeters is 11.
 \item{hyperid = }{106111}
 \item{name = }{beta10}
 \item{short.name = }{beta10}
+\item{output.name = }{beta10 for Gompertz-Cure}
+\item{output.name.intern = }{beta10 for Gompertz-Cure}
 \item{initial = }{0}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14895,6 +15484,8 @@ Number of hyperparmeters is 1.
 \item{hyperid = }{102001}
 \item{name = }{log precision}
 \item{short.name = }{prec}
+\item{output.name = }{NOT IN USE}
+\item{output.name.intern = }{NOT IN USE}
 \item{initial = }{0}
 \item{fixed = }{TRUE}
 \item{prior = }{loggamma}
@@ -14928,6 +15519,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103001}
 \item{name = }{beta1}
 \item{short.name = }{b1}
+\item{output.name = }{beta\link{1} for lp_scale}
+\item{output.name.intern = }{beta\link{1} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14941,6 +15534,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103002}
 \item{name = }{beta2}
 \item{short.name = }{b2}
+\item{output.name = }{beta\link{2} for lp_scale}
+\item{output.name.intern = }{beta\link{2} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14954,6 +15549,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103003}
 \item{name = }{beta3}
 \item{short.name = }{b3}
+\item{output.name = }{beta\link{3} for lp_scale}
+\item{output.name.intern = }{beta\link{3} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14967,6 +15564,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103004}
 \item{name = }{beta4}
 \item{short.name = }{b4}
+\item{output.name = }{beta\link{4} for lp_scale}
+\item{output.name.intern = }{beta\link{4} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14980,6 +15579,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103005}
 \item{name = }{beta5}
 \item{short.name = }{b5}
+\item{output.name = }{beta\link{5} for lp_scale}
+\item{output.name.intern = }{beta\link{5} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -14993,6 +15594,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103006}
 \item{name = }{beta6}
 \item{short.name = }{b6}
+\item{output.name = }{beta\link{6} for lp_scale}
+\item{output.name.intern = }{beta\link{6} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15006,6 +15609,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103007}
 \item{name = }{beta7}
 \item{short.name = }{b7}
+\item{output.name = }{beta\link{7} for lp_scale}
+\item{output.name.intern = }{beta\link{7} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15019,6 +15624,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103008}
 \item{name = }{beta8}
 \item{short.name = }{b8}
+\item{output.name = }{beta\link{8} for lp_scale}
+\item{output.name.intern = }{beta\link{8} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15032,6 +15639,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103009}
 \item{name = }{beta9}
 \item{short.name = }{b9}
+\item{output.name = }{beta\link{9} for lp_scale}
+\item{output.name.intern = }{beta\link{9} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15045,6 +15654,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103010}
 \item{name = }{beta10}
 \item{short.name = }{b10}
+\item{output.name = }{beta\link{10} for lp_scale}
+\item{output.name.intern = }{beta\link{10} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15058,6 +15669,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103011}
 \item{name = }{beta11}
 \item{short.name = }{b11}
+\item{output.name = }{beta\link{11} for lp_scale}
+\item{output.name.intern = }{beta\link{11} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15071,6 +15684,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103012}
 \item{name = }{beta12}
 \item{short.name = }{b12}
+\item{output.name = }{beta\link{12} for lp_scale}
+\item{output.name.intern = }{beta\link{12} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15084,6 +15699,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103013}
 \item{name = }{beta13}
 \item{short.name = }{b13}
+\item{output.name = }{beta\link{13} for lp_scale}
+\item{output.name.intern = }{beta\link{13} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15097,6 +15714,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103014}
 \item{name = }{beta14}
 \item{short.name = }{b14}
+\item{output.name = }{beta\link{14} for lp_scale}
+\item{output.name.intern = }{beta\link{14} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15110,6 +15729,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103015}
 \item{name = }{beta15}
 \item{short.name = }{b15}
+\item{output.name = }{beta\link{15} for lp_scale}
+\item{output.name.intern = }{beta\link{15} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15123,6 +15744,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103016}
 \item{name = }{beta16}
 \item{short.name = }{b16}
+\item{output.name = }{beta\link{16} for lp_scale}
+\item{output.name.intern = }{beta\link{16} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15136,6 +15759,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103017}
 \item{name = }{beta17}
 \item{short.name = }{b17}
+\item{output.name = }{beta\link{17} for lp_scale}
+\item{output.name.intern = }{beta\link{17} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15149,6 +15774,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103018}
 \item{name = }{beta18}
 \item{short.name = }{b18}
+\item{output.name = }{beta\link{18} for lp_scale}
+\item{output.name.intern = }{beta\link{18} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15162,6 +15789,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103019}
 \item{name = }{beta19}
 \item{short.name = }{b19}
+\item{output.name = }{beta\link{19} for lp_scale}
+\item{output.name.intern = }{beta\link{19} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15175,6 +15804,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103020}
 \item{name = }{beta20}
 \item{short.name = }{b20}
+\item{output.name = }{beta\link{20} for lp_scale}
+\item{output.name.intern = }{beta\link{20} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15188,6 +15819,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103021}
 \item{name = }{beta21}
 \item{short.name = }{b21}
+\item{output.name = }{beta\link{21} for lp_scale}
+\item{output.name.intern = }{beta\link{21} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15201,6 +15834,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103022}
 \item{name = }{beta22}
 \item{short.name = }{b22}
+\item{output.name = }{beta\link{22} for lp_scale}
+\item{output.name.intern = }{beta\link{22} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15214,6 +15849,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103023}
 \item{name = }{beta23}
 \item{short.name = }{b23}
+\item{output.name = }{beta\link{23} for lp_scale}
+\item{output.name.intern = }{beta\link{23} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15227,6 +15864,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103024}
 \item{name = }{beta24}
 \item{short.name = }{b24}
+\item{output.name = }{beta\link{24} for lp_scale}
+\item{output.name.intern = }{beta\link{24} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15240,6 +15879,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103025}
 \item{name = }{beta25}
 \item{short.name = }{b25}
+\item{output.name = }{beta\link{25} for lp_scale}
+\item{output.name.intern = }{beta\link{25} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15253,6 +15894,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103026}
 \item{name = }{beta26}
 \item{short.name = }{b26}
+\item{output.name = }{beta\link{26} for lp_scale}
+\item{output.name.intern = }{beta\link{26} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15266,6 +15909,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103027}
 \item{name = }{beta27}
 \item{short.name = }{b27}
+\item{output.name = }{beta\link{27} for lp_scale}
+\item{output.name.intern = }{beta\link{27} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15279,6 +15924,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103028}
 \item{name = }{beta28}
 \item{short.name = }{b28}
+\item{output.name = }{beta\link{28} for lp_scale}
+\item{output.name.intern = }{beta\link{28} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15292,6 +15939,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103029}
 \item{name = }{beta29}
 \item{short.name = }{b29}
+\item{output.name = }{beta\link{29} for lp_scale}
+\item{output.name.intern = }{beta\link{29} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15305,6 +15954,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103030}
 \item{name = }{beta30}
 \item{short.name = }{b30}
+\item{output.name = }{beta\link{30} for lp_scale}
+\item{output.name.intern = }{beta\link{30} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15318,6 +15969,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103031}
 \item{name = }{beta31}
 \item{short.name = }{b31}
+\item{output.name = }{beta\link{31} for lp_scale}
+\item{output.name.intern = }{beta\link{31} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15331,6 +15984,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103032}
 \item{name = }{beta32}
 \item{short.name = }{b32}
+\item{output.name = }{beta\link{32} for lp_scale}
+\item{output.name.intern = }{beta\link{32} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15344,6 +15999,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103033}
 \item{name = }{beta33}
 \item{short.name = }{b33}
+\item{output.name = }{beta\link{33} for lp_scale}
+\item{output.name.intern = }{beta\link{33} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15357,6 +16014,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103034}
 \item{name = }{beta34}
 \item{short.name = }{b34}
+\item{output.name = }{beta\link{34} for lp_scale}
+\item{output.name.intern = }{beta\link{34} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15370,6 +16029,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103035}
 \item{name = }{beta35}
 \item{short.name = }{b35}
+\item{output.name = }{beta\link{35} for lp_scale}
+\item{output.name.intern = }{beta\link{35} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15383,6 +16044,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103036}
 \item{name = }{beta36}
 \item{short.name = }{b36}
+\item{output.name = }{beta\link{36} for lp_scale}
+\item{output.name.intern = }{beta\link{36} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15396,6 +16059,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103037}
 \item{name = }{beta37}
 \item{short.name = }{b37}
+\item{output.name = }{beta\link{37} for lp_scale}
+\item{output.name.intern = }{beta\link{37} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15409,6 +16074,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103038}
 \item{name = }{beta38}
 \item{short.name = }{b38}
+\item{output.name = }{beta\link{38} for lp_scale}
+\item{output.name.intern = }{beta\link{38} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15422,6 +16089,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103039}
 \item{name = }{beta39}
 \item{short.name = }{b39}
+\item{output.name = }{beta\link{39} for lp_scale}
+\item{output.name.intern = }{beta\link{39} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15435,6 +16104,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103040}
 \item{name = }{beta40}
 \item{short.name = }{b40}
+\item{output.name = }{beta\link{40} for lp_scale}
+\item{output.name.intern = }{beta\link{40} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15448,6 +16119,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103041}
 \item{name = }{beta41}
 \item{short.name = }{b41}
+\item{output.name = }{beta\link{41} for lp_scale}
+\item{output.name.intern = }{beta\link{41} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15461,6 +16134,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103042}
 \item{name = }{beta42}
 \item{short.name = }{b42}
+\item{output.name = }{beta\link{42} for lp_scale}
+\item{output.name.intern = }{beta\link{42} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15474,6 +16149,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103043}
 \item{name = }{beta43}
 \item{short.name = }{b43}
+\item{output.name = }{beta\link{43} for lp_scale}
+\item{output.name.intern = }{beta\link{43} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15487,6 +16164,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103044}
 \item{name = }{beta44}
 \item{short.name = }{b44}
+\item{output.name = }{beta\link{44} for lp_scale}
+\item{output.name.intern = }{beta\link{44} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15500,6 +16179,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103045}
 \item{name = }{beta45}
 \item{short.name = }{b45}
+\item{output.name = }{beta\link{45} for lp_scale}
+\item{output.name.intern = }{beta\link{45} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15513,6 +16194,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103046}
 \item{name = }{beta46}
 \item{short.name = }{b46}
+\item{output.name = }{beta\link{46} for lp_scale}
+\item{output.name.intern = }{beta\link{46} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15526,6 +16209,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103047}
 \item{name = }{beta47}
 \item{short.name = }{b47}
+\item{output.name = }{beta\link{47} for lp_scale}
+\item{output.name.intern = }{beta\link{47} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15539,6 +16224,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103048}
 \item{name = }{beta48}
 \item{short.name = }{b48}
+\item{output.name = }{beta\link{48} for lp_scale}
+\item{output.name.intern = }{beta\link{48} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15552,6 +16239,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103049}
 \item{name = }{beta49}
 \item{short.name = }{b49}
+\item{output.name = }{beta\link{49} for lp_scale}
+\item{output.name.intern = }{beta\link{49} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15565,6 +16254,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103050}
 \item{name = }{beta50}
 \item{short.name = }{b50}
+\item{output.name = }{beta\link{50} for lp_scale}
+\item{output.name.intern = }{beta\link{50} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15578,6 +16269,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103051}
 \item{name = }{beta51}
 \item{short.name = }{b51}
+\item{output.name = }{beta\link{51} for lp_scale}
+\item{output.name.intern = }{beta\link{51} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15591,6 +16284,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103052}
 \item{name = }{beta52}
 \item{short.name = }{b52}
+\item{output.name = }{beta\link{52} for lp_scale}
+\item{output.name.intern = }{beta\link{52} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15604,6 +16299,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103053}
 \item{name = }{beta53}
 \item{short.name = }{b53}
+\item{output.name = }{beta\link{53} for lp_scale}
+\item{output.name.intern = }{beta\link{53} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15617,6 +16314,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103054}
 \item{name = }{beta54}
 \item{short.name = }{b54}
+\item{output.name = }{beta\link{54} for lp_scale}
+\item{output.name.intern = }{beta\link{54} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15630,6 +16329,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103055}
 \item{name = }{beta55}
 \item{short.name = }{b55}
+\item{output.name = }{beta\link{55} for lp_scale}
+\item{output.name.intern = }{beta\link{55} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15643,6 +16344,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103056}
 \item{name = }{beta56}
 \item{short.name = }{b56}
+\item{output.name = }{beta\link{56} for lp_scale}
+\item{output.name.intern = }{beta\link{56} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15656,6 +16359,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103057}
 \item{name = }{beta57}
 \item{short.name = }{b57}
+\item{output.name = }{beta\link{57} for lp_scale}
+\item{output.name.intern = }{beta\link{57} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15669,6 +16374,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103058}
 \item{name = }{beta58}
 \item{short.name = }{b58}
+\item{output.name = }{beta\link{58} for lp_scale}
+\item{output.name.intern = }{beta\link{58} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15682,6 +16389,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103059}
 \item{name = }{beta59}
 \item{short.name = }{b59}
+\item{output.name = }{beta\link{59} for lp_scale}
+\item{output.name.intern = }{beta\link{59} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15695,6 +16404,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103060}
 \item{name = }{beta60}
 \item{short.name = }{b60}
+\item{output.name = }{beta\link{60} for lp_scale}
+\item{output.name.intern = }{beta\link{60} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15708,6 +16419,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103061}
 \item{name = }{beta61}
 \item{short.name = }{b61}
+\item{output.name = }{beta\link{61} for lp_scale}
+\item{output.name.intern = }{beta\link{61} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15721,6 +16434,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103062}
 \item{name = }{beta62}
 \item{short.name = }{b62}
+\item{output.name = }{beta\link{62} for lp_scale}
+\item{output.name.intern = }{beta\link{62} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15734,6 +16449,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103063}
 \item{name = }{beta63}
 \item{short.name = }{b63}
+\item{output.name = }{beta\link{63} for lp_scale}
+\item{output.name.intern = }{beta\link{63} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15747,6 +16464,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103064}
 \item{name = }{beta64}
 \item{short.name = }{b64}
+\item{output.name = }{beta\link{64} for lp_scale}
+\item{output.name.intern = }{beta\link{64} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15760,6 +16479,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103065}
 \item{name = }{beta65}
 \item{short.name = }{b65}
+\item{output.name = }{beta\link{65} for lp_scale}
+\item{output.name.intern = }{beta\link{65} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15773,6 +16494,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103066}
 \item{name = }{beta66}
 \item{short.name = }{b66}
+\item{output.name = }{beta\link{66} for lp_scale}
+\item{output.name.intern = }{beta\link{66} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15786,6 +16509,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103067}
 \item{name = }{beta67}
 \item{short.name = }{b67}
+\item{output.name = }{beta\link{67} for lp_scale}
+\item{output.name.intern = }{beta\link{67} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15799,6 +16524,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103068}
 \item{name = }{beta68}
 \item{short.name = }{b68}
+\item{output.name = }{beta\link{68} for lp_scale}
+\item{output.name.intern = }{beta\link{68} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15812,6 +16539,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103069}
 \item{name = }{beta69}
 \item{short.name = }{b69}
+\item{output.name = }{beta\link{69} for lp_scale}
+\item{output.name.intern = }{beta\link{69} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15825,6 +16554,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103070}
 \item{name = }{beta70}
 \item{short.name = }{b70}
+\item{output.name = }{beta\link{70} for lp_scale}
+\item{output.name.intern = }{beta\link{70} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15838,6 +16569,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103071}
 \item{name = }{beta71}
 \item{short.name = }{b71}
+\item{output.name = }{beta\link{71} for lp_scale}
+\item{output.name.intern = }{beta\link{71} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15851,6 +16584,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103072}
 \item{name = }{beta72}
 \item{short.name = }{b72}
+\item{output.name = }{beta\link{72} for lp_scale}
+\item{output.name.intern = }{beta\link{72} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15864,6 +16599,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103073}
 \item{name = }{beta73}
 \item{short.name = }{b73}
+\item{output.name = }{beta\link{73} for lp_scale}
+\item{output.name.intern = }{beta\link{73} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15877,6 +16614,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103074}
 \item{name = }{beta74}
 \item{short.name = }{b74}
+\item{output.name = }{beta\link{74} for lp_scale}
+\item{output.name.intern = }{beta\link{74} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15890,6 +16629,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103075}
 \item{name = }{beta75}
 \item{short.name = }{b75}
+\item{output.name = }{beta\link{75} for lp_scale}
+\item{output.name.intern = }{beta\link{75} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15903,6 +16644,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103076}
 \item{name = }{beta76}
 \item{short.name = }{b76}
+\item{output.name = }{beta\link{76} for lp_scale}
+\item{output.name.intern = }{beta\link{76} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15916,6 +16659,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103077}
 \item{name = }{beta77}
 \item{short.name = }{b77}
+\item{output.name = }{beta\link{77} for lp_scale}
+\item{output.name.intern = }{beta\link{77} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15929,6 +16674,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103078}
 \item{name = }{beta78}
 \item{short.name = }{b78}
+\item{output.name = }{beta\link{78} for lp_scale}
+\item{output.name.intern = }{beta\link{78} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15942,6 +16689,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103079}
 \item{name = }{beta79}
 \item{short.name = }{b79}
+\item{output.name = }{beta\link{79} for lp_scale}
+\item{output.name.intern = }{beta\link{79} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15955,6 +16704,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103080}
 \item{name = }{beta80}
 \item{short.name = }{b80}
+\item{output.name = }{beta\link{80} for lp_scale}
+\item{output.name.intern = }{beta\link{80} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15968,6 +16719,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103081}
 \item{name = }{beta81}
 \item{short.name = }{b81}
+\item{output.name = }{beta\link{81} for lp_scale}
+\item{output.name.intern = }{beta\link{81} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15981,6 +16734,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103082}
 \item{name = }{beta82}
 \item{short.name = }{b82}
+\item{output.name = }{beta\link{82} for lp_scale}
+\item{output.name.intern = }{beta\link{82} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -15994,6 +16749,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103083}
 \item{name = }{beta83}
 \item{short.name = }{b83}
+\item{output.name = }{beta\link{83} for lp_scale}
+\item{output.name.intern = }{beta\link{83} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16007,6 +16764,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103084}
 \item{name = }{beta84}
 \item{short.name = }{b84}
+\item{output.name = }{beta\link{84} for lp_scale}
+\item{output.name.intern = }{beta\link{84} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16020,6 +16779,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103085}
 \item{name = }{beta85}
 \item{short.name = }{b85}
+\item{output.name = }{beta\link{85} for lp_scale}
+\item{output.name.intern = }{beta\link{85} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16033,6 +16794,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103086}
 \item{name = }{beta86}
 \item{short.name = }{b86}
+\item{output.name = }{beta\link{86} for lp_scale}
+\item{output.name.intern = }{beta\link{86} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16046,6 +16809,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103087}
 \item{name = }{beta87}
 \item{short.name = }{b87}
+\item{output.name = }{beta\link{87} for lp_scale}
+\item{output.name.intern = }{beta\link{87} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16059,6 +16824,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103088}
 \item{name = }{beta88}
 \item{short.name = }{b88}
+\item{output.name = }{beta\link{88} for lp_scale}
+\item{output.name.intern = }{beta\link{88} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16072,6 +16839,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103089}
 \item{name = }{beta89}
 \item{short.name = }{b89}
+\item{output.name = }{beta\link{89} for lp_scale}
+\item{output.name.intern = }{beta\link{89} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16085,6 +16854,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103090}
 \item{name = }{beta90}
 \item{short.name = }{b90}
+\item{output.name = }{beta\link{90} for lp_scale}
+\item{output.name.intern = }{beta\link{90} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16098,6 +16869,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103091}
 \item{name = }{beta91}
 \item{short.name = }{b91}
+\item{output.name = }{beta\link{91} for lp_scale}
+\item{output.name.intern = }{beta\link{91} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16111,6 +16884,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103092}
 \item{name = }{beta92}
 \item{short.name = }{b92}
+\item{output.name = }{beta\link{92} for lp_scale}
+\item{output.name.intern = }{beta\link{92} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16124,6 +16899,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103093}
 \item{name = }{beta93}
 \item{short.name = }{b93}
+\item{output.name = }{beta\link{93} for lp_scale}
+\item{output.name.intern = }{beta\link{93} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16137,6 +16914,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103094}
 \item{name = }{beta94}
 \item{short.name = }{b94}
+\item{output.name = }{beta\link{94} for lp_scale}
+\item{output.name.intern = }{beta\link{94} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16150,6 +16929,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103095}
 \item{name = }{beta95}
 \item{short.name = }{b95}
+\item{output.name = }{beta\link{95} for lp_scale}
+\item{output.name.intern = }{beta\link{95} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16163,6 +16944,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103096}
 \item{name = }{beta96}
 \item{short.name = }{b96}
+\item{output.name = }{beta\link{96} for lp_scale}
+\item{output.name.intern = }{beta\link{96} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16176,6 +16959,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103097}
 \item{name = }{beta97}
 \item{short.name = }{b97}
+\item{output.name = }{beta\link{97} for lp_scale}
+\item{output.name.intern = }{beta\link{97} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16189,6 +16974,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103098}
 \item{name = }{beta98}
 \item{short.name = }{b98}
+\item{output.name = }{beta\link{98} for lp_scale}
+\item{output.name.intern = }{beta\link{98} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16202,6 +16989,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103099}
 \item{name = }{beta99}
 \item{short.name = }{b99}
+\item{output.name = }{beta\link{99} for lp_scale}
+\item{output.name.intern = }{beta\link{99} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}
@@ -16215,6 +17004,8 @@ Number of hyperparmeters is 100.
 \item{hyperid = }{103100}
 \item{name = }{beta100}
 \item{short.name = }{b100}
+\item{output.name = }{beta\link{100} for lp_scale}
+\item{output.name.intern = }{beta\link{100} for lp_scale}
 \item{initial = }{1}
 \item{fixed = }{FALSE}
 \item{prior = }{normal}

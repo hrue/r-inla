@@ -1,25 +1,27 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] gompertz distribution
+	\item[doc] \verb!gompertz distribution!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 105101
-	 	 	\item[name] shape
-	 	 	\item[short.name] alpha
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 1
+	 	 	\item[hyperid] \verb!105101!
+	 	 	\item[name] \verb!shape!
+	 	 	\item[short.name] \verb!alpha!
+	 	 	\item[output.name.intern] \verb!alpha_intern for Gompertz!
+	 	 	\item[output.name] \verb!alpha parameter for Gompertz!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 1!
 	 	 	\item[to.theta] \verb!function(x, sc = 0.1) log(x) / sc!
 	 	 	\item[from.theta] \verb!function(x, sc = 0.1) exp(sc * x)!
 	 	 \end{description}
 	 \end{description}
-	\item[status] experimental
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log neglog
-	\item[pdf] gompertz
+	\item[status] \verb!experimental!
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log neglog!
+	\item[pdf] \verb!gompertz!
 \end{description}

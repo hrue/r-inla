@@ -1,25 +1,27 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The wrapped Cauchy likelihoood
+	\item[doc] \verb!The wrapped Cauchy likelihoood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 68001
-	 	 	\item[name] log precision parameter
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 0.005
+	 	 	\item[hyperid] \verb!68001!
+	 	 	\item[name] \verb!log precision parameter!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[output.name] \verb!Precision parameter for the Wrapped Cauchy observations!
+	 	 	\item[output.name.intern] \verb!Log precision parameter for the Wrapped Cauchy observations!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 0.005!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default tan
-	\item[pdf] wrapped-cauchy
-	\item[status] disabled
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default tan!
+	\item[pdf] \verb!wrapped-cauchy!
+	\item[status] \verb!disabled!
 \end{description}

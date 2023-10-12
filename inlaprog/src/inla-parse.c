@@ -668,6 +668,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	if (!strcasecmp(ds->data_likelihood, "GAUSSIAN") || !strcasecmp(ds->data_likelihood, "NORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "STDGAUSSIAN") || !strcasecmp(ds->data_likelihood, "STDNORMAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stdgaussian;
+		ds->data_id = L_STDGAUSSIAN;
 	} else if (!strcasecmp(ds->data_likelihood, "SIMPLEX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_simplex;
 		ds->data_id = L_SIMPLEX;
@@ -996,6 +999,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
+	case L_STDGAUSSIAN:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -2432,6 +2436,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case L_BELL:
 		break;
 
+	case L_STDGAUSSIAN: 
 	case L_POISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
@@ -8138,7 +8143,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
-	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN) ||
+	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id !=  L_STDGAUSSIAN) ||
 	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		mb->gaussian_data = GMRFLib_FALSE;
 	}

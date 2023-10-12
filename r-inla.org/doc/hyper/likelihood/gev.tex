@@ -1,37 +1,41 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The Generalized Extreme Value likelihood
+	\item[doc] \verb!The Generalized Extreme Value likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 76001
-	 	 	\item[name] log precision
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!76001!
+	 	 	\item[name] \verb!log precision!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[output.name] \verb!precision for GEV observations!
+	 	 	\item[output.name.intern] \verb!log precision for GEV observations!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 76002
-	 	 	\item[name] tail parameter
-	 	 	\item[short.name] tail
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 0 25
+	 	 	\item[hyperid] \verb!76002!
+	 	 	\item[name] \verb!tail parameter!
+	 	 	\item[short.name] \verb!tail!
+	 	 	\item[output.name] \verb!tail parameter for GEV observations!
+	 	 	\item[output.name.intern] \verb!tail parameter for GEV observations!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!0 25!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default identity
-	\item[status] disabled: Use likelihood model 'bgev' instead; see inla.doc('bgev')
-	\item[pdf] gev
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default identity!
+	\item[status] \verb!disabled: Use likelihood model 'bgev' instead; see inla.doc('bgev')!
+	\item[pdf] \verb!gev!
 \end{description}

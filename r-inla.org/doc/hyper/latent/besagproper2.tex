@@ -1,42 +1,42 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] An alternative proper version of the Besag model
+	\item[doc] \verb!An alternative proper version of the Besag model!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 13001
-	 	 	\item[name] log precision
-	 	 	\item[short.name] prec
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-04
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
+	 	 	\item[hyperid] \verb!13001!
+	 	 	\item[name] \verb!log precision!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-04!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 13002
-	 	 	\item[name] logit lambda
-	 	 	\item[short.name] lambda
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 0 0.45
-	 	 	\item[initial] 3
-	 	 	\item[fixed] FALSE
+	 	 	\item[hyperid] \verb!13002!
+	 	 	\item[name] \verb!logit lambda!
+	 	 	\item[short.name] \verb!lambda!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!0 0.45!
+	 	 	\item[initial] \verb!3!
+	 	 	\item[fixed] \verb!FALSE!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[constr] FALSE
-	\item[nrow.ncol] FALSE
-	\item[augmented] FALSE
-	\item[aug.factor] 1
-	\item[aug.constr] 
-	\item[n.div.by] 
-	\item[n.required] TRUE
-	\item[set.default.values] TRUE
-	\item[status] experimental
-	\item[pdf] besagproper2
+	\item[constr] \verb!FALSE!
+	\item[nrow.ncol] \verb!FALSE!
+	\item[augmented] \verb!FALSE!
+	\item[aug.factor] \verb!1!
+	\item[aug.constr] \verb!!
+	\item[n.div.by] \verb!!
+	\item[n.required] \verb!TRUE!
+	\item[set.default.values] \verb!TRUE!
+	\item[status] \verb!experimental!
+	\item[pdf] \verb!besagproper2!
 \end{description}

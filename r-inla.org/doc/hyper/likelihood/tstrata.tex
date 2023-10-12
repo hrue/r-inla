@@ -1,144 +1,166 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] A stratified version of the Student-t likelihood
+	\item[doc] \verb!A stratified version of the Student-t likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101001
-	 	 	\item[name] log degrees of freedom
-	 	 	\item[short.name] dof
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.dof
-	 	 	\item[param] 15 0.5
+	 	 	\item[hyperid] \verb!101001!
+	 	 	\item[name] \verb!log degrees of freedom!
+	 	 	\item[short.name] \verb!dof!
+	 	 	\item[output.name.intern] \verb!dof_intern for tstrata!
+	 	 	\item[output.name] \verb!degrees of freedom for tstrata!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.dof!
+	 	 	\item[param] \verb!15 0.5!
 	 	 	\item[to.theta] \verb!function(x) log(x - 5)!
 	 	 	\item[from.theta] \verb!function(x) 5 + exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101002
-	 	 	\item[name] log precision1
-	 	 	\item[short.name] prec1
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101002!
+	 	 	\item[name] \verb!log precision1!
+	 	 	\item[short.name] \verb!prec1!
+	 	 	\item[output.name] \verb!Prec for tstrata strata!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101003
-	 	 	\item[name] log precision2
-	 	 	\item[short.name] prec2
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101003!
+	 	 	\item[name] \verb!log precision2!
+	 	 	\item[short.name] \verb!prec2!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[2]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[2]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101004
-	 	 	\item[name] log precision3
-	 	 	\item[short.name] prec3
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101004!
+	 	 	\item[name] \verb!log precision3!
+	 	 	\item[short.name] \verb!prec3!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[3]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[3]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta5]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101005
-	 	 	\item[name] log precision4
-	 	 	\item[short.name] prec4
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101005!
+	 	 	\item[name] \verb!log precision4!
+	 	 	\item[short.name] \verb!prec4!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[4]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[4]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta6]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101006
-	 	 	\item[name] log precision5
-	 	 	\item[short.name] prec5
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101006!
+	 	 	\item[name] \verb!log precision5!
+	 	 	\item[short.name] \verb!prec5!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[5]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[5]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta7]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101007
-	 	 	\item[name] log precision6
-	 	 	\item[short.name] prec6
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101007!
+	 	 	\item[name] \verb!log precision6!
+	 	 	\item[short.name] \verb!prec6!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[6]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[6]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta8]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101008
-	 	 	\item[name] log precision7
-	 	 	\item[short.name] prec7
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101008!
+	 	 	\item[name] \verb!log precision7!
+	 	 	\item[short.name] \verb!prec7!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[7]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[7]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta9]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101009
-	 	 	\item[name] log precision8
-	 	 	\item[short.name] prec8
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101009!
+	 	 	\item[name] \verb!log precision8!
+	 	 	\item[short.name] \verb!prec8!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[8]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[8]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta10]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101010
-	 	 	\item[name] log precision9
-	 	 	\item[short.name] prec9
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101010!
+	 	 	\item[name] \verb!log precision9!
+	 	 	\item[short.name] \verb!prec9!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[9]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[9]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta11]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101011
-	 	 	\item[name] log precision10
-	 	 	\item[short.name] prec10
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!101011!
+	 	 	\item[name] \verb!log precision10!
+	 	 	\item[short.name] \verb!prec10!
+	 	 	\item[output.name] \verb!Prec for tstrata strata[10]!
+	 	 	\item[output.name.intern] \verb!Log prec for tstrata strata[10]!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default identity
-	\item[pdf] tstrata
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default identity!
+	\item[pdf] \verb!tstrata!
 \end{description}

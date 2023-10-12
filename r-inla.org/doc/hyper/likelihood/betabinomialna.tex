@@ -1,24 +1,26 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The Beta-Binomial Normal approximation likelihood
+	\item[doc] \verb!The Beta-Binomial Normal approximation likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 62101
-	 	 	\item[name] overdispersion
-	 	 	\item[short.name] rho
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 0 0.4
+	 	 	\item[hyperid] \verb!62101!
+	 	 	\item[name] \verb!overdispersion!
+	 	 	\item[short.name] \verb!rho!
+	 	 	\item[output.name] \verb!overdispersion for the betabinomialna observations!
+	 	 	\item[output.name.intern] \verb!intern overdispersion for the betabinomialna observations!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!0 0.4!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] TRUE
-	\item[link] default logit loga cauchit probit cloglog ccloglog loglog robit sn
-	\item[pdf] betabinomialna
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!TRUE!
+	\item[link] \verb!default logit loga cauchit probit cloglog ccloglog loglog robit sn!
+	\item[pdf] \verb!betabinomialna!
 \end{description}

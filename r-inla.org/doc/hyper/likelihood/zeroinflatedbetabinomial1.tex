@@ -1,36 +1,40 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Zero-inflated Beta-Binomial, type 1
+	\item[doc] \verb!Zero-inflated Beta-Binomial, type 1!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 89001
-	 	 	\item[name] overdispersion
-	 	 	\item[short.name] rho
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 0 0.4
+	 	 	\item[hyperid] \verb!89001!
+	 	 	\item[name] \verb!overdispersion!
+	 	 	\item[short.name] \verb!rho!
+	 	 	\item[output.name] \verb!rho for zero-inflated betabinomial_1!
+	 	 	\item[output.name.intern] \verb!rho_intern for zero-inflated betabinomial_1!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!0 0.4!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 89002
-	 	 	\item[name] logit probability
-	 	 	\item[short.name] prob
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!89002!
+	 	 	\item[name] \verb!logit probability!
+	 	 	\item[short.name] \verb!prob!
+	 	 	\item[output.name] \verb!zero-probability parameter for zero-inflated betabinomial_1!
+	 	 	\item[output.name.intern] \verb!intern zero-probability parameter for zero-inflated betabinomial_1!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] TRUE
-	\item[link] default logit loga cauchit probit cloglog ccloglog loglog robit sn
-	\item[pdf] zeroinflated
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!TRUE!
+	\item[link] \verb!default logit loga cauchit probit cloglog ccloglog loglog robit sn!
+	\item[pdf] \verb!zeroinflated!
 \end{description}
