@@ -19,7 +19,7 @@ inla.print.version <- function() {
         hello <- paste0(
             "This is INLA_", version,
             " built ", built, ".", "\n",
-            " - See www.r-inla.org/contact-us for how to get help."
+            " - See www.r-inla.org/contact-us for how to get help.\n", 
             " - See ?inla.doc for howto access documentation"
         )
 
