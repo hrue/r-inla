@@ -76,7 +76,9 @@
 
     if (inla.one.of(family, c(
                                 "gaussian",
+                                "stdgaussian",
                                 "normal",
+                                "stdnormal",
                                 "lognormal",
                                 "t",
                                 "sn",

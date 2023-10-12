@@ -1,29 +1,29 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Constrained linear effect
+	\item[doc] \verb!Constrained linear effect!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 37001
-	 	 	\item[name] beta
-	 	 	\item[short.name] b
-	 	 	\item[initial] 1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 1 10
-	 	 	\item[to.theta] \verb!function(x, REPLACE.ME.low, REPLACE.ME.high) {! \verb!                                if (all(is.infinite(c(low, high))) || low == high) {! \verb!                                    stopifnot(low < high)! \verb!                                    return(x)! \verb!                                } else if (all(is.finite(c(low, high)))) {! \verb!                                    stopifnot(low < high)! \verb!                                    return(log(-(low - x) / (high - x)))! \verb!                                } else if (is.finite(low) && is.infinite(high) && high > low) {! \verb!                                    return(log(x - low))! \verb!                                } else {! \verb!                                    stop("Condition not yet implemented")! \verb!                                }! \verb!                            }!
-	 	 	\item[from.theta] \verb!function(x, REPLACE.ME.low, REPLACE.ME.high) {! \verb!                                if (all(is.infinite(c(low, high))) || low == high) {! \verb!                                    stopifnot(low < high)! \verb!                                    return(x)! \verb!                                } else if (all(is.finite(c(low, high)))) {! \verb!                                    stopifnot(low < high)! \verb!                                    return(low + exp(x) / (1 + exp(x)) * (high - low))! \verb!                                } else if (is.finite(low) && is.infinite(high) && high > low) {! \verb!                                    return(low + exp(x))! \verb!                                } else {! \verb!                                    stop("Condition not yet implemented")! \verb!                                }! \verb!                            }!
+	 	 	\item[hyperid] \verb!37001!
+	 	 	\item[name] \verb!beta!
+	 	 	\item[short.name] \verb!b!
+	 	 	\item[initial] \verb!1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!1 10!
+	 	 	\item[to.theta] \verb!function(x, REPLACE.ME.low, REPLACE.ME.high) {                                 if (all(is.infinite(c(low, high))) || low == high) {                                     stopifnot(low < high)                                     return(x)                                 } else if (all(is.finite(c(low, high)))) {                                     stopifnot(low < high)                                     return(log(-(low - x) / (high - x)))                                 } else if (is.finite(low) && is.infinite(high) && high > low) {                                     return(log(x - low))                                 } else {                                     stop("Condition not yet implemented")                                 }                             }!
+	 	 	\item[from.theta] \verb!function(x, REPLACE.ME.low, REPLACE.ME.high) {                                 if (all(is.infinite(c(low, high))) || low == high) {                                     stopifnot(low < high)                                     return(x)                                 } else if (all(is.finite(c(low, high)))) {                                     stopifnot(low < high)                                     return(low + exp(x) / (1 + exp(x)) * (high - low))                                 } else if (is.finite(low) && is.infinite(high) && high > low) {                                     return(low + exp(x))                                 } else {                                     stop("Condition not yet implemented")                                 }                             }!
 	 	 \end{description}
 	 \end{description}
-	\item[constr] FALSE
-	\item[nrow.ncol] FALSE
-	\item[augmented] FALSE
-	\item[aug.factor] 1
-	\item[aug.constr] 
-	\item[n.div.by] 
-	\item[n.required] FALSE
-	\item[set.default.values] FALSE
-	\item[pdf] clinear
+	\item[constr] \verb!FALSE!
+	\item[nrow.ncol] \verb!FALSE!
+	\item[augmented] \verb!FALSE!
+	\item[aug.factor] \verb!1!
+	\item[aug.constr] \verb!!
+	\item[n.div.by] \verb!!
+	\item[n.required] \verb!FALSE!
+	\item[set.default.values] \verb!FALSE!
+	\item[pdf] \verb!clinear!
 \end{description}

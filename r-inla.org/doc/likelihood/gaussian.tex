@@ -65,8 +65,16 @@ which is $\theta_2 \ge 36.05$ for common machines.
 \end{itemize}
 The scalings have default value 1.
 
+There is also \texttt{family="stdgaussian"} for the case where the
+precision $\tau$ is fixed to 1 with no offset (but \texttt{scale} is
+still in place).
+
 \subsubsection*{Hyperparameter spesification and default values}
+\textbf{\texttt{family="gaussian"}}
 \input{../hyper/likelihood/gaussian.tex}
+
+\textbf{\texttt{family="stdgaussian"}}
+\input{../hyper/likelihood/stdgaussian.tex}
 
 \subsection*{Example}
 

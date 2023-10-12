@@ -2548,6 +2548,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			case L_BELL:
 				break;
 
+			case L_STDGAUSSIAN: 
 			case L_BINOMIAL:
 			case L_XBINOMIAL:
 			case L_EXPONENTIAL:

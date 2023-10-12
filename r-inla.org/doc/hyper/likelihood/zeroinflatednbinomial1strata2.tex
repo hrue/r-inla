@@ -1,145 +1,167 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Zero inflated negBinomial, type 1, strata 2
+	\item[doc] \verb!Zero inflated negBinomial, type 1, strata 2!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97001
-	 	 	\item[name] log size
-	 	 	\item[short.name] size
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!97001!
+	 	 	\item[name] \verb!log size!
+	 	 	\item[short.name] \verb!size!
+	 	 	\item[output.name] \verb!size for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!log size for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97002
-	 	 	\item[name] logit probability 1
-	 	 	\item[short.name] prob1
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97002!
+	 	 	\item[name] \verb!logit probability 1!
+	 	 	\item[short.name] \verb!prob1!
+	 	 	\item[output.name] \verb!zero-probability1 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability1 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97003
-	 	 	\item[name] logit probability 2
-	 	 	\item[short.name] prob2
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97003!
+	 	 	\item[name] \verb!logit probability 2!
+	 	 	\item[short.name] \verb!prob2!
+	 	 	\item[output.name] \verb!zero-probability2 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability2 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97004
-	 	 	\item[name] logit probability 3
-	 	 	\item[short.name] prob3
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97004!
+	 	 	\item[name] \verb!logit probability 3!
+	 	 	\item[short.name] \verb!prob3!
+	 	 	\item[output.name] \verb!zero-probability3 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability3 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta5]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97005
-	 	 	\item[name] logit probability 4
-	 	 	\item[short.name] prob4
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97005!
+	 	 	\item[name] \verb!logit probability 4!
+	 	 	\item[short.name] \verb!prob4!
+	 	 	\item[output.name] \verb!zero-probability4 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability4 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta6]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97006
-	 	 	\item[name] logit probability 5
-	 	 	\item[short.name] prob5
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97006!
+	 	 	\item[name] \verb!logit probability 5!
+	 	 	\item[short.name] \verb!prob5!
+	 	 	\item[output.name] \verb!zero-probability5 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability5 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta7]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97007
-	 	 	\item[name] logit probability 6
-	 	 	\item[short.name] prob6
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97007!
+	 	 	\item[name] \verb!logit probability 6!
+	 	 	\item[short.name] \verb!prob6!
+	 	 	\item[output.name] \verb!zero-probability6 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability6 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta8]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97008
-	 	 	\item[name] logit probability 7
-	 	 	\item[short.name] prob7
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97008!
+	 	 	\item[name] \verb!logit probability 7!
+	 	 	\item[short.name] \verb!prob7!
+	 	 	\item[output.name] \verb!zero-probability7 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability7 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta9]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97009
-	 	 	\item[name] logit probability 8
-	 	 	\item[short.name] prob8
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97009!
+	 	 	\item[name] \verb!logit probability 8!
+	 	 	\item[short.name] \verb!prob8!
+	 	 	\item[output.name] \verb!zero-probability8 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability8 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta10]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97010
-	 	 	\item[name] logit probability 9
-	 	 	\item[short.name] prob9
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97010!
+	 	 	\item[name] \verb!logit probability 9!
+	 	 	\item[short.name] \verb!prob9!
+	 	 	\item[output.name] \verb!zero-probability9 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability9 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta11]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 97011
-	 	 	\item[name] logit probability 10
-	 	 	\item[short.name] prob10
-	 	 	\item[initial] -1
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!97011!
+	 	 	\item[name] \verb!logit probability 10!
+	 	 	\item[short.name] \verb!prob10!
+	 	 	\item[output.name] \verb!zero-probability10 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[output.name.intern] \verb!intern zero-probability10 for zero-inflated nbinomial_1_strata2!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[status] experimental
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] zeroinflated
+	\item[status] \verb!experimental!
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!zeroinflated!
 \end{description}

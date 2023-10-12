@@ -1,24 +1,26 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Zero-inflated Poisson, type 0
+	\item[doc] \verb!Zero-inflated Poisson, type 0!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 85001
-	 	 	\item[name] logit probability
-	 	 	\item[short.name] prob
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!85001!
+	 	 	\item[name] \verb!logit probability!
+	 	 	\item[short.name] \verb!prob!
+	 	 	\item[output.name] \verb!zero-probability parameter for zero-inflated poisson_0!
+	 	 	\item[output.name.intern] \verb!intern zero-probability parameter for zero-inflated poisson_0!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] zeroinflated
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!zeroinflated!
 \end{description}

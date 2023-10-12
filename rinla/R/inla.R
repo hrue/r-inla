@@ -449,7 +449,8 @@
 
     ## replace alias's
     family.alias <- list(
-        list(from = "normal", to = "gaussian")
+        list(from = "normal", to = "gaussian"), 
+        list(from = "stdnormal", to = "stdgaussian")
     )
     for (i in seq_along(family.alias)) {
         family[which(inla.trim.family(family) %in% family.alias[[i]]$from)] <- family.alias[[i]]$to

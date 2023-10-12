@@ -89,6 +89,7 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
+	case L_STDGAUSSIAN:
 	case L_LOGNORMAL:
 	{
 		idiv = 3;
@@ -659,6 +660,77 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 		char *a = NULL;
 		GMRFLib_sprintf(&a,
 				"list(y = %.8g, family = \"gaussian\", scale = %.8g, link.model = \"%1s\", theta = %.8g, linear.predictor = %.8g)",
+				y, w, ds->link_model, ds->data_observations.log_prec_gaussian[thread_id][0], x[0]);
+		*arg_str = a;
+		return GMRFLib_SUCCESS;
+	}
+
+	double off = OFFSET(idx);
+
+	if (m > 0) {
+		if (PREDICTOR_LINK_EQ(link_identity)) {
+
+			if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0 && off == 0.0)) {
+				double a = -0.5 * prec;
+				double b = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
+				if (0 && m >= 8L) {
+					double tmp[m];
+					GMRFLib_daxpb(m, -1.0, x, y, tmp);
+					GMRFLib_sqr(m, tmp, tmp);
+					GMRFLib_daxpb(m, a, tmp, b, logll);
+				} else {
+#pragma omp simd
+					for (int i = 0; i < m; i++) {
+						double res = y - x[i];
+						logll[i] = b + a * SQR(res);
+					}
+				}
+			} else {
+#pragma omp simd
+				for (int i = 0; i < m; i++) {
+					double ypred = PREDICTOR_INVERSE_IDENTITY_LINK(x[i] + off);
+					logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+				}
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * (lprec - (SQR(ypred - y) * prec));
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		for (int i = 0; i < -m; i++) {
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = inla_Phi_fast((y - ypred) * sqrt(prec));
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_stdgaussian(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg, char **arg_str)
+{
+	/*
+	 * y ~ Normal(x, 1)
+	 */
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	double y, lprec, prec, w;
+	y = ds->data_observations.y[idx];
+	w = ds->data_observations.weight_gaussian[idx];
+	prec = w;
+	lprec = log(prec);
+
+	LINK_INIT;
+	if (arg_str) {
+		char *a = NULL;
+		GMRFLib_sprintf(&a,
+				"list(y = %.8g, family = \"stdgaussian\", scale = %.8g, link.model = \"%1s\", theta = %.8g, linear.predictor = %.8g)",
 				y, w, ds->link_model, ds->data_observations.log_prec_gaussian[thread_id][0], x[0]);
 		*arg_str = a;
 		return GMRFLib_SUCCESS;

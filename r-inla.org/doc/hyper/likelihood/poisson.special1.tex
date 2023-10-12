@@ -1,24 +1,26 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The Poisson.special1 likelihood
+	\item[doc] \verb!The Poisson.special1 likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 56100
-	 	 	\item[name] logit probability
-	 	 	\item[short.name] prob
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!56100!
+	 	 	\item[name] \verb!logit probability!
+	 	 	\item[short.name] \verb!prob!
+	 	 	\item[output.name] \verb!one-probability parameter for poisson.special1!
+	 	 	\item[output.name.intern] \verb!intern one-probability parameter for poisson.special1!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] TRUE
-	\item[link] default log
-	\item[pdf] poisson-special
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!TRUE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!poisson-special!
 \end{description}

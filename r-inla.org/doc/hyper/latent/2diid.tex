@@ -1,53 +1,53 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] (This model is obsolute)
+	\item[doc] \verb!(This model is obsolute)!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 30001
-	 	 	\item[name] log precision1
-	 	 	\item[short.name] prec1
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!30001!
+	 	 	\item[name] \verb!log precision1!
+	 	 	\item[short.name] \verb!prec1!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 30002
-	 	 	\item[name] log precision2
-	 	 	\item[short.name] prec2
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!30002!
+	 	 	\item[name] \verb!log precision2!
+	 	 	\item[short.name] \verb!prec2!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 30003
-	 	 	\item[name] correlation
-	 	 	\item[short.name] cor
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 0.15
+	 	 	\item[hyperid] \verb!30003!
+	 	 	\item[name] \verb!correlation!
+	 	 	\item[short.name] \verb!cor!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 0.15!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 \end{description}
-	\item[constr] FALSE
-	\item[nrow.ncol] FALSE
-	\item[augmented] FALSE
-	\item[aug.factor] 1
-	\item[aug.constr] 1 2
-	\item[n.div.by] 2
-	\item[n.required] TRUE
-	\item[set.default.values] TRUE
-	\item[pdf] iid123d
+	\item[constr] \verb!FALSE!
+	\item[nrow.ncol] \verb!FALSE!
+	\item[augmented] \verb!FALSE!
+	\item[aug.factor] \verb!1!
+	\item[aug.constr] \verb!1 2!
+	\item[n.div.by] \verb!2!
+	\item[n.required] \verb!TRUE!
+	\item[set.default.values] \verb!TRUE!
+	\item[pdf] \verb!iid123d!
 \end{description}

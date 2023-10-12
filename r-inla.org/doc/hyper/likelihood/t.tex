@@ -1,36 +1,40 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Student-t likelihood
+	\item[doc] \verb!Student-t likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 100001
-	 	 	\item[name] log precision
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 5e-05
+	 	 	\item[hyperid] \verb!100001!
+	 	 	\item[name] \verb!log precision!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[output.name] \verb!precision for the student-t observations!
+	 	 	\item[output.name.intern] \verb!log precision for the student-t observations!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 5e-05!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 100002
-	 	 	\item[name] log degrees of freedom
-	 	 	\item[short.name] dof
-	 	 	\item[initial] 5
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.dof
-	 	 	\item[param] 15 0.5
+	 	 	\item[hyperid] \verb!100002!
+	 	 	\item[name] \verb!log degrees of freedom!
+	 	 	\item[short.name] \verb!dof!
+	 	 	\item[output.name] \verb!degrees of freedom for student-t!
+	 	 	\item[output.name.intern] \verb!dof_intern for student-t!
+	 	 	\item[initial] \verb!5!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.dof!
+	 	 	\item[param] \verb!15 0.5!
 	 	 	\item[to.theta] \verb!function(x) log(x - 2)!
 	 	 	\item[from.theta] \verb!function(x) 2 + exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default identity
-	\item[pdf] student-t
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default identity!
+	\item[pdf] \verb!student-t!
 \end{description}
