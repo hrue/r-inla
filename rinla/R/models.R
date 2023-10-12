@@ -9654,7 +9654,7 @@
                 ),
 
                 stdgaussian = list(
-                    doc = "The Gaussian likelihoood",
+                    doc = "The stdGaussian likelihoood",
                     hyper = list(), 
                     survival = FALSE,
                     discrete = FALSE,
