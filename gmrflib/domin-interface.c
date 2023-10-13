@@ -1222,7 +1222,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
-	double eps_factor = sqrt(DMAX(1.0, G.nhyper - 5.0)); /* let this depend on nhyper, as nhyper can be large... */
+	double eps_factor = 1.0; /* might depend on nhyper, as nhyper can be large... */
 	size_t i, j;
 	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
