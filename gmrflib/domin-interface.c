@@ -1222,6 +1222,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
+	double eps_factor = 1.0; /* might depend on nhyper, as nhyper can be large... */
 	size_t i, j;
 	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
@@ -1319,7 +1320,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		iter++;
 		status = gsl_multimin_fdfminimizer_iterate(s);
 
-		status_g = gsl_multimin_test_gradient(s->gradient, ai_par->gsl_epsg);
+		status_g = gsl_multimin_test_gradient(s->gradient, ai_par->gsl_epsg * eps_factor);
 		double gnrm2 = gsl_blas_dnrm2(s->gradient);
 
 		xx = gsl_multimin_fdfminimizer_x(s);
@@ -1335,8 +1336,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		best_df = ABS(best_f_prev - best_f);
 		best_f_prev = best_f;
 
-		status_best_f = (best_df < ai_par->gsl_epsf ? !gsl_continue : gsl_continue);
-		status_best_x = (best_dx < ai_par->gsl_epsx ? !gsl_continue : gsl_continue);
+		status_best_f = (best_df < ai_par->gsl_epsf * eps_factor ? !gsl_continue : gsl_continue);
+		status_best_x = (best_dx < ai_par->gsl_epsx * eps_factor ? !gsl_continue : gsl_continue);
 
 		if (x_prev) {
 			size_t i_s;
@@ -1379,13 +1380,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 			}
 
 			dx = sqrt(dx / xx->size);
-			status_x = gsl_multimin_test_size(dx, ai_par->gsl_epsx);
+			status_x = gsl_multimin_test_size(dx, ai_par->gsl_epsx * eps_factor);
 		} else {
 			status_x = gsl_continue;
 		}
 
 		double df = ABS(f_prev - gsl_multimin_fdfminimizer_minimum(s));
-		status_f = gsl_multimin_test_size(df, ai_par->gsl_epsf);
+		status_f = gsl_multimin_test_size(df, ai_par->gsl_epsf * eps_factor);
 		f_prev = gsl_multimin_fdfminimizer_minimum(s);
 
 		if (ai_par->fp_log) {

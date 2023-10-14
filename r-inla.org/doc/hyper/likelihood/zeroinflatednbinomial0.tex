@@ -1,36 +1,40 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Zero inflated negBinomial, type 0
+	\item[doc] \verb!Zero inflated negBinomial, type 0!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 95001
-	 	 	\item[name] log size
-	 	 	\item[short.name] size
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!95001!
+	 	 	\item[name] \verb!log size!
+	 	 	\item[short.name] \verb!size!
+	 	 	\item[output.name] \verb!size for nbinomial_0 zero-inflated observations!
+	 	 	\item[output.name.intern] \verb!log size for nbinomial_0 zero-inflated observations!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 95002
-	 	 	\item[name] logit probability
-	 	 	\item[short.name] prob
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!95002!
+	 	 	\item[name] \verb!logit probability!
+	 	 	\item[short.name] \verb!prob!
+	 	 	\item[output.name] \verb!zero-probability parameter for zero-inflated nbinomial_0!
+	 	 	\item[output.name.intern] \verb!intern zero-probability parameter for zero-inflated nbinomial_0!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] zeroinflated
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!zeroinflated!
 \end{description}

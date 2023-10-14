@@ -1,53 +1,53 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Gaussian random effect in dim=2 with Wishart prior
+	\item[doc] \verb!Gaussian random effect in dim=2 with Wishart prior!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 26001
-	 	 	\item[name] log precision1
-	 	 	\item[short.name] prec1
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] wishart2d
-	 	 	\item[param] 4 1 1 0
+	 	 	\item[hyperid] \verb!26001!
+	 	 	\item[name] \verb!log precision1!
+	 	 	\item[short.name] \verb!prec1!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!wishart2d!
+	 	 	\item[param] \verb!4 1 1 0!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 26002
-	 	 	\item[name] log precision2
-	 	 	\item[short.name] prec2
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] none
-	 	 	\item[param] 
+	 	 	\item[hyperid] \verb!26002!
+	 	 	\item[name] \verb!log precision2!
+	 	 	\item[short.name] \verb!prec2!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!none!
+	 	 	\item[param] \verb!!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 26003
-	 	 	\item[name] logit correlation
-	 	 	\item[short.name] cor
-	 	 	\item[initial] 4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] none
-	 	 	\item[param] 
+	 	 	\item[hyperid] \verb!26003!
+	 	 	\item[name] \verb!logit correlation!
+	 	 	\item[short.name] \verb!cor!
+	 	 	\item[initial] \verb!4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!none!
+	 	 	\item[param] \verb!!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 \end{description}
-	\item[constr] FALSE
-	\item[nrow.ncol] FALSE
-	\item[augmented] TRUE
-	\item[aug.factor] 1
-	\item[aug.constr] 1 2
-	\item[n.div.by] 2
-	\item[n.required] TRUE
-	\item[set.default.values] TRUE
-	\item[pdf] iid123d
+	\item[constr] \verb!FALSE!
+	\item[nrow.ncol] \verb!FALSE!
+	\item[augmented] \verb!TRUE!
+	\item[aug.factor] \verb!1!
+	\item[aug.constr] \verb!1 2!
+	\item[n.div.by] \verb!2!
+	\item[n.required] \verb!TRUE!
+	\item[set.default.values] \verb!TRUE!
+	\item[pdf] \verb!iid123d!
 \end{description}

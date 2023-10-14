@@ -14,9 +14,26 @@ The Poisson distribution is
     \text{Prob}(y) = \frac{\lambda^{y}}{y!}\exp(-\lambda)
 \end{displaymath}
 for responses $y=0, 1, 2, \ldots$, where $\lambda$ is the expected
-value.  The cencored version is that response values in the interval
+value. The cencored version is that reponse response in the interval
 $L \le y \le H$ are cencored (and reported as $y=L$, say), whereas
-other values are reported as is.
+other values are reported as is. This is often due to privacy issue,
+for example using $L=1$ and $H=5$, for example. 
+
+The ``cenpoisson'' probability distribution is then, for 
+$y=0, 1, \ldots, $
+\begin{displaymath}
+    \text{Prob}^{*}(y) =
+    \begin{cases}
+      \sum_{z=L}^{H}
+      \frac{\lambda^{z}}{z!}\exp(-\lambda) & L
+                                             \leq
+                                             y
+                                             \leq
+                                             H \\
+      \frac{\lambda^{y}}{y!}\exp(-\lambda) & \text{otherwise}
+    \end{cases}
+\end{displaymath}
+
 
 \subsection*{Link-function}
 
@@ -35,6 +52,9 @@ None.
 
 \begin{itemize}
 \item \texttt{family="cenpoisson2"}
+\item The \texttt{cenpoisson2} differ from \texttt{cenpoisson}, in
+    that $L$ and $H$ are vectors and not scalars, hence different
+    observations can have different censoring.
 \item Required arguments: $y$, $E$, $L$ and $H$. The vector of the
     triplet $(y_i,L_i,H_i)$ must be given as a
     \texttt{inla.mdata}-object. $L$ and $H$ are vectors of same length
@@ -44,10 +64,6 @@ None.
     $L[i]=$\texttt{Inf} and/or $H[i]=$\texttt{Inf} are allowed, which
     is equivalent to $L[i]= -1$ and/or $H[i] = -1$. See the example
     for details.
-
-    $L[i]=$\texttt{Inf} (or $-1$) implies no interval censoring.
-    $H[i]=$\texttt{Inf} (or $-1$) and $0\leq L[i]<\infty$ implies
-    right censoring.
 \end{itemize}
 
 \subsection*{Example}

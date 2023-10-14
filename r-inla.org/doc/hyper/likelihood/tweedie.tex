@@ -1,37 +1,40 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Tweedie distribution
+	\item[doc] \verb!Tweedie distribution!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 102101
-	 	 	\item[name] p
-	 	 	\item[short.name] p
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!102101!
+	 	 	\item[name] \verb!p!
+	 	 	\item[short.name] \verb!p!
+	 	 	\item[output.name] \verb!p parameter for Tweedie!
+	 	 	\item[output.name.intern] \verb!p_intern parameter for Tweedie!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x, interval = c(1.0, 2.0)) log(-(interval[1] - x) / (interval[2] - x))!
 	 	 	\item[from.theta] \verb!function(x, interval = c(1.0, 2.0)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 102201
-	 	 	\item[name] dispersion
-	 	 	\item[short.name] phi
-	 	 	\item[initial] -4
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 100 100
+	 	 	\item[hyperid] \verb!102201!
+	 	 	\item[name] \verb!dispersion!
+	 	 	\item[short.name] \verb!phi!
+	 	 	\item[output.name] \verb!Dispersion parameter for Tweedie!
+	 	 	\item[output.name.intern] \verb!Log dispersion parameter for Tweedie!
+	 	 	\item[initial] \verb!-4!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!100 100!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[status] experimental
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] tweedie
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!tweedie!
 \end{description}

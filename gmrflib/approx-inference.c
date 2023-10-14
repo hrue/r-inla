@@ -4460,13 +4460,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (max_correction >= ai_par->vb_emergency) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				fprintf(stderr, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+				fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 					max_correction, ai_par->vb_emergency);
 				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
 				fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				if (fp != stderr) {
-					fprintf(fp, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+					fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 						max_correction, ai_par->vb_emergency);
 					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
@@ -5093,8 +5093,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 	double *wloglik_asym = x_user + 4 * nn;
 	// GMRFLib_spline_tp *spline = NULL;
 
-	double fit_mean = mean, fit_log_var = log(SQR(sd));
-	double step = DBL_MAX;
+	double fit_mean = mean, fit_log_var = log(SQR(sd)), prior_var_inv = 1.0 / SQR(sd), step = 0.0;
 	int max_iter = 100;
 
 	for (int iter = 0; iter < max_iter; iter++) {
@@ -5130,10 +5129,8 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc
 		H22 = H22 * SQR(s2) + G2;
 		H12 *= s2;
 
-		double prior_sd = 2 * s, prior_mean = mean, prior_var_inv = 1.0 / SQR(prior_sd);
-
 		// add contribtion from KLD (now we are in (mu, var=exp(theta)) parameterisation)
-		G1 += (fit_mean - prior_mean) * prior_var_inv;
+		G1 += (fit_mean - mean) * prior_var_inv;
 		G2 += 0.5 * (s2 * prior_var_inv - 1.0);
 		H11 += prior_var_inv;
 		H22 += 0.5 * s2 * prior_var_inv;

@@ -1,33 +1,33 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Power logit link
+	\item[doc] \verb!Power logit link!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 49131
-	 	 	\item[name] power
-	 	 	\item[short.name] power
-	 	 	\item[initial] 0.00123456789
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 10
+	 	 	\item[hyperid] \verb!49131!
+	 	 	\item[name] \verb!power!
+	 	 	\item[short.name] \verb!power!
+	 	 	\item[initial] \verb!0.00123456789!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 10!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 49132
-	 	 	\item[name] intercept
-	 	 	\item[short.name] intercept
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] logitbeta
-	 	 	\item[param] 1 1
+	 	 	\item[hyperid] \verb!49132!
+	 	 	\item[name] \verb!intercept!
+	 	 	\item[short.name] \verb!intercept!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!logitbeta!
+	 	 	\item[param] \verb!1 1!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[pdf] powerlogit
+	\item[pdf] \verb!powerlogit!
 \end{description}

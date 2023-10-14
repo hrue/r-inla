@@ -1,65 +1,65 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Classical measurement error model
+	\item[doc] \verb!Classical measurement error model!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 2001
-	 	 	\item[name] beta
-	 	 	\item[short.name] b
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 1 0.001
-	 	 	\item[initial] 1
-	 	 	\item[fixed] FALSE
+	 	 	\item[hyperid] \verb!2001!
+	 	 	\item[name] \verb!beta!
+	 	 	\item[short.name] \verb!b!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!1 0.001!
+	 	 	\item[initial] \verb!1!
+	 	 	\item[fixed] \verb!FALSE!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 2002
-	 	 	\item[name] prec.u
-	 	 	\item[short.name] prec
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 1e-04
-	 	 	\item[initial] 9.21034037197618
-	 	 	\item[fixed] TRUE
+	 	 	\item[hyperid] \verb!2002!
+	 	 	\item[name] \verb!prec.u!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 1e-04!
+	 	 	\item[initial] \verb!9.21034037197618!
+	 	 	\item[fixed] \verb!TRUE!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 2003
-	 	 	\item[name] mean.x
-	 	 	\item[short.name] mu.x
-	 	 	\item[prior] gaussian
-	 	 	\item[param] 0 1e-04
-	 	 	\item[initial] 0
-	 	 	\item[fixed] TRUE
+	 	 	\item[hyperid] \verb!2003!
+	 	 	\item[name] \verb!mean.x!
+	 	 	\item[short.name] \verb!mu.x!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!0 1e-04!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!TRUE!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 2004
-	 	 	\item[name] prec.x
-	 	 	\item[short.name] prec.x
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 10000
-	 	 	\item[initial] -9.21034037197618
-	 	 	\item[fixed] TRUE
+	 	 	\item[hyperid] \verb!2004!
+	 	 	\item[name] \verb!prec.x!
+	 	 	\item[short.name] \verb!prec.x!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 10000!
+	 	 	\item[initial] \verb!-9.21034037197618!
+	 	 	\item[fixed] \verb!TRUE!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[constr] FALSE
-	\item[nrow.ncol] FALSE
-	\item[augmented] FALSE
-	\item[aug.factor] 1
-	\item[aug.constr] 
-	\item[n.div.by] 
-	\item[n.required] FALSE
-	\item[set.default.values] FALSE
-	\item[pdf] mec
+	\item[constr] \verb!FALSE!
+	\item[nrow.ncol] \verb!FALSE!
+	\item[augmented] \verb!FALSE!
+	\item[aug.factor] \verb!1!
+	\item[aug.constr] \verb!!
+	\item[n.div.by] \verb!!
+	\item[n.required] \verb!FALSE!
+	\item[set.default.values] \verb!FALSE!
+	\item[pdf] \verb!mec!
 \end{description}

@@ -1,37 +1,41 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The SkewNormal stochvol likelihood
+	\item[doc] \verb!The SkewNormal stochvol likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 82101
-	 	 	\item[name] logit skew
-	 	 	\item[short.name] skew
-	 	 	\item[initial] 0.00123456789
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.sn
-	 	 	\item[param] 10
+	 	 	\item[hyperid] \verb!82101!
+	 	 	\item[name] \verb!logit skew!
+	 	 	\item[short.name] \verb!skew!
+	 	 	\item[output.name] \verb!Skewness for stochvol_sn observations!
+	 	 	\item[output.name.intern] \verb!Intern skewness for stochvol_sn observations!
+	 	 	\item[initial] \verb!0.00123456789!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.sn!
+	 	 	\item[param] \verb!10!
 	 	 	\item[to.theta] \verb!function(x, skew.max = 0.988) log((1 + x / skew.max) / (1 - x / skew.max))!
 	 	 	\item[from.theta] \verb!function(x, skew.max = 0.988) skew.max * (2 * exp(x) / (1 + exp(x)) - 1)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 82102
-	 	 	\item[name] log precision
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 500
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 0.005
+	 	 	\item[hyperid] \verb!82102!
+	 	 	\item[name] \verb!log precision!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[output.name] \verb!Offset precision for stochvol_sn!
+	 	 	\item[output.name.intern] \verb!Log offset precision for stochvol_sn!
+	 	 	\item[initial] \verb!500!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 0.005!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[status] experimental
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] stochvolsn
+	\item[status] \verb!experimental!
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!stochvolsn!
 \end{description}

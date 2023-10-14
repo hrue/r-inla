@@ -1,24 +1,26 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] A quantile version of the Kumar likelihood
+	\item[doc] \verb!A quantile version of the Kumar likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60001
-	 	 	\item[name] precision parameter
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 1 0.1
+	 	 	\item[hyperid] \verb!60001!
+	 	 	\item[name] \verb!precision parameter!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[output.name] \verb!precision for qkumar observations!
+	 	 	\item[output.name.intern] \verb!log precision for qkumar observations!
+	 	 	\item[initial] \verb!1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!1 0.1!
 	 	 	\item[to.theta] \verb!function(x, sc = 0.1) log(x) / sc!
 	 	 	\item[from.theta] \verb!function(x, sc = 0.1) exp(sc * x)!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default logit loga cauchit
-	\item[pdf] qkumar
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default logit loga cauchit!
+	\item[pdf] \verb!qkumar!
 \end{description}
