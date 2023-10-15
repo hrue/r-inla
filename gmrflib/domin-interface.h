@@ -126,5 +126,9 @@ void GMRFLib_gsl_fdf(const gsl_vector * x, void *params, double *f, gsl_vector *
 GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs3;	/* my version of vector_bfgs2() */
 GSL_VAR const gsl_multimin_fdfminimizer_type *gsl_multimin_fdfminimizer_vector_bfgs4;	/* my 2nd version of vector_bfgs2() */
 
+void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *theta, int nfunc);
+void GMRFLib_opt_trace_free(GMRFLib_opt_trace_tp * otrace);
+GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void);
+
 __END_DECLS
 #endif

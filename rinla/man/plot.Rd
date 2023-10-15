@@ -15,6 +15,7 @@
   plot.q = TRUE,
   plot.cpo = TRUE,
   plot.prior = FALSE,
+  plot.opt.trace = FALSE,
   single = FALSE,
   postscript = FALSE,
   pdf = FALSE,
@@ -48,6 +49,8 @@ the linear predictor in the model should be plotted}
 \item{plot.cpo}{Boolean indicating if CPO/PIT valuesshould be plotted}
 
 \item{plot.prior}{Plot also the prior density for the hyperparameters}
+
+\item{plot.opt.trace}{Plot optimization trace}
 
 \item{single}{Boolean indicating if there should be more than one plot per
 page (FALSE) or just one (TRUE)}

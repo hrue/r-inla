@@ -48,7 +48,7 @@ f(
   prec.linear = inla.set.control.fixed.default()$prec,
   compute = TRUE,
   of = NULL,
-  precision = exp(13),
+  precision = 10^8,
   range = NULL,
   adjust.for.con.comp = TRUE,
   order = NULL,

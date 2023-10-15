@@ -1219,6 +1219,19 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 	}
 	Free(nnndir);
 
+	if (mo->opt_trace) {
+		GMRFLib_sprintf(&nnndir, "%s/%s", ndir, "opt-trace.dat");
+		FILE *fp = fopen(nnndir, "wb");
+		fwrite((void *) &(mo->opt_trace->nt), sizeof(int), (size_t) 1, fp);
+		fwrite((void *) &(mo->opt_trace->niter), sizeof(int), (size_t) 1, fp);
+		fwrite((void *) mo->opt_trace->nfunc, sizeof(int), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->f, sizeof(double), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->theta, sizeof(double), (size_t) mo->opt_trace->niter * mo->opt_trace->nt, fp);
+		fclose(fp);
+	}
+	Free(nnndir);
+		
+
 	return INLA_OK;
 }
 
