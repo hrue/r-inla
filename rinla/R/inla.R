@@ -2594,7 +2594,9 @@
     if (ntry > 0) {
         output("rerun with improved initial values")
         r <- inla.rerun(r)
-    } else if (nrow(r$misc$cov.intern) > 1 &&
+    } else if (!is.null(r$misc) &&
+               !is.null(r$misc$cov.intern) &&
+               nrow(r$misc$cov.intern) > 1 &&
                sum(abs(r$misc$cov.intern[upper.tri(r$misc$cov.intern)])) == 0 &&
                !all(diag(r$misc$cov.intern) == 1.0)) {
         output("rerun to try to solve negative eigenvalue(s) in the Hessian")
