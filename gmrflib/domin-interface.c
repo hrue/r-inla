@@ -1477,7 +1477,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *theta, int nfunc)
 {
-#pragma omp critical (Name_22185a97af1d08a4ff94565b2dbc850c1489063f)
+// this function is only called from within a critical region already
+//#pragma omp critical (Name_22185a97af1d08a4ff94565b2dbc850c1489063f)
 	{
 		int size_alloc = 64;
 		if (!*otrace) {
