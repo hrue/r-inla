@@ -1,3 +1,7 @@
+# INLA 23.10.15
+* Fixed issue with `inla.call="submit"`
+* Increased precision for `copy`
+
 # INLA 23.10.14
 * New family `stdgaussian` (where the precision is fixed to be 1)
 * New family `nzPoisson` (for Poisson without zero's)
