@@ -198,7 +198,7 @@
                 of = NULL,
 
                 #' @param precision The precision for the artificial noise added when creating a copy of a model and others.
-                precision = exp(13),
+                precision = 10^8,
 
                 #' @param range A vector of size two giving the lower and
                 #' upper range for the scaling parameter `beta` in the
