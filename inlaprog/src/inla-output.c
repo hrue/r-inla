@@ -34,7 +34,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 	}
 
 	char *fnm = NULL, *newdir = NULL;
-	
+
 	GMRFLib_sprintf(&newdir, "%s/Q", dir);
 	GMRFLib_sprintf(&fnm, "%s/%s", newdir, "precision-matrix");
 
@@ -53,7 +53,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 		GMRFLib_problem_tp *p = NULL;
 		FILE *fp = NULL;
 		int thread_id = 0;
-		
+
 		GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
 		GMRFLib_bitmap_problem((const char *) fnm, p);
 		Free(fnm);
@@ -64,7 +64,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 		}
 		GMRFLib_free_problem(p);
 	}
-	
+
 	Free(fnm);
 	Free(newdir);
 
@@ -1230,7 +1230,7 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		fclose(fp);
 	}
 	Free(nnndir);
-		
+
 
 	return INLA_OK;
 }

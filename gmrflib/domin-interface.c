@@ -69,7 +69,7 @@ static fncall_timing_tp fncall_timing = {
 	0.0, 0
 };
 
-static GMRFLib_opt_trace_tp * opt_trace = NULL;
+static GMRFLib_opt_trace_tp *opt_trace = NULL;
 
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
@@ -78,8 +78,7 @@ int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_bfunc_tp **bfunc, double *d,
 		      GMRFLib_logl_tp *loglFunc, void *loglFunc_arg,
 		      GMRFLib_graph_tp *graph, GMRFLib_Qfunc_tp *Qfunc, void *Qfunc_arg,
-		      GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store,
-		      GMRFLib_preopt_tp *preopt)
+		      GMRFLib_constr_tp *constr, GMRFLib_ai_param_tp *ai_par, GMRFLib_ai_store_tp *ai_store, GMRFLib_preopt_tp *preopt)
 {
 	opt_setup = 1;
 	fncall_timing.time_used = 0.0;
@@ -1227,7 +1226,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
-	double eps_factor = 1.0; /* might depend on nhyper, as nhyper can be large... */
+	double eps_factor = 1.0;			       /* might depend on nhyper, as nhyper can be large... */
 	size_t i, j;
 	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
@@ -1476,7 +1475,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 	return (status == GSL_ENOPROG ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
 }
 
-void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *theta, int nfunc) 
+void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *theta, int nfunc)
 {
 #pragma omp critical (Name_22185a97af1d08a4ff94565b2dbc850c1489063f)
 	{
@@ -1497,14 +1496,14 @@ void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *t
 			(*otrace)->nfunc = Realloc((*otrace)->nfunc, (*otrace)->nalloc, int);
 			(*otrace)->theta = Realloc((*otrace)->theta, (*otrace)->nalloc * (*otrace)->nt, double);
 		}
-		Memcpy((*otrace)->f + (*otrace)->niter, &f,  sizeof(double));
+		Memcpy((*otrace)->f + (*otrace)->niter, &f, sizeof(double));
 		Memcpy((*otrace)->nfunc + (*otrace)->niter, &nfunc, sizeof(int));
-		Memcpy((*otrace)->theta + (*otrace)->niter * (*otrace)->nt, theta,  (*otrace)->nt * sizeof(double));
+		Memcpy((*otrace)->theta + (*otrace)->niter * (*otrace)->nt, theta, (*otrace)->nt * sizeof(double));
 		(*otrace)->niter++;
 	}
 }
 
-void GMRFLib_opt_trace_free(GMRFLib_opt_trace_tp * otrace) 
+void GMRFLib_opt_trace_free(GMRFLib_opt_trace_tp *otrace)
 {
 	if (otrace) {
 		Free(otrace->f);
@@ -1513,8 +1512,7 @@ void GMRFLib_opt_trace_free(GMRFLib_opt_trace_tp * otrace)
 	}
 }
 
-GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void) 
+GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void)
 {
 	return opt_trace;
 }
-	

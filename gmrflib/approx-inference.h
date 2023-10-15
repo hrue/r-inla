@@ -953,16 +953,14 @@ typedef struct {
 	GMRFLib_matrix_tp *pA;
 } GMRFLib_store_configs_preopt_tp;
 
-typedef struct 
-{
+typedef struct {
 	int nt;
 	int niter;
 	int nalloc;
 	int *nfunc;
 	double *f;
 	double *theta;
-}
-	GMRFLib_opt_trace_tp;
+} GMRFLib_opt_trace_tp;
 
 typedef struct {
 	int nhyper;
