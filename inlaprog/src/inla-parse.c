@@ -2436,7 +2436,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case L_BELL:
 		break;
 
-	case L_STDGAUSSIAN: 
+	case L_STDGAUSSIAN:
 	case L_POISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
@@ -6881,7 +6881,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 
 			if (mb->verbose) {
-				printf("\t\tinitialise nmix%s.log_overdispersion = %g\n", suff, ds->data_observations.nmix_log_overdispersion[0][0]);
+				printf("\t\tinitialise nmix%s.log_overdispersion = %g\n", suff,
+				       ds->data_observations.nmix_log_overdispersion[0][0]);
 				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
 			}
 			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "LOGGAMMA", k, NULL);
@@ -8143,7 +8144,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
-	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id !=  L_STDGAUSSIAN) ||
+	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id != L_STDGAUSSIAN) ||
 	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		mb->gaussian_data = GMRFLib_FALSE;
 	}

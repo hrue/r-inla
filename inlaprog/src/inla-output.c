@@ -34,7 +34,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 	}
 
 	char *fnm = NULL, *newdir = NULL;
-	
+
 	GMRFLib_sprintf(&newdir, "%s/Q", dir);
 	GMRFLib_sprintf(&fnm, "%s/%s", newdir, "precision-matrix");
 
@@ -53,7 +53,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 		GMRFLib_problem_tp *p = NULL;
 		FILE *fp = NULL;
 		int thread_id = 0;
-		
+
 		GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
 		GMRFLib_bitmap_problem((const char *) fnm, p);
 		Free(fnm);
@@ -64,7 +64,7 @@ int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 		}
 		GMRFLib_free_problem(p);
 	}
-	
+
 	Free(fnm);
 	Free(newdir);
 
@@ -1218,6 +1218,19 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		}
 	}
 	Free(nnndir);
+
+	if (mo->opt_trace) {
+		GMRFLib_sprintf(&nnndir, "%s/%s", ndir, "opt-trace.dat");
+		FILE *fp = fopen(nnndir, "wb");
+		fwrite((void *) &(mo->opt_trace->nt), sizeof(int), (size_t) 1, fp);
+		fwrite((void *) &(mo->opt_trace->niter), sizeof(int), (size_t) 1, fp);
+		fwrite((void *) mo->opt_trace->nfunc, sizeof(int), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->f, sizeof(double), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->theta, sizeof(double), (size_t) mo->opt_trace->niter * mo->opt_trace->nt, fp);
+		fclose(fp);
+	}
+	Free(nnndir);
+
 
 	return INLA_OK;
 }

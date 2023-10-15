@@ -1829,6 +1829,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 
+	misc_output->opt_trace = GMRFLib_opt_trace_get();
+
 	if (nlin > 0) {
 		lin_dens = Calloc(dens_max, GMRFLib_density_tp **);
 		if (misc_output && misc_output->compute_corr_lin) {

@@ -18,6 +18,7 @@
 #' @param plot.q Boolean indicating if precision matrix should be displayed
 #' @param plot.cpo Boolean indicating if CPO/PIT valuesshould be plotted
 #' @param plot.prior Plot also the prior density for the hyperparameters
+#' @param plot.opt.trace Plot optimization trace
 #' @param single Boolean indicating if there should be more than one plot per
 #' page (FALSE) or just one (TRUE)
 #' @param postscript Boolean indicating if postscript files should be produced
@@ -57,6 +58,7 @@
              plot.q = TRUE,
              plot.cpo = TRUE,
              plot.prior = FALSE,
+             plot.opt.trace = FALSE,
              single = FALSE,
              postscript = FALSE,
              pdf = FALSE,
@@ -740,6 +742,22 @@
                     }
                 }
             }
+        }
+
+        if (plot.opt.trace && !is.null(x$misc$opt.trace)) {
+            close.and.new.plot(...)
+            if (single) {
+                par(mfrow = c(1, 1))
+            } else {
+                par(mfrow = c(1, 2))
+            }
+            my.plot(x$misc$opt.trace$nfunc, log10(x$misc$opt.trace$f - min(x$misc$opt.trace$f) + 1), pch = 19, type = "l")
+            if (single) {
+                close.and.new.plot(...)
+            }
+            matplot(x$misc$opt.trace$nfunc, x$misc$opt.trace$theta, type = "l", lwd = 3)
+            close.and.new.plot(...)
+            pairs(x$misc$opt.trace$theta, pch = 19)
         }
 
         close.plot(...)

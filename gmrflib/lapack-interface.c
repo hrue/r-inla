@@ -1156,13 +1156,13 @@ void GMRFLib_fill(int n, double a, double *x)
 	}
 }
 
-void GMRFLib_pack(int n, double *a, int *ia, double *y) 
+void GMRFLib_pack(int n, double *a, int *ia, double *y)
 {
 	// y[] = a[ia[]]
 #if defined(INLA_LINK_WITH_MKL)
 	if (n <= 4) {
 #pragma omp simd
-		for (int i = 0; i < n; i++){
+		for (int i = 0; i < n; i++) {
 			y[i] = a[ia[i]];
 		}
 	} else {
@@ -1170,27 +1170,27 @@ void GMRFLib_pack(int n, double *a, int *ia, double *y)
 	}
 #else
 #pragma omp simd
-	for (int i = 0; i < n; i++){
+	for (int i = 0; i < n; i++) {
 		y[i] = a[ia[i]];
 	}
 #endif
 }
 
-void GMRFLib_unpack(int n, double *a, double *y, int *iy) 
+void GMRFLib_unpack(int n, double *a, double *y, int *iy)
 {
 	// y[iy[]] = a[]
 #if defined(INLA_LINK_WITH_MKL)
 	if (n <= 4) {
 #pragma omp simd
-		for (int i = 0; i < n; i++){
+		for (int i = 0; i < n; i++) {
 			y[iy[i]] = a[i];
 		}
 	} else {
 		vdUnpackV(n, a, y, iy);
 	}
-#else	
+#else
 #pragma omp simd
-	for (int i = 0; i < n; i++){
+	for (int i = 0; i < n; i++) {
 		y[iy[i]] = a[i];
 	}
 #endif
