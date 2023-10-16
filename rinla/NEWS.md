@@ -1,4 +1,4 @@
-# INLA 23.10.16
+# INLA 23.10.17
 * Fixed issue with `inla.call="submit"`
 * Increased precision for `copy`
 
