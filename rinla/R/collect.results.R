@@ -710,11 +710,11 @@
         theta <- readBin(fp, double(), niter * nt)
         close(fp)
 
-        theta = matrix(theta, niter, nt, byrow = TRUE)
-        colnames(theta) <- paste0("theta", 1:nt)
-        rownames(theta) <- paste0("iter", 1:niter)
-        names(nfunc) <- paste0("iter", 1:niter)
-        names(fs) <- paste0("iter", 1:niter)
+        theta = matrix(theta, nrow = niter, ncol = nt, byrow = TRUE)
+        colnames(theta) <- paste0("theta", seq_len(nt))
+        rownames(theta) <- paste0("iter", seq_len(niter))
+        names(nfunc) <- paste0("iter", seq_len(niter))
+        names(fs) <- paste0("iter", seq_len(niter))
         opt.trace <- list(f = fs, nfunc = nfunc, theta = theta)
     } else {
         opt.trace <- NULL
