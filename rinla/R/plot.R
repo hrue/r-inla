@@ -751,13 +751,16 @@
             } else {
                 par(mfrow = c(1, 2))
             }
-            my.plot(x$misc$opt.trace$nfunc, log10(x$misc$opt.trace$f - min(x$misc$opt.trace$f) + 1), pch = 19, type = "l")
+            my.plot(x$misc$opt.trace$nfunc, x$misc$opt.trace$f - min(x$misc$opt.trace$f) + 1,
+                    log = "y", pch = 19, type = "l")
             if (single) {
                 close.and.new.plot(...)
             }
             matplot(x$misc$opt.trace$nfunc, x$misc$opt.trace$theta, type = "l", lwd = 3)
-            close.and.new.plot(...)
-            pairs(x$misc$opt.trace$theta, pch = 19)
+            if (ncol(x$misc$opt.trace$theta) > 1) {
+                close.and.new.plot(...)
+                pairs(x$misc$opt.trace$theta, pch = 19)
+            }
         }
 
         close.plot(...)
