@@ -948,8 +948,8 @@ control.vb <- function(
 #' @details For internal use and for algorithms built on to of INLA.
 `control.mode` <-
     function(
-            #' @param result Previous result from inla(). Use the theta- and x-mode from
-            #' this run.
+            #' @param result Previous result from inla() or a read state-file. Use the theta-
+            #' and x-mode from this object
             result = NULL,
 
             #' @param theta The theta-mode/initial values for theta. This option has
