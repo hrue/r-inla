@@ -1501,6 +1501,10 @@
         cat(inla.secsep("INLA.Control.Mode"), "\n", sep = " ", file = file, append = TRUE)
         cat("type = mode\n", sep = " ", file = file, append = TRUE)
 
+        if (!is.null(result) && is.character(result) && file.exists(result)) {
+            result <- inla.read.state(result)
+        }
+
         ## use default the mode in result if given
         if (is.null(args$theta) && !is.null(args$result)) {
             args$theta <- args$result$mode$theta
