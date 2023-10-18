@@ -2021,10 +2021,10 @@ inla.mesh.boundary <- function(mesh, grp = NULL) {
     "inla.mesh.boundary()",
     I("`fmesher::fm_segm(mesh, boundary = TRUE)`")
   )) {
-    return(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
+    return(list(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
       boundary = TRUE,
       grp = grp
-    ))
+    )))
   }
 
   inla.require.inherits(mesh, "inla.mesh", "'mesh'")
@@ -2049,10 +2049,10 @@ inla.mesh.interior <- function(mesh, grp = NULL) {
     "inla.mesh.interior()",
     I("`fmesher::fm_segm(mesh, boundary = FALSE)`")
   )) {
-    return(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
+    return(list(fmesher::fm_segm(fmesher::fm_as_fm(mesh),
       boundary = FALSE,
       grp = grp
-    ))
+    )))
   }
 
   inla.require.inherits(mesh, "inla.mesh", "'mesh'")
