@@ -1523,8 +1523,7 @@ GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void)
 }
 
 #if defined(WINDOWS)
-void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(ntheta),
-			      double *UNUSED(theta), int UNUSED(nx), double *UNUSED(x))
+void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(ntheta), double *UNUSED(theta), int UNUSED(nx), double *UNUSED(x))
 {
 	return;
 }
@@ -1535,9 +1534,9 @@ void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(
 void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, int nx, double *x)
 {
 	// this function is called from within a critical region
-	
+
 	static int count = 0;
-	const char *homedir = getenv("HOME"); 
+	const char *homedir = getenv("HOME");
 	if (!homedir) {
 		homedir = getpwuid(getuid())->pw_dir;
 	}
@@ -1561,8 +1560,7 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 		write(fd, x, nx * sizeof(double));
 	}
 	close(fd);
-	
-	fprintf(stdout, "\n\n*** state written to file [%s]\n\n",  template);
+
+	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", template);
 }
 #endif
-
