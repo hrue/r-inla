@@ -1,3 +1,7 @@
+# INLA 23.10.19
+* Bux-fix to work around regression bug in package 'excursions'
+* Internal development 
+
 # INLA 23.10.17
 * Fixed issue with `inla.call="submit"`
 * Increased precision for `copy`

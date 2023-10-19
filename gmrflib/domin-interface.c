@@ -354,6 +354,10 @@ int GMRFLib_opt_f_intern(int thread_id,
 				}
 
 				GMRFLib_opt_trace_append(&opt_trace, B.f_best, B.f_best_x, fncall_timing.num_fncall);
+				if (GMRFLib_write_state) {
+					inla_write_state_to_file(B.f_best, fncall_timing.num_fncall, G.nhyper, x, G.graph->n, B.f_best_latent);
+					GMRFLib_write_state = 0;
+				}
 			}
 		}
 	}
@@ -1517,3 +1521,46 @@ GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void)
 {
 	return opt_trace;
 }
+
+#if defined(WINDOWS)
+void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(ntheta), double *UNUSED(theta), int UNUSED(nx), double *UNUSED(x))
+{
+	return;
+}
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, int nx, double *x)
+{
+	// this function is called from within a critical region
+
+	static int count = 0;
+	const char *homedir = getenv("HOME");
+	if (!homedir) {
+		homedir = getpwuid(getuid())->pw_dir;
+	}
+	if (!homedir) {
+		fprintf(stdout, "\n\n*** no HOME, cannot write state\n\n");
+		return;
+	}
+
+	char *template = NULL;
+	GMRFLib_sprintf(&template, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
+
+	int fd = mkstemp(template);
+	write(fd, &fval, sizeof(double));
+	write(fd, &nfun, sizeof(int));
+	write(fd, &ntheta, sizeof(int));
+	if (ntheta) {
+		write(fd, theta, ntheta * sizeof(double));
+	}
+	write(fd, &nx, sizeof(int));
+	if (nx) {
+		write(fd, x, nx * sizeof(double));
+	}
+	close(fd);
+
+	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", template);
+}
+#endif

@@ -16,8 +16,8 @@ control.mode(
 inla.set.control.mode.default(...)
 }
 \arguments{
-\item{result}{Previous result from inla(). Use the theta- and x-mode from
-this run.}
+\item{result}{Previous result-object from inla(), a inla-state object or the name of a
+state-file. Use the theta- and x-mode from this object}
 
 \item{theta}{The theta-mode/initial values for theta. This option has
 preference over result$mode$theta.}
