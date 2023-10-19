@@ -1,145 +1,167 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Zero inflated negBinomial, type 1, strata 3
+	\item[doc] \verb!Zero inflated negBinomial, type 1, strata 3!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98001
-	 	 	\item[name] logit probability
-	 	 	\item[short.name] prob
-	 	 	\item[initial] -1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] gaussian
-	 	 	\item[param] -1 0.2
+	 	 	\item[hyperid] \verb!98001!
+	 	 	\item[name] \verb!logit probability!
+	 	 	\item[short.name] \verb!prob!
+	 	 	\item[output.name] \verb!zero-probability for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!intern zero-probability for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!-1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!gaussian!
+	 	 	\item[param] \verb!-1 0.2!
 	 	 	\item[to.theta] \verb!function(x) log(x / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) exp(x) / (1 + exp(x))!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98002
-	 	 	\item[name] log size 1
-	 	 	\item[short.name] size1
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98002!
+	 	 	\item[name] \verb!log size 1!
+	 	 	\item[short.name] \verb!size1!
+	 	 	\item[output.name] \verb!size1 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size1 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98003
-	 	 	\item[name] log size 2
-	 	 	\item[short.name] size2
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98003!
+	 	 	\item[name] \verb!log size 2!
+	 	 	\item[short.name] \verb!size2!
+	 	 	\item[output.name] \verb!size2 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size2 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98004
-	 	 	\item[name] log size 3
-	 	 	\item[short.name] size3
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98004!
+	 	 	\item[name] \verb!log size 3!
+	 	 	\item[short.name] \verb!size3!
+	 	 	\item[output.name] \verb!size3 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size3 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta5]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98005
-	 	 	\item[name] log size 4
-	 	 	\item[short.name] size4
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98005!
+	 	 	\item[name] \verb!log size 4!
+	 	 	\item[short.name] \verb!size4!
+	 	 	\item[output.name] \verb!size4 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size4 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta6]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98006
-	 	 	\item[name] log size 5
-	 	 	\item[short.name] size5
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98006!
+	 	 	\item[name] \verb!log size 5!
+	 	 	\item[short.name] \verb!size5!
+	 	 	\item[output.name] \verb!size5 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size5 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta7]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98007
-	 	 	\item[name] log size 6
-	 	 	\item[short.name] size6
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98007!
+	 	 	\item[name] \verb!log size 6!
+	 	 	\item[short.name] \verb!size6!
+	 	 	\item[output.name] \verb!size6 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size6 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta8]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98008
-	 	 	\item[name] log size 7
-	 	 	\item[short.name] size7
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98008!
+	 	 	\item[name] \verb!log size 7!
+	 	 	\item[short.name] \verb!size7!
+	 	 	\item[output.name] \verb!size7 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size7 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta9]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98009
-	 	 	\item[name] log size 8
-	 	 	\item[short.name] size8
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98009!
+	 	 	\item[name] \verb!log size 8!
+	 	 	\item[short.name] \verb!size8!
+	 	 	\item[output.name] \verb!size8 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size8 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta10]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98010
-	 	 	\item[name] log size 9
-	 	 	\item[short.name] size9
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98010!
+	 	 	\item[name] \verb!log size 9!
+	 	 	\item[short.name] \verb!size9!
+	 	 	\item[output.name] \verb!size9 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size9 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta11]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 98011
-	 	 	\item[name] log size 10
-	 	 	\item[short.name] size10
-	 	 	\item[initial] 2.30258509299405
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.mgamma
-	 	 	\item[param] 7
+	 	 	\item[hyperid] \verb!98011!
+	 	 	\item[name] \verb!log size 10!
+	 	 	\item[short.name] \verb!size10!
+	 	 	\item[output.name] \verb!size10 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[output.name.intern] \verb!log_size10 for zero-inflated nbinomial_1_strata3!
+	 	 	\item[initial] \verb!2.30258509299405!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.mgamma!
+	 	 	\item[param] \verb!7!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 \end{description}
-	\item[status] experimental
-	\item[survival] FALSE
-	\item[discrete] FALSE
-	\item[link] default log
-	\item[pdf] zeroinflated
+	\item[status] \verb!experimental!
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log!
+	\item[pdf] \verb!zeroinflated!
 \end{description}

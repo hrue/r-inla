@@ -1,3 +1,16 @@
+# INLA 23.10.19
+* Bux-fix to work around regression bug in package 'excursions'
+* Internal development 
+
+# INLA 23.10.17
+* Fixed issue with `inla.call="submit"`
+* Increased precision for `copy`
+
+# INLA 23.10.14
+* New family `stdgaussian` (where the precision is fixed to be 1)
+* New family `nzPoisson` (for Poisson without zero's)
+* Internal code-cleanup and some minor fixes
+
 # INLA 23.09.09
 * A new approach to recover from failure (option `safe=TRUE`)
 * Option `control.inla=list(b.strategy="keep")` is a new default.

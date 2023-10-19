@@ -449,7 +449,8 @@
 
     ## replace alias's
     family.alias <- list(
-        list(from = "normal", to = "gaussian")
+        list(from = "normal", to = "gaussian"), 
+        list(from = "stdnormal", to = "stdgaussian")
     )
     for (i in seq_along(family.alias)) {
         family[which(inla.trim.family(family) %in% family.alias[[i]]$from)] <- family.alias[[i]]$to
@@ -2051,14 +2052,7 @@
         if (inla.os("windows")) {
             ## nothing
         } else {
-            vars <- c(vars,
-                      INLA_HOME = inla.get.HOME()
-                      )
-            if (Sys.getenv("SSH_AUTH_SOCK") == "") {
-                vars <- c(vars,
-                          INLA_SSH_AUTH_SOCK = inla.getOption("ssh.auth.sock")
-                          )
-            }
+            vars <- c(vars, INLA_HOME = inla.get.HOME())
         }
     }
     if (!is.null(vars)) {
@@ -2540,7 +2534,9 @@
     if (ntry > 0) {
         output("rerun with improved initial values")
         r <- inla.rerun(r)
-    } else if (nrow(r$misc$cov.intern) > 1 &&
+    } else if (!is.null(r$misc) &&
+               !is.null(r$misc$cov.intern) &&
+               nrow(r$misc$cov.intern) > 1 &&
                sum(abs(r$misc$cov.intern[upper.tri(r$misc$cov.intern)])) == 0 &&
                !all(diag(r$misc$cov.intern) == 1.0)) {
         output("rerun to try to solve negative eigenvalue(s) in the Hessian")

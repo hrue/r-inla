@@ -1,138 +1,138 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] AR(p) correlations
+	\item[doc] \verb!AR(p) correlations!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42001
-	 	 	\item[name] log precision
-	 	 	\item[short.name] prec
-	 	 	\item[initial] 0
-	 	 	\item[fixed] TRUE
-	 	 	\item[prior] pc.prec
-	 	 	\item[param] 3 0.01
+	 	 	\item[hyperid] \verb!42001!
+	 	 	\item[name] \verb!log precision!
+	 	 	\item[short.name] \verb!prec!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!TRUE!
+	 	 	\item[prior] \verb!pc.prec!
+	 	 	\item[param] \verb!3 0.01!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42002
-	 	 	\item[name] pacf1
-	 	 	\item[short.name] pacf1
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.5
+	 	 	\item[hyperid] \verb!42002!
+	 	 	\item[name] \verb!pacf1!
+	 	 	\item[short.name] \verb!pacf1!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.5!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42003
-	 	 	\item[name] pacf2
-	 	 	\item[short.name] pacf2
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.4
+	 	 	\item[hyperid] \verb!42003!
+	 	 	\item[name] \verb!pacf2!
+	 	 	\item[short.name] \verb!pacf2!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.4!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42004
-	 	 	\item[name] pacf3
-	 	 	\item[short.name] pacf3
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.3
+	 	 	\item[hyperid] \verb!42004!
+	 	 	\item[name] \verb!pacf3!
+	 	 	\item[short.name] \verb!pacf3!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.3!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta5]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42005
-	 	 	\item[name] pacf4
-	 	 	\item[short.name] pacf4
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.2
+	 	 	\item[hyperid] \verb!42005!
+	 	 	\item[name] \verb!pacf4!
+	 	 	\item[short.name] \verb!pacf4!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.2!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta6]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42006
-	 	 	\item[name] pacf5
-	 	 	\item[short.name] pacf5
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.1
+	 	 	\item[hyperid] \verb!42006!
+	 	 	\item[name] \verb!pacf5!
+	 	 	\item[short.name] \verb!pacf5!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.1!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta7]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42007
-	 	 	\item[name] pacf6
-	 	 	\item[short.name] pacf6
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.1
+	 	 	\item[hyperid] \verb!42007!
+	 	 	\item[name] \verb!pacf6!
+	 	 	\item[short.name] \verb!pacf6!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.1!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta8]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42008
-	 	 	\item[name] pacf7
-	 	 	\item[short.name] pacf7
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.1
+	 	 	\item[hyperid] \verb!42008!
+	 	 	\item[name] \verb!pacf7!
+	 	 	\item[short.name] \verb!pacf7!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.1!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta9]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42009
-	 	 	\item[name] pacf8
-	 	 	\item[short.name] pacf8
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.1
+	 	 	\item[hyperid] \verb!42009!
+	 	 	\item[name] \verb!pacf8!
+	 	 	\item[short.name] \verb!pacf8!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.1!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta10]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42010
-	 	 	\item[name] pacf9
-	 	 	\item[short.name] pacf9
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.1
+	 	 	\item[hyperid] \verb!42010!
+	 	 	\item[name] \verb!pacf9!
+	 	 	\item[short.name] \verb!pacf9!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.1!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}
 	 	\item[theta11]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 42011
-	 	 	\item[name] pacf10
-	 	 	\item[short.name] pacf10
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.cor0
-	 	 	\item[param] 0.5 0.1
+	 	 	\item[hyperid] \verb!42011!
+	 	 	\item[name] \verb!pacf10!
+	 	 	\item[short.name] \verb!pacf10!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.cor0!
+	 	 	\item[param] \verb!0.5 0.1!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}

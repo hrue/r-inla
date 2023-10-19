@@ -668,6 +668,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	if (!strcasecmp(ds->data_likelihood, "GAUSSIAN") || !strcasecmp(ds->data_likelihood, "NORMAL")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_gaussian;
 		ds->data_id = L_GAUSSIAN;
+	} else if (!strcasecmp(ds->data_likelihood, "STDGAUSSIAN") || !strcasecmp(ds->data_likelihood, "STDNORMAL")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_stdgaussian;
+		ds->data_id = L_STDGAUSSIAN;
 	} else if (!strcasecmp(ds->data_likelihood, "SIMPLEX")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_simplex;
 		ds->data_id = L_SIMPLEX;
@@ -720,6 +723,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	} else if (!strcasecmp(ds->data_likelihood, "POISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
 		ds->data_id = L_POISSON;
+		discrete_data = 1;
+	} else if (!strcasecmp(ds->data_likelihood, "NZPOISSON")) {
+		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_nzpoisson;
+		ds->data_id = L_NZPOISSON;
 		discrete_data = 1;
 	} else if (!strcasecmp(ds->data_likelihood, "XPOISSON")) {
 		ds->loglikelihood = (GMRFLib_logl_tp *) loglikelihood_poisson;
@@ -992,6 +999,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 
 	switch (ds->data_id) {
 	case L_GAUSSIAN:
+	case L_STDGAUSSIAN:
 	{
 		for (i = 0; i < mb->predictor_ndata; i++) {
 			if (ds->data_observations.d[i]) {
@@ -1312,6 +1320,20 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			if (ds->data_observations.d[i]) {
 				if (ds->data_observations.E[i] < 0.0 || ds->data_observations.y[i] < 0.0) {
 					GMRFLib_sprintf(&msg, "%s: Poisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
+							ds->data_observations.E[i], ds->data_observations.y[i]);
+					inla_error_general(msg);
+				}
+			}
+		}
+	}
+		break;
+
+	case L_NZPOISSON:
+	{
+		for (i = 0; i < mb->predictor_ndata; i++) {
+			if (ds->data_observations.d[i]) {
+				if (ds->data_observations.E[i] <= 0.0 || ds->data_observations.y[i] < 1.0) {
+					GMRFLib_sprintf(&msg, "%s: nzPoisson data[%1d] (e,y) = (%g,%g) is void\n", secname, i,
 							ds->data_observations.E[i], ds->data_observations.y[i]);
 					inla_error_general(msg);
 				}
@@ -2414,6 +2436,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 	case L_BELL:
 		break;
 
+	case L_STDGAUSSIAN:
 	case L_POISSON:
 	case L_XPOISSON:
 	case L_CONTPOISSON:
@@ -2524,7 +2547,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 			mb->theta_tag[mb->ntheta] = inla_make_tag("Parameter p for gpoisson", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Parameter p for gpoisson", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("Parameter p_intern for gpoisson", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter1", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4356,8 +4379,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for loglogistic observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for loglogistic observations", mb->ds);
+			if (ds->data_id == L_QLOGLOGISTIC) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for qloglogistic observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for qloglogistic observations", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for loglogistic observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for loglogistic observations", mb->ds);
+			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4432,8 +4460,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for loglogistic observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for loglogistic observations", mb->ds);
+			if (ds->data_id == L_QLOGLOGISTICSURV) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for qloglogisticsurv observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for qloglogisticsurv observations", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log alpha for qloglogisticsurv observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("alpha for qloglogisticsurv observations", mb->ds);
+			}
 			GMRFLib_sprintf(&msg, "%s-parameter", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4475,8 +4508,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-				GMRFLib_sprintf(&ctmp, "beta%1d for logNormal-Cure", i);
-
+				if (ds->data_id == L_QLOGLOGISTICSURV) {
+					GMRFLib_sprintf(&ctmp, "beta%1d for qlogLogistic-Cure", i);
+				} else {
+					GMRFLib_sprintf(&ctmp, "beta%1d for logLogistic-Cure", i);
+				}
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, i);
@@ -4795,8 +4831,13 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log size for nbinomial zero-inflated observations", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for nbinomial zero-inflated observations", mb->ds);
+			if (ds->data_id == L_ZEROINFLATEDNBINOMIAL0) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log size for nbinomial_0 zero-inflated observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for nbinomial_0 zero-inflated observations", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("log size for nbinomial_1 zero-inflated observations", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for nbinomial_1 zero-inflated observations", mb->ds);
+			}
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4897,8 +4938,14 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("rho_intern for zero-inflated betabinomial", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("rho for zero-inflated betabinomial", mb->ds);
+
+			if (ds->data_id == L_ZEROINFLATEDBETABINOMIAL0) {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("rho_intern for zero-inflated betabinomial_0", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("rho for zero-inflated betabinomial_0", mb->ds);
+			} else {
+				mb->theta_tag[mb->ntheta] = inla_make_tag("rho_intern for zero-inflated betabinomial_1", mb->ds);
+				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("rho for zero-inflated betabinomial_1", mb->ds);
+			}
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -4998,8 +5045,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("log size for zero-inflated nbinomial_strata2", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for zero-inflated nbinomial_strata2", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("log size for zero-inflated nbinomial_1_strata2", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("size for zero-inflated nbinomial_1_strata2", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -5055,9 +5102,9 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
-				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
+				GMRFLib_sprintf(&ctmp, "intern zero-probability%1d for zero-inflated nbinomial_1_strata2", count + 1);
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
-				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_strata2", count + 1);
+				GMRFLib_sprintf(&ctmp, "zero-probability%1d for zero-inflated nbinomial_1_strata2", count + 1);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter%1d", secname, count + 1);
 				mb->theta_dir[mb->ntheta] = msg;
@@ -5106,8 +5153,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			mb->theta_tag = Realloc(mb->theta_tag, mb->ntheta + 1, char *);
 			mb->theta_tag_userscale = Realloc(mb->theta_tag_userscale, mb->ntheta + 1, char *);
 			mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
-			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability for zero-inflated nbinomial_strata3", mb->ds);
-			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability for zero-inflated nbinomial_strata3", mb->ds);
+			mb->theta_tag[mb->ntheta] = inla_make_tag("intern zero-probability for zero-inflated nbinomial_1_strata3", mb->ds);
+			mb->theta_tag_userscale[mb->ntheta] = inla_make_tag("zero-probability for zero-inflated nbinomial_1_strata3", mb->ds);
 			GMRFLib_sprintf(&msg, "%s-parameter0", secname);
 			mb->theta_dir[mb->ntheta] = msg;
 
@@ -5126,7 +5173,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 
 		/*
-		 * THERE are up to STRATA_MAXTHETA of the probs, called prob 1... 10 
+		 * THERE are up to STRATA_MAXTHETA of the size, called size 1... 10 
 		 */
 		ds->data_observations.log_sizes = Calloc(STRATA_MAXTHETA, double **);
 		ds->data_nfixed = Calloc(STRATA_MAXTHETA, int);
@@ -6727,11 +6774,12 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		/*
 		 * get options related to the nmix and nmixnb
 		 */
+		char *suff = (ds->data_id == L_NMIX ? GMRFLib_strdup("") : GMRFLib_strdup("nb"));
 		if (mb->verbose) {
 			printf("\t\tmodel for N in the mixture[%s]\n", (ds->data_id == L_NMIX ? "Poisson" : "NegativeBinomial"));
 		}
-		// first we need to know 'm'. 
 
+		// first we need to know 'm'. 
 		found = 0;
 		ds->data_observations.nmix_m = NMIX_MMAX;
 		for (i = 0; i < NMIX_MMAX && !found; i++) {
@@ -6744,7 +6792,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 		}
 		if (mb->verbose) {
-			printf("\t\tnmix.m=[%1d]\n", ds->data_observations.nmix_m);
+			printf("\t\tnmix%s.m=[%1d]\n", suff, ds->data_observations.nmix_m);
 		}
 		assert(ds->data_observations.nmix_m > 0 && ds->data_observations.nmix_m <= NMIX_MMAX);
 		ds->data_observations.nmix_beta = Calloc(NMIX_MMAX + 1, double **);	/* yes, its +1 to cover the NB case */
@@ -6778,7 +6826,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 			HYPER_NEW(ds->data_observations.nmix_beta[k], tmp);
 			if (mb->verbose) {
-				printf("\t\tinitialise nmix.beta[%1d] = %g\n", k, ds->data_observations.nmix_beta[k][0][0]);
+				printf("\t\tinitialise nmix%s.beta[%1d] = %g\n", suff, k, ds->data_observations.nmix_beta[k][0][0]);
 				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
 			}
 			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "GAUSSIAN", k, NULL);
@@ -6792,7 +6840,11 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
 				Free(ctmp);
-				GMRFLib_sprintf(&ctmp, "beta[%1d] for NMix observations", k + 1);
+				if (ds->data_id == L_NMIX) {
+					GMRFLib_sprintf(&ctmp, "beta[%1d] for NMix observations", k + 1);
+				} else {
+					GMRFLib_sprintf(&ctmp, "beta[%1d] for NMixNB observations", k + 1);
+				}
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter", secname);
@@ -6829,7 +6881,8 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 			}
 
 			if (mb->verbose) {
-				printf("\t\tinitialise nmix.log_overdispersion = %g\n", ds->data_observations.nmix_log_overdispersion[0][0]);
+				printf("\t\tinitialise nmix%s.log_overdispersion = %g\n", suff,
+				       ds->data_observations.nmix_log_overdispersion[0][0]);
 				printf("\t\tfixed = %1d\n", ds->data_nfixed[k]);
 			}
 			inla_read_priorN(mb, ini, sec, &(ds->data_nprior[k]), "LOGGAMMA", k, NULL);
@@ -6843,10 +6896,10 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 				mb->theta_dir = Realloc(mb->theta_dir, mb->ntheta + 1, char *);
 
 				Free(ctmp);
-				GMRFLib_sprintf(&ctmp, "log_overdispersion for NMix observations");
+				GMRFLib_sprintf(&ctmp, "log_overdispersion for NMixNB observations");
 				mb->theta_tag[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				Free(ctmp);
-				GMRFLib_sprintf(&ctmp, "overdispersion for NMix observations");
+				GMRFLib_sprintf(&ctmp, "overdispersion for NMixNB observations");
 				mb->theta_tag_userscale[mb->ntheta] = inla_make_tag(ctmp, mb->ds);
 				GMRFLib_sprintf(&msg, "%s-parameter", secname);
 				mb->theta_dir[mb->ntheta] = msg;
@@ -8091,7 +8144,7 @@ int inla_parse_data(inla_tp *mb, dictionary *ini, int sec)
 		}
 	}
 
-	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN) ||
+	if ((ds->data_id != L_GAUSSIAN && ds->data_id != L_AGAUSSIAN && ds->data_id != L_STDGAUSSIAN) ||
 	    ds->predictor_invlinkfunc != link_identity || ds->mix_use || mb->expert_disable_gaussian_check) {
 		mb->gaussian_data = GMRFLib_FALSE;
 	}
@@ -17115,9 +17168,11 @@ int inla_theta_map(inla_tp *mb)
 	int ifrom = 0, ito = 0;
 
 	inla_sread_str_int(&tag_from, &ifrom, tag_f);
+	assert(tag_from);
 	printf("From %s %d\n", tag_from, ifrom);
 
 	inla_sread_str_int(&tag_to, &ito, tag_t);
+	assert(tag_to);
 	printf("To %s %d\n", tag_to, ito);
 
 	// int f_from = inla_theta_map_find_f(tag_from, mb);

@@ -11,16 +11,11 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
     set -vx
     echo "INLA_PATH $INLA_PATH"
     echo "INLA_HOME $INLA_HOME"
-    echo "INLA_SSH_AUTH_SOCK $INLA_SSH_AUTH_SOCK"
     echo "INLA_OS $INLA_OS"
     echo "INLA_HGVERSION $INLA_HGVERSION"
 fi
 
 INIFILE=~/.inlarc
-if [ "$SSH_AUTH_SOCK"XX == "XX" ]; then
-    ## this is not set, weird, but it might be that a manual setup is used
-    export SSH_AUTH_SOCK="$INLA_SSH_AUTH_SOCK"
-fi
 
 ## these are the variables to be set by the user
 RemoteINLA="/usr/local/bin/inla.mkl.run"
@@ -78,11 +73,10 @@ trap kill_inla_remote SIGINT SIGTERM
 cd $dir > /dev/null
 
 plic="pardiso.lic"
-
-if [ -f "$plic" ]; then
+if [ "${PardisoLicenseFile}XX" != "XX" ]; then
+   cp -f "${PardisoLicenseFile}" $plic
    PardisoLoad="export INLA_LOAD_PARDISO=1"
-elif [ "${PardisoLicenseFile}XX" != "XX" ]; then
-   cp "${PardisoLicenseFile}" $plic
+elif [ -f "$plic" ]; then
    PardisoLoad="export INLA_LOAD_PARDISO=1"
 else
    PardisoLoad="true"

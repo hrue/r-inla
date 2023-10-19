@@ -29,34 +29,43 @@
 
 int inla_output_Q(inla_tp *mb, const char *dir, GMRFLib_graph_tp *graph)
 {
-	GMRFLib_problem_tp *p = NULL;
-	char *fnm = NULL, *newdir = NULL;
-	FILE *fp = NULL;
-	int thread_id = 0;
+	if (!(mb->output->q)) {
+		return GMRFLib_SUCCESS;
+	}
 
-	GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
+	char *fnm = NULL, *newdir = NULL;
+
 	GMRFLib_sprintf(&newdir, "%s/Q", dir);
+	GMRFLib_sprintf(&fnm, "%s/%s", newdir, "precision-matrix");
+
+	if (inla_mkdir(newdir) != INLA_OK) {
+		return !GMRFLib_SUCCESS;
+	}
+
 	if (mb->verbose) {
 		printf("\t\tstore factorisation results in[%s]\n", newdir);
+		printf("\t\tstore info precision and related matrices in[%s]\n", newdir);
 	}
-	if (inla_mkdir(newdir) == INLA_OK) {
-		if (mb->output->q) {
-			if (mb->verbose) {
-				printf("\t\tstore info precision and related matrices in[%s]\n", newdir);
-			}
-			GMRFLib_sprintf(&fnm, "%s/%s", newdir, "precision-matrix");
-			GMRFLib_bitmap_problem((const char *) fnm, p);
-			Free(fnm);
-		}
+
+	if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+		GMRFLib_bitmap_graph(fnm, NULL, graph);
+	} else {
+		GMRFLib_problem_tp *p = NULL;
+		FILE *fp = NULL;
+		int thread_id = 0;
+
+		GMRFLib_init_problem(thread_id, &p, NULL, NULL, NULL, NULL, graph, GMRFLib_Qfunc_generic, (void *) graph, NULL);
+		GMRFLib_bitmap_problem((const char *) fnm, p);
+		Free(fnm);
 		GMRFLib_sprintf(&fnm, "%s/%s", newdir, "factorisation-information.txt");
-		fp = fopen(fnm, "w");
-		if (fp) {
+		if ((fp = fopen(fnm, "w"))) {
 			GMRFLib_fact_info_report(fp, &(p->sub_sm_fact));
 			fclose(fp);
 		}
 		GMRFLib_free_problem(p);
-		Free(fnm);
 	}
+
+	Free(fnm);
 	Free(newdir);
 
 	return INLA_OK;
@@ -433,7 +442,11 @@ int inla_output(inla_tp *mb)
 				}
 			}
 			if (mb->output->graph) {
-				inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
+				if (GMRFLib_inla_mode == GMRFLib_MODE_CLASSIC) {
+					inla_output_graph(mb, mb->dir, mb->hgmrfm->graph);
+				} else if (GMRFLib_inla_mode == GMRFLib_MODE_COMPACT) {
+					inla_output_graph(mb, mb->dir, mb->preopt->preopt_graph);
+				}
 			}
 		}
 	}
@@ -1205,6 +1218,19 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 		}
 	}
 	Free(nnndir);
+
+	if (mo->opt_trace) {
+		GMRFLib_sprintf(&nnndir, "%s/%s", ndir, "opt-trace.dat");
+		FILE *fp = fopen(nnndir, "wb");
+		fwrite((void *) &(mo->opt_trace->nt), sizeof(int), (size_t) 1, fp);
+		fwrite((void *) &(mo->opt_trace->niter), sizeof(int), (size_t) 1, fp);
+		fwrite((void *) mo->opt_trace->nfunc, sizeof(int), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->f, sizeof(double), (size_t) mo->opt_trace->niter, fp);
+		fwrite((void *) mo->opt_trace->theta, sizeof(double), (size_t) mo->opt_trace->niter * mo->opt_trace->nt, fp);
+		fclose(fp);
+	}
+	Free(nnndir);
+
 
 	return INLA_OK;
 }

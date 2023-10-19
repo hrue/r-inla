@@ -19,7 +19,9 @@ inla.print.version <- function() {
         hello <- paste0(
             "This is INLA_", version,
             " built ", built, ".", "\n",
-            " - See www.r-inla.org/contact-us for how to get help."
+            " - See www.r-inla.org/contact-us for how to get help.\n", 
+            " - List available models/likelihoods/etc with inla.list.models()\n", 
+            " - Use inla.doc(<NAME>) to access documentation"
         )
 
         if (FALSE) {

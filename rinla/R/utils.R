@@ -1092,3 +1092,19 @@
     e$values <- pmax(e$values[1] * tol, e$values)
     return (e$vectors %*% diag(e$values) %*% t(e$vectors))
 }
+
+`inla.read.state` <- function(filename) {
+    ## read state file
+    stopifnot(file.exists(filename))
+    fp <- file(filename, "rb")
+    fval <- readBin(fp, what = numeric(), 1)
+    nfun <- readBin(fp, what = integer(), 1)
+    ntheta <- readBin(fp, what = integer(), 1)
+    theta <- if (ntheta > 0) readBin(fp, what = numeric(), ntheta) else NULL
+    nx <- readBin(fp, what = integer(), 1)
+    x <- if (nx > 0) readBin(fp, what = numeric(), nx) else NULL
+    close(fp)
+
+    r <- list(fval = fval, nfun = nfun, mode = list(theta = theta, x = x))
+    return (r);
+}

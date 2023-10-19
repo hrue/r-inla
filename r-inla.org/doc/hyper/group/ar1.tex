@@ -1,18 +1,18 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] AR(1) correlations
+	\item[doc] \verb!AR(1) correlations!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 41001
-	 	 	\item[name] logit correlation
-	 	 	\item[short.name] rho
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 0.15
+	 	 	\item[hyperid] \verb!41001!
+	 	 	\item[name] \verb!logit correlation!
+	 	 	\item[short.name] \verb!rho!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 0.15!
 	 	 	\item[to.theta] \verb!function(x) log((1 + x) / (1 - x))!
 	 	 	\item[from.theta] \verb!function(x) 2 * exp(x) / (1 + exp(x)) - 1!
 	 	 \end{description}

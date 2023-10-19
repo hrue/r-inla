@@ -69,6 +69,8 @@ static fncall_timing_tp fncall_timing = {
 	0.0, 0
 };
 
+static GMRFLib_opt_trace_tp *opt_trace = NULL;
+
 int GMRFLib_opt_setup(double ***hyperparam, int nhyper,
 		      GMRFLib_ai_log_extra_tp *log_extra, void *log_extra_arg,
 		      char *compute,
@@ -349,6 +351,12 @@ int GMRFLib_opt_f_intern(int thread_id,
 					fflush(G.ai_par->fp_log);
 					fflush(stdout);	       /* helps for remote inla */
 					fflush(stderr);	       /* helps for remote inla */
+				}
+
+				GMRFLib_opt_trace_append(&opt_trace, B.f_best, B.f_best_x, fncall_timing.num_fncall);
+				if (GMRFLib_write_state) {
+					inla_write_state_to_file(B.f_best, fncall_timing.num_fncall, G.nhyper, x, G.graph->n, B.f_best_latent);
+					GMRFLib_write_state = 0;
 				}
 			}
 		}
@@ -1222,6 +1230,7 @@ int GMRFLib_opt_dir_transform_hessian(double *hessian)
 int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 {
 	double step_size = ai_par->gsl_step_size, tol = ai_par->gsl_tol, dx = 0.0;
+	double eps_factor = 1.0;			       /* might depend on nhyper, as nhyper can be large... */
 	size_t i, j;
 	int status, iter = 0, iter_min = 1, iter_max = 1000;
 
@@ -1319,7 +1328,7 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		iter++;
 		status = gsl_multimin_fdfminimizer_iterate(s);
 
-		status_g = gsl_multimin_test_gradient(s->gradient, ai_par->gsl_epsg);
+		status_g = gsl_multimin_test_gradient(s->gradient, ai_par->gsl_epsg * eps_factor);
 		double gnrm2 = gsl_blas_dnrm2(s->gradient);
 
 		xx = gsl_multimin_fdfminimizer_x(s);
@@ -1335,8 +1344,8 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 		best_df = ABS(best_f_prev - best_f);
 		best_f_prev = best_f;
 
-		status_best_f = (best_df < ai_par->gsl_epsf ? !gsl_continue : gsl_continue);
-		status_best_x = (best_dx < ai_par->gsl_epsx ? !gsl_continue : gsl_continue);
+		status_best_f = (best_df < ai_par->gsl_epsf * eps_factor ? !gsl_continue : gsl_continue);
+		status_best_x = (best_dx < ai_par->gsl_epsx * eps_factor ? !gsl_continue : gsl_continue);
 
 		if (x_prev) {
 			size_t i_s;
@@ -1379,13 +1388,13 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 			}
 
 			dx = sqrt(dx / xx->size);
-			status_x = gsl_multimin_test_size(dx, ai_par->gsl_epsx);
+			status_x = gsl_multimin_test_size(dx, ai_par->gsl_epsx * eps_factor);
 		} else {
 			status_x = gsl_continue;
 		}
 
 		double df = ABS(f_prev - gsl_multimin_fdfminimizer_minimum(s));
-		status_f = gsl_multimin_test_size(df, ai_par->gsl_epsf);
+		status_f = gsl_multimin_test_size(df, ai_par->gsl_epsf * eps_factor);
 		f_prev = gsl_multimin_fdfminimizer_minimum(s);
 
 		if (ai_par->fp_log) {
@@ -1469,3 +1478,89 @@ int GMRFLib_gsl_optimize(GMRFLib_ai_param_tp *ai_par)
 
 	return (status == GSL_ENOPROG ? !GMRFLib_SUCCESS : GMRFLib_SUCCESS);
 }
+
+void GMRFLib_opt_trace_append(GMRFLib_opt_trace_tp **otrace, double f, double *theta, int nfunc)
+{
+// this function is only called from within a critical region already
+//#pragma omp critical (Name_22185a97af1d08a4ff94565b2dbc850c1489063f)
+	{
+		int size_alloc = 64;
+		if (!*otrace) {
+			*otrace = Calloc(1, GMRFLib_opt_trace_tp);
+			(*otrace)->nt = G.nhyper;
+			(*otrace)->niter = 0;
+			(*otrace)->nalloc = size_alloc;
+			(*otrace)->f = Calloc((*otrace)->nalloc, double);
+			(*otrace)->nfunc = Calloc((*otrace)->nalloc, int);
+			(*otrace)->theta = Calloc(G.nhyper * (*otrace)->nalloc, double);
+		}
+
+		if ((*otrace)->niter >= (*otrace)->nalloc) {
+			(*otrace)->nalloc += size_alloc;
+			(*otrace)->f = Realloc((*otrace)->f, (*otrace)->nalloc, double);
+			(*otrace)->nfunc = Realloc((*otrace)->nfunc, (*otrace)->nalloc, int);
+			(*otrace)->theta = Realloc((*otrace)->theta, (*otrace)->nalloc * (*otrace)->nt, double);
+		}
+		Memcpy((*otrace)->f + (*otrace)->niter, &f, sizeof(double));
+		Memcpy((*otrace)->nfunc + (*otrace)->niter, &nfunc, sizeof(int));
+		Memcpy((*otrace)->theta + (*otrace)->niter * (*otrace)->nt, theta, (*otrace)->nt * sizeof(double));
+		(*otrace)->niter++;
+	}
+}
+
+void GMRFLib_opt_trace_free(GMRFLib_opt_trace_tp *otrace)
+{
+	if (otrace) {
+		Free(otrace->f);
+		Free(otrace->theta);
+		Free(otrace);
+	}
+}
+
+GMRFLib_opt_trace_tp *GMRFLib_opt_trace_get(void)
+{
+	return opt_trace;
+}
+
+#if defined(WINDOWS)
+void inla_write_state_to_file(double UNUSED(fval), int UNUSED(nfun), int UNUSED(ntheta), double *UNUSED(theta), int UNUSED(nx), double *UNUSED(x))
+{
+	return;
+}
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, int nx, double *x)
+{
+	// this function is called from within a critical region
+
+	static int count = 0;
+	const char *homedir = getenv("HOME");
+	if (!homedir) {
+		homedir = getpwuid(getuid())->pw_dir;
+	}
+	if (!homedir) {
+		fprintf(stdout, "\n\n*** no HOME, cannot write state\n\n");
+		return;
+	}
+
+	char *template = NULL;
+	GMRFLib_sprintf(&template, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
+
+	int fd = mkstemp(template);
+	write(fd, &fval, sizeof(double));
+	write(fd, &nfun, sizeof(int));
+	write(fd, &ntheta, sizeof(int));
+	if (ntheta) {
+		write(fd, theta, ntheta * sizeof(double));
+	}
+	write(fd, &nx, sizeof(int));
+	if (nx) {
+		write(fd, x, nx * sizeof(double));
+	}
+	close(fd);
+
+	fprintf(stdout, "\n\n*** state written to file [%s]\n\n", template);
+}
+#endif

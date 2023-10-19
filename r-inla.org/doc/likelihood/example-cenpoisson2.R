@@ -13,8 +13,8 @@ y = rpois(n, lambda = lambda)
 censored = which(y >= low & y <= high)
 y[censored] = low[censored]
 
-r = inla(inla.mdata(cbind(y, low, high))  ~ 1 + x, 
-         family = "cenpoisson2",
-         data = data.frame(y, low, high, x), 
-         E=E)
+r <- inla(inla.mdata(cbind(y, low, high))  ~ 1 + x, 
+          family = "cenpoisson2",
+          data = data.frame(y, low, high, x), 
+          E=E)
 summary(r)

@@ -948,26 +948,26 @@ control.vb <- function(
 #' @details For internal use and for algorithms built on to of INLA.
 `control.mode` <-
     function(
-            #' @param result Previous result from inla(). Use the theta- and x-mode from
-            #' this run.
-            result = NULL,
-
-            #' @param theta The theta-mode/initial values for theta. This option has
-            #' preference over result$mode$theta.
-            theta = NULL,
-
-            #' @param x The x-mode/initial values for x. This option has preference over
-            #' result$mode$x.
-            x = NULL,
-
-            #' @param restart A boolean variable; should we restart the optimisation from
-            #' this configuration or fix the mode at this configuration? (Default FALSE.)
-            restart = FALSE,
-
-            #' @param fixed A boolean variable. If TRUE then treat all thetas as known and
-            #' fixed, and if FALSE then treat all thetas as unknown and random (default).
-            fixed = FALSE
-        ) {
+             #' @param result Previous result-object from inla(), a inla-state object or the name of a
+             #' state-file. Use the theta- and x-mode from this object
+             result = NULL,
+             
+             #' @param theta The theta-mode/initial values for theta. This option has
+             #' preference over result$mode$theta.
+             theta = NULL,
+             
+             #' @param x The x-mode/initial values for x. This option has preference over
+             #' result$mode$x.
+             x = NULL,
+             
+             #' @param restart A boolean variable; should we restart the optimisation from
+             #' this configuration or fix the mode at this configuration? (Default FALSE.)
+             restart = FALSE,
+             
+             #' @param fixed A boolean variable. If TRUE then treat all thetas as known and
+             #' fixed, and if FALSE then treat all thetas as unknown and random (default).
+             fixed = FALSE
+             ) {
             ctrl_object(as.list(environment()), "mode", check = FALSE)
         }
 

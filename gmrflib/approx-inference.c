@@ -1829,6 +1829,8 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 		}
 	}
 
+	misc_output->opt_trace = (nhyper ? GMRFLib_opt_trace_get() : NULL);
+
 	if (nlin > 0) {
 		lin_dens = Calloc(dens_max, GMRFLib_density_tp **);
 		if (misc_output && misc_output->compute_corr_lin) {
@@ -4460,13 +4462,13 @@ int GMRFLib_ai_vb_correct_mean_preopt(int thread_id,
 		if (max_correction >= ai_par->vb_emergency) {
 #pragma omp critical (Name_1169f76e685daed4d69fb5a745f9e95b4f5f633b)
 			{
-				fprintf(stderr, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+				fprintf(stderr, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 					max_correction, ai_par->vb_emergency);
 				fprintf(stderr, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 				fprintf(stderr, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);
 				fprintf(stderr, "\t*** \t'control.inla=list(control.vb=list(emergency=...))'\n\n");
 				if (fp != stderr) {
-					fprintf(fp, "\n\n\t*** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
+					fprintf(fp, "\n\n\t*** warning *** max_correction = %.2f >= %.2f, so 'vb.correction' is aborted\n",
 						max_correction, ai_par->vb_emergency);
 					fprintf(fp, "\t*** Please (re-)consider your model, priors, confounding, etc.\n");
 					fprintf(fp, "\t*** You can change the emergency value (current value=%.2f) by \n", ai_par->vb_emergency);

@@ -77,7 +77,7 @@ inla.models()
                                     }
                                     mval <- paste("\\code{", mval.src, "}", sep = "")
                                 }
-                                cat(tab7, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep = "")
+                                cat(tab7, "\\item{", m, " = }{`\\verb!", inla.paste(mval), "!'}\n", sep = "")
                             }
 
                             cat(tab7, "}\n", sep = "")
@@ -99,7 +99,7 @@ inla.models()
                         if (is.null(mval)) {
                               mval <- "NULL"
                           }
-                        cat(tab8, "\\item{", m, " = }{`", inla.paste(mval), "'}\n", sep = "")
+                        cat(tab8, "\\item{", m, " = }{`\\verb!", inla.paste(mval), "!'}\n", sep = "")
                     }
 
                     cat(tab7, "}\n")
@@ -171,9 +171,9 @@ inla.models()
                     if (is.null(val.src)) {
                         val.src <- inla.paste(deparse(val, control = "keepInteger"))
                     }
-                    val <- paste("\\verb!", val.src, "!", sep = "")
+                    val <- val.src
                 }
-                cat(tab, "\\item[", nm, "]", " ", inla.paste(val), "\n", sep = "")
+                cat(tab, "\\item[", nm, "]", " \\verb!", inla.paste(val), "!", "\n", sep = "")
             }
         }
 
@@ -268,7 +268,7 @@ inla.models()
                     if (is.null(mval)) {
                         mval <- "NULL"
                     }
-                    cat(tab8, "\\item{", m, " = }{'", inla.paste(mval), "'}\n", sep = "")
+                    cat(tab8, "\\item{", m, " = }{\\verb{", inla.paste(mval), "}}\n", sep = "")
                 }
                 
                 cat(tab7, "}\n")
@@ -298,9 +298,9 @@ inla.models()
                                     if (is.null(mval.src)) {
                                         mval.src <- inla.paste(deparse(mval, control = "keepInteger"))
                                     }
-                                    mval <- paste("`", mval.src, "`", sep = "")
+                                    mval <- paste("", mval.src, "", sep = "")
                                 }
-                                cat(tab7, "\\item{", m, " = }{", inla.paste(mval), "}\n", sep = "")
+                                cat(tab7, "\\item{", m, " = }{\\verb{", inla.paste(mval), "}}\n", sep = "")
                             }
 
                             cat(tab7, "}\n", sep = "")

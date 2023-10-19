@@ -1,144 +1,166 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] A quantile loglogistic likelihood (survival)
+	\item[doc] \verb!A quantile loglogistic likelihood (survival)!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60021
-	 	 	\item[name] log alpha
-	 	 	\item[short.name] alpha
-	 	 	\item[initial] 1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 25 25
+	 	 	\item[hyperid] \verb!60021!
+	 	 	\item[name] \verb!log alpha!
+	 	 	\item[short.name] \verb!alpha!
+	 	 	\item[output.name] \verb!alpha for qloglogisticsurv observations!
+	 	 	\item[output.name.intern] \verb!log alpha for qloglogisticsurv observations!
+	 	 	\item[initial] \verb!1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!25 25!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60022
-	 	 	\item[name] beta1
-	 	 	\item[short.name] beta1
-	 	 	\item[initial] -5
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] -4 100
+	 	 	\item[hyperid] \verb!60022!
+	 	 	\item[name] \verb!beta1!
+	 	 	\item[short.name] \verb!beta1!
+	 	 	\item[output.name] \verb!beta1 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta1 for logLogistic-Cure!
+	 	 	\item[initial] \verb!-5!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!-4 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60023
-	 	 	\item[name] beta2
-	 	 	\item[short.name] beta2
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60023!
+	 	 	\item[name] \verb!beta2!
+	 	 	\item[short.name] \verb!beta2!
+	 	 	\item[output.name] \verb!beta2 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta2 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60024
-	 	 	\item[name] beta3
-	 	 	\item[short.name] beta3
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60024!
+	 	 	\item[name] \verb!beta3!
+	 	 	\item[short.name] \verb!beta3!
+	 	 	\item[output.name] \verb!beta3 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta3 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta5]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60025
-	 	 	\item[name] beta4
-	 	 	\item[short.name] beta4
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60025!
+	 	 	\item[name] \verb!beta4!
+	 	 	\item[short.name] \verb!beta4!
+	 	 	\item[output.name] \verb!beta4 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta4 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta6]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60026
-	 	 	\item[name] beta5
-	 	 	\item[short.name] beta5
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60026!
+	 	 	\item[name] \verb!beta5!
+	 	 	\item[short.name] \verb!beta5!
+	 	 	\item[output.name] \verb!beta5 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta5 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta7]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60027
-	 	 	\item[name] beta6
-	 	 	\item[short.name] beta6
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60027!
+	 	 	\item[name] \verb!beta6!
+	 	 	\item[short.name] \verb!beta6!
+	 	 	\item[output.name] \verb!beta6 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta6 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta8]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60028
-	 	 	\item[name] beta7
-	 	 	\item[short.name] beta7
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60028!
+	 	 	\item[name] \verb!beta7!
+	 	 	\item[short.name] \verb!beta7!
+	 	 	\item[output.name] \verb!beta7 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta7 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta9]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60029
-	 	 	\item[name] beta8
-	 	 	\item[short.name] beta8
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60029!
+	 	 	\item[name] \verb!beta8!
+	 	 	\item[short.name] \verb!beta8!
+	 	 	\item[output.name] \verb!beta8 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta8 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta10]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60030
-	 	 	\item[name] beta9
-	 	 	\item[short.name] beta9
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60030!
+	 	 	\item[name] \verb!beta9!
+	 	 	\item[short.name] \verb!beta9!
+	 	 	\item[output.name] \verb!beta9 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta9 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta11]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 60031
-	 	 	\item[name] beta10
-	 	 	\item[short.name] beta10
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!60031!
+	 	 	\item[name] \verb!beta10!
+	 	 	\item[short.name] \verb!beta10!
+	 	 	\item[output.name] \verb!beta10 for qlogLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta10 for qlogLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] TRUE
-	\item[discrete] FALSE
-	\item[link] default log neglog
-	\item[pdf] qloglogistic
+	\item[survival] \verb!TRUE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log neglog!
+	\item[pdf] \verb!qloglogistic!
 \end{description}

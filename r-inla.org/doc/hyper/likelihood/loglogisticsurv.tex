@@ -1,144 +1,166 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] The loglogistic likelihood (survival)
+	\item[doc] \verb!The loglogistic likelihood (survival)!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta1]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80011
-	 	 	\item[name] log alpha
-	 	 	\item[short.name] alpha
-	 	 	\item[initial] 1
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] loggamma
-	 	 	\item[param] 25 25
+	 	 	\item[hyperid] \verb!80011!
+	 	 	\item[name] \verb!log alpha!
+	 	 	\item[short.name] \verb!alpha!
+	 	 	\item[output.name] \verb!alpha for loglogisticsurv observations!
+	 	 	\item[output.name.intern] \verb!log alpha for loglogisticsurv observations!
+	 	 	\item[initial] \verb!1!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!loggamma!
+	 	 	\item[param] \verb!25 25!
 	 	 	\item[to.theta] \verb!function(x) log(x)!
 	 	 	\item[from.theta] \verb!function(x) exp(x)!
 	 	 \end{description}
 	 	\item[theta2]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80012
-	 	 	\item[name] beta1
-	 	 	\item[short.name] beta1
-	 	 	\item[initial] -5
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] -4 100
+	 	 	\item[hyperid] \verb!80012!
+	 	 	\item[name] \verb!beta1!
+	 	 	\item[short.name] \verb!beta1!
+	 	 	\item[output.name] \verb!beta1 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta1 for logLogistic-Cure!
+	 	 	\item[initial] \verb!-5!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!-4 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta3]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80013
-	 	 	\item[name] beta2
-	 	 	\item[short.name] beta2
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80013!
+	 	 	\item[name] \verb!beta2!
+	 	 	\item[short.name] \verb!beta2!
+	 	 	\item[output.name] \verb!beta2 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta2 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta4]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80014
-	 	 	\item[name] beta3
-	 	 	\item[short.name] beta3
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80014!
+	 	 	\item[name] \verb!beta3!
+	 	 	\item[short.name] \verb!beta3!
+	 	 	\item[output.name] \verb!beta3 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta3 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta5]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80015
-	 	 	\item[name] beta4
-	 	 	\item[short.name] beta4
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80015!
+	 	 	\item[name] \verb!beta4!
+	 	 	\item[short.name] \verb!beta4!
+	 	 	\item[output.name] \verb!beta4 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta4 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta6]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80016
-	 	 	\item[name] beta5
-	 	 	\item[short.name] beta5
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80016!
+	 	 	\item[name] \verb!beta5!
+	 	 	\item[short.name] \verb!beta5!
+	 	 	\item[output.name] \verb!beta5 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta5 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta7]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80017
-	 	 	\item[name] beta6
-	 	 	\item[short.name] beta6
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80017!
+	 	 	\item[name] \verb!beta6!
+	 	 	\item[short.name] \verb!beta6!
+	 	 	\item[output.name] \verb!beta6 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta6 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta8]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80018
-	 	 	\item[name] beta7
-	 	 	\item[short.name] beta7
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80018!
+	 	 	\item[name] \verb!beta7!
+	 	 	\item[short.name] \verb!beta7!
+	 	 	\item[output.name] \verb!beta7 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta7 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta9]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80019
-	 	 	\item[name] beta8
-	 	 	\item[short.name] beta8
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80019!
+	 	 	\item[name] \verb!beta8!
+	 	 	\item[short.name] \verb!beta8!
+	 	 	\item[output.name] \verb!beta8 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta8 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta10]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80020
-	 	 	\item[name] beta9
-	 	 	\item[short.name] beta9
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80020!
+	 	 	\item[name] \verb!beta9!
+	 	 	\item[short.name] \verb!beta9!
+	 	 	\item[output.name] \verb!beta9 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta9 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 	\item[theta11]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 80021
-	 	 	\item[name] beta10
-	 	 	\item[short.name] beta10
-	 	 	\item[initial] 0
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] normal
-	 	 	\item[param] 0 100
+	 	 	\item[hyperid] \verb!80021!
+	 	 	\item[name] \verb!beta10!
+	 	 	\item[short.name] \verb!beta10!
+	 	 	\item[output.name] \verb!beta10 for logLogistic-Cure!
+	 	 	\item[output.name.intern] \verb!beta10 for logLogistic-Cure!
+	 	 	\item[initial] \verb!0!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!normal!
+	 	 	\item[param] \verb!0 100!
 	 	 	\item[to.theta] \verb!function(x) x!
 	 	 	\item[from.theta] \verb!function(x) x!
 	 	 \end{description}
 	 \end{description}
-	\item[survival] TRUE
-	\item[discrete] FALSE
-	\item[link] default log neglog
-	\item[pdf] loglogistic
+	\item[survival] \verb!TRUE!
+	\item[discrete] \verb!FALSE!
+	\item[link] \verb!default log neglog!
+	\item[pdf] \verb!loglogistic!
 \end{description}

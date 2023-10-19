@@ -1,25 +1,27 @@
 %% DO NOT EDIT!
 %% This file is generated automatically from models.R
 \begin{description}
-	\item[doc] Discrete generalized Pareto likelihood
+	\item[doc] \verb!Discrete generalized Pareto likelihood!
 	\item[hyper]\ 
 	 \begin{description}
 	 	\item[theta]\ 
 	 	 \begin{description}
-	 	 	\item[hyperid] 101301
-	 	 	\item[name] tail
-	 	 	\item[short.name] xi
-	 	 	\item[initial] 2
-	 	 	\item[fixed] FALSE
-	 	 	\item[prior] pc.gevtail
-	 	 	\item[param] 7 0 0.5
+	 	 	\item[hyperid] \verb!101301!
+	 	 	\item[name] \verb!tail!
+	 	 	\item[short.name] \verb!xi!
+	 	 	\item[output.name] \verb!Tail parameter for the dgp observations!
+	 	 	\item[output.name.intern] \verb!Intern tail parameter for the dgp observations!
+	 	 	\item[initial] \verb!2!
+	 	 	\item[fixed] \verb!FALSE!
+	 	 	\item[prior] \verb!pc.gevtail!
+	 	 	\item[param] \verb!7 0 0.5!
 	 	 	\item[to.theta] \verb!function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) log(-(interval[1] - x) / (interval[2] - x))!
 	 	 	\item[from.theta] \verb!function(x, interval = c(REPLACE.ME.low, REPLACE.ME.high)) interval[1] + (interval[2] - interval[1]) * exp(x) / (1.0 + exp(x))!
 	 	 \end{description}
 	 \end{description}
-	\item[status] experimental
-	\item[survival] FALSE
-	\item[discrete] TRUE
-	\item[link] default quantile
-	\item[pdf] dgp
+	\item[status] \verb!experimental!
+	\item[survival] \verb!FALSE!
+	\item[discrete] \verb!TRUE!
+	\item[link] \verb!default quantile!
+	\item[pdf] \verb!dgp!
 \end{description}

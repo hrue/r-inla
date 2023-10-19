@@ -163,6 +163,7 @@
                         "", paste(rep("*", 72), sep = "", collapse = ""), "",
                         inla.collect.logfile(file.log2, debug)$logfile
                     ))
+
     misc <- inla.collect.misc(results.dir, debug)
     theta.tags <- NULL
     mode.status <- NA
@@ -699,6 +700,26 @@
         warn <- NULL
     }
 
+    fnm <- paste0(d, "/opt-trace.dat")
+    if (file.exists(fnm)) {
+        fp <- file(fnm, "rb")
+        nt <- readBin(fp, integer(), 1)
+        niter <- readBin(fp, integer(), 1)
+        nfunc <- readBin(fp, integer(), niter)
+        fs <- readBin(fp, double(), niter)
+        theta <- readBin(fp, double(), niter * nt)
+        close(fp)
+
+        theta = matrix(theta, nrow = niter, ncol = nt, byrow = TRUE)
+        colnames(theta) <- paste0("theta", seq_len(nt))
+        rownames(theta) <- paste0("iter", seq_len(niter))
+        names(nfunc) <- paste0("iter", seq_len(niter))
+        names(fs) <- paste0("iter", seq_len(niter))
+        opt.trace <- list(f = fs, nfunc = nfunc, theta = theta)
+    } else {
+        opt.trace <- NULL
+    }
+
     if (debug) {
         print(paste("collect misc from", d, "...done"))
     }
@@ -712,7 +733,7 @@
         lincomb.derived.correlation.matrix = lincomb.derived.correlation.matrix,
         lincomb.derived.covariance.matrix = lincomb.derived.covariance.matrix,
         opt.directions = opt.directions,
-        configs = configs, nfunc = nfunc, warnings = warn
+        configs = configs, nfunc = nfunc, warnings = warn, opt.trace = opt.trace
     ))
 }
 
