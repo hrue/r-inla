@@ -2025,7 +2025,8 @@
     ## create mode section
     cont.mode <- inla.set.control.mode.default()
     cont.mode[names(control.mode)] <- control.mode
-    if (!is.null(cont.mode$result)) {
+    if (!is.null(cont.mode$result) &&
+        !(is.character(cont.mode$result) && file.exists(cont.mode$result))) {
         ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
         ## can/will require lots of storage. We do this by creating a stripped object with only
         ## what is needed and pass that one along, with the expected classical
