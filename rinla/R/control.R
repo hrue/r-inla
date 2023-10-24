@@ -306,7 +306,8 @@ ctrl_update.ctrl_hazard <- function(x, ...) {
 #' @export
 ctrl_update.ctrl_mode <- function(x, ...) {
   y <- NextMethod()
-  if (!is.null(y[["result"]])) {
+  if (!is.null(y[["result"]]) &&
+      !(is.character(y$result) && file.exists(y$result))) {
     ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
     ## can/will require lots of storage. We do this by creating a stripped object with only
     ## what is needed and pass that one along, with the expected classical contents.
