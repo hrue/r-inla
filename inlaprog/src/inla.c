@@ -4701,6 +4701,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])
 								   + (n - mb->f_rankdef[i]) / 2.0 * logdet));
 			val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec);
+
+			Free(theta_vec);
 		}
 			break;
 
