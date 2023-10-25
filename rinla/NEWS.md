@@ -1,3 +1,8 @@
+# INLA 23.10.25
+* Development bug-fix
+* Fixed memory leaks
+
+
 # INLA 23.10.19
 * Bux-fix to work around regression bug in package 'excursions'
 * Internal development 
