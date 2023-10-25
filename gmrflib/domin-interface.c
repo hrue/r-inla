@@ -279,9 +279,13 @@ int GMRFLib_opt_f_intern(int thread_id,
 	GMRFLib_tabulate_Qfunc(thread_id, (tabQfunc ? tabQfunc : &tabQfunc_local), G.graph, G.Qfunc[thread_id], G.Qfunc_arg[thread_id], NULL);
 
 	double con, *bnew_ptr = NULL;
+	int free_bnew_ptr = 1;
+
+	// bnew_ptr is alloc'ed in here. recall to free it unless its kept
 	GMRFLib_bnew(thread_id, &bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
 	if (bnew) {
 		*bnew = bnew_ptr;
+		free_bnew_ptr = 0;
 	}
 
 	GMRFLib_ai_marginal_hyperparam(thread_id,
@@ -362,6 +366,10 @@ int GMRFLib_opt_f_intern(int thread_id,
 		}
 	}
 
+	if (free_bnew_ptr) {
+		Free(bnew_ptr);
+	}
+	
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
