@@ -1494,29 +1494,34 @@ int GMRFLib_my_taucs_dccs_solve_llt(void *vL, double *x)
 		wwork[cache_idx] = Calloc(wwork_len[cache_idx], double);
 	}
 	double *work = wwork[cache_idx];
-	Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
+
+	// not needed
+	// Memset(work, 0, wwork_len[cache_idx] * sizeof(double));
 
 	double *y = work;
 	if (n > 0) {
-		for (int j = 0; j < n; j++) {
-			int ip = L->colptr[j];
-			double Ajj = L->values.d[ip];
+		double *d = L->values.d;
+		int *colptr = L->colptr;
+		int *rowind = L->rowind;
 
-			y[j] = x[j] / Ajj;
-			for (ip = L->colptr[j] + 1; ip < L->colptr[j + 1]; ip++) {
-				int i = L->rowind[ip];
-				double Aij = L->values.d[ip];
-				x[i] -= y[j] * Aij;
+		for (int j = 0; j < n; j++) {
+			// .../Ajj
+			y[j] = x[j] / d[colptr[j]];
+			double yj = y[j];
+
+			for (int ip = colptr[j] + 1; ip < colptr[j + 1]; ip++) {
+				int i = rowind[ip];
+				double Aij = d[ip];
+				x[i] -= yj * Aij;
 			}
 		}
 
 		for (int i = n - 1; i >= 0; i--) {
-			int jp1 = L->colptr[i] + 1;
-			y[i] -= GMRFLib_ddot_idx_mkl(L->colptr[i + 1] - jp1, L->values.d + jp1, x, L->rowind + jp1);
-
-			int jp = L->colptr[i];
-			double Aii = L->values.d[jp];
-			x[i] = y[i] / Aii;
+			int jp = colptr[i];
+			int jp1 = jp + 1;
+			double inv_Aii = 1.0 / d[jp];
+			y[i] -= GMRFLib_ddot_idx_mkl(colptr[i + 1] - jp1, d + jp1, x, rowind + jp1);
+			x[i] = y[i] * inv_Aii;
 		}
 	}
 
