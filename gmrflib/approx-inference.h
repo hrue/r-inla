@@ -934,6 +934,7 @@ typedef struct {
 } GMRFLib_store_config_preopt_tp;
 
 typedef struct {
+	int lite;
 	int mpred;
 	int npred;
 	int mnpred;
@@ -995,6 +996,7 @@ typedef struct {
 
 	GMRFLib_matrix_tp *opt_directions;
 
+	int config_lite;
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
 

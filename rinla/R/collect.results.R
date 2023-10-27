@@ -502,17 +502,18 @@
     fnm <- paste0(d, "/config_preopt/configs.dat")
     if (file.exists(fnm)) {
         fp <- file(fnm, "rb")
-        iarr <- readBin(fp, integer(), 8)
+        iarr <- readBin(fp, integer(), 9)
         configs <- list(
             .preopt = TRUE, 
-            mpred = iarr[1], 
-            npred = iarr[2], 
-            mnpred = iarr[3], 
-            Npred = iarr[4], 
-            n = iarr[5], 
-            nz = iarr[6], 
-            prior_nz = iarr[7],
-            ntheta = iarr[8])
+            lite = as.logical(iarr[1]), 
+            mpred = iarr[2], 
+            npred = iarr[3], 
+            mnpred = iarr[4], 
+            Npred = iarr[5], 
+            n = iarr[6], 
+            nz = iarr[7], 
+            prior_nz = iarr[8],
+            ntheta = iarr[9])
         configs.i <- readBin(fp, integer(), configs$nz) ## 0-based
         configs.j <- readBin(fp, integer(), configs$nz) ## 0-based
         configs.iprior <- readBin(fp, integer(), configs$prior_nz) ## 0-based
