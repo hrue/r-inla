@@ -1,3 +1,7 @@
+# INLA 23.10.27
+* Improve storage when `selection` is used
+* Various minor development
+
 # INLA 23.10.25
 * Development bug-fix
 * Fixed memory leaks
