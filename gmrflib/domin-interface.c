@@ -369,7 +369,7 @@ int GMRFLib_opt_f_intern(int thread_id,
 	if (free_bnew_ptr) {
 		Free(bnew_ptr);
 	}
-	
+
 	GMRFLib_LEAVE_ROUTINE;
 	return GMRFLib_SUCCESS;
 }
@@ -1558,15 +1558,21 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 
 	ssize_t rval;
 	int fd = mkstemp(template);
-	rval = write(fd, &fval, sizeof(double)); assert(rval >= 0);
-	rval = write(fd, &nfun, sizeof(int)); assert(rval >= 0);
-	rval = write(fd, &ntheta, sizeof(int)); assert(rval >= 0);
+	rval = write(fd, &fval, sizeof(double));
+	assert(rval >= 0);
+	rval = write(fd, &nfun, sizeof(int));
+	assert(rval >= 0);
+	rval = write(fd, &ntheta, sizeof(int));
+	assert(rval >= 0);
 	if (ntheta) {
-		rval = write(fd, theta, ntheta * sizeof(double)); assert(rval >= 0);
+		rval = write(fd, theta, ntheta * sizeof(double));
+		assert(rval >= 0);
 	}
-	rval = write(fd, &nx, sizeof(int)); assert(rval >= 0);
+	rval = write(fd, &nx, sizeof(int));
+	assert(rval >= 0);
 	if (nx) {
-		rval = write(fd, x, nx * sizeof(double)); assert(rval >= 0);
+		rval = write(fd, x, nx * sizeof(double));
+		assert(rval >= 0);
 	}
 	close(fd);
 

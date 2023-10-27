@@ -5178,7 +5178,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 	}
 	int id = omp_get_thread_num();
 	int lite = mo->config_lite;
-	
+
 	if (!(mo->configs_preopt[id])) {
 
 		GMRFLib_graph_tp *g;
@@ -5209,7 +5209,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 		j = mo->configs_preopt[id]->j = Calloc(mo->configs_preopt[id]->nz, int);
 		g = preopt->preopt_graph;
 		if (lite) {
-			for(k = 0; k < g->n; k++) {
+			for (k = 0; k < g->n; k++) {
 				i[k] = k;
 				j[k] = k;
 			}
@@ -5231,7 +5231,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 		j = mo->configs_preopt[id]->jprior = Calloc(mo->configs_preopt[id]->prior_nz, int);
 		g = preopt->latent_graph;
 		if (lite) {
-			for(k = 0; k < g->n; k++) {
+			for (k = 0; k < g->n; k++) {
 				i[k] = k;
 				j[k] = k;
 			}
@@ -5279,7 +5279,7 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 			}
 		}
 	}
-	
+
 	Qprior = Calloc(mo->configs_preopt[id]->prior_nz, double);
 	assert(Qfunc == GMRFLib_preopt_Qfunc);
 	g = preopt->latent_graph;
