@@ -71,10 +71,10 @@ reordered precision matrix and the Cholesky triangle should be generated.
 (Default FALSE.)}
 
 \item{config}{A boolean variable if the internal GMRF approximations be
-stored. (Default FALSE. EXPERIMENTAL)}
+stored. (Default \code{FALSE}.)}
 
 \item{likelihood.info}{A boolean variable to store likelihood-information or not.
-This option requires \code{config=TRUE} (Default FALSE. EXPERIMENTAL)}
+This option requires \code{config=TRUE} (Default \code{FALSE}. EXPERIMENTAL)}
 
 \item{smtp}{The sparse-matrix solver, one of 'default', 'taucs', 'band' or
 'pardiso' (default \code{inla.getOption("smtp")}). \code{smtp='pardiso'} implies

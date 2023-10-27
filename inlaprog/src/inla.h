@@ -841,6 +841,7 @@ typedef struct {
 	int q;						       /* output image of the Q-matrix */
 	int graph;					       /* output the graph */
 	int config;					       /* output the configurations */
+	int config_lite;				       /* output-lite the configurations */
 	int likelihood_info;				       /* output likelihood_info (requires config=TRUE) */
 	int internal_opt;				       /* do internal optimisation? default TRUE */
 	int save_memory;				       /* save memory? default FALSE */

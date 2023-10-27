@@ -5177,12 +5177,14 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 		return GMRFLib_SUCCESS;
 	}
 	int id = omp_get_thread_num();
-
+	int lite = mo->config_lite;
+	
 	if (!(mo->configs_preopt[id])) {
 
 		GMRFLib_graph_tp *g;
 		mo->configs_preopt[id] = Calloc(1, GMRFLib_store_configs_preopt_tp);
 
+		mo->configs_preopt[id]->lite = lite;
 		mo->configs_preopt[id]->mpred = preopt->mpred;
 		mo->configs_preopt[id]->npred = preopt->npred;
 		mo->configs_preopt[id]->mnpred = preopt->mnpred;
@@ -5190,48 +5192,62 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 		mo->configs_preopt[id]->n = preopt->n;
 		mo->configs_preopt[id]->ntheta = ntheta;
 
-		int nelm = preopt->preopt_graph->n + preopt->preopt_graph->nnz;
+		int nelm;
+		nelm = preopt->preopt_graph->n + (lite ? 0 : preopt->preopt_graph->nnz);
 		mo->configs_preopt[id]->nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
-		nelm = preopt->latent_graph->n + preopt->latent_graph->nnz;
+
+		nelm = preopt->latent_graph->n + (lite ? 0 : preopt->latent_graph->nnz);
 		mo->configs_preopt[id]->prior_nz = (nelm - mo->configs_preopt[id]->n) / 2 + mo->configs_preopt[id]->n;
+
 		mo->configs_preopt[id]->A = preopt->A;
 		mo->configs_preopt[id]->pA = preopt->pA;
 		GMRFLib_duplicate_constr(&(mo->configs_preopt[id]->constr), preopt->latent_constr, preopt->preopt_graph);
 
 		int *i, *j, ii, jj, k, kk;
-		i = Calloc(mo->configs_preopt[id]->nz, int);
-		j = Calloc(mo->configs_preopt[id]->nz, int);
-		g = preopt->preopt_graph;
-		for (ii = k = 0; ii < g->n; ii++) {
-			i[k] = ii;
-			j[k] = ii;
-			k++;
-			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
-				jj = g->lnbs[ii][kk];
-				i[k] = ii;
-				j[k] = jj;
-				k++;
-			}
-		}
-		mo->configs_preopt[id]->i = i;
-		mo->configs_preopt[id]->j = j;
 
-		g = preopt->latent_graph;
-		i = Calloc(mo->configs_preopt[id]->prior_nz, int);
-		j = Calloc(mo->configs_preopt[id]->prior_nz, int);
-		for (ii = k = 0; ii < g->n; ii++) {
-			i[k] = ii;
-			j[k] = ii;
-			k++;
-			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
-				jj = g->lnbs[ii][kk];
+		i = mo->configs_preopt[id]->i = Calloc(mo->configs_preopt[id]->nz, int);
+		j = mo->configs_preopt[id]->j = Calloc(mo->configs_preopt[id]->nz, int);
+		g = preopt->preopt_graph;
+		if (lite) {
+			for(k = 0; k < g->n; k++) {
+				i[k] = k;
+				j[k] = k;
+			}
+		} else {
+			for (ii = k = 0; ii < g->n; ii++) {
 				i[k] = ii;
-				j[k] = jj;
+				j[k] = ii;
 				k++;
+				for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+					jj = g->lnbs[ii][kk];
+					i[k] = ii;
+					j[k] = jj;
+					k++;
+				}
 			}
 		}
-		mo->configs_preopt[id]->iprior = i;
-		mo->configs_preopt[id]->jprior = j;
+
+		i = mo->configs_preopt[id]->iprior = Calloc(mo->configs_preopt[id]->prior_nz, int);
+		j = mo->configs_preopt[id]->jprior = Calloc(mo->configs_preopt[id]->prior_nz, int);
+		g = preopt->latent_graph;
+		if (lite) {
+			for(k = 0; k < g->n; k++) {
+				i[k] = k;
+				j[k] = k;
+			}
+		} else {
+			for (ii = k = 0; ii < g->n; ii++) {
+				i[k] = ii;
+				j[k] = ii;
+				k++;
+				for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+					jj = g->lnbs[ii][kk];
+					i[k] = ii;
+					j[k] = jj;
+					k++;
+				}
+			}
+		}
 
 		mo->configs_preopt[id]->nconfig = 0;
 		mo->configs_preopt[id]->config = NULL;
@@ -5245,24 +5261,39 @@ int GMRFLib_ai_store_config_preopt(int thread_id, GMRFLib_ai_misc_output_tp *mo,
 	double *Qinv = NULL, *Q = NULL, *Qprior = NULL, *mean = NULL, *imean = NULL;
 	GMRFLib_graph_tp *g;
 
+	// TODO This should be changed: The code below to store Q and Qprior, is a little sloppy, as we do not use the (i,j) arrays
+	// mo->configs_preopt[id]->iprior etc, but we just store the matrices in a vector, in the same order as the indices were stored.
+
 	Q = Calloc(mo->configs_preopt[id]->nz, double);
 	g = preopt->preopt_graph;
-	for (ii = k = 0; ii < g->n; ii++) {
-		Q[k++] = Qfunc(thread_id, ii, ii, NULL, Qfunc_arg) + (c_corrected ? c_corrected[ii] : 0.0);
-		for (kk = 0; kk < g->lnnbs[ii]; kk++) {
-			jj = g->lnbs[ii][kk];
-			Q[k++] = Qfunc(thread_id, ii, jj, NULL, Qfunc_arg);
+	if (lite) {
+		for (ii = k = 0; ii < g->n; ii++) {
+			Q[k++] = Qfunc(thread_id, ii, ii, NULL, Qfunc_arg) + (c_corrected ? c_corrected[ii] : 0.0);
+		}
+	} else {
+		for (ii = k = 0; ii < g->n; ii++) {
+			Q[k++] = Qfunc(thread_id, ii, ii, NULL, Qfunc_arg) + (c_corrected ? c_corrected[ii] : 0.0);
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				Q[k++] = Qfunc(thread_id, ii, jj, NULL, Qfunc_arg);
+			}
 		}
 	}
-
+	
 	Qprior = Calloc(mo->configs_preopt[id]->prior_nz, double);
 	assert(Qfunc == GMRFLib_preopt_Qfunc);
 	g = preopt->latent_graph;
-	for (ii = k = 0; ii < g->n; ii++) {
-		Qprior[k++] = GMRFLib_preopt_Qfunc_prior(thread_id, ii, ii, NULL, Qfunc_arg);
-		for (kk = 0; kk < g->lnnbs[ii]; kk++) {
-			jj = g->lnbs[ii][kk];
-			Qprior[k++] = GMRFLib_preopt_Qfunc_prior(thread_id, ii, jj, NULL, Qfunc_arg);
+	if (lite) {
+		for (ii = k = 0; ii < g->n; ii++) {
+			Qprior[k++] = GMRFLib_preopt_Qfunc_prior(thread_id, ii, ii, NULL, Qfunc_arg);
+		}
+	} else {
+		for (ii = k = 0; ii < g->n; ii++) {
+			Qprior[k++] = GMRFLib_preopt_Qfunc_prior(thread_id, ii, ii, NULL, Qfunc_arg);
+			for (kk = 0; kk < g->lnnbs[ii]; kk++) {
+				jj = g->lnbs[ii][kk];
+				Qprior[k++] = GMRFLib_preopt_Qfunc_prior(thread_id, ii, jj, NULL, Qfunc_arg);
+			}
 		}
 	}
 
