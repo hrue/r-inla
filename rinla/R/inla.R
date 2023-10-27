@@ -2462,7 +2462,7 @@
                 ret$summary.lincomb.derived <- data.frame()
             }
             
-            if (ret$misc$configs$lite && !lite.is.set) {
+            if (!is.null(ret$misc$configs$lite) && ret$misc$configs$lite && !lite.is.set) {
                 ret$misc$configs <- NULL
             }
         }
