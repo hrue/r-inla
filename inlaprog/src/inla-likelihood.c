@@ -655,8 +655,6 @@ int loglikelihood_gaussian(int thread_id, double *logll, double *x, int m, int i
 		lprec = log(prec);
 	}
 
-	if (idx == 0) P(sqrt(1/prec));
-
 	LINK_INIT;
 	if (arg_str) {
 		char *a = NULL;
