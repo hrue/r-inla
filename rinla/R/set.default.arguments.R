@@ -359,11 +359,11 @@ control.gcpo <-
             q = FALSE,
 
             #' @param config A boolean variable if the internal GMRF approximations be
-            #' stored. (Default FALSE. EXPERIMENTAL)
+            #' stored. (Default `FALSE`.)
             config = FALSE,
 
             #' @param likelihood.info A boolean variable to store likelihood-information or not.
-            #' This option requires `config=TRUE` (Default FALSE. EXPERIMENTAL)
+            #' This option requires `config=TRUE` (Default `FALSE`. EXPERIMENTAL)
             likelihood.info = FALSE,
 
             #' @param smtp The sparse-matrix solver, one of 'default', 'taucs', 'band' or

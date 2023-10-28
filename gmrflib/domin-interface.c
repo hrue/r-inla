@@ -279,9 +279,13 @@ int GMRFLib_opt_f_intern(int thread_id,
 	GMRFLib_tabulate_Qfunc(thread_id, (tabQfunc ? tabQfunc : &tabQfunc_local), G.graph, G.Qfunc[thread_id], G.Qfunc_arg[thread_id], NULL);
 
 	double con, *bnew_ptr = NULL;
+	int free_bnew_ptr = 1;
+
+	// bnew_ptr is alloc'ed in here. recall to free it unless its kept
 	GMRFLib_bnew(thread_id, &bnew_ptr, &con, G.graph->n, G.b, G.bfunc);
 	if (bnew) {
 		*bnew = bnew_ptr;
+		free_bnew_ptr = 0;
 	}
 
 	GMRFLib_ai_marginal_hyperparam(thread_id,
@@ -360,6 +364,10 @@ int GMRFLib_opt_f_intern(int thread_id,
 				}
 			}
 		}
+	}
+
+	if (free_bnew_ptr) {
+		Free(bnew_ptr);
 	}
 
 	GMRFLib_LEAVE_ROUTINE;
@@ -1548,16 +1556,23 @@ void inla_write_state_to_file(double fval, int nfun, int ntheta, double *theta, 
 	char *template = NULL;
 	GMRFLib_sprintf(&template, "%s/INLA-state-pid%1d-count%1d-XXXXXX", homedir, (int) getpid(), ++count);
 
+	ssize_t rval;
 	int fd = mkstemp(template);
-	write(fd, &fval, sizeof(double));
-	write(fd, &nfun, sizeof(int));
-	write(fd, &ntheta, sizeof(int));
+	rval = write(fd, &fval, sizeof(double));
+	assert(rval >= 0);
+	rval = write(fd, &nfun, sizeof(int));
+	assert(rval >= 0);
+	rval = write(fd, &ntheta, sizeof(int));
+	assert(rval >= 0);
 	if (ntheta) {
-		write(fd, theta, ntheta * sizeof(double));
+		rval = write(fd, theta, ntheta * sizeof(double));
+		assert(rval >= 0);
 	}
-	write(fd, &nx, sizeof(int));
+	rval = write(fd, &nx, sizeof(int));
+	assert(rval >= 0);
 	if (nx) {
-		write(fd, x, nx * sizeof(double));
+		rval = write(fd, x, nx * sizeof(double));
+		assert(rval >= 0);
 	}
 	close(fd);
 

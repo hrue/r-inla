@@ -1271,7 +1271,13 @@
         save.memory <- inla.getOption('save.memory')
     inla.write.boolean.field("save.memory", save.memory, file)
 
+    config.lite <- FALSE
+    if (as.character(config) %in% "lite") {
+        config.lite <- TRUE
+        config <- TRUE
+    } 
     inla.write.boolean.field("config", config, file)
+    inla.write.boolean.field("config.lite", config.lite, file)
     inla.write.boolean.field("likelihood.info", likelihood.info, file)
 
     inla.write.boolean.field("gcpo.enable", gcpo$enable, file)

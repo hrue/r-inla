@@ -42,7 +42,6 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 	}
 
 	int count = 0, err, len = 1024;
-	double *c = Calloc(len, double);
 	GMRFLib_io_tp *io = NULL;
 
 	if (GMRFLib_is_fmesher_file(filename, (long int) 0, -1) == GMRFLib_SUCCESS) {
@@ -69,6 +68,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 
 		return INLA_OK;
 	} else {
+		double *c = Calloc(len, double);
 		GMRFLib_EWRAP0(GMRFLib_io_open(&io, filename, "r"));
 		{
 			GMRFLib_error_handler_tp *old_handler = GMRFLib_set_error_handler_off();
@@ -78,7 +78,7 @@ int inla_read_data_all(double **x, int *n, const char *filename, int *ncol_data_
 				if (err == GMRFLib_SUCCESS) {
 					count++;
 					if (count >= len) {
-						len += 1000;
+						len += 1024;
 						c = Realloc(c, len, double);
 					}
 				} else {
@@ -160,6 +160,8 @@ int inla_read_data_general(double **xx, int **ix, int *nndata, const char *filen
 	if (nndata) {
 		*nndata = ndata;
 	}
+
+	Free(x);
 	return INLA_OK;
 }
 

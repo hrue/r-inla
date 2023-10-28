@@ -934,6 +934,7 @@ typedef struct {
 } GMRFLib_store_config_preopt_tp;
 
 typedef struct {
+	int lite;
 	int mpred;
 	int npred;
 	int mnpred;
@@ -995,6 +996,7 @@ typedef struct {
 
 	GMRFLib_matrix_tp *opt_directions;
 
+	int config_lite;
 	GMRFLib_store_configs_tp **configs;		       /* configs[id][...] */
 	GMRFLib_store_configs_preopt_tp **configs_preopt;      /* configs[id][...] */
 
@@ -1174,8 +1176,8 @@ int GMRFLib_ai_compute_lincomb(GMRFLib_density_tp *** lindens, double **cross, i
 			       double *improved_mean, int lookup_tables);
 GMRFLib_ai_store_tp *GMRFLib_duplicate_ai_store(GMRFLib_ai_store_tp * ai_store, int skeleton, int copy_ptr, int copy_pardiso_ptr);
 GMRFLib_ai_store_tp *GMRFLib_assign_ai_store(GMRFLib_ai_store_tp * to, GMRFLib_ai_store_tp * from);
-int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *aa, double *bb, double *cc, double *dd, int idx, double d,
-			       GMRFLib_logl_tp * loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd);
+int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, double *fitted_prec, int idx, double d,
+			       GMRFLib_logl_tp *loglFunc, void *loglFunc_arg, double *x_vec, double mean, double sd);
 double GMRFLib_ai_vb_mEll(int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc, void *loglFunc_arg,
 			  double *x_vec, double mean_add, double var_scale);
 int GMRFLib_ai_vb_prepare(int thread_id, GMRFLib_vb_coofs_tp * coofs, int idx, GMRFLib_density_tp * density, double d, GMRFLib_logl_tp * loglFunc,

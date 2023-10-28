@@ -1095,6 +1095,8 @@
 
 `inla.read.state` <- function(filename) {
     ## read state file
+    stopifnot(!missing(filename))
+    filename <- normalizePath(filename)
     stopifnot(file.exists(filename))
     fp <- file(filename, "rb")
     fval <- readBin(fp, what = numeric(), 1)
@@ -1104,7 +1106,6 @@
     nx <- readBin(fp, what = integer(), 1)
     x <- if (nx > 0) readBin(fp, what = numeric(), nx) else NULL
     close(fp)
-
     r <- list(fval = fval, nfun = nfun, mode = list(theta = theta, x = x))
     return (r);
 }

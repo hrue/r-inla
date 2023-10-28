@@ -857,14 +857,24 @@
         gp$model.matrix <- NULL
     }
 
+    lite.is.set <- FALSE
+    if (!is.null(control.compute$config) && is.character(control.compute$config) &&
+        (control.compute$config %in% "lite")) {
+        lite.is.set <- TRUE
+    }
+
     if (!is.null(selection)) {
         ## convert the selection into lincomb's.
         lincomb.sel <- inla.selection2lincombs(selection)
         lincomb <- c(lincomb, lincomb.sel)
         ## both these are required.
         control.inla$lincomb.derived.correlation.matrix <- TRUE
-        control.compute$config <- TRUE
-    }
+        if (is.null(control.compute$config) || (is.logical(control.compute$config) && !control.compute$config)) {
+            control.compute$config <- "lite"
+        } else {
+            control.compute$config <- TRUE
+        }
+    } 
 
     ## control what should be computed
     cont.compute <- ctrl_update(control.compute)
@@ -2366,6 +2376,10 @@
                 ret$misc$lincomb.derived.covariance.matrix <- NULL
                 ret$misc$lincomb.derived.correlation.matrix <- NULL
                 ret$summary.lincomb.derived <- data.frame()
+            }
+            
+            if (!is.null(ret$misc$configs$lite) && ret$misc$configs$lite && !lite.is.set) {
+                ret$misc$configs <- NULL
             }
         }
 

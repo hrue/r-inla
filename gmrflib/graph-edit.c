@@ -178,7 +178,7 @@ int GMRFLib_ged_build(GMRFLib_graph_tp **graph, GMRFLib_ged_tp *ged)
 
 int GMRFLib_ged_free(GMRFLib_ged_tp *ged)
 {
-	for (int i = 0; i < ged->n; i++) {
+	for (int i = 0; i < ged->n_alloc; i++) {
 		map_ii_free(&(ged->Q[i]));
 	}
 	Free(ged->Q);

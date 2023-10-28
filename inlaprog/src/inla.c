@@ -4701,6 +4701,8 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * dim * (n - mb->f_rankdef[i])
 								   + (n - mb->f_rankdef[i]) / 2.0 * logdet));
 			val += PRIOR_EVAL(mb->f_prior[i][0], theta_vec);
+
+			Free(theta_vec);
 		}
 			break;
 
@@ -5678,8 +5680,10 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 	mb->misc_output = Calloc(1, GMRFLib_ai_misc_output_tp);
 	if (mb->output->config) {
 		mb->misc_output->configs_preopt = Calloc(GMRFLib_MAX_THREADS(), GMRFLib_store_configs_preopt_tp *);
+		mb->misc_output->config_lite = mb->output->config_lite;
 	} else {
 		mb->misc_output->configs_preopt = NULL;
+		mb->misc_output->config_lite = 0;
 	}
 
 	mb->misc_output->likelihood_info = mb->output->likelihood_info;
