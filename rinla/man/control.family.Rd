@@ -21,7 +21,7 @@ control.family(
   variant = 0L,
   control.mix = NULL,
   control.pom = NULL,
-  control.link = NULL,
+  control.link = INLA::control.link(),
   link.simple = "default"
 )
 

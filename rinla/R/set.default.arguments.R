@@ -4,13 +4,13 @@
 ## by all other control.* method documentation.
 
 #' @title control.update
-#' 
+#'
 #' @description
 #' Control variables in `control.*` for use with [inla()].
 #' The functions can be used to TAB-complete arguments, and
 #' returns a list of the default control arguments, unless overridden by
 #' specific input arguments.
-#' 
+#'
 #' @param ... Named arguments passed on to the main function
 #' @seealso [inla()]
 #' @family control
@@ -20,11 +20,11 @@
         #' @param result Update the joint posterior for the hyperparameters from result
         result = NULL
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "update", check = FALSE)
     }
 
 #' @title control.lincomb
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.lincomb` <-
@@ -34,12 +34,12 @@
         #' the default `inla.mode` (`inla.mode="compact"`).
         verbose = FALSE
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "lincomb", check = FALSE)
     }
 
-    
+
 #' @title control.group
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.group` <-
@@ -47,51 +47,51 @@
         #' @param model Group model (one of 'exchangable', 'exchangablepos', 'ar1',
         #' 'ar', 'rw1', 'rw2', 'besag', or 'iid')
         model = "exchangeable",
-        
+
         #' @param order Defines the `order` of the model: for model `ar` this
         #' defines the order p, in AR(p). Not used for other models at the time
         #' being.
         order = NULL,
-        
+
         #' @param cyclic Make the group model cyclic? (Only applies to models 'ar1',
         #' 'rw1' and 'rw2')
         cyclic = FALSE,
-        
+
         #' @param graph The graph specification (Only applies to model 'besag')
         graph = NULL,
-        
+
         #' @param scale.model Scale the intrinsic model (RW1, RW2, BESAG) so the
         #' generalized variance is 1. (Default `TRUE`)
         scale.model = TRUE,
-        
+
         #' @param adjust.for.con.comp Adjust for connected components when
         #' `scale.model=TRUE`? (default `TRUE`)
         adjust.for.con.comp = TRUE,
-        
+
         #' @param hyper Definition of the hyperparameter(s)
         hyper = NULL,
-        
+
         #' @param initial (OBSOLETE!) The initial value for the group correlation or
         #' precision in the internal scale.
         initial = NULL,
-        
+
         #' @param fixed (OBSOLETE!) A boolean variable if the group correction or
         #' precision is assumed to be fixed or random.
         fixed = NULL,
-        
+
         #' @param prior (OBSOLETE!) The name of the prior distribution for the group
         #' correlation or precision in the internal scale
         prior = NULL,
-        
+
         #' @param param (OBSOLETE!) Prior parameters
         param = NULL
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "group", check = FALSE)
     }
 
-    
+
 #' @title control.scopy
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.scopy` <-
@@ -109,16 +109,16 @@
             mean = 1.0,
 
             #' @param prec.mean The prior precision for mean(betas)
-            prec.mean =  1.0, 
+            prec.mean =  1.0,
 
             #' @param prec.betas The prior precision prec(betas-mean(betas))
             prec.betas =  10.0
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "scopy", check = FALSE)
     }
 
 #' @title control.mix
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @details The `control.mix` list is set within the corresponding `control.family`-list a the mixture of the likelihood is likelihood specific. (This option is EXPERIMENTAL.)
 #' @family control
 #' @export
@@ -155,11 +155,11 @@
             #' `quadrature`, `simpson`)
             integrator = "default"
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "mix", check = FALSE)
     }
 
 #' @title control.pom
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 ## @details The \code{control.pom} -list is set within the corresponding \code{control.family}
 #' @family control
 #' @export
@@ -172,11 +172,11 @@
             #' (default `FALSE`)?
             fast = FALSE
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "pom", check = FALSE)
         }
 
 #' @title control.link
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.link` <-
@@ -217,7 +217,7 @@
             #' the hyperparmater(s)
             param = NULL
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "link", check = FALSE)
     }
 
 `inla.set.f.default` <-
@@ -226,7 +226,7 @@
     }
 
 #' @title control.expert
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.expert` <-
@@ -244,7 +244,7 @@
             disable.gaussian.check = FALSE,
 
             #' @param jp An object of class `inla.jp` defining a joint prior
-            jp = NULL, 
+            jp = NULL,
 
             #' @param dot.product.gain Output the gain in
             #' optimizing dot-products? (Default `FALSE`)
@@ -252,15 +252,15 @@
 
             #' @param globalconstr Add a global constraint (see `?f` and argument
             #' `extraconstr`). Note that a global constraint does NOT
-            #' correct the normalisation constant. 
+            #' correct the normalisation constant.
             globalconstr = list(A = NULL, e = NULL)
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "expert", check = FALSE)
         }
 
 
 #' @title control.gcpo
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 #' @details (For experts only!) Set control variables for the gcpo in [control.compute].
@@ -281,13 +281,13 @@ control.gcpo <-
         #' @param selection TODO
         selection = NULL,
         #' @param friends TODO
-        friends = NULL, 
+        friends = NULL,
         #' @param verbose TODO
         verbose = FALSE,
         #' @param epsilon TODO
         epsilon = 0.005,
         #' @param prior.diagonal TODO
-        prior.diagonal = 1e-4, 
+        prior.diagonal = 1e-4,
         #' @param correct.hyperpar TODO
         correct.hyperpar = TRUE,
         #' @param keep TODO
@@ -297,11 +297,11 @@ control.gcpo <-
         #' @param remove.fixed TODO
         remove.fixed = TRUE
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "gcpo", check = FALSE)
     }
 
 #' @title control.compute
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.compute` <-
@@ -381,7 +381,7 @@ control.gcpo <-
 
             #' @param save.memory A boolean variable, make choices which
             #' saves memory over accuracy. (Default 'inla.getOption("save.memory")')
-            save.memory = NULL, 
+            save.memory = NULL,
 
             #' @param control.gcpo (For experts only!) Set control variables for the gcpo.
             #' The intended use is to use `inla.group.cv`.
@@ -393,11 +393,11 @@ control.gcpo <-
             ##   control.compute = list(control.gcpo = control.gcpo())
             ## to test updated settings.
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "compute", check = FALSE)
         }
 
 #' @title control.lp.scale
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.lp.scale` <-
@@ -405,11 +405,11 @@ control.gcpo <-
             #' @param hyper Definition of the hyperparameter(s)
             hyper = NULL
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "lp_scale", check = FALSE)
     }
 
 #' @title control.pardiso
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @details Extra options controlling the PARDISO library
 #' @family control
 #' @export
@@ -417,22 +417,22 @@ control.gcpo <-
     function(
             #' @param verbose Show detailed output (default FALSE)
             verbose = FALSE,
-        
+
             #' @param debug Show internal debug output (default FALSE)
             debug = FALSE,
-            
+
             #' @param parallel.reordering Do reordering in parallel (default TRUE)
             parallel.reordering = TRUE,
-            
+
             #' @param nrhs Number of right-hand sides to solve for in parallel (`-1`
             #' will determine this adapative)
             nrhs = -1
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "pardiso", check = FALSE)
     }
 
 #' @title control.bgev
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.bgev` <-
@@ -450,11 +450,11 @@ control.gcpo <-
             #' @param beta.ab The parameters a and b in the Beta mixing function
             beta.ab = 5L
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "bgev", check = FALSE)
         }
 
 #' @title control.family
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.family` <-
@@ -516,16 +516,16 @@ control.gcpo <-
             control.pom = NULL,
 
             #' @param control.link See `?control.link`
-            control.link = NULL,
+            control.link = INLA::control.link(),
 
             #' @param link.simple See `inla.doc("0inflated")`
             link.simple = "default"
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "family", check = FALSE)
         }
 
 #' @title control.fixed
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.fixed` <-
@@ -582,23 +582,23 @@ control.gcpo <-
             #' know what you are doing.
             remove.names = NULL
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "fixed", check = FALSE)
         }
 
 #' @title control.fixed
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 #' @details control.vb List of arguments for various VB corrections.
 #' Used for [control.inla] `control.vb` specifications.
 control.vb <- function(
-        #' @param enable Logical/Character Use this feature? If `"auto"` this will be selected automatically. 
+        #' @param enable Logical/Character Use this feature? If `"auto"` this will be selected automatically.
         enable = "auto",
         #' @param strategy Character What to correct, either "mean" or "variance".
         strategy = c("mean", "variance"),
-        #' @param verbose Logical Be verbose or not. 
+        #' @param verbose Logical Be verbose or not.
         verbose = TRUE,
-        #' @param iter.max Integer Maximum number of iterations. 
+        #' @param iter.max Integer Maximum number of iterations.
         iter.max = 25,
         #' @param emergency Numeric If the standardized correction for the mean is larger
         #'           than this value, then call the vb.correction off and issue a warning
@@ -611,16 +611,16 @@ control.vb <- function(
         #'         correction (`strategy="variance"` only).
         hessian.update = 2,
         #' @param hessian.strategy Select strategy for computing the Hessian
-        #'         matrix for `strategy="variance"`, one of `"full"`, 
+        #'         matrix for `strategy="variance"`, one of `"full"`,
         #'         `"diagonal"`, `"partial"` and `"default"`.
         hessian.strategy = c("default", "full", "partial", "diagonal")
 ) {
-    as.list(environment())
+    ctrl_object(as.list(environment()), "vb", check = FALSE)
 }
 
 
 #' @title control.inla
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.inla` <-
@@ -628,207 +628,207 @@ control.vb <- function(
         #' @param strategy  Character The strategy to use for the approximations; one
         #' of 'auto' (default), 'gaussian', 'simplified.laplace', 'laplace' or 'adaptive'.
         strategy = "auto",
-        
+
         #' @param int.strategy  Character The integration strategy to use; one of
         #' 'auto' (default),  'ccd', 'grid', 'eb' (empirical bayes),  'user' or 'user.std'.
         #' For the experimental mode,  then 'grid' equal 'ccd' for more than two
         #' hyperparameters.
         int.strategy = "auto",
-        
+
         #' @param int.design  Matrix Matrix of user-defined integration points and
         #' weights. Each row consists theta values and the integration weight.
         #' (EXPERIMENTAL!).
         int.design = NULL,
-        
+
         #' @param interpolator  Character The interpolator used to compute the
         #' marginals for the hyperparameters. One of 'auto', 'nearest', 'quadratic',
         #' 'weighted.distance', 'ccd', 'ccdintegrate', 'gridsum', 'gaussian'. Default is
         #' 'auto'.
         interpolator = "auto",
-        
+
         #' @param fast Logical If TRUE, then replace conditional modes in the Laplace
         #' approximation with conditional expectation (default TRUE).
         fast = TRUE,
-        
+
         #' @param linear.correction Logical Default TRUE for the 'strategy = laplace'
         #' option.
         linear.correction = NULL,
-        
+
         #' @param h Numerical The step-length for the gradient calculations for the
         #' hyperparameters. Default 0.005.
         h = 0.005,
-        
+
         #' @param dz Numerical The step-length in the standarised scale for the
         #' integration of the hyperparameters. Default 0.75.
         dz = 0.75,
-        
+
         #' @param diff.logdens Numerical The difference of the log.density for the
         #' hyperpameters to stop numerical integration using int.strategy='grid'. Default 6.
         diff.logdens = 6,
-        
+
         #' @param print.joint.hyper Logical If TRUE, the store also the joint
         #' distribution of the hyperparameters (without any costs). Default TRUE.
         print.joint.hyper = TRUE,
-        
+
         #' @param force.diagonal Logical If TRUE, then force the Hessian to be
         #' diagonal. (Default `FALSE`)
         force.diagonal = FALSE,
-        
+
         #' @param skip.configurations Logical Skip configurations if the values at the
         #' main axis are to small. (Default `TRUE`)
         skip.configurations = TRUE,
-        
+
         #' @param mode.known Logical If TRUE then no optimisation is done. (Default
         #' FALSE.)
         mode.known = FALSE,
-        
+
         #' @param adjust.weights Logical If TRUE then just more accurate integration
         #' weights. (Default TRUE.)
         adjust.weights = TRUE,
-        
+
         #' @param tolerance Numerical The tolerance for the optimisation of the
         #' hyperparameters. If set, this is the default value for for '2.5*tolerance.f',
         #' 'tolerance.g' and  '5*tolerance.x'; see below.
         tolerance = 0.005,
-        
+
         #' @param tolerance.f Numerical The tolerance for the absolute change in the
         #' log posterior in the optimisation of the hyperparameters.
         tolerance.f = NULL,
-        
+
         #' @param tolerance.g Numerical The tolerance for the absolute change in the
         #' gradient of the log posterior in the optimisation of the hyperparameters.
         tolerance.g = NULL,
-        
+
         #' @param tolerance.x Numerical The tolerance for the change in the
         #' hyperparameters (root-mean-square) in the optimisation of the hyperparameters.
         tolerance.x = NULL,
-        
+
         #' @param tolerance.step Numerical The tolerance for the change in
         #' root-mean_squre in the inner Newton-like optimisation of the latent field.
         tolerance.step = 0.001,
-        
+
         #' @param restart Numerical To improve the optimisation, the optimiser is
         #' restarted at the found optimum 'restart' number of times.
         restart = 0L,
-        
+
         #' @param optimiser Character The optimiser to use; one of 'gsl' or 'default'.
         optimiser = "default",
-        
+
         #' @param verbose Logical Run in verbose mode? (Default FALSE)
         verbose = NULL,
-        
+
         #' @param reordering Character Type of reordering to use. (EXPERT OPTION; one
         #' of "AUTO", "DEFAULT", "IDENTITY", "REVERSEIDENTITY",  "BAND", "METIS", "GENMMD",
         #' "AMD", "MD", "MMD", "AMDBAR", "AMDC", "AMDBARC",  or the output from
         #' `inla.qreordering`. Default is 'auto'.)
         reordering = "auto",
-        
+
         #' @param cpo.diff Numerical Threshold to define when the cpo-calculations are
         #' inaccurate. (EXPERT OPTION.)
         cpo.diff = NULL,
-        
+
         #' @param npoints Numerical Number of points to use in the 'stratey=laplace'
         #' approximation (default 9)
         npoints = 9,
-        
+
         #' @param cutoff Numerical The cutoff used in the 'stratey=laplace'
         #' approximation. (Smaller value is more accurate and more slow.) (default 1e-4)
         cutoff = 1e-4,
-        
+
         #' @param adapt.hessian.mode Logical Should optimisation be continued if the
         #' Hessian estimate is void? (Default TRUE)
         adapt.hessian.mode = NULL,
-        
+
         #' @param adapt.hessian.max.trials Numerical Number of steps in the adaptive
         #' Hessian optimisation
         adapt.hessian.max.trials = NULL,
-        
+
         #' @param adapt.hessian.scale Numerical The scaling of the 'h' after each
         #' trial.
         adapt.hessian.scale = NULL,
-        
+
         #' @param adaptive.max Selecting `strategy="adaptive"` will chose the
         #' default strategy for all fixed effects and model components with length less or
         #' equal to `adaptive.max`, for others, the gaussian strategy will be applied.
         adaptive.max = 25L,
-        
+
         #' @param huge Logical If TRUE then try to do some of the internal
         #' parallelisations differently. Hopefully this will be of benefit for 'HUGE' models.
         #' (Default FALSE.) THIS OPTION IS OBSOLETE AND NOT USED!
         huge = FALSE,
-        
+
         #' @param step.len Numerical The step-length used to compute numerical
         #' derivaties of the log-likelihood (0 means `default` which
         #' depends on `stencil`)
-        step.len = 0.0, 
-        
+        step.len = 0.0,
+
         #' @param stencil Numerical Number of points in the stencil used to compute the
         #' numerical derivaties of the log-likelihood (5, 7 or 9). (default 5)
         stencil = 5L,
-        
+
         #' @param lincomb.derived.correlation.matrix Logical If TRUE compute also the
         #' correlations for the derived linear combinations, if FALSE do not (Default FALSE)
         lincomb.derived.correlation.matrix = FALSE,
-        
+
         #' @param diagonal Numerical Expert use only! Add a this value on the diagonal
         #' of the joint precision matrix. (default 0.0)
         diagonal = 0.0,
-        
+
         #' @param numint.maxfeval Numerical Maximum number of function evaluations in
         #' the the numerical integration for the hyperparameters. (Default 100000.)
         numint.maxfeval = 100000,
-        
+
         #' @param numint.relerr Numerical Relative error requirement in the the
         #' numerical integration for the hyperparameters. (Default 1e-5)
         numint.relerr = 1e-5,
-        
+
         #' @param numint.abserr Numerical Absolute error requirement in the the
         #' numerical integration for the hyperparameters. (Default 1e-6)
         numint.abserr = 1e-6,
-        
+
         #' @param cmin Numerical The minimum value for the negative Hessian from the
         #' likelihood. Increasing this value will stabalise the optimisation but can
         #' introduce bias.  (Default -Inf)
         cmin = -Inf,
-        
+
         #' @param b.strategy Character If `cmin` is used, either keep the linear
         #'     term (with `b.strategy="keep"`) or skip the contribution by
         #'     setting the linear term to zero (`b.strategy="skip"`). The
         #'     default value is `"keep"`
         b.strategy = "keep",
-        
+
         #' @param step.factor Numerical The step factor in the Newton-Raphson algorithm
         #' saying how large step to take (Default 1.0) YES! setting this to a
         #' negative values means = 1,  EXCEPT the first time (for each thread)
-        #' where |step.factor| is used. 
+        #' where |step.factor| is used.
         step.factor = -0.1,
-        
+
         #' @param global.node.factor Numerical The factor which defines the degree
         #'     required (how many neighbors), as a fraction of `n-1`,
         #'     that is required to be classified as a global node and numbered
         #'     last (whatever the reordering routine says). Here, `n`,
         #'     is the size of the graph. (Disabled if larger than 1,  default 2)
         global.node.factor = 2.0,
-        
+
         #' @param global.node.degree Numerical The degree required (number of
         #'     neighbors) to be classified as a global node and numbered
         #'     last (whatever the reordering routine says).
         #'     (default `.Machine$integer.max`)
         global.node.degree = .Machine$integer.max,
-        
+
         #' @param stupid.search Logical Enable or disable the stupid-search-algorithm,
         #' if the Hessian calculations reveals that the mode is not found.
         #' (Default `TRUE`.)
         stupid.search = TRUE,
-        
+
         #' @param stupid.search.max.iter Numerical Maximum number of iterations allowed
         #' for the stupid-search-algorithm. (default 1000)
         stupid.search.max.iter = 1000L,
-        
+
         #' @param stupid.search.factor Numerical Factor (>=1) to increase the
         #' step-length with after each new iteration. (default 1.05)
         stupid.search.factor = 1.05,
-        
+
         #' @param control.vb list of arguments for various VB corrections.
         #' See [control.vb()] for details.
         control.vb = INLA::control.vb(),
@@ -837,51 +837,51 @@ control.vb <- function(
         ## During development, use
         ##   control.inla = list(control.vb = control.vb())
         ## to test updated settings.
-        
+
         #' @param num.gradient Character Set the numerical scheme to compute the
         #' gradient,  one of `"forward"` or `"central"` (default).
         num.gradient = "central",
-        
+
         #' @param num.hessian Character Set the numerical scheme to compute the
         #' Hessian,  one of `"forward"` or `"central"` (default).
         num.hessian = "central",
-        
+
         #' @param optimise.strategy Character THIS OPTION IS EXPERIMENTAL. Chose the
         #' optimiser strategy,  one of `"plain"` or `"smart"` (default)
         optimise.strategy = "smart",
-        
+
         #' @param use.directions THIS OPTION IS EXPERIMENTAL. Unless `FALSE` or
         #' `NULL`,  use directions for computing gradient and Hessian, initialised with
         #' `use.directions` if a matrix.
         use.directions = TRUE,
-        
+
         #' @param constr.marginal.diagonal Add stability to `AQ^-1A^T` by adding a
         #' small diagonal term. (default `epsilon^0.5`)
         constr.marginal.diagonal = sqrt(.Machine$double.eps),
-        
+
         #' @param improved.simplified.laplace If `TRUE` use an experimental
         #' improved variant, otherwise, use the standard one.
         improved.simplified.laplace = FALSE,
-        
+
         #' @param parallel.linesearch Use serial (default) or parallel line-search
         #' (highly experimental for the moment)
         parallel.linesearch = FALSE,
-        
+
         #' @param compute.initial.values Compute initial values for the latent field or not.
         #' (experimental-mode only)
         compute.initial.values = TRUE,
-        
+
         #' @param hessian.correct.skewness.only If TRUE (default) correct only
         #' skewness in the Hessian, for the hyperparameters. If FALSE,
         #' correct also variance. (This option is for experimental-mode only)
         hessian.correct.skewness.only = TRUE
     ) {
-        as.list(environment())
+        ctrl_object(as.list(environment()), "inla", check = FALSE)
     }
 
 
 #' @title control.predictor
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.predictor` <-
@@ -933,16 +933,16 @@ control.vb <- function(
             #' `fitted.values` in the `result`-object. If `is.null(link)`
             #' (default) then the identity-link is used for all missing observations. If the
             #' length of `link` is 1, then this value is replicated with the length of the
-            #' responce vector. If an element of the responce vector is `!NA` then the
+            #' response vector. If an element of the response vector is `!NA` then the
             #' corresponding entry in `link` is not used (but must still be a legal value).
             #' Setting this variable implies `compute=TRUE`.
             link = NULL
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "predictor", check = FALSE)
         }
 
 #' @title control.mode
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 #' @details For internal use and for algorithms built on to of INLA.
@@ -968,11 +968,11 @@ control.vb <- function(
              #' fixed, and if FALSE then treat all thetas as unknown and random (default).
              fixed = FALSE
              ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "mode", check = FALSE)
         }
 
 #' @title control.hazard
-#' @inherit control.update params description seealso 
+#' @inherit control.update params description seealso
 #' @family control
 #' @export
 `control.hazard` <-
@@ -1022,55 +1022,13 @@ control.vb <- function(
             #' `inla.getOption("scale.model.default")`.)
             scale.model = NULL
         ) {
-            as.list(environment())
+            ctrl_object(as.list(environment()), "hazard", check = FALSE)
         }
 
 ## check control-arguments
-
-`inla.check.control` <- function(contr, data = NULL) {
-    ## This function will signal an error if the arguments in CONTR
-    ## does not match the ones in the corresponding
-    ## `inla.set.XX.default()' routine.  EXAMPLE: contr is
-    ## `control.inla' and default arguments is found in
-    ## `inla.set.control.inla.default()'
-
-    ## Will expand unexpanded names from the names in 'data' first
-    contr <- local({
-        name <- paste("inla.tmp.env", as.character(runif(1)), sep = "")
-        attach(data, name = name, warn.conflicts = FALSE)
-        ccontr <- contr
-        detach(name, character.only = TRUE)
-        ccontr
-    })
-
-    stopifnot(!missing(contr))
-    if (length(contr) == 0) {
-        return(contr)
-    }
-
-    nm <- paste(sys.call()[2])
-    f <- paste("inla.set.", nm, ".default()", sep = "")
-    elms <- names(inla.eval(f))
-
-    if (is.null(names(contr))) {
-        stop(inla.paste(c(
-            "Named elements in in control-argument `", nm, "', is required: ", contr,
-            "\n\n  Valid ones are:\n\t",
-            inla.paste(sort(elms), sep = "\n\t")
-        ), sep = ""))
-    }
-
-    for (elm in names(contr)) {
-        if (!is.element(elm, elms)) {
-            stop(inla.paste(c(
-                "Name `", elm, "' in control-argument `", nm, "', is void.\n\n  Valid ones are:\n\t",
-                inla.paste(sort(elms), sep = "\n\t")
-            ), sep = ""))
-        }
-    }
-
-    return(contr)
-}
+## The old inla.check.control has been replaced by ctrl_object() and ctrl_check().
+## ctrl_objects() first does possible data handling, followed by calling ctrl_check()
+## except for creation of default objects, that requires check=FALSE.
 
 
 
@@ -1094,7 +1052,7 @@ control.vb <- function(
 #                        enclos = if (is.list(envir) || is.pairlist(envir)) parent.frame() else baseenv()) {
 #        return(eval(parse(text = command), envir, enclos))
 #    }
-#    
+#
 #    xx <- sort(list(...)[[1L]])
 #    my.eval(paste("function(", paste(xx, sep = "", collapse = ", "), ") {
 #    aa = match.call()[-1L]

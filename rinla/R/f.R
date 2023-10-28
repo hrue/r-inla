@@ -444,26 +444,17 @@
         stop(paste("Argument 'same.as' must be NULL is model != 'copy' :", model))
     }
 
-    inla.check.control(control.group)
-    cont.group <- inla.set.control.group.default()
-    cont.group[(namc <- names(control.group))] <- control.group
-    cont.group$hyper <- inla.set.hyper(
-        cont.group$model, "group", cont.group$hyper,
-        cont.group$initial, cont.group$fixed, cont.group$prior, cont.group$param
-    )
-
-    inla.check.control(control.scopy)
-    cont.scopy <- inla.set.control.scopy.default()
-    cont.scopy[(namc <- names(control.scopy))] <- control.scopy
-    cont.scopy$hyper <- inla.set.hyper(
-        cont.scopy$model, "scopy", cont.scopy$hyper,
-        cont.scopy$initial, cont.scopy$fixed, cont.scopy$prior, cont.scopy$param
-    )
+    control.group <- ctrl_object(control.group, "group")
+    cont.group <- ctrl_update(control.group)
+    
+    control.scopy <- ctrl_object(control.scopy, "scopy")
+    cont.scopy <- ctrl_update(control.scopy)
+    
 
     ## CHECK ARGUMENTS.
     ## This is a bit tricky. We want to check if there are arguments
     ## in `...' which is of type `name = value' which are invalid. If
-    ## so, this lead to an obscoure error later on...
+    ## so, this lead to an obscure error later on...
     ##
     ## we first collect all arguments of type `name = value'
     if (TRUE) {

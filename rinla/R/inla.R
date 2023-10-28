@@ -482,10 +482,7 @@
             }
         }
         names.remove <- names(data)[i.remove]
-        for (nm in names.remove) {
-            idx <- which(names(data) == nm)
-            data[[idx]] <- NULL
-        }
+        data <- inla.remove(names.remove, data)
     }
 
     if (is.null(inla.mode)) {
@@ -494,24 +491,24 @@
     inla.mode <- match.arg(inla.mode, c("compact", "classic", "twostage", "experimental"))
     if (inla.mode == "experimental") inla.mode <- "compact"
 
-    ## check all control.xx arguments here. do the assign as variable
-    ## expansion might occur.
-    control.compute <- inla.check.control(control.compute, data)
-    control.predictor <- inla.check.control(control.predictor, data)
+    ## Check all control.* arguments here by formally converting to ctrl_* objects.
+    ## Variable expansion might occur.
+    control.compute <- ctrl_object(control.compute, "compute", data)
+    control.predictor <- ctrl_object(control.predictor, "predictor", data)
     ## I need to check for NA's already here.
     if (!is.null(control.predictor$A)) {
         control.predictor$A <- inla.as.sparse(control.predictor$A, na.rm = TRUE, zeros.rm = TRUE)
     }
     ## do not check control.family here, as we need to know n.family
-    control.inla <- inla.check.control(control.inla, data)
-    control.fixed <- inla.check.control(control.fixed, data)
-    control.mode <- inla.check.control(control.mode, data)
-    control.expert <- inla.check.control(control.expert, data)
-    control.hazard <- inla.check.control(control.hazard, data)
-    control.lincomb <- inla.check.control(control.lincomb, data)
-    control.update <- inla.check.control(control.update, data)
-    control.lp.scale <- inla.check.control(control.lp.scale, data)
-    control.pardiso <- inla.check.control(control.pardiso, data)
+    control.inla <- ctrl_object(control.inla, "inla", data)
+    control.fixed <- ctrl_object(control.fixed, "fixed", data)
+    control.mode <- ctrl_object(control.mode, "mode", data)
+    control.expert <- ctrl_object(control.expert, "expert", data)
+    control.hazard <- ctrl_object(control.hazard, "hazard", data)
+    control.lincomb <- ctrl_object(control.lincomb, "lincomb", data)
+    control.update <- ctrl_object(control.update, "update", data)
+    control.lp.scale <- ctrl_object(control.lp.scale, "lp_scale", data)
+    control.pardiso <- ctrl_object(control.pardiso, "pardiso", data)
 
     n.family <- length(family)
     for (i in 1:n.family) {
@@ -546,9 +543,8 @@
         inla.call <- system.file("bin/remote/inla.submit", package = "INLA")
     }
 
-    ## Need to do this here.
-    cont.fixed <- inla.set.control.fixed.default()
-    cont.fixed[names(control.fixed)] <- control.fixed
+    ## Need to merge with the defaults here.
+    cont.fixed <- ctrl_update(control.fixed)
 
     ##
     ## check for survival model with a baseline-hazard. if so, then
@@ -619,7 +615,7 @@
         ny <- max(sapply(y...orig,
                          function(xx) {
             if (is.list(xx))
-                max(sapply(xx, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
+                max(vapply(xx, NROW, 1L))
             else
                 length(xx)
         }))
@@ -640,7 +636,7 @@
             ## this one is not passed along
             y...orig$.special <- NULL
             ## we have to skip a possible matrix in ...$cure
-            ny <- max(sapply(y...orig, function(x) if (!is.matrix(x)) length(x) else nrow(x)))
+            ny <- max(vapply(y...orig, NROW, 1L))
         } else if (inherits(y...orig, "inla.mdata")) {
             class(y...orig) <- NULL
             ny <- max(sapply(y...orig, length))
@@ -881,55 +877,21 @@
     } 
 
     ## control what should be computed
-    cont.compute <- cont.compute.def <- inla.set.control.compute.default()
-    cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- cont.compute$residuals <- FALSE
-    cont.compute$control.gcpo$enable <- FALSE
-    cont.compute[names(control.compute)] <- control.compute
-    if (cont.compute$residuals) {
-        cont.compute$dic <- TRUE
-    }
-    ## because we have 'control' within a 'control', we have to process them specifically
-    cont.compute$control.gcpo <- cont.compute.def$control.gcpo
-    cont.compute$control.gcpo[names(control.compute$control.gcpo)] <- control.compute$control.gcpo
+    cont.compute <- ctrl_update(control.compute)
     if (only.hyperparam) {
         cont.compute$hyperpar <- TRUE
         cont.compute$control.gcpo$enable <- FALSE
         cont.compute$dic <- cont.compute$cpo <- cont.compute$po <- cont.compute$waic <- FALSE
     }
-    for (nm in names(control.compute$control.gcpo)) {
-        if (!(nm %in% names(inla.set.control.compute.default()$control.gcpo))) {
-            stop(paste0("'control.compute$control.gcpo': Unknown argument '", nm, "' is void. Valid ones are: ",
-                        paste0(names(inla.set.control.compute.default()$control.gcpo), collapse=", ")))
-        }
-    }
-    
+
     ## control inla
-    cont.inla <- cont.inla.def <- inla.set.control.inla.default()
-    cont.inla[names(control.inla)] <- control.inla
-    ## because we have 'control' within a 'control', we have to process them specifically
-    cont.inla$control.vb <- cont.inla.def$control.vb
-    cont.inla$control.vb[names(control.inla$control.vb)] <- control.inla$control.vb
-    for (nm in names(control.inla$control.vb)) {
-        if (!(nm %in% names(inla.set.control.inla.default()$control.vb))) {
-            stop(paste0("'control.inla$control.vb': Unknown argument '", nm, "' is void. Valid ones are: ",
-                        paste0(names(inla.set.control.inla.default()$control.vb), collapse=", ")))
-        }
-    }
+    cont.inla <- ctrl_update(control.inla)
 
     ## control predictor section
-    cont.predictor <- inla.set.control.predictor.default()
-    cont.predictor[names(control.predictor)] <- control.predictor
-    cont.predictor$hyper <- inla.set.hyper(
-        "predictor", "predictor",
-        cont.predictor$hyper, cont.predictor$initial,
-        cont.predictor$fixed, cont.predictor$prior, cont.predictor$param
-    )
+    cont.predictor <- ctrl_update(control.predictor,
+                                  control.compute = cont.compute,
+                                  control.inla = cont.inla)
     all.hyper$predictor$hyper <- cont.predictor$hyper
-    if (cont.compute$cpo || cont.compute$dic || cont.compute$po || cont.compute$waic ||
-        cont.compute$control.gcpo$enable || !is.null(cont.predictor$link) ||
-        (is.character(cont.inla$control.vb$enable) || cont.inla$control.vb$enable)) {
-        cont.predictor$compute <- TRUE
-    }
     if (only.hyperparam) {
         cont.predictor$compute <- FALSE
         cont.predictor$cdf <- cont.predictor$quantiles <- NULL
@@ -968,7 +930,7 @@
     ## finally, do the check. Note that the name of the argument is
     ## also used in this function, so we need to borrow the name.
     control.family.save <- control.family
-    for (ii in 1:n.family) {
+    for (ii in seq_len(n.family)) {
         control.family <- control.family.save[[ii]]
         ## need to be able to say when n.family =  1
         ## control.family = list(
@@ -978,69 +940,26 @@
                is.null(names(control.family))) {
                    control.family <- control.family[[1]]
                }
-        control.family.save[[ii]] <- inla.check.control(control.family, data)
+        control.family.save[[ii]] <- ctrl_object(control.family, "family", data)
     }
     control.family <- control.family.save
-    cont.family <- list(list())
-    for (i.family in 1:n.family) {
-        cont.family[[i.family]] <- inla.set.control.family.default()
-        cont.family[[i.family]]$control.mix <- inla.set.control.mix.default()
-        cont.family[[i.family]]$control.pom <- inla.set.control.pom.default()
-        cont.family[[i.family]]$control.link <- inla.set.control.link.default()
-        cont.family[[i.family]]$control.bgev <- inla.set.control.bgev.default()
-
-        ## need to take option 'control.mix' and 'control.link' out and process it seperately
-        c.mix <- control.family[[i.family]]$control.mix
-        c.pom <- control.family[[i.family]]$control.pom
-        c.link <- control.family[[i.family]]$control.link
-        c.bgev <- control.family[[i.family]]$control.bgev
-        control.family[[i.family]]$control.mix <- NULL
-        control.family[[i.family]]$control.pom <- NULL
-        control.family[[i.family]]$control.link <- NULL
-        control.family[[i.family]]$control.bgev <- NULL
-
-        cont.family[[i.family]][names(control.family[[i.family]])] <- control.family[[i.family]]
-        cont.family[[i.family]]$hyper <- inla.set.hyper(
-            family[i.family],
-            "likelihood",
-            cont.family[[i.family]]$hyper,
-            cont.family[[i.family]]$initial,
-            cont.family[[i.family]]$fixed,
-            cont.family[[i.family]]$prior,
-            cont.family[[i.family]]$param
-        )
+    cont.family <-
+        lapply(seq_len(n.family),
+               function(i.family) {
+                 ctrl_update(control.family[[i.family]],
+                             model = family[i.family])
+               })
+    for (i.family in seq_len(n.family)) {
         all.hyper$family[[i.family]] <- list(
             hyperid = paste("INLA.Data", i.family, sep = ""),
             label = family[i.family],
             hyper = cont.family[[i.family]]$hyper
         )
 
-        cont.family[[i.family]]$control.mix[names(c.mix)] <- c.mix
-        cont.family[[i.family]]$control.pom[names(c.pom)] <- c.pom
-        cont.family[[i.family]]$control.link[names(c.link)] <- c.link
-        cont.family[[i.family]]$control.bgev[names(c.bgev)] <- c.bgev
-
         if (!is.null(cont.family[[i.family]]$control.mix$model)) {
-            cont.family[[i.family]]$control.mix$hyper <- inla.set.hyper(
-                cont.family[[i.family]]$control.mix$model,
-                "mix",
-                cont.family[[i.family]]$control.mix$hyper,
-                cont.family[[i.family]]$control.mix$initial,
-                cont.family[[i.family]]$control.mix$fixed,
-                cont.family[[i.family]]$control.mix$prior,
-                cont.family[[i.family]]$control.mix$param
-            )
             all.hyper$family[[i.family]]$mix$hyper <- cont.family[[i.family]]$control.mix$hyper
         }
-        cont.family[[i.family]]$control.link$hyper <- inla.set.hyper(
-            cont.family[[i.family]]$control.link$model,
-            "link",
-            cont.family[[i.family]]$control.link$hyper,
-            cont.family[[i.family]]$control.link$initial,
-            cont.family[[i.family]]$control.link$fixed,
-            cont.family[[i.family]]$control.link$prior,
-            cont.family[[i.family]]$control.link$param
-        )
+
         all.hyper$family[[i.family]]$link$hyper <- cont.family[[i.family]]$control.link$hyper
     }
 
@@ -2032,43 +1951,24 @@
     ## the inla section
     inla.inla.section(file = file.ini, inla.spec = cont.inla, data.dir, inla.mode)
 
-    ## create mode section
-    cont.mode <- inla.set.control.mode.default()
-    cont.mode[names(control.mode)] <- control.mode
-    if (!is.null(cont.mode$result) &&
-        !(is.character(cont.mode$result) && file.exists(cont.mode$result))) {
-        ## Reduce the size of 'result' stored in 'r$.args'. If this is stored directly it
-        ## can/will require lots of storage. We do this by creating a stripped object with only
-        ## what is needed and pass that one along, with the expected classical
-        cont.mode$result <- list(mode = list(x = cont.mode$result$mode$x,
-                                             theta = cont.mode$result$mode$theta))
-        class(cont.mode$result) <- "inla" ## in case there are checks on
-    }
+    ## create mode section, with stripped down version of control.mode$result
+    cont.mode <- ctrl_update(control.mode)
     inla.mode.section(file = file.ini, cont.mode, data.dir)
 
     ## create expert section. the 'preopt' option is processed here and not in the expert.section
-    cont.expert <- inla.set.control.expert.default()
-    cont.expert[names(control.expert)] <- control.expert
+    cont.expert <- ctrl_update(control.expert)
     inla.expert.section(file = file.ini, cont.expert, data.dir = data.dir)
 
     ## create lincomb section
-    cont.lincomb <- inla.set.control.lincomb.default()
-    cont.lincomb[names(control.lincomb)] <- control.lincomb
+    cont.lincomb <- ctrl_update(control.lincomb)
     inla.lincomb.section(file = file.ini, data.dir = data.dir, contr = cont.lincomb, lincomb = lincomb)
 
     ## create update section
-    cont.update <- inla.set.control.update.default()
-    cont.update[names(control.update)] <- control.update
+    cont.update <- ctrl_update(control.update)
     inla.update.section(file = file.ini, data.dir = data.dir, contr = cont.update)
 
     ## create lp.scale section
-    cont.lp.scale <- inla.set.control.lp.scale.default()
-    cont.lp.scale[names(control.lp.scale)] <- control.lp.scale
-    cont.lp.scale$hyper <- inla.set.hyper(
-        "lp.scale", "lp.scale",
-        cont.lp.scale$hyper, cont.lp.scale$initial,
-        cont.lp.scale$fixed, cont.lp.scale$prior, cont.lp.scale$param
-    )
+    cont.lp.scale <- ctrl_update(control.lp.scale)
     if (!is.null(lp.scale)) {
         all.hyper$lp.scale <- cont.lp.scale$hyper
         lps <- as.numeric(lp.scale)
@@ -2087,8 +1987,7 @@
                           write.hyper = !is.null(lp.scale))
 
     ## create pardiso section
-    cont.pardiso <- inla.set.control.pardiso.default()
-    cont.pardiso[names(control.pardiso)] <- control.pardiso
+    cont.pardiso <- ctrl_update(control.pardiso)
     inla.pardiso.section(file = file.ini, data.dir = data.dir, contr = cont.pardiso)
 
     ## now, do the job
@@ -2188,13 +2087,15 @@
     my.time.used[2] <- Sys.time()
     ## ...meaning that if inla.call = "" then just build the files (optionally...)
     if (ownfun || nchar(inla.call) > 0) {
-        if (ownfun) {
+      try_catch_result <- tryCatch(
+        {
+          if (ownfun) {
             ## undocumented feature for PB
             echoc <- inla.call(
-                file.ini = file.ini,
-                file.log = if (verbose) NULL else file.log,
-                results.dir = results.dir,
-                inla.call.args = all.args
+              file.ini = file.ini,
+              file.log = if (verbose) NULL else file.log,
+              results.dir = results.dir,
+              inla.call.args = all.args
             )
         } else if (inla.os("linux") || inla.os("mac") || inla.os("mac.arm64")) {
             if (verbose) {
@@ -2247,15 +2148,30 @@
         if (debug) {
             cat("..done\n")
         }
-
+          
+        NULL  
+        },
+        error = function(e) {
+          errorCondition("The inla program call crashed.",
+                         class = "inlaCrashError")
+        }
+      )
+      if (inherits(try_catch_result, "error")) {
+        stop(try_catch_result)
+      }
+      
         my.time.used[3] <- Sys.time()
         if (echoc == 0L) {
             if (!submit) {
-                ret <- try(inla.collect.results(results.dir,
+                ret <- tryCatch(inla.collect.results(results.dir,
                                                 only.hyperparam = only.hyperparam, file.log = file.log, file.log2 = file.log2, 
-                                                silent = silent), silent = FALSE)
-                if (inherits(ret, "try-error")) {
-                    return (ret)
+                                                silent = silent),
+                                error = function(e) {
+                                  errorCondition("The inla result collection failed.",
+                                                 class = "inlaCollectError")
+                                })
+                if (inherits(ret, "error")) {
+                    stop(ret)
                 }
                 if (!is.list(ret)) {
                     ret <- list()
@@ -2475,7 +2391,8 @@
 `inla.core.safe` <- function(...)
 {
     err.due.to.timeout <- function(r) {
-        return (inherits(r, "try-error") && length(grep("seconds due to timeout", r[1])) > 0)
+        return (inherits(r, c("try-error", "error")) &&
+                  length(grep("seconds due to timeout", r[1])) > 0)
     }
 
     output <- function(msg) {
@@ -2483,7 +2400,7 @@
     }
 
     run.inla <- function() {
-        return (try(inla.core(
+        return (tryCatch(inla.core(
             formula = formula, 
             family = family, 
             contrasts = contrasts, 
@@ -2522,7 +2439,11 @@
             inla.mode = inla.mode, 
             safe = FALSE, 
             debug = debug, 
-            .parent.frame = .parent.frame)))
+            .parent.frame = .parent.frame),
+            error = function(e) {
+              e
+            }
+        ))
     }
 
     stopifnot(!safe)
@@ -2535,43 +2456,61 @@
         return (r)
     }
     
-    while (inherits(r, "try-error")) {
-        ##
+    while (inherits(r, "error")) {
+      ##
+      if (inherits(r, "inlaCrashError")) {
         if (ntry == max.try) {
-            stop("*** Failed to get good enough initial values. Maybe it is due to something else.")
+          stop(paste0(r$message, "\n",
+                      "The inla program failed and the maximum number of tries has been reached."))
         }
-        output(paste0("inla.program has crashed: rerun to get better initial values. try=", ntry+1, "/", max.try))
-        cont.inla <- inla.set.control.inla.default()
-        cont.inla[names(control.inla)] <- control.inla
-
-        cont.inla$int.strategy <- "eb"
-        cont.inla$strategy <- "gaussian"
-        cont.inla$control.vb <- list(enable = FALSE)
-        cont.inla$cmin <- cmin
-        cont.inla$force.diagonal = TRUE
-        cont.inla$optimise.strategy = "plain"
-        cont.inla$tolerance = 0.01
+        output(paste0("The inla program failed, but will rerun in case better initial values may help. try=", ntry+1, "/", max.try))
+      } else if (inherits(r, "inlaCollectError")) {
+        stop(paste0(r$message, "\n", "The inla result collection failed."))
+      } else {
+        stop(r)
+      }
+      
+      cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
+        cont.inla <-
+          ctrl_update(
+            ctrl_object(
+              list(
+                int.strategy = "eb",
+                strategy = "gaussian",
+                control.vb = ctrl_object(list(enable = FALSE), "vb"),
+                cmin = cmin,
+                force.diagonal = TRUE,
+                optimise.strategy = "plain",
+                tolerance = 0.01),
+              "inla"),
+            default = cont.inla)
         control.inla.save <- control.inla
         control.inla <- cont.inla
 
-        cont.compute <- inla.set.control.compute.default()
-        cont.compute[names(control.compute)] <- control.compute
-        cont.compute$return.marginals <- FALSE
-        cont.compute$return.marginals.predictor <- FALSE
-        cont.compute$dic <- FALSE
-        cont.compute$control.gcpo <- inla.set.control.compute.default()$control.gcpo
-        cont.compute$cpo <- FALSE
-        cont.compute$po <- FALSE
-        cont.compute$waic <- FALSE
-        cont.compute$residuals <- FALSE
-        cont.compute$config <- FALSE
-        cont.compute$q <- FALSE
-        cont.compute$graph <- FALSE
+        cont.compute <- ctrl_update(ctrl_object(control.compute, "compute"))
+        cont.compute <-
+          ctrl_update(
+            ctrl_object(
+              list(
+                return.marginals = FALSE,
+                return.marginals.predictor = FALSE,
+                dic = FALSE,
+                control.gcpo = inla.set.control.gcpo.default(),
+                cpo = FALSE,
+                po = FALSE,
+                waic = FALSE,
+                residuals = FALSE,
+                config = FALSE,
+                q = FALSE,
+                graph = FALSE),
+              "compute"),
+            default = cont.compute)
         control.compute.save <- control.compute
         control.compute <- cont.compute
 
-        cont.predictor <- inla.set.control.predictor.default()
-        cont.predictor[names(control.predictor)] <- control.predictor
+        cont.predictor <- ctrl_update(ctrl_object(control.predictor, "predictor"),
+                                      control.compute = list(),
+                                      control.inla = list())
         cont.predictor$compute <- FALSE
         control.predictor.save <- control.predictor
         control.predictor <- cont.predictor
@@ -2589,7 +2528,7 @@
         control.predictor <- control.predictor.save
         lincomb <- lincomb.save
 
-        if (!inherits(r, "try-error")) {
+        if (!inherits(r, c("try-error", "error"))) {
             r$.args$control.inla <- control.inla.save
             r$.args$control.compute <- control.compute.save
             r$.args$control.predictor <- control.predictor.save
