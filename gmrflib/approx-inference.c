@@ -748,23 +748,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	bcoof = Calloc(Npred, double);
 	ccoof = Calloc(Npred, double);
 
-	static int new_test = -1;
-	if (new_test < 0) {
-#pragma omp critical (Name_5461950ab2559851daec5c02bdc43ec0cdb29a7e)
-		if (new_test < 0) {
-			if (getenv("INLA_NEW_TEST")) {
-				new_test = 1;
-				P(new_test);
-			} else {
-				new_test = 0;
-			}
-		}
-	}
-
-	double *bcoof_prev = (new_test ? Calloc(Npred, double) : NULL);
-	double *ccoof_prev = (new_test ? Calloc(Npred, double) : NULL);
-	double *lvar = (new_test ? Calloc(Npred, double) : NULL);
-
 	for (iter = 0; iter < itmax; iter++) {
 
 		if (0) {
@@ -823,71 +806,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 						break;			\
 					}				\
 				}					\
-			} else if (new_test) {				\
-				assert(optpar);				\
-				assert(GMRFLib_inla_mode == GMRFLib_MODE_TWOSTAGE_PART1 || GMRFLib_inla_mode == GMRFLib_MODE_COMPACT); \
-				if (iter < 2) {				\
-					ccmin = 0.0 + FLT_EPSILON;	\
-					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-							      &(optpar->step_len), &(optpar->stencil), &ccmin); \
-					FIXME1("FIX");			\
-					if (idx == 0) {			\
-						P(iter);		\
-						P(idx);			\
-						P(sqrt(lvar[idx]));	\
-						P(bcoof[idx]);		\
-						P(ccoof[idx]);		\
-					}				\
-				} else {				\
-					double prior_prec = DMAX(0.0 + DBL_EPSILON, 1.0 / lvar[idx] - ccoof_prev[idx]); \
-					double prior_sd = sqrt(1.0 / prior_prec); \
-					double prior_mean = (linear_predictor[idx] / lvar[idx] - bcoof[idx]) / prior_prec; \
-					if (idx == 0) {			\
-						printf("\n");		\
-						P(idx);			\
-						P(prior_sd);		\
-						P(prior_mean);		\
-						P(sqrt(lvar[idx]));	\
-						P(bcoof_prev[idx]);	\
-						P(ccoof_prev[idx]);	\
-					}				\
-					GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
-							      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
-							      &(optpar->step_len), &(optpar->stencil), &ccmin); \
-					double bprev = bcoof[idx], cprev = ccoof[idx]; \
-					if (idx == 0) {			\
-						FIXME("2order");	\
-						P(aa[idx]);		\
-						P(bcoof[idx]);		\
-						P(ccoof[idx]);		\
-					}				\
-					double ell;			\
-					double fit_mean;		\
-					double fit_prec;		\
-					GMRFLib_ai_vb_fit_gaussian(thread_id, &ell, &fit_mean, &fit_prec, idx, d[idx], \
-								   loglFunc, loglFunc_arg, mode, prior_mean, prior_sd);	\
-					ccoof[idx] = DMAX(DBL_EPSILON, fit_prec - prior_prec); \
-					bcoof[idx] = fit_mean * fit_prec - prior_mean * prior_prec; \
-					if (idx == 0) {			\
-						FIXME("vb");		\
-						P(bcoof[idx]);		\
-						P(ccoof[idx]);		\
-					}				\
-					double m = bcoof[idx] / ccoof[idx]; \
-					double tau = ccoof[idx];	\
-					double x0 = linear_predictor[idx]; \
-					x0 = fit_mean;			\
-					loglFunc(thread_id, &(aa[idx]), &x0, 1, idx, mode, NULL, loglFunc_arg, NULL); \
-					aa[idx] += 0.5 * (SQR(x0-m) - SQR(m)) * tau; \
-					bcoof[idx] = bprev;		\
-					ccoof[idx] = cprev;		\
-					if (idx == 0) {			\
-						P(aa[idx]);		\
-						P(bprev-bcoof[idx]);	\
-						P(cprev/ccoof[idx]);	\
-					}				\
-				}					\
 			} else {					\
 				GMRFLib_2order_approx(thread_id, &(aa[idx]), &(bcoof[idx]), &(ccoof[idx]), NULL, d[idx], \
 						      linear_predictor[idx], idx, mode, loglFunc, loglFunc_arg, \
@@ -899,11 +817,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 			}						\
 			bb[idx] += bcoof[idx];				\
 			cc[idx] += ccoof[idx];				\
-									\
-			if (new_test) {					\
-				bcoof_prev[idx] = bcoof[idx];		\
-				ccoof_prev[idx] = ccoof[idx];		\
-			}						\
 		}
 
 		RUN_CODE_BLOCK(GMRFLib_openmp->max_threads_inner, 0, 0);
@@ -1013,39 +926,27 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 		int almost_there = ((iter > 0) && (f >= 1.0) && (err > optpar->abserr_step) &&
 				    (m <= 1.0) && (m * SQR(err) < 0.1 * optpar->abserr_step));
 
-		if (!new_test) {
-			if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
-				/*
-				 * we're done!  unless we have negative elements on the diagonal...
-				 */
-				break;
+		if (gaussian_data || err < optpar->abserr_step || almost_there || flag_cycle_behaviour) {
+			/*
+			 * we're done!  unless we have negative elements on the diagonal...
+			 */
+			break;
 
-				// NOT IN USE
-				if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
-					/*
-					 * do nothing 
-					 */
-				} else if (cc_is_negative && cc_positive) {
-					cc_positive = 0;
-				} else {
-					break;
-				}
+			// NOT IN USE
+			if (cc_is_negative && !cc_positive && (cc_factor < 1.0)) {
+				/*
+				 * do nothing 
+				 */
+			} else if (cc_is_negative && cc_positive) {
+				cc_positive = 0;
+			} else {
+				break;
 			}
-		} else {
-			if (iter == 2) break;
 		}
 
 		if (gsl_isnan(err))
 			break;
 
-		if (new_test) {
-			GMRFLib_Qinv(lproblem);
-			GMRFLib_preopt_predictor_moments(NULL, lvar, preopt, lproblem, NULL);
-			P(iter);
-			for(int i = 0; i < 1 + 0*Npred; i++) {
-				printf("sqrt(lvar[%1d]) =  %f\n", i, sqrt(lvar[i]));
-			}
-		}
 		GMRFLib_free_problem(lproblem);
 		lproblem = NULL;
 
@@ -1054,11 +955,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 
 	Free(ccoof);
 	Free(bcoof);
-	if (new_test) {
-		Free(bcoof_prev);
-		Free(ccoof_prev);
-		Free(lvar);
-	}
 
 	if (free_linear_predictor)
 		Free(linear_predictor);
@@ -1181,8 +1077,6 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 	FREE_ALL;
 	GMRFLib_LEAVE_ROUTINE;
 
-	//system("sleep 1");
-	
 	return GMRFLib_SUCCESS;
 
 #undef FREE_ALL
@@ -3284,7 +3178,6 @@ GMRFLib_gcpo_groups_tp *GMRFLib_gcpo_build(int thread_id, GMRFLib_ai_store_tp *a
 					   GMRFLib_gcpo_param_tp *gcpo_param)
 {
 #define A_idx(node_) (preopt->pAA_idxval ? preopt->pAA_idxval[node_] : preopt->A_idxval[node_])
-#define At_idx(node_) (preopt->pAAt_idxval ? preopt->pAAt_idxval[node_] : preopt->At_idxval[node_])
 
 	GMRFLib_ENTER_ROUTINE;
 

@@ -1,3 +1,6 @@
+# INLA 23.10.28
+* Cleanup after a merge done by error
+
 # INLA 23.10.27
 * Improve storage when `selection` is used
 * Various minor development
