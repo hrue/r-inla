@@ -1101,12 +1101,16 @@ int inla_output_misc(const char *dir, GMRFLib_ai_misc_output_tp *mo, int ntheta,
 					fwrite((void *) &(mo->configs_preopt[id]->ntheta), sizeof(int), (size_t) 1, fp);
 					fwrite((void *) mo->configs_preopt[id]->i, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	// 0-based! 
 																		// 
+					// 
 					fwrite((void *) mo->configs_preopt[id]->j, sizeof(int), (size_t) mo->configs_preopt[id]->nz, fp);	// 0-based! 
 																		// 
+					// 
 					fwrite((void *) mo->configs_preopt[id]->iprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	// 0-based! 
 																			// 
+					// 
 					fwrite((void *) mo->configs_preopt[id]->jprior, sizeof(int), (size_t) mo->configs_preopt[id]->prior_nz, fp);	// 0-based! 
 																			// 
+					// 
 					fwrite((void *) &nconfig, sizeof(int), (size_t) 1, fp);	/* yes!!! */
 
 					if (mo->configs_preopt[id]->constr) {

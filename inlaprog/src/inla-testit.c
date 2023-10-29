@@ -3909,11 +3909,11 @@ int testit(int argc, char **argv)
 		printf("\n");
 
 		/*
-		GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, pmean, 1.0 /
-		sqrt(pprec)); printf("\n"); P(pmean); P(pprec); P(y); P(-log(pprec + 1.0)); P((pmean * pprec + y * 1.0) / (pprec + 1.0));
-		GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit2, (void *) &y, NULL, pmean, 1.0 /
-		sqrt(pprec));
-		*/
+		 * GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit1, (void *) &y, NULL, pmean, 1.0 /
+		 * sqrt(pprec)); printf("\n"); P(pmean); P(pprec); P(y); P(-log(pprec + 1.0)); P((pmean * pprec + y * 1.0) / (pprec + 1.0));
+		 * GMRFLib_ai_vb_fit_gaussian(0, NULL, NULL, NULL, NULL, 0, 1.0, loglikelihood_testit2, (void *) &y, NULL, pmean, 1.0 /
+		 * sqrt(pprec)); 
+		 */
 	}
 		break;
 

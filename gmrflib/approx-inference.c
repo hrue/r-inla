@@ -1005,8 +1005,8 @@ int GMRFLib_init_GMRF_approximation_store__intern(int thread_id,
 				 */
 				int retval, ntimes = 1000, stop = 0;
 				double lambda = 10000.0,       /* first value for lambda */
-					lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
-					lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
+				    lambda_fac = 0.1,	       /* decrease it with this ammount for each iteration */
+				    lambda_lim = 1e-6;	       /* value of lambda where we exit the loop */
 				double *c_new = Calloc(graph->n, double);
 
 				for (int kk = 0; kk < ntimes; kk++) {
@@ -5168,7 +5168,7 @@ int GMRFLib_ai_vb_fit_gaussian(int thread_id, double *ell, double *fitted_mean, 
 	}
 
 	*fitted_prec = 1.0 / exp(fit_log_var);
-	*fitted_mean = fit_mean; 
+	*fitted_mean = fit_mean;
 	*ell = GMRFLib_dsum(np, wloglik);
 
 	return GMRFLib_SUCCESS;
