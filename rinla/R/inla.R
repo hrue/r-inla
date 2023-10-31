@@ -2581,14 +2581,16 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
         idx <- which(sapply(
             data,
             function(a, n) {
-                if (inla.is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
+                if (is.matrix(a) && (length(dim(a)) > 1L) && (dim(a)[1L] == n)) {
                     return(TRUE)
-                } else if (length(a) != n || inla.is.matrix(a)) {
+                } else if (is(a, "sparseMatrix") || is(a, "Matrix")) {
+                    return(FALSE)
+                } else if (length(a) != n) {
                     return(FALSE)
                 } else if (length(a) == n) {
                     return(TRUE)
                 } else {
-                    stop("This should not happen.")
+                    return(FALSE)
                 }
             },
             n = n
