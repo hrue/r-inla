@@ -1,3 +1,7 @@
+# INLA 23.11.01
+* Fix for sparse-matrix in data-argument
+* Refactor internal functions
+
 # INLA 23.10.28
 * Cleanup after a merge done by error
 
