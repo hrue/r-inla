@@ -83,7 +83,7 @@ void inla_signal(int sig)
 	switch (sig) {
 	case SIGUSR1:
 		GMRFLib_write_state = 1;
-		fprintf(stdout, "\n\n*** set GMRLib_write_state = 1\n\n");
+		fprintf(stdout, "\n\n*** set GMRFLib_write_state = 1\n\n");
 		break;
 	case SIGUSR2:
 		break;

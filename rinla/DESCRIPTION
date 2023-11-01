@@ -71,7 +71,6 @@ BuildVignettes: true
 LazyData: true
 License: GPL (>= 2) + file LICENSE
 Version: 99.99.9999
-Date: 9999-99-99
 RoxygenNote: 7.2.3
 Encoding: UTF-8
 StagedInstall: no
@@ -87,6 +86,7 @@ Collate:
     'changelog.R'
     'collect.results.R'
     'compare.results.R'
+    'control.R'
     'coxph.R'
     'cpo.R'
     'create.data.file.R'
