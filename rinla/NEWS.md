@@ -1,3 +1,6 @@
+# INLA 23.11.12
+* Development build
+
 # INLA 23.11.01
 * Fix for sparse-matrix in data-argument
 * Refactor internal functions
