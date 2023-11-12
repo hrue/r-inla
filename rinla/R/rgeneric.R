@@ -341,12 +341,11 @@ NULL
 
 #' @rdname rgeneric
 #' @export
-`inla.rgeneric.wrapper` <- function(
-                                    cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+`inla.rgeneric.wrapper` <- function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
                                     model, theta = NULL) {
     debug.cat <- function(...) {
         if (debug) {
-              cat("Rgeneric: ", ..., "\n", file = stderr())
+              cat(c("Rgeneric: ", ..., "\n"), file = stderr())
           }
     }
 
