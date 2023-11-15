@@ -365,7 +365,6 @@ NULL
     result <- NULL
     cmd <- match.arg(cmd)
     res <- do.call(model$definition, args = list(cmd = cmd, theta = theta))
-    time.ref <- proc.time()[3]
 
     if (cmd %in% "Q") {
         if (model$optimize) {

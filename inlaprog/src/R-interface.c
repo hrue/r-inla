@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <omp.h>
 
-
 #define CSTACK_DEFNS 1
 #include <R.h>
 #include <Rembedded.h>
@@ -47,7 +46,6 @@
 // two copies...
 #define R_GENERIC_WRAPPER "inla.rgeneric.wrapper"
 #define INLA_OK (0)
-
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -71,6 +69,9 @@ static int R_init = 1;
 static int R_debug = 0;
 double R_rgeneric_cputime = 0.0;
 
+#if !defined(_OPENMP)
+#error "OpenMP must be enabled."
+#endif
 
 int inla_R_do_(inla_R_cmd_tp cmd, void *a1, void *a2, void *a3, void *a4, void *a5, void *a6)
 {
@@ -552,7 +553,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 	int error, i;
 	SEXP xx_theta, result, e, yy, yyy;
 
-	PROTECT(xx_theta = allocVector(REALSXP, *n));
+	xx_theta = PROTECT(allocVector(REALSXP, *n));
 	for (i = 0; i < *n; i++) {
 		REAL(xx_theta)[i] = theta[i];
 	}
@@ -563,6 +564,7 @@ int inla_R_rgeneric_(int *n_out, double **x_out, const char *cmd, const char *mo
 	result = PROTECT(R_tryEval(e, R_GlobalEnv, &error));
 	if (result == NULL || error) {
 		fprintf(stderr, "\n *** ERROR *** rgeneric [%s] with model [%s] failed\n", cmd, model);
+		UNPROTECT(5);
 		exit(1);
 	}
 	*n_out = (int) XLENGTH(result);
