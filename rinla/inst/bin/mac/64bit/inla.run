@@ -1,7 +1,11 @@
 #!/bin/bash
 
-readlink -f / 2>/dev/null >/dev/null || \
-    readlink () {
+if readlink -f / 2>/dev/null >/dev/null; then
+    myreadlink () {
+	readlink "$@"
+    }
+else
+    myreadlink () {
 	(
 	    shift 1
 	    tfile=$1
@@ -9,7 +13,7 @@ readlink -f / 2>/dev/null >/dev/null || \
 	    tfile=$(basename "$tfile")
 	    while [ -L "$tfile" ]
 	    do
-		tfile=$(readlink -f "$tfile")
+		tfile=$(myreadlink -f "$tfile")
 		cd $(dirname "$tfile")
 		tfile=$(basename "$tfile")
 	    done
@@ -17,8 +21,9 @@ readlink -f / 2>/dev/null >/dev/null || \
 	    echo "$pdir/$tfile"
 	)
     }
+fi
 
-cmd=$(readlink -f "$0")
+cmd=$(myreadlink -f "$0")
 DIR=$(dirname "$cmd")
 tmp=$(basename "$cmd")
 prog=${tmp%%.run}
