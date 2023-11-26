@@ -412,6 +412,34 @@ int inla_read_data_likelihood(inla_tp *mb, dictionary *UNUSED(ini), int UNUSED(s
 	}
 		break;
 
+	case L_GGAUSSIAN:
+	{
+		assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		ds->data_observations.ggaussian_nbeta = na - 1;
+		ds->data_observations.ggaussian_x = Calloc(na, double *);
+		a[0] = ds->data_observations.ggaussian_scale = Calloc(mb->predictor_ndata, double);
+		for (i = 1; i < na; i++) {
+			a[i] = ds->data_observations.ggaussian_x[i - 1] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
+	case L_GGAUSSIANS:
+	{
+		assert(ncol_data_all <= 3 + GGAUSSIAN_MAXTHETA && ncol_data_all >= 3);
+		idiv = ncol_data_all;
+		na = ncol_data_all - 2;
+		ds->data_observations.ggaussian_nbeta = na - 1;
+		ds->data_observations.ggaussian_x = Calloc(na, double *);
+		a[0] = ds->data_observations.ggaussian_offset = Calloc(mb->predictor_ndata, double);
+		for (i = 1; i < na; i++) {
+			a[i] = ds->data_observations.ggaussian_x[i - 1] = Calloc(mb->predictor_ndata, double);
+		}
+	}
+		break;
+
 	case L_0POISSON:
 	case L_0POISSONS:
 	{
@@ -859,6 +887,110 @@ int loglikelihood_agaussian(int thread_id, double *logll, double *x, int m, int 
 		for (i = 0; i < -m; i++) {
 			ypred = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 			logll[i] = inla_Phi_fast((y - ypred) * mm * prec);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_ggaussian(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+			    char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_tp *dtp = &(ds->data_observations);
+
+	double y, w;
+	y = dtp->y[idx];
+	w = dtp->ggaussian_scale[idx];
+
+	LINK_INIT;
+
+	double lprec = 0.0;
+	for (int i = 0; i < dtp->ggaussian_nbeta; i++) {
+		lprec += dtp->ggaussian_beta[i][thread_id][0] * dtp->ggaussian_x[i][idx];
+	}
+	double prec = w * dtp->link_simple_invlinkfunc(thread_id, lprec, MAP_FORWARD, NULL, NULL);
+	lprec = log(prec);
+
+	double off = OFFSET(idx);
+	if (m > 0) {
+		double a = LOG_NORMC_GAUSSIAN + 0.5 * lprec;
+		double b = -0.5 * prec;
+		if (PREDICTOR_LINK_EQ(link_identity) && (PREDICTOR_SCALE == 1.0)) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double err = x[i] + off - y;
+				logll[i] = a + b * SQR(err);
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double err = PREDICTOR_INVERSE_LINK(x[i] + off) - y;
+				logll[i] = a + b * SQR(err);
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+		double sprec = sqrt(prec);
+		for (int i = 0; i < -m; i++) {
+			double ypred = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = inla_Phi_fast((y - ypred) * sprec);
+		}
+	}
+
+	LINK_END;
+	return GMRFLib_SUCCESS;
+}
+
+int loglikelihood_ggaussianS(int thread_id, double *logll, double *x, int m, int idx, double *UNUSED(x_vec), double *y_cdf, void *arg,
+			     char **UNUSED(arg_str))
+{
+	if (m == 0) {
+		return GMRFLib_LOGL_COMPUTE_CDF;
+	}
+
+	Data_section_tp *ds = (Data_section_tp *) arg;
+	Data_tp *dtp = &(ds->data_observations);
+
+	double y = dtp->y[idx];
+
+	LINK_INIT;
+
+	double mean = dtp->ggaussian_offset[idx];
+	for (int i = 0; i < dtp->ggaussian_nbeta; i++) {
+		mean += dtp->ggaussian_beta[i][thread_id][0] * dtp->ggaussian_x[i][idx];
+	}
+	if (!PREDICTOR_SIMPLE_LINK_EQ(link_identity)) {
+		mean = dtp->link_simple_invlinkfunc(thread_id, mean, MAP_FORWARD, NULL, NULL);
+	}
+
+	double off = OFFSET(idx);
+	if (m > 0) {
+		double err2 = SQR(y - mean);
+		if (PREDICTOR_LINK_EQ(link_log)) {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double lprec = x[i] + off;
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * lprec - 0.5 * exp(lprec) * err2;
+			}
+		} else {
+#pragma omp simd
+			for (int i = 0; i < m; i++) {
+				double prec = PREDICTOR_INVERSE_LINK(x[i] + off);
+				logll[i] = LOG_NORMC_GAUSSIAN + 0.5 * log(prec) - 0.5 * prec * err2;
+			}
+		}
+	} else {
+		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
+#pragma omp simd
+		for (int i = 0; i < -m; i++) {
+			double prec = PREDICTOR_INVERSE_LINK(x[i] + off);
+			logll[i] = inla_Phi_fast((y - mean) * sqrt(prec));
 		}
 	}
 
