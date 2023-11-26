@@ -249,6 +249,8 @@ typedef enum {
 	L_BELL,
 	L_NZPOISSON,
 	L_STDGAUSSIAN,
+	L_GGAUSSIAN,
+	L_GGAUSSIANS,
 	F_RW2D = 1000,					       /* f-models */
 	F_BESAG,
 	F_BESAG2,					       /* the [a*x, x/a] model */
@@ -750,15 +752,24 @@ typedef struct {
 	link_func_tp *link_simple_invlinkfunc;		       /* the link-function for the simple part of the 0inflated models */
 	char *link_simple_name;
 
+	int poisson0_nbeta;
 	double ***poisson0_beta;
-	double poisson0_nbeta;
 	double **poisson0_x;
 	double *poisson0_E;
 
+	int binomial0_nbeta;
 	double ***binomial0_beta;
-	double binomial0_nbeta;
 	double **binomial0_x;
 	double *binomial0_Ntrials;
+
+	/*
+	 * this cover both ggassuian and ggassuianS 
+	 */
+	int ggaussian_nbeta;
+	double ***ggaussian_beta;
+	double **ggaussian_x;
+	double *ggaussian_scale;			       // only ggaussian
+	double *ggaussian_offset;			       // only ggaussianS
 } Data_tp;
 
 typedef struct {
@@ -2104,6 +2115,8 @@ int loglikelihood_exp(int thread_id, double *logll, double *x, int m, int idx, d
 int loglikelihood_expsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_fmri(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_fmrisurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_ggaussian(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
+int loglikelihood_ggaussianS(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gammajw(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_gammasurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

@@ -112,6 +112,7 @@
 #define BGEV_MAXTHETA (10L)
 #define POISSON0_MAXTHETA (10L)
 #define BINOMIAL0_MAXTHETA (10L)
+#define GGAUSSIAN_MAXTHETA (10L)
 #define CURE_MAXTHETA (10L)
 #define SCOPY_MAXTHETA (15L)
 
@@ -156,22 +157,15 @@ char *G_norm_const_compute = NULL;			       /* to be computed */
 		_lp_scale = ds->lp_scale_beta[(int)ds->lp_scale[idx]][thread_id][0]; \
 	}
 
-
-#define LINK_END				\
-	Free(_link_covariates)
-
+#define LINK_END Free(_link_covariates)
 #define PREDICTOR_SCALE _lp_scale
-
 #define PREDICTOR_LINK_EQ(_fun) (ds->predictor_invlinkfunc == (_fun))
-
+#define PREDICTOR_SIMPLE_LINK_EQ(_fun) (ds->data_observations.link_simple_invlinkfunc ==  (_fun))
 #define PREDICTOR_INVERSE_LINK(xx_)					\
 	ds->predictor_invlinkfunc(thread_id, _lp_scale * (xx_), MAP_FORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)
-
 #define PREDICTOR_INVERSE_IDENTITY_LINK(xx_) (_lp_scale * (xx_))
-
 #define PREDICTOR_LINK(xx_)						\
 	(ds->predictor_invlinkfunc(thread_id, (xx_), MAP_BACKWARD, (void *)predictor_invlinkfunc_arg, _link_covariates) / _lp_scale)
-
 #define PREDICTOR_INVERSE_LINK_LOGJACOBIAN(xx_)  \
 	log(ABS(_lp_scale * ds->predictor_invlinkfunc(thread_id, _lp_scale * (xx_), MAP_DFORWARD, (void *)predictor_invlinkfunc_arg, _link_covariates)))
 
@@ -1939,6 +1933,20 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 							}
 							count++;
 						}
+					}
+				}
+			}
+				break;
+
+			case L_GGAUSSIAN:
+			case L_GGAUSSIANS:
+			{
+				int nbeta = ds->data_observations.ggaussian_nbeta;
+				for (int k = 0; k < nbeta; k++) {
+					if (!ds->data_nfixed[k]) {
+						double b = theta[count];
+						val += PRIOR_EVAL(ds->data_nprior[k], &b);
+						count++;
 					}
 				}
 			}

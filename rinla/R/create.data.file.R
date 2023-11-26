@@ -528,6 +528,62 @@
             my.stop(paste0("family:", family, ". NA's in arguments 'N', 'DF', 'VAR', are not allowed"))
         }
 
+    } else if (inla.one.of(family, c("ggaussian"))) {
+
+        response <- cbind(ind, y.orig)
+        na.dat <- is.na(response[, 2L])
+        response <- response[!na.dat,, drop = FALSE]
+        ncovariates <- ncol(response) - 3
+        if (!(ncovariates >= 0)) {
+            my.stop(paste0("family=", family, ". Number of covariates in simple model is ",  ncovariates,
+                           ". Maybe you forgot to add the 's' argument?"))
+        }
+        if (ncovariates > 0) {
+            X <- response[, 4:(4 + ncovariates - 1), drop = FALSE]
+            X[is.na(X)] <- 0
+            cov.names <- paste0("X", 1:ncovariates)
+            colnames(X) <- cov.names
+        } else {
+            cov.names <- NULL
+            X <- NULL
+        }
+
+        colnames(response) <- c("IDX", "Y", "SCALE", cov.names)
+        ## format: IDX, SCALE, X1, ...XN, Y
+        response <- cbind(IDX = response$IDX, SCALE = response$SCALE, X, Y = response$Y)
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 's', are not allowed"))
+        }
+
+    } else if (inla.one.of(family, c("ggaussianS"))) {
+
+        response <- cbind(ind, y.orig)
+        na.dat <- is.na(response[, 2L])
+        response <- response[!na.dat,, drop = FALSE]
+        ncovariates <- ncol(response) - 3
+        if (!(ncovariates >= 0)) {
+            my.stop(paste0("family=", family, ". Number of covariates in simple model is ",  ncovariates,
+                           ". Maybe you forgot to add the 'offset' argument?"))
+        }
+        if (ncovariates > 0) {
+            X <- response[, 4:(4 + ncovariates - 1), drop = FALSE]
+            X[is.na(X)] <- 0
+            cov.names <- paste0("X", 1:ncovariates)
+            colnames(X) <- cov.names
+        } else {
+            cov.names <- NULL
+            X <- NULL
+        }
+
+        colnames(response) <- c("IDX", "Y", "OFFSET", cov.names)
+        ## format: IDX, OFFSET, X1, ...XN, Y
+        response <- cbind(IDX = response$IDX, OFFSET = response$OFFSET, X, Y = response$Y)
+
+        if (any(is.na(response))) {
+            my.stop(paste0("family:", family, ". NA's in argument 'OFFSET', are not allowed"))
+        }
+
     } else if (inla.one.of(family, c("0poisson", "0poissonS", "0binomial", "0binomialS"))) {
 
         response <- cbind(ind, y.orig)

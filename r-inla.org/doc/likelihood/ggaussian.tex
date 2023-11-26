@@ -1,0 +1,155 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{amsmath}
+\usepackage{verbatim}
+
+\begin{document}
+\section*{More general Gaussian likelihoods: GGaussian and GGaussianS}
+
+\subsection*{Parameterisation}
+
+The Gaussian distribution is
+\begin{displaymath}
+    f(y) = \frac{\sqrt{\tau}}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}
+      \tau \left(y-\mu\right)^{2}\right)
+\end{displaymath}
+for continuously responses $y$ where
+\begin{description}
+\item[$\mu$:] is the the mean
+\item[$\tau$:] is the precision
+\end{description}
+These likelihood families generalise the normal procedure. We allow
+for two linear predictors in the model. One needs to be ``simple'',
+only consists of fixed effects, while the other one is general and
+defined via the formula.
+
+For family=``ggaussian'', then
+\begin{displaymath}
+    \text{link}(\mu) = \text{formula} \qquad
+    \text{link.simple}(\tau) = \text{simple}
+\end{displaymath}
+while for family=``ggaussianS'', then
+\begin{displaymath}
+    \text{link}(\tau) = \text{formula} \qquad
+    \text{link.simple}(\mu) = \text{simple}
+\end{displaymath}
+The default link is the \emph{identity} for the mean and the
+\emph{log} for the precision. We will describe each model separately,
+as the specifications are a little different.
+
+\subsection*{Family \emph{ggaussian}}
+\subsubsection*{Link-function}
+
+The mean is given by the linear predictor $\eta$ from the formula
+\begin{displaymath}
+    \text{link}(\mu) = \eta
+\end{displaymath}
+where the default is the \emph{identity}-link. The precision is given
+as
+\begin{displaymath}
+    \text{link.simple}(\frac{1}{s}\tau) = \beta_1 z_1 + \beta_2
+    z_2 + \ldots + \beta_{m} z_{m}, \qquad m \leq 10
+\end{displaymath}
+where $s$ is a \textbf{fixed} scaling (or often log-offset) and
+similar to the argument \emph{scale} for \text{family=``gaussian''}.
+For the log-link, the precision is expressed as
+\begin{displaymath}
+    \tau = s \times \exp\left(\beta_1 z_1 + \beta_2
+      z_2 + \ldots + \beta_{m} z_{m}\right)
+\end{displaymath}
+\textbf{Note:} there is no default intercept in the simple model, so
+it is common to set $z_1=1$.
+
+\subsubsection*{Hyperparameters}
+The hyperparameters in the model are
+$\theta_1=\beta_1, \ldots, \theta_m=\beta_m$, and the priors are
+defined on $\theta_1, \ldots, \theta_m$.
+
+\textbf{Note:} The default prior for $\theta_1$ is similar to the
+default prior for the precision for the Gaussian family, please change
+if you do not want this feature.
+
+
+\subsubsection*{Specification}
+\begin{itemize}
+\item \texttt{family="ggaussian"}
+\item Required arguments: \textbf{inla.mdata}-object that defines the
+    response, $s$ and covariates. The \textbf{inla.mdata} object is
+    defined as
+    \begin{displaymath}
+        \text{inla.mdata}(y, s, z_1, \ldots, z_m)
+    \end{displaymath}
+    where each argument are vectors of the same length.
+\item \textbf{Note:} The scaling argument $s$ \textbf{MUST} be given
+    as it has no default value. Often we can just use $s=1$ as it will
+    auto-expand.
+\item \textbf{Note:} $m=0$ is allowed, which means that $\tau=s$ with
+    with log link.simple.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\textbf{\texttt{family="ggaussian"}}
+\input{../hyper/likelihood/ggaussian.tex}
+
+\subsubsection*{Example}
+\verbatiminput{example-ggaussian.R}
+
+\clearpage
+
+\subsection*{Family \emph{ggaussianS}}
+\subsubsection*{Link-function}
+
+This is the swapped version. The mean is given by a simple linear
+predictor
+\begin{displaymath}
+    \text{link.simple}(\mu) = \text{off} + \beta_1 z_1 + \beta_2 z_2 + \ldots + \beta_{m} z_{m}, \qquad m \leq 10
+\end{displaymath}
+where ``$\text{off}$'' is a fixed offset and where link.simple is the
+\emph{identity}-link by default. \textbf{Note:} there is no default
+intercept in the simple model, so it is common to set $z_1=1$. The
+precision is specified in the formula
+\begin{displaymath}
+    \text{link}(\tau) = \text{formula}
+\end{displaymath}
+using the log-link as default.
+
+\subsubsection*{Hyperparameters}
+The hyperparameters in the model are
+$\theta_1=\beta_1, \ldots, \theta_m=\beta_m$, and the priors are
+defined on $\theta_1, \ldots, \theta_m$.
+
+\subsubsection*{Specification}
+\begin{itemize}
+\item \texttt{family="ggaussianS"}
+\item Required arguments: \textbf{inla.mdata}-object that defines the
+    response, the offset ``$\text{off}$'' and covariates. The
+    \textbf{inla.mdata} object is defined as
+    \begin{displaymath}
+        \text{inla.mdata}(y, \text{off}, z_1, \ldots, z_m)
+    \end{displaymath}
+    where each argument are vectors of the same length.
+\item \textbf{Note:} The offset argument \textbf{MUST} be given as it
+    has no default value. Often we can just use off$=0$ as it will
+    auto-expand.
+\item \textbf{Note:} $m=0$ is allowed, which means that
+    $\mu=\text{off}$ with with identity link.simple.
+\end{itemize}
+
+\subsubsection*{Hyperparameter spesification and default values}
+\textbf{\texttt{family="ggaussianS"}}
+\input{../hyper/likelihood/ggaussianS.tex}
+
+\subsubsection*{Example}
+\verbatiminput{example-ggaussianS.R}
+
+\end{document}
+
+
+% LocalWords:  GGaussian GGaussianS Parameterisation ggaussian inla
+% LocalWords:  ggaussianS gaussian Hyperparameters hyperparameters
+% LocalWords:  mdata covariates Hyperparameter spesification
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 

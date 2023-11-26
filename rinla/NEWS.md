@@ -1,3 +1,7 @@
+# INLA 23.11.26
+* New (experimental) likelihood `ggaussian` and `ggaussianS`
+* Fix for `readlink` on older MacOS
+
 # INLA 23.11.15
 * Development build
 
