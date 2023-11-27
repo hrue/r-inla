@@ -9,7 +9,7 @@
 \usage{
 inla.getOption(
   option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads",
-    "smtp", "safe", "pardiso.license", "keep", "verbose", "save.memory",
+    "smtp", "safe", "pardiso.license", "keep", "verbose", "save.memory", "internal.opt",
     "working.directory", "silent", "debug", "show.warning.graph.file",
     "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
     "inla.mode", "fmesher.evolution", "fmesher.evolution.warn",
@@ -48,6 +48,8 @@ newline-separated string with license key(s)}
 \item{verbose}{Verbose output?}
 
 \item{save.memory}{Save memory at the cost of (minor) accuracy and computing time?}
+
+\item{internal.opt}{Do internal online optimisations or not}
 
 \item{working.directory}{The name of the working directory.}
 

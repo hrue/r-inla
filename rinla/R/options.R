@@ -36,6 +36,8 @@
 #' 
 #' \item{save.memory}{Save memory at the cost of (minor) accuracy and computing time?}
 #' 
+#' \item{internal.opt}{Do internal online optimisations or not}
+#' 
 #' \item{working.directory}{The name of the working directory.}
 #' 
 #' \item{silent}{Run the inla-program in a silent mode?}
@@ -121,6 +123,7 @@ NULL
             keep = FALSE,
             verbose = FALSE,
             save.memory = FALSE,
+            internal.opt = TRUE,
             working.directory = NULL,
             silent = TRUE,
             debug = FALSE,
@@ -152,6 +155,7 @@ NULL
                                  "keep",
                                  "verbose",
                                  "save.memory",
+                                 "internal.opt",
                                  "working.directory",
                                  "silent",
                                  "debug",
@@ -244,6 +248,7 @@ NULL
                                           "keep",
                                           "verbose",
                                           "save.memory",
+                                          "internal.opt",
                                           "working.directory",
                                           "silent",
                                           "debug",

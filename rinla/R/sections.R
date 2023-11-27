@@ -1265,10 +1265,14 @@
     inla.write.boolean.field("mlik", mlik, file)
     inla.write.boolean.field("q", q, file)
     inla.write.boolean.field("graph", graph, file)
+
+    if (is.null(internal.opt)) {
+        internal.opt <- inla.getOption("internal.opt")
+    }
     inla.write.boolean.field("internal.opt", internal.opt, file)
 
     if (is.null(save.memory))
-        save.memory <- inla.getOption('save.memory')
+        save.memory <- inla.getOption("save.memory")
     inla.write.boolean.field("save.memory", save.memory, file)
 
     config.lite <- FALSE

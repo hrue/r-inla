@@ -21,7 +21,7 @@ control.compute(
   likelihood.info = FALSE,
   smtp = NULL,
   graph = FALSE,
-  internal.opt = TRUE,
+  internal.opt = NULL,
   save.memory = NULL,
   control.gcpo = INLA::control.gcpo()
 )
@@ -84,7 +84,7 @@ This option requires \code{config=TRUE} (Default \code{FALSE}. EXPERIMENTAL)}
 (Default FALSE.)}
 
 \item{internal.opt}{A boolean variable, if to do internal online
-optimisations or not. (Default TRUE.)}
+optimisations or not. (Default \code{inla.getOption("internal.opt")})}
 
 \item{save.memory}{A boolean variable, make choices which
 saves memory over accuracy. (Default 'inla.getOption("save.memory")')}
