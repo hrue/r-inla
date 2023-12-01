@@ -1403,8 +1403,8 @@ double priorfunc_pc_gevtail(double *x, double *parameters)
 	xi_deriv = map_interval(*x, MAP_DFORWARD, (void *) &(parameters[1]));
 	d = DIST(xi);
 	d_deriv = (2.0 - xi) * sqrt(2.0) / 2.0 / sqrt(1.0 / (1.0 - xi)) / SQR(1.0 - xi);
-	p_low = (low > 0.0 ? ONE_MINUS_EXP(-lambda * DIST(low)) : 0.0);
-	p_high = (high < 1.0 ? ONE_MINUS_EXP(-lambda * DIST(high)) : 1.0);
+	p_low = (low > 0.0 ? ONE_mexp(-lambda * DIST(low)) : 0.0);
+	p_high = (high < 1.0 ? ONE_mexp(-lambda * DIST(high)) : 1.0);
 	ld = -log(p_high - p_low) + log(lambda) - lambda * d + log(ABS(d_deriv)) + log(ABS(xi_deriv));
 
 #undef DIST
@@ -1607,7 +1607,7 @@ double priorfunc_pc_sn(double *x, double *parameters)
 	xxd = map_phi(*x, MAP_DFORWARD, (void *) &skew_max);
 	dist = inla_pc_sn_d(xx, &deriv);
 	dist_max = inla_pc_sn_d(skew_max, NULL);
-	val = log(0.5) + log(lambda) - lambda * dist - LOG_ONE_MINUS(exp(-lambda * dist_max)) + log(ABS(deriv)) + log(ABS(xxd));
+	val = log(0.5) + log(lambda) - lambda * dist - LOG_1mp(exp(-lambda * dist_max)) + log(ABS(deriv)) + log(ABS(xxd));
 
 	return val;
 }
@@ -1630,12 +1630,12 @@ double priorfunc_pc_cor0(double *x, double *parameters)
 	double rho = map_rho(*x, MAP_FORWARD, NULL);
 	double ldens, lambda, ljac, val, mu;
 
-	mu = sqrt(-LOG_ONE_MINUS(SQR(rho)));
+	mu = sqrt(-LOG_1mp(SQR(rho)));
 	if (alpha <= 0 || alpha >= 1.0) {
 		FIXME1("*****************************  USING lambda = u **********************************");
 		lambda = u;
 	} else {
-		lambda = -log(alpha) / sqrt(-LOG_ONE_MINUS(SQR(u)));
+		lambda = -log(alpha) / sqrt(-LOG_1mp(SQR(u)));
 	}
 	// add the EPS to ensure its not INFINITY...
 	ldens = log(lambda) - lambda * mu + log((ABS(rho) + INLA_REAL_SMALL) / (1.0 - SQR(rho))) - log(mu + INLA_REAL_SMALL);
@@ -1658,7 +1658,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 	double lambda, rho, ljac, ldens, val, mu;
 
 	// solve for lambda
-#define _Fsolve(_lam) (((ONE_MINUS_EXP(-(_lam)*sqrt(1.0-u)))/(ONE_MINUS_EXP(-(_lam)*M_SQRT2))) - alpha)
+#define _Fsolve(_lam) (((ONE_mexp(-(_lam)*sqrt(1.0-u)))/(ONE_mexp(-(_lam)*M_SQRT2))) - alpha)
 
 	int count = 0, count_max = 1000;
 	double lambda_initial = -1.0, lambda_step = 1.1, h = GSL_ROOT3_DBL_EPSILON, eps_lambda = GSL_SQRT_DBL_EPSILON, df;
@@ -1703,7 +1703,7 @@ double priorfunc_pc_cor1(double *x, double *parameters)
 #undef Fsolve
 	rho = map_rho(*x, MAP_FORWARD, NULL);
 	mu = sqrt(1.0 - rho);
-	ldens = log(lambda) - lambda * mu - LOG_ONE_MINUS(exp(-lambda * M_SQRT2)) - log(2.0 * mu);
+	ldens = log(lambda) - lambda * mu - LOG_1mp(exp(-lambda * M_SQRT2)) - log(2.0 * mu);
 	ljac = log(ABS(map_rho(*x, MAP_DFORWARD, NULL)));
 	val = ldens + ljac;
 
@@ -1846,7 +1846,7 @@ double priorfunc_pc_ar(double *x, double *parameters)
 		// x is internal and this gives us the pacf. 
 		pacf[i] = ar_map_pacf(x[i], MAP_FORWARD, NULL);
 		// but the pc-simplex prior is given in terms of 'gamma'
-		gamma[i] = -LOG_ONE_MINUS(SQR(pacf[i]));
+		gamma[i] = -LOG_1mp(SQR(pacf[i]));
 		// hence we need two jacobians, one for x->pacf and one for pacf->gamma. recall that we have a singularity for
 		// x[i]=0
 		double xtmp = (ISZERO(pacf[i]) ? INLA_REAL_SMALL : pacf[i]);
@@ -1878,15 +1878,15 @@ double priorfunc_ref_ar(double *x, double *parameters)
 	case 1:
 	{
 		ldens = -log(M_PI)
-		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[0]))
+		    - 0.5 * LOG_1mp(SQR(pacf[0]))
 		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)));
 	}
 		break;
 	case 2:
 	{
 		ldens = -2.0 * log(M_PI)
-		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[0]))
-		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[1]))
+		    - 0.5 * LOG_1mp(SQR(pacf[0]))
+		    - 0.5 * LOG_1mp(SQR(pacf[1]))
 		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)))
 		    + log(ABS(map_phi(x[1], MAP_DFORWARD, NULL)));
 	}
@@ -1895,9 +1895,9 @@ double priorfunc_ref_ar(double *x, double *parameters)
 	{
 		ldens = -2.0 * log(M_PI)
 		    - log(1.12)
-		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[0]))
-		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[1]))
-		    - 0.5 * LOG_ONE_MINUS(SQR(pacf[2]))
+		    - 0.5 * LOG_1mp(SQR(pacf[0]))
+		    - 0.5 * LOG_1mp(SQR(pacf[1]))
+		    - 0.5 * LOG_1mp(SQR(pacf[2]))
 		    - M_PI * SQR(pacf[2])
 		    + log(ABS(map_phi(x[0], MAP_DFORWARD, NULL)))
 		    + log(ABS(map_phi(x[1], MAP_DFORWARD, NULL)))

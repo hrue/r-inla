@@ -316,7 +316,7 @@ void taucs_ccs_metis5(taucs_ccs_matrix *m, int **perm, int **invperm, char *UNUS
 }
 
 #if defined(PARDISO8)
-int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o) 
+int METIS51PARDISO_NodeND(int *i, int *j, int *k, int *l, int *m, int *n, int *o)
 {
 	return METIS_NodeND(i, j, k, l, m, n, o);
 }

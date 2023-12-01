@@ -1304,29 +1304,29 @@ double Qfunc_ou(int thread_id, int i, int j, double *UNUSED(values), void *arg)
 	if (i != j) {
 		int ii = IMAX(i, j);
 		delta = a->locations[ii] - a->locations[ii - 1];
-		w = 1.0 / ONE_MINUS_EXP(-2.0 * phi * delta);
+		w = 1.0 / ONE_mexp(-2.0 * phi * delta);
 		v = exp(-phi * delta);
 
 		return -prec * w * v;
 	} else {
 		if (i == 0) {
 			delta = a->locations[i + 1] - a->locations[i];
-			w = 1.0 / ONE_MINUS_EXP(-2.0 * phi * delta);
+			w = 1.0 / ONE_mexp(-2.0 * phi * delta);
 			v = exp(-phi * delta);
 
 			return prec * (1.0 + w * SQR(v));
 		} else if (i == a->n - 1) {
 			delta = a->locations[i] - a->locations[i - 1];
-			w = 1.0 / ONE_MINUS_EXP(-2.0 * phi * delta);
+			w = 1.0 / ONE_mexp(-2.0 * phi * delta);
 
 			return prec * w;
 		} else {
 			delta = a->locations[i + 1] - a->locations[i];
-			w = 1.0 / ONE_MINUS_EXP(-2.0 * phi * delta);
+			w = 1.0 / ONE_mexp(-2.0 * phi * delta);
 			v = exp(-phi * delta);
 
 			double ddelta = a->locations[i] - a->locations[i - 1];
-			double ww = 1.0 / ONE_MINUS_EXP(-2.0 * phi * ddelta);
+			double ww = 1.0 / ONE_mexp(-2.0 * phi * ddelta);
 
 			return prec * (ww + w * SQR(v));
 		}

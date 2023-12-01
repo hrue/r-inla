@@ -3952,6 +3952,28 @@ int testit(int argc, char **argv)
 	}
 		break;
 
+	case 132:
+	{
+		for (double x = -30.0; x < 30.0; x += 1.0) {
+			printf("x = %f log(p) %.12f log_p %.12f log(1-p) %.12f log_1-p %.12f\n",
+			       x,
+			       log1p(-exp(-exp(x))),
+			       link_log_invcloglog(x), log(1.0 - map_invcloglog(x, MAP_FORWARD, NULL)), link_log_1m_invcloglog(x));
+		}
+	}
+		break;
+
+	case 133:
+	{
+		for (double x = -30.0; x < 30.0; x += 1.0) {
+			printf("x = %f log(p) %.12f log_p %.12f log(1-p) %.12f log_1-p %.12f\n",
+			       x,
+			       log(map_invccloglog(x, MAP_FORWARD, NULL)),
+			       link_log_invccloglog(x), log(1.0 - map_invccloglog(x, MAP_FORWARD, NULL)), link_log_1m_invccloglog(x));
+		}
+	}
+		break;
+
 	case 999:
 	{
 		GMRFLib_pardiso_check_install(0, 0);

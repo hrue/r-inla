@@ -105,12 +105,12 @@ double inla_Phi_fast(double x)
 		// see misc/doc/doc/approximate-cdf-normal.pdf
 		// sqrt(M_PI / 8.0) = 0.6266570686577502....
 		if (x > 0.0) {
-			return (0.5 + 0.5 * sqrt(ONE_MINUS_EXP(-0.6266570686577502 * SQR(x))));
+			return (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x))));
 		} else {
-			return (1.0 - (0.5 + 0.5 * sqrt(ONE_MINUS_EXP(-0.6266570686577502 * SQR(x)))));
+			return (1.0 - (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x)))));
 		}
 		abort();
-		return (0.5 + 0.5 * sqrt(ONE_MINUS_EXP(-0.6266570686577502 * SQR(x))));
+		return (0.5 + 0.5 * sqrt(ONE_mexp(-0.6266570686577502 * SQR(x))));
 	} else {
 		return inla_Phi(x);
 	}
