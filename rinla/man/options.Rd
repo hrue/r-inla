@@ -9,7 +9,7 @@
 \usage{
 inla.getOption(
   option = c("inla.call", "inla.arg", "fmesher.call", "fmesher.arg", "num.threads",
-    "smtp", "safe", "pardiso.license", "keep", "verbose", "save.memory", "internal.opt",
+    "smtp", "safe", "keep", "verbose", "save.memory", "internal.opt",
     "working.directory", "silent", "debug", "show.warning.graph.file",
     "scale.model.default", "short.summary", "inla.timeout", "fmesher.timeout",
     "inla.mode", "fmesher.evolution", "fmesher.evolution.warn",
@@ -39,9 +39,6 @@ current values, otherwise, \code{option} must be one of
 
 \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 (default \code{TRUE})}
-
-\item{pardiso.license}{The full path to the PARDISO license file or a
-newline-separated string with license key(s)}
 
 \item{keep}{Keep temporary files?}
 

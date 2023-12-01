@@ -2628,53 +2628,6 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
 
 `inla.set.sparselib.env` <- function(inla.dir = NULL)
 {
-    ## environment variables for sparse libraries
-    if (is.null(inla.dir)) {
-        inla.dir <- inla.tempdir()
-    }
-
-    lic.filename <- "pardiso.lic" ## do not change
-    lic.filename.dir <- paste0(inla.dir, "/", lic.filename)
-    file.create(lic.filename.dir)
-
-    if (!is.null(inla.getOption("pardiso.license"))) {
-        lic.file <- try(normalizePath(inla.getOption("pardiso.license"), mustWork = FALSE),
-                        silent = TRUE)
-        lic.path <- NA
-        if (!inherits(lic.file, "try-error") && file.exists(lic.file)) {
-            info <- file.info(lic.file)
-            if (!is.na(info$isdir)) {
-                if (info$isdir) {
-                    lic.path <- lic.file
-                } else if (!is.null(inla.dir)) {
-                    file.copy(lic.file, lic.filename.dir, overwrite = TRUE)
-                    lic.path <- inla.dir
-                } else {
-                    stop("This should not happen")
-                }
-            } else {
-                lic.path <- lic.file
-            }
-        } else {
-            r <- try(write(as.character(inla.getOption("pardiso.license")),
-                           file = lic.filename.dir, append = FALSE))
-            if ((inherits(r, "try-error"))) {
-                stop(paste0("Failed to write license to file: ", lic.filename.dir))
-            }
-            lic.path <- inla.dir
-        }
-        do.call("Sys.setenv", list(
-            PARDISO_LIC_PATH = normalizePath(lic.path),
-            INLA_LOAD_PARDISO = 1
-        ))
-    } else {
-        Sys.unsetenv("INLA_LOAD_PARDISO")
-    }
-
-    if (Sys.getenv("PARDISOLICMESSAGE") == "") {
-          Sys.setenv(PARDISOLICMESSAGE = 1)
-      }
-
     return(invisible())
 }
 
