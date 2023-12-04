@@ -5171,27 +5171,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_SCOPY:
 		{
 			inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) mb->f_Qfunc_arg_orig[i];
-			double *betas = Calloc(a->nbeta, double);
-			double sum = 0.0;
-			for (int k = 0; k < a->nbeta; k++) {
+			for (int k = 0; k < 2; k++) {	       /* mean and slope */
 				if (_NOT_FIXED(f_fixed[i][k])) {
-					betas[k] = theta[count];
+					double b = theta[count];
 					count++;
-				} else {
-					betas[k] = a->betas[k][0][0];
+					val += PRIOR_EVAL(mb->f_prior[i][k], &b);
 				}
-				sum += betas[k] * (k == 0 || k == a->nbeta - 1 ? 0.5 : 1.0);
 			}
-			sum /= (a->nbeta - 1.0);
-
-			double xQx = 0.0;
-			GMRFLib_xQx(thread_id, &xQx, betas, a->graph_prior, a->Qfunc_prior, a->Qfunc_arg_prior);
-
-			val += a->nbeta * (-0.91893853320467266954) +
-			    (0.5 * log(a->prior_prec_mean) - 0.5 * a->prior_prec_mean * SQR(sum - a->prior_mean)) +
-			    ((a->nbeta - a->rwdef->order) / 2.0 * log(a->prior_prec_betas) - 0.5 * a->prior_prec_betas * xQx);
-
-			Free(betas);
+			for (int k = 2; k < a->nbeta; k++) {	       /* mean and slope */
+				if (_NOT_FIXED(f_fixed[i][k])) {
+					double b = theta[count];
+					count++;
+					// yes, we're using the prior for beta[2]
+					val += PRIOR_EVAL(mb->f_prior[i][2], &b); 
+				}
+			}
 		}
 			break;
 

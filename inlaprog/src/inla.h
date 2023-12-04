@@ -989,10 +989,6 @@ typedef struct {
 	double ***betas;
 	double precision;
 
-	double prior_mean;
-	double prior_prec_mean;
-	double prior_prec_betas;
-
 	GMRFLib_rwdef_tp *rwdef;
 	GMRFLib_graph_tp *graph_prior;
 	GMRFLib_Qfunc_tp *Qfunc_prior;
@@ -1001,6 +997,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
+	GMRFLib_matrix_tp *V;
 
 	inla_scopy_cache_tp **cache00;
 	inla_scopy_cache_tp **cache01;
@@ -2067,6 +2064,7 @@ int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
+int inla_read_priorN_scopy(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, int N, void *args);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior, void *args);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);

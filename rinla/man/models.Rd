@@ -7994,12 +7994,12 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta1'}{
 \describe{
 \item{hyperid = }{\verb{36101}}
-\item{name = }{\verb{beta1}}
-\item{short.name = }{\verb{b1}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{mean}}
+\item{short.name = }{\verb{mean}}
+\item{initial = }{\verb{1}}
 \item{fixed = }{\verb{FALSE}}
-\item{prior = }{\verb{none}}
-\item{param = }{\verb{}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{1 10}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -8007,12 +8007,12 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta2'}{
 \describe{
 \item{hyperid = }{\verb{36102}}
-\item{name = }{\verb{beta2}}
-\item{short.name = }{\verb{b2}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{slope}}
+\item{short.name = }{\verb{slope}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
-\item{prior = }{\verb{none}}
-\item{param = }{\verb{}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 10}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -8020,12 +8020,12 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta3'}{
 \describe{
 \item{hyperid = }{\verb{36103}}
-\item{name = }{\verb{beta3}}
-\item{short.name = }{\verb{b3}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta1}}
+\item{short.name = }{\verb{spline}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
-\item{prior = }{\verb{none}}
-\item{param = }{\verb{}}
+\item{prior = }{\verb{normal}}
+\item{param = }{\verb{0 10}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }
@@ -8033,9 +8033,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta4'}{
 \describe{
 \item{hyperid = }{\verb{36104}}
-\item{name = }{\verb{beta4}}
-\item{short.name = }{\verb{b4}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta2}}
+\item{short.name = }{\verb{spline2}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8046,9 +8046,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta5'}{
 \describe{
 \item{hyperid = }{\verb{36105}}
-\item{name = }{\verb{beta5}}
-\item{short.name = }{\verb{b5}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta3}}
+\item{short.name = }{\verb{spline3}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8059,9 +8059,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta6'}{
 \describe{
 \item{hyperid = }{\verb{36106}}
-\item{name = }{\verb{beta6}}
-\item{short.name = }{\verb{b6}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta4}}
+\item{short.name = }{\verb{spline4}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8072,9 +8072,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta7'}{
 \describe{
 \item{hyperid = }{\verb{36107}}
-\item{name = }{\verb{beta7}}
-\item{short.name = }{\verb{b7}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta5}}
+\item{short.name = }{\verb{spline5}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8085,9 +8085,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta8'}{
 \describe{
 \item{hyperid = }{\verb{36108}}
-\item{name = }{\verb{beta8}}
-\item{short.name = }{\verb{b8}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta6}}
+\item{short.name = }{\verb{spline6}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8098,9 +8098,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta9'}{
 \describe{
 \item{hyperid = }{\verb{36109}}
-\item{name = }{\verb{beta9}}
-\item{short.name = }{\verb{b9}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta7}}
+\item{short.name = }{\verb{spline7}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8111,9 +8111,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta10'}{
 \describe{
 \item{hyperid = }{\verb{36110}}
-\item{name = }{\verb{beta10}}
-\item{short.name = }{\verb{b10}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta8}}
+\item{short.name = }{\verb{spline8}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8124,9 +8124,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta11'}{
 \describe{
 \item{hyperid = }{\verb{36111}}
-\item{name = }{\verb{beta11}}
-\item{short.name = }{\verb{b11}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta9}}
+\item{short.name = }{\verb{spline9}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8137,9 +8137,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta12'}{
 \describe{
 \item{hyperid = }{\verb{36112}}
-\item{name = }{\verb{beta12}}
-\item{short.name = }{\verb{b12}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta10}}
+\item{short.name = }{\verb{spline10}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8150,9 +8150,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta13'}{
 \describe{
 \item{hyperid = }{\verb{36113}}
-\item{name = }{\verb{beta13}}
-\item{short.name = }{\verb{b13}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta11}}
+\item{short.name = }{\verb{spline11}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8163,9 +8163,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta14'}{
 \describe{
 \item{hyperid = }{\verb{36114}}
-\item{name = }{\verb{beta14}}
-\item{short.name = }{\verb{b14}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta12}}
+\item{short.name = }{\verb{spline12}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -8176,9 +8176,9 @@ Number of hyperparmeters is 15.
 \item{Hyperparameter 'theta15'}{
 \describe{
 \item{hyperid = }{\verb{36115}}
-\item{name = }{\verb{beta15}}
-\item{short.name = }{\verb{b15}}
-\item{initial = }{\verb{0.1}}
+\item{name = }{\verb{spline.theta13}}
+\item{short.name = }{\verb{spline13}}
+\item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{none}}
 \item{param = }{\verb{}}
@@ -11897,7 +11897,7 @@ Number of hyperparmeters is 10.
 \item{initial = }{\verb{4}}
 \item{fixed = }{\verb{FALSE}}
 \item{prior = }{\verb{normal}}
-\item{param = }{\verb{0 10}}
+\item{param = }{\verb{9.33 0.61}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
 }

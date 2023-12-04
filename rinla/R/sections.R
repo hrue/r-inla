@@ -488,11 +488,7 @@
     }
 
     if (inla.one.of(random.spec$model, "scopy")) {
-        cat("scopy.model = ", random.spec$control.scopy$model, "\n", sep = " ", file = file, append = TRUE)
         cat("scopy.n = ", random.spec$control.scopy$n, "\n", sep = " ", file = file, append = TRUE)
-        cat("scopy.mean = ", random.spec$control.scopy$mean, "\n", sep = " ", file = file, append = TRUE)
-        cat("scopy.prec.mean = ", random.spec$control.scopy$prec.mean, "\n", sep = " ", file = file, append = TRUE)
-        cat("scopy.prec.betas = ", random.spec$control.scopy$prec.betas, "\n", sep = " ", file = file, append = TRUE)
 
         file.scopy.z <- inla.tempfile(tmpdir = data.dir)
         xx <- as.double(random.spec$control.scopy$covariate)
@@ -501,9 +497,11 @@
         file.scopy.z <- gsub(data.dir, "$inladatadir", file.scopy.z, fixed = TRUE)
         cat("scopy.covariate = ", file.scopy.z, "\n", append = TRUE, sep = " ", file = file)
 
-        random.spec$control.scopy$hyper <- (inla.write.hyper(random.spec$control.scopy$hyper,
-                                                             file = file, prefix = "scopy.",
-                                                             data.dir = data.dir))
+        def <- inla.scopy.define(random.spec$control.scopy$n)
+        file.scopy.V <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(def$V, filename = file.scopy.V)
+        file.scopy.V <- gsub(data.dir, "$inladatadir", file.scopy.V, fixed = TRUE)
+        cat("scopy.V = ", file.scopy.V, "\n", append = TRUE, sep = " ", file = file)
     }
     
     if (!is.null(random.spec$cyclic)) {

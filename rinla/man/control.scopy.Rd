@@ -5,29 +5,14 @@
 \alias{inla.set.control.scopy.default}
 \title{control.scopy}
 \usage{
-control.scopy(
-  covariate = NULL,
-  n = 5,
-  model = "rw2",
-  mean = 1,
-  prec.mean = 1,
-  prec.betas = 10
-)
+control.scopy(covariate = NULL, n = 11)
 
 inla.set.control.scopy.default(...)
 }
 \arguments{
 \item{covariate}{The covariate for the scopy function}
 
-\item{n}{Number of betas}
-
-\item{model}{scopy model (one of 'rw1' and 'rw2')}
-
-\item{mean}{The prior mean for mean(betas)}
-
-\item{prec.mean}{The prior precision for mean(betas)}
-
-\item{prec.betas}{The prior precision prec(betas-mean(betas))}
+\item{n}{Number of locations in the RW2 (n >= 5)}
 
 \item{...}{Named arguments passed on to the main function}
 }
