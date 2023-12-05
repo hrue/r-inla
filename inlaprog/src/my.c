@@ -235,7 +235,7 @@ double my_betabinomial_helper(int n, double a)
 	div_t d = div(n, roll);
 	int m = d.quot * roll;
 
-#pragma GCC ivdep
+#pragma omp simd reduction(+: s0)
 	for (int i = 0; i < m; i += roll) {
 		double aa = i + a;
 		s0 += log(aa * (aa + 1.0) * (aa + 2.0) * (aa + 3.0));
@@ -258,11 +258,13 @@ double my_betabinomial_helper(int n, double a)
 
 	return (s0);
 }
+
 double my_betabinomial(int y, int n, double a, double b)
 {
 	double s1 = my_betabinomial_helper(y, a);
 	double s2 = my_betabinomial_helper(n - y, b);
 	double s3 = my_betabinomial_helper(n, a + b);
+
 	return (s1 + s2 - s3);
 }
 
