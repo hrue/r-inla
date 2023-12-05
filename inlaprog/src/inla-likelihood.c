@@ -5722,7 +5722,6 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 		return GMRFLib_LOGL_COMPUTE_CDF;
 	}
 
-	int i;
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	int y = (int) ds->data_observations.y[idx];
 	int n = (int) ds->data_observations.nb[idx];
@@ -5744,7 +5743,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 		xmax = GMRFLib_max_value(x, m, NULL) + OFFSET(idx);
 		p = PREDICTOR_INVERSE_LINK(xmax);
 		if (p < p_upper) {
-			for (i = 0; i < m; i++) {
+			for (int i = 0; i < m; i++) {
 				p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
@@ -5759,7 +5758,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			xx[1] = PREDICTOR_LINK(p_upper);
 			xx[0] = xx[1] - h;
 			xx[2] = xx[1] + h;
-			for (i = 0; i < 3; i++) {
+			for (int i = 0; i < 3; i++) {
 				p = PREDICTOR_INVERSE_LINK(xx[i]);
 				a = p * (1.0 - rho) / rho;
 				b = (p * rho - p - rho + 1.0) / rho;
@@ -5769,7 +5768,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			ddiff = (ll[2] - 2.0 * ll[1] + ll[0]) / SQR(h);
 			diff = DMIN(0.0, diff);		       /* must have */
 			ddiff = DMIN(0.0, ddiff);	       /* must have */
-			for (i = 0; i < m; i++) {
+			for (int i = 0; i < m; i++) {
 				dx = (x[i] + OFFSET(idx)) - xx[1];
 				logll[i] = ll[1] + dx * diff + 0.5 * SQR(dx) * ddiff;
 			}
@@ -5777,7 +5776,7 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 	} else {
 		GMRFLib_ASSERT(y_cdf == NULL, GMRFLib_ESNH);
 
-		for (i = 0; i < -m; i++) {
+		for (int i = 0; i < -m; i++) {
 			/*
 			 * if 'n' is ``large'', then we need to do something approximate here... I guess we get the question back if so is the case. So we issue a
 			 * warning for the ``extreme case'' only.
@@ -5790,7 +5789,6 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 				printf("\n*** Warning ***  Please contact <help@r-inla.org> if this becomes an issue.\n");
 			}
 
-			int yy;
 			double normc2;
 
 			p = PREDICTOR_INVERSE_LINK(x[i] + OFFSET(idx));
@@ -5800,12 +5798,12 @@ int loglikelihood_betabinomial(int thread_id, double *logll, double *x, int m, i
 			logll[i] = 0.0;
 
 			if (y <= n / 2) {		       /* integer arithmetic is ok */
-				for (yy = y; yy >= 0; yy--) {
+				for (int yy = y; yy >= 0; yy--) {
 					logll[i] +=
 					    exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
 			} else {
-				for (yy = y + 1; yy <= n; yy++) {
+				for (int yy = y + 1; yy <= n; yy++) {
 					logll[i] +=
 					    exp(normc2 - _LOGGAMMA_INT(yy + 1) - _LOGGAMMA_INT(n - yy + 1) + my_gsl_sf_lnbeta(yy + a, n - yy + b));
 				}
