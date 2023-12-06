@@ -1,3 +1,12 @@
+# INLA 23.12.06
+* Fixed issue (hopefully) with saturated DIC
+* New option, 'internal.opt' in 'inla.setOption'
+* Fixed regression error: 'result$misc$nfunc'
+* Made link 'cloglog' and 'ccloglog' more numerical stable
+* Link with PARDISO8-library (not yet Windows), get license at 'https://panua.ch'
+* Switch to static MKL libraries for Mac Intel
+
+
 # INLA 23.11.26
 * New (experimental) likelihood `ggaussian` and `ggaussianS`
 * Fix for `readlink` on older MacOS
