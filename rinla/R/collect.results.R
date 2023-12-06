@@ -706,7 +706,7 @@
         fp <- file(fnm, "rb")
         nt <- readBin(fp, integer(), 1)
         niter <- readBin(fp, integer(), 1)
-        nfunc <- readBin(fp, integer(), niter)
+        nfuncs <- readBin(fp, integer(), niter)
         fs <- readBin(fp, double(), niter)
         theta <- readBin(fp, double(), niter * nt)
         close(fp)
@@ -714,9 +714,9 @@
         theta = matrix(theta, nrow = niter, ncol = nt, byrow = TRUE)
         colnames(theta) <- paste0("theta", seq_len(nt))
         rownames(theta) <- paste0("iter", seq_len(niter))
-        names(nfunc) <- paste0("iter", seq_len(niter))
+        names(nfuncs) <- paste0("iter", seq_len(niter))
         names(fs) <- paste0("iter", seq_len(niter))
-        opt.trace <- list(f = fs, nfunc = nfunc, theta = theta)
+        opt.trace <- list(f = fs, nfunc = nfuncs, theta = theta)
     } else {
         opt.trace <- NULL
     }

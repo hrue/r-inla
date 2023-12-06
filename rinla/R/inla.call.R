@@ -4,10 +4,7 @@
     opt.default <- inla.getOption.default()
     if (exists("inla.options", envir = inla.get.inlaEnv())) {
         opt <- get("inla.options", envir = inla.get.inlaEnv())
-        lic <- (!is.null(opt$pardiso.license) && nchar(opt$pardiso.license) > 0L)
-    } else {
-        lic <- FALSE
-    }
+    } 
 
     if (inla.os("mac")) {
         fnm <- system.file(paste("bin/mac/", inla.os.32or64bit(), "bit/inla.mkl.run", sep = ""), package = "INLA")

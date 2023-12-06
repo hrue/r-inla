@@ -1451,23 +1451,23 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			if (mb->f_group_model[i] == G_EXCHANGEABLE) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_group_rho(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-				normc_g = - 0.5 * (log1p((ngroup - 1.0) * group_rho) + (ngroup-1)*LOG_ONE_MINUS(group_rho)); \
+				normc_g = - 0.5 * (log1p((ngroup - 1.0) * group_rho) + (ngroup-1)*LOG_1mp(group_rho)); \
 				if (_NOT_FIXED(f_fixed[i][(_nt_)])) {	\
 					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
 				}					\
 			}else if (mb->f_group_model[i] == G_EXCHANGEABLE_POS) {	\
 				int ingroup = (int) ngroup;		\
 				group_rho = map_probability(group_rho_intern, MAP_FORWARD, (void *) &ingroup); \
-				normc_g = - 0.5 * (log1p((ngroup - 1.0) * group_rho) + (ngroup-1)*LOG_ONE_MINUS(group_rho)); \
+				normc_g = - 0.5 * (log1p((ngroup - 1.0) * group_rho) + (ngroup-1)*LOG_1mp(group_rho)); \
 				if (_NOT_FIXED(f_fixed[i][(_nt_)])) {	\
 					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
 				}					\
 			} else if (mb->f_group_model[i] == G_AR1) {	\
 				group_rho = map_rho(group_rho_intern, MAP_FORWARD, NULL); \
 				if (mb->f_group_cyclic[i]) {		\
-					normc_g = - (ngroup - 0.0) * 0.5 * LOG_ONE_MINUS(SQR(group_rho)) + 0.5 * inla_ar1_cyclic_logdet(ngroup, group_rho); \
+					normc_g = - (ngroup - 0.0) * 0.5 * LOG_1mp(SQR(group_rho)) + 0.5 * inla_ar1_cyclic_logdet(ngroup, group_rho); \
 				} else {				\
-					normc_g = - (ngroup - 1.0) * 0.5 * LOG_ONE_MINUS(SQR(group_rho)); \
+					normc_g = - (ngroup - 1.0) * 0.5 * LOG_1mp(SQR(group_rho)); \
 				}					\
 				if (_NOT_FIXED(f_fixed[i][(_nt_)])) {	\
 					val += PRIOR_EVAL(mb->f_prior[i][(_nt_)], &group_rho_intern); \
@@ -3358,7 +3358,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			double logdet_Q = 0.0;
 			inla_generic1_tp *a = (inla_generic1_tp *) mb->f_Qfunc_arg[i];
 			for (j = 0; j < n_orig; j++) {
-				logdet_Q += LOG_ONE_MINUS(beta * a->eigenvalues[j] / a->max_eigenvalue);
+				logdet_Q += LOG_1mp(beta * a->eigenvalues[j] / a->max_eigenvalue);
 			}
 
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_n[i] - mb->f_rankdef[i])
@@ -4312,7 +4312,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			phi = map_phi(phi_intern, MAP_FORWARD, NULL);
 			_SET_GROUP_RHO(3);
 
-			double log_precision_noise = log_precision - LOG_ONE_MINUS(SQR(phi));
+			double log_precision_noise = log_precision - LOG_1mp(SQR(phi));
 
 			if (mb->f_cyclic[i]) {
 				logdet = inla_ar1_cyclic_logdet(N_orig, phi);
@@ -4324,7 +4324,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 				val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 									   + (mb->f_N[i] -
 									      mb->f_rankdef[i]) / 2.0 * log_precision_noise +
-									   ngroup * 0.5 * LOG_ONE_MINUS(SQR(phi))));
+									   ngroup * 0.5 * LOG_1mp(SQR(phi))));
 			}
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
@@ -4359,11 +4359,11 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			phi = map_phi(phi_intern, MAP_FORWARD, NULL);
 			_SET_GROUP_RHO(2);
 
-			double log_precision_noise = log_precision - LOG_ONE_MINUS(SQR(phi));
+			double log_precision_noise = log_precision - LOG_1mp(SQR(phi));
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 								   + ((mb->f_N[i] - a->m * ngroup) -
 								      mb->f_rankdef[i]) / 2.0 * log_precision_noise +
-								   ngroup * 0.5 * LOG_ONE_MINUS(SQR(phi))
+								   ngroup * 0.5 * LOG_1mp(SQR(phi))
 								   + ngroup * 0.5 * a->logdet_Qbeta));
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
@@ -4395,7 +4395,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			double ou_nc = 0.0;
 			int nn = ((inla_ou_arg_tp *) mb->f_Qfunc_arg_orig[i])->n;
 			for (ii = 1; ii < nn; ii++) {
-				ou_nc -= LOG_ONE_MINUS(exp(-2.0 * phi * (mb->f_locations[i][ii] - mb->f_locations[i][ii - 1])));
+				ou_nc -= LOG_1mp(exp(-2.0 * phi * (mb->f_locations[i][ii] - mb->f_locations[i][ii - 1])));
 			}
 			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * (mb->f_N[i] - mb->f_rankdef[i])
 								   + (mb->f_N[i] - mb->f_rankdef[i]) / 2.0 * log_precision + ngroup * ou_nc / 2.0));
@@ -4490,7 +4490,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			double n = (double) mb->f_n[i];
 			phi = map_probability(phi_intern, MAP_FORWARD, NULL);
 
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision - LOG_ONE_MINUS(phi))));
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision - LOG_1mp(phi))));
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
@@ -4520,7 +4520,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			double n = (double) mb->f_n[i];
 			phi = map_probability(phi_intern, MAP_FORWARD, NULL);
 
-			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision - LOG_ONE_MINUS(phi))));
+			val += mb->f_nrep[i] * (normc_g + gcorr * (LOG_NORMC_GAUSSIAN * n + n / 2.0 * (log_precision - LOG_1mp(phi))));
 
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision);
@@ -4562,9 +4562,7 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 			assert(mb->f_ngroup[i] == 1);
 			val += mb->f_nrep[i] * (LOG_NORMC_GAUSSIAN * 2.0 * (n - mb->f_rankdef[i])	/* yes, the total length is * N=2n */
 						+(n - mb->f_rankdef[i]) / 2.0 * log_precision0	/* and there is n-pairs... */
-						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n -
-												   mb->f_rankdef[i]) / 2.0 *
-						LOG_ONE_MINUS(SQR(rho)));
+						+ (n - mb->f_rankdef[i]) / 2.0 * log_precision1 - (n - mb->f_rankdef[i]) / 2.0 * LOG_1mp(SQR(rho)));
 			if (_NOT_FIXED(f_fixed[i][0])) {
 				val += PRIOR_EVAL(mb->f_prior[i][0], &log_precision0);
 			}

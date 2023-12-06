@@ -629,6 +629,18 @@ double map_invcauchit(double arg, map_arg_tp typ, void *UNUSED(param))
 	return 0.0;
 }
 
+double link_log_invcloglog(double x)
+{
+	// log(invcloglog(x))
+	return log1p(-exp(-exp(x)));
+}
+
+double link_log_1m_invcloglog(double x)
+{
+	// log(1 - invcloglog(x))
+	return (-exp(x));
+}
+
 double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 {
 	/*
@@ -639,12 +651,12 @@ double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 		/*
 		 * extern = func(local) 
 		 */
-		return ONE_MINUS_EXP(-exp(arg));
+		return ONE_mexp(-exp(arg));
 	case MAP_BACKWARD:
 		/*
 		 * local = func(extern) 
 		 */
-		return log(-LOG_ONE_MINUS(arg));
+		return log(-LOG_1mp(arg));
 	case MAP_DFORWARD:
 		/*
 		 * d_extern / d_local 
@@ -660,6 +672,18 @@ double map_invcloglog(double arg, map_arg_tp typ, void *UNUSED(param))
 	}
 	abort();
 	return 0.0;
+}
+
+double link_log_invccloglog(double x)
+{
+	// log(invccloglog(x))
+	return (-exp(-x));
+}
+
+double link_log_1m_invccloglog(double x)
+{
+	// log(1 - invccloglog(x))
+	return log1p(-exp(-exp(-x)));
 }
 
 double map_invccloglog(double arg, map_arg_tp typ, void *UNUSED(param))
@@ -1294,7 +1318,7 @@ double link_loga(int UNUSED(thread_id), double x, map_arg_tp typ, void *param, d
 				break;
 			}
 			y[i] = xx;
-			x_[i] = log(p_local) - a * LOG_ONE_MINUS(p_local);	// log(p/(1-p)^a)
+			x_[i] = LOG_p(p_local) - a * LOG_1mp(p_local);	// log(p/(1-p)^a)
 		}
 		len = llen;
 
@@ -1590,12 +1614,12 @@ double link_qweibull(int thread_id, double x, map_arg_tp typ, void *param, doubl
 		switch (lparam->variant) {
 		case 0:
 		{
-			ret = -1.0 / pow(exp(x), alpha) * LOG_ONE_MINUS(lparam->quantile);
+			ret = -1.0 / pow(exp(x), alpha) * LOG_1mp(lparam->quantile);
 		}
 			break;
 		case 1:
 		{
-			ret = 1.0 / exp(x) * pow(-LOG_ONE_MINUS(lparam->quantile), 1.0 / alpha);
+			ret = 1.0 / exp(x) * pow(-LOG_1mp(lparam->quantile), 1.0 / alpha);
 		}
 			break;
 		default:

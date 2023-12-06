@@ -72,21 +72,10 @@ trap kill_inla_remote SIGINT SIGTERM
 ## long jobs the pipe gets terminated.
 cd $dir > /dev/null
 
-plic="pardiso.lic"
-if [ "${PardisoLicenseFile}XX" != "XX" ]; then
-   cp -f "${PardisoLicenseFile}" $plic
-   PardisoLoad="export INLA_LOAD_PARDISO=1"
-elif [ -f "$plic" ]; then
-   PardisoLoad="export INLA_LOAD_PARDISO=1"
-else
-   PardisoLoad="true"
-fi	
-
 envfile="environment"
 tar cfm - . 2>/dev/null | $COMPRESS | ssh -p$Port $sshArguments $RemoteUser@$RemoteHost "\
     mkdir -p $rdir; \
     cd $rdir; \
-    eval $PardisoLoad; \
     $UNCOMPRESS | tar xfm - 2>/dev/null ; \
     source $envfile; \
     $RemoteINLA $args Model.ini < /dev/null"

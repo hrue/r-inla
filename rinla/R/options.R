@@ -27,14 +27,13 @@
 #' \item{safe}{Run in safe-mode (ie try to automatically fix convergence errors)
 #' (default `TRUE`)}
 #' 
-#' \item{pardiso.license}{The full path to the PARDISO license file or a
-#' newline-separated string with license key(s)}
-#' 
 #' \item{keep}{Keep temporary files?}
 #' 
 #' \item{verbose}{Verbose output?}
 #' 
 #' \item{save.memory}{Save memory at the cost of (minor) accuracy and computing time?}
+#' 
+#' \item{internal.opt}{Do internal online optimisations or not}
 #' 
 #' \item{working.directory}{The name of the working directory.}
 #' 
@@ -117,10 +116,10 @@ NULL
             num.threads = paste0(parallel::detectCores(all.tests = TRUE, logical = FALSE), ":1"),
             smtp = "default",
             safe = TRUE, 
-            pardiso.license = NULL,
             keep = FALSE,
             verbose = FALSE,
             save.memory = FALSE,
+            internal.opt = TRUE,
             working.directory = NULL,
             silent = TRUE,
             debug = FALSE,
@@ -148,10 +147,10 @@ NULL
                                  "num.threads",
                                  "smtp",
                                  "safe", 
-                                 "pardiso.license",
                                  "keep",
                                  "verbose",
                                  "save.memory",
+                                 "internal.opt",
                                  "working.directory",
                                  "silent",
                                  "debug",
@@ -240,10 +239,10 @@ NULL
                                           "num.threads",
                                           "smtp",
                                           "safe", 
-                                          "pardiso.license",
                                           "keep",
                                           "verbose",
                                           "save.memory",
+                                          "internal.opt",
                                           "working.directory",
                                           "silent",
                                           "debug",

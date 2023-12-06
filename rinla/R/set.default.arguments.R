@@ -376,8 +376,8 @@ control.gcpo <-
             graph = FALSE,
 
             #' @param internal.opt A boolean variable, if to do internal online
-            #' optimisations or not. (Default TRUE.)
-            internal.opt = TRUE,
+            #' optimisations or not. (Default `inla.getOption("internal.opt")`)
+            internal.opt = NULL, 
 
             #' @param save.memory A boolean variable, make choices which
             #' saves memory over accuracy. (Default 'inla.getOption("save.memory")')
