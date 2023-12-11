@@ -6833,9 +6833,7 @@ int main(int argc, char **argv)
 	case INLA_MODE_OPENMP:
 	{
 		printf("export OMP_NUM_THREADS=%1d,%1d,1,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("export OMP_NESTED=TRUE; ");
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS());
-		// printf("export MKL_NUM_THREADS=%1d; ", GMRFLib_openmp->blas_num_threads);
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[1] <= 1 ? 1 : 2));
 		exit(EXIT_SUCCESS);
 	}
 		break;
