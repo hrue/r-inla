@@ -8299,7 +8299,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 	    NULL, ***pacf_intern = NULL, slm_rho_min = 0.0, slm_rho_max = 0.0, **log_halflife = NULL, **log_shape = NULL, **alpha =
 	    NULL, **gama = NULL, **alpha1 = NULL, **alpha2 = NULL, **H_intern = NULL, **nu_intern, ***intslope_gamma = NULL, *cov = NULL,
 		*loc = NULL, ***betas = NULL; 
-	GMRFLib_matrix_tp *V = NULL;
+	GMRFLib_matrix_tp *W = NULL;
 
 	lt_dlhandle handle;
 	inla_cgeneric_func_tp *model_func = NULL;
@@ -12479,11 +12479,11 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		}
 		assert(nbeta <= SCOPY_MAXTHETA);
 
-		char * filenameV = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.V"), NULL));
-		if (!filenameV) {
-			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "V");
+		char * filenameW = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.W"), NULL));
+		if (!filenameW) {
+			inla_error_missing_required_field(__GMRFLib_FuncName, secname, "W");
 		}
-		V = GMRFLib_read_fmesher_file(filenameV, (long int) 0, -1);
+		W = GMRFLib_read_fmesher_file(filenameW, (long int) 0, -1);
 
 		filenamec = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, "SCOPY.COVARIATE"), NULL));
 		if (!filenamec) {
@@ -14078,7 +14078,7 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		def->cov_beta = cov;
 		def->betas = betas;
 		def->precision = mb->f_precision[mb->nf];
-		def->V = V; assert(V);
+		def->W = W; assert(W);
 
 		def->cache00 = Calloc(GMRFLib_CACHE_LEN(), inla_scopy_cache_tp *);
 		for (i = 0; i < GMRFLib_CACHE_LEN(); i++) {

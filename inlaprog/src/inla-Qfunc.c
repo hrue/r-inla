@@ -1568,7 +1568,7 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 	if (build) {
 #pragma omp critical (Name_a1fd55509a70889a1417fb08664e246f4517ee2a)
 		{
-			assert(a->nbeta-2 == a->V->ncol);
+			assert(a->nbeta == a->W->ncol);
 			for (int k = 0; k < a->nbeta; k++) {
 				a->cache00[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
@@ -1576,15 +1576,9 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 			double *theta = Calloc(a->nbeta, double);
 			for(int k = 0; k < a->nbeta; k++) {
 				double *b = a->cache00[cache_idx]->betas_tmp;
-				double w = k / (a->nbeta - 1.0) - 0.5;
-				theta[k] = b[0] + b[1] * w;  /* mean + slope */
-
-				for(int jj = 0; jj < a->nbeta - 2; jj++) {
-					theta[k] += a->V->A[k + jj * a->nbeta] * b[2 + jj];
+				for(int jj = 0; jj < a->nbeta; jj++) {
+					theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
 				}
-				if (0 && k == 0) printf("00 beta %g %g %g %g %g %g %g %g %g %g %g\n",
-							b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], b[9], b[10]);
-				if (0) printf("00 theta[%1d] =  %g\n", k, theta[k]);
 			}
 			GMRFLib_spline_free(a->cache00[cache_idx]->splinefun);
 			a->cache00[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, theta, a->nbeta);
@@ -1623,7 +1617,7 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 	if (build) {
 #pragma omp critical (Name_562559af23fb070f255b55089f79f0c69a8b73a2)
 		{
-			assert(a->nbeta-2 == a->V->ncol);
+			assert(a->nbeta == a->W->ncol);
 			for (int k = 0; k < a->nbeta; k++) {
 				a->cache01[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
@@ -1631,14 +1625,9 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 			double *theta = Calloc(a->nbeta, double);
 			for(int k = 0; k < a->nbeta; k++) {
 				double *b = a->cache01[cache_idx]->betas_tmp;
-				double w = k / (a->nbeta - 1.0) - 0.5;
-				theta[k] = b[0] + b[1] * w;  /* slope */
-				for(int jj = 0; jj < a->nbeta - 2; jj++) {
-					theta[k] += a->V->A[k + jj * a->nbeta] * b[2 + jj];
+				for(int jj = 0; jj < a->nbeta; jj++) {
+					theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
 				}
-				if (0 && k == 0) printf("00 beta %g %g %g %g %g %g %g %g %g %g %g\n",
-							b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], b[9], b[10]);
-				if (0) printf("01 theta[%1d] =  %g\n", k, theta[k]);
 			}
 			GMRFLib_spline_free(a->cache01[cache_idx]->splinefun);
 			a->cache01[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, theta, a->nbeta);

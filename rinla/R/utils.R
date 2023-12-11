@@ -1110,19 +1110,3 @@
     return (r);
 }
 
-`inla.scopy.define` <- function(n = 5) {
-    stopifnot(!missing(n) || n < 5)
-    Q <- inla.rw2(n, scale.model = TRUE)
-    e <- eigen(Q)
-    idx.remove <- (n-1):n
-    V <- e$vectors[, -idx.remove, drop = FALSE]
-    lambda <- e$values[ -idx.remove]
-    ## this is the sqrt(covariance.matrix) which makes the remaining easy
-    for (i in 1:ncol(V)) {
-        V[, i] <- V[, i] * sqrt(1 / lambda[i])
-    }
-
-    return (list(n = n, V = V))
-}
-
-

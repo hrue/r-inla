@@ -492,16 +492,16 @@
 
         file.scopy.z <- inla.tempfile(tmpdir = data.dir)
         xx <- as.double(random.spec$control.scopy$covariate)
-        stopifnot(all(!is.na(xx)))
+        ##stopifnot(all(!is.na(xx)))
         inla.write.fmesher.file(matrix(xx, ncol = 1), filename = file.scopy.z)
         file.scopy.z <- gsub(data.dir, "$inladatadir", file.scopy.z, fixed = TRUE)
         cat("scopy.covariate = ", file.scopy.z, "\n", append = TRUE, sep = " ", file = file)
 
         def <- inla.scopy.define(random.spec$control.scopy$n)
-        file.scopy.V <- inla.tempfile(tmpdir = data.dir)
-        inla.write.fmesher.file(def$V, filename = file.scopy.V)
-        file.scopy.V <- gsub(data.dir, "$inladatadir", file.scopy.V, fixed = TRUE)
-        cat("scopy.V = ", file.scopy.V, "\n", append = TRUE, sep = " ", file = file)
+        file.scopy.W <- inla.tempfile(tmpdir = data.dir)
+        inla.write.fmesher.file(def$W, filename = file.scopy.W)
+        file.scopy.W <- gsub(data.dir, "$inladatadir", file.scopy.W, fixed = TRUE)
+        cat("scopy.W = ", file.scopy.W, "\n", append = TRUE, sep = " ", file = file)
     }
     
     if (!is.null(random.spec$cyclic)) {

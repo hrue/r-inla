@@ -6683,7 +6683,7 @@
                             short.name = "spline", ## yes do not use 'spline1' here
                             initial = 0,
                             fixed = FALSE,
-                            prior = "normal",
+                            prior = "laplace",
                             param = c(0, 10), 
                             to.theta = function(x) x, 
                             from.theta = function(x) x
@@ -12848,6 +12848,11 @@
                     doc = "Gaussian prior",
                     nparameters = 2L,
                     pdf = "gaussian"
+                ),
+                laplace = list(
+                    doc = "Laplace prior",
+                    nparameters = 2L,
+                    pdf = "laplace"
                 ),
                 linksnintercept = list(
                     doc = "Skew-normal-link intercept-prior",

@@ -361,6 +361,7 @@ typedef enum {
 	P_WISHARTK_18D,
 	P_WISHARTK_19D,
 	P_WISHARTK_20D,
+	P_LAPLACE, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -997,7 +998,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
-	GMRFLib_matrix_tp *V;
+	GMRFLib_matrix_tp *W;
 
 	inla_scopy_cache_tp **cache00;
 	inla_scopy_cache_tp **cache01;
@@ -1880,6 +1881,7 @@ double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
 double priorfunc_invalid(double *x, double *parameters);
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters);
+double priorfunc_laplace(double *x, double *parameters);
 double priorfunc_linksnintercept(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);
 double priorfunc_loggamma(double *x, double *parameters);

@@ -8024,7 +8024,7 @@ Number of hyperparmeters is 15.
 \item{short.name = }{\verb{spline}}
 \item{initial = }{\verb{0}}
 \item{fixed = }{\verb{FALSE}}
-\item{prior = }{\verb{normal}}
+\item{prior = }{\verb{laplace}}
 \item{param = }{\verb{0 10}}
 \item{to.theta = }{\verb{function(x) x}}
 \item{from.theta = }{\verb{function(x) x}}
@@ -15660,6 +15660,9 @@ Valid models in this section are:
 Number of parameters in the prior = 2
 }
 \item{Model 'gaussian'.}{
+Number of parameters in the prior = 2
+}
+\item{Model 'laplace'.}{
 Number of parameters in the prior = 2
 }
 \item{Model 'linksnintercept'.}{

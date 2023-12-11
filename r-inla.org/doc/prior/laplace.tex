@@ -1,0 +1,39 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Laplace prior}
+
+\subsection*{Parametrisation}
+The Laplace distribution has density
+\begin{equation}
+    \pi(\theta)= \frac{\lambda}{2} \exp(-|\theta-\mu| \lambda)
+\end{equation}
+for continuous $\theta\in\Re$ where
+\begin{description}
+\item[$\mu$:] is the mean
+\item[$\lambda$:] precision is $\lambda^{2}/2$.
+\end{description}
+
+\subsection*{Specification}
+The Laplace prior for the hyperparameters is specified as
+\begin{center}
+    \texttt{f( <whatever> , hyper = list(<theta> = list(prior="laplace", param=c(<mean>, <precision>))))}
+\end{center}
+
+\subsection*{Example}
+
+\subsection*{Notes}
+
+None.
+
+\end{document}
+
+
+% LocalWords:  hyperparameters param gaussian hyperparameter
+
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
