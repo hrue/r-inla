@@ -98,7 +98,6 @@ else
     vecLibLink=""
 fi
 
-##export OMP_NESTED=TRUE
 export OMP_SCHEDULE=STATIC
 ##export OMP_PROC_BIND=FALSE
 ##export OMP_WAIT_POLICY=ACTIVE
@@ -127,9 +126,6 @@ if [ "${INLA_DEBUG}XX" != "XX" ]; then
 fi
 
 export PARDISOLICMESSAGE=1
-export OMP_NESTED=TRUE
-
-## set default levels for nested openmp
 nt="-t0:1"
 for arg in "$@"; do 
     case "$arg" in
