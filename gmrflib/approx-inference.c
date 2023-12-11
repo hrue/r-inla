@@ -2318,7 +2318,7 @@ int GMRFLib_ai_INLA_experimental(GMRFLib_density_tp ***density,
 	// merge the two loops into one larger one for better omp
 	GMRFLib_openmp_implement_strategy(GMRFLib_OPENMP_PLACES_COMBINE, NULL, NULL);
 
-#pragma omp parallel for num_threads(GMRFLib_MAX_THREADS())
+#pragma omp parallel for num_threads(GMRFLib_openmp->max_threads_outer)
 	for (int ii = 0; ii < preopt->mnpred + graph->n; ii++) {
 		int i;
 		if (ii < preopt->mnpred) {
