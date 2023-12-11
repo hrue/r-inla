@@ -153,8 +153,11 @@
     return(data.frame(x = xx, mean = m, sd = s))
 }
 
-`inla.scopy.define` <- function(n = 5) {
-    stopifnot(!missing(n) || n < 5)
+`inla.scopy.define` <- function(n = 5L) {
+    if (n == 2) {
+        return (list(n = n, W = cbind(1, c(-0.5, 0.5))))
+    } 
+    stopifnot(n >= 5)
     Q <- inla.rw2(n, scale.model = TRUE)
     e <- eigen(Q)
     idx.remove <- (n-1):n
