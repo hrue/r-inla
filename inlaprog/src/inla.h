@@ -989,7 +989,9 @@ typedef struct {
 	double *cov_beta;
 	double ***betas;
 	double precision;
-
+	double loc_len;
+	double loc_mid;
+	
 	GMRFLib_rwdef_tp *rwdef;
 	GMRFLib_graph_tp *graph_prior;
 	GMRFLib_Qfunc_tp *Qfunc_prior;

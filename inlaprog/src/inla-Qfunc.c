@@ -1573,23 +1573,31 @@ double Qfunc_scopy_part00(int thread_id, int i, int j, double *UNUSED(values), v
 				a->cache00[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
 
-			double *theta = Calloc(a->nbeta, double);
-			for(int k = 0; k < a->nbeta; k++) {
-				double *b = a->cache00[cache_idx]->betas_tmp;
-				for(int jj = 0; jj < a->nbeta; jj++) {
-					theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
+			if (a->nbeta > 2) {
+				double *theta = Calloc(a->nbeta, double);
+				for (int k = 0; k < a->nbeta; k++) {
+					double *b = a->cache00[cache_idx]->betas_tmp;
+					for (int jj = 0; jj < a->nbeta; jj++) {
+						theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
+					}
 				}
+				GMRFLib_spline_free(a->cache00[cache_idx]->splinefun);
+				a->cache00[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, theta, a->nbeta);
+				Free(theta);
 			}
-			GMRFLib_spline_free(a->cache00[cache_idx]->splinefun);
-			a->cache00[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, theta, a->nbeta);
-			Free(theta);
 			Memcpy(a->cache00[cache_idx]->betas, a->cache00[cache_idx]->betas_tmp, a->nbeta * sizeof(double));
 		}
 	}
 
 	if (i == j) {
-		double beta = GMRFLib_spline_eval(a->cov_beta[i], a->cache00[cache_idx]->splinefun);
-		return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg) + a->precision * SQR(beta);
+		if (a->nbeta == 2) {
+			double *ab = a->cache00[cache_idx]->betas;
+			double beta = ab[0] + ab[1] * (a->cov_beta[i] - a->loc_mid) / a->loc_len;
+			return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg) + a->precision * SQR(beta);
+		} else {
+			double beta = GMRFLib_spline_eval(a->cov_beta[i], a->cache00[cache_idx]->splinefun);
+			return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg) + a->precision * SQR(beta);
+		}
 	} else {
 		return a->Qfunc(thread_id, i, j, NULL, a->Qfunc_arg);
 	}
@@ -1622,23 +1630,31 @@ double Qfunc_scopy_part01(int thread_id, int i, int j, double *UNUSED(values), v
 				a->cache01[cache_idx]->betas_tmp[k] = a->betas[k][thread_id][0];
 			}
 
-			double *theta = Calloc(a->nbeta, double);
-			for(int k = 0; k < a->nbeta; k++) {
-				double *b = a->cache01[cache_idx]->betas_tmp;
-				for(int jj = 0; jj < a->nbeta; jj++) {
-					theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
+			if (a->nbeta > 2) {
+				double *theta = Calloc(a->nbeta, double);
+				for (int k = 0; k < a->nbeta; k++) {
+					double *b = a->cache01[cache_idx]->betas_tmp;
+					for (int jj = 0; jj < a->nbeta; jj++) {
+						theta[k] += a->W->A[k + jj * a->nbeta] * b[jj];
+					}
 				}
+				GMRFLib_spline_free(a->cache01[cache_idx]->splinefun);
+				a->cache01[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, theta, a->nbeta);
+				Free(theta);
 			}
-			GMRFLib_spline_free(a->cache01[cache_idx]->splinefun);
-			a->cache01[cache_idx]->splinefun = GMRFLib_spline_create(a->loc_beta, theta, a->nbeta);
-			Free(theta);
 			Memcpy(a->cache01[cache_idx]->betas, a->cache01[cache_idx]->betas_tmp, a->nbeta * sizeof(double));
 		}
 	}
 
 	assert(i == j);
-	double beta_i = GMRFLib_spline_eval(a->cov_beta[i], a->cache01[cache_idx]->splinefun);
 
+	double beta_i;
+	if (a->nbeta == 2) {
+		double *ab = a->cache01[cache_idx]->betas;
+		beta_i = ab[0] + ab[1] * (a->cov_beta[i] - a->loc_mid) / a->loc_len;
+	} else {
+		beta_i = GMRFLib_spline_eval(a->cov_beta[i], a->cache01[cache_idx]->splinefun);
+	}
 	return -a->precision * beta_i;
 }
 

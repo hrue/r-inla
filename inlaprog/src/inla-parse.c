@@ -14075,6 +14075,8 @@ int inla_parse_ffield(inla_tp *mb, dictionary *ini, int sec)
 		inla_scopy_arg_tp *def = Calloc(1, inla_scopy_arg_tp);
 		def->nbeta = nbeta;
 		def->loc_beta = loc;
+		def->loc_len = loc[nbeta-1] - loc[0];
+		def->loc_mid = (loc[nbeta-1] + loc[0]) / 2.0;
 		def->cov_beta = cov;
 		def->betas = betas;
 		def->precision = mb->f_precision[mb->nf];
