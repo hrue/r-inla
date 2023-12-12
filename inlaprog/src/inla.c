@@ -5178,12 +5178,12 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 					val += PRIOR_EVAL(mb->f_prior[i][k], &b);
 				}
 			}
-			for (int k = 2; k < a->nbeta; k++) {	       /* mean and slope */
+			for (int k = 2; k < a->nbeta; k++) {   /* mean and slope */
 				if (_NOT_FIXED(f_fixed[i][k])) {
 					double b = theta[count];
 					count++;
 					// yes, we're using the prior for beta[2]
-					val += PRIOR_EVAL(mb->f_prior[i][2], &b); 
+					val += PRIOR_EVAL(mb->f_prior[i][2], &b);
 				}
 			}
 		}

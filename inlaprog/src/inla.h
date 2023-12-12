@@ -361,7 +361,7 @@ typedef enum {
 	P_WISHARTK_18D,
 	P_WISHARTK_19D,
 	P_WISHARTK_20D,
-	P_LAPLACE, 
+	P_LAPLACE,
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -991,7 +991,7 @@ typedef struct {
 	double precision;
 	double loc_len;
 	double loc_mid;
-	
+
 	GMRFLib_rwdef_tp *rwdef;
 	GMRFLib_graph_tp *graph_prior;
 	GMRFLib_Qfunc_tp *Qfunc_prior;
@@ -2068,7 +2068,7 @@ int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
-int inla_read_priorN_scopy(inla_tp *mb, dictionary *ini, int sec, Prior_tp *prior, const char *default_prior, int N, void *args);
+int inla_read_priorN_scopy(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior, void *args);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
@@ -2157,7 +2157,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

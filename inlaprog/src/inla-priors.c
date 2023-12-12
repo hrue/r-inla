@@ -1931,7 +1931,7 @@ double priorfunc_ref_ar(double *x, double *parameters)
 double priorfunc_laplace(double *x, double *parameters)
 {
 	double mean = parameters[0], lambda = sqrt(2.0 * parameters[1]);
-	return (-M_LN2 + log(lambda)  - lambda * ABS(*x - mean));
+	return (-M_LN2 + log(lambda) - lambda * ABS(*x - mean));
 }
 
 double priorfunc_beta(double *x, double *parameters)
