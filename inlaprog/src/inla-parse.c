@@ -16590,6 +16590,11 @@ int inla_parse_INLA(inla_tp *mb, dictionary *ini, int sec, int UNUSED(make_dir))
 	mb->ai_par->n_points = iniparser_getint(ini, inla_string_join(secname, "NPOINTS"), mb->ai_par->n_points);
 
 	mb->ai_par->stencil = iniparser_getint(ini, inla_string_join(secname, "STENCIL"), mb->ai_par->stencil);
+	if (mb->gaussian_data) {
+		// in this case we can go lower
+		mb->ai_par->stencil = 3;
+	}
+		
 	mb->ai_par->step_len = iniparser_getdouble(ini, inla_string_join(secname, "STEP.LEN"), mb->ai_par->step_len);
 	if (ISZERO(mb->ai_par->step_len)) {
 		double scale = GSL_DBL_EPSILON / 2.220446049e-16;
