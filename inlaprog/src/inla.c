@@ -5308,7 +5308,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	 */
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double prec, prec_max = 1.0E6, prec_min = 10.0, w, x, xnew, f, deriv, dderiv, arr[3], eps = 1.0E-4, steplen = 1.0E-4, mean = -OFFSET(idx);
-	int niter = 0, niter_min = 25, niter_max = 100, stencil = 5;
+	int niter = 0, niter_min = 25, niter_max = 100, stencil = 3;
 	const int debug = 0;
 
 	int thread_id = 0;
@@ -5856,9 +5856,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 
 			GMRFLib_daxpy(preopt->n, gamma, d, x);
-			if (norm / norm_initial < 0.25) {
-				break;
+			if (iter > 0) {
+				if ((norm_initial - norm) / norm_initial < 0.05) 
+					break;
 			}
+			norm_initial = norm;
 		}
 
 		tref += GMRFLib_cpu();
