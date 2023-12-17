@@ -224,6 +224,16 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 
 		// see https://en.wikipedia.org/wiki/Finite_difference_coefficients
 		int n, nn, wlength;
+
+		static double wf3[] = {
+			// 
+			-0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0,
+			// 
+			1.0, -2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+			// 
+			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+		};
+
 		static double wf5[] = {
 			// 
 			0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333, 0.0, 0.0, 0.0,
@@ -257,6 +267,12 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		double *wf = NULL;
 
 		switch (num_points) {
+		case 3:
+			n = 3;
+			nn = 2;
+			wlength = 8;
+			wf = wf3;
+			break;
 		case 5:
 			n = 5;
 			nn = 2;
@@ -276,7 +292,7 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 			wf = wf9;
 			break;
 		default:
-			GMRFLib_ASSERT(num_points == 5 || num_points == 7 || num_points == 9, GMRFLib_EINVARG);
+			GMRFLib_ASSERT(num_points == 3 || num_points == 5 || num_points == 7 || num_points == 9, GMRFLib_EINVARG);
 			abort();
 		}
 

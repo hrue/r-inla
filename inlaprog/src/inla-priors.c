@@ -259,7 +259,23 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 	}
 
 	param = GMRFLib_strdup(iniparser_getstring(ini, inla_string_join(secname, param_tag), NULL));
-	if (!strcasecmp(prior->name, "GAMMA")) {
+	if (!strcasecmp(prior->name, "LAPLACE")) {
+		prior->id = P_LAPLACE;
+		prior->priorfunc = priorfunc_laplace;
+		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
+			prior->parameters = Calloc(2, double);
+			if (inla_sread_doubles(prior->parameters, 2, param) == INLA_FAIL) {
+				inla_error_field_is_void(__GMRFLib_FuncName, secname, param_tag, param);
+			}
+		} else {
+			prior->parameters = Calloc(2, double);
+			prior->parameters[0] = 0;
+			prior->parameters[1] = sqrt(2.0 * DEFAULT_NORMAL_PRIOR_PRECISION);
+		}
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%g, %g]\n", prior_tag, param_tag, prior->parameters[0], prior->parameters[1]);
+		}
+	} else if (!strcasecmp(prior->name, "GAMMA")) {
 		prior->id = P_GAMMA;
 		prior->priorfunc = priorfunc_gamma;
 		if (param && inla_is_NAs(2, param) != GMRFLib_SUCCESS) {
@@ -1358,7 +1374,24 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->expression);
 		}
+	} else if (!strncasecmp(prior->name, "RPRIOR:", strlen("RPRIOR:"))) {
+		prior->id = P_RPRIOR;
+		char *tag[3] = {NULL, NULL, NULL};
+		inla_sread_str_str(tag, 3, prior->name); // rprior:RPRIOR_FUNCTION:FILENAME
+		prior->rprior = GMRFLib_strdup(tag[1]);
+		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
+		GMRFLib_sprintf(&(prior->expression), "%s:%s", tag[0], tag[1]);
+		prior->parameters = NULL;
 
+#pragma omp critical (Name_efff84617ceb85320978c2deffcb5b8433bc888d)
+		{
+			inla_R_init_();
+			inla_R_load(tag[2]);
+		}
+
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->rprior);
+		}
 	} else if (!strcasecmp(prior->name, "JEFFREYSTDF")) {
 		prior->id = P_JEFFREYS_T_DF;
 		prior->priorfunc = priorfunc_jeffreys_df_student_t;
@@ -1910,6 +1943,12 @@ double priorfunc_ref_ar(double *x, double *parameters)
 	}
 
 	return (ldens);
+}
+
+double priorfunc_laplace(double *x, double *parameters)
+{
+	double mean = parameters[0], lambda = sqrt(2.0 * parameters[1]);
+	return (-M_LN2 + log(lambda) - lambda * ABS(*x - mean));
 }
 
 double priorfunc_beta(double *x, double *parameters)

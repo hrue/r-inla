@@ -1,26 +1,25 @@
 ---
 title: "Cross-validation and group-cross-validation in INLA"
-author: "Zhedong Liu"
-date: "March 2023"
-geometry: margin=2cm
-output: 
-    rmarkdown::pdf_document: 
-        toc: true
+author: "Zhedong Liu (zhedong.liu@kaust.edu.sa)"
+date: "Dec 2023"
+output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Cross-validation and group-cross-validation in INLA}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8} 
+bibliography: groupcv.bib
 ---
 ```{r setup, include=FALSE}
 library(INLA)
-inla.setOption(num.threads="1:1")
-inla.setOption(smtp="taucs")
-if (file.exists("myinit.R")) source("myinit.R")
-
 library(knitr)
 library(formatR)
+library(fastGHQuad)
+library(pracma)
+inla.setOption(smtp="taucs")
+inla.setOption(num.threads="1:1")
+if (file.exists("myinit.R")) source("myinit.R")
 set.seed(20202)
-opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
 opts_chunk$set(size='small'
                , cache=FALSE
                , cache.path='cache/group-cv'
@@ -29,13 +28,37 @@ opts_chunk$set(size='small'
                , message=FALSE
                , fig.align='center'
                , fig.path='figures/group-cv/'
-               , fig.pos='H')
+               , fig.pos='H'
+               , background='#ffffff'
+               , results='hold'
+               , eval=TRUE)
+
+# gh.x = c(-6.995680e+00,-6.275079e+00,-5.673961e+00,-5.133596e+00,-4.631560e+00,-4.156272e+00,-3.700743e+00,-3.260321e+00,-2.831680e+00,-2.412318e+00,-2.000259e+00,-1.593886e+00,-1.191827e+00,-7.928770e-01,-3.959427e-01,-2.722499e-16,3.959427e-01,7.928770e-01,1.191827e+00,1.593886e+00,2.000259e+00,2.412318e+00,2.831680e+00,3.260321e+00,3.700743e+00,4.156272e+00,4.631560e+00,5.133596e+00,5.673961e+00,6.275079e+00,6.995680e+00)
+# gh.w = c(4.618968e-22,5.110609e-18,5.899556e-15,1.860374e-12,2.352492e-10,1.461199e-08,5.043713e-07,1.049860e-05,1.395209e-04,1.233683e-03,7.482800e-03,3.184723e-02,9.671795e-02,2.121328e-01,3.387727e-01,3.957786e-01,3.387727e-01,2.121328e-01,9.671795e-02,3.184723e-02,7.482800e-03,1.233683e-03,1.395209e-04,1.049860e-05,5.043713e-07,1.461199e-08,2.352492e-10,1.860374e-12,5.899556e-15,5.110609e-18,4.618968e-22)
+
+gh.x = fastGHQuad::gaussHermiteData(51)$x
+gh.w = fastGHQuad::gaussHermiteData(51)$w
+
+inla.lik.pred_real = function(y,args = NULL,args.string,eta.mean,eta.sd,eta.skewness){
+    if(is.null(args)){args = INLA:::inla.likelihood.parser(args.string)}
+    args$linear.predictor = sqrt(2)*eta.sd*gh.x + eta.mean
+    hfunc = inla.likelihood(type = "d",args)
+    res = unlist(lapply(1:length(y),FUN = function(i){1/sqrt(pi)*sum(gh.w*hfunc(y[i]))}))
+    return(res)
+}
+
+inla.lik.pred = function(y,args = NULL,args.string,eta.mean,eta.sd,eta.skewness){
+    res = dnorm(y,mean = eta.mean,sd = sqrt(eta.sd^2 + 1/exp(args$theta)))
+    return(res)
+}
 ```
+\section{Introduction}
 
 We present examples to illustrate the use of leave-group-out
 cross-validation (LGOCV) in INLA. The first example demonstrates the
 primary function used to compute the LGOCV, while the second example
-introduces additional features.
+introduces additional features. For more advanced examples, please
+refer to [@adin2023automatic].
 
 
 \section{Basic Functionality: Multilevel Model}
@@ -69,6 +92,7 @@ predictions are made as a part of the model fitting process itself.
 Since making predictions is essentially the same as fitting a model
 with some missing data, we can simply set y[i] = NA for those
 locations for which we wish to make predictions.
+
 ```{R message = FALSE, warning=FALSE}
 data = data.frame(y = c(y,rep(NA,n_rat+1)),id = c(id,1:n_rat,n_rat+1))
 formula = y ~ 1 + f(id,model = "iid")
@@ -78,7 +102,7 @@ res = inla(formula = formula,
            )
 ```
 
-We present the predictive densities for the two prediction tasks
+ We present the predictive densities for the two prediction tasks
 below, which are given by $$ \pi(\tilde{Y}|\boldsymbol{y}) = \int
 \pi(\boldsymbol{\theta}|\boldsymbol{y}) \int
 \pi(\tilde{\eta}|\boldsymbol{\theta},\boldsymbol{y})\pi(\tilde{Y}|\tilde{\eta},\boldsymbol{\theta})
@@ -90,31 +114,42 @@ $\pi(\tilde{Y}|\tilde{\eta},\boldsymbol{\theta})$.
 res = inla(formula = formula,
            data = data.frame(y = c(y,rep(NA,n_rat+1)), id = c(id,1:n_rat,n_rat+1)),
            family = "normal",
-           control.compute = list(config = TRUE)
+           control.compute = list(config = TRUE,likelihood.info = T)
            )
-
 nconfig = res$misc$configs$nconfig
 weights = unlist(lapply(1:nconfig,FUN = function(i){res$misc$configs$config[[i]]$log.posterior}))
 weights = exp(weights)/sum(exp(weights))
 eps = 0.001
 q = seq(eps,1-eps,eps)
 preddensity = vector(mode = "list",length = n_rat+1)
-
 for(rat_idx in c(1,11)){
     predictor_idx = n + rat_idx
     mode_idx = which.max(weights)
-    sd = 1/sqrt(exp(res$misc$configs$config[[mode_idx]]$theta[1]))
-    mode_eta_mu = res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"mean"]
-    mode_eta_sd = sqrt(res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"variance"])
-    eta_eval = mode_eta_mu + seq(-5,5)*mode_eta_sd
-    y_eval = qnorm(q,mean = mode_eta_mu,sd = sqrt(mode_eta_sd^2 + sd^2))
+    args = INLA:::inla.likelihood.parser(res$misc$configs$config[[1]]$arg.str[1])
+    for(mode_idx in mode_idx){
+        args$theta = res$misc$configs$config[[mode_idx]]$theta[1]
+        mode_eta_mu = res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"mean"]
+        mode_eta_sd = sqrt(res$misc$configs$config[[mode_idx]]$Predictor[predictor_idx,"variance"])
+        eta_eval = mode_eta_mu + seq(-5,5)*mode_eta_sd
+        args$linear.predictor = eta_eval
+        qfunc = inla.likelihood(type = "q",args)
+        y_eval = c()
+        for(i in 1:length(q)){
+            y_eval = c(y_eval,qfunc(q[i]))
+        }
+    }
+    y_eval = sort(y_eval)
     
     preddensity_conditional = list(mode = "list",length = nconfig)
     preddensity[[rat_idx]]$y_eval = y_eval
     preddensity[[rat_idx]]$density = numeric(length(y_eval))
     for(config_idx in 1:nconfig){
-        sd = 1/sqrt(exp(res$misc$configs$config[[config_idx]]$theta[1]))
-        preddensity_conditional[[config_idx]] = dnorm(y_eval,mean = res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"mean"],sd = sqrt(sqrt(res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"variance"])^2 + sd^2))
+        args$theta = res$misc$configs$config[[config_idx]]$theta[1]
+        preddensity_conditional[[config_idx]] = inla.lik.pred(y_eval,
+                                                  args = args,
+                                                  eta.mean = res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"mean"],
+                                                  eta.sd = sqrt(res$misc$configs$config[[config_idx]]$Predictor[predictor_idx,"variance"])
+                                                  )
         preddensity[[rat_idx]]$density  = preddensity[[rat_idx]]$density +  weights[config_idx]*preddensity_conditional[[config_idx]]
     }
 }
@@ -155,14 +190,13 @@ ULGOCV = mean(log(lgocv_res$cv[1:n]))
 print(paste0("ULOOCV is ", round(ULOOCV,5),"."))
 print(paste0("ULGOCV is ", round(ULGOCV,5),"."))
 ```
-
 In the previous code, we manually provided the groups. However,
 `inla.group.cv` also has the ability to automatically construct groups
-for LGOCV. This method was described the preprint
-https://arxiv.org/abs/2210.04482. Using this automatic method, the
-resulting groups are the same as the manual ones we provided earlier.
-The extra data points $101$ does not have effect on the result since
-$y_{101}$ is `NA`.
+for LGOCV. This method was described in a preprint by
+[@liu2022leave]. Using this automatic method, the resulting groups are
+the same as the manual ones we provided earlier. The extra data points
+$101$ does not have 
+effect on the result since $y_{101}$ is `NA`. 
 
 ```{R message = FALSE, warning=FALSE}
 lgocv_auto_res = inla.group.cv(result = res,num.level.sets = 1)
@@ -172,11 +206,7 @@ print(paste0("The group for data point 1 is:"))
 print(paste(lgocv_auto_res$groups[[1]]$idx,collapse=" "))
 ```
 
-The automatic construction of the groups is based on the posterior
-correlation coefficients of linear predictors. The parameter
-``num.level.sets`` controls the degree of independence between $y_i$
-and $\boldsymbol{y}_{-I_i}$. Higher ``num.level.sets`` means higher
-independence between $y_i$ and $\boldsymbol{y}_{-I_i}$.
+The automatic construction of the groups is based on the posterior correlation coefficients of linear predictors. The parameter ``num.level.sets`` controls the degree of independence between $y_i$ and $\boldsymbol{y}_{-I_i}$. Higher ``num.level.sets`` means higher independence between $y_i$ and $\boldsymbol{y}_{-I_i}$. 
 
 \subsection{How do `num.level.sets` and correlation define a group?}
 
@@ -227,7 +257,7 @@ formula = y ~ 1 + x + f(id, model = "iid") + f(id2, W = x,model = "iid")
 res = inla(formula = formula,
            data = data,
            family = "normal",
-           control.compute = list(config = TRUE)
+           control.compute = list(config = TRUE,likelihood.info = T)
            )
 ```
 
@@ -244,7 +274,7 @@ formula_alt =  y ~ 1 + x + f(id, model = "iid")
 res_alt = inla(formula = formula_alt,
            data = data,
            family = "normal",
-           control.compute = list(config = TRUE)
+           control.compute = list(config = TRUE,likelihood.info = T)
            )
 ```
 
@@ -296,9 +326,12 @@ $12$th data point and $53$th data point as our testing points.
 ```{R, warning = FALSE}
 lgocv_res = inla.group.cv(result = res,num.level.sets = 1,select = c(12,53))
 ```
-In this way, we only compute quantities related to $\pi(y_{12}|\boldsymbol{y}_{-I_{12}})$ and $\pi(y_{53}|\boldsymbol{y}_{-I_{53}})$.
+In this way, we only compute quantities related to 
+$\pi(y_{12}|\boldsymbol{y}_{-I_{12}})$ and $\pi(y_{53}|\boldsymbol{y}_{-I_{53}})$.
 
-If we are using manual groups construct we only need to specify the groups for $12$th and $53$th data point.
+If we are using manual groups construct we only need to specify the
+groups for $12$th and $53$th data point.
+
 ```{R, warning = FALSE}
 groups = vector(mode = "list",length = n)
 groups[[12]] = which(id==id[12])
@@ -358,21 +391,19 @@ $\pi(\boldsymbol{\theta}|\boldsymbol{y}_{-I_i}) \propto
 [@liu2022leave] The location of each component is organized in the
 following list:
 
-$\log \pi(\boldsymbol{\theta}|\boldsymbol{y})$ is contained in
+$\log \pi(\boldsymbol{\theta}|\boldsymbol{y})$ is contained in 
 
 `res$misc$configs$config[k]$log.posterior`.
 
-The correction term $-\log
-f(\boldsymbol{\theta}|\boldsymbol{y}_{I_i})$ is contained in
+The correction term $-\log f(\boldsymbol{\theta}|\boldsymbol{y}_{I_i})$ is contained in 
 
-`res$misc$configs$config[[1]]$gcpodens.moments[,"log.theta.correction"]`.
+`res$misc$configs$config[[1]]$gcpodens.moments[,"log.theta.correction"]`. 
 
-The mean of $\pi(\eta_i|\boldsymbol{\theta},\boldsymbol{y}_{-I_i})$ is
-contained in
+The mean of $\pi(\eta_i|\boldsymbol{\theta},\boldsymbol{y}_{-I_i})$ is contained in 
 
 `res$misc$configs$config[[1]]$gcpodens.moments[,"mean"]`.
 
-The variance of $\pi(\eta_i|\boldsymbol{\theta},\boldsymbol{y}_{-I_i})$ is contained in  
+The variance of $\pi(\eta_i|\boldsymbol{\theta},\boldsymbol{y}_{-I_i})$ is contained in
 
 `res$misc$configs$config[[1]]$gcpodens.moments[,"variance"]`.
 
@@ -408,10 +439,10 @@ y_observed = y[testing.point]
 # 2. get the hyperparameter density
 nconfigs = res$misc$configs$nconfig
 weights = unlist(lapply(X = 1:nconfigs,
-                        FUN = function(config.idx){
-                            res$misc$configs$config[[config.idx]]$log.posterior 
-                            + res$misc$configs$config[[config.idx]]$gcpodens.moments[testing.point,3]
-                            }))
+	FUN = function(config.idx){
+    res$misc$configs$config[[config.idx]]$log.posterior 
+    + res$misc$configs$config[[config.idx]]$gcpodens.moments[testing.point,3]
+    }))
 weights = exp(weights)/sum(exp(weights))
 #3. get samples of y_i|y_{-I_i},theta
 n = 1e6
@@ -419,9 +450,9 @@ n_theta = as.numeric(rmultinom(n = 1,size = n,prob = weights))
 y_sample = c()
 for(config.idx in 1:nconfigs){
     if(n_theta[config.idx]>0){
-         eta = rnorm(n_theta[config.idx],
-                     mean = res$misc$configs$config[[config.idx]]$gcpodens.moments[testing.point,1],
-                     sd =  sqrt(res$misc$configs$config[[config.idx]]$gcpodens.moments[testing.point,2]))
+		eta = rnorm(n_theta[config.idx],
+			mean = res$misc$configs$config[[config.idx]]$gcpodens.moments[testing.point,1],
+			sd = sqrt(res$misc$configs$config[[config.idx]]$gcpodens.moments[testing.point,2]))
          sd = sqrt(1/exp(res$misc$configs$config[[config.idx]]$theta[1]))
          y_sample_config = rnorm(n = n_theta[config.idx],mean = eta,sd = sd)
          y_sample = c(y_sample,y_sample_config)
@@ -433,3 +464,6 @@ yy = seq(min(y_sample)-10,max(y_sample)+10,0.01)
 FF = unlist(lapply(yy,F_y))
 CRPS = pracma::trapz(yy,(FF-(yy>=y_observed))^2)
 ```
+
+# References
+

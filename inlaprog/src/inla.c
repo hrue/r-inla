@@ -5171,27 +5171,21 @@ double extra(int thread_id, double *theta, int ntheta, void *argument)
 		case F_SCOPY:
 		{
 			inla_scopy_arg_tp *a = (inla_scopy_arg_tp *) mb->f_Qfunc_arg_orig[i];
-			double *betas = Calloc(a->nbeta, double);
-			double sum = 0.0;
-			for (int k = 0; k < a->nbeta; k++) {
+			for (int k = 0; k < 2; k++) {	       /* mean and slope */
 				if (_NOT_FIXED(f_fixed[i][k])) {
-					betas[k] = theta[count];
+					double b = theta[count];
 					count++;
-				} else {
-					betas[k] = a->betas[k][0][0];
+					val += PRIOR_EVAL(mb->f_prior[i][k], &b);
 				}
-				sum += betas[k] * (k == 0 || k == a->nbeta - 1 ? 0.5 : 1.0);
 			}
-			sum /= (a->nbeta - 1.0);
-
-			double xQx = 0.0;
-			GMRFLib_xQx(thread_id, &xQx, betas, a->graph_prior, a->Qfunc_prior, a->Qfunc_arg_prior);
-
-			val += a->nbeta * (-0.91893853320467266954) +
-			    (0.5 * log(a->prior_prec_mean) - 0.5 * a->prior_prec_mean * SQR(sum - a->prior_mean)) +
-			    ((a->nbeta - a->rwdef->order) / 2.0 * log(a->prior_prec_betas) - 0.5 * a->prior_prec_betas * xQx);
-
-			Free(betas);
+			for (int k = 2; k < a->nbeta; k++) {   /* mean and slope */
+				if (_NOT_FIXED(f_fixed[i][k])) {
+					double b = theta[count];
+					count++;
+					// yes, we're using the prior for beta[2]
+					val += PRIOR_EVAL(mb->f_prior[i][2], &b);
+				}
+			}
 		}
 			break;
 
@@ -5314,7 +5308,7 @@ double inla_compute_initial_value(int idx, GMRFLib_logl_tp *loglfunc, double *x_
 	 */
 	Data_section_tp *ds = (Data_section_tp *) arg;
 	double prec, prec_max = 1.0E6, prec_min = 10.0, w, x, xnew, f, deriv, dderiv, arr[3], eps = 1.0E-4, steplen = 1.0E-4, mean = -OFFSET(idx);
-	int niter = 0, niter_min = 25, niter_max = 100, stencil = 5;
+	int niter = 0, niter_min = 25, niter_max = 100, stencil = 3;
 	const int debug = 0;
 
 	int thread_id = 0;
@@ -5862,9 +5856,11 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 			}
 
 			GMRFLib_daxpy(preopt->n, gamma, d, x);
-			if (norm / norm_initial < 0.25) {
-				break;
+			if (iter > 0) {
+				if ((norm_initial - norm) / norm_initial < 0.05) 
+					break;
 			}
+			norm_initial = norm;
 		}
 
 		tref += GMRFLib_cpu();
@@ -5909,7 +5905,7 @@ int inla_INLA_preopt_experimental(inla_tp *mb)
 #pragma omp parallel for private(i) num_threads(GMRFLib_openmp->max_threads_outer)
 	for (i = 0; i < mb->predictor_n + mb->predictor_m; i++) {
 		GMRFLib_density_tp *d;
-		if (mb->density[i]) {
+		if (mb->density[i] && !ISZERO(OFFSET3(i))) {
 			d = mb->density[i];
 			GMRFLib_density_new_mean(&(mb->density[i]), d, d->std_mean + OFFSET3(i));
 			GMRFLib_free_density(d);
@@ -6839,9 +6835,7 @@ int main(int argc, char **argv)
 	case INLA_MODE_OPENMP:
 	{
 		printf("export OMP_NUM_THREADS=%1d,%1d,1,1; ", GMRFLib_openmp->max_threads_nested[0], GMRFLib_openmp->max_threads_nested[1]);
-		printf("export OMP_NESTED=TRUE; ");
-		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", GMRFLib_MAX_THREADS());
-		// printf("export MKL_NUM_THREADS=%1d; ", GMRFLib_openmp->blas_num_threads);
+		printf("export OMP_MAX_ACTIVE_LEVELS=%1d; ", (GMRFLib_openmp->max_threads_nested[1] <= 1 ? 1 : 2));
 		exit(EXIT_SUCCESS);
 	}
 		break;

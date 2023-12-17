@@ -946,9 +946,8 @@
     cont.family <-
         lapply(seq_len(n.family),
                function(i.family) {
-                 ctrl_update(control.family[[i.family]],
-                             model = family[i.family])
-               })
+            ctrl_update(control.family[[i.family]], model = family[i.family])
+        })
     for (i.family in seq_len(n.family)) {
         all.hyper$family[[i.family]] <- list(
             hyperid = paste("INLA.Data", i.family, sep = ""),
@@ -2392,7 +2391,7 @@
 {
     err.due.to.timeout <- function(r) {
         return (inherits(r, c("try-error", "error")) &&
-                  length(grep("seconds due to timeout", r[1])) > 0)
+                length(grep("seconds due to timeout", r[1])) > 0)
     }
 
     output <- function(msg) {
@@ -2441,8 +2440,8 @@
             debug = debug, 
             .parent.frame = .parent.frame),
             error = function(e) {
-              e
-            }
+            e
+        }
         ))
     }
 
@@ -2457,54 +2456,54 @@
     }
     
     while (inherits(r, "error")) {
-      ##
-      if (inherits(r, "inlaCrashError")) {
-        if (ntry == max.try) {
-          stop(paste0(r$message, "\n",
-                      "The inla program failed and the maximum number of tries has been reached."))
+        ##
+        if (inherits(r, "inlaCrashError")) {
+            if (ntry == max.try) {
+                stop(paste0(r$message, "\n",
+                            "The inla program failed and the maximum number of tries has been reached."))
+            }
+            output(paste0("The inla program failed, but will rerun in case better initial values may help. try=", ntry+1, "/", max.try))
+        } else if (inherits(r, "inlaCollectError")) {
+            stop(paste0(r$message, "\n", "The inla result collection failed."))
+        } else {
+            stop(r)
         }
-        output(paste0("The inla program failed, but will rerun in case better initial values may help. try=", ntry+1, "/", max.try))
-      } else if (inherits(r, "inlaCollectError")) {
-        stop(paste0(r$message, "\n", "The inla result collection failed."))
-      } else {
-        stop(r)
-      }
-      
-      cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
+        
+        cont.inla <- ctrl_update(ctrl_object(control.inla, "inla"))
         cont.inla <-
-          ctrl_update(
-            ctrl_object(
-              list(
-                int.strategy = "eb",
-                strategy = "gaussian",
-                control.vb = ctrl_object(list(enable = FALSE), "vb"),
-                cmin = cmin,
-                force.diagonal = TRUE,
-                optimise.strategy = "plain",
-                tolerance = 0.01),
-              "inla"),
-            default = cont.inla)
+            ctrl_update(
+                ctrl_object(
+                    list(
+                        int.strategy = "eb",
+                        strategy = "gaussian",
+                        control.vb = ctrl_object(list(enable = FALSE), "vb"),
+                        cmin = cmin,
+                        force.diagonal = TRUE,
+                        optimise.strategy = "plain",
+                        tolerance = 0.01),
+                    "inla"),
+                default = cont.inla)
         control.inla.save <- control.inla
         control.inla <- cont.inla
 
         cont.compute <- ctrl_update(ctrl_object(control.compute, "compute"))
         cont.compute <-
-          ctrl_update(
-            ctrl_object(
-              list(
-                return.marginals = FALSE,
-                return.marginals.predictor = FALSE,
-                dic = FALSE,
-                control.gcpo = inla.set.control.gcpo.default(),
-                cpo = FALSE,
-                po = FALSE,
-                waic = FALSE,
-                residuals = FALSE,
-                config = FALSE,
-                q = FALSE,
-                graph = FALSE),
-              "compute"),
-            default = cont.compute)
+            ctrl_update(
+                ctrl_object(
+                    list(
+                        return.marginals = FALSE,
+                        return.marginals.predictor = FALSE,
+                        dic = FALSE,
+                        control.gcpo = inla.set.control.gcpo.default(),
+                        cpo = FALSE,
+                        po = FALSE,
+                        waic = FALSE,
+                        residuals = FALSE,
+                        config = FALSE,
+                        q = FALSE,
+                        graph = FALSE),
+                    "compute"),
+                default = cont.compute)
         control.compute.save <- control.compute
         control.compute <- cont.compute
 
@@ -2628,6 +2627,9 @@ formals(inla.core) <- formals(inla.core.safe) <- formals(inla)
 
 `inla.set.sparselib.env` <- function(inla.dir = NULL)
 {
+    if (Sys.getenv("PARDISO_LIC_PATH") == "") {
+        do.call("Sys.setenv", list(PARDISO_LIC_PATH = inla.get.HOME()))
+    }
     return(invisible())
 }
 

@@ -1109,3 +1109,4 @@
     r <- list(fval = fval, nfun = nfun, mode = list(theta = theta, x = x))
     return (r);
 }
+

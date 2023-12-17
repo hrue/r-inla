@@ -1,6 +1,7 @@
 \documentclass[a4paper,11pt]{article}
 \usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
 \usepackage{amstext}
+\usepackage{amsmath}
 \usepackage{listings}
 \usepackage{verbatim}
 \usepackage{block}
@@ -32,58 +33,83 @@ $z=(z_1, z_2, \ldots, z_m)$, so that
 
 \subsection*{Hyperparameters}
 
-The hyperparameters are the value of the spline at $n$ fixed
-locations, $(l_i, \beta_i)$, for $i=1, \ldots, n$. The function
-$\beta(z)$, is defined as (using $z$ as the covariate)
-\begin{verbatim}
-zr <- range(z)
-l <- seq(zr[1], zr[2], len=n)
-beta.z <- splinefun(l, beta, method = "natural")
-\end{verbatim}
+The hyperparameters are the value of the spline at $n$ fixed (equally
+distant) locations, $(l_i, \beta_i)$, for $i=1, \ldots, n$. Let
+$l_M = (l_n+l_1)/2$ be the mid-points of the locations and
+$l_L=(l_n-l_1)$ its length. These $\beta$-parameters defines the
+interpolating spline (of second order). Let $Q$ be the
+scaled-precision matrix for RW2 and define the eigen decomposition, as
+\begin{displaymath}
+    Q = \sum_{i=1}^{n} \lambda_i v_i v_i^{T}
+\end{displaymath}
+where $\lambda_{n-1}=\lambda_{n}=0$, assuming descreasing eigenvalues.
+We can use $v_{n} = (1, \ldots, 1)^{T}$ and
+$v_{n-1} = (-0.5, \ldots, 0.5)^{T}$.
+Define the matrix with scaled $v_i$' as columns,
+\begin{displaymath}
+    W = \begin{bmatrix}
+          v_{n}^{T} &|& v_{n-1}^{T} &|&  \frac{1}{\sqrt{\lambda_{n-2}}} v^{T}_{n-2} &|& \ldots &|& \frac{1}{\sqrt{\lambda_{1}}} v^{T}_{1}
+        \end{bmatrix}.
+\end{displaymath}
+Let the columns vectors of $W$ be $w_1, w_2, \ldots$. 
+We parameterize the spline at locations $l_1, \ldots, l_n$, as
+$\beta=(\beta_1, \ldots, \beta_n)$, as
+\begin{displaymath}
+    \beta = \sum_{i=1}^{n} \theta_i w_i, \qquad i=1, \ldots, n,
+\end{displaymath}
+In this way, $\theta_1$ is the overall mean, $\theta_2$ is the
+(dimension-less) slope, and $\theta_{3}, \ldots, \theta_n$ are weights
+for the basis-function expansion of the spline that is beyond the
+constant and the linear term.
 
-We can control $\beta$ and its prior distribution using argument
+Since $Q$ is scaled, then using independent $N(0,1)$ prior for each
+$\theta_{3}, \ldots, \theta_n$ will make the prior deviation from the
+mean and slope, also $N(0,1)$ (in an average sense). So only one
+common scaling of the prior precisions for these parameters of this
+prior are needed to shrink it more, or to shrink it less. For this
+reason the prior for $\theta_{j}$, $j=3, \ldots, n$, is \emph{defined}
+to be the same as the prior for $\theta_3$, hence only the prior for
+$\theta_3$ needs to be specified.
+
+Doing this from within \texttt{R}, we can evaluate the spline at any
+point within $[l_1, l_n]$, we can use
+\begin{verbatim}
+sfun <- splinefun(loc, beta, method = "natural")
+new.value <- sfun(new.loc)
+\end{verbatim}
+The functions \texttt{inla.scopy.summary} and
+\texttt{INLA:::inla.scopy.define} can be consulted for further
+details.
+
+
+We can control $n$ and the covariate with
 \texttt{control.scopy} within \texttt{f()},
 \begin{quote}
     \texttt{control.scopy = list(\\
         covariate = ..., \\
-        n = 5, \\
-        model = "rw2",\\
-        mean = 1.0, \\
-        prec.mean =  1.0,  \\
-        prec.betas =  10.0})
+        n = 9})
 \end{quote}
 where
 \begin{description}
 \item[covariate] gives the covariate that is used
 \item[n] is the number of hyperparameters used in the spline
-    ($3 \leq n \leq 15$).
-\item[model] the prior model for $\{\beta_i\}$, either \texttt{rw1} or
-    \texttt{rw2}. This model is scaled (like with
-    \texttt{scale.model=TRUE}).
-\item[mean] The prior mean for the (weighted-)mean\footnote{The mean
-        of $\{\beta_i\}$ is defined to approximate the integral of the
-        RW, hence its
-        $\left(\frac{1}{2}(\beta_1 + \beta_n) +
-          \sum_{j=2}^{n-1}\beta_j\right)/(n-1)$.} of $\{\beta_i\}$
-\item[prec.mean] The prior precision for the (weighted-)mean of
-    $\{\beta_i\}$
-\item[prec.betas] The prior precision for the \texttt{rw1/rw2} model
-    for $\{\beta_i\}$
+    ($5 \leq n \leq 15$).
 \end{description}
-Note that the prior mean and both prior precisions, are \emph{fixed}
-and not \emph{random}.
-
 The \texttt{f()}-argument \texttt{precision}, defines how close the
 copy is, is similar as for model \texttt{copy}.
+
+The priors for the mean, slope and the deviation from them, are given
+by the \texttt{hyper}-argument. See also the example.
 
 \clearpage
 \section*{Spesification}
 \input{../hyper/latent/scopy.tex}
 
 \clearpage
-\subsection*{Example}
-Just simulate some data and estimate the parameters back. 
-{\small\verbatiminput{example-scopy.R}}
+\subsection*{Example 1}
+{\small\verbatiminput{example-scopy-1.R}}
+\subsection*{Example 2}
+{\small\verbatiminput{example-scopy-2.R}}
 
 \subsection*{Notes}
 

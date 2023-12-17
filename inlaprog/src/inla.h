@@ -361,6 +361,8 @@ typedef enum {
 	P_WISHARTK_18D,
 	P_WISHARTK_19D,
 	P_WISHARTK_20D,
+	P_LAPLACE,
+	P_RPRIOR, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -427,6 +429,7 @@ typedef struct {
 	inla_component_tp id;				       /* prior Id */
 	char *hyperid;					       /* hyperpar Id */
 	char *name;					       /* name of prior */
+	char *rprior;					       /* name of rprior */
 	double *parameters;				       /* the parameters */
 	char *to_theta;					       /* R-code */
 	char *from_theta;				       /* R-code */
@@ -988,10 +991,8 @@ typedef struct {
 	double *cov_beta;
 	double ***betas;
 	double precision;
-
-	double prior_mean;
-	double prior_prec_mean;
-	double prior_prec_betas;
+	double loc_len;
+	double loc_mid;
 
 	GMRFLib_rwdef_tp *rwdef;
 	GMRFLib_graph_tp *graph_prior;
@@ -1001,6 +1002,7 @@ typedef struct {
 	GMRFLib_graph_tp *graph;
 	GMRFLib_Qfunc_tp *Qfunc;
 	void *Qfunc_arg;
+	GMRFLib_matrix_tp *W;
 
 	inla_scopy_cache_tp **cache00;
 	inla_scopy_cache_tp **cache01;
@@ -1883,6 +1885,7 @@ double priorfunc_gamma(double *precision, double *parameters);
 double priorfunc_gaussian(double *x, double *parameters);
 double priorfunc_invalid(double *x, double *parameters);
 double priorfunc_jeffreys_df_student_t(double *x, double *parameters);
+double priorfunc_laplace(double *x, double *parameters);
 double priorfunc_linksnintercept(double *x, double *parameters);
 double priorfunc_logflat(double *x, double *parameters);
 double priorfunc_loggamma(double *x, double *parameters);
@@ -2067,6 +2070,7 @@ int inla_read_prior7(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, 
 int inla_read_prior8(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_prior9(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
 int inla_read_priorN(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
+int inla_read_priorN_scopy(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, int N, void *args);
 int inla_read_prior_generic(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *prior_tag, const char *param_tag,
 			    const char *from_theta, const char *to_theta, const char *hyperid, const char *default_prior, void *args);
 int inla_read_prior_group(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prior, const char *default_prior, void *args);
@@ -2089,7 +2093,6 @@ int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prio
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
-int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread(void *x, int nx, const char *str, int code);
 int inla_sread_colon_ints(int *i, int *j, const char *str);
 int inla_sread_doubles(double *x, int nx, const char *str);
@@ -2097,6 +2100,8 @@ int inla_sread_doubles_q(double **x, int *nx, const char *str);
 int inla_sread_ints(int *x, int nx, const char *str);
 int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
+int inla_sread_str_int(char **tag, int *i, const char *str);
+int inla_sread_str_str(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);
@@ -2155,7 +2160,7 @@ int loglikelihood_lognormal(int thread_id, double *logll, double *x, int m, int 
 int loglikelihood_lognormalsurv(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_logperiodogram(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_core(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg,
-			   int (*quadrature)(int, double **, double **, int *, void *), int (*simpson)(int, double **, double **, int *, void *),
+			   int (*quadrature)(int, double **, double **, int *, void *), int(*simpson)(int, double **, double **, int *, void *),
 			   char **arg_str);
 int loglikelihood_mix_loggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);
 int loglikelihood_mix_mloggamma(int thread_id, double *logll, double *x, int m, int idx, double *x_vec, double *y_cdf, void *arg, char **arg_str);

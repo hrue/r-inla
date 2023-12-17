@@ -58,8 +58,14 @@
                 if (!is.null(pre)) paste0(pre, ".") else "",
                 name, "", j, ":", "\n",
                 "\t\t\t", "parameter=[", h4$name, "]", "\n",
-                "\t\t\t", "prior=[", h4$prior, "]", "\n",
-                "\t\t\t", "param=[", p2char(h4$param), "]", "\n",
+                "\t\t\t", "prior=[", if (inla.is.rprior(h4$prior))
+                                         inla.function2source(h4$prior[[1]])
+                                     else
+                                         h4$prior, "]", "\n",
+                "\t\t\t", "param=[", if (inla.is.rprior(h4$prior))
+                                         numeric(0)
+                                     else
+                                         p2char(h4$param), "]", "\n",
                 sep = ""
             )
             if (FALSE) {
