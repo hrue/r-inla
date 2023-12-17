@@ -1,3 +1,9 @@
+# INLA 23.12.17
+* New version of `scopy` (experimental)
+* Added support for defining priors in `R` (experimental, see `rprior`)
+* Some code improvements
+* Updated vignette about `group-cv`
+
 # INLA 23.12.06
 * Fixed issue (hopefully) with saturated DIC
 * New option, 'internal.opt' in 'inla.setOption'
