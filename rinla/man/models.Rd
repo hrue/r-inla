@@ -15791,6 +15791,9 @@ Number of parameters in the prior = -1
 \item{Model 'table:'.}{
 Number of parameters in the prior = -1
 }
+\item{Model 'rprior:'.}{
+Number of parameters in the prior = 0
+}
 }
 }
 

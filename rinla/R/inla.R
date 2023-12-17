@@ -946,9 +946,8 @@
     cont.family <-
         lapply(seq_len(n.family),
                function(i.family) {
-                 ctrl_update(control.family[[i.family]],
-                             model = family[i.family])
-               })
+            ctrl_update(control.family[[i.family]], model = family[i.family])
+        })
     for (i.family in seq_len(n.family)) {
         all.hyper$family[[i.family]] <- list(
             hyperid = paste("INLA.Data", i.family, sep = ""),

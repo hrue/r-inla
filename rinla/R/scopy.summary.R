@@ -19,7 +19,7 @@
 #' @param debug If `TRUE` then enable some debug output
 #' @return A `data.frame` with locations, mean and stdev.  If `name`
 #' is not found, NULL is returned.
-#' @author Havard Rue \email{hrue@r-inla.org}
+#' @author Havard Rue \email{hrue@@r-inla.org}
 #' @examples
 #' 
 #'  ## see example in inla.doc("scopy")

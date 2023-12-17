@@ -39,38 +39,53 @@
         cat(prefix, "fixed", suff, " = ", as.numeric(hyper[[k]]$fixed), "\n", file = file, append = TRUE, sep = "")
         cat(prefix, "hyperid", suff, " = ", as.numeric(hyper[[k]]$hyperid), "\n", file = file, append = TRUE, sep = "")
 
-        ## these are for "expression:"...
-        ## if there are newlines,  remove them
-        tmp.prior <- gsub("\n", "", hyper[[k]]$prior)
-        ## remove preceding spaces
-        tmp.prior <- gsub("^[ \t]+", "", tmp.prior)
-        ## if the expression ends with a ";" with or without spaces, remove it
-        tmp.prior <- gsub(";*[ \t]*$", "", tmp.prior)
-        ## if there is a 'return (' replace it with 'return('
-        tmp.prior <- gsub("return[ \t]+\\(", "return(", tmp.prior)
-        ## for all priors except the "expression:" one,  then trim the name
-        if (length(grep("^(expression|table)[ \t]*:", tolower(tmp.prior))) == 0L) {
-            tmp.prior <- inla.trim.family(tmp.prior)
-        }
-
-        ## table: is now stored in a file
-        if (length(grep("^table:", tmp.prior)) > 0) {
-            tab <- substr(tmp.prior, nchar("table:") + 1, nchar(tmp.prior))
-            xy <- as.numeric(unlist(strsplit(tab, "[ \t\n\r]+")))
-            xy <- xy[!is.na(xy)]
-            nxy <- length(xy) %/% 2L
-            xx <- xy[1:nxy]
-            yy <- xy[1:nxy + nxy]
-            xy <- cbind(xx, yy)
-            file.xy <- inla.tempfile(tmpdir = data.dir)
-            inla.write.fmesher.file(xy, filename = file.xy)
-            file.xy <- gsub(data.dir, "$inladatadir", file.xy, fixed = TRUE)
-            cat(prefix, "prior", suff, " = table: ", file.xy, "\n", append = TRUE, sep = "", file = file)
+        tmp.prior <- ""
+        if (inla.is.rprior(hyper[[k]]$prior)) {
+            file.rprior <- inla.tempfile(tmpdir = data.dir)
+            prior.name <- paste0(".inla.rprior.", gsub("^0\\.","", as.character(runif(1))))
+            assign(prior.name, hyper[[k]]$prior[[1]])
+            inla.eval(paste("save(", prior.name,
+                            ", file = ", "\"", file.rprior, "\"",
+                            ", ascii = FALSE, compress = TRUE)",
+                            sep = ""
+                            ))
+            fnm <- gsub(data.dir, "$inladatadir", file.rprior, fixed = TRUE)
+            cat(prefix, "prior", suff, " = ", "rprior:", prior.name, ":", fnm, "\n", sep = "", file = file, append = TRUE)
+            rm(prior.name) 
+            cat(prefix, "parameters", suff, " = ", "", "\n", file = file, append = TRUE, sep = "")
         } else {
-            cat(prefix, "prior", suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep = "")
-        }
+            ## these are for "expression:"...
+            ## if there are newlines,  remove them
+            tmp.prior <- gsub("\n", "", hyper[[k]]$prior)
+            ## remove preceding spaces
+            tmp.prior <- gsub("^[ \t]+", "", tmp.prior)
+            ## if the expression ends with a ";" with or without spaces, remove it
+            tmp.prior <- gsub(";*[ \t]*$", "", tmp.prior)
+            ## if there is a 'return (' replace it with 'return('
+            tmp.prior <- gsub("return[ \t]+\\(", "return(", tmp.prior)
+            ## for all priors except the "expression:" one,  then trim the name
+            if (length(grep("^(expression|table)[ \t]*:", tolower(tmp.prior))) == 0L) {
+                tmp.prior <- inla.trim.family(tmp.prior)
+            }
 
-        cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep = "")
+            ## table: is now stored in a file
+            if (length(grep("^table:", tmp.prior)) > 0) {
+                tab <- substr(tmp.prior, nchar("table:") + 1, nchar(tmp.prior))
+                xy <- as.numeric(unlist(strsplit(tab, "[ \t\n\r]+")))
+                xy <- xy[!is.na(xy)]
+                nxy <- length(xy) %/% 2L
+                xx <- xy[1:nxy]
+                yy <- xy[1:nxy + nxy]
+                xy <- cbind(xx, yy)
+                file.xy <- inla.tempfile(tmpdir = data.dir)
+                inla.write.fmesher.file(xy, filename = file.xy)
+                file.xy <- gsub(data.dir, "$inladatadir", file.xy, fixed = TRUE)
+                cat(prefix, "prior", suff, " = table: ", file.xy, "\n", append = TRUE, sep = "", file = file)
+            } else {
+                cat(prefix, "prior", suff, " = ", tmp.prior, "\n", file = file, append = TRUE, sep = "")
+            }
+            cat(prefix, "parameters", suff, " = ", inla.paste(hyper[[k]]$param), "\n", file = file, append = TRUE, sep = "")
+        }
 
         ## the PCGEVTAIL prior is a special case, as the (low, high) is given as parameters 2
         ## and 3, in the prior. So we need to extract those, and make sure they are set to
@@ -92,35 +107,35 @@
         ## do a second replacement so that we replace the functions with actual functions after
         ## the replacement of REPLACE.ME.....
         hyper[[k]]$from.theta <- eval(parse(text = gsub(
-            "REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep = ""),
-            inla.function2source(hyper[[k]]$from.theta, newline = "
+                                                "REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep = ""),
+                                                inla.function2source(hyper[[k]]$from.theta, newline = "
 ")
-        )))
+)))
         hyper[[k]]$from.theta <- eval(parse(text = gsub(
-            "REPLACE.ME.low", paste("low=", as.numeric(low), sep = ""),
-            inla.function2source(hyper[[k]]$from.theta, newline = "
+                                                "REPLACE.ME.low", paste("low=", as.numeric(low), sep = ""),
+                                                inla.function2source(hyper[[k]]$from.theta, newline = "
 ")
-        )))
+)))
         hyper[[k]]$from.theta <- eval(parse(text = gsub(
-            "REPLACE.ME.high", paste("high=", as.numeric(high), sep = ""),
-            inla.function2source(hyper[[k]]$from.theta, newline = "
+                                                "REPLACE.ME.high", paste("high=", as.numeric(high), sep = ""),
+                                                inla.function2source(hyper[[k]]$from.theta, newline = "
 ")
-        )))
+)))
         hyper[[k]]$to.theta <- eval(parse(text = gsub(
-            "REPLACE.ME.low", paste("low=", as.numeric(low), sep = ""),
-            inla.function2source(hyper[[k]]$to.theta, newline = "
+                                              "REPLACE.ME.low", paste("low=", as.numeric(low), sep = ""),
+                                              inla.function2source(hyper[[k]]$to.theta, newline = "
 ")
-        )))
+)))
         hyper[[k]]$to.theta <- eval(parse(text = gsub(
-            "REPLACE.ME.high", paste("high=", as.numeric(high), sep = ""),
-            inla.function2source(hyper[[k]]$to.theta, newline = "
+                                              "REPLACE.ME.high", paste("high=", as.numeric(high), sep = ""),
+                                              inla.function2source(hyper[[k]]$to.theta, newline = "
 ")
-        )))
+)))
         hyper[[k]]$to.theta <- eval(parse(text = gsub(
-            "REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep = ""),
-            inla.function2source(hyper[[k]]$to.theta, newline = "
+                                              "REPLACE.ME.ngroup", paste("ngroup=", as.integer(ngroup), sep = ""),
+                                              inla.function2source(hyper[[k]]$to.theta, newline = "
 ")
-        )))
+)))
     }
 
     return(hyper)

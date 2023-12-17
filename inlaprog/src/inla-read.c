@@ -185,6 +185,22 @@ int inla_sread_str_int(char **tag, int *i, const char *str)
 	return (ok ? GMRFLib_SUCCESS : !GMRFLib_SUCCESS);
 }
 
+int inla_sread_str_str(char **tag, int nmax, char *str)
+{
+	char *strtok_ptr = NULL, *token;
+	const char *delim = ":";
+	char *p = GMRFLib_strdup(str);
+	int i = 0;
+
+	while((token = GMRFLib_strtok_r(p, delim, &strtok_ptr))) {
+		p = NULL;
+		tag[i++] = GMRFLib_strdup(token);
+		if (i == nmax)
+			break;
+	}
+	return GMRFLib_SUCCESS; 
+}
+
 int inla_sread_colon_ints(int *i, int *j, const char *str)
 {
 	/*

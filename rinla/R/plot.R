@@ -767,7 +767,7 @@
         return(invisible(figures))
     }
 
-inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE) 
+inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug = FALSE) 
 {
     str.trunc <- function(..., max.len = 32) {
         str <- paste(..., sep = "", collapse = " ")
@@ -981,7 +981,7 @@ inla.extract.prior <- function(section = NULL, hyperid = NULL, all.hyper, debug 
     return(list(prior = prior, param = param, from.theta = from.theta, to.theta = to.theta))
 }
 
-inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug = TRUE,
+inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug = FALSE,
                               len = 10000, range, intern = FALSE) 
 {
     str.trunc <- function(..., max.len = 32) {
@@ -1060,7 +1060,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         d.deriv <- dist(xi, deriv = 1)
 
         return(-log(p.high - p.low) + log(lambda) - lambda * d + log(abs(d.deriv)) +
-            log(abs(xi.deriv)))
+               log(abs(xi.deriv)))
     }
 
     my.pc.dof <- function(theta, param, log = FALSE) {
@@ -1112,7 +1112,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         e.theta <- exp(theta)
         rho <- 2.0 * e.theta / (1 + e.theta) - 1.0
         ld <- (inla.pc.dcor0(rho, u = param[1], alpha = param[2], log = TRUE) +
-            log(2) + theta - 2.0 * log(1 + e.theta))
+               log(2) + theta - 2.0 * log(1 + e.theta))
         return(if (log) ld else exp(ld))
     }
 
@@ -1124,7 +1124,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         e.theta <- exp(theta)
         rho <- 2.0 * e.theta / (1 + e.theta) - 1.0
         ld <- (inla.pc.dcor1(rho, u = param[1], alpha = param[2], log = TRUE) +
-            log(2) + theta - 2.0 * log(1 + e.theta))
+               log(2) + theta - 2.0 * log(1 + e.theta))
         return(if (log) ld else exp(ld))
     }
 
@@ -1136,7 +1136,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         e.theta <- exp(theta)
         p <- e.theta / (1.0 + e.theta)
         ld <- (dbeta(p, shape1 = param[1], shape2 = param[2], log = TRUE) +
-            theta - 2.0 * log(1 + e.theta))
+               theta - 2.0 * log(1 + e.theta))
         return(if (log) ld else exp(ld))
     }
 
@@ -1240,7 +1240,7 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
 
     ## end of prior functions
 
-     stopifnot(!missing(range))
+    stopifnot(!missing(range))
     prior <- inla.extract.prior(section, hyperid, all.hyper, debug)
 
     if (length(prior) == 1 && is.na(prior)) {
@@ -1263,22 +1263,43 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
         return(list(x = NA, y = NA))
     }
 
-    myp <- paste("my.", prior$prior, sep = "")
+    have.rprior <- FALSE
+    if (inla.is.rprior(prior$prior)) {
+        rprior.fun <-"my.rprior.fun"
+        assign(rprior.fun, prior$prior[[1]])
+        myp <- rprior.fun
+        prior$prior <- prior$prior[[1]]
+        prior$param <- numeric(0)
+        have.rprior <- TRUE
+    } else {
+        myp <- paste("my.", prior$prior, sep = "")
+    }
+
+
     if (!exists(myp) || !is.function(eval(parse(text = myp)))) {
         output("internal prior-function not found: ", myp, ", NEEDS TO BE IMPLEMENTED", force = TRUE)
         return(list(x = NA, y = NA))
     }
-    output("prior: ", str.trunc(prior$prior), " param: ", str.trunc(prior$param))
+    if (have.rprior) {
+        output("prior: ", inla.function2source(prior$prior), " param: ", str.trunc(prior$param))
+    } else {
+        output("prior: ", str.trunc(prior$prior), " param: ", str.trunc(prior$param))
+    }
+
     if (intern) {
         ## use a linear scale. 'x' is in the linear scale
         x <- seq(range[1], range[2], length.out = len)
-        y <- do.call(myp, list(theta = x, param = prior$param))
+        if (have.rprior) {
+            y <- exp(do.call(myp, list(x)))
+        } else {
+            y <- do.call(myp, list(theta = x, param = prior$param, log = FALSE))
+        }
     } else {
         ## 'x' is in the user-scale.
 
         ## this is a special case, need to extract the interval and use that as the correct
         ## argument
-        if (prior$prior == "pc.gevtail") {
+        if (!have.rprior && (prior$prior == "pc.gevtail")) {
             interval <- prior$param[c(2, 3)]
             range.theta <- prior$to.theta(range, interval = interval)
             theta <- seq(range.theta[1], range.theta[2], length.out = len)
@@ -1288,7 +1309,11 @@ inla.get.prior.xy <- function(section = NULL, hyperid = NULL, all.hyper, debug =
             theta <- seq(range.theta[1], range.theta[2], length.out = len)
             x <- prior$from.theta(theta)
         }
-        ld <- do.call(myp, args = list(theta = theta, param = prior$param, log = TRUE))
+        if (have.rprior) {
+            ld <- do.call(myp, args = list(theta))
+        } else {
+            ld <- do.call(myp, args = list(theta = theta, param = prior$param, log = TRUE))
+        }
         fun <- splinefun(x, theta)
         y <- exp(ld + log(abs(fun(x, deriv = 1))))
     }

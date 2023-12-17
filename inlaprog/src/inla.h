@@ -362,6 +362,7 @@ typedef enum {
 	P_WISHARTK_19D,
 	P_WISHARTK_20D,
 	P_LAPLACE,
+	P_RPRIOR, 
 	G_EXCHANGEABLE = 3000,				       /* group models */
 	G_EXCHANGEABLE_POS,
 	G_AR1,
@@ -428,6 +429,7 @@ typedef struct {
 	inla_component_tp id;				       /* prior Id */
 	char *hyperid;					       /* hyperpar Id */
 	char *name;					       /* name of prior */
+	char *rprior;					       /* name of rprior */
 	double *parameters;				       /* the parameters */
 	char *to_theta;					       /* R-code */
 	char *from_theta;				       /* R-code */
@@ -2091,7 +2093,6 @@ int inla_read_prior_mix(inla_tp * mb, dictionary * ini, int sec, Prior_tp * prio
 int inla_read_weightsinfo(inla_tp * mb, dictionary * ini, int sec, File_tp * file);
 int inla_replicate_graph(GMRFLib_graph_tp ** g, int replicate);
 int inla_setup_ai_par_default(inla_tp * mb);
-int inla_sread_str_int(char **tag, int *i, const char *str);
 int inla_sread(void *x, int nx, const char *str, int code);
 int inla_sread_colon_ints(int *i, int *j, const char *str);
 int inla_sread_doubles(double *x, int nx, const char *str);
@@ -2099,6 +2100,8 @@ int inla_sread_doubles_q(double **x, int *nx, const char *str);
 int inla_sread_ints(int *x, int nx, const char *str);
 int inla_sread_ints_q(int **x, int *nx, const char *str);
 int inla_sread_q(void **x, int *nx, const char *str, int code);
+int inla_sread_str_int(char **tag, int *i, const char *str);
+int inla_sread_str_str(char **tag, int nmax, char *str);
 int inla_tolower(char *string);
 int inla_trim_family(char *family);
 int inla_wishart3d_adjust(double *rho);

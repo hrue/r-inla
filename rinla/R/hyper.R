@@ -271,7 +271,12 @@ inla.set.hyper <- function(
             if (is.na(test.val) || test.val) {
                 ## known length
                 if (key == "param") {
-                    len <- inla.model.properties(hyper.new[[idx.new]]$prior, "prior")$nparameters
+                    if (inla.is.rprior(hyper.new[[idx.new]]$prior)) {
+                        pri <- "rprior:"
+                    } else {
+                        pri <- hyper.new[[idx.new]]$prior
+                    }
+                    len <- inla.model.properties(pri, "prior")$nparameters
                     if (debug) {
                         cat(paste("*** nparam =", len), "\n")
                     }
@@ -298,14 +303,16 @@ inla.set.hyper <- function(
                 ## given length
                 llen <- length(h[[key]])
 
-                if (len >= 0L) {
-                    if (llen > len) {
-                        stop(paste("model", model, "[", section, "], hyperparam", ih, ", length(hyper[[key]]) =",
-                            llen, ">", len,
-                            sep = " "
-                        ))
-                    } else if (llen < len) {
-                        h[[key]] <- c(h[[key]], rep(NA, len - llen))
+                if (!inla.is.rprior(h[[key]])) {
+                    if (len >= 0L) {
+                        if (llen > len) {
+                            stop(paste("model", model, "[", section, "], hyperparam", ih, ", length(hyper[[key]]) =",
+                                       llen, ">", len,
+                                       sep = " "
+                                       ))
+                        } else if (llen < len) {
+                            h[[key]] <- c(h[[key]], rep(NA, len - llen))
+                        }
                     }
                 }
                 if (len != 0L) {
@@ -318,20 +325,30 @@ inla.set.hyper <- function(
                                 "=", h[[key]][idxx]
                             )), "\n")
                         }
-                        hyper.new[[idx.new]][[key]][idxx] <- h[[key]][idxx]
+                        if (inla.is.rprior(h[[key]])) {
+                            hyper.new[[idx.new]][[key]][idxx] <- h[[key]]
+                        } else {
+                            hyper.new[[idx.new]][[key]][idxx] <- h[[key]][idxx]
+                        }
                     }
                 }
             }
 
             if (key == "param") {
-                ans <- inla.model.properties(hyper.new[[idx.new]]$prior, "prior", stop.on.error = TRUE)
-                if (ans$nparameters >= 0L) {
-                    if (length(hyper.new[[idx.new]]$param) != ans$nparameters) {
-                        stop(paste("Wrong length of prior-parameters, prior `", hyper.new[[idx.new]]$prior, "' needs ",
-                            ans$nparameters, " parameters, you have ",
-                            length(hyper.new[[idx.new]]$param), ".",
-                            sep = ""
-                        ))
+                if (!inla.is.rprior(hyper.new[[idx.new]]$prior)) {
+                    ans <- inla.model.properties(hyper.new[[idx.new]]$prior, "prior", stop.on.error = TRUE)
+                    if (ans$nparameters >= 0L) {
+                        if (length(hyper.new[[idx.new]]$param) != ans$nparameters) {
+                            stop(paste("Wrong length of prior-parameters, prior `", hyper.new[[idx.new]]$prior, "' needs ",
+                                       ans$nparameters, " parameters, you have ",
+                                       length(hyper.new[[idx.new]]$param), ".",
+                                       sep = ""
+                                       ))
+                        }
+                    }
+                } else {
+                    if (debug) {
+                        cat(inla.paste(c("*** detect rprior ***\n")))
                     }
                 }
             }

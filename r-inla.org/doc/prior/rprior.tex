@@ -1,0 +1,41 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[scale={0.8,0.9},centering,includeheadfoot]{geometry}
+\usepackage{amstext}
+\usepackage{verbatim}
+\begin{document}
+
+\section*{Defining priors in R; `rprior`}
+
+This prior allow the user to use a prior for $\theta$ in a form of an
+R-function which return $\log\pi(\theta)$ as a function of $\theta$.
+The function needs \texttt{not} to vectorize. The prior function needs
+to be prepared using \texttt{inla.rprior.define()} before use (see below
+for an example).
+
+\subsection*{Example}
+
+As an example, we implement the \texttt{loggamma}-prior, which for
+$\theta = \log(\text{precision})$ is
+\begin{verbatim}
+rprior.func = function(lprec) {
+    return (dgamma(exp(lprec), a, b, log = TRUE) + lprec)
+}
+\end{verbatim}
+The last term is the log-Jacobian for the change of variable. Note
+that the prior-parameters, $a$ and $b$, can be passed on when
+\emph{preparing} the prior (a required step), using
+\begin{verbatim}
+rprior <- inla.rprior.define(rprior.func, a=1.0, b=0.1)
+\end{verbatim}
+\texttt{rprior} can then be used as the argument \texttt{prior =
+    rprior} in the \texttt{hyper} argument; see the following example.
+
+\verbatiminput{example-table.R}
+
+\end{document}
+%%% Local Variables: 
+%%% TeX-master: t
+%%% End: 
+
+
+% LocalWords:  rprior vectorize loggamma Jacobian

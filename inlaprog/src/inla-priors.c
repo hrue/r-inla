@@ -1374,7 +1374,24 @@ int inla_read_prior_generic(inla_tp *mb, dictionary *ini, int sec, Prior_tp *pri
 		if (mb->verbose) {
 			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->expression);
 		}
+	} else if (!strncasecmp(prior->name, "RPRIOR:", strlen("RPRIOR:"))) {
+		prior->id = P_RPRIOR;
+		char *tag[3] = {NULL, NULL, NULL};
+		inla_sread_str_str(tag, 3, prior->name); // rprior:RPRIOR_FUNCTION:FILENAME
+		prior->rprior = GMRFLib_strdup(tag[1]);
+		GMRFLib_sprintf(&(prior->name), "%s:%s", tag[0], tag[1]);
+		GMRFLib_sprintf(&(prior->expression), "%s:%s", tag[0], tag[1]);
+		prior->parameters = NULL;
 
+#pragma omp critical (Name_efff84617ceb85320978c2deffcb5b8433bc888d)
+		{
+			inla_R_init_();
+			inla_R_load(tag[2]);
+		}
+
+		if (mb->verbose) {
+			printf("\t\t%s->%s=[%s]\n", prior_tag, prior->name, prior->rprior);
+		}
 	} else if (!strcasecmp(prior->name, "JEFFREYSTDF")) {
 		prior->id = P_JEFFREYS_T_DF;
 		prior->priorfunc = priorfunc_jeffreys_df_student_t;

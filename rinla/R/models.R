@@ -13088,6 +13088,13 @@
                     doc = "A generic tabulated prior",
                     nparameters = -1L,
                     pdf = "table"
+                ),
+                
+                "rprior:" = list(
+                    doc = "A R-function defining the prior",
+                    status = "experimental", 
+                    nparameters = 0L,
+                    pdf = "rprior"
                 )
             )
     )
