@@ -2457,7 +2457,7 @@
     
     while (inherits(r, "error")) {
         ##
-        if (inherits(r, "inlaCrashError")) {
+        if (inherits(r, c("simpleError", "inlaCrashError"))) {
             if (ntry == max.try) {
                 stop(paste0(r$message, "\n",
                             "The inla program failed and the maximum number of tries has been reached."))
