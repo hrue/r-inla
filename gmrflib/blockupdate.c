@@ -213,11 +213,33 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		df = (1.0 / 12.0 * f[4] - 2.0 / 3.0 * f[3] + 0.0 * f[2] + 2.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / step;
 		ddf = (-1.0 / 12.0 * f[4] - 4.0 / 3.0 * f[3] - 5.0 / 2.0 * f[2] + 4.0 / 3.0 * f[1] - 1.0 / 12.0 * f[0]) / SQR(step);
 		dddf = (-1.0 / 2.0 * f[4] + 1.0 * f[3] + 0.0 * f[2] - 1.0 * f[1] + 1.0 / 2.0 * f[0]) / POW3(step);
+	} else if (stencil && *stencil == 3) {
+		// special implementation for *stencil==3, which is used for the Gaussian case
+		if (!step_len || ISZERO(*step_len)) {
+			step = 1.0e-4 * (GSL_DBL_EPSILON / 2.220446049e-16);
+		} else {
+			step = *step_len;
+		}
+
+		int n = 3;
+		xx[0] = x0 - step;
+		xx[1] = x0;
+		xx[2] = x0 + step;
+
+		loglFunc(thread_id, f, xx, n, indx, x_vec, NULL, loglFunc_arg, NULL);
+
+		f0 = f[1];
+		df = 0.5 * (- f[0] + f[2]);
+		ddf = f[0] - 2.0 * f[1] + f[2];
+
+		df /= step;
+		ddf /= SQR(step);
+		dddf = 0.0;
 	} else {
 		int num_points = (stencil ? *stencil : 5);
 
 		if (!step_len || ISZERO(*step_len)) {
-			step = (GSL_DBL_EPSILON / 2.220446049e-16) * (*stencil == 5 ? 1.0e-4 : (*stencil == 7 ? 5.0e-4 : 1.0e-3));
+			step = (GSL_DBL_EPSILON / 2.220446049e-16) * (*stencil == 3 || *stencil == 5 ? 1.0e-4 : (*stencil == 7 ? 5.0e-4 : 1.0e-3));
 		} else {
 			step = *step_len;
 		}
@@ -225,15 +247,16 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		// see https://en.wikipedia.org/wiki/Finite_difference_coefficients
 		int n, nn, wlength;
 
-		static double wf3[] = {
-			// 
-			-0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0,
-			// 
-			1.0, -2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
-			// 
-			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-		};
-
+		/*
+		  static double wf3[] = {
+		  // 
+		  -0.5, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0,
+		  // 
+		  1.0, -2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+		  // 
+		  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+		  };
+		*/
 		static double wf5[] = {
 			// 
 			0.08333333333333333, -0.6666666666666666, 0.0, 0.6666666666666666, -0.08333333333333333, 0.0, 0.0, 0.0,
@@ -267,12 +290,14 @@ int GMRFLib_2order_approx_core(int thread_id, double *a, double *b, double *c, d
 		double *wf = NULL;
 
 		switch (num_points) {
-		case 3:
-			n = 3;
-			nn = 2;
-			wlength = 8;
-			wf = wf3;
-			break;
+			/*
+			  case 3:
+			  n = 3;
+			  nn = 1;
+			  wlength = 8;
+			  wf = wf3;
+			  break;
+			*/
 		case 5:
 			n = 5;
 			nn = 2;
