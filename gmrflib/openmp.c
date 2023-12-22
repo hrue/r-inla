@@ -32,6 +32,9 @@
 
 #include "GMRFLib/GMRFLib.h"
 
+// deprecated functions
+#define omp_set_nested(v_) omp_set_max_active_levels(((v_) ? 2 : 1))
+#define omp_get_nested() (omp_get_max_active_levels() > 1 ? 1 : 0)
 
 int GMRFLib_set_blas_num_threads(int threads)
 {
